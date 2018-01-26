@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -82,7 +82,7 @@ public class TraceSystem implements TraceWriter {
     private int maxFileSize = DEFAULT_MAX_FILE_SIZE;
     private String fileName;
     private final AtomicReferenceArray<Trace> traces =
-            new AtomicReferenceArray<Trace>(Trace.MODULE_NAMES.length);
+            new AtomicReferenceArray<>(Trace.MODULE_NAMES.length);
     private SimpleDateFormat dateFormat;
     private Writer fileWriter;
     private PrintWriter printWriter;
@@ -146,6 +146,9 @@ public class TraceSystem implements TraceWriter {
 
     @Override
     public boolean isEnabled(int level) {
+        if (levelMax == ADAPTER) {
+            return writer.isEnabled(level);
+        }
         return level <= this.levelMax;
     }
 

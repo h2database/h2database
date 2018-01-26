@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,6 +8,8 @@ package org.h2.result;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -77,6 +79,11 @@ public class LocalResult implements ResultInterface, ResultTarget {
         this.expressions = expressions;
     }
 
+    @Override
+    public boolean isLazy() {
+        return false;
+    }
+
     public void setMaxMemoryRows(int maxValue) {
         this.maxMemoryRows = maxValue;
     }
@@ -117,6 +124,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
      * @param targetSession the session of the copy
      * @return the copy if possible, or null if copying is not possible
      */
+    @Override
     public LocalResult createShallowCopy(Session targetSession) {
         if (external == null && (rows == null || rows.size() < rowCount)) {
             return null;
@@ -199,6 +207,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
      * @param values the row
      * @return true if the row exists
      */
+    @Override
     public boolean containsDistinct(Value[] values) {
         if (external != null) {
             return external.contains(values);
@@ -217,6 +226,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
     @Override
     public void reset() {
         rowId = -1;
+        currentRow = null;
         if (external != null) {
             external.reset();
             if (diskOffset > 0) {
@@ -254,6 +264,11 @@ public class LocalResult implements ResultInterface, ResultTarget {
         return rowId;
     }
 
+    @Override
+    public boolean isAfterLast() {
+        return rowId >= rowCount;
+    }
+
     private void cloneLobs(Value[] values) {
         for (int i = 0; i < values.length; i++) {
             Value v = values[i];
@@ -268,9 +283,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
 
     private ValueArray getArrayOfVisible(Value[] values) {
         if (values.length > visibleColumnCount) {
-            Value[] v2 = new Value[visibleColumnCount];
-            System.arraycopy(values, 0, v2, 0, visibleColumnCount);
-            values = v2;
+            values = Arrays.copyOf(values, visibleColumnCount);
         }
         return ValueArray.get(values);
     }
@@ -375,6 +388,11 @@ public class LocalResult implements ResultInterface, ResultTarget {
         return rowCount;
     }
 
+    @Override
+    public boolean hasNext() {
+        return !closed && rowId < rowCount - 1;
+    }
+
     /**
      * Set the number of rows that this result will return at the maximum.
      *
@@ -390,12 +408,14 @@ public class LocalResult implements ResultInterface, ResultTarget {
         }
         if (external == null) {
             if (rows.size() > limit) {
-                rows = New.arrayList(rows.subList(0, limit));
+                rows = new ArrayList<>(rows.subList(0, limit));
                 rowCount = limit;
+                distinctRows = null;
             }
         } else {
             if (limit < rowCount) {
                 rowCount = limit;
+                distinctRows = null;
             }
         }
     }
@@ -484,7 +504,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
             } else {
                 // avoid copying the whole array for each row
                 int remove = Math.min(offset, rows.size());
-                rows = New.arrayList(rows.subList(remove, rows.size()));
+                rows = new ArrayList<>(rows.subList(remove, rows.size()));
                 rowCount -= remove;
             }
         } else {
@@ -495,6 +515,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
                 rowCount -= offset;
             }
         }
+        distinctRows = null;
     }
 
     @Override
@@ -508,6 +529,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
      *
      * @return true if it is
      */
+    @Override
     public boolean isClosed() {
         return closed;
     }

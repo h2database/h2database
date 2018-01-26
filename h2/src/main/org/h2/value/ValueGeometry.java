@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,15 +8,16 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
-
+import org.h2.engine.Mode;
+import org.h2.message.DbException;
+import org.h2.table.Column;
+import org.h2.util.StringUtils;
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.CoordinateSequenceFilter;
-import com.vividsolutions.jts.geom.PrecisionModel;
-import org.h2.message.DbException;
-import org.h2.util.StringUtils;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
 import com.vividsolutions.jts.io.WKBWriter;
@@ -276,11 +277,11 @@ public class ValueGeometry extends Value {
     }
 
     @Override
-    public Value convertTo(int targetType) {
+    public Value convertTo(int targetType, int precision, Mode mode, Column column) {
         if (targetType == Value.JAVA_OBJECT) {
             return this;
         }
-        return super.convertTo(targetType);
+        return super.convertTo(targetType, precision, mode, column);
     }
 
     /**

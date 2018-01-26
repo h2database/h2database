@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,7 +8,6 @@ package org.h2.engine;
 import java.util.HashMap;
 
 import org.h2.table.Table;
-import org.h2.util.New;
 
 /**
  * A right owner (sometimes called principal).
@@ -100,7 +99,7 @@ public abstract class RightOwner extends DbObjectBase {
      */
     public void grantRight(DbObject object, Right right) {
         if (grantedRights == null) {
-            grantedRights = New.hashMap();
+            grantedRights = new HashMap<>();
         }
         grantedRights.put(object, right);
     }
@@ -128,7 +127,7 @@ public abstract class RightOwner extends DbObjectBase {
      */
     public void grantRole(Role role, Right right) {
         if (grantedRoles == null) {
-            grantedRoles = New.hashMap();
+            grantedRoles = new HashMap<>();
         }
         grantedRoles.put(role, right);
     }

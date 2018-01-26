@@ -1,8 +1,32 @@
-git pull
-./build.sh spellcheck
-./build.sh javadocImpl
-./build.sh docs
-./build.sh jarMVStore (should be about 200 KB)
+# Checklist for a release
+
+## Formatting, Spellchecking, Javadocs
+
+    git pull
+
+Do this until there are no errors.
+Fix typos, add new words to dictionary.txt:
+
+    ./build.sh spellcheck
+
+Add documentation for all public methods. Make methods private if possible:
+
+    ./build.sh javadocImpl
+
+Ensure lines are not overly long:
+
+    ./build.sh docs
+
+## Jar File Size Verification
+
+To ensure the MVStore jar file is not too large
+(does not reference the database code by accident).
+The file size should be about 200 KB:
+
+    ./build.sh jarMVStore
+
+## Changing Version Numbers
+
 Update Constants.java - change version and build number
 Update changelog.html - add new version, remove oldest
 Update newsfeed.sql - add new version, remove oldest
@@ -17,23 +41,39 @@ Test installer, H2 Console (test new languages)
 Check docs, versions and links in main, downloads, build numbers
 Check the PDF file size
 
-Upload to SourceForge
-Upload to ftp://h2database.com/javadoc
-Upload to ftp://h2database.com
-Upload to ftp://h2database.com/m2-repo
+Upload (http and https) to ftp://h2database.com/javadoc
+Upload (http and https) to ftp://h2database.com
+Upload (http and https) to ftp://h2database.com/m2-repo
 Github: create a release
 Newsletter: prepare (always to BCC)
 Newsletter: send to h2-database-jp@googlegroups.com; h2-database@googlegroups.com; h2database-news@googlegroups.com; ...
 Add to http://twitter.com
 - tweet: add @geospatialnews for the new geometry type and disk spatial index
-Close bugs: https://github.com/h2database/h2database/issues
-Update statistics
 
 Sign files and publish files on Maven Central
-./build.sh compile jar mavenDeployCentral
-cd /data/h2database/m2-repo/com/h2database/h2/1...
-remove sha and md5 files
-gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-* (each one separate)
+(check java version is 1.7)
+./build.sh clean compile jar mavenDeployCentral
+cd /data/h2database/m2-repo/com/h2database
+# remove sha and md5 files:
+find . -name "*.sha1" -delete
+find . -name "*.md5" -delete
+cd h2/1...
+# for each file separately (-javadoc.jar, -sources.jar, .jar, .pom):
+gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-...
 jar -cvf bundle.jar h2-*
-http://central.sonatype.org/pages/ossrh-guide.html
-http://central.sonatype.org/pages/manual-staging-bundle-creation-and-deployment.html
+cd ../../h2-mvstore/1...
+# for each file separately (-javadoc.jar, -sources.jar, .jar, .pom):
+gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-mvstore...
+jar -cvf bundle.jar h2-*
+# http://central.sonatype.org/pages/ossrh-guide.html
+# http://central.sonatype.org/pages/manual-staging-bundle-creation-and-deployment.html
+# https://oss.sonatype.org/#welcome - Log In "t..."
+# - Staging Upload
+# - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/.../bundle.jar
+# - Upload Bundle - Staging Repositories - select comh2database - Release - Confirm
+# - Staging Upload
+# - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/.../bundle.jar
+# - Upload Bundle - Staging Repositories - select comh2database - Release - Confirm
+
+Update statistics
+Change version in pom.xml, commit

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -52,8 +52,8 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     final MVTable mvTable;
 
     private final String mapName;
-    private TransactionMap<SpatialKey, Value> dataMap;
-    private MVRTreeMap<VersionedValue> spatialMap;
+    private final TransactionMap<SpatialKey, Value> dataMap;
+    private final MVRTreeMap<VersionedValue> spatialMap;
 
     /**
      * Constructor.
@@ -102,7 +102,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
                 new MVRTreeMap.Builder<VersionedValue>().
                 valueType(valueType);
         spatialMap = db.getMvStore().getStore().openMap(mapName, mapBuilder);
-        Transaction t = mvTable.getTransaction(null);
+        Transaction t = mvTable.getTransactionBegin();
         dataMap = t.openMap(spatialMap);
         t.commit();
     }
@@ -126,6 +126,11 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     public void add(Session session, Row row) {
         TransactionMap<SpatialKey, Value> map = getMap(session);
         SpatialKey key = getKey(row);
+
+        if (key.isNull()) {
+            return;
+        }
+
         if (indexType.isUnique()) {
             // this will detect committed entries only
             RTreeCursor cursor = spatialMap.findContainedKeys(key);
@@ -166,6 +171,11 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     @Override
     public void remove(Session session, Row row) {
         SpatialKey key = getKey(row);
+
+        if (key.isNull()) {
+            return;
+        }
+
         TransactionMap<SpatialKey, Value> map = getMap(session);
         try {
             Value old = map.remove(key);
@@ -197,10 +207,11 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     }
 
     @Override
-    public Cursor findByGeometry(TableFilter filter, SearchRow intersection) {
+    public Cursor findByGeometry(TableFilter filter, SearchRow first,
+            SearchRow last, SearchRow intersection) {
         Session session = filter.getSession();
         if (intersection == null) {
-            return find(session);
+            return find(session, first, last);
         }
         Iterator<SpatialKey> cursor =
                 spatialMap.findIntersectingKeys(getKey(intersection));
@@ -242,15 +253,14 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     public double getCost(Session session, int[] masks, TableFilter[] filters,
             int filter, SortOrder sortOrder,
             HashSet<Column> allColumnsSet) {
-        return SpatialTreeIndex.getCostRangeIndex(masks,
-                table.getRowCountApproximation(), columns);
+        return SpatialTreeIndex.getCostRangeIndex(masks, columns);
     }
 
     @Override
     public void remove(Session session) {
         TransactionMap<SpatialKey, Value> map = getMap(session);
         if (!map.isClosed()) {
-            Transaction t = mvTable.getTransaction(session);
+            Transaction t = session.getTransaction();
             t.removeMap(map);
         }
     }
@@ -320,7 +330,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         if (session == null) {
             return dataMap;
         }
-        Transaction t = mvTable.getTransaction(session);
+        Transaction t = session.getTransaction();
         return dataMap.getInstance(t, Long.MAX_VALUE);
     }
 

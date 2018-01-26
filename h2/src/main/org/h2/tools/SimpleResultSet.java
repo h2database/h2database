@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,6 +8,7 @@ package org.h2.tools;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.URL;
 import java.sql.Array;
 import java.sql.Blob;
@@ -28,9 +29,12 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Map;
+import java.util.UUID;
 
 import org.h2.api.ErrorCode;
+import org.h2.jdbc.JdbcResultSetBackwardsCompat;
 import org.h2.message.DbException;
+import org.h2.util.Bits;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
@@ -54,7 +58,8 @@ import org.h2.value.DataType;
  * </pre>
  *
  */
-public class SimpleResultSet implements ResultSet, ResultSetMetaData {
+public class SimpleResultSet implements ResultSet, ResultSetMetaData,
+        JdbcResultSetBackwardsCompat {
 
     private ArrayList<Object[]> rows;
     private Object[] currentRow;
@@ -391,6 +396,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * @deprecated INTERNAL
      */
+    @Deprecated
     @Override
     public BigDecimal getBigDecimal(int columnIndex, int scale)
             throws SQLException {
@@ -400,6 +406,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * @deprecated INTERNAL
      */
+    @Deprecated
     @Override
     public BigDecimal getBigDecimal(String columnLabel, int scale)
             throws SQLException {
@@ -472,10 +479,26 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     @Override
     public boolean getBoolean(int columnIndex) throws SQLException {
         Object o = get(columnIndex);
-        if (o != null && !(o instanceof Boolean)) {
-            o = Boolean.valueOf(o.toString());
+        if (o == null) {
+            return false;
         }
-        return o == null ? false : ((Boolean) o).booleanValue();
+        if (o instanceof Boolean) {
+            return (Boolean) o;
+        }
+        if (o instanceof Number) {
+            Number n = (Number) o;
+            if (n instanceof Double || n instanceof Float) {
+                return n.doubleValue() != 0;
+            }
+            if (n instanceof BigDecimal) {
+                return ((BigDecimal) n).signum() != 0;
+            }
+            if (n instanceof BigInteger) {
+                return ((BigInteger) n).signum() != 0;
+            }
+            return n.longValue() != 0;
+        }
+        return Boolean.parseBoolean(o.toString());
     }
 
     /**
@@ -526,6 +549,9 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         Object o = get(columnIndex);
         if (o == null || o instanceof byte[]) {
             return (byte[]) o;
+        }
+        if (o instanceof UUID) {
+            return Bits.uuidToBytes((UUID) o);
         }
         return JdbcUtils.serialize(o, null);
     }
@@ -821,12 +847,10 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @param columnIndex the column index (1, 2, ...)
      * @param type the class of the returned value
      */
-/*## Java 1.7 ##
     @Override
-    public <T> T getObject(int columnIndex, Class<T> type) {
-        return null;
+    public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
+        throw getUnsupportedException();
     }
-//*/
 
     /**
      * INTERNAL
@@ -834,12 +858,10 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @param columnName the column name
      * @param type the class of the returned value
      */
-/*## Java 1.7 ##
     @Override
-    public <T> T getObject(String columnName, Class<T> type) {
-        return null;
+    public <T> T getObject(String columnName, Class<T> type) throws SQLException {
+        throw getUnsupportedException();
     }
-//*/
 
     /**
      * INTERNAL
@@ -1045,6 +1067,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * @deprecated INTERNAL
      */
+    @Deprecated
     @Override
     public InputStream getUnicodeStream(int columnIndex) throws SQLException {
         throw getUnsupportedException();
@@ -1053,6 +1076,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * @deprecated INTERNAL
      */
+    @Deprecated
     @Override
     public InputStream getUnicodeStream(String columnLabel) throws SQLException {
         throw getUnsupportedException();

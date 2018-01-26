@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -59,6 +59,14 @@ public class Explain extends Prepared {
     }
 
     @Override
+    protected void checkParameters() {
+        // Check params only in case of EXPLAIN ANALYZE
+        if (executeCommand) {
+            super.checkParameters();
+        }
+    }
+
+    @Override
     public ResultInterface query(int maxrows) {
         Column column = new Column("PLAN", Value.STRING);
         Database db = session.getDatabase();
@@ -98,7 +106,7 @@ public class Explain extends Prepared {
                         total += e.getValue();
                     }
                     if (total > 0) {
-                        statistics = new TreeMap<String, Integer>(statistics);
+                        statistics = new TreeMap<>(statistics);
                         StringBuilder buff = new StringBuilder();
                         if (statistics.size() > 1) {
                             buff.append("total: ").append(total).append('\n');
@@ -146,6 +154,6 @@ public class Explain extends Prepared {
 
     @Override
     public int getType() {
-        return CommandInterface.EXPLAIN;
+        return executeCommand ? CommandInterface.EXPLAIN_ANALYZE : CommandInterface.EXPLAIN;
     }
 }

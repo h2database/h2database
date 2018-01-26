@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -24,7 +24,9 @@ import org.h2.table.Table;
  */
 public class AlterSequence extends SchemaCommand {
 
+    private boolean ifExists;
     private Table table;
+    private String sequenceName;
     private Sequence sequence;
     private Expression start;
     private Expression increment;
@@ -37,8 +39,12 @@ public class AlterSequence extends SchemaCommand {
         super(session, schema);
     }
 
-    public void setSequence(Sequence sequence) {
-        this.sequence = sequence;
+    public void setIfExists(boolean b) {
+        ifExists = b;
+    }
+
+    public void setSequenceName(String sequenceName) {
+        this.sequenceName = sequenceName;
     }
 
     @Override
@@ -49,7 +55,7 @@ public class AlterSequence extends SchemaCommand {
     public void setColumn(Column column) {
         table = column.getTable();
         sequence = column.getSequence();
-        if (sequence == null) {
+        if (sequence == null && !ifExists) {
             throw DbException.get(ErrorCode.SEQUENCE_NOT_FOUND_1, column.getSQL());
         }
     }
@@ -81,6 +87,15 @@ public class AlterSequence extends SchemaCommand {
     @Override
     public int update() {
         Database db = session.getDatabase();
+        if (sequence == null) {
+            sequence = getSchema().findSequence(sequenceName);
+            if (sequence == null) {
+                if (!ifExists) {
+                    throw DbException.get(ErrorCode.SEQUENCE_NOT_FOUND_1, sequenceName);
+                }
+                return 0;
+            }
+        }
         if (table != null) {
             session.getUser().checkRight(table, Right.ALL);
         }
@@ -99,16 +114,7 @@ public class AlterSequence extends SchemaCommand {
             Long inc = getLong(increment);
             sequence.modify(startValue, min, max, inc);
         }
-        // need to use the system session, so that the update
-        // can be committed immediately - not committing it
-        // would keep other transactions from using the sequence
-        Session sysSession = db.getSystemSession();
-        synchronized (sysSession) {
-            synchronized (db) {
-                db.updateMeta(sysSession, sequence);
-                sysSession.commit(true);
-            }
-        }
+        db.updateMeta(session, sequence);
         return 0;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,6 +8,7 @@ package org.h2.test.store;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.dev.util.ImmutableArray2;
 import org.h2.test.TestBase;
@@ -48,7 +49,7 @@ public class TestImmutableArray extends TestBase {
 //        ArrayList time 361 dummy: 60000000
 
         System.out.print(immutable ? "immutable" : "ArrayList");
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
         int count = 20000000;
         Integer x = 1;
         int sum = 0;
@@ -77,7 +78,7 @@ public class TestImmutableArray extends TestBase {
                 }
             }
         } else {
-            ArrayList<Integer> test = new ArrayList<Integer>();
+            ArrayList<Integer> test = new ArrayList<>();
             for (int i = 0; i < count; i++) {
                 if (i % 10 != 0) {
                     test.add(test.size(), x);
@@ -101,7 +102,7 @@ public class TestImmutableArray extends TestBase {
                 }
             }
         }
-        System.out.println(" time " + (System.currentTimeMillis() - start) +
+        System.out.println(" time " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) +
                 " dummy: " + sum);
     }
 
@@ -110,7 +111,7 @@ public class TestImmutableArray extends TestBase {
         for (int i = 0; i < 100; i++) {
             ImmutableArray2<Integer> test = ImmutableArray2.empty();
             // ConcurrentRing<Integer> test = new ConcurrentRing<Integer>();
-            ArrayList<Integer> x = new ArrayList<Integer>();
+            ArrayList<Integer> x = new ArrayList<>();
             StringBuilder buff = new StringBuilder();
             for (int j = 0; j < 1000; j++) {
                 buff.append("[" + j + "] ");

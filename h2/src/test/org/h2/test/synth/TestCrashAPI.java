@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -22,6 +22,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -30,18 +31,18 @@ import java.util.Calendar;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
-import org.h2.test.db.TestScript;
+import org.h2.test.scripts.TestScript;
 import org.h2.test.synth.sql.RandomGen;
 import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Restore;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 
@@ -62,7 +63,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
 
     private final ArrayList<Object> objects = New.arrayList();
     private final HashMap<Class <?>, ArrayList<Method>> classMethods =
-            New.hashMap();
+            new HashMap<>();
     private RandomGen random = new RandomGen();
     private final ArrayList<String> statements = New.arrayList();
     private int openCount;
@@ -276,8 +277,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
         return conn;
     }
 
-    @Override
-    public void testCase(int seed) throws SQLException {
+    private void testCase(int seed) throws SQLException {
         printTime("seed: " + seed);
         callCount = 0;
         openCount = 0;
@@ -308,12 +308,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
                             break;
                         }
                         try {
-long start = System.currentTimeMillis();
                             conn = getConnection(seed, false);
-long connectTime = System.currentTimeMillis() - start;
-if (connectTime > 2000) {
-    System.out.println("??? connected2 in " + connectTime);
-}
                         } catch (Throwable t) {
                             printIfBad(seed, -i, -1, t);
                         }
@@ -407,6 +402,10 @@ if (connectTime > 2000) {
             // do nothing
         } else if (t.getClass().getName().contains("SQLClientInfoException")) {
             // do nothing
+        } else if (t instanceof UnsupportedOperationException) {
+            // do nothing - new Java8/9 stuff
+        } else if (t instanceof SQLFeatureNotSupportedException) {
+            // do nothing
         } else if (t instanceof SQLException) {
             SQLException s = (SQLException) t;
             int errorCode = s.getErrorCode();
@@ -441,7 +440,7 @@ if (connectTime > 2000) {
         } else if (type == boolean.class) {
             return random.nextBoolean();
         } else if (type == double.class) {
-            return new Double(random.getRandomDouble());
+            return random.getRandomDouble();
         } else if (type == String.class) {
             if (random.getInt(10) == 0) {
                 return null;
@@ -486,7 +485,7 @@ if (connectTime > 2000) {
             // TODO should use generated savepoints
             return null;
         } else if (type == Calendar.class) {
-            return Calendar.getInstance();
+            return DateTimeUtils.createGregorianCalendar();
         } else if (type == java.net.URL.class) {
             return null;
         } else if (type == java.math.BigDecimal.class) {

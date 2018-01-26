@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,8 +10,8 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.CRC32;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.ddl.CreateTableData;
@@ -41,6 +41,7 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
 import org.h2.table.Table;
+import org.h2.table.TableType;
 import org.h2.util.BitField;
 import org.h2.util.Cache;
 import org.h2.util.CacheLRU;
@@ -163,7 +164,7 @@ public class PageStore implements CacheWriter {
     private RegularTable metaTable;
     private PageDataIndex metaIndex;
     private final IntIntHashMap metaRootPageId = new IntIntHashMap();
-    private final HashMap<Integer, PageIndex> metaObjects = New.hashMap();
+    private final HashMap<Integer, PageIndex> metaObjects = new HashMap<>();
     private HashMap<Integer, PageIndex> tempObjects;
 
     /**
@@ -228,7 +229,7 @@ public class PageStore implements CacheWriter {
      * Start collecting statistics.
      */
     public void statisticsStart() {
-        statistics = New.hashMap();
+        statistics = new HashMap<>();
     }
 
     /**
@@ -506,7 +507,7 @@ public class PageStore implements CacheWriter {
         } finally {
             recoveryRunning = false;
         }
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
         boolean isCompactFully = compactMode ==
                 CommandInterface.SHUTDOWN_COMPACT;
         boolean isDefrag = compactMode ==
@@ -537,8 +538,8 @@ public class PageStore implements CacheWriter {
                         }
                         if (compact(full, firstFree)) {
                             j++;
-                            long now = System.currentTimeMillis();
-                            if (now > start + maxCompactTime) {
+                            long now = System.nanoTime();
+                            if (now > start + TimeUnit.MILLISECONDS.toNanos(maxCompactTime)) {
                                 j = maxMove;
                                 break;
                             }
@@ -557,7 +558,7 @@ public class PageStore implements CacheWriter {
             recordPageReads = true;
             Session sysSession = database.getSystemSession();
             for (Table table : tables) {
-                if (!table.isTemporary() && Table.TABLE.equals(table.getTableType())) {
+                if (!table.isTemporary() && TableType.TABLE == table.getTableType()) {
                     Index scanIndex = table.getScanIndex(sysSession);
                     Cursor cursor = scanIndex.find(sysSession, null, null);
                     while (cursor.next()) {
@@ -1420,7 +1421,7 @@ public class PageStore implements CacheWriter {
             if (index.getTable().isTemporary()) {
                 // temporary indexes are removed after opening
                 if (tempObjects == null) {
-                    tempObjects = New.hashMap();
+                    tempObjects = new HashMap<>();
                 }
                 tempObjects.put(index.getId(), index);
             } else {
@@ -1529,7 +1530,7 @@ public class PageStore implements CacheWriter {
         if (tableId == META_TABLE_ID) {
             int rootPageId = row.getValue(3).getInt();
             if (reservedPages == null) {
-                reservedPages = New.hashMap();
+                reservedPages = new HashMap<>();
             }
             reservedPages.put(rootPageId, logPos);
         }

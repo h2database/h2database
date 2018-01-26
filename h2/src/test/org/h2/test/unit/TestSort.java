@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -30,7 +30,7 @@ public class TestSort extends TestBase {
         @Override
         public int compare(Long o1, Long o2) {
             compareCount.incrementAndGet();
-            return Long.valueOf(o1 >> 32).compareTo(o2 >> 32);
+            return Long.compare(o1 >> 32, o2 >> 32);
         }
     };
 
@@ -88,17 +88,17 @@ public class TestSort extends TestBase {
      *
      * @param type the type of data
      */
-    private void  test(String type) throws Exception {
+    private void  test(@SuppressWarnings("unused") String type) throws Exception {
         compareCount.set(0);
 
-        // long t = System.currentTimeMillis();
+        // long t = System.nanoTime();
 
         clazz.getMethod("sort", Object[].class, Comparator.class).invoke(null,
                 array, comp);
 
         // System.out.printf(
         //    "%4d ms; %10d comparisons order: %s data: %s\n",
-        //    (System.currentTimeMillis() - t),
+        //    TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - t),
         //    compareCount.get(), clazz, type);
 
         verify(array);

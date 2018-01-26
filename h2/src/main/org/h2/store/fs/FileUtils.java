@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,8 +11,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.List;
-import org.h2.util.New;
 
 /**
  * This utility class contains utility functions that use the file system
@@ -98,7 +98,10 @@ public class FileUtils {
      * @return if the file name is absolute
      */
     public static boolean isAbsolute(String fileName) {
-        return FilePath.get(fileName).isAbsolute();
+        return FilePath.get(fileName).isAbsolute()
+                // Allows Windows to recognize "/path" as absolute.
+                // Makes the same configuration work on all platforms.
+                || fileName.startsWith("/");
     }
 
     /**
@@ -146,7 +149,7 @@ public class FileUtils {
     public static List<String> newDirectoryStream(String path) {
         List<FilePath> list = FilePath.get(path).newDirectoryStream();
         int len = list.size();
-        List<String> result = New.arrayList(len);
+        List<String> result = new ArrayList<>(len);
         for (int i = 0; i < len; i++) {
             result.add(list.get(i).toString());
         }

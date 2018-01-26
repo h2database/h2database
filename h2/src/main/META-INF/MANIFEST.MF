@@ -14,6 +14,7 @@ Bundle-Vendor: H2 Group
 Bundle-Version: ${version}
 Bundle-License: http://www.h2database.com/html/license.html
 Bundle-Category: jdbc
+Multi-Release: true
 Import-Package: javax.management,
  javax.naming;resolution:=optional,
  javax.naming.spi;resolution:=optional,
@@ -56,8 +57,10 @@ Export-Package: org.h2;version="${version}",
  org.h2.bnf;version="${version}",
  org.h2.bnf.context;version="${version}",
  org.h2.mvstore;version="${version}",
+ org.h2.mvstore.db;version="${version}",
  org.h2.mvstore.type;version="${version}",
  org.h2.mvstore.rtree;version="${version}"
+Provide-Capability: osgi.service;objectClass:List<String>=org.osgi.service.jdbc.DataSourceFactory
 Premain-Class: org.h2.util.Profiler
 Require-Capability: osgi.extender;
   filter:="(osgi.extender=osgi.serviceloader.registrar)";resolution:=optional

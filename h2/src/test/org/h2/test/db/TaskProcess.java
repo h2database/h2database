@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -16,8 +16,8 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import org.h2.test.utils.SelfDestructor;
-import org.h2.util.Task;
 import org.h2.util.StringUtils;
+import org.h2.util.Task;
 
 /**
  * A task that is run as an external process. This class communicates over
@@ -47,7 +47,7 @@ public class TaskProcess {
     public void start(String... args) {
         try {
             String selfDestruct = SelfDestructor.getPropertyString(60);
-            ArrayList<String> list = new ArrayList<String>();
+            ArrayList<String> list = new ArrayList<>();
             list.add("java");
             list.add(selfDestruct);
             list.add("-cp");
@@ -57,9 +57,7 @@ public class TaskProcess {
             if (args != null && args.length > 0) {
                 list.addAll(Arrays.asList(args));
             }
-            String[] procDef = new String[list.size()];
-            list.toArray(procDef);
-            traceOperation("start: " + StringUtils.arrayCombine(procDef, ' '));
+            String[] procDef = list.toArray(new String[0]);
             process = Runtime.getRuntime().exec(procDef);
             copyInThread(process.getErrorStream(), System.err);
             reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -70,7 +68,6 @@ public class TaskProcess {
                         "No reply from process, command: " +
                         StringUtils.arrayCombine(procDef, ' '));
             } else if (line.startsWith("running")) {
-                traceOperation("got reply: " + line);
             } else if (line.startsWith("init error")) {
                 throw new RuntimeException(line);
             }
@@ -130,12 +127,4 @@ public class TaskProcess {
         process.destroy();
     }
 
-    /**
-     * Trace the operation. Tracing is disabled by default.
-     *
-     * @param s the string to print
-     */
-    private void traceOperation(String s) {
-        // ignore
-    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,6 +8,8 @@ package org.h2.message;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicIntegerArray;
+
 import org.h2.util.StringUtils;
 
 /**
@@ -91,7 +93,8 @@ public class TraceObject {
     protected static final int ARRAY = 16;
 
     private static final int LAST = ARRAY + 1;
-    private static final int[] ID = new int[LAST];
+    private static final AtomicIntegerArray ID = new AtomicIntegerArray(LAST);
+
     private static final String[] PREFIX = { "call", "conn", "dbMeta", "prep",
             "rs", "rsMeta", "sp", "ex", "stat", "blob", "clob", "pMeta", "ds",
             "xads", "xares", "xid", "ar" };
@@ -138,7 +141,7 @@ public class TraceObject {
      * @return the new trace object id
      */
     protected static int getNextId(int type) {
-        return ID[type]++;
+        return ID.getAndIncrement(type);
     }
 
     /**
@@ -364,13 +367,12 @@ public class TraceObject {
     }
 
     /**
-     * Get and throw a SQL exception meaning this feature is not supported.
+     * Get a SQL exception meaning this feature is not supported.
      *
      * @param message the message
-     * @return never returns normally
-     * @throws SQLException the exception
+     * @return the SQL exception
      */
-    protected SQLException unsupported(String message) throws SQLException {
+    protected SQLException unsupported(String message) {
         try {
             throw DbException.getUnsupportedException(message);
         } catch (Exception e) {

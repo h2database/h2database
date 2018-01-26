@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -34,6 +34,7 @@ public class TestView extends TestBase {
     @Override
     public void test() throws SQLException {
         deleteDb("view");
+        testSubSubQuery();
         testSubQueryViewIndexCache();
         testInnerSelectWithRownum();
         testInnerSelectWithRange();
@@ -50,6 +51,19 @@ public class TestView extends TestBase {
         testViewAlterAndCommandCache();
         testViewConstraintFromColumnExpression();
         deleteDb("view");
+    }
+
+    private void testSubSubQuery() throws SQLException {
+        Connection conn = getConnection("view");
+        Statement stat = conn.createStatement();
+        stat.execute("drop table test if exists");
+        stat.execute("create table test(a int, b int, c int)");
+        stat.execute("insert into test values(1, 1, 1)");
+        ResultSet rs = stat.executeQuery("select 1 x from (select a, b, c from " +
+                "(select * from test) bbb where bbb.a >=1 and bbb.a <= 1) sp " +
+                "where sp.a = 1 and sp.b = 1 and sp.c = 1");
+        assertTrue(rs.next());
+        conn.close();
     }
 
     private void testSubQueryViewIndexCache() throws SQLException {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -382,7 +382,7 @@ public class SamplesTest extends TestBase {
     }
 
     private void testLimitOffset() {
-        Set<Integer> ids = new HashSet<Integer>();
+        Set<Integer> ids = new HashSet<>();
         Product p = new Product();
         for (int i = 0; i < 5; i++) {
             List<Product> products = db.from(p).limit(2).offset(2 * i).select();
@@ -396,7 +396,7 @@ public class SamplesTest extends TestBase {
     private void testKeyRetrieval() {
         List<SupportedTypes> list = SupportedTypes.createList();
         List<Long> keys = db.insertAllAndGetKeys(list);
-        Set<Long> uniqueKeys = new HashSet<Long>();
+        Set<Long> uniqueKeys = new HashSet<>();
         for (Long l : keys) {
             assertTrue("Failed to add key.  Duplicate?", uniqueKeys.add(l));
         }

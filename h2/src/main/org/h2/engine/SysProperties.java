@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -84,17 +84,6 @@ public class SysProperties {
      */
     public static final String ALLOWED_CLASSES =
             Utils.getProperty("h2.allowedClasses", "*");
-
-    /**
-     * System property <code>h2.browser</code> (default: null).<br />
-     * The preferred browser to use. If not set, the default browser is used.
-     * For Windows, to use the Internet Explorer, set this property to
-     * 'explorer'. For Mac OS, if the default browser is not Safari and you want
-     * to use Safari, use:
-     * <code>java -Dh2.browser="open,-a,Safari,%url" ...</code>.
-     */
-    public static final String BROWSER =
-            Utils.getProperty(H2_BROWSER, null);
 
     /**
      * System property <code>h2.enableAnonymousTLS</code> (default: true).<br />
@@ -338,8 +327,15 @@ public class SysProperties {
      * The maximum number of objects in the cache.
      * This value must be a power of 2.
      */
-    public static final int OBJECT_CACHE_SIZE =
-            MathUtils.nextPowerOf2(Utils.getProperty("h2.objectCacheSize", 1024));
+    public static final int OBJECT_CACHE_SIZE;
+    static {
+        try {
+            OBJECT_CACHE_SIZE = MathUtils.nextPowerOf2(
+                    Utils.getProperty("h2.objectCacheSize", 1024));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("Invalid h2.objectCacheSize", e);
+        }
+    }
 
     /**
      * System property <code>h2.oldStyleOuterJoin</code>
@@ -348,7 +344,25 @@ public class SysProperties {
      */
     public static final boolean OLD_STYLE_OUTER_JOIN =
             Utils.getProperty("h2.oldStyleOuterJoin",
-                    Constants.VERSION_MINOR >= 4 ? false : true);
+                    Constants.VERSION_MINOR < 4);
+
+    /**
+     * System property {@code h2.oldResultSetGetObject}, {@code true} by default.
+     * Return {@code Byte} and {@code Short} instead of {@code Integer} from
+     * {@code ResultSet#getObject(...)} for {@code TINYINT} and {@code SMALLINT}
+     * values.
+     */
+    public static final boolean OLD_RESULT_SET_GET_OBJECT =
+            Utils.getProperty("h2.oldResultSetGetObject", true);
+
+    /**
+     * System property {@code h2.bigDecimalIsDecimal}, {@code true} by default. If
+     * {@code true} map {@code BigDecimal} to {@code DECIMAL} type, if {@code false}
+     * map it to {@code NUMERIC} as specified in JDBC specification (see Mapping
+     * from Java Object Types to JDBC Types).
+     */
+    public static final boolean BIG_DECIMAL_IS_DECIMAL =
+            Utils.getProperty("h2.bigDecimalIsDecimal", true);
 
     /**
      * System property <code>h2.pgClientEncoding</code> (default: UTF-8).<br />
@@ -405,7 +419,7 @@ public class SysProperties {
      */
     public static final boolean SORT_BINARY_UNSIGNED =
             Utils.getProperty("h2.sortBinaryUnsigned",
-                    Constants.VERSION_MINOR >= 4 ? true : false);
+                    Constants.VERSION_MINOR >= 4);
 
     /**
      * System property <code>h2.sortNullsHigh</code> (default: false).<br />
@@ -459,7 +473,7 @@ public class SysProperties {
      */
     public static final boolean IMPLICIT_RELATIVE_PATH =
             Utils.getProperty("h2.implicitRelativePath",
-                    Constants.VERSION_MINOR >= 4 ? false : true);
+                    Constants.VERSION_MINOR < 4);
 
     /**
      * System property <code>h2.urlMap</code> (default: null).<br />
@@ -521,6 +535,16 @@ public class SysProperties {
      */
     public static final String JAVA_OBJECT_SERIALIZER =
             Utils.getProperty("h2.javaObjectSerializer", null);
+
+    /**
+     * System property <code>h2.customDataTypesHandler</code>
+     * (default: null).<br />
+     * The CustomDataTypesHandler class name that is used
+     * to provide support for user defined custom data types.
+     * It must be the same on client and server to work correctly.
+     */
+    public static final String CUSTOM_DATA_TYPES_HANDLER =
+            Utils.getProperty("h2.customDataTypesHandler", null);
 
     private static final String H2_BASE_DIR = "h2.baseDir";
 

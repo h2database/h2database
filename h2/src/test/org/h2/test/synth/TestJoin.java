@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -15,6 +15,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.test.TestBase;
 import org.h2.util.New;
@@ -97,12 +98,12 @@ public class TestJoin extends TestBase {
         execute("INSERT INTO TWO VALUES(3, 3)", null);
         execute("INSERT INTO TWO VALUES(4, NULL)", null);
         random = new Random();
-        long startTime = System.currentTimeMillis();
+        long startTime = System.nanoTime();
         for (int i = 0;; i++) {
             paramCount = 0;
             buff = new StringBuilder();
-            long time = System.currentTimeMillis();
-            if (time - startTime > 5000) {
+            long time = System.nanoTime();
+            if (time - startTime > TimeUnit.SECONDS.toNanos(5)) {
                 printTime("i:" + i);
                 startTime = time;
             }

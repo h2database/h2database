@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0, Version 1.0,
+Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0, Version 1.0,
 and under the Eclipse Public License, Version 1.0
 Initial Developer: H2 Group
 -->
@@ -370,6 +370,22 @@ Indexes are created automatically for primary key and unique constraints.
 Indexes are also created for foreign key constraints, if required.
 For other columns, indexes need to be created manually using the <code>CREATE INDEX</code> statement.
 </p>
+
+<h3>Index Hints</h3>
+<p>
+If you have determined that H2 is not using the optimal index for your query, you can use index hints to force
+H2 to use specific indexes.
+</p>
+<pre>
+SELECT * FROM TEST USE INDEX (index_name_1, index_name_2) WHERE X=1
+</pre>
+<p>Only indexes in the list will be used when choosing an index to use on the given table. There
+is no significance to order in this list.
+</p><p>
+It is possible that no index in the list is chosen, in which case a full table scan will be used.
+</p>
+<p>An empty list of index names forces a full table scan to be performed.</p>
+<p>Each index in the list must exist.</p>
 
 <h3>How Data is Stored Internally</h3>
 <p>

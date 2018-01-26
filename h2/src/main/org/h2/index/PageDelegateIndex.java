@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -85,7 +85,7 @@ public class PageDelegateIndex extends PageIndex {
 
     @Override
     public Cursor findNext(Session session, SearchRow higherThan, SearchRow last) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     @Override
@@ -94,6 +94,11 @@ public class PageDelegateIndex extends PageIndex {
             return 0;
         }
         return -1;
+    }
+
+    @Override
+    public boolean isFirstColumn(Column column) {
+        return getColumnIndex(column) == 0;
     }
 
     @Override

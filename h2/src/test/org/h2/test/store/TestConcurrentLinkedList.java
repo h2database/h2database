@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,8 +8,8 @@ package org.h2.test.store;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.h2.mvstore.ConcurrentArrayList;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
@@ -27,7 +27,7 @@ public class TestConcurrentLinkedList extends TestBase {
     public static void main(String... a) throws Exception {
         TestConcurrentLinkedList test = (TestConcurrentLinkedList) TestBase.createCaller().init();
         test.test();
-        test.testPerformance();
+        testPerformance();
     }
 
     @Override
@@ -36,7 +36,7 @@ public class TestConcurrentLinkedList extends TestBase {
         testConcurrent();
     }
 
-    private void testPerformance() {
+    private static void testPerformance() {
         testPerformance(true);
         testPerformance(false);
         testPerformance(true);
@@ -45,14 +45,14 @@ public class TestConcurrentLinkedList extends TestBase {
         testPerformance(false);
     }
 
-    private void testPerformance(final boolean stock) {
+    private static void testPerformance(final boolean stock) {
         System.out.print(stock ? "stock " : "custom ");
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
         // final ConcurrentLinkedList<Integer> test =
         //     new ConcurrentLinkedList<Integer>();
         final ConcurrentArrayList<Integer> test =
-                new ConcurrentArrayList<Integer>();
-        final LinkedList<Integer> x = new LinkedList<Integer>();
+                new ConcurrentArrayList<>();
+        final LinkedList<Integer> x = new LinkedList<>();
         final AtomicInteger counter = new AtomicInteger();
         Task task = new Task() {
             @Override
@@ -105,11 +105,11 @@ public class TestConcurrentLinkedList extends TestBase {
             }
         }
         task.get();
-        System.out.println(System.currentTimeMillis() - start);
+        System.out.println(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
     }
 
     private void testConcurrent() {
-        final ConcurrentArrayList<Integer> test = new ConcurrentArrayList<Integer>();
+        final ConcurrentArrayList<Integer> test = new ConcurrentArrayList<>();
         // final ConcurrentRing<Integer> test = new ConcurrentRing<Integer>();
         final AtomicInteger counter = new AtomicInteger();
         final AtomicInteger size = new AtomicInteger();
@@ -144,9 +144,9 @@ public class TestConcurrentLinkedList extends TestBase {
     private void testRandomized() {
         Random r = new Random(0);
         for (int i = 0; i < 100; i++) {
-            ConcurrentArrayList<Integer> test = new ConcurrentArrayList<Integer>();
+            ConcurrentArrayList<Integer> test = new ConcurrentArrayList<>();
             // ConcurrentRing<Integer> test = new ConcurrentRing<Integer>();
-            LinkedList<Integer> x = new LinkedList<Integer>();
+            LinkedList<Integer> x = new LinkedList<>();
             StringBuilder buff = new StringBuilder();
             for (int j = 0; j < 10000; j++) {
                 buff.append("[" + j + "] ");

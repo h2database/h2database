@@ -1,12 +1,12 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.dev.util;
 
+import java.util.Arrays;
 import java.util.Iterator;
-
 import org.h2.mvstore.DataUtils;
 
 /**
@@ -16,7 +16,7 @@ import org.h2.mvstore.DataUtils;
  */
 public final class ImmutableArray<K> implements Iterable<K> {
 
-    private static final ImmutableArray<?> EMPTY = new ImmutableArray<Object>(
+    private static final ImmutableArray<?> EMPTY = new ImmutableArray<>(
             new Object[0]);
 
     /**
@@ -57,7 +57,7 @@ public final class ImmutableArray<K> implements Iterable<K> {
     public ImmutableArray<K> set(int index, K obj) {
         K[] array = this.array.clone();
         array[index] = obj;
-        return new ImmutableArray<K>(array);
+        return new ImmutableArray<>(array);
     }
 
     /**
@@ -73,7 +73,7 @@ public final class ImmutableArray<K> implements Iterable<K> {
         K[] array = (K[]) new Object[len];
         DataUtils.copyWithGap(this.array, array, this.array.length, index);
         array[index] = obj;
-        return new ImmutableArray<K>(array);
+        return new ImmutableArray<>(array);
     }
 
     /**
@@ -87,7 +87,7 @@ public final class ImmutableArray<K> implements Iterable<K> {
         @SuppressWarnings("unchecked")
         K[] array = (K[]) new Object[len];
         DataUtils.copyExcept(this.array, array, this.array.length, index);
-        return new ImmutableArray<K>(array);
+        return new ImmutableArray<>(array);
     }
 
     /**
@@ -98,11 +98,7 @@ public final class ImmutableArray<K> implements Iterable<K> {
      * @return the new immutable array
      */
     public ImmutableArray<K> subArray(int fromIndex, int toIndex) {
-        int len = toIndex - fromIndex;
-        @SuppressWarnings("unchecked")
-        K[] array = (K[]) new Object[len];
-        System.arraycopy(this.array, fromIndex, array, 0, toIndex - fromIndex);
-        return new ImmutableArray<K>(array);
+        return new ImmutableArray<>(Arrays.copyOfRange(array, fromIndex, toIndex));
     }
 
     /**
@@ -111,9 +107,9 @@ public final class ImmutableArray<K> implements Iterable<K> {
      * @param array the data
      * @return the new immutable array
      */
-    @SuppressWarnings("unchecked")
+    @SafeVarargs
     public static <K> ImmutableArray<K> create(K... array) {
-        return new ImmutableArray<K>(array);
+        return new ImmutableArray<>(array);
     }
 
     /**

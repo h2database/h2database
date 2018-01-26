@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -26,7 +26,7 @@ public class ClassUtils {
     private static final boolean MAKE_ACCESSIBLE = true;
 
     public static <A, B> IdentityHashMap<A, B> newIdentityHashMap() {
-        return new IdentityHashMap<A, B>();
+        return new IdentityHashMap<>();
     }
 
     @SuppressWarnings("unchecked")
@@ -62,7 +62,7 @@ public class ClassUtils {
         } else if (clazz == java.util.Date.class) {
             return (T) new java.util.Date(COUNTER.getAndIncrement());
         } else if (clazz == List.class) {
-            return (T) new ArrayList<Object>();
+            return (T) new ArrayList<>();
         }
         try {
             return clazz.newInstance();

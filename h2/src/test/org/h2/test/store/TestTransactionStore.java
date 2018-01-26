@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -15,7 +15,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
@@ -23,6 +22,7 @@ import org.h2.mvstore.db.TransactionStore;
 import org.h2.mvstore.db.TransactionStore.Change;
 import org.h2.mvstore.db.TransactionStore.Transaction;
 import org.h2.mvstore.db.TransactionStore.TransactionMap;
+import org.h2.mvstore.type.ObjectDataType;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.New;
@@ -45,6 +45,7 @@ public class TestTransactionStore extends TestBase {
     @Override
     public void test() throws Exception {
         FileUtils.createDirectories(getBaseDir());
+        testHCLFKey();
         testConcurrentAddRemove();
         testConcurrentAdd();
         testCountWithOpenTransactions();
@@ -63,7 +64,53 @@ public class TestTransactionStore extends TestBase {
         testStoreMultiThreadedReads();
     }
 
-    private void testConcurrentAddRemove() throws InterruptedException {
+    private void testHCLFKey() {
+        MVStore s = MVStore.open(null);
+        final TransactionStore ts = new TransactionStore(s);
+        ts.init();
+        Transaction t = ts.begin();
+        ObjectDataType keyType = new ObjectDataType();
+        TransactionMap<Long, Long> map = t.openMap("test", keyType, keyType);
+        // firstKey()
+        assertNull(map.firstKey());
+        // lastKey()
+        assertNull(map.lastKey());
+        map.put(10L, 100L);
+        map.put(20L, 200L);
+        map.put(30L, 300L);
+        map.put(40L, 400L);
+        t.commit();
+        t = ts.begin();
+        map = t.openMap("test", keyType, keyType);
+        map.put(15L, 150L);
+        // The same transaction
+        assertEquals((Object) 15L, map.higherKey(10L));
+        t = ts.begin();
+        map = t.openMap("test", keyType, keyType);
+        // Another transaction
+        // higherKey()
+        assertEquals((Object) 20L, map.higherKey(10L));
+        assertEquals((Object) 20L, map.higherKey(15L));
+        assertNull(map.higherKey(40L));
+        // ceilingKey()
+        assertEquals((Object) 10L, map.ceilingKey(10L));
+        assertEquals((Object) 20L, map.ceilingKey(15L));
+        assertEquals((Object) 40L, map.ceilingKey(40L));
+        assertNull(map.higherKey(45L));
+        // lowerKey()
+        assertNull(map.lowerKey(10L));
+        assertEquals((Object) 10L, map.lowerKey(15L));
+        assertEquals((Object) 10L, map.lowerKey(20L));
+        assertEquals((Object) 20L, map.lowerKey(25L));
+        // floorKey()
+        assertNull(map.floorKey(5L));
+        assertEquals((Object) 10L, map.floorKey(10L));
+        assertEquals((Object) 10L, map.floorKey(15L));
+        assertEquals((Object) 30L, map.floorKey(35L));
+        s.close();
+    }
+
+    private static void testConcurrentAddRemove() throws InterruptedException {
         MVStore s = MVStore.open(null);
         int threadCount = 3;
         final int keyCount = 2;
@@ -260,7 +307,7 @@ public class TestTransactionStore extends TestBase {
         ts = new TransactionStore(s);
         ts.init();
         ts.setMaxTransactionId(16);
-        ArrayList<Transaction> openList = new ArrayList<Transaction>();
+        ArrayList<Transaction> openList = new ArrayList<>();
         for (int i = 0, j = 1; i < 64; i++) {
             Transaction t = ts.begin();
             openList.add(t);
@@ -988,7 +1035,7 @@ public class TestTransactionStore extends TestBase {
         s.close();
     }
 
-    private void testStoreMultiThreadedReads() throws Exception {
+    private static void testStoreMultiThreadedReads() throws Exception {
         MVStore s = MVStore.open(null);
         final TransactionStore ts = new TransactionStore(s);
 

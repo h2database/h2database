@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -41,7 +41,7 @@ public class StreamStore {
     private int maxBlockSize = 256 * 1024;
     private final AtomicLong nextKey = new AtomicLong();
     private final AtomicReference<byte[]> nextBuffer =
-            new AtomicReference<byte[]>();
+            new AtomicReference<>();
 
     /**
      * Create a stream store instance.
@@ -206,6 +206,7 @@ public class StreamStore {
      *
      * @param len the length of the stored block.
      */
+    @SuppressWarnings("unused")
     protected void onStore(int len) {
         // do nothing by default
     }

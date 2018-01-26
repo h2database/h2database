@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -341,6 +341,7 @@ public class Set extends Prepared {
             if (database.getMode() != mode) {
                 session.getUser().checkAdmin();
                 database.setMode(mode);
+                session.getColumnNamerConfiguration().configure(mode.getEnum());
             }
             break;
         case SetTypes.MULTI_THREADED: {
@@ -510,9 +511,33 @@ public class Set extends Prepared {
             int value = getIntValue();
             if (value != 0 && value != 1) {
                 throw DbException.getInvalidValueException("FORCE_JOIN_ORDER",
-                        getIntValue());
+                        value);
             }
             session.setForceJoinOrder(value == 1);
+            break;
+        }
+        case SetTypes.LAZY_QUERY_EXECUTION: {
+            int value = getIntValue();
+            if (value != 0 && value != 1) {
+                throw DbException.getInvalidValueException("LAZY_QUERY_EXECUTION",
+                        value);
+            }
+            session.setLazyQueryExecution(value == 1);
+            break;
+        }
+        case SetTypes.BUILTIN_ALIAS_OVERRIDE: {
+            session.getUser().checkAdmin();
+            int value = getIntValue();
+            if (value != 0 && value != 1) {
+                throw DbException.getInvalidValueException("BUILTIN_ALIAS_OVERRIDE",
+                        value);
+            }
+            database.setAllowBuiltinAliasOverride(value == 1);
+            break;
+        }
+        case SetTypes.COLUMN_NAME_RULES: {
+            session.getUser().checkAdmin();
+            session.getColumnNamerConfiguration().configure(expression.getColumnName());
             break;
         }
         default:

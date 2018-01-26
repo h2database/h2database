@@ -1,12 +1,11 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.store;
 
 import java.util.Random;
-
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.store.fs.FileUtils;
@@ -47,6 +46,7 @@ public class TestKillProcessWhileWriting extends TestBase {
                 fs.setPartialWrites(false);
             }
         }
+        FileUtils.delete("unstable:memFS:killProcess.h3");
     }
 
     private void test(String fileName) throws Exception {

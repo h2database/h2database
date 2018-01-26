@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -7,10 +7,11 @@ package org.h2.bnf;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.bnf.context.DbSchema;
 import org.h2.bnf.context.DbTableOrView;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**
@@ -41,7 +42,7 @@ public class Sentence {
     /**
      * The map of next tokens in the form type#tokenName token.
      */
-    private final HashMap<String, String> next = New.hashMap();
+    private final HashMap<String, String> next = new HashMap<>();
 
     /**
      * The complete query string.
@@ -53,7 +54,7 @@ public class Sentence {
      */
     private String queryUpper;
 
-    private long stopAt;
+    private long stopAtNs;
     private DbSchema lastMatchedSchema;
     private DbTableOrView lastMatchedTable;
     private DbTableOrView lastTable;
@@ -64,7 +65,7 @@ public class Sentence {
      * Start the timer to make sure processing doesn't take too long.
      */
     public void start() {
-        stopAt = System.currentTimeMillis() + MAX_PROCESSING_TIME;
+        stopAtNs = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(MAX_PROCESSING_TIME);
     }
 
     /**
@@ -73,7 +74,7 @@ public class Sentence {
      * If processing is stopped, this methods throws an IllegalStateException
      */
     public void stopIfRequired() {
-        if (System.currentTimeMillis() > stopAt) {
+        if (System.nanoTime() > stopAtNs) {
             throw new IllegalStateException();
         }
     }
@@ -97,7 +98,7 @@ public class Sentence {
      */
     public void addAlias(String alias, DbTableOrView table) {
         if (aliases == null) {
-            aliases = New.hashMap();
+            aliases = new HashMap<>();
         }
         aliases.put(alias, table);
     }
@@ -110,7 +111,7 @@ public class Sentence {
     public void addTable(DbTableOrView table) {
         lastTable = table;
         if (tables == null) {
-            tables = New.hashSet();
+            tables = new HashSet<>();
         }
         tables.add(table);
     }
@@ -185,7 +186,7 @@ public class Sentence {
      * @param query the query string
      */
     public void setQuery(String query) {
-        if (!StringUtils.equals(this.query, query)) {
+        if (!Objects.equals(this.query, query)) {
             this.query = query;
             this.queryUpper = StringUtils.toUpperEnglish(query);
         }

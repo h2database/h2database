@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -12,7 +12,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 
@@ -51,6 +50,7 @@ public class TestCompatibility extends TestBase {
         testDB2();
         testDerby();
         testSybaseAndMSSQLServer();
+        testIgnite();
 
         conn.close();
         deleteDb("compatibility");
@@ -219,6 +219,11 @@ public class TestCompatibility extends TestBase {
         prep.setInt(1, 2);
         prep.executeQuery();
         stat.execute("DROP TABLE TEST IF EXISTS");
+
+        stat.execute("DROP TABLE TEST IF EXISTS");
+        stat.execute("CREATE TABLE TEST(ID INT)");
+        stat.executeQuery("SELECT * FROM TEST WHERE ID IN ()");
+        stat.execute("DROP TABLE TEST IF EXISTS");
     }
 
     private void testLog(double expected, Statement stat) throws SQLException {
@@ -240,10 +245,54 @@ public class TestCompatibility extends TestBase {
 
         assertResult("ABC", stat, "SELECT SUBSTRING('ABCDEF' FOR 3)");
         assertResult("ABCD", stat, "SELECT SUBSTRING('0ABCDEF' FROM 2 FOR 4)");
+
+        /* --------- Behaviour of CHAR(N) --------- */
+
+        /* Test right-padding of CHAR(N) at INSERT */
+        stat.execute("CREATE TABLE TEST(CH CHAR(10))");
+        stat.execute("INSERT INTO TEST (CH) VALUES ('Hello')");
+        assertResult("Hello     ", stat, "SELECT CH FROM TEST");
+
+        /* Test that WHERE clauses accept unpadded values and will pad before comparison */
+        assertResult("Hello     ", stat, "SELECT CH FROM TEST WHERE CH = 'Hello'");
+
+        /* Test CHAR which is identical to CHAR(1) */
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("CREATE TABLE TEST(CH CHAR)");
+        stat.execute("INSERT INTO TEST (CH) VALUES ('')");
+        assertResult(" ", stat, "SELECT CH FROM TEST");
+        assertResult(" ", stat, "SELECT CH FROM TEST WHERE CH = ''");
+
+        /* Test that excessive spaces are trimmed */
+        stat.execute("DELETE FROM TEST");
+        stat.execute("INSERT INTO TEST (CH) VALUES ('1   ')");
+        assertResult("1", stat, "SELECT CH FROM TEST");
+        assertResult("1", stat, "SELECT CH FROM TEST WHERE CH = '1      '");
+
+        /* Test that we do not trim too far */
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("CREATE TABLE TEST(CH CHAR(2))");
+        stat.execute("INSERT INTO TEST (CH) VALUES ('1   ')");
+        assertResult("1 ", stat, "SELECT CH FROM TEST");
+        assertResult("1 ", stat, "SELECT CH FROM TEST WHERE CH = '1      '");
+
+        /* --------- Disallowed column types --------- */
+
+        String[] DISALLOWED_TYPES = {"NUMBER", "IDENTITY", "TINYINT", "BLOB"};
+        for (String type : DISALLOWED_TYPES) {
+            stat.execute("DROP TABLE IF EXISTS TEST");
+            try {
+                stat.execute("CREATE TABLE TEST(COL " + type + ")");
+                fail("Expect type " + type + " to not exist in PostgreSQL mode");
+            } catch (org.h2.jdbc.JdbcSQLException e) {
+                /* Expected! */
+            }
+        }
     }
 
     private void testMySQL() throws SQLException {
         Statement stat = conn.createStatement();
+        stat.execute("set mode mysql");
         stat.execute("create schema test_schema");
         stat.execute("use test_schema");
         assertResult("TEST_SCHEMA", stat, "select schema()");
@@ -264,6 +313,10 @@ public class TestCompatibility extends TestBase {
                 "SELECT FROM_UNIXTIME(1196300000, '%Y %M')");
         assertResult("2003-12-31", stat,
                 "SELECT DATE('2003-12-31 11:02:03')");
+        assertResult("2003-12-31", stat,
+                "SELECT DATE('2003-12-31 11:02:03')");
+        // check the weird MySQL variant of DELETE
+        stat.execute("DELETE TEST FROM TEST WHERE 1=2");
 
         if (config.memory) {
             return;
@@ -342,6 +395,10 @@ public class TestCompatibility extends TestBase {
 
         stat.execute("CREATE TABLE TEST2(ID INT) ROW_FORMAT=DYNAMIC");
 
+        // check the MySQL index dropping syntax
+        stat.execute("ALTER TABLE TEST_COMMENT_ENGINE ADD CONSTRAINT CommentUnique UNIQUE (SOME_ITEM_ID)");
+        stat.execute("ALTER TABLE TEST_COMMENT_ENGINE DROP INDEX CommentUnique");
+
         conn.close();
         conn = getConnection("compatibility");
     }
@@ -407,6 +464,9 @@ public class TestCompatibility extends TestBase {
         // make sure we're ignoring the index part of the statement
         rs = stat.executeQuery("select * from test (index table1_index)");
         rs.close();
+
+        // UNIQUEIDENTIFIER is MSSQL's equivalent of UUID
+        stat.execute("create table test3 (id UNIQUEIDENTIFIER)");
     }
 
     private void testDB2() throws SQLException {
@@ -461,6 +521,17 @@ public class TestCompatibility extends TestBase {
                 "fetch next 2 rows only with rs use and keep update locks");
         res = stat.executeQuery("select * from test order by id " +
                 "fetch next 2 rows only with rr use and keep exclusive locks");
+
+        // Test DB2 TIMESTAMP format with dash separating date and time
+        stat.execute("drop table test if exists");
+        stat.execute("create table test(date TIMESTAMP)");
+        stat.executeUpdate("insert into test (date) values ('2014-04-05-09.48.28.020005')");
+        assertResult("2014-04-05 09:48:28.020005", stat,
+                "select date from test"); // <- result is always H2 format timestamp!
+        assertResult("2014-04-05 09:48:28.020005", stat,
+                "select date from test where date = '2014-04-05-09.48.28.020005'");
+        assertResult("2014-04-05 09:48:28.020005", stat,
+                "select date from test where date = '2014-04-05 09:48:28.020005'");
     }
 
     private void testDerby() throws SQLException {
@@ -479,5 +550,27 @@ public class TestCompatibility extends TestBase {
                 executeQuery("SELECT 1 FROM sysibm.sysdummy1");
         conn.close();
         conn = getConnection("compatibility");
+    }
+
+    private void testIgnite() throws SQLException {
+        Statement stat = conn.createStatement();
+        stat.execute("SET MODE Ignite");
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("create table test(id int affinity key)");
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("create table test(id int affinity primary key)");
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("create table test(id int, v1 varchar, v2 long affinity key, primary key(v1, id))");
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("create table test(id int, v1 varchar, v2 long, primary key(v1, id), affinity key (id))");
+
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("create table test(id int shard key)");
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("create table test(id int shard primary key)");
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("create table test(id int, v1 varchar, v2 long shard key, primary key(v1, id))");
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("create table test(id int, v1 varchar, v2 long, primary key(v1, id), shard key (id))");
     }
 }

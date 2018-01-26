@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 import org.h2.samples.Newsfeed;
@@ -36,7 +37,7 @@ public class WebSite {
 
     private static final String SOURCE_DIR = "docs";
     private static final String WEB_DIR = "../h2web";
-    private final HashMap<String, String> fragments = new HashMap<String, String>();
+    private final HashMap<String, String> fragments = new HashMap<>();
 
     /**
      * This method is called when executing this application from the command
@@ -65,7 +66,7 @@ public class WebSite {
             if (f.getName().startsWith("fragments")) {
                 FileInputStream in = new FileInputStream(f);
                 byte[] bytes = IOUtils.readBytesAndClose(in, 0);
-                String page = new String(bytes, "UTF-8");
+                String page = new String(bytes, StandardCharsets.UTF_8);
                 fragments.put(f.getName(), page);
             }
         }
@@ -76,7 +77,7 @@ public class WebSite {
             return page;
         }
         String language = "";
-        int index = fileName.indexOf("_");
+        int index = fileName.indexOf('_');
         if (index >= 0) {
             int end = fileName.indexOf('.');
             language = fileName.substring(index, end);
@@ -140,7 +141,7 @@ public class WebSite {
             FileInputStream in = new FileInputStream(source);
             byte[] bytes = IOUtils.readBytesAndClose(in, 0);
             if (name.endsWith(".html")) {
-                String page = new String(bytes, "UTF-8");
+                String page = new String(bytes, StandardCharsets.UTF_8);
                 if (web) {
                     page = StringUtils.replaceAll(page, ANALYTICS_TAG, ANALYTICS_SCRIPT);
                 }
@@ -155,7 +156,7 @@ public class WebSite {
                     page = StringUtils.replaceAll(page, "<pre>", "<pre class=\"notranslate\">");
                     page = StringUtils.replaceAll(page, "<code>", "<code class=\"notranslate\">");
                 }
-                bytes = page.getBytes("UTF-8");
+                bytes = page.getBytes(StandardCharsets.UTF_8);
             }
             FileOutputStream out = new FileOutputStream(target);
             out.write(bytes);

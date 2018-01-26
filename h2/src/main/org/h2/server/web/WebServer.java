@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -23,14 +24,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-import java.util.TimeZone;
-
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.server.Service;
 import org.h2.server.ShutdownHandler;
 import org.h2.store.fs.FileUtils;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
@@ -76,6 +76,20 @@ public class WebServer implements Service {
     private static final String[] GENERIC = {
         "Generic JNDI Data Source|javax.naming.InitialContext|" +
                 "java:comp/env/jdbc/Test|sa",
+        "Generic Teradata|com.teradata.jdbc.TeraDriver|" +
+                "jdbc:teradata://whomooz/|",
+        "Generic Snowflake|com.snowflake.client.jdbc.SnowflakeDriver|" +
+                "jdbc:snowflake://accountName.snowflakecomputing.com|",
+        "Generic Redshift|com.amazon.redshift.jdbc42.Driver|" +
+                "jdbc:redshift://endpoint:5439/database|",
+        "Generic Impala|org.cloudera.impala.jdbc41.Driver|" +
+                "jdbc:impala://clustername:21050/default|",
+        "Generic Hive 2|org.apache.hive.jdbc.HiveDriver|" +
+                "jdbc:hive2://clustername:10000/default|",
+        "Generic Hive|org.apache.hadoop.hive.jdbc.HiveDriver|" +
+                "jdbc:hive://clustername:10000/default|",
+        "Generic Azure SQL|com.microsoft.sqlserver.jdbc.SQLServerDriver|" +
+                "jdbc:sqlserver://name.database.windows.net:1433|",
         "Generic Firebird Server|org.firebirdsql.jdbc.FBDriver|" +
                 "jdbc:firebirdsql:localhost:c:/temp/firebird/test|sysdba",
         "Generic SQLite|org.sqlite.JDBC|" +
@@ -140,11 +154,11 @@ public class WebServer implements Service {
     private final Set<WebThread> running =
             Collections.synchronizedSet(new HashSet<WebThread>());
     private boolean ssl;
-    private final HashMap<String, ConnectionInfo> connInfoMap = New.hashMap();
+    private final HashMap<String, ConnectionInfo> connInfoMap = new HashMap<>();
 
     private long lastTimeoutCheck;
-    private final HashMap<String, WebSession> sessions = New.hashMap();
-    private final HashSet<String> languages = New.hashSet();
+    private final HashMap<String, WebSession> sessions = new HashMap<>();
+    private final HashSet<String> languages = new HashSet<>();
     private String startDateTime;
     private ServerSocket serverSocket;
     private String url;
@@ -176,22 +190,6 @@ public class WebServer implements Service {
     }
 
     /**
-     * Check if this is a simple name (only contains '.', '-', '_', letters, or
-     * digits).
-     *
-     * @param s the string
-     * @return true if it's a simple name
-     */
-    static boolean isSimpleName(String s) {
-        for (char c : s.toCharArray()) {
-            if (c != '.' && c != '_' && c != '-' && !Character.isLetterOrDigit(c)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
      * Remove this web thread from the set of running threads.
      *
      * @param t the thread to remove
@@ -214,7 +212,7 @@ public class WebServer implements Service {
     WebSession getSession(String sessionId) {
         long now = System.currentTimeMillis();
         if (lastTimeoutCheck + SESSION_TIMEOUT < now) {
-            for (String id : New.arrayList(sessions.keySet())) {
+            for (String id : new ArrayList<>(sessions.keySet())) {
                 WebSession session = sessions.get(id);
                 if (session.lastAccess + SESSION_TIMEOUT < now) {
                     trace("timeout for " + id);
@@ -259,7 +257,7 @@ public class WebServer implements Service {
         if (startDateTime == null) {
             SimpleDateFormat format = new SimpleDateFormat(
                     "EEE, d MMM yyyy HH:mm:ss z", new Locale("en", ""));
-            format.setTimeZone(TimeZone.getTimeZone("GMT"));
+            format.setTimeZone(DateTimeUtils.UTC);
             startDateTime = format.format(System.currentTimeMillis());
         }
         return startDateTime;
@@ -398,10 +396,10 @@ public class WebServer implements Service {
             }
         }
         // TODO server: using a boolean 'now' argument? a timeout?
-        for (WebSession session : New.arrayList(sessions.values())) {
+        for (WebSession session : new ArrayList<>(sessions.values())) {
             session.close();
         }
-        for (WebThread c : New.arrayList(running)) {
+        for (WebThread c : new ArrayList<>(running)) {
             try {
                 c.stopNow();
                 c.join(100);
@@ -456,7 +454,7 @@ public class WebServer implements Service {
             trace("translation: "+language);
             byte[] trans = getFile("_text_"+language+".prop");
             trace("  "+new String(trans));
-            text = SortedProperties.fromLines(new String(trans, Constants.UTF8));
+            text = SortedProperties.fromLines(new String(trans, StandardCharsets.UTF_8));
             // remove starting # (if not translated yet)
             for (Entry<Object, Object> entry : text.entrySet()) {
                 String value = (String) entry.getValue();
@@ -467,7 +465,7 @@ public class WebServer implements Service {
         } catch (IOException e) {
             DbException.traceThrowable(e);
         }
-        session.put("text", new HashMap<Object, Object>(text));
+        session.put("text", new HashMap<>(text));
     }
 
     ArrayList<HashMap<String, Object>> getSessions() {

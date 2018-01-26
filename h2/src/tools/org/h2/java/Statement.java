@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -155,9 +155,9 @@ class EmptyStatement extends StatementBase {
 class SwitchStatement extends StatementBase {
 
     private StatementBlock defaultBlock;
-    private final ArrayList<Expr> cases = new ArrayList<Expr>();
+    private final ArrayList<Expr> cases = new ArrayList<>();
     private final ArrayList<StatementBlock> blocks =
-            new ArrayList<StatementBlock>();
+            new ArrayList<>();
     private final Expr expr;
 
     public SwitchStatement(Expr expr) {
@@ -320,7 +320,7 @@ class ForStatement extends StatementBase {
     /**
      * The update list.
      */
-    ArrayList<Expr> updates = new ArrayList<Expr>();
+    ArrayList<Expr> updates = new ArrayList<>();
 
     /**
      * The type of the iterable.
@@ -344,7 +344,7 @@ class ForStatement extends StatementBase {
 
     @Override
     public String asString() {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         buff.append("for (");
         if (iterableType != null) {
             Type it = iterable.getType();
@@ -391,7 +391,7 @@ class StatementBlock extends StatementBase {
     /**
      * The list of instructions.
      */
-    final ArrayList<Statement> instructions = new ArrayList<Statement>();
+    final ArrayList<Statement> instructions = new ArrayList<>();
 
     @Override
     public void setMethod(MethodObj method) {
@@ -424,8 +424,8 @@ class VarDecStatement extends StatementBase {
      */
     Type type;
 
-    private final ArrayList<String> variables = new ArrayList<String>();
-    private final ArrayList<Expr> values = new ArrayList<Expr>();
+    private final ArrayList<String> variables = new ArrayList<>();
+    private final ArrayList<Expr> values = new ArrayList<>();
 
     @Override
     public void setMethod(MethodObj method) {

@@ -1,12 +1,11 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,6 +21,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -31,7 +31,9 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Objects;
 import java.util.SimpleTimeZone;
+import java.util.concurrent.TimeUnit;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.store.fs.FilePath;
@@ -66,11 +68,6 @@ public abstract class TestBase {
     private static String baseDir = getTestDir("");
 
     /**
-     * The last time something was printed.
-     */
-    private static long lastPrint;
-
-    /**
      * The test configuration.
      */
     public TestAll config;
@@ -80,7 +77,7 @@ public abstract class TestBase {
      */
     protected long start;
 
-    private final LinkedList<byte[]> memory = new LinkedList<byte[]>();
+    private final LinkedList<byte[]> memory = new LinkedList<>();
 
     /**
      * Get the test directory for this test.
@@ -123,15 +120,6 @@ public abstract class TestBase {
     }
 
     /**
-     * Run a test case using the given seed value.
-     *
-     * @param seed the random seed value
-     */
-    public void testCase(int seed) throws Exception {
-        // do nothing
-    }
-
-    /**
      * This method is initializes the test, runs the test by calling the test()
      * method, and prints status information. It also catches exceptions so that
      * the tests can continue.
@@ -144,7 +132,7 @@ public abstract class TestBase {
         }
         try {
             init(conf);
-            start = System.currentTimeMillis();
+            start = System.nanoTime();
             test();
             println("");
         } catch (Throwable e) {
@@ -153,6 +141,7 @@ public abstract class TestBase {
             if (config.stopOnError) {
                 throw new AssertionError("ERROR");
             }
+            TestAll.atLeastOneTestFailed = true;
             if (e instanceof OutOfMemoryError) {
                 throw (OutOfMemoryError) e;
             }
@@ -256,10 +245,10 @@ public abstract class TestBase {
             // name = addOption(name, "RETENTION_TIME", "10");
             // name = addOption(name, "WRITE_DELAY", "10");
         }
-        if (config.memory) {
+        int idx = name.indexOf(':');
+        if (idx == -1 && config.memory) {
             name = "mem:" + name;
         } else {
-            int idx = name.indexOf(':');
             if (idx < 0 || idx > 10) {
                 // index > 10 if in options
                 name = getBaseDir() + "/" + name;
@@ -267,9 +256,9 @@ public abstract class TestBase {
         }
         if (config.networked) {
             if (config.ssl) {
-                url = "ssl://localhost:9192/" + name;
+                url = "ssl://localhost:"+config.getPort()+"/" + name;
             } else {
-                url = "tcp://localhost:9192/" + name;
+                url = "tcp://localhost:"+config.getPort()+"/" + name;
             }
         } else if (config.googleAppEngine) {
             url = "gae://" + name +
@@ -280,6 +269,8 @@ public abstract class TestBase {
         if (config.mvStore) {
             url = addOption(url, "MV_STORE", "true");
             // url = addOption(url, "MVCC", "true");
+        } else {
+            url = addOption(url, "MV_STORE", "false");
         }
         if (!config.memory) {
             if (config.smallLog && admin) {
@@ -310,6 +301,12 @@ public abstract class TestBase {
         if (config.mvcc) {
             url = addOption(url, "MVCC", "TRUE");
         }
+        if (config.multiThreaded) {
+            url = addOption(url, "MULTI_THREADED", "TRUE");
+        }
+        if (config.lazy) {
+            url = addOption(url, "LAZY_QUERY_EXECUTION", "1");
+        }
         if (config.cacheType != null && admin) {
             url = addOption(url, "CACHE_TYPE", config.cacheType);
         }
@@ -322,6 +319,9 @@ public abstract class TestBase {
         }
         if (config.defrag) {
             url = addOption(url, "DEFRAG_ALWAYS", "TRUE");
+        }
+        if (config.collation != null) {
+            url = addOption(url, "COLLATION", config.collation);
         }
         return "jdbc:h2:" + url;
     }
@@ -373,7 +373,6 @@ public abstract class TestBase {
      */
     public void trace(String s) {
         if (config.traceTest) {
-            lastPrint = 0;
             println(s);
         }
     }
@@ -444,7 +443,6 @@ public abstract class TestBase {
      * @throws AssertionError always throws an AssertionError
      */
     protected void fail(String string) {
-        lastPrint = 0;
         if (string.length() > 100) {
             // avoid long strings with special characters, because they are slow
             // to display in Eclipse
@@ -513,12 +511,9 @@ public abstract class TestBase {
      * @param s the message
      */
     public void println(String s) {
-        long now = System.currentTimeMillis();
-        if (now > lastPrint + 1000) {
-            lastPrint = now;
-            long time = now - start;
-            printlnWithTime(time, getClass().getName() + " " + s);
-        }
+        long now = System.nanoTime();
+        long time = TimeUnit.NANOSECONDS.toMillis(now - start);
+        printlnWithTime(time, getClass().getName() + " " + s);
     }
 
     /**
@@ -668,16 +663,21 @@ public abstract class TestBase {
      * @throws AssertionError if the values are not equal
      */
     public void assertEquals(java.util.Date expected, java.util.Date actual) {
-        if (expected != actual && !expected.equals(actual)) {
+        if (!Objects.equals(expected, actual)) {
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
             SimpleTimeZone gmt = new SimpleTimeZone(0, "Z");
             df.setTimeZone(gmt);
-            fail("Expected: " + df.format(expected) + " actual: " + df.format(actual));
+            fail("Expected: " +
+                    (expected != null ? df.format(expected) : "null") +
+                    " actual: " +
+                    (actual != null ? df.format(actual) : "null"));
         }
     }
 
     /**
-     * Check if two values are equal, and if not throw an exception.
+     * Check if two arrays are equal, and if not throw an exception.
+     * If some of the elements in the arrays are themselves arrays this
+     * check is called recursively.
      *
      * @param expected the expected value
      * @param actual the actual value
@@ -694,9 +694,28 @@ public abstract class TestBase {
                 if (expected[i] != actual[i]) {
                     fail("[" + i + "]: expected: " + expected[i] + " actual: " + actual[i]);
                 }
+            } else if (expected[i] instanceof Object[] && actual[i] instanceof Object[]) {
+                assertEquals((Object[]) expected[i], (Object[]) actual[i]);
             } else if (!expected[i].equals(actual[i])) {
                 fail("[" + i + "]: expected: " + expected[i] + " actual: " + actual[i]);
             }
+        }
+    }
+
+    /**
+     * Check if two values are equal, and if not throw an exception.
+     *
+     * @param expected the expected value
+     * @param actual the actual value
+     * @throws AssertionError if the values are not equal
+     */
+    public void assertEquals(Object expected, Object actual) {
+        if (expected == null || actual == null) {
+            assertTrue(expected == actual);
+            return;
+        }
+        if (!expected.equals(actual)) {
+            fail(" expected: " + expected + " actual: " + actual);
         }
     }
 
@@ -1048,10 +1067,38 @@ public abstract class TestBase {
     protected void assertThrows(int expectedErrorCode, Statement stat,
             String sql) {
         try {
-            stat.execute(sql);
+            execute(stat, sql);
             fail("Expected error: " + expectedErrorCode);
         } catch (SQLException ex) {
             assertEquals(expectedErrorCode, ex.getErrorCode());
+        }
+    }
+
+    /**
+     * Execute the statement.
+     *
+     * @param stat the statement
+     */
+    protected void execute(PreparedStatement stat) throws SQLException {
+        execute(stat, null);
+    }
+
+    /**
+     * Execute the statement.
+     *
+     * @param stat the statement
+     * @param sql the SQL command
+     */
+    protected void execute(Statement stat, String sql) throws SQLException {
+        boolean query = sql == null ? ((PreparedStatement) stat).execute() :
+            stat.execute(sql);
+
+        if (query && config.lazy) {
+            try (ResultSet rs = stat.getResultSet()) {
+                while (rs.next()) {
+                    // just loop
+                }
+            }
         }
     }
 
@@ -1338,8 +1385,8 @@ public abstract class TestBase {
         }
         ResultSet rs1 = stat1.executeQuery("SCRIPT simple NOPASSWORDS");
         ResultSet rs2 = stat2.executeQuery("SCRIPT simple NOPASSWORDS");
-        ArrayList<String> list1 = new ArrayList<String>();
-        ArrayList<String> list2 = new ArrayList<String>();
+        ArrayList<String> list1 = new ArrayList<>();
+        ArrayList<String> list2 = new ArrayList<>();
         while (rs1.next()) {
             String s1 = rs1.getString(1);
             s1 = removeRowCount(s1);
@@ -1392,7 +1439,7 @@ public abstract class TestBase {
      * @return the classpath list
      */
     protected String getClassPath() {
-        return "bin" + File.pathSeparator + "temp" + File.pathSeparator + ".";
+        return System.getProperty("java.class.path");
     }
 
     /**
@@ -1488,7 +1535,10 @@ public abstract class TestBase {
                 if (errorCode != expectedErrorCode) {
                     AssertionError ae = new AssertionError(
                             "Expected an SQLException or DbException with error code "
-                                    + expectedErrorCode);
+                                    + expectedErrorCode
+                                    + ", but got a " + (t == null ? "null" :
+                                            t.getClass().getName() + " exception "
+                                    + " with error code " + errorCode));
                     ae.initCause(t);
                     throw ae;
                 }

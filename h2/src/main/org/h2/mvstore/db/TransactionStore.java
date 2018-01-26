@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
-
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
@@ -51,10 +51,16 @@ public class TransactionStore {
     final MVMap<Long, Object[]> undoLog;
 
     /**
+     * the reader/writer lock for the undo-log. Allows us to process multiple
+     * selects in parallel.
+     */
+    final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
+
+    /**
      * The map of maps.
      */
-    private HashMap<Integer, MVMap<Object, VersionedValue>> maps =
-            New.hashMap();
+    private final HashMap<Integer, MVMap<Object, VersionedValue>> maps =
+            new HashMap<>();
 
     private final DataType dataType;
 
@@ -118,13 +124,16 @@ public class TransactionStore {
                 store.removeMap(temp);
             }
         }
-        synchronized (undoLog) {
+        rwLock.writeLock().lock();
+        try {
             if (undoLog.size() > 0) {
                 for (Long key : undoLog.keySet()) {
                     int transactionId = getTransactionId(key);
                     openTransactions.set(transactionId);
                 }
             }
+        } finally {
+            rwLock.writeLock().unlock();
         }
     }
 
@@ -180,7 +189,8 @@ public class TransactionStore {
      * @return the list of transactions (sorted by id)
      */
     public List<Transaction> getOpenTransactions() {
-        synchronized (undoLog) {
+        rwLock.readLock().lock();
+        try {
             ArrayList<Transaction> list = New.arrayList();
             Long key = undoLog.firstKey();
             while (key != null) {
@@ -207,6 +217,8 @@ public class TransactionStore {
                 key = undoLog.ceilingKey(getOperationId(transactionId + 1, 0));
             }
             return list;
+        } finally {
+            rwLock.readLock().unlock();
         }
     }
 
@@ -269,7 +281,8 @@ public class TransactionStore {
             Object key, Object oldValue) {
         Long undoKey = getOperationId(t.getId(), logId);
         Object[] log = new Object[] { mapId, key, oldValue };
-        synchronized (undoLog) {
+        rwLock.writeLock().lock();
+        try {
             if (logId == 0) {
                 if (undoLog.containsKey(undoKey)) {
                     throw DataUtils.newIllegalStateException(
@@ -280,6 +293,8 @@ public class TransactionStore {
                 }
             }
             undoLog.put(undoKey, log);
+        } finally {
+            rwLock.writeLock().unlock();
         }
     }
 
@@ -291,7 +306,8 @@ public class TransactionStore {
      */
     public void logUndo(Transaction t, long logId) {
         Long undoKey = getOperationId(t.getId(), logId);
-        synchronized (undoLog) {
+        rwLock.writeLock().lock();
+        try {
             Object[] old = undoLog.remove(undoKey);
             if (old == null) {
                 throw DataUtils.newIllegalStateException(
@@ -299,6 +315,8 @@ public class TransactionStore {
                         "Transaction {0} was concurrently rolled back",
                         t.getId());
             }
+        } finally {
+            rwLock.writeLock().unlock();
         }
     }
 
@@ -325,7 +343,8 @@ public class TransactionStore {
             return;
         }
         // TODO could synchronize on blocks (100 at a time or so)
-        synchronized (undoLog) {
+        rwLock.writeLock().lock();
+        try {
             t.setStatus(Transaction.STATUS_COMMITTING);
             for (long logId = 0; logId < maxLogId; logId++) {
                 Long undoKey = getOperationId(t.getId(), logId);
@@ -342,24 +361,27 @@ public class TransactionStore {
                 }
                 int mapId = (Integer) op[0];
                 MVMap<Object, VersionedValue> map = openMap(mapId);
-                if (map == null) {
-                    // map was later removed
-                } else {
+                if (map != null) { // might be null if map was removed later
                     Object key = op[1];
                     VersionedValue value = map.get(key);
-                    if (value == null) {
-                        // nothing to do
-                    } else if (value.value == null) {
-                        // remove the value
-                        map.remove(key);
-                    } else {
-                        VersionedValue v2 = new VersionedValue();
-                        v2.value = value.value;
-                        map.put(key, v2);
+                    if (value != null) {
+                        // only commit (remove/update) value if we've reached
+                        // last undoLog entry for a given key
+                        if (value.operationId == undoKey) {
+                            if (value.value == null) {
+                                map.remove(key);
+                            } else {
+                                VersionedValue v2 = new VersionedValue();
+                                v2.value = value.value;
+                                map.put(key, v2);
+                            }
+                        }
                     }
                 }
                 undoLog.remove(undoKey);
             }
+        } finally {
+            rwLock.writeLock().unlock();
         }
         endTransaction(t);
     }
@@ -478,7 +500,8 @@ public class TransactionStore {
      */
     void rollbackTo(Transaction t, long maxLogId, long toLogId) {
         // TODO could synchronize on blocks (100 at a time or so)
-        synchronized (undoLog) {
+        rwLock.writeLock().lock();
+        try {
             for (long logId = maxLogId - 1; logId >= toLogId; logId--) {
                 Long undoKey = getOperationId(t.getId(), logId);
                 Object[] op = undoLog.get(undoKey);
@@ -507,6 +530,8 @@ public class TransactionStore {
                 }
                 undoLog.remove(undoKey);
             }
+        } finally {
+            rwLock.writeLock().unlock();
         }
     }
 
@@ -531,7 +556,8 @@ public class TransactionStore {
             }
 
             private void fetchNext() {
-                synchronized (undoLog) {
+                rwLock.writeLock().lock();
+                try {
                     while (logId >= toLogId) {
                         Long undoKey = getOperationId(t.getId(), logId);
                         Object[] op = undoLog.get(undoKey);
@@ -560,6 +586,8 @@ public class TransactionStore {
                             return;
                         }
                     }
+                } finally {
+                    rwLock.writeLock().unlock();
                 }
                 current = null;
             }
@@ -743,7 +771,7 @@ public class TransactionStore {
             MVMap<K, VersionedValue> map = store.openMap(name, keyType,
                     valueType);
             int mapId = map.getId();
-            return new TransactionMap<K, V>(this, map, mapId);
+            return new TransactionMap<>(this, map, mapId);
         }
 
         /**
@@ -758,7 +786,7 @@ public class TransactionStore {
                 MVMap<K, VersionedValue> map) {
             checkNotClosed();
             int mapId = map.getId();
-            return new TransactionMap<K, V>(this, map, mapId);
+            return new TransactionMap<>(this, map, mapId);
         }
 
         /**
@@ -868,7 +896,7 @@ public class TransactionStore {
          */
         final MVMap<K, VersionedValue> map;
 
-        private Transaction transaction;
+        final Transaction transaction;
 
         TransactionMap(Transaction transaction, MVMap<K, VersionedValue> map,
                 int mapId) {
@@ -897,7 +925,7 @@ public class TransactionStore {
         public TransactionMap<K, V> getInstance(Transaction transaction,
                 long savepoint) {
             TransactionMap<K, V> m =
-                    new TransactionMap<K, V>(transaction, map, mapId);
+                    new TransactionMap<>(transaction, map, mapId);
             m.setSavepoint(savepoint);
             return m;
         }
@@ -918,61 +946,66 @@ public class TransactionStore {
          * @return the size
          */
         public long sizeAsLong() {
-            long sizeRaw = map.sizeAsLong();
-            MVMap<Long, Object[]> undo = transaction.store.undoLog;
-            long undoLogSize;
-            synchronized (undo) {
-                undoLogSize = undo.sizeAsLong();
-            }
-            if (undoLogSize == 0) {
-                return sizeRaw;
-            }
-            if (undoLogSize > sizeRaw) {
-                // the undo log is larger than the map -
-                // count the entries of the map
-                long size = 0;
-                Cursor<K, VersionedValue> cursor = map.cursor(null);
-                while (cursor.hasNext()) {
-                    VersionedValue data;
-                    synchronized (transaction.store.undoLog) {
+            transaction.store.rwLock.readLock().lock();
+            try {
+                long sizeRaw = map.sizeAsLong();
+                MVMap<Long, Object[]> undo = transaction.store.undoLog;
+                long undoLogSize;
+                synchronized (undo) {
+                    undoLogSize = undo.sizeAsLong();
+                }
+                if (undoLogSize == 0) {
+                    return sizeRaw;
+                }
+                if (undoLogSize > sizeRaw) {
+                    // the undo log is larger than the map -
+                    // count the entries of the map
+                    long size = 0;
+                    Cursor<K, VersionedValue> cursor = map.cursor(null);
+                    while (cursor.hasNext()) {
+                        VersionedValue data;
                         K key = cursor.next();
                         data = getValue(key, readLogId, cursor.getValue());
-                    }
-                    if (data != null && data.value != null) {
-                        size++;
-                    }
-                }
-                return size;
-            }
-            // the undo log is smaller than the map -
-            // scan the undo log and subtract invisible entries
-            synchronized (undo) {
-                // re-fetch in case any transaction was committed now
-                long size = map.sizeAsLong();
-                MVMap<Object, Integer> temp = transaction.store.createTempMap();
-                try {
-                    for (Entry<Long, Object[]> e : undo.entrySet()) {
-                        Object[] op = e.getValue();
-                        int m = (Integer) op[0];
-                        if (m != mapId) {
-                            // a different map - ignore
-                            continue;
+                        if (data != null && data.value != null) {
+                            size++;
                         }
-                        @SuppressWarnings("unchecked")
-                        K key = (K) op[1];
-                        if (get(key) == null) {
-                            Integer old = temp.put(key, 1);
-                            // count each key only once (there might be multiple
-                            // changes for the same key)
-                            if (old == null) {
-                                size--;
+                    }
+                    return size;
+                }
+                // the undo log is smaller than the map -
+                // scan the undo log and subtract invisible entries
+                synchronized (undo) {
+                    // re-fetch in case any transaction was committed now
+                    long size = map.sizeAsLong();
+                    MVMap<Object, Integer> temp = transaction.store
+                            .createTempMap();
+                    try {
+                        for (Entry<Long, Object[]> e : undo.entrySet()) {
+                            Object[] op = e.getValue();
+                            int m = (Integer) op[0];
+                            if (m != mapId) {
+                                // a different map - ignore
+                                continue;
+                            }
+                            @SuppressWarnings("unchecked")
+                            K key = (K) op[1];
+                            if (get(key) == null) {
+                                Integer old = temp.put(key, 1);
+                                // count each key only once (there might be
+                                // multiple
+                                // changes for the same key)
+                                if (old == null) {
+                                    size--;
+                                }
                             }
                         }
+                    } finally {
+                        transaction.store.store.removeMap(temp);
                     }
-                } finally {
-                    transaction.store.store.removeMap(temp);
+                    return size;
                 }
-                return size;
+            } finally {
+                transaction.store.rwLock.readLock().unlock();
             }
         }
 
@@ -1199,14 +1232,13 @@ public class TransactionStore {
         }
 
         private VersionedValue getValue(K key, long maxLog) {
-            synchronized (getUndoLog()) {
+            transaction.store.rwLock.readLock().lock();
+            try {
                 VersionedValue data = map.get(key);
                 return getValue(key, maxLog, data);
+            } finally {
+                transaction.store.rwLock.readLock().unlock();
             }
-        }
-
-        Object getUndoLog() {
-            return transaction.store.undoLog;
         }
 
         /**
@@ -1218,13 +1250,6 @@ public class TransactionStore {
          * @return the value
          */
         VersionedValue getValue(K key, long maxLog, VersionedValue data) {
-            if (MVStore.ASSERT) {
-                if (!Thread.holdsLock(getUndoLog())) {
-                    throw DataUtils.newIllegalStateException(
-                            DataUtils.ERROR_INTERNAL,
-                            "not synchronized on undoLog");
-                }
-            }
             while (true) {
                 if (data == null) {
                     // doesn't exist or deleted by a committed transaction
@@ -1246,6 +1271,10 @@ public class TransactionStore {
                 Object[] d;
                 d = transaction.store.undoLog.get(id);
                 if (d == null) {
+                    if (transaction.store.store.isReadOnly()) {
+                        // uncommitted transaction for a read-only store
+                        return null;
+                    }
                     // this entry should be committed or rolled back
                     // in the meantime (the transaction might still be open)
                     // or it might be changed again in a different
@@ -1291,15 +1320,10 @@ public class TransactionStore {
          */
         public K lastKey() {
             K k = map.lastKey();
-            while (true) {
-                if (k == null) {
-                    return null;
-                }
-                if (get(k) != null) {
-                    return k;
-                }
+            while (k != null && get(k) == null) {
                 k = map.lowerKey(k);
             }
+            return k;
         }
 
         /**
@@ -1310,13 +1334,22 @@ public class TransactionStore {
          * @return the result
          */
         public K higherKey(K key) {
-            while (true) {
-                K k = map.higherKey(key);
-                if (k == null || get(k) != null) {
-                    return k;
-                }
-                key = k;
-            }
+            do {
+                key = map.higherKey(key);
+            } while (key != null && get(key) == null);
+            return key;
+        }
+
+        /**
+         * Get the smallest key that is larger than or equal to this key,
+         * or null if no such key exists.
+         *
+         * @param key the key (may not be null)
+         * @return the result
+         */
+        public K ceilingKey(K key) {
+            Iterator<K> it = keyIterator(key);
+            return it.hasNext() ? it.next() : null;
         }
 
         /**
@@ -1337,6 +1370,22 @@ public class TransactionStore {
         }
 
         /**
+         * Get the largest key that is smaller than or equal to this key,
+         * or null if no such key exists.
+         *
+         * @param key the key (may not be null)
+         * @return the result
+         */
+        public K floorKey(K key) {
+            key = map.floorKey(key);
+            while (key != null && get(key) == null) {
+                // Use lowerKey() for the next attempts, otherwise we'll get an infinite loop
+                key = map.lowerKey(key);
+            }
+            return key;
+        }
+
+        /**
          * Get the largest key that is smaller than the given key, or null if no
          * such key exists.
          *
@@ -1344,13 +1393,10 @@ public class TransactionStore {
          * @return the result
          */
         public K lowerKey(K key) {
-            while (true) {
-                K k = map.lowerKey(key);
-                if (k == null || get(k) != null) {
-                    return k;
-                }
-                key = k;
-            }
+            do {
+                key = map.lowerKey(key);
+            } while (key != null && get(key) == null);
+            return key;
         }
 
         /**
@@ -1439,9 +1485,10 @@ public class TransactionStore {
          * Iterate over entries.
          *
          * @param from the first key to return
+         * @param to the last key to return
          * @return the iterator
          */
-        public Iterator<Entry<K, V>> entryIterator(final K from) {
+        public Iterator<Entry<K, V>> entryIterator(final K from, final K to) {
             return new Iterator<Entry<K, V>>() {
                 private Entry<K, V> current;
                 private K currentKey = from;
@@ -1453,7 +1500,8 @@ public class TransactionStore {
 
                 private void fetchNext() {
                     while (cursor.hasNext()) {
-                        synchronized (getUndoLog()) {
+                        transaction.store.rwLock.readLock().lock();
+                        try {
                             K k;
                             try {
                                 k = cursor.next();
@@ -1477,15 +1525,20 @@ public class TransactionStore {
                                 }
                             }
                             final K key = k;
+                            if (to != null && map.getKeyType().compare(k, to) > 0) {
+                                break;
+                            }
                             VersionedValue data = cursor.getValue();
                             data = getValue(key, readLogId, data);
                             if (data != null && data.value != null) {
                                 @SuppressWarnings("unchecked")
                                 final V value = (V) data.value;
-                                current = new DataUtils.MapEntry<K, V>(key, value);
+                                current = new DataUtils.MapEntry<>(key, value);
                                 currentKey = key;
                                 return;
                             }
+                        } finally {
+                            transaction.store.rwLock.readLock().unlock();
                         }
                     }
                     current = null;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -35,13 +36,13 @@ public class Indexer {
         "also;back;after;use;two;how;our;work;first;well;way;even;new;want;" +
         "because;any;these;give;most;us;";
 
-    private final ArrayList<Page> pages = new ArrayList<Page>();
+    private final ArrayList<Page> pages = new ArrayList<>();
 
     /**
      * Lower case word to Word map.
      */
-    private final HashMap<String, Word> words = new HashMap<String, Word>();
-    private final HashSet<String> noIndex = new HashSet<String>();
+    private final HashMap<String, Word> words = new HashMap<>();
+    private final HashSet<String> noIndex = new HashSet<>();
     private ArrayList <Word>wordList;
     private PrintWriter output;
     private Page page;
@@ -103,7 +104,7 @@ public class Indexer {
     }
 
     private void sortWords() {
-        for (String name : new ArrayList<String>(words.keySet())) {
+        for (String name : new ArrayList<>(words.keySet())) {
             if (name.endsWith("s")) {
                 String singular = name.substring(0, name.length() - 1);
                 if (words.containsKey(singular)) {
@@ -116,7 +117,7 @@ public class Indexer {
                 words.remove(name);
             }
         }
-        wordList = new ArrayList<Word>(words.values());
+        wordList = new ArrayList<>(words.values());
         // ignored very common words (to shrink the index)
         StringBuilder ignoredBuff = new StringBuilder(";");
         int maxSize = pages.size() / 4;
@@ -167,7 +168,7 @@ public class Indexer {
         Collections.sort(pages, new Comparator<Page>() {
             @Override
             public int compare(Page p0, Page p1) {
-                return p0.relations == p1.relations ? 0 : p0.relations < p1.relations ? 1 : -1;
+                return Integer.compare(p1.relations, p0.relations);
             }
         });
         for (int i = 0; i < pages.size(); i++) {
@@ -256,7 +257,7 @@ public class Indexer {
 
     private void readPage(File file) throws Exception {
         byte[] data = IOUtils.readBytesAndClose(new FileInputStream(file), 0);
-        String text = new String(data, "UTF-8");
+        String text = new String(data, StandardCharsets.UTF_8);
         StringTokenizer t = new StringTokenizer(text, "<> \r\n", true);
         boolean inTag = false;
         title = false;

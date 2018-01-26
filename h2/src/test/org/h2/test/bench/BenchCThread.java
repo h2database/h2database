@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -26,7 +26,7 @@ public class BenchCThread {
     private final int warehouseId;
     private final int terminalId;
     private final HashMap<String, PreparedStatement> prepared =
-            new HashMap<String, PreparedStatement>();
+            new HashMap<>();
     private final BenchCRandom random;
     private final BenchC bench;
 
@@ -194,8 +194,8 @@ public class BenchCThread {
             rs.close();
             String distInfo = dist[(dId - 1) % 10];
             stock[number - 1] = sQuantity;
-            if ((data.indexOf("original") != -1)
-                    && (sData.indexOf("original") != -1)) {
+            if (data.contains("original")
+                    && sData.contains("original")) {
                 bg[number - 1] = 'B';
             } else {
                 bg[number - 1] = 'G';

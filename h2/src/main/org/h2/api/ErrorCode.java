@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -107,6 +107,12 @@ public class ErrorCode {
     public static final int NUMERIC_VALUE_OUT_OF_RANGE_1 = 22003;
 
     /**
+     * The error with code <code>22004</code> is thrown when a value is out of
+     * range when converting to another column's data type.
+     */
+    public static final int NUMERIC_VALUE_OUT_OF_RANGE_2 = 22004;
+
+    /**
      * The error with code <code>22007</code> is thrown when
      * a text can not be converted to a date, time, or timestamp constant.
      * Examples:
@@ -158,6 +164,44 @@ public class ErrorCode {
      * </pre>
      */
     public static final int LIKE_ESCAPE_ERROR_1 = 22025;
+
+    /**
+     * The error with code <code>22030</code> is thrown when
+     * an attempt is made to INSERT or UPDATE an ENUM-typed cell,
+     * but the value is not one of the values enumerated by the
+     * type.
+     *
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(CASE ENUM('sensitive','insensitive'));
+     * INSERT INTO TEST VALUES('snake');
+     * </pre>
+     */
+    public static final int ENUM_VALUE_NOT_PERMITTED = 22030;
+
+    /**
+     * The error with code <code>22032</code> is thrown when an
+     * attempt is made to add or modify an ENUM-typed column so
+     * that one or more of its enumerators would be empty.
+     *
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(CASE ENUM(' '));
+     * </pre>
+     */
+    public static final int ENUM_EMPTY = 22032;
+
+    /**
+     * The error with code <code>22033</code> is thrown when an
+     * attempt is made to add or modify an ENUM-typed column so
+     * that it would have duplicate values.
+     *
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(CASE ENUM('sensitive', 'sensitive'));
+     * </pre>
+     */
+    public static final int ENUM_DUPLICATE = 22033;
 
     // 23: constraint violation
 
@@ -1928,8 +1972,14 @@ public class ErrorCode {
      */
     public static final int STEP_SIZE_MUST_NOT_BE_ZERO = 90142;
 
+    /**
+     * The error with code <code>90143</code> is thrown when
+     * trying to fetch a row from the primary index and the row is not there.
+     * Can happen in MULTI_THREADED=1 case.
+     */
+    public static final int ROW_NOT_FOUND_IN_PRIMARY_INDEX = 90143;
 
-    // next are 90110, 90122, 90143
+    // next are 90110, 90122, 90144
 
     private ErrorCode() {
         // utility class

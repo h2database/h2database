@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -26,7 +26,7 @@ public class ValueHashMap<V> extends HashBase {
      * @return the object
      */
     public static <T> ValueHashMap<T> newInstance() {
-        return new ValueHashMap<T>();
+        return new ValueHashMap<>();
     }
 
     @Override
@@ -161,7 +161,7 @@ public class ValueHashMap<V> extends HashBase {
      * @return all keys
      */
     public ArrayList<Value> keys() {
-        ArrayList<Value> list = New.arrayList(size);
+        ArrayList<Value> list = new ArrayList<>(size);
         for (Value k : keys) {
             if (k != null && k != ValueNull.DELETED) {
                 list.add(k);
@@ -176,7 +176,7 @@ public class ValueHashMap<V> extends HashBase {
      * @return all values
      */
     public ArrayList<V> values() {
-        ArrayList<V> list = New.arrayList(size);
+        ArrayList<V> list = new ArrayList<>(size);
         int len = keys.length;
         for (int i = 0; i < len; i++) {
             Value k = keys[i];

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,9 +10,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.sql.Types;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Locale;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 
@@ -33,17 +35,86 @@ public class TestCompatibilityOracle extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testNotNullSyntax();
         testTreatEmptyStringsAsNull();
         testDecimalScale();
         testPoundSymbolInColumnName();
         testToDate();
+        testForbidEmptyInClause();
+        testSpecialTypes();
+        testDate();
+    }
+
+    private void testNotNullSyntax() throws SQLException {
+        deleteDb("oracle");
+        Connection conn = getConnection("oracle;MODE=Oracle");
+        Statement stat = conn.createStatement();
+        // Some other variation (oracle syntax)
+        stat.execute("create table T (C int not null enable)");
+        stat.execute("insert into T values(1)");
+        stat.execute("drop table T");
+        stat.execute("create table T (C int not null enable validate)");
+        stat.execute("insert into T values(1)");
+        stat.execute("drop table T");
+        // can set NULL
+        // can set NULL even with 'not null syntax' (oracle)
+        stat.execute("create table T (C int not null disable)");
+        stat.execute("insert into T values(null)");
+        stat.execute("drop table T");
+        // can set NULL even with 'not null syntax' (oracle)
+        stat.execute("create table T (C int not null enable novalidate)");
+        stat.execute("insert into T values(null)");
+        stat.execute("drop table T");
+
+        // Some other variation with oracle syntax
+        stat.execute("create table T (C int not null)");
+        stat.execute("insert into T values(1)");
+        stat.execute("alter table T modify C not null");
+        stat.execute("insert into T values(1)");
+        stat.execute("alter table T modify C not null enable");
+        stat.execute("insert into T values(1)");
+        stat.execute("alter table T modify C not null enable validate");
+        stat.execute("insert into T values(1)");
+        stat.execute("drop table T");
+        // can set NULL
+        stat.execute("create table T (C int null)");
+        stat.execute("insert into T values(null)");
+        stat.execute("alter table T modify C null enable");
+        stat.execute("alter table T modify C null enable validate");
+        stat.execute("insert into T values(null)");
+        // can set NULL even with 'not null syntax' (oracle)
+        stat.execute("alter table T modify C not null disable");
+        stat.execute("insert into T values(null)");
+        // can set NULL even with 'not null syntax' (oracle)
+        stat.execute("alter table T modify C not null enable novalidate");
+        stat.execute("insert into T values(null)");
+        stat.execute("drop table T");
+
+        conn.close();
+    }
+
+    private void testSpecialTypes() throws SQLException {
+        // Test VARCHAR, VARCHAR2 with CHAR and BYTE
+        deleteDb("oracle");
+        Connection conn = getConnection("oracle;MODE=Oracle");
+        Statement stat = conn.createStatement();
+        stat.execute("create table T (ID NUMBER)");
+        stat.execute("alter table T add A_1 VARCHAR(1)");
+        stat.execute("alter table T add A_2 VARCHAR2(1)");
+        stat.execute("alter table T add B_1 VARCHAR(1 byte)"); // with BYTE
+        stat.execute("alter table T add B_2 VARCHAR2(1 byte)");
+        stat.execute("alter table T add C_1 VARCHAR(1 char)"); // with CHAR
+        stat.execute("alter table T add C_2 VARCHAR2(1 char)");
+        stat.execute("alter table T add B_255 VARCHAR(255 byte)");
+        stat.execute("alter table T add C_255 VARCHAR(255 char)");
+        stat.execute("drop table T");
+        conn.close();
     }
 
     private void testTreatEmptyStringsAsNull() throws SQLException {
         deleteDb("oracle");
         Connection conn = getConnection("oracle;MODE=Oracle");
         Statement stat = conn.createStatement();
-
         stat.execute("CREATE TABLE A (ID NUMBER, X VARCHAR2(1))");
         stat.execute("INSERT INTO A VALUES (1, 'a')");
         stat.execute("INSERT INTO A VALUES (2, '')");
@@ -143,22 +214,79 @@ public class TestCompatibilityOracle extends TestBase {
     }
 
     private void testToDate() throws SQLException {
+        if (Locale.getDefault() != Locale.ENGLISH) {
+            return;
+        }
         deleteDb("oracle");
         Connection conn = getConnection("oracle;MODE=Oracle");
         Statement stat = conn.createStatement();
 
-        stat.execute("CREATE TABLE DATETABLE (ID NUMBER PRIMARY KEY, TESTVAL TIMESTAMP)");
-        stat.execute("INSERT INTO DATETABLE VALUES (1, to_date('31-DEC-9999 23:59:59','DD-MON-RRRR HH24:MI:SS'))");
-        stat.execute("INSERT INTO DATETABLE VALUES (2, to_date('01-JAN-0001 00:00:00','DD-MON-RRRR HH24:MI:SS'))");
+        stat.execute("CREATE TABLE DATE_TABLE (ID NUMBER PRIMARY KEY, TEST_VAL TIMESTAMP)");
+        stat.execute("INSERT INTO DATE_TABLE VALUES (1, " +
+                "to_date('31-DEC-9999 23:59:59','DD-MON-RRRR HH24:MI:SS'))");
+        stat.execute("INSERT INTO DATE_TABLE VALUES (2, " +
+                "to_date('01-JAN-0001 00:00:00','DD-MON-RRRR HH24:MI:SS'))");
 
-        assertResultDate("9999-12-31T23:59:59", stat, "SELECT TESTVAL FROM DATETABLE WHERE ID=1");
-        assertResultDate("0001-01-01T00:00:00", stat, "SELECT TESTVAL FROM DATETABLE WHERE ID=2");
+        assertResultDate("9999-12-31T23:59:59", stat,
+                "SELECT TEST_VAL FROM DATE_TABLE WHERE ID=1");
+        assertResultDate("0001-01-01T00:00:00", stat,
+                "SELECT TEST_VAL FROM DATE_TABLE WHERE ID=2");
 
         conn.close();
     }
 
-    private void assertResultDate(String expected, Statement stat, String sql) throws SQLException {
-        SimpleDateFormat iso8601 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+    private void testForbidEmptyInClause() throws SQLException {
+        deleteDb("oracle");
+        Connection conn = getConnection("oracle;MODE=Oracle");
+        Statement stat = conn.createStatement();
+
+        stat.execute("CREATE TABLE A (ID NUMBER, X VARCHAR2(1))");
+        try {
+            stat.executeQuery("SELECT * FROM A WHERE ID IN ()");
+            fail();
+        } catch (SQLException e) {
+            // expected
+        } finally {
+            conn.close();
+        }
+    }
+
+    private void testDate() throws SQLException {
+        deleteDb("oracle");
+        Connection conn = getConnection("oracle;MODE=Oracle");
+        Statement stat = conn.createStatement();
+
+        Timestamp t1 = Timestamp.valueOf("2011-02-03 12:11:10");
+        Timestamp t2 = Timestamp.valueOf("1999-10-15 13:14:15");
+        Timestamp t3 = Timestamp.valueOf("2030-11-22 11:22:33");
+        Timestamp t4 = Timestamp.valueOf("2018-01-10 22:10:01");
+
+        stat.execute("CREATE TABLE TEST (ID INT PRIMARY KEY, D DATE)");
+        stat.executeUpdate("INSERT INTO TEST VALUES(1, TIMESTAMP '2011-02-03 12:11:10')");
+        stat.executeUpdate("INSERT INTO TEST VALUES(2, CAST ('1999-10-15 13:14:15' AS DATE))");
+        stat.executeUpdate("INSERT INTO TEST VALUES(3, '2030-11-22 11:22:33')");
+        PreparedStatement ps = conn.prepareStatement("INSERT INTO TEST VALUES (?, ?)");
+        ps.setInt(1, 4);
+        ps.setTimestamp(2, t4);
+        ps.executeUpdate();
+        ResultSet rs = stat.executeQuery("SELECT D FROM TEST ORDER BY ID");
+        rs.next();
+        assertEquals(t1, rs.getTimestamp(1));
+        rs.next();
+        assertEquals(t2, rs.getTimestamp(1));
+        rs.next();
+        assertEquals(t3, rs.getTimestamp(1));
+        rs.next();
+        assertEquals(t4, rs.getTimestamp(1));
+        assertFalse(rs.next());
+
+        conn.close();
+    }
+
+    private void assertResultDate(String expected, Statement stat, String sql)
+            throws SQLException {
+        SimpleDateFormat iso8601 = new SimpleDateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss");
         ResultSet rs = stat.executeQuery(sql);
         if (rs.next()) {
             assertEquals(expected, iso8601.format(rs.getTimestamp(1)));

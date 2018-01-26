@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -13,7 +13,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.test.TestBase;
 
 /**
@@ -138,7 +137,7 @@ public class TestBatchUpdates extends TestBase {
      * @param f the float
      * @return the float converted to an int
      */
-    public static int updatePrices(String message, double f) {
+    public static int updatePrices(@SuppressWarnings("unused") String message, double f) {
         return (int) f;
     }
 

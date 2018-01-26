@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,9 +11,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
-import org.h2.command.ddl.Analyze;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintReferential;
@@ -54,13 +54,13 @@ public class RegularTable extends TableBase {
     private Index scanIndex;
     private long rowCount;
     private volatile Session lockExclusiveSession;
-    private HashSet<Session> lockSharedSessions = New.hashSet();
+    private HashSet<Session> lockSharedSessions = new HashSet<>();
 
     /**
      * The queue of sessions waiting to lock the table. It is a FIFO queue to
      * prevent starvation, since Java's synchronized locking is biased.
      */
-    private final ArrayDeque<Session> waitingSessions = new ArrayDeque<Session>();
+    private final ArrayDeque<Session> waitingSessions = new ArrayDeque<>();
     private final Trace traceLock;
     private final ArrayList<Index> indexes = New.arrayList();
     private long lastModificationId;
@@ -265,7 +265,7 @@ public class RegularTable extends TableBase {
                 Cursor cursor = scan.find(session, null, null);
                 long i = 0;
                 int bufferSize = (int) Math.min(rowCount, database.getMaxMemoryRows());
-                ArrayList<Row> buffer = New.arrayList(bufferSize);
+                ArrayList<Row> buffer = new ArrayList<>(bufferSize);
                 String n = getName() + ":" + index.getName();
                 int t = MathUtils.convertLongToInt(total);
                 while (cursor.next()) {
@@ -429,8 +429,7 @@ public class RegularTable extends TableBase {
         if (n > 0) {
             nextAnalyze = n;
         }
-        int rows = session.getDatabase().getSettings().analyzeSample / 10;
-        Analyze.analyzeTable(session, this, rows, false);
+        session.markTableForAnalyze(this);
     }
 
     @Override
@@ -500,10 +499,10 @@ public class RegularTable extends TableBase {
                 // check for deadlocks from now on
                 checkDeadlock = true;
             }
-            long now = System.currentTimeMillis();
+            long now = System.nanoTime();
             if (max == 0) {
                 // try at least one more time
-                max = now + session.getLockTimeout();
+                max = now + TimeUnit.MILLISECONDS.toNanos(session.getLockTimeout());
             } else if (now >= max) {
                 traceLock(session, exclusive, "timeout after " + session.getLockTimeout());
                 throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, getName());
@@ -521,7 +520,8 @@ public class RegularTable extends TableBase {
                     }
                 }
                 // don't wait too long so that deadlocks are detected early
-                long sleep = Math.min(Constants.DEADLOCK_CHECK, max - now);
+                long sleep = Math.min(Constants.DEADLOCK_CHECK,
+                        TimeUnit.NANOSECONDS.toMillis(max - now));
                 if (sleep == 0) {
                     sleep = 1;
                 }
@@ -612,7 +612,7 @@ public class RegularTable extends TableBase {
             if (clash == null) {
                 // verification is started
                 clash = session;
-                visited = New.hashSet();
+                visited = new HashSet<>();
             } else if (clash == session) {
                 // we found a circle where this session is involved
                 return New.arrayList();
@@ -670,10 +670,10 @@ public class RegularTable extends TableBase {
             if (lockExclusiveSession == s) {
                 lockExclusiveSession = null;
             }
-            if (lockSharedSessions.size() > 0) {
-                lockSharedSessions.remove(s);
-            }
             synchronized (database) {
+                if (lockSharedSessions.size() > 0) {
+                    lockSharedSessions.remove(s);
+                }
                 if (!waitingSessions.isEmpty()) {
                     database.notifyAll();
                 }
@@ -760,8 +760,8 @@ public class RegularTable extends TableBase {
     }
 
     @Override
-    public String getTableType() {
-        return Table.TABLE;
+    public TableType getTableType() {
+        return TableType.TABLE;
     }
 
     @Override

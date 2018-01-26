@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -17,8 +17,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
-import org.h2.engine.Constants;
 import org.h2.util.IOUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.StatementBuilder;
@@ -57,7 +57,7 @@ public class FtpClient {
         InputStream in = socket.getInputStream();
         OutputStream out = socket.getOutputStream();
         reader = new BufferedReader(new InputStreamReader(in));
-        writer = new PrintWriter(new OutputStreamWriter(out, Constants.UTF8));
+        writer = new PrintWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
         readCode(220);
     }
 

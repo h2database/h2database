@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -105,17 +105,11 @@ public class TestLimitUpdates extends TestBase {
 
     private static void updateLimit(final Connection conn, final int value,
             final int limit) throws SQLException {
-        PreparedStatement prep = null;
-        try {
-            prep = conn.prepareStatement(
-                    "UPDATE TEST SET VALUE_ID = ? LIMIT ?");
+        try (PreparedStatement prep = conn.prepareStatement(
+                    "UPDATE TEST SET VALUE_ID = ? LIMIT ?")) {
             prep.setInt(1, value);
             prep.setInt(2, limit);
             prep.execute();
-        } finally {
-            if (prep != null) {
-                prep.close();
-            }
         }
     }
 }

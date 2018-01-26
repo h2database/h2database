@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -16,13 +16,12 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.sql.Blob;
 import java.sql.SQLException;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
-import org.h2.util.Task;
 import org.h2.util.IOUtils;
+import org.h2.util.Task;
 import org.h2.value.Value;
 
 /**
@@ -90,12 +89,9 @@ public class JdbcBlob extends TraceObject implements Blob {
             }
             checkClosed();
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            InputStream in = value.getInputStream();
-            try {
+            try (InputStream in = value.getInputStream()) {
                 IOUtils.skipFully(in, pos - 1);
                 IOUtils.copy(in, out, length);
-            } finally {
-                in.close();
             }
             return out.toByteArray();
         } catch (Exception e) {
@@ -130,7 +126,7 @@ public class JdbcBlob extends TraceObject implements Blob {
     }
 
     /**
-     * [Not supported] Sets some bytes of the object.
+     * Sets some bytes of the object.
      *
      * @param pos the write position
      * @param bytes the bytes to set
@@ -141,7 +137,19 @@ public class JdbcBlob extends TraceObject implements Blob {
     @Override
     public int setBytes(long pos, byte[] bytes, int offset, int len)
             throws SQLException {
-        throw unsupported("LOB update");
+        try {
+            if (isDebugEnabled()) {
+                debugCode("setBytes(" + pos + ", " + quoteBytes(bytes) + ", " + offset + ", " + len + ");");
+            }
+            checkClosed();
+            if (pos != 1) {
+                throw DbException.getInvalidValueException("pos", pos);
+            }
+            value = conn.createBlob(new ByteArrayInputStream(bytes, offset, len), -1);
+            return (int) value.getPrecision();
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**
@@ -309,7 +317,7 @@ public class JdbcBlob extends TraceObject implements Blob {
     }
 
     /**
-     * [Not supported] Returns the input stream, starting from an offset.
+     * Returns the input stream, starting from an offset.
      *
      * @param pos where to start reading
      * @param length the number of bytes that will be read
@@ -317,7 +325,13 @@ public class JdbcBlob extends TraceObject implements Blob {
      */
     @Override
     public InputStream getBinaryStream(long pos, long length) throws SQLException {
-        throw unsupported("LOB update");
+        try {
+            debugCodeCall("getBinaryStream(pos, length)");
+            checkClosed();
+            return value.getInputStream(pos, length);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     private void checkClosed() {

@@ -1,11 +1,12 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.command;
 
 import java.util.ArrayList;
+import java.util.List;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
@@ -15,6 +16,7 @@ import org.h2.expression.Parameter;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
+import org.h2.table.TableView;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
@@ -55,6 +57,11 @@ public abstract class Prepared {
     private int objectId;
     private int currentRowNumber;
     private int rowScanCount;
+    /**
+     * Common table expressions (CTE) in queries require us to create temporary views,
+     * which need to be cleaned up once a command is done executing.
+     */
+    private List<TableView> cteCleanups;
 
     /**
      * Create a new object.
@@ -208,6 +215,7 @@ public abstract class Prepared {
      * @return the result set
      * @throws DbException if it is not a query
      */
+    @SuppressWarnings("unused")
     public ResultInterface query(int maxrows) {
         throw DbException.get(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY);
     }
@@ -302,19 +310,22 @@ public abstract class Prepared {
      * Print information about the statement executed if info trace level is
      * enabled.
      *
-     * @param startTime when the statement was started
+     * @param startTimeNanos when the statement was started
      * @param rowCount the query or update row count
      */
-    void trace(long startTime, int rowCount) {
-        if (session.getTrace().isInfoEnabled() && startTime > 0) {
-            long deltaTime = System.currentTimeMillis() - startTime;
+    void trace(long startTimeNanos, int rowCount) {
+        if (session.getTrace().isInfoEnabled() && startTimeNanos > 0) {
+            long deltaTimeNanos = System.nanoTime() - startTimeNanos;
             String params = Trace.formatParams(parameters);
-            session.getTrace().infoSQL(sqlStatement, params, rowCount, deltaTime);
+            session.getTrace().infoSQL(sqlStatement, params, rowCount,
+                    deltaTimeNanos / 1000 / 1000);
         }
-        if (session.getDatabase().getQueryStatistics()) {
-            long deltaTime = System.currentTimeMillis() - startTime;
+        // startTime_nanos can be zero for the command that actually turns on
+        // statistics
+        if (session.getDatabase().getQueryStatistics() && startTimeNanos != 0) {
+            long deltaTimeNanos = System.nanoTime() - startTimeNanos;
             session.getDatabase().getQueryStatisticsData().
-                    update(toString(), deltaTime, rowCount);
+                    update(toString(), deltaTimeNanos, rowCount);
         }
     }
 
@@ -430,4 +441,23 @@ public abstract class Prepared {
         return false;
     }
 
+    /**
+     * @return the temporary views created for CTE's.
+     */
+    public List<TableView> getCteCleanups() {
+        return cteCleanups;
+    }
+
+    /**
+     * Set the temporary views created for CTE's.
+     *
+     * @param cteCleanups the temporary views
+     */
+    public void setCteCleanups(List<TableView> cteCleanups) {
+        this.cteCleanups = cteCleanups;
+    }
+
+    public Session getSession() {
+        return session;
+    }
 }

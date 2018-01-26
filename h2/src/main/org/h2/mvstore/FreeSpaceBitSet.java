@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -170,6 +170,15 @@ public class FreeSpaceBitSet {
         return getPos(set.nextClearBit(0));
     }
 
+    /**
+     * Get the position of the last (infinite) free space.
+     *
+     * @return the position.
+     */
+    public long getLastFree() {
+        return getPos(set.previousSetBit(set.size()-1) + 1);
+    }
+
     @Override
     public String toString() {
         StringBuilder buff = new StringBuilder();
@@ -188,9 +197,9 @@ public class FreeSpaceBitSet {
                     on = 0;
                 }
             }
-            buff.append("\n");
-            buff.append(" on " + onCount + " off " + offCount);
-            buff.append(" " + 100 * onCount / (onCount+offCount) + "% used ");
+            buff.append('\n')
+                    .append(" on ").append(onCount).append(" off ").append(offCount)
+                    .append(' ').append(100 * onCount / (onCount+offCount)).append("% used ");
         }
         buff.append('[');
         for (int i = 0;;) {

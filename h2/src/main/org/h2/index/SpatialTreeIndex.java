@@ -1,19 +1,12 @@
 /*
-<<<<<<< HEAD
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
-=======
- * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License, Version
- * 1.0, and under the Eclipse Public License, Version 1.0
- * (http://h2database.com/html/license.html). Initial Developer: H2 Group
->>>>>>> oldh2repo/h2raster_2014_03_18
  */
 package org.h2.index;
 
 import java.util.HashSet;
 import java.util.Iterator;
-import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVStore;
@@ -174,9 +167,10 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     }
 
     @Override
-    public Cursor findByGeometry(TableFilter filter, SearchRow intersection) {
+    public Cursor findByGeometry(TableFilter filter, SearchRow first,
+            SearchRow last, SearchRow intersection) {
         if (intersection == null) {
-            return find(filter.getSession());
+            return find(filter.getSession(), first, last);
         }
         return new SpatialCursor(
                 treeMap.findIntersectingKeys(getKey(intersection)), table,
@@ -186,31 +180,29 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     /**
      * Compute spatial index cost
      * @param masks Search mask
-     * @param rowCount Table row count
      * @param columns Table columns
      * @return Index cost hint
      */
-    public static long getCostRangeIndex(int[] masks, long rowCount, Column[] columns) {
-        rowCount += Constants.COST_ROW_OFFSET;
-        long cost = rowCount;
-        if (masks == null) {
-            return cost;
+    public static long getCostRangeIndex(int[] masks, Column[] columns) {
+        // Never use spatial tree index without spatial filter
+        if (columns.length == 0) {
+            return Long.MAX_VALUE;
         }
         for (Column column : columns) {
             int index = column.getColumnId();
             int mask = masks[index];
-            if ((mask & IndexCondition.SPATIAL_INTERSECTS) != 0) {
-                cost = 3 + rowCount / 4;
+            if ((mask & IndexCondition.SPATIAL_INTERSECTS) != IndexCondition.SPATIAL_INTERSECTS) {
+                return Long.MAX_VALUE;
             }
         }
-        return 10 * cost;
+        return 2;
     }
 
     @Override
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
             HashSet<Column> allColumnsSet) {
-        return getCostRangeIndex(masks, table.getRowCountApproximation(), columns);
+        return getCostRangeIndex(masks, columns);
     }
 
 
@@ -244,7 +236,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
         if (closed) {
-            throw DbException.throwInternalError();
+            throw DbException.throwInternalError(toString());
         }
         if (!first) {
             throw DbException.throwInternalError(

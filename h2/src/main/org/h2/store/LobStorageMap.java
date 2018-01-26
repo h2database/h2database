@@ -1,21 +1,18 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.store;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map.Entry;
-
 import org.h2.api.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVMap;
@@ -40,7 +37,7 @@ public class LobStorageMap implements LobStorageInterface {
 
     private boolean init;
 
-    private Object nextLobIdSync = new Object();
+    private final Object nextLobIdSync = new Object();
     private long nextLobId;
 
     /**
@@ -154,27 +151,23 @@ public class LobStorageMap implements LobStorageInterface {
     private Value createBinaryLargeObject(int type, InputStream in, long
             maxLength) {
         init();
-        if (maxLength < 0) {
-            maxLength = Long.MAX_VALUE;
-        }
-        int max = (int) Math.min(maxLength, database.getMaxLengthInplaceLob());
+        int type = Value.BLOB;
         try {
-            if (max != 0 && max < Integer.MAX_VALUE) {
-                BufferedInputStream b = new BufferedInputStream(in, max);
-                b.mark(max);
-                byte[] small = new byte[max];
-                int len = IOUtils.readFully(b, small, max);
-                if (len < max) {
-                    if (len < small.length) {
-                        small = Arrays.copyOf(small, len);
-                    }
-                    return ValueLobDb.createSmallLob(type, small);
+            if (maxLength != -1
+                    && maxLength <= database.getMaxLengthInplaceLob()) {
+                byte[] small = new byte[(int) maxLength];
+                int len = IOUtils.readFully(in, small, (int) maxLength);
+                if (len > maxLength) {
+                    throw new IllegalStateException(
+                            "len > blobLength, " + len + " > " + maxLength);
                 }
-                b.reset();
-                in = b;
+                if (len < small.length) {
+                    small = Arrays.copyOf(small, len);
+                }
+                return ValueLobDb.createSmallLob(type, small);
             }
-            if (maxLength != Long.MAX_VALUE) {
-                in = new LimitInputStream(in, maxLength);
+            if (maxLength != -1) {
+                in = new RangeInputStream(in, 0L, maxLength);
             }
             return createLob(in, type);
         } catch (IllegalStateException e) {
@@ -188,32 +181,34 @@ public class LobStorageMap implements LobStorageInterface {
     public Value createClob(Reader reader, long maxLength) {
         init();
         int type = Value.CLOB;
-        if (maxLength < 0) {
-            maxLength = Long.MAX_VALUE;
-        }
-        int max = (int) Math.min(maxLength, database.getMaxLengthInplaceLob());
         try {
-            if (max != 0 && max < Integer.MAX_VALUE) {
-                BufferedReader b = new BufferedReader(reader, max);
-                b.mark(max);
-                char[] small = new char[max];
-                int len = IOUtils.readFully(b, small, max);
-                if (len < max) {
-                    if (len < small.length) {
-                        small = Arrays.copyOf(small, len);
-                    }
-                    byte[] utf8 = new String(small, 0, len).getBytes(Constants.UTF8);
-                    return ValueLobDb.createSmallLob(type, utf8);
+            // we multiple by 3 here to get the worst-case size in bytes
+            if (maxLength != -1
+                    && maxLength * 3 <= database.getMaxLengthInplaceLob()) {
+                char[] small = new char[(int) maxLength];
+                int len = IOUtils.readFully(reader, small, (int) maxLength);
+                if (len > maxLength) {
+                    throw new IllegalStateException(
+                            "len > blobLength, " + len + " > " + maxLength);
                 }
-                b.reset();
-                reader = b;
+                byte[] utf8 = new String(small, 0, len)
+                        .getBytes(StandardCharsets.UTF_8);
+                if (utf8.length > database.getMaxLengthInplaceLob()) {
+                    throw new IllegalStateException(
+                            "len > maxinplace, " + utf8.length + " > "
+                                    + database.getMaxLengthInplaceLob());
+                }
+                return ValueLobDb.createSmallLob(type, utf8);
             }
-            CountingReaderInputStream in =
-                    new CountingReaderInputStream(reader, maxLength);
+            if (maxLength < 0) {
+                maxLength = Long.MAX_VALUE;
+            }
+            CountingReaderInputStream in = new CountingReaderInputStream(reader,
+                    maxLength);
             ValueLobDb lob = createLob(in, type);
             // the length is not correct
-            lob = ValueLobDb.create(type, database,
-                    lob.getTableId(), lob.getLobId(), null, in.getLength());
+            lob = ValueLobDb.create(type, database, lob.getTableId(),
+                    lob.getLobId(), null, in.getLength());
             return lob;
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
@@ -302,19 +297,6 @@ public class LobStorageMap implements LobStorageInterface {
         }
         byte[] streamStoreId = (byte[]) value[0];
         return streamStore.get(streamStoreId);
-    }
-
-    @Override
-    public void setTable(ValueLobDb lob, int tableId) {
-        init();
-        long lobId = lob.getLobId();
-        Object[] value = lobMap.remove(lobId);
-        if (TRACE) {
-            trace("move " + lob.getTableId() + "/" + lob.getLobId() +
-                    " > " + tableId + "/" + lobId);
-        }
-        value[1] = tableId;
-        lobMap.put(lobId, value);
     }
 
     @Override

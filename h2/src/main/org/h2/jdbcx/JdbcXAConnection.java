@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -17,14 +17,11 @@ import javax.sql.XAConnection;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
-
 import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
-import org.h2.util.JdbcUtils;
-import org.h2.util.New;
-
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
+import org.h2.util.New;
 
 
 /**
@@ -193,9 +190,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
     public Xid[] recover(int flag) throws XAException {
         debugCodeCall("recover", quoteFlags(flag));
         checkOpen();
-        Statement stat = null;
-        try {
-            stat = physicalConn.createStatement();
+        try (Statement stat = physicalConn.createStatement()) {
             ResultSet rs = stat.executeQuery("SELECT * FROM " +
                     "INFORMATION_SCHEMA.IN_DOUBT ORDER BY TRANSACTION");
             ArrayList<Xid> list = New.arrayList();
@@ -206,8 +201,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
                 list.add(xid);
             }
             rs.close();
-            Xid[] result = new Xid[list.size()];
-            list.toArray(result);
+            Xid[] result = list.toArray(new Xid[0]);
             if (list.size() > 0) {
                 prepared = true;
             }
@@ -216,8 +210,6 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
             XAException xa = new XAException(XAException.XAER_RMERR);
             xa.initCause(e);
             throw xa;
-        } finally {
-            JdbcUtils.closeSilently(stat);
         }
     }
 
@@ -236,15 +228,12 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
         if (!currentTransaction.equals(xid)) {
             throw new XAException(XAException.XAER_INVAL);
         }
-        Statement stat = null;
-        try {
-            stat = physicalConn.createStatement();
+
+        try (Statement stat = physicalConn.createStatement()) {
             stat.execute("PREPARE COMMIT " + JdbcXid.toString(xid));
             prepared = true;
         } catch (SQLException e) {
             throw convertException(e);
-        } finally {
-            JdbcUtils.closeSilently(stat);
         }
         return XA_OK;
     }
@@ -275,12 +264,8 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
         }
         try {
             if (prepared) {
-                Statement stat = null;
-                try {
-                    stat = physicalConn.createStatement();
+                try (Statement stat = physicalConn.createStatement()) {
                     stat.execute("ROLLBACK TRANSACTION " + JdbcXid.toString(xid));
-                } finally {
-                    JdbcUtils.closeSilently(stat);
                 }
                 prepared = false;
             } else {
@@ -355,20 +340,19 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
         if (isDebugEnabled()) {
             debugCode("commit("+JdbcXid.toString(xid)+", "+onePhase+");");
         }
-        Statement stat = null;
+
         try {
             if (onePhase) {
                 physicalConn.commit();
             } else {
-                stat = physicalConn.createStatement();
-                stat.execute("COMMIT TRANSACTION " + JdbcXid.toString(xid));
-                prepared = false;
+                try (Statement stat = physicalConn.createStatement()) {
+                    stat.execute("COMMIT TRANSACTION " + JdbcXid.toString(xid));
+                    prepared = false;
+                }
             }
             physicalConn.setAutoCommit(true);
         } catch (SQLException e) {
             throw convertException(e);
-        } finally {
-            JdbcUtils.closeSilently(stat);
         }
         currentTransaction = null;
     }

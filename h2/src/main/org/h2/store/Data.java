@@ -1,12 +1,6 @@
 /*
-<<<<<<< HEAD
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
-=======
- * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License,
- * Version 1.0, and under the Eclipse Public License, Version 1.0
- * (http://h2database.com/html/license.html).
->>>>>>> oldh2repo/h2raster_2014_03_18
  * Initial Developer: H2 Group
  *
  * The variable size number format code is a port from SQLite,
@@ -23,12 +17,15 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Arrays;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.value.DataType;
@@ -56,7 +53,6 @@ import org.h2.value.ValueStringIgnoreCase;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
-import org.h2.value.ValueTimestampUtc;
 import org.h2.value.ValueUuid;
 
 /**
@@ -134,11 +130,7 @@ public class Data {
      * @param x the value
      */
     public void setInt(int pos, int x) {
-        byte[] buff = data;
-        buff[pos] = (byte) (x >> 24);
-        buff[pos + 1] = (byte) (x >> 16);
-        buff[pos + 2] = (byte) (x >> 8);
-        buff[pos + 3] = (byte) x;
+        Bits.writeInt(data, pos, x);
     }
 
     /**
@@ -148,11 +140,7 @@ public class Data {
      * @param x the value
      */
     public void writeInt(int x) {
-        byte[] buff = data;
-        buff[pos] = (byte) (x >> 24);
-        buff[pos + 1] = (byte) (x >> 16);
-        buff[pos + 2] = (byte) (x >> 8);
-        buff[pos + 3] = (byte) x;
+        Bits.writeInt(data, pos, x);
         pos += 4;
     }
 
@@ -163,11 +151,7 @@ public class Data {
      * @return the value
      */
     public int readInt() {
-        byte[] buff = data;
-        int x = (buff[pos] << 24) +
-                ((buff[pos+1] & 0xff) << 16) +
-                ((buff[pos+2] & 0xff) << 8) +
-                (buff[pos+3] & 0xff);
+        int x = Bits.readInt(data, pos);
         pos += 4;
         return x;
     }
@@ -407,7 +391,9 @@ public class Data {
      * @return the long value
      */
     public long readLong() {
-        return ((long) (readInt()) << 32) + (readInt() & 0xffffffffL);
+        long x = Bits.readLong(data, pos);
+        pos += 8;
+        return x;
     }
 
     /**
@@ -416,8 +402,8 @@ public class Data {
      * @param x the value
      */
     public void writeLong(long x) {
-        writeInt((int) (x >>> 32));
-        writeInt((int) x);
+        Bits.writeLong(data, pos, x);
+        pos += 8;
     }
 
     /**
@@ -434,8 +420,7 @@ public class Data {
         int type = v.getType();
         switch (type) {
         case Value.BOOLEAN:
-            writeByte((byte) (v.getBoolean().booleanValue() ?
-                    BOOLEAN_TRUE : BOOLEAN_FALSE));
+            writeByte((byte) (v.getBoolean() ? BOOLEAN_TRUE : BOOLEAN_FALSE));
             break;
         case Value.BYTE:
             writeByte((byte) type);
@@ -445,6 +430,7 @@ public class Data {
             writeByte((byte) type);
             writeShortInt(v.getShort());
             break;
+        case Value.ENUM:
         case Value.INT: {
             int x = v.getInt();
             if (x < 0) {
@@ -545,20 +531,16 @@ public class Data {
             }
             break;
         }
-        case Value.TIMESTAMP_UTC: {
-            ValueTimestampUtc ts = (ValueTimestampUtc) v;
-            writeByte((byte) type);
-            writeVarLong(ts.getUtcDateTimeNanos());
-            break;
-        }
         case Value.TIMESTAMP_TZ: {
             ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v;
             writeByte((byte) type);
             writeVarLong(ts.getDateValue());
             writeVarLong(ts.getTimeNanos());
             writeVarInt(ts.getTimeZoneOffsetMins());
+            break;
         }
         case Value.GEOMETRY:
+            // fall though
         case Value.JAVA_OBJECT: {
             writeByte((byte) type);
             byte[] b = v.getBytesNoCopy();
@@ -740,6 +722,7 @@ public class Data {
             return ValueBoolean.get(false);
         case INT_NEG:
             return ValueInt.get(-readVarInt());
+        case Value.ENUM:
         case Value.INT:
             return ValueInt.get(readVarInt());
         case LONG_NEG:
@@ -793,13 +776,10 @@ public class Data {
                     DateTimeUtils.getTimeUTCWithoutDst(readVarLong()),
                     readVarInt());
         }
-        case Value.TIMESTAMP_UTC: {
-            return ValueTimestampUtc.fromNanos(readVarLong());
-        }
         case Value.TIMESTAMP_TZ: {
             long dateValue = readVarLong();
             long nanos = readVarLong();
-            short tz = (short)readVarInt();
+            short tz = (short) readVarInt();
             return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, nanos, tz);
         }
         case Value.BYTES: {
@@ -949,6 +929,7 @@ public class Data {
             return 2;
         case Value.SHORT:
             return 3;
+        case Value.ENUM:
         case Value.INT: {
             int x = v.getInt();
             if (x < 0) {
@@ -1050,10 +1031,6 @@ public class Data {
             Timestamp ts = v.getTimestamp();
             return 1 + getVarLongLen(DateTimeUtils.getTimeLocalWithoutDst(ts)) +
                     getVarIntLen(ts.getNanos() % 1000000);
-        }
-        case Value.TIMESTAMP_UTC: {
-            ValueTimestampUtc ts = (ValueTimestampUtc) v;
-            return 1 + getVarLongLen(ts.getUtcDateTimeNanos());
         }
         case Value.TIMESTAMP_TZ: {
             ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v;
@@ -1199,8 +1176,7 @@ public class Data {
      */
     public void truncate(int size) {
         if (pos > size) {
-            byte[] buff = new byte[size];
-            System.arraycopy(data, 0, buff, 0, size);
+            byte[] buff = Arrays.copyOf(data, size);
             this.pos = size;
             data = buff;
         }
@@ -1341,11 +1317,9 @@ public class Data {
     }
 
     private void expand(int plus) {
-        byte[] d = DataUtils.newBytes((data.length + plus) * 2);
         // must copy everything, because pos could be 0 and data may be
         // still required
-        System.arraycopy(data, 0, d, 0, data.length);
-        data = d;
+        data = DataUtils.copyBytes(data, (data.length + plus) * 2);
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,6 +8,7 @@ package org.h2.test.unit;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.ConnectionInfo;
@@ -21,7 +22,6 @@ import org.h2.store.fs.Recorder;
 import org.h2.test.TestBase;
 import org.h2.tools.Recover;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 import org.h2.util.Profiler;
 import org.h2.util.Utils;
 
@@ -39,7 +39,7 @@ public class TestReopen extends TestBase implements Recorder {
     private final long maxFileSize = Utils.getProperty("h2.reopenMaxFileSize",
             Integer.MAX_VALUE) * 1024L * 1024;
     private int verifyCount;
-    private final HashSet<String> knownErrors = New.hashSet();
+    private final HashSet<String> knownErrors = new HashSet<>();
     private volatile boolean testing;
 
     /**
@@ -58,12 +58,12 @@ public class TestReopen extends TestBase implements Recorder {
         FilePathRec.setRecorder(this);
         config.reopen = true;
 
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         Profiler p = new Profiler();
         p.startCollecting();
         new TestPageStoreCoverage().init(config).test();
         System.out.println(p.getTop(3));
-        System.out.println(System.currentTimeMillis() - time);
+        System.out.println(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
         System.out.println("counter: " + writeCount);
     }
 

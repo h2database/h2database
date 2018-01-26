@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  */
 /*
@@ -162,7 +162,6 @@ class Statement {
     }
 
     public void setArgs(ArrayList<Arg> list) {
-        args = new Arg[list.size()];
-        list.toArray(args);
+        args = list.toArray(new Arg[0]);
     }
 }

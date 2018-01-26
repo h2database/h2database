@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -91,7 +91,6 @@ public class IntPerfectHash {
      *
      * @param pos the start position
      * @param x the key
-     * @param isRoot whether this is the root of the tree
      * @param level the level
      * @return the hash value
      */
@@ -194,13 +193,13 @@ public class IntPerfectHash {
      * @param list the data
      * @return the hash function description
      */
-    public static <K> byte[] generate(ArrayList<Integer> list) {
+    public static byte[] generate(ArrayList<Integer> list) {
         ByteStream out = new ByteStream();
         generate(list, 0, out);
         return out.toByteArray();
     }
 
-    private static <K> void generate(ArrayList<Integer> list, int level, ByteStream out) {
+    private static void generate(ArrayList<Integer> list, int level, ByteStream out) {
         int size = list.size();
         if (size <= 1) {
             out.write((byte) size);
@@ -235,17 +234,14 @@ public class IntPerfectHash {
             split = (size - 47) / DIVIDE;
         }
         split = Math.max(2, split);
-        ArrayList<ArrayList<Integer>> lists;
-        do {
-            lists = new ArrayList<ArrayList<Integer>>(split);
-            for (int i = 0; i < split; i++) {
-                lists.add(new ArrayList<Integer>(size / split));
-            }
-            for (int x : list) {
-                ArrayList<Integer> l = lists.get(hash(x, level, 0, split));
-                l.add(x);
-            }
-        } while (lists == null);
+        ArrayList<ArrayList<Integer>> lists = new ArrayList<>(split);
+        for (int i = 0; i < split; i++) {
+            lists.add(new ArrayList<Integer>(size / split));
+        }
+        for (int x : list) {
+            ArrayList<Integer> l = lists.get(hash(x, level, 0, split));
+            l.add(x);
+        }
         if (split >= SPLIT_MANY) {
             out.write((byte) SPLIT_MANY);
         }

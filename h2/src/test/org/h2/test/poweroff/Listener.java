@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,6 +9,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The listener application for the power off test.
@@ -60,7 +61,7 @@ public class Listener implements Runnable {
             Socket socket = serverSocket.accept();
             DataInputStream in = new DataInputStream(socket.getInputStream());
             System.out.println("Connected");
-            time = System.currentTimeMillis();
+            time = System.nanoTime();
             try {
                 while (true) {
                     int value = in.readInt();
@@ -72,8 +73,8 @@ public class Listener implements Runnable {
             } catch (IOException e) {
                 System.out.println("Closed with Exception: " + e);
             }
-            time = System.currentTimeMillis() - time;
-            int operationsPerSecond = (int) (1000 * maxValue / time);
+            time = System.nanoTime() - time;
+            int operationsPerSecond = (int) (TimeUnit.SECONDS.toNanos(1) * maxValue / time);
             System.out.println("Max=" + maxValue +
                     " operations/sec=" + operationsPerSecond);
         }

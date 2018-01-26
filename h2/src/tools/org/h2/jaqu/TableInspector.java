@@ -1,10 +1,13 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: James Moger
  */
 package org.h2.jaqu;
 
+import static org.h2.jaqu.ValidationRemark.consider;
+import static org.h2.jaqu.ValidationRemark.error;
+import static org.h2.jaqu.ValidationRemark.warn;
 import java.lang.reflect.Modifier;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -13,6 +16,8 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,10 +32,6 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
-
-import static org.h2.jaqu.ValidationRemark.consider;
-import static org.h2.jaqu.ValidationRemark.error;
-import static org.h2.jaqu.ValidationRemark.warn;
 
 /**
  * Class to inspect the contents of a particular table including its indexes.
@@ -100,7 +101,7 @@ public class TableInspector {
 
             // indexes
             rs = metaData.getIndexInfo(null, schema, table, false, true);
-            indexes = New.hashMap();
+            indexes = new HashMap<>();
             while (rs.next()) {
                 IndexInspector info = new IndexInspector(rs);
                 if (info.type.equals(IndexType.UNIQUE)
@@ -118,7 +119,7 @@ public class TableInspector {
 
             // columns
             rs = metaData.getColumns(null, schema, table, null);
-            columns = New.hashMap();
+            columns = new HashMap<>();
             while (rs.next()) {
                 ColumnInspector col = new ColumnInspector();
                 col.name = rs.getString("COLUMN_NAME");
@@ -160,7 +161,7 @@ public class TableInspector {
             boolean trimStrings) {
 
         // import statements
-        Set<String> imports = New.hashSet();
+        Set<String> imports = new HashSet<>();
         imports.add(JQSchema.class.getCanonicalName());
         imports.add(JQTable.class.getCanonicalName());
         imports.add(JQIndex.class.getCanonicalName());
@@ -168,7 +169,7 @@ public class TableInspector {
 
         // fields
         StringBuilder fields = new StringBuilder();
-        List<ColumnInspector> sortedColumns = New.arrayList(columns.values());
+        List<ColumnInspector> sortedColumns = new ArrayList<>(columns.values());
         Collections.sort(sortedColumns);
         for (ColumnInspector col : sortedColumns) {
             fields.append(generateColumn(imports, col, trimStrings));
@@ -183,7 +184,7 @@ public class TableInspector {
         }
 
         // imports
-        List<String> sortedImports = new ArrayList<String>(imports);
+        List<String> sortedImports = new ArrayList<>(imports);
         Collections.sort(sortedImports);
         for (String imp : sortedImports) {
             model.append("import ").append(imp).append(';').append(EOL);
@@ -423,6 +424,7 @@ public class TableInspector {
      * Validates an inspected index from the database against the
      * IndexDefinition within the TableDefinition.
      */
+    @SuppressWarnings("unused")
     private <T> void validate(List<ValidationRemark> remarks,
             TableDefinition<T> def, IndexInspector index, boolean throwError) {
         List<IndexDefinition> defIndexes = def.getIndexes(IndexType.STANDARD);
@@ -576,7 +578,7 @@ public class TableInspector {
 
         String name;
         IndexType type;
-        private final List<String> columns = new ArrayList<String>();
+        private final List<String> columns = new ArrayList<>();
 
         public IndexInspector(ResultSet rs) throws SQLException {
             name = rs.getString("INDEX_NAME");

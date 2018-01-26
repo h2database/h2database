@@ -1,21 +1,20 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.unit;
 
+import java.sql.Connection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import org.h2.bnf.Bnf;
 import org.h2.bnf.context.DbContents;
 import org.h2.bnf.context.DbContextRule;
 import org.h2.bnf.context.DbProcedure;
 import org.h2.bnf.context.DbSchema;
 import org.h2.test.TestBase;
-
-import java.sql.Connection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Test Bnf Sql parser
@@ -35,18 +34,12 @@ public class TestBnf extends TestBase {
     @Override
     public void test() throws Exception {
         deleteDb("bnf");
-        Connection conn = getConnection("bnf");
-        try {
+        try (Connection conn = getConnection("bnf")) {
             testModes(conn);
             testProcedures(conn, false);
-        } finally {
-            conn.close();
         }
-        conn = getConnection("bnf;mode=mysql");
-        try {
+        try (Connection conn = getConnection("bnf;mode=mysql")) {
             testProcedures(conn, true);
-        } finally {
-            conn.close();
         }
     }
 
@@ -116,7 +109,7 @@ public class TestBnf extends TestBase {
         assertFalse(dbContents.isSQLite());
         DbSchema defaultSchema = dbContents.getDefaultSchema();
         DbProcedure[] procedures = defaultSchema.getProcedures();
-        Set<String> procedureName = new HashSet<String>(procedures.length);
+        Set<String> procedureName = new HashSet<>(procedures.length);
         for (DbProcedure procedure : procedures) {
             assertTrue(defaultSchema == procedure.getSchema());
             procedureName.add(procedure.getName());

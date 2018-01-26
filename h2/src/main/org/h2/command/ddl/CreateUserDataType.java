@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -55,7 +55,7 @@ public class CreateUserDataType extends DefineCommand {
                     ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1,
                     typeName);
         }
-        DataType builtIn = DataType.getTypeByName(typeName);
+        DataType builtIn = DataType.getTypeByName(typeName, session.getDatabase().getMode());
         if (builtIn != null) {
             if (!builtIn.hidden) {
                 throw DbException.get(

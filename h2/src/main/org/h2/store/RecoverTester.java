@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -23,7 +23,6 @@ import org.h2.store.fs.FileUtils;
 import org.h2.store.fs.Recorder;
 import org.h2.tools.Recover;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
@@ -41,7 +40,7 @@ public class RecoverTester implements Recorder {
     private final long maxFileSize = Utils.getProperty(
             "h2.recoverTestMaxFileSize", Integer.MAX_VALUE) * 1024L * 1024;
     private int verifyCount;
-    private final HashSet<String> knownErrors = New.hashSet();
+    private final HashSet<String> knownErrors = new HashSet<>();
     private volatile boolean testing;
 
     /**

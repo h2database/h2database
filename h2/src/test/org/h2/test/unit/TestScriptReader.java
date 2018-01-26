@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -46,16 +46,17 @@ public class TestScriptReader extends TestBase {
             }
             String s = buff.toString();
             StringReader reader = new StringReader(s);
-            ScriptReader source = new ScriptReader(reader);
-            for (int j = 0; j < l; j++) {
-                String e = source.readStatement();
-                String c = sql[j];
-                if (c.length() == 0 && j == l - 1) {
-                    c = null;
+            try (ScriptReader source = new ScriptReader(reader)) {
+                for (int j = 0; j < l; j++) {
+                    String e = source.readStatement();
+                    String c = sql[j];
+                    if (c.length() == 0 && j == l - 1) {
+                        c = null;
+                    }
+                    assertEquals(c, e);
                 }
-                assertEquals(c, e);
+                assertEquals(null, source.readStatement());
             }
-            assertEquals(null, source.readStatement());
         }
     }
 

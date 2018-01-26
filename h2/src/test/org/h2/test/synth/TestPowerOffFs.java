@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,8 +9,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.api.ErrorCode;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.utils.FilePathDebug;
 
@@ -42,6 +42,7 @@ public class TestPowerOffFs extends TestBase {
                 break;
             }
         }
+        deleteDb("memFS:", null);
     }
 
     private boolean test(int x) throws SQLException {
@@ -93,6 +94,7 @@ public class TestPowerOffFs extends TestBase {
         stat = conn.createStatement();
         stat.execute("script to 'memFS:test.sql'");
         conn.close();
+        FileUtils.delete("memFS:test.sql");
         return false;
     }
 

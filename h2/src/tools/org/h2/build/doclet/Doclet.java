@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -40,7 +40,7 @@ public class Doclet {
     private String destDir = System.getProperty("h2.javadocDestDir",
             "docs/javadoc");
     private int errorCount;
-    private final HashSet<String> errors = new HashSet<String>();
+    private final HashSet<String> errors = new HashSet<>();
 
     /**
      * This method is called by the javadoc framework and is required for all
@@ -140,7 +140,7 @@ public class Doclet {
 //                return a.name().compareTo(b.name());
 //            }
 //        });
-        ArrayList<String> signatures = new ArrayList<String>();
+        ArrayList<String> signatures = new ArrayList<>();
         boolean hasMethods = false;
         int id = 0;
         for (int i = 0; i < constructorsMethods.length; i++) {

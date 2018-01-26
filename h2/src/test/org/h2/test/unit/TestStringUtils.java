@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -39,6 +39,7 @@ public class TestStringUtils extends TestBase {
         testURL();
         testPad();
         testReplaceAll();
+        testTrim();
     }
 
     private void testHex() {
@@ -225,5 +226,29 @@ public class TestStringUtils extends TestBase {
         assertEquals("abcabcabc",
                 StringUtils.replaceAll("abcabcabc", "aBc", ""));
     }
+
+    private void testTrim() {
+        assertEquals("a a",
+                StringUtils.trim("a a", true, true, null));
+        assertEquals("  a a  ",
+                StringUtils.trim("  a a  ", false, false, null));
+        assertEquals("  a a",
+                StringUtils.trim("  a a  ", false, true, null));
+        assertEquals("a a  ",
+                StringUtils.trim("  a a  ", true, false, null));
+        assertEquals("a a",
+                StringUtils.trim("  a a  ", true, true, null));
+        assertEquals("a a",
+                StringUtils.trim("  a a  ", true, true, ""));
+        assertEquals("zzbbzz",
+                StringUtils.trim("zzbbzz", false, false, "z"));
+        assertEquals("zzbb",
+                StringUtils.trim("zzbbzz", false, true, "z"));
+        assertEquals("bbzz",
+                StringUtils.trim("zzbbzz", true, false, "z"));
+        assertEquals("bb",
+                StringUtils.trim("zzbbzz", true, true, "z"));
+    }
+
 
 }

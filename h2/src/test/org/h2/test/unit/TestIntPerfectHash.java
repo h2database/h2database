@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,6 +10,7 @@ import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.dev.hash.IntPerfectHash;
 import org.h2.dev.hash.IntPerfectHash.BitArray;
@@ -39,11 +40,11 @@ public class TestIntPerfectHash extends TestBase {
         int size = 10000;
         test(size / 10);
         int s;
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         s = test(size);
-        time = System.currentTimeMillis() - time;
+        time = System.nanoTime() - time;
         System.out.println((double) s / size + " bits/key in " +
-                time + " ms");
+                TimeUnit.NANOSECONDS.toMillis(time) + " ms");
 
     }
 
@@ -79,12 +80,11 @@ public class TestIntPerfectHash extends TestBase {
 
     private int test(int size) {
         Random r = new Random(size);
-        HashSet<Integer> set = new HashSet<Integer>();
+        HashSet<Integer> set = new HashSet<>();
         while (set.size() < size) {
             set.add(r.nextInt());
         }
-        ArrayList<Integer> list = new ArrayList<Integer>();
-        list.addAll(set);
+        ArrayList<Integer> list = new ArrayList<>(set);
         byte[] desc = IntPerfectHash.generate(list);
         int max = test(desc, set);
         assertEquals(size - 1, max);
@@ -93,7 +93,7 @@ public class TestIntPerfectHash extends TestBase {
 
     private int test(byte[] desc, Set<Integer> set) {
         int max = -1;
-        HashSet<Integer> test = new HashSet<Integer>();
+        HashSet<Integer> test = new HashSet<>();
         IntPerfectHash hash = new IntPerfectHash(desc);
         for (int x : set) {
             int h = hash.get(x);

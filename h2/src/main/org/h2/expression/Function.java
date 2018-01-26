@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,6 +21,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -46,7 +48,6 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
-import org.h2.util.AutoCloseInputStream;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -86,7 +87,8 @@ public class Function extends Expression implements FunctionCall {
             ROUNDMAGIC = 22, SIGN = 23, SIN = 24, SQRT = 25, TAN = 26,
             TRUNCATE = 27, SECURE_RAND = 28, HASH = 29, ENCRYPT = 30,
             DECRYPT = 31, COMPRESS = 32, EXPAND = 33, ZERO = 34,
-            RANDOM_UUID = 35, COSH = 36, SINH = 37, TANH = 38, LN = 39;
+            RANDOM_UUID = 35, COSH = 36, SINH = 37, TANH = 38, LN = 39,
+            BITGET = 40;
 
     public static final int ASCII = 50, BIT_LENGTH = 51, CHAR = 52,
             CHAR_LENGTH = 53, CONCAT = 54, DIFFERENCE = 55, HEXTORAW = 56,
@@ -113,7 +115,9 @@ public class Function extends Expression implements FunctionCall {
     public static final int DATABASE = 150, USER = 151, CURRENT_USER = 152,
             IDENTITY = 153, SCOPE_IDENTITY = 154, AUTOCOMMIT = 155,
             READONLY = 156, DATABASE_PATH = 157, LOCK_TIMEOUT = 158,
-            DISK_SPACE_USED = 159;
+            DISK_SPACE_USED = 159, SIGNAL = 160;
+
+    private static final Pattern SIGNAL_PATTERN = Pattern.compile("[0-9A-Z]{5}");
 
     public static final int IFNULL = 200, CASEWHEN = 201, CONVERT = 202,
             CAST = 203, COALESCE = 204, NULLIF = 205, CASE = 206,
@@ -124,6 +128,8 @@ public class Function extends Expression implements FunctionCall {
             CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
             NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230, FILE_WRITE = 232;
+
+    public static final int REGEXP_LIKE = 240;
 
     /**
      * Used in MySQL-style INSERT ... ON DUPLICATE KEY UPDATE ... VALUES
@@ -149,8 +155,8 @@ public class Function extends Expression implements FunctionCall {
     private static final int VAR_ARGS = -1;
     private static final long PRECISION_UNKNOWN = -1;
 
-    private static final HashMap<String, FunctionInfo> FUNCTIONS = New.hashMap();
-    private static final HashMap<String, Integer> DATE_PART = New.hashMap();
+    private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>();
+    private static final HashMap<String, Integer> DATE_PART = new HashMap<>();
     private static final char[] SOUNDEX_INDEX = new char[128];
 
     protected Expression[] args;
@@ -218,6 +224,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("ATAN", ATAN, 1, Value.DOUBLE);
         addFunction("ATAN2", ATAN2, 2, Value.DOUBLE);
         addFunction("BITAND", BITAND, 2, Value.LONG);
+        addFunction("BITGET", BITGET, 2, Value.BOOLEAN);
         addFunction("BITOR", BITOR, 2, Value.LONG);
         addFunction("BITXOR", BITXOR, 2, Value.LONG);
         addFunction("CEILING", CEILING, 1, Value.DOUBLE);
@@ -259,6 +266,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("ZERO", ZERO, 0, Value.INT);
         addFunctionNotDeterministic("RANDOM_UUID", RANDOM_UUID, 0, Value.UUID);
         addFunctionNotDeterministic("SYS_GUID", RANDOM_UUID, 0, Value.UUID);
+        addFunctionNotDeterministic("UUID", RANDOM_UUID, 0, Value.UUID);
         // string
         addFunction("ASCII", ASCII, 1, Value.INT);
         addFunction("BIT_LENGTH", BIT_LENGTH, 1, Value.LONG);
@@ -286,7 +294,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("OCTET_LENGTH", OCTET_LENGTH, 1, Value.LONG);
         addFunction("RAWTOHEX", RAWTOHEX, 1, Value.STRING);
         addFunction("REPEAT", REPEAT, 2, Value.STRING);
-        addFunction("REPLACE", REPLACE, VAR_ARGS, Value.STRING);
+        addFunction("REPLACE", REPLACE, VAR_ARGS, Value.STRING, false, true,true);
         addFunction("RIGHT", RIGHT, 2, Value.STRING);
         addFunction("RTRIM", RTRIM, VAR_ARGS, Value.STRING);
         addFunction("SOUNDEX", SOUNDEX, 1, Value.STRING);
@@ -308,29 +316,38 @@ public class Function extends Expression implements FunctionCall {
         addFunction("XMLCDATA", XMLCDATA, 1, Value.STRING);
         addFunction("XMLSTARTDOC", XMLSTARTDOC, 0, Value.STRING);
         addFunction("XMLTEXT", XMLTEXT, VAR_ARGS, Value.STRING);
-        addFunction("REGEXP_REPLACE", REGEXP_REPLACE, 3, Value.STRING);
+        addFunction("REGEXP_REPLACE", REGEXP_REPLACE, VAR_ARGS, Value.STRING);
         addFunction("RPAD", RPAD, VAR_ARGS, Value.STRING);
         addFunction("LPAD", LPAD, VAR_ARGS, Value.STRING);
         addFunction("TO_CHAR", TO_CHAR, VAR_ARGS, Value.STRING);
         addFunction("ORA_HASH", ORA_HASH, VAR_ARGS, Value.INT);
         addFunction("TRANSLATE", TRANSLATE, 3, Value.STRING);
+        addFunction("REGEXP_LIKE", REGEXP_LIKE, VAR_ARGS, Value.BOOLEAN);
 
         // date
         addFunctionNotDeterministic("CURRENT_DATE", CURRENT_DATE,
                 0, Value.DATE);
         addFunctionNotDeterministic("CURDATE", CURDATE,
                 0, Value.DATE);
-        addFunction("TO_DATE", TO_DATE, VAR_ARGS, Value.STRING);
-        addFunction("TO_TIMESTAMP", TO_TIMESTAMP, VAR_ARGS, Value.STRING);
+        addFunctionNotDeterministic("TODAY", CURRENT_DATE,
+                0, Value.DATE);
+        addFunction("TO_DATE", TO_DATE, VAR_ARGS, Value.TIMESTAMP);
+        addFunction("TO_TIMESTAMP", TO_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP);
         addFunction("ADD_MONTHS", ADD_MONTHS, 2, Value.TIMESTAMP);
         // alias for MSSQLServer
         addFunctionNotDeterministic("GETDATE", CURDATE,
                 0, Value.DATE);
         addFunctionNotDeterministic("CURRENT_TIME", CURRENT_TIME,
                 0, Value.TIME);
+        addFunctionNotDeterministic("SYSTIME", CURRENT_TIME,
+                0, Value.TIME);
         addFunctionNotDeterministic("CURTIME", CURTIME,
                 0, Value.TIME);
         addFunctionNotDeterministic("CURRENT_TIMESTAMP", CURRENT_TIMESTAMP,
+                VAR_ARGS, Value.TIMESTAMP);
+        addFunctionNotDeterministic("SYSDATE", CURRENT_TIMESTAMP,
+                VAR_ARGS, Value.TIMESTAMP);
+        addFunctionNotDeterministic("SYSTIMESTAMP", CURRENT_TIMESTAMP,
                 VAR_ARGS, Value.TIMESTAMP);
         addFunctionNotDeterministic("NOW", NOW,
                 VAR_ARGS, Value.TIMESTAMP);
@@ -479,6 +496,7 @@ public class Function extends Expression implements FunctionCall {
                 VAR_ARGS, Value.NULL);
         addFunctionNotDeterministic("DISK_SPACE_USED", DISK_SPACE_USED,
                 1, Value.LONG);
+        addFunctionWithNull("SIGNAL", SIGNAL, 2, Value.NULL);
         addFunction("H2VERSION", H2VERSION, 0, Value.STRING);
 
         // TableFunction
@@ -515,13 +533,13 @@ public class Function extends Expression implements FunctionCall {
     }
 
     private static void addFunction(String name, int type, int parameterCount,
-            int dataType, boolean nullIfParameterIsNull, boolean deterministic,
+            int returnDataType, boolean nullIfParameterIsNull, boolean deterministic,
             boolean bufferResultSetToLocalTemp) {
         FunctionInfo info = new FunctionInfo();
         info.name = name;
         info.type = type;
         info.parameterCount = parameterCount;
-        info.dataType = dataType;
+        info.returnDataType = returnDataType;
         info.nullIfParameterIsNull = nullIfParameterIsNull;
         info.deterministic = deterministic;
         info.bufferResultSetToLocalTemp = bufferResultSetToLocalTemp;
@@ -529,18 +547,18 @@ public class Function extends Expression implements FunctionCall {
     }
 
     private static void addFunctionNotDeterministic(String name, int type,
-            int parameterCount, int dataType) {
-        addFunction(name, type, parameterCount, dataType, true, false, true);
+            int parameterCount, int returnDataType) {
+        addFunction(name, type, parameterCount, returnDataType, true, false, true);
     }
 
     private static void addFunction(String name, int type, int parameterCount,
-            int dataType) {
-        addFunction(name, type, parameterCount, dataType, true, true, true);
+            int returnDataType) {
+        addFunction(name, type, parameterCount, returnDataType, true, true, true);
     }
 
     private static void addFunctionWithNull(String name, int type,
-            int parameterCount, int dataType) {
-        addFunction(name, type, parameterCount, dataType, false, true, true);
+            int parameterCount, int returnDataType) {
+        addFunction(name, type, parameterCount, returnDataType, false, true, true);
     }
 
     /**
@@ -814,11 +832,11 @@ public class Function extends Expression implements FunctionCall {
             break;
         case STRINGTOUTF8:
             result = ValueBytes.getNoCopy(v0.getString().
-                    getBytes(Constants.UTF8));
+                    getBytes(StandardCharsets.UTF_8));
             break;
         case UTF8TOSTRING:
             result = ValueString.get(new String(v0.getBytesNoCopy(),
-                    Constants.UTF8),
+                    StandardCharsets.UTF_8),
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case XMLCOMMENT:
@@ -841,28 +859,22 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case DAY_OF_MONTH:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(),
-                    Calendar.DAY_OF_MONTH));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.DAY_OF_MONTH));
             break;
         case DAY_OF_WEEK:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(),
-                    Calendar.DAY_OF_WEEK));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.DAY_OF_WEEK));
             break;
         case DAY_OF_YEAR:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(),
-                    Calendar.DAY_OF_YEAR));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.DAY_OF_YEAR));
             break;
         case HOUR:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestamp(),
-                    Calendar.HOUR_OF_DAY));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.HOUR_OF_DAY));
             break;
         case MINUTE:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestamp(),
-                    Calendar.MINUTE));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.MINUTE));
             break;
         case MONTH:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(),
-                    Calendar.MONTH));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.MONTH));
             break;
         case MONTH_NAME: {
             SimpleDateFormat monthName = new SimpleDateFormat("MMMM",
@@ -872,29 +884,25 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case QUARTER:
-            result = ValueInt.get((DateTimeUtils.getDatePart(v0.getDate(),
-                    Calendar.MONTH) - 1) / 3 + 1);
+            result = ValueInt.get((DateTimeUtils.getDatePart(v0, Calendar.MONTH) - 1) / 3 + 1);
             break;
         case SECOND:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestamp(),
-                    Calendar.SECOND));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.SECOND));
             break;
         case WEEK:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(),
-                    Calendar.WEEK_OF_YEAR));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.WEEK_OF_YEAR));
             break;
         case YEAR:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(),
-                    Calendar.YEAR));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.YEAR));
             break;
         case ISO_YEAR:
-            result = ValueInt.get(DateTimeUtils.getIsoYear(v0.getDate()));
+            result = ValueInt.get(DateTimeUtils.getIsoYear(v0));
             break;
         case ISO_WEEK:
-            result = ValueInt.get(DateTimeUtils.getIsoWeek(v0.getDate()));
+            result = ValueInt.get(DateTimeUtils.getIsoWeek(v0));
             break;
         case ISO_DAY_OF_WEEK:
-            result = ValueInt.get(DateTimeUtils.getIsoDayOfWeek(v0.getDate()));
+            result = ValueInt.get(DateTimeUtils.getIsoDayOfWeek(v0));
             break;
         case CURDATE:
         case CURRENT_DATE: {
@@ -988,12 +996,12 @@ public class Function extends Expression implements FunctionCall {
             if (v0 == ValueNull.INSTANCE) {
                 result = getNullOrValue(session, args, values, 1);
             }
+            result = convertResult(result);
             break;
         }
         case CASEWHEN: {
             Value v;
-            if (v0 == ValueNull.INSTANCE ||
-                    !v0.getBoolean().booleanValue()) {
+            if (!v0.getBoolean()) {
                 v = getNullOrValue(session, args, values, 2);
             } else {
                 v = getNullOrValue(session, args, values, 1);
@@ -1070,8 +1078,7 @@ public class Function extends Expression implements FunctionCall {
                 // (null, when, then, when, then, else)
                 for (int i = 1, len = args.length - 1; i < len; i += 2) {
                     Value when = args[i].getValue(session);
-                    if (!(when == ValueNull.INSTANCE) &&
-                            when.getBoolean().booleanValue()) {
+                    if (when.getBoolean()) {
                         then = args[i + 1];
                         break;
                     }
@@ -1152,6 +1159,10 @@ public class Function extends Expression implements FunctionCall {
         return result;
     }
 
+    private Value convertResult(Value v) {
+        return v.convertTo(dataType);
+    }
+
     private static boolean cancelStatement(Session session, int targetSessionId) {
         session.getUser().checkAdmin();
         Session[] sessions = session.getDatabase().getSessions(false);
@@ -1222,6 +1233,9 @@ public class Function extends Expression implements FunctionCall {
         case BITAND:
             result = ValueLong.get(v0.getLong() & v1.getLong());
             break;
+        case BITGET:
+            result = ValueBoolean.get((v0.getLong() & (1L << v1.getInt())) != 0);
+            break;
         case BITOR:
             result = ValueLong.get(v0.getLong() | v1.getLong());
             break;
@@ -1242,13 +1256,17 @@ public class Function extends Expression implements FunctionCall {
             break;
         case ROUND: {
             double f = v1 == null ? 1. : Math.pow(10., v1.getDouble());
-            result = ValueDouble.get(Math.round(v0.getDouble() * f) / f);
+
+            double middleResult = v0.getDouble() * f;
+
+            int oneWithSymbol = middleResult > 0 ? 1 : -1;
+            result = ValueDouble.get(Math.round(Math.abs(middleResult)) / f * oneWithSymbol);
             break;
         }
         case TRUNCATE: {
             if (v0.getType() == Value.TIMESTAMP) {
                 java.sql.Timestamp d = v0.getTimestamp();
-                Calendar c = Calendar.getInstance();
+                Calendar c = DateTimeUtils.createGregorianCalendar();
                 c.setTime(d);
                 c.set(Calendar.HOUR_OF_DAY, 0);
                 c.set(Calendar.MINUTE, 0);
@@ -1257,7 +1275,7 @@ public class Function extends Expression implements FunctionCall {
                 result = ValueTimestamp.fromMillis(c.getTimeInMillis());
             } else if (v0.getType() == Value.DATE) {
                 ValueDate vd = (ValueDate) v0;
-                Calendar c = Calendar.getInstance();
+                Calendar c = DateTimeUtils.createGregorianCalendar();
                 c.setTime(vd.getDate());
                 c.set(Calendar.HOUR_OF_DAY, 0);
                 c.set(Calendar.MINUTE, 0);
@@ -1266,8 +1284,8 @@ public class Function extends Expression implements FunctionCall {
                 result = ValueTimestamp.fromMillis(c.getTimeInMillis());
             } else if (v0.getType() == Value.STRING) {
                 ValueString vd = (ValueString) v0;
-                Calendar c = Calendar.getInstance();
-                c.setTime(ValueTimestamp.parse(vd.getString()).getDate());
+                Calendar c = DateTimeUtils.createGregorianCalendar();
+                c.setTime(ValueTimestamp.parse(vd.getString(), session.getDatabase().getMode()).getDate());
                 c.set(Calendar.HOUR_OF_DAY, 0);
                 c.set(Calendar.MINUTE, 0);
                 c.set(Calendar.SECOND, 0);
@@ -1338,11 +1356,19 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case REPLACE: {
-            String s0 = v0.getString();
-            String s1 = v1.getString();
-            String s2 = (v2 == null) ? "" : v2.getString();
-            result = ValueString.get(replace(s0, s1, s2),
-                    database.getMode().treatEmptyStringsAsNull);
+            if (v0 == ValueNull.INSTANCE || v1 == ValueNull.INSTANCE
+                    || v2 == ValueNull.INSTANCE && database.getMode() != Mode.getOracle()) {
+                result = ValueNull.INSTANCE;
+            } else {
+                String s0 = v0.getString();
+                String s1 = v1.getString();
+                String s2 = (v2 == null) ? "" : v2.getString();
+                if (s2 == null) {
+                    s2 = "";
+                }
+                result = ValueString.get(replace(s0, s1, s2),
+                        database.getMode().treatEmptyStringsAsNull);
+            }
             break;
         }
         case RIGHT:
@@ -1399,9 +1425,29 @@ public class Function extends Expression implements FunctionCall {
         case REGEXP_REPLACE: {
             String regexp = v1.getString();
             String replacement = v2.getString();
+            if (database.getMode().regexpReplaceBackslashReferences) {
+                if ((replacement.indexOf('\\') >= 0) || (replacement.indexOf('$') >= 0)) {
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < replacement.length(); i++) {
+                        char c = replacement.charAt(i);
+                        if (c == '$') {
+                            sb.append('\\');
+                        } else if (c == '\\' && ++i < replacement.length()) {
+                            c = replacement.charAt(i);
+                            sb.append(c >= '0' && c <= '9' ? '$' : '\\');
+                        }
+                        sb.append(c);
+                    }
+                    replacement = sb.toString();
+                }
+            }
+            String regexpMode = v3 == null || v3.getString() == null ? "" :
+                    v3.getString();
+            int flags = makeRegexpFlags(regexpMode);
             try {
                 result = ValueString.get(
-                        v0.getString().replaceAll(regexp, replacement),
+                        Pattern.compile(regexp, flags).matcher(v0.getString())
+                                .replaceAll(replacement),
                         database.getMode().treatEmptyStringsAsNull);
             } catch (StringIndexOutOfBoundsException e) {
                 throw DbException.get(
@@ -1489,8 +1535,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         case EXTRACT: {
             int field = getDatePart(v0.getString());
-            result = ValueInt.get(DateTimeUtils.getDatePart(
-                    v1.getTimestamp(), field));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v1, field));
             break;
         }
         case FORMATDATETIME: {
@@ -1620,18 +1665,22 @@ public class Function extends Expression implements FunctionCall {
             String fileName = v0.getString();
             boolean blob = args.length == 1;
             try {
-                InputStream in = new AutoCloseInputStream(
-                        FileUtils.newInputStream(fileName));
-                if (blob) {
-                    result = database.getLobStorage().createBlob(in, -1);
-                } else {
-                    Reader reader;
-                    if (v1 == ValueNull.INSTANCE) {
-                        reader = new InputStreamReader(in);
+                long fileLength = FileUtils.size(fileName);
+                final InputStream in = FileUtils.newInputStream(fileName);
+                try {
+                    if (blob) {
+                        result = database.getLobStorage().createBlob(in, fileLength);
                     } else {
-                        reader = new InputStreamReader(in, v1.getString());
+                        Reader reader;
+                        if (v1 == ValueNull.INSTANCE) {
+                            reader = new InputStreamReader(in);
+                        } else {
+                            reader = new InputStreamReader(in, v1.getString());
+                        }
+                        result = database.getLobStorage().createClob(reader, fileLength);
                     }
-                    result = database.getLobStorage().createClob(reader, -1);
+                } finally {
+                    IOUtils.closeSilently(in);
                 }
                 session.addTemporaryLob(result);
             } catch (IOException e) {
@@ -1645,12 +1694,9 @@ public class Function extends Expression implements FunctionCall {
             String fileName = v1.getString();
             try {
                 FileOutputStream fileOutputStream = new FileOutputStream(fileName);
-                InputStream in = v0.getInputStream();
-                try {
+                try (InputStream in = v0.getInputStream()) {
                     result = ValueLong.get(IOUtils.copyAndClose(in,
                             fileOutputStream));
-                } finally {
-                    in.close();
                 }
             } catch (IOException e) {
                 throw DbException.convertIOException(e, fileName);
@@ -1672,165 +1718,185 @@ public class Function extends Expression implements FunctionCall {
                         database.getMode().treatEmptyStringsAsNull);
             }
             break;
+        case REGEXP_LIKE: {
+            String regexp = v1.getString();
+            String regexpMode = v2 == null || v2.getString() == null ? "" :
+                    v2.getString();
+            int flags = makeRegexpFlags(regexpMode);
+            try {
+                result = ValueBoolean.get(Pattern.compile(regexp, flags)
+                        .matcher(v0.getString()).find());
+            } catch (PatternSyntaxException e) {
+                throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, regexp);
+            }
+            break;
+        }
         case VALUES:
             result = session.getVariable(args[0].getSchemaName() + "." +
                     args[0].getTableName() + "." + args[0].getColumnName());
             break;
-        case ST_METADATA: {
-            try {
-                RasterUtils.RasterMetaData metaData;
-                if (v0 instanceof Value.ValueRasterMarker) {
-                    metaData = ((Value.ValueRasterMarker) v0).getMetaData();
-                } else {
-                    metaData = ((Value.ValueRasterMarker) v0
-                            .convertTo(Value.RASTER)).getMetaData();
-                }
-                result = ValueArray
-                        .get(new Value[]{ValueDouble.get(metaData.ipX),
-                                ValueDouble.get(metaData.ipY),
-                                ValueInt.get(metaData.width),
-                                ValueInt.get(metaData.height),
-                                ValueDouble.get(metaData.scaleX),
-                                ValueDouble.get(metaData.scaleY),
-                                ValueDouble.get(metaData.skewX),
-                                ValueDouble.get(metaData.skewY),
-                                ValueInt.get(metaData.srid),
-                                ValueInt.get(metaData.numBands)});
-            } catch (IOException ex) {
-                throw DbException
-                        .get(ErrorCode.IO_EXCEPTION_1, ex, getSQL());
-            }
-            break;
+        case SIGNAL: {
+            String sqlState = v0.getString();
+            if (sqlState.startsWith("00") || !SIGNAL_PATTERN.matcher(sqlState).matches())
+                throw DbException.getInvalidValueException("SQLSTATE", sqlState);
+            String msgText = v1.getString();
+            throw DbException.fromUser(sqlState, msgText);
         }
-        case ST_RASTERFROMIMAGE: {
-            try {
-                result = RasterUtils.getFromImage(v0,
-                        getNullOrValue(session, args, values, 1).getDouble(),
-                        getNullOrValue(session, args, values, 2).getDouble(),
-                        getNullOrValue(session, args, values, 3).getDouble(),
-                        getNullOrValue(session, args, values, 4).getDouble(),
-                        getNullOrValue(session, args, values, 5).getDouble(),
-                        getNullOrValue(session, args, values, 6).getDouble(),
-                        getNullOrValue(session, args, values, 7).getInt(),
-                        session);
-            } catch (IOException ex) {
-                throw DbException.get(ErrorCode.IO_EXCEPTION_1, ex, getSQL());
-            }
-            break;
-        }
-        case ST_IMAGEFROMRASTER: {
-            try {
-                result = RasterUtils.asImage(v0,
-                        v1.getString(), session);
-            } catch (IOException ex) {
-                throw DbException.get(ErrorCode.IO_EXCEPTION_1, ex,
-                        getSQL());
-            }
-            break;
-        }
-        case ST_MAKEEMPTYRASTER: {
-            try {
-                RasterUtils.RasterMetaData rasterMetaData;
-                if(v0 instanceof Value.ValueRasterMarker) {
-                    // Initialise for an existing raster
-                    rasterMetaData = ((Value.ValueRasterMarker) v0).getMetaData();
-                } else {
-                    if(args.length == 9) {
-                        rasterMetaData = new RasterUtils.RasterMetaData(
-                                v0.getInt(),
-                                v1.getInt(),
-                                v4.getDouble(),
-                                v5.getDouble(),
-                                v2.getDouble(),
-                                v3.getDouble(),
-                                getNullOrValue(session, args, values, 6)
-                                        .getDouble(),
-                                getNullOrValue(session, args, values, 7)
-                                        .getDouble(),
-                                getNullOrValue(session, args, values, 8).getInt());
-                    } else if(args.length == 5) {
-                        rasterMetaData = new RasterUtils.RasterMetaData(
-                                v0.getInt(),
-                                v1.getInt(),
-                                v4.getDouble(),
-                                -v4.getDouble(),
-                                v2.getDouble(),
-                                v3.getDouble(),
-                                0,
-                                0,
-                                0);
+            case ST_METADATA: {
+                try {
+                    RasterUtils.RasterMetaData metaData;
+                    if (v0 instanceof Value.ValueRasterMarker) {
+                        metaData = ((Value.ValueRasterMarker) v0).getMetaData();
                     } else {
-                        throw DbException.get(ErrorCode
-                                .INVALID_PARAMETER_COUNT_2);
+                        metaData = ((Value.ValueRasterMarker) v0
+                                .convertTo(Value.RASTER)).getMetaData();
                     }
+                    result = ValueArray
+                            .get(new Value[]{ValueDouble.get(metaData.ipX),
+                                    ValueDouble.get(metaData.ipY),
+                                    ValueInt.get(metaData.width),
+                                    ValueInt.get(metaData.height),
+                                    ValueDouble.get(metaData.scaleX),
+                                    ValueDouble.get(metaData.scaleY),
+                                    ValueDouble.get(metaData.skewX),
+                                    ValueDouble.get(metaData.skewY),
+                                    ValueInt.get(metaData.srid),
+                                    ValueInt.get(metaData.numBands)});
+                } catch (IOException ex) {
+                    throw DbException
+                            .get(ErrorCode.IO_EXCEPTION_1, ex, getSQL());
                 }
-                result = RasterUtils.makeEmptyRaster(rasterMetaData);
-            } catch (IOException ex) {
-                throw DbException.get(ErrorCode.IO_EXCEPTION_1, ex, getSQL());
+                break;
             }
-            break;
-        }
-        case ST_BANDMETADATA: {
-            try {
+            case ST_RASTERFROMIMAGE: {
+                try {
+                    result = RasterUtils.getFromImage(v0,
+                            getNullOrValue(session, args, values, 1).getDouble(),
+                            getNullOrValue(session, args, values, 2).getDouble(),
+                            getNullOrValue(session, args, values, 3).getDouble(),
+                            getNullOrValue(session, args, values, 4).getDouble(),
+                            getNullOrValue(session, args, values, 5).getDouble(),
+                            getNullOrValue(session, args, values, 6).getDouble(),
+                            getNullOrValue(session, args, values, 7).getInt(),
+                            session);
+                } catch (IOException ex) {
+                    throw DbException.get(ErrorCode.IO_EXCEPTION_1, ex, getSQL());
+                }
+                break;
+            }
+            case ST_IMAGEFROMRASTER: {
+                try {
+                    result = RasterUtils.asImage(v0,
+                            v1.getString(), session);
+                } catch (IOException ex) {
+                    throw DbException.get(ErrorCode.IO_EXCEPTION_1, ex,
+                            getSQL());
+                }
+                break;
+            }
+            case ST_MAKEEMPTYRASTER: {
+                try {
+                    RasterUtils.RasterMetaData rasterMetaData;
+                    if(v0 instanceof Value.ValueRasterMarker) {
+                        // Initialise for an existing raster
+                        rasterMetaData = ((Value.ValueRasterMarker) v0).getMetaData();
+                    } else {
+                        if(args.length == 9) {
+                            rasterMetaData = new RasterUtils.RasterMetaData(
+                                    v0.getInt(),
+                                    v1.getInt(),
+                                    v4.getDouble(),
+                                    v5.getDouble(),
+                                    v2.getDouble(),
+                                    v3.getDouble(),
+                                    getNullOrValue(session, args, values, 6)
+                                            .getDouble(),
+                                    getNullOrValue(session, args, values, 7)
+                                            .getDouble(),
+                                    getNullOrValue(session, args, values, 8).getInt());
+                        } else if(args.length == 5) {
+                            rasterMetaData = new RasterUtils.RasterMetaData(
+                                    v0.getInt(),
+                                    v1.getInt(),
+                                    v4.getDouble(),
+                                    -v4.getDouble(),
+                                    v2.getDouble(),
+                                    v3.getDouble(),
+                                    0,
+                                    0,
+                                    0);
+                        } else {
+                            throw DbException.get(ErrorCode
+                                    .INVALID_PARAMETER_COUNT_2);
+                        }
+                    }
+                    result = RasterUtils.makeEmptyRaster(rasterMetaData);
+                } catch (IOException ex) {
+                    throw DbException.get(ErrorCode.IO_EXCEPTION_1, ex, getSQL());
+                }
+                break;
+            }
+            case ST_BANDMETADATA: {
+                try {
+                    RasterUtils.RasterMetaData metaData;
+                    if (v0 instanceof Value.ValueRasterMarker) {
+                        metaData = ((Value.ValueRasterMarker) v0).getMetaData();
+                    } else {
+                        metaData = ((Value.ValueRasterMarker) (v0
+                                .convertTo(Value.RASTER))).getMetaData();
+                    }
+                    // Extract 1 based band number argument
+                    RasterUtils.RasterBandMetaData bandMetaData = metaData
+                            .bands[Math.max(0,
+                            Math.min(v1.getInt() - 1, metaData.numBands - 1))];
+                    result = ValueArray
+                            .get(new Value[]{ValueString.get(bandMetaData
+                                    .pixelType.getPixeTypeName()),
+                                    bandMetaData.hasNoData ? ValueDouble.get
+                                            (bandMetaData
+                                                    .noDataValue) : ValueNull.INSTANCE,
+                                    ValueBoolean.get(bandMetaData.offDB),
+                                    ValueString.get(bandMetaData.externalPath)});
+                } catch (IOException ex) {
+                    throw DbException.convertIOException(ex, getSQL());
+                }
+                break;
+            }
+            case ST_WORLDTORASTERCOORD: {
                 RasterUtils.RasterMetaData metaData;
-                if (v0 instanceof Value.ValueRasterMarker) {
-                    metaData = ((Value.ValueRasterMarker) v0).getMetaData();
-                } else {
-                    metaData = ((Value.ValueRasterMarker) (v0
-                            .convertTo(Value.RASTER))).getMetaData();
+                try {
+                    if (v0 instanceof Value.ValueRasterMarker) {
+                        metaData = ((Value.ValueRasterMarker) v0).getMetaData();
+                    } else {
+                        metaData = ((Value.ValueRasterMarker) (v0
+                                .convertTo(Value.RASTER))).getMetaData();
+                    }
+                    int[] coords = metaData.getPixelFromCoordinate(new Coordinate(v1.getDouble(), v2.getDouble()));
+                    // 1 based pixel index
+                    result = ValueArray.get(new Value[] {ValueInt.get(coords[0] + 1), ValueInt.get(coords[1] + 1)});
+                } catch (IOException ex) {
+                    throw DbException.convertIOException(ex, getSQL());
                 }
-                // Extract 1 based band number argument
-                RasterUtils.RasterBandMetaData bandMetaData = metaData
-                        .bands[Math.max(0,
-                        Math.min(v1.getInt() - 1, metaData.numBands - 1))];
-                result = ValueArray
-                        .get(new Value[]{ValueString.get(bandMetaData
-                                .pixelType.getPixeTypeName()),
-                                bandMetaData.hasNoData ? ValueDouble.get
-                                (bandMetaData
-                                        .noDataValue) : ValueNull.INSTANCE,
-                                ValueBoolean.get(bandMetaData.offDB),
-                                ValueString.get(bandMetaData.externalPath)});
-            } catch (IOException ex) {
-                throw DbException.convertIOException(ex, getSQL());
+                break;
             }
-            break;
-        }
-        case ST_WORLDTORASTERCOORD: {
-            RasterUtils.RasterMetaData metaData;
-            try {
-                if (v0 instanceof Value.ValueRasterMarker) {
-                    metaData = ((Value.ValueRasterMarker) v0).getMetaData();
-                } else {
-                    metaData = ((Value.ValueRasterMarker) (v0
-                            .convertTo(Value.RASTER))).getMetaData();
+            case ST_RASTERTOWORLDCOORD: {
+                RasterUtils.RasterMetaData metaData;
+                try {
+                    if (v0 instanceof Value.ValueRasterMarker) {
+                        metaData = ((Value.ValueRasterMarker) v0).getMetaData();
+                    } else {
+                        metaData = ((Value.ValueRasterMarker) (v0
+                                .convertTo(Value.RASTER))).getMetaData();
+                    }
+                    // 1 based pixel index
+                    Coordinate coords = metaData.getPixelCoordinate(v1.getInt() - 1, v2.getInt() - 1);
+                    result = ValueGeometry.getFromGeometry(new GeometryFactory()
+                            .createPoint(coords));
+                } catch (IOException ex) {
+                    throw DbException.convertIOException(ex, getSQL());
                 }
-                int[] coords = metaData.getPixelFromCoordinate(new Coordinate(v1.getDouble(), v2.getDouble()));
-                // 1 based pixel index
-                result = ValueArray.get(new Value[] {ValueInt.get(coords[0] + 1), ValueInt.get(coords[1] + 1)});
-            } catch (IOException ex) {
-                throw DbException.convertIOException(ex, getSQL());
+                break;
             }
-            break;
-        }
-        case ST_RASTERTOWORLDCOORD: {
-            RasterUtils.RasterMetaData metaData;
-            try {
-                if (v0 instanceof Value.ValueRasterMarker) {
-                    metaData = ((Value.ValueRasterMarker) v0).getMetaData();
-                } else {
-                    metaData = ((Value.ValueRasterMarker) (v0
-                            .convertTo(Value.RASTER))).getMetaData();
-                }
-                // 1 based pixel index
-                Coordinate coords = metaData.getPixelCoordinate(v1.getInt() - 1, v2.getInt() - 1);
-                result = ValueGeometry.getFromGeometry(new GeometryFactory()
-                        .createPoint(coords));
-            } catch (IOException ex) {
-                throw DbException.convertIOException(ex, getSQL());
-            }
-            break;
-        }
         default:
             throw DbException.throwInternalError("type=" + info.type);
         }
@@ -1887,9 +1953,7 @@ public class Function extends Expression implements FunctionCall {
 
     private static byte[] getPaddedArrayCopy(byte[] data, int blockSize) {
         int size = MathUtils.roundUpInt(data.length, blockSize);
-        byte[] newData = DataUtils.newBytes(size);
-        System.arraycopy(data, 0, newData, 0, data.length);
-        return newData;
+        return DataUtils.copyBytes(data, size);
     }
 
     private static byte[] decrypt(String algorithm, byte[] key, byte[] data) {
@@ -1951,12 +2015,11 @@ public class Function extends Expression implements FunctionCall {
         if (count > Integer.MAX_VALUE) {
             throw DbException.getInvalidValueException("DATEADD count", count);
         }
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = DateTimeUtils.createGregorianCalendar();
         int nanos = d.getNanos() % 1000000;
         calendar.setTime(d);
         calendar.add(field, (int) count);
-        long t = calendar.getTime().getTime();
-        Timestamp ts = new Timestamp(t);
+        Timestamp ts = new Timestamp(calendar.getTimeInMillis());
         ts.setNanos(ts.getNanos() + nanos);
         return ts;
     }
@@ -1975,7 +2038,7 @@ public class Function extends Expression implements FunctionCall {
      */
     private static long datediff(String part, Timestamp d1, Timestamp d2) {
         int field = getDatePart(part);
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = DateTimeUtils.createGregorianCalendar();
         long t1 = d1.getTime(), t2 = d2.getTime();
         // need to convert to UTC, otherwise we get inconsistent results with
         // certain time zones (those that are 30 minutes off)
@@ -2025,6 +2088,7 @@ public class Function extends Expression implements FunctionCall {
         default:
             break;
         }
+        calendar = DateTimeUtils.createGregorianCalendar(DateTimeUtils.UTC);
         calendar.setTimeInMillis(t1);
         int year1 = calendar.get(Calendar.YEAR);
         int month1 = calendar.get(Calendar.MONTH);
@@ -2283,6 +2347,30 @@ public class Function extends Expression implements FunctionCall {
         return hc;
     }
 
+    private static int makeRegexpFlags(String stringFlags) {
+        int flags = Pattern.UNICODE_CASE;
+        if (stringFlags != null) {
+            for (int i = 0; i < stringFlags.length(); ++i) {
+                switch (stringFlags.charAt(i)) {
+                    case 'i':
+                        flags |= Pattern.CASE_INSENSITIVE;
+                        break;
+                    case 'c':
+                        flags &= ~Pattern.CASE_INSENSITIVE;
+                        break;
+                    case 'n':
+                        flags |= Pattern.DOTALL;
+                        break;
+                    case 'm':
+                        flags |= Pattern.MULTILINE;
+                        break;
+                    default:
+                        throw DbException.get(ErrorCode.INVALID_VALUE_2, stringFlags);
+                }
+            }
+        }
+        return flags;
+    }
 
     @Override
     public int getType() {
@@ -2372,6 +2460,14 @@ public class Function extends Expression implements FunctionCall {
         case CASE:
             min = 3;
             break;
+        case REGEXP_REPLACE:
+            min = 3;
+            max = 4;
+            break;
+        case REGEXP_LIKE:
+            min = 2;
+            max = 3;
+            break;
         case ST_MAKEEMPTYRASTER:
             min = 1;
             max = 9;
@@ -2395,10 +2491,8 @@ public class Function extends Expression implements FunctionCall {
      */
     public void doneWithParameters() {
         if (info.parameterCount == VAR_ARGS) {
-            int len = varArgs.size();
-            checkParameterCount(len);
-            args = new Expression[len];
-            varArgs.toArray(args);
+            checkParameterCount(varArgs.size());
+            args = varArgs.toArray(new Expression[0]);
             varArgs = null;
         } else {
             int len = args.length;
@@ -2599,7 +2693,7 @@ public class Function extends Expression implements FunctionCall {
         }
         case SUBSTRING:
         case SUBSTR: {
-            t = info.dataType;
+            t = info.returnDataType;
             p = args[0].getPrecision();
             s = 0;
             if (args[1].isConstant()) {
@@ -2616,7 +2710,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         default:
-            t = info.dataType;
+            t = info.returnDataType;
             DataType type = DataType.getDataType(t);
             p = PRECISION_UNKNOWN;
             d = 0;

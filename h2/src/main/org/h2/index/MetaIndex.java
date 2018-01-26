@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -80,6 +80,14 @@ public class MetaIndex extends BaseIndex {
             return -1;
         }
         return super.getColumnIndex(col);
+    }
+
+    @Override
+    public boolean isFirstColumn(Column column) {
+        if (scan) {
+            return false;
+        }
+        return super.isFirstColumn(column);
     }
 
     @Override

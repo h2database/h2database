@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: Daniel Gredler
  */
@@ -30,6 +30,12 @@ public class ToChar {
      * The beginning of the Julian calendar.
      */
     private static final long JULIAN_EPOCH;
+
+    private static final int[] ROMAN_VALUES = { 1000, 900, 500, 400, 100, 90, 50, 40, 10, 9,
+            5, 4, 1 };
+
+    private static final String[] ROMAN_NUMERALS = { "M", "CM", "D", "CD", "C", "XC",
+            "L", "XL", "X", "IX", "V", "IV", "I" };
 
     static {
         GregorianCalendar epoch = new GregorianCalendar(Locale.ENGLISH);
@@ -123,10 +129,10 @@ public class ToChar {
      * @return the formatted number
      */
     public static String toChar(BigDecimal number, String format,
-            String nlsParam) {
+            @SuppressWarnings("unused") String nlsParam) {
 
         // short-circuit logic for formats that don't follow common logic below
-        String formatUp = format != null ? format.toUpperCase() : null;
+        String formatUp = format != null ? StringUtils.toUpperEnglish(format) : null;
         if (formatUp == null || formatUp.equals("TM") || formatUp.equals("TM9")) {
             String s = number.toPlainString();
             return s.startsWith("0.") ? s.substring(1) : s;
@@ -172,7 +178,7 @@ public class ToChar {
             format = format.substring(0, format.length() - 2);
         }
 
-        int v = formatUp.indexOf("V");
+        int v = formatUp.indexOf('V');
         if (v >= 0) {
             int digits = 0;
             for (int i = v + 1; i < format.length(); i++) {
@@ -410,14 +416,10 @@ public class ToChar {
     }
 
     private static String toRomanNumeral(int number) {
-        int[] values = new int[] { 1000, 900, 500, 400, 100, 90, 50, 40, 10, 9,
-                5, 4, 1 };
-        String[] numerals = new String[] { "M", "CM", "D", "CD", "C", "XC",
-                "L", "XL", "X", "IX", "V", "IV", "I" };
         StringBuilder result = new StringBuilder();
-        for (int i = 0; i < values.length; i++) {
-            int value = values[i];
-            String numeral = numerals[i];
+        for (int i = 0; i < ROMAN_VALUES.length; i++) {
+            int value = ROMAN_VALUES[i];
+            String numeral = ROMAN_NUMERALS[i];
             while (number >= value) {
                 result.append(numeral);
                 number -= value;
@@ -428,7 +430,7 @@ public class ToChar {
 
     private static String toHex(BigDecimal number, String format) {
 
-        boolean fillMode = !format.toUpperCase().startsWith("FM");
+        boolean fillMode = !StringUtils.toUpperEnglish(format).startsWith("FM");
         boolean uppercase = !format.contains("x");
         boolean zeroPadded = format.startsWith("0");
         int digits = 0;
@@ -445,7 +447,7 @@ public class ToChar {
             hex = StringUtils.pad("", digits + 1, "#", true);
         } else {
             if (uppercase) {
-                hex = hex.toUpperCase();
+                hex = StringUtils.toUpperEnglish(hex);
             }
             if (zeroPadded) {
                 hex = StringUtils.pad(hex, digits, "0", false);
@@ -595,7 +597,7 @@ public class ToChar {
      * @param nlsParam the NLS parameter (if any)
      * @return the formatted timestamp
      */
-    public static String toChar(Timestamp ts, String format, String nlsParam) {
+    public static String toChar(Timestamp ts, String format, @SuppressWarnings("unused") String nlsParam) {
 
         if (format == null) {
             format = "DD-MON-YY HH.MI.SS.FF PM";
@@ -654,7 +656,7 @@ public class ToChar {
                         cal.get(Calendar.DAY_OF_MONTH)));
                 i += 2;
             } else if ((cap = containsAt(format, i, "DY")) != null) {
-                String day = new SimpleDateFormat("EEE").format(ts).toUpperCase();
+                String day = new SimpleDateFormat("EEE").format(ts);
                 output.append(cap.apply(day));
                 i += 2;
             } else if ((cap = containsAt(format, i, "DAY")) != null) {
@@ -885,7 +887,7 @@ public class ToChar {
     }
 
     /** Represents a capitalization / casing strategy. */
-    private enum Capitalization {
+    static public enum Capitalization {
 
         /**
          * All letters are uppercased.
@@ -912,7 +914,7 @@ public class ToChar {
          * @return the capitalization / casing strategy which should be used
          *         when the first and second letters have the specified casing
          */
-        public static Capitalization toCapitalization(Boolean up1, Boolean up2) {
+        static Capitalization toCapitalization(Boolean up1, Boolean up2) {
             if (up1 == null) {
                 return Capitalization.CAPITALIZE;
             } else if (up2 == null) {
@@ -936,12 +938,12 @@ public class ToChar {
             }
             switch (this) {
             case UPPERCASE:
-                return s.toUpperCase();
+                return StringUtils.toUpperEnglish(s);
             case LOWERCASE:
-                return s.toLowerCase();
+                return StringUtils.toLowerEnglish(s);
             case CAPITALIZE:
                 return Character.toUpperCase(s.charAt(0)) +
-                        (s.length() > 1 ? s.toLowerCase().substring(1) : "");
+                        (s.length() > 1 ? StringUtils.toLowerEnglish(s).substring(1) : "");
             default:
                 throw new IllegalArgumentException(
                         "Unknown capitalization strategy: " + this);

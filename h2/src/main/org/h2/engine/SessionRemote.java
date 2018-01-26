@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -59,6 +59,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     public static final int SESSION_SET_AUTOCOMMIT = 15;
     public static final int SESSION_HAS_PENDING_TRANSACTION = 16;
     public static final int LOB_READ = 17;
+    public static final int SESSION_PREPARE_READ_PARAMS2 = 18;
 
     public static final int STATUS_ERROR = 0;
     public static final int STATUS_OK = 1;
@@ -91,7 +92,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     private JavaObjectSerializer javaObjectSerializer;
     private volatile boolean javaObjectSerializerInitialized;
 
-    private CompareMode compareMode = CompareMode.getInstance(null, 0);
+    private final CompareMode compareMode = CompareMode.getInstance(null, 0);
 
     public SessionRemote(ConnectionInfo ci) {
         this.connectionInfo = ci;
@@ -99,7 +100,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
 
     @Override
     public ArrayList<String> getClusterServers() {
-        ArrayList<String> serverList = new ArrayList<String>();
+        ArrayList<String> serverList = new ArrayList<>();
         for (int i = 0; i < transferList.size(); i++) {
             Transfer transfer = transferList.get(i);
             serverList.add(transfer.getSocket().getInetAddress().
@@ -113,12 +114,11 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             throws IOException {
         Socket socket = NetUtils.createSocket(server,
                 Constants.DEFAULT_TCP_PORT, ci.isSSL());
-        Transfer trans = new Transfer(this);
-        trans.setSocket(socket);
+        Transfer trans = new Transfer(this, socket);
         trans.setSSL(ci.isSSL());
         trans.init();
         trans.writeInt(Constants.TCP_PROTOCOL_VERSION_6);
-        trans.writeInt(Constants.TCP_PROTOCOL_VERSION_15);
+        trans.writeInt(Constants.TCP_PROTOCOL_VERSION_16);
         trans.writeString(db);
         trans.writeString(ci.getOriginalURL());
         trans.writeString(ci.getUserName());
@@ -215,6 +215,10 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             autoCommit = true;
             cluster = true;
         }
+    }
+
+    public int getClientVersion() {
+        return clientVersion;
     }
 
     @Override
@@ -852,5 +856,20 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     @Override
     public CompareMode getCompareMode() {
         return compareMode;
+    }
+
+    @Override
+    public boolean isRemote() {
+        return true;
+    }
+
+    @Override
+    public String getCurrentSchemaName() {
+        throw DbException.getUnsupportedException("getSchema && remote session");
+    }
+
+    @Override
+    public void setCurrentSchemaName(String schema) {
+        throw DbException.getUnsupportedException("setSchema && remote session");
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -22,6 +22,7 @@ public class H2Query extends H2Program {
      * @param index the parameter index (0, 1,...)
      * @param value the new value
      */
+    @Override
     public void bindDouble(int index, double value) {
         // TODO
     }
@@ -32,6 +33,7 @@ public class H2Query extends H2Program {
      * @param index the parameter index (0, 1,...)
      * @param value the new value
      */
+    @Override
     public void bindLong(int index, long value) {
         // TODO
     }
@@ -41,6 +43,7 @@ public class H2Query extends H2Program {
      *
      * @param index the parameter index (0, 1,...)
      */
+    @Override
     public void bindNull(int index) {
         // TODO
     }
@@ -51,6 +54,7 @@ public class H2Query extends H2Program {
      * @param index the parameter index (0, 1,...)
      * @param value the new value
      */
+    @Override
     public void bindString(int index, String value) {
         // TODO
     }
@@ -58,6 +62,7 @@ public class H2Query extends H2Program {
     /**
      * Close the statement.
      */
+    @Override
     public void close() {
         // TODO
     }

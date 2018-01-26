@@ -1,25 +1,26 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.jdbc;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Properties;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
+import org.h2.jdbc.JdbcPreparedStatementBackwardsCompat;
 import org.h2.jdbc.JdbcStatement;
+import org.h2.jdbc.JdbcStatementBackwardsCompat;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.New;
 
 /**
  * Tests for the Statement implementation.
@@ -47,6 +48,7 @@ public class TestStatement extends TestBase {
         testSavepoint();
         testConnectionRollback();
         testStatement();
+        testPreparedStatement();
         testIdentityMerge();
         testIdentity();
         conn.close();
@@ -68,16 +70,11 @@ public class TestStatement extends TestBase {
 
     private void testUnsupportedOperations() throws Exception {
         conn.setTypeMap(null);
-        HashMap<String, Class<?>> map = New.hashMap();
+        HashMap<String, Class<?>> map = new HashMap<>();
         conn.setTypeMap(map);
         map.put("x", Object.class);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).
             setTypeMap(map);
-
-        assertThrows(SQLClientInfoException.class, conn).
-            setClientInfo("X", "Y");
-        assertThrows(SQLClientInfoException.class, conn).
-            setClientInfo(new Properties());
     }
 
     private void testTraceError() throws Exception {
@@ -214,6 +211,7 @@ public class TestStatement extends TestBase {
 
         ResultSet rs;
         int count;
+        long largeCount;
         boolean result;
 
         stat.execute("CREATE TABLE TEST(ID INT)");
@@ -261,6 +259,16 @@ public class TestStatement extends TestBase {
         assertEquals(0, count);
         count = stat.executeUpdate("DELETE FROM TEST WHERE ID=2");
         assertEquals(1, count);
+        JdbcStatementBackwardsCompat statBC = (JdbcStatementBackwardsCompat) stat;
+        largeCount = statBC.executeLargeUpdate("DELETE FROM TEST WHERE ID=-1");
+        assertEquals(0, largeCount);
+        assertEquals(0, statBC.getLargeUpdateCount());
+        largeCount = statBC.executeLargeUpdate("INSERT INTO TEST(VALUE,ID) VALUES('JDBC',2)");
+        assertEquals(1, largeCount);
+        assertEquals(1, statBC.getLargeUpdateCount());
+        largeCount = statBC.executeLargeUpdate("DELETE FROM TEST WHERE ID=2");
+        assertEquals(1, largeCount);
+        assertEquals(1, statBC.getLargeUpdateCount());
 
         assertThrows(ErrorCode.METHOD_NOT_ALLOWED_FOR_QUERY, stat).
                 executeUpdate("SELECT * FROM TEST");
@@ -320,6 +328,19 @@ public class TestStatement extends TestBase {
         stat.clearWarnings();
         assertTrue(stat.getWarnings() == null);
         assertTrue(conn == stat.getConnection());
+
+        assertEquals("SOME_ID", statBC.enquoteIdentifier("SOME_ID", false));
+        assertEquals("\"SOME ID\"", statBC.enquoteIdentifier("SOME ID", false));
+        assertEquals("\"SOME_ID\"", statBC.enquoteIdentifier("SOME_ID", true));
+        assertEquals("\"FROM\"", statBC.enquoteIdentifier("FROM", false));
+        assertEquals("\"Test\"", statBC.enquoteIdentifier("Test", false));
+        assertEquals("\"TODAY\"", statBC.enquoteIdentifier("TODAY", false));
+
+        assertTrue(statBC.isSimpleIdentifier("SOME_ID"));
+        assertFalse(statBC.isSimpleIdentifier("SOME ID"));
+        assertFalse(statBC.isSimpleIdentifier("FROM"));
+        assertFalse(statBC.isSimpleIdentifier("Test"));
+        assertFalse(statBC.isSimpleIdentifier("TODAY"));
 
         stat.close();
     }
@@ -401,6 +422,62 @@ public class TestStatement extends TestBase {
 
         stat.execute("DROP TABLE TEST");
         stat.execute("DROP TABLE TEST2");
+    }
+
+    private void testPreparedStatement() throws SQLException{
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name varchar(255))");
+        stat.execute("insert into test values(1, 'Hello')");
+        stat.execute("insert into test values(2, 'World')");
+        PreparedStatement ps = conn.prepareStatement(
+                "select name from test where id in (select id from test where name REGEXP ?)");
+        ps.setString(1, "Hello");
+        ResultSet rs = ps.executeQuery();
+        assertTrue(rs.next());
+        assertEquals("Hello", rs.getString("name"));
+        assertFalse(rs.next());
+        ps.setString(1, "World");
+        rs = ps.executeQuery();
+        assertTrue(rs.next());
+        assertEquals("World", rs.getString("name"));
+        assertFalse(rs.next());
+        //Changes the table structure
+        stat.execute("create index t_id on test(name)");
+        //Test the prepared statement again to check if the internal cache attributes were reset
+        ps.setString(1, "Hello");
+        rs = ps.executeQuery();
+        assertTrue(rs.next());
+        assertEquals("Hello", rs.getString("name"));
+        assertFalse(rs.next());
+        ps.setString(1, "World");
+        rs = ps.executeQuery();
+        assertTrue(rs.next());
+        assertEquals("World", rs.getString("name"));
+        assertFalse(rs.next());
+        ps = conn.prepareStatement("insert into test values(?, ?)");
+        ps.setInt(1, 3);
+        ps.setString(2, "v3");
+        ps.addBatch();
+        ps.setInt(1, 4);
+        ps.setString(2, "v4");
+        ps.addBatch();
+        assertTrue(Arrays.equals(new int[] {1, 1}, ps.executeBatch()));
+        ps.setInt(1, 5);
+        ps.setString(2, "v5");
+        ps.addBatch();
+        ps.setInt(1, 6);
+        ps.setString(2, "v6");
+        ps.addBatch();
+        assertTrue(Arrays.equals(new long[] {1, 1}, ((JdbcStatementBackwardsCompat) ps).executeLargeBatch()));
+        ps.setInt(1, 7);
+        ps.setString(2, "v7");
+        assertEquals(1, ps.executeUpdate());
+        assertEquals(1, ps.getUpdateCount());
+        ps.setInt(1, 8);
+        ps.setString(2, "v8");
+        assertEquals(1, ((JdbcPreparedStatementBackwardsCompat) ps).executeLargeUpdate());
+        assertEquals(1, ((JdbcStatementBackwardsCompat) ps).getLargeUpdateCount());
+        stat.execute("drop table test");
     }
 
 }

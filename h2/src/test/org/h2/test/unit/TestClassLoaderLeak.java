@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -74,7 +74,7 @@ public class TestClassLoaderLeak extends TestBase {
         Method testMethod = h2ConnectionTestClass.getDeclaredMethod("runTest");
         testMethod.setAccessible(true);
         testMethod.invoke(null);
-        return new WeakReference<ClassLoader>(cl);
+        return new WeakReference<>(cl);
     }
 
     /**

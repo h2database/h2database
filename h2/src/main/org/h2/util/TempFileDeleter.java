@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,6 +8,7 @@ package org.h2.util;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.h2.engine.SysProperties;
@@ -19,8 +20,8 @@ import org.h2.store.fs.FileUtils;
  */
 public class TempFileDeleter {
 
-    private final ReferenceQueue<Object> queue = new ReferenceQueue<Object>();
-    private final HashMap<PhantomReference<?>, String> refMap = New.hashMap();
+    private final ReferenceQueue<Object> queue = new ReferenceQueue<>();
+    private final HashMap<PhantomReference<?>, String> refMap = new HashMap<>();
 
     private TempFileDeleter() {
         // utility class
@@ -40,7 +41,7 @@ public class TempFileDeleter {
      */
     public synchronized Reference<?> addFile(String fileName, Object file) {
         IOUtils.trace("TempFileDeleter.addFile", fileName, file);
-        PhantomReference<?> ref = new PhantomReference<Object>(file, queue);
+        PhantomReference<?> ref = new PhantomReference<>(file, queue);
         refMap.put(ref, fileName);
         deleteUnused();
         return ref;
@@ -78,7 +79,7 @@ public class TempFileDeleter {
      * Delete all registered temp files.
      */
     public void deleteAll() {
-        for (String tempFile : New.arrayList(refMap.values())) {
+        for (String tempFile : new ArrayList<>(refMap.values())) {
             deleteFile(null, tempFile);
         }
         deleteUnused();

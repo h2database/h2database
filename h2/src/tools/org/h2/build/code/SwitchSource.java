@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -17,8 +17,8 @@ import java.util.ArrayList;
  */
 public class SwitchSource {
 
-    private final ArrayList<String> enable = new ArrayList<String>();
-    private final ArrayList<String> disable = new ArrayList<String>();
+    private final ArrayList<String> enable = new ArrayList<>();
+    private final ArrayList<String> disable = new ArrayList<>();
 
     /**
      * This method is called when executing this application from the command
@@ -100,17 +100,14 @@ public class SwitchSource {
     }
 
     private void processFile(File f) throws IOException {
-        RandomAccessFile read = new RandomAccessFile(f, "r");
         byte[] buffer;
-        try {
+        try (RandomAccessFile read = new RandomAccessFile(f, "r")) {
             long len = read.length();
             if (len >= Integer.MAX_VALUE) {
                 throw new IOException("Files bigger than Integer.MAX_VALUE are not supported");
             }
             buffer = new byte[(int) len];
             read.readFully(buffer);
-        } finally {
-            read.close();
         }
         boolean found = false;
         // check for ## without creating a string

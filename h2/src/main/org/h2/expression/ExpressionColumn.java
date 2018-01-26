@@ -1,12 +1,11 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.expression;
 
 import java.util.HashMap;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
@@ -23,6 +22,8 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
+import org.h2.value.ValueEnum;
+import org.h2.value.ValueNull;
 
 /**
  * A expression that represents a column of a table or view.
@@ -185,8 +186,14 @@ public class ExpressionColumn extends Expression {
         }
         Value value = columnResolver.getValue(column);
         if (value == null) {
-            columnResolver.getValue(column);
-            throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
+            if (select == null) {
+                throw DbException.get(ErrorCode.NULL_NOT_ALLOWED, getSQL());
+            } else {
+                throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
+            }
+        }
+        if (column.getEnumerators() != null && value != ValueNull.INSTANCE) {
+            return ValueEnum.get(column.getEnumerators(), value.getInt());
         }
         return value;
     }

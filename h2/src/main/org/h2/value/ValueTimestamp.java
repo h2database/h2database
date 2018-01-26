@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,12 +10,11 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Calendar;
 import java.util.TimeZone;
 import org.h2.api.ErrorCode;
+import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.MathUtils;
 
 /**
  * Implementation of the TIMESTAMP data type.
@@ -109,26 +108,54 @@ public class ValueTimestamp extends Value {
 
     /**
      * Parse a string to a ValueTimestamp. This method supports the format
-     * +/-year-month-day hour:minute:seconds.fractional and an optional timezone
+     * +/-year-month-day hour[:.]minute[:.]seconds.fractional and an optional timezone
      * part.
      *
      * @param s the string to parse
      * @return the date
      */
     public static ValueTimestamp parse(String s) {
+        return parse(s, null);
+    }
+
+    /**
+     * Parse a string to a ValueTimestamp, using the given {@link Mode}.
+     * This method supports the format +/-year-month-day[ -]hour[:.]minute[:.]seconds.fractional
+     * and an optional timezone part.
+     *
+     * @param s the string to parse
+     * @param mode the database {@link Mode}
+     * @return the date
+     */
+    public static ValueTimestamp parse(String s, Mode mode) {
         try {
-            return parseTry(s);
+            return parseTry(s, mode);
         } catch (Exception e) {
             throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2,
                     e, "TIMESTAMP", s);
         }
     }
 
-    private static ValueTimestamp parseTry(String s) {
+    /**
+     * See:
+     * https://stackoverflow.com/questions/3976616/how-to-find-nth-occurrence-of-character-in-a-string#answer-3976656
+     */
+    private static int findNthIndexOf(String str, char chr, int n) {
+        int pos = str.indexOf(chr);
+        while (--n > 0 && pos != -1)
+            pos = str.indexOf(chr, pos + 1);
+        return pos;
+    }
+
+    private static ValueTimestamp parseTry(String s, Mode mode) {
         int dateEnd = s.indexOf(' ');
         if (dateEnd < 0) {
             // ISO 8601 compatibility
             dateEnd = s.indexOf('T');
+            if (dateEnd < 0 && mode != null && mode.allowDB2TimestampFormat) {
+                // DB2 also allows dash between date and time
+                dateEnd = findNthIndexOf(s, '-', 3);
+            }
         }
         int timeStart;
         if (dateEnd < 0) {
@@ -145,12 +172,12 @@ public class ValueTimestamp extends Value {
             int timeEnd = s.length();
             TimeZone tz = null;
             if (s.endsWith("Z")) {
-                tz = TimeZone.getTimeZone("UTC");
+                tz = DateTimeUtils.UTC;
                 timeEnd--;
             } else {
-                int timeZoneStart = s.indexOf('+', dateEnd);
+                int timeZoneStart = s.indexOf('+', dateEnd + 1);
                 if (timeZoneStart < 0) {
-                    timeZoneStart = s.indexOf('-', dateEnd);
+                    timeZoneStart = s.indexOf('-', dateEnd + 1);
                 }
                 if (timeZoneStart >= 0) {
                     String tzName = "GMT" + s.substring(timeZoneStart);
@@ -189,7 +216,7 @@ public class ValueTimestamp extends Value {
                         tz, year, month, day, hour, minute, (int) second, (int) ms);
                 ms = DateTimeUtils.convertToLocal(
                         new Date(millis),
-                        Calendar.getInstance(TimeZone.getTimeZone("UTC")));
+                        DateTimeUtils.createGregorianCalendar(DateTimeUtils.UTC));
                 long md = DateTimeUtils.MILLIS_PER_DAY;
                 long absoluteDay = (ms >= 0 ? ms : ms - md + 1) / md;
                 dateValue = DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay);
@@ -281,11 +308,11 @@ public class ValueTimestamp extends Value {
     @Override
     protected int compareSecure(Value o, CompareMode mode) {
         ValueTimestamp t = (ValueTimestamp) o;
-        int c = MathUtils.compareLong(dateValue, t.dateValue);
+        int c = Long.compare(dateValue, t.dateValue);
         if (c != 0) {
             return c;
         }
-        return MathUtils.compareLong(timeNanos, t.timeNanos);
+        return Long.compare(timeNanos, t.timeNanos);
     }
 
     @Override

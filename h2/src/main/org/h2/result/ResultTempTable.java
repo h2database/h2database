@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -7,7 +7,6 @@ package org.h2.result;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-
 import org.h2.command.ddl.CreateTableData;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -89,7 +88,9 @@ public class ResultTempTable implements ResultExternal {
 
     private void createIndex() {
         IndexColumn[] indexCols = null;
-        if (sort != null) {
+        // If we need to do distinct, the distinct columns may not match the
+        // sort columns. So we need to disregard the sort. Not ideal.
+        if (sort != null && !distinct) {
             int[] colIndex = sort.getQueryColumnIndexes();
             indexCols = new IndexColumn[colIndex.length];
             for (int i = 0; i < colIndex.length; i++) {

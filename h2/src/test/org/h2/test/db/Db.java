@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -31,7 +31,7 @@ public class Db {
     private Connection conn;
     private Statement stat;
     private final HashMap<String, PreparedStatement> prepared =
-            new HashMap<String, PreparedStatement>();
+            new HashMap<>();
 
     /**
      * Create a database object using the given connection.
@@ -86,11 +86,11 @@ public class Db {
      * @return a list of maps
      */
     static List<Map<String, Object>> query(ResultSet rs) throws SQLException {
-        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> list = new ArrayList<>();
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();
         while (rs.next()) {
-            HashMap<String, Object> map = new HashMap<String, Object>();
+            HashMap<String, Object> map = new HashMap<>();
             for (int i = 0; i < columnCount; i++) {
                 map.put(meta.getColumnLabel(i+1), rs.getObject(i+1));
             }

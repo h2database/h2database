@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -30,12 +30,12 @@ public class ClassReader {
 
     private String convertMethodName;
     private Token result;
-    private Stack<Token> stack = new Stack<Token>();
-    private ArrayList<Token> variables = new ArrayList<Token>();
+    private Stack<Token> stack = new Stack<>();
+    private ArrayList<Token> variables = new ArrayList<>();
     private boolean endOfMethod;
     private boolean condition;
     private int nextPc;
-    private Map<String, Object> fieldMap = new HashMap<String, Object>();
+    private Map<String, Object> fieldMap = new HashMap<>();
 
     private static void debug(String s) {
         if (DEBUG) {
@@ -235,6 +235,7 @@ public class ClassReader {
         readAttributes();
     }
 
+    @SuppressWarnings("unlikely-arg-type")
     private Token getResult() {
         while (true) {
             readByteCode();
@@ -243,10 +244,9 @@ public class ClassReader {
             }
             if (condition) {
                 Token c = stack.pop();
-                Stack<Token> currentStack = new Stack<Token>();
+                Stack<Token> currentStack = new Stack<>();
                 currentStack.addAll(stack);
-                ArrayList<Token> currentVariables = new ArrayList<Token>();
-                currentVariables.addAll(variables);
+                ArrayList<Token> currentVariables = new ArrayList<>(variables);
                 int branch = nextPc;
                 Token a = getResult();
                 stack = currentStack;

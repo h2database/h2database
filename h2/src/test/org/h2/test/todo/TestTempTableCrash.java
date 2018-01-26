@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,6 +9,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.store.fs.FilePathRec;
 import org.h2.test.unit.TestReopen;
 import org.h2.tools.DeleteDbFiles;
@@ -48,10 +50,10 @@ public class TestTempTableCrash {
         stat = conn.createStatement();
 
         Random random = new Random(1);
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
         for (int i = 0; i < 10000; i++) {
-            long now = System.currentTimeMillis();
-            if (now > start + 1000) {
+            long now = System.nanoTime();
+            if (now > start + TimeUnit.SECONDS.toNanos(1)) {
                 System.out.println("i: " + i);
                 start = now;
             }

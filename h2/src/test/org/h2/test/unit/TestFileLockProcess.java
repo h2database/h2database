@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -105,8 +105,14 @@ public class TestFileLockProcess extends TestBase {
                 buff.append((char) ch);
             }
             proc.waitFor();
+
+            // The travis build somehow generates messages like this from javac.
+            // No idea where it is coming from.
+            String processOutput = buff.toString();
+            processOutput = processOutput.replaceAll("Picked up _JAVA_OPTIONS: -Xmx2048m -Xms512m", "").trim();
+
             assertEquals(0, proc.exitValue());
-            assertTrue(i + ": " + buff.toString(), buff.length() == 0);
+            assertTrue(i + ": " + buff.toString(), processOutput.isEmpty());
         }
         Thread.sleep(100);
         conn.close();

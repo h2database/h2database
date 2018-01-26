@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -7,23 +7,26 @@ package org.h2.command.ddl;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.dml.Insert;
 import org.h2.command.dml.Query;
+import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionColumn;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
+import org.h2.util.ColumnNamer;
 import org.h2.util.New;
 import org.h2.value.DataType;
+import org.h2.value.Value;
 
 /**
  * This class represents the statement
@@ -108,7 +111,7 @@ public class CreateTable extends SchemaCommand {
         if (!isSessionTemporary) {
             db.lockMeta(session);
         }
-        if (getSchema().findTableOrView(session, data.tableName) != null) {
+        if (getSchema().resolveTableOrView(session, data.tableName) != null) {
             if (ifNotExists) {
                 return 0;
             }
@@ -140,6 +143,11 @@ public class CreateTable extends SchemaCommand {
             if (c.isAutoIncrement()) {
                 int objId = getObjectId();
                 c.convertAutoIncrementToSequence(session, getSchema(), objId, data.temporary);
+                if (!Constants.CLUSTERING_DISABLED
+                        .equals(session.getDatabase().getCluster())) {
+                    throw DbException.getUnsupportedException(
+                            "CLUSTERING && auto-increment columns");
+                }
             }
             Sequence seq = c.getSequence();
             if (seq != null) {
@@ -187,7 +195,7 @@ public class CreateTable extends SchemaCommand {
                     session.setUndoLogEnabled(old);
                 }
             }
-            HashSet<DbObject> set = New.hashSet();
+            HashSet<DbObject> set = new HashSet<>();
             set.clear();
             table.addDependencies(set);
             for (DbObject obj : set) {
@@ -223,10 +231,11 @@ public class CreateTable extends SchemaCommand {
     private void generateColumnsFromQuery() {
         int columnCount = asQuery.getColumnCount();
         ArrayList<Expression> expressions = asQuery.getExpressions();
+        ColumnNamer columnNamer= new ColumnNamer(session);
         for (int i = 0; i < columnCount; i++) {
             Expression expr = expressions.get(i);
             int type = expr.getType();
-            String name = expr.getAlias();
+            String name = columnNamer.getColumnName(expr,i,expr.getAlias());
             long precision = expr.getPrecision();
             int displaySize = expr.getDisplaySize();
             DataType dt = DataType.getDataType(type);
@@ -243,7 +252,18 @@ public class CreateTable extends SchemaCommand {
             if (scale > precision) {
                 precision = scale;
             }
-            Column col = new Column(name, type, precision, scale, displaySize);
+            String[] enumerators = null;
+            if (dt.type == Value.ENUM) {
+                /**
+                 * Only columns of tables may be enumerated.
+                 */
+                if(!(expr instanceof ExpressionColumn)) {
+                    throw DbException.get(ErrorCode.GENERAL_ERROR_1,
+                            "Unable to resolve enumerators of expression");
+                }
+                enumerators = ((ExpressionColumn)expr).getColumn().getEnumerators();
+            }
+            Column col = new Column(name, type, precision, scale, displaySize, enumerators);
             addColumn(col);
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -7,11 +7,13 @@ package org.h2.util;
 
 import java.lang.ref.SoftReference;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 
@@ -21,8 +23,8 @@ import org.h2.message.DbException;
 public class StringUtils {
 
     private static SoftReference<String[]> softCache =
-            new SoftReference<String[]>(null);
-    private static long softCacheCreated;
+            new SoftReference<>(null);
+    private static long softCacheCreatedNs;
 
     private static final char[] HEX = "0123456789abcdef".toCharArray();
     private static final int[] HEX_DECODE = new int['f' + 1];
@@ -62,31 +64,17 @@ public class StringUtils {
         }
         // create a new cache at most every 5 seconds
         // so that out of memory exceptions are not delayed
-        long time = System.currentTimeMillis();
-        if (softCacheCreated != 0 && time - softCacheCreated < 5000) {
+        long time = System.nanoTime();
+        if (softCacheCreatedNs != 0 && time - softCacheCreatedNs < TimeUnit.SECONDS.toNanos(5)) {
             return null;
         }
         try {
             cache = new String[SysProperties.OBJECT_CACHE_SIZE];
-            softCache = new SoftReference<String[]>(cache);
+            softCache = new SoftReference<>(cache);
             return cache;
         } finally {
-            softCacheCreated = System.currentTimeMillis();
+            softCacheCreatedNs = System.nanoTime();
         }
-    }
-
-    /**
-     * Check if two strings are equal. Here, null is equal to null.
-     *
-     * @param a the first value
-     * @param b the second value
-     * @return true if both are null or both are equal
-     */
-    public static boolean equals(String a, String b) {
-        if (a == null) {
-            return b == null;
-        }
-        return a.equals(b);
     }
 
     /**
@@ -453,7 +441,7 @@ public class StringUtils {
                 buff[j++] = (byte) ch;
             }
         }
-        String s = new String(buff, 0, j, Constants.UTF8);
+        String s = new String(buff, 0, j, StandardCharsets.UTF_8);
         return s;
     }
 
@@ -491,9 +479,7 @@ public class StringUtils {
         }
         String e = buff.toString();
         list.add(trim ? e.trim() : e);
-        String[] array = new String[list.size()];
-        list.toArray(array);
-        return array;
+        return list.toArray(new String[0]);
     }
 
     /**
@@ -612,7 +598,7 @@ public class StringUtils {
      * The data is indented with 4 spaces if it contains a newline character.
      *
      * @param data the comment text
-     * @return <!-- data -->
+     * @return &lt;!-- data --&gt;
      */
     public static String xmlComment(String data) {
         int idx = 0;
@@ -633,10 +619,10 @@ public class StringUtils {
 
     /**
      * Converts the data to a CDATA element.
-     * If the data contains ']]>', it is escaped as a text element.
+     * If the data contains ']]&gt;', it is escaped as a text element.
      *
      * @param data the text data
-     * @return <![CDATA[data]]>
+     * @return &lt;![CDATA[data]]&gt;
      */
     public static String xmlCData(String data) {
         if (data.contains("]]>")) {
@@ -648,8 +634,8 @@ public class StringUtils {
     }
 
     /**
-     * Returns <?xml version="1.0"?>
-     * @return <?xml version="1.0"?>
+     * Returns &lt;?xml version="1.0"?&gt;
+     * @return &lt;?xml version="1.0"?&gt;
      */
     public static String xmlStartDoc() {
         return "<?xml version=\"1.0\"?>\n";
@@ -688,7 +674,8 @@ public class StringUtils {
                 buff.append("&amp;");
                 break;
             case '\'':
-                buff.append("&apos;");
+                // &apos; is not valid in HTML
+                buff.append("&#39;");
                 break;
             case '\"':
                 buff.append("&quot;");
@@ -842,9 +829,7 @@ public class StringUtils {
         if (len == 0) {
             return chars;
         }
-        char[] copy = new char[len];
-        System.arraycopy(chars, 0, copy, 0, len);
-        return copy;
+        return Arrays.copyOf(chars, len);
     }
 
     /**
@@ -859,23 +844,20 @@ public class StringUtils {
      */
     public static String trim(String s, boolean leading, boolean trailing,
             String sp) {
-        char space = (sp == null || sp.length() < 1) ? ' ' : sp.charAt(0);
+        char space = sp == null || sp.isEmpty() ? ' ' : sp.charAt(0);
+        int begin = 0, end = s.length();
         if (leading) {
-            int len = s.length(), i = 0;
-            while (i < len && s.charAt(i) == space) {
-                i++;
+            while (begin < end && s.charAt(begin) == space) {
+                begin++;
             }
-            s = (i == 0) ? s : s.substring(i);
         }
         if (trailing) {
-            int endIndex = s.length() - 1;
-            int i = endIndex;
-            while (i >= 0 && s.charAt(i) == space) {
-                i--;
+            while (end > begin && s.charAt(end - 1) == space) {
+                end--;
             }
-            s = i == endIndex ? s : s.substring(0, i + 1);
         }
-        return s;
+        // substring() returns self if start == 0 && end == length()
+        return s.substring(begin, end);
     }
 
     /**
@@ -911,51 +893,10 @@ public class StringUtils {
     }
 
     /**
-     * Get a string from the cache, and if no such string has been found, create
-     * a new one with only this content. This solves out of memory problems if
-     * the string is a substring of another, large string. In Java, strings are
-     * shared, which could lead to memory problems. This avoid such problems.
-     *
-     * @param s the string
-     * @return a string that is guaranteed not be a substring of a large string
-     */
-    public static String fromCacheOrNew(String s) {
-        if (!SysProperties.OBJECT_CACHE) {
-            return s;
-        }
-        if (s == null) {
-            return s;
-        } else if (s.length() == 0) {
-            return "";
-        }
-        int hash = s.hashCode();
-        String[] cache = getCache();
-        int index = hash & (SysProperties.OBJECT_CACHE_SIZE - 1);
-        if (cache == null) {
-            return s;
-        }
-        String cached = cache[index];
-        if (cached != null) {
-            if (s.equals(cached)) {
-                return cached;
-            }
-        }
-        // create a new object that is not shared
-        // (to avoid out of memory if it is a substring of a big String)
-        // (not longer needed for Java 7 update 6 and newer,
-        // but the performance overhead is very small for those
-        // versions where it is not needed)
-        // NOPMD
-        s = new String(s);
-        cache[index] = s;
-        return s;
-    }
-
-    /**
      * Clear the cache. This method is used for testing.
      */
     public static void clearCache() {
-        softCache = new SoftReference<String[]>(null);
+        softCache = new SoftReference<>(null);
     }
 
     /**

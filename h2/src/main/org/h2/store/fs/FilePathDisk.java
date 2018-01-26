@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -293,20 +293,21 @@ public class FilePathDisk extends FilePath {
 
     @Override
     public InputStream newInputStream() throws IOException {
-        int index = name.indexOf(':');
-        if (index > 1 && index < 20) {
+        if (name.matches("[a-zA-Z]{2,19}:.*")) {
             // if the ':' is in position 1, a windows file access is assumed:
             // C:.. or D:, and if the ':' is not at the beginning, assume its a
             // file name with a colon
             if (name.startsWith(CLASSPATH_PREFIX)) {
                 String fileName = name.substring(CLASSPATH_PREFIX.length());
+                // Force absolute resolution in Class.getResourceAsStream
                 if (!fileName.startsWith("/")) {
                     fileName = "/" + fileName;
                 }
                 InputStream in = getClass().getResourceAsStream(fileName);
                 if (in == null) {
+                    // ClassLoader.getResourceAsStream doesn't need leading "/"
                     in = Thread.currentThread().getContextClassLoader().
-                            getResourceAsStream(fileName);
+                            getResourceAsStream(fileName.substring(1));
                 }
                 if (in == null) {
                     throw new FileNotFoundException("resource " + fileName);
@@ -435,9 +436,11 @@ class FileDisk extends FileBase {
         if (readOnly) {
             throw new NonWritableChannelException();
         }
-        if (newLength < file.length()) {
-            file.setLength(newLength);
-        }
+        /*
+         * RandomAccessFile.setLength() does not always work here since Java 9 for
+         * unknown reason so use FileChannel.truncate().
+         */
+        file.getChannel().truncate(newLength);
         return this;
     }
 

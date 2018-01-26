@@ -1,11 +1,12 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
 
 import java.util.HashMap;
+import java.util.Objects;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
@@ -15,8 +16,6 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.store.FileLock;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
-import org.h2.util.StringUtils;
 import org.h2.util.ThreadDeadlockDetector;
 import org.h2.util.Utils;
 
@@ -28,7 +27,7 @@ import org.h2.util.Utils;
 public class Engine implements SessionFactory {
 
     private static final Engine INSTANCE = new Engine();
-    private static final HashMap<String, Database> DATABASES = New.hashMap();
+    private static final HashMap<String, Database> DATABASES = new HashMap<>();
 
     private volatile long wrongPasswordDelay =
             SysProperties.DELAY_WRONG_PASSWORD_MIN;
@@ -77,52 +76,54 @@ public class Engine implements SessionFactory {
                 DATABASES.put(name, database);
             }
         }
-        synchronized (database) {
-            if (opened) {
-                // start the thread when already synchronizing on the database
-                // otherwise a deadlock can occur when the writer thread
-                // opens a new database (as in recovery testing)
-                database.opened();
-            }
-            if (database.isClosing()) {
-                return null;
-            }
-            if (user == null) {
-                if (database.validateFilePasswordHash(cipher, ci.getFilePasswordHash())) {
-                    user = database.findUser(ci.getUserName());
-                    if (user != null) {
-                        if (!user.validateUserPasswordHash(ci.getUserPasswordHash())) {
-                            user = null;
-                        }
+        if (opened) {
+            // start the thread when already synchronizing on the database
+            // otherwise a deadlock can occur when the writer thread
+            // opens a new database (as in recovery testing)
+            database.opened();
+        }
+        if (database.isClosing()) {
+            return null;
+        }
+        if (user == null) {
+            if (database.validateFilePasswordHash(cipher, ci.getFilePasswordHash())) {
+                user = database.findUser(ci.getUserName());
+                if (user != null) {
+                    if (!user.validateUserPasswordHash(ci.getUserPasswordHash())) {
+                        user = null;
                     }
                 }
-                if (opened && (user == null || !user.isAdmin())) {
-                    // reset - because the user is not an admin, and has no
-                    // right to listen to exceptions
-                    database.setEventListener(null);
-                }
             }
-            if (user == null) {
-                DbException er = DbException.get(ErrorCode.WRONG_USER_OR_PASSWORD);
-                database.getTrace(Trace.DATABASE).error(er, "wrong user or password; user: \"" +
-                        ci.getUserName() + "\"");
-                database.removeSession(null);
-                throw er;
+            if (opened && (user == null || !user.isAdmin())) {
+                // reset - because the user is not an admin, and has no
+                // right to listen to exceptions
+                database.setEventListener(null);
             }
-            checkClustering(ci, database);
-            Session session = database.createSession(user);
-            if (ci.getProperty("JMX", false)) {
-                try {
-                    Utils.callStaticMethod(
-                            "org.h2.jmx.DatabaseInfo.registerMBean", ci, database);
-                } catch (Exception e) {
-                    database.removeSession(session);
-                    throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, e, "JMX");
-                }
-                jmx = true;
-            }
-            return session;
         }
+        if (user == null) {
+            DbException er = DbException.get(ErrorCode.WRONG_USER_OR_PASSWORD);
+            database.getTrace(Trace.DATABASE).error(er, "wrong user or password; user: \"" +
+                    ci.getUserName() + "\"");
+            database.removeSession(null);
+            throw er;
+        }
+        checkClustering(ci, database);
+        Session session = database.createSession(user);
+        if (session == null) {
+            // concurrently closing
+            return null;
+        }
+        if (ci.getProperty("JMX", false)) {
+            try {
+                Utils.callStaticMethod(
+                        "org.h2.jmx.DatabaseInfo.registerMBean", ci, database);
+            } catch (Exception e) {
+                database.removeSession(session);
+                throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, e, "JMX");
+            }
+            jmx = true;
+        }
+        return session;
     }
 
     /**
@@ -189,46 +190,48 @@ public class Engine implements SessionFactory {
                 // ignore
             }
         }
-        session.setAllowLiterals(true);
-        DbSettings defaultSettings = DbSettings.getDefaultSettings();
-        for (String setting : ci.getKeys()) {
-            if (defaultSettings.containsKey(setting)) {
-                // database setting are only used when opening the database
-                continue;
-            }
-            String value = ci.getProperty(setting);
-            try {
-                CommandInterface command = session.prepareCommand(
-                        "SET " + Parser.quoteIdentifier(setting) + " " + value,
-                        Integer.MAX_VALUE);
-                command.executeUpdate();
-            } catch (DbException e) {
-                if (e.getErrorCode() == ErrorCode.ADMIN_RIGHTS_REQUIRED) {
-                    session.getTrace().error(e, "admin rights required; user: \"" +
-                            ci.getUserName() + "\"");
-                } else {
-                    session.getTrace().error(e, "");
+        synchronized (session) {
+            session.setAllowLiterals(true);
+            DbSettings defaultSettings = DbSettings.getDefaultSettings();
+            for (String setting : ci.getKeys()) {
+                if (defaultSettings.containsKey(setting)) {
+                    // database setting are only used when opening the database
+                    continue;
                 }
-                if (!ignoreUnknownSetting) {
-                    session.close();
-                    throw e;
+                String value = ci.getProperty(setting);
+                try {
+                    CommandInterface command = session.prepareCommand(
+                            "SET " + Parser.quoteIdentifier(setting) + " " + value,
+                            Integer.MAX_VALUE);
+                    command.executeUpdate();
+                } catch (DbException e) {
+                    if (e.getErrorCode() == ErrorCode.ADMIN_RIGHTS_REQUIRED) {
+                        session.getTrace().error(e, "admin rights required; user: \"" +
+                                ci.getUserName() + "\"");
+                    } else {
+                        session.getTrace().error(e, "");
+                    }
+                    if (!ignoreUnknownSetting) {
+                        session.close();
+                        throw e;
+                    }
                 }
             }
+            if (init != null) {
+                try {
+                    CommandInterface command = session.prepareCommand(init,
+                            Integer.MAX_VALUE);
+                    command.executeUpdate();
+                } catch (DbException e) {
+                    if (!ignoreUnknownSetting) {
+                        session.close();
+                        throw e;
+                    }
+                }
+            }
+            session.setAllowLiterals(false);
+            session.commit(true);
         }
-        if (init != null) {
-            try {
-                CommandInterface command = session.prepareCommand(init,
-                        Integer.MAX_VALUE);
-                command.executeUpdate();
-            } catch (DbException e) {
-                if (!ignoreUnknownSetting) {
-                    session.close();
-                    throw e;
-                }
-            }
-        }
-        session.setAllowLiterals(false);
-        session.commit(true);
         return session;
     }
 
@@ -242,7 +245,7 @@ public class Engine implements SessionFactory {
         String clusterDb = database.getCluster();
         if (!Constants.CLUSTERING_DISABLED.equals(clusterDb)) {
             if (!Constants.CLUSTERING_ENABLED.equals(clusterSession)) {
-                if (!StringUtils.equals(clusterSession, clusterDb)) {
+                if (!Objects.equals(clusterSession, clusterDb)) {
                     if (clusterDb.equals(Constants.CLUSTERING_DISABLED)) {
                         throw DbException.get(
                                 ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_ALONE);

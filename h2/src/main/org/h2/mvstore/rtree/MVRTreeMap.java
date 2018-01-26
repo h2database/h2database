@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -7,7 +7,6 @@ package org.h2.mvstore.rtree;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-
 import org.h2.mvstore.CursorPos;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
@@ -17,7 +16,8 @@ import org.h2.mvstore.type.ObjectDataType;
 import org.h2.util.New;
 
 /**
- * An r-tree implementation. It uses the quadratic split algorithm.
+ * An r-tree implementation. It supports both the linear and the quadratic split
+ * algorithm.
  *
  * @param <V> the value class
  */
@@ -44,7 +44,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
      * @return the map
      */
     public static <V> MVRTreeMap<V> create(int dimensions, DataType valueType) {
-        return new MVRTreeMap<V>(dimensions, valueType);
+        return new MVRTreeMap<>(dimensions, valueType);
     }
 
     @Override
@@ -237,6 +237,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         if (p.isLeaf()) {
             for (int i = 0; i < p.getKeyCount(); i++) {
                 if (keyType.equals(p.getKey(i), key)) {
+                    p.setKey(i, key);
                     return p.setValue(i, value);
                 }
             }
@@ -554,6 +555,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
          * @param test the user-supplied test key
          * @return true if there is a match
          */
+        @SuppressWarnings("unused")
         protected boolean check(boolean leaf, SpatialKey key, SpatialKey test) {
             return true;
         }
@@ -610,7 +612,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
             if (valueType == null) {
                 valueType = new ObjectDataType();
             }
-            return new MVRTreeMap<V>(dimensions, valueType);
+            return new MVRTreeMap<>(dimensions, valueType);
         }
 
     }

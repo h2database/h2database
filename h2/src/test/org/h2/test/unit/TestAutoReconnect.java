@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -35,7 +35,7 @@ public class TestAutoReconnect extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    private void restart() throws SQLException {
+    private void restart() throws SQLException, InterruptedException {
         if (autoServer) {
             if (connServer != null) {
                 connServer.createStatement().execute("SHUTDOWN");
@@ -45,6 +45,7 @@ public class TestAutoReconnect extends TestBase {
             connServer = getConnection(url);
         } else {
             server.stop();
+            Thread.sleep(100); // try to prevent "port may be in use" error
             server.start();
         }
     }
@@ -92,8 +93,9 @@ public class TestAutoReconnect extends TestBase {
                 "AUTO_SERVER=TRUE;OPEN_NEW=TRUE";
             restart();
         } else {
-            server = Server.createTcpServer("-tcpPort", "8181").start();
-            url = "jdbc:h2:tcp://localhost:8181/" + getBaseDir() + "/" + getTestName() + ";" +
+            server = Server.createTcpServer().start();
+            int port = server.getPort();
+            url = "jdbc:h2:tcp://localhost:" + port + "/" + getBaseDir() + "/" + getTestName() + ";" +
                 "FILE_LOCK=SOCKET;AUTO_RECONNECT=TRUE";
         }
 

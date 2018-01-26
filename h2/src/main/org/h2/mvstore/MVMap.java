@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -14,10 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
-
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
-import org.h2.util.New;
 
 /**
  * A stored map.
@@ -57,17 +55,21 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     private final DataType keyType;
     private final DataType valueType;
 
-    private ConcurrentArrayList<Page> oldRoots =
-            new ConcurrentArrayList<Page>();
+    private final ConcurrentArrayList<Page> oldRoots =
+            new ConcurrentArrayList<>();
 
-    private boolean closed;
+
+    /**
+     * Whether the map is closed. Volatile so we don't accidentally write to a
+     * closed map in multithreaded mode.
+     */
+    private volatile boolean closed;
     private boolean readOnly;
     private boolean isVolatile;
 
     protected MVMap(DataType keyType, DataType valueType) {
         this.keyType = keyType;
         this.valueType = valueType;
-        this.root = Page.createEmpty(this,  -1);
     }
 
     /**
@@ -101,6 +103,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         this.id = DataUtils.readHexInt(config, "id", 0);
         this.createVersion = DataUtils.readHexLong(config, "createVersion", 0);
         this.writeVersion = store.getCurrentVersion();
+        this.root = Page.createEmpty(this,  -1);
     }
 
     /**
@@ -121,23 +124,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         Object result = put(p, v, key, value);
         newRoot(p);
         return (V) result;
-    }
-
-    /**
-     * Add or replace a key-value pair in a branch.
-     *
-     * @param root the root page
-     * @param key the key (may not be null)
-     * @param value the value (may not be null)
-     * @return the new root page
-     */
-    synchronized Page putBranch(Page root, K key, V value) {
-        DataUtils.checkArgument(value != null, "The value may not be null");
-        long v = writeVersion;
-        Page p = root.copy(v);
-        p = splitRootIfNeeded(p, v);
-        put(p, v, key, value);
-        return p;
     }
 
     /**
@@ -477,30 +463,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     @Override
     public boolean containsKey(Object key) {
         return get(key) != null;
-    }
-
-    /**
-     * Get the value for the given key, or null if not found.
-     *
-     * @param p the parent page
-     * @param key the key
-     * @return the page or null
-     */
-    protected Page binarySearchPage(Page p, Object key) {
-        int x = p.binarySearch(key);
-        if (!p.isLeaf()) {
-            if (x < 0) {
-                x = -x - 1;
-            } else {
-                x++;
-            }
-            p = p.getChildPage(x);
-            return binarySearchPage(p, key);
-        }
-        if (x >= 0) {
-            return p;
-        }
-        return null;
     }
 
     /**
@@ -855,7 +817,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the cursor
      */
     public Cursor<K, V> cursor(K from) {
-        return new Cursor<K, V>(this, root, from);
+        return new Cursor<>(this, root, from);
     }
 
     @Override
@@ -866,7 +828,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
             @Override
             public Iterator<Entry<K, V>> iterator() {
-                final Cursor<K, V> cursor = new Cursor<K, V>(map, root, null);
+                final Cursor<K, V> cursor = new Cursor<>(map, root, null);
                 return new Iterator<Entry<K, V>>() {
 
                     @Override
@@ -877,7 +839,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                     @Override
                     public Entry<K, V> next() {
                         K k = cursor.next();
-                        return new DataUtils.MapEntry<K, V>(k, cursor.getValue());
+                        return new DataUtils.MapEntry<>(k, cursor.getValue());
                     }
 
                     @Override
@@ -1148,9 +1110,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the opened map
      */
     MVMap<K, V> openReadOnly() {
-        MVMap<K, V> m = new MVMap<K, V>(keyType, valueType);
+        MVMap<K, V> m = new MVMap<>(keyType, valueType);
         m.readOnly = true;
-        HashMap<String, Object> config = New.hashMap();
+        HashMap<String, Object> config = new HashMap<>();
         config.put("id", id);
         config.put("createVersion", createVersion);
         m.init(store, config);
@@ -1332,7 +1294,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             if (valueType == null) {
                 valueType = new ObjectDataType();
             }
-            return new MVMap<K, V>(keyType, valueType);
+            return new MVMap<>(keyType, valueType);
         }
 
     }

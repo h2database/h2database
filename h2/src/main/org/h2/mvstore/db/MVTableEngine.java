@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.TableEngine;
@@ -121,7 +122,7 @@ public class MVTableEngine implements TableEngine {
          * Key: the map name, value: the table.
          */
         final ConcurrentHashMap<String, MVTable> tableMap =
-                new ConcurrentHashMap<String, MVTable>();
+                new ConcurrentHashMap<>();
 
         /**
          * The store.
@@ -161,7 +162,7 @@ public class MVTableEngine implements TableEngine {
                 }
                 this.transactionStore = new TransactionStore(
                         store,
-                        new ValueDataType(null, db, null));
+                        new ValueDataType(db.getCompareMode(), db, null));
                 transactionStore.init();
             } catch (IllegalStateException e) {
                 throw convertIllegalStateException(e);
@@ -207,7 +208,7 @@ public class MVTableEngine implements TableEngine {
         }
 
         public HashMap<String, MVTable> getTables() {
-            return new HashMap<String, MVTable>(tableMap);
+            return new HashMap<>(tableMap);
         }
 
         /**
@@ -268,7 +269,7 @@ public class MVTableEngine implements TableEngine {
                     MVMap<?, ?> map = store.openMap(mapName);
                     store.removeMap(map);
                 } else if (mapName.startsWith("table.") || mapName.startsWith("index.")) {
-                    int id = Integer.parseInt(mapName.substring(1 + mapName.indexOf(".")));
+                    int id = Integer.parseInt(mapName.substring(1 + mapName.indexOf('.')));
                     if (!objectIds.get(id)) {
                         ValueDataType keyType = new ValueDataType(null, null, null);
                         ValueDataType valueType = new ValueDataType(null, null, null);
@@ -349,12 +350,12 @@ public class MVTableEngine implements TableEngine {
          */
         public void compactFile(long maxCompactTime) {
             store.setRetentionTime(0);
-            long start = System.currentTimeMillis();
+            long start = System.nanoTime();
             while (store.compact(95, 16 * 1024 * 1024)) {
                 store.sync();
                 store.compactMoveChunks(95, 16 * 1024 * 1024);
-                long time = System.currentTimeMillis() - start;
-                if (time > maxCompactTime) {
+                long time = System.nanoTime() - start;
+                if (time > TimeUnit.MILLISECONDS.toNanos(maxCompactTime)) {
                     break;
                 }
             }
@@ -411,7 +412,7 @@ public class MVTableEngine implements TableEngine {
          * @return the statistics
          */
         public Map<String, Integer> statisticsEnd() {
-            HashMap<String, Integer> map = New.hashMap();
+            HashMap<String, Integer> map = new HashMap<>();
             FileStore fs = store.getFileStore();
             int reads = fs == null ? 0 : (int) (fs.getReadCount() - statisticsStart);
             map.put("reads", reads);

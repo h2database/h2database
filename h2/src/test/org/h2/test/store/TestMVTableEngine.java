@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -18,8 +18,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -86,6 +86,9 @@ public class TestMVTableEngine extends TestBase {
         testDataTypes();
         testLocking();
         testSimple();
+        if (!config.travis) {
+            testReverseDeletePerformance();
+        }
     }
 
     private void testLobCopy() throws Exception {
@@ -111,17 +114,16 @@ public class TestMVTableEngine extends TestBase {
 
     private void testLobReuse() throws Exception {
         deleteDb(getTestName());
-        Connection conn = getConnection(getTestName());
-        Statement stat = conn.createStatement();
+        Connection conn1 = getConnection(getTestName());
+        Statement stat = conn1.createStatement();
         stat.execute("create table test(id identity primary key, lob clob)");
-        conn.close();
         byte[] buffer = new byte[8192];
         for (int i = 0; i < 20; i++) {
-            conn = getConnection(getTestName());
-            stat = conn.createStatement();
+            Connection conn2 = getConnection(getTestName());
+            stat = conn2.createStatement();
             stat.execute("insert into test(lob) select space(1025) from system_range(1, 10)");
             stat.execute("delete from test where random() > 0.5");
-            ResultSet rs = conn.createStatement().executeQuery(
+            ResultSet rs = conn2.createStatement().executeQuery(
                     "select lob from test");
             while (rs.next()) {
                 InputStream is = rs.getBinaryStream(1);
@@ -129,11 +131,15 @@ public class TestMVTableEngine extends TestBase {
                     // ignore
                 }
             }
-            conn.close();
+            conn2.close();
         }
+        conn1.close();
     }
 
     private void testShutdownDuringLobCreation() throws Exception {
+        if (config.memory) {
+            return;
+        }
         deleteDb(getTestName());
         Connection conn = getConnection(getTestName());
         Statement stat = conn.createStatement();
@@ -201,6 +207,9 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testLobCreationThenShutdown() throws Exception {
+        if (config.memory) {
+            return;
+        }
         deleteDb(getTestName());
         Connection conn = getConnection(getTestName());
         Statement stat = conn.createStatement();
@@ -259,6 +268,9 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testAppendOnly() throws Exception {
+        if (config.memory) {
+            return;
+        }
         deleteDb(getTestName());
         Connection conn = getConnection(getTestName());
         Statement stat = conn.createStatement();
@@ -329,6 +341,9 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testOldAndNew() throws SQLException {
+        if (config.memory) {
+            return;
+        }
         Connection conn;
         deleteDb(getTestName());
         String urlOld = getURL(getTestName() + ";MV_STORE=FALSE", true);
@@ -422,6 +437,9 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testGarbageCollectionForLOB() throws SQLException {
+        if (config.memory) {
+            return;
+        }
         Connection conn;
         Statement stat;
         deleteDb(getTestName());
@@ -433,7 +451,6 @@ public class TestMVTableEngine extends TestBase {
         stat.execute("insert into test select x, repeat('0', 10000) " +
                 "from system_range(1, 10)");
         stat.execute("drop table test");
-        stat.equals("call @temp := cast(repeat('0', 10000) as blob)");
         stat.execute("create table test2(id int, data blob)");
         PreparedStatement prep = conn.prepareStatement(
                 "insert into test2 values(?, ?)");
@@ -528,7 +545,7 @@ public class TestMVTableEngine extends TestBase {
         rs.next();
         plan = rs.getString(1);
         // transaction log is larger than the table, so read the table
-        assertTrue(plan, plan.contains("reads:"));
+        assertContains(plan, "reads:");
         rs = stat2.executeQuery("select count(*) from test");
         rs.next();
         assertEquals(10000, rs.getInt(1));
@@ -656,6 +673,9 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testShrinkDatabaseFile() throws Exception {
+        if (config.memory) {
+            return;
+        }
         deleteDb(getTestName());
         String dbName = getTestName() + ";MV_STORE=TRUE";
         Connection conn;
@@ -719,6 +739,9 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testTwoPhaseCommit() throws Exception {
+        if (config.memory) {
+            return;
+        }
         Connection conn;
         Statement stat;
         deleteDb(getTestName());
@@ -746,6 +769,9 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testRecover() throws Exception {
+        if (config.memory) {
+            return;
+        }
         Connection conn;
         Statement stat;
         deleteDb(getTestName());
@@ -791,6 +817,9 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testSeparateKey() throws Exception {
+        if (config.memory) {
+            return;
+        }
         Connection conn;
         Statement stat;
         deleteDb(getTestName());
@@ -816,6 +845,9 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testRollbackAfterCrash() throws Exception {
+        if (config.memory) {
+            return;
+        }
         Connection conn;
         Statement stat;
         deleteDb(getTestName());
@@ -947,6 +979,9 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testWriteDelay() throws Exception {
+        if (config.memory) {
+            return;
+        }
         Connection conn;
         Statement stat;
         ResultSet rs;
@@ -1004,6 +1039,9 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testReopen() throws SQLException {
+        if (config.memory) {
+            return;
+        }
         Connection conn;
         Statement stat;
         deleteDb(getTestName());
@@ -1018,6 +1056,9 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testBlob() throws SQLException, IOException {
+        if (config.memory) {
+            return;
+        }
         deleteDb(getTestName());
         String dbName = getTestName() + ";MV_STORE=TRUE";
         Connection conn;
@@ -1045,6 +1086,9 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testEncryption() throws Exception {
+        if (config.memory) {
+            return;
+        }
         deleteDb(getTestName());
         String dbName = getTestName() + ";MV_STORE=TRUE";
         Connection conn;
@@ -1087,6 +1131,9 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testReadOnly() throws Exception {
+        if (config.memory) {
+            return;
+        }
         deleteDb(getTestName());
         String dbName = getTestName() + ";MV_STORE=TRUE";
         Connection conn;
@@ -1435,4 +1482,33 @@ public class TestMVTableEngine extends TestBase {
         conn.close();
     }
 
+    private void testReverseDeletePerformance() throws Exception {
+        long direct = 0;
+        long reverse = 0;
+        for (int i = 0; i < 5; i++) {
+            reverse += testReverseDeletePerformance(true);
+            direct += testReverseDeletePerformance(false);
+        }
+        assertTrue("direct: " + direct + ", reverse: " + reverse, 2 * Math.abs(reverse - direct) < reverse + direct);
+    }
+
+    private long testReverseDeletePerformance(boolean reverse) throws Exception {
+        deleteDb(getTestName());
+        String dbName = getTestName() + ";MV_STORE=TRUE";
+        try (Connection conn = getConnection(dbName)) {
+            Statement stat = conn.createStatement();
+            stat.execute("CREATE TABLE test(id INT PRIMARY KEY, name VARCHAR) AS " +
+                    "SELECT x, x || space(1024) || x FROM system_range(1, 1000)");
+            conn.setAutoCommit(false);
+            PreparedStatement prep = conn.prepareStatement("DELETE FROM test WHERE id = ?");
+            long start = System.nanoTime();
+            for (int i = 0; i < 1000; i++) {
+                prep.setInt(1, reverse ? 1000 - i : i);
+                prep.execute();
+            }
+            long end = System.nanoTime();
+            conn.commit();
+            return TimeUnit.NANOSECONDS.toMillis(end - start);
+        }
+    }
 }

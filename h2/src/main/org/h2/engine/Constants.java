@@ -1,11 +1,10 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
 
-import java.nio.charset.Charset;
 import java.sql.ResultSet;
 
 /**
@@ -16,22 +15,22 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2016-01-21";
+    public static final String BUILD_DATE = "2017-06-10";
 
     /**
      * The build date of the last stable release.
      */
-    public static final String BUILD_DATE_STABLE = "2014-04-05";
+    public static final String BUILD_DATE_STABLE = "2017-04-23";
 
     /**
      * The build id is incremented for each public release.
      */
-    public static final int BUILD_ID = 191;
+    public static final int BUILD_ID = 196;
 
     /**
      * The build id of the last stable release.
      */
-    public static final int BUILD_ID_STABLE = 176;
+    public static final int BUILD_ID_STABLE = 195;
 
     /**
      * Whether this is a snapshot version.
@@ -95,6 +94,11 @@ public class Constants {
      * The TCP protocol version number 15.
      */
     public static final int TCP_PROTOCOL_VERSION_15 = 15;
+
+    /**
+     * The TCP protocol version number 16.
+     */
+    public static final int TCP_PROTOCOL_VERSION_16 = 16;
 
     /**
      * The major version of this database.
@@ -467,7 +471,8 @@ public class Constants {
     public static final String SUFFIX_TRACE_FILE = ".trace.db";
 
     /**
-     * The delay that is to be used if throttle has been enabled.
+     * How often we check to see if we need to apply a throttling delay if SET
+     * THROTTLE has been used.
      */
     public static final int THROTTLE_DELAY = 50;
 
@@ -487,11 +492,6 @@ public class Constants {
      * The package name of user defined classes.
      */
     public static final String USER_PACKAGE = "org.h2.dynamic";
-
-    /**
-     * Name of the character encoding format.
-     */
-    public static final Charset UTF8 = Charset.forName("UTF-8");
 
     /**
      * The maximum time in milliseconds to keep the cost of a view.
@@ -542,7 +542,7 @@ public class Constants {
      * @return the version number
      */
     public static Object getVersionStable() {
-        return "1.3." + BUILD_ID_STABLE;
+        return "1.4." + BUILD_ID_STABLE;
     }
 
     /**

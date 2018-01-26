@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -91,7 +91,7 @@ public class TestBinaryArithmeticStream extends TestBase {
 
     private void testPerformance() throws IOException {
         Random r = new Random();
-        // long time = System.currentTimeMillis();
+        // long time = System.nanoTime();
         // Profiler prof = new Profiler().startCollecting();
         for (int seed = 0; seed < 10000; seed++) {
             r.setSeed(seed);
@@ -114,8 +114,8 @@ public class TestBinaryArithmeticStream extends TestBase {
                 assertEquals(expected, in.readBit(prob));
             }
         }
-        // time = System.currentTimeMillis() - time;
-        // System.out.println("time: " + time);
+        // time = System.nanoTime() - time;
+        // System.out.println("time: " + TimeUnit.NANOSECONDS.toMillis(time));
         // System.out.println(prof.getTop(5));
     }
 

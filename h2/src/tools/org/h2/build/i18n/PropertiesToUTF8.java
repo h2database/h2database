@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -13,6 +13,7 @@ import java.io.LineNumberReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.Properties;
 import org.h2.build.code.CheckTextFiles;
@@ -55,7 +56,7 @@ public class PropertiesToUTF8 {
         }
         Properties prop = SortedProperties.loadProperties(source);
         FileOutputStream out = new FileOutputStream(target);
-        PrintWriter writer = new PrintWriter(new OutputStreamWriter(out, "UTF-8"));
+        PrintWriter writer = new PrintWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
         // keys is sorted
         for (Enumeration<Object> en = prop.keys(); en.hasMoreElements();) {
             String key = (String) en.nextElement();
@@ -78,9 +79,8 @@ public class PropertiesToUTF8 {
         if (!new File(source).exists()) {
             return;
         }
-        LineNumberReader reader = new LineNumberReader(new InputStreamReader(
-                new FileInputStream(source), "UTF-8"));
-        try {
+        try (LineNumberReader reader = new LineNumberReader(new InputStreamReader(
+                new FileInputStream(source), StandardCharsets.UTF_8))) {
             SortedProperties prop = new SortedProperties();
             StringBuilder buff = new StringBuilder();
             String key = null;
@@ -112,8 +112,6 @@ public class PropertiesToUTF8 {
                 prop.setProperty(key, buff.toString());
             }
             prop.store(target);
-        } finally {
-            reader.close();
         }
     }
 
@@ -123,7 +121,7 @@ public class PropertiesToUTF8 {
                 continue;
             }
             FileInputStream in = new FileInputStream(f);
-            InputStreamReader r = new InputStreamReader(in, "UTF-8");
+            InputStreamReader r = new InputStreamReader(in, StandardCharsets.UTF_8);
             String s = IOUtils.readStringAndClose(r, -1);
             in.close();
             String name = f.getName();
@@ -142,7 +140,7 @@ public class PropertiesToUTF8 {
                 // s = unescapeHtml(s);
                 utf8 = StringUtils.javaDecode(utf8);
                 FileOutputStream out = new FileOutputStream("_utf8" + f.getName());
-                OutputStreamWriter w = new OutputStreamWriter(out, "UTF-8");
+                OutputStreamWriter w = new OutputStreamWriter(out, StandardCharsets.UTF_8);
                 w.write(utf8);
                 w.close();
                 out.close();

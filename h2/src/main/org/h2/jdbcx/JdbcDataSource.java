@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
+import java.util.logging.Logger;
 import javax.naming.Reference;
 import javax.naming.Referenceable;
 import javax.naming.StringRefAddr;
@@ -24,10 +25,6 @@ import org.h2.Driver;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.TraceObject;
 import org.h2.util.StringUtils;
-
-/*## Java 1.7 ##
-import java.util.logging.Logger;
-//*/
 
 /**
  * A data source for H2 database connections. It is a factory for XAConnection
@@ -63,7 +60,8 @@ import java.util.logging.Logger;
  * well; this may be a security problem in some cases.
  */
 public class JdbcDataSource extends TraceObject implements XADataSource,
-        DataSource, ConnectionPoolDataSource, Serializable, Referenceable {
+        DataSource, ConnectionPoolDataSource, Serializable, Referenceable,
+        JdbcDataSourceBackwardsCompat {
 
     private static final long serialVersionUID = 1288136338451857771L;
 
@@ -425,12 +423,10 @@ public class JdbcDataSource extends TraceObject implements XADataSource,
     /**
      * [Not supported]
      */
-/*## Java 1.7 ##
     @Override
     public Logger getParentLogger() {
         return null;
     }
-//*/
 
     /**
      * INTERNAL

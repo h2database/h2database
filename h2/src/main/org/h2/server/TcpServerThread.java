@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -14,6 +14,7 @@ import java.io.StringWriter;
 import java.net.Socket;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Objects;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
@@ -34,7 +35,6 @@ import org.h2.store.LobStorageInterface;
 import org.h2.util.IOUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.SmallMap;
-import org.h2.util.StringUtils;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
 import org.h2.value.ValueLobDb;
@@ -63,8 +63,7 @@ public class TcpServerThread implements Runnable {
     TcpServerThread(Socket socket, TcpServer server, int id) {
         this.server = server;
         this.threadId = id;
-        transfer = new Transfer(null);
-        transfer.setSocket(socket);
+        transfer = new Transfer(null, socket);
     }
 
     private void trace(String s) {
@@ -79,22 +78,27 @@ public class TcpServerThread implements Runnable {
             // TODO server: should support a list of allowed databases
             // and a list of allowed clients
             try {
+                Socket socket = transfer.getSocket();
+                if (socket == null) {
+                    // the transfer is already closed, prevent NPE in TcpServer#allow(Socket)
+                    return;
+                }
                 if (!server.allow(transfer.getSocket())) {
                     throw DbException.get(ErrorCode.REMOTE_CONNECTION_NOT_ALLOWED);
                 }
                 int minClientVersion = transfer.readInt();
-                if (minClientVersion < Constants.TCP_PROTOCOL_VERSION_6) {
+                int maxClientVersion = transfer.readInt();
+                if (maxClientVersion < Constants.TCP_PROTOCOL_VERSION_6) {
                     throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2,
                             "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_6);
-                } else if (minClientVersion > Constants.TCP_PROTOCOL_VERSION_15) {
+                } else if (minClientVersion > Constants.TCP_PROTOCOL_VERSION_16) {
                     throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2,
-                            "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_15);
+                            "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_16);
                 }
-                int maxClientVersion = transfer.readInt();
-                if (maxClientVersion >= Constants.TCP_PROTOCOL_VERSION_15) {
-                    clientVersion = Constants.TCP_PROTOCOL_VERSION_15;
+                if (maxClientVersion >= Constants.TCP_PROTOCOL_VERSION_16) {
+                    clientVersion = Constants.TCP_PROTOCOL_VERSION_16;
                 } else {
-                    clientVersion = minClientVersion;
+                    clientVersion = maxClientVersion;
                 }
                 transfer.setVersion(clientVersion);
                 String db = transfer.readString();
@@ -257,6 +261,7 @@ public class TcpServerThread implements Runnable {
         int operation = transfer.readInt();
         switch (operation) {
         case SessionRemote.SESSION_PREPARE_READ_PARAMS:
+        case SessionRemote.SESSION_PREPARE_READ_PARAMS2:
         case SessionRemote.SESSION_PREPARE: {
             int id = transfer.readInt();
             String sql = transfer.readString();
@@ -265,10 +270,19 @@ public class TcpServerThread implements Runnable {
             boolean readonly = command.isReadOnly();
             cache.addObject(id, command);
             boolean isQuery = command.isQuery();
-            ArrayList<? extends ParameterInterface> params = command.getParameters();
+
             transfer.writeInt(getState(old)).writeBoolean(isQuery).
-                    writeBoolean(readonly).writeInt(params.size());
-            if (operation == SessionRemote.SESSION_PREPARE_READ_PARAMS) {
+                    writeBoolean(readonly);
+
+            if (operation == SessionRemote.SESSION_PREPARE_READ_PARAMS2) {
+                transfer.writeInt(command.getCommandType());
+            }
+
+            ArrayList<? extends ParameterInterface> params = command.getParameters();
+
+            transfer.writeInt(params.size());
+
+            if (operation != SessionRemote.SESSION_PREPARE) {
                 for (ParameterInterface p : params) {
                     ParameterRemote.writeMetaData(transfer, p);
                 }
@@ -402,7 +416,9 @@ public class TcpServerThread implements Runnable {
         case SessionRemote.SESSION_SET_ID: {
             sessionId = transfer.readString();
             transfer.writeInt(SessionRemote.STATUS_OK);
-            transfer.writeBoolean(session.getAutoCommit());
+            if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_15) {
+                transfer.writeBoolean(session.getAutoCommit());
+            }
             transfer.flush();
             break;
         }
@@ -526,7 +542,7 @@ public class TcpServerThread implements Runnable {
      * @param statementId the statement to cancel
      */
     void cancelStatement(String targetSessionId, int statementId) {
-        if (StringUtils.equals(targetSessionId, this.sessionId)) {
+        if (Objects.equals(targetSessionId, this.sessionId)) {
             Command cmd = (Command) cache.getObject(statementId, false);
             cmd.cancel();
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,7 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
-
 import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.JdbcUtils;
@@ -52,7 +51,13 @@ public class LinkSchema {
             stat = conn.createStatement();
             stat.execute("CREATE SCHEMA IF NOT EXISTS " +
                         StringUtils.quoteIdentifier(targetSchema));
-            rs = c2.getMetaData().getTables(null, sourceSchema, null, null);
+            //Workaround for PostgreSQL to avoid index names
+            if (url.startsWith("jdbc:postgresql:")) {
+                rs = c2.getMetaData().getTables(null, sourceSchema, null,
+                        new String[] { "TABLE", "LINKED TABLE", "VIEW", "EXTERNAL" });
+            } else {
+                rs = c2.getMetaData().getTables(null, sourceSchema, null, null);
+            }
             while (rs.next()) {
                 String table = rs.getString("TABLE_NAME");
                 StringBuilder buff = new StringBuilder();
@@ -74,6 +79,8 @@ public class LinkSchema {
                     append(StringUtils.quoteStringSQL(user)).
                     append(", ").
                     append(StringUtils.quoteStringSQL(password)).
+                    append(", ").
+                    append(StringUtils.quoteStringSQL(sourceSchema)).
                     append(", ").
                     append(StringUtils.quoteStringSQL(table)).
                     append(')');

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 import java.util.TreeMap;
-
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.store.fs.FileUtils;
@@ -22,8 +21,6 @@ import org.h2.test.TestBase;
 public class TestRandomMapOps extends TestBase {
 
     private static final boolean LOG = false;
-    private String fileName;
-    private int seed;
     private int op;
 
     /**
@@ -40,19 +37,19 @@ public class TestRandomMapOps extends TestBase {
     @Override
     public void test() throws Exception {
         testMap("memFS:randomOps.h3");
+        FileUtils.delete("memFS:randomOps.h3");
     }
 
-    private void testMap(String fileName) throws Exception {
-        this.fileName = fileName;
+    private void testMap(String fileName) {
         int best = Integer.MAX_VALUE;
         int bestSeed = 0;
         Throwable failException = null;
         int size = getSize(100, 1000);
-        for (seed = 0; seed < 100; seed++) {
+        for (int seed = 0; seed < 100; seed++) {
             FileUtils.delete(fileName);
             Throwable ex = null;
             try {
-                testOps(size);
+                testOps(fileName, size, seed);
                 continue;
             } catch (Exception e) {
                 ex = e;
@@ -74,15 +71,13 @@ public class TestRandomMapOps extends TestBase {
         }
     }
 
-    private void testOps(int size) throws Exception {
+    private void testOps(String fileName, int size, int seed) {
         FileUtils.delete(fileName);
-        MVStore s;
-        s = openStore(fileName);
-        MVMap<Integer, byte[]> m;
-        m = s.openMap("data");
+        MVStore s = openStore(fileName);
+        MVMap<Integer, byte[]> m = s.openMap("data");
         Random r = new Random(seed);
         op = 0;
-        TreeMap<Integer, byte[]> map = new TreeMap<Integer, byte[]>();
+        TreeMap<Integer, byte[]> map = new TreeMap<>();
         for (; op < size; op++) {
             int k = r.nextInt(100);
             byte[] v = new byte[r.nextInt(10) * 10];
@@ -133,7 +128,7 @@ public class TestRandomMapOps extends TestBase {
                 break;
             case 11:
                 log(op, k, v, "m.getKeyIndex({0})");
-                ArrayList<Integer> keyList = new ArrayList<Integer>(map.keySet());
+                ArrayList<Integer> keyList = new ArrayList<>(map.keySet());
                 int index = Collections.binarySearch(keyList, k, null);
                 int index2 = (int) m.getKeyIndex(k);
                 assertEquals(index, index2);

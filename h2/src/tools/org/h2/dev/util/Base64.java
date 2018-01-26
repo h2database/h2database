@@ -1,11 +1,12 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.dev.util;
 
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class converts binary to base64 and vice versa.
@@ -68,7 +69,7 @@ public class Base64 {
 
     private static void test(boolean fast, int len) {
         Random random = new Random(10);
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         byte[] bin = new byte[len];
         random.nextBytes(bin);
         for (int i = 0; i < len; i++) {
@@ -82,8 +83,8 @@ public class Base64 {
             }
             test(bin, dec);
         }
-        time = System.currentTimeMillis() - time;
-        System.out.println("fast=" + fast + " time=" + time);
+        time = System.nanoTime() - time;
+        System.out.println("fast=" + fast + " time=" + TimeUnit.NANOSECONDS.toMillis(time));
     }
 
     private static void test(byte[] in, byte[] out) {

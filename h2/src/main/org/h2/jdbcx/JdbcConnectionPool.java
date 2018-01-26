@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: Christian d'Heureuse, www.source-code.biz
  *
@@ -23,17 +23,15 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import javax.sql.ConnectionEvent;
 import javax.sql.ConnectionEventListener;
 import javax.sql.ConnectionPoolDataSource;
 import javax.sql.DataSource;
 import javax.sql.PooledConnection;
-import org.h2.util.New;
 import org.h2.message.DbException;
-
-/*## Java 1.7 ##
-import java.util.logging.Logger;
-//*/
+import org.h2.util.New;
 
 /**
  * A simple standalone JDBC connection pool.
@@ -62,7 +60,8 @@ import java.util.logging.Logger;
  *      (<a href="http://www.source-code.biz">www.source-code.biz</a>)
  * @author Thomas Mueller
  */
-public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
+public class JdbcConnectionPool implements DataSource, ConnectionEventListener,
+        JdbcConnectionPoolBackwardsCompat {
 
     private static final int DEFAULT_TIMEOUT = 30;
     private static final int DEFAULT_MAX_CONNECTIONS = 10;
@@ -192,7 +191,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
      */
     @Override
     public Connection getConnection() throws SQLException {
-        long max = System.currentTimeMillis() + timeout * 1000;
+        long max = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeout);
         do {
             synchronized (this) {
                 if (activeConnections < maxConnections) {
@@ -204,7 +203,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
                     // ignore
                 }
             }
-        } while (System.currentTimeMillis() <= max);
+        } while (System.nanoTime() <= max);
         throw new SQLException("Login timeout", "08001", 8001);
     }
 
@@ -333,12 +332,10 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
     /**
      * [Not supported]
      */
-/*## Java 1.7 ##
     @Override
     public Logger getParentLogger() {
         return null;
     }
-//*/
 
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -15,14 +15,15 @@ import org.h2.expression.Parameter;
 import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.table.Table;
+import org.h2.table.TableType;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
 
 /**
- * This class represents the statement
- * ANALYZE
+ * This class represents the statements
+ * ANALYZE and ANALYZE TABLE
  */
 public class Analyze extends DefineCommand {
 
@@ -30,10 +31,18 @@ public class Analyze extends DefineCommand {
      * The sample size.
      */
     private int sampleRows;
+    /**
+     * used in ANALYZE TABLE...
+     */
+    private Table table;
 
     public Analyze(Session session) {
         super(session);
         sampleRows = session.getDatabase().getSettings().analyzeSample;
+    }
+
+    public void setTable(Table table) {
+        this.table = table;
     }
 
     @Override
@@ -41,8 +50,12 @@ public class Analyze extends DefineCommand {
         session.commit(true);
         session.getUser().checkAdmin();
         Database db = session.getDatabase();
-        for (Table table : db.getAllTablesAndViews(false)) {
+        if (table != null) {
             analyzeTable(session, table, sampleRows, true);
+        } else {
+            for (Table table : db.getAllTablesAndViews(false)) {
+                analyzeTable(session, table, sampleRows, true);
+            }
         }
         return 0;
     }
@@ -56,8 +69,8 @@ public class Analyze extends DefineCommand {
      * @param manual whether the command was called by the user
      */
     public static void analyzeTable(Session session, Table table, int sample,
-            boolean manual) {
-        if (!(table.getTableType().equals(Table.TABLE)) ||
+                                    boolean manual) {
+        if (table.getTableType() != TableType.TABLE ||
                 table.isHidden() || session == null) {
             return;
         }
@@ -121,23 +134,7 @@ public class Analyze extends DefineCommand {
                 columns[j].setSelectivity(selectivity);
             }
         }
-        if (manual) {
-            db.updateMeta(session, table);
-        } else {
-            Session sysSession = db.getSystemSession();
-            if (sysSession != session) {
-                // if the current session is the system session
-                // (which is the case if we are within a trigger)
-                // then we can't update the statistics because
-                // that would unlock all locked objects
-                synchronized (sysSession) {
-                    synchronized (db) {
-                        db.updateMeta(sysSession, table);
-                        sysSession.commit(true);
-                    }
-                }
-            }
-        }
+        db.updateMeta(session, table);
     }
 
     public void setTop(int top) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -14,6 +14,7 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -27,6 +28,7 @@ import org.h2.security.SHA256;
 import org.h2.store.Data;
 import org.h2.store.DataReader;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -57,18 +59,11 @@ public class Transfer {
      * Create a new transfer object for the specified session.
      *
      * @param session the session
-     */
-    public Transfer(SessionInterface session) {
-        this.session = session;
-    }
-
-    /**
-     * Set the socket this object uses.
-     *
      * @param s the socket
      */
-    public void setSocket(Socket s) {
-        socket = s;
+    public Transfer(SessionInterface session, Socket s) {
+        this.session = session;
+        this.socket = s;
     }
 
     /**
@@ -348,7 +343,7 @@ public class Transfer {
             break;
         }
         case Value.BOOLEAN:
-            writeBoolean(v.getBoolean().booleanValue());
+            writeBoolean(v.getBoolean());
             break;
         case Value.BYTE:
             writeByte(v.getByte());
@@ -385,11 +380,6 @@ public class Transfer {
                 writeLong(ts.getTime());
                 writeInt(ts.getNanos() % 1000000);
             }
-            break;
-        }
-        case Value.TIMESTAMP_UTC: {
-            ValueTimestampUtc ts = (ValueTimestampUtc) v;
-            writeLong(ts.getUtcDateTimeNanos());
             break;
         }
         case Value.TIMESTAMP_TZ: {
@@ -500,6 +490,11 @@ public class Transfer {
             }
             break;
         }
+        case Value.ENUM: {
+            writeInt(v.getInt());
+            writeString(v.getString());
+            break;
+        }
         case Value.RESULT_SET: {
             try {
                 ResultSet rs = ((ValueResultSet) v).getResultSet();
@@ -536,6 +531,10 @@ public class Transfer {
             }
             break;
         default:
+            if (JdbcUtils.customDataTypesHandler != null) {
+                writeBytes(v.getBytesNoCopy());
+                break;
+            }
             throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "type=" + type);
         }
     }
@@ -586,11 +585,9 @@ public class Transfer {
             return ValueTimestamp.fromMillisNanos(readLong(),
                     readInt() % 1000000);
         }
-        case Value.TIMESTAMP_UTC: {
-            return ValueTimestampUtc.fromNanos(readLong());
-        }
         case Value.TIMESTAMP_TZ: {
-            return ValueTimestampTimeZone.fromDateValueAndNanos(readLong(), readLong(), (short) readInt());
+            return ValueTimestampTimeZone.fromDateValueAndNanos(readLong(),
+                    readLong(), (short) readInt());
         }
         case Value.DECIMAL:
             return ValueDecimal.get(new BigDecimal(readString()));
@@ -598,6 +595,11 @@ public class Transfer {
             return ValueDouble.get(readDouble());
         case Value.FLOAT:
             return ValueFloat.get(readFloat());
+        case Value.ENUM: {
+            final int ordinal = readInt();
+            final String label = readString();
+            return ValueEnumBase.get(label, ordinal);
+        }
         case Value.INT:
             return ValueInt.get(readInt());
         case Value.LONG:
@@ -609,7 +611,7 @@ public class Transfer {
         case Value.STRING_IGNORECASE:
             return ValueStringIgnoreCase.get(readString());
         case Value.STRING_FIXED:
-            return ValueStringFixed.get(readString());
+            return ValueStringFixed.get(readString(), ValueStringFixed.PRECISION_DO_NOT_TRIM, null);
         case Value.RASTER:
         case Value.BLOB: {
             long length = readLong();
@@ -625,8 +627,7 @@ public class Transfer {
                     }
                     long precision = readLong();
                     return ValueLobDb.create(
-                            type, session.getDataHandler(), tableId, id, hmac,
-                            precision);
+                            Value.BLOB, session.getDataHandler(), tableId, id, hmac, precision);
                 }
             }
             Value v;
@@ -673,7 +674,7 @@ public class Transfer {
                     throw DbException.get(
                             ErrorCode.CONNECTION_BROKEN_1, "magic=" + magic);
                 }
-                byte[] small = new String(buff).getBytes(Constants.UTF8);
+                byte[] small = new String(buff).getBytes(StandardCharsets.UTF_8);
                 return ValueLobDb.createSmallLob(Value.CLOB, small, length);
             }
             Value v = session.getDataHandler().getLobStorage().
@@ -723,6 +724,10 @@ public class Transfer {
             }
             return ValueGeometry.get(readString());
         default:
+            if (JdbcUtils.customDataTypesHandler != null) {
+                return JdbcUtils.customDataTypesHandler.convert(
+                        ValueBytes.getNoCopy(readBytes()), type);
+            }
             throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "type=" + type);
         }
     }
@@ -763,8 +768,7 @@ public class Transfer {
         InetAddress address = socket.getInetAddress();
         int port = socket.getPort();
         Socket s2 = NetUtils.createSocket(address, port, ssl);
-        Transfer trans = new Transfer(null);
-        trans.setSocket(s2);
+        Transfer trans = new Transfer(null, s2);
         trans.setSSL(ssl);
         return trans;
     }
@@ -797,7 +801,7 @@ public class Transfer {
             lobMacSalt = MathUtils.secureRandomBytes(LOB_MAC_SALT_LENGTH);
         }
         byte[] data = new byte[8];
-        Utils.writeLong(data, 0, lobId);
+        Bits.writeLong(data, 0, lobId);
         byte[] hmacData = SHA256.getHashWithSalt(data, lobMacSalt);
         return hmacData;
     }

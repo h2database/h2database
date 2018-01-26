@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,13 +10,12 @@ import java.sql.DatabaseMetaData;
 import java.sql.Driver;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
-import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
+import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.value.DataType;
 
@@ -179,6 +178,12 @@ public class TestMetaData extends TestBase {
     }
 
     private void testColumnPrecision() throws SQLException {
+        int numericType;
+        if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
+            numericType = Types.DECIMAL;
+        } else {
+            numericType = Types.NUMERIC;
+        }
         Connection conn = getConnection("metaData");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE ONE(X NUMBER(12,2), Y FLOAT)");
@@ -189,13 +194,13 @@ public class TestMetaData extends TestBase {
         rsMeta = rs.getMetaData();
         assertEquals(12, rsMeta.getPrecision(1));
         assertEquals(17, rsMeta.getPrecision(2));
-        assertEquals(Types.DECIMAL, rsMeta.getColumnType(1));
+        assertEquals(numericType, rsMeta.getColumnType(1));
         assertEquals(Types.DOUBLE, rsMeta.getColumnType(2));
         rs = stat.executeQuery("SELECT * FROM TWO");
         rsMeta = rs.getMetaData();
         assertEquals(12, rsMeta.getPrecision(1));
         assertEquals(17, rsMeta.getPrecision(2));
-        assertEquals(Types.DECIMAL, rsMeta.getColumnType(1));
+        assertEquals(numericType, rsMeta.getColumnType(1));
         assertEquals(Types.DOUBLE, rsMeta.getColumnType(2));
         stat.execute("DROP TABLE ONE, TWO");
         conn.close();
@@ -430,7 +435,7 @@ public class TestMetaData extends TestBase {
 
         assertEquals("schema", meta.getSchemaTerm());
         assertEquals("\\", meta.getSearchStringEscape());
-        assertEquals("LIMIT,MINUS,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY",
+        assertEquals("LIMIT,MINUS,OFFSET,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY",
                 meta.getSQLKeywords());
 
         assertTrue(meta.getURL().startsWith("jdbc:h2:"));
@@ -580,8 +585,10 @@ public class TestMetaData extends TestBase {
                 Connection.TRANSACTION_NONE));
         assertTrue(meta.supportsTransactionIsolationLevel(
                 Connection.TRANSACTION_READ_COMMITTED));
-        assertTrue(meta.supportsTransactionIsolationLevel(
-                Connection.TRANSACTION_READ_UNCOMMITTED));
+        if (!config.multiThreaded) {
+            assertTrue(meta.supportsTransactionIsolationLevel(
+                    Connection.TRANSACTION_READ_UNCOMMITTED));
+        }
         assertTrue(meta.supportsTransactionIsolationLevel(
                 Connection.TRANSACTION_REPEATABLE_READ));
         assertTrue(meta.supportsTransactionIsolationLevel(
@@ -597,6 +604,15 @@ public class TestMetaData extends TestBase {
     }
 
     private void testMore() throws SQLException {
+        int numericType;
+        String numericName;
+        if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
+            numericType = Types.DECIMAL;
+            numericName = "DECIMAL";
+        } else {
+            numericType = Types.NUMERIC;
+            numericName = "NUMERIC";
+        }
         Connection conn = getConnection("metaData");
         DatabaseMetaData meta = conn.getMetaData();
         Statement stat = conn.createStatement();
@@ -703,9 +719,9 @@ public class TestMetaData extends TestBase {
                         "" + DatabaseMetaData.columnNullable, "", null,
                         "" + Types.VARCHAR, "0", "120", "2", "YES" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "DEC_V",
-                        "" + Types.DECIMAL, "DECIMAL", "12", "12", "3", "10",
+                        "" + numericType, numericName, "12", "12", "3", "10",
                         "" + DatabaseMetaData.columnNullable, "", null,
-                        "" + Types.DECIMAL, "0", "12", "3", "YES" },
+                        "" + numericType, "0", "12", "3", "YES" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "DATE_V",
                         "" + Types.TIMESTAMP, "TIMESTAMP", "23", "23", "10",
                         "10", "" + DatabaseMetaData.columnNullable, "", null,
@@ -1086,6 +1102,8 @@ public class TestMetaData extends TestBase {
         rs.next();
         assertEquals("SETTINGS", rs.getString("TABLE_NAME"));
         rs.next();
+        assertEquals("SYNONYMS", rs.getString("TABLE_NAME"));
+        rs.next();
         assertEquals("TABLES", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("TABLE_PRIVILEGES", rs.getString("TABLE_NAME"));
@@ -1199,10 +1217,20 @@ public class TestMetaData extends TestBase {
 
     private void testClientInfo() throws SQLException {
         Connection conn = getConnection("metaData");
-        assertThrows(SQLClientInfoException.class, conn).getClientInfo("xxx");
+        assertNull(conn.getClientInfo("xxx"));
         DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs = meta.getClientInfoProperties();
-        assertFalse(rs.next());
+        int count = 0;
+        while (rs.next()) {
+            count++;
+        }
+        if (config.networked) {
+            // server0, numServers
+            assertEquals(2, count);
+        } else {
+            // numServers
+            assertEquals(1, count);
+        }
         conn.close();
         deleteDb("metaData");
     }
@@ -1246,7 +1274,7 @@ public class TestMetaData extends TestBase {
         stat.execute("SET QUERY_STATISTICS TRUE");
         int count = 100;
         for (int i = 0; i < count; i++) {
-            stat.execute("select * from test limit 10");
+            execute(stat, "select * from test limit 10");
         }
         // The "order by" makes the result set more stable on windows, where the
         // timer resolution is not that great
@@ -1256,7 +1284,7 @@ public class TestMetaData extends TestBase {
         assertTrue(rs.next());
         assertEquals("select * from test limit 10", rs.getString("SQL_STATEMENT"));
         assertEquals(count, rs.getInt("EXECUTION_COUNT"));
-        assertEquals(10 * count, rs.getInt("CUMULATIVE_ROW_COUNT"));
+        assertEquals(config.lazy ? 0 : 10 * count, rs.getInt("CUMULATIVE_ROW_COUNT"));
         rs.close();
         conn.close();
         deleteDb("metaData");

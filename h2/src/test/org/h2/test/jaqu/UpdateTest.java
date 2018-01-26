@@ -1,14 +1,13 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.jaqu;
 
+import static java.sql.Date.valueOf;
 import org.h2.jaqu.Db;
 import org.h2.test.TestBase;
-
-import static java.sql.Date.valueOf;
 
 /**
  * Tests the Db.update() function.
@@ -58,7 +57,7 @@ public class UpdateTest extends TestBase {
         Product p2 = new Product();
         Product pChang2 = db.from(p2).where(p2.productName).is("Chang")
                 .selectFirst();
-        assertEquals(19.5, pChang2.unitPrice);
+        assertEquals((Double) 19.5, pChang2.unitPrice);
         assertEquals(16, pChang2.unitsInStock.intValue());
 
         // undo update
@@ -96,7 +95,7 @@ public class UpdateTest extends TestBase {
         Product p2 = new Product();
         Product pChang2 = db.from(p2).where(p2.productName).is("Chang")
                 .selectFirst();
-        assertEquals(19.5, pChang2.unitPrice);
+        assertEquals((Double) 19.5, pChang2.unitPrice);
         assertEquals(16, pChang2.unitsInStock.intValue());
 
         // undo update
@@ -137,7 +136,7 @@ public class UpdateTest extends TestBase {
         // confirm the data was properly updated
         Product revised = db.from(p).where(p.productId).is(1).selectFirst();
         assertEquals("updated", revised.productName);
-        assertEquals(original.unitPrice + 3.14, revised.unitPrice);
+        assertEquals((Double) (original.unitPrice + 3.14), revised.unitPrice);
         assertEquals(original.unitsInStock + 2, revised.unitsInStock.intValue());
 
         // restore the data

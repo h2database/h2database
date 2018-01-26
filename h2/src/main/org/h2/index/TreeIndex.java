@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -66,7 +66,7 @@ public class TreeIndex extends BaseIndex {
             int compare = compareRows(row, r);
             if (compare == 0) {
                 if (indexType.isUnique()) {
-                    if (!containsNullAndAllowMultipleNull(row)) {
+                    if (!mayHaveNullDuplicates(row)) {
                         throw getDuplicateKeyException(row.toString());
                     }
                 }
@@ -355,7 +355,7 @@ public class TreeIndex extends BaseIndex {
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
         if (closed) {
-            throw DbException.throwInternalError();
+            throw DbException.throwInternalError(toString());
         }
         if (first) {
             // TODO optimization: this loops through NULL

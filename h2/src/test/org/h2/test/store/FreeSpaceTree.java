@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -28,7 +28,7 @@ public class FreeSpaceTree {
     /**
      * The list of free space.
      */
-    private TreeSet<BlockRange> freeSpace = new TreeSet<BlockRange>();
+    private TreeSet<BlockRange> freeSpace = new TreeSet<>();
 
     public FreeSpaceTree(int firstFreeBlock, int blockSize) {
         this.firstFreeBlock = firstFreeBlock;
@@ -189,7 +189,7 @@ public class FreeSpaceTree {
 
         @Override
         public int compareTo(BlockRange o) {
-            return start < o.start ? -1 : start > o.start ? 1 : 0;
+            return Integer.compare(start, o.start);
         }
 
         @Override

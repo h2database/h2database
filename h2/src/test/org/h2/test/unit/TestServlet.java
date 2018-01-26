@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-
 import javax.servlet.Filter;
 import javax.servlet.FilterRegistration;
 import javax.servlet.FilterRegistration.Dynamic;
@@ -30,11 +29,9 @@ import javax.servlet.ServletRegistration;
 import javax.servlet.SessionCookieConfig;
 import javax.servlet.SessionTrackingMode;
 import javax.servlet.descriptor.JspConfigDescriptor;
-
 import org.h2.api.ErrorCode;
 import org.h2.server.web.DbStarter;
 import org.h2.test.TestBase;
-import org.h2.util.New;
 
 /**
  * Tests the DbStarter servlet.
@@ -58,7 +55,7 @@ public class TestServlet extends TestBase {
     static class TestServletContext implements ServletContext {
 
         private final Properties initParams = new Properties();
-        private final HashMap<String, Object> attributes = New.hashMap();
+        private final HashMap<String, Object> attributes = new HashMap<>();
 
         @Override
         public void setAttribute(String key, Object value) {
@@ -150,6 +147,7 @@ public class TestServlet extends TestBase {
          * @deprecated as of servlet API 2.1
          */
         @Override
+        @Deprecated
         public Servlet getServlet(String string) {
             throw new UnsupportedOperationException();
         }
@@ -162,6 +160,7 @@ public class TestServlet extends TestBase {
         /**
          * @deprecated as of servlet API 2.1
          */
+        @Deprecated
         @Override
         public Enumeration<String> getServletNames() {
             throw new UnsupportedOperationException();
@@ -170,6 +169,7 @@ public class TestServlet extends TestBase {
         /**
          * @deprecated as of servlet API 2.0
          */
+        @Deprecated
         @Override
         public Enumeration<Servlet> getServlets() {
             throw new UnsupportedOperationException();
@@ -183,6 +183,7 @@ public class TestServlet extends TestBase {
         /**
          * @deprecated as of servlet API 2.1
          */
+        @Deprecated
         @Override
         public void log(Exception exception, String string) {
             throw new UnsupportedOperationException();
@@ -335,6 +336,10 @@ public class TestServlet extends TestBase {
             throw new UnsupportedOperationException();
         }
 
+        @Override
+        public String getVirtualServerName() {
+            throw new UnsupportedOperationException();
+        }
 
     }
 

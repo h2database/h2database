@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -14,7 +14,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-
 import org.h2.api.ErrorCode;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -31,7 +30,6 @@ public class TestLinkedTable extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        // System.setProperty("h2.storeLocalTime", "true");
         TestBase.createCaller().init().test();
     }
 
@@ -138,7 +136,7 @@ public class TestLinkedTable extends TestBase {
                     "(null, 'jdbc:h2:mem:', 'sa', 'pwd', 'DUAL2')");
             fail();
         } catch (SQLException e) {
-            assertTrue(e.toString().contains("pwd"));
+            assertContains(e.toString(), "pwd");
         }
         try {
             conn.createStatement().execute("create linked table test" +
@@ -714,12 +712,9 @@ public class TestLinkedTable extends TestBase {
         String sql = "CREATE LINKED TABLE T(NULL, " +
                 "'jdbc:h2:mem:one', 'sa', 'sa', 'TEST') READONLY";
         sb.execute(sql);
-        ResultSet rs = sb.executeQuery("SELECT * FROM T");
-        try {
+        try (ResultSet rs = sb.executeQuery("SELECT * FROM T")) {
             assertTrue(rs.next());
             assertEquals("POINT (1 1)", rs.getString("THE_GEOM"));
-        } finally {
-            rs.close();
         }
         sb.execute("DROP TABLE T");
         ca.close();

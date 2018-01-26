@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.ConnectException;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -28,12 +30,15 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.WriteListener;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.Part;
 import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
@@ -76,7 +81,7 @@ public class TestWeb extends TestBase {
 
     private void testServlet() throws Exception {
         WebServlet servlet = new WebServlet();
-        final HashMap<String, String> configMap = new HashMap<String, String>();
+        final HashMap<String, String> configMap = new HashMap<>();
         configMap.put("ifExists", "");
         configMap.put("", "");
         configMap.put("", "");
@@ -90,7 +95,7 @@ public class TestWeb extends TestBase {
 
             @Override
             public Enumeration<String> getInitParameterNames() {
-                return new Vector<String>(configMap.keySet()).elements();
+                return new Vector<>(configMap.keySet()).elements();
             }
 
             @Override
@@ -139,7 +144,7 @@ public class TestWeb extends TestBase {
         Server server = Server.createWebServer(
                 "-webPort", "8182", "-properties", "null");
         server.start();
-        assertTrue(server.getStatus().contains("server running"));
+        assertContains(server.getStatus(), "server running");
         Server server2 = Server.createWebServer(
                 "-webPort", "8182", "-properties", "null");
         assertEquals("Not started", server2.getStatus());
@@ -147,9 +152,9 @@ public class TestWeb extends TestBase {
             server2.start();
             fail();
         } catch (Exception e) {
-            assertTrue(e.toString().contains("port may be in use"));
-            assertTrue(server2.getStatus().contains(
-                    "could not be started"));
+            assertContains(e.toString(), "port may be in use");
+            assertContains(server2.getStatus(),
+                    "could not be started");
         }
         server.stop();
     }
@@ -553,7 +558,7 @@ public class TestWeb extends TestBase {
             Task t = new Task() {
                 @Override
                 public void call() throws Exception {
-                    Server.startWebServer(conn);
+                    Server.startWebServer(conn, true);
                 }
             };
             t.execute();
@@ -569,7 +574,7 @@ public class TestWeb extends TestBase {
             url = client.getBaseUrl(url);
             try {
                 client.get(url, "logout.do");
-            } catch (Exception e) {
+            } catch (ConnectException e) {
                 // the server stops on logout
             }
             t.get();
@@ -938,6 +943,22 @@ public class TestWeb extends TestBase {
             return null;
         }
 
+        @Override
+        public long getContentLengthLong() {
+            return 0;
+        }
+
+        @Override
+        public String changeSessionId() {
+            return null;
+        }
+
+        @Override
+        public <T extends HttpUpgradeHandler> T upgrade(Class<T> handlerClass)
+                throws IOException, ServletException {
+            return null;
+        }
+
     }
 
     /**
@@ -1013,6 +1034,11 @@ public class TestWeb extends TestBase {
 
         @Override
         public void setContentLength(int arg0) {
+            // ignore
+        }
+
+        @Override
+        public void setContentLengthLong(long arg0) {
             // ignore
         }
 
@@ -1150,11 +1176,17 @@ public class TestWeb extends TestBase {
 
         @Override
         public String toString() {
-            try {
-                return new String(buff.toByteArray(), "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                return e.toString();
-            }
+            return new String(buff.toByteArray(), StandardCharsets.UTF_8);
+        }
+
+        @Override
+        public boolean isReady() {
+            return true;
+        }
+
+        @Override
+        public void setWriteListener(WriteListener writeListener) {
+            // ignore
         }
 
     }

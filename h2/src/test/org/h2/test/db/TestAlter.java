@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -48,7 +48,11 @@ public class TestAlter extends TestBase {
         testAlterTableAlterColumn2();
         testAlterTableAddColumnBefore();
         testAlterTableAddColumnAfter();
+        testAlterTableAddMultipleColumnsBefore();
+        testAlterTableAddMultipleColumnsAfter();
         testAlterTableModifyColumn();
+        testAlterTableModifyColumnSetNull();
+        testAlterTableModifyColumnNotNullOracle();
         conn.close();
         deleteDb(getTestName());
     }
@@ -110,10 +114,18 @@ public class TestAlter extends TestBase {
     }
 
     private void testAlterTableDropMultipleColumns() throws SQLException {
-        stat.execute("create table test(id int, name varchar, name2 varchar)");
-        stat.execute("alter table test drop column name, name2");
+        stat.execute("create table test(id int, b varchar, c int, d int)");
+        stat.execute("alter table test drop column b, c");
+        stat.execute("alter table test drop d");
         stat.execute("drop table test");
-
+        // Test-Case: Same as above but using brackets (Oracle style)
+        stat.execute("create table test(id int, b varchar, c int, d int)");
+        stat.execute("alter table test drop column (b, c)");
+        assertThrows(ErrorCode.COLUMN_NOT_FOUND_1, stat).
+            execute("alter table test drop column b");
+        stat.execute("alter table test drop (d)");
+        stat.execute("drop table test");
+        // Test-Case: Error if dropping all columns
         stat.execute("create table test(id int, name varchar, name2 varchar)");
         assertThrows(ErrorCode.CANNOT_DROP_LAST_COLUMN, stat).
             execute("alter table test drop column id, name, name2");
@@ -206,6 +218,40 @@ public class TestAlter extends TestBase {
         stat.execute("drop table t");
     }
 
+
+
+    // column and field names must be upper-case due to getMetaData sensitivity
+    private void testAlterTableAddMultipleColumnsBefore() throws SQLException {
+        stat.execute("create table T(X varchar)");
+        stat.execute("alter table T add (Y int, Z int) before X");
+        DatabaseMetaData dbMeta = conn.getMetaData();
+        ResultSet rs = dbMeta.getColumns(null, null, "T", null);
+        assertTrue(rs.next());
+        assertEquals("Y", rs.getString("COLUMN_NAME"));
+        assertTrue(rs.next());
+        assertEquals("Z", rs.getString("COLUMN_NAME"));
+        assertTrue(rs.next());
+        assertEquals("X", rs.getString("COLUMN_NAME"));
+        assertFalse(rs.next());
+        stat.execute("drop table T");
+    }
+
+    // column and field names must be upper-case due to getMetaData sensitivity
+    private void testAlterTableAddMultipleColumnsAfter() throws SQLException {
+        stat.execute("create table T(X varchar)");
+        stat.execute("alter table T add (Y int, Z int) after X");
+        DatabaseMetaData dbMeta = conn.getMetaData();
+        ResultSet rs = dbMeta.getColumns(null, null, "T", null);
+        assertTrue(rs.next());
+        assertEquals("X", rs.getString("COLUMN_NAME"));
+        assertTrue(rs.next());
+        assertEquals("Y", rs.getString("COLUMN_NAME"));
+        assertTrue(rs.next());
+        assertEquals("Z", rs.getString("COLUMN_NAME"));
+        assertFalse(rs.next());
+        stat.execute("drop table T");
+    }
+
     // column and field names must be upper-case due to getMetaData sensitivity
     private void testAlterTableAddColumnBefore() throws SQLException {
         stat.execute("create table T(X varchar)");
@@ -248,5 +294,40 @@ public class TestAlter extends TestBase {
         stat.execute("alter table t modify column x varchar(20)");
         stat.execute("insert into t values('Hello')");
         stat.execute("drop table t");
+    }
+
+    /**
+     * Test for fix "Change not-null / null -constraint to existing column"
+     * (MySql/ORACLE - SQL style) that failed silently corrupting the changed
+     * column.<br/>
+     * Before the change (added after v1.4.196) following was observed:
+     * <pre>
+     *  alter table T modify C int null; -- Worked as expected
+     *  alter table T modify C null;     -- Silently corrupted column C
+     * </pre>
+     */
+    private void testAlterTableModifyColumnSetNull() throws SQLException {
+        // This worked in v1.4.196
+        stat.execute("create table T (C varchar not null)");
+        stat.execute("alter table T modify C int null");
+        stat.execute("insert into T values(null)");
+        stat.execute("drop table T");
+        // This failed in v1.4.196
+        stat.execute("create table T (C int not null)");
+        stat.execute("alter table T modify C null"); // Silently corrupted column C
+        stat.execute("insert into T values(null)"); // <- Fixed in v1.4.196 - NULL is allowed
+        stat.execute("drop table T");
+    }
+
+    private void testAlterTableModifyColumnNotNullOracle() throws SQLException {
+        stat.execute("create table foo (bar varchar(255))");
+        stat.execute("alter table foo modify (bar varchar(255) not null)");
+        try {
+            stat.execute("insert into foo values(null)");
+            fail("Null should not be allowed after modification.");
+        }
+        catch(SQLException e) {
+            // This is what we expect, fails to insert null.
+        }
     }
 }

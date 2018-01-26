@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -78,7 +78,7 @@ public class DbSettings extends SettingsBase {
      * performance reasons. Please note the Oracle JDBC driver will try to
      * resolve this database URL if it is loaded before the H2 driver.
      */
-    public boolean defaultConnection = get("DEFAULT_CONNECTION", false);
+    public final boolean defaultConnection = get("DEFAULT_CONNECTION", false);
 
     /**
      * Database setting <code>DEFAULT_ESCAPE</code> (default: \).<br />
@@ -162,7 +162,7 @@ public class DbSettings extends SettingsBase {
      * no limit. Please note the actual query timeout may be set to a lower
      * value.
      */
-    public int maxQueryTimeout = get("MAX_QUERY_TIMEOUT", 0);
+    public final int maxQueryTimeout = get("MAX_QUERY_TIMEOUT", 0);
 
     /**
      * Database setting <code>NESTED_JOINS</code> (default: true).<br />
@@ -343,6 +343,23 @@ public class DbSettings extends SettingsBase {
      * Compress data when storing.
      */
     public final boolean compressData = get("COMPRESS", false);
+
+    /**
+     * Database setting <code>MULTI_THREADED</code>
+     * (default: false).<br />
+     */
+    public final boolean multiThreaded = get("MULTI_THREADED", false);
+
+    /**
+     * Database setting <code>STANDARD_DROP_TABLE_RESTRICT</code> (default:
+     * false).<br />
+     * <code>true</code> if DROP TABLE RESTRICT should fail if there's any
+     * foreign key referencing the table to be dropped. <code>false</code> if
+     * foreign keys referencing the table to be dropped should be silently
+     * dropped as well.
+     */
+    public final boolean standardDropTableRestrict = get(
+            "STANDARD_DROP_TABLE_RESTRICT", false);
 
     private DbSettings(HashMap<String, String> s) {
         super(s);

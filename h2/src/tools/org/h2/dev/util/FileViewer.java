@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.message.DbException;
 import org.h2.util.Tool;
@@ -129,7 +130,7 @@ public class FileViewer extends Tool {
         long length = file.length();
         int bufferSize = 4 * 1024;
         byte[] data = new byte[bufferSize * 2];
-        long last = System.currentTimeMillis();
+        long last = System.nanoTime();
         while (pos < length) {
             System.arraycopy(data, bufferSize, data, 0, bufferSize);
             if (pos + bufferSize > length) {
@@ -137,8 +138,8 @@ public class FileViewer extends Tool {
                 return find(data, find, (int) (bufferSize + length - pos - find.length));
             }
             if (!quiet) {
-                long now = System.currentTimeMillis();
-                if (now > last + 5000) {
+                long now = System.nanoTime();
+                if (now > last + TimeUnit.SECONDS.toNanos(5)) {
                     System.out.println((100 * pos / length) + "%");
                     last = now;
                 }
@@ -178,7 +179,7 @@ public class FileViewer extends Tool {
 
     private static ArrayList<String> readLines(RandomAccessFile file,
             int maxLines) throws IOException {
-        ArrayList<String> lines = new ArrayList<String>();
+        ArrayList<String> lines = new ArrayList<>();
         ByteArrayOutputStream buff = new ByteArrayOutputStream(100);
         boolean lastNewline = false;
         while (maxLines > 0) {

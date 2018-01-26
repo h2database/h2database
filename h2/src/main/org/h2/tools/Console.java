@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -31,6 +31,9 @@ import java.awt.event.WindowListener;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.server.ShutdownHandler;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Tool;
@@ -59,7 +62,7 @@ ShutdownHandler {
 //*/
     private Server web, tcp, pg;
     private boolean isWindows;
-    private long lastOpen;
+    private long lastOpenNs;
 
     /**
      * When running without options, -tcp, -web, -browser and -pg are started.
@@ -351,9 +354,19 @@ ShutdownHandler {
                 trayIconUsed = false;
             }
             System.gc();
+            // Mac OS X: Console tool process did not stop on exit
+            String os = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
+            if (os.indexOf("mac") >= 0) {
+                for (Thread t : Thread.getAllStackTraces().keySet()) {
+                    if (t.getName().startsWith("AWT-")) {
+                        t.interrupt();
+                    }
+                }
+            }
+            Thread.currentThread().interrupt();
+            // throw new ThreadDeath();
         }
 //*/
-        // System.exit(0);
     }
 
 //## AWT ##
@@ -521,9 +534,9 @@ ShutdownHandler {
             if (urlText != null) {
                 urlText.setText(url);
             }
-            long now = System.currentTimeMillis();
-            if (lastOpen == 0 || lastOpen + 100 < now) {
-                lastOpen = now;
+            long now = System.nanoTime();
+            if (lastOpenNs == 0 || lastOpenNs + TimeUnit.MILLISECONDS.toNanos(100) < now) {
+                lastOpenNs = now;
                 openBrowser(url);
             }
         }

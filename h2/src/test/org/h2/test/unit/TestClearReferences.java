@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -58,15 +58,6 @@ public class TestClearReferences extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    private void clear() throws Exception {
-        ArrayList<Class <?>> classes = New.arrayList();
-        check(classes, new File("bin/org/h2"));
-        check(classes, new File("temp/org/h2"));
-        for (Class<?> clazz : classes) {
-            clearClass(clazz);
-        }
-    }
-
     @Override
     public void test() throws Exception {
         // initialize the known classes
@@ -91,14 +82,23 @@ public class TestClearReferences extends TestBase {
         }
     }
 
-    private void check(ArrayList<Class <?>> classes, File file) {
+    private void clear() throws Exception {
+        ArrayList<Class <?>> classes = New.arrayList();
+        findClasses(classes, new File("bin/org/h2"));
+        findClasses(classes, new File("temp/org/h2"));
+        for (Class<?> clazz : classes) {
+            clearClass(clazz);
+        }
+    }
+
+    private void findClasses(ArrayList<Class <?>> classes, File file) {
         String name = file.getName();
         if (file.isDirectory()) {
             if (name.equals("CVS") || name.equals(".svn")) {
                 return;
             }
             for (File f : file.listFiles()) {
-                check(classes, f);
+                findClasses(classes, f);
             }
         } else {
             if (!name.endsWith(".class")) {
@@ -154,7 +154,7 @@ public class TestClearReferences extends TestBase {
             throw e;
         }
         for (Field field : fields) {
-            if (field.getType().isPrimitive() || field.getName().indexOf("$") != -1) {
+            if (field.getType().isPrimitive() || field.getName().contains("$")) {
                 continue;
             }
             int modifiers = field.getModifiers();
@@ -182,7 +182,7 @@ public class TestClearReferences extends TestBase {
 
     private void clearInstance(Object instance) throws Exception {
         for (Field field : instance.getClass().getDeclaredFields()) {
-            if (field.getType().isPrimitive() || (field.getName().indexOf("$") != -1)) {
+            if (field.getType().isPrimitive() || field.getName().contains("$")) {
                 continue;
             }
             int modifiers = field.getModifiers();

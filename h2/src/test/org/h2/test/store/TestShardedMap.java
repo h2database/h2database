@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -32,9 +32,9 @@ public class TestShardedMap extends TestBase {
     }
 
     private void testLinearSplit() {
-        ShardedMap<Integer, Integer> map = new ShardedMap<Integer, Integer>();
-        TreeMap<Integer, Integer> a = new TreeMap<Integer, Integer>();
-        TreeMap<Integer, Integer> b = new TreeMap<Integer, Integer>();
+        ShardedMap<Integer, Integer> map = new ShardedMap<>();
+        TreeMap<Integer, Integer> a = new TreeMap<>();
+        TreeMap<Integer, Integer> b = new TreeMap<>();
         map.addMap(a, null, 5);
         map.addMap(b, 5, null);
         for (int i = 0; i < 10; i++) {
@@ -54,9 +54,9 @@ public class TestShardedMap extends TestBase {
     }
 
     private void testReplication() {
-        ShardedMap<Integer, Integer> map = new ShardedMap<Integer, Integer>();
-        TreeMap<Integer, Integer> a = new TreeMap<Integer, Integer>();
-        TreeMap<Integer, Integer> b = new TreeMap<Integer, Integer>();
+        ShardedMap<Integer, Integer> map = new ShardedMap<>();
+        TreeMap<Integer, Integer> a = new TreeMap<>();
+        TreeMap<Integer, Integer> b = new TreeMap<>();
         map.addMap(a, null, null);
         map.addMap(b, null, null);
         for (int i = 0; i < 10; i++) {
@@ -76,9 +76,9 @@ public class TestShardedMap extends TestBase {
     }
 
     private void testOverlap() {
-        ShardedMap<Integer, Integer> map = new ShardedMap<Integer, Integer>();
-        TreeMap<Integer, Integer> a = new TreeMap<Integer, Integer>();
-        TreeMap<Integer, Integer> b = new TreeMap<Integer, Integer>();
+        ShardedMap<Integer, Integer> map = new ShardedMap<>();
+        TreeMap<Integer, Integer> a = new TreeMap<>();
+        TreeMap<Integer, Integer> b = new TreeMap<>();
         map.addMap(a, null, 10);
         map.addMap(b, 5, null);
         for (int i = 0; i < 20; i++) {

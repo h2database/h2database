@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -7,6 +7,7 @@ package org.h2.dev.util;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
@@ -14,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.h2.store.fs.FileUtils;
-import org.h2.util.New;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 
@@ -31,7 +31,7 @@ public class FileContentHash {
     private static final boolean WRITE_HASH_INDEX = true;
     private static final String HASH_INDEX = ".hash.prop";
     private static final int MIN_SIZE = 0;
-    private final HashMap<String, String> hashes = New.hashMap();
+    private final HashMap<String, String> hashes = new HashMap<>();
     private long nextLog;
 
     /**
@@ -99,8 +99,8 @@ public class FileContentHash {
                     checkCollision(f, length, StringUtils.convertHexToBytes(hash));
                 }
                 propNew.put(entry, hash);
-                mdDir.update(entry.getBytes("UTF-8"));
-                mdDir.update(hash.getBytes("UTF-8"));
+                mdDir.update(entry.getBytes(StandardCharsets.UTF_8));
+                mdDir.update(hash.getBytes(StandardCharsets.UTF_8));
             }
             String oldFile = propOld.toString();
             String newFile = propNew.toString();

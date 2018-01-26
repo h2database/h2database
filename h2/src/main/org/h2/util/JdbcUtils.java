@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,16 +11,13 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Properties;
 import javax.naming.Context;
 import javax.sql.DataSource;
+import org.h2.api.CustomDataTypesHandler;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
 import org.h2.engine.SysProperties;
@@ -37,6 +34,11 @@ public class JdbcUtils {
      * The serializer to use.
      */
     public static JavaObjectSerializer serializer;
+
+    /**
+     * Custom data types handler to use.
+     */
+    public static CustomDataTypesHandler customDataTypesHandler;
 
     private static final String[] DRIVERS = {
         "h2:", "org.h2.Driver",
@@ -73,7 +75,7 @@ public class JdbcUtils {
      *  In order to manage more than one class loader
      */
     private static ArrayList<ClassFactory> userClassFactories =
-            new ArrayList<ClassFactory>();
+            new ArrayList<>();
 
     private static String[] allowedClassNamePrefixes;
 
@@ -103,7 +105,7 @@ public class JdbcUtils {
         if (userClassFactories == null) {
             // initially, it is empty
             // but Apache Tomcat may clear the fields as well
-            userClassFactories = new ArrayList<ClassFactory>();
+            userClassFactories = new ArrayList<>();
         }
         return userClassFactories;
     }
@@ -113,6 +115,16 @@ public class JdbcUtils {
         if (clazz != null) {
             try {
                 serializer = (JavaObjectSerializer) loadUserClass(clazz).newInstance();
+            } catch (Exception e) {
+                throw DbException.convert(e);
+            }
+        }
+
+        String customTypeHandlerClass = SysProperties.CUSTOM_DATA_TYPES_HANDLER;
+        if (customTypeHandlerClass != null) {
+            try {
+                customDataTypesHandler = (CustomDataTypesHandler)
+                        loadUserClass(customTypeHandlerClass).newInstance();
             } catch (Exception e) {
                 throw DbException.convert(e);
             }
@@ -134,7 +146,7 @@ public class JdbcUtils {
             String s = SysProperties.ALLOWED_CLASSES;
             ArrayList<String> prefixes = New.arrayList();
             boolean allowAll = false;
-            HashSet<String> classNames = New.hashSet();
+            HashSet<String> classNames = new HashSet<>();
             for (String p : StringUtils.arraySplit(s, ',', true)) {
                 if (p.equals("*")) {
                     allowAll = true;
@@ -144,8 +156,7 @@ public class JdbcUtils {
                     classNames.add(p);
                 }
             }
-            allowedClassNamePrefixes = new String[prefixes.size()];
-            prefixes.toArray(allowedClassNamePrefixes);
+            allowedClassNamePrefixes = prefixes.toArray(new String[0]);
             allowAllClasses = allowAll;
             allowedClassNames = classNames;
         }
@@ -278,7 +289,13 @@ public class JdbcUtils {
         } else {
             Class<?> d = loadUserClass(driver);
             if (java.sql.Driver.class.isAssignableFrom(d)) {
-                return DriverManager.getConnection(url, prop);
+                try {
+                    Driver driverInstance = (Driver) d.newInstance();
+                    return driverInstance.connect(url, prop); /*fix issue #695 with drivers with the same
+                    jdbc subprotocol in classpath of jdbc drivers (as example redshift and postgresql drivers)*/
+                } catch (Exception e) {
+                    throw DbException.toSQLException(e);
+                }
             } else if (javax.naming.Context.class.isAssignableFrom(d)) {
                 // JNDI context
                 try {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.constraint.Constraint;
@@ -56,31 +57,6 @@ public abstract class Table extends SchemaObjectBase {
     public static final int TYPE_MEMORY = 1;
 
     /**
-     * The table type name for linked tables.
-     */
-    public static final String TABLE_LINK = "TABLE LINK";
-
-    /**
-     * The table type name for system tables.
-     */
-    public static final String SYSTEM_TABLE = "SYSTEM TABLE";
-
-    /**
-     * The table type name for regular data tables.
-     */
-    public static final String TABLE = "TABLE";
-
-    /**
-     * The table type name for views.
-     */
-    public static final String VIEW = "VIEW";
-
-    /**
-     * The table type name for external table engines.
-     */
-    public static final String EXTERNAL_TABLE_ENGINE = "EXTERNAL";
-
-    /**
      * The columns of this table.
      */
     protected Column[] columns;
@@ -102,10 +78,15 @@ public abstract class Table extends SchemaObjectBase {
     private ArrayList<TriggerObject> triggers;
     private ArrayList<Constraint> constraints;
     private ArrayList<Sequence> sequences;
-    private ArrayList<TableView> views;
+    /**
+     * views that depend on this table
+     */
+    private final CopyOnWriteArrayList<TableView> dependentViews = new CopyOnWriteArrayList<>();
+    private ArrayList<TableSynonym> synonyms;
     private boolean checkForeignKeyConstraints = true;
     private boolean onCommitDrop, onCommitTruncate;
     private volatile Row nullRow;
+    private boolean tableExpression;
 
     public Table(Schema schema, int id, String name, boolean persistIndexes,
             boolean persistData) {
@@ -180,6 +161,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param key the primary key
      * @return the row
      */
+    @SuppressWarnings("unused")
     public Row getRow(Session session, long key) {
         return null;
     }
@@ -230,7 +212,7 @@ public abstract class Table extends SchemaObjectBase {
      *
      * @return the table type name
      */
-    public abstract String getTableType();
+    public abstract TableType getTableType();
 
     /**
      * Get the scan index to iterate through all rows.
@@ -248,6 +230,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param filters the table filters
      * @param filter the filter index
      * @param sortOrder the sort order
+     * @param allColumnsSet all columns
      * @return the scan index
      */
     public Index getScanIndex(Session session, int[] masks,
@@ -269,6 +252,25 @@ public abstract class Table extends SchemaObjectBase {
      * @return the list of indexes
      */
     public abstract ArrayList<Index> getIndexes();
+
+    /**
+     * Get an index by name.
+     *
+     * @param indexName the index name to search for
+     * @return the found index
+     */
+    public Index getIndex(String indexName) {
+        ArrayList<Index> indexes = getIndexes();
+        if (indexes != null) {
+            for (int i = 0; i < indexes.size(); i++) {
+                Index index = indexes.get(i);
+                if (index.getName().equals(indexName)) {
+                    return index;
+                }
+            }
+        }
+        throw DbException.get(ErrorCode.INDEX_NOT_FOUND_1, indexName);
+    }
 
     /**
      * Check if this table is locked exclusively.
@@ -342,7 +344,7 @@ public abstract class Table extends SchemaObjectBase {
 
     @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     /**
@@ -400,8 +402,9 @@ public abstract class Table extends SchemaObjectBase {
         if (sequences != null) {
             children.addAll(sequences);
         }
-        if (views != null) {
-            children.addAll(views);
+        children.addAll(dependentViews);
+        if (synonyms != null) {
+            children.addAll(synonyms);
         }
         ArrayList<Right> rights = database.getAllRights();
         for (Right right : rights) {
@@ -517,25 +520,27 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
-    public ArrayList<TableView> getViews() {
-        return views;
+    public CopyOnWriteArrayList<TableView> getDependentViews() {
+        return dependentViews;
     }
 
     @Override
     public void removeChildrenAndResources(Session session) {
-        while (views != null && views.size() > 0) {
-            TableView view = views.get(0);
-            views.remove(0);
+        while (dependentViews.size() > 0) {
+            TableView view = dependentViews.get(0);
+            dependentViews.remove(0);
             database.removeSchemaObject(session, view);
         }
+        while (synonyms != null && synonyms.size() > 0) {
+            TableSynonym synonym = synonyms.remove(0);
+            database.removeSchemaObject(session, synonym);
+        }
         while (triggers != null && triggers.size() > 0) {
-            TriggerObject trigger = triggers.get(0);
-            triggers.remove(0);
+            TriggerObject trigger = triggers.remove(0);
             database.removeSchemaObject(session, trigger);
         }
         while (constraints != null && constraints.size() > 0) {
-            Constraint constraint = constraints.get(0);
-            constraints.remove(0);
+            Constraint constraint = constraints.remove(0);
             database.removeSchemaObject(session, constraint);
         }
         for (Right right : database.getAllRights()) {
@@ -547,8 +552,7 @@ public abstract class Table extends SchemaObjectBase {
         // must delete sequences later (in case there is a power failure
         // before removing the table object)
         while (sequences != null && sequences.size() > 0) {
-            Sequence sequence = sequences.get(0);
-            sequences.remove(0);
+            Sequence sequence = sequences.remove(0);
             // only remove if no other table depends on this sequence
             // this is possible when calling ALTER TABLE ALTER COLUMN
             if (database.getDependentTable(sequence, this) == null) {
@@ -569,7 +573,7 @@ public abstract class Table extends SchemaObjectBase {
      */
     public void dropMultipleColumnsConstraintsAndIndexes(Session session,
             ArrayList<Column> columnsToDrop) {
-        HashSet<Constraint> constraintsToDrop = New.hashSet();
+        HashSet<Constraint> constraintsToDrop = new HashSet<>();
         if (constraints != null) {
             for (Column col : columnsToDrop) {
                 for (int i = 0, size = constraints.size(); i < size; i++) {
@@ -587,7 +591,7 @@ public abstract class Table extends SchemaObjectBase {
                 }
             }
         }
-        HashSet<Index> indexesToDrop = New.hashSet();
+        HashSet<Index> indexesToDrop = new HashSet<>();
         ArrayList<Index> indexes = getIndexes();
         if (indexes != null) {
             for (Column col : columnsToDrop) {
@@ -702,6 +706,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param filters all joined table filters
      * @param filter the current table filter index
      * @param sortOrder the sort order
+     * @param allColumnsSet the set of all columns
      * @return the plan item
      */
     public PlanItem getBestPlanItem(Session session, int[] masks,
@@ -716,10 +721,18 @@ public abstract class Table extends SchemaObjectBase {
                     item.cost, item.getIndex().getPlanSQL());
         }
         ArrayList<Index> indexes = getIndexes();
+        IndexHints indexHints = getIndexHints(filters, filter);
+
         if (indexes != null && masks != null) {
             for (int i = 1, size = indexes.size(); i < size; i++) {
                 Index index = indexes.get(i);
-                double cost = index.getCost(session, masks, filters, filter, sortOrder, allColumnsSet);
+
+                if (isIndexExcludedByHints(indexHints, index)) {
+                    continue;
+                }
+
+                double cost = index.getCost(session, masks, filters, filter,
+                        sortOrder, allColumnsSet);
                 if (t.isDebugEnabled()) {
                     t.debug("Table      :     potential plan item cost {0} index {1}",
                             cost, index.getPlanSQL());
@@ -731,6 +744,14 @@ public abstract class Table extends SchemaObjectBase {
             }
         }
         return item;
+    }
+
+    private static boolean isIndexExcludedByHints(IndexHints indexHints, Index index) {
+        return indexHints != null && !indexHints.allowIndex(index);
+    }
+
+    private static IndexHints getIndexHints(TableFilter[] filters, int filter) {
+        return filters == null ? null : filters[filter].getIndexHints();
     }
 
     /**
@@ -787,10 +808,7 @@ public abstract class Table extends SchemaObjectBase {
 
     private static void remove(ArrayList<? extends DbObject> list, DbObject obj) {
         if (list != null) {
-            int i = list.indexOf(obj);
-            if (i >= 0) {
-                list.remove(i);
-            }
+            list.remove(obj);
         }
     }
 
@@ -812,12 +830,21 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
-     * Remove the given view from the list.
+     * Remove the given view from the dependent views list.
      *
      * @param view the view to remove
      */
-    public void removeView(TableView view) {
-        remove(views, view);
+    public void removeDependentView(TableView view) {
+        dependentViews.remove(view);
+    }
+
+    /**
+     * Remove the given view from the list.
+     *
+     * @param synonym the synonym to remove
+     */
+    public void removeSynonym(TableSynonym synonym) {
+        remove(synonyms, synonym);
     }
 
     /**
@@ -852,8 +879,17 @@ public abstract class Table extends SchemaObjectBase {
      *
      * @param view the view to add
      */
-    public void addView(TableView view) {
-        views = add(views, view);
+    public void addDependentView(TableView view) {
+        dependentViews.add(view);
+    }
+
+    /**
+     * Add a synonym to this table.
+     *
+     * @param synonym the synonym to add
+     */
+    public void addSynonym(TableSynonym synonym) {
+        synonyms = add(synonyms, synonym);
     }
 
     /**
@@ -1038,22 +1074,35 @@ public abstract class Table extends SchemaObjectBase {
      * This method returns null if no matching index is found.
      *
      * @param column the column
+     * @param needGetFirstOrLast if the returned index must be able
+     *          to do {@link Index#canGetFirstOrLast()}
+     * @param needFindNext if the returned index must be able to do
+     *          {@link Index#findNext(Session, SearchRow, SearchRow)}
      * @return the index or null
      */
-    public Index getIndexForColumn(Column column) {
+    public Index getIndexForColumn(Column column,
+            boolean needGetFirstOrLast, boolean needFindNext) {
         ArrayList<Index> indexes = getIndexes();
+        Index result = null;
         if (indexes != null) {
             for (int i = 1, size = indexes.size(); i < size; i++) {
                 Index index = indexes.get(i);
-                if (index.canGetFirstOrLast()) {
-                    int idx = index.getColumnIndex(column);
-                    if (idx == 0) {
-                        return index;
-                    }
+                if (needGetFirstOrLast && !index.canGetFirstOrLast()) {
+                    continue;
+                }
+                if (needFindNext && !index.canFindNext()) {
+                    continue;
+                }
+                // choose the minimal covering index with the needed first
+                // column to work consistently with execution plan from
+                // Optimizer
+                if (index.isFirstColumn(column) && (result == null ||
+                        result.getColumns().length > index.getColumns().length)) {
+                    result = index;
                 }
             }
         }
-        return null;
+        return result;
     }
 
     public boolean getOnCommitDrop() {
@@ -1187,4 +1236,11 @@ public abstract class Table extends SchemaObjectBase {
         return false;
     }
 
+    public void setTableExpression(boolean tableExpression) {
+        this.tableExpression = tableExpression;
+    }
+
+    public boolean isTableExpression() {
+        return tableExpression;
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -192,7 +192,7 @@ public abstract class Constraint extends SchemaObjectBase implements
      * @return true if every visited expression returned true, or if there are
      *         no expressions
      */
-    public boolean isEverything(ExpressionVisitor visitor) {
+    public boolean isEverything(@SuppressWarnings("unused") ExpressionVisitor visitor) {
         return true;
     }
 

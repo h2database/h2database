@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,21 +10,20 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.h2.engine.Constants;
-import org.h2.util.New;
 
 /**
  * Utility methods
  */
-public class DataUtils {
+public final class DataUtils {
 
     /**
      * An error occurred while reading from the file.
@@ -157,24 +156,9 @@ public class DataUtils {
     public static final int PAGE_LARGE = 2 * 1024 * 1024;
 
     /**
-     * The UTF-8 character encoding format.
-     */
-    public static final Charset UTF8 = Charset.forName("UTF-8");
-
-    /**
-     * The ISO Latin character encoding format.
-     */
-    public static final Charset LATIN = Charset.forName("ISO-8859-1");
-
-    /**
      * An 0-size byte array.
      */
     private static final byte[] EMPTY_BYTES = {};
-
-    /**
-     * The maximum byte to grow a buffer at a time.
-     */
-    private static final int MAX_GROW = 16 * 1024 * 1024;
 
     /**
      * Get the length of the variable size int.
@@ -300,14 +284,12 @@ public class DataUtils {
     /**
      * Write characters from a string (without the length).
      *
-     * @param buff the target buffer
+     * @param buff the target buffer (must be large enough)
      * @param s the string
      * @param len the number of characters
-     * @return the byte buffer
      */
-    public static ByteBuffer writeStringData(ByteBuffer buff,
+    public static void writeStringData(ByteBuffer buff,
             String s, int len) {
-        buff = DataUtils.ensureCapacity(buff, 3 * len);
         for (int i = 0; i < len; i++) {
             int c = s.charAt(i);
             if (c < 0x80) {
@@ -321,7 +303,6 @@ public class DataUtils {
                 buff.put((byte) (c & 0x3f));
             }
         }
-        return buff;
     }
 
     /**
@@ -589,7 +570,7 @@ public class DataUtils {
      */
     public static StringBuilder appendMap(StringBuilder buff,
             HashMap<String, ?> map) {
-        ArrayList<String> list = New.arrayList(map.keySet());
+        ArrayList<String> list = new ArrayList<>(map.keySet());
         Collections.sort(list);
         for (String k : list) {
             appendMap(buff, k, map.get(k));
@@ -635,6 +616,40 @@ public class DataUtils {
     }
 
     /**
+     * @param buff output buffer, should be empty
+     * @param s parsed string
+     * @param i offset to parse from
+     * @param size stop offset (exclusive)
+     * @return new offset
+     */
+    private static int parseMapValue(StringBuilder buff, String s, int i, int size) {
+        while (i < size) {
+            char c = s.charAt(i++);
+            if (c == ',') {
+                break;
+            } else if (c == '\"') {
+                while (i < size) {
+                    c = s.charAt(i++);
+                    if (c == '\\') {
+                        if (i == size) {
+                            throw DataUtils.newIllegalStateException(
+                                    DataUtils.ERROR_FILE_CORRUPT,
+                                    "Not a map: {0}", s);
+                        }
+                        c = s.charAt(i++);
+                    } else if (c == '\"') {
+                        break;
+                    }
+                    buff.append(c);
+                }
+            } else {
+                buff.append(c);
+            }
+        }
+        return i;
+    }
+
+    /**
      * Parse a key-value pair list.
      *
      * @param s the list
@@ -642,7 +657,8 @@ public class DataUtils {
      * @throws IllegalStateException if parsing failed
      */
     public static HashMap<String, String> parseMap(String s) {
-        HashMap<String, String> map = New.hashMap();
+        HashMap<String, String> map = new HashMap<>();
+        StringBuilder buff = new StringBuilder();
         for (int i = 0, size = s.length(); i < size;) {
             int startKey = i;
             i = s.indexOf(':', i);
@@ -651,55 +667,122 @@ public class DataUtils {
                         DataUtils.ERROR_FILE_CORRUPT, "Not a map: {0}", s);
             }
             String key = s.substring(startKey, i++);
-            StringBuilder buff = new StringBuilder();
-            while (i < size) {
-                char c = s.charAt(i++);
-                if (c == ',') {
-                    break;
-                } else if (c == '\"') {
-                    while (i < size) {
-                        c = s.charAt(i++);
-                        if (c == '\\') {
-                            if (i == size) {
-                                throw DataUtils.newIllegalStateException(
-                                        DataUtils.ERROR_FILE_CORRUPT,
-                                        "Not a map: {0}", s);
-                            }
-                            c = s.charAt(i++);
-                        } else if (c == '\"') {
-                            break;
-                        }
-                        buff.append(c);
-                    }
-                } else {
-                    buff.append(c);
-                }
-            }
+            i = parseMapValue(buff, s, i, size);
             map.put(key, buff.toString());
+            buff.setLength(0);
         }
         return map;
+    }
+
+    /**
+     * Parse a key-value pair list and checks its checksum.
+     *
+     * @param bytes encoded map
+     * @return the map without mapping for {@code "fletcher"}, or {@code null} if checksum is wrong
+     * @throws IllegalStateException if parsing failed
+     */
+    public static HashMap<String, String> parseChecksummedMap(byte[] bytes) {
+        int start = 0, end = bytes.length;
+        while (start < end && bytes[start] <= ' ') {
+            start++;
+        }
+        while (start < end && bytes[end - 1] <= ' ') {
+            end--;
+        }
+        String s = new String(bytes, start, end - start, StandardCharsets.ISO_8859_1);
+        HashMap<String, String> map = new HashMap<>();
+        StringBuilder buff = new StringBuilder();
+        for (int i = 0, size = s.length(); i < size;) {
+            int startKey = i;
+            i = s.indexOf(':', i);
+            if (i < 0) {
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_FILE_CORRUPT, "Not a map: {0}", s);
+            }
+            if (i - startKey == 8 && s.regionMatches(startKey, "fletcher", 0, 8)) {
+                DataUtils.parseMapValue(buff, s, i + 1, size);
+                int check = (int) Long.parseLong(buff.toString(), 16);
+                if (check == DataUtils.getFletcher32(bytes, start, startKey - 1)) {
+                    return map;
+                }
+                // Corrupted map
+                return null;
+            }
+            String key = s.substring(startKey, i++);
+            i = DataUtils.parseMapValue(buff, s, i, size);
+            map.put(key, buff.toString());
+            buff.setLength(0);
+        }
+        // Corrupted map
+        return null;
+    }
+
+    /**
+     * Parse a name from key-value pair list.
+     *
+     * @param s the list
+     * @return value of name item, or {@code null}
+     * @throws IllegalStateException if parsing failed
+     */
+    public static String getMapName(String s) {
+        for (int i = 0, size = s.length(); i < size;) {
+            int startKey = i;
+            i = s.indexOf(':', i);
+            if (i < 0) {
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_FILE_CORRUPT, "Not a map: {0}", s);
+            }
+            if (i++ - startKey == 4 && s.regionMatches(startKey, "name", 0, 4)) {
+                StringBuilder buff = new StringBuilder();
+                i = parseMapValue(buff, s, i, size);
+                return buff.toString();
+            } else {
+                while (i < size) {
+                    char c = s.charAt(i++);
+                    if (c == ',') {
+                        break;
+                    } else if (c == '\"') {
+                        while (i < size) {
+                            c = s.charAt(i++);
+                            if (c == '\\') {
+                                if (i == size) {
+                                    throw DataUtils.newIllegalStateException(
+                                            DataUtils.ERROR_FILE_CORRUPT,
+                                            "Not a map: {0}", s);
+                                }
+                                c = s.charAt(i++);
+                            } else if (c == '\"') {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     /**
      * Calculate the Fletcher32 checksum.
      *
      * @param bytes the bytes
+     * @param offset initial offset
      * @param length the message length (if odd, 0 is appended)
      * @return the checksum
      */
-    public static int getFletcher32(byte[] bytes, int length) {
+    public static int getFletcher32(byte[] bytes, int offset, int length) {
         int s1 = 0xffff, s2 = 0xffff;
-        int i = 0, evenLength = length / 2 * 2;
-        while (i < evenLength) {
+        int i = offset, len = offset + (length & ~1);
+        while (i < len) {
             // reduce after 360 words (each word is two bytes)
-            for (int end = Math.min(i + 720, evenLength); i < end;) {
+            for (int end = Math.min(i + 720, len); i < end;) {
                 int x = ((bytes[i++] & 0xff) << 8) | (bytes[i++] & 0xff);
                 s2 += s1 += x;
             }
             s1 = (s1 & 0xffff) + (s1 >>> 16);
             s2 = (s2 & 0xffff) + (s2 >>> 16);
         }
-        if (i < length) {
+        if ((length & 1) != 0) {
             // odd length: append 0
             int x = (bytes[i] & 0xff) << 8;
             s2 += s1 += x;
@@ -750,17 +833,6 @@ public class DataUtils {
     }
 
     /**
-     * Create a new ConcurrentModificationException.
-     *
-     * @param message the message
-     * @return the exception
-     */
-    public static ConcurrentModificationException
-            newConcurrentModificationException(String message) {
-        return new ConcurrentModificationException(formatMessage(0, message));
-    }
-
-    /**
      * Create a new IllegalStateException.
      *
      * @param errorCode the error code
@@ -779,8 +851,8 @@ public class DataUtils {
         int size = arguments.length;
         if (size > 0) {
             Object o = arguments[size - 1];
-            if (o instanceof Exception) {
-                e.initCause((Exception) o);
+            if (o instanceof Throwable) {
+                e.initCause((Throwable) o);
             }
         }
         return e;
@@ -797,6 +869,7 @@ public class DataUtils {
     public static String formatMessage(int errorCode, String message,
             Object... arguments) {
         // convert arguments to strings, to avoid locale specific formatting
+        arguments = arguments.clone();
         for (int i = 0; i < arguments.length; i++) {
             Object a = arguments[i];
             if (!(a instanceof Exception)) {
@@ -842,6 +915,7 @@ public class DataUtils {
      * This method should be used if the size of the array is user defined, or
      * stored in a file, so wrong size data can be distinguished from regular
      * out-of-memory.
+     * </p>
      *
      * @param len the number of bytes requested
      * @return the byte array
@@ -861,29 +935,32 @@ public class DataUtils {
     }
 
     /**
-     * Ensure the byte buffer has the given capacity, plus 1 KB. If not, a new,
-     * larger byte buffer is created and the data is copied.
+     * Creates a copy of array of bytes with the new size. If this is not possible
+     * because not enough memory is available, an OutOfMemoryError with the
+     * requested size in the message is thrown.
+     * <p>
+     * This method should be used if the size of the array is user defined, or
+     * stored in a file, so wrong size data can be distinguished from regular
+     * out-of-memory.
+     * </p>
      *
-     * @param buff the byte buffer
-     * @param len the minimum remaining capacity
-     * @return the byte buffer (possibly a new one)
+     * @param bytes source array
+     * @param len the number of bytes in the new array
+     * @return the byte array
+     * @throws OutOfMemoryError if the allocation was too large
+     * @see Arrays#copyOf(byte[], int)
      */
-    public static ByteBuffer ensureCapacity(ByteBuffer buff, int len) {
-        len += 1024;
-        if (buff.remaining() > len) {
-            return buff;
+    public static byte[] copyBytes(byte[] bytes, int len) {
+        if (len == 0) {
+            return EMPTY_BYTES;
         }
-        return grow(buff, len);
-    }
-
-    private static ByteBuffer grow(ByteBuffer buff, int len) {
-        len = buff.remaining() + len;
-        int capacity = buff.capacity();
-        len = Math.max(len, Math.min(capacity + MAX_GROW, capacity * 2));
-        ByteBuffer temp = ByteBuffer.allocate(len);
-        buff.flip();
-        temp.put(buff);
-        return temp;
+        try {
+            return Arrays.copyOf(bytes, len);
+        } catch (OutOfMemoryError e) {
+            Error e2 = new OutOfMemoryError("Requested memory: " + len);
+            e2.initCause(e);
+            throw e2;
+        }
     }
 
     /**
@@ -983,10 +1060,10 @@ public class DataUtils {
      * @param <K> the key type
      * @param <V> the value type
      */
-    public static class MapEntry<K, V> implements Map.Entry<K, V> {
+    public static final class MapEntry<K, V> implements Map.Entry<K, V> {
 
         private final K key;
-        private V value;
+        private final V value;
 
         public MapEntry(K key, V value) {
             this.key = key;
@@ -1009,6 +1086,28 @@ public class DataUtils {
                     "Updating the value is not supported");
         }
 
+    }
+
+    /**
+     * Get the configuration parameter value, or default.
+     *
+     * @param config the configuration
+     * @param key the key
+     * @param defaultValue the default
+     * @return the configured value or default
+     */
+    public static int getConfigParam(Map<String, ?> config, String key, int defaultValue) {
+        Object o = config.get(key);
+        if (o instanceof Number) {
+            return ((Number) o).intValue();
+        } else if (o != null) {
+            try {
+                return Integer.decode(o.toString());
+            } catch (NumberFormatException e) {
+                // ignore
+            }
+        }
+        return defaultValue;
     }
 
 }

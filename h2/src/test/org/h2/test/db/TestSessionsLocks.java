@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,7 +9,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.test.TestBase;
 
 /**
@@ -54,7 +53,7 @@ public class TestSessionsLocks extends TestBase {
         assertEquals("PUBLIC", rs.getString("TABLE_SCHEMA"));
         assertEquals("TEST", rs.getString("TABLE_NAME"));
         rs.getString("SESSION_ID");
-        if (config.mvcc) {
+        if (config.mvcc || config.mvStore) {
             assertEquals("READ", rs.getString("LOCK_TYPE"));
         } else {
             assertEquals("WRITE", rs.getString("LOCK_TYPE"));
@@ -65,7 +64,7 @@ public class TestSessionsLocks extends TestBase {
         stat2.execute("SELECT * FROM TEST");
         rs = stat.executeQuery("select * from information_schema.locks " +
                 "order by session_id");
-        if (!config.mvcc) {
+        if (!config.mvcc && !config.mvStore) {
             rs.next();
             assertEquals("PUBLIC", rs.getString("TABLE_SCHEMA"));
             assertEquals("TEST", rs.getString("TABLE_NAME"));

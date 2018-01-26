@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,7 +23,6 @@ import java.util.Stack;
 import org.h2.build.doc.XMLParser;
 import org.h2.server.web.PageParser;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 
@@ -109,7 +109,7 @@ public class PrepareTranslation {
                 prop.put(key, t);
             }
         }
-        ArrayList <String>fileNames = new ArrayList<String>();
+        ArrayList <String>fileNames = new ArrayList<>();
         for (File f : list) {
             String name = f.getName();
             if (!name.endsWith(".jsp")) {
@@ -128,7 +128,7 @@ public class PrepareTranslation {
             name = name.substring(0, name.length() - 4);
             String template = IOUtils.readStringAndClose(new FileReader(
                     templateDir + "/" + name + ".jsp"), -1);
-            HashMap<String, Object> map = New.hashMap();
+            HashMap<String, Object> map = new HashMap<>();
             for (Object k : prop.keySet()) {
                 map.put(k.toString(), prop.get(k));
             }
@@ -153,7 +153,7 @@ public class PrepareTranslation {
                 target = targetDir + "/" + name + "_" + language + ".html";
             }
             OutputStream out = new FileOutputStream(target);
-            OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
+            OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
             writer.write(html);
             writer.close();
         }
@@ -231,14 +231,14 @@ public class PrepareTranslation {
     private static String extract(String documentName, File f, String target)
             throws Exception {
         String xml = IOUtils.readStringAndClose(new InputStreamReader(
-                new FileInputStream(f), "UTF-8"), -1);
+                new FileInputStream(f), StandardCharsets.UTF_8), -1);
         // the template contains ${} instead of text
         StringBuilder template = new StringBuilder(xml.length());
         int id = 0;
         SortedProperties prop = new SortedProperties();
         XMLParser parser = new XMLParser(xml);
         StringBuilder buff = new StringBuilder();
-        Stack<String> stack = new Stack<String>();
+        Stack<String> stack = new Stack<>();
         String tag = "";
         boolean ignoreEnd = false;
         String nextKey = "";
@@ -264,7 +264,7 @@ public class PrepareTranslation {
                         || "b".equals(tag) || "code".equals(tag)
                         || "form".equals(tag) || "span".equals(tag)
                         || "em".equals(tag) || "div".equals(tag)
-                        || "label".equals(tag)) {
+                        || "strong".equals(tag) || "label".equals(tag)) {
                     if (buff.length() == 0) {
                         nextKey = documentName + "_" + (1000 + id++) + "_"
                                 + tag;
@@ -318,7 +318,7 @@ public class PrepareTranslation {
             } else if (event == XMLParser.END_ELEMENT) {
                 String name = parser.getName();
                 if ("code".equals(name) || "a".equals(name) || "b".equals(name)
-                        || "span".equals(name) || "em".equals(name)) {
+                        || "span".equals(name) || "em".equals(name) || "strong".equals(name)) {
                     if (ignoreEnd) {
                         if (buff.length() > 0) {
                             if (templateIsCopy) {
@@ -418,7 +418,7 @@ public class PrepareTranslation {
         String suffix = utf8 ? ".prop" : ".properties";
         File dir = new File(path);
         File main = null;
-        ArrayList<File> translations = new ArrayList<File>();
+        ArrayList<File> translations = new ArrayList<>();
         for (File f : dir.listFiles()) {
             if (f.getName().endsWith(suffix) && f.getName().indexOf('_') >= 0) {
                 if (f.getName().endsWith("_" + MAIN_LANGUAGE + suffix)) {
@@ -444,7 +444,7 @@ public class PrepareTranslation {
             throws IOException {
         if (utf8) {
             String s = new String(IOUtils.readBytesAndClose(
-                    new FileInputStream(fileName), -1), "UTF-8");
+                    new FileInputStream(fileName), -1), StandardCharsets.UTF_8);
             return SortedProperties.fromLines(s);
         }
         return SortedProperties.loadProperties(fileName);
@@ -455,7 +455,7 @@ public class PrepareTranslation {
         if (utf8) {
             String s = p.toLines();
             FileOutputStream f = new FileOutputStream(fileName);
-            f.write(s.getBytes("UTF-8"));
+            f.write(s.getBytes(StandardCharsets.UTF_8));
             f.close();
         } else {
             p.store(fileName);
@@ -474,7 +474,7 @@ public class PrepareTranslation {
                 oldTranslations.setProperty(m, t);
             }
         }
-        HashSet<String> toTranslate = new HashSet<String>();
+        HashSet<String> toTranslate = new HashSet<>();
         // add missing keys, using # and the value from the main file
         for (Object k : main.keySet()) {
             String key = (String) k;
@@ -530,7 +530,7 @@ public class PrepareTranslation {
         }
         // remove keys that don't exist in the main file
         // (deleted or typo in the key)
-        for (Object k : new ArrayList<Object>(p.keySet())) {
+        for (Object k : new ArrayList<>(p.keySet())) {
             String key = (String) k;
             if (!main.containsKey(key)) {
                 p.remove(key);

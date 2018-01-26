@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,7 +11,6 @@ import java.sql.Time;
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -30,8 +29,14 @@ public class ValueTime extends Value {
      */
     static final int DISPLAY_SIZE = 8;
 
+    /**
+     * Nanoseconds since midnight
+     */
     private final long nanos;
 
+    /**
+     * @param nanos nanoseconds since midnight
+     */
     private ValueTime(long nanos) {
         this.nanos = nanos;
     }
@@ -39,7 +44,7 @@ public class ValueTime extends Value {
     /**
      * Get or create a time value.
      *
-     * @param nanos the nanoseconds
+     * @param nanos the nanoseconds since midnight
      * @return the value
      */
     public static ValueTime fromNanos(long nanos) {
@@ -73,7 +78,6 @@ public class ValueTime extends Value {
      * @param s the string to parse
      * @return the time
      */
-
     public static ValueTime parse(String s) {
         try {
             return fromNanos(DateTimeUtils.parseTimeNanos(s, 0, s.length(), false));
@@ -83,6 +87,9 @@ public class ValueTime extends Value {
         }
     }
 
+    /**
+     * @return nanoseconds since midnight
+     */
     public long getNanos() {
         return nanos;
     }
@@ -121,7 +128,7 @@ public class ValueTime extends Value {
 
     @Override
     protected int compareSecure(Value o, CompareMode mode) {
-        return MathUtils.compareLong(nanos, ((ValueTime) o).nanos);
+        return Long.compare(nanos, ((ValueTime) o).nanos);
     }
 
     @Override

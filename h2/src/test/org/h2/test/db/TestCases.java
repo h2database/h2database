@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -18,7 +18,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Random;
-
+import java.util.concurrent.TimeUnit;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileUtils;
@@ -40,6 +40,8 @@ public class TestCases extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testMinimalCoveringIndexPlan();
+        testMinMaxDirectLookupIndex();
         testReferenceLaterTable();
         testAutoCommitInDatabaseURL();
         testReferenceableIndexUsage();
@@ -49,12 +51,15 @@ public class TestCases extends TestBase {
         testLargeKeys();
         testExtraSemicolonInDatabaseURL();
         testGroupSubquery();
+        testSelfReferentialColumn();
         testCountDistinctNotNull();
         testDependencies();
+        testDropTable();
         testConvertType();
         testSortedSelect();
         testMaxMemoryRows();
         testDeleteTop();
+        testLikeExpressions();
         testUnicode();
         testOuterJoin();
         testCommentOnColumnWithSchemaEqualDatabase();
@@ -75,6 +80,8 @@ public class TestCases extends TestBase {
         testDeleteGroup();
         testDisconnect();
         testExecuteTrace();
+        testExplain();
+        testExplainAnalyze();
         if (config.memory) {
             return;
         }
@@ -144,31 +151,14 @@ public class TestCases extends TestBase {
         stat.execute("alter table b add constraint x " +
                 "foreign key(a_id) references a(id)");
         stat.execute("update a set x=200");
-        stat.execute("drop table if exists a, b");
-
-        stat.execute("drop all objects");
-        stat.execute("create table parent(id int primary key)");
-        stat.execute("create table child(id int, parent_id int, x int)");
-        stat.execute("create index y on child(parent_id, x)");
-        stat.execute("alter table child add constraint z " +
-                "foreign key(parent_id) references parent(id)");
-        ResultSet rs = stat.executeQuery(
-                "select * from information_schema.indexes where table_name = 'CHILD'");
-        while (rs.next()) {
-            assertEquals("Y", rs.getString("index_name"));
-        }
+        stat.execute("drop table if exists a, b cascade");
         conn.close();
     }
 
     private void testClearSyntaxException() throws SQLException {
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
-        try {
-            stat.execute("select t.x, t.x t.y from dual t");
-            fail();
-        } catch (SQLException e) {
-            assertEquals("42000", e.getSQLState());
-        }
+        assertThrows(42000, stat).execute("select t.x, t.x t.y from dual t");
         conn.close();
     }
 
@@ -240,6 +230,16 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
+    private void testSelfReferentialColumn() throws SQLException {
+        deleteDb("selfreferential");
+        Connection conn = getConnection("selfreferential");
+        Statement stat = conn.createStatement();
+        stat.execute("create table sr(id integer, usecount integer as usecount + 1)");
+        assertThrows(ErrorCode.NULL_NOT_ALLOWED, stat).execute("insert into sr(id) values (1)");
+        assertThrows(ErrorCode.MUST_GROUP_BY_COLUMN_1, stat).execute("select max(id), usecount from sr");
+        conn.close();
+    }
+
     private void testCountDistinctNotNull() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection("cases");
@@ -282,6 +282,71 @@ public class TestCases extends TestBase {
                         "set default ifnull((select max(id) from test for update)+1, 0)");
         stat.execute("drop table test");
         conn.close();
+    }
+
+    private void testDropTable() throws SQLException {
+        trace("testDropTable");
+        final boolean[] booleans = new boolean[] { true, false };
+        for (final boolean stdDropTableRestrict : booleans) {
+            for (final boolean restrict : booleans) {
+                testDropTableNoReference(stdDropTableRestrict, restrict);
+                testDropTableViewReference(stdDropTableRestrict, restrict);
+                testDropTableForeignKeyReference(stdDropTableRestrict, restrict);
+            }
+        }
+    }
+
+    private Statement createTable(final boolean stdDropTableRestrict) throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases;STANDARD_DROP_TABLE_RESTRICT=" + stdDropTableRestrict);
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int)");
+        return stat;
+    }
+
+    private void dropTable(final boolean restrict, Statement stat, final boolean expectedDropSuccess)
+            throws SQLException {
+        assertThrows(expectedDropSuccess ? 0 : ErrorCode.CANNOT_DROP_2, stat)
+                .execute("drop table test " + (restrict ? "restrict" : "cascade"));
+        assertThrows(expectedDropSuccess ? ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1 : 0, stat)
+                .execute("select * from test");
+    }
+
+    private void testDropTableNoReference(final boolean stdDropTableRestrict, final boolean restrict)
+            throws SQLException {
+        Statement stat = createTable(stdDropTableRestrict);
+        // always succeed as there's no reference to the table
+        dropTable(restrict, stat, true);
+        stat.getConnection().close();
+    }
+
+    private void testDropTableViewReference(final boolean stdDropTableRestrict, final boolean restrict)
+            throws SQLException {
+        Statement stat = createTable(stdDropTableRestrict);
+        stat.execute("create view abc as select * from test");
+        // drop allowed only if cascade
+        final boolean expectedDropSuccess = !restrict;
+        dropTable(restrict, stat, expectedDropSuccess);
+        // missing view if the drop succeeded
+        assertThrows(expectedDropSuccess ? ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1 : 0, stat).execute("select * from abc");
+        stat.getConnection().close();
+    }
+
+    private void testDropTableForeignKeyReference(final boolean stdDropTableRestrict, final boolean restrict)
+            throws SQLException {
+        Statement stat = createTable(stdDropTableRestrict);
+        stat.execute("create table ref(id int, id_test int, foreign key (id_test) references test (id)) ");
+        // test table is empty, so the foreign key forces ref table to be also
+        // empty
+        assertThrows(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1, stat)
+                .execute("insert into ref values(1,2)");
+        // drop allowed if cascade or old style
+        final boolean expectedDropSuccess = !stdDropTableRestrict || !restrict;
+        dropTable(restrict, stat, expectedDropSuccess);
+        // insertion succeeds if the foreign key was dropped
+        assertThrows(expectedDropSuccess ? 0 : ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1, stat)
+                .execute("insert into ref values(1,2)");
+        stat.getConnection().close();
     }
 
     private void testConvertType() throws SQLException {
@@ -843,14 +908,14 @@ public class TestCases extends TestBase {
             @Override
             public void run() {
                 try {
-                    long time = System.currentTimeMillis();
+                    long time = System.nanoTime();
                     ResultSet rs = stat.executeQuery("SELECT MAX(T.ID) " +
                             "FROM TEST T, TEST, TEST, TEST, TEST, " +
                             "TEST, TEST, TEST, TEST, TEST, TEST");
                     rs.next();
-                    time = System.currentTimeMillis() - time;
+                    time = System.nanoTime() - time;
                     TestBase.logError("query was too quick; result: " +
-                            rs.getInt(1) + " time:" + time, null);
+                            rs.getInt(1) + " time:" + TimeUnit.NANOSECONDS.toMillis(time), null);
                 } catch (SQLException e) {
                     stopped[0] = e;
                     // ok
@@ -859,7 +924,7 @@ public class TestCases extends TestBase {
         });
         t.start();
         Thread.sleep(300);
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         conn.close();
         t.join(5000);
         if (stopped[0] == null) {
@@ -867,8 +932,8 @@ public class TestCases extends TestBase {
         } else {
             assertKnownException(stopped[0]);
         }
-        time = System.currentTimeMillis() - time;
-        if (time > 5000) {
+        time = System.nanoTime() - time;
+        if (time > TimeUnit.SECONDS.toNanos(5)) {
             if (!config.reopen) {
                 fail("closing took " + time);
             }
@@ -893,6 +958,234 @@ public class TestCases extends TestBase {
         rs.next();
         assertEquals("World", rs.getString(1));
         assertFalse(rs.next());
+
+        conn.close();
+    }
+
+    private void checkExplain(Statement stat, String sql, String expected) throws SQLException {
+        ResultSet rs = stat.executeQuery(sql);
+
+        assertTrue(rs.next());
+
+        assertEquals(expected, rs.getString(1));
+    }
+
+    private void testExplain() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+
+        stat.execute("CREATE TABLE ORGANIZATION" +
+                "(id int primary key, name varchar(100))");
+        stat.execute("CREATE TABLE PERSON" +
+                "(id int primary key, orgId int, name varchar(100), salary int)");
+
+        checkExplain(stat, "/* bla-bla */ EXPLAIN SELECT ID FROM ORGANIZATION WHERE id = ?",
+            "SELECT\n" +
+                "    ID\n" +
+                "FROM PUBLIC.ORGANIZATION\n" +
+                "    /* PUBLIC.PRIMARY_KEY_D: ID = ?1 */\n" +
+                "WHERE ID = ?1");
+
+        checkExplain(stat, "EXPLAIN SELECT ID FROM ORGANIZATION WHERE id = 1",
+            "SELECT\n" +
+                "    ID\n" +
+                "FROM PUBLIC.ORGANIZATION\n" +
+                "    /* PUBLIC.PRIMARY_KEY_D: ID = 1 */\n" +
+                "WHERE ID = 1");
+
+        checkExplain(stat, "EXPLAIN SELECT * FROM PERSON WHERE id = ?",
+            "SELECT\n" +
+                "    PERSON.ID,\n" +
+                "    PERSON.ORGID,\n" +
+                "    PERSON.NAME,\n" +
+                "    PERSON.SALARY\n" +
+                "FROM PUBLIC.PERSON\n" +
+                "    /* PUBLIC.PRIMARY_KEY_8: ID = ?1 */\n" +
+                "WHERE ID = ?1");
+
+        checkExplain(stat, "EXPLAIN SELECT * FROM PERSON WHERE id = 50",
+            "SELECT\n" +
+                "    PERSON.ID,\n" +
+                "    PERSON.ORGID,\n" +
+                "    PERSON.NAME,\n" +
+                "    PERSON.SALARY\n" +
+                "FROM PUBLIC.PERSON\n" +
+                "    /* PUBLIC.PRIMARY_KEY_8: ID = 50 */\n" +
+                "WHERE ID = 50");
+
+        checkExplain(stat, "EXPLAIN SELECT * FROM PERSON WHERE salary > ? and salary < ?",
+            "SELECT\n" +
+                "    PERSON.ID,\n" +
+                "    PERSON.ORGID,\n" +
+                "    PERSON.NAME,\n" +
+                "    PERSON.SALARY\n" +
+                "FROM PUBLIC.PERSON\n" +
+                "    /* PUBLIC.PERSON.tableScan */\n" +
+                "WHERE (SALARY > ?1)\n" +
+                "    AND (SALARY < ?2)");
+
+        checkExplain(stat, "EXPLAIN SELECT * FROM PERSON WHERE salary > 1000 and salary < 2000",
+            "SELECT\n" +
+                "    PERSON.ID,\n" +
+                "    PERSON.ORGID,\n" +
+                "    PERSON.NAME,\n" +
+                "    PERSON.SALARY\n" +
+                "FROM PUBLIC.PERSON\n" +
+                "    /* PUBLIC.PERSON.tableScan */\n" +
+                "WHERE (SALARY > 1000)\n" +
+                "    AND (SALARY < 2000)");
+
+        checkExplain(stat, "EXPLAIN SELECT * FROM PERSON WHERE name = lower(?)",
+            "SELECT\n" +
+                "    PERSON.ID,\n" +
+                "    PERSON.ORGID,\n" +
+                "    PERSON.NAME,\n" +
+                "    PERSON.SALARY\n" +
+                "FROM PUBLIC.PERSON\n" +
+                "    /* PUBLIC.PERSON.tableScan */\n" +
+                "WHERE NAME = LOWER(?1)");
+
+        checkExplain(stat, "EXPLAIN SELECT * FROM PERSON WHERE name = lower('Smith')",
+            "SELECT\n" +
+                "    PERSON.ID,\n" +
+                "    PERSON.ORGID,\n" +
+                "    PERSON.NAME,\n" +
+                "    PERSON.SALARY\n" +
+                "FROM PUBLIC.PERSON\n" +
+                "    /* PUBLIC.PERSON.tableScan */\n" +
+                "WHERE NAME = 'smith'");
+
+        checkExplain(stat, "EXPLAIN SELECT * FROM PERSON p " +
+            "INNER JOIN ORGANIZATION o ON p.id = o.id WHERE o.id = ? AND p.salary > ?",
+            "SELECT\n" +
+                "    P.ID,\n" +
+                "    P.ORGID,\n" +
+                "    P.NAME,\n" +
+                "    P.SALARY,\n" +
+                "    O.ID,\n" +
+                "    O.NAME\n" +
+                "FROM PUBLIC.ORGANIZATION O\n" +
+                "    /* PUBLIC.PRIMARY_KEY_D: ID = ?1 */\n" +
+                "    /* WHERE O.ID = ?1\n" +
+                "    */\n" +
+                "INNER JOIN PUBLIC.PERSON P\n" +
+                "    /* PUBLIC.PRIMARY_KEY_8: ID = O.ID */\n" +
+                "    ON 1=1\n" +
+                "WHERE (P.ID = O.ID)\n" +
+                "    AND ((O.ID = ?1)\n" +
+                "    AND (P.SALARY > ?2))");
+
+        checkExplain(stat, "EXPLAIN SELECT * FROM PERSON p " +
+            "INNER JOIN ORGANIZATION o ON p.id = o.id WHERE o.id = 10 AND p.salary > 1000",
+            "SELECT\n" +
+                "    P.ID,\n" +
+                "    P.ORGID,\n" +
+                "    P.NAME,\n" +
+                "    P.SALARY,\n" +
+                "    O.ID,\n" +
+                "    O.NAME\n" +
+                "FROM PUBLIC.ORGANIZATION O\n" +
+                "    /* PUBLIC.PRIMARY_KEY_D: ID = 10 */\n" +
+                "    /* WHERE O.ID = 10\n" +
+                "    */\n" +
+                "INNER JOIN PUBLIC.PERSON P\n" +
+                "    /* PUBLIC.PRIMARY_KEY_8: ID = O.ID */\n" +
+                "    ON 1=1\n" +
+                "WHERE (P.ID = O.ID)\n" +
+                "    AND ((O.ID = 10)\n" +
+                "    AND (P.SALARY > 1000))");
+
+        PreparedStatement pStat = conn.prepareStatement(
+                "/* bla-bla */ EXPLAIN SELECT ID FROM ORGANIZATION WHERE id = ?");
+
+        ResultSet rs = pStat.executeQuery();
+
+        assertTrue(rs.next());
+
+        assertEquals("SELECT\n" +
+                "    ID\n" +
+                "FROM PUBLIC.ORGANIZATION\n" +
+                "    /* PUBLIC.PRIMARY_KEY_D: ID = ?1 */\n" +
+                "WHERE ID = ?1",
+            rs.getString(1));
+
+        conn.close();
+    }
+
+    private void testExplainAnalyze() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+
+        stat.execute("CREATE TABLE ORGANIZATION" +
+                "(id int primary key, name varchar(100))");
+        stat.execute("CREATE TABLE PERSON" +
+                "(id int primary key, orgId int, name varchar(100), salary int)");
+
+        stat.execute("INSERT INTO ORGANIZATION VALUES(1, 'org1')");
+        stat.execute("INSERT INTO ORGANIZATION VALUES(2, 'org2')");
+
+        stat.execute("INSERT INTO PERSON VALUES(1, 1, 'person1', 1000)");
+        stat.execute("INSERT INTO PERSON VALUES(2, 1, 'person2', 2000)");
+        stat.execute("INSERT INTO PERSON VALUES(3, 2, 'person3', 3000)");
+        stat.execute("INSERT INTO PERSON VALUES(4, 2, 'person4', 4000)");
+
+        assertThrows(ErrorCode.PARAMETER_NOT_SET_1, stat,
+                "/* bla-bla */ EXPLAIN ANALYZE SELECT ID FROM ORGANIZATION WHERE id = ?");
+
+        PreparedStatement pStat = conn.prepareStatement(
+                "/* bla-bla */ EXPLAIN ANALYZE SELECT ID FROM ORGANIZATION WHERE id = ?");
+
+        assertThrows(ErrorCode.PARAMETER_NOT_SET_1, pStat).executeQuery();
+
+        pStat.setInt(1, 1);
+
+        ResultSet rs = pStat.executeQuery();
+
+        assertTrue(rs.next());
+
+        assertEquals("SELECT\n" +
+                "    ID\n" +
+                "FROM PUBLIC.ORGANIZATION\n" +
+                "    /* PUBLIC.PRIMARY_KEY_D: ID = ?1 */\n" +
+                "    /* scanCount: 2 */\n" +
+                "WHERE ID = ?1",
+            rs.getString(1));
+
+        pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT * FROM PERSON p " +
+            "INNER JOIN ORGANIZATION o ON o.id = p.id WHERE o.id = ?");
+
+        assertThrows(ErrorCode.PARAMETER_NOT_SET_1, pStat).executeQuery();
+
+        pStat.setInt(1, 1);
+
+        rs = pStat.executeQuery();
+
+        assertTrue(rs.next());
+
+        assertEquals("SELECT\n" +
+                "    P.ID,\n" +
+                "    P.ORGID,\n" +
+                "    P.NAME,\n" +
+                "    P.SALARY,\n" +
+                "    O.ID,\n" +
+                "    O.NAME\n" +
+                "FROM PUBLIC.ORGANIZATION O\n" +
+                "    /* PUBLIC.PRIMARY_KEY_D: ID = ?1 */\n" +
+                "    /* WHERE O.ID = ?1\n" +
+                "    */\n" +
+                "    /* scanCount: 2 */\n" +
+                "INNER JOIN PUBLIC.PERSON P\n" +
+                "    /* PUBLIC.PRIMARY_KEY_8: ID = O.ID\n" +
+                "        AND ID = ?1\n" +
+                "     */\n" +
+                "    ON 1=1\n" +
+                "    /* scanCount: 2 */\n" +
+                "WHERE ((O.ID = ?1)\n" +
+                "    AND (O.ID = P.ID))\n" +
+                "    AND (P.ID = ?1)",
+            rs.getString(1));
 
         conn.close();
     }
@@ -1486,6 +1779,96 @@ public class TestCases extends TestBase {
         assertEquals("Lob file was not deleted: " + list, 0, list.size());
     }
 
+    private void testMinimalCoveringIndexPlan() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+
+        stat.execute("create table t(a int, b int, c int)");
+        stat.execute("create index a_idx on t(a)");
+        stat.execute("create index b_idx on t(b)");
+        stat.execute("create index ab_idx on t(a, b)");
+        stat.execute("create index abc_idx on t(a, b, c)");
+
+        ResultSet rs;
+        String plan;
+
+        rs = stat.executeQuery("explain select a from t");
+        assertTrue(rs.next());
+        plan = rs.getString(1);
+        assertContains(plan, "/* PUBLIC.A_IDX */");
+        rs.close();
+
+        rs = stat.executeQuery("explain select b from t");
+        assertTrue(rs.next());
+        plan = rs.getString(1);
+        assertContains(plan, "/* PUBLIC.B_IDX */");
+        rs.close();
+
+        rs = stat.executeQuery("explain select b, a from t");
+        assertTrue(rs.next());
+        plan = rs.getString(1);
+        assertContains(plan, "/* PUBLIC.AB_IDX */");
+        rs.close();
+
+        rs = stat.executeQuery("explain select b, a, c from t");
+        assertTrue(rs.next());
+        plan = rs.getString(1);
+        assertContains(plan, "/* PUBLIC.ABC_IDX */");
+        rs.close();
+
+        conn.close();
+    }
+
+    private void testMinMaxDirectLookupIndex() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+
+        stat.execute("create table t(a int, b int)");
+        stat.execute("create index b_idx on t(b desc)");
+        stat.execute("create index ab_idx on t(a, b)");
+
+        final int count = 100;
+
+        PreparedStatement p = conn.prepareStatement("insert into t values (?,?)");
+        for (int i = 0; i <= count; i++) {
+            p.setInt(1, i);
+            p.setInt(2, count - i);
+            assertEquals(1, p.executeUpdate());
+        }
+        p.close();
+
+        ResultSet rs;
+        String plan;
+
+        rs = stat.executeQuery("select max(b) from t");
+        assertTrue(rs.next());
+        assertEquals(count, rs.getInt(1));
+        rs.close();
+
+        rs = stat.executeQuery("explain select max(b) from t");
+        assertTrue(rs.next());
+        plan = rs.getString(1);
+        assertContains(plan, "/* PUBLIC.B_IDX */");
+        assertContains(plan, "/* direct lookup */");
+        rs.close();
+
+        rs = stat.executeQuery("select min(b) from t");
+        assertTrue(rs.next());
+        assertEquals(0, rs.getInt(1));
+        rs.close();
+
+        rs = stat.executeQuery("explain select min(b) from t");
+        assertTrue(rs.next());
+        plan = rs.getString(1);
+        assertContains(plan, "/* PUBLIC.B_IDX */");
+        assertContains(plan, "/* direct lookup */");
+        rs.close();
+
+        conn.close();
+    }
+
     private void testDeleteTop() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection("cases");
@@ -1530,4 +1913,15 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
+    /** Tests fix for bug #682: Queries with 'like' expressions may filter rows incorrectly */
+    private void testLikeExpressions() throws SQLException {
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("select * from (select 'fo%' a union all select '%oo') where 'foo' like a");
+        assertTrue(rs.next());
+        assertEquals("fo%", rs.getString(1));
+        assertTrue(rs.next());
+        assertEquals("%oo", rs.getString(1));
+        conn.close();
+    }
 }

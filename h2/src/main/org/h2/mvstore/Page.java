@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -7,11 +7,8 @@ package org.h2.mvstore;
 
 import java.nio.ByteBuffer;
 import java.util.HashSet;
-import java.util.Set;
-
 import org.h2.compress.Compressor;
 import org.h2.mvstore.type.DataType;
-import org.h2.util.New;
 
 /**
  * A page (a node or a leaf).
@@ -36,6 +33,7 @@ public class Page {
      * An empty object array.
      */
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
+    private static final int IN_MEMORY = Integer.MIN_VALUE;
 
     private final MVMap<?, ?> map;
     private long version;
@@ -52,7 +50,7 @@ public class Page {
     private int cachedCompare;
 
     /**
-     * The estimated memory used.
+     * The estimated memory used in persistent case, IN_MEMORY marker value otherwise.
      */
     private int memory;
 
@@ -125,13 +123,15 @@ public class Page {
         p.values = values;
         p.children = children;
         p.totalCount = totalCount;
-        if (memory == 0) {
+        MVStore store = map.store;
+        if(store.getFileStore() == null) {
+            p.memory = IN_MEMORY;
+        } else if (memory == 0) {
             p.recalculateMemory();
         } else {
             p.addMemory(memory);
         }
-        MVStore store = map.store;
-        if (store != null) {
+        if(store.getFileStore() != null) {
             store.registerUnsavedPage(p.memory);
         }
         return p;
@@ -146,18 +146,8 @@ public class Page {
      * @return the page
      */
     public static Page create(MVMap<?, ?> map, long version, Page source) {
-        Page p = new Page(map, version);
-        // the position is 0
-        p.keys = source.keys;
-        p.values = source.values;
-        p.children = source.children;
-        p.totalCount = source.totalCount;
-        p.memory = source.memory;
-        MVStore store = map.store;
-        if (store != null) {
-            store.registerUnsavedPage(p.memory);
-        }
-        return p;
+        return create(map, version, source.keys, source.values, source.children,
+                source.totalCount, source.memory);
     }
 
     /**
@@ -268,18 +258,18 @@ public class Page {
     public String toString() {
         StringBuilder buff = new StringBuilder();
         buff.append("id: ").append(System.identityHashCode(this)).append('\n');
-        buff.append("version: ").append(Long.toHexString(version)).append("\n");
-        buff.append("pos: ").append(Long.toHexString(pos)).append("\n");
+        buff.append("version: ").append(Long.toHexString(version)).append('\n');
+        buff.append("pos: ").append(Long.toHexString(pos)).append('\n');
         if (pos != 0) {
             int chunkId = DataUtils.getPageChunkId(pos);
-            buff.append("chunk: ").append(Long.toHexString(chunkId)).append("\n");
+            buff.append("chunk: ").append(Long.toHexString(chunkId)).append('\n');
         }
         for (int i = 0; i <= keys.length; i++) {
             if (i > 0) {
                 buff.append(" ");
             }
             if (children != null) {
-                buff.append("[" + Long.toHexString(children[i].pos) + "] ");
+                buff.append('[').append(Long.toHexString(children[i].pos)).append("] ");
             }
             if (i < keys.length) {
                 buff.append(keys[i]);
@@ -302,7 +292,7 @@ public class Page {
         Page newPage = create(map, version,
                 keys, values,
                 children, totalCount,
-                getMemory());
+                memory);
         // mark the old as deleted
         removePage();
         newPage.cachedCompare = cachedCompare;
@@ -368,7 +358,11 @@ public class Page {
      * @return the page with the entries after the split index
      */
     Page split(int at) {
-        return isLeaf() ? splitLeaf(at) : splitNode(at);
+        Page page = isLeaf() ? splitLeaf(at) : splitNode(at);
+        if(isPersistent()) {
+            recalculateMemory();
+        }
+        return page;
     }
 
     private Page splitLeaf(int at) {
@@ -388,9 +382,7 @@ public class Page {
         Page newPage = create(map, version,
                 bKeys, bValues,
                 null,
-                bKeys.length, 0);
-        recalculateMemory();
-        newPage.recalculateMemory();
+                b, 0);
         return newPage;
     }
 
@@ -422,8 +414,6 @@ public class Page {
                 bKeys, null,
                 bChildren,
                 t, 0);
-        recalculateMemory();
-        newPage.recalculateMemory();
         return newPage;
     }
 
@@ -498,13 +488,15 @@ public class Page {
         // this is slightly slower:
         // keys = Arrays.copyOf(keys, keys.length);
         keys = keys.clone();
-        Object old = keys[index];
-        DataType keyType = map.getKeyType();
-        int mem = keyType.getMemory(key);
-        if (old != null) {
-            mem -= keyType.getMemory(old);
+        if(isPersistent()) {
+            Object old = keys[index];
+            DataType keyType = map.getKeyType();
+            int mem = keyType.getMemory(key);
+            if (old != null) {
+                mem -= keyType.getMemory(old);
+            }
+            addMemory(mem);
         }
-        addMemory(mem);
         keys[index] = key;
     }
 
@@ -521,8 +513,10 @@ public class Page {
         // values = Arrays.copyOf(values, values.length);
         values = values.clone();
         DataType valueType = map.getValueType();
-        addMemory(valueType.getMemory(value) -
-                valueType.getMemory(old));
+        if(isPersistent()) {
+            addMemory(valueType.getMemory(value) -
+                    valueType.getMemory(old));
+        }
         values[index] = value;
         return old;
     }
@@ -569,8 +563,10 @@ public class Page {
         keys[index] = key;
         values[index] = value;
         totalCount++;
-        addMemory(map.getKeyType().getMemory(key) +
-                map.getValueType().getMemory(value));
+        if(isPersistent()) {
+            addMemory(map.getKeyType().getMemory(key) +
+                    map.getValueType().getMemory(value));
+        }
     }
 
     /**
@@ -595,8 +591,10 @@ public class Page {
         children = newChildren;
 
         totalCount += childPage.totalCount;
-        addMemory(map.getKeyType().getMemory(key) +
-                DataUtils.PAGE_MEMORY_CHILD);
+        if(isPersistent()) {
+            addMemory(map.getKeyType().getMemory(key) +
+                    DataUtils.PAGE_MEMORY_CHILD);
+        }
     }
 
     /**
@@ -607,22 +605,28 @@ public class Page {
     public void remove(int index) {
         int keyLength = keys.length;
         int keyIndex = index >= keyLength ? index - 1 : index;
-        Object old = keys[keyIndex];
-        addMemory(-map.getKeyType().getMemory(old));
+        if(isPersistent()) {
+            Object old = keys[keyIndex];
+            addMemory(-map.getKeyType().getMemory(old));
+        }
         Object[] newKeys = new Object[keyLength - 1];
         DataUtils.copyExcept(keys, newKeys, keyLength, keyIndex);
         keys = newKeys;
 
         if (values != null) {
-            old = values[index];
-            addMemory(-map.getValueType().getMemory(old));
+            if(isPersistent()) {
+                Object old = values[index];
+                addMemory(-map.getValueType().getMemory(old));
+            }
             Object[] newValues = new Object[keyLength - 1];
             DataUtils.copyExcept(values, newValues, keyLength, index);
             values = newValues;
             totalCount--;
         }
         if (children != null) {
-            addMemory(-DataUtils.PAGE_MEMORY_CHILD);
+            if(isPersistent()) {
+                addMemory(-DataUtils.PAGE_MEMORY_CHILD);
+            }
             long countOffset = children[index].count;
 
             int childCount = children.length;
@@ -887,16 +891,23 @@ public class Page {
         return pos != 0 ? (int) (pos | (pos >>> 32)) : super.hashCode();
     }
 
+    private boolean isPersistent() {
+        return memory != IN_MEMORY;
+    }
+
     public int getMemory() {
-        if (MVStore.ASSERT) {
-            int mem = memory;
-            recalculateMemory();
-            if (mem != memory) {
-                throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_INTERNAL, "Memory calculation error");
+        if (isPersistent()) {
+            if (MVStore.ASSERT) {
+                int mem = memory;
+                recalculateMemory();
+                if (mem != memory) {
+                    throw DataUtils.newIllegalStateException(
+                            DataUtils.ERROR_INTERNAL, "Memory calculation error");
+                }
             }
+            return memory;
         }
-        return memory;
+        return getKeyCount();
     }
 
     private void addMemory(int mem) {
@@ -928,11 +939,13 @@ public class Page {
      * Remove the page.
      */
     public void removePage() {
-        long p = pos;
-        if (p == 0) {
-            removedInMemory = true;
+        if(isPersistent()) {
+            long p = pos;
+            if (p == 0) {
+                removedInMemory = true;
+            }
+            map.removePage(p, memory);
         }
-        map.removePage(p, memory);
     }
 
     /**
@@ -1088,7 +1101,7 @@ public class Page {
          * indirectly point to other chunks).
          */
         void removeDuplicateChunkReferences() {
-            HashSet<Integer> chunks = New.hashSet();
+            HashSet<Integer> chunks = new HashSet<>();
             // we don't need references to leaves in the same chunk
             chunks.add(DataUtils.getPageChunkId(pos));
             for (int i = 0; i < children.length; i++) {
@@ -1102,18 +1115,6 @@ public class Page {
                     continue;
                 }
                 removeChild(i--);
-            }
-        }
-
-        /**
-         * Collect the set of chunks referenced directly by this page.
-         *
-         * @param target the target set
-         */
-        void collectReferencedChunks(Set<Integer> target) {
-            target.add(DataUtils.getPageChunkId(pos));
-            for (long p : children) {
-                target.add(DataUtils.getPageChunkId(p));
             }
         }
 

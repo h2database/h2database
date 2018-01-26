@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -71,8 +71,7 @@ public class TestBtreeIndex extends TestBase {
         deleteDb(getTestName());
     }
 
-    @Override
-    public void testCase(int seed) throws SQLException {
+    private void testCase(int seed) throws SQLException {
         testOne(seed);
     }
 
@@ -102,8 +101,7 @@ public class TestBtreeIndex extends TestBase {
         }
         String prefix = buff.toString().substring(0, prefixLength);
         DeleteDbFiles.execute(getBaseDir() + "/" + getTestName(), null, true);
-        Connection conn = getConnection(getTestName());
-        try {
+        try (Connection conn = getConnection(getTestName())) {
             Statement stat = conn.createStatement();
             stat.execute("CREATE TABLE a(text VARCHAR PRIMARY KEY)");
             PreparedStatement prepInsert = conn.prepareStatement(
@@ -189,8 +187,6 @@ public class TestBtreeIndex extends TestBase {
             if (rs.next()) {
                 printError(seed, "testCount:" + testCount + " " + rs.getString(1));
             }
-        } finally {
-            conn.close();
         }
         deleteDb(getTestName());
     }

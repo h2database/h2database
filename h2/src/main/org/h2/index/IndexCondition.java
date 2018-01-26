@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -19,7 +19,7 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.table.Column;
-import org.h2.table.Table;
+import org.h2.table.TableType;
 import org.h2.util.StatementBuilder;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
@@ -149,7 +149,7 @@ public class IndexCondition {
      * @return the value list
      */
     public Value[] getCurrentValueList(Session session) {
-        HashSet<Value> valueSet = new HashSet<Value>();
+        HashSet<Value> valueSet = new HashSet<>();
         for (Expression e : expressionList) {
             Value v = e.getValue(session);
             v = column.convert(v);
@@ -248,7 +248,7 @@ public class IndexCondition {
         case Comparison.IN_LIST:
         case Comparison.IN_QUERY:
             if (indexConditions.size() > 1) {
-                if (!Table.TABLE.equals(column.getTable().getTableType())) {
+                if (TableType.TABLE != column.getTable().getTableType()) {
                     // if combined with other conditions,
                     // IN(..) can only be used for regular tables
                     // test case:

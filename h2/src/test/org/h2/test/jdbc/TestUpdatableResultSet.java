@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -266,8 +266,13 @@ public class TestUpdatableResultSet extends TestBase {
         assertTrue(rs.absolute(3));
         assertEquals(3, rs.getRow());
 
-        assertTrue(rs.absolute(-1));
-        assertEquals(3, rs.getRow());
+        if (!config.lazy) {
+            assertTrue(rs.absolute(-1));
+            assertEquals(3, rs.getRow());
+
+            assertTrue(rs.absolute(-2));
+            assertEquals(2, rs.getRow());
+        }
 
         assertFalse(rs.absolute(4));
         assertTrue(rs.isAfterLast());

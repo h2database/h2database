@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -43,7 +43,7 @@ public class ConditionInConstantSet extends Condition {
             ArrayList<Expression> valueList) {
         this.left = left;
         this.valueList = valueList;
-        this.valueSet = new TreeSet<Value>(new Comparator<Value>() {
+        this.valueSet = new TreeSet<>(new Comparator<Value>() {
             @Override
             public int compare(Value o1, Value o2) {
                 return session.getDatabase().compare(o1, o2);

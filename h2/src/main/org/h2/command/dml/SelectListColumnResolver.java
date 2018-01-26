@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,6 +11,7 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.util.ColumnNamer;
 import org.h2.value.Value;
 
 /**
@@ -35,9 +36,11 @@ public class SelectListColumnResolver implements ColumnResolver {
         columns = new Column[columnCount];
         expressions = new Expression[columnCount];
         ArrayList<Expression> columnList = select.getExpressions();
+        ColumnNamer columnNamer= new ColumnNamer(select.getSession());
         for (int i = 0; i < columnCount; i++) {
             Expression expr = columnList.get(i);
-            Column column = new Column(expr.getAlias(), Value.NULL);
+            String columnName = columnNamer.getColumnName(expr, i, expr.getAlias());
+            Column column = new Column(columnName, Value.NULL);
             column.setTable(null, i);
             columns[i] = column;
             expressions[i] = expr.getNonAliasExpression();

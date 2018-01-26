@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -17,17 +17,23 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.net.Socket;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
+import java.util.TimeZone;
 
 import org.h2.command.CommandInterface;
 import org.h2.engine.ConnectionInfo;
@@ -37,7 +43,6 @@ import org.h2.jdbc.JdbcPreparedStatement;
 import org.h2.jdbc.JdbcStatement;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
-import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.ScriptReader;
@@ -49,6 +54,8 @@ import org.h2.value.CaseInsensitiveMap;
  * One server thread is opened for each client.
  */
 public class PgServerThread implements Runnable {
+    private static final boolean INTEGER_DATE_TYPES = false;
+
     private final PgServer server;
     private Socket socket;
     private Connection conn;
@@ -64,14 +71,14 @@ public class PgServerThread implements Runnable {
     private String userName;
     private String databaseName;
     private int processId;
-    private int secret;
+    private final int secret;
     private JdbcStatement activeRequest;
     private String clientEncoding = SysProperties.PG_DEFAULT_CLIENT_ENCODING;
-    private String dateStyle = "ISO";
+    private String dateStyle = "ISO, MDY";
     private final HashMap<String, Prepared> prepared =
-            new CaseInsensitiveMap<Prepared>();
+            new CaseInsensitiveMap<>();
     private final HashMap<String, Portal> portals =
-            new CaseInsensitiveMap<Portal>();
+            new CaseInsensitiveMap<>();
 
     PgServerThread(Socket socket, PgServer server) {
         this.server = server;
@@ -183,6 +190,9 @@ public class PgServerThread implements Runnable {
                         // UTF8
                         clientEncoding = value;
                     } else if ("DateStyle".equals(param)) {
+                        if (value.indexOf(',') < 0) {
+                            value += ", MDY";
+                        }
                         dateStyle = value;
                     }
                     // extra_float_digits 2
@@ -230,15 +240,28 @@ public class PgServerThread implements Runnable {
             Prepared p = new Prepared();
             p.name = readString();
             p.sql = getSQL(readString());
-            int count = readShort();
-            p.paramType = new int[count];
-            for (int i = 0; i < count; i++) {
-                int type = readInt();
-                server.checkType(type);
-                p.paramType[i] = type;
+            int paramTypesCount = readShort();
+            int[] paramTypes = null;
+            if (paramTypesCount > 0) {
+                paramTypes = new int[paramTypesCount];
+                for (int i = 0; i < paramTypesCount; i++) {
+                    paramTypes[i] = readInt();
+                }
             }
             try {
                 p.prep = (JdbcPreparedStatement) conn.prepareStatement(p.sql);
+                ParameterMetaData meta = p.prep.getParameterMetaData();
+                p.paramType = new int[meta.getParameterCount()];
+                for (int i = 0; i < p.paramType.length; i++) {
+                    int type;
+                    if (i < paramTypesCount && paramTypes[i] != 0) {
+                        type = paramTypes[i];
+                        server.checkType(type);
+                    } else {
+                        type = PgServer.convertType(meta.getParameterType(i + 1));
+                    }
+                    p.paramType[i] = type;
+                }
                 prepared.put(p.name, p);
                 sendParseComplete();
             } catch (Exception e) {
@@ -308,7 +331,12 @@ public class PgServerThread implements Runnable {
                 if (p == null) {
                     sendErrorResponse("Prepared not found: " + name);
                 } else {
-                    sendParameterDescription(p);
+                    try {
+                        sendParameterDescription(p.prep.getParameterMetaData(), p.paramType);
+                        sendRowDescription(p.prep.getMetaData());
+                    } catch (Exception e) {
+                        sendErrorResponse(e);
+                    }
                 }
             } else if (type == 'P') {
                 Portal p = portals.get(name);
@@ -350,7 +378,7 @@ public class PgServerThread implements Runnable {
                         ResultSet rs = prep.getResultSet();
                         // the meta-data is sent in the prior 'Describe'
                         while (rs.next()) {
-                            sendDataRow(rs);
+                            sendDataRow(rs, p.resultColumnFormat);
                         }
                         sendCommandComplete(prep, 0);
                     } catch (Exception e) {
@@ -360,7 +388,7 @@ public class PgServerThread implements Runnable {
                     sendCommandComplete(prep, prep.getUpdateCount());
                 }
             } catch (Exception e) {
-                if (prep.wasCancelled()) {
+                if (prep.isCancelled()) {
                     sendCancelQueryResponse();
                 } else {
                     sendErrorResponse(e);
@@ -396,7 +424,7 @@ public class PgServerThread implements Runnable {
                         try {
                             sendRowDescription(meta);
                             while (rs.next()) {
-                                sendDataRow(rs);
+                                sendDataRow(rs, null);
                             }
                             sendCommandComplete(stat, 0);
                         } catch (Exception e) {
@@ -407,7 +435,7 @@ public class PgServerThread implements Runnable {
                         sendCommandComplete(stat, stat.getUpdateCount());
                     }
                 } catch (SQLException e) {
-                    if (stat != null && stat.wasCancelled()) {
+                    if (stat != null && stat.isCancelled()) {
                         sendCancelQueryResponse();
                     } else {
                         sendErrorResponse(e);
@@ -477,26 +505,48 @@ public class PgServerThread implements Runnable {
         sendMessage();
     }
 
-    private void sendDataRow(ResultSet rs) throws Exception {
+    private void sendDataRow(ResultSet rs, int[] formatCodes) throws Exception {
         ResultSetMetaData metaData = rs.getMetaData();
         int columns = metaData.getColumnCount();
         startMessage('D');
         writeShort(columns);
         for (int i = 1; i <= columns; i++) {
-            writeDataColumn(rs, i, PgServer.convertType(metaData.getColumnType(i)));
+            int pgType = PgServer.convertType(metaData.getColumnType(i));
+            boolean text = formatAsText(pgType);
+            if (formatCodes != null) {
+                if (formatCodes.length == 0) {
+                    text = true;
+                } else if (formatCodes.length == 1) {
+                    text = formatCodes[0] == 0;
+                } else if (i - 1 < formatCodes.length) {
+                    text = formatCodes[i - 1] == 0;
+                }
+            }
+            writeDataColumn(rs, i, pgType, text);
         }
         sendMessage();
     }
 
-    private void writeDataColumn(ResultSet rs, int column, int pgType)
+    private static long toPostgreSeconds(long millis) {
+        // TODO handle Julian/Gregorian transitions
+        return millis / 1000 - 946684800L;
+    }
+
+    private void writeDataColumn(ResultSet rs, int column, int pgType, boolean text)
             throws Exception {
-        if (formatAsText(pgType)) {
+        if (text) {
             // plain text
             switch (pgType) {
-            case PgServer.PG_TYPE_BOOL:
-                writeInt(1);
-                dataOut.writeByte(rs.getBoolean(column) ? 't' : 'f');
+            case PgServer.PG_TYPE_BOOL: {
+                boolean b = rs.getBoolean(column);
+                if (rs.wasNull()) {
+                    writeInt(-1);
+                } else {
+                    writeInt(1);
+                    dataOut.writeByte(b ? 't' : 'f');
+                }
                 break;
+            }
             default:
                 String s = rs.getString(column);
                 if (s == null) {
@@ -510,27 +560,57 @@ public class PgServerThread implements Runnable {
         } else {
             // binary
             switch (pgType) {
-            case PgServer.PG_TYPE_INT2:
-                writeInt(2);
-                writeShort(rs.getShort(column));
+            case PgServer.PG_TYPE_INT2: {
+                short s = rs.getShort(column);
+                if (rs.wasNull()) {
+                    writeInt(-1);
+                } else {
+                    writeInt(2);
+                    writeShort(s);
+                }
                 break;
-            case PgServer.PG_TYPE_INT4:
-                writeInt(4);
-                writeInt(rs.getInt(column));
+            }
+            case PgServer.PG_TYPE_INT4: {
+                int i = rs.getInt(column);
+                if (rs.wasNull()) {
+                    writeInt(-1);
+                } else {
+                    writeInt(4);
+                    writeInt(i);
+                }
                 break;
-            case PgServer.PG_TYPE_INT8:
-                writeInt(8);
-                dataOut.writeLong(rs.getLong(column));
+            }
+            case PgServer.PG_TYPE_INT8: {
+                long l = rs.getLong(column);
+                if (rs.wasNull()) {
+                    writeInt(-1);
+                } else {
+                    writeInt(8);
+                    dataOut.writeLong(l);
+                }
                 break;
-            case PgServer.PG_TYPE_FLOAT4:
-                writeInt(4);
-                dataOut.writeFloat(rs.getFloat(column));
+            }
+            case PgServer.PG_TYPE_FLOAT4: {
+                float f = rs.getFloat(column);
+                if (rs.wasNull()) {
+                    writeInt(-1);
+                } else {
+                    writeInt(4);
+                    dataOut.writeFloat(f);
+                }
                 break;
-            case PgServer.PG_TYPE_FLOAT8:
-                writeInt(8);
-                dataOut.writeDouble(rs.getDouble(column));
+            }
+            case PgServer.PG_TYPE_FLOAT8: {
+                double d = rs.getDouble(column);
+                if (rs.wasNull()) {
+                    writeInt(-1);
+                } else {
+                    writeInt(8);
+                    dataOut.writeDouble(d);
+                }
                 break;
-            case PgServer.PG_TYPE_BYTEA:
+            }
+            case PgServer.PG_TYPE_BYTEA: {
                 byte[] data = rs.getBytes(column);
                 if (data == null) {
                     writeInt(-1);
@@ -539,17 +619,73 @@ public class PgServerThread implements Runnable {
                     write(data);
                 }
                 break;
-
+            }
+            case PgServer.PG_TYPE_DATE: {
+                Date d = rs.getDate(column);
+                if (d == null) {
+                    writeInt(-1);
+                } else {
+                    writeInt(4);
+                    long millis = d.getTime();
+                    millis += TimeZone.getDefault().getOffset(millis);
+                    writeInt((int) (toPostgreSeconds(millis) / 86400));
+                }
+                break;
+            }
+            case PgServer.PG_TYPE_TIME: {
+                Time t = rs.getTime(column);
+                if (t == null) {
+                    writeInt(-1);
+                } else {
+                    writeInt(8);
+                    long m = t.getTime();
+                    m += TimeZone.getDefault().getOffset(m);
+                    if (INTEGER_DATE_TYPES) {
+                        // long format
+                        m *= 1000;
+                    } else {
+                        // double format
+                        m /= 1000;
+                        m = Double.doubleToLongBits(m);
+                    }
+                    dataOut.writeLong(m);
+                }
+                break;
+            }
+            case PgServer.PG_TYPE_TIMESTAMP_NO_TMZONE: {
+                Timestamp t = rs.getTimestamp(column);
+                if (t == null) {
+                    writeInt(-1);
+                } else {
+                    writeInt(8);
+                    long m = t.getTime();
+                    m += TimeZone.getDefault().getOffset(m);
+                    m = toPostgreSeconds(m);
+                    int nanos = t.getNanos();
+                    if (m < 0 && nanos != 0) {
+                        m--;
+                    }
+                    if (INTEGER_DATE_TYPES) {
+                        // long format
+                        m = m * 1000000 + nanos / 1000;
+                    } else {
+                        // double format
+                        m = Double.doubleToLongBits(m + nanos * 0.000000001);
+                    }
+                    dataOut.writeLong(m);
+                }
+                break;
+            }
             default: throw new IllegalStateException("output binary format is undefined");
             }
         }
     }
 
-    private String getEncoding() {
+    private Charset getEncoding() {
         if ("UNICODE".equals(clientEncoding)) {
-            return "UTF-8";
+            return StandardCharsets.UTF_8;
         }
-        return clientEncoding;
+        return Charset.forName(clientEncoding);
     }
 
     private void setParameter(PreparedStatement prep,
@@ -563,12 +699,33 @@ public class PgServerThread implements Runnable {
             // plain text
             byte[] data = DataUtils.newBytes(paramLen);
             readFully(data);
-            prep.setString(col, new String(data, getEncoding()));
+            String str = new String(data, getEncoding());
+            switch (pgType) {
+            case PgServer.PG_TYPE_DATE: {
+                // Strip timezone offset
+                int idx = str.indexOf(' ');
+                if (idx > 0) {
+                    str = str.substring(0, idx);
+                }
+                break;
+            }
+            case PgServer.PG_TYPE_TIME: {
+                // Strip timezone offset
+                int idx = str.indexOf('+');
+                if (idx <= 0)
+                    idx = str.indexOf('-');
+                if (idx > 0) {
+                    str = str.substring(0, idx);
+                }
+                break;
+            }
+            }
+            prep.setString(col, str);
         } else {
             // binary
             switch (pgType) {
             case PgServer.PG_TYPE_INT2:
-                checkParamLength(4, paramLen);
+                checkParamLength(2, paramLen);
                 prep.setShort(col, readShort());
                 break;
             case PgServer.PG_TYPE_INT4:
@@ -636,27 +793,22 @@ public class PgServerThread implements Runnable {
         sendMessage();
     }
 
-    private void sendParameterDescription(Prepared p) throws IOException {
-        try {
-            PreparedStatement prep = p.prep;
-            ParameterMetaData meta = prep.getParameterMetaData();
-            int count = meta.getParameterCount();
-            startMessage('t');
-            writeShort(count);
-            for (int i = 0; i < count; i++) {
-                int type;
-                if (p.paramType != null && p.paramType[i] != 0) {
-                    type = p.paramType[i];
-                } else {
-                    type = PgServer.PG_TYPE_VARCHAR;
-                }
-                server.checkType(type);
-                writeInt(type);
+    private void sendParameterDescription(ParameterMetaData meta,
+            int[] paramTypes) throws Exception {
+        int count = meta.getParameterCount();
+        startMessage('t');
+        writeShort(count);
+        for (int i = 0; i < count; i++) {
+            int type;
+            if (paramTypes != null && paramTypes[i] != 0) {
+                type = paramTypes[i];
+            } else {
+                type = PgServer.PG_TYPE_VARCHAR;
             }
-            sendMessage();
-        } catch (Exception e) {
-            sendErrorResponse(e);
+            server.checkType(type);
+            writeInt(type);
         }
+        sendMessage();
     }
 
     private void sendNoData() throws IOException {
@@ -804,10 +956,8 @@ public class PgServerThread implements Runnable {
     }
 
     private static void installPgCatalog(Statement stat) throws SQLException {
-        Reader r = null;
-        try {
-            r = new InputStreamReader(new ByteArrayInputStream(Utils
-                    .getResource("/org/h2/server/pg/pg_catalog.sql")));
+        try (Reader r = new InputStreamReader(new ByteArrayInputStream(Utils
+                    .getResource("/org/h2/server/pg/pg_catalog.sql")))) {
             ScriptReader reader = new ScriptReader(r);
             while (true) {
                 String sql = reader.readStatement();
@@ -819,8 +969,6 @@ public class PgServerThread implements Runnable {
             reader.close();
         } catch (IOException e) {
             throw DbException.convertIOException(e, "Can not read pg_catalog resource");
-        } finally {
-            IOUtils.closeSilently(r);
         }
     }
 
@@ -863,6 +1011,7 @@ public class PgServerThread implements Runnable {
         sendParameterStatus("standard_conforming_strings", "off");
         // TODO PostgreSQL TimeZone
         sendParameterStatus("TimeZone", "CET");
+        sendParameterStatus("integer_datetimes", INTEGER_DATE_TYPES ? "on" : "off");
         sendBackendKeyData();
         sendReadyForQuery();
     }

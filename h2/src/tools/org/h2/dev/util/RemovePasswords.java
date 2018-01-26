@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
+import java.nio.charset.StandardCharsets;
 
 import org.h2.engine.Constants;
 import org.h2.security.SHA256;
@@ -45,7 +46,7 @@ public class RemovePasswords {
             }
             buff.position(i);
             buff.get(data);
-            String s = new String(data, "UTF-8");
+            String s = new String(data, StandardCharsets.UTF_8);
             if (!s.startsWith("CREATE USER ")) {
                 continue;
             }

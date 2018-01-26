@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -28,6 +28,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.jar.JarOutputStream;
 import java.util.zip.CRC32;
 import java.util.zip.Deflater;
@@ -57,7 +59,7 @@ public class BuildBase {
     @Target(ElementType.METHOD)
     @Documented
     public static @interface Description {
-      String summary() default "";
+        String summary() default "";
     }
 
     /**
@@ -177,13 +179,13 @@ public class BuildBase {
     /**
      * The full path to the executable of the current JRE.
      */
-    protected String javaExecutable = System.getProperty("java.home") +
+    protected final String javaExecutable = System.getProperty("java.home") +
             File.separator + "bin" + File.separator + "java";
 
     /**
      * The full path to the tools jar of the current JDK.
      */
-    protected String javaToolsJar = System.getProperty("java.home") + File.separator + ".." +
+    protected final String javaToolsJar = System.getProperty("java.home") + File.separator + ".." +
             File.separator + "lib" + File.separator + "tools.jar";
 
     /**
@@ -192,7 +194,7 @@ public class BuildBase {
      * @param args the command line parameters
      */
     protected void run(String... args) {
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         if (args.length == 0) {
             all();
         } else {
@@ -220,7 +222,7 @@ public class BuildBase {
                 }
             }
         }
-        println("Done in " + (System.currentTimeMillis() - time) + " ms");
+        println("Done in " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time) + " ms");
     }
 
     private boolean runTarget(String target) {
@@ -254,13 +256,13 @@ public class BuildBase {
             } else if (line.length() == 0) {
                 line = last;
             }
-            long time = System.currentTimeMillis();
+            long time = System.nanoTime();
             try {
                 runTarget(line);
             } catch (Exception e) {
                 System.out.println(e);
             }
-            println("Done in " + (System.currentTimeMillis() - time) + " ms");
+            println("Done in " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time) + " ms");
             last = line;
         }
     }
@@ -317,7 +319,8 @@ public class BuildBase {
             if (!Modifier.isStatic(mod) && Modifier.isPublic(mod)
                     && m.getParameterTypes().length == 0) {
                 if (m.isAnnotationPresent(Description.class)) {
-                    description = String.format("%1$-20s %2$s", m.getName(), m.getAnnotation(Description.class).summary());
+                    description = String.format("%1$-20s %2$s",
+                            m.getName(), m.getAnnotation(Description.class).summary());
                 } else {
                     description = m.getName();
                 }
@@ -355,7 +358,8 @@ public class BuildBase {
     }
 
     /**
-     * Execute java in a separate process, but using the java executable of the current JRE.
+     * Execute java in a separate process, but using the java executable of the
+     * current JRE.
      *
      * @param args the command line parameters for the java command
      * @return the exit value
@@ -472,7 +476,7 @@ public class BuildBase {
         }
     }
 
-    private PrintStream filter(PrintStream out, final String[] exclude) {
+    private static PrintStream filter(PrintStream out, final String[] exclude) {
         return new PrintStream(new FilterOutputStream(out) {
             private ByteArrayOutputStream buff = new ByteArrayOutputStream();
 
@@ -492,7 +496,7 @@ public class BuildBase {
                 buff.write(b);
                 if (b == '\n') {
                     byte[] data = buff.toByteArray();
-                    String line = new String(data, "UTF-8");
+                    String line = new String(data, StandardCharsets.UTF_8);
                     boolean print = true;
                     for (String l : exclude) {
                         if (line.startsWith(l)) {
@@ -597,7 +601,7 @@ public class BuildBase {
         if (targetFile.exists()) {
             return;
         }
-        String repoFile = group + "/" + artifact + "/" + version + "/"
+        String repoFile = group.replace('.', '/') + "/" + artifact + "/" + version + "/"
                 + artifact + "-" + version + ".jar";
         mkdirs(targetFile.getAbsoluteFile().getParentFile());
         String localMavenDir = getLocalMavenDir();
@@ -658,11 +662,11 @@ public class BuildBase {
             println("Downloading " + fileURL);
             URL url = new URL(fileURL);
             InputStream in = new BufferedInputStream(url.openStream());
-            long last = System.currentTimeMillis();
+            long last = System.nanoTime();
             int len = 0;
             while (true) {
-                long now = System.currentTimeMillis();
-                if (now > last + 1000) {
+                long now = System.nanoTime();
+                if (now > last + TimeUnit.SECONDS.toNanos(1)) {
                     println("Downloaded " + len + " bytes");
                     last = now;
                 }
@@ -839,6 +843,35 @@ public class BuildBase {
                         comp = p1.compareTo(p2);
                     }
                     return comp;
+                }
+            });
+        } else if (jar) {
+            Collections.sort(files, new Comparator<File>() {
+                private int priority(String path) {
+                    if (path.startsWith("META-INF/")) {
+                        if (path.equals("META-INF/MANIFEST.MF")) {
+                            return 0;
+                        }
+                        if (path.startsWith("services/", 9)) {
+                            return 1;
+                        }
+                        return 2;
+                    }
+                    if (!path.endsWith(".zip")) {
+                        return 3;
+                    }
+                    return 4;
+                }
+
+                @Override
+                public int compare(File f1, File f2) {
+                    String p1 = f1.getPath();
+                    String p2 = f2.getPath();
+                    int comp = Integer.compare(priority(p1), priority(p2));
+                    if (comp != 0) {
+                        return comp;
+                    }
+                    return p1.compareTo(p2);
                 }
             });
         }

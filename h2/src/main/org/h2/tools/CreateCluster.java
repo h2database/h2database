@@ -1,23 +1,26 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
 
+import java.io.IOException;
+import java.io.PipedReader;
+import java.io.PipedWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
-import org.h2.api.ErrorCode;
-import org.h2.engine.Constants;
-import org.h2.store.fs.FileUtils;
-import org.h2.util.JdbcUtils;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.h2.util.Tool;
 
 /**
- * Creates a cluster from a standalone database.
+ * Creates a cluster from a stand-alone database.
  * <br />
  * Copies a database to another location if required.
  * @h2.resource
@@ -95,86 +98,89 @@ public class CreateCluster extends Tool {
         process(urlSource, urlTarget, user, password, serverList);
     }
 
-    private void process(String urlSource, String urlTarget,
+    private static void process(String urlSource, String urlTarget,
             String user, String password, String serverList) throws SQLException {
-        Connection connSource = null, connTarget = null;
-        Statement statSource = null, statTarget = null;
-        String scriptFile = "backup.sql";
-        try {
-            org.h2.Driver.load();
+        org.h2.Driver.load();
 
-            // verify that the database doesn't exist,
-            // or if it exists (an old cluster instance), it is deleted
-            boolean exists = true;
-            try {
-                connTarget = DriverManager.getConnection(urlTarget +
-                        ";IFEXISTS=TRUE;CLUSTER=" + Constants.CLUSTERING_ENABLED,
-                        user, password);
-                Statement stat = connTarget.createStatement();
-                stat.execute("DROP ALL OBJECTS DELETE FILES");
-                stat.close();
-                exists = false;
-                connTarget.close();
-            } catch (SQLException e) {
-                if (e.getErrorCode() == ErrorCode.DATABASE_NOT_FOUND_1) {
-                    // database does not exists yet - ok
-                    exists = false;
-                } else {
-                    throw e;
-                }
-            }
-            if (exists) {
-                throw new SQLException(
-                        "Target database must not yet exist. Please delete it first: " +
-                        urlTarget);
-            }
-
-            // use cluster='' so connecting is possible
-            // even if the cluster is enabled
-            connSource = DriverManager.getConnection(urlSource +
-                    ";CLUSTER=''", user, password);
-            statSource = connSource.createStatement();
-
+        // use cluster='' so connecting is possible
+        // even if the cluster is enabled
+        try (Connection connSource = DriverManager.getConnection(urlSource + ";CLUSTER=''", user, password);
+                Statement statSource = connSource.createStatement()) {
             // enable the exclusive mode and close other connections,
             // so that data can't change while restoring the second database
             statSource.execute("SET EXCLUSIVE 2");
-
             try {
+                performTransfer(statSource, urlTarget, user, password, serverList);
+            } finally {
+                // switch back to the regular mode
+                statSource.execute("SET EXCLUSIVE FALSE");
+            }
+        }
+    }
 
-                // backup
-                Script script = new Script();
-                script.setOut(out);
-                Script.process(connSource, scriptFile, "", "");
+    private static void performTransfer(Statement statSource, String urlTarget, String user, String password,
+            String serverList) throws SQLException {
 
-                // delete the target database and then restore
-                connTarget = DriverManager.getConnection(
-                        urlTarget + ";CLUSTER=''", user, password);
-                statTarget = connTarget.createStatement();
-                statTarget.execute("DROP ALL OBJECTS DELETE FILES");
-                connTarget.close();
+        // Delete the target database first.
+        try (Connection connTarget = DriverManager.getConnection(urlTarget + ";CLUSTER=''", user, password);
+                Statement statTarget = connTarget.createStatement()) {
+            statTarget.execute("DROP ALL OBJECTS DELETE FILES");
+        }
 
-                RunScript runScript = new RunScript();
-                runScript.setOut(out);
-                runScript.process(urlTarget, user, password, scriptFile, null, false);
+        try (PipedReader pipeReader = new PipedReader()) {
+            Future<?> threadFuture = startWriter(pipeReader, statSource);
 
-                connTarget = DriverManager.getConnection(urlTarget, user, password);
-                statTarget = connTarget.createStatement();
+            // Read data from pipe reader, restore on target.
+            try (Connection connTarget = DriverManager.getConnection(urlTarget, user, password);
+                    Statement statTarget = connTarget.createStatement()) {
+                RunScript.execute(connTarget, pipeReader);
+
+                // Check if the writer encountered any exception
+                try {
+                    threadFuture.get();
+                } catch (ExecutionException ex) {
+                    throw new SQLException(ex.getCause());
+                } catch (InterruptedException ex) {
+                    throw new SQLException(ex);
+                }
 
                 // set the cluster to the serverList on both databases
                 statSource.executeUpdate("SET CLUSTER '" + serverList + "'");
                 statTarget.executeUpdate("SET CLUSTER '" + serverList + "'");
-            } finally {
-
-                // switch back to the regular mode
-                statSource.execute("SET EXCLUSIVE FALSE");
             }
-        } finally {
-            FileUtils.delete(scriptFile);
-            JdbcUtils.closeSilently(statSource);
-            JdbcUtils.closeSilently(statTarget);
-            JdbcUtils.closeSilently(connSource);
-            JdbcUtils.closeSilently(connTarget);
+        } catch (IOException ex) {
+            throw new SQLException(ex);
         }
+    }
+
+    private static Future<?> startWriter(final PipedReader pipeReader,
+            final Statement statSource) {
+        final ExecutorService thread = Executors.newFixedThreadPool(1);
+
+        // Since exceptions cannot be thrown across thread boundaries, return
+        // the task's future so we can check manually
+        Future<?> threadFuture = thread.submit(new Runnable() {
+            @Override
+            public void run() {
+                // If the creation of the piped writer fails, the reader will
+                // throw an IOException as soon as read() is called: IOException
+                // - if the pipe is broken, unconnected, closed, or an I/O error
+                // occurs. The reader's IOException will then trigger the
+                // finally{} that releases exclusive mode on the source DB.
+                try (final PipedWriter pipeWriter = new PipedWriter(pipeReader);
+                        final ResultSet rs = statSource.executeQuery("SCRIPT")) {
+                    while (rs.next()) {
+                        pipeWriter.write(rs.getString(1) + "\n");
+                    }
+                } catch (SQLException | IOException ex) {
+                    throw new IllegalStateException("Producing script from the source DB is failing.", ex);
+                }
+            }
+        });
+
+        thread.shutdown();
+
+        return threadFuture;
     }
 
 }

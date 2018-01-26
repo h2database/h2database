@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.mvstore.MVStore;
 import org.h2.test.TestBase;
@@ -39,7 +40,7 @@ public class TestMVStoreBenchmark extends TestBase {
         if (!config.big) {
             return;
         }
-        if (config.coverage || config.codeCoverage) {
+        if (config.codeCoverage) {
             // run only when _not_ using a code coverage tool,
             // because the tool might instrument our code but not
             // java.util.*
@@ -124,7 +125,7 @@ public class TestMVStoreBenchmark extends TestBase {
 
     static long getMemory() {
         try {
-            LinkedList<byte[]> list = new LinkedList<byte[]>();
+            LinkedList<byte[]> list = new LinkedList<>();
             while (true) {
                 list.add(new byte[1024]);
             }
@@ -155,10 +156,10 @@ public class TestMVStoreBenchmark extends TestBase {
             MVStore store = MVStore.open(null);
             map = store.openMap("test");
             mv = testPerformance(map, size);
-            map = new HashMap<Integer, String>(size);
+            map = new HashMap<>(size);
             // map = new ConcurrentHashMap<Integer, String>(size);
             hash = testPerformance(map, size);
-            map = new TreeMap<Integer, String>();
+            map = new TreeMap<>();
             // map = new ConcurrentSkipListMap<Integer, String>();
             tree = testPerformance(map, size);
             if (hash < tree && mv < tree * 1.5) {
@@ -175,7 +176,7 @@ public class TestMVStoreBenchmark extends TestBase {
         System.gc();
         long time = 0;
         for (int t = 0; t < 3; t++) {
-            time = System.currentTimeMillis();
+            time = System.nanoTime();
             for (int b = 0; b < 3; b++) {
                 for (int i = 0; i < size; i++) {
                     map.put(i, "Hello World");
@@ -191,9 +192,9 @@ public class TestMVStoreBenchmark extends TestBase {
                 }
                 assertEquals(0, map.size());
             }
-            time = System.currentTimeMillis() - time;
+            time = System.nanoTime() - time;
         }
-        trace(map.getClass().getName() + ": " + time);
+        trace(map.getClass().getName() + ": " + TimeUnit.NANOSECONDS.toMillis(time));
         return time;
     }
 

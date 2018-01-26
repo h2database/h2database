@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -13,11 +13,13 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import org.h2.api.GeoRaster;
 import org.h2.engine.Constants;
+import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
@@ -28,6 +30,7 @@ import org.h2.store.FileStoreOutputStream;
 import org.h2.store.LobStorageFrontend;
 import org.h2.store.LobStorageInterface;
 import org.h2.store.fs.FileUtils;
+import org.h2.table.Column;
 import org.h2.util.*;
 
 /**
@@ -56,8 +59,13 @@ public class ValueLobDb extends Value implements Value.ValueClob,
 
     private final String fileName;
     private final FileStore tempFile;
-    private int tableId;
+    private final int tableId;
     private int hash;
+
+    //Arbonaut: 13.07.2016
+    // Fix for recovery tool.
+
+    private boolean isRecoveryReference;
 
     private ValueLobDb(int type, DataHandler handler, int tableId, long lobId,
             byte[] hmac, long precision) {
@@ -81,6 +89,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         this.handler = null;
         this.fileName = null;
         this.tempFile = null;
+        this.tableId = 0;
     }
 
     /**
@@ -96,9 +105,9 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         this.fileName = createTempLobFileName(handler);
         this.tempFile = this.handler.openFile(fileName, "rw", false);
         this.tempFile.autoDelete();
-        FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null, null);
+
         long tmpPrecision = 0;
-        try {
+        try (FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null, null)) {
             char[] buff = new char[Constants.IO_BUFFER_SIZE];
             while (true) {
                 int len = getBufferSize(this.handler, false, remaining);
@@ -106,14 +115,13 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                 if (len == 0) {
                     break;
                 }
-                byte[] data = new String(buff, 0, len).getBytes("UTF-8");
+                byte[] data = new String(buff, 0, len).getBytes(StandardCharsets.UTF_8);
                 out.write(data);
                 tmpPrecision += len;
             }
-        } finally {
-            out.close();
         }
         this.precision = tmpPrecision;
+        this.tableId = 0;
     }
 
     /**
@@ -129,10 +137,9 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         this.fileName = createTempLobFileName(handler);
         this.tempFile = this.handler.openFile(fileName, "rw", false);
         this.tempFile.autoDelete();
-        FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null, null);
         long tmpPrecision = 0;
         boolean compress = this.handler.getLobCompressionAlgorithm(Value.BLOB) != null;
-        try {
+        try (FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null, null)) {
             while (true) {
                 tmpPrecision += len;
                 out.write(buff, 0, len);
@@ -146,10 +153,9 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                     break;
                 }
             }
-        } finally {
-            out.close();
         }
         this.precision = tmpPrecision;
+        this.tableId = 0;
     }
 
     private static String createTempLobFileName(DataHandler handler)
@@ -182,10 +188,13 @@ public class ValueLobDb extends Value implements Value.ValueClob,
      * except when converting to BLOB or CLOB.
      *
      * @param t the new type
+     * @param precision the precision
+     * @param mode the mode
+     * @param column the column
      * @return the converted value
      */
     @Override
-    public Value convertTo(int t) {
+    public Value convertTo(int t, int precision, Mode mode, Column column) {
         if (t == type) {
             return this;
         } else if (t == Value.CLOB) {
@@ -213,7 +222,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                 return ValueLobDb.createSmallLob(t, small);
             }
         }
-        return super.convertTo(t);
+        return super.convertTo(t, precision, mode, column);
     }
 
     @Override
@@ -300,7 +309,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             try {
                 if (type == Value.CLOB) {
                     if (small != null) {
-                        return new String(small, Constants.UTF8);
+                        return new String(small, StandardCharsets.UTF_8);
                     }
                     return IOUtils.readStringAndClose(getReader(), len);
                 }
@@ -394,6 +403,11 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     }
 
     @Override
+    public Reader getReader(long oneBasedOffset, long length) {
+        return ValueLob.rangeReader(getReader(), oneBasedOffset, length, type == Value.CLOB ? precision : -1);
+    }
+
+    @Override
     public InputStream getInputStream() {
         if (small != null) {
             return new ByteArrayInputStream(small);
@@ -410,6 +424,29 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         } catch (IOException e) {
             throw DbException.convertIOException(e, toString());
         }
+    }
+
+    @Override
+    public InputStream getInputStream(long oneBasedOffset, long length) {
+        long byteCount;
+        InputStream inputStream;
+        if (small != null) {
+            return super.getInputStream(oneBasedOffset, length);
+        } else if (fileName != null) {
+            FileStore store = handler.openFile(fileName, "r", true);
+            boolean alwaysClose = SysProperties.lobCloseBetweenReads;
+            byteCount = store.length();
+            inputStream = new BufferedInputStream(new FileStoreInputStream(store,
+                    handler, false, alwaysClose), Constants.IO_BUFFER_SIZE);
+        } else {
+            byteCount = (type == Value.BLOB) ? precision : -1;
+            try {
+                inputStream = handler.getLobStorage().getInputStream(this, hmac, byteCount);
+            } catch (IOException e) {
+                throw DbException.convertIOException(e, toString());
+            }
+        }
+        return ValueLob.rangeInputStream(inputStream, oneBasedOffset, length, byteCount);
     }
 
     @Override
@@ -555,7 +592,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                 len = IOUtils.readFully(reader, buff, len);
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
-                byte[] small = new String(buff, 0, len).getBytes(Constants.UTF8);
+                byte[] small = new String(buff, 0, len).getBytes(StandardCharsets.UTF_8);
                 return ValueLobDb.createSmallLob(Value.CLOB, small, len);
             }
             reader.reset();
@@ -604,8 +641,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                 len = IOUtils.readFully(in, buff, len);
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
-                byte[] small = DataUtils.newBytes(len);
-                System.arraycopy(buff, 0, small, 0, len);
+                byte[] small = DataUtils.copyBytes(buff, len);
                 return ValueLobDb.createSmallLob(type, small, small.length);
             }
             ValueLobDb lob = new ValueLobDb(handler, buff, len, in,
@@ -651,7 +687,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                 try {
                     int p = MathUtils.convertLongToInt(precision);
                     String s = IOUtils.readStringAndClose(getReader(), p);
-                    byte[] data = s.getBytes(Constants.UTF8);
+                    byte[] data = s.getBytes(StandardCharsets.UTF_8);
                     lob = ValueLobDb.createSmallLob(type, data, s.length());
                 } catch (IOException e) {
                     throw DbException.convertIOException(e, null);
@@ -685,7 +721,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     public static Value createSmallLob(int type, byte[] small) {
         int precision;
         if (type == Value.CLOB) {
-            precision = new String(small, Constants.UTF8).length();
+            precision = new String(small, StandardCharsets.UTF_8).length();
         } else {
             precision = small.length;
         }
@@ -704,6 +740,16 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             long precision) {
         return new ValueLobDb(type, small, precision);
     }
+
+
+    public void setRecoveryReference(boolean isRecoveryReference) {
+        this.isRecoveryReference = isRecoveryReference;
+    }
+
+    public boolean isRecoveryReference() {
+        return isRecoveryReference;
+    }
+
 
     public static ValueLobDb createFromGeoRaster(GeoRaster geoRaster) {
         try {
@@ -758,13 +804,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         public Value copy(DataHandler database, int tableId) {
             ValueLobDb val = (ValueLobDb)database.getLobStorage().createRaster
                     (getInputStream
-                    (), -1);
+                            (), -1);
             return database.getLobStorage().copyLob(val, tableId, getPrecision());
         }
-
-        @Override
-        public boolean isStored() {
-            return false;
-        }
-    }
 }

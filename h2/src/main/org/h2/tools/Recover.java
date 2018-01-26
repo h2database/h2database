@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -15,6 +15,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.SequenceInputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -201,7 +202,7 @@ public class Recover extends Tool implements DataHandler {
      */
     public static Reader readClob(String fileName) throws IOException {
         return new BufferedReader(new InputStreamReader(readBlob(fileName),
-                Constants.UTF8));
+                StandardCharsets.UTF_8));
     }
 
     /**
@@ -218,8 +219,10 @@ public class Recover extends Tool implements DataHandler {
             long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
         verifyPageStore(h);
-        return ValueLobDb.create(Value.BLOB, h, LobStorageFrontend.TABLE_TEMP,
+        ValueLobDb lob = ValueLobDb.create(Value.BLOB, h, LobStorageFrontend.TABLE_TEMP,
                 lobId, null, precision);
+        lob.setRecoveryReference(true);
+        return lob;
     }
 
     private static void verifyPageStore(DataHandler h) {
@@ -237,8 +240,10 @@ public class Recover extends Tool implements DataHandler {
             long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
         verifyPageStore(h);
-        return ValueLobDb.create(Value.CLOB, h, LobStorageFrontend.TABLE_TEMP,
+        ValueLobDb lob =  ValueLobDb.create(Value.CLOB, h, LobStorageFrontend.TABLE_TEMP,
                 lobId, null, precision);
+        lob.setRecoveryReference(true);
+        return lob;
     }
 
     /**
@@ -293,7 +298,7 @@ public class Recover extends Tool implements DataHandler {
     public static Reader readClobMap(Connection conn, long lobId, long precision)
             throws Exception {
         InputStream in = readBlobMap(conn, lobId, precision);
-        return new BufferedReader(new InputStreamReader(in, Constants.UTF8));
+        return new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
     }
 
     private void trace(String message) {
@@ -548,7 +553,7 @@ public class Recover extends Tool implements DataHandler {
             dumpPageStore(devNull, pageCount);
             stat = new Stats();
             schema.clear();
-            objectIdSet = New.hashSet();
+            objectIdSet = new HashSet<>();
             dumpPageStore(writer, pageCount);
             writeSchema(writer);
             try {
@@ -1472,7 +1477,7 @@ public class Recover extends Tool implements DataHandler {
 
     private void writeRow(PrintWriter writer, Data s, Value[] data) {
         StringBuilder sb = new StringBuilder();
-        sb.append("INSERT INTO " + storageName + " VALUES(");
+        sb.append("INSERT INTO ").append(storageName).append(" VALUES(");
         for (valueId = 0; valueId < recordLength; valueId++) {
             try {
                 Value v = s.readValue();
@@ -1510,9 +1515,9 @@ public class Recover extends Tool implements DataHandler {
 
     private void resetSchema() {
         schema = New.arrayList();
-        objectIdSet = New.hashSet();
-        tableMap = New.hashMap();
-        columnTypeMap = New.hashMap();
+        objectIdSet = new HashSet<>();
+        tableMap = new HashMap<>();
+        columnTypeMap = new HashMap<>();
     }
 
     private void writeSchema(PrintWriter writer) {

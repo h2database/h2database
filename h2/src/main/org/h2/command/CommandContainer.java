@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -12,6 +12,7 @@ import org.h2.command.dml.Query;
 import org.h2.expression.Parameter;
 import org.h2.expression.ParameterInterface;
 import org.h2.result.ResultInterface;
+import org.h2.table.TableView;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -55,9 +56,12 @@ public class CommandContainer extends Command {
 
     private static void prepareJoinBatch(Prepared prepared) {
         if (prepared.isQuery()) {
-            if (prepared.getType() == CommandInterface.SELECT) {
+            int type = prepared.getType();
+
+            if (type == CommandInterface.SELECT) {
                 ((Query) prepared).prepareJoinBatch();
-            } else if (prepared.getType() == CommandInterface.EXPLAIN) {
+            } else if (type == CommandInterface.EXPLAIN ||
+                    type == CommandInterface.EXPLAIN_ANALYZE) {
                 prepareJoinBatch(((Explain) prepared).getCommand());
             }
         }
@@ -96,7 +100,7 @@ public class CommandContainer extends Command {
         session.setLastScopeIdentity(ValueNull.INSTANCE);
         prepared.checkParameters();
         int updateCount = prepared.update();
-        prepared.trace(startTime, updateCount);
+        prepared.trace(startTimeNanos, updateCount);
         setProgress(DatabaseEventListener.STATE_STATEMENT_END);
         return updateCount;
     }
@@ -108,9 +112,30 @@ public class CommandContainer extends Command {
         start();
         prepared.checkParameters();
         ResultInterface result = prepared.query(maxrows);
-        prepared.trace(startTime, result.getRowCount());
+        prepared.trace(startTimeNanos, result.isLazy() ? 0 : result.getRowCount());
         setProgress(DatabaseEventListener.STATE_STATEMENT_END);
         return result;
+    }
+
+    @Override
+    public void stop() {
+        super.stop();
+        // Clean up after the command was run in the session.
+        // Must restart query (and dependency construction) to reuse.
+        if (prepared.getCteCleanups() != null) {
+            for (TableView view : prepared.getCteCleanups()) {
+                // check if view was previously deleted as their name is set to
+                // null
+                if (view.getName() != null) {
+                    session.removeLocalTempTable(view);
+                }
+            }
+        }
+    }
+
+    @Override
+    public boolean canReuse() {
+        return super.canReuse() && prepared.getCteCleanups() == null;
     }
 
     @Override

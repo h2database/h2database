@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -7,7 +7,6 @@ package org.h2.engine;
 
 import java.io.Closeable;
 import java.util.ArrayList;
-
 import org.h2.command.CommandInterface;
 import org.h2.message.Trace;
 import org.h2.store.DataHandler;
@@ -134,4 +133,24 @@ public interface SessionInterface extends Closeable {
      */
     void addTemporaryLob(Value v);
 
+    /**
+     * Check if this session is remote or embedded.
+     *
+     * @return true if this session is remote
+     */
+    boolean isRemote();
+
+    /**
+     * Set current schema.
+     *
+     * @param schema the schema name
+     */
+    void setCurrentSchemaName(String schema);
+
+    /**
+     * Get current schema.
+     *
+     * @return the current schema name
+     */
+    String getCurrentSchemaName();
 }

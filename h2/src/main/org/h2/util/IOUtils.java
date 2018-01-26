@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -19,6 +19,8 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
@@ -36,11 +38,27 @@ public class IOUtils {
     }
 
     /**
-     * Close an output stream without throwing an exception.
+     * Close a Closeable without throwing an exception.
      *
-     * @param out the output stream or null
+     * @param out the Closeablem or null
      */
     public static void closeSilently(Closeable out) {
+        if (out != null) {
+            try {
+                trace("closeSilently", null, out);
+                out.close();
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+    }
+
+    /**
+     * Close an AutoCloseable without throwing an exception.
+     *
+     * @param out the AutoCloseable or null
+     */
+    public static void closeSilently(AutoCloseable out) {
         if (out != null) {
             try {
                 trace("closeSilently", null, out);
@@ -257,7 +275,6 @@ public class IOUtils {
     public static void closeSilently(Writer writer) {
         if (writer != null) {
             try {
-                writer.flush();
                 writer.close();
             } catch (Exception e) {
                 // ignore
@@ -408,7 +425,7 @@ public class IOUtils {
      */
     public static Reader getBufferedReader(InputStream in) {
         return in == null ? null : new BufferedReader(
-                new InputStreamReader(in, Constants.UTF8));
+                new InputStreamReader(in, StandardCharsets.UTF_8));
     }
 
     /**
@@ -423,7 +440,7 @@ public class IOUtils {
     public static Reader getReader(InputStream in) {
         // InputStreamReader may read some more bytes
         return in == null ? null : new BufferedReader(
-                new InputStreamReader(in, Constants.UTF8));
+                new InputStreamReader(in, StandardCharsets.UTF_8));
     }
 
     /**
@@ -435,7 +452,7 @@ public class IOUtils {
      */
     public static Writer getBufferedWriter(OutputStream out) {
         return out == null ? null : new BufferedWriter(
-                new OutputStreamWriter(out, Constants.UTF8));
+                new OutputStreamWriter(out, StandardCharsets.UTF_8));
     }
 
     /**
@@ -446,12 +463,7 @@ public class IOUtils {
      * @return the reader
      */
     public static Reader getAsciiReader(InputStream in) {
-        try {
-            return in == null ? null : new InputStreamReader(in, "US-ASCII");
-        } catch (Exception e) {
-            // UnsupportedEncodingException
-            throw DbException.convert(e);
-        }
+        return in == null ? null : new InputStreamReader(in, StandardCharsets.US_ASCII);
     }
 
     /**
@@ -479,7 +491,7 @@ public class IOUtils {
         if (s == null) {
             return null;
         }
-        return new ByteArrayInputStream(s.getBytes(Constants.UTF8));
+        return new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8));
     }
 
     /**

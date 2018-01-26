@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -13,7 +13,6 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-
 import org.h2.test.TestBase;
 
 /**
@@ -64,7 +63,7 @@ public class TestMvcc4 extends TestBase {
         }
 
         //Create a connection from thread 1
-        Connection c1 = getConnection("mvcc4");
+        Connection c1 = getConnection("mvcc4;LOCK_TIMEOUT=10000");
         c1.setAutoCommit(false);
 
         //Fire off a concurrent update.
@@ -128,22 +127,28 @@ public class TestMvcc4 extends TestBase {
      *
      * @param t the thread
      */
-    static void waitForThreadToBlockOnDB(Thread t) {
+    void waitForThreadToBlockOnDB(Thread t) {
         while (true) {
+            // sleep the first time through the loop so we give the main thread
+            // a chance
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException e1) {
+                // ignore
+            }
             // TODO must not use getAllStackTraces, as the method names are
             // implementation details
             Map<Thread, StackTraceElement[]> threadMap = Thread.getAllStackTraces();
             StackTraceElement[] elements = threadMap.get(t);
             if (elements != null
-                    && elements.length > 1
-                    && "wait".equals(elements[0].getMethodName())
-                    && "filterConcurrentUpdate".equals(elements[1].getMethodName())) {
+                    &&
+                    elements.length > 1 &&
+                    (config.multiThreaded ? "sleep".equals(elements[0]
+                            .getMethodName()) : "wait".equals(elements[0]
+                            .getMethodName())) &&
+                    "filterConcurrentUpdate"
+                            .equals(elements[1].getMethodName())) {
                 return;
-            }
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e1) {
-                // ignore
             }
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -23,7 +23,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
@@ -354,7 +353,7 @@ public class Csv implements SimpleRowSource {
                 if (v.length() == 0) {
                     v = "COLUMN" + list.size();
                 } else if (!caseSensitiveColumnNames && isSimpleColumnName(v)) {
-                    v = v.toUpperCase();
+                    v = StringUtils.toUpperEnglish(v);
                 }
                 list.add(v);
                 if (endOfLine) {
@@ -362,8 +361,7 @@ public class Csv implements SimpleRowSource {
                 }
             }
         }
-        columnNames = new String[list.size()];
-        list.toArray(columnNames);
+        columnNames = list.toArray(new String[0]);
     }
 
     private static boolean isSimpleColumnName(String columnName) {

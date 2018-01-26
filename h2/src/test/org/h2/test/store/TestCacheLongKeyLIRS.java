@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,10 +10,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
-
 import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.test.TestBase;
-import org.h2.util.New;
 
 /**
  * Tests the cache algorithm.
@@ -225,8 +223,9 @@ public class TestCacheLongKeyLIRS extends TestBase {
         test.put(5, 50);
         assertTrue(test.containsValue(50));
         verify(test, "mem: 4 stack: 5 4 3 2 cold: 5 non-resident: 1");
+        // 1 was non-resident, so this should make it hot
         test.put(1, 10);
-        verify(test, "mem: 4 stack: 1 5 4 3 2 cold: 1 non-resident: 5");
+        verify(test, "mem: 4 stack: 1 5 4 3 cold: 2 non-resident: 5");
         assertFalse(test.containsValue(50));
         test.remove(2);
         test.remove(3);
@@ -414,7 +413,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         Random r = new Random(1);
         for (int j = 0; j < 100; j++) {
             CacheLongKeyLIRS<Integer> test = createCache(size / 2);
-            HashMap<Integer, Integer> good = New.hashMap();
+            HashMap<Integer, Integer> good = new HashMap<>();
             for (int i = 0; i < 10000; i++) {
                 int key = r.nextInt(size);
                 int value = r.nextInt();
@@ -454,7 +453,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         }
     }
 
-    private static <K, V> String toString(CacheLongKeyLIRS<V> cache) {
+    private static <V> String toString(CacheLongKeyLIRS<V> cache) {
         StringBuilder buff = new StringBuilder();
         buff.append("mem: " + cache.getUsedMemory());
         buff.append(" stack:");
@@ -472,7 +471,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         return buff.toString();
     }
 
-    private <K, V> void verify(CacheLongKeyLIRS<V> cache, String expected) {
+    private <V> void verify(CacheLongKeyLIRS<V> cache, String expected) {
         if (expected != null) {
             String got = toString(cache);
             assertEquals(expected, got);
@@ -486,7 +485,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         List<Long> cold = cache.keys(true, false);
         List<Long> nonResident = cache.keys(true, true);
         assertEquals(nonResident.size(), cache.sizeNonResident());
-        HashSet<Long> hot = new HashSet<Long>(stack);
+        HashSet<Long> hot = new HashSet<>(stack);
         hot.removeAll(cold);
         hot.removeAll(nonResident);
         assertEquals(hot.size(), cache.sizeHot());
@@ -502,7 +501,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         cc.maxMemory = maxSize;
         cc.segmentCount = 1;
         cc.stackMoveDistance = 0;
-        return new CacheLongKeyLIRS<V>(cc);
+        return new CacheLongKeyLIRS<>(cc);
     }
 
 }

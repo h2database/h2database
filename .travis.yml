@@ -1,0 +1,32 @@
+language: java
+
+script: ./build.sh jar testTravis
+
+cache:
+  directories:
+    - $HOME/.m2/repository
+
+matrix:
+  include:
+    - jdk: oraclejdk8 
+      dist: trusty
+      group: edge
+      sudo: required
+      addons:
+        apt:
+          packages:
+            - oracle-java8-installer
+      before_script: 
+        - "cd h2"
+        - "echo $JAVA_OPTS"
+        - "export JAVA_OPTS=-Xmx512m"
+    - jdk: openjdk7 
+      dist: trusty
+      group: edge
+      sudo: required
+      addons:
+        apt:
+          packages:
+            - openjdk-7-jdk
+      before_script: 
+        - "cd h2"

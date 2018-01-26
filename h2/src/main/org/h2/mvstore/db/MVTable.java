@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,12 +9,12 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
+import java.util.concurrent.TimeUnit;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
-import org.h2.command.ddl.Analyze;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintReferential;
@@ -38,6 +38,7 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableBase;
+import org.h2.table.TableType;
 import org.h2.util.DebuggingThreadLocal;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
@@ -48,7 +49,6 @@ import org.h2.value.Value;
  * A table stored in a MVStore.
  */
 public class MVTable extends TableBase {
-
     /**
      * The table name this thread is waiting to lock.
      */
@@ -64,11 +64,36 @@ public class MVTable extends TableBase {
      */
     public static final DebuggingThreadLocal<ArrayList<String>> SHARED_LOCKS;
 
+    /**
+     * The type of trace lock events
+     */
+    private enum TraceLockEvent{
+
+        TRACE_LOCK_OK("ok"),
+        TRACE_LOCK_WAITING_FOR("waiting for"),
+        TRACE_LOCK_REQUESTING_FOR("requesting for"),
+        TRACE_LOCK_TIMEOUT_AFTER("timeout after "),
+        TRACE_LOCK_UNLOCK("unlock"),
+        TRACE_LOCK_ADDED_FOR("added for"),
+        TRACE_LOCK_ADD_UPGRADED_FOR("add (upgraded) for ");
+
+        private final String eventText;
+
+        TraceLockEvent(String eventText) {
+            this.eventText = eventText;
+        }
+
+        public String getEventText() {
+            return eventText;
+        }
+    }
+    private static final String NO_EXTRA_INFO = "";
+
     static {
         if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
-            WAITING_FOR_LOCK = new DebuggingThreadLocal<String>();
-            EXCLUSIVE_LOCKS = new DebuggingThreadLocal<ArrayList<String>>();
-            SHARED_LOCKS = new DebuggingThreadLocal<ArrayList<String>>();
+            WAITING_FOR_LOCK = new DebuggingThreadLocal<>();
+            EXCLUSIVE_LOCKS = new DebuggingThreadLocal<>();
+            SHARED_LOCKS = new DebuggingThreadLocal<>();
         } else {
             WAITING_FOR_LOCK = null;
             EXCLUSIVE_LOCKS = null;
@@ -78,18 +103,18 @@ public class MVTable extends TableBase {
 
     private MVPrimaryIndex primaryIndex;
     private final ArrayList<Index> indexes = New.arrayList();
-    private long lastModificationId;
+    private volatile long lastModificationId;
     private volatile Session lockExclusiveSession;
 
     // using a ConcurrentHashMap as a set
     private final ConcurrentHashMap<Session, Session> lockSharedSessions =
-            new ConcurrentHashMap<Session, Session>();
+            new ConcurrentHashMap<>();
 
     /**
      * The queue of sessions waiting to lock the table. It is a FIFO queue to
      * prevent starvation, since Java's synchronized locking is biased.
      */
-    private final ArrayDeque<Session> waitingSessions = new ArrayDeque<Session>();
+    private final ArrayDeque<Session> waitingSessions = new ArrayDeque<>();
     private final Trace traceLock;
     private int changesSinceAnalyze;
     private int nextAnalyze;
@@ -192,7 +217,7 @@ public class MVTable extends TableBase {
     }
 
     private void doLock1(Session session, int lockMode, boolean exclusive) {
-        traceLock(session, exclusive, "requesting for");
+        traceLock(session, exclusive, TraceLockEvent.TRACE_LOCK_REQUESTING_FOR, NO_EXTRA_INFO);
         // don't get the current time unless necessary
         long max = 0;
         boolean checkDeadlock = false;
@@ -213,17 +238,17 @@ public class MVTable extends TableBase {
                 // check for deadlocks from now on
                 checkDeadlock = true;
             }
-            long now = System.currentTimeMillis();
+            long now = System.nanoTime();
             if (max == 0) {
                 // try at least one more time
-                max = now + session.getLockTimeout();
+                max = now + TimeUnit.MILLISECONDS.toNanos(session.getLockTimeout());
             } else if (now >= max) {
                 traceLock(session, exclusive,
-                        "timeout after " + session.getLockTimeout());
+                        TraceLockEvent.TRACE_LOCK_TIMEOUT_AFTER, NO_EXTRA_INFO+session.getLockTimeout());
                 throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, getName());
             }
             try {
-                traceLock(session, exclusive, "waiting for");
+                traceLock(session, exclusive, TraceLockEvent.TRACE_LOCK_WAITING_FOR, NO_EXTRA_INFO);
                 if (database.getLockMode() == Constants.LOCK_MODE_TABLE_GC) {
                     for (int i = 0; i < 20; i++) {
                         long free = Runtime.getRuntime().freeMemory();
@@ -235,7 +260,8 @@ public class MVTable extends TableBase {
                     }
                 }
                 // don't wait too long so that deadlocks are detected early
-                long sleep = Math.min(Constants.DEADLOCK_CHECK, max - now);
+                long sleep = Math.min(Constants.DEADLOCK_CHECK,
+                        TimeUnit.NANOSECONDS.toMillis(max - now));
                 if (sleep == 0) {
                     sleep = 1;
                 }
@@ -250,7 +276,7 @@ public class MVTable extends TableBase {
         if (exclusive) {
             if (lockExclusiveSession == null) {
                 if (lockSharedSessions.isEmpty()) {
-                    traceLock(session, exclusive, "added for");
+                    traceLock(session, exclusive, TraceLockEvent.TRACE_LOCK_ADDED_FOR, NO_EXTRA_INFO);
                     session.addLock(this);
                     lockExclusiveSession = session;
                     if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
@@ -262,7 +288,7 @@ public class MVTable extends TableBase {
                     return true;
                 } else if (lockSharedSessions.size() == 1 &&
                         lockSharedSessions.containsKey(session)) {
-                    traceLock(session, exclusive, "add (upgraded) for ");
+                    traceLock(session, exclusive, TraceLockEvent.TRACE_LOCK_ADD_UPGRADED_FOR, NO_EXTRA_INFO);
                     lockExclusiveSession = session;
                     if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
                         if (EXCLUSIVE_LOCKS.get() == null) {
@@ -288,7 +314,7 @@ public class MVTable extends TableBase {
                     }
                 }
                 if (!lockSharedSessions.containsKey(session)) {
-                    traceLock(session, exclusive, "ok");
+                    traceLock(session, exclusive, TraceLockEvent.TRACE_LOCK_OK, NO_EXTRA_INFO);
                     session.addLock(this);
                     lockSharedSessions.put(session, session);
                     if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
@@ -343,7 +369,7 @@ public class MVTable extends TableBase {
             if (clash == null) {
                 // verification is started
                 clash = session;
-                visited = New.hashSet();
+                visited = new HashSet<>();
             } else if (clash == session) {
                 // we found a circle where this session is involved
                 return New.arrayList();
@@ -386,11 +412,11 @@ public class MVTable extends TableBase {
         }
     }
 
-    private void traceLock(Session session, boolean exclusive, String s) {
+    private void traceLock(Session session, boolean exclusive, TraceLockEvent eventEnum, String extraInfo) {
         if (traceLock.isDebugEnabled()) {
-            traceLock.debug("{0} {1} {2} {3}", session.getId(),
-                    exclusive ? "exclusive write lock" : "shared read lock", s,
-                    getName());
+            traceLock.debug("{0} {1} {2} {3} {4}", session.getId(),
+                    exclusive ? "exclusive write lock" : "shared read lock", eventEnum.getEventText(),
+                    getName(), extraInfo);
         }
     }
 
@@ -407,8 +433,9 @@ public class MVTable extends TableBase {
     @Override
     public void unlock(Session s) {
         if (database != null) {
-            traceLock(s, lockExclusiveSession == s, "unlock");
+            traceLock(s, lockExclusiveSession == s, TraceLockEvent.TRACE_LOCK_UNLOCK, NO_EXTRA_INFO);
             if (lockExclusiveSession == s) {
+                lockSharedSessions.remove(s);
                 lockExclusiveSession = null;
                 if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
                     if (EXCLUSIVE_LOCKS.get() != null) {
@@ -564,7 +591,7 @@ public class MVTable extends TableBase {
         Store store = session.getDatabase().getMvStore();
 
         int bufferSize = database.getMaxMemoryRows() / 2;
-        ArrayList<Row> buffer = New.arrayList(bufferSize);
+        ArrayList<Row> buffer = new ArrayList<>(bufferSize);
         String n = getName() + ":" + index.getName();
         int t = MathUtils.convertLongToInt(total);
         ArrayList<String> bufferNames = New.arrayList();
@@ -605,7 +632,7 @@ public class MVTable extends TableBase {
         Cursor cursor = scan.find(session, null, null);
         long i = 0;
         int bufferSize = (int) Math.min(total, database.getMaxMemoryRows());
-        ArrayList<Row> buffer = New.arrayList(bufferSize);
+        ArrayList<Row> buffer = new ArrayList<>(bufferSize);
         String n = getName() + ":" + index.getName();
         int t = MathUtils.convertLongToInt(total);
         while (cursor.next()) {
@@ -669,7 +696,7 @@ public class MVTable extends TableBase {
     @Override
     public void removeRow(Session session, Row row) {
         lastModificationId = database.getNextModificationDataId();
-        Transaction t = getTransaction(session);
+        Transaction t = session.getTransaction();
         long savepoint = t.setSavepoint();
         try {
             for (int i = indexes.size() - 1; i >= 0; i--) {
@@ -696,7 +723,7 @@ public class MVTable extends TableBase {
     @Override
     public void addRow(Session session, Row row) {
         lastModificationId = database.getNextModificationDataId();
-        Transaction t = getTransaction(session);
+        Transaction t = session.getTransaction();
         long savepoint = t.setSavepoint();
         try {
             for (int i = 0, size = indexes.size(); i < size; i++) {
@@ -726,16 +753,17 @@ public class MVTable extends TableBase {
     }
 
     private void analyzeIfRequired(Session session) {
-        if (nextAnalyze == 0 || nextAnalyze > changesSinceAnalyze++) {
-            return;
+        synchronized (this) {
+            if (nextAnalyze == 0 || nextAnalyze > changesSinceAnalyze++) {
+                return;
+            }
+            changesSinceAnalyze = 0;
+            int n = 2 * nextAnalyze;
+            if (n > 0) {
+                nextAnalyze = n;
+            }
         }
-        changesSinceAnalyze = 0;
-        int n = 2 * nextAnalyze;
-        if (n > 0) {
-            nextAnalyze = n;
-        }
-        int rows = session.getDatabase().getSettings().analyzeSample / 10;
-        Analyze.analyzeTable(session, this, rows, false);
+        session.markTableForAnalyze(this);
     }
 
     @Override
@@ -744,8 +772,8 @@ public class MVTable extends TableBase {
     }
 
     @Override
-    public String getTableType() {
-        return Table.TABLE;
+    public TableType getTableType() {
+        return TableType.TABLE;
     }
 
     @Override
@@ -844,17 +872,13 @@ public class MVTable extends TableBase {
     }
 
     /**
-     * Get the transaction to use for this session.
+     * Get a new transaction.
      *
-     * @param session the session
      * @return the transaction
      */
-    Transaction getTransaction(Session session) {
-        if (session == null) {
-            // TODO need to commit/rollback the transaction
-            return transactionStore.begin();
-        }
-        return session.getTransaction();
+    Transaction getTransactionBegin() {
+        // TODO need to commit/rollback the transaction
+        return transactionStore.begin();
     }
 
     @Override

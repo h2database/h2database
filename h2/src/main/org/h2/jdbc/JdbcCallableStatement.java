@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -25,13 +25,11 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.h2.api.ErrorCode;
 import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.util.BitField;
-import org.h2.util.New;
 import org.h2.value.ValueNull;
 
 /**
@@ -41,7 +39,7 @@ import org.h2.value.ValueNull;
  * @author Thomas Mueller
  */
 public class JdbcCallableStatement extends JdbcPreparedStatement implements
-        CallableStatement {
+        CallableStatement, JdbcCallableStatementBackwardsCompat {
 
     private BitField outParameters;
     private int maxOutParameters;
@@ -78,6 +76,36 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
                 return 0;
             }
             return super.executeUpdate();
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
+     * Executes a statement (insert, update, delete, create, drop)
+     * and returns the update count.
+     * If another result set exists for this statement, this will be closed
+     * (even if this statement fails).
+     *
+     * If auto commit is on, this statement will be committed.
+     * If the statement is a DDL statement (create, drop, alter) and does not
+     * throw an exception, the current transaction (if any) is committed after
+     * executing the statement.
+     *
+     * @return the update count (number of row affected by an insert, update or
+     *         delete, or 0 if no rows or the statement was a create, drop,
+     *         commit or rollback)
+     * @throws SQLException if this object is closed or invalid
+     */
+    @Override
+    public long executeLargeUpdate() throws SQLException {
+        try {
+            checkClosed();
+            if (command.isQuery()) {
+                super.executeQuery();
+                return 0;
+            }
+            return super.executeLargeUpdate();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -300,6 +328,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      * @throws SQLException if the column is not found or if this object is
      *             closed
      */
+    @Deprecated
     @Override
     public BigDecimal getBigDecimal(int parameterIndex, int scale)
             throws SQLException {
@@ -1569,12 +1598,10 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param type the class of the returned value
      */
-/*## Java 1.7 ##
     @Override
-    public <T> T getObject(int parameterIndex, Class<T> type) {
-        return null;
+    public <T> T getObject(int parameterIndex, Class<T> type) throws SQLException {
+        return getOpenResultSet().getObject(parameterIndex, type);
     }
-//*/
 
     /**
      * [Not supported]
@@ -1582,12 +1609,10 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      * @param parameterName the parameter name
      * @param type the class of the returned value
      */
-/*## Java 1.7 ##
     @Override
-    public <T> T getObject(String parameterName, Class<T> type) {
-        return null;
+    public <T> T getObject(String parameterName, Class<T> type) throws SQLException {
+        return getObject(getIndexForName(parameterName), type);
     }
-//*/
 
     private ResultSetMetaData getCheckedMetaData() throws SQLException {
         ResultSetMetaData meta = getMetaData();
@@ -1642,7 +1667,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
             if (namedParameters == null) {
                 ResultSetMetaData meta = getCheckedMetaData();
                 int columnCount = meta.getColumnCount();
-                HashMap<String, Integer> map = New.hashMap(columnCount);
+                HashMap<String, Integer> map = new HashMap<>(columnCount);
                 for (int i = 1; i <= columnCount; i++) {
                     map.put(meta.getColumnLabel(i), i);
                 }

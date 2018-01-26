@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -18,11 +18,12 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
-import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * Represents a database in the benchmark test application.
@@ -34,15 +35,17 @@ class Database {
     private DatabaseTest test;
     private int id;
     private String name, url, user, password;
-    private final ArrayList<String[]> replace = new ArrayList<String[]>();
+    private final ArrayList<String[]> replace = new ArrayList<>();
     private String currentAction;
-    private long startTime;
+    private long startTimeNs;
+    private long initialGCTime;
     private Connection conn;
     private Statement stat;
     private long lastTrace;
     private final Random random = new Random(1);
-    private final ArrayList<Object[]> results = new ArrayList<Object[]>();
+    private final ArrayList<Object[]> results = new ArrayList<>();
     private int totalTime;
+    private int totalGCTime;
     private final AtomicInteger executedStatements = new AtomicInteger(0);
     private int threadCount;
 
@@ -66,6 +69,15 @@ class Database {
      */
     int getTotalTime() {
         return totalTime;
+    }
+
+    /**
+     * Get the total measured GC time.
+     *
+     * @return the time in milliseconds
+     */
+    int getTotalGCTime() {
+        return totalGCTime;
     }
 
     /**
@@ -186,26 +198,18 @@ class Database {
         Connection newConn = DriverManager.getConnection(url, user, password);
         if (url.startsWith("jdbc:derby:")) {
             // Derby: use higher cache size
-            Statement s = null;
-            try {
-                s = newConn.createStatement();
+            try (Statement s = newConn.createStatement()) {
                 // stat.execute("CALL
                 // SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY(
                 // 'derby.storage.pageCacheSize', '64')");
                 // stat.execute("CALL
                 // SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY(
                 // 'derby.storage.pageSize', '8192')");
-            } finally {
-                JdbcUtils.closeSilently(s);
             }
         } else if (url.startsWith("jdbc:hsqldb:")) {
             // HSQLDB: use a WRITE_DELAY of 1 second
-            Statement s = null;
-            try {
-                s = newConn.createStatement();
+            try (Statement s = newConn.createStatement()) {
                 s.execute("SET WRITE_DELAY 1");
-            } finally {
-                JdbcUtils.closeSilently(s);
             }
         }
         return newConn;
@@ -243,7 +247,7 @@ class Database {
             String key = (String) k;
             if (key.startsWith(databaseType + ".")) {
                 String pattern = key.substring(databaseType.length() + 1);
-                pattern = StringUtils.replaceAll(pattern, "_", " ");
+                pattern = pattern.replace('_', ' ');
                 pattern = StringUtils.toUpperEnglish(pattern);
                 String replacement = prop.getProperty(key);
                 replace.add(new String[]{pattern, replacement});
@@ -279,7 +283,8 @@ class Database {
      */
     void start(Bench bench, String action) {
         this.currentAction = bench.getName() + ": " + action;
-        this.startTime = System.currentTimeMillis();
+        this.startTimeNs = System.nanoTime();
+        this.initialGCTime = Utils.getGarbageCollectionTime();
     }
 
     /**
@@ -287,10 +292,12 @@ class Database {
      * data.
      */
     void end() {
-        long time = System.currentTimeMillis() - startTime;
+        long time = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTimeNs);
+        long gcCollectionTime = Utils.getGarbageCollectionTime() - initialGCTime;
         log(currentAction, "ms", (int) time);
         if (test.isCollect()) {
             totalTime += time;
+            totalGCTime += gcCollectionTime;
         }
     }
 
@@ -370,10 +377,10 @@ class Database {
      */
     void trace(String action, int i, int max) {
         if (TRACE) {
-            long time = System.currentTimeMillis();
+            long time = System.nanoTime();
             if (i == 0 || lastTrace == 0) {
                 lastTrace = time;
-            } else if (time > lastTrace + 1000) {
+            } else if (time > lastTrace + TimeUnit.SECONDS.toNanos(1)) {
                 System.out.println(action + ": " + ((100 * i / max) + "%"));
                 lastTrace = time;
             }
@@ -411,9 +418,9 @@ class Database {
      * @return the result set
      */
     ResultSet query(PreparedStatement prep) throws SQLException {
-        // long time = System.currentTimeMillis();
+        // long time = System.nanoTime();
         ResultSet rs = prep.executeQuery();
-        // time = System.currentTimeMillis() - time;
+        // time = System.nanoTime() - time;
         // if(time > 100) {
         //     System.out.println("time="+time);
         // }

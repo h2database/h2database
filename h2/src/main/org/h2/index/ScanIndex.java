@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -44,7 +44,7 @@ public class ScanIndex extends BaseIndex {
             IndexType indexType) {
         initBaseIndex(table, id, table.getName() + "_DATA", columns, indexType);
         if (database.isMultiVersion()) {
-            sessionRowCount = New.hashMap();
+            sessionRowCount = new HashMap<>();
         } else {
             sessionRowCount = null;
         }
@@ -103,7 +103,7 @@ public class ScanIndex extends BaseIndex {
         row.setDeleted(false);
         if (database.isMultiVersion()) {
             if (delta == null) {
-                delta = New.hashSet();
+                delta = new HashSet<>();
             }
             boolean wasDeleted = delta.remove(row);
             if (!wasDeleted) {
@@ -156,7 +156,7 @@ public class ScanIndex extends BaseIndex {
             // if storage is null, the delete flag is not yet set
             row.setDeleted(true);
             if (delta == null) {
-                delta = New.hashSet();
+                delta = new HashSet<>();
             }
             boolean wasAdded = delta.remove(row);
             if (!wasAdded) {
@@ -220,6 +220,11 @@ public class ScanIndex extends BaseIndex {
     public int getColumnIndex(Column col) {
         // the scan index cannot use any columns
         return -1;
+    }
+
+    @Override
+    public boolean isFirstColumn(Column column) {
+        return false;
     }
 
     @Override

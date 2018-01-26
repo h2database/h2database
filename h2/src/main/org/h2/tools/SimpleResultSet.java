@@ -8,6 +8,7 @@ package org.h2.tools;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.URL;
 import java.sql.Array;
 import java.sql.Blob;
@@ -478,10 +479,26 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     @Override
     public boolean getBoolean(int columnIndex) throws SQLException {
         Object o = get(columnIndex);
-        if (o != null && !(o instanceof Boolean)) {
-            o = Boolean.valueOf(o.toString());
+        if (o == null) {
+            return false;
         }
-        return o == null ? false : ((Boolean) o).booleanValue();
+        if (o instanceof Boolean) {
+            return (Boolean) o;
+        }
+        if (o instanceof Number) {
+            Number n = (Number) o;
+            if (n instanceof Double || n instanceof Float) {
+                return n.doubleValue() != 0;
+            }
+            if (n instanceof BigDecimal) {
+                return ((BigDecimal) n).signum() != 0;
+            }
+            if (n instanceof BigInteger) {
+                return ((BigInteger) n).signum() != 0;
+            }
+            return n.longValue() != 0;
+        }
+        return Boolean.parseBoolean(o.toString());
     }
 
     /**

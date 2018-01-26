@@ -30,7 +30,7 @@ public class SettingsBase {
      * @return the setting
      */
     protected boolean get(String key, boolean defaultValue) {
-        String s = get(key, null);
+        String s = get(key, Boolean.toString(defaultValue));
         try {
             return Utils.parseBoolean(s, defaultValue, true);
         } catch (IllegalArgumentException e) {

@@ -381,7 +381,7 @@ public class TestMultiThread extends TestBase implements Runnable {
     private void testConcurrentInsert() throws Exception {
         deleteDb("lockMode");
 
-        final String url = getURL("lockMode;MULTI_THREADED=1", true);
+        final String url = getURL("lockMode;MULTI_THREADED=1;LOCK_TIMEOUT=10000", true);
         int threadCount = 25;
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         Connection conn = getConnection(url);

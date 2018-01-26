@@ -80,6 +80,15 @@ public class ValueLob extends Value {
         }
     }
 
+    /**
+     * Create a reader that is s subset of the given reader.
+     *
+     * @param reader the input reader
+     * @param oneBasedOffset the offset (1 means no offset)
+     * @param length the length of the result, in bytes
+     * @param dataSize the length of the input, in bytes
+     * @return the smaller input stream
+     */
     static Reader rangeReader(Reader reader, long oneBasedOffset, long length, long dataSize) {
         if (dataSize > 0)
             rangeCheck(oneBasedOffset - 1, length, dataSize);
@@ -486,6 +495,12 @@ public class ValueLob extends Value {
      * except when converting to BLOB or CLOB.
      *
      * @param t the new type
+     * @param precision the precision of the column to convert this value to.
+     *        The special constant <code>-1</code> is used to indicate that
+     *        the precision plays no role when converting the value
+     * @param mode the database mode
+     * @param column the column that contains the ENUM datatype enumerators,
+     *        for dealing with ENUM conversions
      * @return the converted value
      */
     @Override

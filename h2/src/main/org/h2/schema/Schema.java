@@ -662,6 +662,12 @@ public class Schema extends DbObjectBase {
         }
     }
 
+    /**
+     * Add a table synonym to the schema.
+     *
+     * @param data the create synonym information
+     * @return the created {@link TableSynonym} object
+     */
     public TableSynonym createSynonym(CreateSynonymData data) {
         synchronized (database) {
             database.lockMeta(data.session);

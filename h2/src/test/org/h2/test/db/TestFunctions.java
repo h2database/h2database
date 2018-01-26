@@ -1658,7 +1658,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         conn.close();
     }
 
-    String stripTrailingPeriod(String expected) {
+    private static String stripTrailingPeriod(String expected) {
         // CLDR provider appends period on some locales
         int l = expected.length() - 1;
         if (expected.charAt(l) == '.')

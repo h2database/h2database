@@ -6,7 +6,6 @@
 package org.h2.value;
 
 import java.util.Arrays;
-
 import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
 import org.h2.util.StringUtils;
@@ -89,6 +88,7 @@ public class ValueStringFixed extends ValueString {
      *        be padded, this defines the overall length of the (potentially padded) string.
      *        If the special constant {@link #PRECISION_DO_NOT_TRIM} is used the value will
      *        not be trimmed.
+     * @param mode the database mode
      * @return the value
      */
     public static ValueStringFixed get(String s, int precision, Mode mode) {

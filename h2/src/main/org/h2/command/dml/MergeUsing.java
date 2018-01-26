@@ -198,7 +198,7 @@ public class MergeUsing extends Prepared {
     /**
      * Merge the given row.
      *
-     * @param row the row
+     * @param sourceRow the row
      */
     protected void merge(Row sourceRow) {
         // put the column values into the table filter

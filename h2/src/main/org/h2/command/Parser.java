@@ -6879,10 +6879,10 @@ public class Parser {
     }
 
     /**
-     * @param s
-     *            identifier to check
-     * @param functionsAsKeywords
-     *            treat system functions as keywords
+     * Is this a simple identifier (in the JDBC specification sense).
+     *
+     * @param s identifier to check
+     * @param functionsAsKeywords treat system functions as keywords
      * @return is specified identifier may be used without quotes
      * @throws NullPointerException if s is {@code null}
      */

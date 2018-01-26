@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.h2.api.ErrorCode;
 import org.h2.result.SortOrder;
 import org.h2.test.TestBase;
@@ -263,7 +262,7 @@ public class TestIndex extends TestBase {
         c.close();
     }
 
-    void testConcurrentUpdateRun(ConcurrentUpdateThread[] threads, PreparedStatement check) throws SQLException {
+    private void testConcurrentUpdateRun(ConcurrentUpdateThread[] threads, PreparedStatement check) throws SQLException {
         for (ConcurrentUpdateThread t : threads) {
             t.start();
         }

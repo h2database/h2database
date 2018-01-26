@@ -442,7 +442,7 @@ public abstract class Prepared {
     }
 
     /**
-     * Get the temporary views created for CTE's.
+     * @return the temporary views created for CTE's.
      */
     public List<TableView> getCteCleanups() {
         return cteCleanups;

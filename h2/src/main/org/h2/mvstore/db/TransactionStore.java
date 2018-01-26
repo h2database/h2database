@@ -1485,6 +1485,7 @@ public class TransactionStore {
          * Iterate over entries.
          *
          * @param from the first key to return
+         * @param to the last key to return
          * @return the iterator
          */
         public Iterator<Entry<K, V>> entryIterator(final K from, final K to) {

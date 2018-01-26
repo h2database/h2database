@@ -643,6 +643,35 @@ public class Utils {
     }
 
     /**
+     * Parses the specified string to boolean value.
+     *
+     * @param value
+     *            string to parse
+     * @param defaultValue
+     *            value to return if value is null or on parsing error
+     * @param throwException
+     *            throw exception on parsing error or return default value instead
+     * @return parsed or default value
+     * @throws IllegalArgumentException
+     *             on parsing error if {@code throwException} is true
+     */
+    public static boolean parseBoolean(String value, boolean defaultValue, boolean throwException) {
+        if (value == null) {
+            return defaultValue;
+        }
+        if (value.equalsIgnoreCase("true")) {
+            return true;
+        }
+        if (value.equalsIgnoreCase("false")) {
+            return false;
+        }
+        if (throwException) {
+            throw new IllegalArgumentException(value);
+        }
+        return defaultValue;
+    }
+
+    /**
      * Get the system property. If the system property is not set, or if a
      * security exception occurs, the default value is returned.
      *
@@ -687,15 +716,7 @@ public class Utils {
      * @return the value
      */
     public static boolean getProperty(String key, boolean defaultValue) {
-        String s = getProperty(key, null);
-        if (s != null) {
-            try {
-                return Boolean.parseBoolean(s);
-            } catch (NumberFormatException e) {
-                // ignore
-            }
-        }
-        return defaultValue;
+        return parseBoolean(getProperty(key, null), defaultValue, false);
     }
 
     /**

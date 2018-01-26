@@ -52,10 +52,9 @@ public class SortedProperties extends Properties {
      */
     public static boolean getBooleanProperty(Properties prop, String key,
             boolean def) {
-        String value = prop.getProperty(key, "" + def);
         try {
-            return Boolean.parseBoolean(value);
-        } catch (Exception e) {
+            return Utils.parseBoolean(prop.getProperty(key, null), def, true);
+        } catch (IllegalArgumentException e) {
             e.printStackTrace();
             return def;
         }

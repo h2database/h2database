@@ -18,6 +18,7 @@ import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -257,6 +258,8 @@ public class TestTools extends TestBase {
         Clob clob = new SimpleClob("Hello World");
         Blob blob = new SimpleBlob(new byte[]{(byte) 1, (byte) 2});
         rs.addRow(1, b, true, d, "10.3", Math.PI, "-3", a, t, ts, clob, blob);
+        rs.addRow(BigInteger.ONE, null, true, null, BigDecimal.ONE, 1d, null, null, null, null, null);
+        rs.addRow(BigInteger.ZERO, null, false, null, BigDecimal.ZERO, 0d, null, null, null, null, null);
         rs.addRow(null, null, null, null, null, null, null, null, null, null, null);
 
         rs.next();
@@ -270,6 +273,7 @@ public class TestTools extends TestBase {
         assertEquals((short) 1, rs.getShort("a"));
         assertTrue(rs.getObject(1).getClass() == Integer.class);
         assertTrue(rs.getObject("a").getClass() == Integer.class);
+        assertTrue(rs.getBoolean(1));
 
         assertEquals(b, rs.getBytes(2));
         assertEquals(b, rs.getBytes("b"));
@@ -288,6 +292,7 @@ public class TestTools extends TestBase {
         assertTrue(Math.PI == rs.getDouble("f"));
         assertTrue((float) Math.PI == rs.getFloat(6));
         assertTrue((float) Math.PI == rs.getFloat("f"));
+        assertTrue(rs.getBoolean(6));
 
         assertEquals(-3, rs.getInt(7));
         assertEquals(-3, rs.getByte(7));
@@ -323,6 +328,20 @@ public class TestTools extends TestBase {
                 getString(13);
         assertThrows(ErrorCode.COLUMN_NOT_FOUND_1, (ResultSet) rs).
                 getString("NOT_FOUND");
+
+        rs.next();
+
+        assertTrue(rs.getBoolean(1));
+        assertTrue(rs.getBoolean(3));
+        assertTrue(rs.getBoolean(5));
+        assertTrue(rs.getBoolean(6));
+
+        rs.next();
+
+        assertFalse(rs.getBoolean(1));
+        assertFalse(rs.getBoolean(3));
+        assertFalse(rs.getBoolean(5));
+        assertFalse(rs.getBoolean(6));
 
         rs.next();
 
@@ -453,6 +472,8 @@ public class TestTools extends TestBase {
         assertTrue(rs.next());
         assertFalse(rs.isClosed());
         assertEquals(1, rs.getRow());
+        assertTrue(rs.next());
+        assertTrue(rs.next());
         assertTrue(rs.next());
         assertFalse(rs.next());
         assertThrows(ErrorCode.NO_DATA_AVAILABLE, (ResultSet) rs).

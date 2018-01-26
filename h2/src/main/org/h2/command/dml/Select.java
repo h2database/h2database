@@ -47,16 +47,40 @@ public class Select extends Query {
     TableFilter topTableFilter;
     private final ArrayList<TableFilter> filters = New.arrayList();
     private final ArrayList<TableFilter> topFilters = New.arrayList();
+
+    /**
+     * The column list, including synthetic columns (columns not shown in the
+     * result).
+     */
     ArrayList<Expression> expressions;
     private Expression[] expressionArray;
     private Expression having;
     private Expression condition;
-    int visibleColumnCount, distinctColumnCount;
+
+    /**
+     * The visible columns (the ones required in the result).
+     */
+    int visibleColumnCount;
+
+    private int distinctColumnCount;
     private ArrayList<SelectOrderBy> orderList;
     private ArrayList<Expression> group;
+
+    /**
+     * The indexes of the group-by columns.
+     */
     int[] groupIndex;
+
+    /**
+     * Whether a column in the expression list is part of a group-by.
+     */
     boolean[] groupByExpression;
+
+    /**
+     * Thhe current group-by values.
+     */
     HashMap<Expression, Object> currentGroup;
+
     private int havingIndex;
     private boolean isGroupQuery, isGroupSortedQuery;
     private boolean isForUpdate, isForUpdateMvcc;
@@ -65,6 +89,10 @@ public class Select extends Query {
     private boolean isPrepared, checkInit;
     private boolean sortUsingIndex;
     private SortOrder sort;
+
+    /**
+     * The id of the current group.
+     */
     int currentGroupRowId;
 
     public Select(Session session) {
@@ -165,6 +193,13 @@ public class Select extends Query {
         return null;
     }
 
+    /**
+     * Create a row with the current values, for queries with group-sort.
+     *
+     * @param keyValues the key values
+     * @param columnCount the number of columns
+     * @return the row
+     */
     Value[] createGroupSortedRow(Value[] keyValues, int columnCount) {
         Value[] row = new Value[columnCount];
         for (int j = 0; groupIndex != null && j < groupIndex.length; j++) {
@@ -632,6 +667,9 @@ public class Select extends Query {
         return null;
     }
 
+    /**
+     * Reset the batch-join after the query result is closed.
+     */
     void resetJoinBatchAfterQuery() {
         JoinBatch jb = getJoinBatch();
         if (jb != null) {

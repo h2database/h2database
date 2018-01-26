@@ -614,6 +614,7 @@ public abstract class Value {
      * @param precision the precision of the column to convert this value to.
      *        The special constant <code>-1</code> is used to indicate that
      *        the precision plays no role when converting the value
+     * @param mode the conversion mode
      * @param column the column that contains the ENUM datatype enumerators,
      *        for dealing with ENUM conversions
      * @param mode the database mode

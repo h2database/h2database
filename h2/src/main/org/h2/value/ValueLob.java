@@ -62,7 +62,7 @@ public class ValueLob extends Value {
     /**
      * Create an input stream that is s subset of the given stream.
      *
-     * @param inputStream the input stream
+     * @param inputStream the source input stream
      * @param oneBasedOffset the offset (1 means no offset)
      * @param length the length of the result, in bytes
      * @param dataSize the length of the input, in bytes
@@ -83,11 +83,19 @@ public class ValueLob extends Value {
     /**
      * Create a reader that is s subset of the given reader.
      *
+<<<<<<< Updated upstream
      * @param reader the input reader
      * @param oneBasedOffset the offset (1 means no offset)
      * @param length the length of the result, in bytes
      * @param dataSize the length of the input, in bytes
      * @return the smaller input stream
+=======
+     * @param reader the source reader
+     * @param oneBasedOffset the offset (1 means no offset)
+     * @param length the length of the result, in characters
+     * @param dataSize the length of the input, in characters
+     * @return the smaller reader
+>>>>>>> Stashed changes
      */
     static Reader rangeReader(Reader reader, long oneBasedOffset, long length, long dataSize) {
         if (dataSize > 0)

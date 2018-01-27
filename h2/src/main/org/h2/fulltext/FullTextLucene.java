@@ -1,10 +1,11 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.fulltext;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -15,17 +16,25 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.util.Version;
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
 import org.h2.engine.Session;
@@ -37,16 +46,6 @@ import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
-import java.io.File;
-import java.util.Map;
-
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.RAMDirectory;
-import org.apache.lucene.util.Version;
-import org.apache.lucene.index.IndexWriter;
 
 /**
  * This class implements the full text search based on Apache Lucene.
@@ -60,7 +59,7 @@ public class FullTextLucene extends FullText {
     protected static final boolean STORE_DOCUMENT_TEXT_IN_INDEX =
             Utils.getProperty("h2.storeDocumentTextInIndex", false);
 
-    private static final HashMap<String, IndexAccess> INDEX_ACCESS = New.hashMap();
+    private static final HashMap<String, IndexAccess> INDEX_ACCESS = new HashMap<>();
     private static final String TRIGGER_PREFIX = "FTL_";
     private static final String SCHEMA = "FTL";
     private static final String LUCENE_FIELD_DATA = "_DATA";
@@ -256,7 +255,7 @@ public class FullTextLucene extends FullText {
      * @param table the table name
      */
     private static void createTrigger(Connection conn, String schema,
-                                      String table) throws SQLException {
+            String table) throws SQLException {
         createOrDropTrigger(conn, schema, table, true);
     }
 
@@ -344,11 +343,11 @@ public class FullTextLucene extends FullText {
      * @param table the table name
      */
     private static void indexExistingRows(Connection conn, String schema,
-                                          String table) throws SQLException {
+            String table) throws SQLException {
         FullTextLucene.FullTextTrigger existing = new FullTextLucene.FullTextTrigger();
         existing.init(conn, schema, null, table, false, Trigger.INSERT);
-        String sql = "SELECT * FROM " + StringUtils.quoteIdentifier(schema) +
-                "." + StringUtils.quoteIdentifier(table);
+        String sql = "SELECT * FROM " + StringUtils.quoteIdentifier(schema)
+                + "." + StringUtils.quoteIdentifier(table);
         ResultSet rs = conn.createStatement().executeQuery(sql);
         int columnCount = rs.getMetaData().getColumnCount();
         while (rs.next()) {
@@ -429,9 +428,9 @@ public class FullTextLucene extends FullText {
                 if (limit == 0) {
                     limit = docs.totalHits;
                 }
-                for (int i = 0, len = docs.scoreDocs.length;
-                     i < limit && i + offset < docs.totalHits
-                             && i + offset < len; i++) {
+                for (int i = 0, len = docs.scoreDocs.length; i < limit
+                        && i + offset < docs.totalHits
+                        && i + offset < len; i++) {
                     ScoreDoc sd = docs.scoreDocs[i + offset];
                     Document doc = searcher.doc(sd.doc);
                     float score = sd.score;
@@ -442,17 +441,14 @@ public class FullTextLucene extends FullText {
                         Session session = (Session) c.getSession();
                         Parser p = new Parser(session);
                         String tab = q.substring(0, idx);
-                        ExpressionColumn expr = (ExpressionColumn) p.parseExpression(tab);
+                        ExpressionColumn expr = (ExpressionColumn) p
+                                .parseExpression(tab);
                         String schemaName = expr.getOriginalTableAliasName();
                         String tableName = expr.getColumnName();
                         q = q.substring(idx + " WHERE ".length());
                         Object[][] columnData = parseKey(conn, q);
-                        result.addRow(
-                                schemaName,
-                                tableName,
-                                columnData[0],
-                                columnData[1],
-                                score);
+                        result.addRow(schemaName, tableName, columnData[0],
+                                columnData[1], score);
                     } else {
                         result.addRow(q, score);
                     }
@@ -501,8 +497,7 @@ public class FullTextLucene extends FullText {
                 columnList.add(rs.getString("COLUMN_NAME"));
             }
             columnTypes = new int[columnList.size()];
-            columns = new String[columnList.size()];
-            columnList.toArray(columns);
+            columns = columnList.toArray(new String[0]);
             rs = meta.getColumns(null,
                     StringUtils.escapeMetaDataPattern(schemaName),
                     StringUtils.escapeMetaDataPattern(tableName),
@@ -586,7 +581,7 @@ public class FullTextLucene extends FullText {
         /**
          * Commit all changes to the Lucene index.
          */
-        private void commitIndex() throws SQLException {
+        void commitIndex() throws SQLException {
             try {
                 indexAccess.commit();
             } catch (IOException e) {
@@ -690,7 +685,7 @@ public class FullTextLucene extends FullText {
         /**
          * Map of usage counters for outstanding searchers.
          */
-        private final Map<IndexSearcher,Integer> counters = New.hashMap();
+        private final Map<IndexSearcher,Integer> counters = new HashMap<>();
 
         /**
          * Usage counter for current searcher.
@@ -702,18 +697,18 @@ public class FullTextLucene extends FullText {
          */
         private IndexSearcher searcher;
 
-        private IndexAccess(IndexWriter writer) throws IOException {
+        IndexAccess(IndexWriter writer) throws IOException {
             this.writer = writer;
             IndexReader reader = IndexReader.open(writer, true);
             searcher = new IndexSearcher(reader);
         }
 
-        private synchronized IndexSearcher getSearcher() {
+        synchronized IndexSearcher getSearcher() {
             ++counter;
             return searcher;
         }
 
-        private synchronized void returnSearcher(IndexSearcher searcher) {
+        synchronized void returnSearcher(IndexSearcher searcher) {
             if (this.searcher == searcher) {
                 --counter;
                 assert counter >= 0;
@@ -728,6 +723,9 @@ public class FullTextLucene extends FullText {
             }
         }
 
+        /**
+         * Commit the changes.
+         */
         public synchronized void commit() throws IOException {
             writer.commit();
             if (counter != 0) {

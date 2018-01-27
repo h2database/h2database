@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -174,7 +174,8 @@ public class MetaTable extends Table {
                     "CHECK_CONSTRAINT",
                     "SEQUENCE_NAME",
                     "REMARKS",
-                    "SOURCE_DATA_TYPE SMALLINT"
+                    "SOURCE_DATA_TYPE SMALLINT",
+                    "COLUMN_TYPE"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -583,7 +584,7 @@ public class MetaTable extends Table {
                         Value.STRING_IGNORECASE : Value.STRING;
                 name = nameType;
             } else {
-                dataType = DataType.getTypeByName(nameType.substring(idx + 1)).type;
+                dataType = DataType.getTypeByName(nameType.substring(idx + 1), database.getMode()).type;
                 name = nameType.substring(0, idx);
             }
             cols[i] = new Column(name, dataType);
@@ -828,7 +829,9 @@ public class MetaTable extends Table {
                             // REMARKS
                             replaceNullWithEmpty(c.getComment()),
                             // SOURCE_DATA_TYPE
-                            null
+                            null,
+                            // COLUMN_TYPE
+                            c.getCreateSQLWithoutName()
                     );
                 }
             }

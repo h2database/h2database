@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.constraint.Constraint;
@@ -77,11 +78,15 @@ public abstract class Table extends SchemaObjectBase {
     private ArrayList<TriggerObject> triggers;
     private ArrayList<Constraint> constraints;
     private ArrayList<Sequence> sequences;
-    private ArrayList<TableView> views;
+    /**
+     * views that depend on this table
+     */
+    private final CopyOnWriteArrayList<TableView> dependentViews = new CopyOnWriteArrayList<>();
     private ArrayList<TableSynonym> synonyms;
     private boolean checkForeignKeyConstraints = true;
     private boolean onCommitDrop, onCommitTruncate;
     private volatile Row nullRow;
+    private boolean tableExpression;
 
     public Table(Schema schema, int id, String name, boolean persistIndexes,
             boolean persistData) {
@@ -191,7 +196,6 @@ public abstract class Table extends SchemaObjectBase {
      * @param operation the operation
      * @param row the row
      */
-    @SuppressWarnings("unused")
     public void commit(short operation, Row row) {
         // nothing to do
     }
@@ -229,7 +233,6 @@ public abstract class Table extends SchemaObjectBase {
      * @param allColumnsSet all columns
      * @return the scan index
      */
-    @SuppressWarnings("unused")
     public Index getScanIndex(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
             HashSet<Column> allColumnsSet) {
@@ -339,6 +342,7 @@ public abstract class Table extends SchemaObjectBase {
         return null;
     }
 
+    @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw DbException.throwInternalError(toString());
     }
@@ -398,9 +402,7 @@ public abstract class Table extends SchemaObjectBase {
         if (sequences != null) {
             children.addAll(sequences);
         }
-        if (views != null) {
-            children.addAll(views);
-        }
+        children.addAll(dependentViews);
         if (synonyms != null) {
             children.addAll(synonyms);
         }
@@ -462,7 +464,6 @@ public abstract class Table extends SchemaObjectBase {
      * @param session the session
      * @return true if it is
      */
-    @SuppressWarnings("unused")
     public boolean isLockedExclusivelyBy(Session session) {
         return false;
     }
@@ -519,30 +520,27 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
-    public ArrayList<TableView> getViews() {
-        return views;
+    public CopyOnWriteArrayList<TableView> getDependentViews() {
+        return dependentViews;
     }
 
     @Override
     public void removeChildrenAndResources(Session session) {
-        while (views != null && views.size() > 0) {
-            TableView view = views.get(0);
-            views.remove(0);
+        while (dependentViews.size() > 0) {
+            TableView view = dependentViews.get(0);
+            dependentViews.remove(0);
             database.removeSchemaObject(session, view);
         }
         while (synonyms != null && synonyms.size() > 0) {
-            TableSynonym synonym = synonyms.get(0);
-            synonyms.remove(0);
+            TableSynonym synonym = synonyms.remove(0);
             database.removeSchemaObject(session, synonym);
         }
         while (triggers != null && triggers.size() > 0) {
-            TriggerObject trigger = triggers.get(0);
-            triggers.remove(0);
+            TriggerObject trigger = triggers.remove(0);
             database.removeSchemaObject(session, trigger);
         }
         while (constraints != null && constraints.size() > 0) {
-            Constraint constraint = constraints.get(0);
-            constraints.remove(0);
+            Constraint constraint = constraints.remove(0);
             database.removeSchemaObject(session, constraint);
         }
         for (Right right : database.getAllRights()) {
@@ -554,8 +552,7 @@ public abstract class Table extends SchemaObjectBase {
         // must delete sequences later (in case there is a power failure
         // before removing the table object)
         while (sequences != null && sequences.size() > 0) {
-            Sequence sequence = sequences.get(0);
-            sequences.remove(0);
+            Sequence sequence = sequences.remove(0);
             // only remove if no other table depends on this sequence
             // this is possible when calling ALTER TABLE ALTER COLUMN
             if (database.getDependentTable(sequence, this) == null) {
@@ -576,7 +573,7 @@ public abstract class Table extends SchemaObjectBase {
      */
     public void dropMultipleColumnsConstraintsAndIndexes(Session session,
             ArrayList<Column> columnsToDrop) {
-        HashSet<Constraint> constraintsToDrop = New.hashSet();
+        HashSet<Constraint> constraintsToDrop = new HashSet<>();
         if (constraints != null) {
             for (Column col : columnsToDrop) {
                 for (int i = 0, size = constraints.size(); i < size; i++) {
@@ -594,7 +591,7 @@ public abstract class Table extends SchemaObjectBase {
                 }
             }
         }
-        HashSet<Index> indexesToDrop = New.hashSet();
+        HashSet<Index> indexesToDrop = new HashSet<>();
         ArrayList<Index> indexes = getIndexes();
         if (indexes != null) {
             for (Column col : columnsToDrop) {
@@ -811,10 +808,7 @@ public abstract class Table extends SchemaObjectBase {
 
     private static void remove(ArrayList<? extends DbObject> list, DbObject obj) {
         if (list != null) {
-            int i = list.indexOf(obj);
-            if (i >= 0) {
-                list.remove(i);
-            }
+            list.remove(obj);
         }
     }
 
@@ -836,12 +830,12 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
-     * Remove the given view from the list.
+     * Remove the given view from the dependent views list.
      *
      * @param view the view to remove
      */
-    public void removeView(TableView view) {
-        remove(views, view);
+    public void removeDependentView(TableView view) {
+        dependentViews.remove(view);
     }
 
     /**
@@ -885,8 +879,8 @@ public abstract class Table extends SchemaObjectBase {
      *
      * @param view the view to add
      */
-    public void addView(TableView view) {
-        views = add(views, view);
+    public void addDependentView(TableView view) {
+        dependentViews.add(view);
     }
 
     /**
@@ -1166,7 +1160,6 @@ public abstract class Table extends SchemaObjectBase {
      * @return an object array with the sessions involved in the deadlock, or
      *         null
      */
-    @SuppressWarnings("unused")
     public ArrayList<Session> checkDeadlock(Session session, Session clash,
             Set<Session> visited) {
         return null;
@@ -1243,4 +1236,11 @@ public abstract class Table extends SchemaObjectBase {
         return false;
     }
 
+    public void setTableExpression(boolean tableExpression) {
+        this.tableExpression = tableExpression;
+    }
+
+    public boolean isTableExpression() {
+        return tableExpression;
+    }
 }

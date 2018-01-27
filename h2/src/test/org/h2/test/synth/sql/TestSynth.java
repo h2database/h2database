@@ -1,12 +1,11 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.synth.sql;
 
 import java.util.ArrayList;
-
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.MathUtils;
@@ -325,8 +324,7 @@ public class TestSynth extends TestBase {
         return this;
     }
 
-    @Override
-    public void testCase(int seed) throws Exception {
+    private void testCase(int seed) throws Exception {
         deleteDb("synth/synth");
         try {
             printTime("TestSynth " + seed);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -65,7 +65,7 @@ public class BenchB implements Bench, Runnable {
     @Override
     public void init(Database db, int size) throws SQLException {
         this.database = db;
-        this.transactionPerClient = size / 8;
+        this.transactionPerClient = getTransactionsPerClient(size);
 
         db.start(this, "Init");
         db.openConnection();
@@ -131,6 +131,16 @@ public class BenchB implements Bench, Runnable {
 //        db.openConnection();
 //        db.closeConnection();
 //        db.end();
+    }
+
+    /**
+     * Get the number of transactions per client.
+     *
+     * @param size test size
+     * @return the transactions per client
+     */
+    protected int getTransactionsPerClient(int size) {
+        return size / 8;
     }
 
     @Override

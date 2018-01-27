@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -25,7 +26,7 @@ import java.util.HashMap;
 import java.util.UUID;
 import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
-import org.h2.engine.Constants;
+import org.h2.engine.Mode;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcArray;
@@ -66,8 +67,8 @@ public class DataType {
      * when clearing references.
      */
     private static final ArrayList<DataType> TYPES = New.arrayList();
-    private static final HashMap<String, DataType> TYPES_BY_NAME = New.hashMap();
-    private static final HashMap<Integer, DataType> TYPES_BY_VALUE_TYPE = New.hashMap();
+    private static final HashMap<String, DataType> TYPES_BY_NAME = new HashMap<>();
+    private static final HashMap<Integer, DataType> TYPES_BY_VALUE_TYPE = new HashMap<>();
 
     /**
      * The value type of this data type.
@@ -261,23 +262,13 @@ public class DataType {
                 new String[]{"IDENTITY", "BIGSERIAL"},
                 24
         );
-        add(Value.DECIMAL, Types.DECIMAL, "BigDecimal",
-                createDecimal(Integer.MAX_VALUE,
-                        ValueDecimal.DEFAULT_PRECISION,
-                        ValueDecimal.DEFAULT_SCALE,
-                        ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
-                new String[]{"DECIMAL", "DEC"},
-                // 40 for ValueDecimal,
-                64
-        );
-        add(Value.DECIMAL, Types.NUMERIC, "BigDecimal",
-                createDecimal(Integer.MAX_VALUE,
-                        ValueDecimal.DEFAULT_PRECISION,
-                        ValueDecimal.DEFAULT_SCALE,
-                        ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
-                new String[]{"NUMERIC", "NUMBER"},
-                64
-        );
+        if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
+            addDecimal();
+            addNumeric();
+        } else {
+            addNumeric();
+            addDecimal();
+        }
         add(Value.FLOAT, Types.REAL, "Float",
                 createDecimal(ValueFloat.PRECISION, ValueFloat.PRECISION,
                         0, ValueFloat.DISPLAY_SIZE, false, false),
@@ -398,6 +389,29 @@ public class DataType {
         }
     }
 
+    private static void addDecimal() {
+        add(Value.DECIMAL, Types.DECIMAL, "BigDecimal",
+                createDecimal(Integer.MAX_VALUE,
+                        ValueDecimal.DEFAULT_PRECISION,
+                        ValueDecimal.DEFAULT_SCALE,
+                        ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
+                new String[]{"DECIMAL", "DEC"},
+                // 40 for ValueDecimal,
+                64
+        );
+    }
+
+    private static void addNumeric() {
+        add(Value.DECIMAL, Types.NUMERIC, "BigDecimal",
+                createDecimal(Integer.MAX_VALUE,
+                        ValueDecimal.DEFAULT_PRECISION,
+                        ValueDecimal.DEFAULT_SCALE,
+                        ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
+                new String[]{"NUMERIC", "NUMBER"},
+                64
+        );
+    }
+
     private static void add(int type, int sqlType, String jdbc,
             DataType dataType, String[] names, int memory) {
         for (int i = 0; i < names.length; i++) {
@@ -514,15 +528,27 @@ public class DataType {
                 return ValueNull.INSTANCE;
             }
             case Value.BYTES: {
-                byte[] buff = rs.getBytes(columnIndex);
-                v = buff == null ? (Value) ValueNull.INSTANCE :
-                    ValueBytes.getNoCopy(buff);
+                /*
+                 * Both BINARY and UUID may be mapped to Value.BYTES. getObject() returns byte[]
+                 * for SQL BINARY, UUID for SQL UUID and null for SQL NULL.
+                 */
+                Object o = rs.getObject(columnIndex);
+                if (o instanceof byte[]) {
+                    v = ValueBytes.getNoCopy((byte[]) o);
+                } else if (o != null) {
+                    v = ValueUuid.get((UUID) o);
+                } else
+                    v = ValueNull.INSTANCE;
                 break;
             }
             case Value.UUID: {
-                byte[] buff = rs.getBytes(columnIndex);
-                v = buff == null ? (Value) ValueNull.INSTANCE :
-                    ValueUuid.get(buff);
+                Object o = rs.getObject(columnIndex);
+                if (o instanceof UUID) {
+                    v = ValueUuid.get((UUID) o);
+                } else if (o != null)
+                    v = ValueUuid.get((byte[]) o);
+                else
+                    v = ValueNull.INSTANCE;
                 break;
             }
             case Value.BOOLEAN: {
@@ -619,7 +645,7 @@ public class DataType {
                 if (session == null) {
                     String s = rs.getString(columnIndex);
                     v = s == null ? ValueNull.INSTANCE :
-                        ValueLobDb.createSmallLob(Value.CLOB, s.getBytes(Constants.UTF8));
+                        ValueLobDb.createSmallLob(Value.CLOB, s.getBytes(StandardCharsets.UTF_8));
                 } else {
                     Reader in = rs.getCharacterStream(columnIndex);
                     if (in == null) {
@@ -727,6 +753,7 @@ public class DataType {
             // "java.lang.Short";
             return Short.class.getName();
         case Value.INT:
+        case Value.ENUM:
             // "java.lang.Integer";
             return Integer.class.getName();
         case Value.LONG:
@@ -989,13 +1016,13 @@ public class DataType {
             return Value.ARRAY;
         } else if (isGeometryClass(x)) {
             return Value.GEOMETRY;
-        } else if (LocalDateTimeUtils.isLocalDate(x)) {
+        } else if (LocalDateTimeUtils.LOCAL_DATE == x) {
             return Value.DATE;
-        } else if (LocalDateTimeUtils.isLocalTime(x)) {
+        } else if (LocalDateTimeUtils.LOCAL_TIME == x) {
             return Value.TIME;
-        } else if (LocalDateTimeUtils.isLocalDateTime(x)) {
+        } else if (LocalDateTimeUtils.LOCAL_DATE_TIME == x || LocalDateTimeUtils.INSTANT == x) {
             return Value.TIMESTAMP;
-        } else if (LocalDateTimeUtils.isOffsetDateTime(x)) {
+        } else if (LocalDateTimeUtils.OFFSET_DATE_TIME == x) {
             return Value.TIMESTAMP_TZ;
         } else {
             if (JdbcUtils.customDataTypesHandler != null) {
@@ -1099,9 +1126,10 @@ public class DataType {
             }
             return ValueResultSet.getCopy((ResultSet) x, Integer.MAX_VALUE);
         } else if (x instanceof UUID) {
-            UUID u = (UUID) x;
-            return ValueUuid.get(u.getMostSignificantBits(), u.getLeastSignificantBits());
-        } else if (x instanceof Object[]) {
+            return ValueUuid.get((UUID) x);
+        }
+        Class<?> clazz = x.getClass();
+        if (x instanceof Object[]) {
             // (a.getClass().isArray());
             // (a.getClass().getComponentType().isPrimitive());
             Object[] o = (Object[]) x;
@@ -1110,18 +1138,20 @@ public class DataType {
             for (int i = 0; i < len; i++) {
                 v[i] = convertToValue(session, o[i], type);
             }
-            return ValueArray.get(x.getClass().getComponentType(), v);
+            return ValueArray.get(clazz.getComponentType(), v);
         } else if (x instanceof Character) {
             return ValueStringFixed.get(((Character) x).toString());
         } else if (isGeometry(x)) {
             return ValueGeometry.getFromGeometry(x);
-        } else if (LocalDateTimeUtils.isLocalDate(x.getClass())) {
+        } else if (clazz == LocalDateTimeUtils.LOCAL_DATE) {
             return LocalDateTimeUtils.localDateToDateValue(x);
-        } else if (LocalDateTimeUtils.isLocalTime(x.getClass())) {
+        } else if (clazz == LocalDateTimeUtils.LOCAL_TIME) {
             return LocalDateTimeUtils.localTimeToTimeValue(x);
-        } else if (LocalDateTimeUtils.isLocalDateTime(x.getClass())) {
+        } else if (clazz == LocalDateTimeUtils.LOCAL_DATE_TIME) {
             return LocalDateTimeUtils.localDateTimeToValue(x);
-        } else if (LocalDateTimeUtils.isOffsetDateTime(x.getClass())) {
+        } else if (clazz == LocalDateTimeUtils.INSTANT) {
+            return LocalDateTimeUtils.instantToValue(x);
+        } else if (clazz == LocalDateTimeUtils.OFFSET_DATE_TIME) {
             return LocalDateTimeUtils.offsetDateTimeToValue(x);
         } else if (x instanceof TimestampWithTimeZone) {
             return ValueTimestampTimeZone.get((TimestampWithTimeZone) x);
@@ -1165,12 +1195,16 @@ public class DataType {
      * Get a data type object from a type name.
      *
      * @param s the type name
+     * @param mode database mode
      * @return the data type object
      */
-    public static DataType getTypeByName(String s) {
-        DataType result = TYPES_BY_NAME.get(s);
-        if (result == null && JdbcUtils.customDataTypesHandler != null) {
-            result = JdbcUtils.customDataTypesHandler.getDataTypeByName(s);
+    public static DataType getTypeByName(String s, Mode mode) {
+        DataType result = mode.typeByNameMap.get(s);
+        if (result == null) {
+            result = TYPES_BY_NAME.get(s);
+            if (result == null && JdbcUtils.customDataTypesHandler != null) {
+                result = JdbcUtils.customDataTypesHandler.getDataTypeByName(s);
+            }
         }
         return result;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.text.MessageFormat;
@@ -17,7 +18,6 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
@@ -51,7 +51,7 @@ public class DbException extends RuntimeException {
                 // (otherwise certain applications don't work)
                 if (translations != null) {
                     Properties p = SortedProperties.fromLines(
-                            new String(translations, Constants.UTF8));
+                            new String(translations, StandardCharsets.UTF_8));
                     for (Entry<Object, Object> e : p.entrySet()) {
                         String key = (String) e.getKey();
                         String translation = (String) e.getValue();
@@ -177,6 +177,18 @@ public class DbException extends RuntimeException {
      */
     public static DbException get(int errorCode, String... params) {
         return new DbException(getJdbcSQLException(errorCode, null, params));
+    }
+
+    /**
+     * Create a database exception for an arbitrary SQLState.
+     *
+     * @param sqlstate the state to use
+     * @param message the message to use
+     * @return the exception
+     */
+    public static DbException fromUser(String sqlstate, String message) {
+        // do not translate as sqlstate is arbitrary : avoid "message not found"
+        return new DbException(new JdbcSQLException(message, null, sqlstate, 0, null, null));
     }
 
     /**

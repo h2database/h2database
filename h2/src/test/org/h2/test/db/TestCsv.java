@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -242,9 +243,9 @@ public class TestCsv extends TestBase {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         // UTF-8 "BOM" / marker
         out.write(StringUtils.convertHexToBytes("ef" + "bb" + "bf"));
-        out.write("\"ID\", \"NAME\"\n1, Hello".getBytes("UTF-8"));
+        out.write("\"ID\", \"NAME\"\n1, Hello".getBytes(StandardCharsets.UTF_8));
         byte[] buff = out.toByteArray();
-        Reader r = new InputStreamReader(new ByteArrayInputStream(buff), "UTF-8");
+        Reader r = new InputStreamReader(new ByteArrayInputStream(buff), StandardCharsets.UTF_8);
         ResultSet rs = new Csv().read(r, null);
         assertEquals("ID", rs.getMetaData().getColumnLabel(1));
         assertEquals("NAME", rs.getMetaData().getColumnLabel(2));
@@ -306,7 +307,7 @@ public class TestCsv extends TestBase {
 
         OutputStream out = FileUtils.newOutputStream(fileName, false);
         String csvContent = "\"A\",\"B\",\"C\",\"D\"\n\\N,\"\",\"\\N\",";
-        byte[] b = csvContent.getBytes("UTF-8");
+        byte[] b = csvContent.getBytes(StandardCharsets.UTF_8);
         out.write(b, 0, b.length);
         out.close();
         Csv csv = new Csv();
@@ -401,7 +402,7 @@ public class TestCsv extends TestBase {
         InputStreamReader reader = new InputStreamReader(
                 FileUtils.newInputStream(fileName));
         String text = IOUtils.readStringAndClose(reader, -1).trim();
-        text = StringUtils.replaceAll(text, "\n", " ");
+        text = text.replace('\n', ' ');
         assertEquals("ID|NAME 1|Hello", text);
         ResultSet rs = stat.executeQuery("select * from csvread('" +
                 fileName + "', null, null, '|', '')");

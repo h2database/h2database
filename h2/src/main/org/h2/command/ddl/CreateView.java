@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.dml.Query;
-import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Parameter;
@@ -35,6 +34,7 @@ public class CreateView extends SchemaCommand {
     private String comment;
     private boolean orReplace;
     private boolean force;
+    private boolean isTableExpression;
 
     public CreateView(Session session, Schema schema) {
         super(session, schema);
@@ -72,6 +72,10 @@ public class CreateView extends SchemaCommand {
         this.force = force;
     }
 
+    public void setTableExpression(boolean isTableExpression) {
+        this.isTableExpression = isTableExpression;
+    }
+
     @Override
     public int update() {
         session.commit(true);
@@ -99,40 +103,45 @@ public class CreateView extends SchemaCommand {
             }
             querySQL = select.getPlanSQL();
         }
-        // The view creates a Prepared command object, which belongs to a
-        // session, so we pass the system session down.
-        Session sysSession = db.getSystemSession();
-        synchronized (sysSession) {
-            try {
-                if (view == null) {
-                    Schema schema = session.getDatabase().getSchema(
-                            session.getCurrentSchemaName());
-                    sysSession.setCurrentSchema(schema);
-                    Column[] columnTemplates = null;
-                    if (columnNames != null) {
-                        columnTemplates = new Column[columnNames.length];
-                        for (int i = 0; i < columnNames.length; ++i) {
-                            columnTemplates[i] = new Column(columnNames[i], Value.UNKNOWN);
-                        }
-                    }
-                    view = new TableView(getSchema(), id, viewName, querySQL, null,
-                            columnTemplates, sysSession, false, false);
-                } else {
-                    view.replace(querySQL, sysSession, false, force, false);
-                    view.setModified();
-                }
-            } finally {
-                sysSession.setCurrentSchema(db.getSchema(Constants.SCHEMA_MAIN));
+        Column[] columnTemplatesAsUnknowns = null;
+        Column[] columnTemplatesAsStrings = null;
+        if (columnNames != null) {
+            columnTemplatesAsUnknowns = new Column[columnNames.length];
+            columnTemplatesAsStrings = new Column[columnNames.length];
+            for (int i = 0; i < columnNames.length; ++i) {
+                // non table expressions are fine to use unknown column type
+                columnTemplatesAsUnknowns[i] = new Column(columnNames[i], Value.UNKNOWN);
+                // table expressions can't have unknown types - so we use string instead
+                columnTemplatesAsStrings[i] = new Column(columnNames[i], Value.STRING);
             }
+        }
+        if (view == null) {
+            if (isTableExpression) {
+                view = TableView.createTableViewMaybeRecursive(getSchema(), id, viewName, querySQL, null,
+                        columnTemplatesAsStrings, session, false /* literalsChecked */, isTableExpression,
+                        true /* isPersistent */, db);
+            } else {
+                view = new TableView(getSchema(), id, viewName, querySQL, null, columnTemplatesAsUnknowns, session,
+                        false/* allow recursive */, false/* literalsChecked */, isTableExpression, true);
+            }
+        } else {
+            // TODO support isTableExpression in replace function...
+            view.replace(querySQL, columnTemplatesAsUnknowns, session, false, force, false);
+            view.setModified();
         }
         if (comment != null) {
             view.setComment(comment);
         }
         if (old == null) {
             db.addSchemaObject(session, view);
+            db.unlockMeta(session);
         } else {
             db.updateMeta(session, view);
         }
+
+        // TODO: if we added any table expressions that aren't used by this view, detect them
+        // and drop them - otherwise they will leak and never get cleaned up.
+
         return 0;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -269,7 +269,7 @@ public class MVTableEngine implements TableEngine {
                     MVMap<?, ?> map = store.openMap(mapName);
                     store.removeMap(map);
                 } else if (mapName.startsWith("table.") || mapName.startsWith("index.")) {
-                    int id = Integer.parseInt(mapName.substring(1 + mapName.indexOf(".")));
+                    int id = Integer.parseInt(mapName.substring(1 + mapName.indexOf('.')));
                     if (!objectIds.get(id)) {
                         ValueDataType keyType = new ValueDataType(null, null, null);
                         ValueDataType valueType = new ValueDataType(null, null, null);
@@ -412,7 +412,7 @@ public class MVTableEngine implements TableEngine {
          * @return the statistics
          */
         public Map<String, Integer> statisticsEnd() {
-            HashMap<String, Integer> map = New.hashMap();
+            HashMap<String, Integer> map = new HashMap<>();
             FileStore fs = store.getFileStore();
             int reads = fs == null ? 0 : (int) (fs.getReadCount() - statisticsStart);
             map.put("reads", reads);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -41,7 +41,6 @@ import org.h2.result.UpdatableRow;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.LocalDateTimeUtils;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
@@ -60,7 +59,6 @@ import org.h2.value.ValueShort;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
-import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * <p>
@@ -550,8 +548,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public boolean getBoolean(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getBoolean", columnIndex);
-            Boolean v = get(columnIndex).getBoolean();
-            return v == null ? false : v.booleanValue();
+            return get(columnIndex).getBoolean();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -569,8 +566,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public boolean getBoolean(String columnLabel) throws SQLException {
         try {
             debugCodeCall("getBoolean", columnLabel);
-            Boolean v = get(columnLabel).getBoolean();
-            return v == null ? false : v.booleanValue();
+            return get(columnLabel).getBoolean();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -3126,7 +3122,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         if (columnCount >= 3) {
             // use a hash table if more than 2 columns
             if (columnLabelMap == null) {
-                HashMap<String, Integer> map = New.hashMap(columnCount);
+                HashMap<String, Integer> map = new HashMap<>(columnCount);
                 // column labels have higher priority
                 for (int i = 0; i < columnCount; i++) {
                     String c = StringUtils.toUpperEnglish(result.getAlias(i));
@@ -3773,7 +3769,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         if (type == BigDecimal.class) {
             return type.cast(value.getBigDecimal());
         } else if (type == BigInteger.class) {
-            return type.cast(BigInteger.valueOf(value.getLong()));
+            return type.cast(value.getBigDecimal().toBigInteger());
         } else if (type == String.class) {
             return type.cast(value.getString());
         } else if (type == Boolean.class) {
@@ -3799,7 +3795,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         } else if (type == java.util.Date.class) {
             return type.cast(new java.util.Date(value.getTimestamp().getTime()));
         } else if (type == Calendar.class) {
-            Calendar calendar = Calendar.getInstance();
+            Calendar calendar = DateTimeUtils.createGregorianCalendar();
             calendar.setTime(value.getTimestamp());
             return type.cast(calendar);
         } else if (type == UUID.class) {
@@ -3810,28 +3806,27 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             int id = getNextId(TraceObject.ARRAY);
             return type.cast(value == ValueNull.INSTANCE ? null : new JdbcArray(conn, value, id));
         } else if (type == Blob.class) {
-            int id = getNextId(TraceObject.ARRAY);
+            int id = getNextId(TraceObject.BLOB);
             return type.cast(value == ValueNull.INSTANCE ? null : new JdbcBlob(conn, value, id));
         } else if (type == Clob.class) {
-            int id = getNextId(TraceObject.ARRAY);
+            int id = getNextId(TraceObject.CLOB);
             return type.cast(value == ValueNull.INSTANCE ? null : new JdbcClob(conn, value, id));
         } else if (type == TimestampWithTimeZone.class) {
             return type.cast(value.getObject());
         } else if (DataType.isGeometryClass(type)) {
             return type.cast(value.getObject());
-        } else if (LocalDateTimeUtils.isLocalDate(type)) {
+        } else if (type == LocalDateTimeUtils.LOCAL_DATE) {
             return type.cast(LocalDateTimeUtils.valueToLocalDate(value));
-        } else if (LocalDateTimeUtils.isLocalTime(type)) {
+        } else if (type == LocalDateTimeUtils.LOCAL_TIME) {
             return type.cast(LocalDateTimeUtils.valueToLocalTime(value));
-        } else if (LocalDateTimeUtils.isLocalDateTime(type)) {
-            return type.cast(LocalDateTimeUtils.valueToLocalDateTime(
-                            (ValueTimestamp) value));
-        } else if (LocalDateTimeUtils.isOffsetDateTime(type) &&
-                value instanceof ValueTimestampTimeZone) {
-            return type.cast(LocalDateTimeUtils.valueToOffsetDateTime(
-                            (ValueTimestampTimeZone) value));
+        } else if (type == LocalDateTimeUtils.LOCAL_DATE_TIME) {
+            return type.cast(LocalDateTimeUtils.valueToLocalDateTime(value));
+        } else if (type == LocalDateTimeUtils.INSTANT) {
+            return type.cast(LocalDateTimeUtils.valueToInstant(value));
+        } else if (type == LocalDateTimeUtils.OFFSET_DATE_TIME) {
+            return type.cast(LocalDateTimeUtils.valueToOffsetDateTime(value));
         } else {
-            throw unsupported(type.getClass().getName());
+            throw unsupported(type.getName());
         }
     }
 
@@ -3854,7 +3849,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             }
         }
         if (patchedRows == null) {
-            patchedRows = New.hashMap();
+            patchedRows = new HashMap<>();
         }
         Integer rowId = result.getRowId();
         if (!changed) {

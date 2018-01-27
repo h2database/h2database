@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.io.Writer;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -31,14 +32,19 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.LocalDateTimeUtils;
+import org.h2.util.MathUtils;
+import org.h2.util.StringUtils;
 
 /**
  * Tests for the ResultSet implementation.
@@ -256,37 +262,37 @@ public class TestResultSet extends TestBase {
 
         rs.moveToInsertRow();
         rs.updateInt(1, 6);
-        in = new ByteArrayInputStream("Hello".getBytes("UTF-8"));
+        in = new ByteArrayInputStream("Hello".getBytes(StandardCharsets.UTF_8));
         rs.updateAsciiStream(2, in);
         rs.insertRow();
 
         rs.moveToInsertRow();
         rs.updateInt(1, 7);
-        in = new ByteArrayInputStream("Hello".getBytes("UTF-8"));
+        in = new ByteArrayInputStream("Hello".getBytes(StandardCharsets.UTF_8));
         rs.updateAsciiStream("data", in);
         rs.insertRow();
 
         rs.moveToInsertRow();
         rs.updateInt(1, 8);
-        in = new ByteArrayInputStream("Hello-".getBytes("UTF-8"));
+        in = new ByteArrayInputStream("Hello-".getBytes(StandardCharsets.UTF_8));
         rs.updateAsciiStream(2, in, 5);
         rs.insertRow();
 
         rs.moveToInsertRow();
         rs.updateInt(1, 9);
-        in = new ByteArrayInputStream("Hello-".getBytes("UTF-8"));
+        in = new ByteArrayInputStream("Hello-".getBytes(StandardCharsets.UTF_8));
         rs.updateAsciiStream("data", in, 5);
         rs.insertRow();
 
         rs.moveToInsertRow();
         rs.updateInt(1, 10);
-        in = new ByteArrayInputStream("Hello-".getBytes("UTF-8"));
+        in = new ByteArrayInputStream("Hello-".getBytes(StandardCharsets.UTF_8));
         rs.updateAsciiStream(2, in, 5L);
         rs.insertRow();
 
         rs.moveToInsertRow();
         rs.updateInt(1, 11);
-        in = new ByteArrayInputStream("Hello-".getBytes("UTF-8"));
+        in = new ByteArrayInputStream("Hello-".getBytes(StandardCharsets.UTF_8));
         rs.updateAsciiStream("data", in, 5L);
         rs.insertRow();
 
@@ -791,16 +797,16 @@ public class TestResultSet extends TestBase {
 
         o = rs.getObject("value");
         trace(o.getClass().getName());
-        assertTrue(o instanceof Short);
-        assertTrue(((Short) o).shortValue() == -1);
+        assertTrue(o.getClass() == (SysProperties.OLD_RESULT_SET_GET_OBJECT ? Short.class : Integer.class));
+        assertTrue(((Number) o).intValue() == -1);
         o = rs.getObject("value", Short.class);
         trace(o.getClass().getName());
         assertTrue(o instanceof Short);
         assertTrue(((Short) o).shortValue() == -1);
         o = rs.getObject(2);
         trace(o.getClass().getName());
-        assertTrue(o instanceof Short);
-        assertTrue(((Short) o).shortValue() == -1);
+        assertTrue(o.getClass() == (SysProperties.OLD_RESULT_SET_GET_OBJECT ? Short.class : Integer.class));
+        assertTrue(((Number) o).intValue() == -1);
         o = rs.getObject(2, Short.class);
         trace(o.getClass().getName());
         assertTrue(o instanceof Short);
@@ -1088,6 +1094,12 @@ public class TestResultSet extends TestBase {
     }
 
     private void testDecimal() throws SQLException {
+        int numericType;
+        if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
+            numericType = Types.DECIMAL;
+        } else {
+            numericType = Types.NUMERIC;
+        }
         trace("Test DECIMAL");
         ResultSet rs;
         Object o;
@@ -1102,7 +1114,7 @@ public class TestResultSet extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(8,NULL)");
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" },
-                new int[] { Types.INTEGER, Types.DECIMAL }, new int[] {
+                new int[] { Types.INTEGER, numericType }, new int[] {
                 10, 10 }, new int[] { 0, 2 });
         BigDecimal bd;
 
@@ -1149,6 +1161,18 @@ public class TestResultSet extends TestBase {
 
         assertTrue(!rs.next());
         stat.execute("DROP TABLE TEST");
+
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE DECIMAL(22,2))");
+        stat.execute("INSERT INTO TEST VALUES(1,-12345678909876543210)");
+        stat.execute("INSERT INTO TEST VALUES(2,12345678901234567890.12345)");
+        rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
+        rs.next();
+        assertEquals(new BigDecimal("-12345678909876543210.00"), rs.getBigDecimal(2));
+        assertEquals(new BigInteger("-12345678909876543210"), rs.getObject(2, BigInteger.class));
+        rs.next();
+        assertEquals(new BigDecimal("12345678901234567890.12"), rs.getBigDecimal(2));
+        assertEquals(new BigInteger("12345678901234567890"), rs.getObject(2, BigInteger.class));
+        stat.execute("DROP TABLE TEST");
     }
 
     private void testDoubleFloat() throws SQLException {
@@ -1181,19 +1205,19 @@ public class TestResultSet extends TestBase {
         o = rs.getObject(2);
         trace(o.getClass().getName());
         assertTrue(o instanceof Double);
-        assertTrue(((Double) o).compareTo(new Double("-1.00")) == 0);
+        assertTrue(((Double) o).compareTo(-1d) == 0);
         o = rs.getObject(2, Double.class);
         trace(o.getClass().getName());
         assertTrue(o instanceof Double);
-        assertTrue(((Double) o).compareTo(new Double("-1.00")) == 0);
+        assertTrue(((Double) o).compareTo(-1d) == 0);
         o = rs.getObject(3);
         trace(o.getClass().getName());
         assertTrue(o instanceof Float);
-        assertTrue(((Float) o).compareTo(new Float("-1.00")) == 0);
+        assertTrue(((Float) o).compareTo(-1f) == 0);
         o = rs.getObject(3, Float.class);
         trace(o.getClass().getName());
         assertTrue(o instanceof Float);
-        assertTrue(((Float) o).compareTo(new Float("-1.00")) == 0);
+        assertTrue(((Float) o).compareTo(-1f) == 0);
         rs.next();
         assertTrue(rs.getInt(1) == 2);
         assertTrue(!rs.wasNull());
@@ -1306,7 +1330,7 @@ public class TestResultSet extends TestBase {
                         java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0").getTime());
         o = rs.getObject(2, Calendar.class);
         assertTrue(o instanceof Calendar);
-        assertEquals(((Calendar) o).getTime().getTime(),
+        assertEquals(((Calendar) o).getTimeInMillis(),
                         java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0").getTime());
         rs.next();
 
@@ -1326,34 +1350,34 @@ public class TestResultSet extends TestBase {
         assertEquals("1800-01-01", rs.getDate("value").toString());
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("1800-01-01", rs.getObject("value",
-                            LocalDateTimeUtils.getLocalDateClass()).toString());
+                            LocalDateTimeUtils.LOCAL_DATE).toString());
         }
         assertEquals("00:00:00", rs.getTime("value").toString());
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("00:00", rs.getObject("value",
-                            LocalDateTimeUtils.getLocalTimeClass()).toString());
+                            LocalDateTimeUtils.LOCAL_TIME).toString());
         }
         assertEquals("1800-01-01 00:00:00.0", rs.getTimestamp("value").toString());
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("1800-01-01T00:00", rs.getObject("value",
-                            LocalDateTimeUtils.getLocalDateTimeClass()).toString());
+                            LocalDateTimeUtils.LOCAL_DATE_TIME).toString());
         }
         rs.next();
 
         assertEquals("9999-12-31", rs.getDate("Value").toString());
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("9999-12-31", rs.getObject("Value",
-                            LocalDateTimeUtils.getLocalDateClass()).toString());
+                            LocalDateTimeUtils.LOCAL_DATE).toString());
         }
         assertEquals("23:59:59", rs.getTime("Value").toString());
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("23:59:59", rs.getObject("Value",
-                            LocalDateTimeUtils.getLocalTimeClass()).toString());
+                            LocalDateTimeUtils.LOCAL_TIME).toString());
         }
         assertEquals("9999-12-31 23:59:59.0", rs.getTimestamp("Value").toString());
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("9999-12-31T23:59:59", rs.getObject("Value",
-                            LocalDateTimeUtils.getLocalDateTimeClass()).toString());
+                            LocalDateTimeUtils.LOCAL_DATE_TIME).toString());
         }
         rs.next();
 
@@ -1362,7 +1386,7 @@ public class TestResultSet extends TestBase {
         assertTrue(rs.getTimestamp(2) == null && rs.wasNull());
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertTrue(rs.getObject(2,
-                            LocalDateTimeUtils.getLocalDateTimeClass()) == null && rs.wasNull());
+                            LocalDateTimeUtils.LOCAL_DATE_TIME) == null && rs.wasNull());
         }
         assertTrue(!rs.next());
 
@@ -1385,15 +1409,15 @@ public class TestResultSet extends TestBase {
         assertEquals("2007-08-09 10:11:12.141516171", ts.toString());
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("2001-02-03", rs.getObject(1,
-                            LocalDateTimeUtils.getLocalDateClass()).toString());
+                            LocalDateTimeUtils.LOCAL_DATE).toString());
         }
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("14:15:16", rs.getObject(2,
-                            LocalDateTimeUtils.getLocalTimeClass()).toString());
+                            LocalDateTimeUtils.LOCAL_TIME).toString());
         }
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("2007-08-09T10:11:12.141516171",
-                    rs.getObject(3, LocalDateTimeUtils.getLocalDateTimeClass())
+                    rs.getObject(3, LocalDateTimeUtils.LOCAL_DATE_TIME)
                             .toString());
         }
 
@@ -1408,7 +1432,7 @@ public class TestResultSet extends TestBase {
                 "D DATE, T TIME, TS TIMESTAMP)");
         PreparedStatement prep = conn.prepareStatement(
                 "INSERT INTO TEST VALUES(?, ?, ?, ?)");
-        Calendar regular = Calendar.getInstance();
+        Calendar regular = DateTimeUtils.createGregorianCalendar();
         Calendar other = null;
         // search a locale that has a _different_ raw offset
         long testTime = java.sql.Date.valueOf("2001-02-03").getTime();
@@ -1421,7 +1445,7 @@ public class TestResultSet extends TestBase {
             if (rawOffsetDiff != 0 && rawOffsetDiff != 1000 * 60 * 60 * 24) {
                 if (regular.getTimeZone().getOffset(testTime) !=
                         zone.getOffset(testTime)) {
-                    other = Calendar.getInstance(zone);
+                    other = DateTimeUtils.createGregorianCalendar(zone);
                     break;
                 }
             }
@@ -1527,6 +1551,9 @@ public class TestResultSet extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(5,X'0bcec1')");
         stat.execute("INSERT INTO TEST VALUES(6,X'03030303')");
         stat.execute("INSERT INTO TEST VALUES(7,NULL)");
+        byte[] random = new byte[0x10000];
+        MathUtils.randomBytes(random);
+        stat.execute("INSERT INTO TEST VALUES(8, X'" + StringUtils.convertBytesToHex(random) + "')");
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" },
                 new int[] { Types.INTEGER, Types.BLOB }, new int[] {
@@ -1566,15 +1593,29 @@ public class TestResultSet extends TestBase {
         InputStream in = rs.getBinaryStream("value");
         byte[] b = readAllBytes(in);
         assertEqualsWithNull(new byte[] { (byte) 0x0b, (byte) 0xce, (byte) 0xc1 }, b);
+        Blob blob = rs.getObject("value", Blob.class);
+        try {
+            assertTrue(blob != null);
+            assertEqualsWithNull(new byte[] { (byte) 0x0b, (byte) 0xce, (byte) 0xc1 },
+                    readAllBytes(blob.getBinaryStream()));
+            assertEqualsWithNull(new byte[] { (byte) 0xce,
+                    (byte) 0xc1 }, readAllBytes(blob.getBinaryStream(2, 2)));
+            assertTrue(!rs.wasNull());
+        } finally {
+            blob.free();
+        }
         assertTrue(!rs.wasNull());
         rs.next();
 
-        Blob blob = rs.getObject("value", Blob.class);
+        blob = rs.getObject("value", Blob.class);
         try {
             assertTrue(blob != null);
             assertEqualsWithNull(new byte[] { (byte) 0x03, (byte) 0x03,
                     (byte) 0x03, (byte) 0x03 }, readAllBytes(blob.getBinaryStream()));
+            assertEqualsWithNull(new byte[] { (byte) 0x03,
+                    (byte) 0x03 }, readAllBytes(blob.getBinaryStream(2, 2)));
             assertTrue(!rs.wasNull());
+            assertThrows(ErrorCode.INVALID_VALUE_2, blob).getBinaryStream(5, 1);
         } finally {
             blob.free();
         }
@@ -1582,6 +1623,22 @@ public class TestResultSet extends TestBase {
 
         assertEqualsWithNull(null, readAllBytes(rs.getBinaryStream("VaLuE")));
         assertTrue(rs.wasNull());
+        rs.next();
+
+        blob = rs.getObject("value", Blob.class);
+        try {
+            assertTrue(blob != null);
+            assertEqualsWithNull(random, readAllBytes(blob.getBinaryStream()));
+            byte[] expected = Arrays.copyOfRange(random, 100, 50102);
+            byte[] got = readAllBytes(blob.getBinaryStream(101, 50002));
+            assertEqualsWithNull(expected, got);
+            assertTrue(!rs.wasNull());
+            assertThrows(ErrorCode.INVALID_VALUE_2, blob).getBinaryStream(0x10001, 1);
+            assertThrows(ErrorCode.INVALID_VALUE_2, blob).getBinaryStream(0x10002, 0);
+        } finally {
+            blob.free();
+        }
+
         assertTrue(!rs.next());
         stat.execute("DROP TABLE TEST");
     }
@@ -1614,7 +1671,7 @@ public class TestResultSet extends TestBase {
         rs.next();
         InputStreamReader reader = null;
         try {
-            reader = new InputStreamReader(rs.getAsciiStream(2), "ISO-8859-1");
+            reader = new InputStreamReader(rs.getAsciiStream(2), StandardCharsets.ISO_8859_1);
         } catch (Exception e) {
             assertTrue(false);
         }
@@ -1624,7 +1681,7 @@ public class TestResultSet extends TestBase {
         assertTrue(string != null && string.equals("Hello"));
         rs.next();
         try {
-            reader = new InputStreamReader(rs.getAsciiStream("value"), "ISO-8859-1");
+            reader = new InputStreamReader(rs.getAsciiStream("value"), StandardCharsets.ISO_8859_1);
         } catch (Exception e) {
             assertTrue(false);
         }
@@ -1638,6 +1695,14 @@ public class TestResultSet extends TestBase {
         assertTrue(!rs.wasNull());
         trace(string);
         assertTrue(string != null && string.equals("Hallo"));
+        Clob clob = rs.getClob(2);
+        try {
+            assertEquals("all", readString(clob.getCharacterStream(2, 3)));
+            assertThrows(ErrorCode.INVALID_VALUE_2, clob).getCharacterStream(6, 1);
+            assertThrows(ErrorCode.INVALID_VALUE_2, clob).getCharacterStream(7, 0);
+        } finally {
+            clob.free();
+        }
         rs.next();
 
         string = readString(rs.getCharacterStream("value"));
@@ -1646,7 +1711,7 @@ public class TestResultSet extends TestBase {
         assertTrue(string != null && string.equals("Welt!"));
         rs.next();
 
-        Clob clob = rs.getObject("value", Clob.class);
+        clob = rs.getObject("value", Clob.class);
         try {
             assertTrue(clob != null);
             string = readString(clob.getCharacterStream());
@@ -1680,7 +1745,7 @@ public class TestResultSet extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE ARRAY)");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?)");
         prep.setInt(1, 1);
-        prep.setObject(2, new Object[] { new Integer(1), new Integer(2) });
+        prep.setObject(2, new Object[] { 1, 2 });
         prep.execute();
         prep.setInt(1, 2);
         prep.setObject(2, new Object[] { 11, 12 });

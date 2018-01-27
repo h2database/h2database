@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -421,6 +421,11 @@ public class CompareLike extends Condition {
             }
         }
         patternString = new String(patternChars, 0, patternLength);
+
+        // Clear optimizations
+        shortcutToStartsWith = false;
+        shortcutToEndsWith = false;
+        shortcutToContains = false;
 
         // optimizes the common case of LIKE 'foo%'
         if (compareMode.getName().equals(CompareMode.OFF) && patternLength > 1) {

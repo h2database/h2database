@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,6 +8,7 @@ package org.h2.build.code;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Enable / disable AB-BA deadlock detector code.
@@ -46,7 +47,7 @@ public class AbbaDetect {
         byte[] data = new byte[(int) file.length()];
         in.readFully(data);
         in.close();
-        String source = new String(data, "UTF-8");
+        String source = new String(data, StandardCharsets.UTF_8);
         String original = source;
 
         source = disable(source);
@@ -63,7 +64,7 @@ public class AbbaDetect {
         }
         File newFile = new File(file + ".new");
         RandomAccessFile out = new RandomAccessFile(newFile, "rw");
-        out.write(source.getBytes("UTF-8"));
+        out.write(source.getBytes(StandardCharsets.UTF_8));
         out.close();
 
         File oldFile = new File(file + ".old");

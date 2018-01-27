@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -13,12 +13,14 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
+import org.h2.command.Parser;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.util.New;
+import org.h2.util.StringUtils;
 
 /**
  * Represents a statement.
@@ -118,6 +120,34 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     public int executeUpdate(String sql) throws SQLException {
         try {
             debugCodeCall("executeUpdate", sql);
+            return executeUpdateInternal(sql);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
+     * Executes a statement (insert, update, delete, create, drop)
+     * and returns the update count.
+     * If another result set exists for this statement, this will be closed
+     * (even if this statement fails).
+     *
+     * If auto commit is on, this statement will be committed.
+     * If the statement is a DDL statement (create, drop, alter) and does not
+     * throw an exception, the current transaction (if any) is committed after
+     * executing the statement.
+     *
+     * @param sql the SQL statement
+     * @return the update count (number of row affected by an insert,
+     *         update or delete, or 0 if no rows or the statement was a
+     *         create, drop, commit or rollback)
+     * @throws SQLException if a database error occurred or a
+     *         select statement was executed
+     */
+    @Override
+    public long executeLargeUpdate(String sql) throws SQLException {
+        try {
+            debugCodeCall("executeLargeUpdate", sql);
             return executeUpdateInternal(sql);
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -239,6 +269,25 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     public int getUpdateCount() throws SQLException {
         try {
             debugCodeCall("getUpdateCount");
+            checkClosed();
+            return updateCount;
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
+     * Returns the last update count of this statement.
+     *
+     * @return the update count (number of row affected by an insert, update or
+     *         delete, or 0 if no rows or the statement was a create, drop,
+     *         commit or rollback; -1 if the statement was a select).
+     * @throws SQLException if this object is closed or invalid
+     */
+    @Override
+    public long getLargeUpdateCount() throws SQLException {
+        try {
+            debugCodeCall("getLargeUpdateCount");
             checkClosed();
             return updateCount;
         } catch (Exception e) {
@@ -378,6 +427,23 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     /**
      * Gets the maximum number of rows for a ResultSet.
      *
+     * @return the number of rows where 0 means no limit
+     * @throws SQLException if this object is closed
+     */
+    @Override
+    public long getLargeMaxRows() throws SQLException {
+        try {
+            debugCodeCall("getLargeMaxRows");
+            checkClosed();
+            return maxRows;
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
+     * Gets the maximum number of rows for a ResultSet.
+     *
      * @param maxRows the number of rows where 0 means no limit
      * @throws SQLException if this object is closed
      */
@@ -390,6 +456,26 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
                 throw DbException.getInvalidValueException("maxRows", maxRows);
             }
             this.maxRows = maxRows;
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
+     * Gets the maximum number of rows for a ResultSet.
+     *
+     * @param maxRows the number of rows where 0 means no limit
+     * @throws SQLException if this object is closed
+     */
+    @Override
+    public void setLargeMaxRows(long maxRows) throws SQLException {
+        try {
+            debugCodeCall("setLargeMaxRows", maxRows);
+            checkClosed();
+            if (maxRows < 0) {
+                throw DbException.getInvalidValueException("maxRows", maxRows);
+            }
+            this.maxRows = maxRows <= Integer.MAX_VALUE ? (int) maxRows : 0;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -697,6 +783,23 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     }
 
     /**
+     * Executes the batch.
+     * If one of the batched statements fails, this database will continue.
+     *
+     * @return the array of update counts
+     */
+    @Override
+    public long[] executeLargeBatch() throws SQLException {
+        int[] intResult = executeBatch();
+        int count = intResult.length;
+        long[] longResult = new long[count];
+        for (int i = 0; i < count; i++) {
+            longResult[i] = intResult[i];
+        }
+        return longResult;
+    }
+
+    /**
      * Return a result set that contains the last generated auto-increment key
      * for this connection, if there was one. If no key was generated by the
      * last modification statement, then an empty result set is returned.
@@ -803,6 +906,31 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
      * The method getGeneratedKeys supports at most one columns and row.
      *
      * @param sql the SQL statement
+     * @param autoGeneratedKeys ignored
+     * @return the update count (number of row affected by an insert,
+     *         update or delete, or 0 if no rows or the statement was a
+     *         create, drop, commit or rollback)
+     * @throws SQLException if a database error occurred or a
+     *         select statement was executed
+     */
+    @Override
+    public long executeLargeUpdate(String sql, int autoGeneratedKeys) throws SQLException {
+        try {
+            if (isDebugEnabled()) {
+                debugCode("executeLargeUpdate("+quote(sql)+", "+autoGeneratedKeys+");");
+            }
+            return executeUpdateInternal(sql);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
+     * Executes a statement and returns the update count.
+     * This method just calls executeUpdate(String sql) internally.
+     * The method getGeneratedKeys supports at most one columns and row.
+     *
+     * @param sql the SQL statement
      * @param columnIndexes ignored
      * @return the update count (number of row affected by an insert,
      *         update or delete, or 0 if no rows or the statement was a
@@ -828,6 +956,31 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
      * The method getGeneratedKeys supports at most one columns and row.
      *
      * @param sql the SQL statement
+     * @param columnIndexes ignored
+     * @return the update count (number of row affected by an insert,
+     *         update or delete, or 0 if no rows or the statement was a
+     *         create, drop, commit or rollback)
+     * @throws SQLException if a database error occurred or a
+     *         select statement was executed
+     */
+    @Override
+    public long executeLargeUpdate(String sql, int columnIndexes[]) throws SQLException {
+        try {
+            if (isDebugEnabled()) {
+                debugCode("executeLargeUpdate("+quote(sql)+", "+quoteIntArray(columnIndexes)+");");
+            }
+            return executeUpdateInternal(sql);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
+     * Executes a statement and returns the update count.
+     * This method just calls executeUpdate(String sql) internally.
+     * The method getGeneratedKeys supports at most one columns and row.
+     *
+     * @param sql the SQL statement
      * @param columnNames ignored
      * @return the update count (number of row affected by an insert,
      *         update or delete, or 0 if no rows or the statement was a
@@ -840,6 +993,31 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
         try {
             if (isDebugEnabled()) {
                 debugCode("executeUpdate("+quote(sql)+", "+quoteArray(columnNames)+");");
+            }
+            return executeUpdateInternal(sql);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
+     * Executes a statement and returns the update count.
+     * This method just calls executeUpdate(String sql) internally.
+     * The method getGeneratedKeys supports at most one columns and row.
+     *
+     * @param sql the SQL statement
+     * @param columnNames ignored
+     * @return the update count (number of row affected by an insert,
+     *         update or delete, or 0 if no rows or the statement was a
+     *         create, drop, commit or rollback)
+     * @throws SQLException if a database error occurred or a
+     *         select statement was executed
+     */
+    @Override
+    public long executeLargeUpdate(String sql, String columnNames[]) throws SQLException {
+        try {
+            if (isDebugEnabled()) {
+                debugCode("executeLargeUpdate("+quote(sql)+", "+quoteArray(columnNames)+");");
             }
             return executeUpdateInternal(sql);
         } catch (Exception e) {
@@ -1131,6 +1309,31 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
         if (isDebugEnabled()) {
             debugCode("setPoolable("+poolable+");");
         }
+    }
+
+    /**
+     * @param identifier
+     *            identifier to quote if required
+     * @param alwaysQuote
+     *            if {@code true} identifier will be quoted unconditionally
+     * @return specified identifier quoted if required or explicitly requested
+     */
+    @Override
+    public String enquoteIdentifier(String identifier, boolean alwaysQuote) throws SQLException {
+        if (alwaysQuote || !isSimpleIdentifier(identifier)) {
+            return StringUtils.quoteIdentifier(identifier);
+        }
+        return identifier;
+    }
+
+    /**
+     * @param identifier
+     *            identifier to check
+     * @return is specified identifier may be used without quotes
+     */
+    @Override
+    public boolean isSimpleIdentifier(String identifier) throws SQLException {
+        return Parser.isSimpleIdentifier(identifier, true);
     }
 
     /**

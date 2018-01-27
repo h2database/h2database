@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: Daniel Gredler
  */
@@ -21,7 +21,7 @@ public class ToDateParser {
     private final ConfigParam functionName;
     private String inputStr;
     private String formatStr;
-    private final Calendar resultCalendar = (Calendar) Calendar.getInstance().clone();
+    private final Calendar resultCalendar = DateTimeUtils.createGregorianCalendar();
     private Integer nanos;
 
     /**
@@ -33,7 +33,7 @@ public class ToDateParser {
     private ToDateParser(ConfigParam functionName, String input, String format) {
         // reset calendar - default oracle behaviour
         resultCalendar.set(Calendar.YEAR, 1970);
-        resultCalendar.set(Calendar.MONTH, Calendar.getInstance().get(Calendar.MONTH));
+        resultCalendar.set(Calendar.MONTH, DateTimeUtils.createGregorianCalendar().get(Calendar.MONTH));
         resultCalendar.clear(Calendar.DAY_OF_YEAR);
         resultCalendar.clear(Calendar.DAY_OF_WEEK);
         resultCalendar.clear(Calendar.DAY_OF_WEEK_IN_MONTH);

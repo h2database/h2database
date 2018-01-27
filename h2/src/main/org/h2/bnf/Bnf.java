@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -31,7 +31,7 @@ public class Bnf {
      * The rule map. The key is lowercase, and all spaces
      * are replaces with underscore.
      */
-    private final HashMap<String, RuleHead> ruleMap = New.hashMap();
+    private final HashMap<String, RuleHead> ruleMap = new HashMap<>();
     private String syntax;
     private String currentToken;
     private String[] tokens;
@@ -283,7 +283,7 @@ public class Bnf {
             }
             list.add(s);
         }
-        return list.toArray(new String[list.size()]);
+        return list.toArray(new String[0]);
     }
 
     /**

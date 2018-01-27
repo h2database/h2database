@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -164,7 +164,7 @@ public class PageStore implements CacheWriter {
     private RegularTable metaTable;
     private PageDataIndex metaIndex;
     private final IntIntHashMap metaRootPageId = new IntIntHashMap();
-    private final HashMap<Integer, PageIndex> metaObjects = New.hashMap();
+    private final HashMap<Integer, PageIndex> metaObjects = new HashMap<>();
     private HashMap<Integer, PageIndex> tempObjects;
 
     /**
@@ -229,7 +229,7 @@ public class PageStore implements CacheWriter {
      * Start collecting statistics.
      */
     public void statisticsStart() {
-        statistics = New.hashMap();
+        statistics = new HashMap<>();
     }
 
     /**
@@ -1421,7 +1421,7 @@ public class PageStore implements CacheWriter {
             if (index.getTable().isTemporary()) {
                 // temporary indexes are removed after opening
                 if (tempObjects == null) {
-                    tempObjects = New.hashMap();
+                    tempObjects = new HashMap<>();
                 }
                 tempObjects.put(index.getId(), index);
             } else {
@@ -1530,7 +1530,7 @@ public class PageStore implements CacheWriter {
         if (tableId == META_TABLE_ID) {
             int rootPageId = row.getValue(3).getInt();
             if (reservedPages == null) {
-                reservedPages = New.hashMap();
+                reservedPages = new HashMap<>();
             }
             reservedPages.put(rootPageId, logPos);
         }

@@ -1,10 +1,19 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.jdbc;
 
+import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
+import java.text.DecimalFormat;
+import java.util.Locale;
 import org.h2.api.CustomDataTypesHandler;
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
@@ -19,16 +28,6 @@ import org.h2.value.ValueBytes;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueString;
-
-import java.io.Serializable;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Types;
-import java.text.DecimalFormat;
-import java.util.Locale;
 
 /**
  * Tests {@link CustomDataTypesHandler}.
@@ -300,7 +299,7 @@ public class TestCustomDataTypesHandler extends TestBase {
         }
 
         /** Constructs data type instance for complex number type */
-        private DataType createComplex() {
+        private static DataType createComplex() {
             DataType result = new DataType();
             result.type = COMPLEX_DATA_TYPE_ID;
             result.name = COMPLEX_DATA_TYPE_NAME;
@@ -440,12 +439,12 @@ public class TestCustomDataTypesHandler extends TestBase {
         /**
          * Real part
          */
-        private double re;
+        double re;
 
         /**
          * Imaginary part
          */
-        private double im;
+        double im;
 
         /**
          * @param re real part

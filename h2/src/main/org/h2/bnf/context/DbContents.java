@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -234,9 +234,7 @@ public class DbContents {
             schemaList.add(schema);
         }
         rs.close();
-        String[] list = new String[schemaList.size()];
-        schemaList.toArray(list);
-        return list;
+        return schemaList.toArray(new String[0]);
     }
 
     private String getDefaultSchemaName(DatabaseMetaData meta) {

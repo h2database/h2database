@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -14,6 +14,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,7 +27,6 @@ import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.util.JdbcUtils;
 import org.h2.util.NetUtils;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
 
@@ -306,7 +306,7 @@ public class TcpServer implements Service {
             }
         }
         // TODO server: using a boolean 'now' argument? a timeout?
-        for (TcpServerThread c : New.arrayList(running)) {
+        for (TcpServerThread c : new ArrayList<>(running)) {
             if (c != null) {
                 c.close();
                 try {
@@ -483,7 +483,7 @@ public class TcpServer implements Service {
      * @param statementId the statement id
      */
     void cancelStatement(String sessionId, int statementId) {
-        for (TcpServerThread c : New.arrayList(running)) {
+        for (TcpServerThread c : new ArrayList<>(running)) {
             if (c != null) {
                 c.cancelStatement(sessionId, statementId);
             }

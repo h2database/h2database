@@ -1,11 +1,10 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.mvstore.db;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -38,19 +37,9 @@ import org.h2.value.ValueNull;
  */
 public class MVPrimaryIndex extends BaseIndex {
 
-    /**
-     * The minimum long value.
-     */
-    static final ValueLong MIN = ValueLong.get(Long.MIN_VALUE);
-
-    /**
-     * The maximum long value.
-     */
-    static final ValueLong MAX = ValueLong.get(Long.MAX_VALUE);
-
     private final MVTable mvTable;
     private final String mapName;
-    private TransactionMap<Value, Value> dataMap;
+    private final TransactionMap<Value, Value> dataMap;
     private final AtomicLong lastKey = new AtomicLong(0);
     private int mainIndexColumn = -1;
 
@@ -173,7 +162,7 @@ public class MVPrimaryIndex extends BaseIndex {
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         ValueLong min, max;
         if (first == null) {
-            min = MIN;
+            min = ValueLong.MIN;
         } else if (mainIndexColumn < 0) {
             min = ValueLong.get(first.getKey());
         } else {
@@ -185,7 +174,7 @@ public class MVPrimaryIndex extends BaseIndex {
             }
         }
         if (last == null) {
-            max = MAX;
+            max = ValueLong.MAX;
         } else if (mainIndexColumn < 0) {
             max = ValueLong.get(last.getKey());
         } else {
@@ -197,7 +186,7 @@ public class MVPrimaryIndex extends BaseIndex {
             }
         }
         TransactionMap<Value, Value> map = getMap(session);
-        return new MVStoreCursor(session, map.entryIterator(min), max);
+        return new MVStoreCursor(session, map.entryIterator(min, max));
     }
 
     @Override
@@ -270,13 +259,13 @@ public class MVPrimaryIndex extends BaseIndex {
         TransactionMap<Value, Value> map = getMap(session);
         ValueLong v = (ValueLong) (first ? map.firstKey() : map.lastKey());
         if (v == null) {
-            return new MVStoreCursor(session, Collections
-                    .<Entry<Value, Value>> emptyList().iterator(), null);
+            return new MVStoreCursor(session,
+                    Collections.<Entry<Value, Value>> emptyList().iterator());
         }
         Value value = map.get(v);
         Entry<Value, Value> e = new DataUtils.MapEntry<Value, Value>(v, value);
-        List<Entry<Value, Value>> list = Arrays.asList(e);
-        MVStoreCursor c = new MVStoreCursor(session, list.iterator(), v);
+        List<Entry<Value, Value>> list = Collections.singletonList(e);
+        MVStoreCursor c = new MVStoreCursor(session, list.iterator());
         c.next();
         return c;
     }
@@ -356,7 +345,7 @@ public class MVPrimaryIndex extends BaseIndex {
      */
     Cursor find(Session session, ValueLong first, ValueLong last) {
         TransactionMap<Value, Value> map = getMap(session);
-        return new MVStoreCursor(session, map.entryIterator(first), last);
+        return new MVStoreCursor(session, map.entryIterator(first, last));
     }
 
     @Override
@@ -385,14 +374,12 @@ public class MVPrimaryIndex extends BaseIndex {
 
         private final Session session;
         private final Iterator<Entry<Value, Value>> it;
-        private final ValueLong last;
         private Entry<Value, Value> current;
         private Row row;
 
-        public MVStoreCursor(Session session, Iterator<Entry<Value, Value>> it, ValueLong last) {
+        public MVStoreCursor(Session session, Iterator<Entry<Value, Value>> it) {
             this.session = session;
             this.it = it;
-            this.last = last;
         }
 
         @Override
@@ -415,9 +402,6 @@ public class MVPrimaryIndex extends BaseIndex {
         @Override
         public boolean next() {
             current = it.hasNext() ? it.next() : null;
-            if (current != null && current.getKey().getLong() > last.getLong()) {
-                current = null;
-            }
             row = null;
             return current != null;
         }

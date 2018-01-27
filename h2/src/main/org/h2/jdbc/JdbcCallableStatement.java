@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -30,7 +30,6 @@ import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.util.BitField;
-import org.h2.util.New;
 import org.h2.value.ValueNull;
 
 /**
@@ -77,6 +76,36 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
                 return 0;
             }
             return super.executeUpdate();
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
+     * Executes a statement (insert, update, delete, create, drop)
+     * and returns the update count.
+     * If another result set exists for this statement, this will be closed
+     * (even if this statement fails).
+     *
+     * If auto commit is on, this statement will be committed.
+     * If the statement is a DDL statement (create, drop, alter) and does not
+     * throw an exception, the current transaction (if any) is committed after
+     * executing the statement.
+     *
+     * @return the update count (number of row affected by an insert, update or
+     *         delete, or 0 if no rows or the statement was a create, drop,
+     *         commit or rollback)
+     * @throws SQLException if this object is closed or invalid
+     */
+    @Override
+    public long executeLargeUpdate() throws SQLException {
+        try {
+            checkClosed();
+            if (command.isQuery()) {
+                super.executeQuery();
+                return 0;
+            }
+            return super.executeLargeUpdate();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1638,7 +1667,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
             if (namedParameters == null) {
                 ResultSetMetaData meta = getCheckedMetaData();
                 int columnCount = meta.getColumnCount();
-                HashMap<String, Integer> map = New.hashMap(columnCount);
+                HashMap<String, Integer> map = new HashMap<>(columnCount);
                 for (int i = 1; i <= columnCount; i++) {
                     map.put(meta.getColumnLabel(i), i);
                 }

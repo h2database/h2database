@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -23,7 +23,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
-
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
 import org.h2.engine.Session;
@@ -266,7 +265,7 @@ public class FullText {
         removeAllTriggers(conn, TRIGGER_PREFIX);
         FullTextSettings setting = FullTextSettings.getInstance(conn);
         setting.removeAllIndexes();
-        setting.clearInored();
+        setting.clearIgnored();
         setting.clearWordList();
     }
 
@@ -470,10 +469,8 @@ public class FullText {
         Parser p = new Parser(session);
         Expression expr = p.parseExpression(key);
         addColumnData(columns, data, expr);
-        Object[] col = new Object[columns.size()];
-        columns.toArray(col);
-        Object[] dat = new Object[columns.size()];
-        data.toArray(dat);
+        Object[] col = columns.toArray();
+        Object[] dat = data.toArray();
         Object[][] columnData = { col, dat };
         return columnData;
     }
@@ -605,7 +602,7 @@ public class FullText {
         if (!setting.isInitialized()) {
             init(conn);
         }
-        Set<String> words = New.hashSet();
+        Set<String> words = new HashSet<>();
         addWords(setting, words, text);
         Set<Integer> rIds = null, lastRowIds;
 
@@ -613,7 +610,7 @@ public class FullText {
                 SELECT_MAP_BY_WORD_ID);
         for (String word : words) {
             lastRowIds = rIds;
-            rIds = New.hashSet();
+            rIds = new HashSet<>();
             Integer wId = setting.getWordId(word);
             if (wId == null) {
                 continue;
@@ -751,7 +748,7 @@ public class FullText {
      * @param table the table name
      */
     private static void createTrigger(Connection conn, String schema,
-                                      String table) throws SQLException {
+            String table) throws SQLException {
         createOrDropTrigger(conn, schema, table, true);
     }
 
@@ -793,11 +790,11 @@ public class FullText {
      * @param table the table name
      */
     private static void indexExistingRows(Connection conn, String schema,
-                                          String table) throws SQLException {
+            String table) throws SQLException {
         FullText.FullTextTrigger existing = new FullText.FullTextTrigger();
         existing.init(conn, schema, null, table, false, Trigger.INSERT);
-        String sql = "SELECT * FROM " + StringUtils.quoteIdentifier(schema) +
-                "." + StringUtils.quoteIdentifier(table);
+        String sql = "SELECT * FROM " + StringUtils.quoteIdentifier(schema)
+                + "." + StringUtils.quoteIdentifier(table);
         ResultSet rs = conn.createStatement().executeQuery(sql);
         int columnCount = rs.getMetaData().getColumnCount();
         while (rs.next()) {
@@ -908,8 +905,7 @@ public class FullText {
             index = new IndexInfo();
             index.schema = schemaName;
             index.table = tableName;
-            index.columns = new String[columnList.size()];
-            columnList.toArray(index.columns);
+            index.columns = columnList.toArray(new String[0]);
             rs = meta.getColumns(null,
                     StringUtils.escapeMetaDataPattern(schemaName),
                     StringUtils.escapeMetaDataPattern(tableName),
@@ -959,7 +955,7 @@ public class FullText {
             }
         }
 
-        private static boolean isMultiThread(Connection conn)
+        static boolean isMultiThread(Connection conn)
                 throws SQLException {
             try (Statement stat = conn.createStatement()) {
                 ResultSet rs = stat.executeQuery(
@@ -1087,7 +1083,7 @@ public class FullText {
         }
 
         private int[] getWordIds(Connection conn, Object[] row) throws SQLException {
-            HashSet<String> words = New.hashSet();
+            HashSet<String> words = new HashSet<>();
             for (int idx : index.indexColumns) {
                 int type = columnTypes[idx];
                 Object data = row[idx];
@@ -1151,8 +1147,8 @@ public class FullText {
             return buff.toString();
         }
 
-        private PreparedStatement getStatement(Connection conn, int indx) throws SQLException {
-            return useOwnConnection ? conn.prepareStatement(SQL[indx]) : prepStatements[indx];
+        private PreparedStatement getStatement(Connection conn, int index) throws SQLException {
+            return useOwnConnection ? conn.prepareStatement(SQL[index]) : prepStatements[index];
         }
 
     }

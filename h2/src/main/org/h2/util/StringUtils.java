@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -7,12 +7,13 @@ package org.h2.util;
 
 import java.lang.ref.SoftReference;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 
@@ -74,20 +75,6 @@ public class StringUtils {
         } finally {
             softCacheCreatedNs = System.nanoTime();
         }
-    }
-
-    /**
-     * Check if two strings are equal. Here, null is equal to null.
-     *
-     * @param a the first value
-     * @param b the second value
-     * @return true if both are null or both are equal
-     */
-    public static boolean equals(String a, String b) {
-        if (a == null) {
-            return b == null;
-        }
-        return a.equals(b);
     }
 
     /**
@@ -454,7 +441,7 @@ public class StringUtils {
                 buff[j++] = (byte) ch;
             }
         }
-        String s = new String(buff, 0, j, Constants.UTF8);
+        String s = new String(buff, 0, j, StandardCharsets.UTF_8);
         return s;
     }
 
@@ -492,9 +479,7 @@ public class StringUtils {
         }
         String e = buff.toString();
         list.add(trim ? e.trim() : e);
-        String[] array = new String[list.size()];
-        list.toArray(array);
-        return array;
+        return list.toArray(new String[0]);
     }
 
     /**
@@ -689,7 +674,8 @@ public class StringUtils {
                 buff.append("&amp;");
                 break;
             case '\'':
-                buff.append("&apos;");
+                // &apos; is not valid in HTML
+                buff.append("&#39;");
                 break;
             case '\"':
                 buff.append("&quot;");
@@ -843,9 +829,7 @@ public class StringUtils {
         if (len == 0) {
             return chars;
         }
-        char[] copy = new char[len];
-        System.arraycopy(chars, 0, copy, 0, len);
-        return copy;
+        return Arrays.copyOf(chars, len);
     }
 
     /**
@@ -860,23 +844,20 @@ public class StringUtils {
      */
     public static String trim(String s, boolean leading, boolean trailing,
             String sp) {
-        char space = (sp == null || sp.length() < 1) ? ' ' : sp.charAt(0);
+        char space = sp == null || sp.isEmpty() ? ' ' : sp.charAt(0);
+        int begin = 0, end = s.length();
         if (leading) {
-            int len = s.length(), i = 0;
-            while (i < len && s.charAt(i) == space) {
-                i++;
+            while (begin < end && s.charAt(begin) == space) {
+                begin++;
             }
-            s = (i == 0) ? s : s.substring(i);
         }
         if (trailing) {
-            int endIndex = s.length() - 1;
-            int i = endIndex;
-            while (i >= 0 && s.charAt(i) == space) {
-                i--;
+            while (end > begin && s.charAt(end - 1) == space) {
+                end--;
             }
-            s = i == endIndex ? s : s.substring(0, i + 1);
         }
-        return s;
+        // substring() returns self if start == 0 && end == length()
+        return s.substring(begin, end);
     }
 
     /**

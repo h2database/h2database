@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0, and the
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0, and the
  * EPL 1.0 (http://h2database.com/html/license.html). Initial Developer: H2
  * Group Iso8601: Initial Developer: Robert Rathsack (firstName dot lastName at
  * gmx dot de)
@@ -21,6 +21,7 @@ import org.h2.value.ValueDate;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * This utility class contains time conversion functions.
@@ -34,6 +35,11 @@ public class DateTimeUtils {
      * The number of milliseconds per day.
      */
     public static final long MILLIS_PER_DAY = 24 * 60 * 60 * 1000L;
+
+    /**
+     * UTC time zone.
+     */
+    public static final TimeZone UTC = TimeZone.getTimeZone("UTC");
 
     private static final long NANOS_PER_DAY = MILLIS_PER_DAY * 1000000;
 
@@ -73,7 +79,7 @@ public class DateTimeUtils {
      * use a fixed value throughout the duration of the JVM's life, rather than
      * have this offset change, possibly midway through a long-running query.
      */
-    private static int zoneOffsetMillis = Calendar.getInstance()
+    private static int zoneOffsetMillis = DateTimeUtils.createGregorianCalendar()
             .get(Calendar.ZONE_OFFSET);
 
     private DateTimeUtils() {
@@ -86,7 +92,7 @@ public class DateTimeUtils {
      */
     public static void resetCalendar() {
         CACHED_CALENDAR.remove();
-        zoneOffsetMillis = Calendar.getInstance().get(Calendar.ZONE_OFFSET);
+        zoneOffsetMillis = DateTimeUtils.createGregorianCalendar().get(Calendar.ZONE_OFFSET);
     }
 
     /**
@@ -97,7 +103,7 @@ public class DateTimeUtils {
     private static Calendar getCalendar() {
         Calendar c = CACHED_CALENDAR.get();
         if (c == null) {
-            c = Calendar.getInstance();
+            c = DateTimeUtils.createGregorianCalendar();
             CACHED_CALENDAR.set(c);
         }
         c.clear();
@@ -113,11 +119,38 @@ public class DateTimeUtils {
     private static Calendar getCalendar(TimeZone tz) {
         Calendar c = CACHED_CALENDAR_NON_DEFAULT_TIMEZONE.get();
         if (c == null || !c.getTimeZone().equals(tz)) {
-            c = Calendar.getInstance(tz);
+            c = DateTimeUtils.createGregorianCalendar(tz);
             CACHED_CALENDAR_NON_DEFAULT_TIMEZONE.set(c);
         }
         c.clear();
         return c;
+    }
+
+    /**
+     * Creates a Gregorian calendar for the default timezone using the default
+     * locale. Dates in H2 are represented in a Gregorian calendar. So this
+     * method should be used instead of Calendar.getInstance() to ensure that
+     * the Gregorian calendar is used for all date processing instead of a
+     * default locale calendar that can be non-Gregorian in some locales.
+     *
+     * @return a new calendar instance.
+     */
+    public static Calendar createGregorianCalendar() {
+        return new GregorianCalendar();
+    }
+
+    /**
+     * Creates a Gregorian calendar for the given timezone using the default
+     * locale. Dates in H2 are represented in a Gregorian calendar. So this
+     * method should be used instead of Calendar.getInstance() to ensure that
+     * the Gregorian calendar is used for all date processing instead of a
+     * default locale calendar that can be non-Gregorian in some locales.
+     *
+     * @param tz timezone for the calendar, is never null
+     * @return a new calendar instance.
+     */
+    public static Calendar createGregorianCalendar(TimeZone tz) {
+        return new GregorianCalendar(tz);
     }
 
     /**
@@ -136,10 +169,9 @@ public class DateTimeUtils {
         cal.clear();
         cal.setLenient(true);
         long dateValue = d.getDateValue();
-        setCalendarFields(cal, yearFromDateValue(dateValue),
+        long ms = convertToMillis(cal, yearFromDateValue(dateValue),
                 monthFromDateValue(dateValue), dayFromDateValue(dateValue), 0,
                 0, 0, 0);
-        long ms = cal.getTimeInMillis();
         return new Date(ms);
     }
 
@@ -167,10 +199,7 @@ public class DateTimeUtils {
         s -= m * 60;
         long h = m / 60;
         m -= h * 60;
-        setCalendarFields(cal, 1970, 1, 1, (int) h, (int) m, (int) s,
-                (int) millis);
-        long ms = cal.getTimeInMillis();
-        return new Time(ms);
+        return new Time(convertToMillis(cal, 1970, 1, 1, (int) h, (int) m, (int) s, (int) millis));
     }
 
     /**
@@ -198,10 +227,9 @@ public class DateTimeUtils {
         s -= m * 60;
         long h = m / 60;
         m -= h * 60;
-        setCalendarFields(cal, yearFromDateValue(dateValue),
+        long ms = convertToMillis(cal, yearFromDateValue(dateValue),
                 monthFromDateValue(dateValue), dayFromDateValue(dateValue),
                 (int) h, (int) m, (int) s, (int) millis);
-        long ms = cal.getTimeInMillis();
         Timestamp x = new Timestamp(ms);
         x.setNanos((int) (nanos + millis * 1000000));
         return x;
@@ -253,12 +281,10 @@ public class DateTimeUtils {
             throw DbException.getInvalidValueException("calendar", null);
         }
         target = (Calendar) target.clone();
-        Calendar local = Calendar.getInstance();
-        synchronized (local) {
-            local.setTime(x);
-            convertTime(local, target);
-        }
-        return target.getTime().getTime();
+        Calendar local = DateTimeUtils.createGregorianCalendar();
+        local.setTime(x);
+        convertTime(local, target);
+        return target.getTimeInMillis();
     }
 
     private static void convertTime(Calendar from, Calendar to) {
@@ -290,6 +316,30 @@ public class DateTimeUtils {
         long nanos = nanosFromCalendar(cal);
         nanos += x.getNanos() % 1000000;
         return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
+    }
+
+    private static Calendar valueToCalendar(Value value) {
+        Calendar cal;
+        if (value instanceof ValueTimestamp) {
+            cal = createGregorianCalendar();
+            cal.setTime(value.getTimestamp());
+        } else if (value instanceof ValueDate) {
+            cal = createGregorianCalendar();
+            cal.setTime(value.getDate());
+        } else if (value instanceof ValueTime) {
+            cal = createGregorianCalendar();
+            cal.setTime(value.getTime());
+        } else if (value instanceof ValueTimestampTimeZone) {
+            ValueTimestampTimeZone v = (ValueTimestampTimeZone) value;
+            cal = createGregorianCalendar(v.getTimeZone());
+            cal.setTimeInMillis(DateTimeUtils.convertDateValueToMillis(DateTimeUtils.UTC, v.getDateValue())
+                    + v.getTimeNanos() / 1000000L
+                    - v.getTimeZoneOffsetMins() * 60000);
+        } else {
+            cal = createGregorianCalendar();
+            cal.setTime(value.getTimestamp());
+        }
+        return cal;
     }
 
     /**
@@ -443,12 +493,11 @@ public class DateTimeUtils {
             c = getCalendar(tz);
         }
         c.setLenient(lenient);
-        setCalendarFields(c, year, month, day, hour, minute, second, millis);
-        return c.getTime().getTime();
+        return convertToMillis(c, year, month, day, hour, minute, second, millis);
     }
 
-    private static void setCalendarFields(Calendar cal, int year, int month,
-            int day, int hour, int minute, int second, int millis) {
+    private static long convertToMillis(Calendar cal, int year, int month, int day,
+            int hour, int minute, int second, int millis) {
         if (year <= 0) {
             cal.set(Calendar.ERA, GregorianCalendar.BC);
             cal.set(Calendar.YEAR, 1 - year);
@@ -463,19 +512,19 @@ public class DateTimeUtils {
         cal.set(Calendar.MINUTE, minute);
         cal.set(Calendar.SECOND, second);
         cal.set(Calendar.MILLISECOND, millis);
+        return cal.getTimeInMillis();
     }
 
     /**
      * Get the specified field of a date, however with years normalized to
      * positive or negative, and month starting with 1.
      *
-     * @param d the date
+     * @param date the date value
      * @param field the field type
      * @return the value
      */
-    public static int getDatePart(java.util.Date d, int field) {
-        Calendar c = getCalendar();
-        c.setTime(d);
+    public static int getDatePart(Value date, int field) {
+        Calendar c = valueToCalendar(date);
         if (field == Calendar.YEAR) {
             return getYear(c);
         }
@@ -527,13 +576,11 @@ public class DateTimeUtils {
      * starts at Monday. See also http://en.wikipedia.org/wiki/ISO_8601
      *
      * @author Robert Rathsack
-     * @param date the date object which day of week should be calculated
+     * @param value the date object which day of week should be calculated
      * @return the day of the week, Monday as 1 to Sunday as 7
      */
-    public static int getIsoDayOfWeek(java.util.Date date) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTimeInMillis(date.getTime());
-        int val = cal.get(Calendar.DAY_OF_WEEK) - 1;
+    public static int getIsoDayOfWeek(Value value) {
+        int val = valueToCalendar(value).get(Calendar.DAY_OF_WEEK) - 1;
         return val == 0 ? 7 : val;
     }
 
@@ -548,12 +595,11 @@ public class DateTimeUtils {
      * the December 28th always belongs to the last week.
      *
      * @author Robert Rathsack
-     * @param date the date object which week of year should be calculated
+     * @param value the date object which week of year should be calculated
      * @return the week of the year
      */
-    public static int getIsoWeek(java.util.Date date) {
-        Calendar c = Calendar.getInstance();
-        c.setTimeInMillis(date.getTime());
+    public static int getIsoWeek(Value value) {
+        Calendar c = valueToCalendar(value);
         c.setFirstDayOfWeek(Calendar.MONDAY);
         c.setMinimalDaysInFirstWeek(4);
         return c.get(Calendar.WEEK_OF_YEAR);
@@ -563,12 +609,11 @@ public class DateTimeUtils {
      * Returns the year according to the ISO week definition.
      *
      * @author Robert Rathsack
-     * @param date the date object which year should be calculated
+     * @param value the date object which year should be calculated
      * @return the year
      */
-    public static int getIsoYear(java.util.Date date) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTimeInMillis(date.getTime());
+    public static int getIsoYear(Value value) {
+        Calendar cal = valueToCalendar(value);
         cal.setFirstDayOfWeek(Calendar.MONDAY);
         cal.setMinimalDaysInFirstWeek(4);
         int year = getYear(cal);
@@ -942,7 +987,7 @@ public class DateTimeUtils {
      * @return the new timestamp
      */
     public static Timestamp addMonths(Timestamp refDate, int nrOfMonthsToAdd) {
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = DateTimeUtils.createGregorianCalendar();
         calendar.setTime(refDate);
         calendar.add(Calendar.MONTH, nrOfMonthsToAdd);
 

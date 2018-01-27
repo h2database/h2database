@@ -1,8 +1,32 @@
-git pull
-./build.sh spellcheck
-./build.sh javadocImpl
-./build.sh docs
-./build.sh jarMVStore (should be about 200 KB)
+# Checklist for a release
+
+## Formatting, Spellchecking, Javadocs
+
+    git pull
+
+Do this until there are no errors.
+Fix typos, add new words to dictionary.txt:
+
+    ./build.sh spellcheck
+
+Add documentation for all public methods. Make methods private if possible:
+
+    ./build.sh javadocImpl
+
+Ensure lines are not overly long:
+
+    ./build.sh docs
+
+## Jar File Size Verification
+
+To ensure the MVStore jar file is not too large
+(does not reference the database code by accident).
+The file size should be about 200 KB:
+
+    ./build.sh jarMVStore
+
+## Changing Version Numbers
+
 Update Constants.java - change version and build number
 Update changelog.html - add new version, remove oldest
 Update newsfeed.sql - add new version, remove oldest

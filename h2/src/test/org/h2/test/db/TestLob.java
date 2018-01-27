@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Connection;
@@ -24,7 +25,6 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
@@ -192,12 +192,7 @@ public class TestLob extends TestBase {
         Thread.sleep(100);
         // start a new transaction, to be sure
         stat.execute("delete from test");
-        try {
-            c1.getSubString(1, 3);
-            fail();
-        } catch (SQLException e) {
-            // expected
-        }
+        assertThrows(SQLException.class, c1).getSubString(1, 3);
         conn.close();
     }
 
@@ -641,12 +636,7 @@ public class TestLob extends TestBase {
         Statement stat;
         conn = getConnection("lob");
         stat = conn.createStatement();
-        try {
-            stat.execute("create memory table test(x clob unique)");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.FEATURE_NOT_SUPPORTED_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).execute("create memory table test(x clob unique)");
         conn.close();
     }
 
@@ -1073,18 +1063,36 @@ public class TestLob extends TestBase {
         prep2.getQueryTimeout();
         prep2.close();
         conn0.getAutoCommit();
-        Reader r = clob0.getCharacterStream();
+        Reader r;
+        int ch;
+        r = clob0.getCharacterStream();
         for (int i = 0; i < 10000; i++) {
-            int ch = r.read();
+            ch = r.read();
             if (ch != ('0' + (i % 10))) {
                 fail("expected " + (char) ('0' + (i % 10)) +
                         " got: " + ch + " (" + (char) ch + ")");
             }
         }
-        int ch = r.read();
+        ch = r.read();
         if (ch != -1) {
             fail("expected -1 got: " + ch);
         }
+        r.close();
+        r = clob0.getCharacterStream(1235, 1000);
+        for (int i = 1234; i < 2234; i++) {
+            ch = r.read();
+            if (ch != ('0' + (i % 10))) {
+                fail("expected " + (char) ('0' + (i % 10)) +
+                        " got: " + ch + " (" + (char) ch + ")");
+            }
+        }
+        ch = r.read();
+        if (ch != -1) {
+            fail("expected -1 got: " + ch);
+        }
+        r.close();
+        assertThrows(ErrorCode.INVALID_VALUE_2, clob0).getCharacterStream(10001, 1);
+        assertThrows(ErrorCode.INVALID_VALUE_2, clob0).getCharacterStream(10002, 0);
         conn0.close();
     }
 
@@ -1358,7 +1366,7 @@ public class TestLob extends TestBase {
         PreparedStatement prep;
         prep = conn.prepareStatement("INSERT INTO TEST VALUES(1, ?)");
         String s = new String(getRandomChars(10000, 1));
-        byte[] data = s.getBytes("UTF-8");
+        byte[] data = s.getBytes(StandardCharsets.UTF_8);
         // if we keep the string, debugging with Eclipse is not possible
         // because Eclipse wants to display the large string and fails
         s = "";

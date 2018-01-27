@@ -172,7 +172,7 @@
 90140=The result set is readonly. You may need to use conn.createStatement(.., ResultSet.CONCUR_UPDATABLE).
 90141=Serializer cannot be changed because there is a data table: {0}
 90142=Step size must not be zero
-90143=#Row {1} not found in primary index {0}
+90143=Row {1} not found in primary index {0}
 HY000=General error: {0}
 HY004=Unknown data type: {0}
 HYC00=Feature not supported: {0}

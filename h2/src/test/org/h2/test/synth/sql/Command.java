@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -7,7 +7,6 @@ package org.h2.test.synth.sql;
 
 import java.sql.SQLException;
 import java.util.HashMap;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 
 /**
@@ -53,7 +52,7 @@ class Command {
         this.config = config;
         this.type = type;
         this.table = table;
-        this.tables = New.hashMap();
+        this.tables = new HashMap<>();
         this.tables.put(alias, table);
     }
 

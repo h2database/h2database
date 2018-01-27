@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -42,6 +42,7 @@ import org.h2.test.synth.sql.RandomGen;
 import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Restore;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 
@@ -62,7 +63,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
 
     private final ArrayList<Object> objects = New.arrayList();
     private final HashMap<Class <?>, ArrayList<Method>> classMethods =
-            New.hashMap();
+            new HashMap<>();
     private RandomGen random = new RandomGen();
     private final ArrayList<String> statements = New.arrayList();
     private int openCount;
@@ -276,8 +277,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
         return conn;
     }
 
-    @Override
-    public void testCase(int seed) throws SQLException {
+    private void testCase(int seed) throws SQLException {
         printTime("seed: " + seed);
         callCount = 0;
         openCount = 0;
@@ -440,7 +440,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
         } else if (type == boolean.class) {
             return random.nextBoolean();
         } else if (type == double.class) {
-            return new Double(random.getRandomDouble());
+            return random.getRandomDouble();
         } else if (type == String.class) {
             if (random.getInt(10) == 0) {
                 return null;
@@ -485,7 +485,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
             // TODO should use generated savepoints
             return null;
         } else if (type == Calendar.class) {
-            return Calendar.getInstance();
+            return DateTimeUtils.createGregorianCalendar();
         } else if (type == java.net.URL.class) {
             return null;
         } else if (type == java.math.BigDecimal.class) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public abstract class Task implements Runnable {
 
-    private static AtomicInteger counter = new AtomicInteger();
+    private final static AtomicInteger counter = new AtomicInteger();
 
     /**
      * A flag indicating the get() method has been called.
@@ -92,16 +92,6 @@ public abstract class Task implements Runnable {
      */
     public boolean isFinished() {
         return finished;
-    }
-
-    /**
-     * Interrupt the thread.
-     */
-    public void interruptThread() {
-        if (thread == null) {
-            throw new IllegalStateException("Thread not started");
-        }
-        thread.interrupt();
     }
 
     /**

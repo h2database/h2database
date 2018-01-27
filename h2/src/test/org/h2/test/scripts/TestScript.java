@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -19,6 +19,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
+
+import org.h2.engine.SysProperties;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.New;
@@ -77,9 +79,71 @@ public class TestScript extends TestBase {
             return;
         }
         reconnectOften = !config.memory && config.big;
+
         testScript("testScript.sql");
-        testScript("functions-system-rownum.sql");
-        testScript("datatypes-enum.sql");
+        testScript("altertable-index-reuse.sql");
+        testScript("query-optimisations.sql");
+        testScript("commands-dml-script.sql");
+        testScript("commands-dml-create-view.sql");
+        String decimal2;
+        if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
+            decimal2 = "decimal_decimal";
+        } else {
+            decimal2 = "decimal_numeric";
+        }
+        for (String s : new String[] { "array", "bigint", "binary", "blob",
+                "boolean", "char", "clob", "date", "decimal", decimal2, "double", "enum",
+                "geometry", "identity", "int", "other", "real", "smallint",
+                "time", "timestamp-with-timezone", "timestamp", "tinyint",
+                "uuid", "varchar", "varchar-ignorecase" }) {
+            testScript("datatypes/" + s + ".sql");
+        }
+        for (String s : new String[] { "avg", "bit-and", "bit-or", "count",
+                "group-concat", "max", "min", "selectivity", "stddev-pop",
+                "stddev-samp", "sum", "var-pop", "var-samp" }) {
+            testScript("functions/aggregate/" + s + ".sql");
+        }
+        for (String s : new String[] { "abs", "acos", "asin", "atan", "atan2",
+                "bitand", "bitget", "bitor", "bitxor", "ceil", "compress",
+                "cos", "cosh", "cot", "decrypt", "degrees", "encrypt", "exp",
+                "expand", "floor", "hash", "length", "log", "mod", "pi",
+                "power", "radians", "rand", "random-uuid", "round",
+                "roundmagic", "secure-rand", "sign", "sin", "sinh", "sqrt",
+                "tan", "tanh", "trunc", "truncate", "zero" }) {
+            testScript("functions/numeric/" + s + ".sql");
+        }
+        for (String s : new String[] { "ascii", "bit-length", "char", "concat",
+                "concat-ws", "difference", "hextoraw", "insert", "instr",
+                "left", "length", "locate", "lower", "lpad", "ltrim",
+                "octet-length", "position", "rawtohex", "regexp-like",
+                "regex-replace", "repeat", "replace", "right", "rpad", "rtrim",
+                "soundex", "space", "stringdecode", "stringencode",
+                "stringtoutf8", "substring", "to-char", "translate", "trim",
+                "upper", "utf8tostring", "xmlattr", "xmlcdata", "xmlcomment",
+                "xmlnode", "xmlstartdoc", "xmltext" }) {
+            testScript("functions/string/" + s + ".sql");
+        }
+        for (String s : new String[] { "array-contains", "array-get",
+                "array-length", "autocommit", "cancel-session", "casewhen",
+                "cast", "coalesce", "convert", "csvread", "csvwrite", "currval",
+                "database-path", "database", "decode", "disk-space-used",
+                "file-read", "file-write", "greatest", "h2version", "identity",
+                "ifnull", "least", "link-schema", "lock-mode", "lock-timeout",
+                "memory-free", "memory-used", "nextval", "nullif", "nvl2",
+                "readonly", "rownum", "schema", "scope-identity", "session-id",
+                "set", "table", "transaction-id", "truncate-value", "user" }) {
+            testScript("functions/system/" + s + ".sql");
+        }
+        for (String s : new String[] { "current_date", "current_timestamp",
+                "current-time", "dateadd", "datediff", "dayname",
+                "day-of-month", "day-of-week", "day-of-year", "extract",
+                "formatdatetime", "hour", "minute", "month", "monthname",
+                "parsedatetime", "quarter", "second", "week", "year" }) {
+            testScript("functions/timeanddate/" + s + ".sql");
+        }
+        for (String s : new String[] { "with", "mergeUsing" }) {
+            testScript("dml/" + s + ".sql");
+        }
         deleteDb("script");
         System.out.flush();
     }
@@ -87,7 +151,8 @@ public class TestScript extends TestBase {
     private void testScript(String scriptFileName) throws Exception {
         deleteDb("script");
 
-        // Reset all the state in case there is anything left over from the previous file we processed.
+        // Reset all the state in case there is anything left over from the previous file
+        // we processed.
         conn = null;
         stat = null;
         in = null;
@@ -132,6 +197,9 @@ public class TestScript extends TestBase {
 
     private void testFile(String inFile) throws Exception {
         InputStream is = getClass().getClassLoader().getResourceAsStream(inFile);
+        if (is == null) {
+            throw new IOException("could not find " + inFile);
+        }
         in = new LineNumberReader(new InputStreamReader(is, "Cp1252"));
         StringBuilder buff = new StringBuilder();
         while (true) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -28,6 +28,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -178,13 +179,13 @@ public class BuildBase {
     /**
      * The full path to the executable of the current JRE.
      */
-    protected String javaExecutable = System.getProperty("java.home") +
+    protected final String javaExecutable = System.getProperty("java.home") +
             File.separator + "bin" + File.separator + "java";
 
     /**
      * The full path to the tools jar of the current JDK.
      */
-    protected String javaToolsJar = System.getProperty("java.home") + File.separator + ".." +
+    protected final String javaToolsJar = System.getProperty("java.home") + File.separator + ".." +
             File.separator + "lib" + File.separator + "tools.jar";
 
     /**
@@ -495,7 +496,7 @@ public class BuildBase {
                 buff.write(b);
                 if (b == '\n') {
                     byte[] data = buff.toByteArray();
-                    String line = new String(data, "UTF-8");
+                    String line = new String(data, StandardCharsets.UTF_8);
                     boolean print = true;
                     for (String l : exclude) {
                         if (line.startsWith(l)) {
@@ -842,6 +843,35 @@ public class BuildBase {
                         comp = p1.compareTo(p2);
                     }
                     return comp;
+                }
+            });
+        } else if (jar) {
+            Collections.sort(files, new Comparator<File>() {
+                private int priority(String path) {
+                    if (path.startsWith("META-INF/")) {
+                        if (path.equals("META-INF/MANIFEST.MF")) {
+                            return 0;
+                        }
+                        if (path.startsWith("services/", 9)) {
+                            return 1;
+                        }
+                        return 2;
+                    }
+                    if (!path.endsWith(".zip")) {
+                        return 3;
+                    }
+                    return 4;
+                }
+
+                @Override
+                public int compare(File f1, File f2) {
+                    String p1 = f1.getPath();
+                    String p2 = f2.getPath();
+                    int comp = Integer.compare(priority(p1), priority(p2));
+                    if (comp != 0) {
+                        return comp;
+                    }
+                    return p1.compareTo(p2);
                 }
             });
         }

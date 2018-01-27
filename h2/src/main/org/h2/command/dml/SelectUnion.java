@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -26,6 +26,7 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.util.ColumnNamer;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
@@ -58,8 +59,17 @@ public class SelectUnion extends Query {
     public static final int INTERSECT = 3;
 
     private int unionType;
-    private final Query left;
-    private Query right;
+
+    /**
+     * The left hand side of the union (the first subquery).
+     */
+    final Query left;
+
+    /**
+     * The right hand side of the union (the second subquery).
+     */
+    Query right;
+
     private ArrayList<Expression> expressions;
     private Expression[] expressionArray;
     private ArrayList<SelectOrderBy> orderList;
@@ -329,6 +339,7 @@ public class SelectUnion extends Query {
         expressions = New.arrayList();
         ArrayList<Expression> le = left.getExpressions();
         ArrayList<Expression> re = right.getExpressions();
+        ColumnNamer columnNamer= new ColumnNamer(session);
         for (int i = 0; i < len; i++) {
             Expression l = le.get(i);
             Expression r = re.get(i);
@@ -336,7 +347,8 @@ public class SelectUnion extends Query {
             long prec = Math.max(l.getPrecision(), r.getPrecision());
             int scale = Math.max(l.getScale(), r.getScale());
             int displaySize = Math.max(l.getDisplaySize(), r.getDisplaySize());
-            Column col = new Column(l.getAlias(), type, prec, scale, displaySize);
+            String columnName = columnNamer.getColumnName(l,i,l.getAlias());
+            Column col = new Column(columnName, type, prec, scale, displaySize);
             Expression e = new ExpressionColumn(session.getDatabase(), col);
             expressions.add(e);
         }
@@ -345,8 +357,7 @@ public class SelectUnion extends Query {
             sort = prepareOrder(orderList, expressions.size());
             orderList = null;
         }
-        expressionArray = new Expression[expressions.size()];
-        expressions.toArray(expressionArray);
+        expressionArray = expressions.toArray(new Expression[0]);
     }
 
     @Override
@@ -432,7 +443,7 @@ public class SelectUnion extends Query {
             DbException.throwInternalError("type=" + unionType);
         }
         buff.append('(').append(right.getPlanSQL()).append(')');
-        Expression[] exprList = expressions.toArray(new Expression[expressions.size()]);
+        Expression[] exprList = expressions.toArray(new Expression[0]);
         if (sort != null) {
             buff.append("\nORDER BY ").append(sort.getSQL(exprList, exprList.length));
         }

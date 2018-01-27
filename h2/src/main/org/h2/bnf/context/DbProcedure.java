@@ -1,16 +1,15 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.bnf.context;
 
-import org.h2.util.New;
-
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import org.h2.util.New;
 
 /**
  * Contains meta data information about a procedure.
@@ -21,7 +20,7 @@ public class DbProcedure {
     private final DbSchema schema;
     private final String name;
     private final String quotedName;
-    private boolean returnsResult;
+    private final boolean returnsResult;
     private DbColumn[] parameters;
 
     public DbProcedure(DbSchema schema, ResultSet rs) throws SQLException {

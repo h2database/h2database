@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.ConnectException;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -556,7 +558,7 @@ public class TestWeb extends TestBase {
             Task t = new Task() {
                 @Override
                 public void call() throws Exception {
-                    Server.startWebServer(conn);
+                    Server.startWebServer(conn, true);
                 }
             };
             t.execute();
@@ -572,7 +574,7 @@ public class TestWeb extends TestBase {
             url = client.getBaseUrl(url);
             try {
                 client.get(url, "logout.do");
-            } catch (Exception e) {
+            } catch (ConnectException e) {
                 // the server stops on logout
             }
             t.get();
@@ -1174,11 +1176,7 @@ public class TestWeb extends TestBase {
 
         @Override
         public String toString() {
-            try {
-                return new String(buff.toByteArray(), "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                return e.toString();
-            }
+            return new String(buff.toByteArray(), StandardCharsets.UTF_8);
         }
 
         @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -149,17 +149,17 @@ public class TestPerformance implements Database.DatabaseTest {
             writer = new PrintWriter(new FileWriter(out));
             ResultSet rs = stat.executeQuery(
                     "CALL '<table><tr><th>Test Case</th><th>Unit</th>' " +
-                    "|| SELECT GROUP_CONCAT('<th>' || DB || '</th>' " +
+                    "|| (SELECT GROUP_CONCAT('<th>' || DB || '</th>' " +
                     "ORDER BY DBID SEPARATOR '') FROM " +
-                    "(SELECT DISTINCT DBID, DB FROM RESULTS)" +
+                    "(SELECT DISTINCT DBID, DB FROM RESULTS))" +
                     "|| '</tr>' || CHAR(10) " +
-                    "|| SELECT GROUP_CONCAT('<tr><td>' || TEST || " +
+                    "|| (SELECT GROUP_CONCAT('<tr><td>' || TEST || " +
                     "'</td><td>' || UNIT || '</td>' || ( " +
                     "SELECT GROUP_CONCAT('<td>' || RESULT || '</td>' " +
                     "ORDER BY DBID SEPARATOR '') FROM RESULTS R2 WHERE " +
                     "R2.TESTID = R1.TESTID) || '</tr>' " +
                     "ORDER BY TESTID SEPARATOR CHAR(10)) FROM " +
-                    "(SELECT DISTINCT TESTID, TEST, UNIT FROM RESULTS) R1" +
+                    "(SELECT DISTINCT TESTID, TEST, UNIT FROM RESULTS) R1)" +
                     "|| '</table>'"
             );
             rs.next();
@@ -243,6 +243,7 @@ public class TestPerformance implements Database.DatabaseTest {
             int statPerSec = (int) (db.getExecutedStatements() * 1000L / db.getTotalTime());
             db.log("Statements per second", "#", statPerSec);
             System.out.println("Statements per second: " + statPerSec);
+            System.out.println("GC overhead: " + (100 * db.getTotalGCTime() / db.getTotalTime()) + "%");
             collect = false;
             db.stopServer();
         }

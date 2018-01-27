@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -131,9 +131,9 @@ public class IndexCursor implements Cursor {
                 if (isIntersects) {
                     intersects = getSpatialSearchRow(intersects, columnId, v);
                 }
-                if (isStart || isEnd) {
-                    // an X=? condition will produce less rows than
-                    // an X IN(..) condition
+                // An X=? condition will produce less rows than
+                // an X IN(..) condition, unless the X IN condition can use the index.
+                if ((isStart || isEnd) && !canUseIndexFor(inColumn)) {
                     inColumn = null;
                     inList = null;
                     inResult = null;
@@ -176,6 +176,10 @@ public class IndexCursor implements Cursor {
             // only one IN(..) condition can be used at the same time
             return false;
         }
+        return canUseIndexFor(column);
+    }
+
+    private boolean canUseIndexFor(Column column) {
         // The first column of the index must match this column,
         // or it must be a VIEW index (where the column is null).
         // Multiple IN conditions with views are not supported, see

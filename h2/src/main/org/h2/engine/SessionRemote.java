@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -92,7 +92,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     private JavaObjectSerializer javaObjectSerializer;
     private volatile boolean javaObjectSerializerInitialized;
 
-    private CompareMode compareMode = CompareMode.getInstance(null, 0);
+    private final CompareMode compareMode = CompareMode.getInstance(null, 0);
 
     public SessionRemote(ConnectionInfo ci) {
         this.connectionInfo = ci;
@@ -114,8 +114,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             throws IOException {
         Socket socket = NetUtils.createSocket(server,
                 Constants.DEFAULT_TCP_PORT, ci.isSSL());
-        Transfer trans = new Transfer(this);
-        trans.setSocket(socket);
+        Transfer trans = new Transfer(this, socket);
         trans.setSSL(ci.isSSL());
         trans.init();
         trans.writeInt(Constants.TCP_PROTOCOL_VERSION_6);

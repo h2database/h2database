@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * Represents a database in the benchmark test application.
@@ -37,12 +38,14 @@ class Database {
     private final ArrayList<String[]> replace = new ArrayList<>();
     private String currentAction;
     private long startTimeNs;
+    private long initialGCTime;
     private Connection conn;
     private Statement stat;
     private long lastTrace;
     private final Random random = new Random(1);
     private final ArrayList<Object[]> results = new ArrayList<>();
     private int totalTime;
+    private int totalGCTime;
     private final AtomicInteger executedStatements = new AtomicInteger(0);
     private int threadCount;
 
@@ -66,6 +69,15 @@ class Database {
      */
     int getTotalTime() {
         return totalTime;
+    }
+
+    /**
+     * Get the total measured GC time.
+     *
+     * @return the time in milliseconds
+     */
+    int getTotalGCTime() {
+        return totalGCTime;
     }
 
     /**
@@ -235,7 +247,7 @@ class Database {
             String key = (String) k;
             if (key.startsWith(databaseType + ".")) {
                 String pattern = key.substring(databaseType.length() + 1);
-                pattern = StringUtils.replaceAll(pattern, "_", " ");
+                pattern = pattern.replace('_', ' ');
                 pattern = StringUtils.toUpperEnglish(pattern);
                 String replacement = prop.getProperty(key);
                 replace.add(new String[]{pattern, replacement});
@@ -272,6 +284,7 @@ class Database {
     void start(Bench bench, String action) {
         this.currentAction = bench.getName() + ": " + action;
         this.startTimeNs = System.nanoTime();
+        this.initialGCTime = Utils.getGarbageCollectionTime();
     }
 
     /**
@@ -280,9 +293,11 @@ class Database {
      */
     void end() {
         long time = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTimeNs);
+        long gcCollectionTime = Utils.getGarbageCollectionTime() - initialGCTime;
         log(currentAction, "ms", (int) time);
         if (test.isCollect()) {
             totalTime += time;
+            totalGCTime += gcCollectionTime;
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -148,12 +148,7 @@ public class TestOutOfMemory extends TestBase {
         stat.execute("checkpoint");
         eatMemory(80);
         try {
-            try {
-                prep.execute();
-                fail();
-            } catch (SQLException e) {
-                assertEquals(ErrorCode.OUT_OF_MEMORY, e.getErrorCode());
-            }
+            assertThrows(ErrorCode.OUT_OF_MEMORY, prep).execute();
             assertThrows(ErrorCode.DATABASE_IS_CLOSED, conn).close();
             freeMemory();
             conn = null;

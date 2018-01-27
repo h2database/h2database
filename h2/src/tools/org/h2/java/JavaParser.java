@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,6 +8,7 @@ package org.h2.java;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,8 +32,7 @@ public class JavaParser {
      */
     public static final boolean REF_COUNT_STATIC = false;
 
-    private static final HashMap<String, ClassObj> BUILT_IN_CLASSES = New
-            .hashMap();
+    private static final HashMap<String, ClassObj> BUILT_IN_CLASSES = new HashMap<>();
 
     private static final int TOKEN_LITERAL_CHAR = 0;
     private static final int TOKEN_LITERAL_STRING = 1;
@@ -41,9 +41,8 @@ public class JavaParser {
     private static final int TOKEN_IDENTIFIER = 4;
     private static final int TOKEN_OTHER = 5;
 
-    private static final HashSet<String> RESERVED = New.hashSet();
-    private static final HashMap<String, String> JAVA_IMPORT_MAP = New
-            .hashMap();
+    private static final HashSet<String> RESERVED = new HashSet<>();
+    private static final HashMap<String, String> JAVA_IMPORT_MAP = new HashMap<>();
 
     private final ArrayList<ClassObj> allClasses = New.arrayList();
 
@@ -56,16 +55,14 @@ public class JavaParser {
     private int nextClassId;
     private MethodObj method;
     private FieldObj thisPointer;
-    private final HashMap<String, String> importMap = New.hashMap();
-    private final HashMap<String, ClassObj> classes = New.hashMap();
+    private final HashMap<String, String> importMap = new HashMap<>();
+    private final HashMap<String, ClassObj> classes = new HashMap<>();
     private final LinkedHashMap<String, FieldObj> localVars =
             new LinkedHashMap<>();
-    private final HashMap<String, MethodObj> allMethodsMap = New.hashMap();
+    private final HashMap<String, MethodObj> allMethodsMap = new HashMap<>();
     private final ArrayList<Statement> nativeHeaders = New.arrayList();
-    private final HashMap<String, String> stringToStringConstantMap = New
-            .hashMap();
-    private final HashMap<String, String> stringConstantToStringMap = New
-            .hashMap();
+    private final HashMap<String, String> stringToStringConstantMap = new HashMap<>();
+    private final HashMap<String, String> stringConstantToStringMap = new HashMap<>();
 
     public JavaParser() {
         addBuiltInTypes();
@@ -166,7 +163,7 @@ public class JavaParser {
             RandomAccessFile file = new RandomAccessFile(fileName, "r");
             byte[] buff = new byte[(int) file.length()];
             file.readFully(buff);
-            source = new String(buff, "UTF-8");
+            source = new String(buff, StandardCharsets.UTF_8);
             file.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -317,7 +314,7 @@ public class JavaParser {
                 classObj.nativeCode.add(s);
             }
             thisPointer = null;
-            HashSet<String> annotations = New.hashSet();
+            HashSet<String> annotations = new HashSet<>();
             while (readIf("@")) {
                 String annotation = readIdentifier();
                 annotations.add(annotation);
@@ -1687,8 +1684,7 @@ public class JavaParser {
             }
             out.println("};");
         }
-        ArrayList<String> constantNames = New
-                .arrayList(stringConstantToStringMap.keySet());
+        ArrayList<String> constantNames = new ArrayList<>(stringConstantToStringMap.keySet());
         Collections.sort(constantNames);
         for (String c : constantNames) {
             String s = stringConstantToStringMap.get(c);

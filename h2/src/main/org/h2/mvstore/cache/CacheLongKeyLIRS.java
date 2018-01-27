@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -82,11 +82,19 @@ public class CacheLongKeyLIRS<V> {
      * Remove all entries.
      */
     public void clear() {
-        long max = Math.max(1, maxMemory / segmentCount);
+        long max = getMaxItemSize();
         for (int i = 0; i < segmentCount; i++) {
             segments[i] = new Segment<>(
                     max, stackMoveDistance, 8, nonResidentQueueSize);
         }
+    }
+
+    /**
+     * Determines max size of the data item size to fit into cache
+     * @return data items size limit
+     */
+    public long getMaxItemSize() {
+        return Math.max(1, maxMemory / segmentCount);
     }
 
     private Entry<V> find(long key) {
@@ -1184,7 +1192,7 @@ public class CacheLongKeyLIRS<V> {
          * The number of entries in the non-resident queue, as a factor of the
          * number of all other entries in the map.
          */
-        public int nonResidentQueueSize = 3;
+        public final int nonResidentQueueSize = 3;
 
     }
 

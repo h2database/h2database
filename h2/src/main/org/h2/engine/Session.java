@@ -1,11 +1,13 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -42,6 +44,7 @@ import org.h2.table.SubQueryInfo;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableType;
+import org.h2.util.ColumnNamerConfiguration;
 import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 import org.h2.value.Value;
@@ -120,12 +123,14 @@ public class Session extends SessionWithState {
     private long modificationMetaID = -1;
     private SubQueryInfo subQueryInfo;
     private int parsingView;
+    private Deque<String> viewNameStack = new ArrayDeque<>();
     private int preparingQueryExpression;
     private volatile SmallLRUCache<Object, ViewIndex> viewIndexCache;
     private HashMap<Object, ViewIndex> subQueryIndexCache;
     private boolean joinBatchEnabled;
     private boolean forceJoinOrder;
     private boolean lazyQueryExecution;
+    private ColumnNamerConfiguration columnNamerConfiguration;
     /**
      * Tables marked for ANALYZE after the current transaction is committed.
      * Prevents us calling ANALYZE repeatedly in large transactions.
@@ -162,6 +167,7 @@ public class Session extends SessionWithState {
         this.lockTimeout = setting == null ?
                 Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
         this.currentSchemaName = Constants.SCHEMA_MAIN;
+        this.columnNamerConfiguration = ColumnNamerConfiguration.getDefault();
     }
 
     public void setLazyQueryExecution(boolean lazyQueryExecution) {
@@ -223,13 +229,35 @@ public class Session extends SessionWithState {
         return subQueryInfo;
     }
 
-    public void setParsingView(boolean parsingView) {
+    /**
+     * Stores name of currently parsed view in a stack so it can be determined
+     * during {@code prepare()}.
+     *
+     * @param parsingView
+     *            {@code true} to store one more name, {@code false} to remove it
+     *            from stack
+     * @param viewName
+     *            name of the view
+     */
+    public void setParsingCreateView(boolean parsingView, String viewName) {
         // It can be recursive, thus implemented as counter.
         this.parsingView += parsingView ? 1 : -1;
         assert this.parsingView >= 0;
+        if (parsingView) {
+            viewNameStack.push(viewName);
+        } else {
+            assert viewName.equals(viewNameStack.peek());
+            viewNameStack.pop();
+        }
+    }
+    public String getParsingCreateViewName() {
+        if (viewNameStack.size() == 0) {
+            return null;
+        }
+        return viewNameStack.peek();
     }
 
-    public boolean isParsingView() {
+    public boolean isParsingCreateView() {
         assert parsingView >= 0;
         return parsingView != 0;
     }
@@ -346,7 +374,7 @@ public class Session extends SessionWithState {
         if (localTempTables == null) {
             return New.arrayList();
         }
-        return New.arrayList(localTempTables.values());
+        return new ArrayList<>(localTempTables.values());
     }
 
     /**
@@ -361,7 +389,7 @@ public class Session extends SessionWithState {
         }
         if (localTempTables.get(table.getName()) != null) {
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1,
-                    table.getSQL());
+                    table.getSQL()+" AS "+table.getName());
         }
         modificationId++;
         localTempTables.put(table.getName(), table);
@@ -373,6 +401,9 @@ public class Session extends SessionWithState {
      * @param table the table
      */
     public void removeLocalTempTable(Table table) {
+        // Exception thrown in org.h2.engine.Database.removeMeta if line below
+        // is missing with TestGeneralCommonTableQueries
+        database.lockMeta(this);
         modificationId++;
         localTempTables.remove(table.getName());
         synchronized (database) {
@@ -396,7 +427,7 @@ public class Session extends SessionWithState {
 
     public HashMap<String, Index> getLocalTempTableIndexes() {
         if (localTempTableIndexes == null) {
-            return New.hashMap();
+            return new HashMap<>();
         }
         return localTempTableIndexes;
     }
@@ -454,7 +485,7 @@ public class Session extends SessionWithState {
      */
     public HashMap<String, Constraint> getLocalTempTableConstraints() {
         if (localTempTableConstraints == null) {
-            return New.hashMap();
+            return new HashMap<>();
         }
         return localTempTableConstraints;
     }
@@ -535,8 +566,8 @@ public class Session extends SessionWithState {
      *
      * @param sql the SQL statement
      * @param rightsChecked true if the rights have already been checked
-     * @param literalsChecked true if the sql string has already been checked for literals (only used if
-     *                        ALLOW_LITERALS NONE is set).
+     * @param literalsChecked true if the sql string has already been checked
+     *            for literals (only used if ALLOW_LITERALS NONE is set).
      * @return the prepared statement
      */
     public Prepared prepare(String sql, boolean rightsChecked, boolean literalsChecked) {
@@ -666,15 +697,18 @@ public class Session extends SessionWithState {
                 autoCommitAtTransactionEnd = false;
             }
         }
-        endTransaction();
 
         int rows = getDatabase().getSettings().analyzeSample / 10;
         if (tablesToAnalyze != null) {
             for (Table table : tablesToAnalyze) {
                 Analyze.analyzeTable(this, table, rows, false);
             }
+            // analyze can lock the meta
+            database.unlockMeta(this);
         }
         tablesToAnalyze = null;
+
+        endTransaction();
     }
 
     private void removeTemporaryLobs(boolean onTimeout) {
@@ -735,6 +769,7 @@ public class Session extends SessionWithState {
     public void rollback() {
         checkCommitRollback();
         currentTransactionName = null;
+        transactionStart = 0;
         boolean needCommit = false;
         if (undoLog.size() > 0) {
             rollbackTo(null, false);
@@ -851,6 +886,10 @@ public class Session extends SessionWithState {
                 removeTemporaryLobs(false);
                 cleanTempTables(true);
                 undoLog.clear();
+                // Table#removeChildrenAndResources can take the meta lock,
+                // and we need to unlock before we call removeSession(), which might
+                // want to take the meta lock using the system session.
+                database.unlockMeta(this);
                 database.removeSession(this);
             } finally {
                 closed = true;
@@ -959,6 +998,7 @@ public class Session extends SessionWithState {
             }
             locks.clear();
         }
+        database.unlockMetaDebug(this);
         savepoints = null;
         sessionStateChanged = true;
     }
@@ -973,6 +1013,9 @@ public class Session extends SessionWithState {
                         modificationId++;
                         table.setModified();
                         it.remove();
+                        // Exception thrown in org.h2.engine.Database.removeMeta
+                        // if line below is missing with TestDeadlock
+                        database.lockMeta(this);
                         table.removeChildrenAndResources(this);
                         if (closeSession) {
                             // need to commit, otherwise recovery might
@@ -982,11 +1025,6 @@ public class Session extends SessionWithState {
                     } else if (table.getOnCommitTruncate()) {
                         table.truncate(this);
                     }
-                }
-                // sometimes Table#removeChildrenAndResources
-                // will take the meta lock
-                if (closeSession) {
-                    database.unlockMeta(this);
                 }
             }
         }
@@ -1101,6 +1139,8 @@ public class Session extends SessionWithState {
      */
     public void rollbackToSavepoint(String name) {
         checkCommitRollback();
+        currentTransactionName = null;
+        transactionStart = 0;
         if (savepoints == null) {
             throw DbException.get(ErrorCode.SAVEPOINT_IS_INVALID_1, name);
         }
@@ -1298,9 +1338,9 @@ public class Session extends SessionWithState {
             DbException.throwInternalError(v.toString());
         }
         if (removeLobMap == null) {
-            removeLobMap = New.hashMap();
-            removeLobMap.put(v.toString(), v);
+            removeLobMap = new HashMap<>();
         }
+        removeLobMap.put(v.toString(), v);
     }
 
     /**
@@ -1427,9 +1467,7 @@ public class Session extends SessionWithState {
                 break;
             }
         }
-        Table[] list = new Table[copy.size()];
-        copy.toArray(list);
-        return list;
+        return copy.toArray(new Table[0]);
     }
 
     /**
@@ -1473,7 +1511,7 @@ public class Session extends SessionWithState {
             // not grow too large for a single query (we drop the whole cache in
             // the end of prepareLocal)
             if (subQueryIndexCache == null) {
-                subQueryIndexCache = New.hashMap();
+                subQueryIndexCache = new HashMap<>();
             }
             return subQueryIndexCache;
         }
@@ -1496,7 +1534,7 @@ public class Session extends SessionWithState {
             return;
         }
         if (temporaryResults == null) {
-            temporaryResults = New.hashSet();
+            temporaryResults = new HashSet<>();
         }
         if (temporaryResults.size() < 100) {
             // reference at most 100 result sets to avoid memory problems
@@ -1702,7 +1740,7 @@ public class Session extends SessionWithState {
      */
     public void markTableForAnalyze(Table table) {
         if (tablesToAnalyze == null) {
-            tablesToAnalyze = New.hashSet();
+            tablesToAnalyze = new HashSet<>();
         }
         tablesToAnalyze.add(table);
     }
@@ -1743,5 +1781,13 @@ public class Session extends SessionWithState {
             this.value = v;
         }
 
+    }
+
+    public ColumnNamerConfiguration getColumnNamerConfiguration() {
+        return columnNamerConfiguration;
+    }
+
+    public void setColumnNamerConfiguration(ColumnNamerConfiguration columnNamerConfiguration) {
+        this.columnNamerConfiguration = columnNamerConfiguration;
     }
 }

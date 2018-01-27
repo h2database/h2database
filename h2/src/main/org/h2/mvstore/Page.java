@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,7 +9,6 @@ import java.nio.ByteBuffer;
 import java.util.HashSet;
 import org.h2.compress.Compressor;
 import org.h2.mvstore.type.DataType;
-import org.h2.util.New;
 
 /**
  * A page (a node or a leaf).
@@ -259,18 +258,18 @@ public class Page {
     public String toString() {
         StringBuilder buff = new StringBuilder();
         buff.append("id: ").append(System.identityHashCode(this)).append('\n');
-        buff.append("version: ").append(Long.toHexString(version)).append("\n");
-        buff.append("pos: ").append(Long.toHexString(pos)).append("\n");
+        buff.append("version: ").append(Long.toHexString(version)).append('\n');
+        buff.append("pos: ").append(Long.toHexString(pos)).append('\n');
         if (pos != 0) {
             int chunkId = DataUtils.getPageChunkId(pos);
-            buff.append("chunk: ").append(Long.toHexString(chunkId)).append("\n");
+            buff.append("chunk: ").append(Long.toHexString(chunkId)).append('\n');
         }
         for (int i = 0; i <= keys.length; i++) {
             if (i > 0) {
                 buff.append(" ");
             }
             if (children != null) {
-                buff.append("[" + Long.toHexString(children[i].pos) + "] ");
+                buff.append('[').append(Long.toHexString(children[i].pos)).append("] ");
             }
             if (i < keys.length) {
                 buff.append(keys[i]);
@@ -1102,7 +1101,7 @@ public class Page {
          * indirectly point to other chunks).
          */
         void removeDuplicateChunkReferences() {
-            HashSet<Integer> chunks = New.hashSet();
+            HashSet<Integer> chunks = new HashSet<>();
             // we don't need references to leaves in the same chunk
             chunks.add(DataUtils.getPageChunkId(pos));
             for (int i = 0; i < children.length; i++) {

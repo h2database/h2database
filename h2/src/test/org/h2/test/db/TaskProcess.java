@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -57,8 +57,7 @@ public class TaskProcess {
             if (args != null && args.length > 0) {
                 list.addAll(Arrays.asList(args));
             }
-            String[] procDef = new String[list.size()];
-            list.toArray(procDef);
+            String[] procDef = list.toArray(new String[0]);
             process = Runtime.getRuntime().exec(procDef);
             copyInThread(process.getErrorStream(), System.err);
             reader = new BufferedReader(new InputStreamReader(process.getInputStream()));

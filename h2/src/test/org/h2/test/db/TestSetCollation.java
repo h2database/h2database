@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -156,7 +156,6 @@ public class TestSetCollation extends TestBase {
     private List<String> orderedWithCollator(String collator) throws SQLException {
         deleteDb(DB_NAME);
         try (Connection con = getConnection(DB_NAME); Statement statement = con.createStatement()) {
-            ;
             if (collator != null) {
                 statement.execute("SET COLLATION " + collator);
             }
@@ -168,7 +167,7 @@ public class TestSetCollation extends TestBase {
         }
     }
 
-    private void insertValues(Connection con, String[] values, int startId) throws SQLException {
+    private static void insertValues(Connection con, String[] values, int startId) throws SQLException {
         PreparedStatement ps = con.prepareStatement("INSERT INTO charsettable VALUES (?, ?)");
         int id = startId;
         for (String value : values) {
@@ -179,7 +178,7 @@ public class TestSetCollation extends TestBase {
         ps.close();
     }
 
-    private List<String> loadTableValues(Connection con) throws SQLException {
+    private static List<String> loadTableValues(Connection con) throws SQLException {
         List<String> results = new ArrayList<>();
         Statement statement = con.createStatement();
         ResultSet resultSet = statement.executeQuery("select testvalue from charsettable order by testvalue");

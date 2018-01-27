@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -114,17 +114,18 @@ public class TestOldVersion extends TestBase {
     }
 
     private void testOldClientNewServer() throws Exception {
-        Server server = org.h2.tools.Server.createTcpServer("-tcpPort", "9001");
+        Server server = org.h2.tools.Server.createTcpServer();
         server.start();
+        int port = server.getPort();
         assertThrows(ErrorCode.DRIVER_VERSION_ERROR_2, driver).connect(
-                "jdbc:h2:tcp://localhost:9001/mem:test", null);
+                "jdbc:h2:tcp://localhost:" + port + "/mem:test", null);
         server.stop();
 
         Class<?> serverClass = cl.loadClass("org.h2.tools.Server");
         Method m;
         m = serverClass.getMethod("createTcpServer", String[].class);
         Object serverOld = m.invoke(null, new Object[] { new String[] {
-                "-tcpPort", "9001" } });
+                "-tcpPort", "" + port } });
         m = serverOld.getClass().getMethod("start");
         m.invoke(serverOld);
         Connection conn;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -26,7 +26,6 @@ import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
 import org.h2.table.TableFilter;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -64,7 +63,7 @@ public class PageDataIndex extends PageIndex {
         // trace = database.getTrace(Trace.PAGE_STORE + "_di");
         // trace.setLevel(TraceSystem.DEBUG);
         if (multiVersion) {
-            sessionRowCount = New.hashMap();
+            sessionRowCount = new HashMap<>();
             isMultiVersion = true;
         } else {
             sessionRowCount = null;
@@ -193,7 +192,7 @@ public class PageDataIndex extends PageIndex {
         row.setDeleted(false);
         if (multiVersion) {
             if (delta == null) {
-                delta = New.hashSet();
+                delta = new HashSet<>();
             }
             boolean wasDeleted = delta.remove(row);
             if (!wasDeleted) {
@@ -352,7 +351,7 @@ public class PageDataIndex extends PageIndex {
             // if storage is null, the delete flag is not yet set
             row.setDeleted(true);
             if (delta == null) {
-                delta = New.hashSet();
+                delta = new HashSet<>();
             }
             boolean wasAdded = delta.remove(row);
             if (!wasAdded) {

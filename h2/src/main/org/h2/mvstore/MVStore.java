@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -7,6 +7,7 @@ package org.h2.mvstore;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -151,8 +152,8 @@ public final class MVStore {
 
     private volatile boolean closed;
 
-    private FileStore fileStore;
-    private boolean fileStoreIsProvided;
+    private final FileStore fileStore;
+    private final boolean fileStoreIsProvided;
 
     private final int pageSplitSize;
 
@@ -161,14 +162,14 @@ public final class MVStore {
      * It is split in 16 segments. The stack move distance is 2% of the expected
      * number of entries.
      */
-    private CacheLongKeyLIRS<Page> cache;
+    private final CacheLongKeyLIRS<Page> cache;
 
     /**
      * The page chunk references cache. The default size is 4 MB, and the
      * average size is 2 KB. It is split in 16 segments. The stack move distance
      * is 2% of the expected number of entries.
      */
-    private CacheLongKeyLIRS<PageChildren> cacheChunkRef;
+    private final CacheLongKeyLIRS<PageChildren> cacheChunkRef;
 
     /**
      * The newest chunk. If nothing was stored yet, this field is not set.
@@ -198,12 +199,12 @@ public final class MVStore {
      * The metadata map. Write access to this map needs to be synchronized on
      * the store.
      */
-    private MVMap<String, String> meta;
+    private final MVMap<String, String> meta;
 
     private final ConcurrentHashMap<Integer, MVMap<?, ?>> maps =
             new ConcurrentHashMap<>();
 
-    private HashMap<String, Object> storeHeader = New.hashMap();
+    private final HashMap<String, Object> storeHeader = new HashMap<>();
 
     private WriteBuffer writeBuffer;
 
@@ -276,7 +277,7 @@ public final class MVStore {
     private int autoCompactFillRate;
     private long autoCompactLastFileOpCount;
 
-    private Object compactSync = new Object();
+    private final Object compactSync = new Object();
 
     private IllegalStateException panicException;
 
@@ -292,91 +293,90 @@ public final class MVStore {
      *             occurred while opening
      * @throws IllegalArgumentException if the directory does not exist
      */
-    MVStore(HashMap<String, Object> config) {
-        Object o = config.get("compress");
-        this.compressionLevel = o == null ? 0 : (Integer) o;
+    MVStore(Map<String, Object> config) {
+        this.compressionLevel = DataUtils.getConfigParam(config, "compress", 0);
         String fileName = (String) config.get("fileName");
-        fileStore = (FileStore) config.get("fileStore");
+        FileStore fileStore = (FileStore) config.get("fileStore");
         fileStoreIsProvided = fileStore != null;
         if(fileStore == null && fileName != null) {
             fileStore = new FileStore();
         }
-        o = config.get("pageSplitSize");
-        int pgSplitSize;
-        if (o != null) {
-            pgSplitSize = (Integer) o;
-        } else if(fileStore != null) {
-            pgSplitSize = 16 * 1024;
-        } else {
-            pgSplitSize = 48; // number of keys per page in that case
-        }
-        pageSplitSize = pgSplitSize;
-        o = config.get("backgroundExceptionHandler");
-        this.backgroundExceptionHandler = (UncaughtExceptionHandler) o;
-        meta = new MVMap<>(StringDataType.INSTANCE,
-                StringDataType.INSTANCE);
-        HashMap<String, Object> c = New.hashMap();
-        c.put("id", 0);
-        c.put("createVersion", currentVersion);
-        meta.init(this, c);
-        if (fileStore == null) {
-            cache = null;
-            cacheChunkRef = null;
-            return;
-        }
-        retentionTime = fileStore.getDefaultRetentionTime();
-        boolean readOnly = config.containsKey("readOnly");
-        o = config.get("cacheSize");
-        int mb = o == null ? 16 : (Integer) o;
-        if (mb > 0) {
-            CacheLongKeyLIRS.Config cc = new CacheLongKeyLIRS.Config();
-            cc.maxMemory = mb * 1024L * 1024L;
-            o = config.get("cacheConcurrency");
-            if (o != null) {
-                cc.segmentCount = (Integer) o;
+        this.fileStore = fileStore;
+
+        int pgSplitSize = 48; // for "mem:" case it is # of keys
+        CacheLongKeyLIRS.Config cc = null;
+        if (this.fileStore != null) {
+            int mb = DataUtils.getConfigParam(config, "cacheSize", 16);
+            if (mb > 0) {
+                cc = new CacheLongKeyLIRS.Config();
+                cc.maxMemory = mb * 1024L * 1024L;
+                Object o = config.get("cacheConcurrency");
+                if (o != null) {
+                    cc.segmentCount = (Integer)o;
+                }
             }
+            pgSplitSize = 16 * 1024;
+        }
+        if (cc != null) {
             cache = new CacheLongKeyLIRS<>(cc);
             cc.maxMemory /= 4;
             cacheChunkRef = new CacheLongKeyLIRS<>(cc);
+        } else {
+            cache = null;
+            cacheChunkRef = null;
         }
-        o = config.get("autoCommitBufferSize");
-        int kb = o == null ? 1024 : (Integer) o;
-        // 19 KB memory is about 1 KB storage
-        autoCommitMemory = kb * 1024 * 19;
 
-        o = config.get("autoCompactFillRate");
-        autoCompactFillRate = o == null ? 50 : (Integer) o;
-
-        char[] encryptionKey = (char[]) config.get("encryptionKey");
-        try {
-            if (!fileStoreIsProvided) {
-                fileStore.open(fileName, readOnly, encryptionKey);
-            }
-            if (fileStore.size() == 0) {
-                creationTime = getTimeAbsolute();
-                lastCommitTime = creationTime;
-                storeHeader.put("H", 2);
-                storeHeader.put("blockSize", BLOCK_SIZE);
-                storeHeader.put("format", FORMAT_WRITE);
-                storeHeader.put("created", creationTime);
-                writeStoreHeader();
-            } else {
-                readStoreHeader();
-            }
-        } catch (IllegalStateException e) {
-            panic(e);
-        } finally {
-            if (encryptionKey != null) {
-                Arrays.fill(encryptionKey, (char) 0);
-            }
+        pgSplitSize = DataUtils.getConfigParam(config, "pageSplitSize", pgSplitSize);
+        // Make sure pages will fit into cache
+        if (cache != null && pgSplitSize > cache.getMaxItemSize()) {
+            pgSplitSize = (int)cache.getMaxItemSize();
         }
-        lastCommitTime = getTimeSinceCreation();
+        pageSplitSize = pgSplitSize;
+        backgroundExceptionHandler =
+                (UncaughtExceptionHandler)config.get("backgroundExceptionHandler");
+        meta = new MVMap<>(StringDataType.INSTANCE,
+                StringDataType.INSTANCE);
+        HashMap<String, Object> c = new HashMap<>();
+        c.put("id", 0);
+        c.put("createVersion", currentVersion);
+        meta.init(this, c);
+        if (this.fileStore != null) {
+            retentionTime = this.fileStore.getDefaultRetentionTime();
+            int kb = DataUtils.getConfigParam(config, "autoCommitBufferSize", 1024);
+            // 19 KB memory is about 1 KB storage
+            autoCommitMemory = kb * 1024 * 19;
+            autoCompactFillRate = DataUtils.getConfigParam(config, "autoCompactFillRate", 50);
+            char[] encryptionKey = (char[]) config.get("encryptionKey");
+            try {
+                if (!fileStoreIsProvided) {
+                    boolean readOnly = config.containsKey("readOnly");
+                    this.fileStore.open(fileName, readOnly, encryptionKey);
+                }
+                if (this.fileStore.size() == 0) {
+                    creationTime = getTimeAbsolute();
+                    lastCommitTime = creationTime;
+                    storeHeader.put("H", 2);
+                    storeHeader.put("blockSize", BLOCK_SIZE);
+                    storeHeader.put("format", FORMAT_WRITE);
+                    storeHeader.put("created", creationTime);
+                    writeStoreHeader();
+                } else {
+                    readStoreHeader();
+                }
+            } catch (IllegalStateException e) {
+                panic(e);
+            } finally {
+                if (encryptionKey != null) {
+                    Arrays.fill(encryptionKey, (char) 0);
+                }
+            }
+            lastCommitTime = getTimeSinceCreation();
 
-        // setAutoCommitDelay starts the thread, but only if
-        // the parameter is different from the old value
-        o = config.get("autoCommitDelay");
-        int delay = o == null ? 1000 : (Integer) o;
-        setAutoCommitDelay(delay);
+            // setAutoCommitDelay starts the thread, but only if
+            // the parameter is different from the old value
+            int delay = DataUtils.getConfigParam(config, "autoCommitDelay", 1000);
+            setAutoCommitDelay(delay);
+        }
     }
 
     private void panic(IllegalStateException e) {
@@ -396,7 +396,7 @@ public final class MVStore {
      * @return the store
      */
     public static MVStore open(String fileName) {
-        HashMap<String, Object> config = New.hashMap();
+        HashMap<String, Object> config = new HashMap<>();
         config.put("fileName", fileName);
         return new MVStore(config);
     }
@@ -444,6 +444,7 @@ public final class MVStore {
      * @param builder the map builder
      * @return the map
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public synchronized <M extends MVMap<K, V>, K, V> M openMap(
             String name, MVMap.MapBuilder<M, K, V> builder) {
         checkOpen();
@@ -454,20 +455,19 @@ public final class MVStore {
         M map;
         if (x != null) {
             id = DataUtils.parseHexInt(x);
-            @SuppressWarnings("unchecked")
             M old = (M) maps.get(id);
             if (old != null) {
                 return old;
             }
             map = builder.create();
             String config = meta.get(MVMap.getMapKey(id));
-            c = New.hashMap();
-            c.putAll(DataUtils.parseMap(config));
+            // Cast from HashMap<String, String> to HashMap<String, Object> is safe
+            c = (HashMap) DataUtils.parseMap(config);
             c.put("id", id);
             map.init(this, c);
             root = getRootPos(meta, id);
         } else {
-            c = New.hashMap();
+            c = new HashMap<>();
             id = ++lastMapId;
             c.put("id", id);
             c.put("createVersion", currentVersion);
@@ -490,7 +490,7 @@ public final class MVStore {
      * @return the set of names
      */
     public synchronized Set<String> getMapNames() {
-        HashSet<String> set = New.hashSet();
+        HashSet<String> set = new HashSet<>();
         checkOpen();
         for (Iterator<String> it = meta.keyIterator("name."); it.hasNext();) {
             String x = it.next();
@@ -574,9 +574,9 @@ public final class MVStore {
             fileHeaderBlocks.get(buff);
             // the following can fail for various reasons
             try {
-                String s = new String(buff, 0, BLOCK_SIZE,
-                        DataUtils.LATIN).trim();
-                HashMap<String, String> m = DataUtils.parseMap(s);
+                HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
+                if (m == null)
+                    continue;
                 int blockSize = DataUtils.readHexInt(
                         m, "blockSize", BLOCK_SIZE);
                 if (blockSize != BLOCK_SIZE) {
@@ -584,15 +584,6 @@ public final class MVStore {
                             DataUtils.ERROR_UNSUPPORTED_FORMAT,
                             "Block size {0} is currently not supported",
                             blockSize);
-                }
-                int check = DataUtils.readHexInt(m, "fletcher", 0);
-                m.remove("fletcher");
-                s = s.substring(0, s.lastIndexOf("fletcher") - 1);
-                byte[] bytes = s.getBytes(DataUtils.LATIN);
-                int checksum = DataUtils.getFletcher32(bytes,
-                        bytes.length);
-                if (check != checksum) {
-                    continue;
                 }
                 long version = DataUtils.readHexLong(m, "version", 0);
                 if (newest == null || version > newest.version) {
@@ -704,13 +695,12 @@ public final class MVStore {
             }
             s = meta.get(s);
             Chunk c = Chunk.fromString(s);
-            if (!chunks.containsKey(c.id)) {
+            if (chunks.putIfAbsent(c.id, c) == null) {
                 if (c.block == Long.MAX_VALUE) {
                     throw DataUtils.newIllegalStateException(
                             DataUtils.ERROR_FILE_CORRUPT,
                             "Chunk {0} is invalid", c.id);
                 }
-                chunks.put(c.id, c);
             }
         }
     }
@@ -804,14 +794,8 @@ public final class MVStore {
                     end - Chunk.FOOTER_LENGTH, Chunk.FOOTER_LENGTH);
             byte[] buff = new byte[Chunk.FOOTER_LENGTH];
             lastBlock.get(buff);
-            String s = new String(buff, DataUtils.LATIN).trim();
-            HashMap<String, String> m = DataUtils.parseMap(s);
-            int check = DataUtils.readHexInt(m, "fletcher", 0);
-            m.remove("fletcher");
-            s = s.substring(0, s.lastIndexOf("fletcher") - 1);
-            byte[] bytes = s.getBytes(DataUtils.LATIN);
-            int checksum = DataUtils.getFletcher32(bytes, bytes.length);
-            if (check == checksum) {
+            HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
+            if (m != null) {
                 int chunk = DataUtils.readHexInt(m, "chunk", 0);
                 Chunk c = new Chunk(chunk);
                 c.version = DataUtils.readHexLong(m, "version", 0);
@@ -832,11 +816,11 @@ public final class MVStore {
             storeHeader.put("version", lastChunk.version);
         }
         DataUtils.appendMap(buff, storeHeader);
-        byte[] bytes = buff.toString().getBytes(DataUtils.LATIN);
-        int checksum = DataUtils.getFletcher32(bytes, bytes.length);
+        byte[] bytes = buff.toString().getBytes(StandardCharsets.ISO_8859_1);
+        int checksum = DataUtils.getFletcher32(bytes, 0, bytes.length);
         DataUtils.appendMap(buff, "fletcher", checksum);
         buff.append("\n");
-        bytes = buff.toString().getBytes(DataUtils.LATIN);
+        bytes = buff.toString().getBytes(StandardCharsets.ISO_8859_1);
         ByteBuffer header = ByteBuffer.allocate(2 * BLOCK_SIZE);
         header.put(bytes);
         header.position(BLOCK_SIZE);
@@ -900,22 +884,19 @@ public final class MVStore {
             }
             // release memory early - this is important when called
             // because of out of memory
-            cache = null;
-            cacheChunkRef = null;
-            for (MVMap<?, ?> m : New.arrayList(maps.values())) {
+            if (cache != null) {
+                cache.clear();
+            }
+            if (cacheChunkRef != null) {
+                cacheChunkRef.clear();
+            }
+            for (MVMap<?, ?> m : new ArrayList<>(maps.values())) {
                 m.close();
             }
-            meta = null;
             chunks.clear();
             maps.clear();
-            if (fileStore != null) {
-                try {
-                    if (!fileStoreIsProvided) {
-                        fileStore.close();
-                    }
-                } finally {
-                    fileStore = null;
-                }
+            if (fileStore != null && !fileStoreIsProvided) {
+                fileStore.close();
             }
         }
     }
@@ -1108,7 +1089,7 @@ public final class MVStore {
         // force a metadata update
         meta.put(Chunk.getMetaKey(c.id), c.asString());
         meta.remove(Chunk.getMetaKey(c.id));
-        ArrayList<MVMap<?, ?>> list = New.arrayList(maps.values());
+        ArrayList<MVMap<?, ?>> list = new ArrayList<>(maps.values());
         ArrayList<MVMap<?, ?>> changed = New.arrayList();
         for (MVMap<?, ?> m : list) {
             m.setWriteVersion(version);
@@ -1268,26 +1249,24 @@ public final class MVStore {
             return;
         }
         Set<Integer> referenced = collectReferencedChunks();
-        ArrayList<Chunk> free = New.arrayList();
         long time = getTimeSinceCreation();
-        for (Chunk c : chunks.values()) {
+
+        for (Iterator<Chunk> it = chunks.values().iterator(); it.hasNext(); ) {
+            Chunk c = it.next();
             if (!referenced.contains(c.id)) {
-                free.add(c);
-            }
-        }
-        for (Chunk c : free) {
-            if (canOverwriteChunk(c, time)) {
-                chunks.remove(c.id);
-                markMetaChanged();
-                meta.remove(Chunk.getMetaKey(c.id));
-                long start = c.block * BLOCK_SIZE;
-                int length = c.len * BLOCK_SIZE;
-                fileStore.free(start, length);
-            } else {
-                if (c.unused == 0) {
-                    c.unused = time;
-                    meta.put(Chunk.getMetaKey(c.id), c.asString());
+                if (canOverwriteChunk(c, time)) {
+                    it.remove();
                     markMetaChanged();
+                    meta.remove(Chunk.getMetaKey(c.id));
+                    long start = c.block * BLOCK_SIZE;
+                    int length = c.len * BLOCK_SIZE;
+                    fileStore.free(start, length);
+                } else {
+                    if (c.unused == 0) {
+                        c.unused = time;
+                        meta.put(Chunk.getMetaKey(c.id), c.asString());
+                        markMetaChanged();
+                    }
                 }
             }
         }
@@ -1297,7 +1276,7 @@ public final class MVStore {
         long testVersion = lastChunk.version;
         DataUtils.checkArgument(testVersion > 0, "Collect references on version 0");
         long readCount = getFileStore().readCount.get();
-        Set<Integer> referenced = New.hashSet();
+        Set<Integer> referenced = new HashSet<>();
         for (Cursor<String, String> c = meta.cursor("root."); c.hasNext();) {
             String key = c.next();
             if (!key.startsWith("root.")) {
@@ -1325,7 +1304,7 @@ public final class MVStore {
         }
         PageChildren refs = readPageChunkReferences(mapId, pos, -1);
         if (!refs.chunkList) {
-            Set<Integer> target = New.hashSet();
+            Set<Integer> target = new HashSet<>();
             for (int i = 0; i < refs.children.length; i++) {
                 long p = refs.children[i];
                 collectReferencedChunks(target, mapId, p, level + 1);
@@ -1535,19 +1514,24 @@ public final class MVStore {
     }
 
     /**
-     * Get the position of the last used byte.
+     * Get the position right after the last used byte.
      *
      * @return the position
      */
     private long getFileLengthInUse() {
-        long size = 2 * BLOCK_SIZE;
+        long result = fileStore.getFileLengthInUse();
+        assert result == _getFileLengthInUse() : result + " != " + _getFileLengthInUse();
+        return result;
+    }
+
+    private long _getFileLengthInUse() {
+        long size = 2;
         for (Chunk c : chunks.values()) {
             if (c.len != Integer.MAX_VALUE) {
-                long x = (c.block + c.len) * BLOCK_SIZE;
-                size = Math.max(size, x);
+                size = Math.max(size, c.block + c.len);
             }
         }
-        return size;
+        return size * BLOCK_SIZE;
     }
 
     /**
@@ -1902,7 +1886,7 @@ public final class MVStore {
     }
 
     private void compactRewrite(ArrayList<Chunk> old) {
-        HashSet<Integer> set = New.hashSet();
+        HashSet<Integer> set = new HashSet<>();
         for (Chunk c : old) {
             set.add(c.id);
         }
@@ -2331,7 +2315,7 @@ public final class MVStore {
             writeStoreHeader();
             readStoreHeader();
         }
-        for (MVMap<?, ?> m : New.arrayList(maps.values())) {
+        for (MVMap<?, ?> m : new ArrayList<>(maps.values())) {
             int id = m.getId();
             if (m.getCreateVersion() >= version) {
                 m.close();
@@ -2358,13 +2342,13 @@ public final class MVStore {
     }
 
     private void revertTemp(long storeVersion) {
-        for (Iterator<Long> it = freedPageSpace.keySet().iterator();
-                it.hasNext();) {
-            long v = it.next();
-            if (v > storeVersion) {
-                continue;
+        for (Iterator<Entry<Long, ConcurrentHashMap<Integer, Chunk>>> it =
+                            freedPageSpace.entrySet().iterator(); it.hasNext(); ) {
+            Entry<Long, ConcurrentHashMap<Integer, Chunk>> entry = it.next();
+            Long v = entry.getKey();
+            if (v <= storeVersion) {
+                it.remove();
             }
-            it.remove();
         }
         for (MVMap<?, ?> m : maps.values()) {
             m.removeUnusedOldVersions();
@@ -2462,7 +2446,7 @@ public final class MVStore {
     public synchronized String getMapName(int id) {
         checkOpen();
         String m = meta.get(MVMap.getMapKey(id));
-        return m == null ? null : DataUtils.parseMap(m).get("name");
+        return m == null ? null : DataUtils.getMapName(m);
     }
 
     /**
@@ -2725,7 +2709,18 @@ public final class MVStore {
      */
     public static class Builder {
 
-        private final HashMap<String, Object> config = New.hashMap();
+        private final HashMap<String, Object> config;
+
+        private Builder(HashMap<String, Object> config) {
+            this.config = config;
+        }
+
+        /**
+         * Creates new instance of MVStore.Builder.
+         */
+        public Builder() {
+            config = new HashMap<>();
+        }
 
         private Builder set(String key, Object value) {
             config.put(key, value);
@@ -2938,11 +2933,10 @@ public final class MVStore {
          * @param s the string representation
          * @return the builder
          */
+        @SuppressWarnings({ "unchecked", "rawtypes" })
         public static Builder fromString(String s) {
-            HashMap<String, String> config = DataUtils.parseMap(s);
-            Builder builder = new Builder();
-            builder.config.putAll(config);
-            return builder;
+            // Cast from HashMap<String, String> to HashMap<String, Object> is safe
+            return new Builder((HashMap) DataUtils.parseMap(s));
         }
 
     }

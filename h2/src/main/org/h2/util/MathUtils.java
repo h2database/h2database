@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,6 +9,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -151,7 +152,7 @@ public class MathUtils {
                 // can't use writeUTF, as the string
                 // might be larger than 64 KB
                 out.writeInt(s.length());
-                out.write(s.getBytes("UTF-8"));
+                out.write(s.getBytes(StandardCharsets.UTF_8));
             } catch (Exception e) {
                 warn("generateAlternativeSeed", e);
             }
@@ -213,18 +214,27 @@ public class MathUtils {
     }
 
     /**
-     * Get the value that is equal or higher than this value, and that is a
+     * Get the value that is equal to or higher than this value, and that is a
      * power of two.
      *
      * @param x the original value
      * @return the next power of two value
+     * @throws IllegalArgumentException if x < 0 or x > 0x40000000
      */
-    public static int nextPowerOf2(int x) {
-        long i = 1;
-        while (i < x && i < (Integer.MAX_VALUE / 2)) {
-            i += i;
+    public static int nextPowerOf2(int x) throws IllegalArgumentException {
+        if (x == 0) {
+            return 1;
+        } else if (x < 0 || x > 0x40000000 ) {
+            throw new IllegalArgumentException("Argument out of range"
+                    + " [0x0-0x40000000]. Argument was: " + x);
         }
-        return (int) i;
+        x--;
+        x |= x >> 1;
+        x |= x >> 2;
+        x |= x >> 4;
+        x |= x >> 8;
+        x |= x >> 16;
+        return ++x;
     }
 
     /**
@@ -246,39 +256,12 @@ public class MathUtils {
     }
 
     /**
-     * Compare two values. Returns -1 if the first value is smaller, 1 if
-     * bigger, and 0 if equal.
-     *
-     * @param a the first value
-     * @param b the second value
-     * @return the result
-     */
-    public static int compareInt(int a, int b) {
-        return a == b ? 0 : a < b ? -1 : 1;
-    }
-
-    /**
-     * Compare two values. Returns -1 if the first value is smaller, 1 if
-     * bigger, and 0 if equal.
-     *
-     * @param a the first value
-     * @param b the second value
-     * @return the result
-     */
-    public static int compareLong(long a, long b) {
-        return a == b ? 0 : a < b ? -1 : 1;
-    }
-
-    /**
      * Get a cryptographically secure pseudo random long value.
      *
      * @return the random long value
      */
     public static long secureRandomLong() {
-        SecureRandom sr = getSecureRandom();
-        synchronized (sr) {
-            return sr.nextLong();
-        }
+        return getSecureRandom().nextLong();
     }
 
     /**
@@ -301,10 +284,7 @@ public class MathUtils {
             len = 1;
         }
         byte[] buff = new byte[len];
-        SecureRandom sr = getSecureRandom();
-        synchronized (sr) {
-            sr.nextBytes(buff);
-        }
+        getSecureRandom().nextBytes(buff);
         return buff;
     }
 
@@ -327,10 +307,7 @@ public class MathUtils {
      * @return the random long value
      */
     public static int secureRandomInt(int lowerThan) {
-        SecureRandom sr = getSecureRandom();
-        synchronized (sr) {
-            return sr.nextInt(lowerThan);
-        }
+        return getSecureRandom().nextInt(lowerThan);
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,6 +8,7 @@ package org.h2.schema;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Arrays;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
@@ -94,11 +95,15 @@ public class TriggerObject extends SchemaObjectBase {
             String fullClassName = Constants.USER_PACKAGE + ".trigger." + getName();
             compiler.setSource(fullClassName, triggerSource);
             try {
-                Method m = compiler.getMethod(fullClassName);
-                if (m.getParameterTypes().length > 0) {
-                    throw new IllegalStateException("No parameters are allowed for a trigger");
+                if (SourceCompiler.isJavaxScriptSource(triggerSource)) {
+                    return (Trigger) compiler.getCompiledScript(fullClassName).eval();
+                } else {
+                    final Method m = compiler.getMethod(fullClassName);
+                    if (m.getParameterTypes().length > 0) {
+                        throw new IllegalStateException("No parameters are allowed for a trigger");
+                    }
+                    return (Trigger) m.invoke(null);
                 }
-                return (Trigger) m.invoke(null);
             } catch (DbException e) {
                 throw e;
             } catch (Exception e) {
@@ -239,8 +244,7 @@ public class TriggerObject extends SchemaObjectBase {
         newList = convertToObjectList(newRow);
         Object[] newListBackup;
         if (before && newList != null) {
-            newListBackup = new Object[newList.length];
-            System.arraycopy(newList, 0, newListBackup, 0, newList.length);
+            newListBackup = Arrays.copyOf(newList, newList.length);
         } else {
             newListBackup = null;
         }

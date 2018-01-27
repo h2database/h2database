@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,6 +11,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -19,18 +20,17 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import org.h2.api.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.table.Column;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
-import org.h2.util.Utils;
 
 /**
  * This is the base class for all value classes.
@@ -186,6 +186,22 @@ public abstract class Value {
             BigDecimal.valueOf(Long.MAX_VALUE);
     private static final BigDecimal MIN_LONG_DECIMAL =
             BigDecimal.valueOf(Long.MIN_VALUE);
+
+    /**
+     * Check the range of the parameters.
+     *
+     * @param zeroBasedOffset the offset (0 meaning no offset)
+     * @param length the length of the target
+     * @param dataSize the length of the source
+     */
+    static void rangeCheck(long zeroBasedOffset, long length, long dataSize) {
+        if ((zeroBasedOffset | length) < 0 || length > dataSize - zeroBasedOffset) {
+            if (zeroBasedOffset < 0 || zeroBasedOffset > dataSize) {
+                throw DbException.getInvalidValueException("offset", zeroBasedOffset + 1);
+            }
+            throw DbException.getInvalidValueException("length", length);
+        }
+    }
 
     /**
      * Get the SQL expression for this value.
@@ -413,7 +429,7 @@ public abstract class Value {
         softCache = null;
     }
 
-    public Boolean getBoolean() {
+    public boolean getBoolean() {
         return ((ValueBoolean) convertTo(Value.BOOLEAN)).getBoolean();
     }
 
@@ -469,8 +485,37 @@ public abstract class Value {
         return new ByteArrayInputStream(getBytesNoCopy());
     }
 
+    /**
+     * Get the input stream
+     *
+     * @param oneBasedOffset the offset (1 means no offset)
+     * @param length the requested length
+     * @return the new input stream
+     */
+    public InputStream getInputStream(long oneBasedOffset, long length) {
+        byte[] bytes = getBytesNoCopy();
+        long zeroBasedOffset = oneBasedOffset - 1;
+        rangeCheck(zeroBasedOffset, length, bytes.length);
+        return new ByteArrayInputStream(bytes, (int) zeroBasedOffset, (int) length);
+    }
+
     public Reader getReader() {
         return new StringReader(getString());
+    }
+
+    /**
+     * Get the reader
+     *
+     * @param oneBasedOffset the offset (1 means no offset)
+     * @param length the requested length
+     * @return the new reader
+     */
+    public Reader getReader(long oneBasedOffset, long length) {
+        String string = getString();
+        long zeroBasedOffset = oneBasedOffset - 1;
+        rangeCheck(zeroBasedOffset, length, string.length());
+        int offset = (int) zeroBasedOffset;
+        return new StringReader(string.substring(offset, offset + (int) length));
     }
 
     /**
@@ -555,6 +600,7 @@ public abstract class Value {
      * @param precision the precision of the column to convert this value to.
      *        The special constant <code>-1</code> is used to indicate that
      *        the precision plays no role when converting the value
+     * @param mode the mode
      * @return the converted value
      */
     public final Value convertTo(int targetType, int precision, Mode mode) {
@@ -568,7 +614,10 @@ public abstract class Value {
      * @param precision the precision of the column to convert this value to.
      *        The special constant <code>-1</code> is used to indicate that
      *        the precision plays no role when converting the value
-     * @param column the column that contains the ENUM datatype enumerators, for dealing with ENUM conversions
+     * @param mode the conversion mode
+     * @param column the column that contains the ENUM datatype enumerators,
+     *        for dealing with ENUM conversions
+     * @param mode the database mode
      * @return the converted value
      */
     public Value convertTo(int targetType, int precision, Mode mode, Column column) {
@@ -606,7 +655,7 @@ public abstract class Value {
             case BYTE: {
                 switch (getType()) {
                 case BOOLEAN:
-                    return ValueByte.get(getBoolean().booleanValue() ? (byte) 1 : (byte) 0);
+                    return ValueByte.get(getBoolean() ? (byte) 1 : (byte) 0);
                 case SHORT:
                     return ValueByte.get(convertToByte(getShort(), column));
                 case ENUM:
@@ -631,7 +680,7 @@ public abstract class Value {
             case SHORT: {
                 switch (getType()) {
                 case BOOLEAN:
-                    return ValueShort.get(getBoolean().booleanValue() ? (short) 1 : (short) 0);
+                    return ValueShort.get(getBoolean() ? (short) 1 : (short) 0);
                 case BYTE:
                     return ValueShort.get(getByte());
                 case ENUM:
@@ -656,7 +705,7 @@ public abstract class Value {
             case INT: {
                 switch (getType()) {
                 case BOOLEAN:
-                    return ValueInt.get(getBoolean().booleanValue() ? 1 : 0);
+                    return ValueInt.get(getBoolean() ? 1 : 0);
                 case BYTE:
                     return ValueInt.get(getByte());
                 case ENUM:
@@ -682,7 +731,7 @@ public abstract class Value {
             case LONG: {
                 switch (getType()) {
                 case BOOLEAN:
-                    return ValueLong.get(getBoolean().booleanValue() ? 1 : 0);
+                    return ValueLong.get(getBoolean() ? 1 : 0);
                 case BYTE:
                     return ValueLong.get(getByte());
                 case SHORT:
@@ -700,7 +749,7 @@ public abstract class Value {
                     // parseLong doesn't work for ffffffffffffffff
                     byte[] d = getBytes();
                     if (d.length == 8) {
-                        return ValueLong.get(Utils.readLong(d, 0));
+                        return ValueLong.get(Bits.readLong(d, 0));
                     }
                     return ValueLong.get(Long.parseLong(getString(), 16));
                 }
@@ -713,8 +762,7 @@ public abstract class Value {
             case DECIMAL: {
                 switch (getType()) {
                 case BOOLEAN:
-                    return ValueDecimal.get(BigDecimal.valueOf(
-                            getBoolean().booleanValue() ? 1 : 0));
+                    return ValueDecimal.get(BigDecimal.valueOf(getBoolean() ? 1 : 0));
                 case BYTE:
                     return ValueDecimal.get(BigDecimal.valueOf(getByte()));
                 case SHORT:
@@ -750,7 +798,7 @@ public abstract class Value {
             case DOUBLE: {
                 switch (getType()) {
                 case BOOLEAN:
-                    return ValueDouble.get(getBoolean().booleanValue() ? 1 : 0);
+                    return ValueDouble.get(getBoolean() ? 1 : 0);
                 case BYTE:
                     return ValueDouble.get(getByte());
                 case SHORT:
@@ -773,7 +821,7 @@ public abstract class Value {
             case FLOAT: {
                 switch (getType()) {
                 case BOOLEAN:
-                    return ValueFloat.get(getBoolean().booleanValue() ? 1 : 0);
+                    return ValueFloat.get(getBoolean() ? 1 : 0);
                 case BYTE:
                     return ValueFloat.get(getByte());
                 case SHORT:
@@ -866,26 +914,14 @@ public abstract class Value {
                     });
                 }
                 case INT: {
-                    int x = getInt();
-                    return ValueBytes.getNoCopy(new byte[]{
-                            (byte) (x >> 24),
-                            (byte) (x >> 16),
-                            (byte) (x >> 8),
-                            (byte) x
-                    });
+                    byte[] b = new byte[4];
+                    Bits.writeInt(b, 0, getInt());
+                    return ValueBytes.getNoCopy(b);
                 }
                 case LONG: {
-                    long x = getLong();
-                    return ValueBytes.getNoCopy(new byte[]{
-                            (byte) (x >> 56),
-                            (byte) (x >> 48),
-                            (byte) (x >> 40),
-                            (byte) (x >> 32),
-                            (byte) (x >> 24),
-                            (byte) (x >> 16),
-                            (byte) (x >> 8),
-                            (byte) x
-                    });
+                    byte[] b = new byte[8];
+                    Bits.writeLong(b, 0, getLong());
+                    return ValueBytes.getNoCopy(b);
                 }
                 case ENUM:
                 case TIMESTAMP_TZ:
@@ -943,9 +979,7 @@ public abstract class Value {
                     Object object = JdbcUtils.deserialize(getBytesNoCopy(),
                             getDataHandler());
                     if (object instanceof java.util.UUID) {
-                        java.util.UUID uuid = (java.util.UUID) object;
-                        return ValueUuid.get(uuid.getMostSignificantBits(),
-                                uuid.getLeastSignificantBits());
+                        return ValueUuid.get((java.util.UUID) object);
                     }
                     throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, getString());
                 case TIMESTAMP_TZ:
@@ -963,6 +997,7 @@ public abstract class Value {
                     if (DataType.isGeometry(object)) {
                         return ValueGeometry.getFromGeometry(object);
                     }
+                    //$FALL-THROUGH$
                 case TIMESTAMP_TZ:
                     throw DbException.get(
                             ErrorCode.DATA_CONVERSION_ERROR_1, getString());
@@ -1027,7 +1062,7 @@ public abstract class Value {
                 return ValueFloat.get(Float.parseFloat(s.trim()));
             case CLOB:
                 return ValueLobDb.createSmallLob(
-                        CLOB, s.getBytes(Constants.UTF8));
+                        CLOB, s.getBytes(StandardCharsets.UTF_8));
             case BLOB:
                 return ValueLobDb.createSmallLob(
                         BLOB, StringUtils.convertHexToBytes(s.trim()));
@@ -1134,7 +1169,7 @@ public abstract class Value {
     private static byte convertToByte(long x, Column col) {
         if (x > Byte.MAX_VALUE || x < Byte.MIN_VALUE) {
             throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), col.getName());
+                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), getColumnName(col));
         }
         return (byte) x;
     }
@@ -1142,7 +1177,7 @@ public abstract class Value {
     private static short convertToShort(long x, Column col) {
         if (x > Short.MAX_VALUE || x < Short.MIN_VALUE) {
             throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), col.getName());
+                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), getColumnName(col));
         }
         return (short) x;
     }
@@ -1150,7 +1185,7 @@ public abstract class Value {
     private static int convertToInt(long x, Column col) {
         if (x > Integer.MAX_VALUE || x < Integer.MIN_VALUE) {
             throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), col.getName());
+                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), getColumnName(col));
         }
         return (int) x;
     }
@@ -1160,7 +1195,7 @@ public abstract class Value {
             // TODO document that +Infinity, -Infinity throw an exception and
             // NaN returns 0
             throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Double.toString(x), col.getName());
+                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Double.toString(x), getColumnName(col));
         }
         return Math.round(x);
     }
@@ -1169,9 +1204,13 @@ public abstract class Value {
         if (x.compareTo(MAX_LONG_DECIMAL) > 0 ||
                 x.compareTo(Value.MIN_LONG_DECIMAL) < 0) {
             throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, x.toString(), col.getName());
+                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, x.toString(), getColumnName(col));
         }
         return x.setScale(0, BigDecimal.ROUND_HALF_UP).longValue();
+    }
+
+    private static String getColumnName(Column col) {
+        return col == null ? "" : col.getName();
     }
 
     /**

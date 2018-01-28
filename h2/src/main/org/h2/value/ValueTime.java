@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
 import org.h2.api.ErrorCode;
+import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.StringUtils;
@@ -48,6 +49,14 @@ public class ValueTime extends Value {
      * @return the value
      */
     public static ValueTime fromNanos(long nanos) {
+        if (!SysProperties.UNLIMITED_TIME_RANGE) {
+            if (nanos < 0L || nanos >= 86400000000000L) {
+                StringBuilder builder = new StringBuilder();
+                appendTime(builder, nanos, false);
+                throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2,
+                        "TIME", builder.toString());
+            }
+        }
         return (ValueTime) Value.cache(new ValueTime(nanos));
     }
 

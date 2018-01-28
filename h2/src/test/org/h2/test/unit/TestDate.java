@@ -127,6 +127,10 @@ public class TestDate extends TestBase {
                 ValueTime.parse("1999999:59:59.999999999").getString());
         assertEquals("-1999999:59:59.999999999",
                 ValueTime.parse("-1999999:59:59.999999999").getString());
+        assertEquals("2562047:47:16.854775807",
+                ValueTime.fromNanos(Long.MAX_VALUE).getString());
+        assertEquals("-2562047:47:16.854775808",
+                ValueTime.fromNanos(Long.MIN_VALUE).getString());
         ValueTime t1 = ValueTime.parse("11:11:11");
         assertEquals("11:11:11", t1.getTime().toString());
         assertEquals("1970-01-01", t1.getDate().toString());

@@ -117,6 +117,7 @@ public class TestDate extends TestBase {
         assertEquals("00:00:00", ValueTime.fromNanos(0).getString());
         assertEquals("23:59:59", ValueTime.parse("23:59:59").getString());
         assertEquals("99:59:59", ValueTime.parse("99:59:59").getString());
+        assertEquals("-00:10:10", ValueTime.parse("-00:10:10").getString());
         assertEquals("-99:02:03.001002003",
                 ValueTime.parse("-99:02:03.001002003").getString());
         assertEquals("-99:02:03.001002",

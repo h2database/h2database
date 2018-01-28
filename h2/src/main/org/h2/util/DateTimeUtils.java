@@ -403,8 +403,11 @@ public class DateTimeUtils {
         }
         boolean negative;
         hour = Integer.parseInt(s.substring(start, s1));
-        if (hour < 0) {
+        if (hour < 0 || hour == 0 && s.charAt(0) == '-') {
             if (timeOfDay) {
+                /*
+                 * This also forbids -00:00:00 and similar values.
+                 */
                 throw new IllegalArgumentException(s);
             }
             negative = true;

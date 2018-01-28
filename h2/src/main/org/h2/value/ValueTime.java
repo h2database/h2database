@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
 import org.h2.api.ErrorCode;
+import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.StringUtils;
@@ -48,6 +49,14 @@ public class ValueTime extends Value {
      * @return the value
      */
     public static ValueTime fromNanos(long nanos) {
+        if (!SysProperties.UNLIMITED_TIME_RANGE) {
+            if (nanos < 0L || nanos >= 86400000000000L) {
+                StringBuilder builder = new StringBuilder();
+                appendTime(builder, nanos, false);
+                throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2,
+                        "TIME", builder.toString());
+            }
+        }
         return (ValueTime) Value.cache(new ValueTime(nanos));
     }
 
@@ -200,7 +209,13 @@ public class ValueTime extends Value {
             buff.append('-');
             nanos = -nanos;
         }
-        long ms = nanos / 1000000;
+        /*
+         * nanos now either in range from 0 to Long.MAX_VALUE or equals to
+         * Long.MIN_VALUE. We need to divide nanos by 1000000 with unsigned division to
+         * get correct result. The simplest way to do this with such constraints is to
+         * divide -nanos by -1000000.
+         */
+        long ms = -nanos / -1000000;
         nanos -= ms * 1000000;
         long s = ms / 1000;
         ms -= s * 1000;

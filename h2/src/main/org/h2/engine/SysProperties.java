@@ -58,10 +58,10 @@ public class SysProperties {
 
     /**
      * System property <code>java.specification.version</code>.<br />
-     * It is set by the system. Examples: 1.4, 1.5, 1.6.
+     * It is set by the system. Examples: 0.9 (on Android), 1.7, 1.8, 9, 10.
      */
     public static final String JAVA_SPECIFICATION_VERSION =
-            Utils.getProperty("java.specification.version", "1.4");
+            Utils.getProperty("java.specification.version", "1.7");
 
     /**
      * System property <code>line.separator</code> (default: \n).<br />

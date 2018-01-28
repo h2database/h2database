@@ -302,29 +302,6 @@ public class FunctionAlias extends SchemaObjectBase {
     }
 
     /**
-     * Checks if the given method takes a variable number of arguments. For Java
-     * 1.4 and older, false is returned. Example:
-     * <pre>
-     * public static double mean(double... values)
-     * </pre>
-     *
-     * @param m the method to test
-     * @return true if the method takes a variable number of arguments.
-     */
-    static boolean isVarArgs(Method m) {
-        if ("1.5".compareTo(SysProperties.JAVA_SPECIFICATION_VERSION) > 0) {
-            return false;
-        }
-        try {
-            Method isVarArgs = m.getClass().getMethod("isVarArgs");
-            Boolean result = (Boolean) isVarArgs.invoke(m);
-            return result.booleanValue();
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    /**
      * Should the return value ResultSet be buffered in a local temporary file?
      *
      * @return true if yes
@@ -361,7 +338,7 @@ public class FunctionAlias extends SchemaObjectBase {
             }
             if (paramCount > 0) {
                 Class<?> lastArg = paramClasses[paramClasses.length - 1];
-                if (lastArg.isArray() && FunctionAlias.isVarArgs(method)) {
+                if (lastArg.isArray() && method.isVarArgs()) {
                     varArgs = true;
                     varArgClass = lastArg.getComponentType();
                 }

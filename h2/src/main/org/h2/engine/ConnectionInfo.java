@@ -334,15 +334,7 @@ public class ConnectionInfo implements Cloneable {
      * @return the value
      */
     boolean getProperty(String key, boolean defaultValue) {
-        String x = getProperty(key, null);
-        if (x == null) {
-            return defaultValue;
-        }
-        // support 0 / 1 (like the parser)
-        if (x.length() == 1 && Character.isDigit(x.charAt(0))) {
-            return Integer.parseInt(x) != 0;
-        }
-        return Boolean.parseBoolean(x);
+        return Utils.parseBoolean(getProperty(key, null), defaultValue, false);
     }
 
     /**

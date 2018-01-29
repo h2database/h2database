@@ -659,10 +659,10 @@ public class Utils {
         if (value == null) {
             return defaultValue;
         }
-        if (value.equalsIgnoreCase("true")) {
+        if (value.equalsIgnoreCase("true") || value.equals("1")) {
             return true;
         }
-        if (value.equalsIgnoreCase("false")) {
+        if (value.equalsIgnoreCase("false") || value.equals("0")) {
             return false;
         }
         if (throwException) {

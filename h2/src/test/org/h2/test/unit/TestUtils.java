@@ -52,6 +52,7 @@ public class TestUtils extends TestBase {
         testGetNonPrimitiveClass();
         testGetNonPrimitiveClass();
         testReflectionUtils();
+        testParseBoolean();
     }
 
     private void testIOUtils() throws IOException {
@@ -219,6 +220,66 @@ public class TestUtils extends TestBase {
         assertFalse(Utils.haveCommonComparableSuperclass(
                 Integer.class,
                 ArrayList.class));
+    }
+
+    private void testParseBooleanCheckFalse(String value) {
+        assertFalse(Utils.parseBoolean(value, false, false));
+        assertFalse(Utils.parseBoolean(value, false, true));
+        assertFalse(Utils.parseBoolean(value, true, false));
+        assertFalse(Utils.parseBoolean(value, true, true));
+    }
+
+    private void testParseBooleanCheckTrue(String value) {
+        assertTrue(Utils.parseBoolean(value, false, false));
+        assertTrue(Utils.parseBoolean(value, false, true));
+        assertTrue(Utils.parseBoolean(value, true, false));
+        assertTrue(Utils.parseBoolean(value, true, true));
+    }
+
+    private void testParseBoolean() {
+        // Test for default value in case of null
+        assertFalse(Utils.parseBoolean(null, false, false));
+        assertFalse(Utils.parseBoolean(null, false, true));
+        assertTrue(Utils.parseBoolean(null, true, false));
+        assertTrue(Utils.parseBoolean(null, true, true));
+        // Test assorted valid strings
+        testParseBooleanCheckFalse("0");
+        testParseBooleanCheckFalse("f");
+        testParseBooleanCheckFalse("F");
+        testParseBooleanCheckFalse("n");
+        testParseBooleanCheckFalse("N");
+        testParseBooleanCheckFalse("no");
+        testParseBooleanCheckFalse("No");
+        testParseBooleanCheckFalse("NO");
+        testParseBooleanCheckFalse("false");
+        testParseBooleanCheckFalse("False");
+        testParseBooleanCheckFalse("FALSE");
+        testParseBooleanCheckTrue("1");
+        testParseBooleanCheckTrue("t");
+        testParseBooleanCheckTrue("T");
+        testParseBooleanCheckTrue("y");
+        testParseBooleanCheckTrue("Y");
+        testParseBooleanCheckTrue("yes");
+        testParseBooleanCheckTrue("Yes");
+        testParseBooleanCheckTrue("YES");
+        testParseBooleanCheckTrue("true");
+        testParseBooleanCheckTrue("True");
+        testParseBooleanCheckTrue("TRUE");
+        // Test other values
+        assertFalse(Utils.parseBoolean("BAD", false, false));
+        assertTrue(Utils.parseBoolean("BAD", true, false));
+        try {
+            Utils.parseBoolean("BAD", false, true);
+            fail();
+        } catch (IllegalArgumentException e) {
+            // OK
+        }
+        try {
+            Utils.parseBoolean("BAD", true, true);
+            fail();
+        } catch (IllegalArgumentException e) {
+            // OK
+        }
     }
 
 }

@@ -659,11 +659,34 @@ public class Utils {
         if (value == null) {
             return defaultValue;
         }
-        if (value.equalsIgnoreCase("true") || value.equals("1")) {
-            return true;
-        }
-        if (value.equalsIgnoreCase("false") || value.equals("0")) {
-            return false;
+        switch (value.length()) {
+        case 1:
+            if (value.equals("1") || value.equalsIgnoreCase("t") || value.equalsIgnoreCase("y")) {
+                return true;
+            }
+            if (value.equals("0") || value.equalsIgnoreCase("f") || value.equalsIgnoreCase("n")) {
+                return false;
+            }
+            break;
+        case 2:
+            if (value.equalsIgnoreCase("no")) {
+                return false;
+            }
+            break;
+        case 3:
+            if (value.equalsIgnoreCase("yes")) {
+                return true;
+            }
+            break;
+        case 4:
+            if (value.equalsIgnoreCase("true")) {
+                return true;
+            }
+            break;
+        case 5:
+            if (value.equalsIgnoreCase("false")) {
+                return false;
+            }
         }
         if (throwException) {
             throw new IllegalArgumentException(value);

@@ -32,6 +32,7 @@ import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * A facility to read from and write to CSV (comma separated values) files. When
@@ -857,11 +858,11 @@ public class Csv implements SimpleRowSource {
             } else if (isParam(key, "charset", "characterSet")) {
                 charset = value;
             } else if (isParam(key, "preserveWhitespace")) {
-                setPreserveWhitespace(Boolean.parseBoolean(value));
+                setPreserveWhitespace(Utils.parseBoolean(value, false, false));
             } else if (isParam(key, "writeColumnHeader")) {
-                setWriteColumnHeader(Boolean.parseBoolean(value));
+                setWriteColumnHeader(Utils.parseBoolean(value, true, false));
             } else if (isParam(key, "caseSensitiveColumnNames")) {
-                setCaseSensitiveColumnNames(Boolean.parseBoolean(value));
+                setCaseSensitiveColumnNames(Utils.parseBoolean(value, false, false));
             } else {
                 throw DbException.getUnsupportedException(key);
             }

@@ -333,7 +333,7 @@ public class ConnectionInfo implements Cloneable {
      * @param defaultValue the default value
      * @return the value
      */
-    boolean getProperty(String key, boolean defaultValue) {
+    public boolean getProperty(String key, boolean defaultValue) {
         return Utils.parseBoolean(getProperty(key, null), defaultValue, false);
     }
 

@@ -919,39 +919,41 @@ public class PgServerThread implements Runnable {
 
     private void initDb() throws SQLException {
         Statement stat = null;
-        ResultSet rs = null;
         try {
             synchronized (server) {
                 // better would be: set the database to exclusive mode
-                rs = conn.getMetaData().getTables(null, "PG_CATALOG", "PG_VERSION", null);
-                boolean tableFound = rs.next();
+                boolean tableFound;
+                try (ResultSet rs = conn.getMetaData().getTables(null, "PG_CATALOG", "PG_VERSION", null)) {
+                    tableFound = rs.next();
+                }
                 stat = conn.createStatement();
                 if (!tableFound) {
                     installPgCatalog(stat);
                 }
-                rs = stat.executeQuery("select * from pg_catalog.pg_version");
-                if (!rs.next() || rs.getInt(1) < 2) {
-                    // installation incomplete, or old version
-                    installPgCatalog(stat);
-                } else {
-                    // version 2 or newer: check the read version
-                    int versionRead = rs.getInt(2);
-                    if (versionRead > 2) {
-                        throw DbException.throwInternalError("Incompatible PG_VERSION");
+                try (ResultSet rs = stat.executeQuery("select * from pg_catalog.pg_version")) {
+                    if (!rs.next() || rs.getInt(1) < 2) {
+                        // installation incomplete, or old version
+                        installPgCatalog(stat);
+                    } else {
+                        // version 2 or newer: check the read version
+                        int versionRead = rs.getInt(2);
+                        if (versionRead > 2) {
+                            throw DbException.throwInternalError("Incompatible PG_VERSION");
+                        }
                     }
                 }
             }
             stat.execute("set search_path = PUBLIC, pg_catalog");
             HashSet<Integer> typeSet = server.getTypeSet();
             if (typeSet.size() == 0) {
-                rs = stat.executeQuery("select oid from pg_catalog.pg_type");
-                while (rs.next()) {
-                    typeSet.add(rs.getInt(1));
+                try (ResultSet rs = stat.executeQuery("select oid from pg_catalog.pg_type")) {
+                    while (rs.next()) {
+                        typeSet.add(rs.getInt(1));
+                    }
                 }
             }
         } finally {
             JdbcUtils.closeSilently(stat);
-            JdbcUtils.closeSilently(rs);
         }
     }
 

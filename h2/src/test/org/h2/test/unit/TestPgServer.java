@@ -389,7 +389,7 @@ public class TestPgServer extends TestBase {
         }
     }
 
-    private void testBinaryTypes() throws SQLException, InterruptedException {
+    private void testBinaryTypes() throws SQLException {
         if (!getPgJdbcDriver()) {
             return;
         }
@@ -464,7 +464,7 @@ public class TestPgServer extends TestBase {
         }
     }
 
-    private void testDateTime() throws SQLException, InterruptedException {
+    private void testDateTime() throws SQLException {
         if (!getPgJdbcDriver()) {
             return;
         }

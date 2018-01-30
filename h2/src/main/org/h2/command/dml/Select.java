@@ -1483,7 +1483,7 @@ public class Select extends Query {
                     Value[] row = new Value[columnCount];
                     for (int i = 0; i < columnCount; i++) {
                         Expression expr = expressions.get(i);
-                        row[i] = expr.getValue(session);
+                        row[i] = expr.getValue(getSession());
                     }
                     return row;
                 }
@@ -1521,7 +1521,7 @@ public class Select extends Query {
                     for (int i = 0; i < groupIndex.length; i++) {
                         int idx = groupIndex[i];
                         Expression expr = expressions.get(idx);
-                        keyValues[i] = expr.getValue(session);
+                        keyValues[i] = expr.getValue(getSession());
                     }
 
                     Value[] row = null;
@@ -1538,7 +1538,7 @@ public class Select extends Query {
                     for (int i = 0; i < columnCount; i++) {
                         if (groupByExpression == null || !groupByExpression[i]) {
                             Expression expr = expressions.get(i);
-                            expr.updateAggregate(session);
+                            expr.updateAggregate(getSession());
                         }
                     }
                     if (row != null) {

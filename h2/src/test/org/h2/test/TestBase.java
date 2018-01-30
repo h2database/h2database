@@ -956,7 +956,7 @@ public abstract class TestBase {
      * @param condition the condition
      * @throws AssertionError if the condition is false
      */
-    protected void assertTrue(String message, boolean condition) {
+    public void assertTrue(String message, boolean condition) {
         if (!condition) {
             fail(message);
         }
@@ -1058,7 +1058,7 @@ public abstract class TestBase {
      *
      * @param stat the statement
      */
-    protected void execute(PreparedStatement stat) throws SQLException {
+    public void execute(PreparedStatement stat) throws SQLException {
         execute(stat, null);
     }
 
@@ -1651,7 +1651,10 @@ public abstract class TestBase {
         throw (E) e;
     }
 
-    protected String getTestName() {
+    /**
+     * @return the name of the test class
+     */
+    public String getTestName() {
         return getClass().getSimpleName();
     }
 

@@ -265,11 +265,6 @@ public class TestUtils extends TestBase {
         testParseBooleanCheckTrue("true");
         testParseBooleanCheckTrue("True");
         testParseBooleanCheckTrue("TRUE");
-        // Test numbers
-        testParseBooleanCheckFalse("0.0");
-        testParseBooleanCheckFalse("-0.0");
-        testParseBooleanCheckTrue("0.1");
-        testParseBooleanCheckTrue("-0.1");
         // Test other values
         assertFalse(Utils.parseBoolean("BAD", false, false));
         assertTrue(Utils.parseBoolean("BAD", true, false));

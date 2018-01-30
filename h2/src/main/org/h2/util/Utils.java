@@ -14,7 +14,6 @@ import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -688,11 +687,6 @@ public class Utils {
             if (value.equalsIgnoreCase("false")) {
                 return false;
             }
-        }
-        try {
-            return new BigDecimal(value).signum() != 0;
-        } catch (NumberFormatException e) {
-            // Nothing to do
         }
         if (throwException) {
             throw new IllegalArgumentException(value);

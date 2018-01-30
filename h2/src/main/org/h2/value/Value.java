@@ -31,7 +31,6 @@ import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
-import org.h2.util.Utils;
 
 /**
  * This is the base class for all value classes.
@@ -1012,10 +1011,19 @@ public abstract class Value {
             case NULL:
                 return ValueNull.INSTANCE;
             case BOOLEAN: {
-                try {
-                    return ValueBoolean.get(Utils.parseBoolean(s, false, true));
-                } catch (IllegalArgumentException e) {
-                    throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, s);
+                if (s.equalsIgnoreCase("true") ||
+                        s.equalsIgnoreCase("t") ||
+                        s.equalsIgnoreCase("yes") ||
+                        s.equalsIgnoreCase("y")) {
+                    return ValueBoolean.get(true);
+                } else if (s.equalsIgnoreCase("false") ||
+                        s.equalsIgnoreCase("f") ||
+                        s.equalsIgnoreCase("no") ||
+                        s.equalsIgnoreCase("n")) {
+                    return ValueBoolean.get(false);
+                } else {
+                    // convert to a number, and if it is not 0 then it is true
+                    return ValueBoolean.get(new BigDecimal(s).signum() != 0);
                 }
             }
             case BYTE:

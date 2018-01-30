@@ -617,7 +617,6 @@ public abstract class Value {
      * @param mode the conversion mode
      * @param column the column that contains the ENUM datatype enumerators,
      *        for dealing with ENUM conversions
-     * @param mode the database mode
      * @return the converted value
      */
     public Value convertTo(int targetType, int precision, Mode mode, Column column) {

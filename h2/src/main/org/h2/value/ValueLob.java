@@ -83,19 +83,11 @@ public class ValueLob extends Value {
     /**
      * Create a reader that is s subset of the given reader.
      *
-<<<<<<< Updated upstream
      * @param reader the input reader
      * @param oneBasedOffset the offset (1 means no offset)
      * @param length the length of the result, in bytes
      * @param dataSize the length of the input, in bytes
      * @return the smaller input stream
-=======
-     * @param reader the source reader
-     * @param oneBasedOffset the offset (1 means no offset)
-     * @param length the length of the result, in characters
-     * @param dataSize the length of the input, in characters
-     * @return the smaller reader
->>>>>>> Stashed changes
      */
     static Reader rangeReader(Reader reader, long oneBasedOffset, long length, long dataSize) {
         if (dataSize > 0)

@@ -114,6 +114,7 @@ public class FileLock implements Runnable {
             lockSerialized();
             break;
         case FS:
+        case NO:
             break;
         }
         locked = true;

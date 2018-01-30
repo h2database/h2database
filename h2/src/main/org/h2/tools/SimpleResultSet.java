@@ -38,6 +38,7 @@ import org.h2.util.Bits;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
+import org.h2.util.Utils;
 import org.h2.value.DataType;
 
 /**
@@ -498,7 +499,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
             }
             return n.longValue() != 0;
         }
-        return Boolean.parseBoolean(o.toString());
+        return Utils.parseBoolean(o.toString(), false, true);
     }
 
     /**

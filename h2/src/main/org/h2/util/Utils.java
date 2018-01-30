@@ -14,6 +14,7 @@ import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -659,11 +660,39 @@ public class Utils {
         if (value == null) {
             return defaultValue;
         }
-        if (value.equalsIgnoreCase("true") || value.equals("1")) {
-            return true;
+        switch (value.length()) {
+        case 1:
+            if (value.equals("1") || value.equalsIgnoreCase("t") || value.equalsIgnoreCase("y")) {
+                return true;
+            }
+            if (value.equals("0") || value.equalsIgnoreCase("f") || value.equalsIgnoreCase("n")) {
+                return false;
+            }
+            break;
+        case 2:
+            if (value.equalsIgnoreCase("no")) {
+                return false;
+            }
+            break;
+        case 3:
+            if (value.equalsIgnoreCase("yes")) {
+                return true;
+            }
+            break;
+        case 4:
+            if (value.equalsIgnoreCase("true")) {
+                return true;
+            }
+            break;
+        case 5:
+            if (value.equalsIgnoreCase("false")) {
+                return false;
+            }
         }
-        if (value.equalsIgnoreCase("false") || value.equals("0")) {
-            return false;
+        try {
+            return new BigDecimal(value).signum() != 0;
+        } catch (NumberFormatException e) {
+            // Nothing to do
         }
         if (throwException) {
             throw new IllegalArgumentException(value);

@@ -345,8 +345,7 @@ public class ConnectionInfo implements Cloneable {
      * @return the value
      */
     public boolean removeProperty(String key, boolean defaultValue) {
-        String x = removeProperty(key, null);
-        return x == null ? defaultValue : Boolean.parseBoolean(x);
+        return Utils.parseBoolean(removeProperty(key, null), defaultValue, false);
     }
 
     /**

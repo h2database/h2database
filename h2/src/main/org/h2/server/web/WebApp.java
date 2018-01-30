@@ -351,12 +351,10 @@ public class WebApp {
             int port = Integer.decode((String) attributes.get("port"));
             prop.setProperty("webPort", String.valueOf(port));
             server.setPort(port);
-            boolean allowOthers = Boolean.parseBoolean(
-                    (String) attributes.get("allowOthers"));
+            boolean allowOthers = Utils.parseBoolean((String) attributes.get("allowOthers"), false, false);
             prop.setProperty("webAllowOthers", String.valueOf(allowOthers));
             server.setAllowOthers(allowOthers);
-            boolean ssl = Boolean.parseBoolean(
-                    (String) attributes.get("ssl"));
+            boolean ssl = Utils.parseBoolean((String) attributes.get("ssl"), false, false);
             prop.setProperty("webSSL", String.valueOf(ssl));
             server.setSSL(ssl);
             server.saveProperties(prop);

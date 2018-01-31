@@ -122,6 +122,7 @@ import org.h2.expression.FunctionCall;
 import org.h2.expression.JavaAggregate;
 import org.h2.expression.JavaFunction;
 import org.h2.expression.Operation;
+import org.h2.expression.Operation.OpType;
 import org.h2.expression.Parameter;
 import org.h2.expression.Rownum;
 import org.h2.expression.SequenceValue;
@@ -2557,7 +2558,7 @@ public class Parser {
         Expression r = readSum();
         while (true) {
             if (readIf("||")) {
-                r = new Operation(Operation.CONCAT, r, readSum());
+                r = new Operation(OpType.CONCAT, r, readSum());
             } else if (readIf("~")) {
                 if (readIf("*")) {
                     Function function = Function.getFunction(database, "CAST");
@@ -2587,9 +2588,9 @@ public class Parser {
         Expression r = readFactor();
         while (true) {
             if (readIf("+")) {
-                r = new Operation(Operation.PLUS, r, readFactor());
+                r = new Operation(OpType.PLUS, r, readFactor());
             } else if (readIf("-")) {
-                r = new Operation(Operation.MINUS, r, readFactor());
+                r = new Operation(OpType.MINUS, r, readFactor());
             } else {
                 return r;
             }
@@ -2600,11 +2601,11 @@ public class Parser {
         Expression r = readTerm();
         while (true) {
             if (readIf("*")) {
-                r = new Operation(Operation.MULTIPLY, r, readTerm());
+                r = new Operation(OpType.MULTIPLY, r, readTerm());
             } else if (readIf("/")) {
-                r = new Operation(Operation.DIVIDE, r, readTerm());
+                r = new Operation(OpType.DIVIDE, r, readTerm());
             } else if (readIf("%")) {
-                r = new Operation(Operation.MODULUS, r, readTerm());
+                r = new Operation(OpType.MODULUS, r, readTerm());
             } else {
                 return r;
             }
@@ -3194,7 +3195,7 @@ public class Parser {
                 }
                 read();
             } else {
-                r = new Operation(Operation.NEGATE, readTerm(), null);
+                r = new Operation(OpType.NEGATE, readTerm(), null);
             }
             break;
         case PLUS:
@@ -3258,7 +3259,7 @@ public class Parser {
             Function function = Function.getFunction(database, "ARRAY_GET");
             function.setParameter(0, r);
             r = readExpression();
-            r = new Operation(Operation.PLUS, r, ValueExpression.get(ValueInt
+            r = new Operation(OpType.PLUS, r, ValueExpression.get(ValueInt
                     .get(1)));
             function.setParameter(1, r);
             r = function;

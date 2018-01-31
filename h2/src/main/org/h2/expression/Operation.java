@@ -22,48 +22,50 @@ import org.h2.value.ValueString;
  */
 public class Operation extends Expression {
 
-    /**
-     * This operation represents a string concatenation as in
-     * 'Hello' || 'World'.
-     */
-    public static final int CONCAT = 0;
+    public enum OpType {
+        /**
+         * This operation represents a string concatenation as in
+         * 'Hello' || 'World'.
+         */
+         CONCAT,
 
-    /**
-     * This operation represents an addition as in 1 + 2.
-     */
-    public static final int PLUS = 1;
+        /**
+         * This operation represents an addition as in 1 + 2.
+         */
+         PLUS,
 
-    /**
-     * This operation represents a subtraction as in 2 - 1.
-     */
-    public static final int MINUS = 2;
+        /**
+         * This operation represents a subtraction as in 2 - 1.
+         */
+         MINUS,
 
-    /**
-     * This operation represents a multiplication as in 2 * 3.
-     */
-    public static final int MULTIPLY = 3;
+        /**
+         * This operation represents a multiplication as in 2 * 3.
+         */
+         MULTIPLY,
 
-    /**
-     * This operation represents a division as in 4 * 2.
-     */
-    public static final int DIVIDE = 4;
+        /**
+         * This operation represents a division as in 4 * 2.
+         */
+         DIVIDE,
 
-    /**
-     * This operation represents a negation as in - ID.
-     */
-    public static final int NEGATE = 5;
+        /**
+         * This operation represents a negation as in - ID.
+         */
+         NEGATE,
 
-    /**
-     * This operation represents a modulus as in 5 % 2.
-     */
-    public static final int MODULUS = 6;
+        /**
+         * This operation represents a modulus as in 5 % 2.
+         */
+         MODULUS
+    };
 
-    private int opType;
+    private OpType opType;
     private Expression left, right;
     private int dataType;
     private boolean convertRight = true;
 
-    public Operation(int opType, Expression left, Expression right) {
+    public Operation(OpType opType, Expression left, Expression right) {
         this.opType = opType;
         this.left = left;
         this.right = right;
@@ -72,7 +74,7 @@ public class Operation extends Expression {
     @Override
     public String getSQL() {
         String sql;
-        if (opType == NEGATE) {
+        if (opType == OpType.NEGATE) {
             // don't remove the space, otherwise it might end up some thing like
             // --1 which is a line remark
             sql = "- " + left.getSQL();
@@ -205,17 +207,17 @@ public class Operation extends Expression {
                     (l == Value.UNKNOWN && r == Value.UNKNOWN)) {
                 // (? + ?) - use decimal by default (the most safe data type) or
                 // string when text concatenation with + is enabled
-                if (opType == PLUS && session.getDatabase().
+                if (opType == OpType.PLUS && session.getDatabase().
                         getMode().allowPlusForStringConcat) {
                     dataType = Value.STRING;
-                    opType = CONCAT;
+                    opType = OpType.CONCAT;
                 } else {
                     dataType = Value.DECIMAL;
                 }
             } else if (l == Value.DATE || l == Value.TIMESTAMP ||
                     l == Value.TIME || r == Value.DATE ||
                     r == Value.TIMESTAMP || r == Value.TIME) {
-                if (opType == PLUS) {
+                if (opType == OpType.PLUS) {
                     if (r != Value.getHigherOrder(l, r)) {
                         // order left and right: INT < TIME < DATE < TIMESTAMP
                         swap();
@@ -235,7 +237,7 @@ public class Operation extends Expression {
                         // Oracle date add
                         Function f = Function.getFunction(session.getDatabase(), "DATEADD");
                         f.setParameter(0, ValueExpression.get(ValueString.get("SECOND")));
-                        left = new Operation(Operation.MULTIPLY, ValueExpression.get(ValueInt
+                        left = new Operation(OpType.MULTIPLY, ValueExpression.get(ValueInt
                                 .get(60 * 60 * 24)), left);
                         f.setParameter(1, left);
                         f.setParameter(2, right);
@@ -248,12 +250,12 @@ public class Operation extends Expression {
                         dataType = Value.TIMESTAMP;
                         return this;
                     }
-                } else if (opType == MINUS) {
+                } else if (opType == OpType.MINUS) {
                     if ((l == Value.DATE || l == Value.TIMESTAMP) && r == Value.INT) {
                         // Oracle date subtract
                         Function f = Function.getFunction(session.getDatabase(), "DATEADD");
                         f.setParameter(0, ValueExpression.get(ValueString.get("DAY")));
-                        right = new Operation(NEGATE, right, null);
+                        right = new Operation(OpType.NEGATE, right, null);
                         right = right.optimize(session);
                         f.setParameter(1, right);
                         f.setParameter(2, left);
@@ -264,9 +266,9 @@ public class Operation extends Expression {
                         // Oracle date subtract
                         Function f = Function.getFunction(session.getDatabase(), "DATEADD");
                         f.setParameter(0, ValueExpression.get(ValueString.get("SECOND")));
-                        right = new Operation(Operation.MULTIPLY, ValueExpression.get(ValueInt
+                        right = new Operation(OpType.MULTIPLY, ValueExpression.get(ValueInt
                                 .get(60 * 60 * 24)), right);
-                        right = new Operation(NEGATE, right, null);
+                        right = new Operation(OpType.NEGATE, right, null);
                         right = right.optimize(session);
                         f.setParameter(1, right);
                         f.setParameter(2, left);
@@ -289,7 +291,7 @@ public class Operation extends Expression {
                         dataType = Value.TIME;
                         return this;
                     }
-                } else if (opType == MULTIPLY) {
+                } else if (opType == OpType.MULTIPLY) {
                     if (l == Value.TIME) {
                         dataType = Value.TIME;
                         convertRight = false;
@@ -300,7 +302,7 @@ public class Operation extends Expression {
                         convertRight = false;
                         return this;
                     }
-                } else if (opType == DIVIDE) {
+                } else if (opType == OpType.DIVIDE) {
                     if (l == Value.TIME) {
                         dataType = Value.TIME;
                         convertRight = false;
@@ -315,7 +317,7 @@ public class Operation extends Expression {
                 dataType = Value.getHigherOrder(l, r);
                 if (DataType.isStringType(dataType) &&
                         session.getDatabase().getMode().allowPlusForStringConcat) {
-                    opType = CONCAT;
+                    opType = OpType.CONCAT;
                 }
             }
             break;

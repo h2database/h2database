@@ -1220,6 +1220,9 @@ public class Parser {
     private Insert parseInsert() {
         Insert command = new Insert(session);
         currentPrepared = command;
+        if (database.getMode().onDuplicateKeyUpdate && readIf("IGNORE")) {
+            command.setIgnore(true);
+        }
         read("INTO");
         Table table = readTableOrView();
         command.setTable(table);

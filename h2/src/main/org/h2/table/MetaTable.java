@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import org.h2.command.Command;
 import org.h2.constraint.Constraint;
+import org.h2.constraint.ConstraintActionType;
 import org.h2.constraint.ConstraintCheck;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.constraint.ConstraintUnique;
@@ -1913,15 +1914,15 @@ public class MetaTable extends Table {
         return rows;
     }
 
-    private static int getRefAction(int action) {
+    private static int getRefAction(ConstraintActionType action) {
         switch (action) {
-        case ConstraintReferential.CASCADE:
+        case CASCADE:
             return DatabaseMetaData.importedKeyCascade;
-        case ConstraintReferential.RESTRICT:
+        case RESTRICT:
             return DatabaseMetaData.importedKeyRestrict;
-        case ConstraintReferential.SET_DEFAULT:
+        case SET_DEFAULT:
             return DatabaseMetaData.importedKeySetDefault;
-        case ConstraintReferential.SET_NULL:
+        case SET_NULL:
             return DatabaseMetaData.importedKeySetNull;
         default:
             throw DbException.throwInternalError("action="+action);

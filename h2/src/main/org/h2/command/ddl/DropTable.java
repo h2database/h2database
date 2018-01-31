@@ -7,11 +7,10 @@ package org.h2.command.ddl;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.Constraint;
-import org.h2.constraint.ConstraintReferential;
+import org.h2.constraint.ConstraintActionType;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -31,13 +30,13 @@ public class DropTable extends SchemaCommand {
     private String tableName;
     private Table table;
     private DropTable next;
-    private int dropAction;
+    private ConstraintActionType dropAction;
 
     public DropTable(Session session, Schema schema) {
         super(session, schema);
         dropAction = session.getDatabase().getSettings().dropRestrict ?
-                ConstraintReferential.RESTRICT :
-                ConstraintReferential.CASCADE;
+                ConstraintActionType.RESTRICT :
+                    ConstraintActionType.CASCADE;
     }
 
     /**
@@ -75,7 +74,7 @@ public class DropTable extends SchemaCommand {
             if (!table.canDrop()) {
                 throw DbException.get(ErrorCode.CANNOT_DROP_TABLE_1, tableName);
             }
-            if (dropAction == ConstraintReferential.RESTRICT) {
+            if (dropAction == ConstraintActionType.RESTRICT) {
                 StatementBuilder buff = new StatementBuilder();
                 CopyOnWriteArrayList<TableView> dependentViews = table.getDependentViews();
                 if (dependentViews != null && dependentViews.size() > 0) {
@@ -131,7 +130,7 @@ public class DropTable extends SchemaCommand {
         return 0;
     }
 
-    public void setDropAction(int dropAction) {
+    public void setDropAction(ConstraintActionType dropAction) {
         this.dropAction = dropAction;
         if (next != null) {
             next.setDropAction(dropAction);

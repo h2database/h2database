@@ -141,7 +141,7 @@ public class TestScript extends TestBase {
                 "parsedatetime", "quarter", "second", "week", "year" }) {
             testScript("functions/timeanddate/" + s + ".sql");
         }
-        for (String s : new String[] { "with", "mergeUsing" }) {
+        for (String s : new String[] { "insertIgnore", "mergeUsing", "with" }) {
             testScript("dml/" + s + ".sql");
         }
         deleteDb("script");

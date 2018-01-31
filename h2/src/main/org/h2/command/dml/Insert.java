@@ -57,6 +57,11 @@ public class Insert extends Prepared implements ResultTarget {
      */
     private HashMap<Column, Expression> duplicateKeyAssignmentMap;
 
+    /**
+     * For MySQL-style INSERT IGNORE
+     */
+    private boolean ignore;
+
     public Insert(Session session) {
         super(session);
     }
@@ -75,6 +80,14 @@ public class Insert extends Prepared implements ResultTarget {
 
     public void setColumns(Column[] columns) {
         this.columns = columns;
+    }
+
+    /**
+     * Sets MySQL-style INSERT IGNORE mode
+     * @param ignore ignore errors
+     */
+    public void setIgnore(boolean ignore) {
+        this.ignore = ignore;
     }
 
     public void setQuery(Query query) {
@@ -160,7 +173,11 @@ public class Insert extends Prepared implements ResultTarget {
                     try {
                         table.addRow(session, newRow);
                     } catch (DbException de) {
-                        handleOnDuplicate(de);
+                        if (!handleOnDuplicate(de)) {
+                            // INSERT IGNORE case
+                            rowNumber--;
+                            continue;
+                        }
                     }
                     session.log(table, UndoLogRecord.INSERT, newRow);
                     table.fireAfterRow(session, null, newRow, false);
@@ -321,12 +338,19 @@ public class Insert extends Prepared implements ResultTarget {
                 duplicateKeyAssignmentMap.isEmpty();
     }
 
-    private void handleOnDuplicate(DbException de) {
+    /**
+     * @param de duplicate key exception
+     * @return {@code true} if row was updated, {@code false} if row was ignored
+     */
+    private boolean handleOnDuplicate(DbException de) {
         if (de.getErrorCode() != ErrorCode.DUPLICATE_KEY_1) {
             throw de;
         }
         if (duplicateKeyAssignmentMap == null ||
                 duplicateKeyAssignmentMap.isEmpty()) {
+            if (ignore) {
+                return false;
+            }
             throw de;
         }
 
@@ -364,6 +388,7 @@ public class Insert extends Prepared implements ResultTarget {
         for (String variableName : variableNames) {
             session.setVariable(variableName, ValueNull.INSTANCE);
         }
+        return true;
     }
 
     private Expression prepareUpdateCondition(Index foundIndex) {

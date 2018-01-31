@@ -158,7 +158,7 @@ public class Mode {
     public boolean isolationLevelInSelectOrInsertStatement;
 
     /**
-     * MySQL style INSERT ... ON DUPLICATE KEY UPDATE ...
+     * MySQL style INSERT ... ON DUPLICATE KEY UPDATE ... and INSERT IGNORE
      */
     public boolean onDuplicateKeyUpdate;
 

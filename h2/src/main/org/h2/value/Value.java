@@ -656,7 +656,6 @@ public abstract class Value {
                 case BOOLEAN:
                     return ValueByte.get(getBoolean() ? (byte) 1 : (byte) 0);
                 case SHORT:
-                    return ValueByte.get(convertToByte(getShort(), column));
                 case ENUM:
                 case INT:
                     return ValueByte.get(convertToByte(getInt(), column));
@@ -706,11 +705,9 @@ public abstract class Value {
                 case BOOLEAN:
                     return ValueInt.get(getBoolean() ? 1 : 0);
                 case BYTE:
-                    return ValueInt.get(getByte());
                 case ENUM:
-                    return ValueInt.get(getInt());
                 case SHORT:
-                    return ValueInt.get(getShort());
+                    return ValueInt.get(getInt());
                 case LONG:
                     return ValueInt.get(convertToInt(getLong(), column));
                 case DECIMAL:
@@ -732,9 +729,7 @@ public abstract class Value {
                 case BOOLEAN:
                     return ValueLong.get(getBoolean() ? 1 : 0);
                 case BYTE:
-                    return ValueLong.get(getByte());
                 case SHORT:
-                    return ValueLong.get(getShort());
                 case ENUM:
                 case INT:
                     return ValueLong.get(getInt());
@@ -763,9 +758,7 @@ public abstract class Value {
                 case BOOLEAN:
                     return ValueDecimal.get(BigDecimal.valueOf(getBoolean() ? 1 : 0));
                 case BYTE:
-                    return ValueDecimal.get(BigDecimal.valueOf(getByte()));
                 case SHORT:
-                    return ValueDecimal.get(BigDecimal.valueOf(getShort()));
                 case ENUM:
                 case INT:
                     return ValueDecimal.get(BigDecimal.valueOf(getInt()));
@@ -799,9 +792,7 @@ public abstract class Value {
                 case BOOLEAN:
                     return ValueDouble.get(getBoolean() ? 1 : 0);
                 case BYTE:
-                    return ValueDouble.get(getByte());
                 case SHORT:
-                    return ValueDouble.get(getShort());
                 case INT:
                     return ValueDouble.get(getInt());
                 case LONG:
@@ -822,9 +813,7 @@ public abstract class Value {
                 case BOOLEAN:
                     return ValueFloat.get(getBoolean() ? 1 : 0);
                 case BYTE:
-                    return ValueFloat.get(getByte());
                 case SHORT:
-                    return ValueFloat.get(getShort());
                 case INT:
                     return ValueFloat.get(getInt());
                 case LONG:

@@ -35,8 +35,8 @@ public class ConstraintReferential extends Constraint {
 
     private IndexColumn[] columns;
     private IndexColumn[] refColumns;
-    private ConstraintActionType deleteAction;
-    private ConstraintActionType updateAction;
+    private ConstraintActionType deleteAction = ConstraintActionType.RESTRICT;
+    private ConstraintActionType updateAction = ConstraintActionType.RESTRICT;
     private Table refTable;
     private Index index;
     private Index refIndex;

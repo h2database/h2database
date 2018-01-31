@@ -39,8 +39,8 @@ public class AlterTableAddConstraint extends SchemaCommand {
     private String constraintName;
     private String tableName;
     private IndexColumn[] indexColumns;
-    private ConstraintActionType deleteAction;
-    private ConstraintActionType updateAction;
+    private ConstraintActionType deleteAction = ConstraintActionType.RESTRICT;
+    private ConstraintActionType updateAction = ConstraintActionType.RESTRICT;
     private Schema refSchema;
     private String refTableName;
     private IndexColumn[] refIndexColumns;

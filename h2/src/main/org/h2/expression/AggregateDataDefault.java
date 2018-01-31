@@ -6,6 +6,7 @@
 package org.h2.expression;
 
 import org.h2.engine.Database;
+import org.h2.expression.Aggregate.AggregateType;
 import org.h2.message.DbException;
 import org.h2.util.ValueHashMap;
 import org.h2.value.DataType;
@@ -19,7 +20,7 @@ import org.h2.value.ValueNull;
  * Data stored while calculating an aggregate.
  */
 class AggregateDataDefault extends AggregateData {
-    private final int aggregateType;
+    private final AggregateType aggregateType;
     private long count;
     private ValueHashMap<AggregateDataDefault> distinctValues;
     private Value value;
@@ -28,7 +29,7 @@ class AggregateDataDefault extends AggregateData {
     /**
      * @param aggregateType the type of the aggregate operation
      */
-    AggregateDataDefault(int aggregateType) {
+    AggregateDataDefault(AggregateType aggregateType) {
         this.aggregateType = aggregateType;
     }
 
@@ -46,7 +47,7 @@ class AggregateDataDefault extends AggregateData {
             return;
         }
         switch (aggregateType) {
-        case Aggregate.SUM:
+        case SUM:
             if (value == null) {
                 value = v.convertTo(dataType);
             } else {
@@ -54,7 +55,7 @@ class AggregateDataDefault extends AggregateData {
                 value = value.add(v);
             }
             break;
-        case Aggregate.AVG:
+        case AVG:
             if (value == null) {
                 value = v.convertTo(DataType.getAddProofType(dataType));
             } else {
@@ -62,20 +63,20 @@ class AggregateDataDefault extends AggregateData {
                 value = value.add(v);
             }
             break;
-        case Aggregate.MIN:
+        case MIN:
             if (value == null || database.compare(v, value) < 0) {
                 value = v;
             }
             break;
-        case Aggregate.MAX:
+        case MAX:
             if (value == null || database.compare(v, value) > 0) {
                 value = v;
             }
             break;
-        case Aggregate.STDDEV_POP:
-        case Aggregate.STDDEV_SAMP:
-        case Aggregate.VAR_POP:
-        case Aggregate.VAR_SAMP: {
+        case STDDEV_POP:
+        case STDDEV_SAMP:
+        case VAR_POP:
+        case VAR_SAMP: {
             // Using Welford's method, see also
             // http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
             // http://www.johndcook.com/standard_deviation.html
@@ -90,7 +91,7 @@ class AggregateDataDefault extends AggregateData {
             }
             break;
         }
-        case Aggregate.BOOL_AND:
+        case BOOL_AND:
             v = v.convertTo(Value.BOOLEAN);
             if (value == null) {
                 value = v;
@@ -98,7 +99,7 @@ class AggregateDataDefault extends AggregateData {
                 value = ValueBoolean.get(value.getBoolean() && v.getBoolean());
             }
             break;
-        case Aggregate.BOOL_OR:
+        case BOOL_OR:
             v = v.convertTo(Value.BOOLEAN);
             if (value == null) {
                 value = v;
@@ -106,14 +107,14 @@ class AggregateDataDefault extends AggregateData {
                 value = ValueBoolean.get(value.getBoolean() || v.getBoolean());
             }
             break;
-        case Aggregate.BIT_AND:
+        case BIT_AND:
             if (value == null) {
                 value = v.convertTo(dataType);
             } else {
                 value = ValueLong.get(value.getLong() & v.getLong()).convertTo(dataType);
             }
             break;
-        case Aggregate.BIT_OR:
+        case BIT_OR:
             if (value == null) {
                 value = v.convertTo(dataType);
             } else {
@@ -133,42 +134,42 @@ class AggregateDataDefault extends AggregateData {
         }
         Value v = null;
         switch (aggregateType) {
-        case Aggregate.SUM:
-        case Aggregate.MIN:
-        case Aggregate.MAX:
-        case Aggregate.BIT_OR:
-        case Aggregate.BIT_AND:
-        case Aggregate.BOOL_OR:
-        case Aggregate.BOOL_AND:
+        case SUM:
+        case MIN:
+        case MAX:
+        case BIT_OR:
+        case BIT_AND:
+        case BOOL_OR:
+        case BOOL_AND:
             v = value;
             break;
-        case Aggregate.AVG:
+        case AVG:
             if (value != null) {
                 v = divide(value, count);
             }
             break;
-        case Aggregate.STDDEV_POP: {
+        case STDDEV_POP: {
             if (count < 1) {
                 return ValueNull.INSTANCE;
             }
             v = ValueDouble.get(Math.sqrt(m2 / count));
             break;
         }
-        case Aggregate.STDDEV_SAMP: {
+        case STDDEV_SAMP: {
             if (count < 2) {
                 return ValueNull.INSTANCE;
             }
             v = ValueDouble.get(Math.sqrt(m2 / (count - 1)));
             break;
         }
-        case Aggregate.VAR_POP: {
+        case VAR_POP: {
             if (count < 1) {
                 return ValueNull.INSTANCE;
             }
             v = ValueDouble.get(m2 / count);
             break;
         }
-        case Aggregate.VAR_SAMP: {
+        case VAR_SAMP: {
             if (count < 2) {
                 return ValueNull.INSTANCE;
             }

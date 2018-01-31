@@ -105,6 +105,7 @@ import org.h2.engine.User;
 import org.h2.engine.UserAggregate;
 import org.h2.engine.UserDataType;
 import org.h2.expression.Aggregate;
+import org.h2.expression.Aggregate.AggregateType;
 import org.h2.expression.Alias;
 import org.h2.expression.CompareLike;
 import org.h2.expression.Comparison;
@@ -2610,34 +2611,34 @@ public class Parser {
         }
     }
 
-    private Expression readAggregate(int aggregateType, String aggregateName) {
+    private Expression readAggregate(AggregateType aggregateType, String aggregateName) {
         if (currentSelect == null) {
             throw getSyntaxError();
         }
         currentSelect.setGroupQuery();
         Expression r;
-        if (aggregateType == Aggregate.COUNT) {
+        if (aggregateType == AggregateType.COUNT) {
             if (readIf("*")) {
-                r = new Aggregate(Aggregate.COUNT_ALL, null, currentSelect,
+                r = new Aggregate(AggregateType.COUNT_ALL, null, currentSelect,
                         false);
             } else {
                 boolean distinct = readIf("DISTINCT");
                 Expression on = readExpression();
                 if (on instanceof Wildcard && !distinct) {
                     // PostgreSQL compatibility: count(t.*)
-                    r = new Aggregate(Aggregate.COUNT_ALL, null, currentSelect,
+                    r = new Aggregate(AggregateType.COUNT_ALL, null, currentSelect,
                             false);
                 } else {
-                    r = new Aggregate(Aggregate.COUNT, on, currentSelect,
+                    r = new Aggregate(AggregateType.COUNT, on, currentSelect,
                             distinct);
                 }
             }
-        } else if (aggregateType == Aggregate.GROUP_CONCAT) {
+        } else if (aggregateType == AggregateType.GROUP_CONCAT) {
             Aggregate agg = null;
             boolean distinct = readIf("DISTINCT");
 
             if (equalsToken("GROUP_CONCAT", aggregateName)) {
-                agg = new Aggregate(Aggregate.GROUP_CONCAT,
+                agg = new Aggregate(AggregateType.GROUP_CONCAT,
                     readExpression(), currentSelect, distinct);
                 if (readIf("ORDER")) {
                     read("BY");
@@ -2649,7 +2650,7 @@ public class Parser {
                 }
             } else if (equalsToken("STRING_AGG", aggregateName)) {
                 // PostgreSQL compatibility: string_agg(expression, delimiter)
-                agg = new Aggregate(Aggregate.GROUP_CONCAT,
+                agg = new Aggregate(AggregateType.GROUP_CONCAT,
                     readExpression(), currentSelect, distinct);
                 read(",");
                 agg.setGroupConcatSeparator(readExpression());
@@ -2721,7 +2722,7 @@ public class Parser {
         return agg;
     }
 
-    private int getAggregateType(String name) {
+    private AggregateType getAggregateType(String name) {
         if (!identifiersToUpper) {
             // if not yet converted to uppercase, do it now
             name = StringUtils.toUpperEnglish(name);
@@ -2733,8 +2734,8 @@ public class Parser {
         if (schema != null) {
             return readJavaFunction(schema, name);
         }
-        int agg = getAggregateType(name);
-        if (agg >= 0) {
+        AggregateType agg = getAggregateType(name);
+        if (agg != null) {
             return readAggregate(agg, name);
         }
         Function function = Function.getFunction(database, name);
@@ -5026,7 +5027,7 @@ public class Parser {
         command.setForce(force);
         String name = readIdentifierWithSchema();
         if (isKeyword(name) || Function.getFunction(database, name) != null ||
-                getAggregateType(name) >= 0) {
+                getAggregateType(name) != null) {
             throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1,
                     name);
         }
@@ -5160,7 +5161,7 @@ public class Parser {
             // fine
         } else if (isKeyword(aliasName) ||
                 Function.getFunction(database, aliasName) != null ||
-                getAggregateType(aliasName) >= 0) {
+                getAggregateType(aliasName) != null) {
             throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1,
                     aliasName);
         }

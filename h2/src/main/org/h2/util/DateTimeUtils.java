@@ -515,22 +515,13 @@ public class DateTimeUtils {
             if (tz != null) {
                 if (withTimeZone) {
                     if (tz != UTC) {
-                        long millis = convertDateValueToMillis(UTC, dateValue);
+                        long millis = convertDateTimeValueToMillis(tz, dateValue, nanos / 1000000);
                         tzMinutes = (short) (tz.getOffset(millis) / 1000 / 60);
                     }
                 } else {
-                    int year = yearFromDateValue(dateValue);
-                    int month = monthFromDateValue(dateValue);
-                    int day = dayFromDateValue(dateValue);
                     long ms = nanos / 1000000;
                     nanos -= ms * 1000000;
-                    long second = ms / 1000;
-                    ms -= second * 1000;
-                    int minute = (int) (second / 60);
-                    second -= minute * 60;
-                    int hour = minute / 60;
-                    minute -= hour * 60;
-                    long millis = getMillis(tz, year, month, day, hour, minute, (int) second, (int) ms);
+                    long millis = convertDateTimeValueToMillis(tz, dateValue, ms);
                     ms = convertToLocal(new Date(millis), createGregorianCalendar(UTC));
                     long md = MILLIS_PER_DAY;
                     long absoluteDay = (ms >= 0 ? ms : ms - md + 1) / md;
@@ -863,6 +854,25 @@ public class DateTimeUtils {
     }
 
     /**
+     * Convert an encoded date-time value to millis, using the supplied timezone.
+     *
+     * @param tz the timezone
+     * @param dateValue the date value
+     * @param ms milliseconds of day
+     * @return the date
+     */
+    public static long convertDateTimeValueToMillis(TimeZone tz, long dateValue, long ms) {
+        long second = ms / 1000;
+        ms -= second * 1000;
+        int minute = (int) (second / 60);
+        second -= minute * 60;
+        int hour = minute / 60;
+        minute -= hour * 60;
+        return getMillis(tz, yearFromDateValue(dateValue), monthFromDateValue(dateValue), dayFromDateValue(dateValue),
+                hour, minute, (int) second, (int) ms);
+    }
+
+    /**
      * Convert an encoded date value / time value to a timestamp, using the
      * default timezone.
      *
@@ -872,19 +882,9 @@ public class DateTimeUtils {
      */
     public static Timestamp convertDateValueToTimestamp(long dateValue,
             long timeNanos) {
-        long millis = timeNanos / 1000000;
-        timeNanos -= millis * 1000000;
-        long s = millis / 1000;
-        millis -= s * 1000;
-        long m = s / 60;
-        s -= m * 60;
-        long h = m / 60;
-        m -= h * 60;
-        long ms = getMillis(null, yearFromDateValue(dateValue),
-                monthFromDateValue(dateValue), dayFromDateValue(dateValue),
-                (int) h, (int) m, (int) s, 0);
-        Timestamp ts = new Timestamp(ms);
-        ts.setNanos((int) (timeNanos + millis * 1000000));
+        Timestamp ts = new Timestamp(convertDateTimeValueToMillis(null, dateValue, timeNanos / 1000000));
+        // This method expects the complete nanoseconds value including milliseconds
+        ts.setNanos((int) (timeNanos % 1000000000));
         return ts;
     }
 

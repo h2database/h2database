@@ -15,7 +15,6 @@ import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.StringUtils;
 
 /**
  * Implementation of the TIMESTAMP WITH TIME ZONE data type.
@@ -34,7 +33,7 @@ public class ValueTimestampTimeZone extends Value {
      * The display size of the textual representation of a timestamp. Example:
      * 2001-01-01 23:59:59.000 +10:00
      */
-    static final int DISPLAY_SIZE = 30;
+    public static final int DISPLAY_SIZE = 30;
 
     /**
      * The default scale for timestamps.
@@ -233,35 +232,7 @@ public class ValueTimestampTimeZone extends Value {
 
     @Override
     public String getString() {
-        StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
-        ValueDate.appendDate(buff, dateValue);
-        buff.append(' ');
-        ValueTime.appendTime(buff, timeNanos, true);
-        appendTimeZone(buff, timeZoneOffsetMins);
-        return buff.toString();
-    }
-
-    /**
-     * Append a time zone to the string builder.
-     *
-     * @param buff the target string builder
-     * @param tz the time zone in minutes
-     */
-    private static void appendTimeZone(StringBuilder buff, short tz) {
-        if (tz < 0) {
-            buff.append('-');
-            tz = (short) -tz;
-        } else {
-            buff.append('+');
-        }
-        int hours = tz / 60;
-        tz -= hours * 60;
-        int mins = tz;
-        StringUtils.appendZeroPadded(buff, 2, hours);
-        if (mins != 0) {
-            buff.append(':');
-            StringUtils.appendZeroPadded(buff, 2, mins);
-        }
+        return DateTimeUtils.timestampTimeZoneToString(dateValue, timeNanos, timeZoneOffsetMins);
     }
 
     @Override

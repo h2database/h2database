@@ -259,9 +259,9 @@ public class ValueTimestamp extends Value {
     @Override
     public String getString() {
         StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
-        ValueDate.appendDate(buff, dateValue);
+        DateTimeUtils.appendDate(buff, dateValue);
         buff.append(' ');
-        ValueTime.appendTime(buff, timeNanos, true);
+        DateTimeUtils.appendTime(buff, timeNanos, true);
         return buff.toString();
     }
 

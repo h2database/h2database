@@ -999,4 +999,113 @@ public class DateTimeUtils {
         return resultDate;
     }
 
+    /**
+     * Append a date to the string builder.
+     *
+     * @param buff the target string builder
+     * @param dateValue the date value
+     */
+    public static void appendDate(StringBuilder buff, long dateValue) {
+        int y = yearFromDateValue(dateValue);
+        int m = monthFromDateValue(dateValue);
+        int d = dayFromDateValue(dateValue);
+        if (y > 0 && y < 10000) {
+            StringUtils.appendZeroPadded(buff, 4, y);
+        } else {
+            buff.append(y);
+        }
+        buff.append('-');
+        StringUtils.appendZeroPadded(buff, 2, m);
+        buff.append('-');
+        StringUtils.appendZeroPadded(buff, 2, d);
+    }
+
+    /**
+     * Append a time to the string builder.
+     *
+     * @param buff the target string builder
+     * @param nanos the time in nanoseconds
+     * @param alwaysAddMillis whether to always add at least ".0"
+     */
+    public static void appendTime(StringBuilder buff, long nanos,
+            boolean alwaysAddMillis) {
+        if (nanos < 0) {
+            buff.append('-');
+            nanos = -nanos;
+        }
+        /*
+         * nanos now either in range from 0 to Long.MAX_VALUE or equals to
+         * Long.MIN_VALUE. We need to divide nanos by 1000000 with unsigned division to
+         * get correct result. The simplest way to do this with such constraints is to
+         * divide -nanos by -1000000.
+         */
+        long ms = -nanos / -1000000;
+        nanos -= ms * 1000000;
+        long s = ms / 1000;
+        ms -= s * 1000;
+        long m = s / 60;
+        s -= m * 60;
+        long h = m / 60;
+        m -= h * 60;
+        StringUtils.appendZeroPadded(buff, 2, h);
+        buff.append(':');
+        StringUtils.appendZeroPadded(buff, 2, m);
+        buff.append(':');
+        StringUtils.appendZeroPadded(buff, 2, s);
+        if (alwaysAddMillis || ms > 0 || nanos > 0) {
+            buff.append('.');
+            int start = buff.length();
+            StringUtils.appendZeroPadded(buff, 3, ms);
+            if (nanos > 0) {
+                StringUtils.appendZeroPadded(buff, 6, nanos);
+            }
+            for (int i = buff.length() - 1; i > start; i--) {
+                if (buff.charAt(i) != '0') {
+                    break;
+                }
+                buff.deleteCharAt(i);
+            }
+        }
+    }
+
+    /**
+     * Append a time zone to the string builder.
+     *
+     * @param buff the target string builder
+     * @param tz the time zone in minutes
+     */
+    public static void appendTimeZone(StringBuilder buff, short tz) {
+        if (tz < 0) {
+            buff.append('-');
+            tz = (short) -tz;
+        } else {
+            buff.append('+');
+        }
+        int hours = tz / 60;
+        tz -= hours * 60;
+        int mins = tz;
+        StringUtils.appendZeroPadded(buff, 2, hours);
+        if (mins != 0) {
+            buff.append(':');
+            StringUtils.appendZeroPadded(buff, 2, mins);
+        }
+    }
+
+    /**
+     * Formats timestamp with time zone as string.
+     *
+     * @param dateValue the year-month-day bit field
+     * @param timeNanos nanoseconds since midnight
+     * @param timeZoneOffsetMins the time zone offset in minutes
+     * @return formatted string
+     */
+    public static String timestampTimeZoneToString(long dateValue, long timeNanos, short timeZoneOffsetMins) {
+        StringBuilder buff = new StringBuilder(ValueTimestampTimeZone.DISPLAY_SIZE);
+        appendDate(buff, dateValue);
+        buff.append(' ');
+        appendTime(buff, timeNanos, true);
+        appendTimeZone(buff, timeZoneOffsetMins);
+        return buff.toString();
+    }
+
 }

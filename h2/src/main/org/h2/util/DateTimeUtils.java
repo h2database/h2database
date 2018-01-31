@@ -15,6 +15,7 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
 import org.h2.api.ErrorCode;
+import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
@@ -432,6 +433,117 @@ public class DateTimeUtils {
         }
         nanos += ((((hour * 60L) + minute) * 60) + second) * 1000000000;
         return negative ? -nanos : nanos;
+    }
+
+    /**
+     * See:
+     * https://stackoverflow.com/questions/3976616/how-to-find-nth-occurrence-of-character-in-a-string#answer-3976656
+     */
+    private static int findNthIndexOf(String str, char chr, int n) {
+        int pos = str.indexOf(chr);
+        while (--n > 0 && pos != -1)
+            pos = str.indexOf(chr, pos + 1);
+        return pos;
+    }
+
+    /**
+     * Parses timestamp value from the specified string.
+     *
+     * @param s
+     *            string to parse
+     * @param mode
+     *            database mode, or {@code null}
+     * @param withTimeZone
+     *            if {@code true} return {@link ValueTimestampTimeZone} instead of
+     *            {@link ValueTimestamp}
+     * @return parsed timestamp
+     */
+    public static Value parseTimestamp(String s, Mode mode, boolean withTimeZone) {
+        int dateEnd = s.indexOf(' ');
+        if (dateEnd < 0) {
+            // ISO 8601 compatibility
+            dateEnd = s.indexOf('T');
+            if (dateEnd < 0 && mode != null && mode.allowDB2TimestampFormat) {
+                // DB2 also allows dash between date and time
+                dateEnd = findNthIndexOf(s, '-', 3);
+            }
+        }
+        int timeStart;
+        if (dateEnd < 0) {
+            dateEnd = s.length();
+            timeStart = -1;
+        } else {
+            timeStart = dateEnd + 1;
+        }
+        long dateValue = parseDateValue(s, 0, dateEnd);
+        long nanos;
+        short tzMinutes = 0;
+        if (timeStart < 0) {
+            nanos = 0;
+        } else {
+            int timeEnd = s.length();
+            TimeZone tz = null;
+            if (s.endsWith("Z")) {
+                tz = UTC;
+                timeEnd--;
+            } else {
+                int timeZoneStart = s.indexOf('+', dateEnd + 1);
+                if (timeZoneStart < 0) {
+                    timeZoneStart = s.indexOf('-', dateEnd + 1);
+                }
+                if (timeZoneStart >= 0) {
+                    String tzName = "GMT" + s.substring(timeZoneStart);
+                    tz = TimeZone.getTimeZone(tzName);
+                    if (!tz.getID().startsWith(tzName)) {
+                        throw new IllegalArgumentException(
+                                tzName + " (" + tz.getID() + "?)");
+                    }
+                    timeEnd = timeZoneStart;
+                } else {
+                    timeZoneStart = s.indexOf(' ', dateEnd + 1);
+                    if (timeZoneStart > 0) {
+                        String tzName = s.substring(timeZoneStart + 1);
+                        tz = TimeZone.getTimeZone(tzName);
+                        if (!tz.getID().startsWith(tzName)) {
+                            throw new IllegalArgumentException(tzName);
+                        }
+                        timeEnd = timeZoneStart;
+                    }
+                }
+            }
+            nanos = parseTimeNanos(s, dateEnd + 1, timeEnd, true);
+            if (tz != null) {
+                if (withTimeZone) {
+                    if (tz != UTC) {
+                        long millis = convertDateValueToMillis(UTC, dateValue);
+                        tzMinutes = (short) (tz.getOffset(millis) / 1000 / 60);
+                    }
+                } else {
+                    int year = yearFromDateValue(dateValue);
+                    int month = monthFromDateValue(dateValue);
+                    int day = dayFromDateValue(dateValue);
+                    long ms = nanos / 1000000;
+                    nanos -= ms * 1000000;
+                    long second = ms / 1000;
+                    ms -= second * 1000;
+                    int minute = (int) (second / 60);
+                    second -= minute * 60;
+                    int hour = minute / 60;
+                    minute -= hour * 60;
+                    long millis = getMillis(tz, year, month, day, hour, minute, (int) second, (int) ms);
+                    ms = convertToLocal(new Date(millis), createGregorianCalendar(UTC));
+                    long md = MILLIS_PER_DAY;
+                    long absoluteDay = (ms >= 0 ? ms : ms - md + 1) / md;
+                    dateValue = dateValueFromAbsoluteDay(absoluteDay);
+                    ms -= absoluteDay * md;
+                    nanos += ms * 1000000;
+                }
+            }
+        }
+        if (withTimeZone) {
+            return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, nanos, tzMinutes);
+        }
+        return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
     }
 
     /**

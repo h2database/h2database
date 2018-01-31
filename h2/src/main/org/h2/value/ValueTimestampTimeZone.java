@@ -113,70 +113,11 @@ public class ValueTimestampTimeZone extends Value {
      */
     public static ValueTimestampTimeZone parse(String s) {
         try {
-            return parseTry(s);
+            return (ValueTimestampTimeZone) DateTimeUtils.parseTimestamp(s, null, true);
         } catch (Exception e) {
             throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, e,
                     "TIMESTAMP WITH TIME ZONE", s);
         }
-    }
-
-    private static ValueTimestampTimeZone parseTry(String s) {
-        int dateEnd = s.indexOf(' ');
-        if (dateEnd < 0) {
-            // ISO 8601 compatibility
-            dateEnd = s.indexOf('T');
-        }
-        int timeStart;
-        if (dateEnd < 0) {
-            dateEnd = s.length();
-            timeStart = -1;
-        } else {
-            timeStart = dateEnd + 1;
-        }
-        long dateValue = DateTimeUtils.parseDateValue(s, 0, dateEnd);
-        long nanos;
-        short tzMinutes = 0;
-        if (timeStart < 0) {
-            nanos = 0;
-        } else {
-            int timeEnd = s.length();
-            if (s.endsWith("Z")) {
-                timeEnd--;
-            } else {
-                int timeZoneStart = s.indexOf('+', dateEnd);
-                if (timeZoneStart < 0) {
-                    timeZoneStart = s.indexOf('-', dateEnd);
-                }
-                TimeZone tz = null;
-                if (timeZoneStart >= 0) {
-                    String tzName = "GMT" + s.substring(timeZoneStart);
-                    tz = TimeZone.getTimeZone(tzName);
-                    if (!tz.getID().startsWith(tzName)) {
-                        throw new IllegalArgumentException(
-                                tzName + " (" + tz.getID() + "?)");
-                    }
-                    timeEnd = timeZoneStart;
-                } else {
-                    timeZoneStart = s.indexOf(' ', dateEnd + 1);
-                    if (timeZoneStart > 0) {
-                        String tzName = s.substring(timeZoneStart + 1);
-                        tz = TimeZone.getTimeZone(tzName);
-                        if (!tz.getID().startsWith(tzName)) {
-                            throw new IllegalArgumentException(tzName);
-                        }
-                        timeEnd = timeZoneStart;
-                    }
-                }
-                if (tz != null) {
-                    long millis = DateTimeUtils
-                            .convertDateValueToMillis(DateTimeUtils.UTC, dateValue);
-                    tzMinutes = (short) (tz.getOffset(millis) / 1000 / 60);
-                }
-            }
-            nanos = DateTimeUtils.parseTimeNanos(s, dateEnd + 1, timeEnd, true);
-        }
-        return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, nanos,
-                tzMinutes);
     }
 
     /**

@@ -5,6 +5,7 @@
  */
 package org.h2.expression;
 
+import java.awt.geom.Point2D;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,8 +25,6 @@ import java.util.TimeZone;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.Parser;
@@ -1871,7 +1870,7 @@ public class Function extends Expression implements FunctionCall {
                         metaData = ((Value.ValueRasterMarker) (v0
                                 .convertTo(Value.RASTER))).getMetaData();
                     }
-                    int[] coords = metaData.getPixelFromCoordinate(new Coordinate(v1.getDouble(), v2.getDouble()));
+                    int[] coords = metaData.getPixelFromCoordinate(new Point2D.Double(v1.getDouble(), v2.getDouble()));
                     // 1 based pixel index
                     result = ValueArray.get(new Value[] {ValueInt.get(coords[0] + 1), ValueInt.get(coords[1] + 1)});
                 } catch (IOException ex) {
@@ -1889,8 +1888,8 @@ public class Function extends Expression implements FunctionCall {
                                 .convertTo(Value.RASTER))).getMetaData();
                     }
                     // 1 based pixel index
-                    Coordinate coords = metaData.getPixelCoordinate(v1.getInt() - 1, v2.getInt() - 1);
-                    result = ValueGeometry.getFromGeometry(new GeometryFactory()
+                    com.vividsolutions.jts.geom.Coordinate coords = metaData.getPixelCoordinate(v1.getInt() - 1, v2.getInt() - 1);
+                    result = ValueGeometry.getFromGeometry(new com.vividsolutions.jts.geom.GeometryFactory()
                             .createPoint(coords));
                 } catch (IOException ex) {
                     throw DbException.convertIOException(ex, getSQL());

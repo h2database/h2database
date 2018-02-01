@@ -19,14 +19,13 @@ import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueNull;
-import org.h2.value.DataType;
 
 /**
  * Example comparison expressions are ID=1, NAME=NAME, NAME IS NULL.
  *
  * @author Thomas Mueller
  * @author Noel Grandin
- * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
+ * @author Nicolas Fortin, UMRAE, Ifsttar
  */
 public class Comparison extends Condition {
 

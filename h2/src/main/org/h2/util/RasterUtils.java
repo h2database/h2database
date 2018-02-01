@@ -494,10 +494,10 @@ public class RasterUtils {
          * @param coordinate world coordinate.
          * @return raster row-column (0-based)
          */
-        public int[] getPixelFromCoordinate(Coordinate coordinate) {
+        public int[] getPixelFromCoordinate(Point2D.Double coordinate) {
             try {
                 AffineTransform inv = getTransform().createInverse();
-                Point2D pt = inv.transform(new Point2D.Double(coordinate.x, coordinate.y), null);
+                Point2D pt = inv.transform(coordinate, null);
                 return new int[]{(int)pt.getX(), (int)pt.getY()};
             } catch (NoninvertibleTransformException ex) {
                 return null;

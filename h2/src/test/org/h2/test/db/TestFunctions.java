@@ -1933,6 +1933,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         final String twoDecimals = "0" + decimalSeparator + "00";
         assertResult(oneDecimal, stat, "select to_char(0, 'FM0D099') from dual;");
         assertResult(twoDecimals, stat, "select to_char(0., 'FM0D009') from dual;");
+        assertResult("0.000000000", stat, "select to_char(0.000000000, 'FM0D999999999') from dual;");
         assertResult("0" + decimalSeparator, stat, "select to_char(0, 'FM0D9') from dual;");
         assertResult(oneDecimal, stat, "select to_char(0.0, 'FM0D099') from dual;");
         assertResult(twoDecimals, stat, "select to_char(0.00, 'FM0D009') from dual;");

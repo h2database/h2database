@@ -338,7 +338,7 @@ public class ToChar {
     }
 
     private static String zeroesAfterDecimalSeparator(BigDecimal number) {
-        final String numberStr = number.toString();
+        final String numberStr = number.toPlainString();
         final int idx = numberStr.indexOf('.');
         if (idx < 0) {
             return "";

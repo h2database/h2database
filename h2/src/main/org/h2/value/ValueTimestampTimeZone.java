@@ -15,7 +15,6 @@ import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.StringUtils;
 
 /**
  * Implementation of the TIMESTAMP WITH TIME ZONE data type.
@@ -34,7 +33,7 @@ public class ValueTimestampTimeZone extends Value {
      * The display size of the textual representation of a timestamp. Example:
      * 2001-01-01 23:59:59.000 +10:00
      */
-    static final int DISPLAY_SIZE = 30;
+    public static final int DISPLAY_SIZE = 30;
 
     /**
      * The default scale for timestamps.
@@ -114,70 +113,11 @@ public class ValueTimestampTimeZone extends Value {
      */
     public static ValueTimestampTimeZone parse(String s) {
         try {
-            return parseTry(s);
+            return (ValueTimestampTimeZone) DateTimeUtils.parseTimestamp(s, null, true);
         } catch (Exception e) {
             throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, e,
                     "TIMESTAMP WITH TIME ZONE", s);
         }
-    }
-
-    private static ValueTimestampTimeZone parseTry(String s) {
-        int dateEnd = s.indexOf(' ');
-        if (dateEnd < 0) {
-            // ISO 8601 compatibility
-            dateEnd = s.indexOf('T');
-        }
-        int timeStart;
-        if (dateEnd < 0) {
-            dateEnd = s.length();
-            timeStart = -1;
-        } else {
-            timeStart = dateEnd + 1;
-        }
-        long dateValue = DateTimeUtils.parseDateValue(s, 0, dateEnd);
-        long nanos;
-        short tzMinutes = 0;
-        if (timeStart < 0) {
-            nanos = 0;
-        } else {
-            int timeEnd = s.length();
-            if (s.endsWith("Z")) {
-                timeEnd--;
-            } else {
-                int timeZoneStart = s.indexOf('+', dateEnd);
-                if (timeZoneStart < 0) {
-                    timeZoneStart = s.indexOf('-', dateEnd);
-                }
-                TimeZone tz = null;
-                if (timeZoneStart >= 0) {
-                    String tzName = "GMT" + s.substring(timeZoneStart);
-                    tz = TimeZone.getTimeZone(tzName);
-                    if (!tz.getID().startsWith(tzName)) {
-                        throw new IllegalArgumentException(
-                                tzName + " (" + tz.getID() + "?)");
-                    }
-                    timeEnd = timeZoneStart;
-                } else {
-                    timeZoneStart = s.indexOf(' ', dateEnd + 1);
-                    if (timeZoneStart > 0) {
-                        String tzName = s.substring(timeZoneStart + 1);
-                        tz = TimeZone.getTimeZone(tzName);
-                        if (!tz.getID().startsWith(tzName)) {
-                            throw new IllegalArgumentException(tzName);
-                        }
-                        timeEnd = timeZoneStart;
-                    }
-                }
-                if (tz != null) {
-                    long millis = DateTimeUtils
-                            .convertDateValueToMillis(DateTimeUtils.UTC, dateValue);
-                    tzMinutes = (short) (tz.getOffset(millis) / 1000 / 60);
-                }
-            }
-            nanos = DateTimeUtils.parseTimeNanos(s, dateEnd + 1, timeEnd, true);
-        }
-        return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, nanos,
-                tzMinutes);
     }
 
     /**
@@ -233,35 +173,7 @@ public class ValueTimestampTimeZone extends Value {
 
     @Override
     public String getString() {
-        StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
-        ValueDate.appendDate(buff, dateValue);
-        buff.append(' ');
-        ValueTime.appendTime(buff, timeNanos, true);
-        appendTimeZone(buff, timeZoneOffsetMins);
-        return buff.toString();
-    }
-
-    /**
-     * Append a time zone to the string builder.
-     *
-     * @param buff the target string builder
-     * @param tz the time zone in minutes
-     */
-    private static void appendTimeZone(StringBuilder buff, short tz) {
-        if (tz < 0) {
-            buff.append('-');
-            tz = (short) -tz;
-        } else {
-            buff.append('+');
-        }
-        int hours = tz / 60;
-        tz -= hours * 60;
-        int mins = tz;
-        StringUtils.appendZeroPadded(buff, 2, hours);
-        if (mins != 0) {
-            buff.append(':');
-            StringUtils.appendZeroPadded(buff, 2, mins);
-        }
+        return DateTimeUtils.timestampTimeZoneToString(dateValue, timeNanos, timeZoneOffsetMins);
     }
 
     @Override

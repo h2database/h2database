@@ -7,7 +7,6 @@ package org.h2.api;
 
 import java.io.Serializable;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.StringUtils;
 
 /**
  * How we expose "TIMESTAMP WITH TIMEZONE" in our ResultSets.
@@ -110,62 +109,7 @@ public class TimestampWithTimeZone implements Serializable, Cloneable {
 
     @Override
     public String toString() {
-        StringBuilder buff = new StringBuilder();
-        int y = DateTimeUtils.yearFromDateValue(dateValue);
-        int month = DateTimeUtils.monthFromDateValue(dateValue);
-        int d = DateTimeUtils.dayFromDateValue(dateValue);
-        if (y > 0 && y < 10000) {
-            StringUtils.appendZeroPadded(buff, 4, y);
-        } else {
-            buff.append(y);
-        }
-        buff.append('-');
-        StringUtils.appendZeroPadded(buff, 2, month);
-        buff.append('-');
-        StringUtils.appendZeroPadded(buff, 2, d);
-        buff.append(' ');
-        long nanos = timeNanos;
-        long ms = nanos / 1000000;
-        nanos -= ms * 1000000;
-        long s = ms / 1000;
-        ms -= s * 1000;
-        long min = s / 60;
-        s -= min * 60;
-        long h = min / 60;
-        min -= h * 60;
-        StringUtils.appendZeroPadded(buff, 2, h);
-        buff.append(':');
-        StringUtils.appendZeroPadded(buff, 2, min);
-        buff.append(':');
-        StringUtils.appendZeroPadded(buff, 2, s);
-        buff.append('.');
-        int start = buff.length();
-        StringUtils.appendZeroPadded(buff, 3, ms);
-        if (nanos > 0) {
-            StringUtils.appendZeroPadded(buff, 6, nanos);
-        }
-        for (int i = buff.length() - 1; i > start; i--) {
-            if (buff.charAt(i) != '0') {
-                break;
-            }
-            buff.deleteCharAt(i);
-        }
-        short tz = timeZoneOffsetMins;
-        if (tz < 0) {
-            buff.append('-');
-            tz = (short) -tz;
-        } else {
-            buff.append('+');
-        }
-        int hours = tz / 60;
-        tz -= hours * 60;
-        int mins = tz;
-        StringUtils.appendZeroPadded(buff, 2, hours);
-        if (mins != 0) {
-            buff.append(':');
-            StringUtils.appendZeroPadded(buff, 2, mins);
-        }
-        return buff.toString();
+        return DateTimeUtils.timestampTimeZoneToString(dateValue, timeNanos, timeZoneOffsetMins);
     }
 
     @Override

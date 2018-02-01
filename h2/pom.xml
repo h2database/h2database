@@ -177,7 +177,6 @@
       <resource>
         <directory>src/main</directory>
         <includes>
-          <include>META-INF/MANIFEST.MF</include>
           <include>META-INF/services/javax.imageio.spi.ImageReaderSpi</include>
           <include>META-INF/services/javax.imageio.spi.ImageInputStreamSpi</include>
           <include>**/*.prop</include>

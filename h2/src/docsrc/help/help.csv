@@ -3912,6 +3912,15 @@ image driver suffix. ex: 'png', 'bmp', 'jpeg'.
 ST_IMAGEFROMRASTER(RASTER, 'png')
 "
 
+"Functions (RASTER)","ST_MAKEEMPTYRASTER","
+ST_MAKEEMPTYRASTER({RASTER} | {INTEGER,INTEGER,DOUBLE,DOUBLE,DOUBLE [ [ [ ,DOUBLE ], DOUBLE ] ,DOUBLE ] } )
+","
+Create an empty raster. Arguments are raster or width, height, upperleftx, upperlefty,
+scalex, scaley, skewx, skewy, srid.
+","
+ST_MAKEEMPTYRASTER(RASTER)
+"
+
 "Functions (System)","AUTOCOMMIT","
 AUTOCOMMIT()
 ","

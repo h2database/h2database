@@ -194,6 +194,7 @@
       <testResource>
         <directory>src/test</directory>
         <includes>
+          <include>org/h2/test/db/h2-logo.png</include>
           <include>org/h2/test/testSimple.in.txt</include>
           <include>org/h2/test/testScript.sql</include>
           <include>org/h2/samples/newsfeed.sql</include>

@@ -506,10 +506,13 @@ public class TestGeoRaster extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("drop table if exists test");
         stat.execute("create table test(id identity, data raster)");
-        stat.execute("INSERT INTO TEST(data) VALUES (" +
-                "ST_RasterFromImage(File_Read('"+GetUnitTestImage()+"'), 47" +
+        String imageFile = GetUnitTestImage();
+        assertTrue(new File(imageFile).exists());
+        PreparedStatement pst = conn.prepareStatement("INSERT INTO TEST(data) VALUES (" +
+                "ST_RasterFromImage(File_Read(?), 47" +
                 ".6443,  -2.7766, 1, 1,0, 0, 4326))");
-
+        pst.setString(1, imageFile);
+        pst.execute();
         // Query WKB Raster binary
         ResultSet rs = stat.executeQuery("SELECT data rasterdata FROM " +
                 "TEST");

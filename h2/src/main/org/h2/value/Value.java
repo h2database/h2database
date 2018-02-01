@@ -347,9 +347,9 @@ public abstract class Value {
             return 42_000;
         case UUID:
             return 43_000;
-        case GEOMETRY:
+        case RASTER: // Raster before Geometry because a geometry cannot be casted into a raster
             return 44_000;
-        case RASTER:
+        case GEOMETRY:
             return 44_100;
         case ARRAY:
             return 50_000;

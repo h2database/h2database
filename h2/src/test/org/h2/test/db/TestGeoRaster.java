@@ -66,8 +66,11 @@ import java.util.Iterator;
  * @author Nicolas Fortin
  */
 public class TestGeoRaster extends TestBase {
-    private static String UNIT_TEST_IMAGE = new File(TestGeoRaster.class
-    .getResource("h2-logo.png").getFile()).getAbsolutePath();
+
+    public static String GetUnitTestImage() {
+        return new File(TestGeoRaster.class
+                .getResource("h2-logo.png").getFile()).getAbsolutePath();
+    }
 
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
@@ -443,7 +446,7 @@ public class TestGeoRaster extends TestBase {
 
     public void testPngLoading() throws IOException {
         // Test loading PNG into Raster
-        File testFile = new File(UNIT_TEST_IMAGE);
+        File testFile = new File(GetUnitTestImage());
         // Fetch ImageRead using ImageIO API then convert it to WKB Raster on
         // the fly
         byte[] data =
@@ -467,7 +470,7 @@ public class TestGeoRaster extends TestBase {
         stat.execute("drop table if exists test");
         stat.execute("create table test(id identity, data raster)");
         stat.execute("INSERT INTO TEST(data) VALUES (" +
-                "ST_RasterFromImage( File_Read('" + UNIT_TEST_IMAGE +
+                "ST_RasterFromImage( File_Read('" + GetUnitTestImage() +
                         "'), 47.6443, -2.7766, 1, 1,0, 0, 4326))");
         // Check MetaData
         ResultSet rs = stat.executeQuery("SELECT data rasterdata FROM " +
@@ -504,7 +507,7 @@ public class TestGeoRaster extends TestBase {
         stat.execute("drop table if exists test");
         stat.execute("create table test(id identity, data raster)");
         stat.execute("INSERT INTO TEST(data) VALUES (" +
-                "ST_RasterFromImage(File_Read('"+UNIT_TEST_IMAGE+"'), 47" +
+                "ST_RasterFromImage(File_Read('"+GetUnitTestImage()+"'), 47" +
                 ".6443,  -2.7766, 1, 1,0, 0, 4326))");
 
         // Query WKB Raster binary
@@ -525,7 +528,7 @@ public class TestGeoRaster extends TestBase {
         BufferedImage image = wkbReader.read(wkbReader.getMinIndex());
         // Check Image by comparing all pixels
         FileImageInputStream fis = new FileImageInputStream(new File
-                (UNIT_TEST_IMAGE));
+                (GetUnitTestImage()));
         ImageReader pngReader = ImageIO.getImageReaders(fis).next();
         pngReader.setInput(fis);
         BufferedImage sourceImage = pngReader.read(0);
@@ -878,7 +881,7 @@ public class TestGeoRaster extends TestBase {
         stat.execute("drop table if exists test");
         stat.execute("create table test(id identity, data raster)");
         stat.execute("INSERT INTO TEST(data) VALUES (" +
-                "ST_RasterFromImage(File_Read('" + UNIT_TEST_IMAGE + "'), 47" +
+                "ST_RasterFromImage(File_Read('" + GetUnitTestImage() + "'), 47" +
                 ".6443,  -2.7766, 1, 1,0, 0, 4326))");
 
         // Query WKB Raster binary
@@ -903,7 +906,7 @@ public class TestGeoRaster extends TestBase {
         assertEquals(10, image.getWidth());
         assertEquals(15, image.getHeight());
         // Read source
-        ImageInputStream is = ImageIO.createImageInputStream(new RandomAccessFile(UNIT_TEST_IMAGE, "r"));
+        ImageInputStream is = ImageIO.createImageInputStream(new RandomAccessFile(GetUnitTestImage(), "r"));
         ImageReader ir = ImageIO.getImageReaders(is).next();
         ImageReadParam srcParam = ir.getDefaultReadParam();
         srcParam.setSourceRegion(rect);
@@ -943,7 +946,7 @@ public class TestGeoRaster extends TestBase {
         stat.execute("drop table if exists test");
         stat.execute("create table test(id identity, data raster)");
         stat.execute("INSERT INTO TEST(data) VALUES (" +
-                "ST_RasterFromImage(File_Read('" + UNIT_TEST_IMAGE + "'), 47" +
+                "ST_RasterFromImage(File_Read('" + GetUnitTestImage() + "'), 47" +
                 ".6443,  -2.7766, 1, 1,0, 0, 4326))");
 
         // Query WKB Raster binary
@@ -968,7 +971,7 @@ public class TestGeoRaster extends TestBase {
         int offsetY = 0;
         Rectangle rect = new Rectangle(5, 5, 225, 288);
         // Read source with standard driver
-        ImageInputStream is = ImageIO.createImageInputStream(new RandomAccessFile(UNIT_TEST_IMAGE, "r"));
+        ImageInputStream is = ImageIO.createImageInputStream(new RandomAccessFile(GetUnitTestImage(), "r"));
         ImageReader ir = ImageIO.getImageReaders(is).next();
         ImageReadParam srcParam = ir.getDefaultReadParam();
         srcParam.setSourceSubsampling(subX, subY, offsetX, offsetY);

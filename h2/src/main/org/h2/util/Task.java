@@ -23,7 +23,7 @@ public abstract class Task implements Runnable {
     /**
      * The result, if any.
      */
-    private volatile Object result;
+    protected volatile Object result;
 
     private volatile boolean finished;
 

@@ -264,13 +264,9 @@ public class Comparison extends Condition {
                 return ValueNull.INSTANCE;
             }
         }
-        // && operator support mix of argument type GEOMETRY and RASTER
-        if(compareType != SPATIAL_INTERSECTS || !DataType.isSpatialType(l.getType())
-                || !DataType.isSpatialType(r.getType())) {
-            int dataType = Value.getHigherOrder(left.getType(), right.getType());
-            l = l.convertTo(dataType);
-            r = r.convertTo(dataType);
-        }
+        int dataType = Value.getHigherOrder(left.getType(), right.getType());
+        l = l.convertTo(dataType);
+        r = r.convertTo(dataType);
         boolean result = compareNotNull(database, l, r, compareType);
         return ValueBoolean.get(result);
     }

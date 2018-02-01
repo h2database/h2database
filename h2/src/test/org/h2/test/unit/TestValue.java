@@ -15,6 +15,8 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.TimeZone;
 import java.util.UUID;
 
 import org.h2.api.ErrorCode;
@@ -35,6 +37,7 @@ import org.h2.value.ValueLobDb;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 import org.h2.value.ValueString;
+import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueUuid;
 
 /**
@@ -61,6 +64,7 @@ public class TestValue extends TestBase {
         testUUID();
         testDouble(false);
         testDouble(true);
+        testTimestamp();
         testModulusDouble();
         testModulusDecimal();
         testModulusOperator();
@@ -300,6 +304,30 @@ public class TestValue extends TestBase {
             assertTrue(values[i + 1].compareTypeSafe(values[i], null) > 0);
             assertTrue(!values[i].equals(values[i+1]));
         }
+    }
+
+    private void testTimestamp() {
+        ValueTimestamp vts = ValueTimestamp.parse("2000-01-15 10:20:30.333222111");
+        Timestamp ts = Timestamp.valueOf("2000-01-15 10:20:30.333222111");
+        assertEquals(ts.toString(), vts.getString());
+        assertEquals(ts, vts.getTimestamp());
+        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("Europe/Berlin"));
+        c.set(2018, 02, 25, 1, 59, 00);
+        c.set(Calendar.MILLISECOND, 123);
+        long expected = c.getTimeInMillis();
+        ts = ValueTimestamp.parse("2018-03-25 01:59:00.123123123 Europe/Berlin").getTimestamp();
+        assertEquals(expected, ts.getTime());
+        assertEquals(123123123, ts.getNanos());
+        ts = ValueTimestamp.parse("2018-03-25 01:59:00.123123123+01").getTimestamp();
+        assertEquals(expected, ts.getTime());
+        assertEquals(123123123, ts.getNanos());
+        expected += 60000; // 1 minute
+        ts = ValueTimestamp.parse("2018-03-25 03:00:00.123123123 Europe/Berlin").getTimestamp();
+        assertEquals(expected, ts.getTime());
+        assertEquals(123123123, ts.getNanos());
+        ts = ValueTimestamp.parse("2018-03-25 03:00:00.123123123+02").getTimestamp();
+        assertEquals(expected, ts.getTime());
+        assertEquals(123123123, ts.getNanos());
     }
 
     private void testUUID() {

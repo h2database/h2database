@@ -271,35 +271,6 @@ public class DateTimeUtils {
     }
 
     /**
-     * Convert a date to the specified time zone.
-     *
-     * @param x the date to convert
-     * @param target the calendar with the target timezone
-     * @return the milliseconds in UTC
-     */
-    public static long convertToLocal(java.util.Date x, Calendar target) {
-        if (target == null) {
-            throw DbException.getInvalidValueException("calendar", null);
-        }
-        target = (Calendar) target.clone();
-        Calendar local = DateTimeUtils.createGregorianCalendar();
-        local.setTime(x);
-        convertTime(local, target);
-        return target.getTimeInMillis();
-    }
-
-    private static void convertTime(Calendar from, Calendar to) {
-        to.set(Calendar.ERA, from.get(Calendar.ERA));
-        to.set(Calendar.YEAR, from.get(Calendar.YEAR));
-        to.set(Calendar.MONTH, from.get(Calendar.MONTH));
-        to.set(Calendar.DAY_OF_MONTH, from.get(Calendar.DAY_OF_MONTH));
-        to.set(Calendar.HOUR_OF_DAY, from.get(Calendar.HOUR_OF_DAY));
-        to.set(Calendar.MINUTE, from.get(Calendar.MINUTE));
-        to.set(Calendar.SECOND, from.get(Calendar.SECOND));
-        to.set(Calendar.MILLISECOND, from.get(Calendar.MILLISECOND));
-    }
-
-    /**
      * Convert the timestamp using the specified calendar.
      *
      * @param x the time
@@ -519,15 +490,9 @@ public class DateTimeUtils {
                         tzMinutes = (short) (tz.getOffset(millis) / 1000 / 60);
                     }
                 } else {
-                    long ms = nanos / 1000000;
-                    nanos -= ms * 1000000;
-                    long millis = convertDateTimeValueToMillis(tz, dateValue, ms);
-                    ms = convertToLocal(new Date(millis), createGregorianCalendar(UTC));
-                    long md = MILLIS_PER_DAY;
-                    long absoluteDay = (ms >= 0 ? ms : ms - md + 1) / md;
-                    dateValue = dateValueFromAbsoluteDay(absoluteDay);
-                    ms -= absoluteDay * md;
-                    nanos += ms * 1000000;
+                    long millis = convertDateTimeValueToMillis(tz, dateValue, nanos / 1000000);
+                    dateValue = dateValueFromDate(millis);
+                    nanos = nanos % 1000000 + nanosFromDate(millis);
                 }
             }
         }

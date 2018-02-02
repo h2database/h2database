@@ -254,7 +254,7 @@ public class ValueDataType implements DataType {
         }
         case Value.TIME: {
             ValueTime t = (ValueTime) v;
-            long nanos = t.getNanos();
+            long nanos = t.getTimeNanos();
             long millis = nanos / 1000000;
             nanos -= millis * 1000000;
             buff.put((byte) type).

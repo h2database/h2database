@@ -194,7 +194,7 @@ public class DateTimeUtils {
         Calendar cal = (Calendar) calendar.clone();
         cal.clear();
         cal.setLenient(true);
-        long nanos = t.getNanos();
+        long nanos = t.getTimeNanos();
         long millis = nanos / 1000000;
         nanos -= millis * 1000000;
         long s = millis / 1000;

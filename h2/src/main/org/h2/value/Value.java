@@ -870,7 +870,7 @@ public abstract class Value {
                 switch (getType()) {
                 case TIME:
                     return DateTimeUtils.normalizeTimestamp(
-                            0, ((ValueTime) this).getNanos());
+                            0, ((ValueTime) this).getTimeNanos());
                 case DATE:
                     return ValueTimestamp.fromDateValueAndNanos(
                             ((ValueDate) this).getDateValue(), 0);

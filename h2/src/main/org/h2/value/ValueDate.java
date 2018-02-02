@@ -16,7 +16,7 @@ import org.h2.util.DateTimeUtils;
 /**
  * Implementation of the DATE data type.
  */
-public class ValueDate extends Value {
+public class ValueDate extends ValueAbstractDateTime {
 
     /**
      * The precision in digits.
@@ -81,6 +81,7 @@ public class ValueDate extends Value {
         }
     }
 
+    @Override
     public long getDateValue() {
         return dateValue;
     }

@@ -18,6 +18,7 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.value.Value;
+import org.h2.value.ValueAbstractDateTime;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueTime;
@@ -49,12 +50,6 @@ public class DateTimeUtils {
 
     private static final int[] NORMAL_DAYS_PER_MONTH = { 0, 31, 28, 31, 30, 31,
             30, 31, 31, 30, 31, 30, 31 };
-
-    /**
-     * Offsets of month within a year, starting with March, April,...
-     */
-    private static final int[] DAYS_OFFSET = { 0, 31, 61, 92, 122, 153, 184,
-            214, 245, 275, 306, 337, 366 };
 
     /**
      * The thread local. Can not override initialValue because this would result
@@ -1012,22 +1007,10 @@ public class DateTimeUtils {
      * @return the absolute day
      */
     public static long absoluteDayFromDateValue(long dateValue) {
-        long y = yearFromDateValue(dateValue);
+        int y = yearFromDateValue(dateValue);
         int m = monthFromDateValue(dateValue);
         int d = dayFromDateValue(dateValue);
-        if (m <= 2) {
-            y--;
-            m += 12;
-        }
-        long a = ((y * 2922L) >> 3) + DAYS_OFFSET[m - 3] + d - 719484;
-        if (y <= 1582 && ((y < 1582) || (m * 100 + d < 1005))) {
-            // Julian calendar (cutover at 1582-10-04 / 1582-10-15)
-            a += 13;
-        } else if (y < 1901 || y > 2099) {
-            // Gregorian calendar (slow mode)
-            a += (y / 400) - (y / 100) + 15;
-        }
-        return a;
+        return convertToMillis(getCalendar(UTC), y, m, d, 0, 0, 0, 0) / 86400000;
     }
 
     /**
@@ -1037,37 +1020,9 @@ public class DateTimeUtils {
      * @return the date value
      */
     public static long dateValueFromAbsoluteDay(long absoluteDay) {
-        long d = absoluteDay + 719468;
-        long y100 = 0, offset;
-        if (d > 578040) {
-            // Gregorian calendar
-            long y400 = d / 146097;
-            d -= y400 * 146097;
-            y100 = d / 36524;
-            d -= y100 * 36524;
-            offset = y400 * 400 + y100 * 100;
-        } else {
-            // Julian calendar
-            d += 292200000002L;
-            offset = -800000000;
-        }
-        long y4 = d / 1461;
-        d -= y4 * 1461;
-        long y = d / 365;
-        d -= y * 365;
-        if (d == 0 && (y == 4 || y100 == 4)) {
-            y--;
-            d += 365;
-        }
-        y += offset + y4 * 4;
-        // month of a day
-        int m = ((int) d * 2 + 1) * 5 / 306;
-        d -= DAYS_OFFSET[m] - 1;
-        if (m >= 10) {
-            y++;
-            m -= 12;
-        }
-        return dateValue(y, m + 3, (int) d);
+        Calendar cal = getCalendar(UTC);
+        cal.setTimeInMillis(absoluteDay * 86400000);
+        return dateValueFromCalendar(cal);
     }
 
     /**

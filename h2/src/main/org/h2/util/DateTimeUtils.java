@@ -519,9 +519,15 @@ public class DateTimeUtils {
      */
     public static long getMillis(TimeZone tz, int year, int month, int day,
             int hour, int minute, int second, int millis) {
+        Calendar c;
+        if (tz == null) {
+            c = getCalendar();
+        } else {
+            c = getCalendar(tz);
+        }
+        c.setLenient(false);
         try {
-            return getTimeTry(false, tz, year, month, day, hour, minute, second,
-                    millis);
+            return convertToMillis(c, year, month, day, hour, minute, second, millis);
         } catch (IllegalArgumentException e) {
             // special case: if the time simply doesn't exist because of
             // daylight saving time changes, use the lenient version
@@ -545,21 +551,9 @@ public class DateTimeUtils {
                 // for example for 2042-10-12 00:00:00.
                 hour += 6;
             }
-            return getTimeTry(true, tz, year, month, day, hour, minute,
-                    second, millis);
+            c.setLenient(true);
+            return convertToMillis(c, year, month, day, hour, minute, second, millis);
         }
-    }
-
-    private static long getTimeTry(boolean lenient, TimeZone tz, int year,
-            int month, int day, int hour, int minute, int second, int millis) {
-        Calendar c;
-        if (tz == null) {
-            c = getCalendar();
-        } else {
-            c = getCalendar(tz);
-        }
-        c.setLenient(lenient);
-        return convertToMillis(c, year, month, day, hour, minute, second, millis);
     }
 
     private static long convertToMillis(Calendar cal, int year, int month, int day,

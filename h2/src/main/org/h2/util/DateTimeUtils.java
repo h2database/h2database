@@ -530,8 +530,6 @@ public class DateTimeUtils {
                 if (hour < 0 || hour > 23) {
                     throw e;
                 }
-                return getTimeTry(true, tz, year, month, day, hour, minute,
-                        second, millis);
             } else if (message.indexOf("DAY_OF_MONTH") > 0) {
                 int maxDay;
                 if (month == 2) {
@@ -546,12 +544,9 @@ public class DateTimeUtils {
                 // using the timezone Brasilia and others,
                 // for example for 2042-10-12 00:00:00.
                 hour += 6;
-                return getTimeTry(true, tz, year, month, day, hour, minute,
-                        second, millis);
-            } else {
-                return getTimeTry(true, tz, year, month, day, hour, minute,
-                        second, millis);
             }
+            return getTimeTry(true, tz, year, month, day, hour, minute,
+                    second, millis);
         }
     }
 

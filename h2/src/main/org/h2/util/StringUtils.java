@@ -726,11 +726,11 @@ public class StringUtils {
                 s.length() - before.length() + after.length());
         int index = 0;
         while (true) {
-            buff.append(s.substring(index, next)).append(after);
+            buff.append(s, index, next).append(after);
             index = next + before.length();
             next = s.indexOf(before, index);
             if (next < 0) {
-                buff.append(s.substring(index));
+                buff.append(s, index, s.length());
                 break;
             }
         }

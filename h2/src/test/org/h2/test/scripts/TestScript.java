@@ -213,7 +213,7 @@ public class TestScript extends TestBase {
                 // do nothing
             } else if (sql.endsWith(";")) {
                 write(sql);
-                buff.append(sql.substring(0, sql.length() - 1));
+                buff.append(sql, 0, sql.length() - 1);
                 sql = buff.toString();
                 buff = new StringBuilder();
                 process(sql);

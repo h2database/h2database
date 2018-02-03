@@ -551,7 +551,7 @@ public class Csv implements SimpleRowSource {
             buff.append(chars[idx + 1]);
             start = idx + 2;
         }
-        buff.append(s.substring(start));
+        buff.append(s, start, s.length());
         return buff.toString();
     }
 

@@ -2066,7 +2066,7 @@ public class Function extends Expression implements FunctionCall {
                 if (buff == null) {
                     buff = new StringBuilder(size);
                     if (i > 0) {
-                        buff.append(original.substring(0, i));
+                        buff.append(original, 0, i);
                     }
                 }
                 if (index < replaceSize) {

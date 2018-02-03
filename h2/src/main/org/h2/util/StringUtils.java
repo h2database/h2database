@@ -583,7 +583,7 @@ public class StringUtils {
             }
             int n = s.indexOf('\n', i);
             n = n < 0 ? s.length() : n + 1;
-            buff.append(s.substring(i, n));
+            buff.append(s, i, n);
             i = n;
         }
         if (newline && !s.endsWith("\n")) {

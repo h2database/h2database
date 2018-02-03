@@ -1947,23 +1947,7 @@ public class Function extends Expression implements FunctionCall {
         if (s == null || replace == null || with == null) {
             return null;
         }
-        if (replace.length() == 0) {
-            // avoid out of memory
-            return s;
-        }
-        StringBuilder buff = new StringBuilder(s.length());
-        int start = 0;
-        int len = replace.length();
-        while (true) {
-            int i = s.indexOf(replace, start);
-            if (i == -1) {
-                break;
-            }
-            buff.append(s.substring(start, i)).append(with);
-            start = i + len;
-        }
-        buff.append(s.substring(start));
-        return buff.toString();
+        return StringUtils.replaceAll(s, replace, with);
     }
 
     private static String repeat(String s, int count) {

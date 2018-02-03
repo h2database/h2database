@@ -707,7 +707,10 @@ public class StringUtils {
     }
 
     /**
-     * Replace all occurrences of the before string with the after string.
+     * Replace all occurrences of the before string with the after string. Unlike
+     * {@link String#replaceAll(String, String)} this method reads {@code before}
+     * and {@code after} arguments as plain strings and if {@code before} argument
+     * is an empty string this method returns original string {@code s}.
      *
      * @param s the string
      * @param before the old text
@@ -716,7 +719,7 @@ public class StringUtils {
      */
     public static String replaceAll(String s, String before, String after) {
         int next = s.indexOf(before);
-        if (next < 0) {
+        if (next < 0 || before.isEmpty()) {
             return s;
         }
         StringBuilder buff = new StringBuilder(

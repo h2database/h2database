@@ -395,7 +395,9 @@ public abstract class TestBase {
      */
     public void printTimeMemory(String s, long time) {
         if (config.big) {
-            println(getMemoryUsed() + " MB: " + s + " ms: " + time);
+            Runtime rt = Runtime.getRuntime();
+            long memNow = rt.totalMemory() - rt.freeMemory();
+            println(memNow / 1024 / 1024 + " MB: " + s + " ms: " + time);
         }
     }
 

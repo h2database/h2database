@@ -64,12 +64,12 @@ public class DateTimeUtils {
      * have that problem, and while it is still a small memory leak, it is not a
      * class loader memory leak.
      */
-    private static final ThreadLocal<Calendar> CACHED_CALENDAR = new ThreadLocal<>();
+    private static final ThreadLocal<GregorianCalendar> CACHED_CALENDAR = new ThreadLocal<>();
 
     /**
      * A cached instance of Calendar used when a timezone is specified.
      */
-    private static final ThreadLocal<Calendar> CACHED_CALENDAR_NON_DEFAULT_TIMEZONE =
+    private static final ThreadLocal<GregorianCalendar> CACHED_CALENDAR_NON_DEFAULT_TIMEZONE =
             new ThreadLocal<>();
 
     /**
@@ -101,8 +101,8 @@ public class DateTimeUtils {
      *
      * @return a calendar instance. A cached instance is returned where possible
      */
-    private static Calendar getCalendar() {
-        Calendar c = CACHED_CALENDAR.get();
+    private static GregorianCalendar getCalendar() {
+        GregorianCalendar c = CACHED_CALENDAR.get();
         if (c == null) {
             c = DateTimeUtils.createGregorianCalendar();
             CACHED_CALENDAR.set(c);
@@ -117,8 +117,8 @@ public class DateTimeUtils {
      * @param tz timezone for the calendar, is never null
      * @return a calendar instance. A cached instance is returned where possible
      */
-    private static Calendar getCalendar(TimeZone tz) {
-        Calendar c = CACHED_CALENDAR_NON_DEFAULT_TIMEZONE.get();
+    private static GregorianCalendar getCalendar(TimeZone tz) {
+        GregorianCalendar c = CACHED_CALENDAR_NON_DEFAULT_TIMEZONE.get();
         if (c == null || !c.getTimeZone().equals(tz)) {
             c = DateTimeUtils.createGregorianCalendar(tz);
             CACHED_CALENDAR_NON_DEFAULT_TIMEZONE.set(c);
@@ -136,7 +136,7 @@ public class DateTimeUtils {
      *
      * @return a new calendar instance.
      */
-    public static Calendar createGregorianCalendar() {
+    public static GregorianCalendar createGregorianCalendar() {
         return new GregorianCalendar();
     }
 
@@ -150,7 +150,7 @@ public class DateTimeUtils {
      * @param tz timezone for the calendar, is never null
      * @return a new calendar instance.
      */
-    public static Calendar createGregorianCalendar(TimeZone tz) {
+    public static GregorianCalendar createGregorianCalendar(TimeZone tz) {
         return new GregorianCalendar(tz);
     }
 
@@ -519,7 +519,7 @@ public class DateTimeUtils {
      */
     public static long getMillis(TimeZone tz, int year, int month, int day,
             int hour, int minute, int second, int millis) {
-        Calendar c;
+        GregorianCalendar c;
         if (tz == null) {
             c = getCalendar();
         } else {
@@ -539,7 +539,7 @@ public class DateTimeUtils {
             } else if (message.indexOf("DAY_OF_MONTH") > 0) {
                 int maxDay;
                 if (month == 2) {
-                    maxDay = new GregorianCalendar().isLeapYear(year) ? 29 : 28;
+                    maxDay = c.isLeapYear(year) ? 29 : 28;
                 } else {
                     maxDay = 30 + ((month + (month > 7 ? 1 : 0)) & 1);
                 }

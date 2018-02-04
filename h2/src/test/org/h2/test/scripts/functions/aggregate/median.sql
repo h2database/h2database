@@ -643,3 +643,22 @@ select median(v) from test;
 
 drop table test;
 > ok
+
+-- with group by
+create table test(name varchar, value int);
+> ok
+
+insert into test values ('Group 2A', 10), ('Group 2A', 10), ('Group 2A', 20),
+    ('Group 1X', 40), ('Group 1X', 50), ('Group 3B', null);
+> update count: 6
+
+select name, median(value) from test group by name order by name;
+> NAME     MEDIAN(VALUE)
+> -------- -------------
+> Group 1X 45
+> Group 2A 10
+> Group 3B null
+> rows (ordered): 3
+
+drop table test;
+> ok

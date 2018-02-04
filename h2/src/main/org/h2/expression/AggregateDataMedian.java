@@ -13,6 +13,15 @@ import java.util.Comparator;
 import java.util.HashSet;
 
 import org.h2.engine.Database;
+import org.h2.engine.Session;
+import org.h2.index.Cursor;
+import org.h2.index.Index;
+import org.h2.result.SearchRow;
+import org.h2.result.SortOrder;
+import org.h2.table.Column;
+import org.h2.table.IndexColumn;
+import org.h2.table.Table;
+import org.h2.table.TableFilter;
 import org.h2.util.DateTimeUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
@@ -32,6 +41,93 @@ import org.h2.value.ValueTimestampTimeZone;
  */
 class AggregateDataMedian extends AggregateData {
     private Collection<Value> values;
+
+    static Index getMedianColumnIndex(Expression on) {
+        if (on instanceof ExpressionColumn) {
+            ExpressionColumn col = (ExpressionColumn) on;
+            Column column = col.getColumn();
+            TableFilter filter = col.getTableFilter();
+            if (filter != null) {
+                Table table = filter.getTable();
+                ArrayList<Index> indexes = table.getIndexes();
+                Index result = null;
+                if (indexes != null) {
+                    for (int i = 1, size = indexes.size(); i < size; i++) {
+                        Index index = indexes.get(i);
+                        if (!index.canFindNext()) {
+                            continue;
+                        }
+                        if (!index.isFirstColumn(column)) {
+                            continue;
+                        }
+                        IndexColumn ic = index.getIndexColumns()[0];
+                        if (column.isNullable()) {
+                            int sortType = ic.sortType;
+                            // Nulls last is not supported
+                            if ((sortType & SortOrder.NULLS_LAST) != 0)
+                                continue;
+                            // Descending without nulls first is not supported
+                            if ((sortType & SortOrder.DESCENDING) != 0 && (sortType & SortOrder.NULLS_FIRST) == 0) {
+                                continue;
+                            }
+                        }
+                        if (result == null || result.getColumns().length > index.getColumns().length) {
+                            result = index;
+                        }
+                    }
+                }
+                return result;
+            }
+        }
+        return null;
+    }
+
+    static Value getFromIndex(Session session, Expression on, int dataType) {
+        Index index = getMedianColumnIndex(on);
+        long count = index.getRowCount(session);
+        if (count == 0) {
+            return ValueNull.INSTANCE;
+        }
+        Cursor cursor = index.find(session, null, null);
+        cursor.next();
+        // Skip nulls
+        SearchRow row;
+        while (count > 0) {
+            row = cursor.getSearchRow();
+            if (row == null) {
+                return ValueNull.INSTANCE;
+            }
+            if (row.getValue(index.getColumns()[0].getColumnId()) == ValueNull.INSTANCE) {
+                count--;
+                cursor.next();
+            } else
+                break;
+        }
+        if (count == 0) {
+            return ValueNull.INSTANCE;
+        }
+        long skip = (count - 1) / 2;
+        for (int i = 0; i < skip; i++) {
+            cursor.next();
+        }
+        row = cursor.getSearchRow();
+        Value v;
+        if (row == null) {
+            v = ValueNull.INSTANCE;
+        } else {
+            v = row.getValue(index.getColumns()[0].getColumnId());
+        }
+        if ((count & 1) == 0) {
+            cursor.next();
+            row = cursor.getSearchRow();
+            if (row == null) {
+                return v;
+            }
+            Value v2 = row.getValue(index.getColumns()[0].getColumnId());
+            return getMedian(v, v2, dataType, session.getDatabase().getCompareMode());
+        }
+        return v;
+    }
 
     @Override
     void add(Database database, int dataType, boolean distinct, Value v) {
@@ -104,7 +200,7 @@ class AggregateDataMedian extends AggregateData {
                     + DateTimeUtils.absoluteDayFromDateValue(ts1.getDateValue());
             long nanos = (ts0.getTimeNanos() + ts1.getTimeNanos()) / 2;
             if ((dateSum & 1) != 0) {
-                nanos += (DateTimeUtils.NANOS_PER_DAY / 2);
+                nanos += DateTimeUtils.NANOS_PER_DAY / 2;
                 if (nanos >= DateTimeUtils.NANOS_PER_DAY) {
                     nanos -= DateTimeUtils.NANOS_PER_DAY;
                     dateSum++;
@@ -119,7 +215,7 @@ class AggregateDataMedian extends AggregateData {
                     + DateTimeUtils.absoluteDayFromDateValue(ts1.getDateValue());
             long nanos = (ts0.getTimeNanos() + ts1.getTimeNanos()) / 2;
             if ((dateSum & 1) != 0) {
-                nanos += (DateTimeUtils.NANOS_PER_DAY / 2);
+                nanos += DateTimeUtils.NANOS_PER_DAY / 2;
                 if (nanos >= DateTimeUtils.NANOS_PER_DAY) {
                     nanos -= DateTimeUtils.NANOS_PER_DAY;
                     dateSum++;

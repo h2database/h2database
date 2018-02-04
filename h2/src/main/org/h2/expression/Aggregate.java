@@ -123,7 +123,12 @@ public class Aggregate extends Expression {
         /**
          * The aggregate type for HISTOGRAM(expression).
          */
-        HISTOGRAM
+        HISTOGRAM,
+
+        /**
+         * The aggregate type for MEDIAN(expression).
+         */
+        MEDIAN
     }
 
     private static final HashMap<String, AggregateType> AGGREGATES = new HashMap<>(24);
@@ -187,6 +192,7 @@ public class Aggregate extends Expression {
         addAggregate("HISTOGRAM", AggregateType.HISTOGRAM);
         addAggregate("BIT_OR", AggregateType.BIT_OR);
         addAggregate("BIT_AND", AggregateType.BIT_AND);
+        addAggregate("MEDIAN", AggregateType.MEDIAN);
     }
 
     private static void addAggregate(String name, AggregateType type) {
@@ -287,7 +293,7 @@ public class Aggregate extends Expression {
                 Table table = select.getTopTableFilter().getTable();
                 return ValueLong.get(table.getRowCount(session));
             case MIN:
-            case MAX:
+            case MAX: {
                 boolean first = type == AggregateType.MIN;
                 Index index = getMinMaxColumnIndex();
                 int sortType = index.getIndexColumns()[0].sortType;
@@ -303,6 +309,10 @@ public class Aggregate extends Expression {
                     v = row.getValue(index.getColumns()[0].getColumnId());
                 }
                 return v;
+            }
+            case MEDIAN: {
+                return AggregateDataMedian.getFromIndex(session, on, dataType);
+            }
             default:
                 DbException.throwInternalError("type=" + type);
             }
@@ -434,6 +444,7 @@ public class Aggregate extends Expression {
             break;
         case MIN:
         case MAX:
+        case MEDIAN:
             break;
         case STDDEV_POP:
         case STDDEV_SAMP:
@@ -568,6 +579,9 @@ public class Aggregate extends Expression {
         case BIT_OR:
             text = "BIT_OR";
             break;
+        case MEDIAN:
+            text = "MEDIAN";
+            break;
         default:
             throw DbException.throwInternalError("type=" + type);
         }
@@ -606,6 +620,11 @@ public class Aggregate extends Expression {
             case MAX:
                 Index index = getMinMaxColumnIndex();
                 return index != null;
+            case MEDIAN:
+                if (distinct) {
+                    return false;
+                }
+                return AggregateDataMedian.getMedianColumnIndex(on) != null;
             default:
                 return false;
             }

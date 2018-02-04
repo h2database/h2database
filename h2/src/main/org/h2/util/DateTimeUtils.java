@@ -42,7 +42,10 @@ public class DateTimeUtils {
      */
     public static final TimeZone UTC = TimeZone.getTimeZone("UTC");
 
-    private static final long NANOS_PER_DAY = MILLIS_PER_DAY * 1000000;
+    /**
+     * The number of nanoseconds per day.
+     */
+    public static final long NANOS_PER_DAY = MILLIS_PER_DAY * 1000000;
 
     private static final int SHIFT_YEAR = 9;
     private static final int SHIFT_MONTH = 5;

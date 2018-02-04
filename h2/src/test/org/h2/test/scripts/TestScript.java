@@ -99,7 +99,7 @@ public class TestScript extends TestBase {
             testScript("datatypes/" + s + ".sql");
         }
         for (String s : new String[] { "avg", "bit-and", "bit-or", "count",
-                "group-concat", "max", "min", "selectivity", "stddev-pop",
+                "group-concat", "max", "median", "min", "selectivity", "stddev-pop",
                 "stddev-samp", "sum", "var-pop", "var-samp" }) {
             testScript("functions/aggregate/" + s + ".sql");
         }

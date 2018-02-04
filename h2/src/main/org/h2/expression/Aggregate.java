@@ -123,7 +123,12 @@ public class Aggregate extends Expression {
         /**
          * The aggregate type for HISTOGRAM(expression).
          */
-        HISTOGRAM
+        HISTOGRAM,
+
+        /**
+         * The aggregate type for MEDIAN(expression).
+         */
+        MEDIAN
     }
 
     private static final HashMap<String, AggregateType> AGGREGATES = new HashMap<>(24);
@@ -187,6 +192,7 @@ public class Aggregate extends Expression {
         addAggregate("HISTOGRAM", AggregateType.HISTOGRAM);
         addAggregate("BIT_OR", AggregateType.BIT_OR);
         addAggregate("BIT_AND", AggregateType.BIT_AND);
+        addAggregate("MEDIAN", AggregateType.MEDIAN);
     }
 
     private static void addAggregate(String name, AggregateType type) {
@@ -434,6 +440,7 @@ public class Aggregate extends Expression {
             break;
         case MIN:
         case MAX:
+        case MEDIAN:
             break;
         case STDDEV_POP:
         case STDDEV_SAMP:
@@ -567,6 +574,9 @@ public class Aggregate extends Expression {
             break;
         case BIT_OR:
             text = "BIT_OR";
+            break;
+        case MEDIAN:
+            text = "MEDIAN";
             break;
         default:
             throw DbException.throwInternalError("type=" + type);

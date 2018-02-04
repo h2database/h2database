@@ -73,7 +73,7 @@ class AggregateDataMedian extends AggregateData {
 
     static Value getMedian(Value v0, Value v1, int dataType, CompareMode mode) {
         if (v0.compareTo(v1, mode) == 0) {
-            return v1.convertTo(dataType);
+            return v0.convertTo(dataType);
         }
         switch (dataType) {
         case Value.BYTE:
@@ -100,19 +100,18 @@ class AggregateDataMedian extends AggregateData {
         case Value.TIMESTAMP: {
             ValueTimestamp ts0 = (ValueTimestamp) v0.convertTo(Value.TIMESTAMP),
                     ts1 = (ValueTimestamp) v1.convertTo(Value.TIMESTAMP);
-            return DateTimeUtils.normalizeTimestamp(
-                    (DateTimeUtils.absoluteDayFromDateValue(ts0.getDateValue())
-                            + DateTimeUtils.absoluteDayFromDateValue(ts1.getDateValue())) / 2,
+            return ValueTimestamp.fromDateValueAndNanos(
+                    DateTimeUtils.dateValueFromAbsoluteDay((DateTimeUtils.absoluteDayFromDateValue(ts0.getDateValue())
+                            + DateTimeUtils.absoluteDayFromDateValue(ts1.getDateValue())) / 2),
                     (ts0.getTimeNanos() + ts1.getTimeNanos()) / 2);
         }
         case Value.TIMESTAMP_TZ: {
             ValueTimestampTimeZone ts0 = (ValueTimestampTimeZone) v0.convertTo(Value.TIMESTAMP_TZ),
                     ts1 = (ValueTimestampTimeZone) v1.convertTo(Value.TIMESTAMP_TZ);
-            ValueTimestamp ts = DateTimeUtils.normalizeTimestamp(
-                    (DateTimeUtils.absoluteDayFromDateValue(ts0.getDateValue())
-                            + DateTimeUtils.absoluteDayFromDateValue(ts1.getDateValue())) / 2,
-                    (ts0.getTimeNanos() + ts1.getTimeNanos()) / 2);
-            return ValueTimestampTimeZone.fromDateValueAndNanos(ts.getDateValue(), ts.getTimeNanos(),
+            return ValueTimestampTimeZone.fromDateValueAndNanos(
+                    DateTimeUtils.dateValueFromAbsoluteDay((DateTimeUtils.absoluteDayFromDateValue(ts0.getDateValue())
+                            + DateTimeUtils.absoluteDayFromDateValue(ts1.getDateValue())) / 2),
+                    (ts0.getTimeNanos() + ts1.getTimeNanos()) / 2,
                     (short) ((ts0.getTimeZoneOffsetMins() + ts1.getTimeZoneOffsetMins()) / 2));
         }
         default:

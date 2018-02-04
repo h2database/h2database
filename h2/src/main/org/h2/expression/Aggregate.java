@@ -312,7 +312,7 @@ public class Aggregate extends Expression {
                 return v;
             }
             case MEDIAN: {
-                Index index = getMinMaxColumnIndex();
+                Index index = getMedianColumnIndex();
                 long count = index.getRowCount(session);
                 if (count == 0) {
                     return ValueNull.INSTANCE;
@@ -338,7 +338,6 @@ public class Aggregate extends Expression {
                 long skip = (count - 1) / 2;
                 for (int i = 0; i < skip; i++) {
                     cursor.next();
-                    row = cursor.getSearchRow();
                 }
                 row = cursor.getSearchRow();
                 Value v;

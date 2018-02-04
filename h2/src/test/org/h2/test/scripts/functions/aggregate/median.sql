@@ -3,6 +3,240 @@
 -- Initial Developer: H2 Group
 --
 
+-- ASC
+create table test(v tinyint);
+> ok
+
+create index test_idx on test(v asc);
+> ok
+
+insert into test values (20), (20), (10);
+> update count: 3
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 20
+
+insert into test values (null);
+> update count: 1
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 20
+
+select median(distinct v) from test;
+> MEDIAN(DISTINCT V)
+> ------------------
+> 15
+
+insert into test values (10);
+> update count: 1
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 15
+
+drop table test;
+> ok
+
+-- ASC NULLS FIRST
+create table test(v tinyint);
+> ok
+
+create index test_idx on test(v asc nulls first);
+> ok
+
+insert into test values (20), (20), (10);
+> update count: 3
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 20
+
+insert into test values (null);
+> update count: 1
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 20
+
+select median(distinct v) from test;
+> MEDIAN(DISTINCT V)
+> ------------------
+> 15
+
+insert into test values (10);
+> update count: 1
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 15
+
+drop table test;
+> ok
+
+-- ASC NULLS LAST
+create table test(v tinyint);
+> ok
+
+create index test_idx on test(v asc nulls last);
+> ok
+
+insert into test values (20), (20), (10);
+> update count: 3
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 20
+
+insert into test values (null);
+> update count: 1
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 20
+
+select median(distinct v) from test;
+> MEDIAN(DISTINCT V)
+> ------------------
+> 15
+
+insert into test values (10);
+> update count: 1
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 15
+
+drop table test;
+> ok
+
+-- DESC
+create table test(v tinyint);
+> ok
+
+create index test_idx on test(v desc);
+> ok
+
+insert into test values (20), (20), (10);
+> update count: 3
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 20
+
+insert into test values (null);
+> update count: 1
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 20
+
+select median(distinct v) from test;
+> MEDIAN(DISTINCT V)
+> ------------------
+> 15
+
+insert into test values (10);
+> update count: 1
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 15
+
+drop table test;
+> ok
+
+-- DESC NULLS FIRST
+create table test(v tinyint);
+> ok
+
+create index test_idx on test(v desc nulls first);
+> ok
+
+insert into test values (20), (20), (10);
+> update count: 3
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 20
+
+insert into test values (null);
+> update count: 1
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 20
+
+select median(distinct v) from test;
+> MEDIAN(DISTINCT V)
+> ------------------
+> 15
+
+insert into test values (10);
+> update count: 1
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 15
+
+drop table test;
+> ok
+
+-- DESC NULLS LAST
+create table test(v tinyint);
+> ok
+
+create index test_idx on test(v desc nulls last);
+> ok
+
+insert into test values (20), (20), (10);
+> update count: 3
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 20
+
+insert into test values (null);
+> update count: 1
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 20
+
+select median(distinct v) from test;
+> MEDIAN(DISTINCT V)
+> ------------------
+> 15
+
+insert into test values (10);
+> update count: 1
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 15
+
+drop table test;
+> ok
+
 create table test(v tinyint);
 > ok
 

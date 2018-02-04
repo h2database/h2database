@@ -68,7 +68,10 @@ class AggregateDataMedian extends AggregateData {
         if ((len & 1) == 1) {
             return v1.convertTo(dataType);
         }
-        Value v0 = a[idx - 1];
+        return getMedian(a[idx - 1], v1, dataType, mode);
+    }
+
+    static Value getMedian(Value v0, Value v1, int dataType, CompareMode mode) {
         if (v0.compareTo(v1, mode) == 0) {
             return v1.convertTo(dataType);
         }

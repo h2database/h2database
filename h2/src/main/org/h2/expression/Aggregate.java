@@ -20,6 +20,7 @@ import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
+import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.StatementBuilder;
@@ -293,7 +294,7 @@ public class Aggregate extends Expression {
                 Table table = select.getTopTableFilter().getTable();
                 return ValueLong.get(table.getRowCount(session));
             case MIN:
-            case MAX:
+            case MAX: {
                 boolean first = type == AggregateType.MIN;
                 Index index = getMinMaxColumnIndex();
                 int sortType = index.getIndexColumns()[0].sortType;
@@ -309,6 +310,54 @@ public class Aggregate extends Expression {
                     v = row.getValue(index.getColumns()[0].getColumnId());
                 }
                 return v;
+            }
+            case MEDIAN: {
+                Index index = getMinMaxColumnIndex();
+                long count = index.getRowCount(session);
+                if (count == 0) {
+                    return ValueNull.INSTANCE;
+                }
+                Cursor cursor = index.find(session, null, null);
+                cursor.next();
+                // Skip nulls
+                SearchRow row;
+                while (count > 0) {
+                    row = cursor.getSearchRow();
+                    if (row == null) {
+                        return ValueNull.INSTANCE;
+                    }
+                    if (row.getValue(index.getColumns()[0].getColumnId()) == ValueNull.INSTANCE) {
+                        count--;
+                        cursor.next();
+                    } else
+                        break;
+                }
+                if (count == 0) {
+                    return ValueNull.INSTANCE;
+                }
+                long skip = (count - 1) / 2;
+                for (int i = 0; i < skip; i++) {
+                    cursor.next();
+                    row = cursor.getSearchRow();
+                }
+                row = cursor.getSearchRow();
+                Value v;
+                if (row == null) {
+                    v = ValueNull.INSTANCE;
+                } else {
+                    v = row.getValue(index.getColumns()[0].getColumnId());
+                }
+                if ((count & 1) == 0) {
+                    cursor.next();
+                    row = cursor.getSearchRow();
+                    if (row == null) {
+                        return v;
+                    }
+                    Value v2 = row.getValue(index.getColumns()[0].getColumnId());
+                    return AggregateDataMedian.getMedian(v, v2, dataType, session.getDatabase().getCompareMode());
+                }
+                return v;
+            }
             default:
                 DbException.throwInternalError("type=" + type);
             }
@@ -616,6 +665,29 @@ public class Aggregate extends Expression {
             case MAX:
                 Index index = getMinMaxColumnIndex();
                 return index != null;
+            case MEDIAN:
+                if (distinct) {
+                    return false;
+                }
+                index = getMinMaxColumnIndex();
+                if (index == null) {
+                    return false;
+                }
+                IndexColumn ic = index.getIndexColumns()[0];
+                if (!ic.column.isNullable()) {
+                    return true;
+                }
+                int sortType = ic.sortType;
+                // Nulls last is not supported
+                if ((sortType & SortOrder.NULLS_LAST) != 0)
+                    return false;
+                // Ascending is supported
+                if ((sortType & SortOrder.DESCENDING) == 0)
+                    return true;
+                // Descending with nulls first is also supported
+                if ((sortType & SortOrder.NULLS_FIRST) != 0)
+                    return true;
+                return false;
             default:
                 return false;
             }

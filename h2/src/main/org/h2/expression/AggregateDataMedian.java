@@ -100,19 +100,33 @@ class AggregateDataMedian extends AggregateData {
         case Value.TIMESTAMP: {
             ValueTimestamp ts0 = (ValueTimestamp) v0.convertTo(Value.TIMESTAMP),
                     ts1 = (ValueTimestamp) v1.convertTo(Value.TIMESTAMP);
-            return ValueTimestamp.fromDateValueAndNanos(
-                    DateTimeUtils.dateValueFromAbsoluteDay((DateTimeUtils.absoluteDayFromDateValue(ts0.getDateValue())
-                            + DateTimeUtils.absoluteDayFromDateValue(ts1.getDateValue())) / 2),
-                    (ts0.getTimeNanos() + ts1.getTimeNanos()) / 2);
+            long dateSum = DateTimeUtils.absoluteDayFromDateValue(ts0.getDateValue())
+                    + DateTimeUtils.absoluteDayFromDateValue(ts1.getDateValue());
+            long nanos = (ts0.getTimeNanos() + ts1.getTimeNanos()) / 2;
+            if ((dateSum & 1) != 0) {
+                nanos += (DateTimeUtils.NANOS_PER_DAY / 2);
+                if (nanos >= DateTimeUtils.NANOS_PER_DAY) {
+                    nanos -= DateTimeUtils.NANOS_PER_DAY;
+                    dateSum++;
+                }
+            }
+            return ValueTimestamp.fromDateValueAndNanos(DateTimeUtils.dateValueFromAbsoluteDay(dateSum / 2), nanos);
         }
         case Value.TIMESTAMP_TZ: {
             ValueTimestampTimeZone ts0 = (ValueTimestampTimeZone) v0.convertTo(Value.TIMESTAMP_TZ),
                     ts1 = (ValueTimestampTimeZone) v1.convertTo(Value.TIMESTAMP_TZ);
-            return ValueTimestampTimeZone.fromDateValueAndNanos(
-                    DateTimeUtils.dateValueFromAbsoluteDay((DateTimeUtils.absoluteDayFromDateValue(ts0.getDateValue())
-                            + DateTimeUtils.absoluteDayFromDateValue(ts1.getDateValue())) / 2),
-                    (ts0.getTimeNanos() + ts1.getTimeNanos()) / 2,
-                    (short) ((ts0.getTimeZoneOffsetMins() + ts1.getTimeZoneOffsetMins()) / 2));
+            long dateSum = DateTimeUtils.absoluteDayFromDateValue(ts0.getDateValue())
+                    + DateTimeUtils.absoluteDayFromDateValue(ts1.getDateValue());
+            long nanos = (ts0.getTimeNanos() + ts1.getTimeNanos()) / 2;
+            if ((dateSum & 1) != 0) {
+                nanos += (DateTimeUtils.NANOS_PER_DAY / 2);
+                if (nanos >= DateTimeUtils.NANOS_PER_DAY) {
+                    nanos -= DateTimeUtils.NANOS_PER_DAY;
+                    dateSum++;
+                }
+            }
+            return ValueTimestampTimeZone.fromDateValueAndNanos(DateTimeUtils.dateValueFromAbsoluteDay(dateSum / 2),
+                    nanos, (short) ((ts0.getTimeZoneOffsetMins() + ts1.getTimeZoneOffsetMins()) / 2));
         }
         default:
             // Just return first

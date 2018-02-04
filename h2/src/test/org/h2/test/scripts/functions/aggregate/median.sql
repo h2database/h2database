@@ -584,6 +584,17 @@ select median(v) from test;
 > ---------------------
 > 2000-01-15 15:00:00.0
 
+delete from test;
+> update count: 5
+
+insert into test values ('2000-01-20 20:00:00'), ('2000-01-21 20:00:00');
+> update count: 2
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------------------
+> 2000-01-21 08:00:00.0
+
 drop table test;
 > ok
 
@@ -618,6 +629,17 @@ select median(v) from test;
 > MEDIAN(V)
 > ------------------------
 > 2000-01-15 15:00:00.0+03
+
+delete from test;
+> update count: 5
+
+insert into test values ('2000-01-20 20:00:00+10'), ('2000-01-21 20:00:00-09');
+> update count: 2
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------------------------
+> 2000-01-21 08:00:00.0+00:30
 
 drop table test;
 > ok

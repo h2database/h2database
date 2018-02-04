@@ -350,7 +350,7 @@ public class Transfer {
             break;
         case Value.TIME:
             if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
-                writeLong(((ValueTime) v).getNanos());
+                writeLong(((ValueTime) v).getTimeNanos());
             } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
                 writeLong(DateTimeUtils.getTimeLocalWithoutDst(v.getTime()));
             } else {

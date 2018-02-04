@@ -16,7 +16,7 @@ import org.h2.util.DateTimeUtils;
 /**
  * Implementation of the TIME data type.
  */
-public class ValueTime extends Value {
+public class ValueTime extends ValueAbstractDateTime {
 
     /**
      * The precision in digits.
@@ -95,10 +95,8 @@ public class ValueTime extends Value {
         }
     }
 
-    /**
-     * @return nanoseconds since midnight
-     */
-    public long getNanos() {
+    @Override
+    public long getTimeNanos() {
         return nanos;
     }
 
@@ -166,13 +164,13 @@ public class ValueTime extends Value {
     @Override
     public Value add(Value v) {
         ValueTime t = (ValueTime) v.convertTo(Value.TIME);
-        return ValueTime.fromNanos(nanos + t.getNanos());
+        return ValueTime.fromNanos(nanos + t.getTimeNanos());
     }
 
     @Override
     public Value subtract(Value v) {
         ValueTime t = (ValueTime) v.convertTo(Value.TIME);
-        return ValueTime.fromNanos(nanos - t.getNanos());
+        return ValueTime.fromNanos(nanos - t.getTimeNanos());
     }
 
     @Override

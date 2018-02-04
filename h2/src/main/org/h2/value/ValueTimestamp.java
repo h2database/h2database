@@ -17,7 +17,7 @@ import org.h2.util.DateTimeUtils;
 /**
  * Implementation of the TIMESTAMP data type.
  */
-public class ValueTimestamp extends Value {
+public class ValueTimestamp extends ValueAbstractDateTime {
 
     /**
      * The precision in digits.
@@ -134,21 +134,12 @@ public class ValueTimestamp extends Value {
         }
     }
 
-    /**
-     * A bit field with bits for the year, month, and day (see DateTimeUtils for
-     * encoding).
-     *
-     * @return the data value
-     */
+    @Override
     public long getDateValue() {
         return dateValue;
     }
 
-    /**
-     * The nanoseconds since midnight.
-     *
-     * @return the nanoseconds
-     */
+    @Override
     public long getTimeNanos() {
         return timeNanos;
     }

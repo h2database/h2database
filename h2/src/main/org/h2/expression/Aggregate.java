@@ -650,6 +650,46 @@ public class Aggregate extends Expression {
         return null;
     }
 
+    private Index getMedianColumnIndex() {
+        if (on instanceof ExpressionColumn) {
+            ExpressionColumn col = (ExpressionColumn) on;
+            Column column = col.getColumn();
+            TableFilter filter = col.getTableFilter();
+            if (filter != null) {
+                Table table = filter.getTable();
+                ArrayList<Index> indexes = table.getIndexes();
+                Index result = null;
+                if (indexes != null) {
+                    for (int i = 1, size = indexes.size(); i < size; i++) {
+                        Index index = indexes.get(i);
+                        if (!index.canFindNext()) {
+                            continue;
+                        }
+                        if (!index.isFirstColumn(column)) {
+                            continue;
+                        }
+                        IndexColumn ic = index.getIndexColumns()[0];
+                        if (column.isNullable()) {
+                            int sortType = ic.sortType;
+                            // Nulls last is not supported
+                            if ((sortType & SortOrder.NULLS_LAST) != 0)
+                                continue;
+                            // Descending without nulls first is not supported
+                            if ((sortType & SortOrder.DESCENDING) != 0 && (sortType & SortOrder.NULLS_FIRST) == 0) {
+                                continue;
+                            }
+                        }
+                        if (result == null || result.getColumns().length > index.getColumns().length) {
+                            result = index;
+                        }
+                    }
+                }
+                return result;
+            }
+        }
+        return null;
+    }
+
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         if (visitor.getType() == ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL) {
@@ -669,25 +709,7 @@ public class Aggregate extends Expression {
                 if (distinct) {
                     return false;
                 }
-                index = getMinMaxColumnIndex();
-                if (index == null) {
-                    return false;
-                }
-                IndexColumn ic = index.getIndexColumns()[0];
-                if (!ic.column.isNullable()) {
-                    return true;
-                }
-                int sortType = ic.sortType;
-                // Nulls last is not supported
-                if ((sortType & SortOrder.NULLS_LAST) != 0)
-                    return false;
-                // Ascending is supported
-                if ((sortType & SortOrder.DESCENDING) == 0)
-                    return true;
-                // Descending with nulls first is also supported
-                if ((sortType & SortOrder.NULLS_FIRST) != 0)
-                    return true;
-                return false;
+                return getMedianColumnIndex() != null;
             default:
                 return false;
             }

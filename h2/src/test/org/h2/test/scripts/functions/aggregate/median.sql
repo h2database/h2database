@@ -662,3 +662,75 @@ select name, median(value) from test group by name order by name;
 
 drop table test;
 > ok
+
+-- with filter
+create table test(v int);
+> ok
+
+insert into test values (20), (20), (10);
+> update count: 3
+
+select median(v) from test where v <> 20;
+> MEDIAN(V)
+> ---------
+> 10
+
+create index test_idx on test(v asc);
+> ok
+
+select median(v) from test where v <> 20;
+> MEDIAN(V)
+> ---------
+> 10
+
+drop table test;
+> ok
+
+-- two-column index
+create table test(v int, v2 int);
+> ok
+
+create index test_idx on test(v, v2);
+> ok
+
+insert into test values (20, 1), (10, 2), (20, 3);
+> update count: 3
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 20
+
+drop table test;
+> ok
+
+-- not null column
+create table test (v int not null);
+> ok
+
+create index test_idx on test(v desc);
+> ok
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> null
+
+insert into test values (10), (20);
+> update count: 2
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 15
+
+insert into test values (20), (10), (20);
+> update count: 3
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 20
+
+drop table test;
+> ok

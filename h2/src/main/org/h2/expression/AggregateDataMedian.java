@@ -42,6 +42,13 @@ import org.h2.value.ValueTimestampTimeZone;
 class AggregateDataMedian extends AggregateData {
     private Collection<Value> values;
 
+    private static boolean isNullsLast(Index index) {
+        IndexColumn ic = index.getIndexColumns()[0];
+        int sortType = ic.sortType;
+        return (sortType & SortOrder.NULLS_LAST) != 0
+                || (sortType & SortOrder.DESCENDING) != 0 && (sortType & SortOrder.NULLS_FIRST) == 0;
+    }
+
     static Index getMedianColumnIndex(Expression on) {
         if (on instanceof ExpressionColumn) {
             ExpressionColumn col = (ExpressionColumn) on;
@@ -52,6 +59,7 @@ class AggregateDataMedian extends AggregateData {
                 ArrayList<Index> indexes = table.getIndexes();
                 Index result = null;
                 if (indexes != null) {
+                    boolean nullable = column.isNullable();
                     for (int i = 1, size = indexes.size(); i < size; i++) {
                         Index index = indexes.get(i);
                         if (!index.canFindNext()) {
@@ -60,18 +68,9 @@ class AggregateDataMedian extends AggregateData {
                         if (!index.isFirstColumn(column)) {
                             continue;
                         }
-                        IndexColumn ic = index.getIndexColumns()[0];
-                        if (column.isNullable()) {
-                            int sortType = ic.sortType;
-                            // Nulls last is not supported
-                            if ((sortType & SortOrder.NULLS_LAST) != 0)
-                                continue;
-                            // Descending without nulls first is not supported
-                            if ((sortType & SortOrder.DESCENDING) != 0 && (sortType & SortOrder.NULLS_FIRST) == 0) {
-                                continue;
-                            }
-                        }
-                        if (result == null || result.getColumns().length > index.getColumns().length) {
+                        if (result == null || result.getColumns().length > index.getColumns().length
+                        // Prefer index without nulls last for nullable columns
+                                || nullable && isNullsLast(result) && !isNullsLast(index)) {
                             result = index;
                         }
                     }
@@ -90,32 +89,58 @@ class AggregateDataMedian extends AggregateData {
         }
         Cursor cursor = index.find(session, null, null);
         cursor.next();
-        // Skip nulls
-        SearchRow row;
-        while (count > 0) {
-            row = cursor.getSearchRow();
-            if (row == null) {
+        int columnId = index.getColumns()[0].getColumnId();
+        ExpressionColumn expr = (ExpressionColumn) on;
+        if (expr.getColumn().isNullable()) {
+            boolean hasNulls = false;
+            SearchRow row;
+            /*
+             * Try to skip nulls from the start first with the same cursor that will be used
+             * to read values.
+             */
+            while (count > 0) {
+                row = cursor.getSearchRow();
+                if (row == null) {
+                    return ValueNull.INSTANCE;
+                }
+                if (row.getValue(columnId) == ValueNull.INSTANCE) {
+                    count--;
+                    cursor.next();
+                    hasNulls = true;
+                } else
+                    break;
+            }
+            if (count == 0) {
                 return ValueNull.INSTANCE;
             }
-            if (row.getValue(index.getColumns()[0].getColumnId()) == ValueNull.INSTANCE) {
-                count--;
-                cursor.next();
-            } else
-                break;
-        }
-        if (count == 0) {
-            return ValueNull.INSTANCE;
+            /*
+             * If no nulls found and if index orders nulls last create a second cursor to
+             * count nulls at the end.
+             */
+            if (!hasNulls && isNullsLast(index)) {
+                TableFilter tableFilter = expr.getTableFilter();
+                SearchRow check = tableFilter.getTable().getTemplateSimpleRow(true);
+                check.setValue(columnId, ValueNull.INSTANCE);
+                Cursor nullsCursor = index.find(session, check, check);
+                while (nullsCursor.next()) {
+                    count--;
+                }
+                if (count <= 0) {
+                    return ValueNull.INSTANCE;
+                }
+            }
         }
         long skip = (count - 1) / 2;
         for (int i = 0; i < skip; i++) {
             cursor.next();
         }
-        row = cursor.getSearchRow();
-        Value v;
+        SearchRow row = cursor.getSearchRow();
         if (row == null) {
-            v = ValueNull.INSTANCE;
-        } else {
-            v = row.getValue(index.getColumns()[0].getColumnId());
+            return ValueNull.INSTANCE;
+        }
+        Value v = row.getValue(columnId);
+        if (v == ValueNull.INSTANCE) {
+            return v;
         }
         if ((count & 1) == 0) {
             cursor.next();
@@ -123,7 +148,10 @@ class AggregateDataMedian extends AggregateData {
             if (row == null) {
                 return v;
             }
-            Value v2 = row.getValue(index.getColumns()[0].getColumnId());
+            Value v2 = row.getValue(columnId);
+            if (v2 == ValueNull.INSTANCE) {
+                return v;
+            }
             return getMedian(v, v2, dataType, session.getDatabase().getCompareMode());
         }
         return v;
@@ -144,6 +172,7 @@ class AggregateDataMedian extends AggregateData {
     @Override
     Value getValue(Database database, int dataType, boolean distinct) {
         Collection<Value> c = values;
+        // Non-null collection cannot be empty here
         if (c == null) {
             return ValueNull.INSTANCE;
         }
@@ -214,15 +243,19 @@ class AggregateDataMedian extends AggregateData {
             long dateSum = DateTimeUtils.absoluteDayFromDateValue(ts0.getDateValue())
                     + DateTimeUtils.absoluteDayFromDateValue(ts1.getDateValue());
             long nanos = (ts0.getTimeNanos() + ts1.getTimeNanos()) / 2;
+            int offset = ts0.getTimeZoneOffsetMins() + ts1.getTimeZoneOffsetMins();
             if ((dateSum & 1) != 0) {
                 nanos += DateTimeUtils.NANOS_PER_DAY / 2;
-                if (nanos >= DateTimeUtils.NANOS_PER_DAY) {
-                    nanos -= DateTimeUtils.NANOS_PER_DAY;
-                    dateSum++;
-                }
+            }
+            if ((offset & 1) != 0) {
+                nanos += 30L * 1000000000;
+            }
+            if (nanos >= DateTimeUtils.NANOS_PER_DAY) {
+                nanos -= DateTimeUtils.NANOS_PER_DAY;
+                dateSum++;
             }
             return ValueTimestampTimeZone.fromDateValueAndNanos(DateTimeUtils.dateValueFromAbsoluteDay(dateSum / 2),
-                    nanos, (short) ((ts0.getTimeZoneOffsetMins() + ts1.getTimeZoneOffsetMins()) / 2));
+                    nanos, (short) (offset / 2));
         }
         default:
             // Just return first

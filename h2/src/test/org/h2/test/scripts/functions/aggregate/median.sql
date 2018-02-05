@@ -633,13 +633,13 @@ select median(v) from test;
 delete from test;
 > update count: 5
 
-insert into test values ('2000-01-20 20:00:00+10'), ('2000-01-21 20:00:00-09');
+insert into test values ('2000-01-20 20:00:00+10:15'), ('2000-01-21 20:00:00-09');
 > update count: 2
 
 select median(v) from test;
 > MEDIAN(V)
 > ---------------------------
-> 2000-01-21 08:00:00.0+00:30
+> 2000-01-21 08:00:30.0+00:37
 
 drop table test;
 > ok
@@ -659,6 +659,78 @@ select name, median(value) from test group by name order by name;
 > Group 2A 10
 > Group 3B null
 > rows (ordered): 3
+
+drop table test;
+> ok
+
+-- with filter
+create table test(v int);
+> ok
+
+insert into test values (20), (20), (10);
+> update count: 3
+
+select median(v) from test where v <> 20;
+> MEDIAN(V)
+> ---------
+> 10
+
+create index test_idx on test(v asc);
+> ok
+
+select median(v) from test where v <> 20;
+> MEDIAN(V)
+> ---------
+> 10
+
+drop table test;
+> ok
+
+-- two-column index
+create table test(v int, v2 int);
+> ok
+
+create index test_idx on test(v, v2);
+> ok
+
+insert into test values (20, 1), (10, 2), (20, 3);
+> update count: 3
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 20
+
+drop table test;
+> ok
+
+-- not null column
+create table test (v int not null);
+> ok
+
+create index test_idx on test(v desc);
+> ok
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> null
+
+insert into test values (10), (20);
+> update count: 2
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 15
+
+insert into test values (20), (10), (20);
+> update count: 3
+
+select median(v) from test;
+> MEDIAN(V)
+> ---------
+> 20
 
 drop table test;
 > ok

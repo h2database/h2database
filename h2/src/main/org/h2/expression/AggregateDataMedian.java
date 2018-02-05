@@ -243,15 +243,19 @@ class AggregateDataMedian extends AggregateData {
             long dateSum = DateTimeUtils.absoluteDayFromDateValue(ts0.getDateValue())
                     + DateTimeUtils.absoluteDayFromDateValue(ts1.getDateValue());
             long nanos = (ts0.getTimeNanos() + ts1.getTimeNanos()) / 2;
+            int offset = ts0.getTimeZoneOffsetMins() + ts1.getTimeZoneOffsetMins();
             if ((dateSum & 1) != 0) {
                 nanos += DateTimeUtils.NANOS_PER_DAY / 2;
-                if (nanos >= DateTimeUtils.NANOS_PER_DAY) {
-                    nanos -= DateTimeUtils.NANOS_PER_DAY;
-                    dateSum++;
-                }
+            }
+            if ((offset & 1) != 0) {
+                nanos += 30L * 1000000000;
+            }
+            if (nanos >= DateTimeUtils.NANOS_PER_DAY) {
+                nanos -= DateTimeUtils.NANOS_PER_DAY;
+                dateSum++;
             }
             return ValueTimestampTimeZone.fromDateValueAndNanos(DateTimeUtils.dateValueFromAbsoluteDay(dateSum / 2),
-                    nanos, (short) ((ts0.getTimeZoneOffsetMins() + ts1.getTimeZoneOffsetMins()) / 2));
+                    nanos, (short) (offset / 2));
         }
         default:
             // Just return first

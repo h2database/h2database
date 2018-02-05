@@ -307,10 +307,10 @@ public class TestValue extends TestBase {
     }
 
     private void testTimestamp() {
-        ValueTimestamp vts = ValueTimestamp.parse("2000-01-15 10:20:30.333222111");
+        ValueTimestamp valueTs = ValueTimestamp.parse("2000-01-15 10:20:30.333222111");
         Timestamp ts = Timestamp.valueOf("2000-01-15 10:20:30.333222111");
-        assertEquals(ts.toString(), vts.getString());
-        assertEquals(ts, vts.getTimestamp());
+        assertEquals(ts.toString(), valueTs.getString());
+        assertEquals(ts, valueTs.getTimestamp());
         Calendar c = Calendar.getInstance(TimeZone.getTimeZone("Europe/Berlin"));
         c.set(2018, 02, 25, 1, 59, 00);
         c.set(Calendar.MILLISECOND, 123);

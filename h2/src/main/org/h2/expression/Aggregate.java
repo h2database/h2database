@@ -131,7 +131,7 @@ public class Aggregate extends Expression {
         MEDIAN
     }
 
-    private static final HashMap<String, AggregateType> AGGREGATES = new HashMap<>(24);
+    private static final HashMap<String, AggregateType> AGGREGATES = new HashMap<>(25);
 
     private final AggregateType type;
     private final Select select;

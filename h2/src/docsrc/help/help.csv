@@ -498,7 +498,7 @@ qualified class name. The class must implement the interface
 Admin rights are required to execute this command.
 This command commits an open transaction in this connection.
 ","
-CREATE AGGREGATE MEDIAN FOR ""com.acme.db.Median""
+CREATE AGGREGATE SIMPLE_MEDIAN FOR ""com.acme.db.Median""
 "
 
 "Commands (DDL)","CREATE ALIAS","
@@ -821,7 +821,7 @@ Drops an existing user-defined aggregate function.
 Admin rights are required to execute this command.
 This command commits an open transaction in this connection.
 ","
-DROP AGGREGATE MEDIAN
+DROP AGGREGATE SIMPLE_MEDIAN
 "
 
 "Commands (DDL)","DROP ALIAS","
@@ -2799,6 +2799,19 @@ If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
 VAR_SAMP(X)
+"
+
+"Functions (Aggregate)","MEDIAN","
+MEDIAN( [ DISTINCT ] value )
+","
+The value separating the higher half of a values from the lower half.
+Returns the middle value or an interpolated value between two middle values if number of values is even.
+Interpolation is only supported for numeric, date, and time data types.
+NULL values are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+MEDIAN(X)
 "
 
 "Functions (Numeric)","ABS","

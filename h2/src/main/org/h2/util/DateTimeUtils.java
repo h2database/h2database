@@ -16,6 +16,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Mode;
+import org.h2.expression.Function;
 import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
@@ -594,8 +595,11 @@ public class DateTimeUtils {
      * @param field the field type
      * @return the value
      */
-    public static int getDatePart(Value date, int field) {
+    public static long getDatePart(Value date, int field) {
         Calendar c = valueToCalendar(date);
+        if(field == Function.EPOCH) {
+        	return c.getTime().getTime() / 1000;
+        }
         if (field == Calendar.YEAR) {
             return getYear(c);
         }

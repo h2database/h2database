@@ -106,7 +106,7 @@ public class Function extends Expression implements FunctionCall {
             SECOND = 114, WEEK = 115, YEAR = 116, CURRENT_DATE = 117,
             CURRENT_TIME = 118, CURRENT_TIMESTAMP = 119, EXTRACT = 120,
             FORMATDATETIME = 121, PARSEDATETIME = 122, ISO_YEAR = 123,
-            ISO_WEEK = 124, ISO_DAY_OF_WEEK = 125;
+            ISO_WEEK = 124, ISO_DAY_OF_WEEK = 125, EPOCH = 126;
 
     public static final int DATABASE = 150, USER = 151, CURRENT_USER = 152,
             IDENTITY = 153, SCOPE_IDENTITY = 154, AUTOCOMMIT = 155,
@@ -191,6 +191,7 @@ public class Function extends Expression implements FunctionCall {
         DATE_PART.put("S", Calendar.SECOND);
         DATE_PART.put("MILLISECOND", Calendar.MILLISECOND);
         DATE_PART.put("MS", Calendar.MILLISECOND);
+        DATE_PART.put("EPOCH", EPOCH);
 
         // SOUNDEX_INDEX
         String index = "7AEIOUY8HW1BFPV2CGJKQSXZ3DT4L5MN6R";
@@ -837,22 +838,22 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case DAY_OF_MONTH:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.DAY_OF_MONTH));
+            result = ValueLong.get(DateTimeUtils.getDatePart(v0, Calendar.DAY_OF_MONTH));
             break;
         case DAY_OF_WEEK:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.DAY_OF_WEEK));
+            result = ValueLong.get(DateTimeUtils.getDatePart(v0, Calendar.DAY_OF_WEEK));
             break;
         case DAY_OF_YEAR:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.DAY_OF_YEAR));
+            result = ValueLong.get(DateTimeUtils.getDatePart(v0, Calendar.DAY_OF_YEAR));
             break;
         case HOUR:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.HOUR_OF_DAY));
+            result = ValueLong.get(DateTimeUtils.getDatePart(v0, Calendar.HOUR_OF_DAY));
             break;
         case MINUTE:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.MINUTE));
+            result = ValueLong.get(DateTimeUtils.getDatePart(v0, Calendar.MINUTE));
             break;
         case MONTH:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.MONTH));
+            result = ValueLong.get(DateTimeUtils.getDatePart(v0, Calendar.MONTH));
             break;
         case MONTH_NAME: {
             SimpleDateFormat monthName = new SimpleDateFormat("MMMM",
@@ -862,16 +863,16 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case QUARTER:
-            result = ValueInt.get((DateTimeUtils.getDatePart(v0, Calendar.MONTH) - 1) / 3 + 1);
+            result = ValueLong.get((DateTimeUtils.getDatePart(v0, Calendar.MONTH) - 1) / 3 + 1);
             break;
         case SECOND:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.SECOND));
+            result = ValueLong.get(DateTimeUtils.getDatePart(v0, Calendar.SECOND));
             break;
         case WEEK:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.WEEK_OF_YEAR));
+            result = ValueLong.get(DateTimeUtils.getDatePart(v0, Calendar.WEEK_OF_YEAR));
             break;
         case YEAR:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.YEAR));
+            result = ValueLong.get(DateTimeUtils.getDatePart(v0, Calendar.YEAR));
             break;
         case ISO_YEAR:
             result = ValueInt.get(DateTimeUtils.getIsoYear(v0));
@@ -1513,7 +1514,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         case EXTRACT: {
             int field = getDatePart(v0.getString());
-            result = ValueInt.get(DateTimeUtils.getDatePart(v1, field));
+            result = ValueLong.get(DateTimeUtils.getDatePart(v1, field));
             break;
         }
         case FORMATDATETIME: {

@@ -77,7 +77,7 @@ public class Select extends Query {
     boolean[] groupByExpression;
 
     /**
-     * Thhe current group-by values.
+     * The current group-by values.
      */
     HashMap<Expression, Object> currentGroup;
 

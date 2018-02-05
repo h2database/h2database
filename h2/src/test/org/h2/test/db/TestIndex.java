@@ -262,7 +262,8 @@ public class TestIndex extends TestBase {
         c.close();
     }
 
-    private void testConcurrentUpdateRun(ConcurrentUpdateThread[] threads, PreparedStatement check) throws SQLException {
+    private void testConcurrentUpdateRun(ConcurrentUpdateThread[] threads, PreparedStatement check)
+            throws SQLException {
         for (ConcurrentUpdateThread t : threads) {
             t.start();
         }

@@ -22,7 +22,7 @@ import org.h2.util.DateTimeUtils;
  * @see <a href="https://en.wikipedia.org/wiki/ISO_8601#Time_zone_designators">
  *      ISO 8601 Time zone designators</a>
  */
-public class ValueTimestampTimeZone extends Value {
+public class ValueTimestampTimeZone extends ValueAbstractDateTime {
 
     /**
      * The precision in digits.
@@ -120,30 +120,17 @@ public class ValueTimestampTimeZone extends Value {
         }
     }
 
-    /**
-     * A bit field with bits for the year, month, and day (see DateTimeUtils for
-     * encoding).
-     *
-     * @return the data value
-     */
+    @Override
     public long getDateValue() {
         return dateValue;
     }
 
-    /**
-     * The nanoseconds since midnight.
-     *
-     * @return the nanoseconds
-     */
+    @Override
     public long getTimeNanos() {
         return timeNanos;
     }
 
-    /**
-     * The timezone offset in minutes.
-     *
-     * @return the offset
-     */
+    @Override
     public short getTimeZoneOffsetMins() {
         return timeZoneOffsetMins;
     }

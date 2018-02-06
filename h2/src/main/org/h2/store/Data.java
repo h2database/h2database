@@ -490,7 +490,7 @@ public class Data {
             if (STORE_LOCAL_TIME) {
                 writeByte((byte) LOCAL_TIME);
                 ValueTime t = (ValueTime) v;
-                long nanos = t.getNanos();
+                long nanos = t.getTimeNanos();
                 long millis = nanos / 1000000;
                 nanos -= millis * 1000000;
                 writeVarLong(millis);
@@ -1002,7 +1002,7 @@ public class Data {
         }
         case Value.TIME:
             if (STORE_LOCAL_TIME) {
-                long nanos = ((ValueTime) v).getNanos();
+                long nanos = ((ValueTime) v).getTimeNanos();
                 long millis = nanos / 1000000;
                 nanos -= millis * 1000000;
                 return 1 + getVarLongLen(millis) + getVarLongLen(nanos);

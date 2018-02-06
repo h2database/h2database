@@ -18,6 +18,7 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.value.Value;
+import org.h2.value.ValueAbstractDateTime;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueTime;
@@ -194,7 +195,7 @@ public class DateTimeUtils {
         Calendar cal = (Calendar) calendar.clone();
         cal.clear();
         cal.setLenient(true);
-        long nanos = t.getNanos();
+        long nanos = t.getTimeNanos();
         long millis = nanos / 1000000;
         nanos -= millis * 1000000;
         long s = millis / 1000;
@@ -587,15 +588,29 @@ public class DateTimeUtils {
      * @return the value
      */
     public static int getDatePart(Value date, int field) {
-        Calendar c = valueToCalendar(date);
-        if (field == Calendar.YEAR) {
-            return getYear(c);
+        ValueAbstractDateTime v;
+        if (date instanceof ValueAbstractDateTime) {
+            v = (ValueAbstractDateTime) date;
+        } else {
+            v = (ValueTimestamp) date.convertTo(Value.TIMESTAMP);
         }
-        int value = c.get(field);
-        if (field == Calendar.MONTH) {
-            return value + 1;
+        switch (field) {
+        case Calendar.YEAR:
+            return yearFromDateValue(v.getDateValue());
+        case Calendar.MONTH:
+            return monthFromDateValue(v.getDateValue());
+        case Calendar.DAY_OF_MONTH:
+            return dayFromDateValue(v.getDateValue());
+        case Calendar.HOUR_OF_DAY:
+            return (int) (v.getTimeNanos() / (60L * 60 * 1000000000) % 24);
+        case Calendar.MINUTE:
+            return (int) (v.getTimeNanos() / (60L * 1000000000) % 60);
+        case Calendar.SECOND:
+            return (int) (v.getTimeNanos() / 1000000000 % 60);
+        case Calendar.MILLISECOND:
+            return (int) (v.getTimeNanos() / 1000000 % 1000);
         }
-        return value;
+        return valueToCalendar(date).get(field);
     }
 
     /**

@@ -161,7 +161,7 @@ public class TestDate extends TestBase {
         assertEquals("05:35:35.5", t1.multiply(ValueDouble.get(0.5)).getString());
         assertEquals("22:22:22", t1.divide(ValueDouble.get(0.5)).getString());
         assertEquals(Value.TIME, t1.getType());
-        long nanos = t1.getNanos();
+        long nanos = t1.getTimeNanos();
         assertEquals((int) ((nanos >>> 32) ^ nanos), t1.hashCode());
         assertEquals(t1.getString().length(), t1.getDisplaySize());
         assertEquals(ValueTime.PRECISION, t1.getPrecision());

@@ -651,11 +651,29 @@ public class TestPreparedStatement extends TestBase {
          * Check that date that doesn't exist in proleptic Gregorian calendar can be
          * read as a next date.
          */
+        prep.setString(1, "1500-02-29");
+        rs = prep.executeQuery();
+        rs.next();
+        localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
+        assertEquals(LocalDateTimeUtils.parseLocalDate("1500-03-01"), localDate2);
+        rs.close();
+        prep.setString(1, "1400-02-29");
+        rs = prep.executeQuery();
+        rs.next();
+        localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
+        assertEquals(LocalDateTimeUtils.parseLocalDate("1400-03-01"), localDate2);
+        rs.close();
         prep.setString(1, "1300-02-29");
         rs = prep.executeQuery();
         rs.next();
         localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
         assertEquals(LocalDateTimeUtils.parseLocalDate("1300-03-01"), localDate2);
+        rs.close();
+        prep.setString(1, "-0100-02-29");
+        rs = prep.executeQuery();
+        rs.next();
+        localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
+        assertEquals(LocalDateTimeUtils.parseLocalDate("-0100-03-01"), localDate2);
         rs.close();
         /*
          * Check that date that doesn't exist in traditional calendar can be set and

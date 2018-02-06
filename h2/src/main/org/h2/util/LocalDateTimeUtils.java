@@ -502,7 +502,7 @@ public class LocalDateTimeUtils {
         try {
             return LOCAL_DATE_OF_YEAR_MONTH_DAY.invoke(null, year, month, day);
         } catch (InvocationTargetException e) {
-            if (month == 2 && day == 29) {
+            if (year <= 1500 && (year & 3) == 0 && month == 2 && day == 29) {
                 // If proleptic Gregorian doesn't have such date use the next day
                 return LOCAL_DATE_OF_YEAR_MONTH_DAY.invoke(null, year, 3, 1);
             }

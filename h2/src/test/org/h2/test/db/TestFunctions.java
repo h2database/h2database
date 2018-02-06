@@ -740,12 +740,12 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         deleteDb("functions");
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE AGGREGATE MEDIAN FOR \"" +
+        stat.execute("CREATE AGGREGATE SIMPLE_MEDIAN FOR \"" +
                 MedianStringType.class.getName() + "\"");
-        stat.execute("CREATE AGGREGATE IF NOT EXISTS MEDIAN FOR \"" +
+        stat.execute("CREATE AGGREGATE IF NOT EXISTS SIMPLE_MEDIAN FOR \"" +
                 MedianStringType.class.getName() + "\"");
         ResultSet rs = stat.executeQuery(
-                "SELECT MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
+                "SELECT SIMPLE_MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
         rs.next();
         assertEquals("5", rs.getString(1));
         conn.close();
@@ -756,22 +756,22 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
         conn = getConnection("functions");
         stat = conn.createStatement();
-        stat.executeQuery("SELECT MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
+        stat.executeQuery("SELECT SIMPLE_MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
         DatabaseMetaData meta = conn.getMetaData();
-        rs = meta.getProcedures(null, null, "MEDIAN");
+        rs = meta.getProcedures(null, null, "SIMPLE_MEDIAN");
         assertTrue(rs.next());
         assertFalse(rs.next());
         rs = stat.executeQuery("SCRIPT");
         boolean found = false;
         while (rs.next()) {
             String sql = rs.getString(1);
-            if (sql.contains("MEDIAN")) {
+            if (sql.contains("SIMPLE_MEDIAN")) {
                 found = true;
             }
         }
         assertTrue(found);
-        stat.execute("DROP AGGREGATE MEDIAN");
-        stat.execute("DROP AGGREGATE IF EXISTS MEDIAN");
+        stat.execute("DROP AGGREGATE SIMPLE_MEDIAN");
+        stat.execute("DROP AGGREGATE IF EXISTS SIMPLE_MEDIAN");
         conn.close();
     }
 
@@ -779,12 +779,12 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         deleteDb("functions");
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE AGGREGATE MEDIAN FOR \"" +
+        stat.execute("CREATE AGGREGATE SIMPLE_MEDIAN FOR \"" +
                 MedianString.class.getName() + "\"");
-        stat.execute("CREATE AGGREGATE IF NOT EXISTS MEDIAN FOR \"" +
+        stat.execute("CREATE AGGREGATE IF NOT EXISTS SIMPLE_MEDIAN FOR \"" +
                 MedianString.class.getName() + "\"");
         ResultSet rs = stat.executeQuery(
-                "SELECT MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
+                "SELECT SIMPLE_MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
         rs.next();
         assertEquals("5", rs.getString(1));
         conn.close();
@@ -795,22 +795,22 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
         conn = getConnection("functions");
         stat = conn.createStatement();
-        stat.executeQuery("SELECT MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
+        stat.executeQuery("SELECT SIMPLE_MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
         DatabaseMetaData meta = conn.getMetaData();
-        rs = meta.getProcedures(null, null, "MEDIAN");
+        rs = meta.getProcedures(null, null, "SIMPLE_MEDIAN");
         assertTrue(rs.next());
         assertFalse(rs.next());
         rs = stat.executeQuery("SCRIPT");
         boolean found = false;
         while (rs.next()) {
             String sql = rs.getString(1);
-            if (sql.contains("MEDIAN")) {
+            if (sql.contains("SIMPLE_MEDIAN")) {
                 found = true;
             }
         }
         assertTrue(found);
-        stat.execute("DROP AGGREGATE MEDIAN");
-        stat.execute("DROP AGGREGATE IF EXISTS MEDIAN");
+        stat.execute("DROP AGGREGATE SIMPLE_MEDIAN");
+        stat.execute("DROP AGGREGATE IF EXISTS SIMPLE_MEDIAN");
         conn.close();
     }
 

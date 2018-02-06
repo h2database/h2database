@@ -139,7 +139,7 @@ public class TestTools extends TestBase {
             c.runTool("-web", "-webPort", "9002", "-tool", "-browser", "-tcp",
                     "-tcpPort", "9003", "-pg", "-pgPort", "9004");
             assertContains(lastUrl, ":9002");
-            c.shutdown();
+            shutdownConsole(c);
 
             // check if starting the browser works
             c.runTool("-web", "-webPort", "9002", "-tool");
@@ -169,7 +169,7 @@ public class TestTools extends TestBase {
                 // ignore
             }
 
-            c.shutdown();
+            shutdownConsole(c);
 
             // trying to use the same port for two services should fail,
             // but also stop the first service
@@ -184,7 +184,19 @@ public class TestTools extends TestBase {
             } else {
                 System.clearProperty(SysProperties.H2_BROWSER);
             }
-            c.shutdown();
+            shutdownConsole(c);
+        }
+    }
+
+    private static void shutdownConsole(Console c) {
+        c.shutdown();
+        if (Thread.currentThread().isInterrupted()) {
+            // Clear interrupted state so test can continue its work safely
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                // Ignore
+            }
         }
     }
 

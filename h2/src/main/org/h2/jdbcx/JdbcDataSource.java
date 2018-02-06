@@ -23,6 +23,7 @@ import javax.sql.XAConnection;
 import javax.sql.XADataSource;
 import org.h2.Driver;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.util.StringUtils;
 
@@ -401,23 +402,31 @@ public class JdbcDataSource extends TraceObject implements XADataSource,
     }
 
     /**
-     * [Not supported] Return an object of this class if possible.
+     * Return an object of this class if possible.
      *
      * @param iface the class
      */
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        throw unsupported("unwrap");
+        try {
+            if (isWrapperFor(iface)) {
+                return (T) this;
+            }
+            throw DbException.getInvalidValueException("iface", iface);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**
-     * [Not supported] Checks if unwrap can return an object of this class.
+     * Checks if unwrap can return an object of this class.
      *
      * @param iface the class
      */
     @Override
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
-        throw unsupported("isWrapperFor");
+        return iface != null && iface.isAssignableFrom(getClass());
     }
 
     /**

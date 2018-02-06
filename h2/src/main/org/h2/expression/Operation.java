@@ -27,38 +27,38 @@ public class Operation extends Expression {
          * This operation represents a string concatenation as in
          * 'Hello' || 'World'.
          */
-         CONCAT,
+        CONCAT,
 
         /**
          * This operation represents an addition as in 1 + 2.
          */
-         PLUS,
+        PLUS,
 
         /**
          * This operation represents a subtraction as in 2 - 1.
          */
-         MINUS,
+        MINUS,
 
         /**
          * This operation represents a multiplication as in 2 * 3.
          */
-         MULTIPLY,
+        MULTIPLY,
 
         /**
          * This operation represents a division as in 4 * 2.
          */
-         DIVIDE,
+        DIVIDE,
 
         /**
          * This operation represents a negation as in - ID.
          */
-         NEGATE,
+        NEGATE,
 
         /**
          * This operation represents a modulus as in 5 % 2.
          */
-         MODULUS
-    };
+        MODULUS
+    }
 
     private OpType opType;
     private Expression left, right;

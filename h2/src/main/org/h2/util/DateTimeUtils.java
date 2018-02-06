@@ -43,10 +43,18 @@ public class DateTimeUtils {
      */
     public static final TimeZone UTC = TimeZone.getTimeZone("UTC");
 
-    private static final long NANOS_PER_DAY = MILLIS_PER_DAY * 1000000;
+    /**
+     * The number of nanoseconds per day.
+     */
+    public static final long NANOS_PER_DAY = MILLIS_PER_DAY * 1000000;
 
     private static final int SHIFT_YEAR = 9;
     private static final int SHIFT_MONTH = 5;
+
+    /**
+     * Date value for 1970-01-01.
+     */
+    private static final int EPOCH_DATE_VALUE = (1970 << SHIFT_YEAR) + (1 << SHIFT_MONTH) + 1;
 
     private static final int[] NORMAL_DAYS_PER_MONTH = { 0, 31, 28, 31, 30, 31,
             30, 31, 31, 30, 31, 30, 31 };
@@ -65,12 +73,12 @@ public class DateTimeUtils {
      * have that problem, and while it is still a small memory leak, it is not a
      * class loader memory leak.
      */
-    private static final ThreadLocal<Calendar> CACHED_CALENDAR = new ThreadLocal<>();
+    private static final ThreadLocal<GregorianCalendar> CACHED_CALENDAR = new ThreadLocal<>();
 
     /**
      * A cached instance of Calendar used when a timezone is specified.
      */
-    private static final ThreadLocal<Calendar> CACHED_CALENDAR_NON_DEFAULT_TIMEZONE =
+    private static final ThreadLocal<GregorianCalendar> CACHED_CALENDAR_NON_DEFAULT_TIMEZONE =
             new ThreadLocal<>();
 
     /**
@@ -102,8 +110,8 @@ public class DateTimeUtils {
      *
      * @return a calendar instance. A cached instance is returned where possible
      */
-    private static Calendar getCalendar() {
-        Calendar c = CACHED_CALENDAR.get();
+    private static GregorianCalendar getCalendar() {
+        GregorianCalendar c = CACHED_CALENDAR.get();
         if (c == null) {
             c = DateTimeUtils.createGregorianCalendar();
             CACHED_CALENDAR.set(c);
@@ -118,8 +126,8 @@ public class DateTimeUtils {
      * @param tz timezone for the calendar, is never null
      * @return a calendar instance. A cached instance is returned where possible
      */
-    private static Calendar getCalendar(TimeZone tz) {
-        Calendar c = CACHED_CALENDAR_NON_DEFAULT_TIMEZONE.get();
+    private static GregorianCalendar getCalendar(TimeZone tz) {
+        GregorianCalendar c = CACHED_CALENDAR_NON_DEFAULT_TIMEZONE.get();
         if (c == null || !c.getTimeZone().equals(tz)) {
             c = DateTimeUtils.createGregorianCalendar(tz);
             CACHED_CALENDAR_NON_DEFAULT_TIMEZONE.set(c);
@@ -137,7 +145,7 @@ public class DateTimeUtils {
      *
      * @return a new calendar instance.
      */
-    public static Calendar createGregorianCalendar() {
+    public static GregorianCalendar createGregorianCalendar() {
         return new GregorianCalendar();
     }
 
@@ -151,7 +159,7 @@ public class DateTimeUtils {
      * @param tz timezone for the calendar, is never null
      * @return a new calendar instance.
      */
-    public static Calendar createGregorianCalendar(TimeZone tz) {
+    public static GregorianCalendar createGregorianCalendar(TimeZone tz) {
         return new GregorianCalendar(tz);
     }
 
@@ -520,9 +528,15 @@ public class DateTimeUtils {
      */
     public static long getMillis(TimeZone tz, int year, int month, int day,
             int hour, int minute, int second, int millis) {
+        GregorianCalendar c;
+        if (tz == null) {
+            c = getCalendar();
+        } else {
+            c = getCalendar(tz);
+        }
+        c.setLenient(false);
         try {
-            return getTimeTry(false, tz, year, month, day, hour, minute, second,
-                    millis);
+            return convertToMillis(c, year, month, day, hour, minute, second, millis);
         } catch (IllegalArgumentException e) {
             // special case: if the time simply doesn't exist because of
             // daylight saving time changes, use the lenient version
@@ -531,12 +545,10 @@ public class DateTimeUtils {
                 if (hour < 0 || hour > 23) {
                     throw e;
                 }
-                return getTimeTry(true, tz, year, month, day, hour, minute,
-                        second, millis);
             } else if (message.indexOf("DAY_OF_MONTH") > 0) {
                 int maxDay;
                 if (month == 2) {
-                    maxDay = new GregorianCalendar().isLeapYear(year) ? 29 : 28;
+                    maxDay = c.isLeapYear(year) ? 29 : 28;
                 } else {
                     maxDay = 30 + ((month + (month > 7 ? 1 : 0)) & 1);
                 }
@@ -547,25 +559,10 @@ public class DateTimeUtils {
                 // using the timezone Brasilia and others,
                 // for example for 2042-10-12 00:00:00.
                 hour += 6;
-                return getTimeTry(true, tz, year, month, day, hour, minute,
-                        second, millis);
-            } else {
-                return getTimeTry(true, tz, year, month, day, hour, minute,
-                        second, millis);
             }
+            c.setLenient(true);
+            return convertToMillis(c, year, month, day, hour, minute, second, millis);
         }
-    }
-
-    private static long getTimeTry(boolean lenient, TimeZone tz, int year,
-            int month, int day, int hour, int minute, int second, int millis) {
-        Calendar c;
-        if (tz == null) {
-            c = getCalendar();
-        } else {
-            c = getCalendar(tz);
-        }
-        c.setLenient(lenient);
-        return convertToMillis(c, year, month, day, hour, minute, second, millis);
     }
 
     private static long convertToMillis(Calendar cal, int year, int month, int day,
@@ -595,19 +592,45 @@ public class DateTimeUtils {
      * @param field the field type
      * @return the value
      */
-    public static long getDatePart(Value date, int field) {
-        Calendar c = valueToCalendar(date);
-        if(field == Function.EPOCH) {
-        	return c.getTime().getTime() / 1000;
+
+    public static int getDatePart(Value date, int field) {
+        long dateValue = EPOCH_DATE_VALUE;
+        long timeNanos = 0;
+        if (date instanceof ValueTimestamp) {
+            ValueTimestamp v = (ValueTimestamp) date;
+            dateValue = v.getDateValue();
+            timeNanos = v.getTimeNanos();
+        } else if (date instanceof ValueDate) {
+            dateValue = ((ValueDate) date).getDateValue();
+        } else if (date instanceof ValueTime) {
+            timeNanos = ((ValueTime) date).getNanos();
+        } else if (date instanceof ValueTimestampTimeZone) {
+            ValueTimestampTimeZone v = (ValueTimestampTimeZone) date;
+            dateValue = v.getDateValue();
+            timeNanos = v.getTimeNanos();
+        } else {
+            ValueTimestamp v = (ValueTimestamp) date.convertTo(Value.TIMESTAMP);
+            date = v; // For valueToCalendar() to avoid second convertTo() call
+            dateValue = v.getDateValue();
+            timeNanos = v.getTimeNanos();
         }
-        if (field == Calendar.YEAR) {
-            return getYear(c);
+        switch (field) {
+        case Calendar.YEAR:
+            return yearFromDateValue(dateValue);
+        case Calendar.MONTH:
+            return monthFromDateValue(dateValue);
+        case Calendar.DAY_OF_MONTH:
+            return dayFromDateValue(dateValue);
+        case Calendar.HOUR_OF_DAY:
+            return (int) (timeNanos / 3_600_000_000_000L % 24);
+        case Calendar.MINUTE:
+            return (int) (timeNanos / 60_000_000_000L % 60);
+        case Calendar.SECOND:
+            return (int) (timeNanos / 1_000_000_000 % 60);
+        case Calendar.MILLISECOND:
+            return (int) (timeNanos / 1_000_000 % 1_000);
         }
-        int value = c.get(field);
-        if (field == Calendar.MONTH) {
-            return value + 1;
-        }
-        return value;
+        return valueToCalendar(date).get(field);
     }
 
     /**

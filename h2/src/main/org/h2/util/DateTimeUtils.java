@@ -50,6 +50,11 @@ public class DateTimeUtils {
     private static final int SHIFT_YEAR = 9;
     private static final int SHIFT_MONTH = 5;
 
+    /**
+     * Date value for 1970-01-01.
+     */
+    private static final int EPOCH_DATE_VALUE = (1970 << SHIFT_YEAR) + (1 << SHIFT_MONTH) + 1;
+
     private static final int[] NORMAL_DAYS_PER_MONTH = { 0, 31, 28, 31, 30, 31,
             30, 31, 31, 30, 31, 30, 31 };
 
@@ -587,15 +592,43 @@ public class DateTimeUtils {
      * @return the value
      */
     public static int getDatePart(Value date, int field) {
-        Calendar c = valueToCalendar(date);
-        if (field == Calendar.YEAR) {
-            return getYear(c);
+        long dateValue = EPOCH_DATE_VALUE;
+        long timeNanos = 0;
+        if (date instanceof ValueTimestamp) {
+            ValueTimestamp v = (ValueTimestamp) date;
+            dateValue = v.getDateValue();
+            timeNanos = v.getTimeNanos();
+        } else if (date instanceof ValueDate) {
+            dateValue = ((ValueDate) date).getDateValue();
+        } else if (date instanceof ValueTime) {
+            timeNanos = ((ValueTime) date).getNanos();
+        } else if (date instanceof ValueTimestampTimeZone) {
+            ValueTimestampTimeZone v = (ValueTimestampTimeZone) date;
+            dateValue = v.getDateValue();
+            timeNanos = v.getTimeNanos();
+        } else {
+            ValueTimestamp v = (ValueTimestamp) date.convertTo(Value.TIMESTAMP);
+            date = v; // For valueToCalendar() to avoid second convertTo() call
+            dateValue = v.getDateValue();
+            timeNanos = v.getTimeNanos();
         }
-        int value = c.get(field);
-        if (field == Calendar.MONTH) {
-            return value + 1;
+        switch (field) {
+        case Calendar.YEAR:
+            return yearFromDateValue(dateValue);
+        case Calendar.MONTH:
+            return monthFromDateValue(dateValue);
+        case Calendar.DAY_OF_MONTH:
+            return dayFromDateValue(dateValue);
+        case Calendar.HOUR_OF_DAY:
+            return (int) (timeNanos / 3_600_000_000_000L % 24);
+        case Calendar.MINUTE:
+            return (int) (timeNanos / 60_000_000_000L % 60);
+        case Calendar.SECOND:
+            return (int) (timeNanos / 1_000_000_000 % 60);
+        case Calendar.MILLISECOND:
+            return (int) (timeNanos / 1_000_000 % 1_000);
         }
-        return value;
+        return valueToCalendar(date).get(field);
     }
 
     /**

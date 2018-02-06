@@ -16,6 +16,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Mode;
+import org.h2.expression.Function;
 import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
@@ -23,6 +24,7 @@ import org.h2.value.ValueNull;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
+
 
 /**
  * This utility class contains time conversion functions.
@@ -296,30 +298,6 @@ public class DateTimeUtils {
         long nanos = nanosFromCalendar(cal);
         nanos += x.getNanos() % 1000000;
         return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
-    }
-
-    private static Calendar valueToCalendar(Value value) {
-        Calendar cal;
-        if (value instanceof ValueTimestamp) {
-            cal = createGregorianCalendar();
-            cal.setTime(value.getTimestamp());
-        } else if (value instanceof ValueDate) {
-            cal = createGregorianCalendar();
-            cal.setTime(value.getDate());
-        } else if (value instanceof ValueTime) {
-            cal = createGregorianCalendar();
-            cal.setTime(value.getTime());
-        } else if (value instanceof ValueTimestampTimeZone) {
-            ValueTimestampTimeZone v = (ValueTimestampTimeZone) value;
-            cal = createGregorianCalendar(v.getTimeZone());
-            cal.setTimeInMillis(DateTimeUtils.convertDateValueToMillis(DateTimeUtils.UTC, v.getDateValue())
-                    + v.getTimeNanos() / 1000000L
-                    - v.getTimeZoneOffsetMins() * 60000);
-        } else {
-            cal = createGregorianCalendar();
-            cal.setTime(value.getTimestamp());
-        }
-        return cal;
     }
 
     /**
@@ -608,7 +586,6 @@ public class DateTimeUtils {
             timeNanos = v.getTimeNanos();
         } else {
             ValueTimestamp v = (ValueTimestamp) date.convertTo(Value.TIMESTAMP);
-            date = v; // For valueToCalendar() to avoid second convertTo() call
             dateValue = v.getDateValue();
             timeNanos = v.getTimeNanos();
         }
@@ -627,8 +604,23 @@ public class DateTimeUtils {
             return (int) (timeNanos / 1_000_000_000 % 60);
         case Calendar.MILLISECOND:
             return (int) (timeNanos / 1_000_000 % 1_000);
+        case Calendar.DAY_OF_YEAR:
+            return getDayOfYear(dateValue);
+        case Calendar.DAY_OF_WEEK:
+            return getSundayDayOfWeek(dateValue);
+        case Calendar.WEEK_OF_YEAR:
+            GregorianCalendar gc = getCalendar();
+            return getWeekOfYear(dateValue, gc.getFirstDayOfWeek() - 1, gc.getMinimalDaysInFirstWeek());
+        case Function.QUARTER:
+            return (monthFromDateValue(dateValue) - 1) / 3 + 1;
+        case Function.ISO_YEAR:
+            return getIsoWeekYear(dateValue);
+        case Function.ISO_WEEK:
+            return getIsoWeekOfYear(dateValue);
+        case Function.ISO_DAY_OF_WEEK:
+            return getIsoDayOfWeek(dateValue);
         }
-        return valueToCalendar(date).get(field);
+        throw DbException.getUnsupportedException("getDatePart(" + date + ", " + field + ')');
     }
 
     /**
@@ -668,57 +660,144 @@ public class DateTimeUtils {
     }
 
     /**
-     * Return the day of week according to the ISO 8601 specification. Week
-     * starts at Monday. See also http://en.wikipedia.org/wiki/ISO_8601
+     * Returns day of week.
      *
-     * @author Robert Rathsack
-     * @param value the date object which day of week should be calculated
-     * @return the day of the week, Monday as 1 to Sunday as 7
+     * @param dateValue
+     *            the date value
+     * @param firstDayOfWeek
+     *            first day of week, Monday as 1, Sunday as 7 or 0
+     * @return day of week
+     * @see #getIsoDayOfWeek(long)
      */
-    public static int getIsoDayOfWeek(Value value) {
-        int val = valueToCalendar(value).get(Calendar.DAY_OF_WEEK) - 1;
-        return val == 0 ? 7 : val;
+    public static int getDayOfWeek(long dateValue, int firstDayOfWeek) {
+        return getDayOfWeekFromAbsolute(absoluteDayFromDateValue(dateValue), firstDayOfWeek);
+    }
+
+    private static int getDayOfWeekFromAbsolute(long absoluteValue, int firstDayOfWeek) {
+        return absoluteValue >= 0 ? (int) ((absoluteValue - firstDayOfWeek + 11) % 7) + 1
+                : (int) ((absoluteValue - firstDayOfWeek - 2) % 7) + 7;
     }
 
     /**
-     * Returns the week of the year according to the ISO 8601 specification. The
-     * spec defines the first week of the year as the week which contains at
-     * least 4 days of the new year. The week starts at Monday. Therefore
-     * December 29th - 31th could belong to the next year and January 1st - 3th
-     * could belong to the previous year. If January 1st is on Thursday (or
-     * earlier) it belongs to the first week, otherwise to the last week of the
-     * previous year. Hence January 4th always belongs to the first week while
-     * the December 28th always belongs to the last week.
+     * Returns number of day in year.
      *
-     * @author Robert Rathsack
-     * @param value the date object which week of year should be calculated
-     * @return the week of the year
+     * @param dateValue
+     *            the date value
+     * @return number of day in year
      */
-    public static int getIsoWeek(Value value) {
-        Calendar c = valueToCalendar(value);
-        c.setFirstDayOfWeek(Calendar.MONDAY);
-        c.setMinimalDaysInFirstWeek(4);
-        return c.get(Calendar.WEEK_OF_YEAR);
+    public static int getDayOfYear(long dateValue) {
+        int year = yearFromDateValue(dateValue);
+        return (int) (absoluteDayFromDateValue(dateValue) - absoluteDayFromDateValue(dateValue(year, 1, 1))) + 1;
     }
 
     /**
-     * Returns the year according to the ISO week definition.
+     * Returns ISO day of week.
      *
-     * @author Robert Rathsack
-     * @param value the date object which year should be calculated
-     * @return the year
+     * @param dateValue
+     *            the date value
+     * @return ISO day of week, Monday as 1 to Sunday as 7
+     * @see #getSundayDayOfWeek(long)
      */
-    public static int getIsoYear(Value value) {
-        Calendar cal = valueToCalendar(value);
-        cal.setFirstDayOfWeek(Calendar.MONDAY);
-        cal.setMinimalDaysInFirstWeek(4);
-        int year = getYear(cal);
-        int month = cal.get(Calendar.MONTH);
-        int week = cal.get(Calendar.WEEK_OF_YEAR);
-        if (month == 0 && week > 51) {
-            year--;
-        } else if (month == 11 && week == 1) {
-            year++;
+    public static int getIsoDayOfWeek(long dateValue) {
+        return getDayOfWeek(dateValue, 1);
+    }
+
+    /**
+     * Returns ISO number of week in year.
+     *
+     * @param dateValue
+     *            the date value
+     * @return number of week in year
+     * @see #getIsoWeekYear(long)
+     * @see #getWeekOfYear(long, int, int)
+     */
+    public static int getIsoWeekOfYear(long dateValue) {
+        return getWeekOfYear(dateValue, 1, 4);
+    }
+
+    /**
+     * Returns ISO week year.
+     *
+     * @param dateValue
+     *            the date value
+     * @return ISO week year
+     * @see #getIsoWeekOfYear(long)
+     * @see #getWeekYear(long, int, int)
+     */
+    public static int getIsoWeekYear(long dateValue) {
+        return getWeekYear(dateValue, 1, 4);
+    }
+
+    /**
+     * Returns day of week with Sunday as 1.
+     *
+     * @param dateValue
+     *            the date value
+     * @return day of week, Sunday as 1 to Monday as 7
+     * @see #getIsoDayOfWeek(long)
+     */
+    public static int getSundayDayOfWeek(long dateValue) {
+        return getDayOfWeek(dateValue, 0);
+    }
+
+    /**
+     * Returns number of week in year.
+     *
+     * @param dateValue
+     *            the date value
+     * @param firstDayOfWeek
+     *            first day of week, Monday as 1, Sunday as 7 or 0
+     * @param minimalDaysInFirstWeek
+     *            minimal days in first week of year
+     * @return number of week in year
+     * @see #getIsoWeekOfYear(long)
+     */
+    public static int getWeekOfYear(long dateValue, int firstDayOfWeek, int minimalDaysInFirstWeek) {
+        long abs = absoluteDayFromDateValue(dateValue);
+        int year = yearFromDateValue(dateValue);
+        long base = getWeekOfYearBase(year, firstDayOfWeek, minimalDaysInFirstWeek);
+        if (abs - base < 0) {
+            base = getWeekOfYearBase(year - 1, firstDayOfWeek, minimalDaysInFirstWeek);
+        } else if (monthFromDateValue(dateValue) == 12 && 24 + minimalDaysInFirstWeek < dayFromDateValue(dateValue)) {
+            if (abs >= getWeekOfYearBase(year + 1, firstDayOfWeek, minimalDaysInFirstWeek)) {
+                return 1;
+            }
+        }
+        return (int) ((abs - base) / 7) + 1;
+    }
+
+    private static long getWeekOfYearBase(int year, int firstDayOfWeek, int minimalDaysInFirstWeek) {
+        long first = absoluteDayFromDateValue(dateValue(year, 1, 1));
+        int daysInFirstWeek = 8 - getDayOfWeekFromAbsolute(first, firstDayOfWeek);
+        long base = first + daysInFirstWeek;
+        if (daysInFirstWeek >= minimalDaysInFirstWeek) {
+            base -= 7;
+        }
+        return base;
+    }
+
+    /**
+     * Returns week year.
+     *
+     * @param dateValue
+     *            the date value
+     * @param firstDayOfWeek
+     *            first day of week, Monday as 1, Sunday as 7 or 0
+     * @param minimalDaysInFirstWeek
+     *            minimal days in first week of year
+     * @return week year
+     * @see #getIsoWeekYear(long)
+     */
+    public static int getWeekYear(long dateValue, int firstDayOfWeek, int minimalDaysInFirstWeek) {
+        long abs = absoluteDayFromDateValue(dateValue);
+        int year = yearFromDateValue(dateValue);
+        long base = getWeekOfYearBase(year, firstDayOfWeek, minimalDaysInFirstWeek);
+        if (abs - base < 0) {
+            return year - 1;
+        } else if (monthFromDateValue(dateValue) == 12 && 24 + minimalDaysInFirstWeek < dayFromDateValue(dateValue)) {
+            if (abs >= getWeekOfYearBase(year + 1, firstDayOfWeek, minimalDaysInFirstWeek)) {
+                return year + 1;
+            }
         }
         return year;
     }

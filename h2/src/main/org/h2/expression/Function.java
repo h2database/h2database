@@ -862,7 +862,10 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case QUARTER:
-            result = ValueInt.get((DateTimeUtils.getDatePart(v0, Calendar.MONTH) - 1) / 3 + 1);
+        case ISO_YEAR:
+        case ISO_WEEK:
+        case ISO_DAY_OF_WEEK:
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0, info.type));
             break;
         case SECOND:
             result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.SECOND));
@@ -872,15 +875,6 @@ public class Function extends Expression implements FunctionCall {
             break;
         case YEAR:
             result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.YEAR));
-            break;
-        case ISO_YEAR:
-            result = ValueInt.get(DateTimeUtils.getIsoYear(v0));
-            break;
-        case ISO_WEEK:
-            result = ValueInt.get(DateTimeUtils.getIsoWeek(v0));
-            break;
-        case ISO_DAY_OF_WEEK:
-            result = ValueInt.get(DateTimeUtils.getIsoDayOfWeek(v0));
             break;
         case CURDATE:
         case CURRENT_DATE: {

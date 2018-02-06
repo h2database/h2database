@@ -12,7 +12,6 @@ import java.lang.reflect.Method;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
@@ -61,58 +60,103 @@ public class LocalDateTimeUtils {
      */
     public static final Class<?> OFFSET_DATE_TIME;
 
-    // Class<java.time.ZoneOffset>
+    /**
+     * {@code Class<java.time.ZoneOffset>} or {@code null}.
+     */
     private static final Class<?> ZONE_OFFSET;
 
-    // java.time.LocalTime#ofNanoOfDay()
+    /**
+     * {@code java.time.LocalTime#ofNanoOfDay()} or {@code null}.
+     */
     private static final Method LOCAL_TIME_OF_NANO;
 
-    // java.time.LocalTime#toNanoOfDay()
+    /**
+     * {@code java.time.LocalTime#toNanoOfDay()} or {@code null}.
+     */
     private static final Method LOCAL_TIME_TO_NANO;
 
-    // java.time.LocalDate#of(int, int, int)
+    /**
+     * {@code java.time.LocalDate#of(int, int, int)} or {@code null}.
+     */
     private static final Method LOCAL_DATE_OF_YEAR_MONTH_DAY;
-    // java.time.LocalDate#parse(CharSequence)
+    /**
+     * {@code java.time.LocalDate#parse(CharSequence)} or {@code null}.
+     */
     private static final Method LOCAL_DATE_PARSE;
-    // java.time.LocalDate#getYear()
+    /**
+     * {@code java.time.LocalDate#getYear()} or {@code null}.
+     */
     private static final Method LOCAL_DATE_GET_YEAR;
-    // java.time.LocalDate#getMonthValue()
+    /**
+     * {@code java.time.LocalDate#getMonthValue()} or {@code null}.
+     */
     private static final Method LOCAL_DATE_GET_MONTH_VALUE;
-    // java.time.LocalDate#getDayOfMonth()
+    /**
+     * {@code java.time.LocalDate#getDayOfMonth()} or {@code null}.
+     */
     private static final Method LOCAL_DATE_GET_DAY_OF_MONTH;
-    // java.time.LocalDate#atStartOfDay()
+    /**
+     * {@code java.time.LocalDate#atStartOfDay()} or {@code null}.
+     */
     private static final Method LOCAL_DATE_AT_START_OF_DAY;
 
-    // java.sql.Timestamp.from(java.time.Instant)
+    /**
+     * {@code java.sql.Timestamp.from(java.time.Instant)} or {@code null}.
+     */
     private static final Method TIMESTAMP_FROM;
-    // java.sql.Timestamp.toInstant()
+    /**
+     * {@code java.sql.Timestamp.toInstant()} or {@code null}.
+     */
     private static final Method TIMESTAMP_TO_INSTANT;
 
-    // java.time.LocalTime#parse(CharSequence)
+    /**
+     * {@code java.time.LocalTime#parse(CharSequence)} or {@code null}.
+     */
     private static final Method LOCAL_TIME_PARSE;
 
-    // java.time.LocalDateTime#plusNanos(long)
+    /**
+     * {@code java.time.LocalDateTime#plusNanos(long)} or {@code null}.
+     */
     private static final Method LOCAL_DATE_TIME_PLUS_NANOS;
-    // java.time.LocalDateTime#toLocalDate()
+    /**
+     * {@code java.time.LocalDateTime#toLocalDate()} or {@code null}.
+     */
     private static final Method LOCAL_DATE_TIME_TO_LOCAL_DATE;
-    // java.time.LocalDateTime#toLocalTime()
+    /**
+     * {@code java.time.LocalDateTime#toLocalTime()} or {@code null}.
+     */
     private static final Method LOCAL_DATE_TIME_TO_LOCAL_TIME;
-    // java.time.LocalDateTime#parse(CharSequence)
+    /**
+     * {@code java.time.LocalDateTime#parse(CharSequence)} or {@code null}.
+     */
     private static final Method LOCAL_DATE_TIME_PARSE;
 
-    // java.time.ZoneOffset#ofTotalSeconds(int)
+    /**
+     * {@code java.time.ZoneOffset#ofTotalSeconds(int)} or {@code null}.
+     */
     private static final Method ZONE_OFFSET_OF_TOTAL_SECONDS;
 
-    // java.time.OffsetDateTime#of(LocalDateTime, ZoneOffset)
+    /**
+     * {@code java.time.OffsetDateTime#of(LocalDateTime, ZoneOffset)} or
+     * {@code null}.
+     */
     private static final Method OFFSET_DATE_TIME_OF_LOCAL_DATE_TIME_ZONE_OFFSET;
-    // java.time.OffsetDateTime#parse(CharSequence)
+    /**
+     * {@code java.time.OffsetDateTime#parse(CharSequence)} or {@code null}.
+     */
     private static final Method OFFSET_DATE_TIME_PARSE;
-    // java.time.OffsetDateTime#toLocalDateTime()
+    /**
+     * {@code java.time.OffsetDateTime#toLocalDateTime()} or {@code null}.
+     */
     private static final Method OFFSET_DATE_TIME_TO_LOCAL_DATE_TIME;
-    // java.time.OffsetDateTime#getOffset()
+    /**
+     * {@code java.time.OffsetDateTime#getOffset()} or {@code null}.
+     */
     private static final Method OFFSET_DATE_TIME_GET_OFFSET;
 
-    // java.time.ZoneOffset#getTotalSeconds()
+    /**
+     * {@code java.time.ZoneOffset#getTotalSeconds()} or {@code null}.
+     */
     private static final Method ZONE_OFFSET_GET_TOTAL_SECONDS;
 
     private static final boolean IS_JAVA8_DATE_API_PRESENT;

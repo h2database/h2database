@@ -1887,34 +1887,34 @@ public class Function extends Expression implements FunctionCall {
                 calendar.get(Calendar.DAY_OF_WEEK),
                 calendar.get(Calendar.MILLISECOND));
         switch (field) {
-        case Function.MILLISECOND:
+        case MILLISECOND:
             return t2 - t1;
-        case Function.SECOND:
-        case Function.MINUTE:
-        case Function.HOUR:
-        case Function.DAY_OF_YEAR:
-        case Function.WEEK: {
+        case SECOND:
+        case MINUTE:
+        case HOUR:
+        case DAY_OF_YEAR:
+        case WEEK: {
             // first 'normalize' the numbers so both are not negative
             long hour = 60 * 60 * 1000;
             long add = Math.min(t1 / hour * hour, t2 / hour * hour);
             t1 -= add;
             t2 -= add;
             switch (field) {
-            case Function.SECOND:
+            case SECOND:
                 return t2 / 1000 - t1 / 1000;
-            case Function.MINUTE:
+            case MINUTE:
                 return t2 / (60 * 1000) - t1 / (60 * 1000);
-            case Function.HOUR:
+            case HOUR:
                 return t2 / hour - t1 / hour;
-            case Function.DAY_OF_YEAR:
+            case DAY_OF_YEAR:
                 return t2 / (hour * 24) - t1 / (hour * 24);
-            case Function.WEEK:
+            case WEEK:
                 return t2 / (hour * 24 * 7) - t1 / (hour * 24 * 7);
             default:
                 throw DbException.throwInternalError("field:" + field);
             }
         }
-        case Function.DAY_OF_MONTH:
+        case DAY_OF_MONTH:
             return t2 / (24 * 60 * 60 * 1000) - t1 / (24 * 60 * 60 * 1000);
         default:
             break;
@@ -1927,9 +1927,9 @@ public class Function extends Expression implements FunctionCall {
         int year2 = calendar.get(Calendar.YEAR);
         int month2 = calendar.get(Calendar.MONTH);
         int result = year2 - year1;
-        if (field == Function.MONTH) {
+        if (field == MONTH) {
             return 12 * result + (month2 - month1);
-        } else if (field == Function.YEAR) {
+        } else if (field == YEAR) {
             return result;
         } else {
             throw DbException.getUnsupportedException("DATEDIFF " + part);

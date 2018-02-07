@@ -40,6 +40,7 @@ import org.h2.engine.ConnectionInfo;
 import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcPreparedStatement;
+import org.h2.jdbc.JdbcResultSet;
 import org.h2.jdbc.JdbcStatement;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
@@ -49,6 +50,8 @@ import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.CaseInsensitiveMap;
+import org.h2.value.Value;
+import org.h2.value.ValueNull;
 
 /**
  * One server thread is opened for each client.
@@ -534,146 +537,94 @@ public class PgServerThread implements Runnable {
 
     private void writeDataColumn(ResultSet rs, int column, int pgType, boolean text)
             throws Exception {
+        Value v = ((JdbcResultSet) rs).get(column);
+        if (v == ValueNull.INSTANCE) {
+            writeInt(-1);
+            return;
+        }
         if (text) {
             // plain text
             switch (pgType) {
-            case PgServer.PG_TYPE_BOOL: {
-                boolean b = rs.getBoolean(column);
-                if (rs.wasNull()) {
-                    writeInt(-1);
-                } else {
-                    writeInt(1);
-                    dataOut.writeByte(b ? 't' : 'f');
-                }
+            case PgServer.PG_TYPE_BOOL:
+                writeInt(1);
+                dataOut.writeByte(v.getBoolean() ? 't' : 'f');
                 break;
-            }
             default:
-                String s = rs.getString(column);
-                if (s == null) {
-                    writeInt(-1);
-                } else {
-                    byte[] data = s.getBytes(getEncoding());
-                    writeInt(data.length);
-                    write(data);
-                }
+                byte[] data = v.getString().getBytes(getEncoding());
+                writeInt(data.length);
+                write(data);
             }
         } else {
             // binary
             switch (pgType) {
-            case PgServer.PG_TYPE_INT2: {
-                short s = rs.getShort(column);
-                if (rs.wasNull()) {
-                    writeInt(-1);
-                } else {
-                    writeInt(2);
-                    writeShort(s);
-                }
+            case PgServer.PG_TYPE_INT2:
+                writeInt(2);
+                writeShort(v.getShort());
                 break;
-            }
-            case PgServer.PG_TYPE_INT4: {
-                int i = rs.getInt(column);
-                if (rs.wasNull()) {
-                    writeInt(-1);
-                } else {
-                    writeInt(4);
-                    writeInt(i);
-                }
+            case PgServer.PG_TYPE_INT4:
+                writeInt(4);
+                writeInt(v.getInt());
                 break;
-            }
-            case PgServer.PG_TYPE_INT8: {
-                long l = rs.getLong(column);
-                if (rs.wasNull()) {
-                    writeInt(-1);
-                } else {
-                    writeInt(8);
-                    dataOut.writeLong(l);
-                }
+            case PgServer.PG_TYPE_INT8:
+                writeInt(8);
+                dataOut.writeLong(v.getLong());
                 break;
-            }
-            case PgServer.PG_TYPE_FLOAT4: {
-                float f = rs.getFloat(column);
-                if (rs.wasNull()) {
-                    writeInt(-1);
-                } else {
-                    writeInt(4);
-                    dataOut.writeFloat(f);
-                }
+            case PgServer.PG_TYPE_FLOAT4:
+                writeInt(4);
+                dataOut.writeFloat(v.getFloat());
                 break;
-            }
-            case PgServer.PG_TYPE_FLOAT8: {
-                double d = rs.getDouble(column);
-                if (rs.wasNull()) {
-                    writeInt(-1);
-                } else {
-                    writeInt(8);
-                    dataOut.writeDouble(d);
-                }
+            case PgServer.PG_TYPE_FLOAT8:
+                writeInt(8);
+                dataOut.writeDouble(v.getDouble());
                 break;
-            }
             case PgServer.PG_TYPE_BYTEA: {
-                byte[] data = rs.getBytes(column);
-                if (data == null) {
-                    writeInt(-1);
-                } else {
-                    writeInt(data.length);
-                    write(data);
-                }
+                byte[] data = v.getBytesNoCopy();
+                writeInt(data.length);
+                write(data);
                 break;
             }
             case PgServer.PG_TYPE_DATE: {
-                Date d = rs.getDate(column);
-                if (d == null) {
-                    writeInt(-1);
-                } else {
-                    writeInt(4);
-                    long millis = d.getTime();
-                    millis += TimeZone.getDefault().getOffset(millis);
-                    writeInt((int) (toPostgreSeconds(millis) / 86400));
-                }
+                Date d = v.getDate();
+                writeInt(4);
+                long millis = d.getTime();
+                millis += TimeZone.getDefault().getOffset(millis);
+                writeInt((int) (toPostgreSeconds(millis) / 86400));
                 break;
             }
             case PgServer.PG_TYPE_TIME: {
-                Time t = rs.getTime(column);
-                if (t == null) {
-                    writeInt(-1);
+                Time t = v.getTime();
+                writeInt(8);
+                long m = t.getTime();
+                m += TimeZone.getDefault().getOffset(m);
+                if (INTEGER_DATE_TYPES) {
+                    // long format
+                    m *= 1000;
                 } else {
-                    writeInt(8);
-                    long m = t.getTime();
-                    m += TimeZone.getDefault().getOffset(m);
-                    if (INTEGER_DATE_TYPES) {
-                        // long format
-                        m *= 1000;
-                    } else {
-                        // double format
-                        m /= 1000;
-                        m = Double.doubleToLongBits(m);
-                    }
-                    dataOut.writeLong(m);
+                    // double format
+                    m /= 1000;
+                    m = Double.doubleToLongBits(m);
                 }
+                dataOut.writeLong(m);
                 break;
             }
             case PgServer.PG_TYPE_TIMESTAMP_NO_TMZONE: {
-                Timestamp t = rs.getTimestamp(column);
-                if (t == null) {
-                    writeInt(-1);
-                } else {
-                    writeInt(8);
-                    long m = t.getTime();
-                    m += TimeZone.getDefault().getOffset(m);
-                    m = toPostgreSeconds(m);
-                    int nanos = t.getNanos();
-                    if (m < 0 && nanos != 0) {
-                        m--;
-                    }
-                    if (INTEGER_DATE_TYPES) {
-                        // long format
-                        m = m * 1000000 + nanos / 1000;
-                    } else {
-                        // double format
-                        m = Double.doubleToLongBits(m + nanos * 0.000000001);
-                    }
-                    dataOut.writeLong(m);
+                Timestamp t = v.getTimestamp();
+                writeInt(8);
+                long m = t.getTime();
+                m += TimeZone.getDefault().getOffset(m);
+                m = toPostgreSeconds(m);
+                int nanos = t.getNanos();
+                if (m < 0 && nanos != 0) {
+                    m--;
                 }
+                if (INTEGER_DATE_TYPES) {
+                    // long format
+                    m = m * 1000000 + nanos / 1000;
+                } else {
+                    // double format
+                    m = Double.doubleToLongBits(m + nanos * 0.000000001);
+                }
+                dataOut.writeLong(m);
                 break;
             }
             default: throw new IllegalStateException("output binary format is undefined");

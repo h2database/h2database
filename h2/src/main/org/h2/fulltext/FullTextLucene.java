@@ -703,11 +703,21 @@ public class FullTextLucene extends FullText {
             searcher = new IndexSearcher(reader);
         }
 
+        /**
+         * Start using the searcher.
+         *
+         * @return the searcher
+         */
         synchronized IndexSearcher getSearcher() {
             ++counter;
             return searcher;
         }
 
+        /**
+         * Stop using the searcher.
+         *
+         * @param searcher the searcher
+         */
         synchronized void returnSearcher(IndexSearcher searcher) {
             if (this.searcher == searcher) {
                 --counter;
@@ -738,6 +748,9 @@ public class FullTextLucene extends FullText {
             searcher = new IndexSearcher(IndexReader.open(writer, true));
         }
 
+        /**
+         * Close the index.
+         */
         public synchronized void close() throws IOException {
             for (IndexSearcher searcher : counters.keySet()) {
                 closeSearcher(searcher);

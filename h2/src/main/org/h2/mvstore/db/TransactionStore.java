@@ -896,6 +896,9 @@ public class TransactionStore {
          */
         final MVMap<K, VersionedValue> map;
 
+        /**
+         * The transaction which is used for this map.
+         */
         final Transaction transaction;
 
         TransactionMap(Transaction transaction, MVMap<K, VersionedValue> map,

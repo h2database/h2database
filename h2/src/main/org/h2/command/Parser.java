@@ -3001,6 +3001,53 @@ public class Parser {
         return new ExpressionColumn(database, null, objectName, name);
     }
 
+    private Parameter readParameter() {
+        // there must be no space between ? and the number
+        boolean indexed = Character.isDigit(sqlCommandChars[parseIndex]);
+
+        Parameter p;
+        if (indexed) {
+            readParameterIndex();
+            if (indexedParameterList == null) {
+                if (parameters == null) {
+                    // this can occur when parsing expressions only (for
+                    // example check constraints)
+                    throw getSyntaxError();
+                } else if (parameters.size() > 0) {
+                    throw DbException
+                            .get(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
+                }
+                indexedParameterList = New.arrayList();
+            }
+            int index = currentValue.getInt() - 1;
+            if (index < 0 || index >= Constants.MAX_PARAMETER_INDEX) {
+                throw DbException.getInvalidValueException(
+                        "parameter index", index);
+            }
+            if (indexedParameterList.size() <= index) {
+                indexedParameterList.ensureCapacity(index + 1);
+                while (indexedParameterList.size() <= index) {
+                    indexedParameterList.add(null);
+                }
+            }
+            p = indexedParameterList.get(index);
+            if (p == null) {
+                p = new Parameter(index);
+                indexedParameterList.set(index, p);
+            }
+            read();
+        } else {
+            read();
+            if (indexedParameterList != null) {
+                throw DbException
+                        .get(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
+            }
+            p = new Parameter(parameters.size());
+        }
+        parameters.add(p);
+        return p;
+    }
+
     private Expression readTerm() {
         Expression r;
         switch (currentTokenType) {
@@ -3016,50 +3063,7 @@ public class Parser {
             }
             break;
         case PARAMETER:
-            // there must be no space between ? and the number
-            boolean indexed = Character.isDigit(sqlCommandChars[parseIndex]);
-
-            Parameter p;
-            if (indexed) {
-                readParameterIndex();
-                if (indexedParameterList == null) {
-                    if (parameters == null) {
-                        // this can occur when parsing expressions only (for
-                        // example check constraints)
-                        throw getSyntaxError();
-                    } else if (parameters.size() > 0) {
-                        throw DbException
-                                .get(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
-                    }
-                    indexedParameterList = New.arrayList();
-                }
-                int index = currentValue.getInt() - 1;
-                if (index < 0 || index >= Constants.MAX_PARAMETER_INDEX) {
-                    throw DbException.getInvalidValueException(
-                            "parameter index", index);
-                }
-                if (indexedParameterList.size() <= index) {
-                    indexedParameterList.ensureCapacity(index + 1);
-                    while (indexedParameterList.size() <= index) {
-                        indexedParameterList.add(null);
-                    }
-                }
-                p = indexedParameterList.get(index);
-                if (p == null) {
-                    p = new Parameter(index);
-                    indexedParameterList.set(index, p);
-                }
-                read();
-            } else {
-                read();
-                if (indexedParameterList != null) {
-                    throw DbException
-                            .get(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
-                }
-                p = new Parameter(parameters.size());
-            }
-            parameters.add(p);
-            r = p;
+            r = readParameter();
             break;
         case KEYWORD:
             if (isToken("SELECT") || isToken("FROM") || isToken("WITH")) {

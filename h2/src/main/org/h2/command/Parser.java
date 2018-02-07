@@ -112,6 +112,7 @@ import org.h2.expression.Comparison;
 import org.h2.expression.ConditionAndOr;
 import org.h2.expression.ConditionExists;
 import org.h2.expression.ConditionIn;
+import org.h2.expression.ConditionInParameter;
 import org.h2.expression.ConditionInSelect;
 import org.h2.expression.ConditionNot;
 import org.h2.expression.Expression;
@@ -2504,9 +2505,14 @@ public class Parser {
                     read(")");
                 } else if (readIf("ANY") || readIf("SOME")) {
                     read("(");
-                    Query query = parseSelect();
-                    r = new ConditionInSelect(database, r, query, false,
-                            compareType);
+                    if (currentTokenType == PARAMETER && compareType == 0) {
+                        Parameter p = readParameter();
+                        r = new ConditionInParameter(database, r, p);
+                    } else {
+                        Query query = parseSelect();
+                        r = new ConditionInSelect(database, r, query, false,
+                                compareType);
+                    }
                     read(")");
                 } else {
                     Expression right = readConcat();

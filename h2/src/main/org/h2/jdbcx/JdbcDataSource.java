@@ -405,6 +405,7 @@ public class JdbcDataSource extends TraceObject implements XADataSource,
      * Return an object of this class if possible.
      *
      * @param iface the class
+     * @return this
      */
     @Override
     @SuppressWarnings("unchecked")
@@ -423,6 +424,7 @@ public class JdbcDataSource extends TraceObject implements XADataSource,
      * Checks if unwrap can return an object of this class.
      *
      * @param iface the class
+     * @return whether or not the interface is assignable from this class
      */
     @Override
     public boolean isWrapperFor(Class<?> iface) throws SQLException {

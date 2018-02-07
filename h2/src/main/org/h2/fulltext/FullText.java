@@ -955,6 +955,12 @@ public class FullText {
             }
         }
 
+        /**
+         * Check whether the database is in multi-threaded mode.
+         *
+         * @param conn the connection
+         * @return true if the multi-threaded mode is used
+         */
         static boolean isMultiThread(Connection conn)
                 throws SQLException {
             try (Statement stat = conn.createStatement()) {

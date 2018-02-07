@@ -487,13 +487,16 @@ public class TestPgServer extends TestBase {
 
             Date[] dates = { null, Date.valueOf("2017-02-20"),
                     Date.valueOf("1970-01-01"), Date.valueOf("1969-12-31"),
-                    Date.valueOf("1940-01-10"), Date.valueOf("1950-11-10") };
+                    Date.valueOf("1940-01-10"), Date.valueOf("1950-11-10"),
+                    Date.valueOf("1500-01-01")};
             Time[] times = { null, Time.valueOf("14:15:16"),
                     Time.valueOf("00:00:00"), Time.valueOf("23:59:59"),
-                    Time.valueOf("00:10:59"), Time.valueOf("08:30:42") };
+                    Time.valueOf("00:10:59"), Time.valueOf("08:30:42"),
+                    Time.valueOf("10:00:00")};
             Timestamp[] timestamps = { null, Timestamp.valueOf("2017-02-20 14:15:16.763"),
                     Timestamp.valueOf("1970-01-01 00:00:00"), Timestamp.valueOf("1969-12-31 23:59:59"),
-                    Timestamp.valueOf("1940-01-10 00:10:59"), Timestamp.valueOf("1950-11-10 08:30:42.12") };
+                    Timestamp.valueOf("1940-01-10 00:10:59"), Timestamp.valueOf("1950-11-10 08:30:42.12"),
+                    Timestamp.valueOf("1500-01-01 10:00:10")};
             int count = dates.length;
 
             PreparedStatement ps = conn.prepareStatement(

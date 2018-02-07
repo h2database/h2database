@@ -44,7 +44,11 @@ import java.util.HashSet;
  */
 public class Select extends Query {
 
+    /**
+     * The main (top) table filter.
+     */
     TableFilter topTableFilter;
+
     private final ArrayList<TableFilter> filters = New.arrayList();
     private final ArrayList<TableFilter> topFilters = New.arrayList();
 

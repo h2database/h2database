@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,6 +24,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.UUID;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
@@ -99,6 +102,7 @@ public class TestPreparedStatement extends TestBase {
         conn.close();
         testPreparedStatementWithLiteralsNone();
         testPreparedStatementWithIndexedParameterAndLiteralsNone();
+        testPreparedStatementWithAnyParameter();
         deleteDb("preparedStatement");
     }
 
@@ -643,6 +647,60 @@ public class TestPreparedStatement extends TestBase {
         rs.next();
         localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
         assertEquals(localDate, localDate2);
+        rs.close();
+        /*
+         * Check that date that doesn't exist in proleptic Gregorian calendar can be
+         * read as a next date.
+         */
+        prep.setString(1, "1500-02-29");
+        rs = prep.executeQuery();
+        rs.next();
+        localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
+        assertEquals(LocalDateTimeUtils.parseLocalDate("1500-03-01"), localDate2);
+        rs.close();
+        prep.setString(1, "1400-02-29");
+        rs = prep.executeQuery();
+        rs.next();
+        localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
+        assertEquals(LocalDateTimeUtils.parseLocalDate("1400-03-01"), localDate2);
+        rs.close();
+        prep.setString(1, "1300-02-29");
+        rs = prep.executeQuery();
+        rs.next();
+        localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
+        assertEquals(LocalDateTimeUtils.parseLocalDate("1300-03-01"), localDate2);
+        rs.close();
+        prep.setString(1, "-0100-02-29");
+        rs = prep.executeQuery();
+        rs.next();
+        localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
+        assertEquals(LocalDateTimeUtils.parseLocalDate("-0100-03-01"), localDate2);
+        rs.close();
+        /*
+         * Check that date that doesn't exist in traditional calendar can be set and
+         * read with LocalDate and can be read with getDate() as a next date.
+         */
+        localDate = LocalDateTimeUtils.parseLocalDate("1582-10-05");
+        prep.setObject(1, localDate);
+        rs = prep.executeQuery();
+        rs.next();
+        localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
+        assertEquals(localDate, localDate2);
+        assertEquals("1582-10-05", rs.getString(1));
+        assertEquals(Date.valueOf("1582-10-15"), rs.getDate(1));
+        /*
+         * Also check that date that doesn't exist in traditional calendar can be read
+         * with getDate() with custom Calendar properly.
+         */
+        GregorianCalendar gc = new GregorianCalendar();
+        gc.setGregorianChange(new java.util.Date(Long.MIN_VALUE));
+        gc.clear();
+        gc.set(Calendar.YEAR, 1582);
+        gc.set(Calendar.MONTH, 9);
+        gc.set(Calendar.DAY_OF_MONTH, 5);
+        Date expected = new Date(gc.getTimeInMillis());
+        gc.clear();
+        assertEquals(expected, rs.getDate(1, gc));
         rs.close();
     }
 
@@ -1491,7 +1549,43 @@ public class TestPreparedStatement extends TestBase {
         deleteDb("preparedStatement");
     }
 
+    private void testPreparedStatementWithAnyParameter() throws SQLException {
+        deleteDb("preparedStatement");
+        Connection conn = getConnection("preparedStatement");
+        conn.prepareStatement("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE INT UNIQUE)").execute();
+        PreparedStatement ps = conn.prepareStatement("INSERT INTO TEST(ID, VALUE) VALUES (?, ?)");
+        for (int i = 0; i < 10_000; i++) {
+            ps.setInt(1, i);
+            ps.setInt(2, i * 10);
+            ps.executeUpdate();
+        }
+        Object[] values = {-100, 10, 200, 3_000, 40_000, 500_000};
+        int[] expected = {1, 20, 300, 4_000};
+        // Ensure that other methods return the same results
+        ps = conn.prepareStatement("SELECT ID FROM TEST WHERE VALUE IN (SELECT * FROM TABLE(X INT=?)) ORDER BY ID");
+        anyParameterCheck(ps, values, expected);
+        ps = conn.prepareStatement("SELECT ID FROM TEST INNER JOIN TABLE(X INT=?) T ON TEST.VALUE = T.X");
+        anyParameterCheck(ps, values, expected);
+        // Test expression = ANY(?)
+        ps = conn.prepareStatement("SELECT ID FROM TEST WHERE VALUE = ANY(?)");
+        assertThrows(ErrorCode.PARAMETER_NOT_SET_1, ps).executeQuery();
+        anyParameterCheck(ps, values, expected);
+        anyParameterCheck(ps, 300, new int[] {30});
+        anyParameterCheck(ps, -5, new int[0]);
+        conn.close();
+        deleteDb("preparedStatement");
+    }
 
+    private void anyParameterCheck(PreparedStatement ps, Object values, int[] expected) throws SQLException {
+        ps.setObject(1, values);
+        try (ResultSet rs = ps.executeQuery()) {
+            for (int exp : expected) {
+                assertTrue(rs.next());
+                assertEquals(exp, rs.getInt(1));
+            }
+            assertFalse(rs.next());
+        }
+    }
 
     private void checkBigDecimal(ResultSet rs, String[] value) throws SQLException {
         for (String v : value) {

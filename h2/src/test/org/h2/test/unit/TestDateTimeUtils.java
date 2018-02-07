@@ -5,6 +5,9 @@
  */
 package org.h2.test.unit;
 
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+
 import org.h2.test.TestBase;
 import org.h2.util.DateTimeUtils;
 
@@ -25,6 +28,8 @@ public class TestDateTimeUtils extends TestBase {
     @Override
     public void test() throws Exception {
         testParseTimeNanosDB2Format();
+        testDayOfWeek();
+        testWeekOfYear();
     }
 
     private void testParseTimeNanosDB2Format() {
@@ -34,4 +39,55 @@ public class TestDateTimeUtils extends TestBase {
         assertEquals(3723000000000L, DateTimeUtils.parseTimeNanos("01:02:03", 0, 8, true));
         assertEquals(3723000000000L, DateTimeUtils.parseTimeNanos("01.02.03", 0, 8, true));
     }
+
+    /**
+     * Test for {@link DateTimeUtils#getSundayDayOfWeek()} and
+     * {@link DateTimeUtils#getIsoDayOfWeek(long)}.
+     */
+    private void testDayOfWeek() {
+        GregorianCalendar gc = DateTimeUtils.createGregorianCalendar();
+        for (int i = -1_000_000; i <= 1_000_000; i++) {
+            gc.clear();
+            gc.setTimeInMillis(i * 86400000L);
+            int year = gc.get(Calendar.YEAR);
+            if (gc.get(Calendar.ERA) == GregorianCalendar.BC) {
+                year = 1 - year;
+            }
+            long expectedDateValue = DateTimeUtils.dateValue(year, gc.get(Calendar.MONTH) + 1,
+                    gc.get(Calendar.DAY_OF_MONTH));
+            long dateValue = DateTimeUtils.dateValueFromAbsoluteDay(i);
+            assertEquals(expectedDateValue, dateValue);
+            assertEquals(i, DateTimeUtils.absoluteDayFromDateValue(dateValue));
+            int dow = gc.get(Calendar.DAY_OF_WEEK);
+            assertEquals(dow, DateTimeUtils.getSundayDayOfWeek(dateValue));
+            int isoDow = (dow + 5) % 7 + 1;
+            assertEquals(isoDow, DateTimeUtils.getIsoDayOfWeek(dateValue));
+            assertEquals(gc.get(Calendar.WEEK_OF_YEAR),
+                    DateTimeUtils.getWeekOfYear(dateValue, gc.getFirstDayOfWeek() - 1, gc.getMinimalDaysInFirstWeek()));
+        }
+    }
+
+    /**
+     * Test for {@link DateTimeUtils#getDayOfYear(long)},
+     * {@link DateTimeUtils#getWeekOfYear(long, int, int)} and
+     * {@link DateTimeUtils#getWeekYear(long, int, int)}.
+     */
+    private void testWeekOfYear() {
+        GregorianCalendar gc = new GregorianCalendar(DateTimeUtils.UTC);
+        for (int firstDay = 1; firstDay <= 7; firstDay++) {
+            gc.setFirstDayOfWeek(firstDay);
+            for (int minimalDays = 1; minimalDays <= 7; minimalDays++) {
+                gc.setMinimalDaysInFirstWeek(minimalDays);
+                for (int i = 0; i < 150_000; i++) {
+                    long dateValue = DateTimeUtils.dateValueFromAbsoluteDay(i);
+                    gc.clear();
+                    gc.setTimeInMillis(i * 86400000L);
+                    assertEquals(gc.get(Calendar.DAY_OF_YEAR), DateTimeUtils.getDayOfYear(dateValue));
+                    assertEquals(gc.get(Calendar.WEEK_OF_YEAR), DateTimeUtils.getWeekOfYear(dateValue, firstDay - 1, minimalDays));
+                    assertEquals(gc.getWeekYear(), DateTimeUtils.getWeekYear(dateValue, firstDay - 1, minimalDays));
+                }
+            }
+        }
+    }
+
 }

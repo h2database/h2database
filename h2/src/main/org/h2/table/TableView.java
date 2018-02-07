@@ -76,9 +76,11 @@ public class TableView extends Table {
      * dependent views.
      *
      * @param querySQL the SQL statement
+     * @param newColumnTemplates the columns
      * @param session the session
      * @param recursive whether this is a recursive view
      * @param force if errors should be ignored
+     * @param literalsChecked if literals have been checked
      */
     public void replace(String querySQL,  Column[] newColumnTemplates, Session session,
             boolean recursive, boolean force, boolean literalsChecked) {
@@ -715,6 +717,22 @@ public class TableView extends Table {
         return isPersistent;
     }
 
+    /**
+     * Create a view.
+     *
+     * @param schema the schema
+     * @param id the view id
+     * @param name the view name
+     * @param querySQL the query
+     * @param parameters the parameters
+     * @param columnTemplates the columns
+     * @param session the session
+     * @param literalsChecked whether literals in the query are checked
+     * @param isTableExpression if this is a table expression
+     * @param isPersistent whether the view is persisted
+     * @param db the database
+     * @return the view
+     */
     public static TableView createTableViewMaybeRecursive(Schema schema, int id, String name, String querySQL,
             ArrayList<Parameter> parameters, Column[] columnTemplates, Session session,
             boolean literalsChecked, boolean isTableExpression, boolean isPersistent, Database db) {
@@ -805,6 +823,17 @@ public class TableView extends Table {
         return columnTemplateList;
     }
 
+    /**
+     * Create a table for a recursive query.
+     *
+     * @param isPersistent whether the table is persisted
+     * @param targetSession the session
+     * @param cteViewName the name
+     * @param schema the schema
+     * @param columns the columns
+     * @param db the database
+     * @return the table
+     */
     public static Table createShadowTableForRecursiveTableExpression(boolean isPersistent, Session targetSession,
             String cteViewName, Schema schema, List<Column> columns, Database db) {
 
@@ -834,6 +863,13 @@ public class TableView extends Table {
         return recursiveTable;
     }
 
+    /**
+     * Remove a table for a recursive query.
+     *
+     * @param isPersistent whether the table is persisted
+     * @param targetSession the session
+     * @param recursiveTable the table
+     */
     public static void destroyShadowTableForRecursiveExpression(boolean isPersistent, Session targetSession,
             Table recursiveTable) {
         if (recursiveTable != null) {

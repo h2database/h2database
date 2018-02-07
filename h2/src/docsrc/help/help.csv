@@ -3685,6 +3685,7 @@ Returns the the number of crossed unit boundaries between two timestamps.
 This method returns a long.
 The string indicates the unit.
 The same units as in the EXTRACT function are supported.
+If timestamps have time zone offset component it is ignored.
 ","
 DATEDIFF('YEAR', T1.CREATED, T2.CREATED)
 "
@@ -3722,7 +3723,7 @@ DAY_OF_YEAR(CREATED)
 "
 
 "Functions (Time and Date)","EXTRACT","
-EXTRACT ( { YEAR | YY | MONTH | MM | WEEK | DAY | DD | DAY_OF_YEAR
+EXTRACT ( { YEAR | YY | MONTH | MM | WEEK | ISO_WEEK | DAY | DD | DAY_OF_YEAR
     | DOY | HOUR | HH | MINUTE | MI | SECOND | SS | MILLISECOND | MS }
     FROM timestamp )
 ","

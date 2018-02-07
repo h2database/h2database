@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,6 +24,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.UUID;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
@@ -643,6 +646,60 @@ public class TestPreparedStatement extends TestBase {
         rs.next();
         localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
         assertEquals(localDate, localDate2);
+        rs.close();
+        /*
+         * Check that date that doesn't exist in proleptic Gregorian calendar can be
+         * read as a next date.
+         */
+        prep.setString(1, "1500-02-29");
+        rs = prep.executeQuery();
+        rs.next();
+        localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
+        assertEquals(LocalDateTimeUtils.parseLocalDate("1500-03-01"), localDate2);
+        rs.close();
+        prep.setString(1, "1400-02-29");
+        rs = prep.executeQuery();
+        rs.next();
+        localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
+        assertEquals(LocalDateTimeUtils.parseLocalDate("1400-03-01"), localDate2);
+        rs.close();
+        prep.setString(1, "1300-02-29");
+        rs = prep.executeQuery();
+        rs.next();
+        localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
+        assertEquals(LocalDateTimeUtils.parseLocalDate("1300-03-01"), localDate2);
+        rs.close();
+        prep.setString(1, "-0100-02-29");
+        rs = prep.executeQuery();
+        rs.next();
+        localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
+        assertEquals(LocalDateTimeUtils.parseLocalDate("-0100-03-01"), localDate2);
+        rs.close();
+        /*
+         * Check that date that doesn't exist in traditional calendar can be set and
+         * read with LocalDate and can be read with getDate() as a next date.
+         */
+        localDate = LocalDateTimeUtils.parseLocalDate("1582-10-05");
+        prep.setObject(1, localDate);
+        rs = prep.executeQuery();
+        rs.next();
+        localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
+        assertEquals(localDate, localDate2);
+        assertEquals("1582-10-05", rs.getString(1));
+        assertEquals(Date.valueOf("1582-10-15"), rs.getDate(1));
+        /*
+         * Also check that date that doesn't exist in traditional calendar can be read
+         * with getDate() with custom Calendar properly.
+         */
+        GregorianCalendar gc = new GregorianCalendar();
+        gc.setGregorianChange(new java.util.Date(Long.MIN_VALUE));
+        gc.clear();
+        gc.set(Calendar.YEAR, 1582);
+        gc.set(Calendar.MONTH, 9);
+        gc.set(Calendar.DAY_OF_MONTH, 5);
+        Date expected = new Date(gc.getTimeInMillis());
+        gc.clear();
+        assertEquals(expected, rs.getDate(1, gc));
         rs.close();
     }
 

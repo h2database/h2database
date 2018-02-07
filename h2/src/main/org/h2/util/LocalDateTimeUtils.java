@@ -543,8 +543,15 @@ public class LocalDateTimeUtils {
         int year = DateTimeUtils.yearFromDateValue(dateValue);
         int month = DateTimeUtils.monthFromDateValue(dateValue);
         int day = DateTimeUtils.dayFromDateValue(dateValue);
-
-        return LOCAL_DATE_OF_YEAR_MONTH_DAY.invoke(null, year, month, day);
+        try {
+            return LOCAL_DATE_OF_YEAR_MONTH_DAY.invoke(null, year, month, day);
+        } catch (InvocationTargetException e) {
+            if (year <= 1500 && (year & 3) == 0 && month == 2 && day == 29) {
+                // If proleptic Gregorian doesn't have such date use the next day
+                return LOCAL_DATE_OF_YEAR_MONTH_DAY.invoke(null, year, 3, 1);
+            }
+            throw e;
+        }
     }
 
     private static Object localDateTimeFromDateNanos(long dateValue, long timeNanos)

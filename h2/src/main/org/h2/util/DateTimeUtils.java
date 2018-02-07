@@ -562,6 +562,36 @@ public class DateTimeUtils {
     }
 
     /**
+     * Extracts date value and nanos of day from the specified value.
+     *
+     * @param value
+     *            value to extract fields from
+     * @return array with date value and nanos of day
+     */
+    public static long[] dateAndTimeFromValue(Value value) {
+        long dateValue = EPOCH_DATE_VALUE;
+        long timeNanos = 0;
+        if (value instanceof ValueTimestamp) {
+            ValueTimestamp v = (ValueTimestamp) value;
+            dateValue = v.getDateValue();
+            timeNanos = v.getTimeNanos();
+        } else if (value instanceof ValueDate) {
+            dateValue = ((ValueDate) value).getDateValue();
+        } else if (value instanceof ValueTime) {
+            timeNanos = ((ValueTime) value).getNanos();
+        } else if (value instanceof ValueTimestampTimeZone) {
+            ValueTimestampTimeZone v = (ValueTimestampTimeZone) value;
+            dateValue = v.getDateValue();
+            timeNanos = v.getTimeNanos();
+        } else {
+            ValueTimestamp v = (ValueTimestamp) value.convertTo(Value.TIMESTAMP);
+            dateValue = v.getDateValue();
+            timeNanos = v.getTimeNanos();
+        }
+        return new long[] {dateValue, timeNanos};
+    }
+
+    /**
      * Get the specified field of a date, however with years normalized to
      * positive or negative, and month starting with 1.
      *
@@ -570,25 +600,9 @@ public class DateTimeUtils {
      * @return the value
      */
     public static int getDatePart(Value date, int field) {
-        long dateValue = EPOCH_DATE_VALUE;
-        long timeNanos = 0;
-        if (date instanceof ValueTimestamp) {
-            ValueTimestamp v = (ValueTimestamp) date;
-            dateValue = v.getDateValue();
-            timeNanos = v.getTimeNanos();
-        } else if (date instanceof ValueDate) {
-            dateValue = ((ValueDate) date).getDateValue();
-        } else if (date instanceof ValueTime) {
-            timeNanos = ((ValueTime) date).getNanos();
-        } else if (date instanceof ValueTimestampTimeZone) {
-            ValueTimestampTimeZone v = (ValueTimestampTimeZone) date;
-            dateValue = v.getDateValue();
-            timeNanos = v.getTimeNanos();
-        } else {
-            ValueTimestamp v = (ValueTimestamp) date.convertTo(Value.TIMESTAMP);
-            dateValue = v.getDateValue();
-            timeNanos = v.getTimeNanos();
-        }
+        long[] a = dateAndTimeFromValue(date);
+        long dateValue = a[0];
+        long timeNanos = a[1];
         switch (field) {
         case Function.YEAR:
             return yearFromDateValue(dateValue);

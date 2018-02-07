@@ -566,7 +566,7 @@ public class DateTimeUtils {
      * positive or negative, and month starting with 1.
      *
      * @param date the date value
-     * @param field the field type
+     * @param field the field type, see {@link Function} for constants
      * @return the value
      */
     public static int getDatePart(Value date, int field) {
@@ -590,25 +590,25 @@ public class DateTimeUtils {
             timeNanos = v.getTimeNanos();
         }
         switch (field) {
-        case Calendar.YEAR:
+        case Function.YEAR:
             return yearFromDateValue(dateValue);
-        case Calendar.MONTH:
+        case Function.MONTH:
             return monthFromDateValue(dateValue);
-        case Calendar.DAY_OF_MONTH:
+        case Function.DAY_OF_MONTH:
             return dayFromDateValue(dateValue);
-        case Calendar.HOUR_OF_DAY:
+        case Function.HOUR:
             return (int) (timeNanos / 3_600_000_000_000L % 24);
-        case Calendar.MINUTE:
+        case Function.MINUTE:
             return (int) (timeNanos / 60_000_000_000L % 60);
-        case Calendar.SECOND:
+        case Function.SECOND:
             return (int) (timeNanos / 1_000_000_000 % 60);
-        case Calendar.MILLISECOND:
+        case Function.MILLISECOND:
             return (int) (timeNanos / 1_000_000 % 1_000);
-        case Calendar.DAY_OF_YEAR:
+        case Function.DAY_OF_YEAR:
             return getDayOfYear(dateValue);
-        case Calendar.DAY_OF_WEEK:
+        case Function.DAY_OF_WEEK:
             return getSundayDayOfWeek(dateValue);
-        case Calendar.WEEK_OF_YEAR:
+        case Function.WEEK:
             GregorianCalendar gc = getCalendar();
             return getWeekOfYear(dateValue, gc.getFirstDayOfWeek() - 1, gc.getMinimalDaysInFirstWeek());
         case Function.QUARTER:

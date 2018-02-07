@@ -1915,11 +1915,13 @@ public class Function extends Expression implements FunctionCall {
     }
 
     private static long weekdiff(long absolute1, long absolute2, int firstDayOfWeek) {
-        long r1 = (absolute1 - firstDayOfWeek + 4) / 7;
+        absolute1 += 4 - firstDayOfWeek;
+        long r1 = absolute1 / 7;
         if (absolute1 < 0 && (r1 * 7 != absolute1)) {
             r1--;
         }
-        long r2 = (absolute2 - firstDayOfWeek + 4) / 7;
+        absolute2 += 4 - firstDayOfWeek;
+        long r2 = absolute2 / 7;
         if (absolute2 < 0 && (r2 * 7 != absolute2)) {
             r2--;
         }

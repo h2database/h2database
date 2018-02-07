@@ -108,6 +108,11 @@ public class Function extends Expression implements FunctionCall {
             FORMATDATETIME = 121, PARSEDATETIME = 122, ISO_YEAR = 123,
             ISO_WEEK = 124, ISO_DAY_OF_WEEK = 125;
 
+    /**
+     * Pseudo function for {@code EXTRACT(MILLISECOND FROM ...)}.
+     */
+    public static final int MILLISECOND = 126;
+
     public static final int DATABASE = 150, USER = 151, CURRENT_USER = 152,
             IDENTITY = 153, SCOPE_IDENTITY = 154, AUTOCOMMIT = 155,
             READONLY = 156, DATABASE_PATH = 157, LOCK_TIMEOUT = 158,
@@ -158,39 +163,39 @@ public class Function extends Expression implements FunctionCall {
 
     static {
         // DATE_PART
-        DATE_PART.put("SQL_TSI_YEAR", Calendar.YEAR);
-        DATE_PART.put("YEAR", Calendar.YEAR);
-        DATE_PART.put("YYYY", Calendar.YEAR);
-        DATE_PART.put("YY", Calendar.YEAR);
-        DATE_PART.put("SQL_TSI_MONTH", Calendar.MONTH);
-        DATE_PART.put("MONTH", Calendar.MONTH);
-        DATE_PART.put("MM", Calendar.MONTH);
-        DATE_PART.put("M", Calendar.MONTH);
-        DATE_PART.put("SQL_TSI_WEEK", Calendar.WEEK_OF_YEAR);
-        DATE_PART.put("WW", Calendar.WEEK_OF_YEAR);
-        DATE_PART.put("WK", Calendar.WEEK_OF_YEAR);
-        DATE_PART.put("WEEK", Calendar.WEEK_OF_YEAR);
-        DATE_PART.put("DAY", Calendar.DAY_OF_MONTH);
-        DATE_PART.put("DD", Calendar.DAY_OF_MONTH);
-        DATE_PART.put("D", Calendar.DAY_OF_MONTH);
-        DATE_PART.put("SQL_TSI_DAY", Calendar.DAY_OF_MONTH);
-        DATE_PART.put("DAYOFYEAR", Calendar.DAY_OF_YEAR);
-        DATE_PART.put("DAY_OF_YEAR", Calendar.DAY_OF_YEAR);
-        DATE_PART.put("DY", Calendar.DAY_OF_YEAR);
-        DATE_PART.put("DOY", Calendar.DAY_OF_YEAR);
-        DATE_PART.put("SQL_TSI_HOUR", Calendar.HOUR_OF_DAY);
-        DATE_PART.put("HOUR", Calendar.HOUR_OF_DAY);
-        DATE_PART.put("HH", Calendar.HOUR_OF_DAY);
-        DATE_PART.put("SQL_TSI_MINUTE", Calendar.MINUTE);
-        DATE_PART.put("MINUTE", Calendar.MINUTE);
-        DATE_PART.put("MI", Calendar.MINUTE);
-        DATE_PART.put("N", Calendar.MINUTE);
-        DATE_PART.put("SQL_TSI_SECOND", Calendar.SECOND);
-        DATE_PART.put("SECOND", Calendar.SECOND);
-        DATE_PART.put("SS", Calendar.SECOND);
-        DATE_PART.put("S", Calendar.SECOND);
-        DATE_PART.put("MILLISECOND", Calendar.MILLISECOND);
-        DATE_PART.put("MS", Calendar.MILLISECOND);
+        DATE_PART.put("SQL_TSI_YEAR", YEAR);
+        DATE_PART.put("YEAR", YEAR);
+        DATE_PART.put("YYYY", YEAR);
+        DATE_PART.put("YY", YEAR);
+        DATE_PART.put("SQL_TSI_MONTH", MONTH);
+        DATE_PART.put("MONTH", MONTH);
+        DATE_PART.put("MM", MONTH);
+        DATE_PART.put("M", MONTH);
+        DATE_PART.put("SQL_TSI_WEEK", WEEK);
+        DATE_PART.put("WW", WEEK);
+        DATE_PART.put("WK", WEEK);
+        DATE_PART.put("WEEK", WEEK);
+        DATE_PART.put("DAY", DAY_OF_MONTH);
+        DATE_PART.put("DD", DAY_OF_MONTH);
+        DATE_PART.put("D", DAY_OF_MONTH);
+        DATE_PART.put("SQL_TSI_DAY", DAY_OF_MONTH);
+        DATE_PART.put("DAYOFYEAR", DAY_OF_YEAR);
+        DATE_PART.put("DAY_OF_YEAR", DAY_OF_YEAR);
+        DATE_PART.put("DY", DAY_OF_YEAR);
+        DATE_PART.put("DOY", DAY_OF_YEAR);
+        DATE_PART.put("SQL_TSI_HOUR", HOUR);
+        DATE_PART.put("HOUR", HOUR);
+        DATE_PART.put("HH", HOUR);
+        DATE_PART.put("SQL_TSI_MINUTE", MINUTE);
+        DATE_PART.put("MINUTE", MINUTE);
+        DATE_PART.put("MI", MINUTE);
+        DATE_PART.put("N", MINUTE);
+        DATE_PART.put("SQL_TSI_SECOND", SECOND);
+        DATE_PART.put("SECOND", SECOND);
+        DATE_PART.put("SS", SECOND);
+        DATE_PART.put("S", SECOND);
+        DATE_PART.put("MILLISECOND", MILLISECOND);
+        DATE_PART.put("MS", MILLISECOND);
 
         // SOUNDEX_INDEX
         String index = "7AEIOUY8HW1BFPV2CGJKQSXZ3DT4L5MN6R";
@@ -837,22 +842,19 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case DAY_OF_MONTH:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.DAY_OF_MONTH));
-            break;
         case DAY_OF_WEEK:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.DAY_OF_WEEK));
-            break;
         case DAY_OF_YEAR:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.DAY_OF_YEAR));
-            break;
         case HOUR:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.HOUR_OF_DAY));
-            break;
         case MINUTE:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.MINUTE));
-            break;
         case MONTH:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.MONTH));
+        case QUARTER:
+        case ISO_YEAR:
+        case ISO_WEEK:
+        case ISO_DAY_OF_WEEK:
+        case SECOND:
+        case WEEK:
+        case YEAR:
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0, info.type));
             break;
         case MONTH_NAME: {
             SimpleDateFormat monthName = new SimpleDateFormat("MMMM",
@@ -861,27 +863,6 @@ public class Function extends Expression implements FunctionCall {
                     database.getMode().treatEmptyStringsAsNull);
             break;
         }
-        case QUARTER:
-            result = ValueInt.get((DateTimeUtils.getDatePart(v0, Calendar.MONTH) - 1) / 3 + 1);
-            break;
-        case SECOND:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.SECOND));
-            break;
-        case WEEK:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.WEEK_OF_YEAR));
-            break;
-        case YEAR:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.YEAR));
-            break;
-        case ISO_YEAR:
-            result = ValueInt.get(DateTimeUtils.getIsoYear(v0));
-            break;
-        case ISO_WEEK:
-            result = ValueInt.get(DateTimeUtils.getIsoWeek(v0));
-            break;
-        case ISO_DAY_OF_WEEK:
-            result = ValueInt.get(DateTimeUtils.getIsoDayOfWeek(v0));
-            break;
         case CURDATE:
         case CURRENT_DATE: {
             long now = session.getTransactionStart();
@@ -1827,10 +1808,38 @@ public class Function extends Expression implements FunctionCall {
 
     private static Timestamp dateadd(String part, long count, Timestamp d) {
         int field = getDatePart(part);
-        if (field == Calendar.MILLISECOND) {
+        switch (field) {
+        case YEAR:
+            field = Calendar.YEAR;
+            break;
+        case MONTH:
+            field = Calendar.MONTH;
+            break;
+        case DAY_OF_MONTH:
+            field = Calendar.DAY_OF_MONTH;
+            break;
+        case DAY_OF_YEAR:
+            field = Calendar.DAY_OF_YEAR;
+            break;
+        case WEEK:
+            field = Calendar.WEEK_OF_YEAR;
+            break;
+        case HOUR:
+            field = Calendar.HOUR_OF_DAY;
+            break;
+        case MINUTE:
+            field = Calendar.MINUTE;
+            break;
+        case SECOND:
+            field = Calendar.SECOND;
+            break;
+        case MILLISECOND: {
             Timestamp ts = new Timestamp(d.getTime() + count);
             ts.setNanos(ts.getNanos() + (d.getNanos() % 1000000));
             return ts;
+        }
+        default:
+            throw DbException.getUnsupportedException("DATEADD " + part);
         }
         // We allow long for manipulating the millisecond component,
         // for the rest we only allow int.
@@ -1878,34 +1887,34 @@ public class Function extends Expression implements FunctionCall {
                 calendar.get(Calendar.DAY_OF_WEEK),
                 calendar.get(Calendar.MILLISECOND));
         switch (field) {
-        case Calendar.MILLISECOND:
+        case MILLISECOND:
             return t2 - t1;
-        case Calendar.SECOND:
-        case Calendar.MINUTE:
-        case Calendar.HOUR_OF_DAY:
-        case Calendar.DAY_OF_YEAR:
-        case Calendar.WEEK_OF_YEAR: {
+        case SECOND:
+        case MINUTE:
+        case HOUR:
+        case DAY_OF_YEAR:
+        case WEEK: {
             // first 'normalize' the numbers so both are not negative
             long hour = 60 * 60 * 1000;
             long add = Math.min(t1 / hour * hour, t2 / hour * hour);
             t1 -= add;
             t2 -= add;
             switch (field) {
-            case Calendar.SECOND:
+            case SECOND:
                 return t2 / 1000 - t1 / 1000;
-            case Calendar.MINUTE:
+            case MINUTE:
                 return t2 / (60 * 1000) - t1 / (60 * 1000);
-            case Calendar.HOUR_OF_DAY:
+            case HOUR:
                 return t2 / hour - t1 / hour;
-            case Calendar.DAY_OF_YEAR:
+            case DAY_OF_YEAR:
                 return t2 / (hour * 24) - t1 / (hour * 24);
-            case Calendar.WEEK_OF_YEAR:
+            case WEEK:
                 return t2 / (hour * 24 * 7) - t1 / (hour * 24 * 7);
             default:
                 throw DbException.throwInternalError("field:" + field);
             }
         }
-        case Calendar.DATE:
+        case DAY_OF_MONTH:
             return t2 / (24 * 60 * 60 * 1000) - t1 / (24 * 60 * 60 * 1000);
         default:
             break;
@@ -1918,9 +1927,9 @@ public class Function extends Expression implements FunctionCall {
         int year2 = calendar.get(Calendar.YEAR);
         int month2 = calendar.get(Calendar.MONTH);
         int result = year2 - year1;
-        if (field == Calendar.MONTH) {
+        if (field == MONTH) {
             return 12 * result + (month2 - month1);
-        } else if (field == Calendar.YEAR) {
+        } else if (field == YEAR) {
             return result;
         } else {
             throw DbException.getUnsupportedException("DATEDIFF " + part);

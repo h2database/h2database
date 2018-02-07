@@ -3222,7 +3222,14 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         }
     }
 
-    private Value get(int columnIndex) {
+    /**
+     * INTERNAL
+     *
+     * @param columnIndex
+     *            index of a column
+     * @return internal representation of the value in the specified column
+     */
+    public Value get(int columnIndex) {
         checkColumnIndex(columnIndex);
         checkOnValidRow();
         Value[] list;

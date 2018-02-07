@@ -1121,6 +1121,29 @@ public class DateTimeUtils {
     }
 
     /**
+     * Calculate the absolute day from an encoded date value in proleptic Gregorian
+     * calendar.
+     *
+     * @param dateValue the date value
+     * @return the absolute day in proleptic Gregorian calendar
+     */
+    public static long prolepticGregorianAbsoluteDayFromDateValue(long dateValue) {
+        long y = yearFromDateValue(dateValue);
+        int m = monthFromDateValue(dateValue);
+        int d = dayFromDateValue(dateValue);
+        if (m <= 2) {
+            y--;
+            m += 12;
+        }
+        long a = ((y * 2922L) >> 3) + DAYS_OFFSET[m - 3] + d - 719484;
+        if (y < 1901 || y > 2099) {
+            // Slow mode
+            a += (y / 400) - (y / 100) + 15;
+        }
+        return a;
+    }
+
+    /**
      * Calculate the encoded date value from an absolute day.
      *
      * @param absoluteDay the absolute day

@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.TimeZone;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -175,6 +174,7 @@ public class Function extends Expression implements FunctionCall {
         DATE_PART.put("WW", WEEK);
         DATE_PART.put("WK", WEEK);
         DATE_PART.put("WEEK", WEEK);
+        DATE_PART.put("ISO_WEEK", ISO_WEEK);
         DATE_PART.put("DAY", DAY_OF_MONTH);
         DATE_PART.put("DD", DAY_OF_MONTH);
         DATE_PART.put("D", DAY_OF_MONTH);
@@ -1489,8 +1489,7 @@ public class Function extends Expression implements FunctionCall {
                     v0.getString(), v1.getLong(), v2.getTimestamp()));
             break;
         case DATE_DIFF:
-            result = ValueLong.get(datediff(
-                    v0.getString(), v1.getTimestamp(), v2.getTimestamp()));
+            result = ValueLong.get(datediff(v0.getString(), v1, v2));
             break;
         case EXTRACT: {
             int field = getDatePart(v0.getString());
@@ -1863,77 +1862,70 @@ public class Function extends Expression implements FunctionCall {
      * </pre>
      *
      * @param part the part
-     * @param d1 the first date
-     * @param d2 the second date
+     * @param v1 the first date-time value
+     * @param v2 the second date-time value
      * @return the number of crossed boundaries
      */
-    private static long datediff(String part, Timestamp d1, Timestamp d2) {
+    private static long datediff(String part, Value v1, Value v2) {
         int field = getDatePart(part);
-        Calendar calendar = DateTimeUtils.createGregorianCalendar();
-        long t1 = d1.getTime(), t2 = d2.getTime();
-        // need to convert to UTC, otherwise we get inconsistent results with
-        // certain time zones (those that are 30 minutes off)
-        TimeZone zone = calendar.getTimeZone();
-        calendar.setTime(d1);
-        t1 += zone.getOffset(calendar.get(Calendar.ERA),
-                calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH),
-                calendar.get(Calendar.DAY_OF_WEEK),
-                calendar.get(Calendar.MILLISECOND));
-        calendar.setTime(d2);
-        t2 += zone.getOffset(calendar.get(Calendar.ERA),
-                calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH),
-                calendar.get(Calendar.DAY_OF_WEEK),
-                calendar.get(Calendar.MILLISECOND));
+        long[] a1 = DateTimeUtils.dateAndTimeFromValue(v1);
+        long dateValue1 = a1[0];
+        long absolute1 = DateTimeUtils.absoluteDayFromDateValue(dateValue1);
+        long[] a2 = DateTimeUtils.dateAndTimeFromValue(v2);
+        long dateValue2 = a2[0];
+        long absolute2 = DateTimeUtils.absoluteDayFromDateValue(dateValue2);
         switch (field) {
         case MILLISECOND:
-            return t2 - t1;
         case SECOND:
         case MINUTE:
         case HOUR:
-        case DAY_OF_YEAR:
-        case WEEK: {
-            // first 'normalize' the numbers so both are not negative
-            long hour = 60 * 60 * 1000;
-            long add = Math.min(t1 / hour * hour, t2 / hour * hour);
-            t1 -= add;
-            t2 -= add;
+            long timeNanos1 = a1[1];
+            long timeNanos2 = a2[1];
             switch (field) {
+            case MILLISECOND:
+                return (absolute2 - absolute1) * DateTimeUtils.MILLIS_PER_DAY
+                        + (timeNanos2 / 1_000_000 - timeNanos1 / 1_000_000);
             case SECOND:
-                return t2 / 1000 - t1 / 1000;
+                return (absolute2 - absolute1) * 86_400
+                        + (timeNanos2 / 1_000_000_000 - timeNanos1 / 1_000_000_000);
             case MINUTE:
-                return t2 / (60 * 1000) - t1 / (60 * 1000);
+                return (absolute2 - absolute1) * 1_440
+                        + (timeNanos2 / 60_000_000_000L - timeNanos1 / 60_000_000_000L);
             case HOUR:
-                return t2 / hour - t1 / hour;
-            case DAY_OF_YEAR:
-                return t2 / (hour * 24) - t1 / (hour * 24);
-            case WEEK:
-                return t2 / (hour * 24 * 7) - t1 / (hour * 24 * 7);
-            default:
-                throw DbException.throwInternalError("field:" + field);
+                return (absolute2 - absolute1) * 24
+                        + (timeNanos2 / 3_600_000_000_000L - timeNanos1 / 3_600_000_000_000L);
             }
-        }
+            // Fake fall-through
+            //$FALL-THROUGH$
         case DAY_OF_MONTH:
-            return t2 / (24 * 60 * 60 * 1000) - t1 / (24 * 60 * 60 * 1000);
+        case DAY_OF_YEAR:
+            return absolute2 - absolute1;
+        case WEEK:
+            return weekdiff(absolute1, absolute2, 0);
+        case ISO_WEEK:
+            return weekdiff(absolute1, absolute2, 1);
+        case MONTH:
+            return (DateTimeUtils.yearFromDateValue(dateValue2) - DateTimeUtils.yearFromDateValue(dateValue1)) * 12
+                    + DateTimeUtils.monthFromDateValue(dateValue2) - DateTimeUtils.monthFromDateValue(dateValue1);
+        case YEAR:
+            return DateTimeUtils.yearFromDateValue(dateValue2) - DateTimeUtils.yearFromDateValue(dateValue1);
         default:
-            break;
-        }
-        calendar = DateTimeUtils.createGregorianCalendar(DateTimeUtils.UTC);
-        calendar.setTimeInMillis(t1);
-        int year1 = calendar.get(Calendar.YEAR);
-        int month1 = calendar.get(Calendar.MONTH);
-        calendar.setTimeInMillis(t2);
-        int year2 = calendar.get(Calendar.YEAR);
-        int month2 = calendar.get(Calendar.MONTH);
-        int result = year2 - year1;
-        if (field == MONTH) {
-            return 12 * result + (month2 - month1);
-        } else if (field == YEAR) {
-            return result;
-        } else {
             throw DbException.getUnsupportedException("DATEDIFF " + part);
         }
+    }
+
+    private static long weekdiff(long absolute1, long absolute2, int firstDayOfWeek) {
+        absolute1 += 4 - firstDayOfWeek;
+        long r1 = absolute1 / 7;
+        if (absolute1 < 0 && (r1 * 7 != absolute1)) {
+            r1--;
+        }
+        absolute2 += 4 - firstDayOfWeek;
+        long r2 = absolute2 / 7;
+        if (absolute2 < 0 && (r2 * 7 != absolute2)) {
+            r2--;
+        }
+        return r2 - r1;
     }
 
     private static String substring(String s, int start, int length) {

@@ -592,6 +592,40 @@ public class DateTimeUtils {
     }
 
     /**
+     * Creates a new date-time value with the same type as original value. If
+     * original value is a ValueTimestampTimeZone, returned value will have the same
+     * time zone offset as original value.
+     *
+     * @param original
+     *            original value
+     * @param dateValue
+     *            date value for the returned value
+     * @param timeNanos
+     *            nanos of day for the returned value
+     * @param forceTimestamp
+     *            if {@code true} return ValueTimestamp if original argument is
+     *            ValueDate or ValueTime
+     * @return new value with specified date value and nanos of day
+     */
+    public static Value dateTimeToValue(Value original, long dateValue, long timeNanos, boolean forceTimestamp) {
+        if (!(original instanceof ValueTimestamp)) {
+            if (!forceTimestamp) {
+                if (original instanceof ValueDate) {
+                    return ValueDate.fromDateValue(dateValue);
+                }
+                if (original instanceof ValueTime) {
+                    return ValueTime.fromNanos(timeNanos);
+                }
+            }
+            if (original instanceof ValueTimestampTimeZone) {
+                return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos,
+                        ((ValueTimestampTimeZone) original).getTimeZoneOffsetMins());
+            }
+        }
+        return ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
+    }
+
+    /**
      * Get the specified field of a date, however with years normalized to
      * positive or negative, and month starting with 1.
      *

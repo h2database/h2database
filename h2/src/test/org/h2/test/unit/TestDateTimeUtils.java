@@ -45,7 +45,7 @@ public class TestDateTimeUtils extends TestBase {
      * {@link DateTimeUtils#getIsoDayOfWeek(long)}.
      */
     private void testDayOfWeek() {
-        GregorianCalendar gc = DateTimeUtils.createGregorianCalendar();
+        GregorianCalendar gc = DateTimeUtils.createGregorianCalendar(DateTimeUtils.UTC);
         for (int i = -1_000_000; i <= 1_000_000; i++) {
             gc.clear();
             gc.setTimeInMillis(i * 86400000L);

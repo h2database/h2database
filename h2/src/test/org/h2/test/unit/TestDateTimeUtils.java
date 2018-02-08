@@ -63,7 +63,8 @@ public class TestDateTimeUtils extends TestBase {
             int isoDow = (dow + 5) % 7 + 1;
             assertEquals(isoDow, DateTimeUtils.getIsoDayOfWeek(dateValue));
             assertEquals(gc.get(Calendar.WEEK_OF_YEAR),
-                    DateTimeUtils.getWeekOfYear(dateValue, gc.getFirstDayOfWeek() - 1, gc.getMinimalDaysInFirstWeek()));
+                    DateTimeUtils.getWeekOfYear(dateValue, gc.getFirstDayOfWeek() - 1,
+                    gc.getMinimalDaysInFirstWeek()));
         }
     }
 
@@ -83,7 +84,8 @@ public class TestDateTimeUtils extends TestBase {
                     gc.clear();
                     gc.setTimeInMillis(i * 86400000L);
                     assertEquals(gc.get(Calendar.DAY_OF_YEAR), DateTimeUtils.getDayOfYear(dateValue));
-                    assertEquals(gc.get(Calendar.WEEK_OF_YEAR), DateTimeUtils.getWeekOfYear(dateValue, firstDay - 1, minimalDays));
+                    assertEquals(gc.get(Calendar.WEEK_OF_YEAR),
+                            DateTimeUtils.getWeekOfYear(dateValue, firstDay - 1, minimalDays));
                     assertEquals(gc.getWeekYear(), DateTimeUtils.getWeekYear(dateValue, firstDay - 1, minimalDays));
                 }
             }

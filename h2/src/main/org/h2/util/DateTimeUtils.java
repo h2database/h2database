@@ -878,6 +878,20 @@ public class DateTimeUtils {
     }
 
     /**
+     * Returns number of days in month.
+     *
+     * @param year the year
+     * @param month the month
+     * @return number of days in the specified month
+     */
+    public static int getDaysInMonth(int year, int month) {
+        if (month != 2) {
+            return NORMAL_DAYS_PER_MONTH[month];
+        }
+        return (year & 3) == 0 && (year < 1582 || year % 100 != 0 || year % 400 == 0) ? 29 : 28;
+    }
+
+    /**
      * Verify if the specified date is valid.
      *
      * @param year the year
@@ -889,24 +903,11 @@ public class DateTimeUtils {
         if (month < 1 || month > 12 || day < 1) {
             return false;
         }
-        if (year > 1582) {
-            // Gregorian calendar
-            if (month != 2) {
-                return day <= NORMAL_DAYS_PER_MONTH[month];
-            }
-            // February
-            if ((year & 3) != 0) {
-                return day <= 28;
-            }
-            return day <= ((year % 100 != 0) || (year % 400 == 0) ? 29 : 28);
-        } else if (year == 1582 && month == 10) {
+        if (year == 1582 && month == 10) {
             // special case: days 1582-10-05 .. 1582-10-14 don't exist
-            return day <= 31 && (day < 5 || day > 14);
+            return day < 5 || (day > 14 && day <= 31);
         }
-        if (month != 2 && day <= NORMAL_DAYS_PER_MONTH[month]) {
-            return true;
-        }
-        return day <= ((year & 3) != 0 ? 28 : 29);
+        return day <= getDaysInMonth(year, month);
     }
 
     /**

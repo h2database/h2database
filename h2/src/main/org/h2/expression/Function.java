@@ -169,6 +169,7 @@ public class Function extends Expression implements FunctionCall {
         DATE_PART.put("MONTH", MONTH);
         DATE_PART.put("MM", MONTH);
         DATE_PART.put("M", MONTH);
+        DATE_PART.put("QUARTER", QUARTER);
         DATE_PART.put("SQL_TSI_WEEK", WEEK);
         DATE_PART.put("WW", WEEK);
         DATE_PART.put("WK", WEEK);
@@ -1814,6 +1815,9 @@ public class Function extends Expression implements FunctionCall {
         long dateValue = a[0];
         long timeNanos = a[1];
         switch (field) {
+        case QUARTER:
+            count *= 3;
+            //$FALL-THROUGH$
         case YEAR:
         case MONTH: {
             if (!withDate) {
@@ -1931,6 +1935,10 @@ public class Function extends Expression implements FunctionCall {
         case MONTH:
             return (DateTimeUtils.yearFromDateValue(dateValue2) - DateTimeUtils.yearFromDateValue(dateValue1)) * 12
                     + DateTimeUtils.monthFromDateValue(dateValue2) - DateTimeUtils.monthFromDateValue(dateValue1);
+        case QUARTER:
+            return (DateTimeUtils.yearFromDateValue(dateValue2) - DateTimeUtils.yearFromDateValue(dateValue1)) * 4
+                    + (DateTimeUtils.monthFromDateValue(dateValue2) - 1) / 3
+                    - (DateTimeUtils.monthFromDateValue(dateValue1) - 1) / 3;
         case YEAR:
             return DateTimeUtils.yearFromDateValue(dateValue2) - DateTimeUtils.yearFromDateValue(dateValue1);
         default:

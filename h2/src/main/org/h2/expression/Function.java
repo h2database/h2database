@@ -1817,7 +1817,7 @@ public class Function extends Expression implements FunctionCall {
         case YEAR:
         case MONTH: {
             if (!withDate) {
-                throw DbException.getInvalidValueException("DATEADD timestamp", v);
+                throw DbException.getInvalidValueException("DATEADD time part", part);
             }
             long year = DateTimeUtils.yearFromDateValue(dateValue);
             long month = DateTimeUtils.monthFromDateValue(dateValue);
@@ -1838,7 +1838,7 @@ public class Function extends Expression implements FunctionCall {
         case DAY_OF_MONTH:
         case DAY_OF_YEAR:
             if (!withDate) {
-                throw DbException.getInvalidValueException("DATEADD timestamp", v);
+                throw DbException.getInvalidValueException("DATEADD time part", part);
             }
             dateValue = DateTimeUtils.dateValueFromAbsoluteDay(
                     DateTimeUtils.absoluteDayFromDateValue(dateValue) + count);

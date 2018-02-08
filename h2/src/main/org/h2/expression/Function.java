@@ -346,7 +346,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("DATEADD", DATE_ADD,
                 3, Value.TIMESTAMP);
         addFunction("TIMESTAMPADD", DATE_ADD,
-                3, Value.LONG);
+                3, Value.TIMESTAMP);
         addFunction("DATEDIFF", DATE_DIFF,
                 3, Value.LONG);
         addFunction("TIMESTAMPDIFF", DATE_DIFF,

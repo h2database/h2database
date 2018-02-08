@@ -3673,10 +3673,9 @@ Use negative values to subtract units.
 addIntLong may be a long value when manipulating milliseconds,
 otherwise it's range is restricted to int.
 The same units as in the EXTRACT function are supported.
-DATEADD method returns a value with the same type as specified value if unit is compatible with this value.
+This method returns a value with the same type as specified value if unit is compatible with this value.
 If specified unit is a HOUR, MINUTE, SECOND, MILLISECOND, etc and value is a DATE value DATEADD returns combined TIMESTAMP.
 Units DAY, MONTH, YEAR, WEEK, etc are not allowed for TIME values.
-TIMESTAMPADD method returns a long.
 ","
 DATEADD('MONTH', 1, DATE '2001-01-31')
 "

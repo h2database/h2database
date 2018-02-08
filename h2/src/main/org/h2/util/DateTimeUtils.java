@@ -1034,6 +1034,36 @@ public class DateTimeUtils {
     }
 
     /**
+     * Get the date value from a given denormalized date.
+     *
+     * @param year
+     *            the year
+     * @param month
+     *            the month, if out of range month and year will be normalized
+     * @param day
+     *            the day of the month, if out of range it will be saturated
+     * @return the date value
+     */
+    public static long dateValueFromDenormalizedDate(long year, long month, int day) {
+        long mm1 = month - 1;
+        long yd = mm1 / 12;
+        if (mm1 < 0 && yd * 12 != mm1) {
+            yd--;
+        }
+        int y = (int) (year + yd);
+        int m = (int) (month - yd * 12);
+        if (day < 1) {
+            day = 1;
+        } else {
+            int max = getDaysInMonth(y, m);
+            if (day > max) {
+                day = max;
+            }
+        }
+        return dateValue(y, m, day);
+    }
+
+    /**
      * Convert a UTC datetime in millis to an encoded date in the default
      * timezone.
      *

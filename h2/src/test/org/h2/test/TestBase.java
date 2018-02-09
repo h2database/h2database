@@ -464,6 +464,17 @@ public abstract class TestBase {
         throw new AssertionError(string);
     }
 
+   /**
+    * Log an error message.
+    *
+    * @param s the message
+    */
+   public static void logErrorMessage(String s) {
+       System.out.flush();
+       System.err.println("ERROR: " + s + "------------------------------");
+       logThrowable(s, null);
+   }
+
     /**
      * Log an error message.
      *
@@ -478,6 +489,10 @@ public abstract class TestBase {
         System.err.println("ERROR: " + s + " " + e.toString()
                 + " ------------------------------");
         e.printStackTrace();
+        logThrowable(null, e);
+    }
+
+    private static void logThrowable(String s, Throwable e) {
         // synchronize on this class, because file locks are only visible to
         // other JVMs
         synchronized (TestBase.class) {
@@ -494,9 +509,14 @@ public abstract class TestBase {
                 }
                 // append
                 FileWriter fw = new FileWriter("error.txt", true);
-                PrintWriter pw = new PrintWriter(fw);
-                e.printStackTrace(pw);
-                pw.close();
+                if (s != null) {
+                    fw.write(s);
+                }
+                if (e != null) {
+                    PrintWriter pw = new PrintWriter(fw);
+                    e.printStackTrace(pw);
+                    pw.close();
+                }
                 fw.close();
                 // unlock
                 lock.release();

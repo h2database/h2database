@@ -48,7 +48,7 @@ public class TestDateTimeUtils extends TestBase {
      * {@link DateTimeUtils#getIsoDayOfWeek(long)}.
      */
     private void testDayOfWeek() {
-        GregorianCalendar gc = DateTimeUtils.createGregorianCalendar();
+        GregorianCalendar gc = DateTimeUtils.createGregorianCalendar(DateTimeUtils.UTC);
         for (int i = -1_000_000; i <= 1_000_000; i++) {
             gc.clear();
             gc.setTimeInMillis(i * 86400000L);
@@ -66,7 +66,8 @@ public class TestDateTimeUtils extends TestBase {
             int isoDow = (dow + 5) % 7 + 1;
             assertEquals(isoDow, DateTimeUtils.getIsoDayOfWeek(dateValue));
             assertEquals(gc.get(Calendar.WEEK_OF_YEAR),
-                    DateTimeUtils.getWeekOfYear(dateValue, gc.getFirstDayOfWeek() - 1, gc.getMinimalDaysInFirstWeek()));
+                    DateTimeUtils.getWeekOfYear(dateValue, gc.getFirstDayOfWeek() - 1,
+                    gc.getMinimalDaysInFirstWeek()));
         }
     }
 
@@ -86,7 +87,8 @@ public class TestDateTimeUtils extends TestBase {
                     gc.clear();
                     gc.setTimeInMillis(i * 86400000L);
                     assertEquals(gc.get(Calendar.DAY_OF_YEAR), DateTimeUtils.getDayOfYear(dateValue));
-                    assertEquals(gc.get(Calendar.WEEK_OF_YEAR), DateTimeUtils.getWeekOfYear(dateValue, firstDay - 1, minimalDays));
+                    assertEquals(gc.get(Calendar.WEEK_OF_YEAR),
+                            DateTimeUtils.getWeekOfYear(dateValue, firstDay - 1, minimalDays));
                     assertEquals(gc.getWeekYear(), DateTimeUtils.getWeekYear(dateValue, firstDay - 1, minimalDays));
                 }
             }

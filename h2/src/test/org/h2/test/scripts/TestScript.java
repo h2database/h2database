@@ -41,6 +41,7 @@ public class TestScript extends TestBase {
     private boolean reconnectOften;
     private Connection conn;
     private Statement stat;
+    private String fileName;
     private LineNumberReader in;
     private int outputLineNo;
     private PrintStream out;
@@ -155,6 +156,7 @@ public class TestScript extends TestBase {
         // we processed.
         conn = null;
         stat = null;
+        fileName = null;
         in = null;
         outputLineNo = 0;
         out = null;
@@ -172,7 +174,7 @@ public class TestScript extends TestBase {
         conn.close();
         out.close();
         if (errors.length() > 0) {
-            throw new Exception("errors:\n" + errors.toString());
+            throw new Exception("errors in " + scriptFileName + " found");
         }
         // new File(outFile).delete();
     }
@@ -200,6 +202,7 @@ public class TestScript extends TestBase {
         if (is == null) {
             throw new IOException("could not find " + inFile);
         }
+        fileName = inFile;
         in = new LineNumberReader(new InputStreamReader(is, "Cp1252"));
         StringBuilder buff = new StringBuilder();
         while (true) {
@@ -435,17 +438,14 @@ public class TestScript extends TestBase {
                 if (reconnectOften && sql.toUpperCase().startsWith("EXPLAIN")) {
                     return;
                 }
-                errors.append("line: ");
-                errors.append(outputLineNo);
-                errors.append("\n" + "exp: ");
-                errors.append(compare);
-                errors.append("\n" + "got: ");
-                errors.append(s);
-                errors.append("\n");
+                errors.append(fileName).append('\n');
+                errors.append("line: ").append(outputLineNo).append('\n');
+                errors.append("exp: ").append(compare).append('\n');
+                errors.append("got: ").append(s).append('\n');
                 if (e != null) {
                     TestBase.logError("script", e);
                 }
-                TestBase.logError(errors.toString(), null);
+                TestBase.logErrorMessage(errors.toString());
                 if (failFast) {
                     conn.close();
                     System.exit(1);

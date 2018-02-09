@@ -311,7 +311,7 @@ public class Aggregate extends Expression {
                 return v;
             }
             case MEDIAN: {
-                return AggregateDataMedian.getFromIndex(session, on, dataType);
+                return AggregateDataMedian.getResultFromIndex(session, on, dataType);
             }
             default:
                 DbException.throwInternalError("type=" + type);

@@ -49,6 +49,12 @@ class AggregateDataMedian extends AggregateData {
                 || (sortType & SortOrder.DESCENDING) != 0 && (sortType & SortOrder.NULLS_FIRST) == 0;
     }
 
+    /**
+     * Get the index (if any) for the column specified in the median aggregate.
+     *
+     * @param on the expression (usually a column expression)
+     * @return the index, or null
+     */
     static Index getMedianColumnIndex(Expression on) {
         if (on instanceof ExpressionColumn) {
             ExpressionColumn col = (ExpressionColumn) on;
@@ -68,8 +74,8 @@ class AggregateDataMedian extends AggregateData {
                         if (!index.isFirstColumn(column)) {
                             continue;
                         }
-                        if (result == null || result.getColumns().length > index.getColumns().length
                         // Prefer index without nulls last for nullable columns
+                        if (result == null || result.getColumns().length > index.getColumns().length
                                 || nullable && isNullsLast(result) && !isNullsLast(index)) {
                             result = index;
                         }
@@ -81,7 +87,15 @@ class AggregateDataMedian extends AggregateData {
         return null;
     }
 
-    static Value getFromIndex(Session session, Expression on, int dataType) {
+    /**
+     * Get the result from the index.
+     *
+     * @param session the session
+     * @param on the expression
+     * @param dataType the data type
+     * @return the result
+     */
+    static Value getResultFromIndex(Session session, Expression on, int dataType) {
         Index index = getMedianColumnIndex(on);
         long count = index.getRowCount(session);
         if (count == 0) {
@@ -94,10 +108,8 @@ class AggregateDataMedian extends AggregateData {
         if (expr.getColumn().isNullable()) {
             boolean hasNulls = false;
             SearchRow row;
-            /*
-             * Try to skip nulls from the start first with the same cursor that will be used
-             * to read values.
-             */
+            // Try to skip nulls from the start first with the same cursor that
+            // will be used to read values.
             while (count > 0) {
                 row = cursor.getSearchRow();
                 if (row == null) {
@@ -113,10 +125,8 @@ class AggregateDataMedian extends AggregateData {
             if (count == 0) {
                 return ValueNull.INSTANCE;
             }
-            /*
-             * If no nulls found and if index orders nulls last create a second cursor to
-             * count nulls at the end.
-             */
+            // If no nulls found and if index orders nulls last create a second
+            // cursor to count nulls at the end.
             if (!hasNulls && isNullsLast(index)) {
                 TableFilter tableFilter = expr.getTableFilter();
                 SearchRow check = tableFilter.getTable().getTemplateSimpleRow(true);
@@ -196,7 +206,7 @@ class AggregateDataMedian extends AggregateData {
         return getMedian(a[idx - 1], v1, dataType, mode);
     }
 
-    static Value getMedian(Value v0, Value v1, int dataType, CompareMode mode) {
+    private static Value getMedian(Value v0, Value v1, int dataType, CompareMode mode) {
         if (v0.compareTo(v1, mode) == 0) {
             return v0.convertTo(dataType);
         }

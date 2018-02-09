@@ -24,7 +24,6 @@ import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
-import org.h2.table.Column;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
@@ -604,7 +603,7 @@ public abstract class Value {
      * @return the converted value
      */
     public final Value convertTo(int targetType, int precision, Mode mode) {
-        return convertTo(targetType, precision, mode, null);
+        return convertTo(targetType, precision, mode, null, null);
     }
 
     /**
@@ -615,11 +614,12 @@ public abstract class Value {
      *        The special constant <code>-1</code> is used to indicate that
      *        the precision plays no role when converting the value
      * @param mode the conversion mode
-     * @param column the column that contains the ENUM datatype enumerators,
+     * @param column the column (if any), used for to improve the error message if conversion fails
+     * @param enumerators the ENUM datatype enumerators (if any),
      *        for dealing with ENUM conversions
      * @return the converted value
      */
-    public Value convertTo(int targetType, int precision, Mode mode, Column column) {
+    public Value convertTo(int targetType, int precision, Mode mode, Object column, String[] enumerators) {
         // converting NULL is done in ValueNull
         // converting BLOB to CLOB and vice versa is done in ValueLob
         if (getType() == targetType) {
@@ -938,11 +938,11 @@ public abstract class Value {
                     case INT:
                     case LONG:
                     case DECIMAL:
-                        return ValueEnum.get(column.getEnumerators(), getInt());
+                        return ValueEnum.get(enumerators, getInt());
                     case STRING:
                     case STRING_IGNORECASE:
                     case STRING_FIXED:
-                        return ValueEnum.get(column.getEnumerators(), getString());
+                        return ValueEnum.get(enumerators, getString());
                     default:
                         throw DbException.get(
                                 ErrorCode.DATA_CONVERSION_ERROR_1, getString());
@@ -1154,51 +1154,51 @@ public abstract class Value {
         return this;
     }
 
-    private static byte convertToByte(long x, Column col) {
+    private static byte convertToByte(long x, Object column) {
         if (x > Byte.MAX_VALUE || x < Byte.MIN_VALUE) {
             throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), getColumnName(col));
+                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), getColumnName(column));
         }
         return (byte) x;
     }
 
-    private static short convertToShort(long x, Column col) {
+    private static short convertToShort(long x, Object column) {
         if (x > Short.MAX_VALUE || x < Short.MIN_VALUE) {
             throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), getColumnName(col));
+                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), getColumnName(column));
         }
         return (short) x;
     }
 
-    private static int convertToInt(long x, Column col) {
+    private static int convertToInt(long x, Object column) {
         if (x > Integer.MAX_VALUE || x < Integer.MIN_VALUE) {
             throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), getColumnName(col));
+                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), getColumnName(column));
         }
         return (int) x;
     }
 
-    private static long convertToLong(double x, Column col) {
+    private static long convertToLong(double x, Object column) {
         if (x > Long.MAX_VALUE || x < Long.MIN_VALUE) {
             // TODO document that +Infinity, -Infinity throw an exception and
             // NaN returns 0
             throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Double.toString(x), getColumnName(col));
+                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Double.toString(x), getColumnName(column));
         }
         return Math.round(x);
     }
 
-    private static long convertToLong(BigDecimal x, Column col) {
+    private static long convertToLong(BigDecimal x, Object column) {
         if (x.compareTo(MAX_LONG_DECIMAL) > 0 ||
                 x.compareTo(Value.MIN_LONG_DECIMAL) < 0) {
             throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, x.toString(), getColumnName(col));
+                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, x.toString(), getColumnName(column));
         }
         return x.setScale(0, BigDecimal.ROUND_HALF_UP).longValue();
     }
 
-    private static String getColumnName(Column col) {
-        return col == null ? "" : col.getName();
+    private static String getColumnName(Object column) {
+        return column == null ? "" : column.toString();
     }
 
     /**

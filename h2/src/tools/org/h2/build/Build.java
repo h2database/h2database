@@ -610,8 +610,8 @@ public class Build extends BuildBase {
             exclude("*.DS_Store");
         files = excludeTestMetaInfFiles(files);
         long kb = jar("bin/h2-client" + getJarSuffix(), files, "temp");
-        if (kb < 350 || kb > 450) {
-            throw new RuntimeException("Expected file size 350 - 450 KB, got: " + kb);
+        if (kb < 400 || kb > 500) {
+            throw new RuntimeException("Expected file size 400 - 500 KB, got: " + kb);
         }
     }
 

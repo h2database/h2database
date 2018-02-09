@@ -14,6 +14,7 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+
 import org.h2.engine.Constants;
 import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
@@ -26,7 +27,6 @@ import org.h2.store.FileStoreOutputStream;
 import org.h2.store.RangeInputStream;
 import org.h2.store.RangeReader;
 import org.h2.store.fs.FileUtils;
-import org.h2.table.Column;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.SmallLRUCache;
@@ -499,12 +499,13 @@ public class ValueLob extends Value {
      *        The special constant <code>-1</code> is used to indicate that
      *        the precision plays no role when converting the value
      * @param mode the database mode
-     * @param column the column that contains the ENUM datatype enumerators,
+     * @param column the column (if any), used for to improve the error message if conversion fails
+     * @param enumerators the ENUM datatype enumerators (if any),
      *        for dealing with ENUM conversions
      * @return the converted value
      */
     @Override
-    public Value convertTo(int t, int precision, Mode mode, Column column) {
+    public Value convertTo(int t, int precision, Mode mode, Object column, String[] enumerators) {
         if (t == type) {
             return this;
         } else if (t == Value.CLOB) {
@@ -514,7 +515,7 @@ public class ValueLob extends Value {
             ValueLob copy = ValueLob.createBlob(getInputStream(), -1, handler);
             return copy;
         }
-        return super.convertTo(t, precision, mode, column);
+        return super.convertTo(t, precision, mode, column, null);
     }
 
     @Override

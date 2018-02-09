@@ -16,7 +16,6 @@ import java.util.Locale;
 import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Mode;
-import org.h2.expression.Function;
 import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
@@ -111,7 +110,7 @@ public class DateTimeUtils {
      *
      * @return a calendar instance. A cached instance is returned where possible
      */
-    private static GregorianCalendar getCalendar() {
+    public static GregorianCalendar getCalendar() {
         GregorianCalendar c = CACHED_CALENDAR.get();
         if (c == null) {
             c = DateTimeUtils.createGregorianCalendar();

@@ -14,6 +14,7 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+
 import org.h2.engine.Constants;
 import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
@@ -26,7 +27,6 @@ import org.h2.store.FileStoreOutputStream;
 import org.h2.store.LobStorageFrontend;
 import org.h2.store.LobStorageInterface;
 import org.h2.store.fs.FileUtils;
-import org.h2.table.Column;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
@@ -186,11 +186,13 @@ public class ValueLobDb extends Value implements Value.ValueClob,
      * @param t the new type
      * @param precision the precision
      * @param mode the mode
-     * @param column the column
+     * @param column the column (if any), used for to improve the error message if conversion fails
+     * @param enumerators the ENUM datatype enumerators (if any),
+     *        for dealing with ENUM conversions
      * @return the converted value
      */
     @Override
-    public Value convertTo(int t, int precision, Mode mode, Column column) {
+    public Value convertTo(int t, int precision, Mode mode, Object column, String[] enumerators) {
         if (t == type) {
             return this;
         } else if (t == Value.CLOB) {
@@ -210,7 +212,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                 return ValueLobDb.createSmallLob(t, small);
             }
         }
-        return super.convertTo(t, precision, mode, column);
+        return super.convertTo(t, precision, mode, column, null);
     }
 
     @Override

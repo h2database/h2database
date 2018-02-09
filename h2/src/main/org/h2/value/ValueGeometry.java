@@ -10,7 +10,6 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
-import org.h2.table.Column;
 import org.h2.util.StringUtils;
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.CoordinateSequenceFilter;
@@ -273,11 +272,11 @@ public class ValueGeometry extends Value {
     }
 
     @Override
-    public Value convertTo(int targetType, int precision, Mode mode, Column column) {
+    public Value convertTo(int targetType, int precision, Mode mode, Object column, String[] enumerators) {
         if (targetType == Value.JAVA_OBJECT) {
             return this;
         }
-        return super.convertTo(targetType, precision, mode, column);
+        return super.convertTo(targetType, precision, mode, column, null);
     }
 
     /**

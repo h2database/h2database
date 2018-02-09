@@ -85,6 +85,7 @@ public class Session extends SessionWithState {
     private Value lastIdentity = ValueLong.get(0);
     private Value lastScopeIdentity = ValueLong.get(0);
     private Value lastTriggerIdentity;
+    private GeneratedKeys generatedKeys;
     private int firstUncommittedLog = Session.LOG_WRITTEN;
     private int firstUncommittedPos = Session.LOG_WRITTEN;
     private HashMap<String, Savepoint> savepoints;
@@ -1075,6 +1076,13 @@ public class Session extends SessionWithState {
         return lastTriggerIdentity;
     }
 
+    public GeneratedKeys getGeneratedKeys() {
+        if (generatedKeys == null) {
+            generatedKeys = new GeneratedKeys();
+        }
+        return generatedKeys;
+    }
+
     /**
      * Called when a log entry for this session is added. The session keeps
      * track of the first entry in the transaction log that is not yet
@@ -1240,6 +1248,11 @@ public class Session extends SessionWithState {
      */
     public void setCurrentCommand(Command command) {
         this.currentCommand = command;
+        // Preserve generated keys in case of a new query so they can be read with
+        // CALL GET_GENERATED_KEYS()
+        if (command != null && !command.isQuery() && generatedKeys != null) {
+            generatedKeys.clear();
+        }
         if (queryTimeout > 0 && command != null) {
             currentCommandStart = System.currentTimeMillis();
             long now = System.nanoTime();

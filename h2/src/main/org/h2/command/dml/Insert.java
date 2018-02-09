@@ -12,6 +12,7 @@ import org.h2.api.Trigger;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
+import org.h2.engine.GeneratedKeys;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
@@ -20,6 +21,7 @@ import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.Parameter;
+import org.h2.expression.SequenceValue;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mvstore.db.MVPrimaryIndex;
@@ -145,8 +147,10 @@ public class Insert extends Prepared implements ResultTarget {
         int listSize = list.size();
         if (listSize > 0) {
             int columnLen = columns.length;
+            GeneratedKeys generatedKeys = session.getGeneratedKeys();
             for (int x = 0; x < listSize; x++) {
                 session.startStatementWithinTransaction();
+                generatedKeys.nextRow();
                 Row newRow = table.getTemplateRow();
                 Expression[] expr = list.get(x);
                 setCurrentRowNumber(x + 1);
@@ -160,6 +164,9 @@ public class Insert extends Prepared implements ResultTarget {
                         try {
                             Value v = c.convert(e.getValue(session), session.getDatabase().getMode());
                             newRow.setValue(index, v);
+                            if (e instanceof SequenceValue) {
+                                generatedKeys.add(c, v);
+                            }
                         } catch (DbException ex) {
                             throw setRow(ex, x, getSQL(expr));
                         }
@@ -179,6 +186,7 @@ public class Insert extends Prepared implements ResultTarget {
                             continue;
                         }
                     }
+                    generatedKeys.confirmRow();
                     session.log(table, UndoLogRecord.INSERT, newRow);
                     table.fireAfterRow(session, null, newRow, false);
                 }

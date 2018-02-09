@@ -91,7 +91,7 @@ public class TestPreparedStatement extends TestBase {
         testSubquery(conn);
         testObject(conn);
         testIdentity(conn);
-        testBatchGeneratedKeys(conn);
+        testGeneratedKeys(conn);
         testDataTypes(conn);
         testGetMoreResults(conn);
         testBlob(conn);
@@ -1318,11 +1318,115 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("DROP SEQUENCE SEQ");
     }
 
-    private void testBatchGeneratedKeys(Connection conn) throws SQLException {
+    public static class TestGeneratedKeysTrigger implements Trigger {
+
+        @Override
+        public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before,
+                int type) throws SQLException {
+        }
+
+        @Override
+        public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
+            if (newRow[0] == null) {
+                newRow[0] = UUID.randomUUID();
+            }
+        }
+
+        @Override
+        public void close() throws SQLException {
+        }
+
+        @Override
+        public void remove() throws SQLException {
+        }
+
+    }
+
+    private void testGeneratedKeys(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
+        stat.execute("create table test(id bigint)");
+        stat.execute("create sequence seq");
+        PreparedStatement prep = conn.prepareStatement(
+                "insert into test values (30), (next value for seq),"
+                        + " (next value for seq), (next value for seq), (20)",
+                PreparedStatement.RETURN_GENERATED_KEYS);
+            prep.executeUpdate();
+        ResultSet rs = prep.getGeneratedKeys();
+        rs.next();
+        assertEquals(1L, rs.getLong(1));
+        rs.next();
+        assertEquals(2L, rs.getLong(1));
+        rs.next();
+        assertEquals(3L, rs.getLong(1));
+        assertFalse(rs.next());
+        stat.execute("drop table test");
+        stat.execute("drop sequence seq");
+
+        stat.execute("create table test(id bigint auto_increment, value int)");
+        stat.execute("insert into test(value) values (1), (2)");
+        rs = stat.getGeneratedKeys();
+        rs.next();
+        assertEquals(1L, rs.getLong(1));
+        rs.next();
+        assertEquals(2L, rs.getLong(1));
+        assertFalse(rs.next());
+        stat.execute("drop table test");
+
+        stat.execute("create table test(id bigint auto_increment, uid uuid default random_uuid(), value int)");
+        prep = conn.prepareStatement("insert into test(value) values (?), (?)",
+                PreparedStatement.RETURN_GENERATED_KEYS);
+        prep.setInt(1, 1);
+        prep.setInt(2, 2);
+        prep.addBatch();
+        prep.setInt(1, 3);
+        prep.setInt(1, 4);
+        prep.addBatch();
+        prep.executeBatch();
+        rs = prep.getGeneratedKeys();
+        rs.next();
+        assertEquals(1L, rs.getLong(1));
+        UUID u1 = (UUID) rs.getObject(2);
+        assertTrue(u1 != null);
+        rs.next();
+        assertEquals(2L, rs.getLong(1));
+        UUID u2 = (UUID) rs.getObject(2);
+        assertTrue(u2 != null);
+        rs.next();
+        assertEquals(3L, rs.getLong(1));
+        UUID u3 = (UUID) rs.getObject(2);
+        assertTrue(u3 != null);
+        rs.next();
+        assertEquals(4L, rs.getLong(1));
+        UUID u4 = (UUID) rs.getObject(2);
+        assertTrue(u4 != null);
+        assertFalse(rs.next());
+        assertFalse(u1.equals(u2));
+        assertFalse(u2.equals(u3));
+        assertFalse(u3.equals(u4));
+        stat.execute("drop table test");
+
+        stat.execute("create table test(id uuid, value int)");
+        stat.execute("create trigger test_insert before insert on test for each row call \""
+                + TestGeneratedKeysTrigger.class.getName()
+                + '"');
+        stat.executeUpdate("insert into test(value) values (10), (20)");
+        rs = stat.getGeneratedKeys();
+        rs.next();
+        u1 = (UUID) rs.getObject(1);
+        rs.next();
+        u2 = (UUID) rs.getObject(1);
+        assertFalse(rs.next());
+        rs = stat.executeQuery("select id from test order by value");
+        rs.next();
+        assertEquals(u1, rs.getObject(1));
+        rs.next();
+        assertEquals(u2, rs.getObject(1));
+        stat.execute("drop trigger test_insert");
+        stat.execute("drop table test");
+
         stat.execute("CREATE SEQUENCE SEQ");
         stat.execute("CREATE TABLE TEST(ID INT)");
-        PreparedStatement prep = conn.prepareStatement(
+        prep = conn.prepareStatement(
                 "INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)");
         prep.addBatch();
         prep.addBatch();

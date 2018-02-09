@@ -27,6 +27,7 @@ import java.sql.Types;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.UUID;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.engine.SysProperties;
@@ -575,9 +576,14 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("insert into test values(null)");
         ResultSet rs = stat.getGeneratedKeys();
         rs.next();
+        // Generated key
         assertEquals(1, rs.getLong(1));
         stat.execute("insert into test values(100)");
         rs = stat.getGeneratedKeys();
+        // No generated keys
+        assertFalse(rs.next());
+        // Value from sequence from trigger
+        rs = stat.executeQuery("select scope_identity()");
         rs.next();
         assertEquals(100, rs.getLong(1));
         stat.execute("drop sequence seq");

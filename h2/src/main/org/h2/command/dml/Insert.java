@@ -148,6 +148,7 @@ public class Insert extends Prepared implements ResultTarget {
         if (listSize > 0) {
             int columnLen = columns.length;
             GeneratedKeys generatedKeys = session.getGeneratedKeys();
+            generatedKeys.initialize(table);
             for (int x = 0; x < listSize; x++) {
                 session.startStatementWithinTransaction();
                 generatedKeys.nextRow();

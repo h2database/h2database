@@ -351,16 +351,19 @@ public class TestStatement extends TestBase {
         stat.execute("create table test1(id identity, x int)");
         stat.execute("drop table if exists test2");
         stat.execute("create table test2(id identity, x int)");
-        stat.execute("merge into test1(x) key(x) values(5)");
+        stat.execute("merge into test1(x) key(x) values(5)",
+                Statement.RETURN_GENERATED_KEYS);
         ResultSet keys;
         keys = stat.getGeneratedKeys();
         keys.next();
         assertEquals(1, keys.getInt(1));
         stat.execute("insert into test2(x) values(10), (11), (12)");
-        stat.execute("merge into test1(x) key(x) values(5)");
+        stat.execute("merge into test1(x) key(x) values(5)",
+                Statement.RETURN_GENERATED_KEYS);
         keys = stat.getGeneratedKeys();
         assertFalse(keys.next());
-        stat.execute("merge into test1(x) key(x) values(6)");
+        stat.execute("merge into test1(x) key(x) values(6)",
+                Statement.RETURN_GENERATED_KEYS);
         keys = stat.getGeneratedKeys();
         keys.next();
         assertEquals(2, keys.getInt(1));
@@ -371,7 +374,8 @@ public class TestStatement extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE SEQUENCE SEQ");
         stat.execute("CREATE TABLE TEST(ID INT)");
-        stat.execute("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)");
+        stat.execute("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)",
+                Statement.RETURN_GENERATED_KEYS);
         ResultSet rs = stat.getGeneratedKeys();
         rs.next();
         assertEquals(1, rs.getInt(1));

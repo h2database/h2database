@@ -101,6 +101,11 @@ public class Constants {
     public static final int TCP_PROTOCOL_VERSION_16 = 16;
 
     /**
+     * The TCP protocol version number 17.
+     */
+    public static final int TCP_PROTOCOL_VERSION_17 = 17;
+
+    /**
      * The major version of this database.
      */
     public static final int VERSION_MAJOR = 1;

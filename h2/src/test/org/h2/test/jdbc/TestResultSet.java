@@ -573,12 +573,14 @@ public class TestResultSet extends TestBase {
         ResultSet rs;
         stat.execute("CREATE TABLE TEST(ID IDENTITY NOT NULL, NAME VARCHAR NULL)");
 
-        stat.execute("INSERT INTO TEST(NAME) VALUES('Hello')");
+        stat.execute("INSERT INTO TEST(NAME) VALUES('Hello')",
+                Statement.RETURN_GENERATED_KEYS);
         rs = stat.getGeneratedKeys();
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
 
-        stat.execute("INSERT INTO TEST(NAME) VALUES('World')");
+        stat.execute("INSERT INTO TEST(NAME) VALUES('World')",
+                Statement.RETURN_GENERATED_KEYS);
         rs = stat.getGeneratedKeys();
         assertTrue(rs.next());
         assertEquals(2, rs.getInt(1));

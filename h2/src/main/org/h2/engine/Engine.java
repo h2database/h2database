@@ -203,7 +203,7 @@ public class Engine implements SessionFactory {
                     CommandInterface command = session.prepareCommand(
                             "SET " + Parser.quoteIdentifier(setting) + " " + value,
                             Integer.MAX_VALUE);
-                    command.executeUpdate();
+                    command.executeUpdate(false);
                 } catch (DbException e) {
                     if (e.getErrorCode() == ErrorCode.ADMIN_RIGHTS_REQUIRED) {
                         session.getTrace().error(e, "admin rights required; user: \"" +
@@ -221,7 +221,7 @@ public class Engine implements SessionFactory {
                 try {
                     CommandInterface command = session.prepareCommand(init,
                             Integer.MAX_VALUE);
-                    command.executeUpdate();
+                    command.executeUpdate(false);
                 } catch (DbException e) {
                     if (!ignoreUnknownSetting) {
                         session.close();

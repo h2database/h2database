@@ -63,11 +63,13 @@ public class JdbcPreparedStatement extends JdbcStatement implements
     private ArrayList<Value[]> batchParameters;
     private MergedResultSet batchIdentities;
     private HashMap<String, Integer> cachedColumnLabelMap;
+    private final Object generatedKeysRequest;
 
     JdbcPreparedStatement(JdbcConnection conn, String sql, int id,
             int resultSetType, int resultSetConcurrency,
-            boolean closeWithResultSet) {
+            boolean closeWithResultSet, Object generatedKeysRequest) {
         super(conn, id, resultSetType, resultSetConcurrency, closeWithResultSet);
+        this.generatedKeysRequest = generatedKeysRequest;
         setTrace(session.getTrace(), TraceObject.PREPARED_STATEMENT, id);
         this.sqlStatement = sql;
         command = conn.prepareCommand(sql, fetchSize);
@@ -193,7 +195,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
         synchronized (session) {
             try {
                 setExecutingStatement(command);
-                updateCount = command.executeUpdate();
+                updateCount = command.executeUpdate(generatedKeysRequest);
             } finally {
                 setExecutingStatement(null);
             }
@@ -236,7 +238,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                                     updatable, cachedColumnLabelMap);
                         } else {
                             returnsResultSet = false;
-                            updateCount = command.executeUpdate();
+                            updateCount = command.executeUpdate(generatedKeysRequest);
                         }
                     } finally {
                         if (!lazy) {

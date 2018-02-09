@@ -1284,7 +1284,7 @@ public class WebApp {
             ResultSet rs;
             long time = System.currentTimeMillis();
             boolean metadata = false;
-            boolean generatedKeys = false;
+            int generatedKeys = Statement.NO_GENERATED_KEYS;
             boolean edit = false;
             boolean list = false;
             if (isBuiltIn(sql, "@autocommit_true")) {
@@ -1316,7 +1316,7 @@ public class WebApp {
                 sql = sql.substring("@meta".length()).trim();
             }
             if (isBuiltIn(sql, "@generated")) {
-                generatedKeys = true;
+                generatedKeys = Statement.RETURN_GENERATED_KEYS;
                 sql = sql.substring("@generated".length()).trim();
             } else if (isBuiltIn(sql, "@history")) {
                 buff.append(getCommandHistoryString());
@@ -1385,9 +1385,9 @@ public class WebApp {
                 int maxrows = getMaxrows();
                 stat.setMaxRows(maxrows);
                 session.executingStatement = stat;
-                boolean isResultSet = stat.execute(sql);
+                boolean isResultSet = stat.execute(sql, generatedKeys);
                 session.addCommand(sql);
-                if (generatedKeys) {
+                if (generatedKeys == Statement.RETURN_GENERATED_KEYS) {
                     rs = null;
                     rs = stat.getGeneratedKeys();
                 } else {

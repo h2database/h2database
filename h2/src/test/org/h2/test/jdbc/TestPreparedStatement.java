@@ -526,7 +526,7 @@ public class TestPreparedStatement extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST_UUID(id UUID DEFAULT " +
                 "random_UUID() PRIMARY KEY)");
-        stat.execute("INSERT INTO TEST_UUID() VALUES()");
+        stat.execute("INSERT INTO TEST_UUID() VALUES()", Statement.RETURN_GENERATED_KEYS);
         ResultSet rs = stat.getGeneratedKeys();
         rs.next();
         byte[] data = rs.getBytes(1);
@@ -573,7 +573,7 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("create sequence seq start with 1000");
         stat.execute("create trigger test_ins after insert on test call \"" +
                 SequenceTrigger.class.getName() + "\"");
-        stat.execute("insert into test values(null)");
+        stat.execute("insert into test values(null)", Statement.RETURN_GENERATED_KEYS);
         ResultSet rs = stat.getGeneratedKeys();
         rs.next();
         // Generated key
@@ -1275,7 +1275,7 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT)");
         PreparedStatement prep;
         prep = conn.prepareStatement(
-                "INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)");
+                "INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", Statement.RETURN_GENERATED_KEYS);
         prep.execute();
         ResultSet rs = prep.getGeneratedKeys();
         rs.next();
@@ -1317,7 +1317,6 @@ public class TestPreparedStatement extends TestBase {
         prep.execute();
         rs = prep.getGeneratedKeys();
         rs.next();
-        assertEquals(5, rs.getInt(1));
         assertFalse(rs.next());
 
         stat.execute("DROP TABLE TEST");
@@ -1369,7 +1368,8 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("drop sequence seq");
 
         stat.execute("create table test(id bigint auto_increment, value int)");
-        stat.execute("insert into test(value) values (1), (2)");
+        stat.execute("insert into test(value) values (1), (2)",
+                Statement.RETURN_GENERATED_KEYS);
         rs = stat.getGeneratedKeys();
         rs.next();
         assertEquals(1L, rs.getLong(1));
@@ -1409,7 +1409,8 @@ public class TestPreparedStatement extends TestBase {
         assertFalse(u1.equals(u2));
         assertFalse(u2.equals(u3));
         assertFalse(u3.equals(u4));
-        prep = conn.prepareStatement("merge into test(id, value) key (id) values (?, ?)");
+        prep = conn.prepareStatement("merge into test(id, value) key (id) values (?, ?)",
+                Statement.RETURN_GENERATED_KEYS);
         prep.setObject(1, 2);
         prep.setInt(2, 10);
         prep.execute();
@@ -1427,7 +1428,8 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("create trigger test_insert before insert on test for each row call \""
                 + TestGeneratedKeysTrigger.class.getName()
                 + '"');
-        stat.executeUpdate("insert into test(value) values (10), (20)");
+        stat.executeUpdate("insert into test(value) values (10), (20)",
+                Statement.RETURN_GENERATED_KEYS);
         rs = stat.getGeneratedKeys();
         rs.next();
         u1 = (UUID) rs.getObject(1);
@@ -1442,10 +1444,68 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("drop trigger test_insert");
         stat.execute("drop table test");
 
+        stat.execute("create table test(id bigint auto_increment, value int)");
+        stat.execute("insert into test(value) values (1)");
+        assertFalse(stat.getGeneratedKeys().next());
+        stat.execute("insert into test(value) values (1)", Statement.NO_GENERATED_KEYS);
+        assertFalse(stat.getGeneratedKeys().next());
+        stat.execute("insert into test(value) values (1)", Statement.RETURN_GENERATED_KEYS);
+        rs = stat.getGeneratedKeys();
+        assertTrue(rs.next());
+        assertEquals(3, rs.getLong(1));
+        assertFalse(rs.next());
+        stat.execute("insert into test(value) values (1)", new int[0]);
+        assertFalse(stat.getGeneratedKeys().next());
+        stat.execute("insert into test(value) values (1)", new int[] { 1 });
+        rs = stat.getGeneratedKeys();
+        assertTrue(rs.next());
+        assertEquals(5, rs.getLong(1));
+        assertFalse(rs.next());
+        stat.execute("insert into test(value) values (1)", new String[0]);
+        assertFalse(stat.getGeneratedKeys().next());
+        stat.execute("insert into test(value) values (1)", new String[] { "ID" });
+        rs = stat.getGeneratedKeys();
+        assertTrue(rs.next());
+        assertEquals(7, rs.getLong(1));
+        assertFalse(rs.next());
+
+        prep = conn.prepareStatement("insert into test(value) values (1)");
+        prep.execute();
+        assertFalse(prep.getGeneratedKeys().next());
+        prep = conn.prepareStatement("insert into test(value) values (1)", Statement.NO_GENERATED_KEYS);
+        prep.execute();
+        assertFalse(prep.getGeneratedKeys().next());
+        prep = conn.prepareStatement("insert into test(value) values (1)", Statement.RETURN_GENERATED_KEYS);
+        prep.execute();
+        rs = prep.getGeneratedKeys();
+        assertTrue(rs.next());
+        assertEquals(10, rs.getLong(1));
+        assertFalse(rs.next());
+        prep = conn.prepareStatement("insert into test(value) values (1)", new int[0]);
+        prep.execute();
+        assertFalse(prep.getGeneratedKeys().next());
+        prep = conn.prepareStatement("insert into test(value) values (1)", new int[] { 1 });
+        prep.execute();
+        rs = prep.getGeneratedKeys();
+        assertTrue(rs.next());
+        assertEquals(12, rs.getLong(1));
+        assertFalse(rs.next());
+        prep = conn.prepareStatement("insert into test(value) values (1)", new String[0]);
+        prep.execute();
+        assertFalse(prep.getGeneratedKeys().next());
+        prep = conn.prepareStatement("insert into test(value) values (1)", new String[] { "ID" });
+        prep.execute();
+        rs = prep.getGeneratedKeys();
+        assertTrue(rs.next());
+        assertEquals(14, rs.getLong(1));
+        assertFalse(rs.next());
+        stat.execute("drop table test");
+
         stat.execute("CREATE SEQUENCE SEQ");
         stat.execute("CREATE TABLE TEST(ID INT)");
         prep = conn.prepareStatement(
-                "INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)");
+                "INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)",
+                Statement.RETURN_GENERATED_KEYS);
         prep.addBatch();
         prep.addBatch();
         prep.addBatch();

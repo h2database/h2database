@@ -91,12 +91,12 @@ public class TcpServerThread implements Runnable {
                 if (maxClientVersion < Constants.TCP_PROTOCOL_VERSION_6) {
                     throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2,
                             "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_6);
-                } else if (minClientVersion > Constants.TCP_PROTOCOL_VERSION_16) {
+                } else if (minClientVersion > Constants.TCP_PROTOCOL_VERSION_17) {
                     throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2,
-                            "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_16);
+                            "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_17);
                 }
-                if (maxClientVersion >= Constants.TCP_PROTOCOL_VERSION_16) {
-                    clientVersion = Constants.TCP_PROTOCOL_VERSION_16;
+                if (maxClientVersion >= Constants.TCP_PROTOCOL_VERSION_17) {
+                    clientVersion = Constants.TCP_PROTOCOL_VERSION_17;
                 } else {
                     clientVersion = maxClientVersion;
                 }
@@ -178,7 +178,7 @@ public class TcpServerThread implements Runnable {
             RuntimeException closeError = null;
             try {
                 Command rollback = session.prepareLocal("ROLLBACK");
-                rollback.executeUpdate();
+                rollback.executeUpdate(false);
             } catch (RuntimeException e) {
                 closeError = e;
                 server.traceError(e);
@@ -302,7 +302,7 @@ public class TcpServerThread implements Runnable {
                 commit = session.prepareLocal("COMMIT");
             }
             int old = session.getModificationId();
-            commit.executeUpdate();
+            commit.executeUpdate(false);
             transfer.writeInt(getState(old)).flush();
             break;
         }
@@ -353,10 +353,41 @@ public class TcpServerThread implements Runnable {
             int id = transfer.readInt();
             Command command = (Command) cache.getObject(id, false);
             setParameters(command);
+            Object generatedKeysRequest;
+            if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_17) {
+                int type = transfer.readInt();
+                switch (type) {
+                default:
+                    generatedKeysRequest = false;
+                    break;
+                case 1:
+                    generatedKeysRequest = true;
+                    break;
+                case 2: {
+                    int len = transfer.readInt();
+                    int[] keys = new int[len];
+                    for (int i = 0; i < len; i++) {
+                        keys[i] = transfer.readInt();
+                    }
+                    generatedKeysRequest = keys;
+                    break;
+                }
+                case 3: {
+                    int len = transfer.readInt();
+                    String[] keys = new String[len];
+                    for (int i = 0; i < len; i++) {
+                        keys[i] = transfer.readString();
+                    }
+                    generatedKeysRequest = keys;
+                }
+                }
+            } else {
+                generatedKeysRequest = true;
+            }
             int old = session.getModificationId();
             int updateCount;
             synchronized (session) {
-                updateCount = command.executeUpdate();
+                updateCount = command.executeUpdate(generatedKeysRequest);
             }
             int status;
             if (session.isClosed()) {

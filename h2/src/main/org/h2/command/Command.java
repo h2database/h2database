@@ -149,7 +149,7 @@ public abstract class Command implements CommandInterface {
     @Override
     public void stop() {
         session.endStatement();
-        session.setCurrentCommand(null);
+        session.setCurrentCommand(null, false);
         if (!isTransactional()) {
             session.commit(true);
         } else if (session.getAutoCommit()) {
@@ -193,7 +193,7 @@ public abstract class Command implements CommandInterface {
             }
         }
         synchronized (sync) {
-            session.setCurrentCommand(this);
+            session.setCurrentCommand(this, false);
             try {
                 while (true) {
                     database.checkPowerOff();
@@ -238,7 +238,7 @@ public abstract class Command implements CommandInterface {
     }
 
     @Override
-    public int executeUpdate() {
+    public int executeUpdate(Object generatedKeysRequest) {
         long start = 0;
         Database database = session.getDatabase();
         Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
@@ -252,7 +252,7 @@ public abstract class Command implements CommandInterface {
         }
         synchronized (sync) {
             Session.Savepoint rollback = session.setSavepoint();
-            session.setCurrentCommand(this);
+            session.setCurrentCommand(this, generatedKeysRequest);
             try {
                 while (true) {
                     database.checkPowerOff();

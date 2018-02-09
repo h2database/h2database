@@ -950,7 +950,8 @@ public class FullText {
             useOwnConnection = isMultiThread(conn);
             if(!useOwnConnection) {
                 for (int i = 0; i < SQL.length; i++) {
-                    prepStatements[i] = conn.prepareStatement(SQL[i]);
+                    prepStatements[i] = conn.prepareStatement(SQL[i],
+                            Statement.RETURN_GENERATED_KEYS);
                 }
             }
         }
@@ -1154,7 +1155,9 @@ public class FullText {
         }
 
         private PreparedStatement getStatement(Connection conn, int index) throws SQLException {
-            return useOwnConnection ? conn.prepareStatement(SQL[index]) : prepStatements[index];
+            return useOwnConnection ?
+                    conn.prepareStatement(SQL[index], Statement.RETURN_GENERATED_KEYS)
+                    : prepStatements[index];
         }
 
     }

@@ -90,6 +90,7 @@ public class Merge extends Prepared {
             // process values in list
             count = 0;
             GeneratedKeys generatedKeys = session.getGeneratedKeys();
+            generatedKeys.initialize(targetTable);
             for (int x = 0, size = valuesExpressionList.size(); x < size; x++) {
                 setCurrentRowNumber(x + 1);
                 generatedKeys.nextRow();

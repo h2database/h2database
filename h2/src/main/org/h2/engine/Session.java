@@ -1245,13 +1245,19 @@ public class Session extends SessionWithState {
      * executing the statement.
      *
      * @param command the command
+     * @param generated keys request
+     *            {@code false} if generated keys are not needed, {@code true} if
+     *            generated keys should be configured automatically, {@code int[]}
+     *            to specify column indices to return generated keys from, or
+     *            {@code String[]} to specify column names to return generated keys
+     *            from
      */
-    public void setCurrentCommand(Command command) {
+    public void setCurrentCommand(Command command, Object generatedKeysRequest) {
         this.currentCommand = command;
         // Preserve generated keys in case of a new query so they can be read with
         // CALL GET_GENERATED_KEYS()
-        if (command != null && !command.isQuery() && generatedKeys != null) {
-            generatedKeys.clear();
+        if (command != null && !command.isQuery()) {
+            getGeneratedKeys().clear(generatedKeysRequest);
         }
         if (queryTimeout > 0 && command != null) {
             currentCommandStart = System.currentTimeMillis();

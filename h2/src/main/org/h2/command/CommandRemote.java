@@ -194,7 +194,7 @@ public class CommandRemote implements CommandInterface {
     }
 
     @Override
-    public int executeUpdate() {
+    public int executeUpdate(Object generatedKeys) {
         checkParameters();
         synchronized (session) {
             int updateCount = 0;
@@ -206,6 +206,29 @@ public class CommandRemote implements CommandInterface {
                     session.traceOperation("COMMAND_EXECUTE_UPDATE", id);
                     transfer.writeInt(SessionRemote.COMMAND_EXECUTE_UPDATE).writeInt(id);
                     sendParameters(transfer);
+                    if (session.getClientVersion() >= Constants.TCP_PROTOCOL_VERSION_17) {
+                        if (Boolean.FALSE.equals(generatedKeys)) {
+                            transfer.writeInt(0);
+                        } else if (Boolean.TRUE.equals(generatedKeys)) {
+                            transfer.writeInt(1);
+                        } else if (generatedKeys instanceof int[]) {
+                            int[] keys = (int[]) generatedKeys;
+                            transfer.writeInt(2);
+                            transfer.writeInt(keys.length);
+                            for (int key : keys) {
+                                transfer.writeInt(key);
+                            }
+                        } else if (generatedKeys instanceof String[]) {
+                            String[] keys = (String[]) generatedKeys;
+                            transfer.writeInt(3);
+                            transfer.writeInt(keys.length);
+                            for (String key : keys) {
+                                transfer.writeString(key);
+                            }
+                        } else {
+                            transfer.writeInt(0);
+                        }
+                    }
                     session.done(transfer);
                     updateCount = transfer.readInt();
                     autoCommit = transfer.readBoolean();

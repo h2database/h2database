@@ -172,7 +172,7 @@ public class TestScript extends TestBase {
         conn.close();
         out.close();
         if (errors.length() > 0) {
-            throw new Exception("errors:\n" + errors.toString());
+            throw new Exception("errors found");
         }
         // new File(outFile).delete();
     }
@@ -445,7 +445,7 @@ public class TestScript extends TestBase {
                 if (e != null) {
                     TestBase.logError("script", e);
                 }
-                TestBase.logError(errors.toString(), null);
+                TestBase.logErrorMessage(errors.toString());
                 if (failFast) {
                     conn.close();
                     System.exit(1);

@@ -15,10 +15,10 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -173,6 +173,7 @@ public class Function extends Expression implements FunctionCall {
         DATE_PART.put("MONTH", MONTH);
         DATE_PART.put("MM", MONTH);
         DATE_PART.put("M", MONTH);
+        DATE_PART.put("QUARTER", QUARTER);
         DATE_PART.put("SQL_TSI_WEEK", WEEK);
         DATE_PART.put("WW", WEEK);
         DATE_PART.put("WK", WEEK);
@@ -351,7 +352,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("DATEADD", DATE_ADD,
                 3, Value.TIMESTAMP);
         addFunction("TIMESTAMPADD", DATE_ADD,
-                3, Value.LONG);
+                3, Value.TIMESTAMP);
         addFunction("DATEDIFF", DATE_DIFF,
                 3, Value.LONG);
         addFunction("TIMESTAMPDIFF", DATE_DIFF,
@@ -858,7 +859,7 @@ public class Function extends Expression implements FunctionCall {
         case SECOND:
         case WEEK:
         case YEAR:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, info.type));
+            result = ValueInt.get(getDatePart(v0, info.type));
             break;
         case MONTH_NAME: {
             SimpleDateFormat monthName = new SimpleDateFormat("MMMM",
@@ -1489,8 +1490,7 @@ public class Function extends Expression implements FunctionCall {
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case DATE_ADD:
-            result = ValueTimestamp.get(dateadd(
-                    v0.getString(), v1.getLong(), v2.getTimestamp()));
+            result = dateadd(v0.getString(), v1.getLong(), v2);
             break;
         case DATE_DIFF:
             result = ValueLong.get(datediff(v0.getString(), v1, v2));
@@ -1848,53 +1848,85 @@ public class Function extends Expression implements FunctionCall {
         return p.intValue();
     }
 
-    private static Timestamp dateadd(String part, long count, Timestamp d) {
+    private static Value dateadd(String part, long count, Value v) {
         int field = getDatePart(part);
+        //v = v.convertTo(Value.TIMESTAMP);
+        if (field != MILLISECOND &&
+                (count > Integer.MAX_VALUE || count < Integer.MIN_VALUE)) {
+            throw DbException.getInvalidValueException("DATEADD count", count);
+        }
+        boolean withDate = !(v instanceof ValueTime);
+        boolean withTime = !(v instanceof ValueDate);
+        boolean forceTimestamp = false;
+        long[] a = DateTimeUtils.dateAndTimeFromValue(v);
+        long dateValue = a[0];
+        long timeNanos = a[1];
         switch (field) {
+        case QUARTER:
+            count *= 3;
+            //$FALL-THROUGH$
         case YEAR:
-            field = Calendar.YEAR;
-            break;
-        case MONTH:
-            field = Calendar.MONTH;
-            break;
-        case DAY_OF_MONTH:
-            field = Calendar.DAY_OF_MONTH;
-            break;
-        case DAY_OF_YEAR:
-            field = Calendar.DAY_OF_YEAR;
-            break;
+        case MONTH: {
+            if (!withDate) {
+                throw DbException.getInvalidValueException("DATEADD time part", part);
+            }
+            long year = DateTimeUtils.yearFromDateValue(dateValue);
+            long month = DateTimeUtils.monthFromDateValue(dateValue);
+            int day = DateTimeUtils.dayFromDateValue(dateValue);
+            if (field == YEAR) {
+                year += count;
+            } else {
+                month += count;
+            }
+            dateValue = DateTimeUtils.dateValueFromDenormalizedDate(year, month, day);
+            return DateTimeUtils.dateTimeToValue(v, dateValue, timeNanos, forceTimestamp);
+        }
         case WEEK:
-            field = Calendar.WEEK_OF_YEAR;
-            break;
+        case ISO_WEEK:
+            count *= 7;
+            //$FALL-THROUGH$
+        case DAY_OF_WEEK:
+        case DAY_OF_MONTH:
+        case DAY_OF_YEAR:
+            if (!withDate) {
+                throw DbException.getInvalidValueException("DATEADD time part", part);
+            }
+            dateValue = DateTimeUtils.dateValueFromAbsoluteDay(
+                    DateTimeUtils.absoluteDayFromDateValue(dateValue) + count);
+            return DateTimeUtils.dateTimeToValue(v, dateValue, timeNanos, forceTimestamp);
         case HOUR:
-            field = Calendar.HOUR_OF_DAY;
+            count *= 3_600_000_000_000L;
             break;
         case MINUTE:
-            field = Calendar.MINUTE;
+            count *= 60_000_000_000L;
             break;
         case SECOND:
-            field = Calendar.SECOND;
+            count *= 1_000_000_000;
             break;
-        case MILLISECOND: {
-            Timestamp ts = new Timestamp(d.getTime() + count);
-            ts.setNanos(ts.getNanos() + (d.getNanos() % 1000000));
-            return ts;
-        }
+        case MILLISECOND:
+            count *= 1_000_000;
+            break;
         default:
             throw DbException.getUnsupportedException("DATEADD " + part);
         }
-        // We allow long for manipulating the millisecond component,
-        // for the rest we only allow int.
-        if (count > Integer.MAX_VALUE) {
-            throw DbException.getInvalidValueException("DATEADD count", count);
+        if (!withTime) {
+            // Treat date as timestamp at the start of this date
+            forceTimestamp = true;
         }
-        Calendar calendar = DateTimeUtils.createGregorianCalendar();
-        int nanos = d.getNanos() % 1000000;
-        calendar.setTime(d);
-        calendar.add(field, (int) count);
-        Timestamp ts = new Timestamp(calendar.getTimeInMillis());
-        ts.setNanos(ts.getNanos() + nanos);
-        return ts;
+        timeNanos += count;
+        if (timeNanos > DateTimeUtils.NANOS_PER_DAY || timeNanos < 0) {
+            long d;
+            if (timeNanos > DateTimeUtils.NANOS_PER_DAY) {
+                d = timeNanos / DateTimeUtils.NANOS_PER_DAY;
+            } else {
+                d = (timeNanos - DateTimeUtils.NANOS_PER_DAY + 1) / DateTimeUtils.NANOS_PER_DAY;
+            }
+            timeNanos -= d * DateTimeUtils.NANOS_PER_DAY;
+            return DateTimeUtils.dateTimeToValue(v,
+                    DateTimeUtils.dateValueFromAbsoluteDay(DateTimeUtils.absoluteDayFromDateValue(dateValue) + d),
+                    timeNanos, forceTimestamp);
+        }
+        return DateTimeUtils.dateTimeToValue(v, dateValue, timeNanos, forceTimestamp);
     }
 
     /**
@@ -1950,6 +1982,10 @@ public class Function extends Expression implements FunctionCall {
         case MONTH:
             return (DateTimeUtils.yearFromDateValue(dateValue2) - DateTimeUtils.yearFromDateValue(dateValue1)) * 12
                     + DateTimeUtils.monthFromDateValue(dateValue2) - DateTimeUtils.monthFromDateValue(dateValue1);
+        case QUARTER:
+            return (DateTimeUtils.yearFromDateValue(dateValue2) - DateTimeUtils.yearFromDateValue(dateValue1)) * 4
+                    + (DateTimeUtils.monthFromDateValue(dateValue2) - 1) / 3
+                    - (DateTimeUtils.monthFromDateValue(dateValue1) - 1) / 3;
         case YEAR:
             return DateTimeUtils.yearFromDateValue(dateValue2) - DateTimeUtils.yearFromDateValue(dateValue1);
         default:
@@ -2804,6 +2840,52 @@ public class Function extends Expression implements FunctionCall {
                     0 : escapeCharacter.charAt(0);
             csv.setEscapeCharacter(ec);
         }
+    }
+
+    /**
+     * Get the specified field of a date, however with years normalized to
+     * positive or negative, and month starting with 1.
+     *
+     * @param date the date value
+     * @param field the field type, see {@link Function} for constants
+     * @return the value
+     */
+    public static int getDatePart(Value date, int field) {
+        long[] a = DateTimeUtils.dateAndTimeFromValue(date);
+        long dateValue = a[0];
+        long timeNanos = a[1];
+        switch (field) {
+        case Function.YEAR:
+            return DateTimeUtils.yearFromDateValue(dateValue);
+        case Function.MONTH:
+            return DateTimeUtils.monthFromDateValue(dateValue);
+        case Function.DAY_OF_MONTH:
+            return DateTimeUtils.dayFromDateValue(dateValue);
+        case Function.HOUR:
+            return (int) (timeNanos / 3_600_000_000_000L % 24);
+        case Function.MINUTE:
+            return (int) (timeNanos / 60_000_000_000L % 60);
+        case Function.SECOND:
+            return (int) (timeNanos / 1_000_000_000 % 60);
+        case Function.MILLISECOND:
+            return (int) (timeNanos / 1_000_000 % 1_000);
+        case Function.DAY_OF_YEAR:
+            return DateTimeUtils.getDayOfYear(dateValue);
+        case Function.DAY_OF_WEEK:
+            return DateTimeUtils.getSundayDayOfWeek(dateValue);
+        case Function.WEEK:
+            GregorianCalendar gc = DateTimeUtils.getCalendar();
+            return DateTimeUtils.getWeekOfYear(dateValue, gc.getFirstDayOfWeek() - 1, gc.getMinimalDaysInFirstWeek());
+        case Function.QUARTER:
+            return (DateTimeUtils.monthFromDateValue(dateValue) - 1) / 3 + 1;
+        case Function.ISO_YEAR:
+            return DateTimeUtils.getIsoWeekYear(dateValue);
+        case Function.ISO_WEEK:
+            return DateTimeUtils.getIsoWeekOfYear(dateValue);
+        case Function.ISO_DAY_OF_WEEK:
+            return DateTimeUtils.getIsoDayOfWeek(dateValue);
+        }
+        throw DbException.getUnsupportedException("getDatePart(" + date + ", " + field + ')');
     }
 
     @Override

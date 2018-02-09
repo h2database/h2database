@@ -16,7 +16,6 @@ import java.util.Locale;
 import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Mode;
-import org.h2.expression.Function;
 import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
@@ -24,7 +23,6 @@ import org.h2.value.ValueNull;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
-
 
 /**
  * This utility class contains time conversion functions.
@@ -116,7 +114,7 @@ public class DateTimeUtils {
      *
      * @return a calendar instance. A cached instance is returned where possible
      */
-    private static GregorianCalendar getCalendar() {
+    public static GregorianCalendar getCalendar() {
         GregorianCalendar c = CACHED_CALENDAR.get();
         if (c == null) {
             c = DateTimeUtils.createGregorianCalendar();
@@ -597,49 +595,37 @@ public class DateTimeUtils {
     }
 
     /**
-     * Get the specified field of a date, however with years normalized to
-     * positive or negative, and month starting with 1.
+     * Creates a new date-time value with the same type as original value. If
+     * original value is a ValueTimestampTimeZone, returned value will have the same
+     * time zone offset as original value.
      *
-     * @param date the date value
-     * @param field the field type, see {@link Function} for constants
-     * @return the value
+     * @param original
+     *            original value
+     * @param dateValue
+     *            date value for the returned value
+     * @param timeNanos
+     *            nanos of day for the returned value
+     * @param forceTimestamp
+     *            if {@code true} return ValueTimestamp if original argument is
+     *            ValueDate or ValueTime
+     * @return new value with specified date value and nanos of day
      */
-    public static int getDatePart(Value date, int field) {
-        long[] a = dateAndTimeFromValue(date);
-        long dateValue = a[0];
-        long timeNanos = a[1];
-        switch (field) {
-        case Function.YEAR:
-            return yearFromDateValue(dateValue);
-        case Function.MONTH:
-            return monthFromDateValue(dateValue);
-        case Function.DAY_OF_MONTH:
-            return dayFromDateValue(dateValue);
-        case Function.HOUR:
-            return (int) (timeNanos / 3_600_000_000_000L % 24);
-        case Function.MINUTE:
-            return (int) (timeNanos / 60_000_000_000L % 60);
-        case Function.SECOND:
-            return (int) (timeNanos / 1_000_000_000 % 60);
-        case Function.MILLISECOND:
-            return (int) (timeNanos / 1_000_000 % 1_000);
-        case Function.DAY_OF_YEAR:
-            return getDayOfYear(dateValue);
-        case Function.DAY_OF_WEEK:
-            return getSundayDayOfWeek(dateValue);
-        case Function.WEEK:
-            GregorianCalendar gc = getCalendar();
-            return getWeekOfYear(dateValue, gc.getFirstDayOfWeek() - 1, gc.getMinimalDaysInFirstWeek());
-        case Function.QUARTER:
-            return (monthFromDateValue(dateValue) - 1) / 3 + 1;
-        case Function.ISO_YEAR:
-            return getIsoWeekYear(dateValue);
-        case Function.ISO_WEEK:
-            return getIsoWeekOfYear(dateValue);
-        case Function.ISO_DAY_OF_WEEK:
-            return getIsoDayOfWeek(dateValue);
+    public static Value dateTimeToValue(Value original, long dateValue, long timeNanos, boolean forceTimestamp) {
+        if (!(original instanceof ValueTimestamp)) {
+            if (!forceTimestamp) {
+                if (original instanceof ValueDate) {
+                    return ValueDate.fromDateValue(dateValue);
+                }
+                if (original instanceof ValueTime) {
+                    return ValueTime.fromNanos(timeNanos);
+                }
+            }
+            if (original instanceof ValueTimestampTimeZone) {
+                return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos,
+                        ((ValueTimestampTimeZone) original).getTimeZoneOffsetMins());
+            }
         }
-        throw DbException.getUnsupportedException("getDatePart(" + date + ", " + field + ')');
+        return ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
     }
 
     /**
@@ -883,6 +869,26 @@ public class DateTimeUtils {
     }
 
     /**
+     * Returns number of days in month.
+     *
+     * @param year the year
+     * @param month the month
+     * @return number of days in the specified month
+     */
+    public static int getDaysInMonth(int year, int month) {
+        if (month != 2) {
+            return NORMAL_DAYS_PER_MONTH[month];
+        }
+        // All leap years divisible by 4
+        return (year & 3) == 0
+                // All such years before 1582 are Julian and leap
+                && (year < 1582
+                        // Otherwise check Gregorian conditions
+                        || year % 100 != 0 || year % 400 == 0)
+                ? 29 : 28;
+    }
+
+    /**
      * Verify if the specified date is valid.
      *
      * @param year the year
@@ -894,24 +900,11 @@ public class DateTimeUtils {
         if (month < 1 || month > 12 || day < 1) {
             return false;
         }
-        if (year > 1582) {
-            // Gregorian calendar
-            if (month != 2) {
-                return day <= NORMAL_DAYS_PER_MONTH[month];
-            }
-            // February
-            if ((year & 3) != 0) {
-                return day <= 28;
-            }
-            return day <= ((year % 100 != 0) || (year % 400 == 0) ? 29 : 28);
-        } else if (year == 1582 && month == 10) {
+        if (year == 1582 && month == 10) {
             // special case: days 1582-10-05 .. 1582-10-14 don't exist
-            return day <= 31 && (day < 5 || day > 14);
+            return day < 5 || (day > 14 && day <= 31);
         }
-        if (month != 2 && day <= NORMAL_DAYS_PER_MONTH[month]) {
-            return true;
-        }
-        return day <= ((year & 3) != 0 ? 28 : 29);
+        return day <= getDaysInMonth(year, month);
     }
 
     /**
@@ -1035,6 +1028,38 @@ public class DateTimeUtils {
      */
     public static long dateValue(long year, int month, int day) {
         return (year << SHIFT_YEAR) | (month << SHIFT_MONTH) | day;
+    }
+
+    /**
+     * Get the date value from a given denormalized date with possible out of range
+     * values of month and/or day. Used after addition or subtraction month or years
+     * to (from) it to get a valid date.
+     *
+     * @param year
+     *            the year
+     * @param month
+     *            the month, if out of range month and year will be normalized
+     * @param day
+     *            the day of the month, if out of range it will be saturated
+     * @return the date value
+     */
+    public static long dateValueFromDenormalizedDate(long year, long month, int day) {
+        long mm1 = month - 1;
+        long yd = mm1 / 12;
+        if (mm1 < 0 && yd * 12 != mm1) {
+            yd--;
+        }
+        int y = (int) (year + yd);
+        int m = (int) (month - yd * 12);
+        if (day < 1) {
+            day = 1;
+        } else {
+            int max = getDaysInMonth(y, m);
+            if (day > max) {
+                day = max;
+            }
+        }
+        return dateValue(y, m, day);
     }
 
     /**

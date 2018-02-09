@@ -68,7 +68,9 @@ public class TestOptimizations extends TestBase {
         testMultiColumnRangeQuery();
         testDistinctOptimization();
         testQueryCacheTimestamp();
-        testQueryCacheSpeed();
+        if (!config.lazy) {
+            testQueryCacheSpeed();
+        }
         testQueryCache(true);
         testQueryCache(false);
         testIn();
@@ -800,21 +802,28 @@ public class TestOptimizations extends TestBase {
     }
 
     private void testQuerySpeed(Statement stat, String sql) throws SQLException {
-        stat.execute("set OPTIMIZE_REUSE_RESULTS 0");
+        long totalTime = 0;
+        long totalTimeOptimized = 0;
+        for (int i = 0; i < 3; i++) {
+            totalTime += measureQuerySpeed(stat, sql, false);
+            totalTimeOptimized += measureQuerySpeed(stat, sql, true);
+        }
+        // System.out.println(
+        //         TimeUnit.NANOSECONDS.toMillis(totalTime) + " " +
+        //         TimeUnit.NANOSECONDS.toMillis(totalTimeOptimized));
+        if (totalTimeOptimized > totalTime) {
+            fail("not optimized: " + TimeUnit.NANOSECONDS.toMillis(totalTime) +
+                    " optimized: " + TimeUnit.NANOSECONDS.toMillis(totalTimeOptimized) +
+                    " sql:" + sql);
+        }
+    }
+
+    private long measureQuerySpeed(Statement stat, String sql, boolean optimized) throws SQLException {
+        stat.execute("set OPTIMIZE_REUSE_RESULTS " + (optimized ? "1" : "0"));
         stat.execute(sql);
         long time = System.nanoTime();
         stat.execute(sql);
-        time = System.nanoTime() - time;
-        stat.execute("set OPTIMIZE_REUSE_RESULTS 1");
-        stat.execute(sql);
-        long time2 = System.nanoTime();
-        stat.execute(sql);
-        time2 = System.nanoTime() - time2;
-        if (time2 > time * 2) {
-            fail("not optimized: " + TimeUnit.NANOSECONDS.toMillis(time) +
-                    " optimized: " + TimeUnit.NANOSECONDS.toMillis(time2) +
-                    " sql:" + sql);
-        }
+        return System.nanoTime() - time;
     }
 
     private void testQueryCache(boolean optimize) throws SQLException {

@@ -148,6 +148,7 @@ import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableView;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
+import org.h2.util.ParserUtil;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
@@ -186,15 +187,18 @@ public class Parser {
             CHAR_DOLLAR_QUOTED_STRING = 9;
 
     // this are token types
-    private static final int KEYWORD = 1, IDENTIFIER = 2, PARAMETER = 3,
-            END = 4, VALUE = 5;
-    private static final int EQUAL = 6, BIGGER_EQUAL = 7, BIGGER = 8;
-    private static final int SMALLER = 9, SMALLER_EQUAL = 10, NOT_EQUAL = 11,
-            AT = 12;
-    private static final int MINUS = 13, PLUS = 14, STRING_CONCAT = 15;
-    private static final int OPEN = 16, CLOSE = 17, NULL = 18, TRUE = 19,
-            FALSE = 20;
-    private static final int ROWNUM = 24;
+    private static final int KEYWORD = ParserUtil.KEYWORD;
+    private static final int IDENTIFIER = ParserUtil.IDENTIFIER;
+    private static final int NULL = ParserUtil.NULL;
+    private static final int TRUE = ParserUtil.TRUE;
+    private static final int FALSE = ParserUtil.FALSE;
+    private static final int ROWNUM = ParserUtil.ROWNUM;
+    private static final int PARAMETER = 10, END = 11, VALUE = 12;
+    private static final int EQUAL = 13, BIGGER_EQUAL = 14, BIGGER = 15;
+    private static final int SMALLER = 16, SMALLER_EQUAL = 17, NOT_EQUAL = 18;
+    private static final int AT = 19;
+    private static final int MINUS = 20, PLUS = 21, STRING_CONCAT = 22;
+    private static final int OPEN = 23, CLOSE = 24;
     private static final int SPATIAL_INTERSECTS = 25;
 
     private static final Comparator<TableFilter> TABLE_FILTER_COMPARATOR =
@@ -4170,140 +4174,11 @@ public class Parser {
             // if not yet converted to uppercase, do it now
             s = StringUtils.toUpperEnglish(s);
         }
-        return isKeyword(s, false);
-    }
-
-    /**
-     * Checks if this string is a SQL keyword.
-     *
-     * @param s                  the token to check
-     * @param supportOffsetFetch if OFFSET and FETCH are keywords
-     * @return true if it is a keyword
-     */
-    public static boolean isKeyword(String s, boolean supportOffsetFetch) {
-        if (s == null || s.length() == 0) {
-            return false;
-        }
-        return getSaveTokenType(s, supportOffsetFetch, false) != IDENTIFIER;
+        return ParserUtil.isKeyword(s, false);
     }
 
     private static int getSaveTokenType(String s, boolean supportOffsetFetch, boolean functionsAsKeywords) {
-        switch (s.charAt(0)) {
-        case 'A':
-            return getKeywordOrIdentifier(s, "ALL", KEYWORD);
-        case 'C':
-            if ("CHECK".equals(s)) {
-                return KEYWORD;
-            } else if ("CONSTRAINT".equals(s)) {
-                return KEYWORD;
-            } else if ("CROSS".equals(s)) {
-                return KEYWORD;
-            }
-            if (functionsAsKeywords) {
-                if ("CURRENT_DATE".equals(s) || "CURRENT_TIME".equals(s) || "CURRENT_TIMESTAMP".equals(s)) {
-                    return KEYWORD;
-                }
-            }
-            return IDENTIFIER;
-        case 'D':
-            return getKeywordOrIdentifier(s, "DISTINCT", KEYWORD);
-        case 'E':
-            if ("EXCEPT".equals(s)) {
-                return KEYWORD;
-            }
-            return getKeywordOrIdentifier(s, "EXISTS", KEYWORD);
-        case 'F':
-            if ("FROM".equals(s)) {
-                return KEYWORD;
-            } else if ("FOR".equals(s)) {
-                return KEYWORD;
-            } else if ("FOREIGN".equals(s)) {
-                return KEYWORD;
-            } else if ("FULL".equals(s)) {
-                return KEYWORD;
-            } else if (supportOffsetFetch && "FETCH".equals(s)) {
-                return KEYWORD;
-            }
-            return getKeywordOrIdentifier(s, "FALSE", FALSE);
-        case 'G':
-            return getKeywordOrIdentifier(s, "GROUP", KEYWORD);
-        case 'H':
-            return getKeywordOrIdentifier(s, "HAVING", KEYWORD);
-        case 'I':
-            if ("INNER".equals(s)) {
-                return KEYWORD;
-            } else if ("INTERSECT".equals(s)) {
-                return KEYWORD;
-            }
-            return getKeywordOrIdentifier(s, "IS", KEYWORD);
-        case 'J':
-            return getKeywordOrIdentifier(s, "JOIN", KEYWORD);
-        case 'L':
-            if ("LIMIT".equals(s)) {
-                return KEYWORD;
-            }
-            return getKeywordOrIdentifier(s, "LIKE", KEYWORD);
-        case 'M':
-            return getKeywordOrIdentifier(s, "MINUS", KEYWORD);
-        case 'N':
-            if ("NOT".equals(s)) {
-                return KEYWORD;
-            } else if ("NATURAL".equals(s)) {
-                return KEYWORD;
-            }
-            return getKeywordOrIdentifier(s, "NULL", NULL);
-        case 'O':
-            if ("ON".equals(s)) {
-                return KEYWORD;
-            } else if (supportOffsetFetch && "OFFSET".equals(s)) {
-                return KEYWORD;
-            }
-            return getKeywordOrIdentifier(s, "ORDER", KEYWORD);
-        case 'P':
-            return getKeywordOrIdentifier(s, "PRIMARY", KEYWORD);
-        case 'R':
-            return getKeywordOrIdentifier(s, "ROWNUM", ROWNUM);
-        case 'S':
-            if ("SELECT".equals(s)) {
-                return KEYWORD;
-            }
-            if (functionsAsKeywords) {
-                if ("SYSDATE".equals(s) || "SYSTIME".equals(s) || "SYSTIMESTAMP".equals(s)) {
-                    return KEYWORD;
-                }
-            }
-            return IDENTIFIER;
-        case 'T':
-            if ("TRUE".equals(s)) {
-                return TRUE;
-            }
-            if (functionsAsKeywords) {
-                if ("TODAY".equals(s)) {
-                    return KEYWORD;
-                }
-            }
-            return IDENTIFIER;
-        case 'U':
-            if ("UNIQUE".equals(s)) {
-                return KEYWORD;
-            }
-            return getKeywordOrIdentifier(s, "UNION", KEYWORD);
-        case 'W':
-            if ("WITH".equals(s)) {
-                return KEYWORD;
-            }
-            return getKeywordOrIdentifier(s, "WHERE", KEYWORD);
-        default:
-            return IDENTIFIER;
-        }
-    }
-
-    private static int getKeywordOrIdentifier(String s1, String s2,
-            int keywordType) {
-        if (s1.equals(s2)) {
-            return keywordType;
-        }
-        return IDENTIFIER;
+        return ParserUtil.getSaveTokenType(s, supportOffsetFetch, functionsAsKeywords);
     }
 
     private Column parseColumnForTable(String columnName,
@@ -6890,8 +6765,9 @@ public class Parser {
         if (s == null) {
             return "\"\"";
         }
-        if (isSimpleIdentifier(s, false))
+        if (isSimpleIdentifier(s, false)) {
             return s;
+        }
         return StringUtils.quoteIdentifier(s);
     }
 
@@ -6904,22 +6780,7 @@ public class Parser {
      * @throws NullPointerException if s is {@code null}
      */
     public static boolean isSimpleIdentifier(String s, boolean functionsAsKeywords) {
-        if (s.length() == 0) {
-            return false;
-        }
-        char c = s.charAt(0);
-        // lowercase a-z is quoted as well
-        if ((!Character.isLetter(c) && c != '_') || Character.isLowerCase(c)) {
-            return false;
-        }
-        for (int i = 1, length = s.length(); i < length; i++) {
-            c = s.charAt(i);
-            if ((!Character.isLetterOrDigit(c) && c != '_') ||
-                    Character.isLowerCase(c)) {
-                return false;
-            }
-        }
-        return getSaveTokenType(s, true, functionsAsKeywords) == IDENTIFIER;
+        return ParserUtil.isSimpleIdentifier(s, functionsAsKeywords);
     }
 
     public void setLiteralsChecked(boolean literalsChecked) {

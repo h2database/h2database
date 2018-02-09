@@ -57,7 +57,7 @@ public class ConditionInParameter extends Condition {
 
     private Expression left;
 
-    final Parameter parameter;
+    private final Parameter parameter;
 
     /**
      * Create a new {@code = ANY(?)} condition.

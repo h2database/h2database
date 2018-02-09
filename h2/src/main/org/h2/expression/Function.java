@@ -1811,7 +1811,9 @@ public class Function extends Expression implements FunctionCall {
                 (count > Integer.MAX_VALUE || count < Integer.MIN_VALUE)) {
             throw DbException.getInvalidValueException("DATEADD count", count);
         }
-        boolean withDate = !(v instanceof ValueTime), withTime = !(v instanceof ValueDate), forceTimestamp = false;
+        boolean withDate = !(v instanceof ValueTime);
+        boolean withTime = !(v instanceof ValueDate);
+        boolean forceTimestamp = false;
         long[] a = DateTimeUtils.dateAndTimeFromValue(v);
         long dateValue = a[0];
         long timeNanos = a[1];

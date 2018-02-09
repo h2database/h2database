@@ -922,7 +922,13 @@ public class DateTimeUtils {
         if (month != 2) {
             return NORMAL_DAYS_PER_MONTH[month];
         }
-        return (year & 3) == 0 && (year < 1582 || year % 100 != 0 || year % 400 == 0) ? 29 : 28;
+        // All leap years divisible by 4
+        return (year & 3) == 0
+                // All such years before 1582 are Julian and leap
+                && (year < 1582
+                        // Otherwise check Gregorian conditions
+                        || year % 100 != 0 || year % 400 == 0)
+                ? 29 : 28;
     }
 
     /**
@@ -1068,7 +1074,9 @@ public class DateTimeUtils {
     }
 
     /**
-     * Get the date value from a given denormalized date.
+     * Get the date value from a given denormalized date with possible out of range
+     * values of month and/or day. Used after addition or subtraction month or years
+     * to (from) it to get a valid date.
      *
      * @param year
      *            the year

@@ -116,7 +116,7 @@ public class Function extends Expression implements FunctionCall {
     public static final int MILLISECOND = 126;
     
     /**
-     * PSeudo function for {@code EXTRACT(EPOCH FROM ...)}.
+     * Pseudo function for {@code EXTRACT(EPOCH FROM ...)}.
      */
     public static final int  EPOCH = 127;
 

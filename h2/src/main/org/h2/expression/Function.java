@@ -1807,7 +1807,8 @@ public class Function extends Expression implements FunctionCall {
     private static Value dateadd(String part, long count, Value v) {
         int field = getDatePart(part);
         //v = v.convertTo(Value.TIMESTAMP);
-        if (field != MILLISECOND && count > Integer.MAX_VALUE || count < Integer.MIN_VALUE) {
+        if (field != MILLISECOND &&
+                (count > Integer.MAX_VALUE || count < Integer.MIN_VALUE)) {
             throw DbException.getInvalidValueException("DATEADD count", count);
         }
         boolean withDate = !(v instanceof ValueTime), withTime = !(v instanceof ValueDate), forceTimestamp = false;

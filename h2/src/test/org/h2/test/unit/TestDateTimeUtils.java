@@ -11,6 +11,8 @@ import java.util.GregorianCalendar;
 import org.h2.test.TestBase;
 import org.h2.util.DateTimeUtils;
 
+import static org.h2.util.DateTimeUtils.dateValue;
+
 /**
  * Unit tests for the DateTimeUtils class
  */
@@ -30,6 +32,7 @@ public class TestDateTimeUtils extends TestBase {
         testParseTimeNanosDB2Format();
         testDayOfWeek();
         testWeekOfYear();
+        testDateValueFromDenormalizedDate();
     }
 
     private void testParseTimeNanosDB2Format() {
@@ -53,7 +56,7 @@ public class TestDateTimeUtils extends TestBase {
             if (gc.get(Calendar.ERA) == GregorianCalendar.BC) {
                 year = 1 - year;
             }
-            long expectedDateValue = DateTimeUtils.dateValue(year, gc.get(Calendar.MONTH) + 1,
+            long expectedDateValue = dateValue(year, gc.get(Calendar.MONTH) + 1,
                     gc.get(Calendar.DAY_OF_MONTH));
             long dateValue = DateTimeUtils.dateValueFromAbsoluteDay(i);
             assertEquals(expectedDateValue, dateValue);
@@ -90,6 +93,17 @@ public class TestDateTimeUtils extends TestBase {
                 }
             }
         }
+    }
+
+    /**
+     * Test for {@link DateTimeUtils#dateValueFromDenormalizedDate(long, long, int)}.
+     */
+    private void testDateValueFromDenormalizedDate() {
+        assertEquals(dateValue(2017, 1, 1), DateTimeUtils.dateValueFromDenormalizedDate(2018, -11, 0));
+        assertEquals(dateValue(2001, 2, 28), DateTimeUtils.dateValueFromDenormalizedDate(2000, 14, 29));
+        assertEquals(dateValue(1999, 8, 1), DateTimeUtils.dateValueFromDenormalizedDate(2000, -4, -100));
+        assertEquals(dateValue(2100, 12, 31), DateTimeUtils.dateValueFromDenormalizedDate(2100, 12, 2000));
+        assertEquals(dateValue(-100, 2, 29), DateTimeUtils.dateValueFromDenormalizedDate(-100, 2, 30));
     }
 
 }

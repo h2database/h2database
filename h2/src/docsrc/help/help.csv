@@ -3668,12 +3668,14 @@ CURRENT_TIMESTAMP()
 "Functions (Time and Date)","DATEADD","
 { DATEADD| TIMESTAMPADD } (unitString, addIntLong, timestamp)
 ","
-Adds units to a timestamp. The string indicates the unit.
+Adds units to a date-time value. The string indicates the unit.
 Use negative values to subtract units.
 addIntLong may be a long value when manipulating milliseconds,
 otherwise it's range is restricted to int.
 The same units as in the EXTRACT function are supported.
-DATEADD method returns a timestamp. TIMESTAMPADD method returns a long.
+This method returns a value with the same type as specified value if unit is compatible with this value.
+If specified unit is a HOUR, MINUTE, SECOND, MILLISECOND, etc and value is a DATE value DATEADD returns combined TIMESTAMP.
+Units DAY, MONTH, YEAR, WEEK, etc are not allowed for TIME values.
 ","
 DATEADD('MONTH', 1, DATE '2001-01-31')
 "
@@ -3723,8 +3725,9 @@ DAY_OF_YEAR(CREATED)
 "
 
 "Functions (Time and Date)","EXTRACT","
-EXTRACT ( { YEAR | YY | MONTH | MM | WEEK | ISO_WEEK | DAY | DD | DAY_OF_YEAR
-    | DOY | HOUR | HH | MINUTE | MI | SECOND | SS | MILLISECOND | MS }
+EXTRACT ( { YEAR | YY | MONTH | MM | QUARTER | WEEK | ISO_WEEK
+    | DAY | DD | DAY_OF_YEAR | DOY
+    | HOUR | HH | MINUTE | MI | SECOND | SS | MILLISECOND | MS }
     FROM timestamp )
 ","
 Returns a specific value from a timestamps.

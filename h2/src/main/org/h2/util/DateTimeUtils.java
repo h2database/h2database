@@ -24,7 +24,6 @@ import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 
-
 /**
  * This utility class contains time conversion functions.
  * <p>
@@ -591,6 +590,40 @@ public class DateTimeUtils {
     }
 
     /**
+     * Creates a new date-time value with the same type as original value. If
+     * original value is a ValueTimestampTimeZone, returned value will have the same
+     * time zone offset as original value.
+     *
+     * @param original
+     *            original value
+     * @param dateValue
+     *            date value for the returned value
+     * @param timeNanos
+     *            nanos of day for the returned value
+     * @param forceTimestamp
+     *            if {@code true} return ValueTimestamp if original argument is
+     *            ValueDate or ValueTime
+     * @return new value with specified date value and nanos of day
+     */
+    public static Value dateTimeToValue(Value original, long dateValue, long timeNanos, boolean forceTimestamp) {
+        if (!(original instanceof ValueTimestamp)) {
+            if (!forceTimestamp) {
+                if (original instanceof ValueDate) {
+                    return ValueDate.fromDateValue(dateValue);
+                }
+                if (original instanceof ValueTime) {
+                    return ValueTime.fromNanos(timeNanos);
+                }
+            }
+            if (original instanceof ValueTimestampTimeZone) {
+                return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos,
+                        ((ValueTimestampTimeZone) original).getTimeZoneOffsetMins());
+            }
+        }
+        return ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
+    }
+
+    /**
      * Get the year (positive or negative) from a calendar.
      *
      * @param calendar the calendar
@@ -831,6 +864,26 @@ public class DateTimeUtils {
     }
 
     /**
+     * Returns number of days in month.
+     *
+     * @param year the year
+     * @param month the month
+     * @return number of days in the specified month
+     */
+    public static int getDaysInMonth(int year, int month) {
+        if (month != 2) {
+            return NORMAL_DAYS_PER_MONTH[month];
+        }
+        // All leap years divisible by 4
+        return (year & 3) == 0
+                // All such years before 1582 are Julian and leap
+                && (year < 1582
+                        // Otherwise check Gregorian conditions
+                        || year % 100 != 0 || year % 400 == 0)
+                ? 29 : 28;
+    }
+
+    /**
      * Verify if the specified date is valid.
      *
      * @param year the year
@@ -842,24 +895,11 @@ public class DateTimeUtils {
         if (month < 1 || month > 12 || day < 1) {
             return false;
         }
-        if (year > 1582) {
-            // Gregorian calendar
-            if (month != 2) {
-                return day <= NORMAL_DAYS_PER_MONTH[month];
-            }
-            // February
-            if ((year & 3) != 0) {
-                return day <= 28;
-            }
-            return day <= ((year % 100 != 0) || (year % 400 == 0) ? 29 : 28);
-        } else if (year == 1582 && month == 10) {
+        if (year == 1582 && month == 10) {
             // special case: days 1582-10-05 .. 1582-10-14 don't exist
-            return day <= 31 && (day < 5 || day > 14);
+            return day < 5 || (day > 14 && day <= 31);
         }
-        if (month != 2 && day <= NORMAL_DAYS_PER_MONTH[month]) {
-            return true;
-        }
-        return day <= ((year & 3) != 0 ? 28 : 29);
+        return day <= getDaysInMonth(year, month);
     }
 
     /**
@@ -983,6 +1023,38 @@ public class DateTimeUtils {
      */
     public static long dateValue(long year, int month, int day) {
         return (year << SHIFT_YEAR) | (month << SHIFT_MONTH) | day;
+    }
+
+    /**
+     * Get the date value from a given denormalized date with possible out of range
+     * values of month and/or day. Used after addition or subtraction month or years
+     * to (from) it to get a valid date.
+     *
+     * @param year
+     *            the year
+     * @param month
+     *            the month, if out of range month and year will be normalized
+     * @param day
+     *            the day of the month, if out of range it will be saturated
+     * @return the date value
+     */
+    public static long dateValueFromDenormalizedDate(long year, long month, int day) {
+        long mm1 = month - 1;
+        long yd = mm1 / 12;
+        if (mm1 < 0 && yd * 12 != mm1) {
+            yd--;
+        }
+        int y = (int) (year + yd);
+        int m = (int) (month - yd * 12);
+        if (day < 1) {
+            day = 1;
+        } else {
+            int max = getDaysInMonth(y, m);
+            if (day > max) {
+                day = max;
+            }
+        }
+        return dateValue(y, m, day);
     }
 
     /**

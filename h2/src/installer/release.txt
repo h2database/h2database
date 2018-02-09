@@ -17,7 +17,28 @@ Ensure lines are not overly long:
 
     ./build.sh docs
 
-## Jar File Size Verification
+## JDBC Client Jar File Size Verification
+
+The JDBC client is supposed to not have dependencies to the database engine.
+To verify, run
+
+    ./build.sh clean jarClient
+
+If this fails with eg. "Expected file size 400 - 500 KB, got: 1687", then
+find out where the dependency is, and resolve. As follows:
+start by renaming Database to Database2:
+
+    mv src/main/org/h2/engine/Database.java src/main/org/h2/engine/Database2.java
+    ./build.sh clean jarClient
+
+This will fail, the first error is for example can not compile Session because Database was not found.
+So rename Session to Session2 and try again.
+This will fail again, the first error is different, now for example can not compile ResultInterface
+because Session was not found. Now, ResultInterface should not depend on the Session.
+So this needs to be fixed (the JDBC API shouldn't indirectly depend on it).
+After everything is resolved, rename the classes back.
+
+## MVStore Jar File Size Verification
 
 To ensure the MVStore jar file is not too large
 (does not reference the database code by accident).
@@ -27,14 +48,39 @@ The file size should be about 200 KB:
 
 ## Changing Version Numbers
 
-Update Constants.java - change version and build number
-Update changelog.html - add new version, remove oldest
-Update newsfeed.sql - add new version, remove oldest
-Minor version change: change sourceError.html and source.html
-If a beta, change download.html: Version ${version} (${versionDate}), Beta
-If a beta, change mainWeb.html: Version ${version} (${versionDate}), Beta
-Benchmark: use latest versions of other dbs, change version(s) in performance.html
-Run ./buildRelease.sh / buildRelease.bat
+Update org.h2.engine.Constants.java:
+    if the last build was stable (the normal case):
+        set BUILD_DATE_STABLE to current BUILD_DATE
+        set BUILD_ID_STABLE to current BUILD_ID
+    change the version and build number:
+        set BUILD_DATE to today
+        increment BUILD_ID
+
+Update changelog.html:
+    * create a new "Next Version (unreleased)" with an empty list
+    * add a new version
+    * remove change log entries of the oldest version (keeping about 500 lines)
+
+Update newsfeed.sql:
+    * add new version, for example:
+    * (146, '1.4.197', '2017-06-10'),
+    * remove oldest entry in that list
+
+## Skipped
+
+The following can be skipped currently, as sourceError.html and source.html
+are no longer working (they can be removed, or fixed):
+* Minor version change: change sourceError.html and source.html
+* If a beta, change download.html: Version ${version} (${versionDate}), Beta
+* If a beta, change mainWeb.html: Version ${version} (${versionDate}), Beta
+
+The following can be skipped currently; benchmarks should probably be removed:
+* To update benchmark data: use latest versions of other dbs, change version(s) in performance.html
+
+## Build the release
+
+Change directory to src/installer
+Run ./buildRelease.sh (non-Windows) or buildRelease.bat (Windows)
 
 Scan for viruses
 Test installer, H2 Console (test new languages)

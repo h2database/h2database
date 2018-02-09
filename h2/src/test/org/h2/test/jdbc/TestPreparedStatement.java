@@ -1409,6 +1409,18 @@ public class TestPreparedStatement extends TestBase {
         assertFalse(u1.equals(u2));
         assertFalse(u2.equals(u3));
         assertFalse(u3.equals(u4));
+        prep = conn.prepareStatement("merge into test(id, value) key (id) values (?, ?)");
+        prep.setObject(1, 2);
+        prep.setInt(2, 10);
+        prep.execute();
+        rs = prep.getGeneratedKeys();
+        assertFalse(rs.next());
+        prep.setObject(1, 5);
+        prep.executeUpdate();
+        rs = prep.getGeneratedKeys();
+        rs.next();
+        assertEquals(UUID.class, rs.getObject(1).getClass());
+        assertFalse(rs.next());
         stat.execute("drop table test");
 
         stat.execute("create table test(id uuid, value int)");

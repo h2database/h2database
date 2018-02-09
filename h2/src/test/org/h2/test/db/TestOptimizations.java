@@ -808,7 +808,9 @@ public class TestOptimizations extends TestBase {
             totalTime += measureQuerySpeed(stat, sql, false);
             totalTimeOptimized += measureQuerySpeed(stat, sql, true);
         }
-        System.out.println(TimeUnit.NANOSECONDS.toMillis(totalTime)+" "+TimeUnit.NANOSECONDS.toMillis(totalTimeOptimized));
+        // System.out.println(
+        //         TimeUnit.NANOSECONDS.toMillis(totalTime) + " " +
+        //         TimeUnit.NANOSECONDS.toMillis(totalTimeOptimized));
         if (totalTimeOptimized > totalTime) {
             fail("not optimized: " + TimeUnit.NANOSECONDS.toMillis(totalTime) +
                     " optimized: " + TimeUnit.NANOSECONDS.toMillis(totalTimeOptimized) +

@@ -15,8 +15,8 @@ import org.h2.bnf.RuleElement;
 import org.h2.bnf.RuleHead;
 import org.h2.bnf.RuleList;
 import org.h2.bnf.Sentence;
-import org.h2.command.Parser;
 import org.h2.message.DbException;
+import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
 
 /**
@@ -154,7 +154,7 @@ public class DbContextRule implements Rule {
                 break;
             }
             String alias = up.substring(0, i);
-            if (Parser.isKeyword(alias, true)) {
+            if (ParserUtil.isKeyword(alias, true)) {
                 break;
             }
             s = s.substring(alias.length());
@@ -301,7 +301,7 @@ public class DbContextRule implements Rule {
             return s;
         }
         String alias = up.substring(0, i);
-        if ("SET".equals(alias) || Parser.isKeyword(alias, true)) {
+        if ("SET".equals(alias) || ParserUtil.isKeyword(alias, true)) {
             return s;
         }
         if (newAlias) {

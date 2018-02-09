@@ -16,7 +16,6 @@ import java.util.Locale;
 import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Mode;
-import org.h2.expression.Function;
 import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
@@ -111,7 +110,7 @@ public class DateTimeUtils {
      *
      * @return a calendar instance. A cached instance is returned where possible
      */
-    private static GregorianCalendar getCalendar() {
+    public static GregorianCalendar getCalendar() {
         GregorianCalendar c = CACHED_CALENDAR.get();
         if (c == null) {
             c = DateTimeUtils.createGregorianCalendar();
@@ -589,52 +588,6 @@ public class DateTimeUtils {
             timeNanos = v.getTimeNanos();
         }
         return new long[] {dateValue, timeNanos};
-    }
-
-    /**
-     * Get the specified field of a date, however with years normalized to
-     * positive or negative, and month starting with 1.
-     *
-     * @param date the date value
-     * @param field the field type, see {@link Function} for constants
-     * @return the value
-     */
-    public static int getDatePart(Value date, int field) {
-        long[] a = dateAndTimeFromValue(date);
-        long dateValue = a[0];
-        long timeNanos = a[1];
-        switch (field) {
-        case Function.YEAR:
-            return yearFromDateValue(dateValue);
-        case Function.MONTH:
-            return monthFromDateValue(dateValue);
-        case Function.DAY_OF_MONTH:
-            return dayFromDateValue(dateValue);
-        case Function.HOUR:
-            return (int) (timeNanos / 3_600_000_000_000L % 24);
-        case Function.MINUTE:
-            return (int) (timeNanos / 60_000_000_000L % 60);
-        case Function.SECOND:
-            return (int) (timeNanos / 1_000_000_000 % 60);
-        case Function.MILLISECOND:
-            return (int) (timeNanos / 1_000_000 % 1_000);
-        case Function.DAY_OF_YEAR:
-            return getDayOfYear(dateValue);
-        case Function.DAY_OF_WEEK:
-            return getSundayDayOfWeek(dateValue);
-        case Function.WEEK:
-            GregorianCalendar gc = getCalendar();
-            return getWeekOfYear(dateValue, gc.getFirstDayOfWeek() - 1, gc.getMinimalDaysInFirstWeek());
-        case Function.QUARTER:
-            return (monthFromDateValue(dateValue) - 1) / 3 + 1;
-        case Function.ISO_YEAR:
-            return getIsoWeekYear(dateValue);
-        case Function.ISO_WEEK:
-            return getIsoWeekOfYear(dateValue);
-        case Function.ISO_DAY_OF_WEEK:
-            return getIsoDayOfWeek(dateValue);
-        }
-        throw DbException.getUnsupportedException("getDatePart(" + date + ", " + field + ')');
     }
 
     /**

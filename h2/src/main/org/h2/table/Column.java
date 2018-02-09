@@ -173,7 +173,7 @@ public class Column {
      */
     public Value convert(Value v, Mode mode) {
         try {
-            return v.convertTo(type, MathUtils.convertLongToInt(precision), mode, this);
+            return v.convertTo(type, MathUtils.convertLongToInt(precision), mode, this, getEnumerators());
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.DATA_CONVERSION_ERROR_1) {
                 String target = (table == null ? "" : table.getName() + ": ") +

@@ -16,6 +16,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Mode;
+import org.h2.expression.Function;
 import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;

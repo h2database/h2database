@@ -112,17 +112,17 @@ public class SortedProperties extends Properties {
         } catch (Exception e) {
             throw new IOException(e.toString(), e);
         }
-        PrintWriter writer = new PrintWriter(new BufferedWriter(w));
-        while (true) {
-            String line = r.readLine();
-            if (line == null) {
-                break;
-            }
-            if (!line.startsWith("#")) {
-                writer.print(line + "\n");
+        try (PrintWriter writer = new PrintWriter(new BufferedWriter(w))) {
+            while (true) {
+                String line = r.readLine();
+                if (line == null) {
+                    break;
+                }
+                if (!line.startsWith("#")) {
+                    writer.print(line + "\n");
+                }
             }
         }
-        writer.close();
     }
 
     /**

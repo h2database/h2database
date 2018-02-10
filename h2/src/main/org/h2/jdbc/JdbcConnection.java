@@ -85,7 +85,6 @@ public class JdbcConnection extends TraceObject
     private CommandInterface getReadOnly, getGeneratedKeys;
     private CommandInterface setLockMode, getLockMode;
     private CommandInterface setQueryTimeout, getQueryTimeout;
-    private boolean oldGetGeneratedKeys;
 
     private int savepointId;
     private String catalog;
@@ -1583,21 +1582,6 @@ public class JdbcConnection extends TraceObject
      * INTERNAL
      */
     ResultSet getGeneratedKeys(JdbcStatement stat, int id) {
-        if (!oldGetGeneratedKeys) {
-            try {
-                getGeneratedKeys = prepareCommand("CALL GET_GENERATED_KEYS()", getGeneratedKeys);
-                ResultInterface result = getGeneratedKeys.executeQuery(Integer.MAX_VALUE, true);
-                ResultSet rs = new JdbcResultSet(this, stat, getGeneratedKeys, result,
-                        id, false, true, false);
-                return rs;
-            } catch (DbException ex) {
-                if (ex.getErrorCode() == ErrorCode.FUNCTION_NOT_FOUND_1) {
-                    oldGetGeneratedKeys = true;
-                } else {
-                    throw ex;
-                }
-            }
-        }
         getGeneratedKeys = prepareCommand(
                 "SELECT SCOPE_IDENTITY() "
                         + "WHERE SCOPE_IDENTITY() IS NOT NULL",

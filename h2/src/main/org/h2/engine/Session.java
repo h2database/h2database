@@ -1254,8 +1254,8 @@ public class Session extends SessionWithState {
      */
     public void setCurrentCommand(Command command, Object generatedKeysRequest) {
         this.currentCommand = command;
-        // Preserve generated keys in case of a new query so they can be read with
-        // CALL GET_GENERATED_KEYS()
+        // Preserve generated keys in case of a new query due to possible nested
+        // queries in update
         if (command != null && !command.isQuery()) {
             getGeneratedKeys().clear(generatedKeysRequest);
         }
@@ -1809,4 +1809,10 @@ public class Session extends SessionWithState {
     public void setColumnNamerConfiguration(ColumnNamerConfiguration columnNamerConfiguration) {
         this.columnNamerConfiguration = columnNamerConfiguration;
     }
+
+    @Override
+    public boolean isSupportsGeneratedKeys() {
+        return true;
+    }
+
 }

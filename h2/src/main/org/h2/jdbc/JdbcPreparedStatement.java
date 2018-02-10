@@ -31,6 +31,7 @@ import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
+import org.h2.result.ResultWithGeneratedKeys;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MergedResultSet;
@@ -195,7 +196,14 @@ public class JdbcPreparedStatement extends JdbcStatement implements
         synchronized (session) {
             try {
                 setExecutingStatement(command);
-                updateCount = command.executeUpdate(generatedKeysRequest);
+                ResultWithGeneratedKeys result = command.executeUpdate(generatedKeysRequest);
+                updateCount = result.getUpdateCount();
+                ResultInterface gk = result.getGeneratedKeys();
+                if (gk != null) {
+                    int id = getNextId(TraceObject.RESULT_SET);
+                    generatedKeys = new JdbcResultSet(conn, this, command, gk, id,
+                            false, true, false);
+                }
             } finally {
                 setExecutingStatement(null);
             }
@@ -238,7 +246,13 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                                     updatable, cachedColumnLabelMap);
                         } else {
                             returnsResultSet = false;
-                            updateCount = command.executeUpdate(generatedKeysRequest);
+                            ResultWithGeneratedKeys result = command.executeUpdate(generatedKeysRequest);
+                            updateCount = result.getUpdateCount();
+                            ResultInterface gk = result.getGeneratedKeys();
+                            if (gk != null) {
+                                generatedKeys = new JdbcResultSet(conn, this, command, gk, id,
+                                        false, true, false);
+                            }
                         }
                     } finally {
                         if (!lazy) {
@@ -1263,7 +1277,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                     }
                     try {
                         result[i] = executeUpdateInternal();
-                        ResultSet rs = conn.getGeneratedKeys(this, id);
+                        // Cannot use own implementation, it returns batch identities
+                        ResultSet rs = super.getGeneratedKeys();
                         batchIdentities.add(rs);
                     } catch (Exception re) {
                         SQLException e = logAndConvert(re);

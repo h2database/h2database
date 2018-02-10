@@ -31,6 +31,7 @@ import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.DbException;
 import org.h2.result.ResultColumn;
 import org.h2.result.ResultInterface;
+import org.h2.result.ResultWithGeneratedKeys;
 import org.h2.store.LobStorageInterface;
 import org.h2.util.IOUtils;
 import org.h2.util.SmallLRUCache;
@@ -353,12 +354,15 @@ public class TcpServerThread implements Runnable {
             int id = transfer.readInt();
             Command command = (Command) cache.getObject(id, false);
             setParameters(command);
+            boolean supportsGeneratedKeys = clientVersion >= Constants.TCP_PROTOCOL_VERSION_17;
+            boolean writeGeneratedKeys = supportsGeneratedKeys;
             Object generatedKeysRequest;
-            if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_17) {
+            if (supportsGeneratedKeys) {
                 int type = transfer.readInt();
                 switch (type) {
                 default:
                     generatedKeysRequest = false;
+                    writeGeneratedKeys = false;
                     break;
                 case 1:
                     generatedKeysRequest = true;
@@ -382,12 +386,12 @@ public class TcpServerThread implements Runnable {
                 }
                 }
             } else {
-                generatedKeysRequest = true;
+                generatedKeysRequest = false;
             }
             int old = session.getModificationId();
-            int updateCount;
+            ResultWithGeneratedKeys result;
             synchronized (session) {
-                updateCount = command.executeUpdate(generatedKeysRequest);
+                result = command.executeUpdate(generatedKeysRequest);
             }
             int status;
             if (session.isClosed()) {
@@ -396,8 +400,22 @@ public class TcpServerThread implements Runnable {
             } else {
                 status = getState(old);
             }
-            transfer.writeInt(status).writeInt(updateCount).
+            transfer.writeInt(status).writeInt(result.getUpdateCount()).
                     writeBoolean(session.getAutoCommit());
+            if (writeGeneratedKeys) {
+                ResultInterface generatedKeys = result.getGeneratedKeys();
+                int columnCount = generatedKeys.getVisibleColumnCount();
+                transfer.writeInt(columnCount);
+                int rowCount = generatedKeys.getRowCount();
+                transfer.writeInt(rowCount);
+                for (int i = 0; i < columnCount; i++) {
+                    ResultColumn.writeColumn(transfer, generatedKeys, i);
+                }
+                for (int i = 0; i < rowCount; i++) {
+                    sendRow(generatedKeys);
+                }
+                generatedKeys.close();
+            }
             transfer.flush();
             break;
         }

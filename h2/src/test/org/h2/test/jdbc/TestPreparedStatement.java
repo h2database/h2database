@@ -1355,7 +1355,7 @@ public class TestPreparedStatement extends TestBase {
                 "insert into test values (30), (next value for seq),"
                         + " (next value for seq), (next value for seq), (20)",
                 PreparedStatement.RETURN_GENERATED_KEYS);
-            prep.executeUpdate();
+        prep.executeUpdate();
         ResultSet rs = prep.getGeneratedKeys();
         rs.next();
         assertEquals(1L, rs.getLong(1));

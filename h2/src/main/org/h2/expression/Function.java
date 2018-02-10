@@ -115,7 +115,7 @@ public class Function extends Expression implements FunctionCall {
     public static final int DATABASE = 150, USER = 151, CURRENT_USER = 152,
             IDENTITY = 153, SCOPE_IDENTITY = 154, AUTOCOMMIT = 155,
             READONLY = 156, DATABASE_PATH = 157, LOCK_TIMEOUT = 158,
-            DISK_SPACE_USED = 159, SIGNAL = 160, GET_GENERATED_KEYS = 161;
+            DISK_SPACE_USED = 159, SIGNAL = 160;
 
     private static final Pattern SIGNAL_PATTERN = Pattern.compile("[0-9A-Z]{5}");
 
@@ -491,7 +491,6 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("DISK_SPACE_USED", DISK_SPACE_USED,
                 1, Value.LONG);
         addFunctionWithNull("SIGNAL", SIGNAL, 2, Value.NULL);
-        addFunction("GET_GENERATED_KEYS", GET_GENERATED_KEYS, 0, Value.RESULT_SET);
         addFunction("H2VERSION", H2VERSION, 0, Value.STRING);
 
         // TableFunction
@@ -924,9 +923,6 @@ public class Function extends Expression implements FunctionCall {
             break;
         case DISK_SPACE_USED:
             result = ValueLong.get(getDiskSpaceUsed(session, v0));
-            break;
-        case GET_GENERATED_KEYS:
-            result = ValueResultSet.get(session.getGeneratedKeys().getKeys());
             break;
         case CAST:
         case CONVERT: {

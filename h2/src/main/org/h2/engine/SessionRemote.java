@@ -869,4 +869,10 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     public void setCurrentSchemaName(String schema) {
         throw DbException.getUnsupportedException("setSchema && remote session");
     }
+
+    @Override
+    public boolean isSupportsGeneratedKeys() {
+        return getClientVersion() >= Constants.TCP_PROTOCOL_VERSION_17;
+    }
+
 }

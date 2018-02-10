@@ -14,7 +14,9 @@ import org.h2.engine.Session;
 import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
+import org.h2.result.ResultWithGeneratedKeys;
 import org.h2.util.MathUtils;
 
 /**
@@ -238,7 +240,7 @@ public abstract class Command implements CommandInterface {
     }
 
     @Override
-    public int executeUpdate(Object generatedKeysRequest) {
+    public ResultWithGeneratedKeys executeUpdate(Object generatedKeysRequest) {
         long start = 0;
         Database database = session.getDatabase();
         Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
@@ -257,7 +259,14 @@ public abstract class Command implements CommandInterface {
                 while (true) {
                     database.checkPowerOff();
                     try {
-                        return update();
+                        int updateCount = update();
+                        if (!Boolean.FALSE.equals(generatedKeysRequest)) {
+                            return new ResultWithGeneratedKeys.WithKeys(updateCount,
+                                    LocalResult.read(session,
+                                            session.getGeneratedKeys().getKeys(),
+                                            Integer.MAX_VALUE));
+                        }
+                        return ResultWithGeneratedKeys.of(updateCount);
                     } catch (DbException e) {
                         start = filterConcurrentUpdate(e, start);
                     } catch (OutOfMemoryError e) {

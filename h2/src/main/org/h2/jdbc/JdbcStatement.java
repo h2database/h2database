@@ -18,6 +18,8 @@ import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
+import org.h2.result.ResultWithGeneratedKeys;
+import org.h2.tools.SimpleResultSet;
 import org.h2.util.New;
 import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
@@ -33,6 +35,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     protected int maxRows;
     protected int fetchSize = SysProperties.SERVER_RESULT_SET_FETCH_SIZE;
     protected int updateCount;
+    protected JdbcResultSet generatedKeys;
     protected final int resultSetType;
     protected final int resultSetConcurrency;
     protected final boolean closedByResultSet;
@@ -163,7 +166,14 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             synchronized (session) {
                 setExecutingStatement(command);
                 try {
-                    updateCount = command.executeUpdate(generatedKeysRequest);
+                    ResultWithGeneratedKeys result = command.executeUpdate(generatedKeysRequest);
+                    updateCount = result.getUpdateCount();
+                    ResultInterface gk = result.getGeneratedKeys();
+                    if (gk != null) {
+                        int id = getNextId(TraceObject.RESULT_SET);
+                        generatedKeys = new JdbcResultSet(conn, this, command, gk, id,
+                                false, true, false);
+                    }
                 } finally {
                     setExecutingStatement(null);
                 }
@@ -219,7 +229,13 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
                                 closedByResultSet, scrollable, updatable);
                     } else {
                         returnsResultSet = false;
-                        updateCount = command.executeUpdate(generatedKeysRequest);
+                        ResultWithGeneratedKeys result = command.executeUpdate(generatedKeysRequest);
+                        updateCount = result.getUpdateCount();
+                        ResultInterface gk = result.getGeneratedKeys();
+                        if (gk != null) {
+                            generatedKeys = new JdbcResultSet(conn, this, command, gk, id,
+                                    false, true, false);
+                        }
                     }
                 } finally {
                     if (!lazy) {
@@ -816,6 +832,13 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
                 debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "getGeneratedKeys()");
             }
             checkClosed();
+            if (generatedKeys != null) {
+                return generatedKeys;
+            }
+            if (session.isSupportsGeneratedKeys()) {
+                return new SimpleResultSet();
+            }
+            // Old server, so use SCOPE_IDENTITY()
             return conn.getGeneratedKeys(this, id);
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1197,11 +1220,15 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
                 if (resultSet != null) {
                     resultSet.closeInternal();
                 }
+                if (generatedKeys != null) {
+                    generatedKeys.closeInternal();
+                }
             }
         } finally {
             cancelled = false;
             resultSet = null;
             updateCount = -1;
+            generatedKeys = null;
         }
     }
 

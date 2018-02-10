@@ -17,6 +17,7 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultRemote;
+import org.h2.result.ResultWithGeneratedKeys;
 import org.h2.util.New;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
@@ -194,10 +195,14 @@ public class CommandRemote implements CommandInterface {
     }
 
     @Override
-    public int executeUpdate(Object generatedKeys) {
+    public ResultWithGeneratedKeys executeUpdate(Object generatedKeysRequest) {
         checkParameters();
+        boolean supportsGeneratedKeys = session.isSupportsGeneratedKeys();
+        boolean readGeneratedKeys = supportsGeneratedKeys && !Boolean.FALSE.equals(generatedKeysRequest);
+        int objectId = readGeneratedKeys ? session.getNextId() : 0;
         synchronized (session) {
             int updateCount = 0;
+            ResultRemote generatedKeys = null;
             boolean autoCommit = false;
             for (int i = 0, count = 0; i < transferList.size(); i++) {
                 prepareIfRequired();
@@ -206,20 +211,21 @@ public class CommandRemote implements CommandInterface {
                     session.traceOperation("COMMAND_EXECUTE_UPDATE", id);
                     transfer.writeInt(SessionRemote.COMMAND_EXECUTE_UPDATE).writeInt(id);
                     sendParameters(transfer);
-                    if (session.getClientVersion() >= Constants.TCP_PROTOCOL_VERSION_17) {
-                        if (Boolean.FALSE.equals(generatedKeys)) {
+                    if (supportsGeneratedKeys) {
+                        if (Boolean.FALSE.equals(generatedKeysRequest)) {
                             transfer.writeInt(0);
-                        } else if (Boolean.TRUE.equals(generatedKeys)) {
+                            readGeneratedKeys = false;
+                        } else if (Boolean.TRUE.equals(generatedKeysRequest)) {
                             transfer.writeInt(1);
-                        } else if (generatedKeys instanceof int[]) {
-                            int[] keys = (int[]) generatedKeys;
+                        } else if (generatedKeysRequest instanceof int[]) {
+                            int[] keys = (int[]) generatedKeysRequest;
                             transfer.writeInt(2);
                             transfer.writeInt(keys.length);
                             for (int key : keys) {
                                 transfer.writeInt(key);
                             }
-                        } else if (generatedKeys instanceof String[]) {
-                            String[] keys = (String[]) generatedKeys;
+                        } else if (generatedKeysRequest instanceof String[]) {
+                            String[] keys = (String[]) generatedKeysRequest;
                             transfer.writeInt(3);
                             transfer.writeInt(keys.length);
                             for (String key : keys) {
@@ -227,11 +233,20 @@ public class CommandRemote implements CommandInterface {
                             }
                         } else {
                             transfer.writeInt(0);
+                            readGeneratedKeys = false;
                         }
                     }
                     session.done(transfer);
                     updateCount = transfer.readInt();
                     autoCommit = transfer.readBoolean();
+                    if (readGeneratedKeys) {
+                        int columnCount = transfer.readInt();
+                        if (generatedKeys != null) {
+                            generatedKeys.close();
+                            generatedKeys = null;
+                        }
+                        generatedKeys = new ResultRemote(session, transfer, objectId, columnCount, Integer.MAX_VALUE);
+                    }
                 } catch (IOException e) {
                     session.removeServer(e, i--, ++count);
                 }
@@ -239,7 +254,10 @@ public class CommandRemote implements CommandInterface {
             session.setAutoCommitFromServer(autoCommit);
             session.autoCommitIfCluster();
             session.readSessionState();
-            return updateCount;
+            if (generatedKeys != null) {
+                return new ResultWithGeneratedKeys.WithKeys(updateCount, generatedKeys);
+            }
+            return ResultWithGeneratedKeys.of(updateCount);
         }
     }
 

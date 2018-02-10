@@ -153,4 +153,13 @@ public interface SessionInterface extends Closeable {
      * @return the current schema name
      */
     String getCurrentSchemaName();
+
+    /**
+     * Returns is this session supports generated keys.
+     *
+     * @return {@code true} if generated keys are supported, {@code false} if only
+     *         {@code SCOPE_IDENTITY()} is supported
+     */
+    boolean isSupportsGeneratedKeys();
+
 }

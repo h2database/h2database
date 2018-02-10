@@ -746,7 +746,7 @@ public class RegularTable extends TableBase {
             if (constraints != null) {
                 for (int i = 0, size = constraints.size(); i < size; i++) {
                     Constraint c = constraints.get(i);
-                    if (!(c.getConstraintType().equals(Constraint.REFERENTIAL))) {
+                    if (c.getConstraintType() != Constraint.Type.REFERENTIAL) {
                         continue;
                     }
                     ConstraintReferential ref = (ConstraintReferential) c;

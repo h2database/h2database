@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -107,31 +108,35 @@ public class TestFuzzOptimizations extends TestBase {
             ArrayList<String> params = New.arrayList();
             String condition = getRandomCondition(random, params, columns,
                     compares, values);
-            //   System.out.println(condition + " " + params);
-            PreparedStatement prep0 = conn.prepareStatement(
-                    "select * from test0 where " + condition
-                    + " order by 1, 2, 3");
-            PreparedStatement prep1 = conn.prepareStatement(
-                    "select * from test1 where " + condition
-                    + " order by 1, 2, 3");
-            for (int j = 0; j < params.size(); j++) {
-                prep0.setString(j + 1, params.get(j));
-                prep1.setString(j + 1, params.get(j));
-            }
-            ResultSet rs0 = prep0.executeQuery();
-            ResultSet rs1 = prep1.executeQuery();
-            assertEquals("seed: " + seed + " " + condition, rs0, rs1);
+            String message = "seed: " + seed + " " + condition;
+            executeAndCompare(condition, params, message);
             if (params.size() > 0) {
                 for (int j = 0; j < params.size(); j++) {
                     String value = values[random.nextInt(values.length - 2)];
                     params.set(j, value);
-                    prep0.setString(j + 1, value);
-                    prep1.setString(j + 1, value);
                 }
-                assertEquals("seed: " + seed + " " + condition, rs0, rs1);
+                executeAndCompare(condition, params, message);
             }
         }
+        executeAndCompare("a >=0 and b in(?, 2) and a in(1, ?, null)", Arrays.asList("10", "2"),
+                          "seed=-6191135606105920350L");
         db.execute("drop table test0, test1");
+    }
+
+    private void executeAndCompare(String condition, List<String> params, String message) throws SQLException {
+        PreparedStatement prep0 = conn.prepareStatement(
+                "select * from test0 where " + condition
+                + " order by 1, 2, 3");
+        PreparedStatement prep1 = conn.prepareStatement(
+                "select * from test1 where " + condition
+                + " order by 1, 2, 3");
+        for (int j = 0; j < params.size(); j++) {
+            prep0.setString(j + 1, params.get(j));
+            prep1.setString(j + 1, params.get(j));
+        }
+        ResultSet rs0 = prep0.executeQuery();
+        ResultSet rs1 = prep1.executeQuery();
+        assertEquals(message, rs0, rs1);
     }
 
     private String getRandomCondition(Random random, ArrayList<String> params,

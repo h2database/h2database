@@ -70,7 +70,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             int resultSetType, int resultSetConcurrency,
             boolean closeWithResultSet, Object generatedKeysRequest) {
         super(conn, id, resultSetType, resultSetConcurrency, closeWithResultSet);
-        this.generatedKeysRequest = generatedKeysRequest;
+        this.generatedKeysRequest = conn.scopeGeneratedKeys() ? false : generatedKeysRequest;
         setTrace(session.getTrace(), TraceObject.PREPARED_STATEMENT, id);
         this.sqlStatement = sql;
         command = conn.prepareCommand(sql, fetchSize);

@@ -166,7 +166,8 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             synchronized (session) {
                 setExecutingStatement(command);
                 try {
-                    ResultWithGeneratedKeys result = command.executeUpdate(generatedKeysRequest);
+                    ResultWithGeneratedKeys result = command.executeUpdate(
+                            conn.scopeGeneratedKeys() ? false : generatedKeysRequest);
                     updateCount = result.getUpdateCount();
                     ResultInterface gk = result.getGeneratedKeys();
                     if (gk != null) {
@@ -229,7 +230,8 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
                                 closedByResultSet, scrollable, updatable);
                     } else {
                         returnsResultSet = false;
-                        ResultWithGeneratedKeys result = command.executeUpdate(generatedKeysRequest);
+                        ResultWithGeneratedKeys result = command.executeUpdate(
+                                conn.scopeGeneratedKeys() ? false : generatedKeysRequest);
                         updateCount = result.getUpdateCount();
                         ResultInterface gk = result.getGeneratedKeys();
                         if (gk != null) {
@@ -832,13 +834,15 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
                 debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "getGeneratedKeys()");
             }
             checkClosed();
-            if (generatedKeys != null) {
-                return generatedKeys;
+            if (!conn.scopeGeneratedKeys()) {
+                if (generatedKeys != null) {
+                    return generatedKeys;
+                }
+                if (session.isSupportsGeneratedKeys()) {
+                    return new SimpleResultSet();
+                }
             }
-            if (session.isSupportsGeneratedKeys()) {
-                return new SimpleResultSet();
-            }
-            // Old server, so use SCOPE_IDENTITY()
+            // Compatibility mode or an old server, so use SCOPE_IDENTITY()
             return conn.getGeneratedKeys(this, id);
         } catch (Exception e) {
             throw logAndConvert(e);

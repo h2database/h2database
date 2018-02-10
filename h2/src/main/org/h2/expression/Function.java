@@ -1508,7 +1508,7 @@ public class Function extends Expression implements FunctionCall {
                 
                 result = ValueInt.get(getDatePart(v1, field));
                 
-            }else {
+            } else {
                 
                 // Case where we retrieve the EPOCH time.
                 // First we retrieve the dateValue and his time in nanoseconds.
@@ -1534,7 +1534,7 @@ public class Function extends Expression implements FunctionCall {
                     // number of days and multiply it by the number of seconds in a day.
                     result = ValueDecimal.get(numberOfDays.multiply(secondsPerDay));
                     
-                }else if(v1 instanceof ValueTimestampTimeZone) {
+                } else if(v1 instanceof ValueTimestampTimeZone) {
                     
                     // Case where the value is a of type ValueTimestampTimeZone ('2000:01:01 10:00:00+05).
                     // We retrieve the time zone offset in minute
@@ -1546,7 +1546,7 @@ public class Function extends Expression implements FunctionCall {
                             .add(numberOfDays.multiply(secondsPerDay))
                             .subtract(timeZoneOffsetSeconds));
                     
-                }else {
+                } else {
                     
                     // By default, we have the date and the time ('2000:01:01 10:00:00) if no type is given. 
                     // We just have to sum the time in nanoseconds and the total number of days in seconds.

@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicReference;
 import org.h2.api.ErrorCode;
 import org.h2.mvstore.MVStore;
 import org.h2.store.fs.FilePath;
@@ -37,10 +38,6 @@ public class TestOutOfMemory extends TestBase {
 
     @Override
     public void test() throws SQLException, InterruptedException {
-        if (config.travis) {
-            // fails regularly under Travis, not sure why
-            return;
-        }
         if (config.vmlens) {
             // running out of memory will cause the vmlens agent to stop working
             return;
@@ -60,7 +57,16 @@ public class TestOutOfMemory extends TestBase {
     private void testMVStoreUsingInMemoryFileSystem() {
         FilePath.register(new FilePathMem());
         String fileName = "memFS:" + getTestName();
-        MVStore store = MVStore.open(fileName);
+        final AtomicReference<Throwable> exRef = new AtomicReference<>();
+        MVStore store = new MVStore.Builder()
+                .fileName(fileName)
+                .backgroundExceptionHandler(new Thread.UncaughtExceptionHandler() {
+                    @Override
+                    public void uncaughtException(Thread t, Throwable e) {
+                        exRef.compareAndSet(null, e);
+                    }
+                })
+                .open();
         try {
             Map<Integer, byte[]> map = store.openMap("test");
             Random r = new Random(1);
@@ -70,10 +76,11 @@ public class TestOutOfMemory extends TestBase {
                     r.nextBytes(data);
                     map.put(i, data);
                 }
+                Throwable throwable = exRef.get();
+                if(throwable instanceof OutOfMemoryError) throw (OutOfMemoryError)throwable;
+                if(throwable instanceof IllegalStateException) throw (IllegalStateException)throwable;
                 fail();
-            } catch (OutOfMemoryError e) {
-                // expected
-            } catch (IllegalStateException e) {
+            } catch (OutOfMemoryError | IllegalStateException e) {
                 // expected
             }
             try {
@@ -83,7 +90,7 @@ public class TestOutOfMemory extends TestBase {
             }
             store.closeImmediately();
             store = MVStore.open(fileName);
-            map = store.openMap("test");
+            store.openMap("test");
             store.close();
         } finally {
             // just in case, otherwise if this test suffers a spurious failure,
@@ -95,37 +102,43 @@ public class TestOutOfMemory extends TestBase {
 
     private void testDatabaseUsingInMemoryFileSystem() throws SQLException, InterruptedException {
         String filename = "memFS:" + getTestName();
-        String url = "jdbc:h2:" + filename;
-        Connection conn = DriverManager.getConnection(url);
-        Statement stat = conn.createStatement();
+        String url = "jdbc:h2:" + filename + "/test";
         try {
-            stat.execute("create table test(id int, name varchar) as " +
-                    "select x, space(10000000) from system_range(1, 1000)");
-            fail();
-        } catch (SQLException e) {
-            int err = e.getErrorCode();
-            assertTrue(e.getMessage(), err == ErrorCode.GENERAL_ERROR_1
-                    || err == ErrorCode.OUT_OF_MEMORY);
-        }
-        try {
+            Connection conn = DriverManager.getConnection(url);
+            Statement stat = conn.createStatement();
+            try {
+                stat.execute("create table test(id int, name varchar) as " +
+                        "select x, space(10000000+x) from system_range(1, 1000)");
+                fail();
+            } catch (SQLException e) {
+                assertTrue("Unexpected error code: " + e.getErrorCode(),
+                        ErrorCode.OUT_OF_MEMORY == e.getErrorCode() ||
+                        ErrorCode.FILE_CORRUPTED_1 == e.getErrorCode() ||
+                        ErrorCode.DATABASE_IS_CLOSED == e.getErrorCode() ||
+                        ErrorCode.GENERAL_ERROR_1 == e.getErrorCode());
+            }
+            try {
+                conn.close();
+                fail();
+            } catch (SQLException e) {
+                assertTrue("Unexpected error code: " + e.getErrorCode(),
+                        ErrorCode.OUT_OF_MEMORY == e.getErrorCode() ||
+                        ErrorCode.FILE_CORRUPTED_1 == e.getErrorCode() ||
+                        ErrorCode.DATABASE_IS_CLOSED == e.getErrorCode() ||
+                        ErrorCode.GENERAL_ERROR_1 == e.getErrorCode());
+            }
+            for (int i = 0; i < 5; i++) {
+                System.gc();
+                Thread.sleep(20);
+            }
+            conn = DriverManager.getConnection(url);
+            stat = conn.createStatement();
+            stat.execute("SELECT 1");
             conn.close();
-            fail();
-        } catch (SQLException e) {
-            int err = e.getErrorCode();
-            assertTrue(e.getMessage(), err == ErrorCode.GENERAL_ERROR_1
-                    || err == ErrorCode.OUT_OF_MEMORY
-                    || err == ErrorCode.DATABASE_IS_CLOSED);
+        } finally {
+            // release the static data this test generates
+            FileUtils.deleteRecursive(filename, true);
         }
-        for (int i = 0; i < 5; i++) {
-            System.gc();
-            Thread.sleep(20);
-        }
-        conn = DriverManager.getConnection(url);
-        stat = conn.createStatement();
-        stat.execute("select 1");
-        conn.close();
-        // release the static data this test generates
-        FileUtils.delete(filename);
     }
 
     private void testUpdateWhenNearlyOutOfMemory() throws SQLException, InterruptedException {
@@ -160,7 +173,7 @@ public class TestOutOfMemory extends TestBase {
         } catch (OutOfMemoryError e) {
             freeMemory();
             // out of memory not detected
-            throw (Error) new AssertionError("Out of memory not detected").initCause(e);
+            throw new AssertionError("Out of memory not detected", e);
         } finally {
             freeMemory();
             if (conn != null) {

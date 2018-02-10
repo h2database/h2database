@@ -305,7 +305,7 @@ public class SpatialDataType implements DataType {
      */
     public int[] getExtremes(ArrayList<Object> list) {
         list = getNotNull(list);
-        if (list.size() == 0) {
+        if (list.isEmpty()) {
             return null;
         }
         SpatialKey bounds = (SpatialKey) createBoundingBox(list.get(0));

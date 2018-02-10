@@ -886,7 +886,7 @@ public class PgServerThread implements Runnable {
             }
             stat.execute("set search_path = PUBLIC, pg_catalog");
             HashSet<Integer> typeSet = server.getTypeSet();
-            if (typeSet.size() == 0) {
+            if (typeSet.isEmpty()) {
                 try (ResultSet rs = stat.executeQuery("select oid from pg_catalog.pg_type")) {
                     while (rs.next()) {
                         typeSet.add(rs.getInt(1));

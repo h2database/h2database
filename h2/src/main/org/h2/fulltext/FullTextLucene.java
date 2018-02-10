@@ -505,7 +505,7 @@ public class FullTextLucene extends FullText {
             for (int i = 0; rs.next(); i++) {
                 columnTypes[i] = rs.getInt("DATA_TYPE");
             }
-            if (keyList.size() == 0) {
+            if (keyList.isEmpty()) {
                 rs = meta.getPrimaryKeys(null,
                         StringUtils.escapeMetaDataPattern(schemaName),
                         tableName);
@@ -513,7 +513,7 @@ public class FullTextLucene extends FullText {
                     keyList.add(rs.getString("COLUMN_NAME"));
                 }
             }
-            if (keyList.size() == 0) {
+            if (keyList.isEmpty()) {
                 throw throwException("No primary key for table " + tableName);
             }
             ArrayList<String> indexList = New.arrayList();
@@ -530,7 +530,7 @@ public class FullTextLucene extends FullText {
                             StringUtils.arraySplit(cols, ',', true));
                 }
             }
-            if (indexList.size() == 0) {
+            if (indexList.isEmpty()) {
                 indexList.addAll(columnList);
             }
             keys = new int[keyList.size()];

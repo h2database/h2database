@@ -182,7 +182,7 @@ public class CipherFactory {
         boolean ecdhAnonRemoved = algorithms.remove("ECDH_anon");
         if (dhAnonRemoved || ecdhAnonRemoved) {
             String string = Arrays.toString(algorithms.toArray(new String[algorithms.size()]));
-            return (algorithms.size() > 0) ? string.substring(1, string.length() - 1): "";
+            return (!algorithms.isEmpty()) ? string.substring(1, string.length() - 1): "";
         }
         return list;
     }

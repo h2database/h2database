@@ -1504,7 +1504,7 @@ public class Function extends Expression implements FunctionCall {
             int field = getDatePart(v0.getString());
             
             // Normal case when we don't retrieve the EPOCH time
-            if(field != EPOCH) {
+            if (field != EPOCH) {
                 
                 result = ValueInt.get(getDatePart(v1, field));
                 
@@ -1522,7 +1522,7 @@ public class Function extends Expression implements FunctionCall {
                 BigDecimal secondsPerDay = new BigDecimal(DateTimeUtils.SECONDS_PER_DAY);
                 
                 // Case where the value is of type time e.g. '10:00:00'
-                if(v1 instanceof ValueTime) {
+                if (v1 instanceof ValueTime) {
                     
                     // In order to retrieve the EPOCH time we only have to convert the time 
                     // in nanoseconds (previously retrieved) in seconds.
@@ -1534,7 +1534,7 @@ public class Function extends Expression implements FunctionCall {
                     // number of days and multiply it by the number of seconds in a day.
                     result = ValueDecimal.get(numberOfDays.multiply(secondsPerDay));
                     
-                } else if(v1 instanceof ValueTimestampTimeZone) {
+                } else if (v1 instanceof ValueTimestampTimeZone) {
                     
                     // Case where the value is a of type ValueTimestampTimeZone ('2000:01:01 10:00:00+05).
                     // We retrieve the time zone offset in minute

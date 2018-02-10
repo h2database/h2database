@@ -13,6 +13,8 @@ import java.sql.Statement;
 import java.util.UUID;
 
 import org.h2.api.Trigger;
+import org.h2.jdbc.JdbcPreparedStatement;
+import org.h2.jdbc.JdbcStatement;
 import org.h2.test.TestBase;
 
 /**
@@ -283,7 +285,8 @@ public class TestGetGeneratedKeys extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
                 + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL)");
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)");
+        JdbcPreparedStatement prep = (JdbcPreparedStatement) conn
+                .prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)");
         prep.addBatch();
         prep.addBatch();
         prep.executeLargeBatch();
@@ -306,7 +309,8 @@ public class TestGetGeneratedKeys extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
                 + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL)");
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)");
+        JdbcPreparedStatement prep = (JdbcPreparedStatement) conn
+                .prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)");
         prep.executeLargeUpdate();
         ResultSet rs = prep.getGeneratedKeys();
         assertFalse(rs.next());
@@ -421,15 +425,16 @@ public class TestGetGeneratedKeys extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
                 + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL)");
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)",
-                Statement.NO_GENERATED_KEYS);
+        JdbcPreparedStatement prep = (JdbcPreparedStatement) conn
+                .prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)", Statement.NO_GENERATED_KEYS);
         prep.addBatch();
         prep.addBatch();
         prep.executeLargeBatch();
         ResultSet rs = prep.getGeneratedKeys();
         assertFalse(rs.next());
         rs.close();
-        prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (20)", Statement.RETURN_GENERATED_KEYS);
+        prep = (JdbcPreparedStatement) conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (20)",
+                Statement.RETURN_GENERATED_KEYS);
         prep.addBatch();
         prep.addBatch();
         prep.executeLargeBatch();
@@ -461,13 +466,14 @@ public class TestGetGeneratedKeys extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
                 + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL)");
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)",
-                Statement.NO_GENERATED_KEYS);
+        JdbcPreparedStatement prep = (JdbcPreparedStatement) conn
+                .prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)", Statement.NO_GENERATED_KEYS);
         prep.executeLargeUpdate();
         ResultSet rs = prep.getGeneratedKeys();
         assertFalse(rs.next());
         rs.close();
-        prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (20)", Statement.RETURN_GENERATED_KEYS);
+        prep = (JdbcPreparedStatement) conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (20)",
+                Statement.RETURN_GENERATED_KEYS);
         prep.executeLargeUpdate();
         rs = prep.getGeneratedKeys();
         assertEquals(2, rs.getMetaData().getColumnCount());
@@ -647,14 +653,15 @@ public class TestGetGeneratedKeys extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
                 + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL)");
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)", new int[0]);
+        JdbcPreparedStatement prep = (JdbcPreparedStatement) conn
+                .prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)", new int[0]);
         prep.addBatch();
         prep.addBatch();
         prep.executeLargeBatch();
         ResultSet rs = prep.getGeneratedKeys();
         assertFalse(rs.next());
         rs.close();
-        prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (20)", new int[] { 1, 2 });
+        prep = (JdbcPreparedStatement) conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (20)", new int[] { 1, 2 });
         prep.addBatch();
         prep.addBatch();
         prep.executeLargeBatch();
@@ -670,7 +677,7 @@ public class TestGetGeneratedKeys extends TestBase {
         assertEquals(UUID.class, rs.getObject(2).getClass());
         assertFalse(rs.next());
         rs.close();
-        prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (30)", new int[] { 2, 1 });
+        prep = (JdbcPreparedStatement) conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (30)", new int[] { 2, 1 });
         prep.addBatch();
         prep.addBatch();
         prep.executeLargeBatch();
@@ -686,7 +693,7 @@ public class TestGetGeneratedKeys extends TestBase {
         assertEquals(6L, rs.getLong(2));
         assertFalse(rs.next());
         rs.close();
-        prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (40)", new int[] { 2 });
+        prep = (JdbcPreparedStatement) conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (40)", new int[] { 2 });
         prep.addBatch();
         prep.addBatch();
         prep.executeLargeBatch();
@@ -715,12 +722,13 @@ public class TestGetGeneratedKeys extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
                 + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL)");
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)", new int[0]);
+        JdbcPreparedStatement prep = (JdbcPreparedStatement) conn
+                .prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)", new int[0]);
         prep.executeLargeUpdate();
         ResultSet rs = prep.getGeneratedKeys();
         assertFalse(rs.next());
         rs.close();
-        prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (20)", new int[] { 1, 2 });
+        prep = (JdbcPreparedStatement) conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (20)", new int[] { 1, 2 });
         prep.executeLargeUpdate();
         rs = prep.getGeneratedKeys();
         assertEquals(2, rs.getMetaData().getColumnCount());
@@ -731,7 +739,7 @@ public class TestGetGeneratedKeys extends TestBase {
         assertEquals(UUID.class, rs.getObject(2).getClass());
         assertFalse(rs.next());
         rs.close();
-        prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (30)", new int[] { 2, 1 });
+        prep = (JdbcPreparedStatement) conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (30)", new int[] { 2, 1 });
         prep.executeLargeUpdate();
         rs = prep.getGeneratedKeys();
         assertEquals(2, rs.getMetaData().getColumnCount());
@@ -742,7 +750,7 @@ public class TestGetGeneratedKeys extends TestBase {
         assertEquals(3L, rs.getLong(2));
         assertFalse(rs.next());
         rs.close();
-        prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (40)", new int[] { 2 });
+        prep = (JdbcPreparedStatement) conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (40)", new int[] { 2 });
         prep.executeLargeUpdate();
         rs = prep.getGeneratedKeys();
         assertEquals(1, rs.getMetaData().getColumnCount());
@@ -939,14 +947,16 @@ public class TestGetGeneratedKeys extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
                 + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL)");
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)", new String[0]);
+        JdbcPreparedStatement prep = (JdbcPreparedStatement) conn
+                .prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)", new String[0]);
         prep.addBatch();
         prep.addBatch();
         prep.executeLargeBatch();
         ResultSet rs = prep.getGeneratedKeys();
         assertFalse(rs.next());
         rs.close();
-        prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (20)", new String[] { "ID", "UID" });
+        prep = (JdbcPreparedStatement) conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (20)",
+                new String[] { "ID", "UID" });
         prep.addBatch();
         prep.addBatch();
         prep.executeLargeBatch();
@@ -962,7 +972,8 @@ public class TestGetGeneratedKeys extends TestBase {
         assertEquals(UUID.class, rs.getObject(2).getClass());
         assertFalse(rs.next());
         rs.close();
-        prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (30)", new String[] { "UID", "ID" });
+        prep = (JdbcPreparedStatement) conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (30)",
+                new String[] { "UID", "ID" });
         prep.addBatch();
         prep.addBatch();
         prep.executeLargeBatch();
@@ -978,7 +989,8 @@ public class TestGetGeneratedKeys extends TestBase {
         assertEquals(6L, rs.getLong(2));
         assertFalse(rs.next());
         rs.close();
-        prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (40)", new String[] { "UID" });
+        prep = (JdbcPreparedStatement) conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (40)",
+                new String[] { "UID" });
         prep.addBatch();
         prep.addBatch();
         prep.executeLargeBatch();
@@ -1007,12 +1019,14 @@ public class TestGetGeneratedKeys extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
                 + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL)");
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)", new String[0]);
+        JdbcPreparedStatement prep = (JdbcPreparedStatement) conn
+                .prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)", new String[0]);
         prep.executeLargeUpdate();
         ResultSet rs = prep.getGeneratedKeys();
         assertFalse(rs.next());
         rs.close();
-        prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (20)", new String[] { "ID", "UID" });
+        prep = (JdbcPreparedStatement) conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (20)",
+                new String[] { "ID", "UID" });
         prep.executeLargeUpdate();
         rs = prep.getGeneratedKeys();
         assertEquals(2, rs.getMetaData().getColumnCount());
@@ -1023,7 +1037,8 @@ public class TestGetGeneratedKeys extends TestBase {
         assertEquals(UUID.class, rs.getObject(2).getClass());
         assertFalse(rs.next());
         rs.close();
-        prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (30)", new String[] { "UID", "ID" });
+        prep = (JdbcPreparedStatement) conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (30)",
+                new String[] { "UID", "ID" });
         prep.executeLargeUpdate();
         rs = prep.getGeneratedKeys();
         assertEquals(2, rs.getMetaData().getColumnCount());
@@ -1034,7 +1049,8 @@ public class TestGetGeneratedKeys extends TestBase {
         assertEquals(3L, rs.getLong(2));
         assertFalse(rs.next());
         rs.close();
-        prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (40)", new String[] { "UID" });
+        prep = (JdbcPreparedStatement) conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (40)",
+                new String[] { "UID" });
         prep.executeLargeUpdate();
         rs = prep.getGeneratedKeys();
         assertEquals(1, rs.getMetaData().getColumnCount());
@@ -1249,7 +1265,7 @@ public class TestGetGeneratedKeys extends TestBase {
      *             on exception
      */
     private void testStatementExecuteLargeUpdate(Connection conn) throws Exception {
-        Statement stat = conn.createStatement();
+        JdbcStatement stat = (JdbcStatement) conn.createStatement();
         stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
                 + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL)");
         stat.executeLargeUpdate("INSERT INTO TEST(VALUE) VALUES (10)");
@@ -1268,7 +1284,7 @@ public class TestGetGeneratedKeys extends TestBase {
      *             on exception
      */
     private void testStatementExecuteLargeUpdate_int(Connection conn) throws Exception {
-        Statement stat = conn.createStatement();
+        JdbcStatement stat = (JdbcStatement) conn.createStatement();
         stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
                 + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL)");
         stat.executeLargeUpdate("INSERT INTO TEST(VALUE) VALUES (10)", Statement.NO_GENERATED_KEYS);
@@ -1297,7 +1313,7 @@ public class TestGetGeneratedKeys extends TestBase {
      *             on exception
      */
     private void testStatementExecuteLargeUpdate_intArray(Connection conn) throws Exception {
-        Statement stat = conn.createStatement();
+        JdbcStatement stat = (JdbcStatement) conn.createStatement();
         stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
                 + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL)");
         stat.executeLargeUpdate("INSERT INTO TEST(VALUE) VALUES (10)", new int[0]);
@@ -1344,7 +1360,7 @@ public class TestGetGeneratedKeys extends TestBase {
      *             on exception
      */
     private void testStatementExecuteLargeUpdate_StringArray(Connection conn) throws Exception {
-        Statement stat = conn.createStatement();
+        JdbcStatement stat = (JdbcStatement) conn.createStatement();
         stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
                 + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL)");
         stat.executeLargeUpdate("INSERT INTO TEST(VALUE) VALUES (10)", new String[0]);

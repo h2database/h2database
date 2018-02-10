@@ -120,7 +120,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             ArrayList<Constraint> constraints = table.getConstraints();
             for (int i = 0; constraints != null && i < constraints.size(); i++) {
                 Constraint c = constraints.get(i);
-                if (Constraint.PRIMARY_KEY.equals(c.getConstraintType())) {
+                if (Constraint.Type.PRIMARY_KEY == c.getConstraintType()) {
                     throw DbException.get(ErrorCode.SECOND_PRIMARY_KEY);
                 }
             }

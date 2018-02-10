@@ -34,8 +34,8 @@ public class ConstraintUnique extends Constraint {
     }
 
     @Override
-    public String getConstraintType() {
-        return primaryKey ? Constraint.PRIMARY_KEY : Constraint.UNIQUE;
+    public Type getConstraintType() {
+        return primaryKey ? Constraint.Type.PRIMARY_KEY : Constraint.Type.UNIQUE;
     }
 
     @Override

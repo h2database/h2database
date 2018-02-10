@@ -95,11 +95,13 @@ public final class GeneratedKeys {
                 int[] indices = (int[]) generatedKeysRequest;
                 Column[] columns = table.getColumns();
                 int cnt = columns.length;
+                this.columns.clear();
                 for (int idx : indices) {
                     if (idx >= 1 && idx <= cnt) {
                         Column column = columns[idx - 1];
                         rs.addColumn(column.getName(), DataType.convertTypeToSQLType(column.getType()),
                                 MathUtils.convertLongToInt(column.getPrecision()), column.getScale());
+                        this.columns.add(column);
                     }
                 }
             } else {
@@ -108,11 +110,13 @@ public final class GeneratedKeys {
         } else if (generatedKeysRequest instanceof String[]) {
             if (table != null) {
                 String[] names = (String[]) generatedKeysRequest;
+                this.columns.clear();
                 for (String name : names) {
                     try {
                         Column column = table.getColumn(name);
                         rs.addColumn(column.getName(), DataType.convertTypeToSQLType(column.getType()),
                                 MathUtils.convertLongToInt(column.getPrecision()), column.getScale());
+                        this.columns.add(column);
                     } catch (DbException e) {
                     }
                 }

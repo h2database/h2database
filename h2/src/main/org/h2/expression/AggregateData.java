@@ -1,11 +1,12 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.expression;
 
 import org.h2.engine.Database;
+import org.h2.expression.Aggregate.AggregateType;
 import org.h2.value.Value;
 
 /**
@@ -19,17 +20,19 @@ abstract class AggregateData {
      * @param aggregateType the type of the aggregate operation
      * @return the aggregate data object of the specified type
      */
-    static AggregateData create(int aggregateType) {
-        if (aggregateType == Aggregate.SELECTIVITY) {
+    static AggregateData create(AggregateType aggregateType) {
+        if (aggregateType == AggregateType.SELECTIVITY) {
             return new AggregateDataSelectivity();
-        } else if (aggregateType == Aggregate.GROUP_CONCAT) {
+        } else if (aggregateType == AggregateType.GROUP_CONCAT) {
             return new AggregateDataGroupConcat();
-        } else if (aggregateType == Aggregate.COUNT_ALL) {
+        } else if (aggregateType == AggregateType.COUNT_ALL) {
             return new AggregateDataCountAll();
-        } else if (aggregateType == Aggregate.COUNT) {
+        } else if (aggregateType == AggregateType.COUNT) {
             return new AggregateDataCount();
-        } else if (aggregateType == Aggregate.HISTOGRAM) {
+        } else if (aggregateType == AggregateType.HISTOGRAM) {
             return new AggregateDataHistogram();
+        } else if (aggregateType == AggregateType.MEDIAN) {
+            return new AggregateDataMedian();
         } else {
             return new AggregateDataDefault(aggregateType);
         }

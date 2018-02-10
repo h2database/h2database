@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0, and the
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0, and the
  * EPL 1.0 (http://h2database.com/html/license.html). Initial Developer: H2
  * Group
  */
@@ -9,12 +9,12 @@ import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.StringUtils;
 
 /**
  * Implementation of the TIMESTAMP WITH TIME ZONE data type.
@@ -33,14 +33,12 @@ public class ValueTimestampTimeZone extends Value {
      * The display size of the textual representation of a timestamp. Example:
      * 2001-01-01 23:59:59.000 +10:00
      */
-    static final int DISPLAY_SIZE = 30;
+    public static final int DISPLAY_SIZE = 30;
 
     /**
      * The default scale for timestamps.
      */
     static final int DEFAULT_SCALE = 10;
-
-    private static final TimeZone GMT_TIMEZONE = TimeZone.getTimeZone("GMT");
 
     /**
      * A bit field with bits for the year, month, and day (see DateTimeUtils for
@@ -52,7 +50,8 @@ public class ValueTimestampTimeZone extends Value {
      */
     private final long timeNanos;
     /**
-     * Time zone offset from UTC in minutes, range of -12hours to +12hours
+     * Time zone offset from UTC in minutes, range of -18 hours to +18 hours. This
+     * range is compatible with OffsetDateTime from JSR-310.
      */
     private final short timeZoneOffsetMins;
 
@@ -62,8 +61,13 @@ public class ValueTimestampTimeZone extends Value {
             throw new IllegalArgumentException(
                     "timeNanos out of range " + timeNanos);
         }
-        if (timeZoneOffsetMins < (-12 * 60)
-                || timeZoneOffsetMins >= (12 * 60)) {
+        /*
+         * Some current and historic time zones have offsets larger than 12 hours.
+         * JSR-310 determines 18 hours as maximum possible offset in both directions, so
+         * we use this limit too for compatibility.
+         */
+        if (timeZoneOffsetMins < (-18 * 60)
+                || timeZoneOffsetMins > (18 * 60)) {
             throw new IllegalArgumentException(
                     "timeZoneOffsetMins out of range " + timeZoneOffsetMins);
         }
@@ -109,70 +113,11 @@ public class ValueTimestampTimeZone extends Value {
      */
     public static ValueTimestampTimeZone parse(String s) {
         try {
-            return parseTry(s);
+            return (ValueTimestampTimeZone) DateTimeUtils.parseTimestamp(s, null, true);
         } catch (Exception e) {
             throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, e,
                     "TIMESTAMP WITH TIME ZONE", s);
         }
-    }
-
-    private static ValueTimestampTimeZone parseTry(String s) {
-        int dateEnd = s.indexOf(' ');
-        if (dateEnd < 0) {
-            // ISO 8601 compatibility
-            dateEnd = s.indexOf('T');
-        }
-        int timeStart;
-        if (dateEnd < 0) {
-            dateEnd = s.length();
-            timeStart = -1;
-        } else {
-            timeStart = dateEnd + 1;
-        }
-        long dateValue = DateTimeUtils.parseDateValue(s, 0, dateEnd);
-        long nanos;
-        short tzMinutes = 0;
-        if (timeStart < 0) {
-            nanos = 0;
-        } else {
-            int timeEnd = s.length();
-            if (s.endsWith("Z")) {
-                timeEnd--;
-            } else {
-                int timeZoneStart = s.indexOf('+', dateEnd);
-                if (timeZoneStart < 0) {
-                    timeZoneStart = s.indexOf('-', dateEnd);
-                }
-                TimeZone tz = null;
-                if (timeZoneStart >= 0) {
-                    String tzName = "GMT" + s.substring(timeZoneStart);
-                    tz = TimeZone.getTimeZone(tzName);
-                    if (!tz.getID().startsWith(tzName)) {
-                        throw new IllegalArgumentException(
-                                tzName + " (" + tz.getID() + "?)");
-                    }
-                    timeEnd = timeZoneStart;
-                } else {
-                    timeZoneStart = s.indexOf(' ', dateEnd + 1);
-                    if (timeZoneStart > 0) {
-                        String tzName = s.substring(timeZoneStart + 1);
-                        tz = TimeZone.getTimeZone(tzName);
-                        if (!tz.getID().startsWith(tzName)) {
-                            throw new IllegalArgumentException(tzName);
-                        }
-                        timeEnd = timeZoneStart;
-                    }
-                }
-                if (tz != null) {
-                    long millis = DateTimeUtils
-                            .convertDateValueToMillis(GMT_TIMEZONE, dateValue);
-                    tzMinutes = (short) (tz.getOffset(millis) / 1000 / 60);
-                }
-            }
-            nanos = DateTimeUtils.parseTimeNanos(s, dateEnd + 1, timeEnd, true);
-        }
-        return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, nanos,
-                tzMinutes);
     }
 
     /**
@@ -203,6 +148,19 @@ public class ValueTimestampTimeZone extends Value {
         return timeZoneOffsetMins;
     }
 
+    /**
+     * Returns compatible offset-based time zone with no DST schedule.
+     *
+     * @return compatible offset-based time zone
+     */
+    public TimeZone getTimeZone() {
+        int offset = timeZoneOffsetMins;
+        if (offset == 0) {
+            return DateTimeUtils.UTC;
+        }
+        return new SimpleTimeZone(offset * 60000, Integer.toString(offset));
+    }
+
     @Override
     public Timestamp getTimestamp() {
         throw new UnsupportedOperationException("unimplemented");
@@ -215,35 +173,7 @@ public class ValueTimestampTimeZone extends Value {
 
     @Override
     public String getString() {
-        StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
-        ValueDate.appendDate(buff, dateValue);
-        buff.append(' ');
-        ValueTime.appendTime(buff, timeNanos, true);
-        appendTimeZone(buff, timeZoneOffsetMins);
-        return buff.toString();
-    }
-
-    /**
-     * Append a time zone to the string builder.
-     *
-     * @param buff the target string builder
-     * @param tz the time zone in minutes
-     */
-    private static void appendTimeZone(StringBuilder buff, short tz) {
-        if (tz < 0) {
-            buff.append('-');
-            tz = (short) -tz;
-        } else {
-            buff.append('+');
-        }
-        int hours = tz / 60;
-        tz -= hours * 60;
-        int mins = tz;
-        StringUtils.appendZeroPadded(buff, 2, hours);
-        if (mins != 0) {
-            buff.append(':');
-            StringUtils.appendZeroPadded(buff, 2, mins);
-        }
+        return DateTimeUtils.timestampTimeZoneToString(dateValue, timeNanos, timeZoneOffsetMins);
     }
 
     @Override
@@ -294,7 +224,7 @@ public class ValueTimestampTimeZone extends Value {
 
         // convert to minutes and add timezone offset
         long a = DateTimeUtils.convertDateValueToMillis(
-                TimeZone.getTimeZone("UTC"), dateValue) /
+                DateTimeUtils.UTC, dateValue) /
                 (1000L * 60L);
         long ma = timeNanos / (1000L * 1000L * 1000L * 60L);
         a += ma;
@@ -302,7 +232,7 @@ public class ValueTimestampTimeZone extends Value {
 
         // convert to minutes and add timezone offset
         long b = DateTimeUtils.convertDateValueToMillis(
-                TimeZone.getTimeZone("UTC"), t.dateValue) /
+                DateTimeUtils.UTC, t.dateValue) /
                 (1000L * 60L);
         long mb = t.timeNanos / (1000L * 1000L * 1000L * 60L);
         b += mb;

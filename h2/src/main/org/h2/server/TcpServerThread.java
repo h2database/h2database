@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -14,6 +14,8 @@ import java.io.StringWriter;
 import java.net.Socket;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Objects;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.engine.ConnectionInfo;
@@ -33,7 +35,6 @@ import org.h2.store.LobStorageInterface;
 import org.h2.util.IOUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.SmallMap;
-import org.h2.util.StringUtils;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
 import org.h2.value.ValueLobDb;
@@ -540,7 +541,7 @@ public class TcpServerThread implements Runnable {
      * @param statementId the statement to cancel
      */
     void cancelStatement(String targetSessionId, int statementId) {
-        if (StringUtils.equals(targetSessionId, this.sessionId)) {
+        if (Objects.equals(targetSessionId, this.sessionId)) {
             Command cmd = (Command) cache.getObject(statementId, false);
             cmd.cancel();
         }

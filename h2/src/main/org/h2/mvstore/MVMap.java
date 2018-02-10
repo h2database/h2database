@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -16,7 +16,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
-import org.h2.util.New;
 
 /**
  * A stored map.
@@ -1113,7 +1112,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     MVMap<K, V> openReadOnly() {
         MVMap<K, V> m = new MVMap<>(keyType, valueType);
         m.readOnly = true;
-        HashMap<String, Object> config = New.hashMap();
+        HashMap<String, Object> config = new HashMap<>();
         config.put("id", id);
         config.put("createVersion", createVersion);
         m.init(store, config);

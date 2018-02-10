@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -15,6 +15,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.lang.instrument.Instrumentation;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -253,7 +254,7 @@ public class Profiler implements Runnable {
                 stack.add(line);
             }
             if (stack.size() > 0) {
-                String[] s = stack.toArray(new String[stack.size()]);
+                String[] s = stack.toArray(new String[0]);
                 list.add(s);
             }
         }
@@ -268,11 +269,11 @@ public class Profiler implements Runnable {
             copyInThread(p.getInputStream(), out);
             copyInThread(p.getErrorStream(), err);
             p.waitFor();
-            String e = new String(err.toByteArray(), "UTF-8");
+            String e = new String(err.toByteArray(), StandardCharsets.UTF_8);
             if (e.length() > 0) {
                 throw new RuntimeException(e);
             }
-            String output = new String(out.toByteArray(), "UTF-8");
+            String output = new String(out.toByteArray(), StandardCharsets.UTF_8);
             return output;
         } catch (Exception e) {
             throw new RuntimeException(e);

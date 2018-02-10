@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -128,14 +128,8 @@ public class TestIndexHints extends TestBase {
 
     private void testWithInvalidIndexName() throws SQLException {
         Statement stat = conn.createStatement();
-        try {
-            stat.executeQuery("explain analyze select * " +
-                    "from test use index(idx_doesnt_exist) where x=1 and y=1");
-            fail("Expected exception: "
-                    + "Index \"IDX_DOESNT_EXIST\" not found");
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.INDEX_NOT_FOUND_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.INDEX_NOT_FOUND_1, stat).executeQuery("explain analyze select * " +
+                "from test use index(idx_doesnt_exist) where x=1 and y=1");
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -40,8 +40,7 @@ public abstract class TableBase extends Table {
             this.tableEngineParams = data.tableEngineParams;
         }
         setTemporary(data.temporary);
-        Column[] cols = new Column[data.columns.size()];
-        data.columns.toArray(cols);
+        Column[] cols = data.columns.toArray(new Column[0]);
         setColumns(cols);
     }
 

@@ -1,12 +1,11 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,6 +31,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Objects;
 import java.util.SimpleTimeZone;
 import java.util.concurrent.TimeUnit;
 import org.h2.jdbc.JdbcConnection;
@@ -117,16 +117,6 @@ public abstract class TestBase {
         System.setProperty("java.io.tmpdir", TEMP_DIR);
         this.config = conf;
         return this;
-    }
-
-    /**
-     * Run a test case using the given seed value.
-     *
-     * @param seed the random seed value
-     */
-    @SuppressWarnings("unused")
-    public void testCase(int seed) throws Exception {
-        // do nothing
     }
 
     /**
@@ -266,9 +256,9 @@ public abstract class TestBase {
         }
         if (config.networked) {
             if (config.ssl) {
-                url = "ssl://localhost:9192/" + name;
+                url = "ssl://localhost:"+config.getPort()+"/" + name;
             } else {
-                url = "tcp://localhost:9192/" + name;
+                url = "tcp://localhost:"+config.getPort()+"/" + name;
             }
         } else if (config.googleAppEngine) {
             url = "gae://" + name +
@@ -405,7 +395,9 @@ public abstract class TestBase {
      */
     public void printTimeMemory(String s, long time) {
         if (config.big) {
-            println(getMemoryUsed() + " MB: " + s + " ms: " + time);
+            Runtime rt = Runtime.getRuntime();
+            long memNow = rt.totalMemory() - rt.freeMemory();
+            println(memNow / 1024 / 1024 + " MB: " + s + " ms: " + time);
         }
     }
 
@@ -472,6 +464,17 @@ public abstract class TestBase {
         throw new AssertionError(string);
     }
 
+   /**
+    * Log an error message.
+    *
+    * @param s the message
+    */
+   public static void logErrorMessage(String s) {
+       System.out.flush();
+       System.err.println("ERROR: " + s + "------------------------------");
+       logThrowable(s, null);
+   }
+
     /**
      * Log an error message.
      *
@@ -486,6 +489,10 @@ public abstract class TestBase {
         System.err.println("ERROR: " + s + " " + e.toString()
                 + " ------------------------------");
         e.printStackTrace();
+        logThrowable(null, e);
+    }
+
+    private static void logThrowable(String s, Throwable e) {
         // synchronize on this class, because file locks are only visible to
         // other JVMs
         synchronized (TestBase.class) {
@@ -502,9 +509,14 @@ public abstract class TestBase {
                 }
                 // append
                 FileWriter fw = new FileWriter("error.txt", true);
-                PrintWriter pw = new PrintWriter(fw);
-                e.printStackTrace(pw);
-                pw.close();
+                if (s != null) {
+                    fw.write(s);
+                }
+                if (e != null) {
+                    PrintWriter pw = new PrintWriter(fw);
+                    e.printStackTrace(pw);
+                    pw.close();
+                }
                 fw.close();
                 // unlock
                 lock.release();
@@ -652,11 +664,14 @@ public abstract class TestBase {
      * @throws AssertionError if the values are not equal
      */
     public void assertEquals(java.util.Date expected, java.util.Date actual) {
-        if (expected != actual && !expected.equals(actual)) {
+        if (!Objects.equals(expected, actual)) {
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
             SimpleTimeZone gmt = new SimpleTimeZone(0, "Z");
             df.setTimeZone(gmt);
-            fail("Expected: " + df.format(expected) + " actual: " + df.format(actual));
+            fail("Expected: " +
+                    (expected != null ? df.format(expected) : "null") +
+                    " actual: " +
+                    (actual != null ? df.format(actual) : "null"));
         }
     }
 
@@ -963,7 +978,7 @@ public abstract class TestBase {
      * @param condition the condition
      * @throws AssertionError if the condition is false
      */
-    protected void assertTrue(String message, boolean condition) {
+    public void assertTrue(String message, boolean condition) {
         if (!condition) {
             fail(message);
         }
@@ -1065,7 +1080,7 @@ public abstract class TestBase {
      *
      * @param stat the statement
      */
-    protected void execute(PreparedStatement stat) throws SQLException {
+    public void execute(PreparedStatement stat) throws SQLException {
         execute(stat, null);
     }
 
@@ -1425,7 +1440,7 @@ public abstract class TestBase {
      * @return the classpath list
      */
     protected String getClassPath() {
-        return "bin" + File.pathSeparator + "temp" + File.pathSeparator + ".";
+        return System.getProperty("java.class.path");
     }
 
     /**
@@ -1658,7 +1673,10 @@ public abstract class TestBase {
         throw (E) e;
     }
 
-    protected String getTestName() {
+    /**
+     * @return the name of the test class
+     */
+    public String getTestName() {
         return getClass().getSimpleName();
     }
 

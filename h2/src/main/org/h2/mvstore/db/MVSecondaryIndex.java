@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -43,7 +43,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     /**
      * The multi-value table.
      */
-    private final MVTable                     mvTable;
+    final MVTable                             mvTable;
     private final int                         keyColumns;
     private final TransactionMap<Value,Value> dataMap;
 
@@ -85,7 +85,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
 
     private static final class Source {
         private final Iterator<ValueArray> iterator;
-        private       ValueArray           currentRowData;
+        ValueArray currentRowData;
 
         public Source(Iterator<ValueArray> iterator) {
             this.iterator = iterator;
@@ -120,7 +120,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
 
     @Override
     public void addBufferedRows(List<String> bufferNames) {
-        ArrayList<String> mapNames = New.arrayList(bufferNames);
+        ArrayList<String> mapNames = new ArrayList<>(bufferNames);
         CompareMode compareMode = database.getCompareMode();
         int buffersCount = bufferNames.size();
         Queue<Source> queue = new PriorityQueue<>(buffersCount, new Source.Comparator(compareMode));
@@ -140,10 +140,12 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
                     Value[] array = rowData.getList();
                     // don't change the original value
                     array = array.clone();
-                    array[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
+                    array[keyColumns - 1] = ValueLong.MIN;
                     ValueArray unique = ValueArray.get(array);
                     SearchRow row = convertToSearchRow(rowData);
-                    checkUnique(row, dataMap, unique);
+                    if (!mayHaveNullDuplicates(row)) {
+                        requireUnique(row, dataMap, unique);
+                    }
                 }
 
                 dataMap.putCommitted(rowData, ValueNull.INSTANCE);
@@ -192,25 +194,26 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         if (indexType.isUnique()) {
             // this will detect committed entries only
             unique = convertToKey(row);
-            unique.getList()[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
-            checkUnique(row, map, unique);
+            unique.getList()[keyColumns - 1] = ValueLong.MIN;
+            if (mayHaveNullDuplicates(row)) {
+                // No further unique checks required
+                unique = null;
+            } else {
+                requireUnique(row, map, unique);
+            }
         }
         try {
             map.put(array, ValueNull.INSTANCE);
         } catch (IllegalStateException e) {
             throw mvTable.convertException(e);
         }
-        if (indexType.isUnique()) {
+        if (unique != null) {
+            // This code expects that mayHaveDuplicates(row) == false
             Iterator<Value> it = map.keyIterator(unique, true);
             while (it.hasNext()) {
                 ValueArray k = (ValueArray) it.next();
-                SearchRow r2 = convertToSearchRow(k);
-                if (compareRows(row, r2) != 0) {
+                if (compareRows(row, convertToSearchRow(k)) != 0) {
                     break;
-                }
-                if (containsNullAndAllowMultipleNull(r2)) {
-                    // this is allowed
-                    continue;
                 }
                 if (map.isSameTransaction(k)) {
                     continue;
@@ -224,18 +227,13 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         }
     }
 
-    private void checkUnique(SearchRow row, TransactionMap<Value, Value> map, ValueArray unique) {
-        Iterator<Value> it = map.keyIterator(unique, true);
-        while (it.hasNext()) {
-            ValueArray k = (ValueArray) it.next();
-            SearchRow r2 = convertToSearchRow(k);
-            if (compareRows(row, r2) != 0) {
-                break;
-            }
-            if (map.get(k) != null) {
-                if (!containsNullAndAllowMultipleNull(r2)) {
-                    throw getDuplicateKeyException(k.toString());
-                }
+    private void requireUnique(SearchRow row, TransactionMap<Value, Value> map, ValueArray unique) {
+        Value key = map.ceilingKey(unique);
+        if (key != null) {
+            ValueArray k = (ValueArray) key;
+            if (compareRows(row, convertToSearchRow(k)) == 0) {
+                // committed
+                throw getDuplicateKeyException(k.toString());
             }
         }
     }
@@ -263,7 +261,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     private Cursor find(Session session, SearchRow first, boolean bigger, SearchRow last) {
         ValueArray min = convertToKey(first);
         if (min != null) {
-            min.getList()[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
+            min.getList()[keyColumns - 1] = ValueLong.MIN;
         }
         TransactionMap<Value, Value> map = getMap(session);
         if (bigger && min != null) {
@@ -338,7 +336,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
      * @param key the index key
      * @return the row
      */
-    private SearchRow convertToSearchRow(ValueArray key) {
+    SearchRow convertToSearchRow(ValueArray key) {
         Value[] array = key.getList();
         SearchRow searchRow = mvTable.getTemplateRow();
         searchRow.setKey((array[array.length - 1]).getLong());
@@ -481,7 +479,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         private SearchRow searchRow;
         private Row row;
 
-        private MVStoreCursor(Session session, Iterator<Value> it, SearchRow last) {
+        MVStoreCursor(Session session, Iterator<Value> it, SearchRow last) {
             this.session = session;
             this.it = it;
             this.last = last;

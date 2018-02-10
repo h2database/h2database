@@ -1,11 +1,12 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
 
 import java.util.HashMap;
+import java.util.Objects;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
@@ -13,9 +14,8 @@ import org.h2.command.dml.SetTypes;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.store.FileLock;
+import org.h2.store.FileLockMethod;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
-import org.h2.util.StringUtils;
 import org.h2.util.ThreadDeadlockDetector;
 import org.h2.util.Utils;
 
@@ -27,7 +27,7 @@ import org.h2.util.Utils;
 public class Engine implements SessionFactory {
 
     private static final Engine INSTANCE = new Engine();
-    private static final HashMap<String, Database> DATABASES = New.hashMap();
+    private static final HashMap<String, Database> DATABASES = new HashMap<>();
 
     private volatile long wrongPasswordDelay =
             SysProperties.DELAY_WRONG_PASSWORD_MIN;
@@ -141,8 +141,8 @@ public class Engine implements SessionFactory {
         try {
             ConnectionInfo backup = null;
             String lockMethodName = ci.getProperty("FILE_LOCK", null);
-            int fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
-            if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
+            FileLockMethod fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
+            if (fileLockMethod == FileLockMethod.SERIALIZED) {
                 // In serialized mode, database instance sharing is not possible
                 ci.setProperty("OPEN_NEW", "TRUE");
                 try {
@@ -245,7 +245,7 @@ public class Engine implements SessionFactory {
         String clusterDb = database.getCluster();
         if (!Constants.CLUSTERING_DISABLED.equals(clusterDb)) {
             if (!Constants.CLUSTERING_ENABLED.equals(clusterSession)) {
-                if (!StringUtils.equals(clusterSession, clusterDb)) {
+                if (!Objects.equals(clusterSession, clusterDb)) {
                     if (clusterDb.equals(Constants.CLUSTERING_DISABLED)) {
                         throw DbException.get(
                                 ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_ALONE);

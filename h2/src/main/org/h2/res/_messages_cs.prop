@@ -5,7 +5,7 @@
 21S02=Počet sloupců nesouhlasí
 22001=Příliš dlouhá hodnota pro sloupec {0}: {1}
 22003=Číselná hodnota je mimo rozsah: {0}
-22004=#Číselná hodnota je mimo rozsah: {0} in column {1}
+22004=#Numeric value out of range: {0} in column {1}
 22007=Nelze zpracovat konstantu {0} {1}
 22012=Dělení nulou: {0}
 22018=Chyba při převodu dat {0}

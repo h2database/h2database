@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -36,7 +37,7 @@ public class Newsfeed {
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:", "sa", "");
         InputStream in = Newsfeed.class.getResourceAsStream("newsfeed.sql");
-        ResultSet rs = RunScript.execute(conn, new InputStreamReader(in, "ISO-8859-1"));
+        ResultSet rs = RunScript.execute(conn, new InputStreamReader(in, StandardCharsets.ISO_8859_1));
         in.close();
         while (rs.next()) {
             String file = rs.getString("FILE");
@@ -46,7 +47,7 @@ public class Newsfeed {
             }
             new File(targetDir).mkdirs();
             FileOutputStream out = new FileOutputStream(targetDir + "/" + file);
-            Writer writer = new OutputStreamWriter(out, "UTF-8");
+            Writer writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
             writer.write(content);
             writer.close();
             out.close();

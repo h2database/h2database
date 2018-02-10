@@ -1,20 +1,21 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.expression;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
 import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
+import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueGeometry;
@@ -202,9 +203,10 @@ public class Comparison extends Condition {
                     // to constant type, but vise versa, then let's do this here
                     // once.
                     if (constType != resType) {
+                        Column column = ((ExpressionColumn) left).getColumn();
                         right = ValueExpression.get(r.convertTo(resType,
                                 MathUtils.convertLongToInt(left.getPrecision()),
-                                session.getDatabase().getMode(), ((ExpressionColumn) left).getColumn()));
+                                session.getDatabase().getMode(), column, column.getEnumerators()));
                     }
                 } else if (right instanceof Parameter) {
                     ((Parameter) right).setColumn(
@@ -565,16 +567,16 @@ public class Comparison extends Condition {
                 Database db = session.getDatabase();
                 if (rc && r2c && l.equals(l2)) {
                     return new ConditionIn(db, left,
-                            New.arrayList(Arrays.asList(right, other.right)));
+                            new ArrayList<>(Arrays.asList(right, other.right)));
                 } else if (rc && l2c && l.equals(r2)) {
                     return new ConditionIn(db, left,
-                            New.arrayList(Arrays.asList(right, other.left)));
+                            new ArrayList<>(Arrays.asList(right, other.left)));
                 } else if (lc && r2c && r.equals(l2)) {
                     return new ConditionIn(db, right,
-                            New.arrayList(Arrays.asList(left, other.right)));
+                            new ArrayList<>(Arrays.asList(left, other.right)));
                 } else if (lc && l2c && r.equals(r2)) {
                     return new ConditionIn(db, right,
-                            New.arrayList(Arrays.asList(left, other.left)));
+                            new ArrayList<>(Arrays.asList(left, other.left)));
                 }
             }
         }

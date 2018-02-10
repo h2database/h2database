@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.StringUtils;
 
 /**
  * Implementation of the DATE data type.
@@ -99,7 +98,7 @@ public class ValueDate extends Value {
     @Override
     public String getString() {
         StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
-        appendDate(buff, dateValue);
+        DateTimeUtils.appendDate(buff, dateValue);
         return buff.toString();
     }
 
@@ -146,27 +145,6 @@ public class ValueDate extends Value {
     public void set(PreparedStatement prep, int parameterIndex)
             throws SQLException {
         prep.setDate(parameterIndex, getDate());
-    }
-
-    /**
-     * Append a date to the string builder.
-     *
-     * @param buff the target string builder
-     * @param dateValue the date value
-     */
-    static void appendDate(StringBuilder buff, long dateValue) {
-        int y = DateTimeUtils.yearFromDateValue(dateValue);
-        int m = DateTimeUtils.monthFromDateValue(dateValue);
-        int d = DateTimeUtils.dayFromDateValue(dateValue);
-        if (y > 0 && y < 10000) {
-            StringUtils.appendZeroPadded(buff, 4, y);
-        } else {
-            buff.append(y);
-        }
-        buff.append('-');
-        StringUtils.appendZeroPadded(buff, 2, m);
-        buff.append('-');
-        StringUtils.appendZeroPadded(buff, 2, d);
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -17,6 +17,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
+import org.h2.store.fs.FakeFileChannel;
 import org.h2.store.fs.FileBase;
 import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FilePath;
@@ -426,9 +427,7 @@ class FileZip2 extends FileBase {
     public synchronized FileLock tryLock(long position, long size,
             boolean shared) throws IOException {
         if (shared) {
-
-            // cast to FileChannel to avoid JDK 1.7 ambiguity
-            return new FileLock((FileChannel) null, position, size, shared) {
+            return new FileLock(new FakeFileChannel(), position, size, shared) {
 
                 @Override
                 public boolean isValid() {

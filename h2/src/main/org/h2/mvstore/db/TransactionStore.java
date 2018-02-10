@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -60,7 +60,7 @@ public class TransactionStore {
      * The map of maps.
      */
     private final HashMap<Integer, MVMap<Object, VersionedValue>> maps =
-            New.hashMap();
+            new HashMap<>();
 
     private final DataType dataType;
 
@@ -896,7 +896,10 @@ public class TransactionStore {
          */
         final MVMap<K, VersionedValue> map;
 
-        private final Transaction transaction;
+        /**
+         * The transaction which is used for this map.
+         */
+        final Transaction transaction;
 
         TransactionMap(Transaction transaction, MVMap<K, VersionedValue> map,
                 int mapId) {
@@ -1320,15 +1323,10 @@ public class TransactionStore {
          */
         public K lastKey() {
             K k = map.lastKey();
-            while (true) {
-                if (k == null) {
-                    return null;
-                }
-                if (get(k) != null) {
-                    return k;
-                }
+            while (k != null && get(k) == null) {
                 k = map.lowerKey(k);
             }
+            return k;
         }
 
         /**
@@ -1339,13 +1337,22 @@ public class TransactionStore {
          * @return the result
          */
         public K higherKey(K key) {
-            while (true) {
-                K k = map.higherKey(key);
-                if (k == null || get(k) != null) {
-                    return k;
-                }
-                key = k;
-            }
+            do {
+                key = map.higherKey(key);
+            } while (key != null && get(key) == null);
+            return key;
+        }
+
+        /**
+         * Get the smallest key that is larger than or equal to this key,
+         * or null if no such key exists.
+         *
+         * @param key the key (may not be null)
+         * @return the result
+         */
+        public K ceilingKey(K key) {
+            Iterator<K> it = keyIterator(key);
+            return it.hasNext() ? it.next() : null;
         }
 
         /**
@@ -1366,6 +1373,22 @@ public class TransactionStore {
         }
 
         /**
+         * Get the largest key that is smaller than or equal to this key,
+         * or null if no such key exists.
+         *
+         * @param key the key (may not be null)
+         * @return the result
+         */
+        public K floorKey(K key) {
+            key = map.floorKey(key);
+            while (key != null && get(key) == null) {
+                // Use lowerKey() for the next attempts, otherwise we'll get an infinite loop
+                key = map.lowerKey(key);
+            }
+            return key;
+        }
+
+        /**
          * Get the largest key that is smaller than the given key, or null if no
          * such key exists.
          *
@@ -1373,13 +1396,10 @@ public class TransactionStore {
          * @return the result
          */
         public K lowerKey(K key) {
-            while (true) {
-                K k = map.lowerKey(key);
-                if (k == null || get(k) != null) {
-                    return k;
-                }
-                key = k;
-            }
+            do {
+                key = map.lowerKey(key);
+            } while (key != null && get(key) == null);
+            return key;
         }
 
         /**
@@ -1468,6 +1488,7 @@ public class TransactionStore {
          * Iterate over entries.
          *
          * @param from the first key to return
+         * @param to the last key to return
          * @return the iterator
          */
         public Iterator<Entry<K, V>> entryIterator(final K from, final K to) {

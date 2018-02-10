@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -19,6 +19,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Random;
 import org.h2.test.TestBase;
+import org.h2.util.Bits;
 import org.h2.util.IOUtils;
 import org.h2.util.Utils;
 
@@ -51,6 +52,7 @@ public class TestUtils extends TestBase {
         testGetNonPrimitiveClass();
         testGetNonPrimitiveClass();
         testReflectionUtils();
+        testParseBoolean();
     }
 
     private void testIOUtils() throws IOException {
@@ -96,15 +98,15 @@ public class TestUtils extends TestBase {
         byte[] buff = new byte[8];
         for (long x : new long[]{Long.MIN_VALUE, Long.MAX_VALUE, 0, 1, -1,
                 Integer.MIN_VALUE, Integer.MAX_VALUE}) {
-            Utils.writeLong(buff, 0, x);
-            long y = Utils.readLong(buff, 0);
+            Bits.writeLong(buff, 0, x);
+            long y = Bits.readLong(buff, 0);
             assertEquals(x, y);
         }
         Random r = new Random(1);
         for (int i = 0; i < 1000; i++) {
             long x = r.nextLong();
-            Utils.writeLong(buff, 0, x);
-            long y = Utils.readLong(buff, 0);
+            Bits.writeLong(buff, 0, x);
+            long y = Bits.readLong(buff, 0);
             assertEquals(x, y);
         }
     }
@@ -218,6 +220,66 @@ public class TestUtils extends TestBase {
         assertFalse(Utils.haveCommonComparableSuperclass(
                 Integer.class,
                 ArrayList.class));
+    }
+
+    private void testParseBooleanCheckFalse(String value) {
+        assertFalse(Utils.parseBoolean(value, false, false));
+        assertFalse(Utils.parseBoolean(value, false, true));
+        assertFalse(Utils.parseBoolean(value, true, false));
+        assertFalse(Utils.parseBoolean(value, true, true));
+    }
+
+    private void testParseBooleanCheckTrue(String value) {
+        assertTrue(Utils.parseBoolean(value, false, false));
+        assertTrue(Utils.parseBoolean(value, false, true));
+        assertTrue(Utils.parseBoolean(value, true, false));
+        assertTrue(Utils.parseBoolean(value, true, true));
+    }
+
+    private void testParseBoolean() {
+        // Test for default value in case of null
+        assertFalse(Utils.parseBoolean(null, false, false));
+        assertFalse(Utils.parseBoolean(null, false, true));
+        assertTrue(Utils.parseBoolean(null, true, false));
+        assertTrue(Utils.parseBoolean(null, true, true));
+        // Test assorted valid strings
+        testParseBooleanCheckFalse("0");
+        testParseBooleanCheckFalse("f");
+        testParseBooleanCheckFalse("F");
+        testParseBooleanCheckFalse("n");
+        testParseBooleanCheckFalse("N");
+        testParseBooleanCheckFalse("no");
+        testParseBooleanCheckFalse("No");
+        testParseBooleanCheckFalse("NO");
+        testParseBooleanCheckFalse("false");
+        testParseBooleanCheckFalse("False");
+        testParseBooleanCheckFalse("FALSE");
+        testParseBooleanCheckTrue("1");
+        testParseBooleanCheckTrue("t");
+        testParseBooleanCheckTrue("T");
+        testParseBooleanCheckTrue("y");
+        testParseBooleanCheckTrue("Y");
+        testParseBooleanCheckTrue("yes");
+        testParseBooleanCheckTrue("Yes");
+        testParseBooleanCheckTrue("YES");
+        testParseBooleanCheckTrue("true");
+        testParseBooleanCheckTrue("True");
+        testParseBooleanCheckTrue("TRUE");
+        // Test other values
+        assertFalse(Utils.parseBoolean("BAD", false, false));
+        assertTrue(Utils.parseBoolean("BAD", true, false));
+        try {
+            Utils.parseBoolean("BAD", false, true);
+            fail();
+        } catch (IllegalArgumentException e) {
+            // OK
+        }
+        try {
+            Utils.parseBoolean("BAD", true, true);
+            fail();
+        } catch (IllegalArgumentException e) {
+            // OK
+        }
     }
 
 }

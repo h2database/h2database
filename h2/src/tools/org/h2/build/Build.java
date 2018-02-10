@@ -1,20 +1,27 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.build;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.h2.build.code.SwitchSource;
 import org.h2.build.doc.XMLParser;
@@ -114,17 +121,67 @@ public class Build extends BuildBase {
         javac(args, files);
     }
 
+    private static void copy(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[8192];
+        int read;
+        while ((read = in.read(buffer, 0, buffer.length)) >= 0) {
+            out.write(buffer, 0, read);
+        }
+    }
+
     /**
-     * Run the Emma code coverage.
+     * Run the JaCoco code coverage.
      */
-    @Description(summary = "Run the Emma code coverage.")
+    @Description(summary = "Run the JaCoco code coverage.")
     public void coverage() {
+        compile();
         downloadTest();
-        downloadUsingMaven("ext/emma-2.0.5312.jar",
-                "emma", "emma", "2.0.5312",
-                "30a40933caf67d88d9e75957950ccf353b181ab7");
-        String cp = "temp" + File.pathSeparator + "bin" +
-            File.pathSeparator + "ext/emma-2.0.5312.jar" +
+        downloadUsingMaven("ext/org.jacoco.agent-0.8.0.jar",
+                "org.jacoco", "org.jacoco.agent", "0.8.0",
+                "f2748b949b5fc661e089e2eeef39891dfd10a7e5");
+        try (ZipFile zipFile = new ZipFile(new File("ext/org.jacoco.agent-0.8.0.jar"))) {
+            final Enumeration<? extends ZipEntry> e = zipFile.entries();
+            while (e.hasMoreElements()) {
+                final ZipEntry zipEntry = e.nextElement();
+                final String name = zipEntry.getName();
+                if (name.equals("jacocoagent.jar")) {
+                    try (InputStream in = zipFile.getInputStream(zipEntry);
+                            FileOutputStream out = new FileOutputStream("ext/jacocoagent.jar")) {
+                        copy(in, out);
+                    }
+                }
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+        downloadUsingMaven("ext/org.jacoco.cli-0.8.0.jar",
+                "org.jacoco", "org.jacoco.cli", "0.8.0",
+                "69e55ba110e6ffa91d72ed3df8e09aecf043b0ab");
+        downloadUsingMaven("ext/org.jacoco.core-0.8.0.jar",
+                "org.jacoco", "org.jacoco.core", "0.8.0",
+                "cc2ebdc1da53665ec788903bad65ee64345e4455");
+        downloadUsingMaven("ext/org.jacoco.report-0.8.0.jar",
+                "org.jacoco", "org.jacoco.report", "0.8.0",
+                "1bcab2a451f5a382bc674857c8f3f6d3fa52151d");
+        downloadUsingMaven("ext/asm-6.1-beta.jar",
+                "org.ow2.asm", "asm", "6.1-beta",
+                "bac2f84e42b7db902103a9ec8c4ca1293223e0ea");
+        downloadUsingMaven("ext/asm-commons-6.1-beta.jar",
+                "org.ow2.asm", "asm-commons", "6.1-beta",
+                "4ec77cde3be41559f92d25cdb39b9c55ee479253");
+        downloadUsingMaven("ext/asm-tree-6.1-beta.jar",
+                "org.ow2.asm", "asm-tree", "6.1-beta",
+                "539d3b0f5f7f5b04b1c286de8e76655b59ab2d43");
+        downloadUsingMaven("ext/args4j-2.33.jar",
+                "args4j", "args4j", "2.33",
+                "bd87a75374a6d6523de82fef51fc3cfe9baf9fc9");
+
+        delete(files("coverage"));
+        // Use own copy
+        copy("coverage/bin", files("temp"), "temp");
+        // JaCoCo does not support multiple versions of the same classes
+        delete(files("coverage/bin/META-INF/versions"));
+        String cp = "coverage/bin" +
             File.pathSeparator + "ext/postgresql-9.4.1209.jre6.jar" +
             File.pathSeparator + "ext/servlet-api-3.1.0.jar" +
             File.pathSeparator + "ext/lucene-core-3.6.2.jar" +
@@ -135,17 +192,43 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
             File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
             File.pathSeparator + javaToolsJar;
-        // -XX:-UseSplitVerifier is for Java 7 compatibility
+        // Run tests
         execJava(args(
                 "-Xmx128m",
-                "-XX:-UseSplitVerifier",
-                "-cp", cp, "emma", "run",
-                "-cp", "temp",
-                "-sp", "src/main",
-                "-r", "html,txt",
-                "-ix", "-org.h2.test.*,-org.h2.dev.*," +
-                "-org.h2.jaqu.*,-org.h2.mode.*,-org.h2.server.pg.*",
-                "org.h2.test.TestAll"));
+                "-javaagent:ext/jacocoagent.jar=destfile=coverage/jacoco.exec,"
+                        + "excludes=org.h2.test.*:org.h2.tools.*:org.h2.sample.*:android.*",
+                "-cp", cp,
+                "org.h2.test.TestAll", "codeCoverage"));
+        // Remove classes that we don't want to include in report
+        delete(files("coverage/bin/android"));
+        delete(files("coverage/bin/org/h2/test"));
+        delete(files("coverage/bin/org/h2/tools"));
+        delete(files("coverage/bin/org/h2/sample"));
+        // Generate report
+        execJava(args("-cp",
+                "ext/org.jacoco.cli-0.8.0.jar" + File.pathSeparator
+                + "ext/org.jacoco.core-0.8.0.jar" + File.pathSeparator
+                + "ext/org.jacoco.report-0.8.0.jar" + File.pathSeparator
+                + "ext/asm-6.1-beta.jar" + File.pathSeparator
+                + "ext/asm-commons-6.1-beta.jar" + File.pathSeparator
+                + "ext/asm-tree-6.1-beta.jar" + File.pathSeparator
+                + "ext/args4j-2.33.jar",
+                "org.jacoco.cli.internal.Main", "report", "coverage/jacoco.exec",
+                "--classfiles", "coverage/bin",
+                "--html", "coverage/report", "--sourcefiles", "h2/src/main"));
+        try {
+            tryOpenCoverageInBrowser();
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void tryOpenCoverageInBrowser() throws Exception {
+        Class<?> desktop = Class.forName("java.awt.Desktop");
+        Method m = desktop.getMethod("getDesktop");
+        Object d = m.invoke(null);
+        m = d.getClass().getMethod("open", File.class);
+        m.invoke(d, new File("coverage/report/index.html"));
     }
 
     /**
@@ -374,6 +457,16 @@ public class Build extends BuildBase {
             copy("docs", files("../h2web/h2.pdf"), "../h2web");
         } catch (Exception e) {
             print("OpenOffice is not available: " + e);
+            try {
+                if (exec("soffice", args("--convert-to", "pdf", "--outdir", "docs/html",
+                        "docs/html/onePage.html")) == 0) {
+                    File f = new File("docs/html/onePage.pdf");
+                    if (f.exists()) {
+                        f.renameTo(new File("docs/h2.pdf"));
+                    }
+                }
+            } catch (Exception ex) {
+            }
         }
         delete("docs/html/onePage.html");
         FileList files = files("../h2").keep("../h2/build.*");
@@ -436,8 +529,10 @@ public class Build extends BuildBase {
     @Description(summary = "Create the regular h2.jar file.")
     public void jar() {
         compile();
+        FileList files = files("src/java9/precompiled");
+        copy("temp/META-INF/versions/9", files, "src/java9/precompiled");
         manifest("H2 Database Engine", "org.h2.tools.Console");
-        FileList files = files("temp").
+        files = files("temp").
             exclude("temp/android/*").
             exclude("temp/org/h2/android/*").
             exclude("temp/org/h2/build/*").
@@ -515,8 +610,8 @@ public class Build extends BuildBase {
             exclude("*.DS_Store");
         files = excludeTestMetaInfFiles(files);
         long kb = jar("bin/h2-client" + getJarSuffix(), files, "temp");
-        if (kb < 350 || kb > 450) {
-            throw new RuntimeException("Expected file size 350 - 450 KB, got: " + kb);
+        if (kb < 400 || kb > 500) {
+            throw new RuntimeException("Expected file size 400 - 500 KB, got: " + kb);
         }
     }
 

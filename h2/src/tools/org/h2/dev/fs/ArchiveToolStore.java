@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -101,8 +101,7 @@ public class ArchiveToolStore {
             buff.clear();
             buff.flip();
             ArrayList<Integer> posList = new ArrayList<>();
-            FileChannel fc = FileUtils.open(s, "r");
-            try {
+            try (FileChannel fc = FileUtils.open(s, "r")) {
                 boolean eof = false;
                 while (true) {
                     while (!eof && buff.remaining() < 512 * 1024) {
@@ -118,11 +117,11 @@ public class ArchiveToolStore {
                     if (buff.remaining() == 0) {
                         break;
                     }
-                    int c = getChunkLength(buff.array(), buff.position(),
-                            buff.limit()) - buff.position();
-                    byte[] bytes = new byte[c];
-                    System.arraycopy(buff.array(), buff.position(), bytes, 0, c);
-                    buff.position(buff.position() + c);
+                    int position = buff.position();
+                    int c = getChunkLength(buff.array(), position,
+                            buff.limit()) - position;
+                    byte[] bytes = Arrays.copyOfRange(buff.array(), position, position + c);
+                    buff.position(position + c);
                     int[] key = getKey(bucket, bytes);
                     key[3] = segmentId;
                     while (true) {
@@ -153,8 +152,6 @@ public class ArchiveToolStore {
                     }
                     printProgress(0, 50, currentSize, totalSize);
                 }
-            } finally {
-                fc.close();
             }
             int[] posArray = new int[posList.size()];
             for (int i = 0; i < posList.size(); i++) {
@@ -528,7 +525,7 @@ public class ArchiveToolStore {
         }
         key[0] = cs;
         key[1] = bucket;
-        key[2] = DataUtils.getFletcher32(buff, buff.length);
+        key[2] = DataUtils.getFletcher32(buff, 0, buff.length);
         return key;
     }
 

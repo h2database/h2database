@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -67,7 +68,7 @@ import org.h2.value.ValueString;
  */
 public class ScriptCommand extends ScriptBase {
 
-    private Charset charset = Constants.UTF8;
+    private Charset charset = StandardCharsets.UTF_8;
     private Set<String> schemaNames;
     private Collection<Table> tables;
     private boolean passwords;
@@ -422,10 +423,10 @@ public class ScriptCommand extends ScriptBase {
                     int id;
                     if (v.getType() == Value.CLOB) {
                         id = writeLobStream(v);
-                        buff.append("SYSTEM_COMBINE_CLOB(" + id + ")");
+                        buff.append("SYSTEM_COMBINE_CLOB(").append(id).append(')');
                     } else if (v.getType() == Value.BLOB) {
                         id = writeLobStream(v);
-                        buff.append("SYSTEM_COMBINE_BLOB(" + id + ")");
+                        buff.append("SYSTEM_COMBINE_BLOB(").append(id).append(')');
                     } else {
                         buff.append(v.getSQL());
                     }
@@ -470,8 +471,8 @@ public class ScriptCommand extends ScriptBase {
             try (InputStream input = v.getInputStream()) {
                 for (int i = 0;; i++) {
                     StringBuilder buff = new StringBuilder(lobBlockSize * 2);
-                    buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(" + id +
-                            ", " + i + ", NULL, '");
+                    buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(").append(id)
+                            .append(", ").append(i).append(", NULL, '");
                     int len = IOUtils.readFully(input, bytes, lobBlockSize);
                     if (len <= 0) {
                         break;
@@ -489,7 +490,8 @@ public class ScriptCommand extends ScriptBase {
             try (Reader reader = v.getReader()) {
                 for (int i = 0;; i++) {
                     StringBuilder buff = new StringBuilder(lobBlockSize * 2);
-                    buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(" + id + ", " + i + ", ");
+                    buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(").append(id).append(", ").append(i)
+                            .append(", ");
                     int len = IOUtils.readFully(reader, chars, lobBlockSize);
                     if (len == 0) {
                         break;

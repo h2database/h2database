@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -73,8 +73,7 @@ public class TableFunction extends Function {
     }
 
     public void setColumns(ArrayList<Column> columns) {
-        this.columnList = new Column[columns.size()];
-        columns.toArray(columnList);
+        this.columnList = columns.toArray(new Column[0]);
     }
 
     private ValueResultSet getTable(Session session, Expression[] argList,
@@ -137,6 +136,10 @@ public class TableFunction extends Function {
         simple.setAutoClose(false);
         for (int i = 0; i < columnCount; i++) {
             String name = rs.getColumnName(i);
+            /*
+             * TODO Some types, such as Value.BYTES and Value.UUID are mapped to the same
+             * SQL type and we can lose real type here.
+             */
             int sqlType = DataType.convertTypeToSQLType(rs.getColumnType(i));
             int precision = MathUtils.convertLongToInt(rs.getColumnPrecision(i));
             int scale = rs.getColumnScale(i);

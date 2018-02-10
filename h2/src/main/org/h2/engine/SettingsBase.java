@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -30,10 +30,10 @@ public class SettingsBase {
      * @return the setting
      */
     protected boolean get(String key, boolean defaultValue) {
-        String s = get(key, "" + defaultValue);
+        String s = get(key, Boolean.toString(defaultValue));
         try {
-            return Boolean.parseBoolean(s);
-        } catch (NumberFormatException e) {
+            return Utils.parseBoolean(s, defaultValue, true);
+        } catch (IllegalArgumentException e) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1,
                     e, "key:" + key + " value:" + s);
         }

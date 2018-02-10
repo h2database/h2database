@@ -1,14 +1,16 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.command.ddl;
 
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
-import org.h2.constraint.ConstraintReferential;
+import org.h2.constraint.Constraint;
+import org.h2.constraint.ConstraintActionType;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -28,13 +30,13 @@ public class DropTable extends SchemaCommand {
     private String tableName;
     private Table table;
     private DropTable next;
-    private int dropAction;
+    private ConstraintActionType dropAction;
 
     public DropTable(Session session, Schema schema) {
         super(session, schema);
         dropAction = session.getDatabase().getSettings().dropRestrict ?
-                ConstraintReferential.RESTRICT :
-                ConstraintReferential.CASCADE;
+                ConstraintActionType.RESTRICT :
+                    ConstraintActionType.CASCADE;
     }
 
     /**
@@ -72,16 +74,30 @@ public class DropTable extends SchemaCommand {
             if (!table.canDrop()) {
                 throw DbException.get(ErrorCode.CANNOT_DROP_TABLE_1, tableName);
             }
-            if (dropAction == ConstraintReferential.RESTRICT) {
+            if (dropAction == ConstraintActionType.RESTRICT) {
+                StatementBuilder buff = new StatementBuilder();
                 CopyOnWriteArrayList<TableView> dependentViews = table.getDependentViews();
                 if (dependentViews != null && dependentViews.size() > 0) {
-                    StatementBuilder buff = new StatementBuilder();
                     for (TableView v : dependentViews) {
                         buff.appendExceptFirst(", ");
                         buff.append(v.getName());
                     }
-                    throw DbException.get(ErrorCode.CANNOT_DROP_2, tableName, buff.toString());
                 }
+                if (session.getDatabase()
+                        .getSettings().standardDropTableRestrict) {
+                    final List<Constraint> constraints = table.getConstraints();
+                    if (constraints != null && constraints.size() > 0) {
+                        for (Constraint c : constraints) {
+                            if (c.getTable() != table) {
+                                buff.appendExceptFirst(", ");
+                                buff.append(c.getName());
+                            }
+                        }
+                    }
+                }
+                if (buff.length() > 0)
+                    throw DbException.get(ErrorCode.CANNOT_DROP_2, tableName, buff.toString());
+
             }
             table.lock(session, true, true);
         }
@@ -114,7 +130,7 @@ public class DropTable extends SchemaCommand {
         return 0;
     }
 
-    public void setDropAction(int dropAction) {
+    public void setDropAction(ConstraintActionType dropAction) {
         this.dropAction = dropAction;
         if (next != null) {
             next.setDropAction(dropAction);

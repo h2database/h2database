@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -15,6 +15,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,7 +25,6 @@ import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.server.Service;
 import org.h2.util.NetUtils;
-import org.h2.util.New;
 import org.h2.util.Tool;
 
 /**
@@ -66,7 +66,7 @@ public class PgServer implements Service {
     public static final int PG_TYPE_TIMESTAMP_NO_TMZONE = 1114;
     public static final int PG_TYPE_NUMERIC = 1700;
 
-    private final HashSet<Integer> typeSet = New.hashSet();
+    private final HashSet<Integer> typeSet = new HashSet<>();
 
     private int port = PgServer.DEFAULT_PORT;
     private boolean portIsSet;
@@ -224,7 +224,7 @@ public class PgServer implements Service {
             }
         }
         // TODO server: using a boolean 'now' argument? a timeout?
-        for (PgServerThread c : New.arrayList(running)) {
+        for (PgServerThread c : new ArrayList<>(running)) {
             c.close();
             try {
                 Thread t = c.getThread();
@@ -262,7 +262,7 @@ public class PgServer implements Service {
      * @return the thread
      */
     PgServerThread getThread(int processId) {
-        for (PgServerThread c : New.arrayList(running)) {
+        for (PgServerThread c : new ArrayList<>(running)) {
             if (c.getProcessId() == processId) {
                 return c;
             }

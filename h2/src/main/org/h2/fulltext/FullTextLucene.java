@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -59,7 +59,7 @@ public class FullTextLucene extends FullText {
     protected static final boolean STORE_DOCUMENT_TEXT_IN_INDEX =
             Utils.getProperty("h2.storeDocumentTextInIndex", false);
 
-    private static final HashMap<String, IndexAccess> INDEX_ACCESS = New.hashMap();
+    private static final HashMap<String, IndexAccess> INDEX_ACCESS = new HashMap<>();
     private static final String TRIGGER_PREFIX = "FTL_";
     private static final String SCHEMA = "FTL";
     private static final String LUCENE_FIELD_DATA = "_DATA";
@@ -497,8 +497,7 @@ public class FullTextLucene extends FullText {
                 columnList.add(rs.getString("COLUMN_NAME"));
             }
             columnTypes = new int[columnList.size()];
-            columns = new String[columnList.size()];
-            columnList.toArray(columns);
+            columns = columnList.toArray(new String[0]);
             rs = meta.getColumns(null,
                     StringUtils.escapeMetaDataPattern(schemaName),
                     StringUtils.escapeMetaDataPattern(tableName),
@@ -582,7 +581,7 @@ public class FullTextLucene extends FullText {
         /**
          * Commit all changes to the Lucene index.
          */
-        private void commitIndex() throws SQLException {
+        void commitIndex() throws SQLException {
             try {
                 indexAccess.commit();
             } catch (IOException e) {
@@ -686,7 +685,7 @@ public class FullTextLucene extends FullText {
         /**
          * Map of usage counters for outstanding searchers.
          */
-        private final Map<IndexSearcher,Integer> counters = New.hashMap();
+        private final Map<IndexSearcher,Integer> counters = new HashMap<>();
 
         /**
          * Usage counter for current searcher.
@@ -698,18 +697,28 @@ public class FullTextLucene extends FullText {
          */
         private IndexSearcher searcher;
 
-        private IndexAccess(IndexWriter writer) throws IOException {
+        IndexAccess(IndexWriter writer) throws IOException {
             this.writer = writer;
             IndexReader reader = IndexReader.open(writer, true);
             searcher = new IndexSearcher(reader);
         }
 
-        private synchronized IndexSearcher getSearcher() {
+        /**
+         * Start using the searcher.
+         *
+         * @return the searcher
+         */
+        synchronized IndexSearcher getSearcher() {
             ++counter;
             return searcher;
         }
 
-        private synchronized void returnSearcher(IndexSearcher searcher) {
+        /**
+         * Stop using the searcher.
+         *
+         * @param searcher the searcher
+         */
+        synchronized void returnSearcher(IndexSearcher searcher) {
             if (this.searcher == searcher) {
                 --counter;
                 assert counter >= 0;
@@ -724,6 +733,9 @@ public class FullTextLucene extends FullText {
             }
         }
 
+        /**
+         * Commit the changes.
+         */
         public synchronized void commit() throws IOException {
             writer.commit();
             if (counter != 0) {
@@ -736,6 +748,9 @@ public class FullTextLucene extends FullText {
             searcher = new IndexSearcher(IndexReader.open(writer, true));
         }
 
+        /**
+         * Close the index.
+         */
         public synchronized void close() throws IOException {
             for (IndexSearcher searcher : counters.keySet()) {
                 closeSearcher(searcher);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,6 +8,7 @@ package org.h2.test.store;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -970,7 +971,7 @@ public class TestMVStore extends TestBase {
             }
             ByteBuffer buff = ByteBuffer.allocate(4 * 1024);
             fc.read(buff, i);
-            String h = new String(buff.array(), "UTF-8").trim();
+            String h = new String(buff.array(), StandardCharsets.UTF_8).trim();
             int idx = h.indexOf("fletcher:");
             int old = Character.digit(h.charAt(idx + "fletcher:".length()), 16);
             int bad = (old + 1) & 15;

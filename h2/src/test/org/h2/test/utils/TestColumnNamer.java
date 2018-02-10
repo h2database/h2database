@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  */
 package org.h2.test.utils;
@@ -25,7 +25,10 @@ public class TestColumnNamer extends TestBase {
             "col2col2col2col2col2col2col2_2" };
 
     /**
-     * Run just this test.
+     * This method is called when executing this application from the command
+     * line.
+     *
+     * @param args the command line parameters
      */
     public static void main(String[] args) {
         new TestColumnNamer().test();

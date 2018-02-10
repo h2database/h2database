@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,6 +8,7 @@ package org.h2.test.coverage;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Arrays;
 
 /**
  * Helper class for the java file parser.
@@ -154,9 +155,7 @@ public class Tokenizer {
             int i = 0;
             do {
                 if (i >= chars.length) {
-                    char[] nb = new char[chars.length * 2];
-                    System.arraycopy(chars, 0, nb, 0, chars.length);
-                    chars = nb;
+                    chars = Arrays.copyOf(chars, chars.length * 2);
                 }
                 chars[i++] = (char) c;
                 c = read();
@@ -221,9 +220,7 @@ public class Tokenizer {
                 }
 
                 if (i >= chars.length) {
-                    char[] nb = new char[chars.length * 2];
-                    System.arraycopy(chars, 0, nb, 0, chars.length);
-                    chars = nb;
+                    chars = Arrays.copyOf(chars, chars.length * 2);
                 }
                 chars[i++] = (char) c;
             }

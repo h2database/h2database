@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -43,6 +44,7 @@ import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.store.DataHandler;
 import org.h2.store.FileLock;
+import org.h2.store.FileLockMethod;
 import org.h2.store.FileStore;
 import org.h2.store.InDoubtTransaction;
 import org.h2.store.LobStorageBackend;
@@ -91,6 +93,9 @@ public class Database implements DataHandler {
 
     private static int initialPowerOffCount;
 
+    private static final ThreadLocal<Session> META_LOCK_DEBUGGING = new ThreadLocal<>();
+    private static final ThreadLocal<Throwable> META_LOCK_DEBUGGING_STACK = new ThreadLocal<>();
+
     /**
      * The default name of the system user. This name is only used as long as
      * there is no administrator user registered.
@@ -105,15 +110,15 @@ public class Database implements DataHandler {
     private final byte[] filePasswordHash;
     private final byte[] fileEncryptionKey;
 
-    private final HashMap<String, Role> roles = New.hashMap();
-    private final HashMap<String, User> users = New.hashMap();
-    private final HashMap<String, Setting> settings = New.hashMap();
-    private final HashMap<String, Schema> schemas = New.hashMap();
-    private final HashMap<String, Right> rights = New.hashMap();
-    private final HashMap<String, UserDataType> userDataTypes = New.hashMap();
-    private final HashMap<String, UserAggregate> aggregates = New.hashMap();
-    private final HashMap<String, Comment> comments = New.hashMap();
-    private final HashMap<String, TableEngine> tableEngines = New.hashMap();
+    private final HashMap<String, Role> roles = new HashMap<>();
+    private final HashMap<String, User> users = new HashMap<>();
+    private final HashMap<String, Setting> settings = new HashMap<>();
+    private final HashMap<String, Schema> schemas = new HashMap<>();
+    private final HashMap<String, Right> rights = new HashMap<>();
+    private final HashMap<String, UserDataType> userDataTypes = new HashMap<>();
+    private final HashMap<String, UserAggregate> aggregates = new HashMap<>();
+    private final HashMap<String, Comment> comments = new HashMap<>();
+    private final HashMap<String, TableEngine> tableEngines = new HashMap<>();
 
     private final Set<Session> userSessions =
             Collections.synchronizedSet(new HashSet<Session>());
@@ -135,7 +140,7 @@ public class Database implements DataHandler {
     private boolean starting;
     private TraceSystem traceSystem;
     private Trace trace;
-    private final int fileLockMethod;
+    private final FileLockMethod fileLockMethod;
     private Role publicRole;
     private final AtomicLong modificationDataId = new AtomicLong();
     private final AtomicLong modificationMetaId = new AtomicLong();
@@ -231,14 +236,14 @@ public class Database implements DataHandler {
         }
         if (dbSettings.mvStore && lockMethodName == null) {
             if (autoServerMode) {
-                fileLockMethod = FileLock.LOCK_FILE;
+                fileLockMethod = FileLockMethod.FILE;
             } else {
-                fileLockMethod = FileLock.LOCK_FS;
+                fileLockMethod = FileLockMethod.FS;
             }
         } else {
             fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
         }
-        if (dbSettings.mvStore && fileLockMethod == FileLock.LOCK_SERIALIZED) {
+        if (dbSettings.mvStore && fileLockMethod == FileLockMethod.SERIALIZED) {
             throw DbException.getUnsupportedException(
                     "MV_STORE combined with FILE_LOCK=SERIALIZED");
         }
@@ -296,7 +301,7 @@ public class Database implements DataHandler {
                 e.fillInStackTrace();
             }
             boolean alreadyOpen = e instanceof DbException
-                    && ((DbException)e).getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1;
+                    && ((DbException) e).getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1;
             if (alreadyOpen) {
                 stopServer();
             }
@@ -403,7 +408,7 @@ public class Database implements DataHandler {
      */
     private synchronized boolean reconnectModified(boolean pending) {
         if (readOnly || lock == null ||
-                fileLockMethod != FileLock.LOCK_SERIALIZED) {
+                fileLockMethod != FileLockMethod.SERIALIZED) {
             return true;
         }
         try {
@@ -512,7 +517,7 @@ public class Database implements DataHandler {
                 }
                 if (lock != null) {
                     stopServer();
-                    if (fileLockMethod != FileLock.LOCK_SERIALIZED) {
+                    if (fileLockMethod != FileLockMethod.SERIALIZED) {
                         // allow testing shutdown
                         lock.unlock();
                     }
@@ -576,7 +581,7 @@ public class Database implements DataHandler {
      * @return true if the cipher algorithm and the password match
      */
     boolean validateFilePasswordHash(String testCipher, byte[] testHash) {
-        if (!StringUtils.equals(testCipher, this.cipher)) {
+        if (!Objects.equals(testCipher, this.cipher)) {
             return false;
         }
         return Utils.compareSecure(testHash, filePasswordHash);
@@ -642,9 +647,9 @@ public class Database implements DataHandler {
             trace.info("opening {0} (build {1})", databaseName, Constants.BUILD_ID);
             if (autoServerMode) {
                 if (readOnly ||
-                        fileLockMethod == FileLock.LOCK_NO ||
-                        fileLockMethod == FileLock.LOCK_SERIALIZED ||
-                        fileLockMethod == FileLock.LOCK_FS ||
+                        fileLockMethod == FileLockMethod.NO ||
+                        fileLockMethod == FileLockMethod.SERIALIZED ||
+                        fileLockMethod == FileLockMethod.FS ||
                         !persistent) {
                     throw DbException.getUnsupportedException(
                             "autoServerMode && (readOnly || " +
@@ -661,8 +666,8 @@ public class Database implements DataHandler {
                             "Lock file exists: " + lockFileName);
                 }
             }
-            if (!readOnly && fileLockMethod != FileLock.LOCK_NO) {
-                if (fileLockMethod != FileLock.LOCK_FS) {
+            if (!readOnly && fileLockMethod != FileLockMethod.NO) {
+                if (fileLockMethod != FileLockMethod.FS) {
                     lock = new FileLock(traceSystem, lockFileName, Constants.LOCK_SLEEP);
                     lock.lock(fileLockMethod);
                     if (autoServerMode) {
@@ -899,9 +904,6 @@ public class Database implements DataHandler {
         }
     }
 
-    private static final ThreadLocal<Session> metaLockDebugging = new ThreadLocal<Session>();
-    private static final ThreadLocal<Throwable> metaLockDebuggingStack = new ThreadLocal<Throwable>();
-
     /**
      * Lock the metadata table for updates.
      *
@@ -917,16 +919,17 @@ public class Database implements DataHandler {
             return true;
         }
         if (SysProperties.CHECK2) {
-            final Session prev = metaLockDebugging.get();
+            final Session prev = META_LOCK_DEBUGGING.get();
             if (prev == null) {
-                metaLockDebugging.set(session);
-                metaLockDebuggingStack.set(new Throwable());
+                META_LOCK_DEBUGGING.set(session);
+                META_LOCK_DEBUGGING_STACK.set(new Throwable("Last meta lock granted in this stack trace, "+
+                        "this is debug information for following IllegalStateException"));
             } else if (prev != session) {
-                metaLockDebuggingStack.get().printStackTrace();
+                META_LOCK_DEBUGGING_STACK.get().printStackTrace();
                 throw new IllegalStateException("meta currently locked by "
-                        + prev
+                        + prev +", sessionid="+ prev.getId()
                         + " and trying to be locked by different session, "
-                        + session + " on same thread");
+                        + session +", sessionid="+ session.getId() + " on same thread");
             }
         }
         boolean wasLocked = meta.lock(session, true, true);
@@ -952,9 +955,9 @@ public class Database implements DataHandler {
      */
     public void unlockMetaDebug(Session session) {
         if (SysProperties.CHECK2) {
-            if (metaLockDebugging.get() == session) {
-                metaLockDebugging.set(null);
-                metaLockDebuggingStack.set(null);
+            if (META_LOCK_DEBUGGING.get() == session) {
+                META_LOCK_DEBUGGING.set(null);
+                META_LOCK_DEBUGGING_STACK.set(null);
             }
         }
     }
@@ -1258,7 +1261,7 @@ public class Database implements DataHandler {
                 return;
             }
             throwLastBackgroundException();
-            if (fileLockMethod == FileLock.LOCK_SERIALIZED &&
+            if (fileLockMethod == FileLockMethod.SERIALIZED &&
                     !reconnectChangePending) {
                 // another connection may have written something - don't write
                 try {
@@ -1435,8 +1438,8 @@ public class Database implements DataHandler {
         }
         closeFiles();
         if (persistent && lock == null &&
-                fileLockMethod != FileLock.LOCK_NO &&
-                fileLockMethod != FileLock.LOCK_FS) {
+                fileLockMethod != FileLockMethod.NO &&
+                fileLockMethod != FileLockMethod.FS) {
             // everything already closed (maybe in checkPowerOff)
             // don't delete temp files in this case because
             // the database could be open now (even from within another process)
@@ -1454,7 +1457,7 @@ public class Database implements DataHandler {
             lobSession = null;
         }
         if (lock != null) {
-            if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
+            if (fileLockMethod == FileLockMethod.SERIALIZED) {
                 // wait before deleting the .lock file,
                 // otherwise other connections can not detect that
                 if (lock.load().containsKey("changePending")) {
@@ -1506,11 +1509,11 @@ public class Database implements DataHandler {
     }
 
     public ArrayList<UserAggregate> getAllAggregates() {
-        return New.arrayList(aggregates.values());
+        return new ArrayList<>(aggregates.values());
     }
 
     public ArrayList<Comment> getAllComments() {
-        return New.arrayList(comments.values());
+        return new ArrayList<>(comments.values());
     }
 
     public int getAllowLiterals() {
@@ -1521,11 +1524,11 @@ public class Database implements DataHandler {
     }
 
     public ArrayList<Right> getAllRights() {
-        return New.arrayList(rights.values());
+        return new ArrayList<>(rights.values());
     }
 
     public ArrayList<Role> getAllRoles() {
-        return New.arrayList(roles.values());
+        return new ArrayList<>(roles.values());
     }
 
     /**
@@ -1610,19 +1613,19 @@ public class Database implements DataHandler {
 
     public ArrayList<Schema> getAllSchemas() {
         initMetaTables();
-        return New.arrayList(schemas.values());
+        return new ArrayList<>(schemas.values());
     }
 
     public ArrayList<Setting> getAllSettings() {
-        return New.arrayList(settings.values());
+        return new ArrayList<>(settings.values());
     }
 
     public ArrayList<UserDataType> getAllUserDataTypes() {
-        return New.arrayList(userDataTypes.values());
+        return new ArrayList<>(userDataTypes.values());
     }
 
     public ArrayList<User> getAllUsers() {
-        return New.arrayList(users.values());
+        return new ArrayList<>(users.values());
     }
 
     public String getCacheType() {
@@ -1666,7 +1669,7 @@ public class Database implements DataHandler {
         // need to synchronized on userSession, otherwise the list
         // may contain null elements
         synchronized (userSessions) {
-            list = New.arrayList(userSessions);
+            list = new ArrayList<>(userSessions);
         }
         // copy, to ensure the reference is stable
         Session sys = systemSession;
@@ -1677,9 +1680,7 @@ public class Database implements DataHandler {
         if (includingSystemSession && lob != null) {
             list.add(lob);
         }
-        Session[] array = new Session[list.size()];
-        list.toArray(array);
-        return array;
+        return list.toArray(new Session[0]);
     }
 
     /**
@@ -1850,7 +1851,7 @@ public class Database implements DataHandler {
             return null;
         default:
         }
-        HashSet<DbObject> set = New.hashSet();
+        HashSet<DbObject> set = new HashSet<>();
         for (Table t : getAllTablesAndViews(false)) {
             if (except == t) {
                 continue;
@@ -1913,13 +1914,14 @@ public class Database implements DataHandler {
                             t.getSQL());
                 }
                 obj.removeChildrenAndResources(session);
+
             }
             removeMeta(session, id);
         }
     }
 
     /**
-     * Check if this database disk-based.
+     * Check if this database is disk-based.
      *
      * @return true if it is disk-based, false it it is in-memory only.
      */
@@ -1984,7 +1986,7 @@ public class Database implements DataHandler {
         if (readOnly) {
             throw DbException.get(ErrorCode.DATABASE_IS_READ_ONLY);
         }
-        if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
+        if (fileLockMethod == FileLockMethod.SERIALIZED) {
             if (!reconnectChangePending) {
                 throw DbException.get(ErrorCode.DATABASE_IS_READ_ONLY);
             }
@@ -2499,7 +2501,7 @@ public class Database implements DataHandler {
     public TableLinkConnection getLinkConnection(String driver, String url,
             String user, String password) {
         if (linkConnections == null) {
-            linkConnections = New.hashMap();
+            linkConnections = new HashMap<>();
         }
         return TableLinkConnection.open(linkConnections, driver, url, user,
                 password, dbSettings.shareLinkedConnections);
@@ -2541,7 +2543,7 @@ public class Database implements DataHandler {
             if (pageSize != Constants.DEFAULT_PAGE_SIZE) {
                 pageStore.setPageSize(pageSize);
             }
-            if (!readOnly && fileLockMethod == FileLock.LOCK_FS) {
+            if (!readOnly && fileLockMethod == FileLockMethod.FS) {
                 pageStore.setLockFile(true);
             }
             pageStore.setLogMode(logMode);
@@ -2577,7 +2579,7 @@ public class Database implements DataHandler {
      * @return true if reconnecting is required
      */
     public boolean isReconnectNeeded() {
-        if (fileLockMethod != FileLock.LOCK_SERIALIZED) {
+        if (fileLockMethod != FileLockMethod.SERIALIZED) {
             return false;
         }
         if (reconnectChangePending) {
@@ -2631,7 +2633,7 @@ public class Database implements DataHandler {
      * the .lock.db file.
      */
     public void checkpointIfRequired() {
-        if (fileLockMethod != FileLock.LOCK_SERIALIZED ||
+        if (fileLockMethod != FileLockMethod.SERIALIZED ||
                 readOnly || !reconnectChangePending || closing) {
             return;
         }
@@ -2660,7 +2662,7 @@ public class Database implements DataHandler {
     }
 
     public boolean isFileLockSerialized() {
-        return fileLockMethod == FileLock.LOCK_SERIALIZED;
+        return fileLockMethod == FileLockMethod.SERIALIZED;
     }
 
     private void flushSequences() {
@@ -2694,7 +2696,7 @@ public class Database implements DataHandler {
      *          false if another connection was faster
      */
     public boolean beforeWriting() {
-        if (fileLockMethod != FileLock.LOCK_SERIALIZED) {
+        if (fileLockMethod != FileLockMethod.SERIALIZED) {
             return true;
         }
         while (checkpointRunning) {
@@ -2723,7 +2725,7 @@ public class Database implements DataHandler {
      * This method is called after updates are finished.
      */
     public void afterWriting() {
-        if (fileLockMethod != FileLock.LOCK_SERIALIZED) {
+        if (fileLockMethod != FileLockMethod.SERIALIZED) {
             return;
         }
         synchronized (reconnectSync) {

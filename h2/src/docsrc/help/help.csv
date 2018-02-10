@@ -1,4 +1,4 @@
-# Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+# Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
 # and the EPL 1.0 (http://h2database.com/html/license.html).
 # Initial Developer: H2 Group
 "SECTION","TOPIC","SYNTAX","TEXT","EXAMPLE"
@@ -286,7 +286,7 @@ ALTER SEQUENCE SEQ_ID RESTART WITH 1000
 
 "Commands (DDL)","ALTER TABLE ADD","
 ALTER TABLE [ IF EXISTS ] tableName ADD [ COLUMN ]
-{ [ IF NOT EXISTS ] columnDefinition | ( { columnDefinition } [,...] ) }
+{ [ IF NOT EXISTS ] columnName columnDefinition | ( { columnName columnDefinition } [,...] ) }
 [ { BEFORE | AFTER } columnName ]
 ","
 Adds a new column to a table.
@@ -318,7 +318,7 @@ ALTER TABLE TEST RENAME CONSTRAINT FOO TO BAR
 
 "Commands (DDL)","ALTER TABLE ALTER COLUMN","
 ALTER TABLE [ IF EXISTS ] tableName ALTER COLUMN columnName
-{ { dataType [ VISIBLE | INVISIBLE ] [ DEFAULT expression ] [ [ NOT ] NULL ] [ AUTO_INCREMENT | IDENTITY ] }
+{ { columnDefinition }
     | { RENAME TO name }
     | { RESTART WITH long }
     | { SELECTIVITY int }
@@ -498,7 +498,7 @@ qualified class name. The class must implement the interface
 Admin rights are required to execute this command.
 This command commits an open transaction in this connection.
 ","
-CREATE AGGREGATE MEDIAN FOR ""com.acme.db.Median""
+CREATE AGGREGATE SIMPLE_MEDIAN FOR ""com.acme.db.Median""
 "
 
 "Commands (DDL)","CREATE ALIAS","
@@ -683,7 +683,7 @@ CREATE SEQUENCE SEQ_ID
 "Commands (DDL)","CREATE TABLE","
 CREATE [ CACHED | MEMORY ] [ TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
 TABLE [ IF NOT EXISTS ] name
-[ ( { columnDefinition | constraint } [,...] ) ]
+[ ( { columnName columnDefinition | constraint } [,...] ) ]
 [ ENGINE tableEngineName ]
 [ WITH tableEngineParamName [,...] ]
 [ NOT PERSISTENT ] [ TRANSACTIONAL ]
@@ -735,6 +735,9 @@ The class must be available in the classpath of the database engine
 
 The sourceCodeString must define a single method with no parameters that returns ""org.h2.api.Trigger"".
 See CREATE ALIAS for requirements regarding the compilation.
+Alternatively, javax.script.ScriptEngineManager can be used to create an instance of ""org.h2.api.Trigger"".
+Currently javascript (included in every JRE) and ruby (with JRuby) are supported.
+In that case the source must begin respectively with ""//javascript"" or ""#ruby"".
 
 BEFORE triggers are called after data conversion is made, default values are set,
 null and length constraint checks have been made;
@@ -773,6 +776,8 @@ This command commits an open transaction in this connection.
 ","
 CREATE TRIGGER TRIG_INS BEFORE INSERT ON TEST FOR EACH ROW CALL ""MyTrigger"";
 CREATE TRIGGER TRIG_SRC BEFORE INSERT ON TEST AS $$org.h2.api.Trigger create() { return new MyTrigger(""constructorParam""); } $$;
+CREATE TRIGGER TRIG_JS BEFORE INSERT ON TEST AS $$//javascript\nreturn new Packages.MyTrigger(""constructorParam""); $$;
+CREATE TRIGGER TRIG_RUBY BEFORE INSERT ON TEST AS $$#ruby\nJava::MyPackage::MyTrigger.new(""constructorParam"") $$;
 "
 "Commands (DDL)","CREATE USER","
 CREATE USER [ IF NOT EXISTS ] newUserName
@@ -816,7 +821,7 @@ Drops an existing user-defined aggregate function.
 Admin rights are required to execute this command.
 This command commits an open transaction in this connection.
 ","
-DROP AGGREGATE MEDIAN
+DROP AGGREGATE SIMPLE_MEDIAN
 "
 
 "Commands (DDL)","DROP ALIAS","
@@ -902,8 +907,8 @@ DROP SEQUENCE SEQ_ID
 DROP TABLE [ IF EXISTS ] tableName [,...] [ RESTRICT | CASCADE ]
 ","
 Drops an existing table, or a list of tables.
-The command will fail if dependent views exist and the RESTRICT clause is used (the default).
-All dependent views are dropped as well if the CASCADE clause is used.
+The command will fail if dependent objects exist and the RESTRICT clause is used (the default).
+All dependent views and constraints are dropped as well if the CASCADE clause is used.
 This command commits an open transaction in this connection.
 ","
 DROP TABLE TEST
@@ -1860,8 +1865,7 @@ AES
 "
 
 "Other Grammar","Column Definition","
-columnName dataType
-[ VISIBLE | INVISIBLE ]
+dataType [ VISIBLE | INVISIBLE ]
 [ { DEFAULT expression | AS computedColumnExpression } ] [ [ NOT ] NULL ]
 [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
 [ SELECTIVITY selectivity ] [ COMMENT expression ]
@@ -2797,6 +2801,19 @@ Aggregates are only allowed in select statements.
 VAR_SAMP(X)
 "
 
+"Functions (Aggregate)","MEDIAN","
+MEDIAN( [ DISTINCT ] value )
+","
+The value separating the higher half of a values from the lower half.
+Returns the middle value or an interpolated value between two middle values if number of values is even.
+Interpolation is only supported for numeric, date, and time data types.
+NULL values are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+MEDIAN(X)
+"
+
 "Functions (Numeric)","ABS","
 ABS ( { numeric } )
 ","
@@ -3651,12 +3668,14 @@ CURRENT_TIMESTAMP()
 "Functions (Time and Date)","DATEADD","
 { DATEADD| TIMESTAMPADD } (unitString, addIntLong, timestamp)
 ","
-Adds units to a timestamp. The string indicates the unit.
+Adds units to a date-time value. The string indicates the unit.
 Use negative values to subtract units.
 addIntLong may be a long value when manipulating milliseconds,
 otherwise it's range is restricted to int.
 The same units as in the EXTRACT function are supported.
-DATEADD method returns a timestamp. TIMESTAMPADD method returns a long.
+This method returns a value with the same type as specified value if unit is compatible with this value.
+If specified unit is a HOUR, MINUTE, SECOND, MILLISECOND, etc and value is a DATE value DATEADD returns combined TIMESTAMP.
+Units DAY, MONTH, YEAR, WEEK, etc are not allowed for TIME values.
 ","
 DATEADD('MONTH', 1, DATE '2001-01-31')
 "
@@ -3668,6 +3687,7 @@ Returns the the number of crossed unit boundaries between two timestamps.
 This method returns a long.
 The string indicates the unit.
 The same units as in the EXTRACT function are supported.
+If timestamps have time zone offset component it is ignored.
 ","
 DATEDIFF('YEAR', T1.CREATED, T2.CREATED)
 "
@@ -3705,8 +3725,9 @@ DAY_OF_YEAR(CREATED)
 "
 
 "Functions (Time and Date)","EXTRACT","
-EXTRACT ( { YEAR | YY | MONTH | MM | WEEK | DAY | DD | DAY_OF_YEAR
-    | DOY | HOUR | HH | MINUTE | MI | SECOND | SS | MILLISECOND | MS }
+EXTRACT ( { YEAR | YY | MONTH | MM | QUARTER | WEEK | ISO_WEEK
+    | DAY | DD | DAY_OF_YEAR | DOY
+    | HOUR | HH | MINUTE | MI | SECOND | SS | MILLISECOND | MS }
     FROM timestamp )
 ","
 Returns a specific value from a timestamps.
@@ -4006,6 +4027,14 @@ Does not currently take into account indexes or LOB's.
 This function may be expensive since it has to load every page in the table.
 ","
 CALL DISK_SPACE_USED('my_table');
+"
+
+"Functions (System)","SIGNAL","
+SIGNAL(sqlStateString, messageString)
+","
+Throw an SQLException with the passed SQLState and reason.
+","
+CALL SIGNAL('23505', 'Duplicate user ID: ' || user_id);
 "
 
 "Functions (System)","FILE_READ","

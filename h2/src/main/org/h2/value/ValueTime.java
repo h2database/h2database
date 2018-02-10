@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,9 +9,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
 import org.h2.api.ErrorCode;
+import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.StringUtils;
 
 /**
  * Implementation of the TIME data type.
@@ -48,6 +48,14 @@ public class ValueTime extends Value {
      * @return the value
      */
     public static ValueTime fromNanos(long nanos) {
+        if (!SysProperties.UNLIMITED_TIME_RANGE) {
+            if (nanos < 0L || nanos >= 86400000000000L) {
+                StringBuilder builder = new StringBuilder();
+                DateTimeUtils.appendTime(builder, nanos, false);
+                throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2,
+                        "TIME", builder.toString());
+            }
+        }
         return (ValueTime) Value.cache(new ValueTime(nanos));
     }
 
@@ -107,7 +115,7 @@ public class ValueTime extends Value {
     @Override
     public String getString() {
         StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
-        appendTime(buff, nanos, false);
+        DateTimeUtils.appendTime(buff, nanos, false);
         return buff.toString();
     }
 
@@ -185,48 +193,6 @@ public class ValueTime extends Value {
     @Override
     public Value negate() {
         return ValueTime.fromNanos(-nanos);
-    }
-
-    /**
-     * Append a time to the string builder.
-     *
-     * @param buff the target string builder
-     * @param nanos the time in nanoseconds
-     * @param alwaysAddMillis whether to always add at least ".0"
-     */
-    static void appendTime(StringBuilder buff, long nanos,
-            boolean alwaysAddMillis) {
-        if (nanos < 0) {
-            buff.append('-');
-            nanos = -nanos;
-        }
-        long ms = nanos / 1000000;
-        nanos -= ms * 1000000;
-        long s = ms / 1000;
-        ms -= s * 1000;
-        long m = s / 60;
-        s -= m * 60;
-        long h = m / 60;
-        m -= h * 60;
-        StringUtils.appendZeroPadded(buff, 2, h);
-        buff.append(':');
-        StringUtils.appendZeroPadded(buff, 2, m);
-        buff.append(':');
-        StringUtils.appendZeroPadded(buff, 2, s);
-        if (alwaysAddMillis || ms > 0 || nanos > 0) {
-            buff.append('.');
-            int start = buff.length();
-            StringUtils.appendZeroPadded(buff, 3, ms);
-            if (nanos > 0) {
-                StringUtils.appendZeroPadded(buff, 6, nanos);
-            }
-            for (int i = buff.length() - 1; i > start; i--) {
-                if (buff.charAt(i) != '0') {
-                    break;
-                }
-                buff.deleteCharAt(i);
-            }
-        }
     }
 
 }

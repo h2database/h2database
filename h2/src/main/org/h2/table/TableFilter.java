@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -577,10 +577,7 @@ public class TableFilter implements ColumnResolver {
      * @return true if yes
      */
     boolean isOk(Expression condition) {
-        if (condition == null) {
-            return true;
-        }
-        return Boolean.TRUE.equals(condition.getBooleanValue(session));
+        return condition == null || condition.getBooleanValue(session);
     }
 
     /**
@@ -788,7 +785,7 @@ public class TableFilter implements ColumnResolver {
             }
         }
         if (nestedJoin != null) {
-            StringBuffer buffNested = new StringBuffer();
+            StringBuilder buffNested = new StringBuilder();
             TableFilter n = nestedJoin;
             do {
                 buffNested.append(n.getPlanSQL(n != nestedJoin));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  */
 package org.h2.util;
@@ -96,6 +96,11 @@ public class ColumnNamerConfiguration {
         this.compiledRegularExpressionMatchDisallowed = compiledRegularExpressionMatchDisallowed;
     }
 
+    /**
+     * Configure the column namer.
+     *
+     * @param stringValue the configuration
+     */
     public void configure(String stringValue) {
         try {
             if (stringValue.equalsIgnoreCase(DEFAULT_COMMAND)) {
@@ -161,6 +166,11 @@ public class ColumnNamerConfiguration {
         this.generateUniqueColumnNames = generateUniqueColumnNames;
     }
 
+    /**
+     * Configure the rules.
+     *
+     * @param modeEnum the mode
+     */
     public void configure(ModeEnum modeEnum) {
         switch (modeEnum) {
         case Oracle:

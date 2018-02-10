@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,6 +10,7 @@ import java.util.HashSet;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.Constraint;
+import org.h2.constraint.ConstraintActionType;
 import org.h2.constraint.ConstraintCheck;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.constraint.ConstraintUnique;
@@ -38,8 +39,8 @@ public class AlterTableAddConstraint extends SchemaCommand {
     private String constraintName;
     private String tableName;
     private IndexColumn[] indexColumns;
-    private int deleteAction;
-    private int updateAction;
+    private ConstraintActionType deleteAction = ConstraintActionType.RESTRICT;
+    private ConstraintActionType updateAction = ConstraintActionType.RESTRICT;
     private Schema refSchema;
     private String refTableName;
     private IndexColumn[] refIndexColumns;
@@ -298,11 +299,11 @@ public class AlterTableAddConstraint extends SchemaCommand {
         }
     }
 
-    public void setDeleteAction(int action) {
+    public void setDeleteAction(ConstraintActionType action) {
         this.deleteAction = action;
     }
 
-    public void setUpdateAction(int action) {
+    public void setUpdateAction(ConstraintActionType action) {
         this.updateAction = action;
     }
 
@@ -338,11 +339,11 @@ public class AlterTableAddConstraint extends SchemaCommand {
             return false;
         }
         Column[] indexCols = idx.getColumns();
-        HashSet<Column> indexColsSet = New.hashSet();
+        HashSet<Column> indexColsSet = new HashSet<>();
         for (Column c : indexCols) {
             indexColsSet.add(c);
         }
-        HashSet<Column> colsSet = New.hashSet();
+        HashSet<Column> colsSet = new HashSet<>();
         for (IndexColumn c : cols) {
             colsSet.add(c.column);
         }

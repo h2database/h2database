@@ -1,4 +1,4 @@
--- Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (http://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -163,12 +163,6 @@ select 1 from test group by x;
 
 drop table test;
 > ok
-
-call regexp_replace('x', 'x', '\');
-> exception
-
-call select 1 from dual where regexp_like('x', 'x', '\');
-> exception
 
 select * from dual where x = x + 1 or x in(2, 0);
 > X
@@ -558,81 +552,6 @@ explain select * from test limit 10 sample_size 10;
 > PLAN
 > -----------------------------------------------------------------------------------
 > SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ LIMIT 10 SAMPLE_SIZE 10
-> rows: 1
-
-drop table test;
-> ok
-
-create table test(d date, t time, ts timestamp);
-> ok
-
-insert into test values(date '2001-01-01', time '01:00:00', timestamp '2010-01-01 00:00:00');
-> update count: 1
-
-select ts + t x from test;
-> X
-> ---------------------
-> 2010-01-01 01:00:00.0
-> rows: 1
-
-select ts + t + t - t x from test;
-> X
-> ---------------------
-> 2010-01-01 01:00:00.0
-> rows: 1
-
-select ts + t * 0.5 x from test;
-> X
-> ---------------------
-> 2010-01-01 00:30:00.0
-> rows: 1
-
-select ts + 0.5 x from test;
-> X
-> ---------------------
-> 2010-01-01 12:00:00.0
-> rows: 1
-
-select ts - 1.5 x from test;
-> X
-> ---------------------
-> 2009-12-30 12:00:00.0
-> rows: 1
-
-select ts + 0.5 * t + t - t x from test;
-> X
-> ---------------------
-> 2010-01-01 00:30:00.0
-> rows: 1
-
-select ts + t / 0.5 x from test;
-> X
-> ---------------------
-> 2010-01-01 02:00:00.0
-> rows: 1
-
-select d + t, t + d - t x from test;
-> T + D                 X
-> --------------------- ---------------------
-> 2001-01-01 01:00:00.0 2001-01-01 00:00:00.0
-> rows: 1
-
-select 1 + d + 1, d - 1, 2 + ts + 2, ts - 2 from test;
-> DATEADD('DAY', 1, DATEADD('DAY', 1, D)) DATEADD('DAY', -1, D) DATEADD('DAY', 2, DATEADD('DAY', 2, TS)) DATEADD('DAY', -2, TS)
-> --------------------------------------- --------------------- ---------------------------------------- ----------------------
-> 2001-01-03 00:00:00.0                   2000-12-31 00:00:00.0 2010-01-05 00:00:00.0                    2009-12-30 00:00:00.0
-> rows: 1
-
-select 1 + d + t + 1 from test;
-> DATEADD('DAY', 1, (T + DATEADD('DAY', 1, D)))
-> ---------------------------------------------
-> 2001-01-03 01:00:00.0
-> rows: 1
-
-select ts - t - 2 from test;
-> DATEADD('DAY', -2, (TS - T))
-> ----------------------------
-> 2009-12-29 23:00:00.0
 > rows: 1
 
 drop table test;
@@ -2109,29 +2028,6 @@ drop table test;
 set autocommit true;
 > ok
 
-CALL REGEXP_REPLACE('abckaboooom', 'o+', 'o');
-> 'abckabom'
-> ----------
-> abckabom
-> rows: 1
-
-select x from dual where REGEXP_LIKE('A', '[a-z]', 'i');
-> X
-> -
-> 1
-> rows: 1
-
-select x from dual where REGEXP_LIKE('A', '[a-z]', 'c');
-> X
-> -
-> rows: 0
-
-select regexp_replace('Sylvain', 'S..', 'TOTO', 'mni') as X;
-> X
-> --------
-> TOTOvain
-> rows: 1
-
 SELECT 'Hello' ~ 'He.*' T1, 'HELLO' ~ 'He.*' F2, CAST('HELLO' AS VARCHAR_IGNORECASE) ~ 'He.*' T3;
 > T1   F2    T3
 > ---- ----- ----
@@ -2699,22 +2595,6 @@ select * from Foo where A like 'abc%' escape '\' AND B=1;
 > rows: 1
 
 drop table Foo;
-> ok
-
-create memory table orders ( orderid varchar(10), name varchar(20),  customer_id varchar(10), completed numeric(1) not null, verified numeric(1) );
-> ok
-
-select * from information_schema.columns where table_name = 'ORDERS';
-> TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME ORDINAL_POSITION COLUMN_DEFAULT IS_NULLABLE DATA_TYPE CHARACTER_MAXIMUM_LENGTH CHARACTER_OCTET_LENGTH NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE CHARACTER_SET_NAME COLLATION_NAME TYPE_NAME NULLABLE IS_COMPUTED SELECTIVITY CHECK_CONSTRAINT SEQUENCE_NAME REMARKS SOURCE_DATA_TYPE COLUMN_TYPE
-> ------------- ------------ ---------- ----------- ---------------- -------------- ----------- --------- ------------------------ ---------------------- ----------------- ----------------------- ------------- ------------------ -------------- --------- -------- ----------- ----------- ---------------- ------------- ------- ---------------- -------------------
-> SCRIPT        PUBLIC       ORDERS     COMPLETED   4                null           NO          3         1                        1                      1                 10                      0             Unicode            OFF            DECIMAL   0        FALSE       50                           null                  null             NUMERIC(1) NOT NULL
-> SCRIPT        PUBLIC       ORDERS     CUSTOMER_ID 3                null           YES         12        10                       10                     10                10                      0             Unicode            OFF            VARCHAR   1        FALSE       50                           null                  null             VARCHAR(10)
-> SCRIPT        PUBLIC       ORDERS     NAME        2                null           YES         12        20                       20                     20                10                      0             Unicode            OFF            VARCHAR   1        FALSE       50                           null                  null             VARCHAR(20)
-> SCRIPT        PUBLIC       ORDERS     ORDERID     1                null           YES         12        10                       10                     10                10                      0             Unicode            OFF            VARCHAR   1        FALSE       50                           null                  null             VARCHAR(10)
-> SCRIPT        PUBLIC       ORDERS     VERIFIED    5                null           YES         3         1                        1                      1                 10                      0             Unicode            OFF            DECIMAL   1        FALSE       50                           null                  null             NUMERIC(1)
-> rows: 5
-
-drop table orders;
 > ok
 
 create table test(id int, d timestamp);
@@ -3949,60 +3829,6 @@ SELECT CASE WHEN NOT (false IN (null)) THEN false END;
 > null
 > rows: 1
 
-SELECT DATEDIFF('SECOND', '1900-01-01 00:00:00.001', '1900-01-01 00:00:00.002'), DATEDIFF('SECOND', '2000-01-01 00:00:00.001', '2000-01-01 00:00:00.002');
-> 0 0
-> - -
-> 0 0
-> rows: 1
-
-SELECT DATEDIFF('SECOND', '1900-01-01 00:00:00.000', '1900-01-01 00:00:00.001'), DATEDIFF('SECOND', '2000-01-01 00:00:00.000', '2000-01-01 00:00:00.001');
-> 0 0
-> - -
-> 0 0
-> rows: 1
-
-SELECT DATEDIFF('MINUTE', '1900-01-01 00:00:00.000', '1900-01-01 00:00:01.000'), DATEDIFF('MINUTE', '2000-01-01 00:00:00.000', '2000-01-01 00:00:01.000');
-> 0 0
-> - -
-> 0 0
-> rows: 1
-
-SELECT DATEDIFF('MINUTE', '1900-01-01 00:00:01.000', '1900-01-01 00:00:02.000'), DATEDIFF('MINUTE', '2000-01-01 00:00:01.000', '2000-01-01 00:00:02.000');
-> 0 0
-> - -
-> 0 0
-> rows: 1
-
-SELECT DATEDIFF('HOUR', '1900-01-01 00:00:00.000', '1900-01-01 00:00:01.000'), DATEDIFF('HOUR', '2000-01-01 00:00:00.000', '2000-01-01 00:00:01.000');
-> 0 0
-> - -
-> 0 0
-> rows: 1
-
-SELECT DATEDIFF('HOUR', '1900-01-01 00:00:00.001', '1900-01-01 00:00:01.000'), DATEDIFF('HOUR', '2000-01-01 00:00:00.001', '2000-01-01 00:00:01.000');
-> 0 0
-> - -
-> 0 0
-> rows: 1
-
-SELECT DATEDIFF('HOUR', '1900-01-01 01:00:00.000', '1900-01-01 01:00:01.000'), DATEDIFF('HOUR', '2000-01-01 01:00:00.000', '2000-01-01 01:00:01.000');
-> 0 0
-> - -
-> 0 0
-> rows: 1
-
-SELECT DATEDIFF('HOUR', '1900-01-01 01:00:00.001', '1900-01-01 01:00:01.000'), DATEDIFF('HOUR', '2000-01-01 01:00:00.001', '2000-01-01 01:00:01.000');
-> 0 0
-> - -
-> 0 0
-> rows: 1
-
-select datediff(day, '2015-12-09 23:59:00.0', '2016-01-16 23:59:00.0'), datediff(wk, '2015-12-09 23:59:00.0', '2016-01-16 23:59:00.0');
-> 38 5
-> -- -
-> 38 5
-> rows: 1
-
 create table test(id int);
 > ok
 
@@ -4017,28 +3843,10 @@ insert into test values(1), (2), (3), (4);
 drop table test;
 > ok
 
-call datediff('MS', TIMESTAMP '2001-02-03 04:05:06.789001', TIMESTAMP '2001-02-03 04:05:06.789002');
-> 0
-> -
-> 0
-> rows: 1
-
-call datediff('MS', TIMESTAMP '1900-01-01 00:00:01.000', TIMESTAMP '2008-01-01 00:00:00.000');
-> 3408134399000
-> -------------
-> 3408134399000
-> rows: 1
-
 call select 1.0/3.0*3.0, 100.0/2.0, -25.0/100.0, 0.0/3.0, 6.9/2.0, 0.72179425150347250912311550800000 / 5314251955.21;
 > SELECT 0.999999999999999999999999990, 50, -0.25, 0, 3.45, 1.35822361752313607260107721120531135706133161972E-10 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */ /* scanCount: 2 */
 > -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > (0.999999999999999999999999990, 50, -0.25, 0, 3.45, 1.35822361752313607260107721120531135706133161972E-10)
-> rows: 1
-
-call dateadd('MS', 1, TIMESTAMP '2001-02-03 04:05:06.789001');
-> TIMESTAMP '2001-02-03 04:05:06.790001'
-> --------------------------------------
-> 2001-02-03 04:05:06.790001
 > rows: 1
 
 CALL 1 /* comment */ ;;
@@ -7778,9 +7586,9 @@ SELECT * FROM TEST;
 SELECT XD+1, XD-1, XD-XD FROM TEST;
 > DATEADD('DAY', 1, XD) DATEADD('DAY', -1, XD) DATEDIFF('DAY', XD, XD)
 > --------------------- ---------------------- -----------------------
-> 0001-02-04 00:00:00.0 0001-02-02 00:00:00.0  0
-> 0004-05-07 00:00:00.0 0004-05-05 00:00:00.0  0
-> 2000-01-01 00:00:00.0 1999-12-30 00:00:00.0  0
+> 0001-02-04            0001-02-02             0
+> 0004-05-07            0004-05-05             0
+> 2000-01-01            1999-12-30             0
 > null                  null                   null
 > rows: 4
 
@@ -7981,18 +7789,6 @@ SELECT ID, 10*X1, 10*XT, 10*X_SM, 10*XB, 10*XD, 10*XD2, 10*XR FROM TEST;
 > 1    10      10      10        10      10.00   10.0     10.0
 > 4    10      40      40        40      40.00   40.0     40.0
 > null null    null    null      null    null    null     null
-> rows: 5
-
-SELECT ID, CAST(XT AS NUMBER(10,1)),
-CAST(X_SM AS NUMBER(10,1)), CAST(XB AS NUMBER(10,1)), CAST(XD AS NUMBER(10,1)),
-CAST(XD2 AS NUMBER(10,1)), CAST(XR AS NUMBER(10,1)) FROM TEST;
-> ID   CAST(XT AS DECIMAL(10, 1)) CAST(X_SM AS DECIMAL(10, 1)) CAST(XB AS DECIMAL(10, 1)) CAST(XD AS DECIMAL(10, 1)) CAST(XD2 AS DECIMAL(10, 1)) CAST(XR AS DECIMAL(10, 1))
-> ---- -------------------------- ---------------------------- -------------------------- -------------------------- --------------------------- --------------------------
-> -1   -1.0                       -1.0                         -1.0                       -1.0                       -1.0                        -1.0
-> 0    0.0                        0.0                          0.0                        0.0                        0.0                         0.0
-> 1    1.0                        1.0                          1.0                        1.0                        1.0                         1.0
-> 4    4.0                        4.0                          4.0                        4.0                        4.0                         4.0
-> null null                       null                         null                       null                       null                        null
 > rows: 5
 
 SELECT ID, SIGN(XT), SIGN(X_SM), SIGN(XB), SIGN(XD), SIGN(XD2), SIGN(XR) FROM TEST;
@@ -9397,49 +9193,6 @@ select 0 from ((
 > rows: 0
 };
 > update count: 0
-
-explain with recursive r(n) as (
-    (select 1) union all (select n+1 from r where n < 3)
-)
-select n from r;
-> PLAN
-> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> WITH RECURSIVE R(N) AS ( (SELECT 1 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */) UNION ALL (SELECT (N + 1) FROM PUBLIC.R /* PUBLIC.R.tableScan */ WHERE N < 3) ) SELECT N FROM R R /* null */
-> rows: 1
-
-select sum(n) from (
-    with recursive r(n) as (
-        (select 1) union all (select n+1 from r where n < 3)
-    )
-    select n from r
-);
-> SUM(N)
-> ------
-> 6
-> rows: 1
-
-select sum(n) from (select 0) join (
-    with recursive r(n) as (
-        (select 1) union all (select n+1 from r where n < 3)
-    )
-    select n from r
-) on 1=1;
-> SUM(N)
-> ------
-> 6
-> rows: 1
-
-select 0 from (
-    select 0 where 0 in (
-        with recursive r(n) as (
-            (select 1) union all (select n+1 from r where n < 3)
-        )
-        select n from r
-    )
-);
-> 0
-> -
-> rows: 0
 
 create table x(id int not null);
 > ok

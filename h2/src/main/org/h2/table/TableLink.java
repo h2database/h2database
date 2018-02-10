@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -15,6 +15,8 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.engine.Session;
@@ -50,7 +52,7 @@ public class TableLink extends Table {
     private final String originalSchema;
     private String driver, url, user, password, originalTable, qualifiedTableName;
     private TableLinkConnection conn;
-    private HashMap<String, PreparedStatement> preparedMap = New.hashMap();
+    private HashMap<String, PreparedStatement> preparedMap = new HashMap<>();
     private final ArrayList<Index> indexes = New.arrayList();
     private final boolean emitUpdates;
     private LinkedIndex linkedIndex;
@@ -126,7 +128,7 @@ public class TableLink extends Table {
         rs = meta.getColumns(null, originalSchema, originalTable, null);
         int i = 0;
         ArrayList<Column> columnList = New.arrayList();
-        HashMap<String, Column> columnMap = New.hashMap();
+        HashMap<String, Column> columnMap = new HashMap<>();
         String catalog = null, schema = null;
         while (rs.next()) {
             String thisCatalog = rs.getString("TABLE_CAT");
@@ -137,8 +139,8 @@ public class TableLink extends Table {
             if (schema == null) {
                 schema = thisSchema;
             }
-            if (!StringUtils.equals(catalog, thisCatalog) ||
-                    !StringUtils.equals(schema, thisSchema)) {
+            if (!Objects.equals(catalog, thisCatalog) ||
+                    !Objects.equals(schema, thisSchema)) {
                 // if the table exists in multiple schemas or tables,
                 // use the alternative solution
                 columnMap.clear();
@@ -195,8 +197,7 @@ public class TableLink extends Table {
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, e,
                     originalTable + "(" + e.toString() + ")");
         }
-        Column[] cols = new Column[columnList.size()];
-        columnList.toArray(cols);
+        Column[] cols = columnList.toArray(new Column[0]);
         setColumns(cols);
         int id = getId();
         linkedIndex = new LinkedIndex(this, id, IndexColumn.wrap(cols),
@@ -344,8 +345,7 @@ public class TableLink extends Table {
                     "recognized columns of {1} total columns.", firstNull, list.size());
             list = list.subList(0, firstNull);
         }
-        Column[] cols = new Column[list.size()];
-        list.toArray(cols);
+        Column[] cols = list.toArray(new Column[0]);
         Index index = new LinkedIndex(this, 0, IndexColumn.wrap(cols), indexType);
         indexes.add(index);
     }
@@ -387,7 +387,7 @@ public class TableLink extends Table {
         if (readOnly) {
             buff.append(" READONLY");
         }
-        buff.append(" /*" + JdbcSQLException.HIDE_SQL + "*/");
+        buff.append(" /*").append(JdbcSQLException.HIDE_SQL).append("*/");
         return buff.toString();
     }
 

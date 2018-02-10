@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -142,7 +142,7 @@ class TableDefinition<T> {
      * @param columnNames the ordered list of column names
      */
     void setPrimaryKey(List<String> columnNames) {
-        primaryKeyColumnNames = New.arrayList(columnNames);
+        primaryKeyColumnNames = new ArrayList<>(columnNames);
         // set isPrimaryKey flag for all field definitions
         for (FieldDefinition fieldDefinition : fieldMap.values()) {
             fieldDefinition.isPrimaryKey = this.primaryKeyColumnNames
@@ -183,7 +183,7 @@ class TableDefinition<T> {
     void addIndex(IndexType type, List<String> columnNames) {
         IndexDefinition index = new IndexDefinition();
         index.indexName = tableName + "_" + indexes.size();
-        index.columnNames = New.arrayList(columnNames);
+        index.columnNames = new ArrayList<>(columnNames);
         index.type = type;
         indexes.add(index);
     }

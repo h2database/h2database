@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -197,7 +197,7 @@ public class OsgiDataSourceFactory implements DataSourceFactory {
         }
 
         // Setting URL
-        StringBuffer connectionUrl = new StringBuffer();
+        StringBuilder connectionUrl = new StringBuilder();
         if (p.containsKey(DataSourceFactory.JDBC_URL)) {
             // Use URL if specified
             connectionUrl.append(p.remove(DataSourceFactory.JDBC_URL));

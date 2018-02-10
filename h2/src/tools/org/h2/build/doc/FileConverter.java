@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,6 +8,7 @@ package org.h2.build.doc;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
 import org.h2.build.indexer.HtmlConverter;
@@ -52,10 +53,10 @@ public class FileConverter {
     private void convert() throws IOException {
         InputStream in = FileUtils.newInputStream(inFile);
         byte[] bytes = IOUtils.readBytesAndClose(in, -1);
-        String s = new String(bytes, "UTF-8");
+        String s = new String(bytes, StandardCharsets.UTF_8);
         String s2 = HtmlConverter.convertHtmlToString(s);
         String s3 = StringUtils.javaDecode(s2);
-        byte[] result = s3.getBytes("UTF-8");
+        byte[] result = s3.getBytes(StandardCharsets.UTF_8);
         OutputStream out = FileUtils.newOutputStream(outFile, false);
         out.write(result);
         out.close();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -19,6 +19,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
+
+import org.h2.engine.SysProperties;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.New;
@@ -39,6 +41,7 @@ public class TestScript extends TestBase {
     private boolean reconnectOften;
     private Connection conn;
     private Statement stat;
+    private String fileName;
     private LineNumberReader in;
     private int outputLineNo;
     private PrintStream out;
@@ -83,15 +86,21 @@ public class TestScript extends TestBase {
         testScript("query-optimisations.sql");
         testScript("commands-dml-script.sql");
         testScript("commands-dml-create-view.sql");
+        String decimal2;
+        if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
+            decimal2 = "decimal_decimal";
+        } else {
+            decimal2 = "decimal_numeric";
+        }
         for (String s : new String[] { "array", "bigint", "binary", "blob",
-                "boolean", "char", "clob", "date", "decimal", "double", "enum",
+                "boolean", "char", "clob", "date", "decimal", decimal2, "double", "enum",
                 "geometry", "identity", "int", "other", "real", "smallint",
                 "time", "timestamp-with-timezone", "timestamp", "tinyint",
                 "uuid", "varchar", "varchar-ignorecase" }) {
             testScript("datatypes/" + s + ".sql");
         }
         for (String s : new String[] { "avg", "bit-and", "bit-or", "count",
-                "group-concat", "max", "min", "selectivity", "stddev-pop",
+                "group-concat", "max", "median", "min", "selectivity", "stddev-pop",
                 "stddev-samp", "sum", "var-pop", "var-samp" }) {
             testScript("functions/aggregate/" + s + ".sql");
         }
@@ -133,6 +142,9 @@ public class TestScript extends TestBase {
                 "parsedatetime", "quarter", "second", "week", "year" }) {
             testScript("functions/timeanddate/" + s + ".sql");
         }
+        for (String s : new String[] { "insertIgnore", "mergeUsing", "with" }) {
+            testScript("dml/" + s + ".sql");
+        }
         deleteDb("script");
         System.out.flush();
     }
@@ -144,6 +156,7 @@ public class TestScript extends TestBase {
         // we processed.
         conn = null;
         stat = null;
+        fileName = null;
         in = null;
         outputLineNo = 0;
         out = null;
@@ -161,7 +174,7 @@ public class TestScript extends TestBase {
         conn.close();
         out.close();
         if (errors.length() > 0) {
-            throw new Exception("errors:\n" + errors.toString());
+            throw new Exception("errors in " + scriptFileName + " found");
         }
         // new File(outFile).delete();
     }
@@ -189,6 +202,7 @@ public class TestScript extends TestBase {
         if (is == null) {
             throw new IOException("could not find " + inFile);
         }
+        fileName = inFile;
         in = new LineNumberReader(new InputStreamReader(is, "Cp1252"));
         StringBuilder buff = new StringBuilder();
         while (true) {
@@ -202,7 +216,7 @@ public class TestScript extends TestBase {
                 // do nothing
             } else if (sql.endsWith(";")) {
                 write(sql);
-                buff.append(sql.substring(0, sql.length() - 1));
+                buff.append(sql, 0, sql.length() - 1);
                 sql = buff.toString();
                 buff = new StringBuilder();
                 process(sql);
@@ -424,17 +438,14 @@ public class TestScript extends TestBase {
                 if (reconnectOften && sql.toUpperCase().startsWith("EXPLAIN")) {
                     return;
                 }
-                errors.append("line: ");
-                errors.append(outputLineNo);
-                errors.append("\n" + "exp: ");
-                errors.append(compare);
-                errors.append("\n" + "got: ");
-                errors.append(s);
-                errors.append("\n");
+                errors.append(fileName).append('\n');
+                errors.append("line: ").append(outputLineNo).append('\n');
+                errors.append("exp: ").append(compare).append('\n');
+                errors.append("got: ").append(s).append('\n');
                 if (e != null) {
                     TestBase.logError("script", e);
                 }
-                TestBase.logError(errors.toString(), null);
+                TestBase.logErrorMessage(errors.toString());
                 if (failFast) {
                     conn.close();
                     System.exit(1);

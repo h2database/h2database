@@ -1,11 +1,11 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.result;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionInterface;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.value.Value;
@@ -180,7 +180,7 @@ public abstract class LazyResult implements ResultInterface {
     }
 
     @Override
-    public ResultInterface createShallowCopy(Session targetSession) {
+    public ResultInterface createShallowCopy(SessionInterface targetSession) {
         // Copying is impossible with lazy result.
         return null;
     }

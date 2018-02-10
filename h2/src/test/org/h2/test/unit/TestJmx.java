@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -17,7 +17,6 @@ import javax.management.MBeanOperationInfo;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import org.h2.test.TestBase;
-import org.h2.util.New;
 
 /**
  * Tests the JMX feature.
@@ -118,12 +117,12 @@ public class TestJmx extends TestBase {
 
         assertEquals(2, info.getOperations().length);
         assertContains(info.getDescription(), "database");
-        attrMap = New.hashMap();
+        attrMap = new HashMap<>();
         for (MBeanAttributeInfo a : info.getAttributes()) {
             attrMap.put(a.getName(), a);
         }
         assertContains(attrMap.get("CacheSize").getDescription(), "KB");
-        opMap = New.hashMap();
+        opMap = new HashMap<>();
         for (MBeanOperationInfo o : info.getOperations()) {
             opMap.put(o.getName(), o);
         }

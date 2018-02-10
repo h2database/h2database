@@ -1,9 +1,11 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.result;
+
+import java.util.Arrays;
 
 import org.h2.engine.Constants;
 import org.h2.store.Data;
@@ -35,8 +37,7 @@ public class RowImpl implements Row {
      */
     @Override
     public Row getCopy() {
-        Value[] d2 = new Value[data.length];
-        System.arraycopy(data, 0, d2, 0, data.length);
+        Value[] d2 = Arrays.copyOf(data, data.length);
         RowImpl r2 = new RowImpl(d2, memory);
         r2.key = key;
         r2.version = version + 1;
@@ -134,7 +135,7 @@ public class RowImpl implements Row {
         StatementBuilder buff = new StatementBuilder("( /* key:");
         buff.append(getKey());
         if (version != 0) {
-            buff.append(" v:" + version);
+            buff.append(" v:").append(version);
         }
         if (isDeleted()) {
             buff.append(" deleted");

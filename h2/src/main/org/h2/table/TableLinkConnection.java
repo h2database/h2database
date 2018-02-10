@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.Objects;
 import org.h2.message.DbException;
 import org.h2.util.JdbcUtils;
-import org.h2.util.StringUtils;
 
 /**
  * A connection for a linked table. The same connection may be used for multiple
@@ -105,10 +104,10 @@ public class TableLinkConnection {
     public boolean equals(Object o) {
         if (o instanceof TableLinkConnection) {
             TableLinkConnection other = (TableLinkConnection) o;
-            return StringUtils.equals(driver, other.driver)
-                    && StringUtils.equals(url, other.url)
-                    && StringUtils.equals(user, other.user)
-                    && StringUtils.equals(password, other.password);
+            return Objects.equals(driver, other.driver)
+                    && Objects.equals(url, other.url)
+                    && Objects.equals(user, other.user)
+                    && Objects.equals(password, other.password);
         }
         return false;
     }

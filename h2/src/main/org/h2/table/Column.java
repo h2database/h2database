@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -173,7 +173,7 @@ public class Column {
      */
     public Value convert(Value v, Mode mode) {
         try {
-            return v.convertTo(type, MathUtils.convertLongToInt(precision), mode, this);
+            return v.convertTo(type, MathUtils.convertLongToInt(precision), mode, this, getEnumerators());
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.DATA_CONVERSION_ERROR_1) {
                 String target = (table == null ? "" : table.getName() + ": ") +
@@ -362,7 +362,7 @@ public class Column {
                 v = checkConstraint.getValue(session);
             }
             // Both TRUE and NULL are ok
-            if (Boolean.FALSE.equals(v.getBoolean())) {
+            if (v != ValueNull.INSTANCE && !v.getBoolean()) {
                 throw DbException.get(
                         ErrorCode.CHECK_CONSTRAINT_VIOLATED_1,
                         checkConstraint.getSQL());
@@ -497,6 +497,7 @@ public class Column {
                     }
                 }
                 buff.append(')');
+                break;
             case Value.BYTES:
             case Value.STRING:
             case Value.STRING_IGNORECASE:

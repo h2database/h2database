@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -79,12 +79,7 @@ public class TestMvcc3 extends TestBase {
         s1.execute("create unique index on test(name)");
         s1.executeUpdate("update test set name = 100 where id = 1");
 
-        try {
-            s2.executeUpdate("update test set name = 100 where id = 2");
-            fail();
-        } catch (SQLException e) {
-            // expected
-        }
+        assertThrows(SQLException.class, s2).executeUpdate("update test set name = 100 where id = 2");
 
         ResultSet rs = s1.executeQuery("select * from test order by id");
         assertTrue(rs.next());
@@ -268,7 +263,3 @@ public class TestMvcc3 extends TestBase {
     }
 
 }
-
-
-
-

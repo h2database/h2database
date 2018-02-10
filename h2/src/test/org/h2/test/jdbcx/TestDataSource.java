@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -15,9 +15,12 @@ import javax.naming.StringRefAddr;
 import javax.naming.spi.ObjectFactory;
 import javax.sql.ConnectionEvent;
 import javax.sql.ConnectionEventListener;
+import javax.sql.DataSource;
 import javax.sql.XAConnection;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
+
+import org.h2.api.ErrorCode;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.jdbcx.JdbcDataSourceFactory;
 import org.h2.jdbcx.JdbcXAConnection;
@@ -71,6 +74,7 @@ public class TestDataSource extends TestBase {
         }
         testDataSourceFactory();
         testDataSource();
+        testUnwrap();
         testXAConnection();
         deleteDb("dataSource");
     }
@@ -188,6 +192,22 @@ public class TestDataSource extends TestBase {
         stat = conn.createStatement();
         stat.execute("SELECT * FROM DUAL");
         conn.close();
+    }
+
+    private void testUnwrap() throws SQLException {
+        JdbcDataSource ds = new JdbcDataSource();
+        assertTrue(ds.isWrapperFor(Object.class));
+        assertTrue(ds.isWrapperFor(DataSource.class));
+        assertTrue(ds.isWrapperFor(JdbcDataSource.class));
+        assertFalse(ds.isWrapperFor(String.class));
+        assertTrue(ds == ds.unwrap(Object.class));
+        assertTrue(ds == ds.unwrap(DataSource.class));
+        try {
+            ds.unwrap(String.class);
+            fail();
+        } catch (SQLException ex) {
+            assertEquals(ErrorCode.INVALID_VALUE_2, ex.getErrorCode());
+        }
     }
 
 }

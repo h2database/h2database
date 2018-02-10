@@ -1,11 +1,13 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -121,6 +123,7 @@ public class Session extends SessionWithState {
     private long modificationMetaID = -1;
     private SubQueryInfo subQueryInfo;
     private int parsingView;
+    private Deque<String> viewNameStack = new ArrayDeque<>();
     private int preparingQueryExpression;
     private volatile SmallLRUCache<Object, ViewIndex> viewIndexCache;
     private HashMap<Object, ViewIndex> subQueryIndexCache;
@@ -226,13 +229,35 @@ public class Session extends SessionWithState {
         return subQueryInfo;
     }
 
-    public void setParsingView(boolean parsingView) {
+    /**
+     * Stores name of currently parsed view in a stack so it can be determined
+     * during {@code prepare()}.
+     *
+     * @param parsingView
+     *            {@code true} to store one more name, {@code false} to remove it
+     *            from stack
+     * @param viewName
+     *            name of the view
+     */
+    public void setParsingCreateView(boolean parsingView, String viewName) {
         // It can be recursive, thus implemented as counter.
         this.parsingView += parsingView ? 1 : -1;
         assert this.parsingView >= 0;
+        if (parsingView) {
+            viewNameStack.push(viewName);
+        } else {
+            assert viewName.equals(viewNameStack.peek());
+            viewNameStack.pop();
+        }
+    }
+    public String getParsingCreateViewName() {
+        if (viewNameStack.size() == 0) {
+            return null;
+        }
+        return viewNameStack.peek();
     }
 
-    public boolean isParsingView() {
+    public boolean isParsingCreateView() {
         assert parsingView >= 0;
         return parsingView != 0;
     }
@@ -349,7 +374,7 @@ public class Session extends SessionWithState {
         if (localTempTables == null) {
             return New.arrayList();
         }
-        return New.arrayList(localTempTables.values());
+        return new ArrayList<>(localTempTables.values());
     }
 
     /**
@@ -402,7 +427,7 @@ public class Session extends SessionWithState {
 
     public HashMap<String, Index> getLocalTempTableIndexes() {
         if (localTempTableIndexes == null) {
-            return New.hashMap();
+            return new HashMap<>();
         }
         return localTempTableIndexes;
     }
@@ -460,7 +485,7 @@ public class Session extends SessionWithState {
      */
     public HashMap<String, Constraint> getLocalTempTableConstraints() {
         if (localTempTableConstraints == null) {
-            return New.hashMap();
+            return new HashMap<>();
         }
         return localTempTableConstraints;
     }
@@ -672,16 +697,18 @@ public class Session extends SessionWithState {
                 autoCommitAtTransactionEnd = false;
             }
         }
-        endTransaction();
 
         int rows = getDatabase().getSettings().analyzeSample / 10;
         if (tablesToAnalyze != null) {
             for (Table table : tablesToAnalyze) {
                 Analyze.analyzeTable(this, table, rows, false);
             }
-            database.unlockMeta(this); // analyze can lock the meta
+            // analyze can lock the meta
+            database.unlockMeta(this);
         }
         tablesToAnalyze = null;
+
+        endTransaction();
     }
 
     private void removeTemporaryLobs(boolean onTimeout) {
@@ -1311,7 +1338,7 @@ public class Session extends SessionWithState {
             DbException.throwInternalError(v.toString());
         }
         if (removeLobMap == null) {
-            removeLobMap = New.hashMap();
+            removeLobMap = new HashMap<>();
         }
         removeLobMap.put(v.toString(), v);
     }
@@ -1440,9 +1467,7 @@ public class Session extends SessionWithState {
                 break;
             }
         }
-        Table[] list = new Table[copy.size()];
-        copy.toArray(list);
-        return list;
+        return copy.toArray(new Table[0]);
     }
 
     /**
@@ -1486,7 +1511,7 @@ public class Session extends SessionWithState {
             // not grow too large for a single query (we drop the whole cache in
             // the end of prepareLocal)
             if (subQueryIndexCache == null) {
-                subQueryIndexCache = New.hashMap();
+                subQueryIndexCache = new HashMap<>();
             }
             return subQueryIndexCache;
         }
@@ -1509,7 +1534,7 @@ public class Session extends SessionWithState {
             return;
         }
         if (temporaryResults == null) {
-            temporaryResults = New.hashSet();
+            temporaryResults = new HashSet<>();
         }
         if (temporaryResults.size() < 100) {
             // reference at most 100 result sets to avoid memory problems
@@ -1715,7 +1740,7 @@ public class Session extends SessionWithState {
      */
     public void markTableForAnalyze(Table table) {
         if (tablesToAnalyze == null) {
-            tablesToAnalyze = New.hashSet();
+            tablesToAnalyze = new HashSet<>();
         }
         tablesToAnalyze.add(table);
     }

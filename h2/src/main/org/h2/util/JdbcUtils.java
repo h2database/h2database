@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -146,7 +146,7 @@ public class JdbcUtils {
             String s = SysProperties.ALLOWED_CLASSES;
             ArrayList<String> prefixes = New.arrayList();
             boolean allowAll = false;
-            HashSet<String> classNames = New.hashSet();
+            HashSet<String> classNames = new HashSet<>();
             for (String p : StringUtils.arraySplit(s, ',', true)) {
                 if (p.equals("*")) {
                     allowAll = true;
@@ -156,8 +156,7 @@ public class JdbcUtils {
                     classNames.add(p);
                 }
             }
-            allowedClassNamePrefixes = new String[prefixes.size()];
-            prefixes.toArray(allowedClassNamePrefixes);
+            allowedClassNamePrefixes = prefixes.toArray(new String[0]);
             allowAllClasses = allowAll;
             allowedClassNames = classNames;
         }

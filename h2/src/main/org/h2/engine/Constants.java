@@ -1,11 +1,10 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
 
-import java.nio.charset.Charset;
 import java.sql.ResultSet;
 
 /**
@@ -493,11 +492,6 @@ public class Constants {
      * The package name of user defined classes.
      */
     public static final String USER_PACKAGE = "org.h2.dynamic";
-
-    /**
-     * Name of the character encoding format.
-     */
-    public static final Charset UTF8 = Charset.forName("UTF-8");
 
     /**
      * The maximum time in milliseconds to keep the cost of a view.

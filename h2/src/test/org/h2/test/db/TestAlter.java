@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -52,6 +52,7 @@ public class TestAlter extends TestBase {
         testAlterTableAddMultipleColumnsAfter();
         testAlterTableModifyColumn();
         testAlterTableModifyColumnSetNull();
+        testAlterTableModifyColumnNotNullOracle();
         conn.close();
         deleteDb(getTestName());
     }
@@ -316,5 +317,17 @@ public class TestAlter extends TestBase {
         stat.execute("alter table T modify C null"); // Silently corrupted column C
         stat.execute("insert into T values(null)"); // <- Fixed in v1.4.196 - NULL is allowed
         stat.execute("drop table T");
+    }
+
+    private void testAlterTableModifyColumnNotNullOracle() throws SQLException {
+        stat.execute("create table foo (bar varchar(255))");
+        stat.execute("alter table foo modify (bar varchar(255) not null)");
+        try {
+            stat.execute("insert into foo values(null)");
+            fail("Null should not be allowed after modification.");
+        }
+        catch(SQLException e) {
+            // This is what we expect, fails to insert null.
+        }
     }
 }

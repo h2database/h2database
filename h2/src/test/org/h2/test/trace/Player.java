@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  */
 /*
@@ -26,7 +26,6 @@ import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.util.HashMap;
 import org.h2.store.fs.FileUtils;
-import org.h2.util.New;
 
 /**
  * This tool can re-run Java style log files. There is no size limit.
@@ -51,7 +50,7 @@ public class Player {
     private static final String[] IMPORTED_PACKAGES = {
         "", "java.lang.", "java.sql.", "javax.sql." };
     private boolean trace;
-    private final HashMap<String, Object> objects = New.hashMap();
+    private final HashMap<String, Object> objects = new HashMap<>();
 
     /**
      * Execute a trace file using the command line. The log file name to execute

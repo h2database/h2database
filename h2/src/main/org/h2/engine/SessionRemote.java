@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -335,8 +335,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         }
         // create the session using reflection,
         // so that the JDBC layer can be compiled without it
-        boolean autoServerMode = Boolean.parseBoolean(
-                ci.getProperty("AUTO_SERVER", "false"));
+        boolean autoServerMode = ci.getProperty("AUTO_SERVER", false);
         ConnectionInfo backup = null;
         try {
             if (autoServerMode) {
@@ -413,11 +412,9 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             serverList = StringUtils.quoteStringSQL(server);
             ci.setProperty("CLUSTER", Constants.CLUSTERING_ENABLED);
         }
-        autoReconnect = Boolean.parseBoolean(ci.getProperty(
-                "AUTO_RECONNECT", "false"));
+        autoReconnect = ci.getProperty("AUTO_RECONNECT", false);
         // AUTO_SERVER implies AUTO_RECONNECT
-        boolean autoServer = Boolean.parseBoolean(ci.getProperty(
-                "AUTO_SERVER", "false"));
+        boolean autoServer = ci.getProperty("AUTO_SERVER", false);
         if (autoServer && serverList != null) {
             throw DbException
                     .getUnsupportedException("autoServer && serverList != null");

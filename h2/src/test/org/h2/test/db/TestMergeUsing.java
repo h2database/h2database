@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -19,7 +19,9 @@ import org.h2.test.TestBase;
 public class TestMergeUsing extends TestBase implements Trigger {
 
     private static final String GATHER_ORDERED_RESULTS_SQL = "SELECT ID, NAME FROM PARENT ORDER BY ID ASC";
-    private static int triggerTestingUpdateCount = 0;
+    private static int triggerTestingUpdateCount;
+
+    private String triggerName;
 
     /**
      * Run just this test.
@@ -29,8 +31,6 @@ public class TestMergeUsing extends TestBase implements Trigger {
     public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
     }
-
-    private String triggerName;
 
     @Override
     public void test() throws Exception {
@@ -286,26 +286,21 @@ public class TestMergeUsing extends TestBase implements Trigger {
             String gatherResultsSQL, String expectedResultsSQL,
             int expectedRowUpdateCount) throws Exception {
         deleteDb("mergeUsingQueries");
-        Connection conn = getConnection("mergeUsingQueries");
-        Statement stat;
-        PreparedStatement prep;
-        ResultSet rs;
-        int rowCountUpdate;
 
-        try {
-            stat = conn.createStatement();
+        try (Connection conn = getConnection("mergeUsingQueries")) {
+            Statement stat = conn.createStatement();
             stat.execute(setupSQL);
 
-            prep = conn.prepareStatement(statementUnderTest);
-            rowCountUpdate = prep.executeUpdate();
+            PreparedStatement prep = conn.prepareStatement(statementUnderTest);
+            int rowCountUpdate = prep.executeUpdate();
 
             // compare actual results from SQL result set with expected results
             // - by diffing (aka set MINUS operation)
-            rs = stat.executeQuery("( " + gatherResultsSQL + " ) MINUS ( "
+            ResultSet rs = stat.executeQuery("( " + gatherResultsSQL + " ) MINUS ( "
                     + expectedResultsSQL + " )");
 
             int rowCount = 0;
-            StringBuffer diffBuffer = new StringBuffer("");
+            StringBuilder diffBuffer = new StringBuilder("");
             while (rs.next()) {
                 rowCount++;
                 diffBuffer.append("|");
@@ -319,7 +314,6 @@ public class TestMergeUsing extends TestBase implements Trigger {
             assertEquals("Expected update counts differ",
                     expectedRowUpdateCount, rowCountUpdate);
         } finally {
-            conn.close();
             deleteDb("mergeUsingQueries");
         }
     }
@@ -401,7 +395,7 @@ public class TestMergeUsing extends TestBase implements Trigger {
     }
 
     private String getCreateTriggerSQL() {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append("CREATE TRIGGER INS_BEFORE " + "BEFORE INSERT ON PARENT "
                 + "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";");
         buf.append("CREATE TRIGGER UPD_BEFORE " + "BEFORE UPDATE ON PARENT "

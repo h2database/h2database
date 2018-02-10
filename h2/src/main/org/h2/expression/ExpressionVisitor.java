@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,7 +11,6 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.New;
 
 /**
  * The visitor pattern is used to iterate through all expressions of a query
@@ -294,7 +293,7 @@ public class ExpressionVisitor {
      * @return the set of columns
      */
     public static HashSet<Column> allColumnsForTableFilters(TableFilter[] filters) {
-        HashSet<Column> allColumnsSet = New.hashSet();
+        HashSet<Column> allColumnsSet = new HashSet<>();
         for (int i = 0; i < filters.length; i++) {
             if (filters[i].getSelect() != null) {
                 filters[i].getSelect().isEverything(

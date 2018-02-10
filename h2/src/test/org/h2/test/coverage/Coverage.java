@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -500,7 +500,7 @@ public class Coverage {
 
     private void nextDebug() throws IOException {
         if (perFunction) {
-            int i = function.indexOf("(");
+            int i = function.indexOf('(');
             String func = i < 0 ? function : function.substring(0, i);
             String fileLine = file + "." + func + "(";
             i = file.lastIndexOf('.');

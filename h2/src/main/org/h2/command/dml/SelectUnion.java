@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -38,29 +38,40 @@ import org.h2.value.ValueNull;
  */
 public class SelectUnion extends Query {
 
-    /**
-     * The type of a UNION statement.
-     */
-    public static final int UNION = 0;
+    public enum UnionType {
+        /**
+         * The type of a UNION statement.
+         */
+        UNION,
+
+        /**
+         * The type of a UNION ALL statement.
+         */
+        UNION_ALL,
+
+        /**
+         * The type of an EXCEPT statement.
+         */
+        EXCEPT,
+
+        /**
+         * The type of an INTERSECT statement.
+         */
+        INTERSECT
+    }
+
+    private UnionType unionType;
 
     /**
-     * The type of a UNION ALL statement.
+     * The left hand side of the union (the first subquery).
      */
-    public static final int UNION_ALL = 1;
+    final Query left;
 
     /**
-     * The type of an EXCEPT statement.
+     * The right hand side of the union (the second subquery).
      */
-    public static final int EXCEPT = 2;
+    Query right;
 
-    /**
-     * The type of an INTERSECT statement.
-     */
-    public static final int INTERSECT = 3;
-
-    private int unionType;
-    private final Query left;
-    private Query right;
     private ArrayList<Expression> expressions;
     private Expression[] expressionArray;
     private ArrayList<SelectOrderBy> orderList;
@@ -84,11 +95,11 @@ public class SelectUnion extends Query {
         right.prepareJoinBatch();
     }
 
-    public void setUnionType(int type) {
+    public void setUnionType(UnionType type) {
         this.unionType = type;
     }
 
-    public int getUnionType() {
+    public UnionType getUnionType() {
         return unionType;
     }
 
@@ -169,7 +180,7 @@ public class SelectUnion extends Query {
             limitExpr = ValueExpression.get(ValueInt.get(l));
         }
         if (session.getDatabase().getSettings().optimizeInsertFromSelect) {
-            if (unionType == UNION_ALL && target != null) {
+            if (unionType == UnionType.UNION_ALL && target != null) {
                 if (sort == null && !distinct && maxRows == 0 &&
                         offsetExpr == null && limitExpr == null) {
                     left.query(0, target);
@@ -179,7 +190,7 @@ public class SelectUnion extends Query {
             }
         }
         int columnCount = left.getColumnCount();
-        if (session.isLazyQueryExecution() && unionType == UNION_ALL && !distinct &&
+        if (session.isLazyQueryExecution() && unionType == UnionType.UNION_ALL && !distinct &&
                 sort == null && !randomAccessResult && !isForUpdate &&
                 offsetExpr == null && isReadOnly()) {
             int limit = -1;
@@ -348,8 +359,7 @@ public class SelectUnion extends Query {
             sort = prepareOrder(orderList, expressions.size());
             orderList = null;
         }
-        expressionArray = new Expression[expressions.size()];
-        expressions.toArray(expressionArray);
+        expressionArray = expressions.toArray(new Expression[0]);
     }
 
     @Override
@@ -435,7 +445,7 @@ public class SelectUnion extends Query {
             DbException.throwInternalError("type=" + unionType);
         }
         buff.append('(').append(right.getPlanSQL()).append(')');
-        Expression[] exprList = expressions.toArray(new Expression[expressions.size()]);
+        Expression[] exprList = expressions.toArray(new Expression[0]);
         if (sort != null) {
             buff.append("\nORDER BY ").append(sort.getSQL(exprList, exprList.length));
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +25,6 @@ import org.h2.jaqu.Table.JQDatabase;
 import org.h2.jaqu.Table.JQTable;
 import org.h2.jaqu.util.WeakIdentityHashMap;
 import org.h2.util.JdbcUtils;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**
@@ -42,7 +42,7 @@ public class Db {
             .synchronizedMap(new WeakIdentityHashMap<Object, Token>());
 
     private final Connection conn;
-    private final Map<Class<?>, TableDefinition<?>> classMap = New.hashMap();
+    private final Map<Class<?>, TableDefinition<?>> classMap = new HashMap<>();
     private final SQLDialect dialect;
     private DbUpgrader dbUpgrader = new DefaultDbUpgrader();
     private final Set<Class<?>> upgradeChecked = Collections

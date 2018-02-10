@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -17,7 +17,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
 import org.h2.util.Tool;
 
 /**
@@ -155,7 +154,7 @@ public class CreateCluster extends Tool {
     }
 
     private static Future<?> startWriter(final PipedReader pipeReader,
-            final Statement statSource) throws SQLException, IOException {
+            final Statement statSource) {
         final ExecutorService thread = Executors.newFixedThreadPool(1);
 
         // Since exceptions cannot be thrown across thread boundaries, return

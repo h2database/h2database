@@ -1,11 +1,13 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.store;
 
 import java.io.OutputStream;
+import java.util.Arrays;
+
 import org.h2.engine.Constants;
 import org.h2.tools.CompressTool;
 
@@ -49,9 +51,7 @@ public class FileStoreOutputStream extends OutputStream {
             page.reset();
             if (compress != null) {
                 if (off != 0 || len != buff.length) {
-                    byte[] b2 = new byte[len];
-                    System.arraycopy(buff, off, b2, 0, len);
-                    buff = b2;
+                    buff = Arrays.copyOfRange(buff, off, off + len);
                     off = 0;
                 }
                 int uncompressed = len;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,6 +9,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -151,7 +152,7 @@ public class MathUtils {
                 // can't use writeUTF, as the string
                 // might be larger than 64 KB
                 out.writeInt(s.length());
-                out.write(s.getBytes("UTF-8"));
+                out.write(s.getBytes(StandardCharsets.UTF_8));
             } catch (Exception e) {
                 warn("generateAlternativeSeed", e);
             }
@@ -204,7 +205,7 @@ public class MathUtils {
      * @param s the message to print
      * @param t the stack trace
      */
-    private static void warn(String s, Throwable t) {
+    static void warn(String s, Throwable t) {
         // not a fatal problem, but maybe reduced security
         System.out.println("Warning: " + s);
         if (t != null) {
@@ -260,10 +261,7 @@ public class MathUtils {
      * @return the random long value
      */
     public static long secureRandomLong() {
-        SecureRandom sr = getSecureRandom();
-        synchronized (sr) {
-            return sr.nextLong();
-        }
+        return getSecureRandom().nextLong();
     }
 
     /**
@@ -286,10 +284,7 @@ public class MathUtils {
             len = 1;
         }
         byte[] buff = new byte[len];
-        SecureRandom sr = getSecureRandom();
-        synchronized (sr) {
-            sr.nextBytes(buff);
-        }
+        getSecureRandom().nextBytes(buff);
         return buff;
     }
 
@@ -312,10 +307,7 @@ public class MathUtils {
      * @return the random long value
      */
     public static int secureRandomInt(int lowerThan) {
-        SecureRandom sr = getSecureRandom();
-        synchronized (sr) {
-            return sr.nextInt(lowerThan);
-        }
+        return getSecureRandom().nextInt(lowerThan);
     }
 
 }

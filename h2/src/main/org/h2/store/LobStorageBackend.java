@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -89,7 +89,7 @@ public class LobStorageBackend implements LobStorageInterface {
     JdbcConnection conn;
     final Database database;
 
-    private final HashMap<String, PreparedStatement> prepared = New.hashMap();
+    private final HashMap<String, PreparedStatement> prepared = new HashMap<>();
     private long nextBlock;
     private final CompressTool compress = CompressTool.getInstance();
     private long[] hashBlocks;
@@ -368,8 +368,7 @@ public class LobStorageBackend implements LobStorageInterface {
                     // if we had a short read, trim the buffer
                     byte[] b;
                     if (len != buff.length) {
-                        b = new byte[len];
-                        System.arraycopy(buff, 0, b, 0, len);
+                        b = Arrays.copyOf(buff, len);
                     } else {
                         b = buff;
                     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -247,7 +247,7 @@ class Database {
             String key = (String) k;
             if (key.startsWith(databaseType + ".")) {
                 String pattern = key.substring(databaseType.length() + 1);
-                pattern = StringUtils.replaceAll(pattern, "_", " ");
+                pattern = pattern.replace('_', ' ');
                 pattern = StringUtils.toUpperEnglish(pattern);
                 String replacement = prop.getProperty(key);
                 replace.add(new String[]{pattern, replacement});
@@ -436,7 +436,7 @@ class Database {
      * @param prep the prepared statement
      */
     void queryReadResult(PreparedStatement prep) throws SQLException {
-        ResultSet rs = prep.executeQuery();
+        ResultSet rs = query(prep);
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();
         while (rs.next()) {

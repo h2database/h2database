@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -86,6 +86,7 @@ public abstract class Table extends SchemaObjectBase {
     private boolean checkForeignKeyConstraints = true;
     private boolean onCommitDrop, onCommitTruncate;
     private volatile Row nullRow;
+    private boolean tableExpression;
 
     public Table(Schema schema, int id, String name, boolean persistIndexes,
             boolean persistData) {
@@ -534,18 +535,15 @@ public abstract class Table extends SchemaObjectBase {
             database.removeSchemaObject(session, view);
         }
         while (synonyms != null && synonyms.size() > 0) {
-            TableSynonym synonym = synonyms.get(0);
-            synonyms.remove(0);
+            TableSynonym synonym = synonyms.remove(0);
             database.removeSchemaObject(session, synonym);
         }
         while (triggers != null && triggers.size() > 0) {
-            TriggerObject trigger = triggers.get(0);
-            triggers.remove(0);
+            TriggerObject trigger = triggers.remove(0);
             database.removeSchemaObject(session, trigger);
         }
         while (constraints != null && constraints.size() > 0) {
-            Constraint constraint = constraints.get(0);
-            constraints.remove(0);
+            Constraint constraint = constraints.remove(0);
             database.removeSchemaObject(session, constraint);
         }
         for (Right right : database.getAllRights()) {
@@ -557,8 +555,7 @@ public abstract class Table extends SchemaObjectBase {
         // must delete sequences later (in case there is a power failure
         // before removing the table object)
         while (sequences != null && sequences.size() > 0) {
-            Sequence sequence = sequences.get(0);
-            sequences.remove(0);
+            Sequence sequence = sequences.remove(0);
             // only remove if no other table depends on this sequence
             // this is possible when calling ALTER TABLE ALTER COLUMN
             if (database.getDependentTable(sequence, this) == null) {
@@ -579,7 +576,7 @@ public abstract class Table extends SchemaObjectBase {
      */
     public void dropMultipleColumnsConstraintsAndIndexes(Session session,
             ArrayList<Column> columnsToDrop) {
-        HashSet<Constraint> constraintsToDrop = New.hashSet();
+        HashSet<Constraint> constraintsToDrop = new HashSet<>();
         if (constraints != null) {
             for (Column col : columnsToDrop) {
                 for (int i = 0, size = constraints.size(); i < size; i++) {
@@ -597,7 +594,7 @@ public abstract class Table extends SchemaObjectBase {
                 }
             }
         }
-        HashSet<Index> indexesToDrop = New.hashSet();
+        HashSet<Index> indexesToDrop = new HashSet<>();
         ArrayList<Index> indexes = getIndexes();
         if (indexes != null) {
             for (Column col : columnsToDrop) {
@@ -836,7 +833,7 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
-     * Remove the given view from the list.
+     * Remove the given view from the dependent views list.
      *
      * @param view the view to remove
      */
@@ -1243,4 +1240,11 @@ public abstract class Table extends SchemaObjectBase {
         return false;
     }
 
+    public void setTableExpression(boolean tableExpression) {
+        this.tableExpression = tableExpression;
+    }
+
+    public boolean isTableExpression() {
+        return tableExpression;
+    }
 }

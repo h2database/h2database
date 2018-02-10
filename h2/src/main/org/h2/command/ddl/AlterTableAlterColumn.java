@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -215,7 +215,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         if (defaultExpression == null) {
             return;
         }
-        HashSet<DbObject> dependencies = New.hashSet();
+        HashSet<DbObject> dependencies = new HashSet<>();
         ExpressionVisitor visitor = ExpressionVisitor
                 .getDependenciesVisitor(dependencies);
         defaultExpression.isEverything(visitor);
@@ -319,7 +319,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 Column foundCol = null;
                 for (Iterator<Column> it = newColumns.iterator(); it.hasNext();) {
                     Column newCol = it.next();
-                    if (newCol.getName() == removeCol.getName()) {
+                    if (newCol.getName().equals(removeCol.getName())) {
                         foundCol = newCol;
                         break;
                     }
@@ -343,8 +343,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             }
         } else if (type == CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE) {
             int position = oldColumn.getColumnId();
-            newColumns.remove(position);
-            newColumns.add(position, newColumn);
+            newColumns.set(position, newColumn);
         }
 
         // create a table object in order to get the SQL statement

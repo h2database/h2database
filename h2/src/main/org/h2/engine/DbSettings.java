@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -349,6 +349,17 @@ public class DbSettings extends SettingsBase {
      * (default: false).<br />
      */
     public final boolean multiThreaded = get("MULTI_THREADED", false);
+
+    /**
+     * Database setting <code>STANDARD_DROP_TABLE_RESTRICT</code> (default:
+     * false).<br />
+     * <code>true</code> if DROP TABLE RESTRICT should fail if there's any
+     * foreign key referencing the table to be dropped. <code>false</code> if
+     * foreign keys referencing the table to be dropped should be silently
+     * dropped as well.
+     */
+    public final boolean standardDropTableRestrict = get(
+            "STANDARD_DROP_TABLE_RESTRICT", false);
 
     private DbSettings(HashMap<String, String> s) {
         super(s);

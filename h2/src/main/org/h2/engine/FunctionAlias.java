@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -168,8 +168,7 @@ public class FunctionAlias extends SchemaObjectBase {
                     ErrorCode.PUBLIC_STATIC_JAVA_METHOD_NOT_FOUND_1,
                     methodName + " (" + className + ")");
         }
-        javaMethods = new JavaMethod[list.size()];
-        list.toArray(javaMethods);
+        javaMethods = list.toArray(new JavaMethod[0]);
         // Sort elements. Methods with a variable number of arguments must be at
         // the end. Reason: there could be one method without parameters and one
         // with a variable number. The one without parameters needs to be used
@@ -303,29 +302,6 @@ public class FunctionAlias extends SchemaObjectBase {
     }
 
     /**
-     * Checks if the given method takes a variable number of arguments. For Java
-     * 1.4 and older, false is returned. Example:
-     * <pre>
-     * public static double mean(double... values)
-     * </pre>
-     *
-     * @param m the method to test
-     * @return true if the method takes a variable number of arguments.
-     */
-    static boolean isVarArgs(Method m) {
-        if ("1.5".compareTo(SysProperties.JAVA_SPECIFICATION_VERSION) > 0) {
-            return false;
-        }
-        try {
-            Method isVarArgs = m.getClass().getMethod("isVarArgs");
-            Boolean result = (Boolean) isVarArgs.invoke(m);
-            return result.booleanValue();
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    /**
      * Should the return value ResultSet be buffered in a local temporary file?
      *
      * @return true if yes
@@ -362,7 +338,7 @@ public class FunctionAlias extends SchemaObjectBase {
             }
             if (paramCount > 0) {
                 Class<?> lastArg = paramClasses[paramClasses.length - 1];
-                if (lastArg.isArray() && FunctionAlias.isVarArgs(method)) {
+                if (lastArg.isArray() && method.isVarArgs()) {
                     varArgs = true;
                     varArgClass = lastArg.getComponentType();
                 }

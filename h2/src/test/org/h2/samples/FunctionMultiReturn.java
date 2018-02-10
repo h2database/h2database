@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -127,7 +127,7 @@ public class FunctionMultiReturn {
     public static Object[] polar2CartesianArray(Double r, Double alpha) {
         double x = r.doubleValue() * Math.cos(alpha.doubleValue());
         double y = r.doubleValue() * Math.sin(alpha.doubleValue());
-        return new Object[]{new Double(x), new Double(y)};
+        return new Object[]{x, y};
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -14,6 +14,7 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -27,6 +28,7 @@ import org.h2.security.SHA256;
 import org.h2.store.Data;
 import org.h2.store.DataReader;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -57,6 +59,7 @@ public class Transfer {
      * Create a new transfer object for the specified session.
      *
      * @param session the session
+     * @param s the socket
      */
     public Transfer(SessionInterface session, Socket s) {
         this.session = session;
@@ -340,7 +343,7 @@ public class Transfer {
             break;
         }
         case Value.BOOLEAN:
-            writeBoolean(v.getBoolean().booleanValue());
+            writeBoolean(v.getBoolean());
             break;
         case Value.BYTE:
             writeByte(v.getByte());
@@ -662,7 +665,7 @@ public class Transfer {
                     throw DbException.get(
                             ErrorCode.CONNECTION_BROKEN_1, "magic=" + magic);
                 }
-                byte[] small = new String(buff).getBytes(Constants.UTF8);
+                byte[] small = new String(buff).getBytes(StandardCharsets.UTF_8);
                 return ValueLobDb.createSmallLob(Value.CLOB, small, length);
             }
             Value v = session.getDataHandler().getLobStorage().
@@ -789,7 +792,7 @@ public class Transfer {
             lobMacSalt = MathUtils.secureRandomBytes(LOB_MAC_SALT_LENGTH);
         }
         byte[] data = new byte[8];
-        Utils.writeLong(data, 0, lobId);
+        Bits.writeLong(data, 0, lobId);
         byte[] hmacData = SHA256.getHashWithSalt(data, lobMacSalt);
         return hmacData;
     }

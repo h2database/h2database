@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -15,7 +15,10 @@ import java.util.Comparator;
  */
 public class CharsetCollator extends Collator {
 
-    private static final Comparator<byte[]> COMPARATOR = new Comparator<byte[]>() {
+    /**
+     * The comparator used to compare byte arrays.
+     */
+    static final Comparator<byte[]> COMPARATOR = new Comparator<byte[]>() {
         @Override
         public int compare(byte[] b1, byte[] b2) {
             int minLength = Math.min(b1.length, b2.length);
@@ -43,7 +46,13 @@ public class CharsetCollator extends Collator {
         return COMPARATOR.compare(toBytes(source), toBytes(target));
     }
 
-    private byte[] toBytes(String source) {
+    /**
+     * Convert the source to bytes, using the character set.
+     *
+     * @param source the source
+     * @return the bytes
+     */
+    byte[] toBytes(String source) {
         return source.getBytes(charset);
     }
 

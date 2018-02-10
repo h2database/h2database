@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -13,6 +13,7 @@ import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ParameterMetaData;
@@ -296,7 +297,7 @@ public class WebApp {
                         space = " ";
                     }
                 }
-                ArrayList<String> list = New.arrayList(map.size());
+                ArrayList<String> list = new ArrayList<>(map.size());
                 for (Map.Entry<String, String> entry : map.entrySet()) {
                     String key = entry.getKey();
                     String value = entry.getValue();
@@ -313,9 +314,9 @@ public class WebApp {
                         value = space + value;
                     }
                     key = StringUtils.urlEncode(key);
-                    key = StringUtils.replaceAll(key, "+", " ");
+                    key = key.replace('+', ' ');
                     value = StringUtils.urlEncode(value);
-                    value = StringUtils.replaceAll(value, "+", " ");
+                    value = value.replace('+', ' ');
                     list.add(type + "#" + key + "#" + value);
                 }
                 Collections.sort(list);
@@ -350,12 +351,10 @@ public class WebApp {
             int port = Integer.decode((String) attributes.get("port"));
             prop.setProperty("webPort", String.valueOf(port));
             server.setPort(port);
-            boolean allowOthers = Boolean.parseBoolean(
-                    (String) attributes.get("allowOthers"));
+            boolean allowOthers = Utils.parseBoolean((String) attributes.get("allowOthers"), false, false);
             prop.setProperty("webAllowOthers", String.valueOf(allowOthers));
             server.setAllowOthers(allowOthers);
-            boolean ssl = Boolean.parseBoolean(
-                    (String) attributes.get("ssl"));
+            boolean ssl = Utils.parseBoolean((String) attributes.get("ssl"), false, false);
             prop.setProperty("webSSL", String.valueOf(ssl));
             server.setSSL(ssl);
             server.saveProperties(prop);
@@ -399,7 +398,7 @@ public class WebApp {
             try {
                 tool.runTool(argList);
                 out.flush();
-                String o = new String(outBuff.toByteArray(), Constants.UTF8);
+                String o = new String(outBuff.toByteArray(), StandardCharsets.UTF_8);
                 String result = PageParser.escapeHtml(o);
                 session.put("toolResult", result);
             } catch (Exception e) {
@@ -489,14 +488,16 @@ public class WebApp {
             columnsBuffer.append(column.getName());
             String col = escapeIdentifier(column.getName());
             String level = mainSchema ? ", 1, 1" : ", 2, 2";
-            buff.append("setNode(" + treeIndex + level + ", 'column', '" +
-                    PageParser.escapeJavaScript(column.getName()) +
-                    "', 'javascript:ins(\\'" + col + "\\')');\n");
+            buff.append("setNode(").append(treeIndex).append(level)
+                    .append(", 'column', '")
+                    .append(PageParser.escapeJavaScript(column.getName()))
+                    .append("', 'javascript:ins(\\'").append(col).append("\\')');\n");
             treeIndex++;
             if (mainSchema && showColumnTypes) {
-                buff.append("setNode(" + treeIndex + ", 2, 2, 'type', '" +
-                        PageParser.escapeJavaScript(column.getDataType()) +
-                        "', null);\n");
+                buff.append("setNode(").append(treeIndex)
+                        .append(", 2, 2, 'type', '")
+                        .append(PageParser.escapeJavaScript(column.getDataType()))
+                        .append("', null);\n");
                 treeIndex++;
             }
         }
@@ -539,7 +540,7 @@ public class WebApp {
             // SQLite
             return treeIndex;
         }
-        HashMap<String, IndexInfo> indexMap = New.hashMap();
+        HashMap<String, IndexInfo> indexMap = new HashMap<>();
         while (rs.next()) {
             String name = rs.getString("INDEX_NAME");
             IndexInfo info = indexMap.get(name);
@@ -573,21 +574,22 @@ public class WebApp {
             String level = mainSchema ? ", 1, 1" : ", 2, 1";
             String levelIndex = mainSchema ? ", 2, 1" : ", 3, 1";
             String levelColumnType = mainSchema ? ", 3, 2" : ", 4, 2";
-            buff.append("setNode(" + treeIndex + level +
-                    ", 'index_az', '${text.tree.indexes}', null);\n");
+            buff.append("setNode(").append(treeIndex).append(level)
+                    .append(", 'index_az', '${text.tree.indexes}', null);\n");
             treeIndex++;
             for (IndexInfo info : indexMap.values()) {
-                buff.append("setNode(" + treeIndex + levelIndex +
-                        ", 'index', '" +
-                        PageParser.escapeJavaScript(info.name) + "', null);\n");
+                buff.append("setNode(").append(treeIndex).append(levelIndex)
+                        .append(", 'index', '")
+                        .append(PageParser.escapeJavaScript(info.name))
+                        .append("', null);\n");
                 treeIndex++;
-                buff.append("setNode(" + treeIndex + levelColumnType +
-                        ", 'type', '" + info.type + "', null);\n");
+                buff.append("setNode(").append(treeIndex).append(levelColumnType)
+                        .append(", 'type', '").append(info.type).append("', null);\n");
                 treeIndex++;
-                buff.append("setNode(" + treeIndex + levelColumnType +
-                        ", 'type', '" +
-                        PageParser.escapeJavaScript(info.columns) +
-                        "', null);\n");
+                buff.append("setNode(").append(treeIndex).append(levelColumnType)
+                        .append(", 'type', '")
+                        .append(PageParser.escapeJavaScript(info.columns))
+                        .append("', null);\n");
                 treeIndex++;
             }
         }
@@ -621,9 +623,10 @@ public class WebApp {
                 tab = schema.quotedName + "." + tab;
             }
             tab = escapeIdentifier(tab);
-            buff.append("setNode(" + treeIndex + indentation + " 'table', '" +
-                    PageParser.escapeJavaScript(table.getName()) +
-                    "', 'javascript:ins(\\'" + tab + "\\',true)');\n");
+            buff.append("setNode(").append(treeIndex).append(indentation)
+                    .append(" 'table', '")
+                    .append(PageParser.escapeJavaScript(table.getName()))
+                    .append("', 'javascript:ins(\\'").append(tab).append("\\',true)');\n");
             treeIndex++;
             if (mainSchema || showColumns) {
                 StringBuilder columnsBuffer = new StringBuilder();
@@ -633,10 +636,10 @@ public class WebApp {
                     treeIndex = addIndexes(mainSchema, meta, table.getName(),
                             schema.name, buff, treeIndex);
                 }
-                buff.append("addTable('" +
-                        PageParser.escapeJavaScript(table.getName()) + "', '" +
-                        PageParser.escapeJavaScript(columnsBuffer.toString()) +
-                        "', " + tableId + ");\n");
+                buff.append("addTable('")
+                        .append(PageParser.escapeJavaScript(table.getName())).append("', '")
+                        .append(PageParser.escapeJavaScript(columnsBuffer.toString())).append("', ")
+                        .append(tableId).append(");\n");
             }
         }
         tables = schema.getTables();
@@ -650,9 +653,10 @@ public class WebApp {
                 tab = view.getSchema().quotedName + "." + tab;
             }
             tab = escapeIdentifier(tab);
-            buff.append("setNode(" + treeIndex + indentation + " 'view', '" +
-                    PageParser.escapeJavaScript(view.getName()) +
-                    "', 'javascript:ins(\\'" + tab + "\\',true)');\n");
+            buff.append("setNode(").append(treeIndex).append(indentation)
+                    .append(" 'view', '")
+                    .append(PageParser.escapeJavaScript(view.getName()))
+                    .append("', 'javascript:ins(\\'").append(tab).append("\\',true)');\n");
             treeIndex++;
             if (mainSchema) {
                 StringBuilder columnsBuffer = new StringBuilder();
@@ -666,19 +670,20 @@ public class WebApp {
                         ResultSet rs = prep.executeQuery();
                         if (rs.next()) {
                             String sql = rs.getString("SQL");
-                            buff.append("setNode(" + treeIndex + indentNode +
-                                    " 'type', '" +
-                                    PageParser.escapeJavaScript(sql) +
-                                    "', null);\n");
+                            buff.append("setNode(").append(treeIndex)
+                                    .append(indentNode)
+                                    .append(" 'type', '")
+                                    .append(PageParser.escapeJavaScript(sql))
+                                    .append("', null);\n");
                             treeIndex++;
                         }
                         rs.close();
                     }
                 }
-                buff.append("addTable('" +
-                        PageParser.escapeJavaScript(view.getName()) + "', '" +
-                        PageParser.escapeJavaScript(columnsBuffer.toString()) +
-                        "', " + tableId + ");\n");
+                buff.append("addTable('")
+                        .append(PageParser.escapeJavaScript(view.getName())).append("', '")
+                        .append(PageParser.escapeJavaScript(columnsBuffer.toString())).append("', ")
+                        .append(tableId).append(");\n");
             }
         }
         return treeIndex;
@@ -694,9 +699,10 @@ public class WebApp {
             session.loadBnf();
             isH2 = contents.isH2();
 
-            StringBuilder buff = new StringBuilder();
-            buff.append("setNode(0, 0, 0, 'database', '" + PageParser.escapeJavaScript(url)
-                    + "', null);\n");
+            StringBuilder buff = new StringBuilder()
+                    .append("setNode(0, 0, 0, 'database', '")
+                    .append(PageParser.escapeJavaScript(url))
+                    .append("', null);\n");
             int treeIndex = 1;
 
             DbSchema defaultSchema = contents.getDefaultSchema();
@@ -706,9 +712,9 @@ public class WebApp {
                 if (schema == defaultSchema || schema == null) {
                     continue;
                 }
-                buff.append("setNode(" + treeIndex + ", 0, 1, 'folder', '" +
-                        PageParser.escapeJavaScript(schema.name) +
-                        "', null);\n");
+                buff.append("setNode(").append(treeIndex).append(", 0, 1, 'folder', '")
+                        .append(PageParser.escapeJavaScript(schema.name))
+                        .append("', null);\n");
                 treeIndex++;
                 treeIndex = addTablesAndViews(schema, false, buff, treeIndex);
             }
@@ -718,29 +724,28 @@ public class WebApp {
                             "INFORMATION_SCHEMA.SEQUENCES ORDER BY SEQUENCE_NAME");
                     for (int i = 0; rs.next(); i++) {
                         if (i == 0) {
-                            buff.append("setNode(" + treeIndex +
-                                    ", 0, 1, 'sequences', '${text.tree.sequences}', null);\n");
+                            buff.append("setNode(").append(treeIndex)
+                                    .append(", 0, 1, 'sequences', '${text.tree.sequences}', null);\n");
                             treeIndex++;
                         }
                         String name = rs.getString("SEQUENCE_NAME");
                         String current = rs.getString("CURRENT_VALUE");
                         String increment = rs.getString("INCREMENT");
-                        buff.append("setNode(" + treeIndex +
-                                ", 1, 1, 'sequence', '" +
-                                PageParser.escapeJavaScript(name) +
-                                "', null);\n");
+                        buff.append("setNode(").append(treeIndex)
+                                .append(", 1, 1, 'sequence', '")
+                                .append(PageParser.escapeJavaScript(name))
+                                .append("', null);\n");
                         treeIndex++;
-                        buff.append("setNode(" + treeIndex +
-                                ", 2, 2, 'type', '${text.tree.current}: " +
-                                PageParser.escapeJavaScript(current) +
-                                "', null);\n");
+                        buff.append("setNode(").append(treeIndex)
+                                .append(", 2, 2, 'type', '${text.tree.current}: ")
+                                .append(PageParser.escapeJavaScript(current))
+                                .append("', null);\n");
                         treeIndex++;
                         if (!"1".equals(increment)) {
-                            buff.append("setNode(" +
-                                    treeIndex +
-                                    ", 2, 2, 'type', '${text.tree.increment}: " +
-                                    PageParser.escapeJavaScript(increment) +
-                                    "', null);\n");
+                            buff.append("setNode(").append(treeIndex)
+                                    .append(", 2, 2, 'type', '${text.tree.increment}: ")
+                                    .append(PageParser.escapeJavaScript(increment))
+                                    .append("', null);\n");
                             treeIndex++;
                         }
                     }
@@ -749,20 +754,20 @@ public class WebApp {
                             "INFORMATION_SCHEMA.USERS ORDER BY NAME");
                     for (int i = 0; rs.next(); i++) {
                         if (i == 0) {
-                            buff.append("setNode(" + treeIndex +
-                                    ", 0, 1, 'users', '${text.tree.users}', null);\n");
+                            buff.append("setNode(").append(treeIndex)
+                                    .append(", 0, 1, 'users', '${text.tree.users}', null);\n");
                             treeIndex++;
                         }
                         String name = rs.getString("NAME");
                         String admin = rs.getString("ADMIN");
-                        buff.append("setNode(" + treeIndex +
-                                ", 1, 1, 'user', '" +
-                                PageParser.escapeJavaScript(name) +
-                                "', null);\n");
+                        buff.append("setNode(").append(treeIndex)
+                                .append(", 1, 1, 'user', '")
+                                .append(PageParser.escapeJavaScript(name))
+                                .append("', null);\n");
                         treeIndex++;
                         if (admin.equalsIgnoreCase("TRUE")) {
-                            buff.append("setNode(" + treeIndex +
-                                    ", 2, 2, 'type', '${text.tree.admin}', null);\n");
+                            buff.append("setNode(").append(treeIndex)
+                                    .append(", 2, 2, 'type', '${text.tree.admin}', null);\n");
                             treeIndex++;
                         }
                     }
@@ -772,9 +777,11 @@ public class WebApp {
             DatabaseMetaData meta = session.getMetaData();
             String version = meta.getDatabaseProductName() + " " +
                     meta.getDatabaseProductVersion();
-            buff.append("setNode(" + treeIndex + ", 0, 0, 'info', '" +
-                    PageParser.escapeJavaScript(version) + "', null);\n");
-            buff.append("refreshQueryTables();");
+            buff.append("setNode(").append(treeIndex)
+                    .append(", 0, 0, 'info', '")
+                    .append(PageParser.escapeJavaScript(version))
+                    .append("', null);\n")
+                    .append("refreshQueryTables();");
             session.put("tree", buff.toString());
         } catch (Exception e) {
             session.put("tree", "");
@@ -908,7 +915,7 @@ public class WebApp {
                     PageParser.escapeHtml(profClose) +
                     "</span>";
             } else {
-                success = "${text.login.testSuccessful}";
+                success = "<div class=\"success\">${text.login.testSuccessful}</div>";
             }
             session.put("error", success);
             // session.put("error", "${text.login.testSuccessful}");
@@ -993,7 +1000,7 @@ public class WebApp {
             }
             final Connection conn = session.getConnection();
             if (SysProperties.CONSOLE_STREAM && server.getAllowChunked()) {
-                String page = new String(server.getFile("result.jsp"), Constants.UTF8);
+                String page = new String(server.getFile("result.jsp"), StandardCharsets.UTF_8);
                 int idx = page.indexOf("${result}");
                 // the first element of the list is the header, the last the
                 // footer
@@ -1099,7 +1106,7 @@ public class WebApp {
         if (isBuiltIn(sql, "@best_row_identifier")) {
             String[] p = split(sql);
             int scale = p[4] == null ? 0 : Integer.parseInt(p[4]);
-            boolean nullable = p[5] == null ? false : Boolean.parseBoolean(p[5]);
+            boolean nullable = Boolean.parseBoolean(p[5]);
             return meta.getBestRowIdentifier(p[1], p[2], p[3], scale, nullable);
         } else if (isBuiltIn(sql, "@catalogs")) {
             return meta.getCatalogs();
@@ -1120,8 +1127,8 @@ public class WebApp {
             return meta.getImportedKeys(p[1], p[2], p[3]);
         } else if (isBuiltIn(sql, "@index_info")) {
             String[] p = split(sql);
-            boolean unique = p[4] == null ? false : Boolean.parseBoolean(p[4]);
-            boolean approx = p[5] == null ? false : Boolean.parseBoolean(p[5]);
+            boolean unique = Boolean.parseBoolean(p[4]);
+            boolean approx = Boolean.parseBoolean(p[5]);
             return meta.getIndexInfo(p[1], p[2], p[3], unique, approx);
         } else if (isBuiltIn(sql, "@primary_keys")) {
             String[] p = split(sql);
@@ -1356,21 +1363,22 @@ public class WebApp {
                     int level = Integer.parseInt(s);
                     conn.setTransactionIsolation(level);
                 }
-                buff.append("Transaction Isolation: " +
-                        conn.getTransactionIsolation() + "<br />");
-                buff.append(Connection.TRANSACTION_READ_UNCOMMITTED +
-                        ": read_uncommitted<br />");
-                buff.append(Connection.TRANSACTION_READ_COMMITTED +
-                        ": read_committed<br />");
-                buff.append(Connection.TRANSACTION_REPEATABLE_READ +
-                        ": repeatable_read<br />");
-                buff.append(Connection.TRANSACTION_SERIALIZABLE +
-                        ": serializable");
+                buff.append("Transaction Isolation: ")
+                        .append(conn.getTransactionIsolation())
+                        .append("<br />");
+                buff.append(Connection.TRANSACTION_READ_UNCOMMITTED)
+                        .append(": read_uncommitted<br />");
+                buff.append(Connection.TRANSACTION_READ_COMMITTED)
+                        .append(": read_committed<br />");
+                buff.append(Connection.TRANSACTION_REPEATABLE_READ)
+                        .append(": repeatable_read<br />");
+                buff.append(Connection.TRANSACTION_SERIALIZABLE)
+                        .append(": serializable");
             }
             if (sql.startsWith("@")) {
                 rs = getMetaResultSet(conn, sql);
                 if (rs == null) {
-                    buff.append("?: " + sql);
+                    buff.append("?: ").append(sql);
                     return buff.toString();
                 }
             } else {
@@ -1384,7 +1392,8 @@ public class WebApp {
                     rs = stat.getGeneratedKeys();
                 } else {
                     if (!isResultSet) {
-                        buff.append("${text.result.updateCount}: " + stat.getUpdateCount());
+                        buff.append("${text.result.updateCount}: ")
+                                .append(stat.getUpdateCount());
                         time = System.currentTimeMillis() - time;
                         buff.append("<br />(").append(time).append(" ms)");
                         stat.close();
@@ -1664,10 +1673,11 @@ public class WebApp {
                                 "onmouseout = \"this.className ='icon'\" " +
                                 "class=\"icon\" alt=\"${text.resultEdit.edit}\" " +
                                 "title=\"${text.resultEdit.edit}\" border=\"1\"/>").
-                        append("<a href=\"editResult.do?op=2&row=").
+                        append("<img onclick=\"javascript:deleteRow(").
                         append(rs.getRow()).
-                        append("&jsessionid=${sessionId}\" target=\"h2result\" >" +
-                                "<img width=16 height=16 src=\"ico_remove.gif\" " +
+                        append(",'${sessionId}', '${text.resultEdit.delete}', " +
+                                "'${text.resultEdit.cancel}'").
+                        append(")\" width=16 height=16 src=\"ico_remove.gif\" " +
                                 "onmouseover = \"this.className ='icon_hover'\" " +
                                 "onmouseout = \"this.className ='icon'\" " +
                                 "class=\"icon\" alt=\"${text.resultEdit.delete}\" " +

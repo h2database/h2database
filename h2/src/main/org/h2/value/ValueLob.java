@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,8 +11,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+
 import org.h2.engine.Constants;
 import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
@@ -22,8 +24,9 @@ import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
 import org.h2.store.FileStoreOutputStream;
+import org.h2.store.RangeInputStream;
+import org.h2.store.RangeReader;
 import org.h2.store.fs.FileUtils;
-import org.h2.table.Column;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.SmallLRUCache;
@@ -46,6 +49,57 @@ import org.h2.util.Utils;
  * Data compression is supported.
  */
 public class ValueLob extends Value {
+
+    private static void rangeCheckUnknown(long zeroBasedOffset, long length) {
+        if (zeroBasedOffset < 0) {
+            throw DbException.getInvalidValueException("offset", zeroBasedOffset + 1);
+        }
+        if (length < 0) {
+            throw DbException.getInvalidValueException("length", length);
+        }
+    }
+
+    /**
+     * Create an input stream that is s subset of the given stream.
+     *
+     * @param inputStream the source input stream
+     * @param oneBasedOffset the offset (1 means no offset)
+     * @param length the length of the result, in bytes
+     * @param dataSize the length of the input, in bytes
+     * @return the smaller input stream
+     */
+    static InputStream rangeInputStream(InputStream inputStream, long oneBasedOffset, long length, long dataSize) {
+        if (dataSize > 0)
+            rangeCheck(oneBasedOffset - 1, length, dataSize);
+        else
+            rangeCheckUnknown(oneBasedOffset - 1, length);
+        try {
+            return new RangeInputStream(inputStream, oneBasedOffset - 1, length);
+        } catch (IOException e) {
+            throw DbException.getInvalidValueException("offset", oneBasedOffset);
+        }
+    }
+
+    /**
+     * Create a reader that is s subset of the given reader.
+     *
+     * @param reader the input reader
+     * @param oneBasedOffset the offset (1 means no offset)
+     * @param length the length of the result, in bytes
+     * @param dataSize the length of the input, in bytes
+     * @return the smaller input stream
+     */
+    static Reader rangeReader(Reader reader, long oneBasedOffset, long length, long dataSize) {
+        if (dataSize > 0)
+            rangeCheck(oneBasedOffset - 1, length, dataSize);
+        else
+            rangeCheckUnknown(oneBasedOffset - 1, length);
+        try {
+            return new RangeReader(reader, oneBasedOffset - 1, length);
+        } catch (IOException e) {
+            throw DbException.getInvalidValueException("offset", oneBasedOffset);
+        }
+    }
 
     /**
      * This counter is used to calculate the next directory to store lobs. It is
@@ -169,7 +223,7 @@ public class ValueLob extends Value {
         try {
             if (handler == null) {
                 String s = IOUtils.readStringAndClose(in, (int) length);
-                return createSmallLob(Value.CLOB, s.getBytes(Constants.UTF8));
+                return createSmallLob(Value.CLOB, s.getBytes(StandardCharsets.UTF_8));
             }
             boolean compress = handler.getLobCompressionAlgorithm(Value.CLOB) != null;
             long remaining = Long.MAX_VALUE;
@@ -187,7 +241,7 @@ public class ValueLob extends Value {
                 len = IOUtils.readFully(in, buff, len);
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
-                byte[] small = new String(buff, 0, len).getBytes(Constants.UTF8);
+                byte[] small = new String(buff, 0, len).getBytes(StandardCharsets.UTF_8);
                 return ValueLob.createSmallLob(Value.CLOB, small);
             }
             ValueLob lob = new ValueLob(Value.CLOB, null);
@@ -227,7 +281,7 @@ public class ValueLob extends Value {
             boolean compress = h.getLobCompressionAlgorithm(Value.CLOB) != null;
             while (true) {
                 precision += len;
-                byte[] b = new String(buff, 0, len).getBytes(Constants.UTF8);
+                byte[] b = new String(buff, 0, len).getBytes(StandardCharsets.UTF_8);
                 out.write(b, 0, b.length);
                 remaining -= len;
                 if (remaining <= 0) {
@@ -380,8 +434,7 @@ public class ValueLob extends Value {
                 len = IOUtils.readFully(in, buff, len);
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
-                byte[] small = DataUtils.newBytes(len);
-                System.arraycopy(buff, 0, small, 0, len);
+                byte[] small = DataUtils.copyBytes(buff, len);
                 return ValueLob.createSmallLob(Value.BLOB, small);
             }
             ValueLob lob = new ValueLob(Value.BLOB, null);
@@ -442,10 +495,17 @@ public class ValueLob extends Value {
      * except when converting to BLOB or CLOB.
      *
      * @param t the new type
+     * @param precision the precision of the column to convert this value to.
+     *        The special constant <code>-1</code> is used to indicate that
+     *        the precision plays no role when converting the value
+     * @param mode the database mode
+     * @param column the column (if any), used for to improve the error message if conversion fails
+     * @param enumerators the ENUM datatype enumerators (if any),
+     *        for dealing with ENUM conversions
      * @return the converted value
      */
     @Override
-    public Value convertTo(int t, int precision, Mode mode, Column column) {
+    public Value convertTo(int t, int precision, Mode mode, Object column, String[] enumerators) {
         if (t == type) {
             return this;
         } else if (t == Value.CLOB) {
@@ -455,7 +515,7 @@ public class ValueLob extends Value {
             ValueLob copy = ValueLob.createBlob(getInputStream(), -1, handler);
             return copy;
         }
-        return super.convertTo(t, precision, mode, column);
+        return super.convertTo(t, precision, mode, column, null);
     }
 
     @Override
@@ -549,7 +609,7 @@ public class ValueLob extends Value {
         try {
             if (type == Value.CLOB) {
                 if (small != null) {
-                    return new String(small, Constants.UTF8);
+                    return new String(small, StandardCharsets.UTF_8);
                 }
                 return IOUtils.readStringAndClose(getReader(), len);
             }
@@ -632,6 +692,11 @@ public class ValueLob extends Value {
     }
 
     @Override
+    public Reader getReader(long oneBasedOffset, long length) {
+        return rangeReader(getReader(), oneBasedOffset, length, type == Value.CLOB ? precision : -1);
+    }
+
+    @Override
     public InputStream getInputStream() {
         if (fileName == null) {
             return new ByteArrayInputStream(small);
@@ -641,6 +706,19 @@ public class ValueLob extends Value {
         return new BufferedInputStream(
                 new FileStoreInputStream(store, handler, compressed, alwaysClose),
                 Constants.IO_BUFFER_SIZE);
+    }
+
+    @Override
+    public InputStream getInputStream(long oneBasedOffset, long length) {
+        if (fileName == null) {
+            return super.getInputStream(oneBasedOffset, length);
+        }
+        FileStore store = handler.openFile(fileName, "r", true);
+        boolean alwaysClose = SysProperties.lobCloseBetweenReads;
+        InputStream inputStream = new BufferedInputStream(
+                new FileStoreInputStream(store, handler, compressed, alwaysClose),
+                Constants.IO_BUFFER_SIZE);
+        return rangeInputStream(inputStream, oneBasedOffset, length, store.length());
     }
 
     @Override

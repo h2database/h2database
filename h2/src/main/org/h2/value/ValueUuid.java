@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,7 +11,7 @@ import java.util.UUID;
 
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
-import org.h2.util.Utils;
+import org.h2.util.Bits;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 
@@ -68,8 +68,8 @@ public class ValueUuid extends Value {
         if (binary.length < 16) {
             return get(StringUtils.convertBytesToHex(binary));
         }
-        long high = Utils.readLong(binary, 0);
-        long low = Utils.readLong(binary, 8);
+        long high = Bits.readLong(binary, 0);
+        long low = Bits.readLong(binary, 8);
         return (ValueUuid) Value.cache(new ValueUuid(high, low));
     }
 
@@ -82,6 +82,16 @@ public class ValueUuid extends Value {
      */
     public static ValueUuid get(long high, long low) {
         return (ValueUuid) Value.cache(new ValueUuid(high, low));
+    }
+
+    /**
+     * Get or create a UUID for the given Java UUID.
+     *
+     * @param uuid Java UUID
+     * @return the UUID
+     */
+    public static ValueUuid get(UUID uuid) {
+        return get(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
     }
 
     /**
@@ -176,12 +186,7 @@ public class ValueUuid extends Value {
 
     @Override
     public byte[] getBytes() {
-        byte[] buff = new byte[16];
-        for (int i = 0; i < 8; i++) {
-            buff[i] = (byte) ((high >> (8 * (7 - i))) & 255);
-            buff[8 + i] = (byte) ((low >> (8 * (7 - i))) & 255);
-        }
-        return buff;
+        return Bits.uuidToBytes(high, low);
     }
 
     @Override

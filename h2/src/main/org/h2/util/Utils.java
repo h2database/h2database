@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -17,7 +17,6 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -46,50 +45,10 @@ public class Utils {
     private static final int MAX_GC = 8;
     private static long lastGC;
 
-    private static final HashMap<String, byte[]> RESOURCES = New.hashMap();
+    private static final HashMap<String, byte[]> RESOURCES = new HashMap<>();
 
     private Utils() {
         // utility class
-    }
-
-    private static int readInt(byte[] buff, int pos) {
-        return (buff[pos++] << 24) +
-                ((buff[pos++] & 0xff) << 16) +
-                ((buff[pos++] & 0xff) << 8) +
-                (buff[pos] & 0xff);
-    }
-
-    /**
-     * Write a long value to the byte array at the given position. The most
-     * significant byte is written first.
-     *
-     * @param buff the byte array
-     * @param pos the position
-     * @param x the value to write
-     */
-    public static void writeLong(byte[] buff, int pos, long x) {
-        writeInt(buff, pos, (int) (x >> 32));
-        writeInt(buff, pos + 4, (int) x);
-    }
-
-    private static void writeInt(byte[] buff, int pos, int x) {
-        buff[pos++] = (byte) (x >> 24);
-        buff[pos++] = (byte) (x >> 16);
-        buff[pos++] = (byte) (x >> 8);
-        buff[pos]   = (byte) x;
-    }
-
-    /**
-     * Read a long value from the byte array at the given position. The most
-     * significant byte is read first.
-     *
-     * @param buff the byte array
-     * @param pos the position
-     * @return the value
-     */
-    public static long readLong(byte[] buff, int pos) {
-        return (((long) readInt(buff, pos)) << 32) +
-                (readInt(buff, pos + 4) & 0xffffffffL);
     }
 
     /**
@@ -265,9 +224,7 @@ public class Utils {
         if (len == 0) {
             return EMPTY_BYTES;
         }
-        byte[] copy = new byte[len];
-        System.arraycopy(b, 0, copy, 0, len);
-        return copy;
+        return Arrays.copyOf(b, len);
     }
 
     /**
@@ -686,6 +643,58 @@ public class Utils {
     }
 
     /**
+     * Parses the specified string to boolean value.
+     *
+     * @param value
+     *            string to parse
+     * @param defaultValue
+     *            value to return if value is null or on parsing error
+     * @param throwException
+     *            throw exception on parsing error or return default value instead
+     * @return parsed or default value
+     * @throws IllegalArgumentException
+     *             on parsing error if {@code throwException} is true
+     */
+    public static boolean parseBoolean(String value, boolean defaultValue, boolean throwException) {
+        if (value == null) {
+            return defaultValue;
+        }
+        switch (value.length()) {
+        case 1:
+            if (value.equals("1") || value.equalsIgnoreCase("t") || value.equalsIgnoreCase("y")) {
+                return true;
+            }
+            if (value.equals("0") || value.equalsIgnoreCase("f") || value.equalsIgnoreCase("n")) {
+                return false;
+            }
+            break;
+        case 2:
+            if (value.equalsIgnoreCase("no")) {
+                return false;
+            }
+            break;
+        case 3:
+            if (value.equalsIgnoreCase("yes")) {
+                return true;
+            }
+            break;
+        case 4:
+            if (value.equalsIgnoreCase("true")) {
+                return true;
+            }
+            break;
+        case 5:
+            if (value.equalsIgnoreCase("false")) {
+                return false;
+            }
+        }
+        if (throwException) {
+            throw new IllegalArgumentException(value);
+        }
+        return defaultValue;
+    }
+
+    /**
      * Get the system property. If the system property is not set, or if a
      * security exception occurs, the default value is returned.
      *
@@ -730,29 +739,7 @@ public class Utils {
      * @return the value
      */
     public static boolean getProperty(String key, boolean defaultValue) {
-        String s = getProperty(key, null);
-        if (s != null) {
-            try {
-                return Boolean.parseBoolean(s);
-            } catch (NumberFormatException e) {
-                // ignore
-            }
-        }
-        return defaultValue;
-    }
-
-    public static int getConfigParam(Map<String,?> config, String key, int defaultValue) {
-        Object o = config.get(key);
-        if (o instanceof Number) {
-            return ((Number) o).intValue();
-        } else if (o != null) {
-            try {
-                return Integer.decode(o.toString());
-            } catch (NumberFormatException e) {
-                // ignore
-            }
-        }
-        return defaultValue;
+        return parseBoolean(getProperty(key, null), defaultValue, false);
     }
 
     /**

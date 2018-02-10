@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -22,7 +22,6 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
@@ -40,94 +39,101 @@ import org.h2.value.ValueString;
  */
 public class Aggregate extends Expression {
 
-    /**
-     * The aggregate type for COUNT(*).
-     */
-    public static final int COUNT_ALL = 0;
+    public enum AggregateType {
+        /**
+         * The aggregate type for COUNT(*).
+         */
+        COUNT_ALL,
 
-    /**
-     * The aggregate type for COUNT(expression).
-     */
-    public static final int COUNT = 1;
+        /**
+         * The aggregate type for COUNT(expression).
+         */
+        COUNT,
 
-    /**
-     * The aggregate type for GROUP_CONCAT(...).
-     */
-    public static final int GROUP_CONCAT = 2;
+        /**
+         * The aggregate type for GROUP_CONCAT(...).
+         */
+        GROUP_CONCAT,
 
-    /**
-     * The aggregate type for SUM(expression).
-     */
-    static final int SUM = 3;
+        /**
+         * The aggregate type for SUM(expression).
+         */
+        SUM,
 
-    /**
-     * The aggregate type for MIN(expression).
-     */
-    static final int MIN = 4;
+        /**
+         * The aggregate type for MIN(expression).
+         */
+        MIN,
 
-    /**
-     * The aggregate type for MAX(expression).
-     */
-    static final int MAX = 5;
+        /**
+         * The aggregate type for MAX(expression).
+         */
+        MAX,
 
-    /**
-     * The aggregate type for AVG(expression).
-     */
-    static final int AVG = 6;
+        /**
+         * The aggregate type for AVG(expression).
+         */
+        AVG,
 
-    /**
-     * The aggregate type for STDDEV_POP(expression).
-     */
-    static final int STDDEV_POP = 7;
+        /**
+         * The aggregate type for STDDEV_POP(expression).
+         */
+        STDDEV_POP,
 
-    /**
-     * The aggregate type for STDDEV_SAMP(expression).
-     */
-    static final int STDDEV_SAMP = 8;
+        /**
+         * The aggregate type for STDDEV_SAMP(expression).
+         */
+        STDDEV_SAMP,
 
-    /**
-     * The aggregate type for VAR_POP(expression).
-     */
-    static final int VAR_POP = 9;
+        /**
+         * The aggregate type for VAR_POP(expression).
+         */
+        VAR_POP,
 
-    /**
-     * The aggregate type for VAR_SAMP(expression).
-     */
-    static final int VAR_SAMP = 10;
+        /**
+         * The aggregate type for VAR_SAMP(expression).
+         */
+        VAR_SAMP,
 
-    /**
-     * The aggregate type for BOOL_OR(expression).
-     */
-    static final int BOOL_OR = 11;
+        /**
+         * The aggregate type for BOOL_OR(expression).
+         */
+        BOOL_OR,
 
-    /**
-     * The aggregate type for BOOL_AND(expression).
-     */
-    static final int BOOL_AND = 12;
+        /**
+         * The aggregate type for BOOL_AND(expression).
+         */
+        BOOL_AND,
 
-    /**
-     * The aggregate type for BOOL_OR(expression).
-     */
-    static final int BIT_OR = 13;
+        /**
+         * The aggregate type for BOOL_OR(expression).
+         */
+        BIT_OR,
 
-    /**
-     * The aggregate type for BOOL_AND(expression).
-     */
-    static final int BIT_AND = 14;
+        /**
+         * The aggregate type for BOOL_AND(expression).
+         */
+        BIT_AND,
 
-    /**
-     * The aggregate type for SELECTIVITY(expression).
-     */
-    static final int SELECTIVITY = 15;
+        /**
+         * The aggregate type for SELECTIVITY(expression).
+         */
+        SELECTIVITY,
 
-    /**
-     * The aggregate type for HISTOGRAM(expression).
-     */
-    static final int HISTOGRAM = 16;
+        /**
+         * The aggregate type for HISTOGRAM(expression).
+         */
+        HISTOGRAM,
 
-    private static final HashMap<String, Integer> AGGREGATES = New.hashMap();
+        /**
+         * The aggregate type for MEDIAN(expression).
+         */
+        MEDIAN
+    }
 
-    private final int type;
+    private static final HashMap<String, AggregateType> AGGREGATES = new HashMap<>(25);
+
+    private final AggregateType type;
     private final Select select;
     private final boolean distinct;
 
@@ -148,7 +154,7 @@ public class Aggregate extends Expression {
      * @param select the select statement
      * @param distinct if distinct is used
      */
-    public Aggregate(int type, Expression on, Select select, boolean distinct) {
+    public Aggregate(AggregateType type, Expression on, Select select, boolean distinct) {
         this.type = type;
         this.on = on;
         this.select = select;
@@ -156,36 +162,40 @@ public class Aggregate extends Expression {
     }
 
     static {
-        addAggregate("COUNT", COUNT);
-        addAggregate("SUM", SUM);
-        addAggregate("MIN", MIN);
-        addAggregate("MAX", MAX);
-        addAggregate("AVG", AVG);
-        addAggregate("GROUP_CONCAT", GROUP_CONCAT);
+        /*
+         * Update initial size of AGGREGATES after editing the following list.
+         */
+        addAggregate("COUNT", AggregateType.COUNT);
+        addAggregate("SUM", AggregateType.SUM);
+        addAggregate("MIN", AggregateType.MIN);
+        addAggregate("MAX", AggregateType.MAX);
+        addAggregate("AVG", AggregateType.AVG);
+        addAggregate("GROUP_CONCAT", AggregateType.GROUP_CONCAT);
         // PostgreSQL compatibility: string_agg(expression, delimiter)
-        addAggregate("STRING_AGG", GROUP_CONCAT);
-        addAggregate("STDDEV_SAMP", STDDEV_SAMP);
-        addAggregate("STDDEV", STDDEV_SAMP);
-        addAggregate("STDDEV_POP", STDDEV_POP);
-        addAggregate("STDDEVP", STDDEV_POP);
-        addAggregate("VAR_POP", VAR_POP);
-        addAggregate("VARP", VAR_POP);
-        addAggregate("VAR_SAMP", VAR_SAMP);
-        addAggregate("VAR", VAR_SAMP);
-        addAggregate("VARIANCE", VAR_SAMP);
-        addAggregate("BOOL_OR", BOOL_OR);
+        addAggregate("STRING_AGG", AggregateType.GROUP_CONCAT);
+        addAggregate("STDDEV_SAMP", AggregateType.STDDEV_SAMP);
+        addAggregate("STDDEV", AggregateType.STDDEV_SAMP);
+        addAggregate("STDDEV_POP", AggregateType.STDDEV_POP);
+        addAggregate("STDDEVP", AggregateType.STDDEV_POP);
+        addAggregate("VAR_POP", AggregateType.VAR_POP);
+        addAggregate("VARP", AggregateType.VAR_POP);
+        addAggregate("VAR_SAMP", AggregateType.VAR_SAMP);
+        addAggregate("VAR", AggregateType.VAR_SAMP);
+        addAggregate("VARIANCE", AggregateType.VAR_SAMP);
+        addAggregate("BOOL_OR", AggregateType.BOOL_OR);
         // HSQLDB compatibility, but conflicts with x > EVERY(...)
-        addAggregate("SOME", BOOL_OR);
-        addAggregate("BOOL_AND", BOOL_AND);
+        addAggregate("SOME", AggregateType.BOOL_OR);
+        addAggregate("BOOL_AND", AggregateType.BOOL_AND);
         // HSQLDB compatibility, but conflicts with x > SOME(...)
-        addAggregate("EVERY", BOOL_AND);
-        addAggregate("SELECTIVITY", SELECTIVITY);
-        addAggregate("HISTOGRAM", HISTOGRAM);
-        addAggregate("BIT_OR", BIT_OR);
-        addAggregate("BIT_AND", BIT_AND);
+        addAggregate("EVERY", AggregateType.BOOL_AND);
+        addAggregate("SELECTIVITY", AggregateType.SELECTIVITY);
+        addAggregate("HISTOGRAM", AggregateType.HISTOGRAM);
+        addAggregate("BIT_OR", AggregateType.BIT_OR);
+        addAggregate("BIT_AND", AggregateType.BIT_AND);
+        addAggregate("MEDIAN", AggregateType.MEDIAN);
     }
 
-    private static void addAggregate(String name, int type) {
+    private static void addAggregate(String name, AggregateType type) {
         AGGREGATES.put(name, type);
     }
 
@@ -194,11 +204,10 @@ public class Aggregate extends Expression {
      * found.
      *
      * @param name the aggregate function name
-     * @return -1 if no aggregate function has been found, or the aggregate type
+     * @return null if no aggregate function has been found, or the aggregate type
      */
-    public static int getAggregateType(String name) {
-        Integer type = AGGREGATES.get(name);
-        return type == null ? -1 : type.intValue();
+    public static AggregateType getAggregateType(String name) {
+        return AGGREGATES.get(name);
     }
 
     /**
@@ -257,7 +266,7 @@ public class Aggregate extends Expression {
             group.put(this, data);
         }
         Value v = on == null ? null : on.getValue(session);
-        if (type == GROUP_CONCAT) {
+        if (type == AggregateType.GROUP_CONCAT) {
             if (v != ValueNull.INSTANCE) {
                 v = v.convertTo(Value.STRING);
                 if (groupConcatOrderList != null) {
@@ -284,8 +293,8 @@ public class Aggregate extends Expression {
                 Table table = select.getTopTableFilter().getTable();
                 return ValueLong.get(table.getRowCount(session));
             case MIN:
-            case MAX:
-                boolean first = type == MIN;
+            case MAX: {
+                boolean first = type == AggregateType.MIN;
                 Index index = getMinMaxColumnIndex();
                 int sortType = index.getIndexColumns()[0].sortType;
                 if ((sortType & SortOrder.DESCENDING) != 0) {
@@ -300,6 +309,10 @@ public class Aggregate extends Expression {
                     v = row.getValue(index.getColumns()[0].getColumnId());
                 }
                 return v;
+            }
+            case MEDIAN: {
+                return AggregateDataMedian.getResultFromIndex(session, on, dataType);
+            }
             default:
                 DbException.throwInternalError("type=" + type);
             }
@@ -313,7 +326,7 @@ public class Aggregate extends Expression {
             data = AggregateData.create(type);
         }
         Value v = data.getValue(session.getDatabase(), dataType, distinct);
-        if (type == GROUP_CONCAT) {
+        if (type == AggregateType.GROUP_CONCAT) {
             ArrayList<Value> list = ((AggregateDataGroupConcat) data).getList();
             if (list == null || list.size() == 0) {
                 return ValueNull.INSTANCE;
@@ -431,6 +444,7 @@ public class Aggregate extends Expression {
             break;
         case MIN:
         case MAX:
+        case MEDIAN:
             break;
         case STDDEV_POP:
         case STDDEV_SAMP:
@@ -565,6 +579,9 @@ public class Aggregate extends Expression {
         case BIT_OR:
             text = "BIT_OR";
             break;
+        case MEDIAN:
+            text = "MEDIAN";
+            break;
         default:
             throw DbException.throwInternalError("type=" + type);
         }
@@ -603,6 +620,11 @@ public class Aggregate extends Expression {
             case MAX:
                 Index index = getMinMaxColumnIndex();
                 return index != null;
+            case MEDIAN:
+                if (distinct) {
+                    return false;
+                }
+                return AggregateDataMedian.getMedianColumnIndex(on) != null;
             default:
                 return false;
             }

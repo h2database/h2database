@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -58,10 +58,10 @@ public class SysProperties {
 
     /**
      * System property <code>java.specification.version</code>.<br />
-     * It is set by the system. Examples: 1.4, 1.5, 1.6.
+     * It is set by the system. Examples: 0.9 (on Android), 1.7, 1.8, 9, 10.
      */
     public static final String JAVA_SPECIFICATION_VERSION =
-            Utils.getProperty("java.specification.version", "1.4");
+            Utils.getProperty("java.specification.version", "1.7");
 
     /**
      * System property <code>line.separator</code> (default: \n).<br />
@@ -344,7 +344,58 @@ public class SysProperties {
      */
     public static final boolean OLD_STYLE_OUTER_JOIN =
             Utils.getProperty("h2.oldStyleOuterJoin",
-                    Constants.VERSION_MINOR >= 4 ? false : true);
+                    Constants.VERSION_MINOR < 4);
+
+    /**
+     * System property {@code h2.oldResultSetGetObject}, {@code true} by default.
+     * Return {@code Byte} and {@code Short} instead of {@code Integer} from
+     * {@code ResultSet#getObject(...)} for {@code TINYINT} and {@code SMALLINT}
+     * values.
+     */
+    public static final boolean OLD_RESULT_SET_GET_OBJECT =
+            Utils.getProperty("h2.oldResultSetGetObject", true);
+
+    /**
+     * System property {@code h2.bigDecimalIsDecimal}, {@code true} by default. If
+     * {@code true} map {@code BigDecimal} to {@code DECIMAL} type, if {@code false}
+     * map it to {@code NUMERIC} as specified in JDBC specification (see Mapping
+     * from Java Object Types to JDBC Types).
+     */
+    public static final boolean BIG_DECIMAL_IS_DECIMAL =
+            Utils.getProperty("h2.bigDecimalIsDecimal", true);
+
+
+    /**
+     * System property {@code h2.unlimitedTimeRange}, {@code false} by default.
+     *
+     * <p>
+     * Controls limits of TIME data type.
+     * </p>
+     *
+     * <table>
+     * <thead>
+     * <tr>
+     * <th>h2.unlimitedTimeRange</th>
+     * <th>Minimum TIME value</th>
+     * <th>Maximum TIME value</th>
+     * </tr>
+     * </thead>
+     * <tbody>
+     * <tr>
+     * <td>false</td>
+     * <td>00:00:00.000000000</td>
+     * <td>23:59:59.999999999</td>
+     * </tr>
+     * <tr>
+     * <td>true</td>
+     * <td>-2562047:47:16.854775808</td>
+     * <td>2562047:47:16.854775807</td>
+     * </tr>
+     * </tbody>
+     * </table>
+     */
+    public static final boolean UNLIMITED_TIME_RANGE =
+            Utils.getProperty("h2.unlimitedTimeRange", false);
 
     /**
      * System property <code>h2.pgClientEncoding</code> (default: UTF-8).<br />
@@ -401,7 +452,7 @@ public class SysProperties {
      */
     public static final boolean SORT_BINARY_UNSIGNED =
             Utils.getProperty("h2.sortBinaryUnsigned",
-                    Constants.VERSION_MINOR >= 4 ? true : false);
+                    Constants.VERSION_MINOR >= 4);
 
     /**
      * System property <code>h2.sortNullsHigh</code> (default: false).<br />
@@ -455,7 +506,7 @@ public class SysProperties {
      */
     public static final boolean IMPLICIT_RELATIVE_PATH =
             Utils.getProperty("h2.implicitRelativePath",
-                    Constants.VERSION_MINOR >= 4 ? false : true);
+                    Constants.VERSION_MINOR < 4);
 
     /**
      * System property <code>h2.urlMap</code> (default: null).<br />

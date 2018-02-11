@@ -62,6 +62,7 @@ public class TestGetGeneratedKeys extends TestBase {
         Connection conn = getConnection("getGeneratedKeys");
         testBatchAndMergeInto(conn);
         testCalledSequenses(conn);
+        testNameCase(conn);
 
         testPrepareStatement_Execute(conn);
         testPrepareStatement_ExecuteBatch(conn);
@@ -226,6 +227,58 @@ public class TestGetGeneratedKeys extends TestBase {
         assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
         stat.execute("DROP SEQUENCE SEQ");
+    }
+
+    /**
+     * Test method for case of letters in column names.
+     *
+     * @param conn
+     *            connection
+     * @throws Exception
+     *             on exception
+     */
+    private void testNameCase(Connection conn) throws Exception {
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
+                + "\"id\" UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL)");
+        // Test columns with only difference in case
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)",
+                new String[] { "id", "ID" });
+        prep.executeUpdate();
+        ResultSet rs = prep.getGeneratedKeys();
+        assertEquals(2, rs.getMetaData().getColumnCount());
+        assertEquals("id", rs.getMetaData().getColumnName(1));
+        assertEquals("ID", rs.getMetaData().getColumnName(2));
+        assertTrue(rs.next());
+        assertEquals(UUID.class, rs.getObject(1).getClass());
+        assertEquals(1L, rs.getLong(2));
+        assertFalse(rs.next());
+        rs.close();
+        // Test lower case name of upper case column
+        stat.execute("ALTER TABLE TEST DROP COLUMN \"id\"");
+        prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (20)",
+                new String[] { "id" });
+        prep.executeUpdate();
+        rs = prep.getGeneratedKeys();
+        assertEquals(1, rs.getMetaData().getColumnCount());
+        assertEquals("ID", rs.getMetaData().getColumnName(1));
+        assertTrue(rs.next());
+        assertEquals(2L, rs.getLong(1));
+        assertFalse(rs.next());
+        rs.close();
+        // Test upper case name of lower case column
+        stat.execute("ALTER TABLE TEST ALTER COLUMN ID RENAME TO \"id\"");
+        prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (30)",
+                new String[] { "ID" });
+        prep.executeUpdate();
+        rs = prep.getGeneratedKeys();
+        assertEquals(1, rs.getMetaData().getColumnCount());
+        assertEquals("id", rs.getMetaData().getColumnName(1));
+        assertTrue(rs.next());
+        assertEquals(3L, rs.getLong(1));
+        assertFalse(rs.next());
+        rs.close();
+        stat.execute("DROP TABLE TEST");
     }
 
     /**

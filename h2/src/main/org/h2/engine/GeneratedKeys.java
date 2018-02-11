@@ -10,13 +10,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
+import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 
 /**
@@ -135,13 +135,13 @@ public final class GeneratedKeys {
                 int[] indices = (int[]) generatedKeysRequest;
                 Column[] columns = table.getColumns();
                 int cnt = columns.length;
-                this.allColumns.clear();
+                allColumns.clear();
                 for (int idx : indices) {
                     if (idx >= 1 && idx <= cnt) {
                         Column column = columns[idx - 1];
                         rs.addColumn(column.getName(), DataType.convertTypeToSQLType(column.getType()),
                                 MathUtils.convertLongToInt(column.getPrecision()), column.getScale());
-                        this.allColumns.add(column);
+                        allColumns.add(column);
                     }
                 }
             } else {
@@ -150,15 +150,28 @@ public final class GeneratedKeys {
         } else if (generatedKeysRequest instanceof String[]) {
             if (table != null) {
                 String[] names = (String[]) generatedKeysRequest;
-                this.allColumns.clear();
+                allColumns.clear();
                 for (String name : names) {
-                    try {
-                        Column column = table.getColumn(name);
-                        rs.addColumn(column.getName(), DataType.convertTypeToSQLType(column.getType()),
-                                MathUtils.convertLongToInt(column.getPrecision()), column.getScale());
-                        this.allColumns.add(column);
-                    } catch (DbException e) {
+                    Column column;
+                    search: if (table.doesColumnExist(name)) {
+                        column = table.getColumn(name);
+                    } else {
+                        name = StringUtils.toUpperEnglish(name);
+                        if (table.doesColumnExist(name)) {
+                            column = table.getColumn(name);
+                        } else {
+                            for (Column c : table.getColumns()) {
+                                if (c.getName().equalsIgnoreCase(name)) {
+                                    column = c;
+                                    break search;
+                                }
+                            }
+                            continue;
+                        }
                     }
+                    rs.addColumn(column.getName(), DataType.convertTypeToSQLType(column.getType()),
+                            MathUtils.convertLongToInt(column.getPrecision()), column.getScale());
+                    allColumns.add(column);
                 }
             } else {
                 return rs;

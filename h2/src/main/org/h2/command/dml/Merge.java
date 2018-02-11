@@ -84,7 +84,7 @@ public class Merge extends Prepared {
         session.getUser().checkRight(targetTable, Right.INSERT);
         session.getUser().checkRight(targetTable, Right.UPDATE);
         setCurrentRowNumber(0);
-        if (valuesExpressionList.size() > 0) {
+        if (!valuesExpressionList.isEmpty()) {
             // process values in list
             count = 0;
             for (int x = 0, size = valuesExpressionList.size(); x < size; x++) {
@@ -221,7 +221,7 @@ public class Merge extends Prepared {
             buff.append(')');
         }
         buff.append('\n');
-        if (valuesExpressionList.size() > 0) {
+        if (!valuesExpressionList.isEmpty()) {
             buff.append("VALUES ");
             int row = 0;
             for (Expression[] expr : valuesExpressionList) {
@@ -249,14 +249,14 @@ public class Merge extends Prepared {
     @Override
     public void prepare() {
         if (columns == null) {
-            if (valuesExpressionList.size() > 0 && valuesExpressionList.get(0).length == 0) {
+            if (!valuesExpressionList.isEmpty() && valuesExpressionList.get(0).length == 0) {
                 // special case where table is used as a sequence
                 columns = new Column[0];
             } else {
                 columns = targetTable.getColumns();
             }
         }
-        if (valuesExpressionList.size() > 0) {
+        if (!valuesExpressionList.isEmpty()) {
             for (Expression[] expr : valuesExpressionList) {
                 if (expr.length != columns.length) {
                     throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);

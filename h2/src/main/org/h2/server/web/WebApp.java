@@ -1869,7 +1869,7 @@ public class WebApp {
         String setting = attributes.getProperty("name", "");
         server.removeSetting(setting);
         ArrayList<ConnectionInfo> settings = server.getSettings();
-        if (settings.size() > 0) {
+        if (!settings.isEmpty()) {
             attributes.put("setting", settings.get(0));
         }
         server.saveProperties(null);

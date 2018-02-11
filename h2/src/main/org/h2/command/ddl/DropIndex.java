@@ -57,7 +57,7 @@ public class DropIndex extends SchemaCommand {
                 Constraint cons = constraints.get(i);
                 if (cons.usesIndex(index)) {
                     // can drop primary key index (for compatibility)
-                    if (Constraint.PRIMARY_KEY.equals(cons.getConstraintType())) {
+                    if (Constraint.Type.PRIMARY_KEY == cons.getConstraintType()) {
                         pkConstraint = cons;
                     } else {
                         throw DbException.get(

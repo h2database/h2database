@@ -119,7 +119,7 @@ public class CreateTable extends SchemaCommand {
         }
         if (asQuery != null) {
             asQuery.prepare();
-            if (data.columns.size() == 0) {
+            if (data.columns.isEmpty()) {
                 generateColumnsFromQuery();
             } else if (data.columns.size() != asQuery.getColumnCount()) {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);

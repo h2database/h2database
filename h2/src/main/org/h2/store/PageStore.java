@@ -1407,7 +1407,7 @@ public class PageStore implements CacheWriter {
         isEmpty &= log.recover(PageLog.RECOVERY_STAGE_REDO);
         boolean setReadOnly = false;
         if (!database.isReadOnly()) {
-            if (log.getInDoubtTransactions().size() == 0) {
+            if (log.getInDoubtTransactions().isEmpty()) {
                 log.recoverEnd();
                 int firstUncommittedSection = getFirstUncommittedSection();
                 log.removeUntil(firstUncommittedSection);

@@ -98,7 +98,7 @@ public class PageParser {
                             result.append("?items?");
                             list = New.arrayList();
                         }
-                        if (list.size() == 0) {
+                        if (list.isEmpty()) {
                             parseBlockUntil("</c:forEach>");
                         }
                         for (Object o : list) {

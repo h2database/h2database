@@ -1326,7 +1326,7 @@ public class Function extends Expression implements FunctionCall {
                 if (s2 == null) {
                     s2 = "";
                 }
-                result = ValueString.get(replace(s0, s1, s2),
+                result = ValueString.get(StringUtils.replaceAll(s0, s1, s2),
                         database.getMode().treatEmptyStringsAsNull);
             }
             break;
@@ -1471,7 +1471,7 @@ public class Function extends Expression implements FunctionCall {
                     v1 == null ? null : v1.getString()));
             break;
         case ADD_MONTHS:
-            result = ValueTimestamp.get(DateTimeUtils.addMonths(v0.getTimestamp(), v1.getInt()));
+            result = dateadd("MONTH", v1.getInt(), v0);
             break;
         case TRANSLATE: {
             String matching = v1.getString();
@@ -1978,13 +1978,6 @@ public class Function extends Expression implements FunctionCall {
             length = len - start;
         }
         return s.substring(start, start + length);
-    }
-
-    private static String replace(String s, String replace, String with) {
-        if (s == null || replace == null || with == null) {
-            return null;
-        }
-        return StringUtils.replaceAll(s, replace, with);
     }
 
     private static String repeat(String s, int count) {

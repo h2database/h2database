@@ -197,7 +197,7 @@ public class TableFilter implements ColumnResolver {
         if (select != null) {
             sortOrder = select.getSortOrder();
         }
-        if (indexConditions.size() == 0) {
+        if (indexConditions.isEmpty()) {
             item1 = new PlanItem();
             item1.setIndex(table.getScanIndex(s, null, filters, filter,
                     sortOrder, allColumnsSet));
@@ -854,7 +854,7 @@ public class TableFilter implements ColumnResolver {
                 }
             }
             planBuff.append(index.getPlanSQL());
-            if (indexConditions.size() > 0) {
+            if (!indexConditions.isEmpty()) {
                 planBuff.append(": ");
                 for (IndexCondition condition : indexConditions) {
                     planBuff.appendExceptFirst("\n    AND ");

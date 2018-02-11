@@ -50,8 +50,8 @@ public class ConstraintReferential extends Constraint {
     }
 
     @Override
-    public String getConstraintType() {
-        return Constraint.REFERENTIAL;
+    public Type getConstraintType() {
+        return Constraint.Type.REFERENTIAL;
     }
 
     private static void appendAction(StatementBuilder buff, ConstraintActionType action) {

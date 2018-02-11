@@ -467,7 +467,7 @@ public class MVTable extends TableBase {
             if (constraints != null) {
                 for (int i = 0, size = constraints.size(); i < size; i++) {
                     Constraint c = constraints.get(i);
-                    if (!(c.getConstraintType().equals(Constraint.REFERENTIAL))) {
+                    if (c.getConstraintType() != Constraint.Type.REFERENTIAL) {
                         continue;
                     }
                     ConstraintReferential ref = (ConstraintReferential) c;
@@ -610,7 +610,7 @@ public class MVTable extends TableBase {
             remaining--;
         }
         sortRows(buffer, index);
-        if (bufferNames.size() > 0) {
+        if (!bufferNames.isEmpty()) {
             String mapName = store.nextTemporaryMapName();
             index.addRowsToBuffer(buffer, mapName);
             bufferNames.add(mapName);

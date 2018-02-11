@@ -380,9 +380,7 @@ public final class MVStore {
     }
 
     private void panic(IllegalStateException e) {
-        if (backgroundExceptionHandler != null) {
-            backgroundExceptionHandler.uncaughtException(null, e);
-        }
+        handleException(e);
         panicException = e;
         closeImmediately();
         throw e;
@@ -862,10 +860,8 @@ public final class MVStore {
     public void closeImmediately() {
         try {
             closeStore(false);
-        } catch (Exception e) {
-            if (backgroundExceptionHandler != null) {
-                backgroundExceptionHandler.uncaughtException(null, e);
-            }
+        } catch (Throwable e) {
+            handleException(e);
         }
     }
 
@@ -2468,11 +2464,9 @@ public final class MVStore {
         if (hasUnsavedChanges()) {
             try {
                 commitAndSave();
-            } catch (Exception e) {
-                if (backgroundExceptionHandler != null) {
-                    backgroundExceptionHandler.uncaughtException(null, e);
-                    return;
-                }
+            } catch (Throwable e) {
+                handleException(e);
+                return;
             }
         }
         if (autoCompactFillRate > 0) {
@@ -2492,10 +2486,18 @@ public final class MVStore {
                 // in the bookkeeping?
                 compact(fillRate, autoCommitMemory);
                 autoCompactLastFileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();
-            } catch (Exception e) {
-                if (backgroundExceptionHandler != null) {
-                    backgroundExceptionHandler.uncaughtException(null, e);
-                }
+            } catch (Throwable e) {
+                handleException(e);
+            }
+        }
+    }
+
+    private void handleException(Throwable ex) {
+        if (backgroundExceptionHandler != null) {
+            try {
+                backgroundExceptionHandler.uncaughtException(null, ex);
+            } catch(Throwable ignore) {
+                ex.addSuppressed(ignore);
             }
         }
     }

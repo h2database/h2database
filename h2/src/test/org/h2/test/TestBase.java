@@ -79,6 +79,8 @@ public abstract class TestBase {
 
     private final LinkedList<byte[]> memory = new LinkedList<>();
 
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+
     /**
      * Get the test directory for this test.
      *
@@ -545,7 +547,6 @@ public abstract class TestBase {
      * @param s the message
      */
     static synchronized void printlnWithTime(long millis, String s) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
         s = dateFormat.format(new java.util.Date()) + " " +
                 formatTime(millis) + " " + s;
         System.out.println(s);
@@ -1470,6 +1471,12 @@ public abstract class TestBase {
      */
     protected void freeMemory() {
         memory.clear();
+        for (int i = 0; i < 5; i++) {
+            System.gc();
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException ignore) {/**/}
+        }
     }
 
     /**

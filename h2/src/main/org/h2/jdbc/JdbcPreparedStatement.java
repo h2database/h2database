@@ -248,7 +248,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             } finally {
                 afterWriting();
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }

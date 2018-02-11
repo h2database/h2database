@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 import org.h2.api.ErrorCode;
+import org.h2.message.DbException;
 import org.h2.mvstore.MVStore;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FilePathMem;
@@ -142,7 +143,7 @@ public class TestOutOfMemory extends TestBase {
     }
 
     private void testUpdateWhenNearlyOutOfMemory() throws SQLException, InterruptedException {
-        if (config.memory || config.mvcc || config.mvStore) {
+        if (config.memory) {
             return;
         }
         for (int i = 0; i < 5; i++) {
@@ -161,8 +162,26 @@ public class TestOutOfMemory extends TestBase {
         stat.execute("checkpoint");
         eatMemory(80);
         try {
-            assertThrows(ErrorCode.OUT_OF_MEMORY, prep).execute();
-            assertThrows(ErrorCode.DATABASE_IS_CLOSED, conn).close();
+            try {
+                prep.execute();
+                fail();
+            } catch(DbException ex) {
+                freeMemory();
+                assertEquals(ErrorCode.OUT_OF_MEMORY, ex.getErrorCode());
+            } catch (SQLException ex) {
+                freeMemory();
+                assertEquals(ErrorCode.OUT_OF_MEMORY, ex.getErrorCode());
+            }
+            try {
+                conn.close();
+                fail();
+            } catch(DbException ex) {
+                freeMemory();
+                assertEquals(ErrorCode.DATABASE_IS_CLOSED, ex.getErrorCode());
+            } catch (SQLException ex) {
+                freeMemory();
+                assertEquals(ErrorCode.DATABASE_IS_CLOSED, ex.getErrorCode());
+            }
             freeMemory();
             conn = null;
             conn = getConnection("outOfMemory");

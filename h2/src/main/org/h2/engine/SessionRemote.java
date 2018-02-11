@@ -482,7 +482,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     public void removeServer(IOException e, int i, int count) {
         trace.debug(e, "removing server because of exception");
         transferList.remove(i);
-        if (transferList.size() == 0 && autoReconnect(count)) {
+        if (transferList.isEmpty() && autoReconnect(count)) {
             return;
         }
         checkClosed();
@@ -653,7 +653,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
 
     @Override
     public boolean isClosed() {
-        return transferList == null || transferList.size() == 0;
+        return transferList == null || transferList.isEmpty();
     }
 
     /**

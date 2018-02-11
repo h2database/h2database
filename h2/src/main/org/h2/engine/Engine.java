@@ -63,7 +63,7 @@ public class Engine implements SessionFactory {
             }
             database = new Database(ci, cipher);
             opened = true;
-            if (database.getAllUsers().size() == 0) {
+            if (database.getAllUsers().isEmpty()) {
                 // users is the last thing we add, so if no user is around,
                 // the database is new (or not initialized correctly)
                 user = new User(database, database.allocateObjectId(),

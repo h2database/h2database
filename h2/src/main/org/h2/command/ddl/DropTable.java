@@ -77,7 +77,7 @@ public class DropTable extends SchemaCommand {
             if (dropAction == ConstraintActionType.RESTRICT) {
                 StatementBuilder buff = new StatementBuilder();
                 CopyOnWriteArrayList<TableView> dependentViews = table.getDependentViews();
-                if (dependentViews != null && dependentViews.size() > 0) {
+                if (dependentViews != null && !dependentViews.isEmpty()) {
                     for (TableView v : dependentViews) {
                         buff.appendExceptFirst(", ");
                         buff.append(v.getName());
@@ -86,7 +86,7 @@ public class DropTable extends SchemaCommand {
                 if (session.getDatabase()
                         .getSettings().standardDropTableRestrict) {
                     final List<Constraint> constraints = table.getConstraints();
-                    if (constraints != null && constraints.size() > 0) {
+                    if (constraints != null && !constraints.isEmpty()) {
                         for (Constraint c : constraints) {
                             if (c.getTable() != table) {
                                 buff.appendExceptFirst(", ");

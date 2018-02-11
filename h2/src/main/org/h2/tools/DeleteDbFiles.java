@@ -84,7 +84,7 @@ public class DeleteDbFiles extends Tool {
      */
     private void process(String dir, String db, boolean quiet) {
         ArrayList<String> files = FileLister.getDatabaseFiles(dir, db, true);
-        if (files.size() == 0 && !quiet) {
+        if (files.isEmpty() && !quiet) {
             printNoDatabaseFilesFound(dir, db);
         }
         for (String fileName : files) {

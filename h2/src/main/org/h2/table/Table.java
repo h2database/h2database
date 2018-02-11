@@ -529,20 +529,20 @@ public abstract class Table extends SchemaObjectBase {
 
     @Override
     public void removeChildrenAndResources(Session session) {
-        while (dependentViews.size() > 0) {
+        while (!dependentViews.isEmpty()) {
             TableView view = dependentViews.get(0);
             dependentViews.remove(0);
             database.removeSchemaObject(session, view);
         }
-        while (synonyms != null && synonyms.size() > 0) {
+        while (synonyms != null && !synonyms.isEmpty()) {
             TableSynonym synonym = synonyms.remove(0);
             database.removeSchemaObject(session, synonym);
         }
-        while (triggers != null && triggers.size() > 0) {
+        while (triggers != null && !triggers.isEmpty()) {
             TriggerObject trigger = triggers.remove(0);
             database.removeSchemaObject(session, trigger);
         }
-        while (constraints != null && constraints.size() > 0) {
+        while (constraints != null && !constraints.isEmpty()) {
             Constraint constraint = constraints.remove(0);
             database.removeSchemaObject(session, constraint);
         }
@@ -554,7 +554,7 @@ public abstract class Table extends SchemaObjectBase {
         database.removeMeta(session, getId());
         // must delete sequences later (in case there is a power failure
         // before removing the table object)
-        while (sequences != null && sequences.size() > 0) {
+        while (sequences != null && !sequences.isEmpty()) {
             Sequence sequence = sequences.remove(0);
             // only remove if no other table depends on this sequence
             // this is possible when calling ALTER TABLE ALTER COLUMN
@@ -975,8 +975,8 @@ public abstract class Table extends SchemaObjectBase {
      *  @return if there are any triggers or rows defined
      */
     public boolean fireRow() {
-        return (constraints != null && constraints.size() > 0) ||
-                (triggers != null && triggers.size() > 0);
+        return (constraints != null && !constraints.isEmpty()) ||
+                (triggers != null && !triggers.isEmpty());
     }
 
     /**

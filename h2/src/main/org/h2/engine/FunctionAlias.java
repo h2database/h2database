@@ -163,7 +163,7 @@ public class FunctionAlias extends SchemaObjectBase {
                 list.add(javaMethod);
             }
         }
-        if (list.size() == 0) {
+        if (list.isEmpty()) {
             throw DbException.get(
                     ErrorCode.PUBLIC_STATIC_JAVA_METHOD_NOT_FOUND_1,
                     methodName + " (" + className + ")");

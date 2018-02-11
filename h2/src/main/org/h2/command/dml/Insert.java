@@ -243,7 +243,7 @@ public class Insert extends Prepared implements ResultTarget {
         if (sortedInsertMode) {
             buff.append("SORTED ");
         }
-        if (list.size() > 0) {
+        if (!list.isEmpty()) {
             buff.append("VALUES ");
             int row = 0;
             if (list.size() > 1) {
@@ -274,14 +274,14 @@ public class Insert extends Prepared implements ResultTarget {
     @Override
     public void prepare() {
         if (columns == null) {
-            if (list.size() > 0 && list.get(0).length == 0) {
+            if (!list.isEmpty() && list.get(0).length == 0) {
                 // special case where table is used as a sequence
                 columns = new Column[0];
             } else {
                 columns = table.getColumns();
             }
         }
-        if (list.size() > 0) {
+        if (!list.isEmpty()) {
             for (Expression[] expr : list) {
                 if (expr.length != columns.length) {
                     throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);

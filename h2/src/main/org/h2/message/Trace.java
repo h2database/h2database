@@ -241,7 +241,7 @@ public class Trace {
      */
     public static String formatParams(
             ArrayList<? extends ParameterInterface> parameters) {
-        if (parameters.size() == 0) {
+        if (parameters.isEmpty()) {
             return "";
         }
         StatementBuilder buff = new StatementBuilder();

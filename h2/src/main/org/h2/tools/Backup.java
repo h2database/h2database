@@ -114,7 +114,7 @@ public class Backup extends Tool {
         } else {
             list = FileLister.getDatabaseFiles(directory, db, true);
         }
-        if (list.size() == 0) {
+        if (list.isEmpty()) {
             if (!quiet) {
                 printNoDatabaseFilesFound(directory, db);
             }

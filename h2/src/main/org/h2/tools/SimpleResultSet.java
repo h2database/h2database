@@ -116,7 +116,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
      */
     public void addColumn(String name, int sqlType, String sqlTypeName,
             int precision, int scale) {
-        if (rows != null && rows.size() > 0) {
+        if (rows != null && !rows.isEmpty()) {
             throw new IllegalStateException(
                     "Cannot add a column after adding rows");
         }

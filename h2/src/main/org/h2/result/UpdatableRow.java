@@ -118,7 +118,7 @@ public class UpdatableRow {
     }
 
     private boolean isIndexUsable(ArrayList<String> indexColumns) {
-        if (indexColumns.size() == 0) {
+        if (indexColumns.isEmpty()) {
             return false;
         }
         for (String c : indexColumns) {

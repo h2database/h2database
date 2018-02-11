@@ -610,7 +610,7 @@ public class MVTable extends TableBase {
             remaining--;
         }
         sortRows(buffer, index);
-        if (bufferNames.size() > 0) {
+        if (!bufferNames.isEmpty()) {
             String mapName = store.nextTemporaryMapName();
             index.addRowsToBuffer(buffer, mapName);
             bufferNames.add(mapName);

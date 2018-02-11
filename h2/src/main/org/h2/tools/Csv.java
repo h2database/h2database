@@ -343,7 +343,7 @@ public class Csv implements SimpleRowSource {
             String v = readValue();
             if (v == null) {
                 if (endOfLine) {
-                    if (endOfFile || list.size() > 0) {
+                    if (endOfFile || !list.isEmpty()) {
                         break;
                     }
                 } else {

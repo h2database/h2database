@@ -734,3 +734,34 @@ select median(v) from test;
 
 drop table test;
 > ok
+
+-- with filter condition
+
+create table test(v int);
+> ok
+
+insert into test values (10), (20), (30), (40), (50), (60), (70), (80), (90), (100), (110), (120);
+> update count: 12
+
+select median(v), median(v) filter (where v >= 40) from test where v <= 100;
+> MEDIAN(V) MEDIAN(V) FILTER (WHERE (V >= 40))
+> --------- ----------------------------------
+> 55        70
+> rows: 1
+
+create index test_idx on test(v);
+
+select median(v), median(v) filter (where v >= 40) from test where v <= 100;
+> MEDIAN(V) MEDIAN(V) FILTER (WHERE (V >= 40))
+> --------- ----------------------------------
+> 55        70
+> rows: 1
+
+select median(v), median(v) filter (where v >= 40) from test;
+> MEDIAN(V) MEDIAN(V) FILTER (WHERE (V >= 40))
+> --------- ----------------------------------
+> 65        80
+> rows: 1
+
+drop table test;
+> ok

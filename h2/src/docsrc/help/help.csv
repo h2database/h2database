@@ -2636,7 +2636,7 @@ GEOMETRY
 "
 
 "Functions (Aggregate)","AVG","
-AVG ( [ DISTINCT ] { numeric } )
+AVG ( [ DISTINCT ] { numeric } ) [ FILTER ( WHERE expression ) ]
 ","
 The average (mean) value.
 If no rows are selected, the result is NULL.
@@ -2647,7 +2647,7 @@ AVG(X)
 "
 
 "Functions (Aggregate)","BIT_AND","
-BIT_AND(expression)
+BIT_AND(expression) [ FILTER ( WHERE expression ) ]
 ","
 The bitwise AND of all non-null values.
 If no rows are selected, the result is NULL.
@@ -2657,7 +2657,7 @@ BIT_AND(ID)
 "
 
 "Functions (Aggregate)","BIT_OR","
-BIT_OR(expression)
+BIT_OR(expression) [ FILTER ( WHERE expression ) ]
 ","
 The bitwise OR of all non-null values.
 If no rows are selected, the result is NULL.
@@ -2667,7 +2667,7 @@ BIT_OR(ID)
 "
 
 "Functions (Aggregate)","BOOL_AND","
-BOOL_AND(boolean)
+BOOL_AND(boolean) [ FILTER ( WHERE expression ) ]
 ","
 Returns true if all expressions are true.
 If no rows are selected, the result is NULL.
@@ -2677,7 +2677,7 @@ BOOL_AND(ID>10)
 "
 
 "Functions (Aggregate)","BOOL_OR","
-BOOL_OR(boolean)
+BOOL_OR(boolean) [ FILTER ( WHERE expression ) ]
 ","
 Returns true if any expression is true.
 If no rows are selected, the result is NULL.
@@ -2687,7 +2687,7 @@ BOOL_OR(NAME LIKE 'W%')
 "
 
 "Functions (Aggregate)","COUNT","
-COUNT( { * | { [ DISTINCT ] expression } } )
+COUNT( { * | { [ DISTINCT ] expression } } ) [ FILTER ( WHERE expression ) ]
 ","
 The count of all row, or of the non-null values.
 This method returns a long.
@@ -2700,7 +2700,7 @@ COUNT(*)
 "Functions (Aggregate)","GROUP_CONCAT","
 GROUP_CONCAT ( [ DISTINCT ] string
 [ ORDER BY { expression [ ASC | DESC ] } [,...] ]
-[ SEPARATOR expression ] )
+[ SEPARATOR expression ] ) [ FILTER ( WHERE expression ) ]
 ","
 Concatenates strings with a separator.
 The default separator is a ',' (without space).
@@ -2712,7 +2712,7 @@ GROUP_CONCAT(NAME ORDER BY ID SEPARATOR ', ')
 "
 
 "Functions (Aggregate)","MAX","
-MAX(value)
+MAX(value) [ FILTER ( WHERE expression ) ]
 ","
 The highest value.
 If no rows are selected, the result is NULL.
@@ -2723,7 +2723,7 @@ MAX(NAME)
 "
 
 "Functions (Aggregate)","MIN","
-MIN(value)
+MIN(value) [ FILTER ( WHERE expression ) ]
 ","
 The lowest value.
 If no rows are selected, the result is NULL.
@@ -2734,7 +2734,7 @@ MIN(NAME)
 "
 
 "Functions (Aggregate)","SUM","
-SUM( [ DISTINCT ] { numeric } )
+SUM( [ DISTINCT ] { numeric } ) [ FILTER ( WHERE expression ) ]
 ","
 The sum of all values.
 If no rows are selected, the result is NULL.
@@ -2746,7 +2746,7 @@ SUM(X)
 "
 
 "Functions (Aggregate)","SELECTIVITY","
-SELECTIVITY(value)
+SELECTIVITY(value) [ FILTER ( WHERE expression ) ]
 ","
 Estimates the selectivity (0-100) of a value.
 The value is defined as (100 * distinctCount / rowCount).
@@ -2758,7 +2758,7 @@ SELECT SELECTIVITY(FIRSTNAME), SELECTIVITY(NAME) FROM TEST WHERE ROWNUM()<20000
 "
 
 "Functions (Aggregate)","STDDEV_POP","
-STDDEV_POP( [ DISTINCT ] numeric )
+STDDEV_POP( [ DISTINCT ] numeric ) [ FILTER ( WHERE expression ) ]
 ","
 The population standard deviation.
 This method returns a double.
@@ -2769,7 +2769,7 @@ STDDEV_POP(X)
 "
 
 "Functions (Aggregate)","STDDEV_SAMP","
-STDDEV_SAMP( [ DISTINCT ] numeric )
+STDDEV_SAMP( [ DISTINCT ] numeric ) [ FILTER ( WHERE expression ) ]
 ","
 The sample standard deviation.
 This method returns a double.
@@ -2780,7 +2780,7 @@ STDDEV(X)
 "
 
 "Functions (Aggregate)","VAR_POP","
-VAR_POP( [ DISTINCT ] numeric )
+VAR_POP( [ DISTINCT ] numeric ) [ FILTER ( WHERE expression ) ]
 ","
 The population variance (square of the population standard deviation).
 This method returns a double.
@@ -2791,7 +2791,7 @@ VAR_POP(X)
 "
 
 "Functions (Aggregate)","VAR_SAMP","
-VAR_SAMP( [ DISTINCT ] numeric )
+VAR_SAMP( [ DISTINCT ] numeric ) [ FILTER ( WHERE expression ) ]
 ","
 The sample variance (square of the sample standard deviation).
 This method returns a double.
@@ -2802,7 +2802,7 @@ VAR_SAMP(X)
 "
 
 "Functions (Aggregate)","MEDIAN","
-MEDIAN( [ DISTINCT ] value )
+MEDIAN( [ DISTINCT ] value ) [ FILTER ( WHERE expression ) ]
 ","
 The value separating the higher half of a values from the lower half.
 Returns the middle value or an interpolated value between two middle values if number of values is even.

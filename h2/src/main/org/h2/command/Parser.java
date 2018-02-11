@@ -2627,7 +2627,7 @@ public class Parser {
             throw getSyntaxError();
         }
         currentSelect.setGroupQuery();
-        Expression r;
+        Aggregate r;
         if (aggregateType == AggregateType.COUNT) {
             if (readIf("*")) {
                 r = new Aggregate(AggregateType.COUNT_ALL, null, currentSelect,
@@ -2645,38 +2645,45 @@ public class Parser {
                 }
             }
         } else if (aggregateType == AggregateType.GROUP_CONCAT) {
-            Aggregate agg = null;
             boolean distinct = readIf("DISTINCT");
 
             if (equalsToken("GROUP_CONCAT", aggregateName)) {
-                agg = new Aggregate(AggregateType.GROUP_CONCAT,
+                r = new Aggregate(AggregateType.GROUP_CONCAT,
                     readExpression(), currentSelect, distinct);
                 if (readIf("ORDER")) {
                     read("BY");
-                    agg.setGroupConcatOrder(parseSimpleOrderList());
+                    r.setGroupConcatOrder(parseSimpleOrderList());
                 }
 
                 if (readIf("SEPARATOR")) {
-                    agg.setGroupConcatSeparator(readExpression());
+                    r.setGroupConcatSeparator(readExpression());
                 }
             } else if (equalsToken("STRING_AGG", aggregateName)) {
                 // PostgreSQL compatibility: string_agg(expression, delimiter)
-                agg = new Aggregate(AggregateType.GROUP_CONCAT,
+                r = new Aggregate(AggregateType.GROUP_CONCAT,
                     readExpression(), currentSelect, distinct);
                 read(",");
-                agg.setGroupConcatSeparator(readExpression());
+                r.setGroupConcatSeparator(readExpression());
                 if (readIf("ORDER")) {
                     read("BY");
-                    agg.setGroupConcatOrder(parseSimpleOrderList());
+                    r.setGroupConcatOrder(parseSimpleOrderList());
                 }
+            } else {
+                r = null;
             }
-            r = agg;
         } else {
             boolean distinct = readIf("DISTINCT");
             r = new Aggregate(aggregateType, readExpression(), currentSelect,
                     distinct);
         }
         read(")");
+        if (r != null && readIf("FILTER")) {
+            read("(");
+            read("WHERE");
+            Expression condition = readExpression();
+            read(")");
+            r.setFilterCondition(condition);
+        }
         return r;
     }
 
@@ -2727,8 +2734,17 @@ public class Parser {
             params.add(readExpression());
         } while (readIf(","));
         read(")");
+        Expression filterCondition;
+        if (readIf("FILTER")) {
+            read("(");
+            read("WHERE");
+            filterCondition = readExpression();
+            read(")");
+        } else {
+            filterCondition = null;
+        }
         Expression[] list = params.toArray(new Expression[0]);
-        JavaAggregate agg = new JavaAggregate(aggregate, list, currentSelect);
+        JavaAggregate agg = new JavaAggregate(aggregate, list, currentSelect, filterCondition);
         currentSelect.setGroupQuery();
         return agg;
     }

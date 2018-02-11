@@ -170,7 +170,7 @@ public class ChangeFileEncryption extends Tool {
         ArrayList<String> files = FileLister.getDatabaseFiles(dir, db, true);
         FileLister.tryUnlockDatabase(files, "encryption");
         files = FileLister.getDatabaseFiles(dir, db, false);
-        if (files.size() == 0 && !quiet) {
+        if (files.isEmpty() && !quiet) {
             printNoDatabaseFilesFound(dir, db);
         }
         // first, test only if the file can be renamed

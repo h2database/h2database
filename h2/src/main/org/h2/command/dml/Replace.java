@@ -82,7 +82,7 @@ public class Replace extends Prepared {
         session.getUser().checkRight(table, Right.INSERT);
         session.getUser().checkRight(table, Right.UPDATE);
         setCurrentRowNumber(0);
-        if (list.size() > 0) {
+        if (!list.isEmpty()) {
             count = 0;
             for (int x = 0, size = list.size(); x < size; x++) {
                 setCurrentRowNumber(x + 1);
@@ -208,7 +208,7 @@ public class Replace extends Prepared {
         }
         buff.append(')');
         buff.append('\n');
-        if (list.size() > 0) {
+        if (!list.isEmpty()) {
             buff.append("VALUES ");
             int row = 0;
             for (Expression[] expr : list) {
@@ -236,14 +236,14 @@ public class Replace extends Prepared {
     @Override
     public void prepare() {
         if (columns == null) {
-            if (list.size() > 0 && list.get(0).length == 0) {
+            if (!list.isEmpty() && list.get(0).length == 0) {
                 // special case where table is used as a sequence
                 columns = new Column[0];
             } else {
                 columns = table.getColumns();
             }
         }
-        if (list.size() > 0) {
+        if (!list.isEmpty()) {
             for (Expression[] expr : list) {
                 if (expr.length != columns.length) {
                     throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);

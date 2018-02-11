@@ -98,7 +98,7 @@ public class CreateView extends SchemaCommand {
             querySQL = selectSQL;
         } else {
             ArrayList<Parameter> params = select.getParameters();
-            if (params != null && params.size() > 0) {
+            if (params != null && !params.isEmpty()) {
                 throw DbException.getUnsupportedException("parameters in views");
             }
             querySQL = select.getPlanSQL();

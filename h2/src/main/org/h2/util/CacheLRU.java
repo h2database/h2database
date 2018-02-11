@@ -163,7 +163,7 @@ public class CacheLRU implements Cache {
             if (rc <= Constants.CACHE_MIN_RECORDS) {
                 break;
             }
-            if (changed.size() == 0) {
+            if (changed.isEmpty()) {
                 if (mem <= maxMemory) {
                     break;
                 }
@@ -209,7 +209,7 @@ public class CacheLRU implements Cache {
                 remove(check.getPos());
             }
         }
-        if (changed.size() > 0) {
+        if (!changed.isEmpty()) {
             if (!flushed) {
                 writer.flushLog();
             }

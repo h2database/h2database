@@ -1479,7 +1479,7 @@ public final class MVStore {
             for (Chunk c : modified) {
                 meta.put(Chunk.getMetaKey(c.id), c.asString());
             }
-            if (modified.size() == 0) {
+            if (modified.isEmpty()) {
                 break;
             }
         }
@@ -1782,7 +1782,7 @@ public final class MVStore {
             synchronized (this) {
                 old = compactGetOldChunks(targetFillRate, write);
             }
-            if (old == null || old.size() == 0) {
+            if (old == null || old.isEmpty()) {
                 return false;
             }
             compactRewrite(old);
@@ -1838,7 +1838,7 @@ public final class MVStore {
             c.collectPriority = (int) (c.getFillRate() * 1000 / age);
             old.add(c);
         }
-        if (old.size() == 0) {
+        if (old.isEmpty()) {
             return null;
         }
 
@@ -2287,7 +2287,7 @@ public final class MVStore {
                 keep = c;
             }
         }
-        if (remove.size() > 0) {
+        if (!remove.isEmpty()) {
             // remove the youngest first, so we don't create gaps
             // (in case we remove many chunks)
             Collections.sort(remove, Collections.reverseOrder());

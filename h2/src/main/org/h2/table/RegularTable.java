@@ -671,7 +671,7 @@ public class RegularTable extends TableBase {
                 lockExclusiveSession = null;
             }
             synchronized (database) {
-                if (lockSharedSessions.size() > 0) {
+                if (!lockSharedSessions.isEmpty()) {
                     lockSharedSessions.remove(s);
                 }
                 if (!waitingSessions.isEmpty()) {

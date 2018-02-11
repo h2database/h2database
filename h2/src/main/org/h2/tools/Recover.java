@@ -330,7 +330,7 @@ public class Recover extends Tool implements DataHandler {
 
     private void process(String dir, String db) {
         ArrayList<String> list = FileLister.getDatabaseFiles(dir, db, true);
-        if (list.size() == 0) {
+        if (list.isEmpty()) {
             printNoDatabaseFilesFound(dir, db);
         }
         for (String fileName : list) {

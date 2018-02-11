@@ -24,7 +24,7 @@ abstract class SessionWithState implements SessionInterface {
      * Re-create the session state using the stored sessionState list.
      */
     protected void recreateSessionState() {
-        if (sessionState != null && sessionState.size() > 0) {
+        if (sessionState != null && !sessionState.isEmpty()) {
             sessionStateUpdating = true;
             try {
                 for (String sql : sessionState) {

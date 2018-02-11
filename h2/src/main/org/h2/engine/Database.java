@@ -209,6 +209,8 @@ public class Database implements DataHandler {
     private RowFactory rowFactory = RowFactory.DEFAULT;
 
     public Database(ConnectionInfo ci, String cipher) {
+        META_LOCK_DEBUGGING.set(null);
+        META_LOCK_DEBUGGING_STACK.set(null);
         String name = ci.getName();
         this.dbSettings = ci.getDbSettings();
         this.reconnectCheckDelayNs = TimeUnit.MILLISECONDS.toNanos(dbSettings.reconnectCheckDelay);

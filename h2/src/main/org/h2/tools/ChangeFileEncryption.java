@@ -220,44 +220,38 @@ public class ChangeFileEncryption extends Tool {
         if (FileUtils.isDirectory(fileName)) {
             return;
         }
-        FileChannel fileIn = FilePath.get(fileName).open("r");
-        FileChannel fileOut = null;
         String temp = directory + "/temp.db";
-        try {
-            if (decryptKey != null) {
-                fileIn = new FilePathEncrypt.FileEncrypt(fileName, decryptKey, fileIn);
-            }
-            InputStream inStream = new FileChannelInputStream(fileIn, true);
-            FileUtils.delete(temp);
-            fileOut = FilePath.get(temp).open("rw");
-            if (encryptKey != null) {
-                fileOut = new FilePathEncrypt.FileEncrypt(temp, encryptKey, fileOut);
-            }
-            OutputStream outStream = new FileChannelOutputStream(fileOut, true);
-            byte[] buffer = new byte[4 * 1024];
-            long remaining = fileIn.size();
-            long total = remaining;
-            long time = System.nanoTime();
-            while (remaining > 0) {
-                if (!quiet && System.nanoTime() - time > TimeUnit.SECONDS.toNanos(1)) {
-                    out.println(fileName + ": " + (100 - 100 * remaining / total) + "%");
-                    time = System.nanoTime();
+        try (FileChannel fileIn = getFileChannel(fileName, "r", decryptKey)){
+            try(InputStream inStream = new FileChannelInputStream(fileIn, true)) {
+                FileUtils.delete(temp);
+                try (OutputStream outStream = new FileChannelOutputStream(getFileChannel(temp, "rw", encryptKey), true)) {
+                    byte[] buffer = new byte[4 * 1024];
+                    long remaining = fileIn.size();
+                    long total = remaining;
+                    long time = System.nanoTime();
+                    while (remaining > 0) {
+                        if (!quiet && System.nanoTime() - time > TimeUnit.SECONDS.toNanos(1)) {
+                            out.println(fileName + ": " + (100 - 100 * remaining / total) + "%");
+                            time = System.nanoTime();
+                        }
+                        int len = (int) Math.min(buffer.length, remaining);
+                        len = inStream.read(buffer, 0, len);
+                        outStream.write(buffer, 0, len);
+                        remaining -= len;
+                    }
                 }
-                int len = (int) Math.min(buffer.length, remaining);
-                len = inStream.read(buffer, 0, len);
-                outStream.write(buffer, 0, len);
-                remaining -= len;
-            }
-            inStream.close();
-            outStream.close();
-        } finally {
-            fileIn.close();
-            if (fileOut != null) {
-                fileOut.close();
             }
         }
         FileUtils.delete(fileName);
         FileUtils.move(temp, fileName);
+    }
+
+    private FileChannel getFileChannel(String fileName, String r, byte[] decryptKey) throws IOException {
+        FileChannel fileIn = FilePath.get(fileName).open(r);
+        if (decryptKey != null) {
+            fileIn = new FilePathEncrypt.FileEncrypt(fileName, decryptKey, fileIn);
+        }
+        return fileIn;
     }
 
     private void copy(String fileName, FileStore in, byte[] key, boolean quiet) {

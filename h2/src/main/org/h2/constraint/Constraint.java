@@ -24,25 +24,24 @@ import org.h2.table.Table;
 public abstract class Constraint extends SchemaObjectBase implements
         Comparable<Constraint> {
 
-    /**
-     * The constraint type name for check constraints.
-     */
-    public static final String CHECK = "CHECK";
-
-    /**
-     * The constraint type name for referential constraints.
-     */
-    public static final String REFERENTIAL = "REFERENTIAL";
-
-    /**
-     * The constraint type name for unique constraints.
-     */
-    public static final String UNIQUE = "UNIQUE";
-
-    /**
-     * The constraint type name for primary key constraints.
-     */
-    public static final String PRIMARY_KEY = "PRIMARY KEY";
+    public enum Type {
+        /**
+         * The constraint type for check constraints.
+         */
+        CHECK,
+        /**
+         * The constraint type for primary key constraints.
+         */
+        PRIMARY_KEY,
+        /**
+         * The constraint type for unique constraints.
+         */
+        UNIQUE,
+        /**
+         * The constraint type for referential constraints.
+         */
+        REFERENTIAL
+    }
 
     /**
      * The table for which this constraint is defined.
@@ -60,7 +59,7 @@ public abstract class Constraint extends SchemaObjectBase implements
      *
      * @return the name
      */
-    public abstract String getConstraintType();
+    public abstract Type getConstraintType();
 
     /**
      * Check if this row fulfils the constraint.
@@ -155,29 +154,12 @@ public abstract class Constraint extends SchemaObjectBase implements
         return null;
     }
 
-    private int getConstraintTypeOrder() {
-        String constraintType = getConstraintType();
-        if (CHECK.equals(constraintType)) {
-            return 0;
-        } else if (PRIMARY_KEY.equals(constraintType)) {
-            return 1;
-        } else if (UNIQUE.equals(constraintType)) {
-            return 2;
-        } else if (REFERENTIAL.equals(constraintType)) {
-            return 3;
-        } else {
-            throw DbException.throwInternalError("type: " + constraintType);
-        }
-    }
-
     @Override
     public int compareTo(Constraint other) {
         if (this == other) {
             return 0;
         }
-        int thisType = getConstraintTypeOrder();
-        int otherType = other.getConstraintTypeOrder();
-        return thisType - otherType;
+        return Integer.compare(getConstraintType().ordinal(), other.getConstraintType().ordinal());
     }
 
     @Override

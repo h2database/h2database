@@ -64,40 +64,40 @@ public class BackupCommand extends Prepared {
             }
             String name = db.getName();
             name = FileUtils.getName(name);
-            OutputStream zip = FileUtils.newOutputStream(fileName, false);
-            ZipOutputStream out = new ZipOutputStream(zip);
-            db.flush();
-            if (db.getPageStore() != null) {
-                String fn = db.getName() + Constants.SUFFIX_PAGE_FILE;
-                backupPageStore(out, fn, db.getPageStore());
-            }
-            // synchronize on the database, to avoid concurrent temp file
-            // creation / deletion / backup
-            String base = FileUtils.getParent(db.getName());
-            synchronized (db.getLobSyncObject()) {
-                String prefix = db.getDatabasePath();
-                String dir = FileUtils.getParent(prefix);
-                dir = FileLister.getDir(dir);
-                ArrayList<String> fileList = FileLister.getDatabaseFiles(dir, name, true);
-                for (String n : fileList) {
-                    if (n.endsWith(Constants.SUFFIX_LOB_FILE)) {
-                        backupFile(out, base, n);
-                    }
-                    if (n.endsWith(Constants.SUFFIX_MV_FILE) && mvStore != null) {
-                        MVStore s = mvStore.getStore();
-                        boolean before = s.getReuseSpace();
-                        s.setReuseSpace(false);
-                        try {
-                            InputStream in = mvStore.getInputStream();
-                            backupFile(out, base, n, in);
-                        } finally {
-                            s.setReuseSpace(before);
+            try (OutputStream zip = FileUtils.newOutputStream(fileName, false)) {
+                ZipOutputStream out = new ZipOutputStream(zip);
+                db.flush();
+                if (db.getPageStore() != null) {
+                    String fn = db.getName() + Constants.SUFFIX_PAGE_FILE;
+                    backupPageStore(out, fn, db.getPageStore());
+                }
+                // synchronize on the database, to avoid concurrent temp file
+                // creation / deletion / backup
+                String base = FileUtils.getParent(db.getName());
+                synchronized (db.getLobSyncObject()) {
+                    String prefix = db.getDatabasePath();
+                    String dir = FileUtils.getParent(prefix);
+                    dir = FileLister.getDir(dir);
+                    ArrayList<String> fileList = FileLister.getDatabaseFiles(dir, name, true);
+                    for (String n : fileList) {
+                        if (n.endsWith(Constants.SUFFIX_LOB_FILE)) {
+                            backupFile(out, base, n);
+                        }
+                        if (n.endsWith(Constants.SUFFIX_MV_FILE) && mvStore != null) {
+                            MVStore s = mvStore.getStore();
+                            boolean before = s.getReuseSpace();
+                            s.setReuseSpace(false);
+                            try {
+                                InputStream in = mvStore.getInputStream();
+                                backupFile(out, base, n, in);
+                            } finally {
+                                s.setReuseSpace(before);
+                            }
                         }
                     }
                 }
+                out.close();
             }
-            out.close();
-            zip.close();
         } catch (IOException e) {
             throw DbException.convertIOException(e, fileName);
         }

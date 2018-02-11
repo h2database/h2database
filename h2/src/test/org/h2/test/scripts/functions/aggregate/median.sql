@@ -765,3 +765,41 @@ select median(v), median(v) filter (where v >= 40) from test;
 
 drop table test;
 > ok
+
+-- with filter and group by
+
+create table test(dept varchar, amount int);
+> ok
+
+insert into test values
+    ('First', 10), ('First', 10), ('First', 20), ('First', 30), ('First', 30),
+    ('Second', 5), ('Second', 4), ('Second', 20), ('Second', 22), ('Second', 300),
+    ('Third', 3), ('Third', 100), ('Third', 150), ('Third', 170), ('Third', 400);
+
+select dept, median(amount) from test group by dept order by dept;
+> DEPT   MEDIAN(AMOUNT)
+> ------ --------------
+> First  20
+> Second 20
+> Third  150
+> rows (ordered): 3
+
+select dept, median(amount) filter (where amount >= 20) from test group by dept order by dept;
+> DEPT   MEDIAN(AMOUNT) FILTER (WHERE (AMOUNT >= 20))
+> ------ --------------------------------------------
+> First  30
+> Second 22
+> Third  160
+> rows (ordered): 3
+
+select dept, median(amount) filter (where amount >= 20) from test
+    where (amount < 200) group by dept order by dept;
+> DEPT   MEDIAN(AMOUNT) FILTER (WHERE (AMOUNT >= 20))
+> ------ --------------------------------------------
+> First  30
+> Second 21
+> Third  150
+> rows (ordered): 3
+
+drop table test;
+> ok

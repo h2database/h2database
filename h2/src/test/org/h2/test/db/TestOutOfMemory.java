@@ -118,10 +118,7 @@ public class TestOutOfMemory extends TestBase {
                         ErrorCode.DATABASE_IS_CLOSED == e.getErrorCode() ||
                         ErrorCode.GENERAL_ERROR_1 == e.getErrorCode());
             }
-            for (int i = 0; i < 5; i++) {
-                System.gc();
-                Thread.sleep(20);
-            }
+            recoverAfterOOM();
             try {
                 conn.close();
                 fail();
@@ -132,10 +129,7 @@ public class TestOutOfMemory extends TestBase {
                         ErrorCode.DATABASE_IS_CLOSED == e.getErrorCode() ||
                         ErrorCode.GENERAL_ERROR_1 == e.getErrorCode());
             }
-            for (int i = 0; i < 5; i++) {
-                System.gc();
-                Thread.sleep(20);
-            }
+            recoverAfterOOM();
             conn = DriverManager.getConnection(url);
             stat = conn.createStatement();
             stat.execute("SELECT 1");
@@ -146,14 +140,18 @@ public class TestOutOfMemory extends TestBase {
         }
     }
 
-    private void testUpdateWhenNearlyOutOfMemory() throws SQLException, InterruptedException {
-        if (config.memory) {
-            return;
-        }
+    private static void recoverAfterOOM() throws InterruptedException {
         for (int i = 0; i < 5; i++) {
             System.gc();
             Thread.sleep(20);
         }
+    }
+
+    private void testUpdateWhenNearlyOutOfMemory() throws SQLException, InterruptedException {
+        if (config.memory) {
+            return;
+        }
+        recoverAfterOOM();
         deleteDb("outOfMemory");
         Connection conn = getConnection("outOfMemory;MAX_OPERATION_MEMORY=1000000");
         Statement stat = conn.createStatement();
@@ -171,11 +169,12 @@ public class TestOutOfMemory extends TestBase {
                 fail();
             } catch(DbException ex) {
                 freeMemory();
-                assertEquals(ErrorCode.OUT_OF_MEMORY, ex.getErrorCode());
+                assertTrue(ErrorCode.OUT_OF_MEMORY == ex.getErrorCode() || ErrorCode.GENERAL_ERROR_1 == ex.getErrorCode());
             } catch (SQLException ex) {
                 freeMemory();
-                assertEquals(ErrorCode.OUT_OF_MEMORY, ex.getErrorCode());
+                assertTrue(ErrorCode.OUT_OF_MEMORY == ex.getErrorCode() || ErrorCode.GENERAL_ERROR_1 == ex.getErrorCode());
             }
+            recoverAfterOOM();
             try {
                 conn.close();
                 fail();

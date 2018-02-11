@@ -525,7 +525,7 @@ public class DateTimeUtils {
                 if (month == 2) {
                     maxDay = c.isLeapYear(year) ? 29 : 28;
                 } else {
-                    maxDay = 30 + ((month + (month > 7 ? 1 : 0)) & 1);
+                    maxDay = NORMAL_DAYS_PER_MONTH[month];
                 }
                 if (day < 1 || day > maxDay) {
                     throw e;

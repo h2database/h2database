@@ -118,6 +118,10 @@ public class TestOutOfMemory extends TestBase {
                         ErrorCode.DATABASE_IS_CLOSED == e.getErrorCode() ||
                         ErrorCode.GENERAL_ERROR_1 == e.getErrorCode());
             }
+            for (int i = 0; i < 5; i++) {
+                System.gc();
+                Thread.sleep(20);
+            }
             try {
                 conn.close();
                 fail();

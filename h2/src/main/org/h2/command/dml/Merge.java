@@ -86,10 +86,10 @@ public class Merge extends Prepared {
         session.getUser().checkRight(targetTable, Right.INSERT);
         session.getUser().checkRight(targetTable, Right.UPDATE);
         setCurrentRowNumber(0);
+        GeneratedKeys generatedKeys = session.getGeneratedKeys();
         if (valuesExpressionList.size() > 0) {
             // process values in list
             count = 0;
-            GeneratedKeys generatedKeys = session.getGeneratedKeys();
             generatedKeys.initialize(targetTable);
             for (int x = 0, size = valuesExpressionList.size(); x < size; x++) {
                 setCurrentRowNumber(x + 1);
@@ -106,7 +106,7 @@ public class Merge extends Prepared {
                             Value v = c.convert(e.getValue(session));
                             newRow.setValue(index, v);
                             if (e instanceof SequenceValue) {
-                                generatedKeys.add(c, v);
+                                generatedKeys.add(c);
                             }
                         } catch (DbException ex) {
                             throw setRow(ex, count, getSQL(expr));
@@ -124,6 +124,7 @@ public class Merge extends Prepared {
             targetTable.lock(session, true, false);
             while (rows.next()) {
                 count++;
+                generatedKeys.nextRow();
                 Value[] r = rows.currentRow();
                 Row newRow = targetTable.getTemplateRow();
                 setCurrentRowNumber(count);
@@ -179,7 +180,7 @@ public class Merge extends Prepared {
                 if (!done) {
                     targetTable.lock(session, true, false);
                     targetTable.addRow(session, row);
-                    session.getGeneratedKeys().confirmRow();
+                    session.getGeneratedKeys().confirmRow(row);
                     session.log(targetTable, UndoLogRecord.INSERT, row);
                     targetTable.fireAfterRow(session, null, row, false);
                 }

@@ -11,67 +11,102 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.h2.message.DbException;
+import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.value.DataType;
-import org.h2.value.Value;
 
 /**
- * Generated keys.
+ * Class for gathering and processing of generated keys.
  */
 public final class GeneratedKeys {
+    /**
+     * Data for result set with generated keys.
+     */
     private final ArrayList<Map<Column, Object>> data = New.arrayList();
 
-    private final ArrayList<Object> row = New.arrayList();
+    /**
+     * Columns with generated keys in the current row.
+     */
+    private final ArrayList<Column> row = New.arrayList();
 
-    private final ArrayList<Column> columns = New.arrayList();
+    /**
+     * All columns with generated keys.
+     */
+    private final ArrayList<Column> allColumns = New.arrayList();
 
+    /**
+     * Request for keys gathering. {@code false} if generated keys are not needed,
+     * {@code true} if generated keys should be configured automatically,
+     * {@code int[]} to specify column indices to return generated keys from, or
+     * {@code String[]} to specify column names to return generated keys from.
+     */
     private Object generatedKeysRequest;
 
+    /**
+     * Processed table.
+     */
     private Table table;
 
-    public void add(Column column, Value value) {
+    /**
+     * Remembers columns with generated keys.
+     *
+     * @param column
+     *            table column
+     */
+    public void add(Column column) {
         if (Boolean.FALSE.equals(generatedKeysRequest)) {
             return;
         }
         row.add(column);
-        row.add(value.getObject());
     }
 
+    /**
+     * Clears all information from previous runs and sets a new request for
+     * gathering of generated keys.
+     *
+     * @param generatedKeysRequest
+     *            {@code false} if generated keys are not needed, {@code true} if
+     *            generated keys should be configured automatically, {@code int[]}
+     *            to specify column indices to return generated keys from, or
+     *            {@code String[]} to specify column names to return generated keys
+     *            from
+     */
     public void clear(Object generatedKeysRequest) {
         this.generatedKeysRequest = generatedKeysRequest;
         data.clear();
         row.clear();
-        columns.clear();
+        allColumns.clear();
         table = null;
     }
 
-    public void initialize(Table table) {
-        this.table = table;
-    }
-
-    public void confirmRow() {
+    /**
+     * Saves row with generated keys if any.
+     *
+     * @param tableRow
+     *            table row that was inserted
+     */
+    public void confirmRow(Row tableRow) {
         if (Boolean.FALSE.equals(generatedKeysRequest)) {
             return;
         }
         int size = row.size();
         if (size > 0) {
-            if (size == 2) {
-                Column column = (Column) row.get(0);
-                data.add(Collections.singletonMap(column, row.get(1)));
-                if (!columns.contains(column)) {
-                    columns.add(column);
+            if (size == 1) {
+                Column column = row.get(0);
+                data.add(Collections.singletonMap(column, tableRow.getValue(column.getColumnId()).getObject()));
+                if (!allColumns.contains(column)) {
+                    allColumns.add(column);
                 }
             } else {
                 HashMap<Column, Object> map = new HashMap<>();
-                for (int i = 0; i < size; i += 2) {
-                    Column column = (Column) row.get(i);
-                    map.put(column, row.get(i + 1));
-                    if (!columns.contains(column)) {
-                        columns.add(column);
+                for (Column column : row) {
+                    map.put(column, tableRow.getValue(column.getColumnId()).getObject());
+                    if (!allColumns.contains(column)) {
+                        allColumns.add(column);
                     }
                 }
                 data.add(map);
@@ -80,13 +115,18 @@ public final class GeneratedKeys {
         }
     }
 
+    /**
+     * Returns generated keys.
+     *
+     * @return result set with generated keys
+     */
     public SimpleResultSet getKeys() {
         SimpleResultSet rs = new SimpleResultSet();
         if (Boolean.FALSE.equals(generatedKeysRequest)) {
             return rs;
         }
         if (Boolean.TRUE.equals(generatedKeysRequest)) {
-            for (Column column : columns) {
+            for (Column column : allColumns) {
                 rs.addColumn(column.getName(), DataType.convertTypeToSQLType(column.getType()),
                         MathUtils.convertLongToInt(column.getPrecision()), column.getScale());
             }
@@ -95,13 +135,13 @@ public final class GeneratedKeys {
                 int[] indices = (int[]) generatedKeysRequest;
                 Column[] columns = table.getColumns();
                 int cnt = columns.length;
-                this.columns.clear();
+                this.allColumns.clear();
                 for (int idx : indices) {
                     if (idx >= 1 && idx <= cnt) {
                         Column column = columns[idx - 1];
                         rs.addColumn(column.getName(), DataType.convertTypeToSQLType(column.getType()),
                                 MathUtils.convertLongToInt(column.getPrecision()), column.getScale());
-                        this.columns.add(column);
+                        this.allColumns.add(column);
                     }
                 }
             } else {
@@ -110,13 +150,13 @@ public final class GeneratedKeys {
         } else if (generatedKeysRequest instanceof String[]) {
             if (table != null) {
                 String[] names = (String[]) generatedKeysRequest;
-                this.columns.clear();
+                this.allColumns.clear();
                 for (String name : names) {
                     try {
                         Column column = table.getColumn(name);
                         rs.addColumn(column.getName(), DataType.convertTypeToSQLType(column.getType()),
                                 MathUtils.convertLongToInt(column.getPrecision()), column.getScale());
-                        this.columns.add(column);
+                        this.allColumns.add(column);
                     } catch (DbException e) {
                     }
                 }
@@ -130,9 +170,9 @@ public final class GeneratedKeys {
             return rs;
         }
         for (Map<Column, Object> map : data) {
-            Object[] row = new Object[columns.size()];
+            Object[] row = new Object[allColumns.size()];
             for (Map.Entry<Column, Object> entry : map.entrySet()) {
-                int idx = columns.indexOf(entry.getKey());
+                int idx = allColumns.indexOf(entry.getKey());
                 if (idx >= 0) {
                     row[idx] = entry.getValue();
                 }
@@ -142,13 +182,29 @@ public final class GeneratedKeys {
         return rs;
     }
 
+    /**
+     * Initializes processing of the specified table. Should be called after
+     * {@code clear()}, but before other methods.
+     *
+     * @param table
+     *            table
+     */
+    public void initialize(Table table) {
+        this.table = table;
+    }
+
+    /**
+     * Clears unsaved information about previous row, if any. Should be called
+     * before processing of a new row if previous row was not confirmed or simply
+     * always before each row.
+     */
     public void nextRow() {
         row.clear();
     }
 
     @Override
     public String toString() {
-        return columns + ": " + data.size();
+        return allColumns + ": " + data.size();
     }
 
 }

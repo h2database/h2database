@@ -261,7 +261,7 @@ public class TriggerObject extends SchemaObjectBase {
                     Object o = newList[i];
                     if (o != newListBackup[i]) {
                         Value v = DataType.convertToValue(session, o, Value.UNKNOWN);
-                        session.getGeneratedKeys().add(table.getColumn(i), v);
+                        session.getGeneratedKeys().add(table.getColumn(i));
                         newRow.setValue(i, v);
                     }
                 }

@@ -166,7 +166,7 @@ public class Insert extends Prepared implements ResultTarget {
                             Value v = c.convert(e.getValue(session), session.getDatabase().getMode());
                             newRow.setValue(index, v);
                             if (e instanceof SequenceValue) {
-                                generatedKeys.add(c, v);
+                                generatedKeys.add(c);
                             }
                         } catch (DbException ex) {
                             throw setRow(ex, x, getSQL(expr));
@@ -187,7 +187,7 @@ public class Insert extends Prepared implements ResultTarget {
                             continue;
                         }
                     }
-                    generatedKeys.confirmRow();
+                    generatedKeys.confirmRow(newRow);
                     session.log(table, UndoLogRecord.INSERT, newRow);
                     table.fireAfterRow(session, null, newRow, false);
                 }

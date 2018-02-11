@@ -525,7 +525,7 @@ public class DateTimeUtils {
                 if (month == 2) {
                     maxDay = c.isLeapYear(year) ? 29 : 28;
                 } else {
-                    maxDay = 30 + ((month + (month > 7 ? 1 : 0)) & 1);
+                    maxDay = NORMAL_DAYS_PER_MONTH[month];
                 }
                 if (day < 1 || day > maxDay) {
                     throw e;
@@ -1220,26 +1220,6 @@ public class DateTimeUtils {
             m -= 12;
         }
         return dateValue(y, m + 3, (int) d);
-    }
-
-    /**
-     * Adds the number of months to the date. If the resulting month's number of
-     * days is less than the original's day-of-month, the resulting
-     * day-of-months gets adjusted accordingly: <br>
-     * 30.04.2007 - 2 months = 28.02.2007
-     *
-     * @param refDate the original date
-     * @param nrOfMonthsToAdd the number of months to add
-     * @return the new timestamp
-     */
-    public static Timestamp addMonths(Timestamp refDate, int nrOfMonthsToAdd) {
-        Calendar calendar = DateTimeUtils.createGregorianCalendar();
-        calendar.setTime(refDate);
-        calendar.add(Calendar.MONTH, nrOfMonthsToAdd);
-
-        Timestamp resultDate = new Timestamp(calendar.getTimeInMillis());
-        resultDate.setNanos(refDate.getNanos());
-        return resultDate;
     }
 
     /**

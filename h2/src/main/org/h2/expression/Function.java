@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -61,6 +62,7 @@ import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueBytes;
 import org.h2.value.ValueDate;
+import org.h2.value.ValueDecimal;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueLong;
@@ -69,6 +71,7 @@ import org.h2.value.ValueResultSet;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueUuid;
 
 /**
@@ -111,6 +114,11 @@ public class Function extends Expression implements FunctionCall {
      * Pseudo function for {@code EXTRACT(MILLISECOND FROM ...)}.
      */
     public static final int MILLISECOND = 126;
+    
+    /**
+     * Pseudo function for {@code EXTRACT(EPOCH FROM ...)}.
+     */
+    public static final int  EPOCH = 127;
 
     public static final int DATABASE = 150, USER = 151, CURRENT_USER = 152,
             IDENTITY = 153, SCOPE_IDENTITY = 154, AUTOCOMMIT = 155,
@@ -197,6 +205,7 @@ public class Function extends Expression implements FunctionCall {
         DATE_PART.put("S", SECOND);
         DATE_PART.put("MILLISECOND", MILLISECOND);
         DATE_PART.put("MS", MILLISECOND);
+        DATE_PART.put("EPOCH", EPOCH);
 
         // SOUNDEX_INDEX
         String index = "7AEIOUY8HW1BFPV2CGJKQSXZ3DT4L5MN6R";
@@ -1493,7 +1502,57 @@ public class Function extends Expression implements FunctionCall {
             break;
         case EXTRACT: {
             int field = getDatePart(v0.getString());
-            result = ValueInt.get(getDatePart(v1, field));
+            
+            // Normal case when we don't retrieve the EPOCH time
+            if (field != EPOCH) {
+                
+                result = ValueInt.get(getDatePart(v1, field));
+                
+            } else {
+                
+                // Case where we retrieve the EPOCH time.
+                // First we retrieve the dateValue and his time in nanoseconds.
+                long[] a = DateTimeUtils.dateAndTimeFromValue(v1);
+                long dateValue = a[0];
+                long timeNanos = a[1];
+                // We compute the time in nanoseconds and the total number of days.
+                BigDecimal timeNanosBigDecimal = new BigDecimal(timeNanos);
+                BigDecimal numberOfDays = new BigDecimal(DateTimeUtils.absoluteDayFromDateValue(dateValue));
+                BigDecimal nanosSeconds = new BigDecimal(1_000_000_000);
+                BigDecimal secondsPerDay = new BigDecimal(DateTimeUtils.SECONDS_PER_DAY);
+                
+                // Case where the value is of type time e.g. '10:00:00'
+                if (v1 instanceof ValueTime) {
+                    
+                    // In order to retrieve the EPOCH time we only have to convert the time 
+                    // in nanoseconds (previously retrieved) in seconds.
+                    result = ValueDecimal.get(timeNanosBigDecimal.divide(nanosSeconds));
+                    
+                } else if (v1 instanceof ValueDate) {
+                    
+                    // Case where the value is of type date '2000:01:01', we have to retrieve the total 
+                    // number of days and multiply it by the number of seconds in a day.
+                    result = ValueDecimal.get(numberOfDays.multiply(secondsPerDay));
+                    
+                } else if (v1 instanceof ValueTimestampTimeZone) {
+                    
+                    // Case where the value is a of type ValueTimestampTimeZone ('2000:01:01 10:00:00+05).
+                    // We retrieve the time zone offset in minute
+                    ValueTimestampTimeZone v = (ValueTimestampTimeZone) v1;
+                    BigDecimal timeZoneOffsetSeconds = new BigDecimal(v.getTimeZoneOffsetMins() * 60);
+                    // Sum the time in nanoseconds and the total number of days in seconds 
+                    // and adding the timeZone offset in seconds.
+                    result = ValueDecimal.get(timeNanosBigDecimal.divide(nanosSeconds)
+                            .add(numberOfDays.multiply(secondsPerDay))
+                            .subtract(timeZoneOffsetSeconds));
+                    
+                } else {
+                    
+                    // By default, we have the date and the time ('2000:01:01 10:00:00) if no type is given. 
+                    // We just have to sum the time in nanoseconds and the total number of days in seconds.
+                    result = ValueDecimal.get(timeNanosBigDecimal.divide(nanosSeconds).add(numberOfDays.multiply(secondsPerDay)));
+                }
+            }
             break;
         }
         case FORMATDATETIME: {

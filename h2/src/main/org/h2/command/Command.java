@@ -14,7 +14,6 @@ import org.h2.engine.Session;
 import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultWithGeneratedKeys;
 import org.h2.util.MathUtils;
@@ -262,9 +261,7 @@ public abstract class Command implements CommandInterface {
                         int updateCount = update();
                         if (!Boolean.FALSE.equals(generatedKeysRequest)) {
                             return new ResultWithGeneratedKeys.WithKeys(updateCount,
-                                    LocalResult.read(session,
-                                            session.getGeneratedKeys().getKeys(),
-                                            Integer.MAX_VALUE));
+                                    session.getGeneratedKeys().getKeys(session));
                         }
                         return ResultWithGeneratedKeys.of(updateCount);
                     } catch (DbException e) {

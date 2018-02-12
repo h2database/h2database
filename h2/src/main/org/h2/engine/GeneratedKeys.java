@@ -10,14 +10,16 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.h2.expression.Expression;
+import org.h2.expression.ExpressionColumn;
+import org.h2.result.LocalResult;
 import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
-import org.h2.tools.SimpleResultSet;
-import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
-import org.h2.value.DataType;
+import org.h2.value.Value;
+import org.h2.value.ValueNull;
 
 /**
  * Class for gathering and processing of generated keys.
@@ -26,7 +28,7 @@ public final class GeneratedKeys {
     /**
      * Data for result set with generated keys.
      */
-    private final ArrayList<Map<Column, Object>> data = New.arrayList();
+    private final ArrayList<Map<Column, Value>> data = New.arrayList();
 
     /**
      * Columns with generated keys in the current row.
@@ -97,14 +99,14 @@ public final class GeneratedKeys {
         if (size > 0) {
             if (size == 1) {
                 Column column = row.get(0);
-                data.add(Collections.singletonMap(column, tableRow.getValue(column.getColumnId()).getObject()));
+                data.add(Collections.singletonMap(column, tableRow.getValue(column.getColumnId())));
                 if (!allColumns.contains(column)) {
                     allColumns.add(column);
                 }
             } else {
-                HashMap<Column, Object> map = new HashMap<>();
+                HashMap<Column, Value> map = new HashMap<>();
                 for (Column column : row) {
-                    map.put(column, tableRow.getValue(column.getColumnId()).getObject());
+                    map.put(column, tableRow.getValue(column.getColumnId()));
                     if (!allColumns.contains(column)) {
                         allColumns.add(column);
                     }
@@ -118,17 +120,18 @@ public final class GeneratedKeys {
     /**
      * Returns generated keys.
      *
-     * @return result set with generated keys
+     * @return local result with generated keys
      */
-    public SimpleResultSet getKeys() {
-        SimpleResultSet rs = new SimpleResultSet();
+    public LocalResult getKeys(Session session) {
+        Database db = session == null ? null : session.getDatabase();
         if (Boolean.FALSE.equals(generatedKeysRequest)) {
-            return rs;
+            return new LocalResult();
         }
+        ArrayList<ExpressionColumn> expressionColumns;
         if (Boolean.TRUE.equals(generatedKeysRequest)) {
+            expressionColumns = new ArrayList<>(allColumns.size());
             for (Column column : allColumns) {
-                rs.addColumn(column.getName(), DataType.convertTypeToSQLType(column.getType()),
-                        MathUtils.convertLongToInt(column.getPrecision()), column.getScale());
+                expressionColumns.add(new ExpressionColumn(db, column));
             }
         } else if (generatedKeysRequest instanceof int[]) {
             if (table != null) {
@@ -136,21 +139,22 @@ public final class GeneratedKeys {
                 Column[] columns = table.getColumns();
                 int cnt = columns.length;
                 allColumns.clear();
+                expressionColumns = new ArrayList<>(indices.length);
                 for (int idx : indices) {
                     if (idx >= 1 && idx <= cnt) {
                         Column column = columns[idx - 1];
-                        rs.addColumn(column.getName(), DataType.convertTypeToSQLType(column.getType()),
-                                MathUtils.convertLongToInt(column.getPrecision()), column.getScale());
+                        expressionColumns.add(new ExpressionColumn(db, column));
                         allColumns.add(column);
                     }
                 }
             } else {
-                return rs;
+                return new LocalResult();
             }
         } else if (generatedKeysRequest instanceof String[]) {
             if (table != null) {
                 String[] names = (String[]) generatedKeysRequest;
                 allColumns.clear();
+                expressionColumns = new ArrayList<>(names.length);
                 for (String name : names) {
                     Column column;
                     search: if (table.doesColumnExist(name)) {
@@ -169,30 +173,36 @@ public final class GeneratedKeys {
                             continue;
                         }
                     }
-                    rs.addColumn(column.getName(), DataType.convertTypeToSQLType(column.getType()),
-                            MathUtils.convertLongToInt(column.getPrecision()), column.getScale());
+                    expressionColumns.add(new ExpressionColumn(db, column));
                     allColumns.add(column);
                 }
             } else {
-                return rs;
+                return new LocalResult();
             }
         } else {
-            return rs;
+            return new LocalResult();
         }
-        if (rs.getColumnCount() == 0) {
-            return rs;
+        int columnCount = expressionColumns.size();
+        if (columnCount == 0) {
+            return new LocalResult();
         }
-        for (Map<Column, Object> map : data) {
-            Object[] row = new Object[allColumns.size()];
-            for (Map.Entry<Column, Object> entry : map.entrySet()) {
+        LocalResult result = new LocalResult(session, expressionColumns.toArray(new Expression[0]), columnCount);
+        for (Map<Column, Value> map : data) {
+            Value[] row = new Value[columnCount];
+            for (Map.Entry<Column, Value> entry : map.entrySet()) {
                 int idx = allColumns.indexOf(entry.getKey());
                 if (idx >= 0) {
                     row[idx] = entry.getValue();
                 }
             }
-            rs.addRow(row);
+            for (int i = 0; i < columnCount; i++) {
+                if (row[i] == null) {
+                    row[i] = ValueNull.INSTANCE;
+                }
+            }
+            result.addRow(row);
         }
-        return rs;
+        return result;
     }
 
     /**

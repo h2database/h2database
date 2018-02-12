@@ -415,7 +415,7 @@ public class JdbcConnection extends TraceObject
                     session = null;
                 }
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw logAndConvert(e);
         }
     }

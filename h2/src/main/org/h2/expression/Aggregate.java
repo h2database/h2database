@@ -146,6 +146,8 @@ public class Aggregate extends Expression {
     private int displaySize;
     private int lastGroupRowId;
 
+    private Expression filterCondition;
+
     /**
      * Create a new aggregate object.
      *
@@ -228,6 +230,15 @@ public class Aggregate extends Expression {
         this.groupConcatSeparator = separator;
     }
 
+    /**
+     * Sets the FILTER condition.
+     *
+     * @param filterCondition condition
+     */
+    public void setFilterCondition(Expression filterCondition) {
+        this.filterCondition = filterCondition;
+    }
+
     private SortOrder initOrder(Session session) {
         int size = groupConcatOrderList.size();
         int[] index = new int[size];
@@ -279,6 +290,11 @@ public class Aggregate extends Expression {
                     }
                     v = ValueArray.get(array);
                 }
+            }
+        }
+        if (filterCondition != null) {
+            if (!filterCondition.getBooleanValue(session)) {
+                return;
             }
         }
         data.add(session.getDatabase(), dataType, distinct, v);
@@ -383,6 +399,9 @@ public class Aggregate extends Expression {
         if (groupConcatSeparator != null) {
             groupConcatSeparator.mapColumns(resolver, level);
         }
+        if (filterCondition != null) {
+            filterCondition.mapColumns(resolver, level);
+        }
     }
 
     @Override
@@ -402,6 +421,9 @@ public class Aggregate extends Expression {
         }
         if (groupConcatSeparator != null) {
             groupConcatSeparator = groupConcatSeparator.optimize(session);
+        }
+        if (filterCondition != null) {
+            filterCondition = filterCondition.optimize(session);
         }
         switch (type) {
         case GROUP_CONCAT:
@@ -487,6 +509,9 @@ public class Aggregate extends Expression {
         if (groupConcatSeparator != null) {
             groupConcatSeparator.setEvaluatable(tableFilter, b);
         }
+        if (filterCondition != null) {
+            filterCondition.setEvaluatable(tableFilter, b);
+        }
     }
 
     @Override
@@ -523,7 +548,11 @@ public class Aggregate extends Expression {
         if (groupConcatSeparator != null) {
             buff.append(" SEPARATOR ").append(groupConcatSeparator.getSQL());
         }
-        return buff.append(')').toString();
+        buff.append(')');
+        if (filterCondition != null) {
+            buff.append(" FILTER (WHERE ").append(filterCondition.getSQL()).append(')');
+        }
+        return buff.toString();
     }
 
     @Override
@@ -586,9 +615,14 @@ public class Aggregate extends Expression {
             throw DbException.throwInternalError("type=" + type);
         }
         if (distinct) {
-            return text + "(DISTINCT " + on.getSQL() + ")";
+            text += "(DISTINCT " + on.getSQL() + ')';
+        } else {
+            text += StringUtils.enclose(on.getSQL());
         }
-        return text + StringUtils.enclose(on.getSQL());
+        if (filterCondition != null) {
+            text += " FILTER (WHERE " + filterCondition.getSQL() + ')';
+        }
+        return text;
     }
 
     private Index getMinMaxColumnIndex() {
@@ -607,6 +641,9 @@ public class Aggregate extends Expression {
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
+        if (filterCondition != null && !filterCondition.isEverything(visitor)) {
+            return false;
+        }
         if (visitor.getType() == ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL) {
             switch (type) {
             case COUNT:
@@ -649,7 +686,14 @@ public class Aggregate extends Expression {
 
     @Override
     public int getCost() {
-        return (on == null) ? 1 : on.getCost() + 1;
+        int cost = 1;
+        if (on != null) {
+            cost += on.getCost();
+        }
+        if (filterCondition != null) {
+            cost += filterCondition.getCost();
+        }
+        return cost;
     }
 
 }

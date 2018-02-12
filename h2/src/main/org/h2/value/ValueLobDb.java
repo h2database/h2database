@@ -26,6 +26,7 @@ import org.h2.store.FileStoreInputStream;
 import org.h2.store.FileStoreOutputStream;
 import org.h2.store.LobStorageFrontend;
 import org.h2.store.LobStorageInterface;
+import org.h2.store.RangeReader;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
@@ -544,6 +545,15 @@ public class ValueLobDb extends Value implements Value.ValueClob,
      */
     public static ValueLobDb createTempClob(Reader in, long length,
             DataHandler handler) {
+        if (length >= 0) {
+            // Otherwise BufferedReader may try to read more data than needed and that
+            // blocks the network level
+            try {
+                in = new RangeReader(in, 0, length);
+            } catch (IOException e) {
+                throw DbException.convert(e);
+            }
+        }
         BufferedReader reader;
         if (in instanceof BufferedReader) {
             reader = (BufferedReader) in;

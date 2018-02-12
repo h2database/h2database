@@ -148,6 +148,9 @@ public class IndexCursor implements Cursor {
                 }
             }
         }
+        if (inColumn != null) {
+            start = table.getTemplateRow();
+        }
     }
 
     /**
@@ -326,7 +329,6 @@ public class IndexCursor implements Cursor {
             while (inResult.next()) {
                 Value v = inResult.currentRow()[0];
                 if (v != ValueNull.INSTANCE) {
-                    v = inColumn.convert(v);
                     if (inResultTested == null) {
                         inResultTested = new HashSet<>();
                     }
@@ -342,9 +344,6 @@ public class IndexCursor implements Cursor {
     private void find(Value v) {
         v = inColumn.convert(v);
         int id = inColumn.getColumnId();
-        if (start == null) {
-            start = table.getTemplateRow();
-        }
         start.setValue(id, v);
         cursor = index.find(tableFilter, start, start);
     }

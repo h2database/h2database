@@ -62,6 +62,7 @@ public class TestGetGeneratedKeys extends TestBase {
         Connection conn = getConnection("getGeneratedKeys");
         testBatchAndMergeInto(conn);
         testCalledSequenses(conn);
+        testMergeUsing(conn);
         testMultithreaded(conn);
         testNameCase(conn);
 
@@ -228,6 +229,62 @@ public class TestGetGeneratedKeys extends TestBase {
         assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
         stat.execute("DROP SEQUENCE SEQ");
+    }
+
+    /**
+     * Test method for MERGE USING operator.
+     *
+     * @param conn
+     *            connection
+     * @throws Exception
+     *             on exception
+     */
+    private void testMergeUsing(Connection conn) throws Exception {
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE SOURCE (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
+                + " UID INT NOT NULL UNIQUE, VALUE INT NOT NULL)");
+        stat.execute("CREATE TABLE DESTINATION (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
+                + " UID INT NOT NULL UNIQUE, VALUE INT NOT NULL)");
+        PreparedStatement ps = conn.prepareStatement("INSERT INTO SOURCE(UID, VALUE) VALUES (?, ?)");
+        for (int i = 1; i <= 100; i++) {
+            ps.setInt(1, i);
+            ps.setInt(2, i * 10 + 5);
+            ps.executeUpdate();
+        }
+        // Insert first half of a rows with different values
+        ps = conn.prepareStatement("INSERT INTO DESTINATION(UID, VALUE) VALUES (?, ?)");
+        for (int i = 1; i <= 50; i++) {
+            ps.setInt(1, i);
+            ps.setInt(2, i * 10);
+            ps.executeUpdate();
+        }
+        // And merge second half into it, first half will be updated with a new values
+        ps = conn.prepareStatement(
+                "MERGE INTO DESTINATION USING SOURCE ON (DESTINATION.UID = SOURCE.UID)"
+                        + " WHEN MATCHED THEN UPDATE SET VALUE = SOURCE.VALUE"
+                        + " WHEN NOT MATCHED THEN INSERT (UID, VALUE) VALUES (SOURCE.UID, SOURCE.VALUE)",
+                Statement.RETURN_GENERATED_KEYS);
+        // All rows should be either updated or inserted
+        assertEquals(100, ps.executeUpdate());
+        ResultSet rs = ps.getGeneratedKeys();
+        // Only 50 keys for inserted rows should be generated
+        for (int i = 1; i <= 50; i++) {
+            assertTrue(rs.next());
+            assertEquals(i + 50, rs.getLong(1));
+        }
+        assertFalse(rs.next());
+        rs.close();
+        // Check merged data
+        rs = stat.executeQuery("SELECT ID, UID, VALUE FROM DESTINATION ORDER BY ID");
+        for (int i = 1; i <= 100; i++) {
+            assertTrue(rs.next());
+            assertEquals(i, rs.getLong(1));
+            assertEquals(i, rs.getInt(2));
+            assertEquals(i * 10 + 5, rs.getInt(3));
+        }
+        assertFalse(rs.next());
+        stat.execute("DROP TABLE SOURCE");
+        stat.execute("DROP TABLE DESTINATION");
     }
 
     /**

@@ -125,6 +125,7 @@ public final class GeneratedKeys {
     public LocalResult getKeys(Session session) {
         Database db = session == null ? null : session.getDatabase();
         if (Boolean.FALSE.equals(generatedKeysRequest)) {
+            clear(null);
             return new LocalResult();
         }
         ArrayList<ExpressionColumn> expressionColumns;
@@ -148,6 +149,7 @@ public final class GeneratedKeys {
                     }
                 }
             } else {
+                clear(null);
                 return new LocalResult();
             }
         } else if (generatedKeysRequest instanceof String[]) {
@@ -177,13 +179,16 @@ public final class GeneratedKeys {
                     allColumns.add(column);
                 }
             } else {
+                clear(null);
                 return new LocalResult();
             }
         } else {
+            clear(null);
             return new LocalResult();
         }
         int columnCount = expressionColumns.size();
         if (columnCount == 0) {
+            clear(null);
             return new LocalResult();
         }
         LocalResult result = new LocalResult(session, expressionColumns.toArray(new Expression[0]), columnCount);
@@ -202,6 +207,7 @@ public final class GeneratedKeys {
             }
             result.addRow(row);
         }
+        clear(null);
         return result;
     }
 

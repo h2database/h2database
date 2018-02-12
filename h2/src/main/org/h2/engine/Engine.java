@@ -6,6 +6,7 @@
 package org.h2.engine;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
@@ -27,7 +28,7 @@ import org.h2.util.Utils;
 public class Engine implements SessionFactory {
 
     private static final Engine INSTANCE = new Engine();
-    private static final HashMap<String, Database> DATABASES = new HashMap<>();
+    private static final Map<String, Database> DATABASES = new HashMap<>();
 
     private volatile long wrongPasswordDelay =
             SysProperties.DELAY_WRONG_PASSWORD_MIN;
@@ -50,30 +51,32 @@ public class Engine implements SessionFactory {
         Database database;
         ci.removeProperty("NO_UPGRADE", false);
         boolean openNew = ci.getProperty("OPEN_NEW", false);
-        if (openNew || ci.isUnnamedInMemory()) {
-            database = null;
-        } else {
-            database = DATABASES.get(name);
-        }
-        User user = null;
         boolean opened = false;
-        if (database == null) {
-            if (ifExists && !Database.exists(name)) {
-                throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_1, name);
+        User user = null;
+        synchronized (DATABASES) {
+            if (openNew || ci.isUnnamedInMemory()) {
+                database = null;
+            } else {
+                database = DATABASES.get(name);
             }
-            database = new Database(ci, cipher);
-            opened = true;
-            if (database.getAllUsers().isEmpty()) {
-                // users is the last thing we add, so if no user is around,
-                // the database is new (or not initialized correctly)
-                user = new User(database, database.allocateObjectId(),
-                        ci.getUserName(), false);
-                user.setAdmin(true);
-                user.setUserPasswordHash(ci.getUserPasswordHash());
-                database.setMasterUser(user);
-            }
-            if (!ci.isUnnamedInMemory()) {
-                DATABASES.put(name, database);
+            if (database == null) {
+                if (ifExists && !Database.exists(name)) {
+                    throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_1, name);
+                }
+                database = new Database(ci, cipher);
+                opened = true;
+                if (database.getAllUsers().isEmpty()) {
+                    // users is the last thing we add, so if no user is around,
+                    // the database is new (or not initialized correctly)
+                    user = new User(database, database.allocateObjectId(),
+                            ci.getUserName(), false);
+                    user.setAdmin(true);
+                    user.setUserPasswordHash(ci.getUserPasswordHash());
+                    database.setMasterUser(user);
+                }
+                if (!ci.isUnnamedInMemory()) {
+                    DATABASES.put(name, database);
+                }
             }
         }
         if (opened) {
@@ -272,7 +275,9 @@ public class Engine implements SessionFactory {
                 throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, e, "JMX");
             }
         }
-        DATABASES.remove(name);
+        synchronized (DATABASES) {
+            DATABASES.remove(name);
+        }
     }
 
     /**

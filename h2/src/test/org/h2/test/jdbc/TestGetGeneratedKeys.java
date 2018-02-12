@@ -62,6 +62,7 @@ public class TestGetGeneratedKeys extends TestBase {
         Connection conn = getConnection("getGeneratedKeys");
         testBatchAndMergeInto(conn);
         testCalledSequenses(conn);
+        testMultithreaded(conn);
         testNameCase(conn);
 
         testPrepareStatement_Execute(conn);
@@ -230,6 +231,61 @@ public class TestGetGeneratedKeys extends TestBase {
     }
 
     /**
+     * Test method for shared connection between several statements in different
+     * threads.
+     *
+     * @param conn
+     *            connection
+     * @throws Exception
+     *             on exception
+     */
+    private void testMultithreaded(final Connection conn) throws Exception {
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT," + "VALUE INT NOT NULL)");
+        final int count = 4, iterations = 10_000;
+        Thread[] threads = new Thread[count];
+        final long[] keys = new long[count * iterations];
+        for (int i = 0; i < count; i++) {
+            final int num = i;
+            threads[num] = new Thread("getGeneratedKeys-" + num) {
+                @Override
+                public void run() {
+                    try {
+                        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (?)",
+                                Statement.RETURN_GENERATED_KEYS);
+                        for (int i = 0; i < iterations; i++) {
+                            int value = iterations * num + i;
+                            prep.setInt(1, value);
+                            prep.execute();
+                            ResultSet rs = prep.getGeneratedKeys();
+                            rs.next();
+                            keys[value] = rs.getLong(1);
+                            rs.close();
+                        }
+                    } catch (SQLException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            };
+        }
+        for (int i = 0; i < count; i++) {
+            threads[i].start();
+        }
+        for (int i = 0; i < count; i++) {
+            threads[i].join();
+        }
+        ResultSet rs = stat.executeQuery("SELECT VALUE, ID FROM TEST ORDER BY VALUE");
+        for (int i = 0; i < keys.length; i++) {
+            assertTrue(rs.next());
+            assertEquals(i, rs.getInt(1));
+            assertEquals(keys[i], rs.getLong(2));
+        }
+        assertFalse(rs.next());
+        rs.close();
+        stat.execute("DROP TABLE TEST");
+    }
+
+    /**
      * Test method for case of letters in column names.
      *
      * @param conn
@@ -256,8 +312,7 @@ public class TestGetGeneratedKeys extends TestBase {
         rs.close();
         // Test lower case name of upper case column
         stat.execute("ALTER TABLE TEST DROP COLUMN \"id\"");
-        prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (20)",
-                new String[] { "id" });
+        prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (20)", new String[] { "id" });
         prep.executeUpdate();
         rs = prep.getGeneratedKeys();
         assertEquals(1, rs.getMetaData().getColumnCount());
@@ -268,8 +323,7 @@ public class TestGetGeneratedKeys extends TestBase {
         rs.close();
         // Test upper case name of lower case column
         stat.execute("ALTER TABLE TEST ALTER COLUMN ID RENAME TO \"id\"");
-        prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (30)",
-                new String[] { "ID" });
+        prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (30)", new String[] { "ID" });
         prep.executeUpdate();
         rs = prep.getGeneratedKeys();
         assertEquals(1, rs.getMetaData().getColumnCount());

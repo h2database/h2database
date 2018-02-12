@@ -1309,7 +1309,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
     @Override
     public ResultSet getGeneratedKeys() throws SQLException {
         if (batchIdentities != null) {
-            return batchIdentities.getKeys();
+            return batchIdentities.getResult();
         }
         return super.getGeneratedKeys();
     }

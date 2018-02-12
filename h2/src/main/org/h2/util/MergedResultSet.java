@@ -16,9 +16,17 @@ import java.util.Map;
 import org.h2.tools.SimpleResultSet;
 
 /**
- * Merged result set.
+ * Merged result set. Used to combine several result sets into one. Merged
+ * result set will contain rows from all appended result sets. Result sets are
+ * not required to have the same lists of columns, but required to have
+ * compatible column definitions, for example, if one result set has a
+ * {@link java.sql.Types#VARCHAR} column {@code NAME} then another results sets
+ * that have {@code NAME} column should also define it with the same type.
  */
 public final class MergedResultSet {
+    /**
+     * Metadata of a column.
+     */
     private static final class ColumnInfo {
         final String name;
 
@@ -28,6 +36,18 @@ public final class MergedResultSet {
 
         final int scale;
 
+        /**
+         * Creates metadata.
+         *
+         * @param name
+         *            name of the column
+         * @param type
+         *            type of the column, see {@link java.sql.Types}
+         * @param precision
+         *            precision of the column
+         * @param scale
+         *            scale of the column
+         */
         ColumnInfo(String name, int type, int precision, int scale) {
             this.name = name;
             this.type = type;
@@ -56,6 +76,14 @@ public final class MergedResultSet {
 
     private final ArrayList<ColumnInfo> columns = New.arrayList();
 
+    /**
+     * Appends a result set.
+     *
+     * @param rs
+     *            result set to append
+     * @throws SQLException
+     *             on SQL exception
+     */
     public void add(ResultSet rs) throws SQLException {
         ResultSetMetaData meta = rs.getMetaData();
         int cols = meta.getColumnCount();
@@ -85,7 +113,12 @@ public final class MergedResultSet {
         }
     }
 
-    public SimpleResultSet getKeys() {
+    /**
+     * Returns merged results set.
+     *
+     * @return result set with rows from all appended result sets
+     */
+    public SimpleResultSet getResult() {
         SimpleResultSet rs = new SimpleResultSet();
         for (ColumnInfo ci : columns) {
             rs.addColumn(ci.name, ci.type, ci.precision, ci.scale);

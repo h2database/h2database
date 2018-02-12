@@ -79,7 +79,11 @@ public class JavaAggregate extends Expression {
             buff.appendExceptFirst(", ");
             buff.append(e.getSQL());
         }
-        return buff.append(')').toString();
+        buff.append(')');
+        if (filterCondition != null) {
+            buff.append(" FILTER (WHERE ").append(filterCondition.getSQL()).append(')');
+        }
+        return buff.toString();
     }
 
     @Override

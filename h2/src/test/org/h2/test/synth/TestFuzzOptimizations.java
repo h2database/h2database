@@ -119,7 +119,7 @@ public class TestFuzzOptimizations extends TestBase {
             }
         }
         executeAndCompare("a >=0 and b in(?, 2) and a in(1, ?, null)", Arrays.asList("10", "2"),
-                          "seed=-6191135606105920350L");
+                "seed=-6191135606105920350L");
         db.execute("drop table test0, test1");
     }
 

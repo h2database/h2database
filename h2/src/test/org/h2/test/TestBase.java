@@ -466,16 +466,16 @@ public abstract class TestBase {
         throw new AssertionError(string);
     }
 
-   /**
-    * Log an error message.
-    *
-    * @param s the message
-    */
-   public static void logErrorMessage(String s) {
-       System.out.flush();
-       System.err.println("ERROR: " + s + "------------------------------");
-       logThrowable(s, null);
-   }
+    /**
+     * Log an error message.
+     *
+     * @param s the message
+     */
+    public static void logErrorMessage(String s) {
+        System.out.flush();
+        System.err.println("ERROR: " + s + "------------------------------");
+        logThrowable(s, null);
+    }
 
     /**
      * Log an error message.

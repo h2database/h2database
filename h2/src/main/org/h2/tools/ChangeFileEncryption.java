@@ -224,7 +224,8 @@ public class ChangeFileEncryption extends Tool {
         try (FileChannel fileIn = getFileChannel(fileName, "r", decryptKey)){
             try(InputStream inStream = new FileChannelInputStream(fileIn, true)) {
                 FileUtils.delete(temp);
-                try (OutputStream outStream = new FileChannelOutputStream(getFileChannel(temp, "rw", encryptKey), true)) {
+                try (OutputStream outStream = new FileChannelOutputStream(getFileChannel(temp, "rw", encryptKey),
+                        true)) {
                     byte[] buffer = new byte[4 * 1024];
                     long remaining = fileIn.size();
                     long total = remaining;

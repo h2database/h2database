@@ -92,7 +92,7 @@ public class TestScript extends TestBase {
         } else {
             decimal2 = "decimal_numeric";
         }
-        
+
         for (String s : new String[] { "array", "bigint", "binary", "blob",
                 "boolean", "char", "clob", "date", "decimal", decimal2, "double", "enum",
                 "geometry", "identity", "int", "other", "real", "smallint",

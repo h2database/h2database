@@ -1917,6 +1917,7 @@ public class Function extends Expression implements FunctionCall {
             count *= 60_000_000_000L;
             break;
         case SECOND:
+        case EPOCH:
             count *= 1_000_000_000;
             break;
         case MILLISECOND:
@@ -1968,6 +1969,7 @@ public class Function extends Expression implements FunctionCall {
         switch (field) {
         case MILLISECOND:
         case SECOND:
+        case EPOCH:
         case MINUTE:
         case HOUR:
             long timeNanos1 = a1[1];
@@ -1977,6 +1979,7 @@ public class Function extends Expression implements FunctionCall {
                 return (absolute2 - absolute1) * DateTimeUtils.MILLIS_PER_DAY
                         + (timeNanos2 / 1_000_000 - timeNanos1 / 1_000_000);
             case SECOND:
+            case EPOCH:
                 return (absolute2 - absolute1) * 86_400
                         + (timeNanos2 / 1_000_000_000 - timeNanos1 / 1_000_000_000);
             case MINUTE:

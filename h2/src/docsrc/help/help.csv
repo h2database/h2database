@@ -3727,7 +3727,8 @@ DAY_OF_YEAR(CREATED)
 "Functions (Time and Date)","EXTRACT","
 EXTRACT ( { YEAR | YY | MONTH | MM | QUARTER | WEEK | ISO_WEEK
     | DAY | DD | DAY_OF_YEAR | DOY
-    | HOUR | HH | MINUTE | MI | SECOND | SS | MILLISECOND | MS }
+    | HOUR | HH | MINUTE | MI | SECOND | SS | EPOCH
+    | MILLISECOND | MS | MICROSECOND | MCS | NANOSECOND | NS }
     FROM timestamp )
 ","
 Returns a specific value from a timestamps.

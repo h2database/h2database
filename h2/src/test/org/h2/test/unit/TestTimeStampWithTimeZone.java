@@ -126,21 +126,27 @@ public class TestTimeStampWithTimeZone extends TestBase {
         ValueTimestampTimeZone a = ValueTimestampTimeZone.parse("1970-01-01 12:00:00.00+00:15");
         ValueTimestampTimeZone b = ValueTimestampTimeZone.parse("1970-01-01 12:00:01.00+01:15");
         int c = a.compareTo(b, null);
-        assertEquals(c, 1);
+        assertEquals(1, c);
+        c = b.compareTo(a, null);
+        assertEquals(-1, c);
     }
 
     private void test3() {
         ValueTimestampTimeZone a = ValueTimestampTimeZone.parse("1970-01-02 00:00:02.00+01:15");
         ValueTimestampTimeZone b = ValueTimestampTimeZone.parse("1970-01-01 23:00:01.00+00:15");
         int c = a.compareTo(b, null);
-        assertEquals(c, 1);
+        assertEquals(1, c);
+        c = b.compareTo(a, null);
+        assertEquals(-1, c);
     }
 
     private void test4() {
         ValueTimestampTimeZone a = ValueTimestampTimeZone.parse("1970-01-02 00:00:01.00+01:15");
         ValueTimestampTimeZone b = ValueTimestampTimeZone.parse("1970-01-01 23:00:01.00+00:15");
         int c = a.compareTo(b, null);
-        assertEquals(c, 0);
+        assertEquals(0, c);
+        c = b.compareTo(a, null);
+        assertEquals(0, c);
     }
 
     private void test5() throws SQLException {

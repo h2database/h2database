@@ -922,19 +922,6 @@ public class DateTimeUtils {
     }
 
     /**
-     * Convert an encoded date value to millis, using the supplied timezone.
-     *
-     * @param tz the timezone
-     * @param dateValue the date value
-     * @return the date
-     */
-    public static long convertDateValueToMillis(TimeZone tz, long dateValue) {
-        return getMillis(tz, yearFromDateValue(dateValue),
-                monthFromDateValue(dateValue), dayFromDateValue(dateValue), 0,
-                0, 0, 0);
-    }
-
-    /**
      * Convert an encoded date-time value to millis, using the supplied timezone.
      *
      * @param tz the timezone

@@ -1501,17 +1501,9 @@ public class Function extends Expression implements FunctionCall {
             break;
         case EXTRACT: {
             int field = getDatePart(v0.getString());
-            switch (field) {
-            default:
+            if (field != EPOCH) {
                 result = ValueInt.get(getIntDatePart(v1, field));
-                break;
-            case Function.MICROSECOND:
-                result = ValueLong.get(DateTimeUtils.dateAndTimeFromValue(v1)[1] / 1_000 % 1_000_000);
-                break;
-            case Function.NANOSECOND:
-                result = ValueLong.get(DateTimeUtils.dateAndTimeFromValue(v1)[1] % 1_000_000_000);
-                break;
-            case EPOCH: {
+            } else {
                 
                 // Case where we retrieve the EPOCH time.
                 // First we retrieve the dateValue and his time in nanoseconds.
@@ -1555,7 +1547,6 @@ public class Function extends Expression implements FunctionCall {
                     // We just have to sum the time in nanoseconds and the total number of days in seconds.
                     result = ValueDecimal.get(timeNanosBigDecimal.divide(nanosSeconds).add(numberOfDays.multiply(secondsPerDay)));
                 }
-            }
             }
             break;
         }
@@ -2897,6 +2888,10 @@ public class Function extends Expression implements FunctionCall {
             return (int) (timeNanos / 1_000_000_000 % 60);
         case Function.MILLISECOND:
             return (int) (timeNanos / 1_000_000 % 1_000);
+        case Function.MICROSECOND:
+            return (int) (timeNanos / 1_000 % 1_000_000);
+        case Function.NANOSECOND:
+            return (int) (timeNanos % 1_000_000_000);
         case Function.DAY_OF_YEAR:
             return DateTimeUtils.getDayOfYear(dateValue);
         case Function.DAY_OF_WEEK:

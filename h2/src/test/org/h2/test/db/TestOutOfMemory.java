@@ -5,6 +5,7 @@
  */
 package org.h2.test.db;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -15,12 +16,12 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 import org.h2.api.ErrorCode;
-import org.h2.message.DbException;
 import org.h2.mvstore.MVStore;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FilePathMem;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.utils.SelfDestructor;
 
 /**
  * Tests out of memory situations. The database must not get corrupted, and
@@ -38,7 +39,7 @@ public class TestOutOfMemory extends TestBase {
     }
 
     @Override
-    public void test() throws SQLException, InterruptedException {
+    public void test() throws Exception {
         if (config.vmlens) {
             // running out of memory will cause the vmlens agent to stop working
             return;
@@ -147,67 +148,73 @@ public class TestOutOfMemory extends TestBase {
         }
     }
 
-    private void testUpdateWhenNearlyOutOfMemory() throws SQLException, InterruptedException {
+    private void testUpdateWhenNearlyOutOfMemory() throws Exception {
         if (config.memory) {
             return;
         }
-        recoverAfterOOM();
         deleteDb("outOfMemory");
-        Connection conn = getConnection("outOfMemory;MAX_OPERATION_MEMORY=1000000");
-        Statement stat = conn.createStatement();
-        stat.execute("drop all objects");
-        stat.execute("create table stuff (id int, text varchar as space(100) || id)");
-        stat.execute("insert into stuff(id) select x from system_range(1, 3000)");
-        PreparedStatement prep = conn.prepareStatement(
-                "update stuff set text = text || space(1000) || id");
-        prep.execute();
-        stat.execute("checkpoint");
-        eatMemory(80);
-        try {
+        String url = getURL("outOfMemory", true);
+//*
+        String selfDestructor = SelfDestructor.getPropertyString(1);
+        String args[] = {System.getProperty("java.home") + File.separatorChar + "bin" + File.separator + "java",
+                        "-Xmx128m", "-XX:+UseParallelGC", // "-XX:+UseG1GC",
+                        "-cp", getClassPath(),
+                        selfDestructor,
+                        Child.class.getName(), url};
+        ProcessBuilder pb = new ProcessBuilder()
+                            .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+                            .redirectError(ProcessBuilder.Redirect.INHERIT)
+                            .command(args);
+        Process p = pb.start();
+        int exitValue = p.waitFor();
+        assertEquals("Exit code", 0, exitValue);
+/*/
+        Child.main(url);
+//*/
+        try (Connection conn = getConnection("outOfMemory")) {
+            Statement stat = conn.createStatement();
+            ResultSet rs = stat.executeQuery("SELECT count(*) FROM stuff");
+            assertTrue(rs.next());
+            assertEquals(3000, rs.getInt(1));
+            rs = stat.executeQuery("SELECT * FROM stuff WHERE id = 3000");
+            assertTrue(rs.next());
+            String text = rs.getString(2);
+            assertFalse(rs.wasNull());
+            assertEquals(1004, text.length());
+        } finally {
+            deleteDb("outOfMemory");
+        }
+    }
+
+    public static final class Child extends TestBase
+    {
+        private static String URL;
+
+        public static void main(String... a) throws Exception {
+            URL = a[0];
+            TestBase.createCaller().init().test();
+        }
+
+        @Override
+        public void test() throws SQLException {
+            Connection conn = getConnection(URL + ";MAX_OPERATION_MEMORY=1000000");
+            Statement stat = conn.createStatement();
+            stat.execute("DROP ALL OBJECTS");
+            stat.execute("CREATE TABLE stuff (id INT, text VARCHAR)");
+            stat.execute("INSERT INTO stuff(id) SELECT x FROM system_range(1, 3000)");
+            PreparedStatement prep = conn.prepareStatement(
+                    "UPDATE stuff SET text = IFNULL(text,'') || space(1000) || id");
+            prep.execute();
+            stat.execute("CHECKPOINT");
+            eatMemory(80);
             try {
                 prep.execute();
                 fail();
-            } catch(DbException ex) {
+            } catch (Throwable ex) {
                 freeMemory();
-                assertTrue(ErrorCode.OUT_OF_MEMORY == ex.getErrorCode() || ErrorCode.GENERAL_ERROR_1 == ex.getErrorCode());
-            } catch (SQLException ex) {
-                freeMemory();
-                assertTrue(ErrorCode.OUT_OF_MEMORY == ex.getErrorCode() || ErrorCode.GENERAL_ERROR_1 == ex.getErrorCode());
-            }
-            recoverAfterOOM();
-            try {
-                conn.close();
-                fail();
-            } catch(DbException ex) {
-                freeMemory();
-                assertEquals(ErrorCode.DATABASE_IS_CLOSED, ex.getErrorCode());
-            } catch (SQLException ex) {
-                freeMemory();
-                assertEquals(ErrorCode.DATABASE_IS_CLOSED, ex.getErrorCode());
-            }
-            freeMemory();
-            conn = null;
-            conn = getConnection("outOfMemory");
-            stat = conn.createStatement();
-            ResultSet rs = stat.executeQuery("select count(*) from stuff");
-            rs.next();
-            assertEquals(3000, rs.getInt(1));
-        } catch (OutOfMemoryError e) {
-            freeMemory();
-            // out of memory not detected
-            throw new AssertionError("Out of memory not detected", e);
-        } finally {
-            freeMemory();
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException e) {
-                    // out of memory will / may close the database
-                    assertKnownException(e);
-                }
+            } finally {
+                try { conn.close(); } catch (Throwable ignore) {/**/}
             }
         }
-        deleteDb("outOfMemory");
     }
-
 }

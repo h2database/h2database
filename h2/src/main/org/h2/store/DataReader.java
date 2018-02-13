@@ -171,7 +171,7 @@ public class DataReader extends Reader {
         int i = 0;
         try {
             for (; i < len; i++) {
-                buff[i] = readChar();
+                buff[off + i] = readChar();
             }
             return len;
         } catch (EOFException e) {

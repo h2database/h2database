@@ -36,7 +36,7 @@ public class DateTimeUtils {
      * The number of milliseconds per day.
      */
     public static final long MILLIS_PER_DAY = 24 * 60 * 60 * 1000L;
-    
+
     /**
      * The number of seconds per day.
      */

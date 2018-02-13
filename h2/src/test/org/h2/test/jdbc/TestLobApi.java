@@ -119,7 +119,20 @@ public class TestLobApi extends TestBase {
         prep.setString(1, "");
         prep.setBytes(2, new byte[0]);
         prep.execute();
+
         Random r = new Random(1);
+
+        char[] charsSmall = new char[20];
+        for (int i = 0; i < charsSmall.length; i++) {
+            charsSmall[i] = (char) r.nextInt(10000);
+        }
+        String dSmall = new String(charsSmall);
+        prep.setCharacterStream(1, new StringReader(dSmall), -1);
+        byte[] bytesSmall = new byte[20];
+        r.nextBytes(bytesSmall);
+        prep.setBinaryStream(2, new ByteArrayInputStream(bytesSmall), -1);
+        prep.execute();
+
         char[] chars = new char[100000];
         for (int i = 0; i < chars.length; i++) {
             chars[i] = (char) r.nextInt(10000);
@@ -130,6 +143,7 @@ public class TestLobApi extends TestBase {
         r.nextBytes(bytes);
         prep.setBinaryStream(2, new ByteArrayInputStream(bytes), -1);
         prep.execute();
+
         conn.setAutoCommit(false);
         ResultSet rs = stat.executeQuery("select * from test order by id");
         rs.next();
@@ -138,18 +152,27 @@ public class TestLobApi extends TestBase {
         rs.next();
         Clob c2 = rs.getClob(2);
         Blob b2 = rs.getBlob(3);
+        rs.next();
+        Clob c3 = rs.getClob(2);
+        Blob b3 = rs.getBlob(3);
         assertFalse(rs.next());
         // now close
         rs.close();
         // but the LOBs must stay open
         assertEquals(0, c1.length());
         assertEquals(0, b1.length());
-        assertEquals(chars.length, c2.length());
-        assertEquals(bytes.length, b2.length());
         assertEquals("", c1.getSubString(1, 0));
         assertEquals(new byte[0], b1.getBytes(1, 0));
-        assertEquals(d, c2.getSubString(1, (int) c2.length()));
-        assertEquals(bytes, b2.getBytes(1, (int) b2.length()));
+
+        assertEquals(charsSmall.length, c2.length());
+        assertEquals(bytesSmall.length, b2.length());
+        assertEquals(dSmall, c2.getSubString(1, (int) c2.length()));
+        assertEquals(bytesSmall, b2.getBytes(1, (int) b2.length()));
+
+        assertEquals(chars.length, c3.length());
+        assertEquals(bytes.length, b3.length());
+        assertEquals(d, c3.getSubString(1, (int) c3.length()));
+        assertEquals(bytes, b3.getBytes(1, (int) b3.length()));
         stat.execute("drop table test");
         conn.close();
     }

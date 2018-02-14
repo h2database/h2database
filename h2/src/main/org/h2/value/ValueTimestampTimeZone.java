@@ -219,34 +219,31 @@ public class ValueTimestampTimeZone extends Value {
     @Override
     protected int compareSecure(Value o, CompareMode mode) {
         ValueTimestampTimeZone t = (ValueTimestampTimeZone) o;
-        // We are pretending that the dateValue is in UTC because that gives us
-        // a stable sort even if the DST database changes.
-
-        // convert to minutes and add timezone offset
-        long a = DateTimeUtils.convertDateValueToMillis(
-                DateTimeUtils.UTC, dateValue) /
-                (1000L * 60L);
-        long ma = timeNanos / (1000L * 1000L * 1000L * 60L);
-        a += ma;
-        a -= timeZoneOffsetMins;
-
-        // convert to minutes and add timezone offset
-        long b = DateTimeUtils.convertDateValueToMillis(
-                DateTimeUtils.UTC, t.dateValue) /
-                (1000L * 60L);
-        long mb = t.timeNanos / (1000L * 1000L * 1000L * 60L);
-        b += mb;
-        b -= t.timeZoneOffsetMins;
-
-        // compare date
-        int c = Long.compare(a, b);
-        if (c != 0) {
-            return c;
+        // Maximum time zone offset is +/-18 hours so difference in days between local
+        // and UTC cannot be more than one day
+        long daysA = DateTimeUtils.absoluteDayFromDateValue(dateValue);
+        long timeA = timeNanos - timeZoneOffsetMins * 60_000_000_000L;
+        if (timeA < 0) {
+            timeA += DateTimeUtils.NANOS_PER_DAY;
+            daysA--;
+        } else if (timeA >= DateTimeUtils.NANOS_PER_DAY) {
+            timeA -= DateTimeUtils.NANOS_PER_DAY;
+            daysA++;
         }
-        // compare time
-        long na = timeNanos - (ma * 1000L * 1000L * 1000L * 60L);
-        long nb = t.timeNanos - (mb * 1000L * 1000L * 1000L * 60L);
-        return Long.compare(na, nb);
+        long daysB = DateTimeUtils.absoluteDayFromDateValue(t.dateValue);
+        long timeB = t.timeNanos - t.timeZoneOffsetMins * 60_000_000_000L;
+        if (timeB < 0) {
+            timeB += DateTimeUtils.NANOS_PER_DAY;
+            daysB--;
+        } else if (timeB >= DateTimeUtils.NANOS_PER_DAY) {
+            timeB -= DateTimeUtils.NANOS_PER_DAY;
+            daysB++;
+        }
+        int cmp = Long.compare(daysA, daysB);
+        if (cmp != 0) {
+            return cmp;
+        }
+        return Long.compare(timeA, timeB);
     }
 
     @Override

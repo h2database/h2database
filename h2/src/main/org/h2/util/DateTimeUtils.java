@@ -36,7 +36,7 @@ public class DateTimeUtils {
      * The number of milliseconds per day.
      */
     public static final long MILLIS_PER_DAY = 24 * 60 * 60 * 1000L;
-    
+
     /**
      * The number of seconds per day.
      */
@@ -919,19 +919,6 @@ public class DateTimeUtils {
                 monthFromDateValue(dateValue), dayFromDateValue(dateValue), 0,
                 0, 0, 0);
         return new Date(millis);
-    }
-
-    /**
-     * Convert an encoded date value to millis, using the supplied timezone.
-     *
-     * @param tz the timezone
-     * @param dateValue the date value
-     * @return the date
-     */
-    public static long convertDateValueToMillis(TimeZone tz, long dateValue) {
-        return getMillis(tz, yearFromDateValue(dateValue),
-                monthFromDateValue(dateValue), dayFromDateValue(dateValue), 0,
-                0, 0, 0);
     }
 
     /**

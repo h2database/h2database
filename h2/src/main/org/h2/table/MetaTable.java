@@ -1615,7 +1615,7 @@ public class MetaTable extends Table {
                 if (constraintType == Constraint.Type.CHECK) {
                     checkExpression = ((ConstraintCheck) constraint).getExpression().getSQL();
                 } else if (constraintType == Constraint.Type.UNIQUE ||
-                           constraintType == Constraint.Type.PRIMARY_KEY) {
+                        constraintType == Constraint.Type.PRIMARY_KEY) {
                     indexColumns = ((ConstraintUnique) constraint).getColumns();
                 } else if (constraintType == Constraint.Type.REFERENTIAL) {
                     indexColumns = ((ConstraintReferential) constraint).getColumns();

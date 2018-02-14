@@ -5,13 +5,11 @@
  */
 package org.h2.test.unit;
 
+import static org.h2.util.DateTimeUtils.dateValue;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-
 import org.h2.test.TestBase;
 import org.h2.util.DateTimeUtils;
-
-import static org.h2.util.DateTimeUtils.dateValue;
 
 /**
  * Unit tests for the DateTimeUtils class
@@ -44,7 +42,7 @@ public class TestDateTimeUtils extends TestBase {
     }
 
     /**
-     * Test for {@link DateTimeUtils#getSundayDayOfWeek()} and
+     * Test for {@link DateTimeUtils#getSundayDayOfWeek(long)} and
      * {@link DateTimeUtils#getIsoDayOfWeek(long)}.
      */
     private void testDayOfWeek() {

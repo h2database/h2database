@@ -2300,9 +2300,9 @@ Each table has a pseudo-column named ""_ROWID_"" that contains the unique row id
 "
 
 "Other Grammar","Time","
-TIME 'hh:mm:ss'
+TIME 'hh:mm:ss[.nnnnnnnnn]'
 ","
-A time literal. A value is between plus and minus 2 million hours
+A time literal. A value is between 0:00:00 and 23:59:59.999999999
 and has nanosecond resolution.
 ","
 TIME '23:59:59'
@@ -2316,6 +2316,19 @@ A timestamp literal. The limitations are the same as for the Java data type
 minimum and maximum years are 0001 and 9999.
 ","
 TIMESTAMP '2005-12-31 23:59:59'
+"
+
+"Other Grammar","Timestamp with time zone","
+TIMESTAMP 'yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]
+[Z | { - | + } timeZoneOffsetString | timeZoneNameString ]'
+","
+A timestamp with time zone literal.
+If name of time zone is specified it will be converted to time zone offset.
+","
+TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59Z'
+TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59-10:00'
+TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59.123+05'
+TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59.123456789 Europe/London'
 "
 
 "Other Grammar","Value","
@@ -3671,7 +3684,7 @@ CURRENT_TIMESTAMP()
 Adds units to a date-time value. The string indicates the unit.
 Use negative values to subtract units.
 addIntLong may be a long value when manipulating milliseconds,
-otherwise it's range is restricted to int.
+microseconds, or nanoseconds otherwise its range is restricted to int.
 The same units as in the EXTRACT function are supported.
 This method returns a value with the same type as specified value if unit is compatible with this value.
 If specified unit is a HOUR, MINUTE, SECOND, MILLISECOND, etc and value is a DATE value DATEADD returns combined TIMESTAMP.
@@ -3727,11 +3740,13 @@ DAY_OF_YEAR(CREATED)
 "Functions (Time and Date)","EXTRACT","
 EXTRACT ( { YEAR | YY | MONTH | MM | QUARTER | WEEK | ISO_WEEK
     | DAY | DD | DAY_OF_YEAR | DOY
-    | HOUR | HH | MINUTE | MI | SECOND | SS | MILLISECOND | MS }
+    | HOUR | HH | MINUTE | MI | SECOND | SS | EPOCH
+    | MILLISECOND | MS | MICROSECOND | MCS | NANOSECOND | NS }
     FROM timestamp )
 ","
 Returns a specific value from a timestamps.
-This method returns an int.
+This method returns a numeric value with EPOCH unit and
+an int for all other time units.
 ","
 EXTRACT(SECOND FROM CURRENT_TIMESTAMP)
 "
@@ -3820,12 +3835,31 @@ This method uses the current system locale.
 WEEK(CREATED)
 "
 
+"Functions (Time and Date)","ISO_WEEK","
+ISO_WEEK(timestamp)
+","
+Returns the week (1-53) from a timestamp.
+This method uses the ISO definition when
+first week of year should have at least four days
+and week is started with Monday.
+","
+ISO_WEEK(CREATED)
+"
+
 "Functions (Time and Date)","YEAR","
 YEAR(timestamp)
 ","
 Returns the year from a timestamp.
 ","
 YEAR(CREATED)
+"
+
+"Functions (Time and Date)","ISO_YEAR","
+ISO_YEAR(timestamp)
+","
+Returns the ISO week year from a timestamp.
+","
+ISO_YEAR(CREATED)
 "
 
 "Functions (System)","ARRAY_GET","

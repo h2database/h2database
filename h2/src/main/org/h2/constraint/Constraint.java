@@ -10,7 +10,6 @@ import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.index.Index;
-import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.schema.Schema;

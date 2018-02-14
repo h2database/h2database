@@ -743,9 +743,9 @@ public class ToChar {
 
             } else if ((cap = containsAt(format, i, "FF1", "FF2",
                     "FF3", "FF4", "FF5", "FF6", "FF7", "FF8", "FF9")) != null) {
-                int x = Integer.parseInt(format.substring(i + 2, i + 3));
+                int x = format.charAt(i + 2) - '0';
                 int ff = (int) (nanos * Math.pow(10, x - 9));
-                output.append(ff);
+                StringUtils.appendZeroPadded(output, x, ff);
                 i += 3;
             } else if ((cap = containsAt(format, i, "FF")) != null) {
                 StringUtils.appendZeroPadded(output, 9, nanos);

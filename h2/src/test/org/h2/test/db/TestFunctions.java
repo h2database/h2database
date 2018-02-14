@@ -1556,6 +1556,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
                 "SELECT TO_CHAR(X, 'HH:MI:SS.FF9') FROM T");
         assertResult("012345678", stat,
                 "SELECT TO_CHAR(TIME '0:00:00.012345678', 'FF') FROM T");
+        assertResult("00", stat,
+                "SELECT TO_CHAR(TIME '0:00:00.000', 'FF2') FROM T");
         assertResult("08:12", stat, "SELECT TO_CHAR(X, 'HH:MI') FROM T");
         assertResult("08:12", stat, "SELECT TO_CHAR(X, 'HH12:MI') FROM T");
         assertResult("08:12", stat, "SELECT TO_CHAR(X, 'HH24:MI') FROM T");

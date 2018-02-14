@@ -6,20 +6,18 @@
 package org.h2.util;
 
 import java.math.BigDecimal;
-import java.sql.Date;
-import java.sql.Timestamp;
+import java.text.DateFormatSymbols;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Currency;
-import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
+import org.h2.value.Value;
 
 /**
  * Emulates Oracle's TO_CHAR function.
@@ -29,7 +27,7 @@ public class ToChar {
     /**
      * The beginning of the Julian calendar.
      */
-    private static final long JULIAN_EPOCH;
+    private static final int JULIAN_EPOCH = -2_440_588;
 
     private static final int[] ROMAN_VALUES = { 1000, 900, 500, 400, 100, 90, 50, 40, 10, 9,
             5, 4, 1 };
@@ -37,14 +35,9 @@ public class ToChar {
     private static final String[] ROMAN_NUMERALS = { "M", "CM", "D", "CD", "C", "XC",
             "L", "XL", "X", "IX", "V", "IV", "I" };
 
-    static {
-        GregorianCalendar epoch = new GregorianCalendar(Locale.ENGLISH);
-        epoch.setGregorianChange(new Date(Long.MAX_VALUE));
-        epoch.clear();
-        epoch.set(4713, Calendar.JANUARY, 1, 0, 0, 0);
-        epoch.set(Calendar.ERA, GregorianCalendar.BC);
-        JULIAN_EPOCH = epoch.getTimeInMillis();
-    }
+    private static final int MONTHS = 0, SHORT_MONTHS = 1, WEEKDAYS = 2, SHORT_WEEKDAYS = 3, AM_PM = 4;
+
+    private static volatile String[][] NAMES;
 
     private ToChar() {
         // utility class
@@ -460,6 +453,28 @@ public class ToChar {
         return hex;
     }
 
+    private static String[] getNames(int names) {
+        String[][] result = NAMES;
+        if (result == null) {
+            result = new String[5][];
+            DateFormatSymbols dfs = DateFormatSymbols.getInstance();
+            result[MONTHS] = dfs.getMonths();
+            String[] months = dfs.getShortMonths();
+            for (int i = 0; i < 12; i++) {
+                String month = months[i];
+                if (month.endsWith(".")) {
+                    months[i] = month.substring(0, month.length() - 1);
+                }
+            }
+            result[SHORT_MONTHS] = months;
+            result[WEEKDAYS] = dfs.getWeekdays();
+            result[SHORT_WEEKDAYS] = dfs.getShortWeekdays();
+            result[AM_PM] = dfs.getAmPmStrings();
+            NAMES = result;
+        }
+        return result[names];
+    }
+
     /**
      * Emulates Oracle's TO_CHAR(datetime) function.
      *
@@ -592,19 +607,31 @@ public class ToChar {
      * See also TO_CHAR(datetime) and datetime format models
      * in the Oracle documentation.
      *
-     * @param ts the timestamp to format
+     * @param value the date-time value to format
      * @param format the format pattern to use (if any)
      * @param nlsParam the NLS parameter (if any)
      * @return the formatted timestamp
      */
-    public static String toChar(Timestamp ts, String format, @SuppressWarnings("unused") String nlsParam) {
-
+    public static String toCharDateTime(Value value, String format, @SuppressWarnings("unused") String nlsParam) {
+        long[] a = DateTimeUtils.dateAndTimeFromValue(value);
+        long dateValue = a[0];
+        long timeNanos = a[1];
+        int year = DateTimeUtils.yearFromDateValue(dateValue);
+        int monthOfYear = DateTimeUtils.monthFromDateValue(dateValue);
+        int dayOfMonth = DateTimeUtils.dayFromDateValue(dateValue);
+        int posYear = Math.abs(year);
+        long second = timeNanos / 1_000_000_000;
+        int nanos = (int) (timeNanos - second * 1_000_000_000);
+        int minute = (int) (second / 60);
+        second -= minute * 60;
+        int hour = minute / 60;
+        minute -= hour * 60;
+        int h12 = (hour + 11) % 12 + 1;
+        boolean isAM = hour < 12;
         if (format == null) {
             format = "DD-MON-YY HH.MI.SS.FF PM";
         }
 
-        GregorianCalendar cal = new GregorianCalendar(Locale.ENGLISH);
-        cal.setTimeInMillis(ts.getTime());
         StringBuilder output = new StringBuilder();
         boolean fillMode = true;
 
@@ -615,106 +642,113 @@ public class ToChar {
                 // AD / BC
 
             if ((cap = containsAt(format, i, "A.D.", "B.C.")) != null) {
-                String era = cal.get(Calendar.ERA) == GregorianCalendar.AD ? "A.D." : "B.C.";
+                String era = year > 0 ? "A.D." : "B.C.";
                 output.append(cap.apply(era));
                 i += 4;
             } else if ((cap = containsAt(format, i, "AD", "BC")) != null) {
-                String era = cal.get(Calendar.ERA) == GregorianCalendar.AD ? "AD" : "BC";
+                String era = year > 0 ? "AD" : "BC";
                 output.append(cap.apply(era));
                 i += 2;
 
                 // AM / PM
 
             } else if ((cap = containsAt(format, i, "A.M.", "P.M.")) != null) {
-                String am = cal.get(Calendar.AM_PM) == Calendar.AM ? "A.M." : "P.M.";
+                String am = isAM ? "A.M." : "P.M.";
                 output.append(cap.apply(am));
                 i += 4;
             } else if ((cap = containsAt(format, i, "AM", "PM")) != null) {
-                String am = cal.get(Calendar.AM_PM) == Calendar.AM ? "AM" : "PM";
+                String am = isAM ? "AM" : "PM";
                 output.append(cap.apply(am));
                 i += 2;
 
                 // Long/short date/time format
 
             } else if ((cap = containsAt(format, i, "DL")) != null) {
-                output.append(new SimpleDateFormat("EEEE, MMMM d, yyyy").format(ts));
+                String day = getNames(WEEKDAYS)[DateTimeUtils.getSundayDayOfWeek(dateValue)];
+                String month = getNames(MONTHS)[monthOfYear - 1];
+                output.append(day).append(", ").append(month).append(' ').append(dayOfMonth).append(", ");
+                StringUtils.appendZeroPadded(output, 4, posYear);
                 i += 2;
             } else if ((cap = containsAt(format, i, "DS")) != null) {
-                output.append(new SimpleDateFormat("MM/dd/yyyy").format(ts));
+                StringUtils.appendZeroPadded(output, 2, monthOfYear);
+                output.append('/');
+                StringUtils.appendZeroPadded(output, 2, dayOfMonth);
+                output.append('/');
+                StringUtils.appendZeroPadded(output, 4, posYear);
                 i += 2;
             } else if ((cap = containsAt(format, i, "TS")) != null) {
-                output.append(new SimpleDateFormat("h:mm:ss aa").format(ts));
+                output.append(h12).append(':');
+                StringUtils.appendZeroPadded(output, 2, minute);
+                output.append(':');
+                StringUtils.appendZeroPadded(output, 2, second);
+                output.append(' ');
+                output.append(getNames(AM_PM)[isAM ? 0 : 1]);
                 i += 2;
 
                 // Day
 
             } else if ((cap = containsAt(format, i, "DDD")) != null) {
-                output.append(cal.get(Calendar.DAY_OF_YEAR));
+                output.append(DateTimeUtils.getDayOfYear(dateValue));
                 i += 3;
             } else if ((cap = containsAt(format, i, "DD")) != null) {
-                output.append(String.format("%02d",
-                        cal.get(Calendar.DAY_OF_MONTH)));
+                StringUtils.appendZeroPadded(output, 2, dayOfMonth);
                 i += 2;
             } else if ((cap = containsAt(format, i, "DY")) != null) {
-                String day = new SimpleDateFormat("EEE").format(ts);
+                String day = getNames(SHORT_WEEKDAYS)[DateTimeUtils.getSundayDayOfWeek(dateValue)];
                 output.append(cap.apply(day));
                 i += 2;
             } else if ((cap = containsAt(format, i, "DAY")) != null) {
-                String day = new SimpleDateFormat("EEEE").format(ts);
+                String day = getNames(WEEKDAYS)[DateTimeUtils.getSundayDayOfWeek(dateValue)];
                 if (fillMode) {
                     day = StringUtils.pad(day, "Wednesday".length(), " ", true);
                 }
                 output.append(cap.apply(day));
                 i += 3;
             } else if ((cap = containsAt(format, i, "D")) != null) {
-                output.append(cal.get(Calendar.DAY_OF_WEEK));
+                output.append(DateTimeUtils.getSundayDayOfWeek(dateValue));
                 i += 1;
             } else if ((cap = containsAt(format, i, "J")) != null) {
-                long millis = ts.getTime() - JULIAN_EPOCH;
-                long days = (long) Math.floor(millis / (1000 * 60 * 60 * 24));
-                output.append(days);
+                output.append(DateTimeUtils.absoluteDayFromDateValue(dateValue) - JULIAN_EPOCH);
                 i += 1;
 
                 // Hours
 
             } else if ((cap = containsAt(format, i, "HH24")) != null) {
-                output.append(new DecimalFormat("00").format(cal.get(Calendar.HOUR_OF_DAY)));
+                StringUtils.appendZeroPadded(output, 2, hour);
                 i += 4;
             } else if ((cap = containsAt(format, i, "HH12")) != null) {
-                output.append(new DecimalFormat("00").format(cal.get(Calendar.HOUR)));
+                StringUtils.appendZeroPadded(output, 2, h12);
                 i += 4;
             } else if ((cap = containsAt(format, i, "HH")) != null) {
-                output.append(new DecimalFormat("00").format(cal.get(Calendar.HOUR)));
+                StringUtils.appendZeroPadded(output, 2, h12);
                 i += 2;
 
                 // Minutes
 
             } else if ((cap = containsAt(format, i, "MI")) != null) {
-                output.append(new DecimalFormat("00").format(cal.get(Calendar.MINUTE)));
+                StringUtils.appendZeroPadded(output, 2, minute);
                 i += 2;
 
                 // Seconds
 
             } else if ((cap = containsAt(format, i, "SSSSS")) != null) {
-                int seconds = cal.get(Calendar.HOUR_OF_DAY) * 60 * 60;
-                seconds += cal.get(Calendar.MINUTE) * 60;
-                seconds += cal.get(Calendar.SECOND);
+                int seconds = (int) (timeNanos / 1_000_000_000);
                 output.append(seconds);
                 i += 5;
             } else if ((cap = containsAt(format, i, "SS")) != null) {
-                output.append(new DecimalFormat("00").format(cal.get(Calendar.SECOND)));
+                StringUtils.appendZeroPadded(output, 2, second);
                 i += 2;
 
                 // Fractional seconds
 
             } else if ((cap = containsAt(format, i, "FF1", "FF2",
                     "FF3", "FF4", "FF5", "FF6", "FF7", "FF8", "FF9")) != null) {
-                int x = Integer.parseInt(format.substring(i + 2, i + 3));
-                int ff = (int) (cal.get(Calendar.MILLISECOND) * Math.pow(10, x - 3));
-                output.append(ff);
+                int x = format.charAt(i + 2) - '0';
+                int ff = (int) (nanos * Math.pow(10, x - 9));
+                StringUtils.appendZeroPadded(output, x, ff);
                 i += 3;
             } else if ((cap = containsAt(format, i, "FF")) != null) {
-                output.append(cal.get(Calendar.MILLISECOND) * 1000);
+                StringUtils.appendZeroPadded(output, 9, nanos);
                 i += 2;
 
                 // Time zone
@@ -732,59 +766,59 @@ public class ToChar {
                 // Week
 
             } else if ((cap = containsAt(format, i, "IW", "WW")) != null) {
-                output.append(cal.get(Calendar.WEEK_OF_YEAR));
+                output.append(DateTimeUtils.getWeekOfYear(dateValue, 0, 1));
                 i += 2;
             } else if ((cap = containsAt(format, i, "W")) != null) {
-                int w = (int) (1 + Math.floor(cal.get(Calendar.DAY_OF_MONTH) / 7));
+                int w = 1 + dayOfMonth / 7;
                 output.append(w);
                 i += 1;
 
                 // Year
 
             } else if ((cap = containsAt(format, i, "Y,YYY")) != null) {
-                output.append(new DecimalFormat("#,###").format(getYear(cal)));
+                output.append(new DecimalFormat("#,###").format(posYear));
                 i += 5;
             } else if ((cap = containsAt(format, i, "SYYYY")) != null) {
-                if (cal.get(Calendar.ERA) == GregorianCalendar.BC) {
+                // Should be <= 0, but Oracle prints negative years with off-by-one difference
+                if (year < 0) {
                     output.append('-');
                 }
-                output.append(new DecimalFormat("0000").format(getYear(cal)));
+                StringUtils.appendZeroPadded(output, 4, posYear);
                 i += 5;
             } else if ((cap = containsAt(format, i, "YYYY", "IYYY", "RRRR")) != null) {
-                output.append(new DecimalFormat("0000").format(getYear(cal)));
+                StringUtils.appendZeroPadded(output, 4, posYear);
                 i += 4;
             } else if ((cap = containsAt(format, i, "YYY", "IYY")) != null) {
-                output.append(new DecimalFormat("000").format(getYear(cal) % 1000));
+                StringUtils.appendZeroPadded(output, 3, posYear % 1000);
                 i += 3;
             } else if ((cap = containsAt(format, i, "YY", "IY", "RR")) != null) {
-                output.append(new DecimalFormat("00").format(getYear(cal) % 100));
+                StringUtils.appendZeroPadded(output, 2, posYear % 100);
                 i += 2;
             } else if ((cap = containsAt(format, i, "I", "Y")) != null) {
-                output.append(getYear(cal) % 10);
+                output.append(posYear % 10);
                 i += 1;
 
                 // Month / quarter
 
             } else if ((cap = containsAt(format, i, "MONTH")) != null) {
-                String month = new SimpleDateFormat("MMMM").format(ts);
+                String month = getNames(MONTHS)[monthOfYear - 1];
                 if (fillMode) {
                     month = StringUtils.pad(month, "September".length(), " ", true);
                 }
                 output.append(cap.apply(month));
                 i += 5;
             } else if ((cap = containsAt(format, i, "MON")) != null) {
-                String month = new SimpleDateFormat("MMM").format(ts);
+                String month = getNames(SHORT_MONTHS)[monthOfYear - 1];
                 output.append(cap.apply(month));
                 i += 3;
             } else if ((cap = containsAt(format, i, "MM")) != null) {
-                output.append(String.format("%02d", cal.get(Calendar.MONTH) + 1));
+                StringUtils.appendZeroPadded(output, 2, monthOfYear);
                 i += 2;
             } else if ((cap = containsAt(format, i, "RM")) != null) {
-                int month = cal.get(Calendar.MONTH) + 1;
-                output.append(cap.apply(toRomanNumeral(month)));
+                output.append(cap.apply(toRomanNumeral(monthOfYear)));
                 i += 2;
             } else if ((cap = containsAt(format, i, "Q")) != null) {
-                int q = (int) (1 + Math.floor(cal.get(Calendar.MONTH) / 3));
+                int q = 1 + ((monthOfYear - 1) / 3);
                 output.append(q);
                 i += 1;
 
@@ -833,14 +867,6 @@ public class ToChar {
         }
 
         return output.toString();
-    }
-
-    private static int getYear(Calendar cal) {
-        int year = cal.get(Calendar.YEAR);
-        if (cal.get(Calendar.ERA) == GregorianCalendar.BC) {
-            year--;
-        }
-        return year;
     }
 
     /**

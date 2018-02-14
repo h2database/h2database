@@ -1449,7 +1449,8 @@ public class Function extends Expression implements FunctionCall {
             case Value.TIME:
             case Value.DATE:
             case Value.TIMESTAMP:
-                result = ValueString.get(ToChar.toChar(v0.getTimestamp(),
+            case Value.TIMESTAMP_TZ:
+                result = ValueString.get(ToChar.toCharDateTime(v0,
                         v1 == null ? null : v1.getString(),
                         v2 == null ? null : v2.getString()),
                         database.getMode().treatEmptyStringsAsNull);

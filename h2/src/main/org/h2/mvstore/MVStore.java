@@ -2450,27 +2450,27 @@ public final class MVStore {
      * needed.
      */
     void writeInBackground() {
-        if (closed) {
-            return;
-        }
-
-        // could also commit when there are many unsaved pages,
-        // but according to a test it doesn't really help
-
-        long time = getTimeSinceCreation();
-        if (time <= lastCommitTime + autoCommitDelay) {
-            return;
-        }
-        if (hasUnsavedChanges()) {
-            try {
-                commitAndSave();
-            } catch (Throwable e) {
-                handleException(e);
+        try {
+            if (closed) {
                 return;
             }
-        }
-        if (autoCompactFillRate > 0) {
-            try {
+
+            // could also commit when there are many unsaved pages,
+            // but according to a test it doesn't really help
+
+            long time = getTimeSinceCreation();
+            if (time <= lastCommitTime + autoCommitDelay) {
+                return;
+            }
+            if (hasUnsavedChanges()) {
+                try {
+                    commitAndSave();
+                } catch (Throwable e) {
+                    handleException(e);
+                    return;
+                }
+            }
+            if (autoCompactFillRate > 0) {
                 // whether there were file read or write operations since
                 // the last time
                 boolean fileOps;
@@ -2486,9 +2486,9 @@ public final class MVStore {
                 // in the bookkeeping?
                 compact(fillRate, autoCommitMemory);
                 autoCompactLastFileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();
-            } catch (Throwable e) {
-                handleException(e);
             }
+        } catch (Throwable e) {
+            handleException(e);
         }
     }
 
@@ -2497,7 +2497,9 @@ public final class MVStore {
             try {
                 backgroundExceptionHandler.uncaughtException(null, ex);
             } catch(Throwable ignore) {
-                ex.addSuppressed(ignore);
+                if (ex != ignore) { // OOME may be the same
+                    ex.addSuppressed(ignore);
+                }
             }
         }
     }

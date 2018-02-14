@@ -187,6 +187,17 @@ public class TestOutOfMemory extends TestBase {
             String text = rs.getString(2);
             assertFalse(rs.wasNull());
             assertEquals(1004, text.length());
+
+            // TODO: there are intermittent failures here
+            // where number is about 1000 short of expected value.
+            // This indicates a real problem - durability failure
+            // and need to be looked at.
+            rs = stat.executeQuery("SELECT sum(length(text)) FROM stuff");
+            assertTrue(rs.next());
+            int totalSize = rs.getInt(1);
+            if (3010893 > totalSize) {
+                TestBase.logErrorMessage("Durability failure - expected: 3010893, actual: " + totalSize);
+            }
         } finally {
             deleteDb(DB_NAME);
         }

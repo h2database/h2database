@@ -124,14 +124,6 @@ public class TestMVStoreBenchmark extends TestBase {
     }
 
     static long getMemory() {
-        try {
-            LinkedList<byte[]> list = new LinkedList<>();
-            while (true) {
-                list.add(new byte[1024]);
-            }
-        } catch (OutOfMemoryError e) {
-            // ok
-        }
         for (int i = 0; i < 16; i++) {
             System.gc();
             try {

@@ -5,7 +5,6 @@
  */
 package org.h2.test.db;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -21,13 +20,14 @@ import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FilePathMem;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.test.utils.SelfDestructor;
 
 /**
  * Tests out of memory situations. The database must not get corrupted, and
  * transactions must stay atomic.
  */
 public class TestOutOfMemory extends TestBase {
+
+    private static final String DB_NAME = "outOfMemory";
 
     /**
      * Run just this test.
@@ -45,10 +45,12 @@ public class TestOutOfMemory extends TestBase {
             return;
         }
         try {
-            System.gc();
-            testMVStoreUsingInMemoryFileSystem();
-            System.gc();
-            testDatabaseUsingInMemoryFileSystem();
+            if (!config.travis) {
+                System.gc();
+                testMVStoreUsingInMemoryFileSystem();
+                System.gc();
+                testDatabaseUsingInMemoryFileSystem();
+            }
             System.gc();
             testUpdateWhenNearlyOutOfMemory();
         } finally {
@@ -152,68 +154,80 @@ public class TestOutOfMemory extends TestBase {
         if (config.memory) {
             return;
         }
-        deleteDb("outOfMemory");
-        String url = getURL("outOfMemory", true);
+        deleteDb(DB_NAME);
+
+        ProcessBuilder processBuilder = buildChild(
+                DB_NAME + ";MAX_OPERATION_MEMORY=1000000",
+                MyChild.class,
+                "-XX:+UseParallelGC",
+//                "-XX:+UseG1GC",
+                "-Xmx128m");
 //*
-        String selfDestructor = SelfDestructor.getPropertyString(1);
-        String args[] = {System.getProperty("java.home") + File.separatorChar + "bin" + File.separator + "java",
-                        "-Xmx128m", "-XX:+UseParallelGC", // "-XX:+UseG1GC",
-                        "-cp", getClassPath(),
-                        selfDestructor,
-                        Child.class.getName(), url};
-        ProcessBuilder pb = new ProcessBuilder()
-                            .redirectOutput(ProcessBuilder.Redirect.INHERIT)
-                            .redirectError(ProcessBuilder.Redirect.INHERIT)
-                            .command(args);
-        Process p = pb.start();
-        int exitValue = p.waitFor();
-        assertEquals("Exit code", 0, exitValue);
+        processBuilder.start().waitFor();
 /*/
-        Child.main(url);
+        List<String> args = processBuilder.command();
+        for (Iterator<String> iter = args.iterator(); iter.hasNext(); ) {
+            String arg = iter.next();
+            if(arg.equals(MyChild.class.getName())) {
+                iter.remove();
+                break;
+            }
+            iter.remove();
+        }
+        MyChild.main(args.toArray(new String[0]));
 //*/
-        try (Connection conn = getConnection("outOfMemory")) {
+        try (Connection conn = getConnection(DB_NAME)) {
             Statement stat = conn.createStatement();
             ResultSet rs = stat.executeQuery("SELECT count(*) FROM stuff");
             assertTrue(rs.next());
             assertEquals(3000, rs.getInt(1));
+
             rs = stat.executeQuery("SELECT * FROM stuff WHERE id = 3000");
             assertTrue(rs.next());
             String text = rs.getString(2);
             assertFalse(rs.wasNull());
             assertEquals(1004, text.length());
+
+            rs = stat.executeQuery("SELECT sum(length(text)) FROM stuff");
+            assertTrue(rs.next());
+            assertEquals(3010893, rs.getInt(1));
         } finally {
-            deleteDb("outOfMemory");
+            deleteDb(DB_NAME);
         }
     }
 
-    public static final class Child extends TestBase
+    public static final class MyChild extends TestBase.Child
     {
-        private static String URL;
+        public static void main(String... args) throws Exception {
+            new MyChild(args).init().test();
+        }
 
-        public static void main(String... a) throws Exception {
-            URL = a[0];
-            TestBase.createCaller().init().test();
+        private MyChild(String... args) {
+            super(args);
         }
 
         @Override
-        public void test() throws SQLException {
-            Connection conn = getConnection(URL + ";MAX_OPERATION_MEMORY=1000000");
-            Statement stat = conn.createStatement();
-            stat.execute("DROP ALL OBJECTS");
-            stat.execute("CREATE TABLE stuff (id INT, text VARCHAR)");
-            stat.execute("INSERT INTO stuff(id) SELECT x FROM system_range(1, 3000)");
-            PreparedStatement prep = conn.prepareStatement(
-                    "UPDATE stuff SET text = IFNULL(text,'') || space(1000) || id");
-            prep.execute();
-            stat.execute("CHECKPOINT");
-            eatMemory(80);
-            try {
+        public void test() {
+            try (Connection conn = getConnection()) {
+                Statement stat = conn.createStatement();
+                stat.execute("DROP ALL OBJECTS");
+                stat.execute("CREATE TABLE stuff (id INT, text VARCHAR)");
+                stat.execute("INSERT INTO stuff(id) SELECT x FROM system_range(1, 3000)");
+                PreparedStatement prep = conn.prepareStatement(
+                        "UPDATE stuff SET text = IFNULL(text,'') || space(1000) || id");
+                prep.execute();
+                stat.execute("CHECKPOINT");
+
+                ResultSet rs = stat.executeQuery("SELECT sum(length(text)) FROM stuff");
+                assertTrue(rs.next());
+                assertEquals(3010893, rs.getInt(1));
+
+                eatMemory(15_000);
                 prep.execute();
                 fail();
-            } catch (Throwable ex) {
-                freeMemory();
+            } catch (SQLException ignore) {
             } finally {
-                try { conn.close(); } catch (Throwable ignore) {/**/}
+                freeMemory();
             }
         }
     }

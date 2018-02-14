@@ -6,6 +6,7 @@
 package org.h2.test;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,7 +31,9 @@ import java.sql.Types;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import java.util.SimpleTimeZone;
 import java.util.concurrent.TimeUnit;
@@ -40,6 +43,7 @@ import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.utils.ProxyCodeGenerator;
 import org.h2.test.utils.ResultVerifier;
+import org.h2.test.utils.SelfDestructor;
 import org.h2.tools.DeleteDbFiles;
 
 /**
@@ -1445,6 +1449,16 @@ public abstract class TestBase {
     }
 
     /**
+     * Get the path to a java executable of the current process
+     *
+     * @return the path to java
+     */
+    private String getJVM() {
+        return System.getProperty("java.home") + File.separatorChar + "bin" +
+                                                 File.separator + "java";
+    }
+
+    /**
      * Use up almost all memory.
      *
      * @param remainingKB the number of kilobytes that are not referenced
@@ -1687,4 +1701,45 @@ public abstract class TestBase {
         return getClass().getSimpleName();
     }
 
+    public ProcessBuilder buildChild(String name, Class<? extends TestBase> childClass,
+                                     String... jvmArgs) {
+        List<String> args = new ArrayList<>(16);
+        args.add(getJVM());
+        Collections.addAll(args, jvmArgs);
+        Collections.addAll(args, "-cp", getClassPath(),
+                        SelfDestructor.getPropertyString(1),
+                        childClass.getName(),
+                        "-url", getURL(name, true),
+                        "-user", getUser(),
+                        "-password", getPassword());
+        ProcessBuilder processBuilder = new ProcessBuilder()
+//                            .redirectError(ProcessBuilder.Redirect.INHERIT)
+                            .redirectErrorStream(true)
+                            .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+                            .command(args);
+        return processBuilder;
+    }
+
+    public abstract static class Child extends TestBase
+    {
+        private String url;
+        private String user;
+        private String password;
+
+        public Child(String... args) {
+            for (int i = 0; i < args.length; i++) {
+                if ("-url".equals(args[i])) {
+                    url = args[++i];
+                } else if ("-user".equals(args[i])) {
+                    user = args[++i];
+                } else if ("-password".equals(args[i])) {
+                    password = args[++i];
+                }
+            }
+        }
+
+        public Connection getConnection() throws SQLException {
+            return getConnection(url, user, password);
+        }
+    }
 }

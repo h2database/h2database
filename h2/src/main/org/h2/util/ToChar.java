@@ -35,6 +35,10 @@ public class ToChar {
     private static final String[] ROMAN_NUMERALS = { "M", "CM", "D", "CD", "C", "XC",
             "L", "XL", "X", "IX", "V", "IV", "I" };
 
+    private static final int MONTHS = 0, SHORT_MONTHS = 1, WEEKDAYS = 2, SHORT_WEEKDAYS = 3, AM_PM = 4;
+
+    private static volatile String[][] NAMES;
+
     private ToChar() {
         // utility class
     }
@@ -449,6 +453,28 @@ public class ToChar {
         return hex;
     }
 
+    private static String[] getNames(int names) {
+        String[][] result = NAMES;
+        if (result == null) {
+            result = new String[5][];
+            DateFormatSymbols dfs = DateFormatSymbols.getInstance();
+            result[MONTHS] = dfs.getMonths();
+            String[] months = dfs.getShortMonths();
+            for (int i = 0; i < 12; i++) {
+                String month = months[i];
+                if (month.endsWith(".")) {
+                    months[i] = month.substring(0, month.length() - 1);
+                }
+            }
+            result[SHORT_MONTHS] = months;
+            result[WEEKDAYS] = dfs.getWeekdays();
+            result[SHORT_WEEKDAYS] = dfs.getShortWeekdays();
+            result[AM_PM] = dfs.getAmPmStrings();
+            NAMES = result;
+        }
+        return result[names];
+    }
+
     /**
      * Emulates Oracle's TO_CHAR(datetime) function.
      *
@@ -609,8 +635,6 @@ public class ToChar {
         StringBuilder output = new StringBuilder();
         boolean fillMode = true;
 
-        DateFormatSymbols dfs = null;
-
         for (int i = 0; i < format.length();) {
 
             Capitalization cap;
@@ -640,11 +664,8 @@ public class ToChar {
                 // Long/short date/time format
 
             } else if ((cap = containsAt(format, i, "DL")) != null) {
-                if (dfs == null) {
-                    dfs = DateFormatSymbols.getInstance();
-                }
-                String day = dfs.getWeekdays()[DateTimeUtils.getSundayDayOfWeek(dateValue)];
-                String month = dfs.getMonths()[monthOfYear - 1];
+                String day = getNames(WEEKDAYS)[DateTimeUtils.getSundayDayOfWeek(dateValue)];
+                String month = getNames(MONTHS)[monthOfYear - 1];
                 output.append(day).append(", ").append(month).append(' ').append(dayOfMonth).append(", ");
                 StringUtils.appendZeroPadded(output, 4, posYear);
                 i += 2;
@@ -656,15 +677,12 @@ public class ToChar {
                 StringUtils.appendZeroPadded(output, 4, posYear);
                 i += 2;
             } else if ((cap = containsAt(format, i, "TS")) != null) {
-                if (dfs == null) {
-                    dfs = DateFormatSymbols.getInstance();
-                }
                 output.append(h12).append(':');
                 StringUtils.appendZeroPadded(output, 2, minute);
                 output.append(':');
                 StringUtils.appendZeroPadded(output, 2, second);
                 output.append(' ');
-                output.append(dfs.getAmPmStrings()[isAM ? 0 : 1]);
+                output.append(getNames(AM_PM)[isAM ? 0 : 1]);
                 i += 2;
 
                 // Day
@@ -677,17 +695,11 @@ public class ToChar {
                         dayOfMonth));
                 i += 2;
             } else if ((cap = containsAt(format, i, "DY")) != null) {
-                if (dfs == null) {
-                    dfs = DateFormatSymbols.getInstance();
-                }
-                String day = dfs.getShortWeekdays()[DateTimeUtils.getSundayDayOfWeek(dateValue)];
+                String day = getNames(SHORT_WEEKDAYS)[DateTimeUtils.getSundayDayOfWeek(dateValue)];
                 output.append(cap.apply(day));
                 i += 2;
             } else if ((cap = containsAt(format, i, "DAY")) != null) {
-                if (dfs == null) {
-                    dfs = DateFormatSymbols.getInstance();
-                }
-                String day = dfs.getWeekdays()[DateTimeUtils.getSundayDayOfWeek(dateValue)];
+                String day = getNames(WEEKDAYS)[DateTimeUtils.getSundayDayOfWeek(dateValue)];
                 if (fillMode) {
                     day = StringUtils.pad(day, "Wednesday".length(), " ", true);
                 }
@@ -789,23 +801,14 @@ public class ToChar {
                 // Month / quarter
 
             } else if ((cap = containsAt(format, i, "MONTH")) != null) {
-                if (dfs == null) {
-                    dfs = DateFormatSymbols.getInstance();
-                }
-                String month = dfs.getMonths()[monthOfYear - 1];
+                String month = getNames(MONTHS)[monthOfYear - 1];
                 if (fillMode) {
                     month = StringUtils.pad(month, "September".length(), " ", true);
                 }
                 output.append(cap.apply(month));
                 i += 5;
             } else if ((cap = containsAt(format, i, "MON")) != null) {
-                if (dfs == null) {
-                    dfs = DateFormatSymbols.getInstance();
-                }
-                String month = dfs.getShortMonths()[monthOfYear - 1];
-                if (month.endsWith(".")) {
-                    month = month.substring(0, month.length() - 1);
-                }
+                String month = getNames(SHORT_MONTHS)[monthOfYear - 1];
                 output.append(cap.apply(month));
                 i += 3;
             } else if ((cap = containsAt(format, i, "MM")) != null) {

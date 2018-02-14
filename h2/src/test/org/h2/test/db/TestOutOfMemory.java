@@ -218,7 +218,7 @@ public class TestOutOfMemory extends TestBase {
                 assertTrue(rs.next());
                 assertEquals(3010893, rs.getInt(1));
 
-                eatMemory(5_000);
+                eatMemory(80);
                 prep.execute();
                 fail();
             } catch (SQLException ignore) {

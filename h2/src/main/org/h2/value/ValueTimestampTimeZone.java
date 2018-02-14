@@ -15,6 +15,7 @@ import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.StringUtils;
 
 /**
  * Implementation of the TIMESTAMP WITH TIME ZONE data type.
@@ -158,7 +159,18 @@ public class ValueTimestampTimeZone extends Value {
         if (offset == 0) {
             return DateTimeUtils.UTC;
         }
-        return new SimpleTimeZone(offset * 60000, Integer.toString(offset));
+        StringBuilder b = new StringBuilder(9);
+        b.append("GMT");
+        if (offset < 0) {
+            b.append('-');
+            offset = - offset;
+        } else {
+            b.append('+');
+        }
+        StringUtils.appendZeroPadded(b, 2, offset / 60);
+        b.append(':');
+        StringUtils.appendZeroPadded(b, 2, offset % 60);
+        return new SimpleTimeZone(offset * 60000, b.toString());
     }
 
     @Override

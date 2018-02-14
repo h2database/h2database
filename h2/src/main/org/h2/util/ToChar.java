@@ -18,6 +18,7 @@ import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.value.Value;
+import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * Emulates Oracle's TO_CHAR function.
@@ -754,11 +755,13 @@ public class ToChar {
                 // Time zone
 
             } else if (containsAt(format, i, "TZR") != null) {
-                TimeZone tz = TimeZone.getDefault();
+                TimeZone tz = value instanceof ValueTimestampTimeZone ?
+                        ((ValueTimestampTimeZone) value).getTimeZone() : TimeZone.getDefault();
                 output.append(tz.getID());
                 i += 3;
             } else if (containsAt(format, i, "TZD") != null) {
-                TimeZone tz = TimeZone.getDefault();
+                TimeZone tz = value instanceof ValueTimestampTimeZone ?
+                        ((ValueTimestampTimeZone) value).getTimeZone() : TimeZone.getDefault();
                 boolean daylight = tz.inDaylightTime(new java.util.Date());
                 output.append(tz.getDisplayName(daylight, TimeZone.SHORT));
                 i += 3;

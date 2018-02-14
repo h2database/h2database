@@ -17,7 +17,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Locale;
@@ -1233,32 +1232,16 @@ public class Function extends Expression implements FunctionCall {
         }
         case TRUNCATE: {
             if (v0.getType() == Value.TIMESTAMP) {
-                java.sql.Timestamp d = v0.getTimestamp();
-                Calendar c = DateTimeUtils.createGregorianCalendar();
-                c.setTime(d);
-                c.set(Calendar.HOUR_OF_DAY, 0);
-                c.set(Calendar.MINUTE, 0);
-                c.set(Calendar.SECOND, 0);
-                c.set(Calendar.MILLISECOND, 0);
-                result = ValueTimestamp.fromMillis(c.getTimeInMillis());
+                result = ValueTimestamp.fromDateValueAndNanos(((ValueTimestamp) v0).getDateValue(), 0);
             } else if (v0.getType() == Value.DATE) {
-                ValueDate vd = (ValueDate) v0;
-                Calendar c = DateTimeUtils.createGregorianCalendar();
-                c.setTime(vd.getDate());
-                c.set(Calendar.HOUR_OF_DAY, 0);
-                c.set(Calendar.MINUTE, 0);
-                c.set(Calendar.SECOND, 0);
-                c.set(Calendar.MILLISECOND, 0);
-                result = ValueTimestamp.fromMillis(c.getTimeInMillis());
+                result = ValueTimestamp.fromDateValueAndNanos(((ValueDate) v0).getDateValue(), 0);
+            } else if (v0.getType() == Value.TIMESTAMP_TZ) {
+                ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v0;
+                result = ValueTimestampTimeZone.fromDateValueAndNanos(ts.getDateValue(), 0,
+                        ts.getTimeZoneOffsetMins());
             } else if (v0.getType() == Value.STRING) {
-                ValueString vd = (ValueString) v0;
-                Calendar c = DateTimeUtils.createGregorianCalendar();
-                c.setTime(ValueTimestamp.parse(vd.getString(), session.getDatabase().getMode()).getDate());
-                c.set(Calendar.HOUR_OF_DAY, 0);
-                c.set(Calendar.MINUTE, 0);
-                c.set(Calendar.SECOND, 0);
-                c.set(Calendar.MILLISECOND, 0);
-                result = ValueTimestamp.fromMillis(c.getTimeInMillis());
+                ValueTimestamp ts = ValueTimestamp.parse(v0.getString(), session.getDatabase().getMode());
+                result = ValueTimestamp.fromDateValueAndNanos(ts.getDateValue(), 0);
             } else {
                 double d = v0.getDouble();
                 int p = v1 == null ? 0 : v1.getInt();

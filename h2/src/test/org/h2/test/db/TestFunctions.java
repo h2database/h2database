@@ -1486,6 +1486,17 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("0 BC", stat,
                 "SELECT TO_CHAR(X, 'Y BC') FROM U");
         assertResult("1979 A.D.", stat, "SELECT TO_CHAR(X, 'YYYY B.C.') FROM T");
+        assertResult("2013", stat, "SELECT TO_CHAR(DATE '2013-12-30', 'YYYY') FROM DUAL");
+        assertResult("013", stat, "SELECT TO_CHAR(DATE '2013-12-30', 'YYY') FROM DUAL");
+        assertResult("13", stat, "SELECT TO_CHAR(DATE '2013-12-30', 'YY') FROM DUAL");
+        assertResult("3", stat, "SELECT TO_CHAR(DATE '2013-12-30', 'Y') FROM DUAL");
+        // ISO week year
+        assertResult("2014", stat, "SELECT TO_CHAR(DATE '2013-12-30', 'IYYY') FROM DUAL");
+        assertResult("014", stat, "SELECT TO_CHAR(DATE '2013-12-30', 'IYY') FROM DUAL");
+        assertResult("14", stat, "SELECT TO_CHAR(DATE '2013-12-30', 'IY') FROM DUAL");
+        assertResult("4", stat, "SELECT TO_CHAR(DATE '2013-12-30', 'I') FROM DUAL");
+        assertResult("0001", stat, "SELECT TO_CHAR(DATE '-0001-01-01', 'IYYY') FROM DUAL");
+        assertResult("0005", stat, "SELECT TO_CHAR(DATE '-0004-01-01', 'IYYY') FROM DUAL");
         assertResult("08:12 AM", stat, "SELECT TO_CHAR(X, 'HH:MI AM') FROM T");
         assertResult("08:12 A.M.", stat, "SELECT TO_CHAR(X, 'HH:MI A.M.') FROM T");
         assertResult("02:04 P.M.", stat, "SELECT TO_CHAR(X, 'HH:MI A.M.') FROM U");
@@ -1608,6 +1619,10 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult(expected, stat, "SELECT TO_CHAR(X, 'TS') FROM T");
         assertResult(tzLongName, stat, "SELECT TO_CHAR(X, 'TZR') FROM T");
         assertResult(tzShortName, stat, "SELECT TO_CHAR(X, 'TZD') FROM T");
+        assertResult("GMT+10:30", stat,
+                "SELECT TO_CHAR(TIMESTAMP WITH TIME ZONE '2010-01-01 0:00:00+10:30', 'TZR')");
+        assertResult("GMT+10:30", stat,
+                "SELECT TO_CHAR(TIMESTAMP WITH TIME ZONE '2010-01-01 0:00:00+10:30', 'TZD')");
         expected = String.format("%f", 1.1).substring(1, 2);
         assertResult(expected, stat, "SELECT TO_CHAR(X, 'X') FROM T");
         expected = String.format("%,d", 1979);

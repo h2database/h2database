@@ -18,6 +18,7 @@ import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.value.Value;
+import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * Emulates Oracle's TO_CHAR function.
@@ -663,20 +664,20 @@ public class ToChar {
 
                 // Long/short date/time format
 
-            } else if ((cap = containsAt(format, i, "DL")) != null) {
+            } else if (containsAt(format, i, "DL") != null) {
                 String day = getNames(WEEKDAYS)[DateTimeUtils.getSundayDayOfWeek(dateValue)];
                 String month = getNames(MONTHS)[monthOfYear - 1];
                 output.append(day).append(", ").append(month).append(' ').append(dayOfMonth).append(", ");
                 StringUtils.appendZeroPadded(output, 4, posYear);
                 i += 2;
-            } else if ((cap = containsAt(format, i, "DS")) != null) {
+            } else if (containsAt(format, i, "DS") != null) {
                 StringUtils.appendZeroPadded(output, 2, monthOfYear);
                 output.append('/');
                 StringUtils.appendZeroPadded(output, 2, dayOfMonth);
                 output.append('/');
                 StringUtils.appendZeroPadded(output, 4, posYear);
                 i += 2;
-            } else if ((cap = containsAt(format, i, "TS")) != null) {
+            } else if (containsAt(format, i, "TS") != null) {
                 output.append(h12).append(':');
                 StringUtils.appendZeroPadded(output, 2, minute);
                 output.append(':');
@@ -687,10 +688,10 @@ public class ToChar {
 
                 // Day
 
-            } else if ((cap = containsAt(format, i, "DDD")) != null) {
+            } else if (containsAt(format, i, "DDD") != null) {
                 output.append(DateTimeUtils.getDayOfYear(dateValue));
                 i += 3;
-            } else if ((cap = containsAt(format, i, "DD")) != null) {
+            } else if (containsAt(format, i, "DD") != null) {
                 StringUtils.appendZeroPadded(output, 2, dayOfMonth);
                 i += 2;
             } else if ((cap = containsAt(format, i, "DY")) != null) {
@@ -704,98 +705,112 @@ public class ToChar {
                 }
                 output.append(cap.apply(day));
                 i += 3;
-            } else if ((cap = containsAt(format, i, "D")) != null) {
+            } else if (containsAt(format, i, "D") != null) {
                 output.append(DateTimeUtils.getSundayDayOfWeek(dateValue));
                 i += 1;
-            } else if ((cap = containsAt(format, i, "J")) != null) {
+            } else if (containsAt(format, i, "J") != null) {
                 output.append(DateTimeUtils.absoluteDayFromDateValue(dateValue) - JULIAN_EPOCH);
                 i += 1;
 
                 // Hours
 
-            } else if ((cap = containsAt(format, i, "HH24")) != null) {
+            } else if (containsAt(format, i, "HH24") != null) {
                 StringUtils.appendZeroPadded(output, 2, hour);
                 i += 4;
-            } else if ((cap = containsAt(format, i, "HH12")) != null) {
+            } else if (containsAt(format, i, "HH12") != null) {
                 StringUtils.appendZeroPadded(output, 2, h12);
                 i += 4;
-            } else if ((cap = containsAt(format, i, "HH")) != null) {
+            } else if (containsAt(format, i, "HH") != null) {
                 StringUtils.appendZeroPadded(output, 2, h12);
                 i += 2;
 
                 // Minutes
 
-            } else if ((cap = containsAt(format, i, "MI")) != null) {
+            } else if (containsAt(format, i, "MI") != null) {
                 StringUtils.appendZeroPadded(output, 2, minute);
                 i += 2;
 
                 // Seconds
 
-            } else if ((cap = containsAt(format, i, "SSSSS")) != null) {
+            } else if (containsAt(format, i, "SSSSS") != null) {
                 int seconds = (int) (timeNanos / 1_000_000_000);
                 output.append(seconds);
                 i += 5;
-            } else if ((cap = containsAt(format, i, "SS")) != null) {
+            } else if (containsAt(format, i, "SS") != null) {
                 StringUtils.appendZeroPadded(output, 2, second);
                 i += 2;
 
                 // Fractional seconds
 
-            } else if ((cap = containsAt(format, i, "FF1", "FF2",
-                    "FF3", "FF4", "FF5", "FF6", "FF7", "FF8", "FF9")) != null) {
+            } else if (containsAt(format, i, "FF1", "FF2",
+                    "FF3", "FF4", "FF5", "FF6", "FF7", "FF8", "FF9") != null) {
                 int x = format.charAt(i + 2) - '0';
                 int ff = (int) (nanos * Math.pow(10, x - 9));
                 StringUtils.appendZeroPadded(output, x, ff);
                 i += 3;
-            } else if ((cap = containsAt(format, i, "FF")) != null) {
+            } else if (containsAt(format, i, "FF") != null) {
                 StringUtils.appendZeroPadded(output, 9, nanos);
                 i += 2;
 
                 // Time zone
 
-            } else if ((cap = containsAt(format, i, "TZR")) != null) {
-                TimeZone tz = TimeZone.getDefault();
+            } else if (containsAt(format, i, "TZR") != null) {
+                TimeZone tz = value instanceof ValueTimestampTimeZone ?
+                        ((ValueTimestampTimeZone) value).getTimeZone() : TimeZone.getDefault();
                 output.append(tz.getID());
                 i += 3;
-            } else if ((cap = containsAt(format, i, "TZD")) != null) {
-                TimeZone tz = TimeZone.getDefault();
+            } else if (containsAt(format, i, "TZD") != null) {
+                TimeZone tz = value instanceof ValueTimestampTimeZone ?
+                        ((ValueTimestampTimeZone) value).getTimeZone() : TimeZone.getDefault();
                 boolean daylight = tz.inDaylightTime(new java.util.Date());
                 output.append(tz.getDisplayName(daylight, TimeZone.SHORT));
                 i += 3;
 
                 // Week
 
-            } else if ((cap = containsAt(format, i, "IW", "WW")) != null) {
+            } else if (containsAt(format, i, "IW", "WW") != null) {
                 output.append(DateTimeUtils.getWeekOfYear(dateValue, 0, 1));
                 i += 2;
-            } else if ((cap = containsAt(format, i, "W")) != null) {
+            } else if (containsAt(format, i, "W") != null) {
                 int w = 1 + dayOfMonth / 7;
                 output.append(w);
                 i += 1;
 
                 // Year
 
-            } else if ((cap = containsAt(format, i, "Y,YYY")) != null) {
+            } else if (containsAt(format, i, "Y,YYY") != null) {
                 output.append(new DecimalFormat("#,###").format(posYear));
                 i += 5;
-            } else if ((cap = containsAt(format, i, "SYYYY")) != null) {
+            } else if (containsAt(format, i, "SYYYY") != null) {
                 // Should be <= 0, but Oracle prints negative years with off-by-one difference
                 if (year < 0) {
                     output.append('-');
                 }
                 StringUtils.appendZeroPadded(output, 4, posYear);
                 i += 5;
-            } else if ((cap = containsAt(format, i, "YYYY", "IYYY", "RRRR")) != null) {
+            } else if (containsAt(format, i, "YYYY", "RRRR") != null) {
                 StringUtils.appendZeroPadded(output, 4, posYear);
                 i += 4;
-            } else if ((cap = containsAt(format, i, "YYY", "IYY")) != null) {
+            } else if (containsAt(format, i, "IYYY") != null) {
+                StringUtils.appendZeroPadded(output, 4, Math.abs(DateTimeUtils.getIsoWeekYear(dateValue)));
+                i += 4;
+            } else if (containsAt(format, i, "YYY") != null) {
                 StringUtils.appendZeroPadded(output, 3, posYear % 1000);
                 i += 3;
-            } else if ((cap = containsAt(format, i, "YY", "IY", "RR")) != null) {
+            } else if (containsAt(format, i, "IYY") != null) {
+                StringUtils.appendZeroPadded(output, 3, Math.abs(DateTimeUtils.getIsoWeekYear(dateValue)) % 1000);
+                i += 3;
+            } else if (containsAt(format, i, "YY", "RR") != null) {
                 StringUtils.appendZeroPadded(output, 2, posYear % 100);
                 i += 2;
-            } else if ((cap = containsAt(format, i, "I", "Y")) != null) {
+            } else if (containsAt(format, i, "IY") != null) {
+                StringUtils.appendZeroPadded(output, 2, Math.abs(DateTimeUtils.getIsoWeekYear(dateValue)) % 100);
+                i += 2;
+            } else if (containsAt(format, i, "Y") != null) {
                 output.append(posYear % 10);
+                i += 1;
+            } else if (containsAt(format, i, "I") != null) {
+                output.append(Math.abs(DateTimeUtils.getIsoWeekYear(dateValue)) % 10);
                 i += 1;
 
                 // Month / quarter
@@ -811,35 +826,35 @@ public class ToChar {
                 String month = getNames(SHORT_MONTHS)[monthOfYear - 1];
                 output.append(cap.apply(month));
                 i += 3;
-            } else if ((cap = containsAt(format, i, "MM")) != null) {
+            } else if (containsAt(format, i, "MM") != null) {
                 StringUtils.appendZeroPadded(output, 2, monthOfYear);
                 i += 2;
             } else if ((cap = containsAt(format, i, "RM")) != null) {
                 output.append(cap.apply(toRomanNumeral(monthOfYear)));
                 i += 2;
-            } else if ((cap = containsAt(format, i, "Q")) != null) {
+            } else if (containsAt(format, i, "Q") != null) {
                 int q = 1 + ((monthOfYear - 1) / 3);
                 output.append(q);
                 i += 1;
 
                 // Local radix character
 
-            } else if ((cap = containsAt(format, i, "X")) != null) {
+            } else if (containsAt(format, i, "X") != null) {
                 char c = DecimalFormatSymbols.getInstance().getDecimalSeparator();
                 output.append(c);
                 i += 1;
 
                 // Format modifiers
 
-            } else if ((cap = containsAt(format, i, "FM")) != null) {
+            } else if (containsAt(format, i, "FM") != null) {
                 fillMode = !fillMode;
                 i += 2;
-            } else if ((cap = containsAt(format, i, "FX")) != null) {
+            } else if (containsAt(format, i, "FX") != null) {
                 i += 2;
 
                 // Literal text
 
-            } else if ((cap = containsAt(format, i, "\"")) != null) {
+            } else if (containsAt(format, i, "\"") != null) {
                 for (i = i + 1; i < format.length(); i++) {
                     char c = format.charAt(i);
                     if (c != '"') {

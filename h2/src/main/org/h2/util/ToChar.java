@@ -785,17 +785,29 @@ public class ToChar {
                 }
                 StringUtils.appendZeroPadded(output, 4, posYear);
                 i += 5;
-            } else if ((cap = containsAt(format, i, "YYYY", "IYYY", "RRRR")) != null) {
+            } else if ((cap = containsAt(format, i, "YYYY", "RRRR")) != null) {
                 StringUtils.appendZeroPadded(output, 4, posYear);
                 i += 4;
-            } else if ((cap = containsAt(format, i, "YYY", "IYY")) != null) {
+            } else if ((cap = containsAt(format, i, "IYYY")) != null) {
+                StringUtils.appendZeroPadded(output, 4, DateTimeUtils.getIsoWeekYear(dateValue));
+                i += 4;
+            } else if ((cap = containsAt(format, i, "YYY")) != null) {
                 StringUtils.appendZeroPadded(output, 3, posYear % 1000);
                 i += 3;
-            } else if ((cap = containsAt(format, i, "YY", "IY", "RR")) != null) {
+            } else if ((cap = containsAt(format, i, "IYY")) != null) {
+                StringUtils.appendZeroPadded(output, 3, DateTimeUtils.getIsoWeekYear(dateValue) % 1000);
+                i += 3;
+            } else if ((cap = containsAt(format, i, "YY", "RR")) != null) {
                 StringUtils.appendZeroPadded(output, 2, posYear % 100);
                 i += 2;
-            } else if ((cap = containsAt(format, i, "I", "Y")) != null) {
+            } else if ((cap = containsAt(format, i, "IY")) != null) {
+                StringUtils.appendZeroPadded(output, 2, DateTimeUtils.getIsoWeekYear(dateValue) % 100);
+                i += 2;
+            } else if ((cap = containsAt(format, i, "Y")) != null) {
                 output.append(posYear % 10);
+                i += 1;
+            } else if ((cap = containsAt(format, i, "I")) != null) {
+                output.append(DateTimeUtils.getIsoWeekYear(dateValue) % 10);
                 i += 1;
 
                 // Month / quarter

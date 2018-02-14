@@ -1486,6 +1486,15 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("0 BC", stat,
                 "SELECT TO_CHAR(X, 'Y BC') FROM U");
         assertResult("1979 A.D.", stat, "SELECT TO_CHAR(X, 'YYYY B.C.') FROM T");
+        assertResult("2013", stat, "SELECT TO_CHAR(DATE '2013-12-30', 'YYYY') FROM DUAL");
+        assertResult("013", stat, "SELECT TO_CHAR(DATE '2013-12-30', 'YYY') FROM DUAL");
+        assertResult("13", stat, "SELECT TO_CHAR(DATE '2013-12-30', 'YY') FROM DUAL");
+        assertResult("3", stat, "SELECT TO_CHAR(DATE '2013-12-30', 'Y') FROM DUAL");
+        // ISO week year
+        assertResult("2014", stat, "SELECT TO_CHAR(DATE '2013-12-30', 'IYYY') FROM DUAL");
+        assertResult("014", stat, "SELECT TO_CHAR(DATE '2013-12-30', 'IYY') FROM DUAL");
+        assertResult("14", stat, "SELECT TO_CHAR(DATE '2013-12-30', 'IY') FROM DUAL");
+        assertResult("4", stat, "SELECT TO_CHAR(DATE '2013-12-30', 'I') FROM DUAL");
         assertResult("08:12 AM", stat, "SELECT TO_CHAR(X, 'HH:MI AM') FROM T");
         assertResult("08:12 A.M.", stat, "SELECT TO_CHAR(X, 'HH:MI A.M.') FROM T");
         assertResult("02:04 P.M.", stat, "SELECT TO_CHAR(X, 'HH:MI A.M.') FROM U");

@@ -593,6 +593,7 @@ public class ToChar {
         int year = DateTimeUtils.yearFromDateValue(dateValue);
         int monthOfYear = DateTimeUtils.monthFromDateValue(dateValue);
         int dayOfMonth = DateTimeUtils.dayFromDateValue(dateValue);
+        int posYear = Math.abs(year);
         long second = timeNanos / 1_000_000_000;
         int nanos = (int) (timeNanos - second * 1_000_000_000);
         int minute = (int) (second / 60);
@@ -645,14 +646,14 @@ public class ToChar {
                 String day = dfs.getWeekdays()[DateTimeUtils.getSundayDayOfWeek(dateValue)];
                 String month = dfs.getMonths()[monthOfYear - 1];
                 output.append(day).append(", ").append(month).append(' ').append(dayOfMonth).append(", ");
-                StringUtils.appendZeroPadded(output, 4, Math.abs(year));
+                StringUtils.appendZeroPadded(output, 4, posYear);
                 i += 2;
             } else if ((cap = containsAt(format, i, "DS")) != null) {
                 StringUtils.appendZeroPadded(output, 2, monthOfYear);
                 output.append('/');
                 StringUtils.appendZeroPadded(output, 2, dayOfMonth);
                 output.append('/');
-                StringUtils.appendZeroPadded(output, 4, Math.abs(year));
+                StringUtils.appendZeroPadded(output, 4, posYear);
                 i += 2;
             } else if ((cap = containsAt(format, i, "TS")) != null) {
                 if (dfs == null) {
@@ -764,25 +765,25 @@ public class ToChar {
                 // Year
 
             } else if ((cap = containsAt(format, i, "Y,YYY")) != null) {
-                output.append(new DecimalFormat("#,###").format(Math.abs(year)));
+                output.append(new DecimalFormat("#,###").format(posYear));
                 i += 5;
             } else if ((cap = containsAt(format, i, "SYYYY")) != null) {
                 if (year <= 0) {
                     output.append('-');
                 }
-                StringUtils.appendZeroPadded(output, 4, Math.abs(year));
+                StringUtils.appendZeroPadded(output, 4, posYear);
                 i += 5;
             } else if ((cap = containsAt(format, i, "YYYY", "IYYY", "RRRR")) != null) {
-                StringUtils.appendZeroPadded(output, 4, Math.abs(year));
+                StringUtils.appendZeroPadded(output, 4, posYear);
                 i += 4;
             } else if ((cap = containsAt(format, i, "YYY", "IYY")) != null) {
-                StringUtils.appendZeroPadded(output, 3, Math.abs(year) % 1000);
+                StringUtils.appendZeroPadded(output, 3, posYear % 1000);
                 i += 3;
             } else if ((cap = containsAt(format, i, "YY", "IY", "RR")) != null) {
-                StringUtils.appendZeroPadded(output, 2, Math.abs(year) % 100);
+                StringUtils.appendZeroPadded(output, 2, posYear % 100);
                 i += 2;
             } else if ((cap = containsAt(format, i, "I", "Y")) != null) {
-                output.append(Math.abs(year) % 10);
+                output.append(posYear % 10);
                 i += 1;
 
                 // Month / quarter

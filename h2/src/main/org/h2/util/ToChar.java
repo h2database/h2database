@@ -748,7 +748,7 @@ public class ToChar {
                 output.append(ff);
                 i += 3;
             } else if ((cap = containsAt(format, i, "FF")) != null) {
-                output.append(nanos / 1_000);
+                StringUtils.appendZeroPadded(output, 9, nanos);
                 i += 2;
 
                 // Time zone

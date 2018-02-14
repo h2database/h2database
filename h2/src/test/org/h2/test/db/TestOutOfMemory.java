@@ -187,10 +187,6 @@ public class TestOutOfMemory extends TestBase {
             String text = rs.getString(2);
             assertFalse(rs.wasNull());
             assertEquals(1004, text.length());
-
-            rs = stat.executeQuery("SELECT sum(length(text)) FROM stuff");
-            assertTrue(rs.next());
-            assertEquals(3010893, rs.getInt(1));
         } finally {
             deleteDb(DB_NAME);
         }
@@ -222,7 +218,7 @@ public class TestOutOfMemory extends TestBase {
                 assertTrue(rs.next());
                 assertEquals(3010893, rs.getInt(1));
 
-                eatMemory(15_000);
+                eatMemory(5_000);
                 prep.execute();
                 fail();
             } catch (SQLException ignore) {

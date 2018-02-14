@@ -43,6 +43,7 @@ public class TestClearReferences extends TestBase {
         "org.h2.util.JdbcUtils.allowedClassNamePrefixes",
         "org.h2.util.JdbcUtils.userClassFactories",
         "org.h2.util.Task.counter",
+        "org.h2.util.ToChar.NAMES",
         "org.h2.value.CompareMode.lastUsed",
         "org.h2.value.Value.softCache",
     };

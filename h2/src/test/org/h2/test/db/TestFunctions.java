@@ -1453,7 +1453,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("-100-01-15 14:04:02.12", stat, "SELECT X FROM U");
         String expected = String.format("%tb", timestamp1979).toUpperCase();
         expected = stripTrailingPeriod(expected);
-        assertResult("12-" + expected + "-79 08.12.34.560000 AM", stat,
+        assertResult("12-" + expected + "-79 08.12.34.560000000 AM", stat,
                 "SELECT TO_CHAR(X) FROM T");
         assertResult("- / , . ; : text - /", stat,
                 "SELECT TO_CHAR(X, '- / , . ; : \"text\" - /') FROM T");
@@ -1492,6 +1492,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("08:12 AM", stat, "SELECT TO_CHAR(X, 'HH:MI PM') FROM T");
         assertResult("02:04 PM", stat, "SELECT TO_CHAR(X, 'HH:MI PM') FROM U");
         assertResult("08:12 A.M.", stat, "SELECT TO_CHAR(X, 'HH:MI P.M.') FROM T");
+        assertResult("12 PM", stat, "SELECT TO_CHAR(TIME '12:00:00', 'HH AM')");
+        assertResult("12 AM", stat, "SELECT TO_CHAR(TIME '00:00:00', 'HH AM')");
         assertResult("A.M.", stat, "SELECT TO_CHAR(X, 'P.M.') FROM T");
         assertResult("a.m.", stat, "SELECT TO_CHAR(X, 'p.M.') FROM T");
         assertResult("a.m.", stat, "SELECT TO_CHAR(X, 'p.m.') FROM T");
@@ -1532,7 +1534,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult(Capitalization.CAPITALIZE.apply(expected), stat, "SELECT TO_CHAR(X, 'Dy') FROM T");
         assertResult(expected.toLowerCase(), stat, "SELECT TO_CHAR(X, 'dy') FROM T");
         assertResult(expected.toLowerCase(), stat, "SELECT TO_CHAR(X, 'dY') FROM T");
-        assertResult("08:12:34.560000", stat,
+        assertResult("08:12:34.560000000", stat,
                 "SELECT TO_CHAR(X, 'HH:MI:SS.FF') FROM T");
         assertResult("08:12:34.5", stat,
                 "SELECT TO_CHAR(X, 'HH:MI:SS.FF1') FROM T");
@@ -1552,10 +1554,10 @@ public class TestFunctions extends TestBase implements AggregateFunction {
                 "SELECT TO_CHAR(X, 'HH:MI:SS.FF8') FROM T");
         assertResult("08:12:34.560000000", stat,
                 "SELECT TO_CHAR(X, 'HH:MI:SS.FF9') FROM T");
-        assertResult("08:12:34.560000000", stat,
-                "SELECT TO_CHAR(X, 'HH:MI:SS.ff9') FROM T");
-        assertResult("08:12:34.560000000", stat,
-                "SELECT TO_CHAR(X, 'HH:MI:SS.fF9') FROM T");
+        assertResult("012345678", stat,
+                "SELECT TO_CHAR(TIME '0:00:00.012345678', 'FF') FROM T");
+        assertResult("00", stat,
+                "SELECT TO_CHAR(TIME '0:00:00.000', 'FF2') FROM T");
         assertResult("08:12", stat, "SELECT TO_CHAR(X, 'HH:MI') FROM T");
         assertResult("08:12", stat, "SELECT TO_CHAR(X, 'HH12:MI') FROM T");
         assertResult("08:12", stat, "SELECT TO_CHAR(X, 'HH24:MI') FROM T");
@@ -1903,7 +1905,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         final String twoDecimals = "0" + decimalSeparator + "00";
         assertResult(oneDecimal, stat, "select to_char(0, 'FM0D099') from dual;");
         assertResult(twoDecimals, stat, "select to_char(0., 'FM0D009') from dual;");
-        assertResult("0.000000000", stat, "select to_char(0.000000000, 'FM0D999999999') from dual;");
+        assertResult("0" + decimalSeparator + "000000000",
+                stat, "select to_char(0.000000000, 'FM0D999999999') from dual;");
         assertResult("0" + decimalSeparator, stat, "select to_char(0, 'FM0D9') from dual;");
         assertResult(oneDecimal, stat, "select to_char(0.0, 'FM0D099') from dual;");
         assertResult(twoDecimals, stat, "select to_char(0.00, 'FM0D009') from dual;");

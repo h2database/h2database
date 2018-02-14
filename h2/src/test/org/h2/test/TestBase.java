@@ -1735,6 +1735,7 @@ public abstract class TestBase {
                 } else if ("-password".equals(args[i])) {
                     password = args[++i];
                 }
+                SelfDestructor.startCountdown(60);
             }
         }
 

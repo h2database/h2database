@@ -491,7 +491,7 @@ public class ToChar {
         if (!(value instanceof ValueTimestampTimeZone)) {
             TimeZone tz = TimeZone.getDefault();
             if (tzd) {
-                boolean daylight = tz.inDaylightTime(new java.util.Date());
+                boolean daylight = tz.inDaylightTime(value.getTimestamp());
                 return tz.getDisplayName(daylight, TimeZone.SHORT);
             }
             return tz.getID();

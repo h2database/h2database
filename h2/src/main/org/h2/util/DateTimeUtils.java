@@ -629,20 +629,6 @@ public class DateTimeUtils {
     }
 
     /**
-     * Get the year (positive or negative) from a calendar.
-     *
-     * @param calendar the calendar
-     * @return the year
-     */
-    private static int getYear(Calendar calendar) {
-        int year = calendar.get(Calendar.YEAR);
-        if (calendar.get(Calendar.ERA) == GregorianCalendar.BC) {
-            year = 1 - year;
-        }
-        return year;
-    }
-
-    /**
      * Get the number of milliseconds since 1970-01-01 in the local timezone,
      * but without daylight saving time into account.
      *
@@ -1069,10 +1055,12 @@ public class DateTimeUtils {
      * @return the date value
      */
     private static long dateValueFromCalendar(Calendar cal) {
-        int year, month, day;
-        year = getYear(cal);
-        month = cal.get(Calendar.MONTH) + 1;
-        day = cal.get(Calendar.DAY_OF_MONTH);
+        int year = cal.get(Calendar.YEAR);
+        if (cal.get(Calendar.ERA) == GregorianCalendar.BC) {
+            year = 1 - year;
+        }
+        int month = cal.get(Calendar.MONTH) + 1;
+        int day = cal.get(Calendar.DAY_OF_MONTH);
         return ((long) year << SHIFT_YEAR) | (month << SHIFT_MONTH) | day;
     }
 

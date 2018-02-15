@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
+import java.text.DateFormatSymbols;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -152,6 +152,11 @@ public class Function extends Expression implements FunctionCall {
     private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>();
     private static final HashMap<String, Integer> DATE_PART = new HashMap<>();
     private static final char[] SOUNDEX_INDEX = new char[128];
+
+    /**
+     * English names of months and week days.
+     */
+    private static volatile String[][] MONTHS_AND_WEEKS;
 
     protected Expression[] args;
 
@@ -844,9 +849,8 @@ public class Function extends Expression implements FunctionCall {
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case DAY_NAME: {
-            SimpleDateFormat dayName = new SimpleDateFormat(
-                    "EEEE", Locale.ENGLISH);
-            result = ValueString.get(dayName.format(v0.getDate()),
+            int dayOfWeek = DateTimeUtils.getSundayDayOfWeek(DateTimeUtils.dateAndTimeFromValue(v0)[0]);
+            result = ValueString.get(getMonthsAndWeeks(1)[dayOfWeek],
                     database.getMode().treatEmptyStringsAsNull);
             break;
         }
@@ -866,9 +870,8 @@ public class Function extends Expression implements FunctionCall {
             result = ValueInt.get(getIntDatePart(v0, info.type));
             break;
         case MONTH_NAME: {
-            SimpleDateFormat monthName = new SimpleDateFormat("MMMM",
-                    Locale.ENGLISH);
-            result = ValueString.get(monthName.format(v0.getDate()),
+            int month = DateTimeUtils.monthFromDateValue(DateTimeUtils.dateAndTimeFromValue(v0)[0]);
+            result = ValueString.get(getMonthsAndWeeks(0)[month - 1],
                     database.getMode().treatEmptyStringsAsNull);
             break;
         }
@@ -2023,6 +2026,18 @@ public class Function extends Expression implements FunctionCall {
             r2--;
         }
         return r2 - r1;
+    }
+
+    private static String[] getMonthsAndWeeks(int field) {
+        String[][] result = MONTHS_AND_WEEKS;
+        if (result == null) {
+            result = new String[2][];
+            DateFormatSymbols dfs = DateFormatSymbols.getInstance(Locale.ENGLISH);
+            result[0] = dfs.getMonths();
+            result[1] = dfs.getWeekdays();
+            MONTHS_AND_WEEKS = result;
+        }
+        return result[field];
     }
 
     private static String substring(String s, int start, int length) {

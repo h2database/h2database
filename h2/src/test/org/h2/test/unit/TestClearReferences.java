@@ -26,6 +26,7 @@ public class TestClearReferences extends TestBase {
         "org.h2.compress.CompressLZF.cachedHashTable",
         "org.h2.engine.DbSettings.defaultSettings",
         "org.h2.engine.SessionRemote.sessionFactory",
+        "org.h2.expression.Function.MONTHS_AND_WEEKS",
         "org.h2.jdbcx.JdbcDataSourceFactory.cachedTraceSystem",
         "org.h2.store.RecoverTester.instance",
         "org.h2.store.fs.FilePath.defaultProvider",

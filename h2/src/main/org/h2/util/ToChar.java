@@ -28,7 +28,7 @@ public class ToChar {
     /**
      * The beginning of the Julian calendar.
      */
-    private static final int JULIAN_EPOCH = -2_440_588;
+    static final int JULIAN_EPOCH = -2_440_588;
 
     private static final int[] ROMAN_VALUES = { 1000, 900, 500, 400, 100, 90, 50, 40, 10, 9,
             5, 4, 1 };
@@ -36,7 +36,7 @@ public class ToChar {
     private static final String[] ROMAN_NUMERALS = { "M", "CM", "D", "CD", "C", "XC",
             "L", "XL", "X", "IX", "V", "IV", "I" };
 
-    private static final int MONTHS = 0, SHORT_MONTHS = 1, WEEKDAYS = 2, SHORT_WEEKDAYS = 3, AM_PM = 4;
+    static final int MONTHS = 0, SHORT_MONTHS = 1, WEEKDAYS = 2, SHORT_WEEKDAYS = 3, AM_PM = 4;
 
     private static volatile String[][] NAMES;
 
@@ -454,7 +454,7 @@ public class ToChar {
         return hex;
     }
 
-    private static String[] getNames(int names) {
+    static String[] getNames(int names) {
         String[][] result = NAMES;
         if (result == null) {
             result = new String[5][];

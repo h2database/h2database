@@ -98,7 +98,7 @@ public class Function extends Expression implements FunctionCall {
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
             XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90,
             LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94, ORA_HASH = 95,
-            TO_DATE = 96, TO_TIMESTAMP = 97, ADD_MONTHS = 98;
+            TO_DATE = 96, TO_TIMESTAMP = 97, ADD_MONTHS = 98, TO_TIMESTAMP_TZ = 99;
 
     public static final int CURDATE = 100, CURTIME = 101, DATE_ADD = 102,
             DATE_DIFF = 103, DAY_NAME = 104, DAY_OF_MONTH = 105,
@@ -335,6 +335,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("TO_DATE", TO_DATE, VAR_ARGS, Value.TIMESTAMP);
         addFunction("TO_TIMESTAMP", TO_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP);
         addFunction("ADD_MONTHS", ADD_MONTHS, 2, Value.TIMESTAMP);
+        addFunction("TO_TIMESTAMP_TZ", TO_TIMESTAMP_TZ, VAR_ARGS, Value.TIMESTAMP_TZ);
         // alias for MSSQLServer
         addFunctionNotDeterministic("GETDATE", CURDATE,
                 0, Value.DATE);
@@ -1455,15 +1456,19 @@ public class Function extends Expression implements FunctionCall {
             }
             break;
         case TO_DATE:
-            result = ValueTimestamp.get(ToDateParser.toDate(v0.getString(),
-                    v1 == null ? null : v1.getString()));
+            result = ToDateParser.toDate(v0.getString(),
+                    v1 == null ? null : v1.getString());
             break;
         case TO_TIMESTAMP:
-            result = ValueTimestamp.get(ToDateParser.toTimestamp(v0.getString(),
-                    v1 == null ? null : v1.getString()));
+            result = ToDateParser.toTimestamp(v0.getString(),
+                    v1 == null ? null : v1.getString());
             break;
         case ADD_MONTHS:
             result = dateadd("MONTH", v1.getInt(), v0);
+            break;
+        case TO_TIMESTAMP_TZ:
+            result = ToDateParser.toTimestampTz(v0.getString(),
+                    v1 == null ? null : v1.getString());
             break;
         case TRANSLATE: {
             String matching = v1.getString();
@@ -2307,6 +2312,7 @@ public class Function extends Expression implements FunctionCall {
         case XMLTEXT:
         case TRUNCATE:
         case TO_TIMESTAMP:
+        case TO_TIMESTAMP_TZ:
             min = 1;
             max = 2;
             break;

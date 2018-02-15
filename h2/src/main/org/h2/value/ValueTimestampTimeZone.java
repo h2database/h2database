@@ -9,13 +9,10 @@ import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.SimpleTimeZone;
-import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.StringUtils;
 
 /**
  * Implementation of the TIMESTAMP WITH TIME ZONE data type.
@@ -147,30 +144,6 @@ public class ValueTimestampTimeZone extends Value {
      */
     public short getTimeZoneOffsetMins() {
         return timeZoneOffsetMins;
-    }
-
-    /**
-     * Returns compatible offset-based time zone with no DST schedule.
-     *
-     * @return compatible offset-based time zone
-     */
-    public TimeZone getTimeZone() {
-        int offset = timeZoneOffsetMins;
-        if (offset == 0) {
-            return DateTimeUtils.UTC;
-        }
-        StringBuilder b = new StringBuilder(9);
-        b.append("GMT");
-        if (offset < 0) {
-            b.append('-');
-            offset = - offset;
-        } else {
-            b.append('+');
-        }
-        StringUtils.appendZeroPadded(b, 2, offset / 60);
-        b.append(':');
-        StringUtils.appendZeroPadded(b, 2, offset % 60);
-        return new SimpleTimeZone(offset * 60000, b.toString());
     }
 
     @Override

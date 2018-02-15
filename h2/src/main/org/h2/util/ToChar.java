@@ -28,7 +28,7 @@ public class ToChar {
     /**
      * The beginning of the Julian calendar.
      */
-    private static final int JULIAN_EPOCH = -2_440_588;
+    static final int JULIAN_EPOCH = -2_440_588;
 
     private static final int[] ROMAN_VALUES = { 1000, 900, 500, 400, 100, 90, 50, 40, 10, 9,
             5, 4, 1 };
@@ -36,7 +36,7 @@ public class ToChar {
     private static final String[] ROMAN_NUMERALS = { "M", "CM", "D", "CD", "C", "XC",
             "L", "XL", "X", "IX", "V", "IV", "I" };
 
-    private static final int MONTHS = 0, SHORT_MONTHS = 1, WEEKDAYS = 2, SHORT_WEEKDAYS = 3, AM_PM = 4;
+    static final int MONTHS = 0, SHORT_MONTHS = 1, WEEKDAYS = 2, SHORT_WEEKDAYS = 3, AM_PM = 4;
 
     private static volatile String[][] NAMES;
 
@@ -454,7 +454,7 @@ public class ToChar {
         return hex;
     }
 
-    private static String[] getNames(int names) {
+    static String[] getNames(int names) {
         String[][] result = NAMES;
         if (result == null) {
             result = new String[5][];
@@ -474,6 +474,44 @@ public class ToChar {
             NAMES = result;
         }
         return result[names];
+    }
+
+    /**
+     * Returns time zone display name or ID for the specified date-time value.
+     *
+     * @param value
+     *            value
+     * @param tzd
+     *            if {@code true} return TZD (time zone region with Daylight Saving
+     *            Time information included), if {@code false} return TZR (time zone
+     *            region)
+     * @return time zone display name or ID
+     */
+    private static String getTimeZone(Value value, boolean tzd) {
+        if (!(value instanceof ValueTimestampTimeZone)) {
+            TimeZone tz = TimeZone.getDefault();
+            if (tzd) {
+                boolean daylight = tz.inDaylightTime(value.getTimestamp());
+                return tz.getDisplayName(daylight, TimeZone.SHORT);
+            }
+            return tz.getID();
+        }
+        int offset = ((ValueTimestampTimeZone) value).getTimeZoneOffsetMins();
+        if (offset == 0) {
+            return "UTC";
+        }
+        StringBuilder b = new StringBuilder(9);
+        b.append("GMT");
+        if (offset < 0) {
+            b.append('-');
+            offset = - offset;
+        } else {
+            b.append('+');
+        }
+        StringUtils.appendZeroPadded(b, 2, offset / 60);
+        b.append(':');
+        StringUtils.appendZeroPadded(b, 2, offset % 60);
+        return b.toString();
     }
 
     /**
@@ -755,15 +793,10 @@ public class ToChar {
                 // Time zone
 
             } else if (containsAt(format, i, "TZR") != null) {
-                TimeZone tz = value instanceof ValueTimestampTimeZone ?
-                        ((ValueTimestampTimeZone) value).getTimeZone() : TimeZone.getDefault();
-                output.append(tz.getID());
+                output.append(getTimeZone(value, false));
                 i += 3;
             } else if (containsAt(format, i, "TZD") != null) {
-                TimeZone tz = value instanceof ValueTimestampTimeZone ?
-                        ((ValueTimestampTimeZone) value).getTimeZone() : TimeZone.getDefault();
-                boolean daylight = tz.inDaylightTime(new java.util.Date());
-                output.append(tz.getDisplayName(daylight, TimeZone.SHORT));
+                output.append(getTimeZone(value, true));
                 i += 3;
 
                 // Week

@@ -1320,7 +1320,6 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(date, ToDateParser.toDate("1979 AD", "YYYY AD"));
         assertEquals(date, ToDateParser.toDate("1979 A.D.", "YYYY A.D."));
         assertEquals(date, ToDateParser.toDate("1979 A.D.", "YYYY BC"));
-        assertEquals(date, ToDateParser.toDate("1979", "IYYY"));
         assertEquals(date, ToDateParser.toDate("+1979", "SYYYY"));
         assertEquals(date, ToDateParser.toDate("79", "RRRR"));
 
@@ -1337,15 +1336,12 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         int y = (year / 10) * 10 + 9;
         date = ValueTimestamp.parse(y + "-" + month + "-01");
         assertEquals(date, ToDateParser.toDate("9", "Y"));
-        assertEquals(date, ToDateParser.toDate("9", "I"));
         y = (year / 100) * 100 + 79;
         date = ValueTimestamp.parse(y + "-" + month + "-01");
         assertEquals(date, ToDateParser.toDate("79", "YY"));
-        assertEquals(date, ToDateParser.toDate("79", "IY"));
         y = (year / 1_000) * 1_000 + 979;
         date = ValueTimestamp.parse(y + "-" + month + "-01");
         assertEquals(date, ToDateParser.toDate("979", "YYY"));
-        assertEquals(date, ToDateParser.toDate("979", "IYY"));
 
         // Gregorian calendar does not have a year 0.
         // 0 = 0001 BC, -1 = 0002 BC, ... so we adjust

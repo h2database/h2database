@@ -148,7 +148,6 @@ class ToDateTokenizer {
             switch (formatTokenEnum) {
             case SYYYY:
             case YYYY:
-            case IYYY:
                 inputFragmentStr = matchStringOrThrow(PATTERN_FOUR_DIGITS,
                         params, formatTokenEnum);
                 dateNr = Integer.parseInt(inputFragmentStr);
@@ -160,7 +159,6 @@ class ToDateTokenizer {
                 params.setYear(dateNr >= 0 ? dateNr : dateNr + 1);
                 break;
             case YYY:
-            case IYY:
                 inputFragmentStr = matchStringOrThrow(PATTERN_THREE_DIGITS,
                         params, formatTokenEnum);
                 dateNr = Integer.parseInt(inputFragmentStr);
@@ -204,7 +202,6 @@ class ToDateTokenizer {
                         formatTokenEnum.name()));
                 break;
             case YY:
-            case IY:
                 inputFragmentStr = matchStringOrThrow(PATTERN_TWO_DIGITS,
                         params, formatTokenEnum);
                 dateNr = Integer.parseInt(inputFragmentStr);
@@ -224,7 +221,6 @@ class ToDateTokenizer {
                 params.setYear(dateNr);
                 break;
             case Y:
-            case I:
                 inputFragmentStr = matchStringOrThrow(PATTERN_ONE_DIGIT, params,
                         formatTokenEnum);
                 dateNr = Integer.parseInt(inputFragmentStr);
@@ -557,9 +553,10 @@ class ToDateTokenizer {
         YYYY(PARSLET_YEAR),
         // 4-digit year with sign (- = B.C.)
         SYYYY(PARSLET_YEAR),
-        // 4-digit year based on the ISO standard (?)
-        IYYY(PARSLET_YEAR), YYY(PARSLET_YEAR), IYY(PARSLET_YEAR), YY(
-                PARSLET_YEAR), IY(PARSLET_YEAR),
+        // 3-digit year
+        YYY(PARSLET_YEAR),
+        // 2-digit year
+        YY(PARSLET_YEAR),
         // Two-digit century with with sign (- = B.C.)
         SCC(PARSLET_YEAR),
         // Two-digit century.
@@ -612,7 +609,7 @@ class ToDateTokenizer {
         // NOT supported yet -
         // Abbreviated era name (Japanese Imperial,
         // ROC Official, and Thai Buddha calendars).
-        E(PARSLET_YEAR), Y(PARSLET_YEAR), I(PARSLET_YEAR),
+        E(PARSLET_YEAR), Y(PARSLET_YEAR),
         // Quarter of year (1, 2, 3, 4; JAN-MAR = 1).
         Q(PARSLET_MONTH),
         // Day of week (1-7).

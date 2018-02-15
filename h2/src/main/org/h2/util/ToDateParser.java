@@ -56,8 +56,6 @@ public class ToDateParser {
      *            code)
      */
     private ToDateParser(ConfigParam functionName, String input, String format) {
-        // reset calendar - default oracle behaviour
-
         this.functionName = functionName;
         inputStr = input.trim();
         // Keep a copy

@@ -477,6 +477,44 @@ public class ToChar {
     }
 
     /**
+     * Returns time zone display name or ID for the specified date-time value.
+     *
+     * @param value
+     *            value
+     * @param tzd
+     *            if {@code true} return TZD (time zone region with Daylight Saving
+     *            Time information included), if {@code false} return TZR (time zone
+     *            region)
+     * @return time zone display name or ID
+     */
+    private static String getTimeZone(Value value, boolean tzd) {
+        if (!(value instanceof ValueTimestampTimeZone)) {
+            TimeZone tz = TimeZone.getDefault();
+            if (tzd) {
+                boolean daylight = tz.inDaylightTime(new java.util.Date());
+                return tz.getDisplayName(daylight, TimeZone.SHORT);
+            }
+            return tz.getID();
+        }
+        int offset = ((ValueTimestampTimeZone) value).getTimeZoneOffsetMins();
+        if (offset == 0) {
+            return "UTC";
+        }
+        StringBuilder b = new StringBuilder(9);
+        b.append("GMT");
+        if (offset < 0) {
+            b.append('-');
+            offset = - offset;
+        } else {
+            b.append('+');
+        }
+        StringUtils.appendZeroPadded(b, 2, offset / 60);
+        b.append(':');
+        StringUtils.appendZeroPadded(b, 2, offset % 60);
+        return b.toString();
+    }
+
+    /**
      * Emulates Oracle's TO_CHAR(datetime) function.
      *
      * <p><table border="1">
@@ -755,15 +793,10 @@ public class ToChar {
                 // Time zone
 
             } else if (containsAt(format, i, "TZR") != null) {
-                TimeZone tz = value instanceof ValueTimestampTimeZone ?
-                        ((ValueTimestampTimeZone) value).getTimeZone() : TimeZone.getDefault();
-                output.append(tz.getID());
+                output.append(getTimeZone(value, false));
                 i += 3;
             } else if (containsAt(format, i, "TZD") != null) {
-                TimeZone tz = value instanceof ValueTimestampTimeZone ?
-                        ((ValueTimestampTimeZone) value).getTimeZone() : TimeZone.getDefault();
-                boolean daylight = tz.inDaylightTime(new java.util.Date());
-                output.append(tz.getDisplayName(daylight, TimeZone.SHORT));
+                output.append(getTimeZone(value, true));
                 i += 3;
 
                 // Week

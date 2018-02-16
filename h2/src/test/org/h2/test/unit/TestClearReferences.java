@@ -37,6 +37,7 @@ public class TestClearReferences extends TestBase {
         "org.h2.tools.CompressTool.cachedBuffer",
         "org.h2.util.CloseWatcher.queue",
         "org.h2.util.CloseWatcher.refs",
+        "org.h2.util.DateTimeUtils.timeZone",
         "org.h2.util.MathUtils.cachedSecureRandom",
         "org.h2.util.NetUtils.cachedLocalAddress",
         "org.h2.util.StringUtils.softCache",

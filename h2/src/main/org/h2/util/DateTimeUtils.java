@@ -1154,7 +1154,7 @@ public class DateTimeUtils {
             m += 12;
         }
         long a = ((y * 2922L) >> 3) + DAYS_OFFSET[m - 3] + d - 719484;
-        if (y <= 1582 && ((y < 1582) || (m * 100 + d < 1005))) {
+        if (y <= 1582 && ((y < 1582) || (m * 100 + d < 1015))) {
             // Julian calendar (cutover at 1582-10-04 / 1582-10-15)
             a += 13;
         } else if (y < 1901 || y > 2099) {

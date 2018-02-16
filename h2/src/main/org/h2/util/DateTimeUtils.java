@@ -86,6 +86,11 @@ public class DateTimeUtils {
             new ThreadLocal<>();
 
     /**
+     * Cached local time zone.
+     */
+    private static volatile TimeZone timeZone;
+
+    /**
      * Observed JVM behaviour is that if the timezone of the host computer is
      * changed while the JVM is running, the zone offset does not change but
      * keeps the initial value. So it is correct to measure this once and use
@@ -101,11 +106,25 @@ public class DateTimeUtils {
     }
 
     /**
+     * Returns local time zone.
+     *
+     * @return local time zone
+     */
+    private static TimeZone getTimeZone() {
+        TimeZone tz = timeZone;
+        if (tz == null) {
+            timeZone = tz = TimeZone.getDefault();
+        }
+        return tz;
+    }
+
+    /**
      * Reset the cached calendar for default timezone, for example after
      * changing the default timezone.
      */
     public static void resetCalendar() {
         CACHED_CALENDAR.remove();
+        timeZone = null;
         zoneOffsetMillis = DateTimeUtils.createGregorianCalendar().get(Calendar.ZONE_OFFSET);
     }
 
@@ -1043,9 +1062,12 @@ public class DateTimeUtils {
      * @return the date value
      */
     public static long dateValueFromDate(long ms) {
-        Calendar cal = getCalendar();
-        cal.setTimeInMillis(ms);
-        return dateValueFromCalendar(cal);
+        ms += getTimeZone().getOffset(ms);
+        long absoluteDay = ms / 86_400_000;
+        if (ms < 0 && (absoluteDay * 86_400_000 != ms)) {
+            absoluteDay--;
+        }
+        return dateValueFromAbsoluteDay(absoluteDay);
     }
 
     /**
@@ -1072,9 +1094,12 @@ public class DateTimeUtils {
      * @return the nanoseconds
      */
     public static long nanosFromDate(long ms) {
-        Calendar cal = getCalendar();
-        cal.setTimeInMillis(ms);
-        return nanosFromCalendar(cal);
+        ms += getTimeZone().getOffset(ms);
+        long absoluteDay = ms / 86_400_000;
+        if (ms < 0 && (absoluteDay * 86_400_000 != ms)) {
+            absoluteDay--;
+        }
+        return (ms - absoluteDay * 86_400_000) * 1_000_000;
     }
 
     /**

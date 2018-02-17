@@ -1063,8 +1063,9 @@ public class DateTimeUtils {
      */
     public static long dateValueFromDate(long ms) {
         ms += getTimeZone().getOffset(ms);
-        long absoluteDay = ms / 86_400_000;
-        if (ms < 0 && (absoluteDay * 86_400_000 != ms)) {
+        long absoluteDay = ms / MILLIS_PER_DAY;
+        // Round toward negative infinity
+        if (ms < 0 && (absoluteDay * MILLIS_PER_DAY != ms)) {
             absoluteDay--;
         }
         return dateValueFromAbsoluteDay(absoluteDay);
@@ -1095,11 +1096,12 @@ public class DateTimeUtils {
      */
     public static long nanosFromDate(long ms) {
         ms += getTimeZone().getOffset(ms);
-        long absoluteDay = ms / 86_400_000;
-        if (ms < 0 && (absoluteDay * 86_400_000 != ms)) {
+        long absoluteDay = ms / MILLIS_PER_DAY;
+        // Round toward negative infinity
+        if (ms < 0 && (absoluteDay * MILLIS_PER_DAY != ms)) {
             absoluteDay--;
         }
-        return (ms - absoluteDay * 86_400_000) * 1_000_000;
+        return (ms - absoluteDay * MILLIS_PER_DAY) * 1_000_000;
     }
 
     /**

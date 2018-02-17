@@ -6,10 +6,15 @@
 package org.h2.test.unit;
 
 import static org.h2.util.DateTimeUtils.dateValue;
+
+import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.TimeZone;
+
 import org.h2.test.TestBase;
 import org.h2.util.DateTimeUtils;
+import org.h2.value.ValueTimestamp;
 
 /**
  * Unit tests for the DateTimeUtils class
@@ -19,9 +24,18 @@ public class TestDateTimeUtils extends TestBase {
     /**
      * Run just this test.
      *
-     * @param a ignored
+     * @param a
+     *            if {@code "testUtc2Value"} only {@link #testUTC2Value(boolean)}
+     *            will be executed with all time zones (slow). Otherwise all tests
+     *            in this test unit will be executed with local time zone.
      */
     public static void main(String... a) throws Exception {
+        if (a.length == 1) {
+            if ("testUtc2Value".equals(a[0])) {
+                new TestDateTimeUtils().testUTC2Value(true);
+                return;
+            }
+        }
         TestBase.createCaller().init().test();
     }
 
@@ -31,6 +45,7 @@ public class TestDateTimeUtils extends TestBase {
         testDayOfWeek();
         testWeekOfYear();
         testDateValueFromDenormalizedDate();
+        testUTC2Value(false);
     }
 
     private void testParseTimeNanosDB2Format() {
@@ -102,6 +117,47 @@ public class TestDateTimeUtils extends TestBase {
         assertEquals(dateValue(1999, 8, 1), DateTimeUtils.dateValueFromDenormalizedDate(2000, -4, -100));
         assertEquals(dateValue(2100, 12, 31), DateTimeUtils.dateValueFromDenormalizedDate(2100, 12, 2000));
         assertEquals(dateValue(-100, 2, 29), DateTimeUtils.dateValueFromDenormalizedDate(-100, 2, 30));
+    }
+
+    private void testUTC2Value(boolean allTimeZones) {
+        TimeZone def = TimeZone.getDefault();
+        GregorianCalendar gc = new GregorianCalendar();
+        if (allTimeZones) {
+            try {
+                for (String id : TimeZone.getAvailableIDs()) {
+                    System.out.println(id);
+                    TimeZone tz = TimeZone.getTimeZone(id);
+                    TimeZone.setDefault(tz);
+                    DateTimeUtils.resetCalendar();
+                    testUTC2ValueImpl(tz, gc);
+                }
+            } finally {
+                TimeZone.setDefault(def);
+                DateTimeUtils.resetCalendar();
+            }
+        } else {
+            testUTC2ValueImpl(def, gc);
+        }
+    }
+
+    private void testUTC2ValueImpl(TimeZone tz, GregorianCalendar gc) {
+        gc.setTimeZone(tz);
+        gc.set(Calendar.MILLISECOND, 0);
+        long absoluteStart = DateTimeUtils.absoluteDayFromDateValue(DateTimeUtils.dateValue(1950, 01, 01));
+        long absoluteEnd = DateTimeUtils.absoluteDayFromDateValue(DateTimeUtils.dateValue(2050, 01, 01));
+        for (long i = absoluteStart; i < absoluteEnd; i++) {
+            long dateValue = DateTimeUtils.dateValueFromAbsoluteDay(i);
+            int year = DateTimeUtils.yearFromDateValue(dateValue);
+            int month = DateTimeUtils.monthFromDateValue(dateValue);
+            int day = DateTimeUtils.dayFromDateValue(dateValue);
+            for (int j = 0; j < 48; j++) {
+                gc.set(year, month - 1, day, j / 2, (j & 1) * 30, 0);
+                long timeMillis = gc.getTimeInMillis();
+                ValueTimestamp ts = DateTimeUtils.convertTimestamp(new Timestamp(timeMillis), gc);
+                assertEquals(ts.getDateValue(), DateTimeUtils.dateValueFromDate(timeMillis));
+                assertEquals(ts.getTimeNanos(), DateTimeUtils.nanosFromDate(timeMillis));
+            }
+        }
     }
 
 }

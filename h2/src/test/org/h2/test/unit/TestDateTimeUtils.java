@@ -24,7 +24,10 @@ public class TestDateTimeUtils extends TestBase {
     /**
      * Run just this test.
      *
-     * @param a ignored
+     * @param a
+     *            if {@code "testUtc2Value"} only {@link #testUTC2Value(boolean)}
+     *            will be executed with all time zones (slow). Otherwise all tests
+     *            in this test unit will be executed with local time zone.
      */
     public static void main(String... a) throws Exception {
         if (a.length == 1) {

@@ -106,6 +106,16 @@ public class Constants {
     public static final int TCP_PROTOCOL_VERSION_17 = 17;
 
     /**
+     * Minimum supported version of TCP protocol.
+     */
+    public static final int TCP_PROTOCOL_VERSION_MIN_SUPPORTED = TCP_PROTOCOL_VERSION_6;
+
+    /**
+     * Maximum supported version of TCP protocol.
+     */
+    public static final int TCP_PROTOCOL_VERSION_MAX_SUPPORTED = TCP_PROTOCOL_VERSION_17;
+
+    /**
      * The major version of this database.
      */
     public static final int VERSION_MAJOR = 1;

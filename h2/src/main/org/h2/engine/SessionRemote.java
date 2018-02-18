@@ -117,8 +117,8 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         Transfer trans = new Transfer(this, socket);
         trans.setSSL(ci.isSSL());
         trans.init();
-        trans.writeInt(Constants.TCP_PROTOCOL_VERSION_6);
-        trans.writeInt(Constants.TCP_PROTOCOL_VERSION_17);
+        trans.writeInt(Constants.TCP_PROTOCOL_VERSION_MIN_SUPPORTED);
+        trans.writeInt(Constants.TCP_PROTOCOL_VERSION_MAX_SUPPORTED);
         trans.writeString(db);
         trans.writeString(ci.getOriginalURL());
         trans.writeString(ci.getUserName());

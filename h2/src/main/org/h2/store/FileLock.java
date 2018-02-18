@@ -210,8 +210,8 @@ public class FileLock implements Runnable {
                     Constants.DEFAULT_TCP_PORT, false);
             Transfer transfer = new Transfer(null, socket);
             transfer.init();
-            transfer.writeInt(Constants.TCP_PROTOCOL_VERSION_6);
-            transfer.writeInt(Constants.TCP_PROTOCOL_VERSION_16);
+            transfer.writeInt(Constants.TCP_PROTOCOL_VERSION_MIN_SUPPORTED);
+            transfer.writeInt(Constants.TCP_PROTOCOL_VERSION_MAX_SUPPORTED);
             transfer.writeString(null);
             transfer.writeString(null);
             transfer.writeString(id);

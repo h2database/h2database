@@ -18,6 +18,8 @@ import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
+import org.h2.result.ResultWithGeneratedKeys;
+import org.h2.tools.SimpleResultSet;
 import org.h2.util.New;
 import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
@@ -33,6 +35,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     protected int maxRows;
     protected int fetchSize = SysProperties.SERVER_RESULT_SET_FETCH_SIZE;
     protected int updateCount;
+    protected JdbcResultSet generatedKeys;
     protected final int resultSetType;
     protected final int resultSetConcurrency;
     protected final boolean closedByResultSet;
@@ -120,7 +123,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     public int executeUpdate(String sql) throws SQLException {
         try {
             debugCodeCall("executeUpdate", sql);
-            return executeUpdateInternal(sql);
+            return executeUpdateInternal(sql, false);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -148,13 +151,13 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     public long executeLargeUpdate(String sql) throws SQLException {
         try {
             debugCodeCall("executeLargeUpdate", sql);
-            return executeUpdateInternal(sql);
+            return executeUpdateInternal(sql, false);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
 
-    private int executeUpdateInternal(String sql) throws SQLException {
+    private int executeUpdateInternal(String sql, Object generatedKeysRequest) throws SQLException {
         checkClosedForWrite();
         try {
             closeOldResultSet();
@@ -163,7 +166,15 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             synchronized (session) {
                 setExecutingStatement(command);
                 try {
-                    updateCount = command.executeUpdate();
+                    ResultWithGeneratedKeys result = command.executeUpdate(
+                            conn.scopeGeneratedKeys() ? false : generatedKeysRequest);
+                    updateCount = result.getUpdateCount();
+                    ResultInterface gk = result.getGeneratedKeys();
+                    if (gk != null) {
+                        int id = getNextId(TraceObject.RESULT_SET);
+                        generatedKeys = new JdbcResultSet(conn, this, command, gk, id,
+                                false, true, false);
+                    }
                 } finally {
                     setExecutingStatement(null);
                 }
@@ -191,13 +202,13 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     public boolean execute(String sql) throws SQLException {
         try {
             debugCodeCall("execute", sql);
-            return executeInternal(sql);
+            return executeInternal(sql, false);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
 
-    private boolean executeInternal(String sql) throws SQLException {
+    private boolean executeInternal(String sql, Object generatedKeysRequest) throws SQLException {
         int id = getNextId(TraceObject.RESULT_SET);
         checkClosedForWrite();
         try {
@@ -219,7 +230,14 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
                                 closedByResultSet, scrollable, updatable);
                     } else {
                         returnsResultSet = false;
-                        updateCount = command.executeUpdate();
+                        ResultWithGeneratedKeys result = command.executeUpdate(
+                                conn.scopeGeneratedKeys() ? false : generatedKeysRequest);
+                        updateCount = result.getUpdateCount();
+                        ResultInterface gk = result.getGeneratedKeys();
+                        if (gk != null) {
+                            generatedKeys = new JdbcResultSet(conn, this, command, gk, id,
+                                    false, true, false);
+                        }
                     }
                 } finally {
                     if (!lazy) {
@@ -756,7 +774,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
                 for (int i = 0; i < size; i++) {
                     String sql = batchCommands.get(i);
                     try {
-                        result[i] = executeUpdateInternal(sql);
+                        result[i] = executeUpdateInternal(sql, false);
                     } catch (Exception re) {
                         SQLException e = logAndConvert(re);
                         if (next == null) {
@@ -816,6 +834,15 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
                 debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "getGeneratedKeys()");
             }
             checkClosed();
+            if (!conn.scopeGeneratedKeys()) {
+                if (generatedKeys != null) {
+                    return generatedKeys;
+                }
+                if (session.isSupportsGeneratedKeys()) {
+                    return new SimpleResultSet();
+                }
+            }
+            // Compatibility mode or an old server, so use SCOPE_IDENTITY()
             return conn.getGeneratedKeys(this, id);
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -876,11 +903,12 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
 
     /**
      * Executes a statement and returns the update count.
-     * This method just calls executeUpdate(String sql) internally.
-     * The method getGeneratedKeys supports at most one columns and row.
      *
      * @param sql the SQL statement
-     * @param autoGeneratedKeys ignored
+     * @param autoGeneratedKeys
+     *            {@link Statement.RETURN_GENERATED_KEYS} if generated keys should
+     *            be available for retrieval, {@link Statement.NO_GENERATED_KEYS} if
+     *            generated keys should not be available
      * @return the update count (number of row affected by an insert,
      *         update or delete, or 0 if no rows or the statement was a
      *         create, drop, commit or rollback)
@@ -894,7 +922,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             if (isDebugEnabled()) {
                 debugCode("executeUpdate("+quote(sql)+", "+autoGeneratedKeys+");");
             }
-            return executeUpdateInternal(sql);
+            return executeUpdateInternal(sql, autoGeneratedKeys == RETURN_GENERATED_KEYS);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -902,11 +930,12 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
 
     /**
      * Executes a statement and returns the update count.
-     * This method just calls executeUpdate(String sql) internally.
-     * The method getGeneratedKeys supports at most one columns and row.
      *
      * @param sql the SQL statement
-     * @param autoGeneratedKeys ignored
+     * @param autoGeneratedKeys
+     *            {@link Statement.RETURN_GENERATED_KEYS} if generated keys should
+     *            be available for retrieval, {@link Statement.NO_GENERATED_KEYS} if
+     *            generated keys should not be available
      * @return the update count (number of row affected by an insert,
      *         update or delete, or 0 if no rows or the statement was a
      *         create, drop, commit or rollback)
@@ -919,7 +948,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             if (isDebugEnabled()) {
                 debugCode("executeLargeUpdate("+quote(sql)+", "+autoGeneratedKeys+");");
             }
-            return executeUpdateInternal(sql);
+            return executeUpdateInternal(sql, autoGeneratedKeys == RETURN_GENERATED_KEYS);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -927,11 +956,11 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
 
     /**
      * Executes a statement and returns the update count.
-     * This method just calls executeUpdate(String sql) internally.
-     * The method getGeneratedKeys supports at most one columns and row.
      *
      * @param sql the SQL statement
-     * @param columnIndexes ignored
+     * @param columnIndexes
+     *            an array of column indexes indicating the columns with generated
+     *            keys that should be returned from the inserted row
      * @return the update count (number of row affected by an insert,
      *         update or delete, or 0 if no rows or the statement was a
      *         create, drop, commit or rollback)
@@ -944,7 +973,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             if (isDebugEnabled()) {
                 debugCode("executeUpdate("+quote(sql)+", "+quoteIntArray(columnIndexes)+");");
             }
-            return executeUpdateInternal(sql);
+            return executeUpdateInternal(sql, columnIndexes);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -952,11 +981,11 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
 
     /**
      * Executes a statement and returns the update count.
-     * This method just calls executeUpdate(String sql) internally.
-     * The method getGeneratedKeys supports at most one columns and row.
      *
      * @param sql the SQL statement
-     * @param columnIndexes ignored
+     * @param columnIndexes
+     *            an array of column indexes indicating the columns with generated
+     *            keys that should be returned from the inserted row
      * @return the update count (number of row affected by an insert,
      *         update or delete, or 0 if no rows or the statement was a
      *         create, drop, commit or rollback)
@@ -969,7 +998,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             if (isDebugEnabled()) {
                 debugCode("executeLargeUpdate("+quote(sql)+", "+quoteIntArray(columnIndexes)+");");
             }
-            return executeUpdateInternal(sql);
+            return executeUpdateInternal(sql, columnIndexes);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -977,11 +1006,11 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
 
     /**
      * Executes a statement and returns the update count.
-     * This method just calls executeUpdate(String sql) internally.
-     * The method getGeneratedKeys supports at most one columns and row.
      *
      * @param sql the SQL statement
-     * @param columnNames ignored
+     * @param columnNames
+     *            an array of column names indicating the columns with generated
+     *            keys that should be returned from the inserted row
      * @return the update count (number of row affected by an insert,
      *         update or delete, or 0 if no rows or the statement was a
      *         create, drop, commit or rollback)
@@ -994,7 +1023,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             if (isDebugEnabled()) {
                 debugCode("executeUpdate("+quote(sql)+", "+quoteArray(columnNames)+");");
             }
-            return executeUpdateInternal(sql);
+            return executeUpdateInternal(sql, columnNames);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1002,11 +1031,11 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
 
     /**
      * Executes a statement and returns the update count.
-     * This method just calls executeUpdate(String sql) internally.
-     * The method getGeneratedKeys supports at most one columns and row.
      *
      * @param sql the SQL statement
-     * @param columnNames ignored
+     * @param columnNames
+     *            an array of column names indicating the columns with generated
+     *            keys that should be returned from the inserted row
      * @return the update count (number of row affected by an insert,
      *         update or delete, or 0 if no rows or the statement was a
      *         create, drop, commit or rollback)
@@ -1019,7 +1048,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             if (isDebugEnabled()) {
                 debugCode("executeLargeUpdate("+quote(sql)+", "+quoteArray(columnNames)+");");
             }
-            return executeUpdateInternal(sql);
+            return executeUpdateInternal(sql, columnNames);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1027,11 +1056,12 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
 
     /**
      * Executes a statement and returns the update count.
-     * This method just calls execute(String sql) internally.
-     * The method getGeneratedKeys supports at most one columns and row.
      *
      * @param sql the SQL statement
-     * @param autoGeneratedKeys ignored
+     * @param autoGeneratedKeys
+     *            {@link Statement.RETURN_GENERATED_KEYS} if generated keys should
+     *            be available for retrieval, {@link Statement.NO_GENERATED_KEYS} if
+     *            generated keys should not be available
      * @return the update count (number of row affected by an insert,
      *         update or delete, or 0 if no rows or the statement was a
      *         create, drop, commit or rollback)
@@ -1044,7 +1074,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             if (isDebugEnabled()) {
                 debugCode("execute("+quote(sql)+", "+autoGeneratedKeys+");");
             }
-            return executeInternal(sql);
+            return executeInternal(sql, autoGeneratedKeys == RETURN_GENERATED_KEYS);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1052,11 +1082,11 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
 
     /**
      * Executes a statement and returns the update count.
-     * This method just calls execute(String sql) internally.
-     * The method getGeneratedKeys supports at most one columns and row.
      *
      * @param sql the SQL statement
-     * @param columnIndexes ignored
+     * @param columnIndexes
+     *            an array of column indexes indicating the columns with generated
+     *            keys that should be returned from the inserted row
      * @return the update count (number of row affected by an insert,
      *         update or delete, or 0 if no rows or the statement was a
      *         create, drop, commit or rollback)
@@ -1069,7 +1099,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             if (isDebugEnabled()) {
                 debugCode("execute("+quote(sql)+", "+quoteIntArray(columnIndexes)+");");
             }
-            return executeInternal(sql);
+            return executeInternal(sql, columnIndexes);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1077,11 +1107,11 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
 
     /**
      * Executes a statement and returns the update count.
-     * This method just calls execute(String sql) internally.
-     * The method getGeneratedKeys supports at most one columns and row.
      *
      * @param sql the SQL statement
-     * @param columnNames ignored
+     * @param columnNames
+     *            an array of column names indicating the columns with generated
+     *            keys that should be returned from the inserted row
      * @return the update count (number of row affected by an insert,
      *         update or delete, or 0 if no rows or the statement was a
      *         create, drop, commit or rollback)
@@ -1094,7 +1124,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             if (isDebugEnabled()) {
                 debugCode("execute("+quote(sql)+", "+quoteArray(columnNames)+");");
             }
-            return executeInternal(sql);
+            return executeInternal(sql, columnNames);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1197,11 +1227,15 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
                 if (resultSet != null) {
                     resultSet.closeInternal();
                 }
+                if (generatedKeys != null) {
+                    generatedKeys.closeInternal();
+                }
             }
         } finally {
             cancelled = false;
             resultSet = null;
             updateCount = -1;
+            generatedKeys = null;
         }
     }
 

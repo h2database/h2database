@@ -94,6 +94,7 @@ public class JdbcConnection extends TraceObject
 
     private Map<String, String> clientInfo;
     private String mode;
+    private final boolean scopeGeneratedKeys;
 
     /**
      * INTERNAL
@@ -132,6 +133,7 @@ public class JdbcConnection extends TraceObject
                         + ", \"\");");
             }
             this.url = ci.getURL();
+            scopeGeneratedKeys = ci.getProperty("SCOPE_GENERATED_KEYS", false);
             closeOld();
             watcher = CloseWatcher.register(this, session, keepOpenStackTrace);
         } catch (Exception e) {
@@ -156,6 +158,7 @@ public class JdbcConnection extends TraceObject
         this.getQueryTimeout = clone.getQueryTimeout;
         this.getReadOnly = clone.getReadOnly;
         this.rollback = clone.rollback;
+        this.scopeGeneratedKeys = clone.scopeGeneratedKeys;
         this.watcher = null;
         if (clone.clientInfo != null) {
             this.clientInfo = new HashMap<>(clone.clientInfo);
@@ -172,6 +175,7 @@ public class JdbcConnection extends TraceObject
         setTrace(trace, TraceObject.CONNECTION, id);
         this.user = user;
         this.url = url;
+        this.scopeGeneratedKeys = false;
         this.watcher = null;
     }
 
@@ -299,7 +303,7 @@ public class JdbcConnection extends TraceObject
             sql = translateSQL(sql);
             return new JdbcPreparedStatement(this, sql, id,
                     ResultSet.TYPE_FORWARD_ONLY,
-                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, false);
+                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, false, false);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -325,7 +329,7 @@ public class JdbcConnection extends TraceObject
             sql = translateSQL(sql);
             return new JdbcPreparedStatement(this, sql, id,
                     ResultSet.TYPE_FORWARD_ONLY,
-                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, true);
+                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, true, false);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -490,7 +494,7 @@ public class JdbcConnection extends TraceObject
             checkClosedForWrite();
             try {
                 commit = prepareCommand("COMMIT", commit);
-                commit.executeUpdate();
+                commit.executeUpdate(false);
             } finally {
                 afterWriting();
             }
@@ -688,7 +692,7 @@ public class JdbcConnection extends TraceObject
             checkClosed();
             sql = translateSQL(sql);
             return new JdbcPreparedStatement(this, sql, id, resultSetType,
-                    resultSetConcurrency, false);
+                    resultSetConcurrency, false, false);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -743,7 +747,7 @@ public class JdbcConnection extends TraceObject
             setLockMode = prepareCommand("SET LOCK_MODE ?", setLockMode);
             setLockMode.getParameters().get(0).setValue(ValueInt.get(lockMode),
                     false);
-            setLockMode.executeUpdate();
+            setLockMode.executeUpdate(false);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -760,7 +764,7 @@ public class JdbcConnection extends TraceObject
                     setQueryTimeout);
             setQueryTimeout.getParameters().get(0)
                     .setValue(ValueInt.get(seconds * 1000), false);
-            setQueryTimeout.executeUpdate();
+            setQueryTimeout.executeUpdate(false);
             queryTimeoutCache = seconds;
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1016,7 +1020,7 @@ public class JdbcConnection extends TraceObject
             CommandInterface set = prepareCommand(
                     "SAVEPOINT " + JdbcSavepoint.getName(null, savepointId),
                     Integer.MAX_VALUE);
-            set.executeUpdate();
+            set.executeUpdate(false);
             JdbcSavepoint savepoint = new JdbcSavepoint(this, savepointId, null,
                     trace, id);
             savepointId++;
@@ -1044,7 +1048,7 @@ public class JdbcConnection extends TraceObject
             CommandInterface set = prepareCommand(
                     "SAVEPOINT " + JdbcSavepoint.getName(name, 0),
                     Integer.MAX_VALUE);
-            set.executeUpdate();
+            set.executeUpdate(false);
             JdbcSavepoint savepoint = new JdbcSavepoint(this, 0, name, trace,
                     id);
             return savepoint;
@@ -1130,19 +1134,20 @@ public class JdbcConnection extends TraceObject
             checkClosed();
             sql = translateSQL(sql);
             return new JdbcPreparedStatement(this, sql, id, resultSetType,
-                    resultSetConcurrency, false);
+                    resultSetConcurrency, false, false);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
 
     /**
-     * Creates a new prepared statement. This method just calls
-     * prepareStatement(String sql) internally. The method getGeneratedKeys only
-     * supports one column.
+     * Creates a new prepared statement.
      *
      * @param sql the SQL statement
-     * @param autoGeneratedKeys ignored
+     * @param autoGeneratedKeys
+     *            {@link Statement#RETURN_GENERATED_KEYS} if generated keys should
+     *            be available for retrieval, {@link Statement#NO_GENERATED_KEYS} if
+     *            generated keys should not be available
      * @return the prepared statement
      * @throws SQLException if the connection is closed
      */
@@ -1150,23 +1155,31 @@ public class JdbcConnection extends TraceObject
     public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys)
             throws SQLException {
         try {
+            int id = getNextId(TraceObject.PREPARED_STATEMENT);
             if (isDebugEnabled()) {
-                debugCode("prepareStatement(" + quote(sql) + ", "
-                        + autoGeneratedKeys + ");");
+                debugCodeAssign("PreparedStatement",
+                        TraceObject.PREPARED_STATEMENT, id,
+                        "prepareStatement(" + quote(sql) + ", "
+                                + autoGeneratedKeys + ");");
             }
-            return prepareStatement(sql);
+            checkClosed();
+            sql = translateSQL(sql);
+            return new JdbcPreparedStatement(this, sql, id,
+                    ResultSet.TYPE_FORWARD_ONLY,
+                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, false,
+                    autoGeneratedKeys == Statement.RETURN_GENERATED_KEYS);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
 
     /**
-     * Creates a new prepared statement. This method just calls
-     * prepareStatement(String sql) internally. The method getGeneratedKeys only
-     * supports one column.
+     * Creates a new prepared statement.
      *
      * @param sql the SQL statement
-     * @param columnIndexes ignored
+     * @param columnIndexes
+     *            an array of column indexes indicating the columns with generated
+     *            keys that should be returned from the inserted row
      * @return the prepared statement
      * @throws SQLException if the connection is closed
      */
@@ -1174,23 +1187,30 @@ public class JdbcConnection extends TraceObject
     public PreparedStatement prepareStatement(String sql, int[] columnIndexes)
             throws SQLException {
         try {
+            int id = getNextId(TraceObject.PREPARED_STATEMENT);
             if (isDebugEnabled()) {
-                debugCode("prepareStatement(" + quote(sql) + ", "
-                        + quoteIntArray(columnIndexes) + ");");
+                debugCodeAssign("PreparedStatement",
+                        TraceObject.PREPARED_STATEMENT, id,
+                        "prepareStatement(" + quote(sql) + ", "
+                                + quoteIntArray(columnIndexes) + ");");
             }
-            return prepareStatement(sql);
+            checkClosed();
+            sql = translateSQL(sql);
+            return new JdbcPreparedStatement(this, sql, id,
+                    ResultSet.TYPE_FORWARD_ONLY,
+                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, false, columnIndexes);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
 
     /**
-     * Creates a new prepared statement. This method just calls
-     * prepareStatement(String sql) internally. The method getGeneratedKeys only
-     * supports one column.
+     * Creates a new prepared statement.
      *
      * @param sql the SQL statement
-     * @param columnNames ignored
+     * @param columnNames
+     *            an array of column names indicating the columns with generated
+     *            keys that should be returned from the inserted row
      * @return the prepared statement
      * @throws SQLException if the connection is closed
      */
@@ -1198,11 +1218,18 @@ public class JdbcConnection extends TraceObject
     public PreparedStatement prepareStatement(String sql, String[] columnNames)
             throws SQLException {
         try {
+            int id = getNextId(TraceObject.PREPARED_STATEMENT);
             if (isDebugEnabled()) {
-                debugCode("prepareStatement(" + quote(sql) + ", "
-                        + quoteArray(columnNames) + ");");
+                debugCodeAssign("PreparedStatement",
+                        TraceObject.PREPARED_STATEMENT, id,
+                        "prepareStatement(" + quote(sql) + ", "
+                                + quoteArray(columnNames) + ");");
             }
-            return prepareStatement(sql);
+            checkClosed();
+            sql = translateSQL(sql);
+            return new JdbcPreparedStatement(this, sql, id,
+                    ResultSet.TYPE_FORWARD_ONLY,
+                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, false, columnNames);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1529,7 +1556,7 @@ public class JdbcConnection extends TraceObject
 
     private void rollbackInternal() {
         rollback = prepareCommand("ROLLBACK", rollback);
-        rollback.executeUpdate();
+        rollback.executeUpdate(false);
     }
 
     /**
@@ -1554,6 +1581,13 @@ public class JdbcConnection extends TraceObject
      */
     public void setExecutingStatement(Statement stat) {
         executingStatement = stat;
+    }
+
+    /**
+     * INTERNAL
+     */
+    boolean scopeGeneratedKeys() {
+        return scopeGeneratedKeys;
     }
 
     /**

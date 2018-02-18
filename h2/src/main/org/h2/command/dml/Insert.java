@@ -12,6 +12,7 @@ import org.h2.api.Trigger;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
+import org.h2.engine.GeneratedKeys;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
@@ -20,6 +21,7 @@ import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.Parameter;
+import org.h2.expression.SequenceValue;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mvstore.db.MVPrimaryIndex;
@@ -142,11 +144,14 @@ public class Insert extends Prepared implements ResultTarget {
         setCurrentRowNumber(0);
         table.fire(session, Trigger.INSERT, true);
         rowNumber = 0;
+        GeneratedKeys generatedKeys = session.getGeneratedKeys();
+        generatedKeys.initialize(table);
         int listSize = list.size();
         if (listSize > 0) {
             int columnLen = columns.length;
             for (int x = 0; x < listSize; x++) {
                 session.startStatementWithinTransaction();
+                generatedKeys.nextRow();
                 Row newRow = table.getTemplateRow();
                 Expression[] expr = list.get(x);
                 setCurrentRowNumber(x + 1);
@@ -160,6 +165,9 @@ public class Insert extends Prepared implements ResultTarget {
                         try {
                             Value v = c.convert(e.getValue(session), session.getDatabase().getMode());
                             newRow.setValue(index, v);
+                            if (e instanceof SequenceValue) {
+                                generatedKeys.add(c);
+                            }
                         } catch (DbException ex) {
                             throw setRow(ex, x, getSQL(expr));
                         }
@@ -179,6 +187,7 @@ public class Insert extends Prepared implements ResultTarget {
                             continue;
                         }
                     }
+                    generatedKeys.confirmRow(newRow);
                     session.log(table, UndoLogRecord.INSERT, newRow);
                     table.fireAfterRow(session, null, newRow, false);
                 }
@@ -190,8 +199,12 @@ public class Insert extends Prepared implements ResultTarget {
             } else {
                 ResultInterface rows = query.query(0);
                 while (rows.next()) {
+                    generatedKeys.nextRow();
                     Value[] r = rows.currentRow();
-                    addRow(r);
+                    Row newRow = addRowImpl(r);
+                    if (newRow != null) {
+                        generatedKeys.confirmRow(newRow);
+                    }
                 }
                 rows.close();
             }
@@ -202,6 +215,10 @@ public class Insert extends Prepared implements ResultTarget {
 
     @Override
     public void addRow(Value[] values) {
+        addRowImpl(values);
+    }
+
+    private Row addRowImpl(Value[] values) {
         Row newRow = table.getTemplateRow();
         setCurrentRowNumber(++rowNumber);
         for (int j = 0, len = columns.length; j < len; j++) {
@@ -220,7 +237,9 @@ public class Insert extends Prepared implements ResultTarget {
             table.addRow(session, newRow);
             session.log(table, UndoLogRecord.INSERT, newRow);
             table.fireAfterRow(session, null, newRow, false);
+            return newRow;
         }
+        return null;
     }
 
     @Override

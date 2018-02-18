@@ -5667,6 +5667,10 @@ public class Parser {
             readIfEqualOrTo();
             read();
             return new NoOperation(session);
+        } else if (readIf("SCOPE_GENERATED_KEYS")) {
+            readIfEqualOrTo();
+            read();
+            return new NoOperation(session);
         } else if (readIf("SCHEMA")) {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.SCHEMA);

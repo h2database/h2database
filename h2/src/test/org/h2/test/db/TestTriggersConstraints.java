@@ -227,7 +227,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         assertEquals(1, count);
 
         ResultSet gkRs;
-        gkRs = pstat.getGeneratedKeys();
+        gkRs = stat.executeQuery("select scope_identity()");
 
         assertTrue(gkRs.next());
         assertEquals(1, gkRs.getInt(1));

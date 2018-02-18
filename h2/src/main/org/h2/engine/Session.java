@@ -85,6 +85,7 @@ public class Session extends SessionWithState {
     private Value lastIdentity = ValueLong.get(0);
     private Value lastScopeIdentity = ValueLong.get(0);
     private Value lastTriggerIdentity;
+    private GeneratedKeys generatedKeys;
     private int firstUncommittedLog = Session.LOG_WRITTEN;
     private int firstUncommittedPos = Session.LOG_WRITTEN;
     private HashMap<String, Savepoint> savepoints;
@@ -1075,6 +1076,13 @@ public class Session extends SessionWithState {
         return lastTriggerIdentity;
     }
 
+    public GeneratedKeys getGeneratedKeys() {
+        if (generatedKeys == null) {
+            generatedKeys = new GeneratedKeys();
+        }
+        return generatedKeys;
+    }
+
     /**
      * Called when a log entry for this session is added. The session keeps
      * track of the first entry in the transaction log that is not yet
@@ -1237,9 +1245,20 @@ public class Session extends SessionWithState {
      * executing the statement.
      *
      * @param command the command
+     * @param generatedKeysRequest
+     *            {@code false} if generated keys are not needed, {@code true} if
+     *            generated keys should be configured automatically, {@code int[]}
+     *            to specify column indices to return generated keys from, or
+     *            {@code String[]} to specify column names to return generated keys
+     *            from
      */
-    public void setCurrentCommand(Command command) {
+    public void setCurrentCommand(Command command, Object generatedKeysRequest) {
         this.currentCommand = command;
+        // Preserve generated keys in case of a new query due to possible nested
+        // queries in update
+        if (command != null && !command.isQuery()) {
+            getGeneratedKeys().clear(generatedKeysRequest);
+        }
         if (queryTimeout > 0 && command != null) {
             currentCommandStart = System.currentTimeMillis();
             long now = System.nanoTime();
@@ -1790,4 +1809,10 @@ public class Session extends SessionWithState {
     public void setColumnNamerConfiguration(ColumnNamerConfiguration columnNamerConfiguration) {
         this.columnNamerConfiguration = columnNamerConfiguration;
     }
+
+    @Override
+    public boolean isSupportsGeneratedKeys() {
+        return true;
+    }
+
 }

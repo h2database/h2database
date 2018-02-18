@@ -97,6 +97,7 @@ import org.h2.test.jdbc.TestConnection;
 import org.h2.test.jdbc.TestCustomDataTypesHandler;
 import org.h2.test.jdbc.TestDatabaseEventListener;
 import org.h2.test.jdbc.TestDriver;
+import org.h2.test.jdbc.TestGetGeneratedKeys;
 import org.h2.test.jdbc.TestJavaObject;
 import org.h2.test.jdbc.TestJavaObjectSerializer;
 import org.h2.test.jdbc.TestLimitUpdates;
@@ -814,6 +815,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestPreparedStatement());
         addTest(new TestResultSet());
         addTest(new TestStatement());
+        addTest(new TestGetGeneratedKeys());
         addTest(new TestTransactionIsolation());
         addTest(new TestUpdatableResultSet());
         addTest(new TestZloty());

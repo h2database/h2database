@@ -1026,7 +1026,7 @@ public abstract class Table extends SchemaObjectBase {
             boolean beforeAction, boolean rollback) {
         if (triggers != null) {
             for (TriggerObject trigger : triggers) {
-                boolean done = trigger.fireRow(session, oldRow, newRow, beforeAction, rollback);
+                boolean done = trigger.fireRow(session, this, oldRow, newRow, beforeAction, rollback);
                 if (done) {
                     return true;
                 }

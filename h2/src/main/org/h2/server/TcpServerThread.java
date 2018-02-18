@@ -21,6 +21,7 @@ import org.h2.command.Command;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Engine;
+import org.h2.engine.GeneratedKeysMode;
 import org.h2.engine.Session;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
@@ -31,6 +32,7 @@ import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.DbException;
 import org.h2.result.ResultColumn;
 import org.h2.result.ResultInterface;
+import org.h2.result.ResultWithGeneratedKeys;
 import org.h2.store.LobStorageInterface;
 import org.h2.util.IOUtils;
 import org.h2.util.SmallLRUCache;
@@ -88,15 +90,15 @@ public class TcpServerThread implements Runnable {
                 }
                 int minClientVersion = transfer.readInt();
                 int maxClientVersion = transfer.readInt();
-                if (maxClientVersion < Constants.TCP_PROTOCOL_VERSION_6) {
+                if (maxClientVersion < Constants.TCP_PROTOCOL_VERSION_MIN_SUPPORTED) {
                     throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2,
-                            "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_6);
-                } else if (minClientVersion > Constants.TCP_PROTOCOL_VERSION_16) {
+                            "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_MIN_SUPPORTED);
+                } else if (minClientVersion > Constants.TCP_PROTOCOL_VERSION_MAX_SUPPORTED) {
                     throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2,
-                            "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_16);
+                            "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_MAX_SUPPORTED);
                 }
-                if (maxClientVersion >= Constants.TCP_PROTOCOL_VERSION_16) {
-                    clientVersion = Constants.TCP_PROTOCOL_VERSION_16;
+                if (maxClientVersion >= Constants.TCP_PROTOCOL_VERSION_MAX_SUPPORTED) {
+                    clientVersion = Constants.TCP_PROTOCOL_VERSION_MAX_SUPPORTED;
                 } else {
                     clientVersion = maxClientVersion;
                 }
@@ -178,7 +180,7 @@ public class TcpServerThread implements Runnable {
             RuntimeException closeError = null;
             try {
                 Command rollback = session.prepareLocal("ROLLBACK");
-                rollback.executeUpdate();
+                rollback.executeUpdate(false);
             } catch (RuntimeException e) {
                 closeError = e;
                 server.traceError(e);
@@ -302,7 +304,7 @@ public class TcpServerThread implements Runnable {
                 commit = session.prepareLocal("COMMIT");
             }
             int old = session.getModificationId();
-            commit.executeUpdate();
+            commit.executeUpdate(false);
             transfer.writeInt(getState(old)).flush();
             break;
         }
@@ -353,10 +355,48 @@ public class TcpServerThread implements Runnable {
             int id = transfer.readInt();
             Command command = (Command) cache.getObject(id, false);
             setParameters(command);
+            boolean supportsGeneratedKeys = clientVersion >= Constants.TCP_PROTOCOL_VERSION_17;
+            boolean writeGeneratedKeys = supportsGeneratedKeys;
+            Object generatedKeysRequest;
+            if (supportsGeneratedKeys) {
+                int mode = transfer.readInt();
+                switch (mode) {
+                case GeneratedKeysMode.NONE:
+                    generatedKeysRequest = false;
+                    writeGeneratedKeys = false;
+                    break;
+                case GeneratedKeysMode.AUTO:
+                    generatedKeysRequest = true;
+                    break;
+                case GeneratedKeysMode.COLUMN_NUMBERS: {
+                    int len = transfer.readInt();
+                    int[] keys = new int[len];
+                    for (int i = 0; i < len; i++) {
+                        keys[i] = transfer.readInt();
+                    }
+                    generatedKeysRequest = keys;
+                    break;
+                }
+                case GeneratedKeysMode.COLUMN_NAMES: {
+                    int len = transfer.readInt();
+                    String[] keys = new String[len];
+                    for (int i = 0; i < len; i++) {
+                        keys[i] = transfer.readString();
+                    }
+                    generatedKeysRequest = keys;
+                    break;
+                }
+                default:
+                    throw DbException.get(ErrorCode.CONNECTION_BROKEN_1,
+                            "Unsupported generated keys' mode " + mode);
+                }
+            } else {
+                generatedKeysRequest = false;
+            }
             int old = session.getModificationId();
-            int updateCount;
+            ResultWithGeneratedKeys result;
             synchronized (session) {
-                updateCount = command.executeUpdate();
+                result = command.executeUpdate(generatedKeysRequest);
             }
             int status;
             if (session.isClosed()) {
@@ -365,8 +405,22 @@ public class TcpServerThread implements Runnable {
             } else {
                 status = getState(old);
             }
-            transfer.writeInt(status).writeInt(updateCount).
+            transfer.writeInt(status).writeInt(result.getUpdateCount()).
                     writeBoolean(session.getAutoCommit());
+            if (writeGeneratedKeys) {
+                ResultInterface generatedKeys = result.getGeneratedKeys();
+                int columnCount = generatedKeys.getVisibleColumnCount();
+                transfer.writeInt(columnCount);
+                int rowCount = generatedKeys.getRowCount();
+                transfer.writeInt(rowCount);
+                for (int i = 0; i < columnCount; i++) {
+                    ResultColumn.writeColumn(transfer, generatedKeys, i);
+                }
+                for (int i = 0; i < rowCount; i++) {
+                    sendRow(generatedKeys);
+                }
+                generatedKeys.close();
+            }
             transfer.flush();
             break;
         }

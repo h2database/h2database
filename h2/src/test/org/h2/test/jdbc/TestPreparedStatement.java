@@ -27,6 +27,7 @@ import java.sql.Types;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.UUID;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.engine.SysProperties;
@@ -83,15 +84,12 @@ public class TestPreparedStatement extends TestBase {
         testOffsetDateTime8(conn);
         testInstant8(conn);
         testArray(conn);
-        testUUIDGeneratedKeys(conn);
         testSetObject(conn);
         testPreparedSubquery(conn);
         testLikeIndex(conn);
         testCasewhen(conn);
         testSubquery(conn);
         testObject(conn);
-        testIdentity(conn);
-        testBatchGeneratedKeys(conn);
         testDataTypes(conn);
         testGetMoreResults(conn);
         testBlob(conn);
@@ -521,21 +519,6 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("drop table test_uuid");
     }
 
-    private void testUUIDGeneratedKeys(Connection conn) throws SQLException {
-        Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TEST_UUID(id UUID DEFAULT " +
-                "random_UUID() PRIMARY KEY)");
-        stat.execute("INSERT INTO TEST_UUID() VALUES()");
-        ResultSet rs = stat.getGeneratedKeys();
-        rs.next();
-        byte[] data = rs.getBytes(1);
-        assertEquals(16, data.length);
-        stat.execute("INSERT INTO TEST_UUID VALUES(random_UUID())");
-        rs = stat.getGeneratedKeys();
-        assertFalse(rs.next());
-        stat.execute("DROP TABLE TEST_UUID");
-    }
-
     /**
      * A trigger that creates a sequence value.
      */
@@ -572,12 +555,17 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("create sequence seq start with 1000");
         stat.execute("create trigger test_ins after insert on test call \"" +
                 SequenceTrigger.class.getName() + "\"");
-        stat.execute("insert into test values(null)");
+        stat.execute("insert into test values(null)", Statement.RETURN_GENERATED_KEYS);
         ResultSet rs = stat.getGeneratedKeys();
         rs.next();
+        // Generated key
         assertEquals(1, rs.getLong(1));
         stat.execute("insert into test values(100)");
         rs = stat.getGeneratedKeys();
+        // No generated keys
+        assertFalse(rs.next());
+        // Value from sequence from trigger
+        rs = stat.executeQuery("select scope_identity()");
         rs.next();
         assertEquals(100, rs.getLong(1));
         stat.execute("drop sequence seq");
@@ -1261,83 +1249,6 @@ public class TestPreparedStatement extends TestBase {
 
         stat.execute("DROP TABLE TEST");
 
-    }
-
-    private void testIdentity(Connection conn) throws SQLException {
-        Statement stat = conn.createStatement();
-        stat.execute("CREATE SEQUENCE SEQ");
-        stat.execute("CREATE TABLE TEST(ID INT)");
-        PreparedStatement prep;
-        prep = conn.prepareStatement(
-                "INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)");
-        prep.execute();
-        ResultSet rs = prep.getGeneratedKeys();
-        rs.next();
-        assertEquals(1, rs.getInt(1));
-        assertFalse(rs.next());
-
-        prep = conn.prepareStatement(
-                "INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)",
-                Statement.RETURN_GENERATED_KEYS);
-        prep.execute();
-        rs = prep.getGeneratedKeys();
-        rs.next();
-        assertEquals(2, rs.getInt(1));
-        assertFalse(rs.next());
-
-        prep = conn.prepareStatement(
-                "INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)",
-                new int[] { 1 });
-        prep.execute();
-        rs = prep.getGeneratedKeys();
-        rs.next();
-        assertEquals(3, rs.getInt(1));
-        assertFalse(rs.next());
-
-        prep = conn.prepareStatement(
-                "INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)",
-                new String[] { "ID" });
-        prep.execute();
-        rs = prep.getGeneratedKeys();
-        rs.next();
-        assertEquals(4, rs.getInt(1));
-        assertFalse(rs.next());
-
-        prep = conn.prepareStatement(
-                "INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)",
-                ResultSet.TYPE_FORWARD_ONLY,
-                ResultSet.CONCUR_READ_ONLY,
-                ResultSet.HOLD_CURSORS_OVER_COMMIT);
-        prep.execute();
-        rs = prep.getGeneratedKeys();
-        rs.next();
-        assertEquals(5, rs.getInt(1));
-        assertFalse(rs.next());
-
-        stat.execute("DROP TABLE TEST");
-        stat.execute("DROP SEQUENCE SEQ");
-    }
-
-    private void testBatchGeneratedKeys(Connection conn) throws SQLException {
-        Statement stat = conn.createStatement();
-        stat.execute("CREATE SEQUENCE SEQ");
-        stat.execute("CREATE TABLE TEST(ID INT)");
-        PreparedStatement prep = conn.prepareStatement(
-                "INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)");
-        prep.addBatch();
-        prep.addBatch();
-        prep.addBatch();
-        prep.executeBatch();
-        ResultSet keys = prep.getGeneratedKeys();
-        keys.next();
-        assertEquals(1, keys.getLong(1));
-        keys.next();
-        assertEquals(2, keys.getLong(1));
-        keys.next();
-        assertEquals(3, keys.getLong(1));
-        assertFalse(keys.next());
-        stat.execute("DROP TABLE TEST");
-        stat.execute("DROP SEQUENCE SEQ");
     }
 
     private int getLength() {

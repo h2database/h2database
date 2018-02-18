@@ -96,7 +96,8 @@ public class ConnectionInfo implements Cloneable {
                 "CREATE", "CACHE_TYPE", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS",
                 "IFEXISTS", "INIT", "PASSWORD", "RECOVER", "RECOVER_TEST",
                 "USER", "AUTO_SERVER", "AUTO_SERVER_PORT", "NO_UPGRADE",
-                "AUTO_RECONNECT", "OPEN_NEW", "PAGE_SIZE", "PASSWORD_HASH", "JMX" };
+                "AUTO_RECONNECT", "OPEN_NEW", "PAGE_SIZE", "PASSWORD_HASH", "JMX",
+                "SCOPE_GENERATED_KEYS" };
         HashSet<String> set = new HashSet<>(list.size() + connectionTime.length);
         set.addAll(list);
         for (String key : connectionTime) {

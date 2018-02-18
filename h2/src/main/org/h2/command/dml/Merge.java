@@ -11,11 +11,13 @@ import org.h2.api.Trigger;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
+import org.h2.engine.GeneratedKeys;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
+import org.h2.expression.SequenceValue;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
@@ -84,11 +86,14 @@ public class Merge extends Prepared {
         session.getUser().checkRight(targetTable, Right.INSERT);
         session.getUser().checkRight(targetTable, Right.UPDATE);
         setCurrentRowNumber(0);
+        GeneratedKeys generatedKeys = session.getGeneratedKeys();
         if (!valuesExpressionList.isEmpty()) {
             // process values in list
             count = 0;
+            generatedKeys.initialize(targetTable);
             for (int x = 0, size = valuesExpressionList.size(); x < size; x++) {
                 setCurrentRowNumber(x + 1);
+                generatedKeys.nextRow();
                 Expression[] expr = valuesExpressionList.get(x);
                 Row newRow = targetTable.getTemplateRow();
                 for (int i = 0, len = columns.length; i < len; i++) {
@@ -100,6 +105,9 @@ public class Merge extends Prepared {
                         try {
                             Value v = c.convert(e.getValue(session));
                             newRow.setValue(index, v);
+                            if (e instanceof SequenceValue) {
+                                generatedKeys.add(c);
+                            }
                         } catch (DbException ex) {
                             throw setRow(ex, count, getSQL(expr));
                         }
@@ -116,6 +124,7 @@ public class Merge extends Prepared {
             targetTable.lock(session, true, false);
             while (rows.next()) {
                 count++;
+                generatedKeys.nextRow();
                 Value[] r = rows.currentRow();
                 Row newRow = targetTable.getTemplateRow();
                 setCurrentRowNumber(count);
@@ -171,6 +180,7 @@ public class Merge extends Prepared {
                 if (!done) {
                     targetTable.lock(session, true, false);
                     targetTable.addRow(session, row);
+                    session.getGeneratedKeys().confirmRow(row);
                     session.log(targetTable, UndoLogRecord.INSERT, row);
                     targetTable.fireAfterRow(session, null, row, false);
                 }

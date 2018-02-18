@@ -447,7 +447,7 @@ public class TestWeb extends TestBase {
             assertContains(result, "There is currently no running statement");
             result = client.get(url,
                     "query.do?sql=@generated insert into test(id) values(test_sequence.nextval)");
-            assertContains(result, "SCOPE_IDENTITY()");
+            assertContains(result, "<tr><th>ID</th></tr><tr><td>1</td></tr>");
             result = client.get(url, "query.do?sql=@maxrows 2000");
             assertContains(result, "Max rowcount is set");
             result = client.get(url, "query.do?sql=@password_hash user password");

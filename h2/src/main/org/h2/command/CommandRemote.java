@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import org.h2.engine.Constants;
+import org.h2.engine.GeneratedKeysMode;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
 import org.h2.expression.ParameterInterface;
@@ -212,28 +213,28 @@ public class CommandRemote implements CommandInterface {
                     transfer.writeInt(SessionRemote.COMMAND_EXECUTE_UPDATE).writeInt(id);
                     sendParameters(transfer);
                     if (supportsGeneratedKeys) {
-                        if (Boolean.FALSE.equals(generatedKeysRequest)) {
-                            transfer.writeInt(0);
+                        int mode = GeneratedKeysMode.valueOf(generatedKeysRequest);
+                        transfer.writeInt(mode);
+                        switch (mode) {
+                        case GeneratedKeysMode.NONE:
                             readGeneratedKeys = false;
-                        } else if (Boolean.TRUE.equals(generatedKeysRequest)) {
-                            transfer.writeInt(1);
-                        } else if (generatedKeysRequest instanceof int[]) {
+                            break;
+                        case GeneratedKeysMode.COLUMN_NUMBERS: {
                             int[] keys = (int[]) generatedKeysRequest;
-                            transfer.writeInt(2);
                             transfer.writeInt(keys.length);
                             for (int key : keys) {
                                 transfer.writeInt(key);
                             }
-                        } else if (generatedKeysRequest instanceof String[]) {
+                            break;
+                        }
+                        case GeneratedKeysMode.COLUMN_NAMES: {
                             String[] keys = (String[]) generatedKeysRequest;
-                            transfer.writeInt(3);
                             transfer.writeInt(keys.length);
                             for (String key : keys) {
                                 transfer.writeString(key);
                             }
-                        } else {
-                            transfer.writeInt(0);
-                            readGeneratedKeys = false;
+                            break;
+                        }
                         }
                     }
                     session.done(transfer);

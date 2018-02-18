@@ -21,6 +21,7 @@ import org.h2.command.Command;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Engine;
+import org.h2.engine.GeneratedKeysMode;
 import org.h2.engine.Session;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
@@ -358,16 +359,16 @@ public class TcpServerThread implements Runnable {
             boolean writeGeneratedKeys = supportsGeneratedKeys;
             Object generatedKeysRequest;
             if (supportsGeneratedKeys) {
-                int type = transfer.readInt();
-                switch (type) {
-                default:
+                int mode = transfer.readInt();
+                switch (mode) {
+                case GeneratedKeysMode.NONE:
                     generatedKeysRequest = false;
                     writeGeneratedKeys = false;
                     break;
-                case 1:
+                case GeneratedKeysMode.AUTO:
                     generatedKeysRequest = true;
                     break;
-                case 2: {
+                case GeneratedKeysMode.COLUMN_NUMBERS: {
                     int len = transfer.readInt();
                     int[] keys = new int[len];
                     for (int i = 0; i < len; i++) {
@@ -376,14 +377,18 @@ public class TcpServerThread implements Runnable {
                     generatedKeysRequest = keys;
                     break;
                 }
-                case 3: {
+                case GeneratedKeysMode.COLUMN_NAMES: {
                     int len = transfer.readInt();
                     String[] keys = new String[len];
                     for (int i = 0; i < len; i++) {
                         keys[i] = transfer.readString();
                     }
                     generatedKeysRequest = keys;
+                    break;
                 }
+                default:
+                    throw DbException.get(ErrorCode.CONNECTION_BROKEN_1,
+                            "Unsupported generated keys' mode " + mode);
                 }
             } else {
                 generatedKeysRequest = false;

@@ -5,6 +5,9 @@
  */
 package org.h2.engine;
 
+import org.h2.api.ErrorCode;
+import org.h2.message.DbException;
+
 /**
  * Modes of generated keys' gathering.
  */
@@ -54,7 +57,8 @@ public final class GeneratedKeysMode {
         if (generatedKeysRequest instanceof String[]) {
             return COLUMN_NAMES;
         }
-        return NONE;
+        throw DbException.get(ErrorCode.INVALID_VALUE_2,
+                generatedKeysRequest == null ? "null" : generatedKeysRequest.toString());
     }
 
     private GeneratedKeysMode() {

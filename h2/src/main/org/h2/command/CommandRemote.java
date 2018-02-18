@@ -216,9 +216,6 @@ public class CommandRemote implements CommandInterface {
                         int mode = GeneratedKeysMode.valueOf(generatedKeysRequest);
                         transfer.writeInt(mode);
                         switch (mode) {
-                        case GeneratedKeysMode.NONE:
-                            readGeneratedKeys = false;
-                            break;
                         case GeneratedKeysMode.COLUMN_NUMBERS: {
                             int[] keys = (int[]) generatedKeysRequest;
                             transfer.writeInt(keys.length);

@@ -62,6 +62,7 @@ public class TestGetGeneratedKeys extends TestBase {
         Connection conn = getConnection("getGeneratedKeys");
         testBatchAndMergeInto(conn);
         testCalledSequenses(conn);
+        testInsertWithSelect(conn);
         testMergeUsing(conn);
         testMultithreaded(conn);
         testNameCase(conn);
@@ -229,6 +230,29 @@ public class TestGetGeneratedKeys extends TestBase {
         assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
         stat.execute("DROP SEQUENCE SEQ");
+    }
+
+    /**
+     * Test method for INSERT ... SELECT operator.
+     *
+     * @param conn
+     *            connection
+     * @throws Exception
+     *             on exception
+     */
+    private void testInsertWithSelect(Connection conn) throws Exception {
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT, VALUE INT NOT NULL)");
+
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(VALUE) SELECT 10",
+                Statement.RETURN_GENERATED_KEYS);
+        prep.executeUpdate();
+        ResultSet rs = prep.getGeneratedKeys();
+        assertTrue(rs.next());
+        assertEquals(1, rs.getLong(1));
+        rs.close();
+
+        stat.execute("DROP TABLE TEST");
     }
 
     /**

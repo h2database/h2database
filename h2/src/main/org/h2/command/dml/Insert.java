@@ -144,11 +144,11 @@ public class Insert extends Prepared implements ResultTarget {
         setCurrentRowNumber(0);
         table.fire(session, Trigger.INSERT, true);
         rowNumber = 0;
+        GeneratedKeys generatedKeys = session.getGeneratedKeys();
+        generatedKeys.initialize(table);
         int listSize = list.size();
         if (listSize > 0) {
             int columnLen = columns.length;
-            GeneratedKeys generatedKeys = session.getGeneratedKeys();
-            generatedKeys.initialize(table);
             for (int x = 0; x < listSize; x++) {
                 session.startStatementWithinTransaction();
                 generatedKeys.nextRow();
@@ -199,8 +199,12 @@ public class Insert extends Prepared implements ResultTarget {
             } else {
                 ResultInterface rows = query.query(0);
                 while (rows.next()) {
+                    generatedKeys.nextRow();
                     Value[] r = rows.currentRow();
-                    addRow(r);
+                    Row newRow = addRowImpl(r);
+                    if (newRow != null) {
+                        generatedKeys.confirmRow(newRow);
+                    }
                 }
                 rows.close();
             }
@@ -211,6 +215,10 @@ public class Insert extends Prepared implements ResultTarget {
 
     @Override
     public void addRow(Value[] values) {
+        addRowImpl(values);
+    }
+
+    private Row addRowImpl(Value[] values) {
         Row newRow = table.getTemplateRow();
         setCurrentRowNumber(++rowNumber);
         for (int j = 0, len = columns.length; j < len; j++) {
@@ -229,7 +237,9 @@ public class Insert extends Prepared implements ResultTarget {
             table.addRow(session, newRow);
             session.log(table, UndoLogRecord.INSERT, newRow);
             table.fireAfterRow(session, null, newRow, false);
+            return newRow;
         }
+        return null;
     }
 
     @Override

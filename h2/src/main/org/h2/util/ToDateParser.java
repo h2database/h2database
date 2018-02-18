@@ -7,9 +7,13 @@ package org.h2.util;
 
 import static java.lang.String.format;
 
-import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.TimeZone;
+
+import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * Emulates Oracle's TO_DATE function.<br>
@@ -21,8 +25,29 @@ public class ToDateParser {
     private final ConfigParam functionName;
     private String inputStr;
     private String formatStr;
-    private final Calendar resultCalendar = DateTimeUtils.createGregorianCalendar();
-    private Integer nanos;
+
+    private boolean doyValid = false, absoluteDayValid = false,
+            hour12Valid = false,
+            timeZoneHMValid = false;
+
+    private boolean bc;
+
+    private long absoluteDay;
+
+    private int year, month, day = 1;
+
+    private int dayOfYear;
+
+    private int hour, minute, second, nanos;
+
+    private int hour12;
+    boolean isAM = true;
+
+    private TimeZone timeZone;
+
+    private int timeZoneHour, timeZoneMinute;
+
+    private int currentYear, currentMonth;
 
     /**
      * @param input the input date with the date-time info
@@ -31,20 +56,6 @@ public class ToDateParser {
      *            code)
      */
     private ToDateParser(ConfigParam functionName, String input, String format) {
-        // reset calendar - default oracle behaviour
-        resultCalendar.set(Calendar.YEAR, 1970);
-        resultCalendar.set(Calendar.MONTH, DateTimeUtils.createGregorianCalendar().get(Calendar.MONTH));
-        resultCalendar.clear(Calendar.DAY_OF_YEAR);
-        resultCalendar.clear(Calendar.DAY_OF_WEEK);
-        resultCalendar.clear(Calendar.DAY_OF_WEEK_IN_MONTH);
-        resultCalendar.set(Calendar.DAY_OF_MONTH, 1);
-        resultCalendar.set(Calendar.HOUR, 0);
-        resultCalendar.set(Calendar.HOUR_OF_DAY, 0);
-        resultCalendar.set(Calendar.MINUTE, 0);
-        resultCalendar.set(Calendar.SECOND, 0);
-        resultCalendar.set(Calendar.MILLISECOND, 0);
-        resultCalendar.set(Calendar.AM_PM, Calendar.AM);
-
         this.functionName = functionName;
         inputStr = input.trim();
         // Keep a copy
@@ -59,30 +70,65 @@ public class ToDateParser {
         unmodifiedFormatStr = formatStr;
     }
 
-    private static ToDateParser getDateParser(String input, String format) {
-        ToDateParser result = new ToDateParser(ConfigParam.TO_DATE, input, format);
+    private static ToDateParser getTimestampParser(ConfigParam param, String input, String format) {
+        ToDateParser result = new ToDateParser(param, input, format);
         parse(result);
         return result;
     }
 
-    private static ToDateParser getTimestampParser(String input, String format) {
-        ToDateParser result = new ToDateParser(ConfigParam.TO_TIMESTAMP, input, format);
-        parse(result);
-        return result;
+    private ValueTimestamp getResultingValue() {
+        long dateValue;
+        if (absoluteDayValid) {
+            dateValue = DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay);
+        } else {
+            int year = this.year;
+            if (year == 0) {
+                year = getCurrentYear();
+            }
+            if (bc) {
+                year = 1 - year;
+            }
+            if (doyValid) {
+                dateValue = DateTimeUtils.dateValueFromAbsoluteDay(
+                        DateTimeUtils.absoluteDayFromDateValue(DateTimeUtils.dateValue(year, 1, 1))
+                        + dayOfYear - 1);
+            } else {
+                int month = this.month;
+                if (month == 0) {
+                    // Oracle uses current month as default
+                    month = getCurrentMonth();
+                }
+                dateValue = DateTimeUtils.dateValue(year, month, day);
+            }
+        }
+        int hour;
+        if (hour12Valid) {
+            hour = hour12 % 12;
+            if (!isAM) {
+                hour += 12;
+            }
+        } else {
+            hour = this.hour;
+        }
+        long timeNanos = ((((hour * 60) + minute) * 60) + second) * 1_000_000_000L + nanos;
+        return ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
     }
 
-    private Timestamp getResultingTimestamp() {
-        Calendar cal = (Calendar) getResultCalendar().clone();
-        int nanosToSet = nanos == null ?
-                cal.get(Calendar.MILLISECOND) * 1000000 : nanos.intValue();
-        cal.set(Calendar.MILLISECOND, 0);
-        Timestamp ts = new Timestamp(cal.getTimeInMillis());
-        ts.setNanos(nanosToSet);
-        return ts;
-    }
-
-    Calendar getResultCalendar() {
-        return resultCalendar;
+    private ValueTimestampTimeZone getResultingValueWithTimeZone() {
+        ValueTimestamp ts = getResultingValue();
+        long dateValue = ts.getDateValue();
+        short offset;
+        if (timeZoneHMValid) {
+            offset = (short) (timeZoneHour * 60 + ((timeZoneHour >= 0) ? timeZoneMinute : -timeZoneMinute));
+        } else {
+            TimeZone timeZone = this.timeZone;
+            if (timeZone == null) {
+                timeZone = TimeZone.getDefault();
+            }
+            long millis = DateTimeUtils.convertDateTimeValueToMillis(timeZone, dateValue, nanos / 1000000);
+            offset = (short) (timeZone.getOffset(millis) / 1000 / 60);
+        }
+        return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, ts.getTimeNanos(), offset);
     }
 
     String getInputStr() {
@@ -97,8 +143,109 @@ public class ToDateParser {
         return functionName.name();
     }
 
+    private void queryCurrentYearAndMonth() {
+        GregorianCalendar gc = DateTimeUtils.getCalendar();
+        gc.setTimeInMillis(System.currentTimeMillis());
+        currentYear = gc.get(Calendar.YEAR);
+        currentMonth = gc.get(Calendar.MONTH) + 1;
+    }
+
+    int getCurrentYear() {
+        if (currentYear == 0) {
+            queryCurrentYearAndMonth();
+        }
+        return currentYear;
+    }
+
+    int getCurrentMonth() {
+        if (currentMonth == 0) {
+            queryCurrentYearAndMonth();
+        }
+        return currentMonth;
+    }
+
+    void setAbsoluteDay(int absoluteDay) {
+        doyValid = false;
+        absoluteDayValid = true;
+        this.absoluteDay = absoluteDay;
+    }
+
+    void setBC(boolean bc) {
+        doyValid = false;
+        absoluteDayValid = false;
+        this.bc = bc;
+    }
+
+    void setYear(int year) {
+        doyValid = false;
+        absoluteDayValid = false;
+        this.year = year;
+    }
+
+    void setMonth(int month) {
+        doyValid = false;
+        absoluteDayValid = false;
+        this.month = month;
+        if (year == 0) {
+            year = 1970;
+        }
+    }
+
+    void setDay(int day) {
+        doyValid = false;
+        absoluteDayValid = false;
+        this.day = day;
+        if (year == 0) {
+            year = 1970;
+        }
+    }
+
+    void setDayOfYear(int dayOfYear) {
+        doyValid = true;
+        absoluteDayValid = false;
+        this.dayOfYear = dayOfYear;
+    }
+
+    void setHour(int hour) {
+        hour12Valid = false;
+        this.hour = hour;
+    }
+
+    void setMinute(int minute) {
+        this.minute = minute;
+    }
+
+    void setSecord(int second) {
+        this.second = second;
+    }
+
     void setNanos(int nanos) {
         this.nanos = nanos;
+    }
+
+    void setAmPm(boolean isAM) {
+        hour12Valid = true;
+        this.isAM = isAM;
+    }
+
+    void setHour12(int hour12) {
+        hour12Valid = true;
+        this.hour12 = hour12;
+    }
+
+    void setTimeZone(TimeZone timeZone) {
+        timeZoneHMValid = false;
+        this.timeZone = timeZone;
+    }
+
+    void setTimeZoneHour(int timeZoneHour) {
+        timeZoneHMValid = true;
+        this.timeZoneHour = timeZoneHour;
+    }
+
+    void setTimeZoneMinute(int timeZoneMinute) {
+        timeZoneHMValid = true;
+        this.timeZoneMinute = timeZoneMinute;
     }
 
     private boolean hasToParseData() {
@@ -180,9 +327,21 @@ public class ToDateParser {
      * @param format the format
      * @return the timestamp
      */
-    public static Timestamp toTimestamp(String input, String format) {
-        ToDateParser parser = getTimestampParser(input, format);
-        return parser.getResultingTimestamp();
+    public static ValueTimestamp toTimestamp(String input, String format) {
+        ToDateParser parser = getTimestampParser(ConfigParam.TO_TIMESTAMP, input, format);
+        return parser.getResultingValue();
+    }
+
+    /**
+     * Parse a string as a timestamp with the given format.
+     *
+     * @param input the input
+     * @param format the format
+     * @return the timestamp
+     */
+    public static ValueTimestampTimeZone toTimestampTz(String input, String format) {
+        ToDateParser parser = getTimestampParser(ConfigParam.TO_TIMESTAMP_TZ, input, format);
+        return parser.getResultingValueWithTimeZone();
     }
 
     /**
@@ -192,9 +351,9 @@ public class ToDateParser {
      * @param format the format
      * @return the date as a timestamp
      */
-    public static Timestamp toDate(String input, String format) {
-        ToDateParser parser = getDateParser(input, format);
-        return parser.getResultingTimestamp();
+    public static ValueTimestamp toDate(String input, String format) {
+        ToDateParser parser = getTimestampParser(ConfigParam.TO_DATE, input, format);
+        return parser.getResultingValue();
     }
 
     /**
@@ -202,7 +361,8 @@ public class ToDateParser {
      */
     private enum ConfigParam {
         TO_DATE("DD MON YYYY"),
-        TO_TIMESTAMP("DD MON YYYY HH:MI:SS");
+        TO_TIMESTAMP("DD MON YYYY HH:MI:SS"),
+        TO_TIMESTAMP_TZ("DD MON YYYY HH:MI:SS TZR");
 
         private final String defaultFormatStr;
         ConfigParam(String defaultFormatStr) {

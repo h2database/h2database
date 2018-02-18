@@ -14,7 +14,6 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -463,10 +462,6 @@ public class Transfer {
                 throw DbException.get(
                         ErrorCode.CONNECTION_BROKEN_1, "length=" + length);
             }
-            if (length > Integer.MAX_VALUE) {
-                throw DbException.get(
-                        ErrorCode.CONNECTION_BROKEN_1, "length="+ length);
-            }
             writeLong(length);
             Reader reader = v.getReader();
             Data.copyString(reader, out);
@@ -652,21 +647,10 @@ public class Transfer {
                     return ValueLobDb.create(
                             Value.CLOB, session.getDataHandler(), tableId, id, hmac, precision);
                 }
-                if (length < 0 || length > Integer.MAX_VALUE) {
+                if (length < 0) {
                     throw DbException.get(
                             ErrorCode.CONNECTION_BROKEN_1, "length="+ length);
                 }
-                DataReader reader = new DataReader(in);
-                int len = (int) length;
-                char[] buff = new char[len];
-                IOUtils.readFully(reader, buff, len);
-                int magic = readInt();
-                if (magic != LOB_MAGIC) {
-                    throw DbException.get(
-                            ErrorCode.CONNECTION_BROKEN_1, "magic=" + magic);
-                }
-                byte[] small = new String(buff).getBytes(StandardCharsets.UTF_8);
-                return ValueLobDb.createSmallLob(Value.CLOB, small, length);
             }
             Value v = session.getDataHandler().getLobStorage().
                     createClob(new DataReader(in), length);

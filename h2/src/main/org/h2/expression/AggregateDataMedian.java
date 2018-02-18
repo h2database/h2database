@@ -224,7 +224,8 @@ class AggregateDataMedian extends AggregateData {
         case Value.DOUBLE:
             return ValueDouble.get((v0.getFloat() + v1.getDouble()) / 2);
         case Value.TIME: {
-            return ValueTime.fromMillis((v0.getTime().getTime() + v1.getTime().getTime()) / 2);
+            ValueTime t0 = (ValueTime) v0.convertTo(Value.TIME), t1 = (ValueTime) v1.convertTo(Value.TIME);
+            return ValueTime.fromNanos((t0.getNanos() + t1.getNanos()) / 2);
         }
         case Value.DATE: {
             ValueDate d0 = (ValueDate) v0.convertTo(Value.DATE), d1 = (ValueDate) v1.convertTo(Value.DATE);

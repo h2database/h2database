@@ -36,7 +36,7 @@ public class DateTimeUtils {
      * The number of milliseconds per day.
      */
     public static final long MILLIS_PER_DAY = 24 * 60 * 60 * 1000L;
-    
+
     /**
      * The number of seconds per day.
      */
@@ -86,6 +86,11 @@ public class DateTimeUtils {
             new ThreadLocal<>();
 
     /**
+     * Cached local time zone.
+     */
+    private static volatile TimeZone timeZone;
+
+    /**
      * Observed JVM behaviour is that if the timezone of the host computer is
      * changed while the JVM is running, the zone offset does not change but
      * keeps the initial value. So it is correct to measure this once and use
@@ -101,11 +106,25 @@ public class DateTimeUtils {
     }
 
     /**
+     * Returns local time zone.
+     *
+     * @return local time zone
+     */
+    private static TimeZone getTimeZone() {
+        TimeZone tz = timeZone;
+        if (tz == null) {
+            timeZone = tz = TimeZone.getDefault();
+        }
+        return tz;
+    }
+
+    /**
      * Reset the cached calendar for default timezone, for example after
      * changing the default timezone.
      */
     public static void resetCalendar() {
         CACHED_CALENDAR.remove();
+        timeZone = null;
         zoneOffsetMillis = DateTimeUtils.createGregorianCalendar().get(Calendar.ZONE_OFFSET);
     }
 
@@ -629,20 +648,6 @@ public class DateTimeUtils {
     }
 
     /**
-     * Get the year (positive or negative) from a calendar.
-     *
-     * @param calendar the calendar
-     * @return the year
-     */
-    private static int getYear(Calendar calendar) {
-        int year = calendar.get(Calendar.YEAR);
-        if (calendar.get(Calendar.ERA) == GregorianCalendar.BC) {
-            year = 1 - year;
-        }
-        return year;
-    }
-
-    /**
      * Get the number of milliseconds since 1970-01-01 in the local timezone,
      * but without daylight saving time into account.
      *
@@ -922,19 +927,6 @@ public class DateTimeUtils {
     }
 
     /**
-     * Convert an encoded date value to millis, using the supplied timezone.
-     *
-     * @param tz the timezone
-     * @param dateValue the date value
-     * @return the date
-     */
-    public static long convertDateValueToMillis(TimeZone tz, long dateValue) {
-        return getMillis(tz, yearFromDateValue(dateValue),
-                monthFromDateValue(dateValue), dayFromDateValue(dateValue), 0,
-                0, 0, 0);
-    }
-
-    /**
      * Convert an encoded date-time value to millis, using the supplied timezone.
      *
      * @param tz the timezone
@@ -1070,9 +1062,13 @@ public class DateTimeUtils {
      * @return the date value
      */
     public static long dateValueFromDate(long ms) {
-        Calendar cal = getCalendar();
-        cal.setTimeInMillis(ms);
-        return dateValueFromCalendar(cal);
+        ms += getTimeZone().getOffset(ms);
+        long absoluteDay = ms / MILLIS_PER_DAY;
+        // Round toward negative infinity
+        if (ms < 0 && (absoluteDay * MILLIS_PER_DAY != ms)) {
+            absoluteDay--;
+        }
+        return dateValueFromAbsoluteDay(absoluteDay);
     }
 
     /**
@@ -1082,10 +1078,12 @@ public class DateTimeUtils {
      * @return the date value
      */
     private static long dateValueFromCalendar(Calendar cal) {
-        int year, month, day;
-        year = getYear(cal);
-        month = cal.get(Calendar.MONTH) + 1;
-        day = cal.get(Calendar.DAY_OF_MONTH);
+        int year = cal.get(Calendar.YEAR);
+        if (cal.get(Calendar.ERA) == GregorianCalendar.BC) {
+            year = 1 - year;
+        }
+        int month = cal.get(Calendar.MONTH) + 1;
+        int day = cal.get(Calendar.DAY_OF_MONTH);
         return ((long) year << SHIFT_YEAR) | (month << SHIFT_MONTH) | day;
     }
 
@@ -1097,9 +1095,13 @@ public class DateTimeUtils {
      * @return the nanoseconds
      */
     public static long nanosFromDate(long ms) {
-        Calendar cal = getCalendar();
-        cal.setTimeInMillis(ms);
-        return nanosFromCalendar(cal);
+        ms += getTimeZone().getOffset(ms);
+        long absoluteDay = ms / MILLIS_PER_DAY;
+        // Round toward negative infinity
+        if (ms < 0 && (absoluteDay * MILLIS_PER_DAY != ms)) {
+            absoluteDay--;
+        }
+        return (ms - absoluteDay * MILLIS_PER_DAY) * 1_000_000;
     }
 
     /**
@@ -1154,7 +1156,7 @@ public class DateTimeUtils {
             m += 12;
         }
         long a = ((y * 2922L) >> 3) + DAYS_OFFSET[m - 3] + d - 719484;
-        if (y <= 1582 && ((y < 1582) || (m * 100 + d < 1005))) {
+        if (y <= 1582 && ((y < 1582) || (m * 100 + d < 1015))) {
             // Julian calendar (cutover at 1582-10-04 / 1582-10-15)
             a += 13;
         } else if (y < 1901 || y > 2099) {

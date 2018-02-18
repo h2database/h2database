@@ -1245,7 +1245,7 @@ public class Session extends SessionWithState {
      * executing the statement.
      *
      * @param command the command
-     * @param generated keys request
+     * @param generatedKeysRequest
      *            {@code false} if generated keys are not needed, {@code true} if
      *            generated keys should be configured automatically, {@code int[]}
      *            to specify column indices to return generated keys from, or

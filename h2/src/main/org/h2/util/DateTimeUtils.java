@@ -955,9 +955,25 @@ public class DateTimeUtils {
      */
     public static Timestamp convertDateValueToTimestamp(long dateValue,
             long timeNanos) {
-        Timestamp ts = new Timestamp(convertDateTimeValueToMillis(null, dateValue, timeNanos / 1000000));
+        Timestamp ts = new Timestamp(convertDateTimeValueToMillis(null, dateValue, timeNanos / 1_000_000));
         // This method expects the complete nanoseconds value including milliseconds
-        ts.setNanos((int) (timeNanos % 1000000000));
+        ts.setNanos((int) (timeNanos % 1_000_000_000));
+        return ts;
+    }
+
+    /**
+     * Convert an encoded date value / time value to a timestamp using the specified
+     * time zone offset.
+     *
+     * @param dateValue the date value
+     * @param timeNanos the nanoseconds since midnight
+     * @param offsetMins time zone offset in minutes
+     * @return the timestamp
+     */
+    public static Timestamp convertTimestampTimeZoneToTimestamp(long dateValue, long timeNanos, short offsetMins) {
+        Timestamp ts = new Timestamp(absoluteDayFromDateValue(dateValue) * MILLIS_PER_DAY
+                + timeNanos / 1_000_000 - offsetMins * 60_000);
+        ts.setNanos((int) (timeNanos % 1_000_000_000));
         return ts;
     }
 
@@ -1336,6 +1352,31 @@ public class DateTimeUtils {
         appendTime(buff, timeNanos, true);
         appendTimeZone(buff, timeZoneOffsetMins);
         return buff.toString();
+    }
+
+    /**
+     * Generates time zone name for the specified offset in minutes.
+     *
+     * @param offsetMins
+     *            offset in minutes
+     * @return time zone name
+     */
+    public static String timeZoneNameFromOffsetMins(int offsetMins) {
+        if (offsetMins == 0) {
+            return "UTC";
+        }
+        StringBuilder b = new StringBuilder(9);
+        b.append("GMT");
+        if (offsetMins < 0) {
+            b.append('-');
+            offsetMins = -offsetMins;
+        } else {
+            b.append('+');
+        }
+        StringUtils.appendZeroPadded(b, 2, offsetMins / 60);
+        b.append(':');
+        StringUtils.appendZeroPadded(b, 2, offsetMins % 60);
+        return b.toString();
     }
 
 }

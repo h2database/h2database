@@ -496,22 +496,7 @@ public class ToChar {
             }
             return tz.getID();
         }
-        int offset = ((ValueTimestampTimeZone) value).getTimeZoneOffsetMins();
-        if (offset == 0) {
-            return "UTC";
-        }
-        StringBuilder b = new StringBuilder(9);
-        b.append("GMT");
-        if (offset < 0) {
-            b.append('-');
-            offset = - offset;
-        } else {
-            b.append('+');
-        }
-        StringUtils.appendZeroPadded(b, 2, offset / 60);
-        b.append(':');
-        StringUtils.appendZeroPadded(b, 2, offset % 60);
-        return b.toString();
+        return DateTimeUtils.timeZoneNameFromOffsetMins(((ValueTimestampTimeZone) value).getTimeZoneOffsetMins());
     }
 
     /**

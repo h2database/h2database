@@ -1553,8 +1553,17 @@ public class Function extends Expression implements FunctionCall {
                         null : v2 == ValueNull.INSTANCE ? null : v2.getString();
                 String tz = v3 == null ?
                         null : v3 == ValueNull.INSTANCE ? null : v3.getString();
+                java.util.Date date;
+                if (v0 instanceof ValueTimestampTimeZone) {
+                    ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v0;
+                    tz = DateTimeUtils.timeZoneNameFromOffsetMins(ts.getTimeZoneOffsetMins());
+                    date = DateTimeUtils.convertTimestampTimeZoneToTimestamp(
+                            ts.getDateValue(), ts.getTimeNanos(), ts.getTimeZoneOffsetMins());
+                } else {
+                    date = v0.getTimestamp();
+                }
                 result = ValueString.get(DateTimeUtils.formatDateTime(
-                        v0.getTimestamp(), v1.getString(), locale, tz),
+                        date, v1.getString(), locale, tz),
                         database.getMode().treatEmptyStringsAsNull);
             }
             break;

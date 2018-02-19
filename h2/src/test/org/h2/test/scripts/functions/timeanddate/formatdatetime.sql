@@ -32,3 +32,15 @@ CALL FORMATDATETIME(PARSEDATETIME('Sat, 3 Feb 2001 04:05:06 GMT', 'EEE, d MMM yy
 > ---------------------
 > 2001-02-03 04:05:06
 > rows: 1
+
+SELECT FORMATDATETIME(TIMESTAMP WITH TIME ZONE '2010-05-06 07:08:09.123Z', 'yyyy-MM-dd HH:mm:ss.SSS z') AS S;
+> S
+> ---------------------------
+> 2010-05-06 07:08:09.123 UTC
+> rows: 1
+
+SELECT FORMATDATETIME(TIMESTAMP WITH TIME ZONE '2010-05-06 07:08:09.123+13:30', 'yyyy-MM-dd HH:mm:ss.SSS z') AS S;
+> S
+> ---------------------------------
+> 2010-05-06 07:08:09.123 GMT+13:30
+> rows: 1

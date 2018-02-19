@@ -3759,6 +3759,8 @@ Formats a date, time or timestamp as a string.
 The most important format characters are:
 y year, M month, d day, H hour, m minute, s second.
 For details of the format, see ""java.text.SimpleDateFormat"".
+timeZoneString may be specified if timestamp is a DATE, TIME or TIMESTAMP.
+timeZoneString is ignored if timestamp is TIMESTAMP WITH TIME ZONE.
 This method returns a string.
 ","
 CALL FORMATDATETIME(TIMESTAMP '2001-02-03 04:05:06',

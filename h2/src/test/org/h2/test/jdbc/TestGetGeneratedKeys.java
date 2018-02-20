@@ -61,7 +61,7 @@ public class TestGetGeneratedKeys extends TestBase {
         deleteDb("getGeneratedKeys");
         Connection conn = getConnection("getGeneratedKeys");
         testBatchAndMergeInto(conn);
-        testCalledSequenses(conn);
+        testCalledSequences(conn);
         testInsertWithSelect(conn);
         testMergeUsing(conn);
         testMultithreaded(conn);
@@ -171,7 +171,7 @@ public class TestGetGeneratedKeys extends TestBase {
      * @throws Exception
      *             on exception
      */
-    private void testCalledSequenses(Connection conn) throws Exception {
+    private void testCalledSequences(Connection conn) throws Exception {
         Statement stat = conn.createStatement();
 
         stat.execute("CREATE SEQUENCE SEQ");
@@ -418,7 +418,8 @@ public class TestGetGeneratedKeys extends TestBase {
 
     /**
      * Test method for
-     * {@link Connection#prepareStatement(String)}.{@link PreparedStatement#execute()}.
+     * {@link Connection#prepareStatement(String)}
+     * .{@link PreparedStatement#execute()}.
      *
      * @param conn
      *            connection
@@ -439,7 +440,8 @@ public class TestGetGeneratedKeys extends TestBase {
 
     /**
      * Test method for
-     * {@link Connection#prepareStatement(String)}.{@link PreparedStatement#executeBatch()}.
+     * {@link Connection#prepareStatement(String)}
+     * .{@link PreparedStatement#executeBatch()}.
      *
      * @param conn
      *            connection
@@ -462,7 +464,8 @@ public class TestGetGeneratedKeys extends TestBase {
 
     /**
      * Test method for
-     * {@link Connection#prepareStatement(String)}.{@link PreparedStatement#executeLargeBatch()}.
+     * {@link Connection#prepareStatement(String)}
+     * .{@link PreparedStatement#executeLargeBatch()}.
      *
      * @param conn
      *            connection
@@ -486,7 +489,8 @@ public class TestGetGeneratedKeys extends TestBase {
 
     /**
      * Test method for
-     * {@link Connection#prepareStatement(String)}.{@link PreparedStatement#executeLargeUpdate()}.
+     * {@link Connection#prepareStatement(String)}
+     * .{@link PreparedStatement#executeLargeUpdate()}.
      *
      * @param conn
      *            connection
@@ -508,7 +512,8 @@ public class TestGetGeneratedKeys extends TestBase {
 
     /**
      * Test method for
-     * {@link Connection#prepareStatement(String)}.{@link PreparedStatement#executeUpdate()}.
+     * {@link Connection#prepareStatement(String)}
+     * .{@link PreparedStatement#executeUpdate()}.
      *
      * @param conn
      *            connection
@@ -529,7 +534,8 @@ public class TestGetGeneratedKeys extends TestBase {
 
     /**
      * Test method for
-     * {@link Connection#prepareStatement(String, int)}.{@link PreparedStatement#execute()}.
+     * {@link Connection#prepareStatement(String, int)}
+     * .{@link PreparedStatement#execute()}.
      *
      * @param conn
      *            connection
@@ -562,7 +568,8 @@ public class TestGetGeneratedKeys extends TestBase {
 
     /**
      * Test method for
-     * {@link Connection#prepareStatement(String, int)}.{@link PreparedStatement#executeBatch()}.
+     * {@link Connection#prepareStatement(String, int)}
+     * .{@link PreparedStatement#executeBatch()}.
      *
      * @param conn
      *            connection
@@ -601,8 +608,8 @@ public class TestGetGeneratedKeys extends TestBase {
     }
 
     /**
-     * Test method for
-     * {@link Connection#prepareStatement(String, int)}.{@link PreparedStatement#executeLargeBatch()}.
+     * Test method for {@link Connection#prepareStatement(String, int)}
+     * .{@link PreparedStatement#executeLargeBatch()}.
      *
      * @param conn
      *            connection
@@ -643,7 +650,8 @@ public class TestGetGeneratedKeys extends TestBase {
 
     /**
      * Test method for
-     * {@link Connection#prepareStatement(String, int)}.{@link PreparedStatement#executeLargeUpdate()}.
+     * {@link Connection#prepareStatement(String, int)}
+     * .{@link PreparedStatement#executeLargeUpdate()}.
      *
      * @param conn
      *            connection
@@ -677,7 +685,8 @@ public class TestGetGeneratedKeys extends TestBase {
 
     /**
      * Test method for
-     * {@link Connection#prepareStatement(String, int)}.{@link PreparedStatement#executeUpdate()}.
+     * {@link Connection#prepareStatement(String, int)}
+     * .{@link PreparedStatement#executeUpdate()}.
      *
      * @param conn
      *            connection
@@ -710,7 +719,8 @@ public class TestGetGeneratedKeys extends TestBase {
 
     /**
      * Test method for
-     * {@link Connection#prepareStatement(String, int[])}.{@link PreparedStatement#execute()}.
+     * {@link Connection#prepareStatement(String, int[])}
+     * .{@link PreparedStatement#execute()}.
      *
      * @param conn
      *            connection
@@ -762,7 +772,8 @@ public class TestGetGeneratedKeys extends TestBase {
 
     /**
      * Test method for
-     * {@link Connection#prepareStatement(String, int[])}.{@link PreparedStatement#executeBatch()}.
+     * {@link Connection#prepareStatement(String, int[])}
+     * .{@link PreparedStatement#executeBatch()}.
      *
      * @param conn
      *            connection
@@ -830,7 +841,8 @@ public class TestGetGeneratedKeys extends TestBase {
 
     /**
      * Test method for
-     * {@link Connection#prepareStatement(String, int[])}.{@link PreparedStatement#executeLargeBatch()}.
+     * {@link Connection#prepareStatement(String, int[])}
+     * .{@link PreparedStatement#executeLargeBatch()}.
      *
      * @param conn
      *            connection
@@ -849,7 +861,8 @@ public class TestGetGeneratedKeys extends TestBase {
         ResultSet rs = prep.getGeneratedKeys();
         assertFalse(rs.next());
         rs.close();
-        prep = (JdbcPreparedStatement) conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (20)", new int[] { 1, 2 });
+        prep = (JdbcPreparedStatement) conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (20)",
+                new int[] { 1, 2 });
         prep.addBatch();
         prep.addBatch();
         prep.executeLargeBatch();
@@ -865,7 +878,8 @@ public class TestGetGeneratedKeys extends TestBase {
         assertEquals(UUID.class, rs.getObject(2).getClass());
         assertFalse(rs.next());
         rs.close();
-        prep = (JdbcPreparedStatement) conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (30)", new int[] { 2, 1 });
+        prep = (JdbcPreparedStatement) conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (30)",
+                new int[] { 2, 1 });
         prep.addBatch();
         prep.addBatch();
         prep.executeLargeBatch();
@@ -899,7 +913,8 @@ public class TestGetGeneratedKeys extends TestBase {
 
     /**
      * Test method for
-     * {@link Connection#prepareStatement(String, int[])}.{@link PreparedStatement#executeLargeUpdate()}.
+     * {@link Connection#prepareStatement(String, int[])}
+     * .{@link PreparedStatement#executeLargeUpdate()}.
      *
      * @param conn
      *            connection
@@ -916,7 +931,8 @@ public class TestGetGeneratedKeys extends TestBase {
         ResultSet rs = prep.getGeneratedKeys();
         assertFalse(rs.next());
         rs.close();
-        prep = (JdbcPreparedStatement) conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (20)", new int[] { 1, 2 });
+        prep = (JdbcPreparedStatement) conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (20)",
+                new int[] { 1, 2 });
         prep.executeLargeUpdate();
         rs = prep.getGeneratedKeys();
         assertEquals(2, rs.getMetaData().getColumnCount());
@@ -927,7 +943,8 @@ public class TestGetGeneratedKeys extends TestBase {
         assertEquals(UUID.class, rs.getObject(2).getClass());
         assertFalse(rs.next());
         rs.close();
-        prep = (JdbcPreparedStatement) conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (30)", new int[] { 2, 1 });
+        prep = (JdbcPreparedStatement) conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (30)",
+                new int[] { 2, 1 });
         prep.executeLargeUpdate();
         rs = prep.getGeneratedKeys();
         assertEquals(2, rs.getMetaData().getColumnCount());
@@ -952,7 +969,8 @@ public class TestGetGeneratedKeys extends TestBase {
 
     /**
      * Test method for
-     * {@link Connection#prepareStatement(String, int[])}.{@link PreparedStatement#executeUpdate()}.
+     * {@link Connection#prepareStatement(String, int[])}
+     * .{@link PreparedStatement#executeUpdate()}.
      *
      * @param conn
      *            connection
@@ -1004,7 +1022,8 @@ public class TestGetGeneratedKeys extends TestBase {
 
     /**
      * Test method for
-     * {@link Connection#prepareStatement(String, String[])}.{@link PreparedStatement#execute()}.
+     * {@link Connection#prepareStatement(String, String[])}
+     * .{@link PreparedStatement#execute()}.
      *
      * @param conn
      *            connection
@@ -1056,7 +1075,8 @@ public class TestGetGeneratedKeys extends TestBase {
 
     /**
      * Test method for
-     * {@link Connection#prepareStatement(String, String[])}.{@link PreparedStatement#executeBatch()}.
+     * {@link Connection#prepareStatement(String, String[])}
+     * .{@link PreparedStatement#executeBatch()}.
      *
      * @param conn
      *            connection
@@ -1124,7 +1144,8 @@ public class TestGetGeneratedKeys extends TestBase {
 
     /**
      * Test method for
-     * {@link Connection#prepareStatement(String, String[])}.{@link PreparedStatement#executeLargeBatch()}.
+     * {@link Connection#prepareStatement(String, String[])}
+     * .{@link PreparedStatement#executeLargeBatch()}.
      *
      * @param conn
      *            connection
@@ -1196,7 +1217,8 @@ public class TestGetGeneratedKeys extends TestBase {
 
     /**
      * Test method for
-     * {@link Connection#prepareStatement(String, String[])}.{@link PreparedStatement#executeLargeUpdate()}.
+     * {@link Connection#prepareStatement(String, String[])}
+     * .{@link PreparedStatement#executeLargeUpdate()}.
      *
      * @param conn
      *            connection
@@ -1251,8 +1273,8 @@ public class TestGetGeneratedKeys extends TestBase {
     }
 
     /**
-     * Test method for
-     * {@link Connection#prepareStatement(String, String[])}.{@link PreparedStatement#executeUpdate()}.
+     * Test method for {@link Connection#prepareStatement(String, String[])}
+     * .{@link PreparedStatement#executeUpdate()}.
      *
      * @param conn
      *            connection

@@ -215,7 +215,7 @@ public class ToDateParser {
         this.minute = minute;
     }
 
-    void setSecord(int second) {
+    void setSecond(int second) {
         this.second = second;
     }
 

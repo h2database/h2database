@@ -61,7 +61,7 @@ public class TestGetGeneratedKeys extends TestBase {
         deleteDb("getGeneratedKeys");
         Connection conn = getConnection("getGeneratedKeys");
         testBatchAndMergeInto(conn);
-        testCalledSequenses(conn);
+        testCalledSequences(conn);
         testInsertWithSelect(conn);
         testMergeUsing(conn);
         testMultithreaded(conn);
@@ -171,7 +171,7 @@ public class TestGetGeneratedKeys extends TestBase {
      * @throws Exception
      *             on exception
      */
-    private void testCalledSequenses(Connection conn) throws Exception {
+    private void testCalledSequences(Connection conn) throws Exception {
         Statement stat = conn.createStatement();
 
         stat.execute("CREATE SEQUENCE SEQ");

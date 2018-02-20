@@ -191,15 +191,15 @@
       </resource>
     </resources>
     <testResources>
-      <testResource>
-        <directory>src/test</directory>
-        <includes>
-          <include>org/h2/test/testSimple.in.txt</include>
-          <include>org/h2/test/testScript.sql</include>
-          <include>org/h2/samples/newsfeed.sql</include>
-          <include>org/h2/samples/optimizations.sql</include>
-        </includes>
-      </testResource>
+  <testResource>
+    <directory>src/test</directory>
+      <includes>
+        <include>org/h2/test/scripts/testSimple.in.txt</include>
+        <include>org/h2/test/scripts/testScript.sql</include>
+        <include>org/h2/samples/newsfeed.sql</include>
+        <include>org/h2/samples/optimizations.sql</include>
+      </includes>
+    </testResource>
     </testResources>
     <plugins>
       <!-- Add tools folder to test sources but consider moving them to src/test -->

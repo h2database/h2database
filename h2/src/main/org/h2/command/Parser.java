@@ -6254,22 +6254,17 @@ public class Parser {
                 columnsToAdd.add(column);
             } while (readIf(","));
             read(")");
-            if (readIf("BEFORE")) {
-                command.setAddBefore(readColumnIdentifier());
-            } else if (readIf("AFTER")) {
-                command.setAddAfter(readColumnIdentifier());
-            }
         } else {
             boolean ifNotExists = readIfNotExists();
             command.setIfNotExists(ifNotExists);
             String columnName = readColumnIdentifier();
             Column column = parseColumnForTable(columnName, true);
             columnsToAdd.add(column);
-            if (readIf("BEFORE")) {
-                command.setAddBefore(readColumnIdentifier());
-            } else if (readIf("AFTER")) {
-                command.setAddAfter(readColumnIdentifier());
-            }
+        }
+        if (readIf("BEFORE")) {
+            command.setAddBefore(readColumnIdentifier());
+        } else if (readIf("AFTER")) {
+            command.setAddAfter(readColumnIdentifier());
         }
         command.setNewColumns(columnsToAdd);
         return command;

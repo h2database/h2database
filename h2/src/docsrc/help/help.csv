@@ -2441,7 +2441,7 @@ The time data type. The format is hh:mm:ss[.nnnnnnnnn].
 
 Mapped to ""java.sql.Time"". When converted to a ""java.sql.Date"", the date is set to ""1970-01-01"".
 ""java.time.LocalTime"" is also supported on Java 8 and later versions.
-Resolution of ""java.sql.Time"" is limited to milliseconds, use ""String"" or ""java.sql.Time"" if you need nanosecond resolution.
+Resolution of ""java.sql.Time"" is limited to milliseconds, use ""String"" or ""java.time.LocalTime"" if you need nanosecond resolution.
 ","
 TIME
 "

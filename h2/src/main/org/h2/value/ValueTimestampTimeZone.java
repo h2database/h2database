@@ -148,7 +148,7 @@ public class ValueTimestampTimeZone extends Value {
 
     @Override
     public Timestamp getTimestamp() {
-        throw new UnsupportedOperationException("unimplemented");
+        return DateTimeUtils.convertTimestampTimeZoneToTimestamp(dateValue, timeNanos, timeZoneOffsetMins);
     }
 
     @Override

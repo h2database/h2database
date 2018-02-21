@@ -101,9 +101,13 @@ public class LocalDateTimeUtils {
     private static final Method LOCAL_DATE_AT_START_OF_DAY;
 
     /**
-     * {@code java.sql.Timestamp.from(java.time.Instant)} or {@code null}.
+     * {@code java.time.Instant#getEpochSecond()} or {@code null}.
      */
-    private static final Method TIMESTAMP_FROM;
+    private static final Method INSTANT_GET_EPOCH_SECOND;
+    /**
+     * {@code java.time.Instant#getNano()} or {@code null}.
+     */
+    private static final Method INSTANT_GET_NANO;
     /**
      * {@code java.sql.Timestamp.toInstant()} or {@code null}.
      */
@@ -186,7 +190,8 @@ public class LocalDateTimeUtils {
             LOCAL_DATE_GET_DAY_OF_MONTH = getMethod(LOCAL_DATE, "getDayOfMonth");
             LOCAL_DATE_AT_START_OF_DAY = getMethod(LOCAL_DATE, "atStartOfDay");
 
-            TIMESTAMP_FROM = getMethod(Timestamp.class, "from", INSTANT);
+            INSTANT_GET_EPOCH_SECOND = getMethod(INSTANT, "getEpochSecond");
+            INSTANT_GET_NANO = getMethod(INSTANT, "getNano");
             TIMESTAMP_TO_INSTANT = getMethod(Timestamp.class, "toInstant");
 
             LOCAL_TIME_PARSE = getMethod(LOCAL_TIME, "parse", CharSequence.class);
@@ -214,7 +219,8 @@ public class LocalDateTimeUtils {
             LOCAL_DATE_GET_MONTH_VALUE = null;
             LOCAL_DATE_GET_DAY_OF_MONTH = null;
             LOCAL_DATE_AT_START_OF_DAY = null;
-            TIMESTAMP_FROM = null;
+            INSTANT_GET_EPOCH_SECOND = null;
+            INSTANT_GET_NANO = null;
             TIMESTAMP_TO_INSTANT = null;
             LOCAL_TIME_PARSE = null;
             LOCAL_DATE_TIME_PLUS_NANOS = null;
@@ -485,7 +491,16 @@ public class LocalDateTimeUtils {
      */
     public static Value instantToValue(Object instant) {
         try {
-            return ValueTimestamp.get((Timestamp) TIMESTAMP_FROM.invoke(null, instant));
+            long epochSecond = (long) INSTANT_GET_EPOCH_SECOND.invoke(instant);
+            int nano = (int) INSTANT_GET_NANO.invoke(instant);
+            long absoluteDay = epochSecond / 86_400;
+            // Round toward negative infinity
+            if (epochSecond < 0 && (absoluteDay * 86_400 != epochSecond)) {
+                absoluteDay--;
+            }
+            long timeNanos = (epochSecond - absoluteDay * 86_400) * 1_000_000_000 + nano;
+            return ValueTimestampTimeZone.fromDateValueAndNanos(
+                    DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay), timeNanos, (short) 0);
         } catch (IllegalAccessException e) {
             throw DbException.convert(e);
         } catch (InvocationTargetException e) {

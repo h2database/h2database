@@ -6771,22 +6771,10 @@ public class Parser {
         if (s == null) {
             return "\"\"";
         }
-        if (isSimpleIdentifier(s, false)) {
+        if (ParserUtil.isSimpleIdentifier(s, false)) {
             return s;
         }
         return StringUtils.quoteIdentifier(s);
-    }
-
-    /**
-     * Is this a simple identifier (in the JDBC specification sense).
-     *
-     * @param s identifier to check
-     * @param functionsAsKeywords treat system functions as keywords
-     * @return is specified identifier may be used without quotes
-     * @throws NullPointerException if s is {@code null}
-     */
-    public static boolean isSimpleIdentifier(String s, boolean functionsAsKeywords) {
-        return ParserUtil.isSimpleIdentifier(s, functionsAsKeywords);
     }
 
     public void setLiteralsChecked(boolean literalsChecked) {

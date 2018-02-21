@@ -35,7 +35,7 @@ public class ParserUtil {
     /**
      * The token "rownum".
      */
-public static final int ROWNUM = 6;
+    public static final int ROWNUM = 6;
 
     private ParserUtil() {
         // utility class

@@ -30,7 +30,9 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
+import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.MVTable;
+import org.h2.mvstore.db.MVTableEngine;
 import org.h2.mvstore.db.TransactionStore.Change;
 import org.h2.mvstore.db.TransactionStore.Transaction;
 import org.h2.result.ResultInterface;
@@ -1688,11 +1690,14 @@ public class Session extends SessionWithState {
      */
     public Transaction getTransaction() {
         if (transaction == null) {
-            if (database.getMvStore().getStore().isClosed()) {
-                database.shutdownImmediately();
-                throw DbException.get(ErrorCode.DATABASE_IS_CLOSED);
+            MVTableEngine.Store store = database.getMvStore();
+            if (store != null) {
+                if (store.getStore().isClosed()) {
+                    database.shutdownImmediately();
+                    throw DbException.get(ErrorCode.DATABASE_IS_CLOSED);
+                }
+                transaction = store.getTransactionStore().begin();
             }
-            transaction = database.getMvStore().getTransactionStore().begin();
             startStatement = -1;
         }
         return transaction;
@@ -1709,6 +1714,10 @@ public class Session extends SessionWithState {
      * Start a new statement within a transaction.
      */
     public void startStatementWithinTransaction() {
+        Transaction transaction = getTransaction();
+        if(transaction != null) {
+            transaction.markStatementStart();
+        }
         startStatement = -1;
     }
 
@@ -1717,6 +1726,9 @@ public class Session extends SessionWithState {
      * set, and deletes all temporary files held by the result sets.
      */
     public void endStatement() {
+        if(transaction != null) {
+            transaction.markStatementEnd();
+        }
         startStatement = -1;
         closeTemporaryResults();
     }

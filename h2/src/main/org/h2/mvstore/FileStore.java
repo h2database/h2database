@@ -74,12 +74,12 @@ public class FileStore {
     /**
      * The encrypted file (if encryption is used).
      */
-    protected FileChannel encryptedFile;
+    private FileChannel encryptedFile;
 
     /**
      * The file lock.
      */
-    protected FileLock fileLock;
+    private FileLock fileLock;
 
     @Override
     public String toString() {
@@ -335,6 +335,16 @@ public class FileStore {
      */
     public long allocate(int length) {
         return freeSpace.allocate(length);
+    }
+
+    /**
+     * Calculate starting position of the prospective allocation.
+     *
+     * @param length the number of bytes to allocate
+     * @return the start position in bytes
+     */
+    public long predictAllocation(int length) {
+        return freeSpace.predictAllocation(length);
     }
 
     /**

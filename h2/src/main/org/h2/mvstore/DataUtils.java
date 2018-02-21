@@ -143,7 +143,11 @@ public final class DataUtils {
     /**
      * The estimated number of bytes used per page object.
      */
-    public static final int PAGE_MEMORY = 128;
+    public static final int PAGE_MEMORY = Constants.MEMORY_OBJECT + 2 * Constants.MEMORY_POINTER + 22; //128;
+    public static final int PAGE_LEAF_MEMORY = PAGE_MEMORY + Constants.MEMORY_POINTER;
+    public static final int PAGE_NODE_MEMORY = PAGE_MEMORY + Constants.MEMORY_POINTER + 8;
+    public static final int PAGE_LEAF_EMPTY_MEMORY = PAGE_LEAF_MEMORY + 2 * Constants.MEMORY_ARRAY;
+    public static final int PAGE_NODE_EMPTY_MEMORY = PAGE_NODE_MEMORY + Constants.MEMORY_ARRAY;
 
     /**
      * The estimated number of bytes used per child entry.
@@ -527,6 +531,16 @@ public final class DataUtils {
      */
     public static int getPageType(long pos) {
         return ((int) pos) & 1;
+    }
+
+    /**
+     * Find out if page was saved.
+     *
+     * @param pos the position
+     * @return true if page has been saved
+     */
+    public static boolean isPageSaved(long pos) {
+        return pos != 0;
     }
 
     /**
@@ -972,8 +986,7 @@ public final class DataUtils {
      * @return the parsed value
      * @throws IllegalStateException if parsing fails
      */
-    public static long readHexLong(Map<String, ? extends Object> map,
-            String key, long defaultValue) {
+    public static long readHexLong(Map<String,?> map, String key, long defaultValue) {
         Object v = map.get(key);
         if (v == null) {
             return defaultValue;
@@ -1037,8 +1050,7 @@ public final class DataUtils {
      * @return the parsed value
      * @throws IllegalStateException if parsing fails
      */
-    public static int readHexInt(HashMap<String, ? extends Object> map,
-            String key, int defaultValue) {
+    public static int readHexInt(Map<String,?> map, String key, int defaultValue) {
         Object v = map.get(key);
         if (v == null) {
             return defaultValue;

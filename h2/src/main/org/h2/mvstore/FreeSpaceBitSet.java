@@ -94,12 +94,28 @@ public class FreeSpaceBitSet {
      * @return the start position in bytes
      */
     public long allocate(int length) {
+        return allocate(length, true);
+    }
+
+    /**
+     * Calculate starting position of the prospective allocation.
+     *
+     * @param length the number of bytes to allocate
+     * @return the start position in bytes
+     */
+    public long predictAllocation(int length) {
+        return allocate(length, false);
+    }
+
+    private long allocate(int length, boolean allocate) {
         int blocks = getBlockCount(length);
         for (int i = 0;;) {
             int start = set.nextClearBit(i);
             int end = set.nextSetBit(start + 1);
             if (end < 0 || end - start >= blocks) {
-                set.set(start, start + blocks);
+                if (allocate) {
+                    set.set(start, start + blocks);
+                }
                 return getPos(start);
             }
             i = end;
@@ -115,6 +131,8 @@ public class FreeSpaceBitSet {
     public void markUsed(long pos, int length) {
         int start = getBlock(pos);
         int blocks = getBlockCount(length);
+        assert set.nextSetBit(start) == -1 || set.nextSetBit(start) >= start + blocks :
+                                                start + "/" + blocks + " " + this;
         set.set(start, start + blocks);
     }
 
@@ -127,6 +145,7 @@ public class FreeSpaceBitSet {
     public void free(long pos, int length) {
         int start = getBlock(pos);
         int blocks = getBlockCount(length);
+        assert set.nextClearBit(start) >= start + blocks : start + "/" + blocks + " " + this;
         set.clear(start, start + blocks);
     }
 
@@ -149,16 +168,11 @@ public class FreeSpaceBitSet {
      * @return the fill rate (0 - 100)
      */
     public int getFillRate() {
-        int total = set.length(), count = 0;
-        for (int i = 0; i < total; i++) {
-            if (set.get(i)) {
-                count++;
-            }
-        }
-        if (count == 0) {
+        int cardinality = set.cardinality();
+        if (cardinality == 0) {
             return 0;
         }
-        return Math.max(1, (int) (100L * count / total));
+        return (int)(100L * cardinality / set.length());
     }
 
     /**

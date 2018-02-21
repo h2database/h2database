@@ -6,11 +6,10 @@
 package org.h2.test.store;
 
 import java.util.AbstractSet;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import org.h2.mvstore.MVMap;
-import org.h2.mvstore.MVStore;
 
 /**
  * A custom map returning the keys and values values 1 .. 10.
@@ -27,13 +26,8 @@ public class SequenceMap extends MVMap<Long, Long> {
      */
     int max = 10;
 
-    public SequenceMap() {
-        super(null, null);
-    }
-
-    @Override
-    public void init(MVStore store, HashMap<String, Object> config) {
-        super.init(store, config);
+    public SequenceMap(Map<String, Object> config) {
+        super(config);
     }
 
     @Override
@@ -74,20 +68,11 @@ public class SequenceMap extends MVMap<Long, Long> {
     /**
      * A builder for this class.
      */
-    public static class Builder implements MapBuilder<SequenceMap, Long, Long> {
-
-        /**
-         * Create a new builder.
-         */
-        public Builder() {
-            // ignore
-        }
-
+    public static class Builder extends MVMap.Builder<Long, Long> {
         @Override
-        public SequenceMap create() {
-            return new SequenceMap();
+        public SequenceMap create(Map<String, Object> config) {
+            return new SequenceMap(config);
         }
 
     }
-
 }

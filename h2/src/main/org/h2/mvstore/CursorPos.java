@@ -8,7 +8,7 @@ package org.h2.mvstore;
 /**
  * A position in a cursor
  */
-public class CursorPos {
+public final class CursorPos {
 
     /**
      * The current page.
@@ -23,7 +23,7 @@ public class CursorPos {
     /**
      * The position in the parent page, if any.
      */
-    public final CursorPos parent;
+    public CursorPos parent;
 
     public CursorPos(Page page, int index, CursorPos parent) {
         this.page = page;

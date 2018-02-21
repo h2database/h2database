@@ -681,6 +681,8 @@ public class TransactionStore {
 
         private int status;
 
+        private MVStore.TxCounter txCounter;
+
         private String name;
 
         Transaction(TransactionStore store, int transactionId, int status,
@@ -721,6 +723,19 @@ public class TransactionStore {
          */
         public long setSavepoint() {
             return logId;
+        }
+
+        public void markStatementStart() {
+            markStatementEnd();
+            txCounter = store.store.registerVersionUsage();
+        }
+
+        public void markStatementEnd() {
+            MVStore.TxCounter counter = txCounter;
+            txCounter = null;
+            if(counter != null) {
+                store.store.deregisterVersionUsage(counter);
+            }
         }
 
         /**

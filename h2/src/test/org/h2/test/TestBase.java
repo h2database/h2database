@@ -1453,9 +1453,9 @@ public abstract class TestBase {
      *
      * @return the path to java
      */
-    private String getJVM() {
-        return System.getProperty("java.home") + File.separatorChar + "bin" +
-                                                 File.separator + "java";
+    private static String getJVM() {
+        return System.getProperty("java.home") + File.separatorChar + "bin"
+                + File.separator + "java";
     }
 
     /**
@@ -1702,7 +1702,7 @@ public abstract class TestBase {
     }
 
     public ProcessBuilder buildChild(String name, Class<? extends TestBase> childClass,
-                                     String... jvmArgs) {
+            String... jvmArgs) {
         List<String> args = new ArrayList<>(16);
         args.add(getJVM());
         Collections.addAll(args, jvmArgs);

@@ -11,11 +11,16 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.TimeZone;
 
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.test.TestBase;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.LocalDateTimeUtils;
 import org.h2.value.Value;
+import org.h2.value.ValueDate;
+import org.h2.value.ValueTime;
+import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 
 /**
@@ -40,6 +45,7 @@ public class TestTimeStampWithTimeZone extends TestBase {
         test4();
         test5();
         testOrder();
+        testConversions();
         deleteDb(getTestName());
     }
 
@@ -184,6 +190,41 @@ public class TestTimeStampWithTimeZone extends TestBase {
         rs.next();
         assertEquals("1970-01-01 12:00:01.0+01:15", rs.getString(1));
         conn.close();
+    }
+
+    private void testConversionsImpl(String timeStr, boolean testReverse) {
+        ValueTimestamp ts = ValueTimestamp.parse(timeStr);
+        ValueDate d = (ValueDate) ts.convertTo(Value.DATE);
+        ValueTime t = (ValueTime) ts.convertTo(Value.TIME);
+        ValueTimestampTimeZone tstz = ValueTimestampTimeZone.parse(timeStr);
+        assertEquals(ts, tstz.convertTo(Value.TIMESTAMP));
+        assertEquals(d, tstz.convertTo(Value.DATE));
+        assertEquals(t, tstz.convertTo(Value.TIME));
+        assertEquals(ts.getTimestamp(), tstz.getTimestamp());
+        if (testReverse) {
+            assertEquals(0, tstz.compareTo(ts.convertTo(Value.TIMESTAMP_TZ), null));
+            assertEquals(d.convertTo(Value.TIMESTAMP).convertTo(Value.TIMESTAMP_TZ),
+                    d.convertTo(Value.TIMESTAMP_TZ));
+            assertEquals(t.convertTo(Value.TIMESTAMP).convertTo(Value.TIMESTAMP_TZ),
+                    t.convertTo(Value.TIMESTAMP_TZ));
+        }
+    }
+
+    private void testConversions() {
+        TimeZone current = TimeZone.getDefault();
+        try {
+            for (String id : TimeZone.getAvailableIDs()) {
+                TimeZone.setDefault(TimeZone.getTimeZone(id));
+                DateTimeUtils.resetCalendar();
+                testConversionsImpl("2017-12-05 23:59:30.987654321-12:00", true);
+                testConversionsImpl("2000-01-02 10:20:30.123456789+07:30", true);
+                boolean testReverse = !"Africa/Monrovia".equals(id);
+                testConversionsImpl("1960-04-06 12:13:14.777666555+12:00", testReverse);
+            }
+        } finally {
+            TimeZone.setDefault(current);
+            DateTimeUtils.resetCalendar();
+        }
     }
 
 }

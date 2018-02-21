@@ -389,7 +389,7 @@ class ToDateTokenizer {
                 inputFragmentStr = matchStringOrThrow(
                         PATTERN_TWO_DIGITS_OR_LESS, params, formatTokenEnum);
                 dateNr = Integer.parseInt(inputFragmentStr);
-                params.setSecord(dateNr);
+                params.setSecond(dateNr);
                 break;
             case SSSSS: {
                 inputFragmentStr = matchStringOrThrow(PATTERN_NUMBER, params,
@@ -402,7 +402,7 @@ class ToDateTokenizer {
                 int hour = dateNr % 24;
                 params.setHour(hour);
                 params.setMinute(minute);
-                params.setSecord(second);
+                params.setSecond(second);
                 break;
             }
             case FF:

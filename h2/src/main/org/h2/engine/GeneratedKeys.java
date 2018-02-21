@@ -120,6 +120,8 @@ public final class GeneratedKeys {
     /**
      * Returns generated keys.
      *
+     * @param session
+     *            session
      * @return local result with generated keys
      */
     public LocalResult getKeys(Session session) {

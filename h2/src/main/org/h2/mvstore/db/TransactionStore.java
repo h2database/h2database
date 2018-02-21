@@ -344,6 +344,7 @@ public class TransactionStore {
         }
         // TODO could synchronize on blocks (100 at a time or so)
         rwLock.writeLock().lock();
+        int oldStatus = t.status;
         try {
             t.setStatus(Transaction.STATUS_COMMITTING);
             for (long logId = 0; logId < maxLogId; logId++) {
@@ -383,7 +384,7 @@ public class TransactionStore {
         } finally {
             rwLock.writeLock().unlock();
         }
-        endTransaction(t);
+        endTransaction(t, oldStatus);
     }
 
     /**
@@ -467,14 +468,15 @@ public class TransactionStore {
      * End this transaction
      *
      * @param t the transaction
+     * @param previous status of this transaction
      */
-    synchronized void endTransaction(Transaction t) {
-        if (t.getStatus() == Transaction.STATUS_PREPARED) {
+    synchronized void endTransaction(Transaction t, int oldStatus) {
+        if (oldStatus == Transaction.STATUS_PREPARED) {
             preparedTransactions.remove(t.getId());
         }
         t.setStatus(Transaction.STATUS_CLOSED);
         openTransactions.clear(t.transactionId);
-        if (store.getAutoCommitDelay() == 0) {
+        if (oldStatus == Transaction.STATUS_PREPARED || store.getAutoCommitDelay() == 0) {
             store.commit();
             return;
         }
@@ -840,7 +842,7 @@ public class TransactionStore {
         public void rollback() {
             checkNotClosed();
             store.rollbackTo(this, logId, 0);
-            store.endTransaction(this);
+            store.endTransaction(this, status);
         }
 
         /**

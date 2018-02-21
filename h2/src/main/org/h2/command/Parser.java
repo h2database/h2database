@@ -779,7 +779,7 @@ public class Parser {
         Update command = new Update(session);
         currentPrepared = command;
         int start = lastParseIndex;
-        TableFilter filter = readSimpleTableFilter(0);
+        TableFilter filter = readSimpleTableFilter(0, null);
         command.setTableFilter(filter);
         parseUpdateSetClause(command, filter, start);
         return command;
@@ -839,28 +839,14 @@ public class Parser {
         setSQL(command, "UPDATE", start);
     }
 
-    private TableFilter readSimpleTableFilter(int orderInFrom) {
+    private TableFilter readSimpleTableFilter(int orderInFrom, Collection<String> excludeTokens) {
         Table table = readTableOrView();
         String alias = null;
         if (readIf("AS")) {
             alias = readAliasIdentifier();
         } else if (currentTokenType == IDENTIFIER) {
-            if (!equalsToken("SET", currentToken)) {
-                // SET is not a keyword (PostgreSQL supports it as a table name)
-                alias = readAliasIdentifier();
-            }
-        }
-        return new TableFilter(session, table, alias, rightsChecked,
-                currentSelect, orderInFrom, null);
-    }
-
-    private TableFilter readSimpleTableFilterWithAliasExcludes(int orderInFrom, Collection<String> excludeTokens) {
-        Table table = readTableOrView();
-        String alias = null;
-        if (readIf("AS")) {
-            alias = readAliasIdentifier();
-        } else if (currentTokenType == IDENTIFIER) {
-            if (!equalsTokenIgnoreCase(currentToken, "SET") && !isTokenInList(excludeTokens)) {
+            if (!equalsTokenIgnoreCase(currentToken, "SET")
+                    && (excludeTokens == null || !isTokenInList(excludeTokens))) {
                 // SET is not a keyword (PostgreSQL supports it as a table name)
                 alias = readAliasIdentifier();
             }
@@ -881,7 +867,7 @@ public class Parser {
             readIdentifierWithSchema();
             read("FROM");
         }
-        TableFilter filter = readSimpleTableFilter(0);
+        TableFilter filter = readSimpleTableFilter(0, null);
         command.setTableFilter(filter);
         parseDeleteGivenTable(command, limit, start);
         return command;
@@ -1090,7 +1076,7 @@ public class Parser {
         int start = lastParseIndex;
         read("INTO");
         List<String> excludeIdentifiers = Arrays.asList("USING", "KEY", "VALUES");
-        TableFilter targetTableFilter = readSimpleTableFilterWithAliasExcludes(0, excludeIdentifiers);
+        TableFilter targetTableFilter = readSimpleTableFilter(0, excludeIdentifiers);
         command.setTargetTableFilter(targetTableFilter);
         Table table = command.getTargetTable();
 
@@ -1160,7 +1146,7 @@ public class Parser {
         } else {
             /* Its a table name, simulate a query by building a select query for the table */
             List<String> excludeIdentifiers = Arrays.asList("ON");
-            TableFilter sourceTableFilter = readSimpleTableFilterWithAliasExcludes(0, excludeIdentifiers);
+            TableFilter sourceTableFilter = readSimpleTableFilter(0, excludeIdentifiers);
             command.setSourceTableFilter(sourceTableFilter);
 
             StringBuilder buff = new StringBuilder("SELECT * FROM ")
@@ -6268,22 +6254,17 @@ public class Parser {
                 columnsToAdd.add(column);
             } while (readIf(","));
             read(")");
-            if (readIf("BEFORE")) {
-                command.setAddBefore(readColumnIdentifier());
-            } else if (readIf("AFTER")) {
-                command.setAddAfter(readColumnIdentifier());
-            }
         } else {
             boolean ifNotExists = readIfNotExists();
             command.setIfNotExists(ifNotExists);
             String columnName = readColumnIdentifier();
             Column column = parseColumnForTable(columnName, true);
             columnsToAdd.add(column);
-            if (readIf("BEFORE")) {
-                command.setAddBefore(readColumnIdentifier());
-            } else if (readIf("AFTER")) {
-                command.setAddAfter(readColumnIdentifier());
-            }
+        }
+        if (readIf("BEFORE")) {
+            command.setAddBefore(readColumnIdentifier());
+        } else if (readIf("AFTER")) {
+            command.setAddAfter(readColumnIdentifier());
         }
         command.setNewColumns(columnsToAdd);
         return command;
@@ -6785,22 +6766,10 @@ public class Parser {
         if (s == null) {
             return "\"\"";
         }
-        if (isSimpleIdentifier(s, false)) {
+        if (ParserUtil.isSimpleIdentifier(s, false)) {
             return s;
         }
         return StringUtils.quoteIdentifier(s);
-    }
-
-    /**
-     * Is this a simple identifier (in the JDBC specification sense).
-     *
-     * @param s identifier to check
-     * @param functionsAsKeywords treat system functions as keywords
-     * @return is specified identifier may be used without quotes
-     * @throws NullPointerException if s is {@code null}
-     */
-    public static boolean isSimpleIdentifier(String s, boolean functionsAsKeywords) {
-        return ParserUtil.isSimpleIdentifier(s, functionsAsKeywords);
     }
 
     public void setLiteralsChecked(boolean literalsChecked) {

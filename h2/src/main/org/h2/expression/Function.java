@@ -1553,6 +1553,10 @@ public class Function extends Expression implements FunctionCall {
                         null : v2 == ValueNull.INSTANCE ? null : v2.getString();
                 String tz = v3 == null ?
                         null : v3 == ValueNull.INSTANCE ? null : v3.getString();
+                if (v0 instanceof ValueTimestampTimeZone) {
+                    tz = DateTimeUtils.timeZoneNameFromOffsetMins(
+                            ((ValueTimestampTimeZone) v0).getTimeZoneOffsetMins());
+                }
                 result = ValueString.get(DateTimeUtils.formatDateTime(
                         v0.getTimestamp(), v1.getString(), locale, tz),
                         database.getMode().treatEmptyStringsAsNull);

@@ -98,8 +98,7 @@ public class DateTimeUtils {
      * use a fixed value throughout the duration of the JVM's life, rather than
      * have this offset change, possibly midway through a long-running query.
      */
-    private static int zoneOffsetMillis = DateTimeUtils.createGregorianCalendar()
-            .get(Calendar.ZONE_OFFSET);
+    private static int zoneOffsetMillis = createGregorianCalendar().get(Calendar.ZONE_OFFSET);
 
     private DateTimeUtils() {
         // utility class
@@ -125,7 +124,7 @@ public class DateTimeUtils {
     public static void resetCalendar() {
         CACHED_CALENDAR.remove();
         timeZone = null;
-        zoneOffsetMillis = DateTimeUtils.createGregorianCalendar().get(Calendar.ZONE_OFFSET);
+        zoneOffsetMillis = createGregorianCalendar().get(Calendar.ZONE_OFFSET);
     }
 
     /**
@@ -136,7 +135,7 @@ public class DateTimeUtils {
     public static GregorianCalendar getCalendar() {
         GregorianCalendar c = CACHED_CALENDAR.get();
         if (c == null) {
-            c = DateTimeUtils.createGregorianCalendar();
+            c = createGregorianCalendar();
             CACHED_CALENDAR.set(c);
         }
         c.clear();
@@ -152,7 +151,7 @@ public class DateTimeUtils {
     private static GregorianCalendar getCalendar(TimeZone tz) {
         GregorianCalendar c = CACHED_CALENDAR_NON_DEFAULT_TIMEZONE.get();
         if (c == null || !c.getTimeZone().equals(tz)) {
-            c = DateTimeUtils.createGregorianCalendar(tz);
+            c = createGregorianCalendar(tz);
             CACHED_CALENDAR_NON_DEFAULT_TIMEZONE.set(c);
         }
         c.clear();
@@ -1201,19 +1200,19 @@ public class DateTimeUtils {
      * @return timestamp with time zone
      */
     public static ValueTimestampTimeZone timestampTimeZoneFromLocalDateValueAndNanos(long dateValue, long timeNanos) {
-        int timeZoneOffset = DateTimeUtils.getTimeZoneOffsetMillis(null, dateValue, timeNanos);
+        int timeZoneOffset = getTimeZoneOffsetMillis(null, dateValue, timeNanos);
         int offsetMins = timeZoneOffset / 60_000;
         int correction = timeZoneOffset % 60_000;
         if (correction != 0) {
             timeNanos -= correction;
             if (timeNanos < 0) {
-                timeNanos += DateTimeUtils.NANOS_PER_DAY;
+                timeNanos += NANOS_PER_DAY;
                 dateValue = DateTimeUtils
-                        .dateValueFromAbsoluteDay(DateTimeUtils.absoluteDayFromDateValue(dateValue) - 1);
-            } else if (timeNanos >= DateTimeUtils.NANOS_PER_DAY) {
-                timeNanos -= DateTimeUtils.NANOS_PER_DAY;
+                        .dateValueFromAbsoluteDay(absoluteDayFromDateValue(dateValue) - 1);
+            } else if (timeNanos >= NANOS_PER_DAY) {
+                timeNanos -= NANOS_PER_DAY;
                 dateValue = DateTimeUtils
-                        .dateValueFromAbsoluteDay(DateTimeUtils.absoluteDayFromDateValue(dateValue) + 1);
+                        .dateValueFromAbsoluteDay(absoluteDayFromDateValue(dateValue) + 1);
             }
         }
         return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos, (short) offsetMins);

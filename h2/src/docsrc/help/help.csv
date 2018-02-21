@@ -2437,9 +2437,11 @@ REAL
 "Data Types","TIME Type","
 TIME
 ","
-The time data type. The format is hh:mm:ss.
+The time data type. The format is hh:mm:ss[.nnnnnnnnn].
 
 Mapped to ""java.sql.Time"". When converted to a ""java.sql.Date"", the date is set to ""1970-01-01"".
+""java.time.LocalTime"" is also supported on Java 8 and later versions.
+Resolution of ""java.sql.Time"" is limited to milliseconds, use ""String"" or ""java.time.LocalTime"" if you need nanosecond resolution.
 ","
 TIME
 "
@@ -2451,6 +2453,7 @@ The date data type. The format is yyyy-MM-dd.
 
 Mapped to ""java.sql.Date"", with the time set to ""00:00:00""
 (or to the next possible time if midnight doesn't exist for the given date and timezone due to a daylight saving change).
+""java.time.LocalDate"" is also supported on Java 8 and later versions.
 ","
 DATE
 "
@@ -2459,9 +2462,10 @@ DATE
 { TIMESTAMP | DATETIME | SMALLDATETIME }
 ","
 The timestamp data type. The format is yyyy-MM-dd hh:mm:ss[.nnnnnnnnn].
-Stored internally as a BCD-encoded date, and nano-seconds since midnight.
+Stored internally as a BCD-encoded date, and nanoseconds since midnight.
 
-Mapped to ""java.sql.Timestamp"" (""java.util.Date"" is also supported).
+Mapped to ""java.sql.Timestamp"" (""java.util.Date"" may be used too).
+""java.time.LocalDateTime"" is also supported on Java 8 and later versions.
 ","
 TIMESTAMP
 "
@@ -2469,12 +2473,16 @@ TIMESTAMP
 "Data Types","TIMESTAMP WITH TIME ZONE Type","
 TIMESTAMP WITH TIME ZONE
 ","
-VERY MUCH STILL IN TESTING.
 The timestamp with time zone data type.
-Stored internally as a BCD-encoded date, nano-seconds since midnight, and timezone offset in minutes.
-Note that range queries on this datatype may do some weird stuff close to DST boundaries.
+Stored internally as a BCD-encoded date, nanoseconds since midnight, and time zone offset in minutes.
 
-Mapped to ""org.h2.api.TimestampWithTimeZone""
+Mapped to ""org.h2.api.TimestampWithTimeZone"".
+""java.time.OffsetDateTime"" and ""java.time.Instant"" are also supported on Java 8 and later versions.
+
+Values of this data type are compared by UTC values. It means that ""2010-01-01 10:00:00+01"" is greater than ""2010-01-01 11:00:00+03"".
+
+Conversion to ""TIMESTAMP"" uses time zone offset to get UTC time and converts it to local time using the system time zone.
+Conversion from ""TIMESTAMP"" does the same operations in reverse and sets time zone offset to offset of the system time zone.
 ","
 TIMESTAMP WITH TIME ZONE
 "

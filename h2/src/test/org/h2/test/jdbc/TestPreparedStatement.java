@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -755,18 +756,26 @@ public class TestPreparedStatement extends TestBase {
         if (!LocalDateTimeUtils.isJava8DateApiPresent()) {
             return;
         }
-        Method timestampToInstant = Timestamp.class.getMethod("toInstant"),
-                now = LocalDateTimeUtils.INSTANT.getMethod("now");
+        Method timestampToInstant = Timestamp.class.getMethod("toInstant");
+        Method now = LocalDateTimeUtils.INSTANT.getMethod("now");
+        Method parse = LocalDateTimeUtils.INSTANT.getMethod("parse", CharSequence.class);
 
         PreparedStatement prep = conn.prepareStatement("SELECT ?");
-        Object instant1 = now.invoke(null);
-        prep.setObject(1, instant1);
+
+        testInstant8Impl(prep, timestampToInstant, now.invoke(null));
+        testInstant8Impl(prep, timestampToInstant, parse.invoke(null, "2000-01-15T12:13:14.123456789Z"));
+        testInstant8Impl(prep, timestampToInstant, parse.invoke(null, "1500-09-10T23:22:11.123456789Z"));
+    }
+
+    private void testInstant8Impl(PreparedStatement prep, Method timestampToInstant, Object instant)
+            throws SQLException, IllegalAccessException, InvocationTargetException {
+        prep.setObject(1, instant);
         ResultSet rs = prep.executeQuery();
         rs.next();
         Object instant2 = rs.getObject(1, LocalDateTimeUtils.INSTANT);
-        assertEquals(instant1, instant2);
+        assertEquals(instant, instant2);
         Timestamp ts = rs.getTimestamp(1);
-        assertEquals(instant1, timestampToInstant.invoke(ts));
+        assertEquals(instant, timestampToInstant.invoke(ts));
         assertFalse(rs.next());
         rs.close();
 
@@ -774,7 +783,7 @@ public class TestPreparedStatement extends TestBase {
         rs = prep.executeQuery();
         rs.next();
         instant2 = rs.getObject(1, LocalDateTimeUtils.INSTANT);
-        assertEquals(instant1, instant2);
+        assertEquals(instant, instant2);
         assertFalse(rs.next());
         rs.close();
     }

@@ -1020,9 +1020,9 @@ public class DataType {
             return Value.DATE;
         } else if (LocalDateTimeUtils.LOCAL_TIME == x) {
             return Value.TIME;
-        } else if (LocalDateTimeUtils.LOCAL_DATE_TIME == x || LocalDateTimeUtils.INSTANT == x) {
+        } else if (LocalDateTimeUtils.LOCAL_DATE_TIME == x) {
             return Value.TIMESTAMP;
-        } else if (LocalDateTimeUtils.OFFSET_DATE_TIME == x) {
+        } else if (LocalDateTimeUtils.OFFSET_DATE_TIME == x || LocalDateTimeUtils.INSTANT == x) {
             return Value.TIMESTAMP_TZ;
         } else {
             if (JdbcUtils.customDataTypesHandler != null) {

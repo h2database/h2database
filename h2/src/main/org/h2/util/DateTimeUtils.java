@@ -476,6 +476,9 @@ public class DateTimeUtils {
                         throw new IllegalArgumentException(
                                 tzName + " (" + tz.getID() + "?)");
                     }
+                    if (s.charAt(timeZoneStart - 1) == ' ') {
+                        timeZoneStart--;
+                    }
                     timeEnd = timeZoneStart;
                 } else {
                     timeZoneStart = s.indexOf(' ', dateEnd + 1);

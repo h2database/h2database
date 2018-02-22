@@ -3849,7 +3849,7 @@ WEEK(CREATED)
 "Functions (Time and Date)","ISO_WEEK","
 ISO_WEEK(timestamp)
 ","
-Returns the week (1-53) from a timestamp.
+Returns the ISO week (1-53) from a timestamp.
 This method uses the ISO definition when
 first week of year should have at least four days
 and week is started with Monday.

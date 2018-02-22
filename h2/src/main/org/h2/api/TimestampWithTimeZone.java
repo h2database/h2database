@@ -9,7 +9,7 @@ import java.io.Serializable;
 import org.h2.util.DateTimeUtils;
 
 /**
- * How we expose "TIMESTAMP WITH TIMEZONE" in our ResultSets.
+ * How we expose "TIMESTAMP WITH TIME ZONE" in our ResultSets.
  */
 public class TimestampWithTimeZone implements Serializable, Cloneable {
 

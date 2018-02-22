@@ -4342,16 +4342,9 @@ public class Parser {
             }
         } else if (readIf("TIMESTAMP")) {
             if (readIf("WITH")) {
-                // originally we used TIMEZONE, which turns out not to be
-                // standards-compliant, but lets keep backwards compatibility
-                if (readIf("TIMEZONE")) {
-                    read("TIMEZONE");
-                    original += " WITH TIMEZONE";
-                } else {
-                    read("TIME");
-                    read("ZONE");
-                    original += " WITH TIME ZONE";
-                }
+                read("TIME");
+                read("ZONE");
+                original += " WITH TIME ZONE";
             } else if (readIf("WITHOUT")) {
                 read("TIME");
                 read("ZONE");

@@ -470,7 +470,12 @@ public class DateTimeUtils {
                     timeZoneStart = s.indexOf('-', dateEnd + 1);
                 }
                 if (timeZoneStart >= 0) {
-                    String tzName = "GMT" + s.substring(timeZoneStart);
+                    // Allow [timeZoneName] part after time zone offset
+                    int offsetEnd = s.indexOf('[', timeZoneStart + 1);
+                    if (offsetEnd < 0) {
+                        offsetEnd = s.length();
+                    }
+                    String tzName = "GMT" + s.substring(timeZoneStart, offsetEnd);
                     tz = TimeZone.getTimeZone(tzName);
                     if (!tz.getID().startsWith(tzName)) {
                         throw new IllegalArgumentException(

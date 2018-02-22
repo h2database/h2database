@@ -2319,7 +2319,7 @@ TIMESTAMP '2005-12-31 23:59:59'
 "
 
 "Other Grammar","Timestamp with time zone","
-TIMESTAMP 'yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]
+TIMESTAMP WITH TIME ZONE 'yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]
 [Z | { - | + } timeZoneOffsetString | timeZoneNameString ]'
 ","
 A timestamp with time zone literal.

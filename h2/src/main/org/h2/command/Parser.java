@@ -3137,17 +3137,30 @@ public class Parser {
                     read("FOR");
                     Sequence sequence = readSequence();
                     r = new SequenceValue(sequence);
-                } else if (equalsToken("TIMESTAMP", name) && readIf("WITH")) {
-                    read("TIME");
-                    read("ZONE");
-                    if (currentTokenType != VALUE
-                            || currentValue.getType() != Value.STRING) {
-                        throw getSyntaxError();
+                } else if (equalsToken("TIMESTAMP", name)) {
+                    if (readIf("WITH")) {
+                        read("TIME");
+                        read("ZONE");
+                        if (currentTokenType != VALUE
+                                || currentValue.getType() != Value.STRING) {
+                            throw getSyntaxError();
+                        }
+                        String timestamp = currentValue.getString();
+                        read();
+                        r = ValueExpression.get(ValueTimestampTimeZone.parse(timestamp));
+                    } else {
+                        if (readIf("WITHOUT")) {
+                            read("TIME");
+                            read("ZONE");
+                        }
+                        if (currentTokenType != VALUE
+                                || currentValue.getType() != Value.STRING) {
+                            throw getSyntaxError();
+                        }
+                        String timestamp = currentValue.getString();
+                        read();
+                        r = ValueExpression.get(ValueTimestamp.parse(timestamp, database.getMode()));
                     }
-                    String timestamp = currentValue.getString();
-                    read();
-                    r = ValueExpression
-                            .get(ValueTimestampTimeZone.parse(timestamp));
                 } else if (currentTokenType == VALUE &&
                         currentValue.getType() == Value.STRING) {
                     if (equalsToken("DATE", name) ||
@@ -3160,8 +3173,7 @@ public class Parser {
                         String time = currentValue.getString();
                         read();
                         r = ValueExpression.get(ValueTime.parse(time));
-                    } else if (equalsToken("TIMESTAMP", name) ||
-                            equalsToken("TS", name)) {
+                    } else if (equalsToken("TS", name)) {
                         String timestamp = currentValue.getString();
                         read();
                         r = ValueExpression
@@ -4340,6 +4352,10 @@ public class Parser {
                     read("ZONE");
                     original += " WITH TIME ZONE";
                 }
+            } else if (readIf("WITHOUT")) {
+                read("TIME");
+                read("ZONE");
+                original += " WITHOUT TIME ZONE";
             }
         } else {
             regular = true;

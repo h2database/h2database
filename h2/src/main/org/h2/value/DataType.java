@@ -302,7 +302,8 @@ public class DataType {
         add(Value.TIMESTAMP, Types.TIMESTAMP, "Timestamp",
                 createDate(ValueTimestamp.PRECISION, "TIMESTAMP",
                         ValueTimestamp.DEFAULT_SCALE, ValueTimestamp.DISPLAY_SIZE),
-                new String[]{"TIMESTAMP", "DATETIME", "DATETIME2", "SMALLDATETIME"},
+                new String[]{"TIMESTAMP", "TIMESTAMP WITHOUT TIME ZONE",
+                        "DATETIME", "DATETIME2", "SMALLDATETIME"},
                 // 24 for ValueTimestamp, 32 for java.sql.Timestamp
                 56
         );

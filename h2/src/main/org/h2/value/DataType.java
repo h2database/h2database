@@ -60,7 +60,7 @@ public class DataType {
     public static final Class<?> GEOMETRY_CLASS;
 
     private static final String GEOMETRY_CLASS_NAME =
-            "com.vividsolutions.jts.geom.Geometry";
+            "org.locationtech.jts.geom.Geometry";
 
     /**
      * The list of types. An ArrayList so that Tomcat doesn't set it to null

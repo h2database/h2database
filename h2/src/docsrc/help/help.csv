@@ -2647,7 +2647,7 @@ ENUM('clubs', 'diamonds', 'hearts', 'spades')
 "Data Types","GEOMETRY Type","
 GEOMETRY
 ","
-A spatial geometry type, based on the ""com.vividsolutions.jts"" library.
+A spatial geometry type, based on the ""org.locationtech.jts"" library.
 Normally represented in textual format using the WKT (well known text) format.
 
 Use a quoted string containing a WKT formatted string or ""PreparedStatement.setObject()"" to store values,

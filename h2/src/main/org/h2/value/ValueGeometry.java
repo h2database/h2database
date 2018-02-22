@@ -11,17 +11,17 @@ import java.util.Arrays;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.util.StringUtils;
-import com.vividsolutions.jts.geom.CoordinateSequence;
-import com.vividsolutions.jts.geom.CoordinateSequenceFilter;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.PrecisionModel;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKBReader;
-import com.vividsolutions.jts.io.WKBWriter;
-import com.vividsolutions.jts.io.WKTReader;
-import com.vividsolutions.jts.io.WKTWriter;
+import org.locationtech.jts.geom.CoordinateSequence;
+import org.locationtech.jts.geom.CoordinateSequenceFilter;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.PrecisionModel;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKBReader;
+import org.locationtech.jts.io.WKBWriter;
+import org.locationtech.jts.io.WKTReader;
+import org.locationtech.jts.io.WKTWriter;
 
 /**
  * Implementation of the GEOMETRY data type.
@@ -66,7 +66,7 @@ public class ValueGeometry extends Value {
      * Get or create a geometry value for the given geometry.
      *
      * @param o the geometry object (of type
-     *            com.vividsolutions.jts.geom.Geometry)
+     *            org.locationtech.jts.geom.Geometry)
      * @return the value
      */
     public static ValueGeometry getFromGeometry(Object o) {
@@ -140,7 +140,7 @@ public class ValueGeometry extends Value {
      * @return a copy of the geometry object
      */
     public Geometry getGeometry() {
-        return (Geometry) getGeometryNoCopy().clone();
+        return getGeometryNoCopy().copy();
     }
 
     public Geometry getGeometryNoCopy() {

@@ -115,9 +115,7 @@ MERGE INTO tableName [ ( columnName [,...] ) ]
 ","
 Updates existing rows, and insert rows that don't exist. If no key column is
 specified, the primary key columns are used to find the row. If more than one
-row per new row is affected, an exception is thrown. If the table contains an
-auto-incremented key or identity column, and the row was updated, the generated
-key is set to 0; otherwise it is set to the new key.
+row per new row is affected, an exception is thrown.
 ","
 MERGE INTO TEST KEY(ID) VALUES(2, 'World')
 "

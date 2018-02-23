@@ -664,18 +664,9 @@ public class TableFilter implements ColumnResolver {
         if (on != null) {
             on.mapColumns(this, 0);
             if (session.getDatabase().getSettings().nestedJoins) {
-                visit(new TableFilterVisitor() {
-                    @Override
-                    public void accept(TableFilter f) {
-                        on.mapColumns(f, 0);
-                    }
-                });
-                filter.visit(new TableFilterVisitor() {
-                    @Override
-                    public void accept(TableFilter f) {
-                        on.mapColumns(f, 0);
-                    }
-                });
+                TableFilterVisitor visitor = new MapColumnsVisitor(on);
+                visit(visitor);
+                filter.visit(visitor);
             }
         }
         if (nested && session.getDatabase().getSettings().nestedJoins) {
@@ -685,12 +676,7 @@ public class TableFilter implements ColumnResolver {
             nestedJoin = filter;
             filter.joinOuter = outer;
             if (outer) {
-                visit(new TableFilterVisitor() {
-                    @Override
-                    public void accept(TableFilter f) {
-                        f.joinOuterIndirect = true;
-                    }
-                });
+                visit(new JOIVisitor());
             }
             if (on != null) {
                 filter.mapAndAddFilter(on);
@@ -701,12 +687,7 @@ public class TableFilter implements ColumnResolver {
                 filter.joinOuter = outer;
                 if (session.getDatabase().getSettings().nestedJoins) {
                     if (outer) {
-                        filter.visit(new TableFilterVisitor() {
-                            @Override
-                            public void accept(TableFilter f) {
-                                f.joinOuterIndirect = true;
-                            }
-                        });
+                        filter.visit(new JOIVisitor());
                     }
                 } else {
                     if (outer) {
@@ -1219,4 +1200,34 @@ public class TableFilter implements ColumnResolver {
          */
         void accept(TableFilter f);
     }
+
+    /**
+     * A visitor that maps columns.
+     */
+    private static final class MapColumnsVisitor implements TableFilterVisitor {
+        private final Expression on;
+
+        MapColumnsVisitor(Expression on) {
+            this.on = on;
+        }
+
+        @Override
+        public void accept(TableFilter f) {
+            on.mapColumns(f, 0);
+        }
+    }
+
+    /**
+     * A visitor that sets joinOuterIndirect to true.
+     */
+    private static final class JOIVisitor implements TableFilterVisitor {
+        JOIVisitor() {
+        }
+
+        @Override
+        public void accept(TableFilter f) {
+            f.joinOuterIndirect = true;
+        }
+    }
+
 }

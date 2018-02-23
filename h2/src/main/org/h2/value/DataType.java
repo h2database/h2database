@@ -289,7 +289,7 @@ public class DataType {
         );
         add(Value.TIME, Types.TIME, "Time",
                 createDate(ValueTime.PRECISION, "TIME", 0, ValueTime.DISPLAY_SIZE),
-                new String[]{"TIME"},
+                new String[]{"TIME", "TIME WITHOUT TIME ZONE"},
                 // 24 for ValueTime, 32 for java.sql.Time
                 56
         );

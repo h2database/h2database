@@ -3137,6 +3137,23 @@ public class Parser {
                     read("FOR");
                     Sequence sequence = readSequence();
                     r = new SequenceValue(sequence);
+                } else if (equalsToken("TIME", name)) {
+                    boolean without = readIf("WITHOUT");
+                    if (without) {
+                        read("TIME");
+                        read("ZONE");
+                    }
+                    if (currentTokenType != VALUE
+                            || currentValue.getType() != Value.STRING) {
+                        if (without) {
+                            throw getSyntaxError();
+                        }
+                        r = new ExpressionColumn(database, null, null, name);
+                    } else {
+                        String time = currentValue.getString();
+                        read();
+                        r = ValueExpression.get(ValueTime.parse(time));
+                    }
                 } else if (equalsToken("TIMESTAMP", name)) {
                     if (readIf("WITH")) {
                         read("TIME");
@@ -4344,6 +4361,12 @@ public class Parser {
         } else if (readIf("CHARACTER")) {
             if (readIf("VARYING")) {
                 original += " VARYING";
+            }
+        } else if (readIf("TIME")) {
+            if (readIf("WITHOUT")) {
+                read("TIME");
+                read("ZONE");
+                original += " WITHOUT TIME ZONE";
             }
         } else if (readIf("TIMESTAMP")) {
             if (readIf("WITH")) {

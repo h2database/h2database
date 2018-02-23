@@ -1433,16 +1433,16 @@ that means the probability is about 0.000'000'000'06.
 <h2 id="spatial_features">Spatial Features</h2>
 <p>
 H2 supports the geometry data type and spatial indexes if
-the <a href="http://tsusiatsoftware.net/jts/main.html">JTS Topology Suite</a>
+the <a href="https://projects.eclipse.org/projects/locationtech.jts">JTS Topology Suite</a>
 is in the classpath.
 To run the H2 Console tool with the JTS tool, you need to download the
-<a href="http://search.maven.org/remotecontent?filepath=com/vividsolutions/jts-core/1.14.0/jts-core-1.14.0.jar">JTS-CORE 1.14.0 jar file</a>
+<a href="https://search.maven.org/remotecontent?filepath=org/locationtech/jts/jts-core/1.15.0/jts-core-1.15.0.jar">JTS-CORE 1.15.0 jar file</a>
 and place it in the h2 bin directory. Then edit the <code>h2.sh</code> file as follows:
 </p>
 <pre>
 #!/bin/sh
 dir=$(dirname "$0")
-java -cp "$dir/h2.jar:jts-core-1.14.0.jar:$H2DRIVERS:$CLASSPATH" org.h2.tools.Console "$@"
+java -cp "$dir/h2.jar:jts-core-1.15.0.jar:$H2DRIVERS:$CLASSPATH" org.h2.tools.Console "$@"
 </pre>
 <p>
 Here is an example SQL script to create a table with a spatial column and index:

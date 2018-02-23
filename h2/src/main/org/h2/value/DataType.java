@@ -66,9 +66,9 @@ public class DataType {
      * The list of types. An ArrayList so that Tomcat doesn't set it to null
      * when clearing references.
      */
-    private static final ArrayList<DataType> TYPES = New.arrayList();
-    private static final HashMap<String, DataType> TYPES_BY_NAME = new HashMap<>();
-    private static final HashMap<Integer, DataType> TYPES_BY_VALUE_TYPE = new HashMap<>();
+    private static final ArrayList<DataType> TYPES = new ArrayList<>(96);
+    private static final HashMap<String, DataType> TYPES_BY_NAME = new HashMap<>(96);
+    private static final HashMap<Integer, DataType> TYPES_BY_VALUE_TYPE = new HashMap<>(48);
 
     /**
      * The value type of this data type.
@@ -289,7 +289,7 @@ public class DataType {
         );
         add(Value.TIME, Types.TIME, "Time",
                 createDate(ValueTime.PRECISION, "TIME", 0, ValueTime.DISPLAY_SIZE),
-                new String[]{"TIME"},
+                new String[]{"TIME", "TIME WITHOUT TIME ZONE"},
                 // 24 for ValueTime, 32 for java.sql.Time
                 56
         );

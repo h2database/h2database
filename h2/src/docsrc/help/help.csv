@@ -2298,7 +2298,7 @@ Each table has a pseudo-column named ""_ROWID_"" that contains the unique row id
 "
 
 "Other Grammar","Time","
-TIME 'hh:mm:ss[.nnnnnnnnn]'
+TIME [ WITHOUT TIME ZONE ] 'hh:mm:ss[.nnnnnnnnn]'
 ","
 A time literal. A value is between 0:00:00 and 23:59:59.999999999
 and has nanosecond resolution.
@@ -2433,7 +2433,7 @@ REAL
 "
 
 "Data Types","TIME Type","
-TIME
+TIME [ WITHOUT TIME ZONE ]
 ","
 The time data type. The format is hh:mm:ss[.nnnnnnnnn].
 

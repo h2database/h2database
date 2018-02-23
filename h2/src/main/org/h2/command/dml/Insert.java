@@ -439,7 +439,7 @@ public class Insert extends Prepared implements ResultTarget {
                         condition = new ConditionAndOr(ConditionAndOr.AND,
                                 condition,
                                 new Comparison(session, Comparison.EQUAL, expr,
-                                        list.get(0)[i++]));
+                                        list.get(getCurrentRowNumber() - 1)[i++]));
                     }
                 }
             }

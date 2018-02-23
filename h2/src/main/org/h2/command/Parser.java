@@ -3149,17 +3149,22 @@ public class Parser {
                         read();
                         r = ValueExpression.get(ValueTimestampTimeZone.parse(timestamp));
                     } else {
-                        if (readIf("WITHOUT")) {
+                        boolean without = readIf("WITHOUT");
+                        if (without) {
                             read("TIME");
                             read("ZONE");
                         }
                         if (currentTokenType != VALUE
                                 || currentValue.getType() != Value.STRING) {
-                            throw getSyntaxError();
+                            if (without) {
+                                throw getSyntaxError();
+                            }
+                            r = new ExpressionColumn(database, null, null, name);
+                        } else {
+                            String timestamp = currentValue.getString();
+                            read();
+                            r = ValueExpression.get(ValueTimestamp.parse(timestamp, database.getMode()));
                         }
-                        String timestamp = currentValue.getString();
-                        read();
-                        r = ValueExpression.get(ValueTimestamp.parse(timestamp, database.getMode()));
                     }
                 } else if (currentTokenType == VALUE &&
                         currentValue.getType() == Value.STRING) {

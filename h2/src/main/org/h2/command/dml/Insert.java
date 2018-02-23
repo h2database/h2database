@@ -435,11 +435,12 @@ public class Insert extends Prepared implements ResultTarget {
             for (int i = 0; i < columns.length; i++) {
                 if (expr.getColumnName().equals(columns[i].getName())) {
                     if (condition == null) {
-                        condition = new Comparison(session, Comparison.EQUAL, expr, row[i++]);
+                        condition = new Comparison(session, Comparison.EQUAL, expr, row[i]);
                     } else {
                         condition = new ConditionAndOr(ConditionAndOr.AND, condition,
-                                new Comparison(session, Comparison.EQUAL, expr, row[i++]));
+                                new Comparison(session, Comparison.EQUAL, expr, row[i]));
                     }
+                    break;
                 }
             }
         }

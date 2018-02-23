@@ -501,7 +501,7 @@ class ToDateTokenizer {
     static String setByName(ToDateParser params, int field) {
         String inputFragmentStr = null;
         String s = params.getInputStr();
-        String[] values = ToChar.getNames(field);
+        String[] values = ToChar.getDateNames(field);
         for (int i = 0; i < values.length; i++) {
             String dayName = values[i];
             if (dayName == null) {

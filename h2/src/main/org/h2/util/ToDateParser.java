@@ -41,7 +41,8 @@ public class ToDateParser {
     private int hour, minute, second, nanos;
 
     private int hour12;
-    boolean isAM = true;
+
+    private boolean isAM = true;
 
     private TimeZone timeZone;
 

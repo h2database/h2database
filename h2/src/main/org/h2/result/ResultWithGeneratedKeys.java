@@ -39,6 +39,7 @@ public class ResultWithGeneratedKeys {
      *
      * @param updateCount
      *            update count
+     * @return the result.
      */
     public static ResultWithGeneratedKeys of(int updateCount) {
         return new ResultWithGeneratedKeys(updateCount);

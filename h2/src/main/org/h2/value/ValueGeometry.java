@@ -283,12 +283,19 @@ public class ValueGeometry extends Value {
      * A visitor that checks if there is a Z coordinate.
      */
     static class ZVisitor implements CoordinateSequenceFilter {
-        boolean foundZ;
+
+        private boolean foundZ;
 
         public boolean isFoundZ() {
             return foundZ;
         }
 
+        /**
+         * Performs an operation on a coordinate in a CoordinateSequence.
+         *
+         * @param coordinateSequence the object to which the filter is applied
+         * @param i the index of the coordinate to apply the filter to
+         */
         @Override
         public void filter(CoordinateSequence coordinateSequence, int i) {
             if (!Double.isNaN(coordinateSequence.getOrdinate(i, 2))) {

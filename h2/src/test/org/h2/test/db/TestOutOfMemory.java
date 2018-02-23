@@ -205,6 +205,12 @@ public class TestOutOfMemory extends TestBase {
 
     public static final class MyChild extends TestBase.Child
     {
+
+        /**
+         * Run just this test.
+         *
+         * @param args the arguments
+         */
         public static void main(String... args) throws Exception {
             new MyChild(args).init().test();
         }

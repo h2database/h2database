@@ -1369,7 +1369,7 @@ public class Parser {
             } else {
                 TableFilter top;
                 top = readTableFilter(false);
-                top = readJoin(top, currentSelect, false, false);
+                top = readJoin(top, false, false);
                 top = getNested(top);
                 read(")");
                 alias = readFromAlias(null);
@@ -1717,8 +1717,7 @@ public class Parser {
         return command;
     }
 
-    private TableFilter readJoin(TableFilter top, Select command,
-            boolean nested, boolean fromOuter) {
+    private TableFilter readJoin(TableFilter top, boolean nested, boolean fromOuter) {
         boolean joined = false;
         TableFilter last = top;
         while (true) {
@@ -1728,7 +1727,7 @@ public class Parser {
                 read("JOIN");
                 // the right hand side is the 'inner' table usually
                 join = readTableFilter(fromOuter);
-                join = readJoin(join, command, nested, true);
+                join = readJoin(join, nested, true);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
@@ -1740,7 +1739,7 @@ public class Parser {
                 readIf("OUTER");
                 read("JOIN");
                 join = readTableFilter(true);
-                join = readJoin(join, command, true, true);
+                join = readJoin(join, true, true);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
@@ -1751,7 +1750,7 @@ public class Parser {
             } else if (readIf("INNER")) {
                 read("JOIN");
                 join = readTableFilter(fromOuter);
-                top = readJoin(top, command, false, false);
+                top = readJoin(top, false, false);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
@@ -1759,7 +1758,7 @@ public class Parser {
                 top.addJoin(join, false, false, on);
             } else if (readIf("JOIN")) {
                 join = readTableFilter(fromOuter);
-                top = readJoin(top, command, false, false);
+                top = readJoin(top, false, false);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
@@ -2150,7 +2149,7 @@ public class Parser {
     }
 
     private void parseJoinTableFilter(TableFilter top, final Select command) {
-        top = readJoin(top, command, false, top.isJoinOuter());
+        top = readJoin(top, false, top.isJoinOuter());
         command.addTableFilter(top, true);
         boolean isOuter = false;
         while (true) {

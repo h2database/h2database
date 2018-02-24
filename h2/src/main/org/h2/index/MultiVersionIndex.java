@@ -73,8 +73,8 @@ public class MultiVersionIndex implements Index {
     }
 
     @Override
-    public boolean isFindSlow() {
-        return base.isFindSlow();
+    public boolean isFindUsingFullTableScan() {
+        return base.isFindUsingFullTableScan();
     }
 
     @Override

@@ -17,7 +17,7 @@ import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
 
 /**
- * An index for a function that returns a result set. Search is this index
+ * An index for a function that returns a result set. Search in this index
  * performs scan over all rows and should be avoided.
  */
 public class FunctionIndex extends BaseIndex {
@@ -45,7 +45,7 @@ public class FunctionIndex extends BaseIndex {
     }
 
     @Override
-    public boolean isFindSlow() {
+    public boolean isFindUsingFullTableScan() {
         return true;
     }
 

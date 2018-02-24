@@ -89,7 +89,7 @@ public class IndexCursor implements Cursor {
                 alwaysFalse = true;
                 break;
             }
-            if (index.isFindSlow()) {
+            if (index.isFindUsingFullTableScan()) {
                 continue;
             }
             Column column = condition.getColumn();

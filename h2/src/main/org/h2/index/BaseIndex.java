@@ -121,7 +121,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     @Override
-    public boolean isFindSlow() {
+    public boolean isFindUsingFullTableScan() {
         return false;
     }
 

@@ -37,7 +37,6 @@ public class ExpressionColumn extends Expression {
     private ColumnResolver columnResolver;
     private int queryLevel;
     private Column column;
-    private boolean evaluatable;
 
     public ExpressionColumn(Database database, Column column) {
         this.database = database;
@@ -205,9 +204,6 @@ public class ExpressionColumn extends Expression {
 
     @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        if (columnResolver != null && tableFilter == columnResolver.getTableFilter()) {
-            evaluatable = b;
-        }
     }
 
     public Column getColumn() {
@@ -287,19 +283,15 @@ public class ExpressionColumn extends Expression {
         case ExpressionVisitor.INDEPENDENT:
             return this.queryLevel < visitor.getQueryLevel();
         case ExpressionVisitor.EVALUATABLE:
-            // if the current value is known (evaluatable set)
-            // or if this columns belongs to a 'higher level' query and is
+            // if this column belongs to a 'higher level' query and is
             // therefore just a parameter
-            if (database.getSettings().nestedJoins) {
-                if (visitor.getQueryLevel() < this.queryLevel) {
-                    return true;
-                }
-                if (getTableFilter() == null) {
-                    return false;
-                }
-                return getTableFilter().isEvaluatable();
+            if (visitor.getQueryLevel() < this.queryLevel) {
+                return true;
             }
-            return evaluatable || visitor.getQueryLevel() < this.queryLevel;
+            if (getTableFilter() == null) {
+                return false;
+            }
+            return getTableFilter().isEvaluatable();
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
             visitor.addDataModificationId(column.getTable().getMaxDataModificationId());
             return true;

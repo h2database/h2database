@@ -89,6 +89,9 @@ public class IndexCursor implements Cursor {
                 alwaysFalse = true;
                 break;
             }
+            if (index.isFindSlow()) {
+                continue;
+            }
             Column column = condition.getColumn();
             if (condition.getCompareType() == Comparison.IN_LIST) {
                 if (start == null && end == null) {

@@ -52,6 +52,15 @@ public interface Index extends SchemaObject {
     void remove(Session session, Row row);
 
     /**
+     * Returns {@code true} if {@code find()} implementation performs scan over all
+     * index, {@code false} if {@code find()} performs the fast lookup.
+     *
+     * @return {@code true} if {@code find()} implementation performs scan over all
+     *         index, {@code false} if {@code find()} performs the fast lookup
+     */
+    boolean isFindSlow();
+
+    /**
      * Find a row or a list of rows and create a cursor to iterate over the
      * result.
      *

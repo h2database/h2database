@@ -10,7 +10,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
-import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -18,16 +17,13 @@ import org.h2.value.Value;
 /**
  * A cursor for a function that returns a JDBC result set.
  */
-public class FunctionCursorResultSet implements Cursor {
+public class FunctionCursorResultSet extends AbstractFunctionCursor {
 
-    private final Session session;
     private final ResultSet result;
     private final ResultSetMetaData meta;
-    private Value[] values;
-    private Row row;
 
-    FunctionCursorResultSet(Session session, ResultSet result) {
-        this.session = session;
+    FunctionCursorResultSet(FunctionIndex index, SearchRow first, SearchRow last, Session session, ResultSet result) {
+        super(index, first, last, session);
         this.result = result;
         try {
             this.meta = result.getMetaData();
@@ -37,23 +33,7 @@ public class FunctionCursorResultSet implements Cursor {
     }
 
     @Override
-    public Row get() {
-        if (values == null) {
-            return null;
-        }
-        if (row == null) {
-            row = session.createRow(values, 1);
-        }
-        return row;
-    }
-
-    @Override
-    public SearchRow getSearchRow() {
-        return get();
-    }
-
-    @Override
-    public boolean next() {
+    boolean nextImpl() {
         row = null;
         try {
             if (result != null && result.next()) {
@@ -70,11 +50,6 @@ public class FunctionCursorResultSet implements Cursor {
             throw DbException.convert(e);
         }
         return values != null;
-    }
-
-    @Override
-    public boolean previous() {
-        throw DbException.throwInternalError(toString());
     }
 
 }

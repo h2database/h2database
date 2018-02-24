@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.api.ErrorCode;
+import org.h2.command.dml.Select;
 import org.h2.result.SortOrder;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
@@ -25,6 +26,8 @@ import org.h2.value.ValueInt;
  * Index tests.
  */
 public class TestIndex extends TestBase {
+
+    private static int testFunctionIndexCounter;
 
     private Connection conn;
     private Statement stat;
@@ -708,6 +711,14 @@ public class TestIndex extends TestBase {
     }
 
     public static ResultSet testFunctionIndexFunction() {
+        // There are additional callers like JdbcConnection.prepareCommand() and
+        // CommandContainer.recompileIfReqired()
+        for (StackTraceElement element : Thread.currentThread().getStackTrace()) {
+            if (element.getClassName() == Select.class.getName()) {
+                testFunctionIndexCounter++;
+                break;
+            }
+        }
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("ID", Types.INTEGER, ValueInt.PRECISION, 0);
         rs.addColumn("VALUE", Types.INTEGER, ValueInt.PRECISION, 0);
@@ -718,6 +729,7 @@ public class TestIndex extends TestBase {
     }
 
     private void testFunctionIndex() throws SQLException {
+        testFunctionIndexCounter = 0;
         stat.execute("CREATE ALIAS TEST_INDEX FOR \"" + TestIndex.class.getName() + ".testFunctionIndexFunction\"");
         try (ResultSet rs = stat.executeQuery("SELECT * FROM TEST_INDEX() WHERE ID = 1 OR ID = 3")) {
             assertTrue(rs.next());
@@ -730,6 +742,7 @@ public class TestIndex extends TestBase {
         } finally {
             stat.execute("DROP ALIAS TEST_INDEX");
         }
+        assertEquals(1, testFunctionIndexCounter);
     }
 
 }

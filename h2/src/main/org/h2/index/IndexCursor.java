@@ -89,6 +89,8 @@ public class IndexCursor implements Cursor {
                 alwaysFalse = true;
                 break;
             }
+            // If index can perform only full table scan do not try to use it for regular
+            // lookups, each such lookup will perform an own table scan.
             if (index.isFindUsingFullTableScan()) {
                 continue;
             }

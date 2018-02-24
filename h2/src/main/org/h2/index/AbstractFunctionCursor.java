@@ -62,6 +62,10 @@ abstract class AbstractFunctionCursor implements Cursor {
 
     @Override
     public boolean next() {
+        final SearchRow first = this.first, last = this.last;
+        if (first == null && last == null) {
+            return nextImpl();
+        }
         while (nextImpl()) {
             Row current = get();
             if (first != null) {

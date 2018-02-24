@@ -230,14 +230,14 @@ public class TableFilter implements ColumnResolver {
         }
 
         if (nestedJoin != null) {
-            setEvaluatable(nestedJoin);
+            setEvaluatable(true);
             item.setNestedJoinPlan(nestedJoin.getBestPlanItem(s, filters, filter, allColumnsSet));
             // TODO optimizer: calculate cost of a join: should use separate
             // expected row number and lookup cost
             item.cost += item.cost * item.getNestedJoinPlan().cost;
         }
         if (join != null) {
-            setEvaluatable(join);
+            setEvaluatable(true);
             do {
                 filter++;
             } while (filters[filter] != join);
@@ -247,10 +247,6 @@ public class TableFilter implements ColumnResolver {
             item.cost += item.cost * item.getJoinPlan().cost;
         }
         return item;
-    }
-
-    private void setEvaluatable(TableFilter join) {
-        setEvaluatable(true);
     }
 
     /**

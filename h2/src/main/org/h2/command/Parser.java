@@ -1368,14 +1368,9 @@ public class Parser {
                         query, currentSelect);
             } else {
                 TableFilter top;
-                if (database.getSettings().nestedJoins) {
-                    top = readTableFilter(false);
-                    top = readJoin(top, currentSelect, false, false);
-                    top = getNested(top);
-                } else {
-                    top = readTableFilter(fromOuter);
-                    top = readJoin(top, currentSelect, false, fromOuter);
-                }
+                top = readTableFilter(false);
+                top = readJoin(top, currentSelect, false, false);
+                top = getNested(top);
                 read(")");
                 alias = readFromAlias(null);
                 if (alias != null) {
@@ -1726,88 +1721,57 @@ public class Parser {
             boolean nested, boolean fromOuter) {
         boolean joined = false;
         TableFilter last = top;
-        boolean nestedJoins = database.getSettings().nestedJoins;
         while (true) {
+            TableFilter join;
             if (readIf("RIGHT")) {
                 readIf("OUTER");
                 read("JOIN");
-                joined = true;
                 // the right hand side is the 'inner' table usually
-                TableFilter newTop = readTableFilter(fromOuter);
-                newTop = readJoin(newTop, command, nested, true);
+                join = readTableFilter(fromOuter);
+                join = readJoin(join, command, nested, true);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                if (nestedJoins) {
-                    top = getNested(top);
-                    newTop.addJoin(top, true, false, on);
-                } else {
-                    newTop.addJoin(top, true, false, on);
-                }
-                top = newTop;
-                last = newTop;
+                top = getNested(top);
+                join.addJoin(top, true, false, on);
+                top = join;
             } else if (readIf("LEFT")) {
                 readIf("OUTER");
                 read("JOIN");
-                joined = true;
-                TableFilter join = readTableFilter(true);
-                if (nestedJoins) {
-                    join = readJoin(join, command, true, true);
-                } else {
-                    top = readJoin(top, command, false, true);
-                }
+                join = readTableFilter(true);
+                join = readJoin(join, command, true, true);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
                 }
                 top.addJoin(join, true, false, on);
-                last = join;
             } else if (readIf("FULL")) {
                 throw getSyntaxError();
             } else if (readIf("INNER")) {
                 read("JOIN");
-                joined = true;
-                TableFilter join = readTableFilter(fromOuter);
+                join = readTableFilter(fromOuter);
                 top = readJoin(top, command, false, false);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                if (nestedJoins) {
-                    top.addJoin(join, false, false, on);
-                } else {
-                    top.addJoin(join, fromOuter, false, on);
-                }
-                last = join;
+                top.addJoin(join, false, false, on);
             } else if (readIf("JOIN")) {
-                joined = true;
-                TableFilter join = readTableFilter(fromOuter);
+                join = readTableFilter(fromOuter);
                 top = readJoin(top, command, false, false);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                if (nestedJoins) {
-                    top.addJoin(join, false, false, on);
-                } else {
-                    top.addJoin(join, fromOuter, false, on);
-                }
-                last = join;
+                top.addJoin(join, false, false, on);
             } else if (readIf("CROSS")) {
                 read("JOIN");
-                joined = true;
-                TableFilter join = readTableFilter(fromOuter);
-                if (nestedJoins) {
-                    top.addJoin(join, false, false, null);
-                } else {
-                    top.addJoin(join, fromOuter, false, null);
-                }
-                last = join;
+                join = readTableFilter(fromOuter);
+                top.addJoin(join, false, false, null);
             } else if (readIf("NATURAL")) {
                 read("JOIN");
-                joined = true;
-                TableFilter join = readTableFilter(fromOuter);
+                join = readTableFilter(fromOuter);
                 Column[] tableCols = last.getTable().getColumns();
                 Column[] joinCols = join.getTable().getColumns();
                 String tableSchema = last.getTable().getSchema().getName();
@@ -1836,15 +1800,12 @@ public class Parser {
                         }
                     }
                 }
-                if (nestedJoins) {
-                    top.addJoin(join, false, nested, on);
-                } else {
-                    top.addJoin(join, fromOuter, false, on);
-                }
-                last = join;
+                top.addJoin(join, false, nested, on);
             } else {
                 break;
             }
+            joined = true;
+            last = join;
         }
         if (nested && joined) {
             top = getNested(top);

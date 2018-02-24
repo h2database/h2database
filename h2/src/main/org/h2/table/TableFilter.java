@@ -230,14 +230,14 @@ public class TableFilter implements ColumnResolver {
         }
 
         if (nestedJoin != null) {
-            setEvaluatable(nestedJoin);
+            setEvaluatable(true);
             item.setNestedJoinPlan(nestedJoin.getBestPlanItem(s, filters, filter, allColumnsSet));
             // TODO optimizer: calculate cost of a join: should use separate
             // expected row number and lookup cost
             item.cost += item.cost * item.getNestedJoinPlan().cost;
         }
         if (join != null) {
-            setEvaluatable(join);
+            setEvaluatable(true);
             do {
                 filter++;
             } while (filters[filter] != join);
@@ -247,25 +247,6 @@ public class TableFilter implements ColumnResolver {
             item.cost += item.cost * item.getJoinPlan().cost;
         }
         return item;
-    }
-
-    private void setEvaluatable(TableFilter join) {
-        if (session.getDatabase().getSettings().nestedJoins) {
-            setEvaluatable(true);
-            return;
-        }
-        // this table filter is now evaluatable - in all sub-joins
-        do {
-            Expression e = join.getJoinCondition();
-            if (e != null) {
-                e.setEvaluatable(this, true);
-            }
-            TableFilter n = join.getNestedJoin();
-            if (n != null) {
-                setEvaluatable(n);
-            }
-            join = join.getJoin();
-        } while (join != null);
     }
 
     /**
@@ -663,13 +644,11 @@ public class TableFilter implements ColumnResolver {
             final Expression on) {
         if (on != null) {
             on.mapColumns(this, 0);
-            if (session.getDatabase().getSettings().nestedJoins) {
-                TableFilterVisitor visitor = new MapColumnsVisitor(on);
-                visit(visitor);
-                filter.visit(visitor);
-            }
+            TableFilterVisitor visitor = new MapColumnsVisitor(on);
+            visit(visitor);
+            filter.visit(visitor);
         }
-        if (nested && session.getDatabase().getSettings().nestedJoins) {
+        if (nested) {
             if (nestedJoin != null) {
                 throw DbException.throwInternalError();
             }
@@ -685,20 +664,8 @@ public class TableFilter implements ColumnResolver {
             if (join == null) {
                 join = filter;
                 filter.joinOuter = outer;
-                if (session.getDatabase().getSettings().nestedJoins) {
-                    if (outer) {
-                        filter.visit(new JOIVisitor());
-                    }
-                } else {
-                    if (outer) {
-                        // convert all inner joins on the right hand side to
-                        // outer joins
-                        TableFilter f = filter.join;
-                        while (f != null) {
-                            f.joinOuter = true;
-                            f = f.join;
-                        }
-                    }
+                if (outer) {
+                    filter.visit(new JOIVisitor());
                 }
                 if (on != null) {
                     filter.mapAndAddFilter(on);

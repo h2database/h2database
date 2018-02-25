@@ -640,8 +640,7 @@ public class TableFilter implements ColumnResolver {
      * @param nested if this is a nested join
      * @param on the join condition
      */
-    public void addJoin(TableFilter filter, boolean outer, boolean nested,
-            final Expression on) {
+    public void addJoin(TableFilter filter, boolean outer, boolean nested, Expression on) {
         if (on != null) {
             on.mapColumns(this, 0);
             TableFilterVisitor visitor = new MapColumnsVisitor(on);
@@ -671,7 +670,7 @@ public class TableFilter implements ColumnResolver {
                     filter.mapAndAddFilter(on);
                 }
             } else {
-                join.addJoin(filter, outer, nested, on);
+                join.addJoin(filter, outer, false, on);
             }
         }
     }

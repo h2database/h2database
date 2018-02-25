@@ -1733,7 +1733,7 @@ public class Parser {
                     on = readExpression();
                 }
                 top = getNested(top);
-                join.addJoin(top, true, false, on);
+                join.addJoin(top, true, on);
                 top = join;
             } else if (readIf("LEFT")) {
                 readIf("OUTER");
@@ -1744,7 +1744,7 @@ public class Parser {
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                top.addJoin(join, true, false, on);
+                top.addJoin(join, true, on);
             } else if (readIf("FULL")) {
                 throw getSyntaxError();
             } else if (readIf("INNER")) {
@@ -1755,7 +1755,7 @@ public class Parser {
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                top.addJoin(join, false, false, on);
+                top.addJoin(join, false, on);
             } else if (readIf("JOIN")) {
                 join = readTableFilter();
                 top = readJoin(top, false);
@@ -1763,11 +1763,11 @@ public class Parser {
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                top.addJoin(join, false, false, on);
+                top.addJoin(join, false, on);
             } else if (readIf("CROSS")) {
                 read("JOIN");
                 join = readTableFilter();
-                top.addJoin(join, false, false, null);
+                top.addJoin(join, false, null);
             } else if (readIf("NATURAL")) {
                 read("JOIN");
                 join = readTableFilter();
@@ -1799,7 +1799,7 @@ public class Parser {
                         }
                     }
                 }
-                top.addJoin(join, false, false, on);
+                top.addJoin(join, false, on);
             } else {
                 break;
             }
@@ -1817,7 +1817,7 @@ public class Parser {
         TableFilter top = new TableFilter(session, getDualTable(true),
                 joinTable, rightsChecked, currentSelect, n.getOrderInFrom(),
                 null);
-        top.addJoin(n, false, true, null);
+        top.addNestedJoin(n);
         return top;
     }
 
@@ -2490,7 +2490,7 @@ public class Parser {
                                 int idx = filters.indexOf(rightFilter);
                                 if (idx >= 0) {
                                     filters.remove(idx);
-                                    leftFilter.addJoin(rightFilter, true, false, r);
+                                    leftFilter.addJoin(rightFilter, true, r);
                                 } else {
                                     rightFilter.mapAndAddFilter(r);
                                 }

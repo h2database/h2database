@@ -637,42 +637,36 @@ public class TableFilter implements ColumnResolver {
      *
      * @param filter the joined table filter
      * @param outer if this is an outer join
-     * @param nested if this is a nested join
      * @param on the join condition
      */
-    public void addJoin(TableFilter filter, boolean outer, boolean nested, Expression on) {
+    public void addJoin(TableFilter filter, boolean outer, Expression on) {
         if (on != null) {
             on.mapColumns(this, 0);
             TableFilterVisitor visitor = new MapColumnsVisitor(on);
             visit(visitor);
             filter.visit(visitor);
         }
-        if (nested) {
-            if (nestedJoin != null) {
-                throw DbException.throwInternalError();
-            }
-            nestedJoin = filter;
+        if (join == null) {
+            join = filter;
             filter.joinOuter = outer;
             if (outer) {
-                visit(new JOIVisitor());
+                filter.visit(new JOIVisitor());
             }
             if (on != null) {
                 filter.mapAndAddFilter(on);
             }
         } else {
-            if (join == null) {
-                join = filter;
-                filter.joinOuter = outer;
-                if (outer) {
-                    filter.visit(new JOIVisitor());
-                }
-                if (on != null) {
-                    filter.mapAndAddFilter(on);
-                }
-            } else {
-                join.addJoin(filter, outer, false, on);
-            }
+            join.addJoin(filter, outer, on);
         }
+    }
+
+    /**
+     * Set a nested joined table.
+     *
+     * @param filter the joined table filter
+     */
+    public void setNestedJoin(TableFilter filter) {
+        nestedJoin = filter;
     }
 
     /**

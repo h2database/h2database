@@ -1799,7 +1799,7 @@ public class Parser {
                         }
                     }
                 }
-                top.addJoin(join, false, nested, on);
+                top.addJoin(join, false, false, on);
             } else {
                 break;
             }

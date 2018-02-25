@@ -668,3 +668,56 @@ DROP TABLE PARENT;
 
 DROP TABLE CHILD;
 > ok
+
+CREATE TABLE A(A1 INT, A2 INT);
+> ok
+
+INSERT INTO A VALUES (1, 2);
+> update count: 1
+
+CREATE TABLE B(B1 INT, B2 INT);
+> ok
+
+INSERT INTO B VALUES (1, 2);
+> update count: 1
+
+CREATE TABLE C(B1 INT, C1 INT);
+> ok
+
+INSERT INTO C VALUES (1, 2);
+> update count: 1
+
+SELECT * FROM A LEFT JOIN B ON TRUE;
+> A1 A2 B1 B2
+> -- -- -- --
+> 1  2  1  2
+> rows: 1
+
+-- this syntax without ON or USING in not standard
+SELECT * FROM A LEFT JOIN B;
+> A1 A2 B1 B2
+> -- -- -- --
+> 1  2  1  2
+> rows: 1
+
+SELECT * FROM A LEFT JOIN B ON TRUE NATURAL JOIN C;
+> A1 A2 B1 B2 C1
+> -- -- -- -- --
+> 1  2  1  2  2
+> rows: 1
+
+-- this syntax without ON or USING in not standard
+SELECT * FROM A LEFT JOIN B NATURAL JOIN C;
+> A1 A2 B1 B2 C1
+> -- -- -- -- --
+> 1  2  1  2  2
+> rows: 1
+
+DROP TABLE A;
+> ok
+
+DROP TABLE B;
+> ok
+
+DROP TABLE C;
+> ok

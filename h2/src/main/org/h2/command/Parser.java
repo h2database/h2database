@@ -2490,8 +2490,7 @@ public class Parser {
                                 int idx = filters.indexOf(rightFilter);
                                 if (idx >= 0) {
                                     filters.remove(idx);
-                                    leftFilter.addJoin(rightFilter, true,
-                                            false, r);
+                                    leftFilter.addJoin(rightFilter, true, false, r);
                                 } else {
                                     rightFilter.mapAndAddFilter(r);
                                 }

@@ -661,11 +661,11 @@ public class TableFilter implements ColumnResolver {
     }
 
     /**
-     * Add a nested joined table.
+     * Set a nested joined table.
      *
      * @param filter the joined table filter
      */
-    public void addNestedJoin(TableFilter filter) {
+    public void setNestedJoin(TableFilter filter) {
         nestedJoin = filter;
     }
 

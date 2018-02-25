@@ -1817,7 +1817,7 @@ public class Parser {
         TableFilter top = new TableFilter(session, getDualTable(true),
                 joinTable, rightsChecked, currentSelect, n.getOrderInFrom(),
                 null);
-        top.addNestedJoin(n);
+        top.setNestedJoin(n);
         return top;
     }
 

@@ -667,7 +667,6 @@ public class TableFilter implements ColumnResolver {
      */
     public void addNestedJoin(TableFilter filter) {
         nestedJoin = filter;
-        filter.joinOuter = false;
     }
 
     /**

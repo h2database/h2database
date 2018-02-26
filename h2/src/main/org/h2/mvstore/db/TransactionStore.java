@@ -468,7 +468,7 @@ public class TransactionStore {
      * End this transaction
      *
      * @param t the transaction
-     * @param previous status of this transaction
+     * @param oldStatus status of this transaction
      */
     synchronized void endTransaction(Transaction t, int oldStatus) {
         if (oldStatus == Transaction.STATUS_PREPARED) {

@@ -136,7 +136,7 @@ public class TestOuterJoins extends TestBase {
             s.getConnection().close();
         }
         deleteDerby();
-        deleteDb("nestedJoins");
+        deleteDb("outerJoins");
     }
 
     private void deleteDerby() {
@@ -289,7 +289,7 @@ public class TestOuterJoins extends TestBase {
 
     private void testCases() throws Exception {
 
-        Connection conn = getConnection("nestedJoins");
+        Connection conn = getConnection("outerJoins");
         Statement stat = conn.createStatement();
         ResultSet rs;
         String sql;
@@ -334,7 +334,7 @@ public class TestOuterJoins extends TestBase {
         sql = cleanRemarks(rs.getString(1));
         assertEquals("SELECT DISTINCT T1.A, T2.A, T3.A FROM PUBLIC.T2 " +
                 "LEFT OUTER JOIN ( PUBLIC.T3 " +
-                "LEFT OUTER JOIN ( PUBLIC.T1 ) ON T1.B = T3.A ) " +
+                "LEFT OUTER JOIN PUBLIC.T1 ON T1.B = T3.A ) " +
                 "ON T2.B = T1.A", sql);
         rs = stat.executeQuery("select distinct t1.a, t2.a, t3.a from t1 " +
                 "right outer join t3 on t1.b=t3.a right outer join t2 on t2.b=t1.a");
@@ -571,7 +571,7 @@ public class TestOuterJoins extends TestBase {
         // }
 
         conn.close();
-        deleteDb("nestedJoins");
+        deleteDb("outerJoins");
     }
 
     private static String cleanRemarks(String sql) {

@@ -103,6 +103,21 @@ select a.i from t1 a inner join (select a.i from t2 a inner join (select i from 
 > -
 > rows: 0
 
+insert into t1 values (1);
+> update count: 1
+
+insert into t2 values (1);
+> update count: 1
+
+insert into t3 values (1);
+> update count: 1
+
+select a.i from t1 a inner join (select a.i from t2 a inner join (select i from t3) b on a.i=b.i) b on a.i=b.i;
+> I
+> -
+> 1
+> rows: 1
+
 drop table t1, t2, t3;
 > ok
 
@@ -747,3 +762,32 @@ DROP TABLE B;
 
 DROP TABLE C;
 > ok
+
+CREATE TABLE T1(X1 INT);
+CREATE TABLE T2(X2 INT);
+CREATE TABLE T3(X3 INT);
+CREATE TABLE T4(X4 INT);
+CREATE TABLE T5(X5 INT);
+
+INSERT INTO T1 VALUES (1);
+INSERT INTO T1 VALUES (NULL);
+INSERT INTO T2 VALUES (1);
+INSERT INTO T2 VALUES (NULL);
+INSERT INTO T3 VALUES (1);
+INSERT INTO T3 VALUES (NULL);
+INSERT INTO T4 VALUES (1);
+INSERT INTO T4 VALUES (NULL);
+INSERT INTO T5 VALUES (1);
+INSERT INTO T5 VALUES (NULL);
+
+SELECT T1.X1, T2.X2, T3.X3, T4.X4, T5.X5 FROM (
+  T1 INNER JOIN (
+     T2 LEFT OUTER JOIN (
+       T3 INNER JOIN T4 ON T3.X3 = T4.X4
+     ) ON T2.X2 = T4.X4
+  ) ON T1.X1 = T2.X2
+) INNER JOIN T5 ON T2.X2 = T5.X5;
+> X1 X2 X3 X4 X5
+> -- -- -- -- --
+> 1  1  1  1  1
+> rows: 1

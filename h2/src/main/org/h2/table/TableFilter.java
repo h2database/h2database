@@ -265,12 +265,31 @@ public class TableFilter implements ColumnResolver {
         if (nestedJoin != null) {
             if (item.getNestedJoinPlan() != null) {
                 nestedJoin.setPlanItem(item.getNestedJoinPlan());
+            } else {
+                nestedJoin.setScanIndexes();
             }
         }
         if (join != null) {
             if (item.getJoinPlan() != null) {
                 join.setPlanItem(item.getJoinPlan());
+            } else {
+                join.setScanIndexes();
             }
+        }
+    }
+
+    /**
+     * Set all missing indexes to scan indexes recursively.
+     */
+    private void setScanIndexes() {
+        if (index == null) {
+            setIndex(table.getScanIndex(session));
+        }
+        if (join != null) {
+            join.setScanIndexes();
+        }
+        if (nestedJoin != null) {
+            nestedJoin.setScanIndexes();
         }
     }
 

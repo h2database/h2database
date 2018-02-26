@@ -1369,8 +1369,7 @@ public class Parser {
             } else {
                 TableFilter top;
                 top = readTableFilter();
-                top = readJoin(top, false);
-                top = getNested(top);
+                top = readJoin(top);
                 read(")");
                 alias = readFromAlias(null);
                 if (alias != null) {
@@ -1717,8 +1716,7 @@ public class Parser {
         return command;
     }
 
-    private TableFilter readJoin(TableFilter top, boolean nested) {
-        boolean joined = false;
+    private TableFilter readJoin(TableFilter top) {
         TableFilter last = top;
         while (true) {
             TableFilter join;
@@ -1727,47 +1725,46 @@ public class Parser {
                 read("JOIN");
                 // the right hand side is the 'inner' table usually
                 join = readTableFilter();
-                join = readJoin(join, nested);
+                join = readJoin(join);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                top = getNested(top);
-                join.addJoin(top, true, on);
+                addJoin(join, top, true, on);
                 top = join;
             } else if (readIf("LEFT")) {
                 readIf("OUTER");
                 read("JOIN");
                 join = readTableFilter();
-                join = readJoin(join, true);
+                join = readJoin(join);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                top.addJoin(join, true, on);
+                addJoin(top, join, true, on);
             } else if (readIf("FULL")) {
                 throw getSyntaxError();
             } else if (readIf("INNER")) {
                 read("JOIN");
                 join = readTableFilter();
-                top = readJoin(top, false);
+                top = readJoin(top);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                top.addJoin(join, false, on);
+                addJoin(top, join, false, on);
             } else if (readIf("JOIN")) {
                 join = readTableFilter();
-                top = readJoin(top, false);
+                top = readJoin(top);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                top.addJoin(join, false, on);
+                addJoin(top, join, false, on);
             } else if (readIf("CROSS")) {
                 read("JOIN");
                 join = readTableFilter();
-                top.addJoin(join, false, null);
+                addJoin(top, join, false, null);
             } else if (readIf("NATURAL")) {
                 read("JOIN");
                 join = readTableFilter();
@@ -1799,26 +1796,25 @@ public class Parser {
                         }
                     }
                 }
-                top.addJoin(join, false, on);
+                addJoin(top, join, false, on);
             } else {
                 break;
             }
-            joined = true;
             last = join;
-        }
-        if (nested && joined) {
-            top = getNested(top);
         }
         return top;
     }
 
-    private TableFilter getNested(TableFilter n) {
-        String joinTable = Constants.PREFIX_JOIN + parseIndex;
-        TableFilter top = new TableFilter(session, getDualTable(true),
-                joinTable, rightsChecked, currentSelect, n.getOrderInFrom(),
-                null);
-        top.setNestedJoin(n);
-        return top;
+    private void addJoin(TableFilter top, TableFilter join, boolean outer, Expression on) {
+        if (join.getJoin() != null) {
+            String joinTable = Constants.PREFIX_JOIN + parseIndex;
+            TableFilter n = new TableFilter(session, getDualTable(true),
+                    joinTable, rightsChecked, currentSelect, join.getOrderInFrom(),
+                    null);
+            n.setNestedJoin(join);
+            join = n;
+        }
+        top.addJoin(join, outer, on);
     }
 
     private Prepared parseExecute() {
@@ -2149,7 +2145,7 @@ public class Parser {
     }
 
     private void parseJoinTableFilter(TableFilter top, final Select command) {
-        top = readJoin(top, false);
+        top = readJoin(top);
         command.addTableFilter(top, true);
         boolean isOuter = false;
         while (true) {

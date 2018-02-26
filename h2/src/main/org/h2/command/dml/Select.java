@@ -737,8 +737,9 @@ public class Select extends Query {
             if (filter.isNaturalJoinColumn(c)) {
                 continue;
             }
+            String name = filter.getDerivedColumnName(c);
             ExpressionColumn ec = new ExpressionColumn(
-                    session.getDatabase(), null, alias, c.getName());
+                    session.getDatabase(), null, alias, name != null ? name : c.getName());
             expressions.add(index++, ec);
         }
         return index;

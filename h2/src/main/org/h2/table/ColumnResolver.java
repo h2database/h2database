@@ -31,6 +31,14 @@ public interface ColumnResolver {
     Column[] getColumns();
 
     /**
+     * Get derived column name, or {@code null}.
+     *
+     * @param column column
+     * @return derived column name, or {@code null}
+     */
+    String getDerivedColumnName(Column column);
+
+    /**
      * Get the list of system columns, if any.
      *
      * @return the system columns or null

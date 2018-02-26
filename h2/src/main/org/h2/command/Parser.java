@@ -1374,6 +1374,14 @@ public class Parser {
                 alias = readFromAlias(null);
                 if (alias != null) {
                     top.setAlias(alias);
+                    if (readIf("(")) {
+                        ArrayList<String> derivedColumnNames = New.arrayList();
+                        do {
+                            derivedColumnNames.add(readAliasIdentifier());
+                        } while (readIf(","));
+                        read(")");
+                        top.setDerivedColumns(derivedColumnNames);
+                    }
                 }
                 return top;
             }

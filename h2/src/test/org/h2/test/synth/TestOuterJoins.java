@@ -136,7 +136,7 @@ public class TestOuterJoins extends TestBase {
             s.getConnection().close();
         }
         deleteDerby();
-        deleteDb("nestedJoins");
+        deleteDb("outerJoins");
     }
 
     private void deleteDerby() {
@@ -289,7 +289,7 @@ public class TestOuterJoins extends TestBase {
 
     private void testCases() throws Exception {
 
-        Connection conn = getConnection("nestedJoins");
+        Connection conn = getConnection("outerJoins");
         Statement stat = conn.createStatement();
         ResultSet rs;
         String sql;
@@ -571,7 +571,7 @@ public class TestOuterJoins extends TestBase {
         // }
 
         conn.close();
-        deleteDb("nestedJoins");
+        deleteDb("outerJoins");
     }
 
     private static String cleanRemarks(String sql) {

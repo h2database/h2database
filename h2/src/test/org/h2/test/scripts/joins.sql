@@ -103,6 +103,21 @@ select a.i from t1 a inner join (select a.i from t2 a inner join (select i from 
 > -
 > rows: 0
 
+insert into t1 values (1);
+> update count: 1
+
+insert into t2 values (1);
+> update count: 1
+
+insert into t3 values (1);
+> update count: 1
+
+select a.i from t1 a inner join (select a.i from t2 a inner join (select i from t3) b on a.i=b.i) b on a.i=b.i;
+> I
+> -
+> 1
+> rows: 1
+
 drop table t1, t2, t3;
 > ok
 

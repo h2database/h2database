@@ -237,7 +237,7 @@ public final class MVStore {
      * are counted.
      */
     private int unsavedMemory;
-    private int autoCommitMemory;
+    private final int autoCommitMemory;
     private boolean saveNeeded;
 
     /**
@@ -274,7 +274,7 @@ public final class MVStore {
      */
     private int autoCommitDelay;
 
-    private int autoCompactFillRate;
+    private final int autoCompactFillRate;
     private long autoCompactLastFileOpCount;
 
     private final Object compactSync = new Object();
@@ -376,6 +376,9 @@ public final class MVStore {
             // the parameter is different from the old value
             int delay = DataUtils.getConfigParam(config, "autoCommitDelay", 1000);
             setAutoCommitDelay(delay);
+        } else {
+            autoCommitMemory = 0;
+            autoCompactFillRate = 0;
         }
     }
 

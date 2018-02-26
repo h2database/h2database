@@ -29,7 +29,6 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.command.CommandInterface;
@@ -91,7 +90,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     private HashMap<String, Integer> columnLabelMap;
     private HashMap<Integer, Value[]> patchedRows;
     private JdbcPreparedStatement preparedStatement;
-    private CommandInterface command;
+    private final CommandInterface command;
 
     JdbcResultSet(JdbcConnection conn, JdbcStatement stat, CommandInterface command,
             ResultInterface result, int id, boolean closeStatement,
@@ -101,7 +100,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         this.stat = stat;
         this.command = command;
         this.result = result;
-        columnCount = result.getVisibleColumnCount();
+        this.columnCount = result.getVisibleColumnCount();
         this.closeStatement = closeStatement;
         this.scrollable = scrollable;
         this.updatable = updatable;

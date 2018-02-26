@@ -1374,12 +1374,8 @@ public class Parser {
                 alias = readFromAlias(null);
                 if (alias != null) {
                     top.setAlias(alias);
-                    if (readIf("(")) {
-                        ArrayList<String> derivedColumnNames = New.arrayList();
-                        do {
-                            derivedColumnNames.add(readAliasIdentifier());
-                        } while (readIf(","));
-                        read(")");
+                    ArrayList<String> derivedColumnNames = readDerivedColumnNames();
+                    if (derivedColumnNames != null) {
                         top.setDerivedColumns(derivedColumnNames);
                     }
                 }
@@ -1434,6 +1430,7 @@ public class Parser {
                 table = readTableOrView(tableName);
             }
         }
+        ArrayList<String> derivedColumnNames = null;
         IndexHints indexHints = null;
         // for backward compatibility, handle case where USE is a table alias
         if (readIf("USE")) {
@@ -1441,10 +1438,12 @@ public class Parser {
                 indexHints = parseIndexHints(table);
             } else {
                 alias = "USE";
+                derivedColumnNames = readDerivedColumnNames();
             }
         } else {
             alias = readFromAlias(alias);
             if (alias != null) {
+                derivedColumnNames = readDerivedColumnNames();
                 // if alias present, a second chance to parse index hints
                 if (readIf("USE")) {
                     read("INDEX");
@@ -1456,8 +1455,12 @@ public class Parser {
         if (table.isView() && table.isTableExpression() && alias == null) {
             alias = table.getName();
         }
-        return new TableFilter(session, table, alias, rightsChecked,
+        TableFilter filter = new TableFilter(session, table, alias, rightsChecked,
                 currentSelect, orderInFrom++, indexHints);
+        if (derivedColumnNames != null) {
+            filter.setDerivedColumns(derivedColumnNames);
+        }
+        return filter;
     }
 
     private IndexHints parseIndexHints(Table table) {
@@ -1491,6 +1494,18 @@ public class Parser {
         // well)
         List<String> excludeIdentifiers = Arrays.asList("LEFT", "RIGHT", "FULL");
         return readFromAlias(alias, excludeIdentifiers);
+    }
+
+    private ArrayList<String> readDerivedColumnNames() {
+        if (readIf("(")) {
+            ArrayList<String> derivedColumnNames = New.arrayList();
+            do {
+                derivedColumnNames.add(readAliasIdentifier());
+            } while (readIf(","));
+            read(")");
+            return derivedColumnNames;
+        }
+        return null;
     }
 
     private Prepared parseTruncate() {

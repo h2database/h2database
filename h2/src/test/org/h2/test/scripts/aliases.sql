@@ -50,3 +50,33 @@ SELECT V AS V1, A AS A1, B AS B1 FROM (VALUES (1)) T1(V) INNER JOIN (VALUES(1, 2
 > -- -- --
 > 1  1  2
 > rows: 1
+
+CREATE TABLE TEST(I INT, J INT);
+> ok
+
+CREATE INDEX TEST_I_IDX ON TEST(I);
+> ok
+
+INSERT INTO TEST VALUES (1, 2);
+> update count: 1
+
+SELECT * FROM (TEST) AS T(A, B);
+> A B
+> - -
+> 1 2
+> rows: 1
+
+SELECT * FROM TEST AS T(A, B);
+> A B
+> - -
+> 1 2
+> rows: 1
+
+SELECT * FROM TEST AS T(A, B) USE INDEX (TEST_I_IDX);
+> A B
+> - -
+> 1 2
+> rows: 1
+
+DROP TABLE TEST;
+> ok

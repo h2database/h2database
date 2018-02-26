@@ -266,34 +266,32 @@ public class TableFilter implements ColumnResolver {
             if (item.getNestedJoinPlan() != null) {
                 nestedJoin.setPlanItem(item.getNestedJoinPlan());
             } else {
-                setScanIndexes(nestedJoin);
+                nestedJoin.setScanIndexes();
             }
         }
         if (join != null) {
             if (item.getJoinPlan() != null) {
                 join.setPlanItem(item.getJoinPlan());
             } else {
-                setScanIndexes(join);
+                join.setScanIndexes();
             }
         }
     }
 
     /**
      * Set all missing indexes to scan indexes recursively.
-     *
-     * @param table filter to start from
      */
-    private void setScanIndexes(TableFilter filter) {
-        if (filter.getIndex() == null) {
-            filter.setIndex(filter.getTable().getScanIndex(session));
+    private void setScanIndexes() {
+        if (index == null) {
+            setIndex(table.getScanIndex(session));
         }
-        TableFilter j = filter.join;
+        TableFilter j = join;
         if (j != null) {
-            setScanIndexes(j);
+            j.setScanIndexes();
         }
-        j = filter.nestedJoin;
+        j = nestedJoin;
         if (j != null) {
-            setScanIndexes(j);
+            j.setScanIndexes();
         }
     }
 

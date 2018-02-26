@@ -2256,7 +2256,8 @@ ID + 20
 "
 
 "Other Grammar","Table Expression","
-{ [ schemaName. ] tableName | ( select ) | valuesExpression } [ [ AS ] newTableAlias ]
+{ [ schemaName. ] tableName | ( select ) | valuesExpression }
+[ [ AS ] newTableAlias [ ( columnName [,...] ) ] ]
 [ USE INDEX ([ indexName [,...] ]) ]
 [ { { LEFT | RIGHT } [ OUTER ] | [ INNER ] | CROSS | NATURAL }
     JOIN tableExpression [ ON expression ] ]

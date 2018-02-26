@@ -6,6 +6,7 @@
 package org.h2.table;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
@@ -116,6 +117,8 @@ public class TableFilter implements ColumnResolver {
     private Expression fullCondition;
     private final int hashCode;
     private final int orderInFrom;
+
+    private HashMap<Column, String> derivedColumnMap;
 
     /**
      * Create a new table filter object.
@@ -992,6 +995,12 @@ public class TableFilter implements ColumnResolver {
         return table.getColumns();
     }
 
+    @Override
+    public String getDerivedColumnName(Column column) {
+        HashMap<Column, String> map = derivedColumnMap;
+        return map != null ? map.get(column) : null;
+    }
+
     /**
      * Get the system columns that this table understands. This is used for
      * compatibility with other databases. The columns are only returned if the
@@ -1054,6 +1063,30 @@ public class TableFilter implements ColumnResolver {
 
     public void setAlias(String alias) {
         this.alias = alias;
+    }
+
+    /**
+     * Set derived column list.
+     *
+     * @param derivedColumnNames names of derived columns
+     */
+    public void setDerivedColumns(ArrayList<String> derivedColumnNames) {
+        Column[] columns = getColumns();
+        int count = columns.length;
+        if (count != derivedColumnNames.size()) {
+            throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+        }
+        HashMap<Column, String> map = new HashMap<>(count);
+        for (int i = 0; i < count; i++) {
+            String alias = derivedColumnNames.get(i);
+            for (int j = 0; j < i; j++) {
+                if (alias.equals(derivedColumnNames.get(j))) {
+                    throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, alias);
+                }
+            }
+            map.put(columns[i], alias);
+        }
+        this.derivedColumnMap = map;
     }
 
     @Override

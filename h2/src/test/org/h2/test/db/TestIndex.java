@@ -712,7 +712,7 @@ public class TestIndex extends TestBase {
 
     public static ResultSet testFunctionIndexFunction() {
         // There are additional callers like JdbcConnection.prepareCommand() and
-        // CommandContainer.recompileIfReqired()
+        // CommandContainer.recompileIfRequired()
         for (StackTraceElement element : Thread.currentThread().getStackTrace()) {
             if (element.getClassName().startsWith(Select.class.getName())) {
                 testFunctionIndexCounter++;

@@ -39,7 +39,7 @@ public abstract class TableBase extends Table {
         if (data.tableEngineParams != null) {
             this.tableEngineParams = data.tableEngineParams;
         } else {
-            this.tableEngineParams = Collections.EMPTY_LIST;
+            this.tableEngineParams = Collections.emptyList();
         }
         setTemporary(data.temporary);
         Column[] cols = data.columns.toArray(new Column[0]);

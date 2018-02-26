@@ -285,13 +285,11 @@ public class TableFilter implements ColumnResolver {
         if (index == null) {
             setIndex(table.getScanIndex(session));
         }
-        TableFilter j = join;
-        if (j != null) {
-            j.setScanIndexes();
+        if (join != null) {
+            join.setScanIndexes();
         }
-        j = nestedJoin;
-        if (j != null) {
-            j.setScanIndexes();
+        if (nestedJoin != null) {
+            nestedJoin.setScanIndexes();
         }
     }
 

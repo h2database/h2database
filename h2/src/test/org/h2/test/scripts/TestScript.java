@@ -117,7 +117,7 @@ public class TestScript extends TestBase {
                 "expand", "floor", "hash", "length", "log", "mod", "pi",
                 "power", "radians", "rand", "random-uuid", "round",
                 "roundmagic", "secure-rand", "sign", "sin", "sinh", "sqrt",
-                "tan", "tanh", "trunc", "truncate", "zero" }) {
+                "tan", "tanh", "truncate", "zero" }) {
             testScript("functions/numeric/" + s + ".sql");
         }
         for (String s : new String[] { "ascii", "bit-length", "char", "concat",
@@ -146,7 +146,7 @@ public class TestScript extends TestBase {
                 "current-time", "dateadd", "datediff", "dayname",
                 "day-of-month", "day-of-week", "day-of-year", "extract",
                 "formatdatetime", "hour", "minute", "month", "monthname",
-                "parsedatetime", "quarter", "second", "week", "year" }) {
+                "parsedatetime", "quarter", "second", "truncate", "week", "year" }) {
             testScript("functions/timeanddate/" + s + ".sql");
         }
         deleteDb("script");

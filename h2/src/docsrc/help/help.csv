@@ -2018,8 +2018,9 @@ CALL CSVWRITE('test2.csv', 'SELECT * FROM TEST', 'charset=UTF-8 fieldSeparator=|
 "Other Grammar","Data Type","
 intType | booleanType | tinyintType | smallintType | bigintType | identityType
     | decimalType | doubleType | realType | dateType | timeType | timestampType
-    | binaryType | otherType | varcharType | varcharIgnorecaseType | charType
-    | blobType | clobType | uuidType | arrayType | enumType
+    | timestampWithTimeZoneType | binaryType | otherType | varcharType
+    | varcharIgnorecaseType | charType | blobType | clobType | uuidType
+    | arrayType | enumType
 ","
 A data type definition.
 ","
@@ -2330,8 +2331,16 @@ TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59.123+05'
 TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59.123456789 Europe/London'
 "
 
+"Other Grammar","Date and time","
+date | time | timestamp | timestampWithTimeZone
+","
+A literal value of any date-time data type.
+","
+TIMESTAMP '1999-01-31 10:00:00'
+"
+
 "Other Grammar","Value","
-string | dollarQuotedString | numeric | date | time | timestamp | boolean | bytes | array | null
+string | dollarQuotedString | numeric | dateAndTime | boolean | bytes | array | null
 ","
 A literal value of any data type, or null.
 ","
@@ -3194,7 +3203,8 @@ CALL HASH('SHA256', STRINGTOUTF8('Password'), 1000)
 "
 
 "Functions (Numeric)","TRUNCATE","
-{ TRUNC | TRUNCATE } ( { {numeric, digitsInt} | timestamp | date | timestampString } )
+{ TRUNC | TRUNCATE } ( { {numeric, digitsInt}
+    | timestamp | timestampWithTimeZone | date | timestampString } )
 ","
 Truncates to a number of digits (to the next value closer to 0).
 This method returns a double.
@@ -3652,7 +3662,7 @@ CALL TO_CHAR(TIMESTAMP '2010-01-01 00:00:00', 'DD MON, YYYY')
 "
 
 "Functions (String)","TRANSLATE","
-TRANSLATE(value , searchString, replacementString]])
+TRANSLATE(value, searchString, replacementString)
 ","
 Oracle-compatible TRANSLATE function that replaces a sequence of characters in a string with another set of characters.
 ","
@@ -3688,7 +3698,7 @@ CURRENT_TIMESTAMP()
 "
 
 "Functions (Time and Date)","DATEADD","
-{ DATEADD| TIMESTAMPADD } (unitString, addIntLong, timestamp)
+{ DATEADD| TIMESTAMPADD } (unitString, addIntLong, dateAndTime)
 ","
 Adds units to a date-time value. The string indicates the unit.
 Use negative values to subtract units.
@@ -3704,20 +3714,20 @@ DATEADD('MONTH', 1, DATE '2001-01-31')
 "
 
 "Functions (Time and Date)","DATEDIFF","
-{ DATEDIFF | TIMESTAMPDIFF } (unitString, aTimestamp, bTimestamp)
+{ DATEDIFF | TIMESTAMPDIFF } (unitString, aDateAndTime, bDateAndTime)
 ","
-Returns the the number of crossed unit boundaries between two timestamps.
+Returns the the number of crossed unit boundaries between two date/time values.
 This method returns a long.
 The string indicates the unit.
 The same units as in the EXTRACT function are supported.
 Only TIMEZONE_HOUR and TIMEZONE_MINUTE units use the time zone offset component.
-With all other units if timestamps have time zone offset component it is ignored.
+With all other units if date/time values have time zone offset component it is ignored.
 ","
 DATEDIFF('YEAR', T1.CREATED, T2.CREATED)
 "
 
 "Functions (Time and Date)","DAYNAME","
-DAYNAME(date)
+DAYNAME(dateAndTime)
 ","
 Returns the name of the day (in English).
 ","
@@ -3725,7 +3735,7 @@ DAYNAME(CREATED)
 "
 
 "Functions (Time and Date)","DAY_OF_MONTH","
-DAY_OF_MONTH(date)
+DAY_OF_MONTH(dateAndTime)
 ","
 Returns the day of the month (1-31).
 ","
@@ -3733,7 +3743,7 @@ DAY_OF_MONTH(CREATED)
 "
 
 "Functions (Time and Date)","DAY_OF_WEEK","
-DAY_OF_WEEK(date)
+DAY_OF_WEEK(dateAndTime)
 ","
 Returns the day of the week (1 means Sunday).
 ","
@@ -3741,7 +3751,7 @@ DAY_OF_WEEK(CREATED)
 "
 
 "Functions (Time and Date)","DAY_OF_YEAR","
-DAY_OF_YEAR(date)
+DAY_OF_YEAR(dateAndTime)
 ","
 Returns the day of the year (1-366).
 ","
@@ -3754,9 +3764,9 @@ EXTRACT ( { YEAR | YY | MONTH | MM | QUARTER | WEEK | ISO_WEEK
     | HOUR | HH | MINUTE | MI | SECOND | SS | EPOCH
     | MILLISECOND | MS | MICROSECOND | MCS | NANOSECOND | NS
     | TIMEZONE_HOUR | TIMEZONE_MINUTE }
-    FROM timestamp )
+    FROM dateAndTime )
 ","
-Returns a specific value from a timestamps.
+Returns a value of the specific time unit from a date/time value.
 This method returns a numeric value with EPOCH unit and
 an int for all other time units.
 ","
@@ -3764,15 +3774,15 @@ EXTRACT(SECOND FROM CURRENT_TIMESTAMP)
 "
 
 "Functions (Time and Date)","FORMATDATETIME","
-FORMATDATETIME ( timestamp, formatString
+FORMATDATETIME ( dateAndTime, formatString
 [ , localeString [ , timeZoneString ] ] )
 ","
 Formats a date, time or timestamp as a string.
 The most important format characters are:
 y year, M month, d day, H hour, m minute, s second.
 For details of the format, see ""java.text.SimpleDateFormat"".
-timeZoneString may be specified if timestamp is a DATE, TIME or TIMESTAMP.
-timeZoneString is ignored if timestamp is TIMESTAMP WITH TIME ZONE.
+timeZoneString may be specified if dateAndTime is a DATE, TIME or TIMESTAMP.
+timeZoneString is ignored if dateAndTime is TIMESTAMP WITH TIME ZONE.
 This method returns a string.
 ","
 CALL FORMATDATETIME(TIMESTAMP '2001-02-03 04:05:06',
@@ -3780,31 +3790,31 @@ CALL FORMATDATETIME(TIMESTAMP '2001-02-03 04:05:06',
 "
 
 "Functions (Time and Date)","HOUR","
-HOUR(timestamp)
+HOUR(dateAndTime)
 ","
-Returns the hour (0-23) from a timestamp.
+Returns the hour (0-23) from a date/time value.
 ","
 HOUR(CREATED)
 "
 
 "Functions (Time and Date)","MINUTE","
-MINUTE(timestamp)
+MINUTE(dateAndTime)
 ","
-Returns the minute (0-59) from a timestamp.
+Returns the minute (0-59) from a date/time value.
 ","
 MINUTE(CREATED)
 "
 
 "Functions (Time and Date)","MONTH","
-MONTH(timestamp)
+MONTH(dateAndTime)
 ","
-Returns the month (1-12) from a timestamp.
+Returns the month (1-12) from a date/time value.
 ","
 MONTH(CREATED)
 "
 
 "Functions (Time and Date)","MONTHNAME","
-MONTHNAME(date)
+MONTHNAME(dateAndTime)
 ","
 Returns the name of the month (in English).
 ","
@@ -3825,34 +3835,34 @@ CALL PARSEDATETIME('Sat, 3 Feb 2001 03:05:06 GMT',
 "
 
 "Functions (Time and Date)","QUARTER","
-QUARTER(timestamp)
+QUARTER(dateAndTime)
 ","
-Returns the quarter (1-4) from a timestamp.
+Returns the quarter (1-4) from a date/time value.
 ","
 QUARTER(CREATED)
 "
 
 "Functions (Time and Date)","SECOND","
-SECOND(timestamp)
+SECOND(dateAndTime)
 ","
-Returns the second (0-59) from a timestamp.
+Returns the second (0-59) from a date/time value.
 ","
 SECOND(CREATED)
 "
 
 "Functions (Time and Date)","WEEK","
-WEEK(timestamp)
+WEEK(dateAndTime)
 ","
-Returns the week (1-53) from a timestamp.
+Returns the week (1-53) from a date/time value.
 This method uses the current system locale.
 ","
 WEEK(CREATED)
 "
 
 "Functions (Time and Date)","ISO_WEEK","
-ISO_WEEK(timestamp)
+ISO_WEEK(dateAndTime)
 ","
-Returns the ISO week (1-53) from a timestamp.
+Returns the ISO week (1-53) from a date/time value.
 This method uses the ISO definition when
 first week of year should have at least four days
 and week is started with Monday.
@@ -3861,17 +3871,17 @@ ISO_WEEK(CREATED)
 "
 
 "Functions (Time and Date)","YEAR","
-YEAR(timestamp)
+YEAR(dateAndTime)
 ","
-Returns the year from a timestamp.
+Returns the year from a date/time value.
 ","
 YEAR(CREATED)
 "
 
 "Functions (Time and Date)","ISO_YEAR","
-ISO_YEAR(timestamp)
+ISO_YEAR(dateAndTime)
 ","
-Returns the ISO week year from a timestamp.
+Returns the ISO week year from a date/time value.
 ","
 ISO_YEAR(CREATED)
 "

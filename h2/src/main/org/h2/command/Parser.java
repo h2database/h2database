@@ -4446,6 +4446,18 @@ public class Parser {
                 }
                 read(")");
             }
+        } else if (dataType.type == Value.DOUBLE && original.equals("FLOAT")) {
+            if (readIf("(")) {
+                int p = readPositiveInt();
+                read(")");
+                if (p > 53) {
+                    throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(p));
+                }
+                if (p <= 24) {
+                    dataType = DataType.getDataType(Value.FLOAT);
+                }
+                original = original + '(' + p + ')';
+            }
         } else if (dataType.type == Value.ENUM) {
             if (readIf("(")) {
                 java.util.List<String> enumeratorList = new ArrayList<>();

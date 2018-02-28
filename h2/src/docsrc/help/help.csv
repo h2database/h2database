@@ -2412,10 +2412,11 @@ DECIMAL(20, 2)
 "
 
 "Data Types","DOUBLE Type","
-{ DOUBLE [ PRECISION ] | FLOAT | FLOAT8 }
+{ DOUBLE [ PRECISION ] | FLOAT [ ( precisionInt ) ] | FLOAT8 }
 ","
 A floating point number. Should not be used to represent currency values, because
 of rounding problems.
+If precision value is specified for FLOAT type name, it should be from 25 to 53.
 
 Mapped to ""java.lang.Double"".
 ","
@@ -2423,10 +2424,11 @@ DOUBLE
 "
 
 "Data Types","REAL Type","
-{ REAL | FLOAT4 }
+{ REAL | FLOAT ( precisionInt ) | FLOAT4 }
 ","
 A single precision floating point number. Should not be used to represent currency
 values, because of rounding problems.
+Precision value for FLOAT type name should be from 0 to 24.
 
 Mapped to ""java.lang.Float"".
 ","

@@ -86,8 +86,6 @@ public class TestScript extends TestBase {
         testScript("joins.sql");
         testScript("altertable-index-reuse.sql");
         testScript("query-optimisations.sql");
-        testScript("commands-dml-script.sql");
-        testScript("commands-dml-create-view.sql");
         String decimal2;
         if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
             decimal2 = "decimal_decimal";
@@ -101,6 +99,12 @@ public class TestScript extends TestBase {
                 "time", "timestamp-with-timezone", "timestamp", "tinyint",
                 "uuid", "varchar", "varchar-ignorecase" }) {
             testScript("datatypes/" + s + ".sql");
+        }
+        for (String s : new String[] { "alterTableAdd", "createView" }) {
+            testScript("ddl/" + s + ".sql");
+        }
+        for (String s : new String[] { "insertIgnore", "mergeUsing", "script", "with" }) {
+            testScript("dml/" + s + ".sql");
         }
         for (String s : new String[] { "avg", "bit-and", "bit-or", "count",
                 "group-concat", "max", "median", "min", "selectivity", "stddev-pop",
@@ -144,9 +148,6 @@ public class TestScript extends TestBase {
                 "formatdatetime", "hour", "minute", "month", "monthname",
                 "parsedatetime", "quarter", "second", "week", "year" }) {
             testScript("functions/timeanddate/" + s + ".sql");
-        }
-        for (String s : new String[] { "insertIgnore", "mergeUsing", "with" }) {
-            testScript("dml/" + s + ".sql");
         }
         deleteDb("script");
         System.out.flush();

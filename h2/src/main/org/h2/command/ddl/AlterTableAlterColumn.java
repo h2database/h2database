@@ -56,6 +56,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
     private int type;
     private Expression defaultExpression;
     private Expression newSelectivity;
+    private boolean addFirst;
     private String addBefore;
     private String addAfter;
     private boolean ifTableExists;
@@ -78,6 +79,10 @@ public class AlterTableAlterColumn extends SchemaCommand {
 
     public void setOldColumn(Column oldColumn) {
         this.oldColumn = oldColumn;
+    }
+
+    public void setAddFirst() {
+        addFirst = true;
     }
 
     public void setAddBefore(String before) {
@@ -331,7 +336,9 @@ public class AlterTableAlterColumn extends SchemaCommand {
             }
         } else if (type == CommandInterface.ALTER_TABLE_ADD_COLUMN) {
             int position;
-            if (addBefore != null) {
+            if (addFirst) {
+                position = 0;
+            } else if (addBefore != null) {
                 position = table.getColumn(addBefore).getColumnId();
             } else if (addAfter != null) {
                 position = table.getColumn(addAfter).getColumnId() + 1;

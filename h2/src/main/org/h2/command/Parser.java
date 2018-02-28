@@ -6289,6 +6289,8 @@ public class Parser {
             command.setAddBefore(readColumnIdentifier());
         } else if (readIf("AFTER")) {
             command.setAddAfter(readColumnIdentifier());
+        } else if (readIf("FIRST")) {
+            command.setAddFirst();
         }
         command.setNewColumns(columnsToAdd);
         return command;

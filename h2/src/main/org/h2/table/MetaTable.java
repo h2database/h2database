@@ -568,7 +568,8 @@ public class MetaTable extends Table {
                     "TABLE_SCHEMA",
                     "TABLE_NAME",
                     "COLUMN_NAME",
-                    "ORDINAL_POSITION"
+                    "ORDINAL_POSITION",
+                    "POSITION_IN_UNIQUE_CONSTRAINT"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -1948,6 +1949,7 @@ public class MetaTable extends Table {
                 }
                 for (int i = 0; i < indexColumns.length; i++) {
                     IndexColumn indexColumn = indexColumns[i];
+                    String ordinalPosition = Integer.toString(i + 1);
                     add(rows,
                             // CONSTRAINT_CATALOG
                             catalog,
@@ -1964,7 +1966,9 @@ public class MetaTable extends Table {
                             // COLUMN_NAME
                             indexColumn.columnName,
                             // ORDINAL_POSITION
-                            Integer.toString(i + 1)
+                            ordinalPosition,
+                            // POSITION_IN_UNIQUE_CONSTRAINT
+                            (constraintType == Constraint.Type.REFERENTIAL ? ordinalPosition : null)
                         );
                 }
             }

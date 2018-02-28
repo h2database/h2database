@@ -117,7 +117,7 @@ public class TestScript extends TestBase {
                 "expand", "floor", "hash", "length", "log", "mod", "pi",
                 "power", "radians", "rand", "random-uuid", "round",
                 "roundmagic", "secure-rand", "sign", "sin", "sinh", "sqrt",
-                "tan", "tanh", "trunc", "truncate", "zero" }) {
+                "tan", "tanh", "truncate", "zero" }) {
             testScript("functions/numeric/" + s + ".sql");
         }
         for (String s : new String[] { "ascii", "bit-length", "char", "concat",

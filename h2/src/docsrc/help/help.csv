@@ -3662,7 +3662,7 @@ CALL TO_CHAR(TIMESTAMP '2010-01-01 00:00:00', 'DD MON, YYYY')
 "
 
 "Functions (String)","TRANSLATE","
-TRANSLATE(value , searchString, replacementString]])
+TRANSLATE(value, searchString, replacementString)
 ","
 Oracle-compatible TRANSLATE function that replaces a sequence of characters in a string with another set of characters.
 ","

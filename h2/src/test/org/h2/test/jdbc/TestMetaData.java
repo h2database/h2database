@@ -1084,6 +1084,8 @@ public class TestMetaData extends TestBase {
         rs.next();
         assertEquals("IN_DOUBT", rs.getString("TABLE_NAME"));
         rs.next();
+        assertEquals("KEY_COLUMN_USAGE", rs.getString("TABLE_NAME"));
+        rs.next();
         assertEquals("LOCKS", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("QUERY_STATISTICS", rs.getString("TABLE_NAME"));

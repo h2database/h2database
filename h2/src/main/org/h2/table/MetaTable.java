@@ -110,7 +110,8 @@ public class MetaTable extends Table {
     private static final int SESSION_STATE = 27;
     private static final int QUERY_STATISTICS = 28;
     private static final int SYNONYMS = 29;
-    private static final int META_TABLE_TYPE_COUNT = SYNONYMS + 1;
+    private static final int KEY_COLUMN_USAGE = 30;
+    private static final int META_TABLE_TYPE_COUNT = KEY_COLUMN_USAGE + 1;
 
     private final int type;
     private final int indexColumn;
@@ -542,20 +543,36 @@ public class MetaTable extends Table {
             break;
         }
         case SYNONYMS: {
-                setObjectName("SYNONYMS");
-                cols = createColumns(
-                        "SYNONYM_CATALOG",
-                        "SYNONYM_SCHEMA",
-                        "SYNONYM_NAME",
-                        "SYNONYM_FOR",
-                        "SYNONYM_FOR_SCHEMA",
-                        "TYPE_NAME",
-                        "STATUS",
-                        "REMARKS",
-                        "ID INT"
-                );
-                indexColumnName = "SYNONYM_NAME";
-                break;
+            setObjectName("SYNONYMS");
+            cols = createColumns(
+                    "SYNONYM_CATALOG",
+                    "SYNONYM_SCHEMA",
+                    "SYNONYM_NAME",
+                    "SYNONYM_FOR",
+                    "SYNONYM_FOR_SCHEMA",
+                    "TYPE_NAME",
+                    "STATUS",
+                    "REMARKS",
+                    "ID INT"
+            );
+            indexColumnName = "SYNONYM_NAME";
+            break;
+        }
+        case KEY_COLUMN_USAGE: {
+            setObjectName("KEY_COLUMN_USAGE");
+            cols = createColumns(
+                    "CONSTRAINT_CATALOG",
+                    "CONSTRAINT_SCHEMA",
+                    "CONSTRAINT_NAME",
+                    "TABLE_CATALOG",
+                    "TABLE_SCHEMA",
+                    "TABLE_NAME",
+                    "COLUMN_NAME",
+                    "ORDINAL_POSITION",
+                    "POSITION_IN_UNIQUE_CONSTRAINT"
+            );
+            indexColumnName = "TABLE_NAME";
+            break;
         }
         default:
             throw DbException.throwInternalError("type="+type);
@@ -1883,30 +1900,80 @@ public class MetaTable extends Table {
             break;
         }
         case SYNONYMS: {
-                for (TableSynonym synonym : database.getAllSynonyms()) {
-                    add(rows,
-                            // SYNONYM_CATALOG
-                            catalog,
-                            // SYNONYM_SCHEMA
-                            identifier(synonym.getSchema().getName()),
-                            // SYNONYM_NAME
-                            identifier(synonym.getName()),
-                            // SYNONYM_FOR
-                            synonym.getSynonymForName(),
-                            // SYNONYM_FOR_SCHEMA
-                            synonym.getSynonymForSchema().getName(),
-                            // TYPE NAME
-                            "SYNONYM",
-                            // STATUS
-                            "VALID",
-                            // REMARKS
-                            replaceNullWithEmpty(synonym.getComment()),
-                            // ID
-                            "" + synonym.getId()
-                    );
-                }
-                break;
+            for (TableSynonym synonym : database.getAllSynonyms()) {
+                add(rows,
+                        // SYNONYM_CATALOG
+                        catalog,
+                        // SYNONYM_SCHEMA
+                        identifier(synonym.getSchema().getName()),
+                        // SYNONYM_NAME
+                        identifier(synonym.getName()),
+                        // SYNONYM_FOR
+                        synonym.getSynonymForName(),
+                        // SYNONYM_FOR_SCHEMA
+                        synonym.getSynonymForSchema().getName(),
+                        // TYPE NAME
+                        "SYNONYM",
+                        // STATUS
+                        "VALID",
+                        // REMARKS
+                        replaceNullWithEmpty(synonym.getComment()),
+                        // ID
+                        "" + synonym.getId()
+                );
             }
+            break;
+        }
+        case KEY_COLUMN_USAGE: {
+            for (SchemaObject obj : database.getAllSchemaObjects(
+                    DbObject.CONSTRAINT)) {
+                Constraint constraint = (Constraint) obj;
+                Constraint.Type constraintType = constraint.getConstraintType();
+                IndexColumn[] indexColumns = null;
+                Table table = constraint.getTable();
+                if (hideTable(table, session)) {
+                    continue;
+                }
+                String tableName = identifier(table.getName());
+                if (!checkIndex(session, tableName, indexFrom, indexTo)) {
+                    continue;
+                }
+                if (constraintType == Constraint.Type.UNIQUE ||
+                        constraintType == Constraint.Type.PRIMARY_KEY) {
+                    indexColumns = ((ConstraintUnique) constraint).getColumns();
+                } else if (constraintType == Constraint.Type.REFERENTIAL) {
+                    indexColumns = ((ConstraintReferential) constraint).getColumns();
+                }
+                if (indexColumns == null) {
+                    continue;
+                }
+                for (int i = 0; i < indexColumns.length; i++) {
+                    IndexColumn indexColumn = indexColumns[i];
+                    String ordinalPosition = Integer.toString(i + 1);
+                    add(rows,
+                            // CONSTRAINT_CATALOG
+                            catalog,
+                            // CONSTRAINT_SCHEMA
+                            identifier(constraint.getSchema().getName()),
+                            // CONSTRAINT_NAME
+                            identifier(constraint.getName()),
+                            // TABLE_CATALOG
+                            catalog,
+                            // TABLE_SCHEMA
+                            identifier(table.getSchema().getName()),
+                            // TABLE_NAME
+                            tableName,
+                            // COLUMN_NAME
+                            indexColumn.columnName,
+                            // ORDINAL_POSITION
+                            ordinalPosition,
+                            // POSITION_IN_UNIQUE_CONSTRAINT
+                            (constraintType == Constraint.Type.REFERENTIAL ? ordinalPosition : null)
+                        );
+                }
+            }
+            break;
+        }
         default:
             DbException.throwInternalError("type="+type);
         }

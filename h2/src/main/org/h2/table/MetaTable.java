@@ -110,7 +110,8 @@ public class MetaTable extends Table {
     private static final int SESSION_STATE = 27;
     private static final int QUERY_STATISTICS = 28;
     private static final int SYNONYMS = 29;
-    private static final int KEY_COLUMN_USAGE = 30;
+    private static final int TABLE_CONSTRAINTS = 30;
+    private static final int KEY_COLUMN_USAGE = 31;
     private static final int META_TABLE_TYPE_COUNT = KEY_COLUMN_USAGE + 1;
 
     private final int type;
@@ -556,6 +557,22 @@ public class MetaTable extends Table {
                     "ID INT"
             );
             indexColumnName = "SYNONYM_NAME";
+            break;
+        }
+        case TABLE_CONSTRAINTS: {
+            setObjectName("TABLE_CONSTRAINTS");
+            cols = createColumns(
+                    "CONSTRAINT_CATALOG",
+                    "CONSTRAINT_SCHEMA",
+                    "CONSTRAINT_NAME",
+                    "CONSTRAINT_TYPE",
+                    "TABLE_CATALOG",
+                    "TABLE_SCHEMA",
+                    "TABLE_NAME",
+                    "IS_DEFERRABLE",
+                    "INITIALLY_DEFERRED"
+            );
+            indexColumnName = "TABLE_NAME";
             break;
         }
         case KEY_COLUMN_USAGE: {
@@ -1924,9 +1941,51 @@ public class MetaTable extends Table {
             }
             break;
         }
+        case TABLE_CONSTRAINTS: {
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+                Constraint constraint = (Constraint) obj;
+                Constraint.Type constraintType = constraint.getConstraintType();
+                Table table = constraint.getTable();
+                if (hideTable(table, session)) {
+                    continue;
+                }
+                String tableName = identifier(table.getName());
+                if (!checkIndex(session, tableName, indexFrom, indexTo)) {
+                    continue;
+                }
+                String constraintTypeAsString;
+                if (constraintType == Constraint.Type.PRIMARY_KEY) {
+                    constraintTypeAsString = "PRIMARY KEY";
+                } else if (constraintType == Constraint.Type.REFERENTIAL) {
+                    constraintTypeAsString = "FOREIGN KEY";
+                } else {
+                    constraintTypeAsString = constraintType.name();
+                }
+                add(rows,
+                        // CONSTRAINT_CATALOG
+                        catalog,
+                        // CONSTRAINT_SCHEMA
+                        identifier(constraint.getSchema().getName()),
+                        // CONSTRAINT_NAME
+                        identifier(constraint.getName()),
+                        // CONSTRAINT_TYPE
+                        constraintTypeAsString,
+                        // TABLE_CATALOG
+                        catalog,
+                        // TABLE_SCHEMA
+                        identifier(table.getSchema().getName()),
+                        // TABLE_NAME
+                        tableName,
+                        // IS_DEFERRABLE
+                        "NO",
+                        // INITIALLY_DEFERRED
+                        "NO"
+                );
+            }
+            break;
+        }
         case KEY_COLUMN_USAGE: {
-            for (SchemaObject obj : database.getAllSchemaObjects(
-                    DbObject.CONSTRAINT)) {
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
                 Constraint constraint = (Constraint) obj;
                 Constraint.Type constraintType = constraint.getConstraintType();
                 IndexColumn[] indexColumns = null;
@@ -1969,7 +2028,7 @@ public class MetaTable extends Table {
                             ordinalPosition,
                             // POSITION_IN_UNIQUE_CONSTRAINT
                             (constraintType == Constraint.Type.REFERENTIAL ? ordinalPosition : null)
-                        );
+                    );
                 }
             }
             break;

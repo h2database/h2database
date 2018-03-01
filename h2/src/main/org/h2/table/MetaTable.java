@@ -2014,9 +2014,31 @@ public class MetaTable extends Table {
                 if (indexColumns == null) {
                     continue;
                 }
+                ConstraintUnique referenced;
+                if (constraintType == Constraint.Type.REFERENTIAL) {
+                    referenced = lookupUniqueForReferential((ConstraintReferential) constraint);
+                } else {
+                    referenced = null;
+                }
                 for (int i = 0; i < indexColumns.length; i++) {
                     IndexColumn indexColumn = indexColumns[i];
                     String ordinalPosition = Integer.toString(i + 1);
+                    String positionInUniqueConstraint;
+                    if (constraintType == Constraint.Type.REFERENTIAL) {
+                        positionInUniqueConstraint = ordinalPosition;
+                        if (referenced != null) {
+                            Column c = ((ConstraintReferential) constraint).getRefColumns()[i].column;
+                            IndexColumn[] refColumns = referenced.getColumns();
+                            for (int j = 0; j < refColumns.length; j++) {
+                                if (refColumns[j].column.equals(c)) {
+                                    positionInUniqueConstraint = Integer.toString(j + 1);
+                                    break;
+                                }
+                            }
+                        }
+                    } else {
+                        positionInUniqueConstraint = null;
+                    }
                     add(rows,
                             // CONSTRAINT_CATALOG
                             catalog,
@@ -2035,7 +2057,7 @@ public class MetaTable extends Table {
                             // ORDINAL_POSITION
                             ordinalPosition,
                             // POSITION_IN_UNIQUE_CONSTRAINT
-                            (constraintType == Constraint.Type.REFERENTIAL ? ordinalPosition : null)
+                            positionInUniqueConstraint
                     );
                 }
             }
@@ -2051,7 +2073,13 @@ public class MetaTable extends Table {
                 if (hideTable(table, session)) {
                     continue;
                 }
-                Index index = constraint.getUniqueIndex();
+                // Should be referenced unique constraint, but H2 uses indexes instead.
+                // So try to find matching unique constraint first and there is no such
+                // constraint use index name to return something.
+                SchemaObject unique = lookupUniqueForReferential(constraint);
+                if (unique == null) {
+                    unique = constraint.getUniqueIndex();
+                }
                 add(rows,
                         // CONSTRAINT_CATALOG
                         catalog,
@@ -2062,10 +2090,9 @@ public class MetaTable extends Table {
                         // UNIQUE_CONSTRAINT_CATALOG
                         catalog,
                         // UNIQUE_CONSTRAINT_SCHEMA
-                        identifier(index.getSchema().getName()),
+                        identifier(unique.getSchema().getName()),
                         // UNIQUE_CONSTRAINT_NAME
-                        // Should be name of referenced unique constraint, but H2 uses indexes instead
-                        index.getName(),
+                        unique.getName(),
                         // MATCH_OPTION
                         "NONE",
                         // UPDATE_RULE
@@ -2095,6 +2122,19 @@ public class MetaTable extends Table {
         default:
             throw DbException.throwInternalError("action="+action);
         }
+    }
+
+    private static ConstraintUnique lookupUniqueForReferential(ConstraintReferential referential) {
+        Table table = referential.getRefTable();
+        for (Constraint c : table.getConstraints()) {
+            if (c.getConstraintType() == Constraint.Type.UNIQUE) {
+                ConstraintUnique unique = (ConstraintUnique) c;
+                if (unique.getReferencedColumns(table).equals(referential.getReferencedColumns(table))) {
+                    return unique;
+                }
+            }
+        }
+        return null;
     }
 
     @Override

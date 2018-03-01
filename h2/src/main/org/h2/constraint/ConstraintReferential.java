@@ -54,22 +54,6 @@ public class ConstraintReferential extends Constraint {
         return Constraint.Type.REFERENTIAL;
     }
 
-    private static void appendAction(StatementBuilder buff, ConstraintActionType action) {
-        switch (action) {
-        case CASCADE:
-            buff.append("CASCADE");
-            break;
-        case SET_DEFAULT:
-            buff.append("SET DEFAULT");
-            break;
-        case SET_NULL:
-            buff.append("SET NULL");
-            break;
-        default:
-            DbException.throwInternalError("action=" + action);
-        }
-    }
-
     /**
      * Create the SQL statement of this object so a copy of the table can be
      * made.
@@ -135,12 +119,10 @@ public class ConstraintReferential extends Constraint {
             buff.append(" INDEX ").append(refIndex.getSQL());
         }
         if (deleteAction != ConstraintActionType.RESTRICT) {
-            buff.append(" ON DELETE ");
-            appendAction(buff, deleteAction);
+            buff.append(" ON DELETE ").append(deleteAction.getSqlName());
         }
         if (updateAction != ConstraintActionType.RESTRICT) {
-            buff.append(" ON UPDATE ");
-            appendAction(buff, updateAction);
+            buff.append(" ON UPDATE ").append(updateAction.getSqlName());
         }
         return buff.append(" NOCHECK").toString();
     }

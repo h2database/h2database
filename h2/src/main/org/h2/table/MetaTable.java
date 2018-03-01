@@ -112,7 +112,8 @@ public class MetaTable extends Table {
     private static final int SYNONYMS = 29;
     private static final int TABLE_CONSTRAINTS = 30;
     private static final int KEY_COLUMN_USAGE = 31;
-    private static final int META_TABLE_TYPE_COUNT = KEY_COLUMN_USAGE + 1;
+    private static final int REFERENTIAL_CONSTRAINTS = 32;
+    private static final int META_TABLE_TYPE_COUNT = REFERENTIAL_CONSTRAINTS + 1;
 
     private final int type;
     private final int indexColumn;
@@ -589,6 +590,21 @@ public class MetaTable extends Table {
                     "POSITION_IN_UNIQUE_CONSTRAINT"
             );
             indexColumnName = "TABLE_NAME";
+            break;
+        }
+        case REFERENTIAL_CONSTRAINTS: {
+            setObjectName("REFERENTIAL_CONSTRAINTS");
+            cols = createColumns(
+                    "CONSTRAINT_CATALOG",
+                    "CONSTRAINT_SCHEMA",
+                    "CONSTRAINT_NAME",
+                    "UNIQUE_CONSTRAINT_CATALOG",
+                    "UNIQUE_CONSTRAINT_SCHEMA",
+                    "UNIQUE_CONSTRAINT_NAME",
+                    "MATCH_OPTION",
+                    "UPDATE_RULE",
+                    "DELETE_RULE"
+            );
             break;
         }
         default:
@@ -2022,6 +2038,41 @@ public class MetaTable extends Table {
                             (constraintType == Constraint.Type.REFERENTIAL ? ordinalPosition : null)
                     );
                 }
+            }
+            break;
+        }
+        case REFERENTIAL_CONSTRAINTS: {
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+                if (((Constraint) obj).getConstraintType() != Constraint.Type.REFERENTIAL) {
+                    continue;
+                }
+                ConstraintReferential constraint = (ConstraintReferential) obj;
+                Table table = constraint.getTable();
+                if (hideTable(table, session)) {
+                    continue;
+                }
+                Index index = constraint.getUniqueIndex();
+                add(rows,
+                        // CONSTRAINT_CATALOG
+                        catalog,
+                        // CONSTRAINT_SCHEMA
+                        identifier(constraint.getSchema().getName()),
+                        // CONSTRAINT_NAME
+                        identifier(constraint.getName()),
+                        // UNIQUE_CONSTRAINT_CATALOG
+                        catalog,
+                        // UNIQUE_CONSTRAINT_SCHEMA
+                        identifier(index.getSchema().getName()),
+                        // UNIQUE_CONSTRAINT_NAME
+                        // Should be name of referenced unique constraint, but H2 uses indexes instead
+                        index.getName(),
+                        // MATCH_OPTION
+                        "NONE",
+                        // UPDATE_RULE
+                        constraint.getUpdateAction().getSqlName(),
+                        // DELETE_RULE
+                        constraint.getDeleteAction().getSqlName()
+                );
             }
             break;
         }

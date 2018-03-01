@@ -1953,14 +1953,6 @@ public class MetaTable extends Table {
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
-                String constraintTypeAsString;
-                if (constraintType == Constraint.Type.PRIMARY_KEY) {
-                    constraintTypeAsString = "PRIMARY KEY";
-                } else if (constraintType == Constraint.Type.REFERENTIAL) {
-                    constraintTypeAsString = "FOREIGN KEY";
-                } else {
-                    constraintTypeAsString = constraintType.name();
-                }
                 add(rows,
                         // CONSTRAINT_CATALOG
                         catalog,
@@ -1969,7 +1961,7 @@ public class MetaTable extends Table {
                         // CONSTRAINT_NAME
                         identifier(constraint.getName()),
                         // CONSTRAINT_TYPE
-                        constraintTypeAsString,
+                        constraintType.getSqlName(),
                         // TABLE_CATALOG
                         catalog,
                         // TABLE_SCHEMA

@@ -1090,6 +1090,8 @@ public class TestMetaData extends TestBase {
         rs.next();
         assertEquals("QUERY_STATISTICS", rs.getString("TABLE_NAME"));
         rs.next();
+        assertEquals("REFERENTIAL_CONSTRAINTS", rs.getString("TABLE_NAME"));
+        rs.next();
         assertEquals("RIGHTS", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("ROLES", rs.getString("TABLE_NAME"));
@@ -1107,6 +1109,8 @@ public class TestMetaData extends TestBase {
         assertEquals("SYNONYMS", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("TABLES", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("TABLE_CONSTRAINTS", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("TABLE_PRIVILEGES", rs.getString("TABLE_NAME"));
         rs.next();

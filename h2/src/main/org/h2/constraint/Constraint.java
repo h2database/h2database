@@ -39,7 +39,23 @@ public abstract class Constraint extends SchemaObjectBase implements
         /**
          * The constraint type for referential constraints.
          */
-        REFERENTIAL
+        REFERENTIAL;
+
+        /**
+         * Get standard SQL type name.
+         *
+         * @return standard SQL type name
+         */
+        public String getSqlName() {
+            if (this == Constraint.Type.PRIMARY_KEY) {
+                return "PRIMARY KEY";
+            }
+            if (this == Constraint.Type.REFERENTIAL) {
+                return "FOREIGN KEY";
+            }
+            return name();
+        }
+
     }
 
     /**

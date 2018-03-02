@@ -110,8 +110,10 @@ public class MetaTable extends Table {
     private static final int SESSION_STATE = 27;
     private static final int QUERY_STATISTICS = 28;
     private static final int SYNONYMS = 29;
-    private static final int KEY_COLUMN_USAGE = 30;
-    private static final int META_TABLE_TYPE_COUNT = KEY_COLUMN_USAGE + 1;
+    private static final int TABLE_CONSTRAINTS = 30;
+    private static final int KEY_COLUMN_USAGE = 31;
+    private static final int REFERENTIAL_CONSTRAINTS = 32;
+    private static final int META_TABLE_TYPE_COUNT = REFERENTIAL_CONSTRAINTS + 1;
 
     private final int type;
     private final int indexColumn;
@@ -558,6 +560,22 @@ public class MetaTable extends Table {
             indexColumnName = "SYNONYM_NAME";
             break;
         }
+        case TABLE_CONSTRAINTS: {
+            setObjectName("TABLE_CONSTRAINTS");
+            cols = createColumns(
+                    "CONSTRAINT_CATALOG",
+                    "CONSTRAINT_SCHEMA",
+                    "CONSTRAINT_NAME",
+                    "CONSTRAINT_TYPE",
+                    "TABLE_CATALOG",
+                    "TABLE_SCHEMA",
+                    "TABLE_NAME",
+                    "IS_DEFERRABLE",
+                    "INITIALLY_DEFERRED"
+            );
+            indexColumnName = "TABLE_NAME";
+            break;
+        }
         case KEY_COLUMN_USAGE: {
             setObjectName("KEY_COLUMN_USAGE");
             cols = createColumns(
@@ -572,6 +590,21 @@ public class MetaTable extends Table {
                     "POSITION_IN_UNIQUE_CONSTRAINT"
             );
             indexColumnName = "TABLE_NAME";
+            break;
+        }
+        case REFERENTIAL_CONSTRAINTS: {
+            setObjectName("REFERENTIAL_CONSTRAINTS");
+            cols = createColumns(
+                    "CONSTRAINT_CATALOG",
+                    "CONSTRAINT_SCHEMA",
+                    "CONSTRAINT_NAME",
+                    "UNIQUE_CONSTRAINT_CATALOG",
+                    "UNIQUE_CONSTRAINT_SCHEMA",
+                    "UNIQUE_CONSTRAINT_NAME",
+                    "MATCH_OPTION",
+                    "UPDATE_RULE",
+                    "DELETE_RULE"
+            );
             break;
         }
         default:
@@ -1924,9 +1957,43 @@ public class MetaTable extends Table {
             }
             break;
         }
+        case TABLE_CONSTRAINTS: {
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+                Constraint constraint = (Constraint) obj;
+                Constraint.Type constraintType = constraint.getConstraintType();
+                Table table = constraint.getTable();
+                if (hideTable(table, session)) {
+                    continue;
+                }
+                String tableName = identifier(table.getName());
+                if (!checkIndex(session, tableName, indexFrom, indexTo)) {
+                    continue;
+                }
+                add(rows,
+                        // CONSTRAINT_CATALOG
+                        catalog,
+                        // CONSTRAINT_SCHEMA
+                        identifier(constraint.getSchema().getName()),
+                        // CONSTRAINT_NAME
+                        identifier(constraint.getName()),
+                        // CONSTRAINT_TYPE
+                        constraintType.getSqlName(),
+                        // TABLE_CATALOG
+                        catalog,
+                        // TABLE_SCHEMA
+                        identifier(table.getSchema().getName()),
+                        // TABLE_NAME
+                        tableName,
+                        // IS_DEFERRABLE
+                        "NO",
+                        // INITIALLY_DEFERRED
+                        "NO"
+                );
+            }
+            break;
+        }
         case KEY_COLUMN_USAGE: {
-            for (SchemaObject obj : database.getAllSchemaObjects(
-                    DbObject.CONSTRAINT)) {
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
                 Constraint constraint = (Constraint) obj;
                 Constraint.Type constraintType = constraint.getConstraintType();
                 IndexColumn[] indexColumns = null;
@@ -1947,9 +2014,31 @@ public class MetaTable extends Table {
                 if (indexColumns == null) {
                     continue;
                 }
+                ConstraintUnique referenced;
+                if (constraintType == Constraint.Type.REFERENTIAL) {
+                    referenced = lookupUniqueForReferential((ConstraintReferential) constraint);
+                } else {
+                    referenced = null;
+                }
                 for (int i = 0; i < indexColumns.length; i++) {
                     IndexColumn indexColumn = indexColumns[i];
                     String ordinalPosition = Integer.toString(i + 1);
+                    String positionInUniqueConstraint;
+                    if (constraintType == Constraint.Type.REFERENTIAL) {
+                        positionInUniqueConstraint = ordinalPosition;
+                        if (referenced != null) {
+                            Column c = ((ConstraintReferential) constraint).getRefColumns()[i].column;
+                            IndexColumn[] refColumns = referenced.getColumns();
+                            for (int j = 0; j < refColumns.length; j++) {
+                                if (refColumns[j].column.equals(c)) {
+                                    positionInUniqueConstraint = Integer.toString(j + 1);
+                                    break;
+                                }
+                            }
+                        }
+                    } else {
+                        positionInUniqueConstraint = null;
+                    }
                     add(rows,
                             // CONSTRAINT_CATALOG
                             catalog,
@@ -1968,9 +2057,49 @@ public class MetaTable extends Table {
                             // ORDINAL_POSITION
                             ordinalPosition,
                             // POSITION_IN_UNIQUE_CONSTRAINT
-                            (constraintType == Constraint.Type.REFERENTIAL ? ordinalPosition : null)
-                        );
+                            positionInUniqueConstraint
+                    );
                 }
+            }
+            break;
+        }
+        case REFERENTIAL_CONSTRAINTS: {
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+                if (((Constraint) obj).getConstraintType() != Constraint.Type.REFERENTIAL) {
+                    continue;
+                }
+                ConstraintReferential constraint = (ConstraintReferential) obj;
+                Table table = constraint.getTable();
+                if (hideTable(table, session)) {
+                    continue;
+                }
+                // Should be referenced unique constraint, but H2 uses indexes instead.
+                // So try to find matching unique constraint first and there is no such
+                // constraint use index name to return something.
+                SchemaObject unique = lookupUniqueForReferential(constraint);
+                if (unique == null) {
+                    unique = constraint.getUniqueIndex();
+                }
+                add(rows,
+                        // CONSTRAINT_CATALOG
+                        catalog,
+                        // CONSTRAINT_SCHEMA
+                        identifier(constraint.getSchema().getName()),
+                        // CONSTRAINT_NAME
+                        identifier(constraint.getName()),
+                        // UNIQUE_CONSTRAINT_CATALOG
+                        catalog,
+                        // UNIQUE_CONSTRAINT_SCHEMA
+                        identifier(unique.getSchema().getName()),
+                        // UNIQUE_CONSTRAINT_NAME
+                        unique.getName(),
+                        // MATCH_OPTION
+                        "NONE",
+                        // UPDATE_RULE
+                        constraint.getUpdateAction().getSqlName(),
+                        // DELETE_RULE
+                        constraint.getDeleteAction().getSqlName()
+                );
             }
             break;
         }
@@ -1993,6 +2122,19 @@ public class MetaTable extends Table {
         default:
             throw DbException.throwInternalError("action="+action);
         }
+    }
+
+    private static ConstraintUnique lookupUniqueForReferential(ConstraintReferential referential) {
+        Table table = referential.getRefTable();
+        for (Constraint c : table.getConstraints()) {
+            if (c.getConstraintType() == Constraint.Type.UNIQUE) {
+                ConstraintUnique unique = (ConstraintUnique) c;
+                if (unique.getReferencedColumns(table).equals(referential.getReferencedColumns(table))) {
+                    return unique;
+                }
+            }
+        }
+        return null;
     }
 
     @Override

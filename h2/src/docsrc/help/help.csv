@@ -284,7 +284,8 @@ ALTER SEQUENCE SEQ_ID RESTART WITH 1000
 
 "Commands (DDL)","ALTER TABLE ADD","
 ALTER TABLE [ IF EXISTS ] tableName ADD [ COLUMN ]
-{ [ IF NOT EXISTS ] columnName columnDefinition | ( { columnName columnDefinition } [,...] ) }
+{ [ IF NOT EXISTS ] columnName columnDefinition
+    | ( { columnName columnDefinition | constraint } [,...] ) }
 [ { { BEFORE | AFTER } columnName } | FIRST ]
 ","
 Adds a new column to a table.

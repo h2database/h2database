@@ -6927,7 +6927,7 @@ SELECT XD+1, XD-1, XD-XD FROM TEST;
 > rows: 4
 
 SELECT ID, CAST(XT AS DATE) T2D, CAST(XTS AS DATE) TS2D,
-CAST(XD AS TIME) D2T, CAST(XTS AS TIME) TS2T,
+CAST(XD AS TIME) D2T, CAST(XTS AS TIME(9)) TS2T,
 CAST(XT AS TIMESTAMP) D2TS, CAST(XD AS TIMESTAMP) D2TS FROM TEST;
 > ID   T2D        TS2D       D2T      TS2T               D2TS                  D2TS
 > ---- ---------- ---------- -------- ------------------ --------------------- ---------------------

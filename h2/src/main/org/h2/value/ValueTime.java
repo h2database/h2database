@@ -155,6 +155,25 @@ public class ValueTime extends Value {
     }
 
     @Override
+    public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
+        if (targetScale >= MAXIMUM_SCALE) {
+            return this;
+        }
+        if (targetScale < 0) {
+            throw DbException.getInvalidValueException("scale", targetScale);
+        }
+        long n = nanos;
+        long n2 = DateTimeUtils.convertScale(n, targetScale);
+        if (n2 == n) {
+            return this;
+        }
+        if (n2 >= DateTimeUtils.NANOS_PER_DAY) {
+            n2 = DateTimeUtils.NANOS_PER_DAY - 1;
+        }
+        return fromNanos(n2);
+    }
+
+    @Override
     protected int compareSecure(Value o, CompareMode mode) {
         return Long.compare(nanos, ((ValueTime) o).nanos);
     }

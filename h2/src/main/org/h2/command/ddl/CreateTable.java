@@ -11,7 +11,6 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.dml.Insert;
 import org.h2.command.dml.Query;
-import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
@@ -21,10 +20,8 @@ import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.table.Column;
-import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.util.ColumnNamer;
-import org.h2.util.New;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 
@@ -32,11 +29,9 @@ import org.h2.value.Value;
  * This class represents the statement
  * CREATE TABLE
  */
-public class CreateTable extends SchemaCommand {
+public class CreateTable extends CommandWithColumns {
 
     private final CreateTableData data = new CreateTableData();
-    private final ArrayList<DefineCommand> constraintCommands = New.arrayList();
-    private IndexColumn[] pkColumns;
     private boolean ifNotExists;
     private boolean onCommitDrop;
     private boolean onCommitTruncate;
@@ -62,36 +57,9 @@ public class CreateTable extends SchemaCommand {
         data.tableName = tableName;
     }
 
-    /**
-     * Add a column to this table.
-     *
-     * @param column the column to add
-     */
+    @Override
     public void addColumn(Column column) {
         data.columns.add(column);
-    }
-
-    /**
-     * Add a constraint statement to this statement.
-     * The primary key definition is one possible constraint statement.
-     *
-     * @param command the statement to add
-     */
-    public void addConstraintCommand(DefineCommand command) {
-        if (command instanceof CreateIndex) {
-            constraintCommands.add(command);
-        } else {
-            AlterTableAddConstraint con = (AlterTableAddConstraint) command;
-            boolean alreadySet;
-            if (con.getType() == CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY) {
-                alreadySet = setPrimaryKeyColumns(con.getIndexColumns());
-            } else {
-                alreadySet = false;
-            }
-            if (!alreadySet) {
-                constraintCommands.add(command);
-            }
-        }
     }
 
     public void setIfNotExists(boolean ifNotExists) {
@@ -125,35 +93,12 @@ public class CreateTable extends SchemaCommand {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
         }
-        if (pkColumns != null) {
-            for (Column c : data.columns) {
-                for (IndexColumn idxCol : pkColumns) {
-                    if (c.getName().equals(idxCol.columnName)) {
-                        c.setNullable(false);
-                    }
-                }
-            }
-        }
+        changePrimaryKeysToNotNull(data.columns);
         data.id = getObjectId();
         data.create = create;
         data.session = session;
         Table table = getSchema().createTable(data);
-        ArrayList<Sequence> sequences = New.arrayList();
-        for (Column c : data.columns) {
-            if (c.isAutoIncrement()) {
-                int objId = getObjectId();
-                c.convertAutoIncrementToSequence(session, getSchema(), objId, data.temporary);
-                if (!Constants.CLUSTERING_DISABLED
-                        .equals(session.getDatabase().getCluster())) {
-                    throw DbException.getUnsupportedException(
-                            "CLUSTERING && auto-increment columns");
-                }
-            }
-            Sequence seq = c.getSequence();
-            if (seq != null) {
-                sequences.add(seq);
-            }
-        }
+        ArrayList<Sequence> sequences = generateSequences(data.columns, data.temporary);
         table.setComment(comment);
         if (isSessionTemporary) {
             if (onCommitDrop) {
@@ -174,10 +119,7 @@ public class CreateTable extends SchemaCommand {
             for (Sequence sequence : sequences) {
                 table.addSequence(sequence);
             }
-            for (DefineCommand command : constraintCommands) {
-                command.setTransactional(transactional);
-                command.update();
-            }
+            createConstraints();
             if (asQuery != null) {
                 boolean old = session.isUndoLogEnabled();
                 try {
@@ -266,30 +208,6 @@ public class CreateTable extends SchemaCommand {
             Column col = new Column(name, type, precision, scale, displaySize, enumerators);
             addColumn(col);
         }
-    }
-
-    /**
-     * Sets the primary key columns, but also check if a primary key
-     * with different columns is already defined.
-     *
-     * @param columns the primary key columns
-     * @return true if the same primary key columns where already set
-     */
-    private boolean setPrimaryKeyColumns(IndexColumn[] columns) {
-        if (pkColumns != null) {
-            int len = columns.length;
-            if (len != pkColumns.length) {
-                throw DbException.get(ErrorCode.SECOND_PRIMARY_KEY);
-            }
-            for (int i = 0; i < len; i++) {
-                if (!columns[i].columnName.equals(pkColumns[i].columnName)) {
-                    throw DbException.get(ErrorCode.SECOND_PRIMARY_KEY);
-                }
-            }
-            return true;
-        }
-        this.pkColumns = columns;
-        return false;
     }
 
     public void setPersistIndexes(boolean persistIndexes) {

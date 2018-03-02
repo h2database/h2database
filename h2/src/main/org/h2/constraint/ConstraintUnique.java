@@ -54,7 +54,7 @@ public class ConstraintUnique extends Constraint {
         if (comment != null) {
             buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
         }
-        buff.append(' ').append(getTypeName()).append('(');
+        buff.append(' ').append(getConstraintType().getSqlName()).append('(');
         for (IndexColumn c : columns) {
             buff.appendExceptFirst(", ");
             buff.append(Parser.quoteIdentifier(c.column.getName()));
@@ -64,13 +64,6 @@ public class ConstraintUnique extends Constraint {
             buff.append(" INDEX ").append(index.getSQL());
         }
         return buff.toString();
-    }
-
-    private String getTypeName() {
-        if (primaryKey) {
-            return "PRIMARY KEY";
-        }
-        return "UNIQUE";
     }
 
     @Override

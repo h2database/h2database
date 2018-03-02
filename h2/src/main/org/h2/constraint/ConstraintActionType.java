@@ -24,5 +24,21 @@ public enum ConstraintActionType {
     /**
      * The action is to set the value to NULL.
      */
-    SET_NULL
+    SET_NULL;
+
+    /**
+     * Get standard SQL type name.
+     *
+     * @return standard SQL type name
+     */
+    public String getSqlName() {
+        if (this == ConstraintActionType.SET_DEFAULT) {
+            return "SET DEFAULT";
+        }
+        if (this == SET_NULL) {
+            return "SET NULL";
+        }
+        return name();
+    }
+
 }

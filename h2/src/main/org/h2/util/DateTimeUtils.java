@@ -6,7 +6,6 @@
  */
 package org.h2.util;
 
-import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -20,7 +19,6 @@ import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
-import org.h2.value.ValueDecimal;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
@@ -70,6 +68,12 @@ public class DateTimeUtils {
      */
     private static final int[] DAYS_OFFSET = { 0, 31, 61, 92, 122, 153, 184,
             214, 245, 275, 306, 337, 366 };
+
+    /**
+     * Multipliers for {@link #convertScale(long, int)}.
+     */
+    private static final int[] CONVERT_SCALE_TABLE = { 1_000_000_000, 100_000_000,
+            10_000_000, 1_000_000, 100_000, 10_000, 1_000, 100, 10 };
 
     /**
      * The thread local. Can not override initialValue because this would result
@@ -1458,11 +1462,16 @@ public class DateTimeUtils {
      * @return scaled value
      */
     public static long convertScale(long nanosOfDay, int scale) {
-        BigDecimal bd = BigDecimal.valueOf(nanosOfDay);
-        bd = bd.movePointLeft(9);
-        bd = ValueDecimal.setScale(bd, scale);
-        bd = bd.movePointRight(9);
-        return bd.longValue();
+        if (scale >= 9) {
+            return nanosOfDay;
+        }
+        int m = CONVERT_SCALE_TABLE[scale];
+        long r = nanosOfDay / m;
+        int d = (int) (nanosOfDay - (r * m));
+        if (d >= m >>> 1) {
+            r++;
+        }
+        return r * m;
     }
 
 }

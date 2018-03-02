@@ -17,8 +17,8 @@ import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
 
 /**
- * An index for a function that returns a result set. This index can only scan
- * through all rows, search is not supported.
+ * An index for a function that returns a result set. Search in this index
+ * performs scan over all rows and should be avoided.
  */
 public class FunctionIndex extends BaseIndex {
 
@@ -45,11 +45,16 @@ public class FunctionIndex extends BaseIndex {
     }
 
     @Override
+    public boolean isFindUsingFullTableScan() {
+        return true;
+    }
+
+    @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         if (functionTable.isBufferResultSetToLocalTemp()) {
-            return new FunctionCursor(session, functionTable.getResult(session));
+            return new FunctionCursor(this, first, last, session, functionTable.getResult(session));
         }
-        return new FunctionCursorResultSet(session,
+        return new FunctionCursorResultSet(this, first, last, session,
                 functionTable.getResultSet(session));
     }
 

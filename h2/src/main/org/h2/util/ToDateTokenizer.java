@@ -6,7 +6,6 @@
 package org.h2.util;
 
 import static java.lang.String.format;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -112,11 +111,6 @@ class ToDateTokenizer {
      * are inlined
      */
     static final InlineParslet PARSLET_INLINE = new InlineParslet();
-
-    /**
-     * The number of milliseconds in a day.
-     */
-    static final int MILLIS_IN_HOUR = 60 * 60 * 1000;
 
     /**
      * Interface of the classes that can parse a specialized small bit of the
@@ -501,7 +495,7 @@ class ToDateTokenizer {
     static String setByName(ToDateParser params, int field) {
         String inputFragmentStr = null;
         String s = params.getInputStr();
-        String[] values = ToChar.getNames(field);
+        String[] values = ToChar.getDateNames(field);
         for (int i = 0; i < values.length; i++) {
             String dayName = values[i];
             if (dayName == null) {

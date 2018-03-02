@@ -112,7 +112,8 @@ public class Function extends Expression implements FunctionCall {
     /**
      * Pseudo functions for DATEADD, DATEDIFF, and EXTRACT.
      */
-    public static final int MILLISECOND = 126, EPOCH = 127, MICROSECOND = 128, NANOSECOND = 129;
+    public static final int MILLISECOND = 126, EPOCH = 127, MICROSECOND = 128, NANOSECOND = 129,
+            TIMEZONE_HOUR = 130, TIMEZONE_MINUTE = 131;
 
     public static final int DATABASE = 150, USER = 151, CURRENT_USER = 152,
             IDENTITY = 153, SCOPE_IDENTITY = 154, AUTOCOMMIT = 155,
@@ -209,6 +210,8 @@ public class Function extends Expression implements FunctionCall {
         DATE_PART.put("MCS", MICROSECOND);
         DATE_PART.put("NANOSECOND", NANOSECOND);
         DATE_PART.put("NS", NANOSECOND);
+        DATE_PART.put("TIMEZONE_HOUR", TIMEZONE_HOUR);
+        DATE_PART.put("TIMEZONE_MINUTE", TIMEZONE_MINUTE);
 
         // SOUNDEX_INDEX
         String index = "7AEIOUY8HW1BFPV2CGJKQSXZ3DT4L5MN6R";
@@ -1921,6 +1924,16 @@ public class Function extends Expression implements FunctionCall {
             break;
         case NANOSECOND:
             break;
+        case TIMEZONE_HOUR:
+            count *= 60;
+            //$FALL-THROUGH$
+        case TIMEZONE_MINUTE: {
+            if (!(v instanceof ValueTimestampTimeZone)) {
+                throw DbException.getUnsupportedException("DATEADD " + part);
+            }
+            count += ((ValueTimestampTimeZone) v).getTimeZoneOffsetMins();
+            return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos, (short) count);
+        }
         default:
             throw DbException.getUnsupportedException("DATEADD " + part);
         }
@@ -2013,6 +2026,26 @@ public class Function extends Expression implements FunctionCall {
                     - (DateTimeUtils.monthFromDateValue(dateValue1) - 1) / 3;
         case YEAR:
             return DateTimeUtils.yearFromDateValue(dateValue2) - DateTimeUtils.yearFromDateValue(dateValue1);
+        case TIMEZONE_HOUR:
+        case TIMEZONE_MINUTE: {
+            int offsetMinutes1;
+            if (v1 instanceof ValueTimestampTimeZone) {
+                offsetMinutes1 = ((ValueTimestampTimeZone) v1).getTimeZoneOffsetMins();
+            } else {
+                offsetMinutes1 = DateTimeUtils.getTimeZoneOffsetMillis(null, dateValue1, a1[1]);
+            }
+            int offsetMinutes2;
+            if (v2 instanceof ValueTimestampTimeZone) {
+                offsetMinutes2 = ((ValueTimestampTimeZone) v2).getTimeZoneOffsetMins();
+            } else {
+                offsetMinutes2 = DateTimeUtils.getTimeZoneOffsetMillis(null, dateValue2, a2[1]);
+            }
+            if (field == TIMEZONE_HOUR) {
+                return (offsetMinutes2 / 60) - (offsetMinutes1 / 60);
+            } else {
+                return offsetMinutes2 - offsetMinutes1;
+            }
+        }
         default:
             throw DbException.getUnsupportedException("DATEDIFF " + part);
         }
@@ -2886,39 +2919,52 @@ public class Function extends Expression implements FunctionCall {
         long dateValue = a[0];
         long timeNanos = a[1];
         switch (field) {
-        case Function.YEAR:
+        case YEAR:
             return DateTimeUtils.yearFromDateValue(dateValue);
-        case Function.MONTH:
+        case MONTH:
             return DateTimeUtils.monthFromDateValue(dateValue);
-        case Function.DAY_OF_MONTH:
+        case DAY_OF_MONTH:
             return DateTimeUtils.dayFromDateValue(dateValue);
-        case Function.HOUR:
+        case HOUR:
             return (int) (timeNanos / 3_600_000_000_000L % 24);
-        case Function.MINUTE:
+        case MINUTE:
             return (int) (timeNanos / 60_000_000_000L % 60);
-        case Function.SECOND:
+        case SECOND:
             return (int) (timeNanos / 1_000_000_000 % 60);
-        case Function.MILLISECOND:
+        case MILLISECOND:
             return (int) (timeNanos / 1_000_000 % 1_000);
-        case Function.MICROSECOND:
+        case MICROSECOND:
             return (int) (timeNanos / 1_000 % 1_000_000);
-        case Function.NANOSECOND:
+        case NANOSECOND:
             return (int) (timeNanos % 1_000_000_000);
-        case Function.DAY_OF_YEAR:
+        case DAY_OF_YEAR:
             return DateTimeUtils.getDayOfYear(dateValue);
-        case Function.DAY_OF_WEEK:
+        case DAY_OF_WEEK:
             return DateTimeUtils.getSundayDayOfWeek(dateValue);
-        case Function.WEEK:
+        case WEEK:
             GregorianCalendar gc = DateTimeUtils.getCalendar();
             return DateTimeUtils.getWeekOfYear(dateValue, gc.getFirstDayOfWeek() - 1, gc.getMinimalDaysInFirstWeek());
-        case Function.QUARTER:
+        case QUARTER:
             return (DateTimeUtils.monthFromDateValue(dateValue) - 1) / 3 + 1;
-        case Function.ISO_YEAR:
+        case ISO_YEAR:
             return DateTimeUtils.getIsoWeekYear(dateValue);
-        case Function.ISO_WEEK:
+        case ISO_WEEK:
             return DateTimeUtils.getIsoWeekOfYear(dateValue);
-        case Function.ISO_DAY_OF_WEEK:
+        case ISO_DAY_OF_WEEK:
             return DateTimeUtils.getIsoDayOfWeek(dateValue);
+        case TIMEZONE_HOUR:
+        case TIMEZONE_MINUTE: {
+            int offsetMinutes;
+            if (date instanceof ValueTimestampTimeZone) {
+                offsetMinutes = ((ValueTimestampTimeZone) date).getTimeZoneOffsetMins();
+            } else {
+                offsetMinutes = DateTimeUtils.getTimeZoneOffsetMillis(null, dateValue, timeNanos);
+            }
+            if (field == TIMEZONE_HOUR) {
+                return offsetMinutes / 60;
+            }
+            return offsetMinutes % 60;
+        }
         }
         throw DbException.getUnsupportedException("getDatePart(" + date + ", " + field + ')');
     }

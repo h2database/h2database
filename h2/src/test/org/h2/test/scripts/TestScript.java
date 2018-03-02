@@ -82,10 +82,11 @@ public class TestScript extends TestBase {
         reconnectOften = !config.memory && config.big;
 
         testScript("testScript.sql");
+        testScript("derived-column-names.sql");
+        testScript("information_schema.sql");
+        testScript("joins.sql");
         testScript("altertable-index-reuse.sql");
         testScript("query-optimisations.sql");
-        testScript("commands-dml-script.sql");
-        testScript("commands-dml-create-view.sql");
         String decimal2;
         if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
             decimal2 = "decimal_decimal";
@@ -100,6 +101,12 @@ public class TestScript extends TestBase {
                 "uuid", "varchar", "varchar-ignorecase" }) {
             testScript("datatypes/" + s + ".sql");
         }
+        for (String s : new String[] { "alterTableAdd", "createView" }) {
+            testScript("ddl/" + s + ".sql");
+        }
+        for (String s : new String[] { "insertIgnore", "mergeUsing", "script", "with" }) {
+            testScript("dml/" + s + ".sql");
+        }
         for (String s : new String[] { "avg", "bit-and", "bit-or", "count",
                 "group-concat", "max", "median", "min", "selectivity", "stddev-pop",
                 "stddev-samp", "sum", "var-pop", "var-samp" }) {
@@ -111,7 +118,7 @@ public class TestScript extends TestBase {
                 "expand", "floor", "hash", "length", "log", "mod", "pi",
                 "power", "radians", "rand", "random-uuid", "round",
                 "roundmagic", "secure-rand", "sign", "sin", "sinh", "sqrt",
-                "tan", "tanh", "trunc", "truncate", "zero" }) {
+                "tan", "tanh", "truncate", "zero" }) {
             testScript("functions/numeric/" + s + ".sql");
         }
         for (String s : new String[] { "ascii", "bit-length", "char", "concat",
@@ -140,11 +147,8 @@ public class TestScript extends TestBase {
                 "current-time", "dateadd", "datediff", "dayname",
                 "day-of-month", "day-of-week", "day-of-year", "extract",
                 "formatdatetime", "hour", "minute", "month", "monthname",
-                "parsedatetime", "quarter", "second", "week", "year" }) {
+                "parsedatetime", "quarter", "second", "truncate", "week", "year" }) {
             testScript("functions/timeanddate/" + s + ".sql");
-        }
-        for (String s : new String[] { "insertIgnore", "mergeUsing", "with" }) {
-            testScript("dml/" + s + ".sql");
         }
         deleteDb("script");
         System.out.flush();

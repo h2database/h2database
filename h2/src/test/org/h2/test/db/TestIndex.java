@@ -10,18 +10,24 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.api.ErrorCode;
+import org.h2.command.dml.Select;
 import org.h2.result.SortOrder;
 import org.h2.test.TestBase;
+import org.h2.tools.SimpleResultSet;
+import org.h2.value.ValueInt;
 
 /**
  * Index tests.
  */
 public class TestIndex extends TestBase {
+
+    private static int testFunctionIndexCounter;
 
     private Connection conn;
     private Statement stat;
@@ -88,6 +94,8 @@ public class TestIndex extends TestBase {
         testHashIndex(false, true);
 
         testMultiColumnHashIndex();
+
+        testFunctionIndex();
 
         conn.close();
         deleteDb("index");
@@ -700,6 +708,41 @@ public class TestIndex extends TestBase {
             trace(buff.toString());
         }
         trace("---done---");
+    }
+
+    public static ResultSet testFunctionIndexFunction() {
+        // There are additional callers like JdbcConnection.prepareCommand() and
+        // CommandContainer.recompileIfRequired()
+        for (StackTraceElement element : Thread.currentThread().getStackTrace()) {
+            if (element.getClassName().startsWith(Select.class.getName())) {
+                testFunctionIndexCounter++;
+                break;
+            }
+        }
+        SimpleResultSet rs = new SimpleResultSet();
+        rs.addColumn("ID", Types.INTEGER, ValueInt.PRECISION, 0);
+        rs.addColumn("VALUE", Types.INTEGER, ValueInt.PRECISION, 0);
+        rs.addRow(1, 10);
+        rs.addRow(2, 20);
+        rs.addRow(3, 30);
+        return rs;
+    }
+
+    private void testFunctionIndex() throws SQLException {
+        testFunctionIndexCounter = 0;
+        stat.execute("CREATE ALIAS TEST_INDEX FOR \"" + TestIndex.class.getName() + ".testFunctionIndexFunction\"");
+        try (ResultSet rs = stat.executeQuery("SELECT * FROM TEST_INDEX() WHERE ID = 1 OR ID = 3")) {
+            assertTrue(rs.next());
+            assertEquals(1, rs.getInt(1));
+            assertEquals(10, rs.getInt(2));
+            assertTrue(rs.next());
+            assertEquals(3, rs.getInt(1));
+            assertEquals(30, rs.getInt(2));
+            assertFalse(rs.next());
+        } finally {
+            stat.execute("DROP ALIAS TEST_INDEX");
+        }
+        assertEquals(1, testFunctionIndexCounter);
     }
 
 }

@@ -1348,7 +1348,7 @@ public class Parser {
         return command;
     }
 
-    private TableFilter readTableFilter(boolean fromOuter) {
+    private TableFilter readTableFilter() {
         Table table;
         String alias = null;
         if (readIf("(")) {
@@ -1368,18 +1368,16 @@ public class Parser {
                         query, currentSelect);
             } else {
                 TableFilter top;
-                if (database.getSettings().nestedJoins) {
-                    top = readTableFilter(false);
-                    top = readJoin(top, currentSelect, false, false);
-                    top = getNested(top);
-                } else {
-                    top = readTableFilter(fromOuter);
-                    top = readJoin(top, currentSelect, false, fromOuter);
-                }
+                top = readTableFilter();
+                top = readJoin(top);
                 read(")");
                 alias = readFromAlias(null);
                 if (alias != null) {
                     top.setAlias(alias);
+                    ArrayList<String> derivedColumnNames = readDerivedColumnNames();
+                    if (derivedColumnNames != null) {
+                        top.setDerivedColumns(derivedColumnNames);
+                    }
                 }
                 return top;
             }
@@ -1432,6 +1430,7 @@ public class Parser {
                 table = readTableOrView(tableName);
             }
         }
+        ArrayList<String> derivedColumnNames = null;
         IndexHints indexHints = null;
         // for backward compatibility, handle case where USE is a table alias
         if (readIf("USE")) {
@@ -1439,10 +1438,12 @@ public class Parser {
                 indexHints = parseIndexHints(table);
             } else {
                 alias = "USE";
+                derivedColumnNames = readDerivedColumnNames();
             }
         } else {
             alias = readFromAlias(alias);
             if (alias != null) {
+                derivedColumnNames = readDerivedColumnNames();
                 // if alias present, a second chance to parse index hints
                 if (readIf("USE")) {
                     read("INDEX");
@@ -1454,8 +1455,12 @@ public class Parser {
         if (table.isView() && table.isTableExpression() && alias == null) {
             alias = table.getName();
         }
-        return new TableFilter(session, table, alias, rightsChecked,
+        TableFilter filter = new TableFilter(session, table, alias, rightsChecked,
                 currentSelect, orderInFrom++, indexHints);
+        if (derivedColumnNames != null) {
+            filter.setDerivedColumns(derivedColumnNames);
+        }
+        return filter;
     }
 
     private IndexHints parseIndexHints(Table table) {
@@ -1489,6 +1494,18 @@ public class Parser {
         // well)
         List<String> excludeIdentifiers = Arrays.asList("LEFT", "RIGHT", "FULL");
         return readFromAlias(alias, excludeIdentifiers);
+    }
+
+    private ArrayList<String> readDerivedColumnNames() {
+        if (readIf("(")) {
+            ArrayList<String> derivedColumnNames = New.arrayList();
+            do {
+                derivedColumnNames.add(readAliasIdentifier());
+            } while (readIf(","));
+            read(")");
+            return derivedColumnNames;
+        }
+        return null;
     }
 
     private Prepared parseTruncate() {
@@ -1722,92 +1739,58 @@ public class Parser {
         return command;
     }
 
-    private TableFilter readJoin(TableFilter top, Select command,
-            boolean nested, boolean fromOuter) {
-        boolean joined = false;
+    private TableFilter readJoin(TableFilter top) {
         TableFilter last = top;
-        boolean nestedJoins = database.getSettings().nestedJoins;
         while (true) {
+            TableFilter join;
             if (readIf("RIGHT")) {
                 readIf("OUTER");
                 read("JOIN");
-                joined = true;
                 // the right hand side is the 'inner' table usually
-                TableFilter newTop = readTableFilter(fromOuter);
-                newTop = readJoin(newTop, command, nested, true);
+                join = readTableFilter();
+                join = readJoin(join);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                if (nestedJoins) {
-                    top = getNested(top);
-                    newTop.addJoin(top, true, false, on);
-                } else {
-                    newTop.addJoin(top, true, false, on);
-                }
-                top = newTop;
-                last = newTop;
+                addJoin(join, top, true, on);
+                top = join;
             } else if (readIf("LEFT")) {
                 readIf("OUTER");
                 read("JOIN");
-                joined = true;
-                TableFilter join = readTableFilter(true);
-                if (nestedJoins) {
-                    join = readJoin(join, command, true, true);
-                } else {
-                    top = readJoin(top, command, false, true);
-                }
+                join = readTableFilter();
+                join = readJoin(join);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                top.addJoin(join, true, false, on);
-                last = join;
+                addJoin(top, join, true, on);
             } else if (readIf("FULL")) {
                 throw getSyntaxError();
             } else if (readIf("INNER")) {
                 read("JOIN");
-                joined = true;
-                TableFilter join = readTableFilter(fromOuter);
-                top = readJoin(top, command, false, false);
+                join = readTableFilter();
+                top = readJoin(top);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                if (nestedJoins) {
-                    top.addJoin(join, false, false, on);
-                } else {
-                    top.addJoin(join, fromOuter, false, on);
-                }
-                last = join;
+                addJoin(top, join, false, on);
             } else if (readIf("JOIN")) {
-                joined = true;
-                TableFilter join = readTableFilter(fromOuter);
-                top = readJoin(top, command, false, false);
+                join = readTableFilter();
+                top = readJoin(top);
                 Expression on = null;
                 if (readIf("ON")) {
                     on = readExpression();
                 }
-                if (nestedJoins) {
-                    top.addJoin(join, false, false, on);
-                } else {
-                    top.addJoin(join, fromOuter, false, on);
-                }
-                last = join;
+                addJoin(top, join, false, on);
             } else if (readIf("CROSS")) {
                 read("JOIN");
-                joined = true;
-                TableFilter join = readTableFilter(fromOuter);
-                if (nestedJoins) {
-                    top.addJoin(join, false, false, null);
-                } else {
-                    top.addJoin(join, fromOuter, false, null);
-                }
-                last = join;
+                join = readTableFilter();
+                addJoin(top, join, false, null);
             } else if (readIf("NATURAL")) {
                 read("JOIN");
-                joined = true;
-                TableFilter join = readTableFilter(fromOuter);
+                join = readTableFilter();
                 Column[] tableCols = last.getTable().getColumns();
                 Column[] joinCols = join.getTable().getColumns();
                 String tableSchema = last.getTable().getSchema().getName();
@@ -1836,29 +1819,35 @@ public class Parser {
                         }
                     }
                 }
-                if (nestedJoins) {
-                    top.addJoin(join, false, nested, on);
-                } else {
-                    top.addJoin(join, fromOuter, false, on);
-                }
-                last = join;
+                addJoin(top, join, false, on);
             } else {
                 break;
             }
-        }
-        if (nested && joined) {
-            top = getNested(top);
+            last = join;
         }
         return top;
     }
 
-    private TableFilter getNested(TableFilter n) {
-        String joinTable = Constants.PREFIX_JOIN + parseIndex;
-        TableFilter top = new TableFilter(session, getDualTable(true),
-                joinTable, rightsChecked, currentSelect, n.getOrderInFrom(),
-                null);
-        top.addJoin(n, false, true, null);
-        return top;
+    /**
+     * Add one join to another. This method creates nested join between them if
+     * required.
+     *
+     * @param top parent join
+     * @param join child join
+     * @param outer if child join is an outer join
+     * @param on the join condition
+     * @see TableFilter#addJoin(TableFilter, boolean, Expression)
+     */
+    private void addJoin(TableFilter top, TableFilter join, boolean outer, Expression on) {
+        if (join.getJoin() != null) {
+            String joinTable = Constants.PREFIX_JOIN + parseIndex;
+            TableFilter n = new TableFilter(session, getDualTable(true),
+                    joinTable, rightsChecked, currentSelect, join.getOrderInFrom(),
+                    null);
+            n.setNestedJoin(join);
+            join = n;
+        }
+        top.addJoin(join, outer, on);
     }
 
     private Prepared parseExecute() {
@@ -2144,7 +2133,7 @@ public class Parser {
 
     private void parseSelectSimpleFromPart(Select command) {
         do {
-            TableFilter filter = readTableFilter(false);
+            TableFilter filter = readTableFilter();
             parseJoinTableFilter(filter, command);
         } while (readIf(","));
 
@@ -2189,7 +2178,7 @@ public class Parser {
     }
 
     private void parseJoinTableFilter(TableFilter top, final Select command) {
-        top = readJoin(top, command, false, top.isJoinOuter());
+        top = readJoin(top);
         command.addTableFilter(top, true);
         boolean isOuter = false;
         while (true) {
@@ -2530,8 +2519,7 @@ public class Parser {
                                 int idx = filters.indexOf(rightFilter);
                                 if (idx >= 0) {
                                     filters.remove(idx);
-                                    leftFilter.addJoin(rightFilter, true,
-                                            false, r);
+                                    leftFilter.addJoin(rightFilter, true, r);
                                 } else {
                                     rightFilter.mapAndAddFilter(r);
                                 }
@@ -3137,17 +3125,52 @@ public class Parser {
                     read("FOR");
                     Sequence sequence = readSequence();
                     r = new SequenceValue(sequence);
-                } else if (equalsToken("TIMESTAMP", name) && readIf("WITH")) {
-                    read("TIME");
-                    read("ZONE");
+                } else if (equalsToken("TIME", name)) {
+                    boolean without = readIf("WITHOUT");
+                    if (without) {
+                        read("TIME");
+                        read("ZONE");
+                    }
                     if (currentTokenType != VALUE
                             || currentValue.getType() != Value.STRING) {
-                        throw getSyntaxError();
+                        if (without) {
+                            throw getSyntaxError();
+                        }
+                        r = new ExpressionColumn(database, null, null, name);
+                    } else {
+                        String time = currentValue.getString();
+                        read();
+                        r = ValueExpression.get(ValueTime.parse(time));
                     }
-                    String timestamp = currentValue.getString();
-                    read();
-                    r = ValueExpression
-                            .get(ValueTimestampTimeZone.parse(timestamp));
+                } else if (equalsToken("TIMESTAMP", name)) {
+                    if (readIf("WITH")) {
+                        read("TIME");
+                        read("ZONE");
+                        if (currentTokenType != VALUE
+                                || currentValue.getType() != Value.STRING) {
+                            throw getSyntaxError();
+                        }
+                        String timestamp = currentValue.getString();
+                        read();
+                        r = ValueExpression.get(ValueTimestampTimeZone.parse(timestamp));
+                    } else {
+                        boolean without = readIf("WITHOUT");
+                        if (without) {
+                            read("TIME");
+                            read("ZONE");
+                        }
+                        if (currentTokenType != VALUE
+                                || currentValue.getType() != Value.STRING) {
+                            if (without) {
+                                throw getSyntaxError();
+                            }
+                            r = new ExpressionColumn(database, null, null, name);
+                        } else {
+                            String timestamp = currentValue.getString();
+                            read();
+                            r = ValueExpression.get(ValueTimestamp.parse(timestamp, database.getMode()));
+                        }
+                    }
                 } else if (currentTokenType == VALUE &&
                         currentValue.getType() == Value.STRING) {
                     if (equalsToken("DATE", name) ||
@@ -3155,13 +3178,11 @@ public class Parser {
                         String date = currentValue.getString();
                         read();
                         r = ValueExpression.get(ValueDate.parse(date));
-                    } else if (equalsToken("TIME", name) ||
-                            equalsToken("T", name)) {
+                    } else if (equalsToken("T", name)) {
                         String time = currentValue.getString();
                         read();
                         r = ValueExpression.get(ValueTime.parse(time));
-                    } else if (equalsToken("TIMESTAMP", name) ||
-                            equalsToken("TS", name)) {
+                    } else if (equalsToken("TS", name)) {
                         String timestamp = currentValue.getString();
                         read();
                         r = ValueExpression
@@ -4328,18 +4349,21 @@ public class Parser {
             if (readIf("VARYING")) {
                 original += " VARYING";
             }
+        } else if (readIf("TIME")) {
+            if (readIf("WITHOUT")) {
+                read("TIME");
+                read("ZONE");
+                original += " WITHOUT TIME ZONE";
+            }
         } else if (readIf("TIMESTAMP")) {
             if (readIf("WITH")) {
-                // originally we used TIMEZONE, which turns out not to be
-                // standards-compliant, but lets keep backwards compatibility
-                if (readIf("TIMEZONE")) {
-                    read("TIMEZONE");
-                    original += " WITH TIMEZONE";
-                } else {
-                    read("TIME");
-                    read("ZONE");
-                    original += " WITH TIME ZONE";
-                }
+                read("TIME");
+                read("ZONE");
+                original += " WITH TIME ZONE";
+            } else if (readIf("WITHOUT")) {
+                read("TIME");
+                read("ZONE");
+                original += " WITHOUT TIME ZONE";
             }
         } else {
             regular = true;
@@ -4421,6 +4445,18 @@ public class Parser {
                     original += ")";
                 }
                 read(")");
+            }
+        } else if (dataType.type == Value.DOUBLE && original.equals("FLOAT")) {
+            if (readIf("(")) {
+                int p = readPositiveInt();
+                read(")");
+                if (p > 53) {
+                    throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(p));
+                }
+                if (p <= 24) {
+                    dataType = DataType.getDataType(Value.FLOAT);
+                }
+                original = original + '(' + p + ')';
             }
         } else if (dataType.type == Value.ENUM) {
             if (readIf("(")) {
@@ -6265,6 +6301,8 @@ public class Parser {
             command.setAddBefore(readColumnIdentifier());
         } else if (readIf("AFTER")) {
             command.setAddAfter(readColumnIdentifier());
+        } else if (readIf("FIRST")) {
+            command.setAddFirst();
         }
         command.setNewColumns(columnsToAdd);
         return command;

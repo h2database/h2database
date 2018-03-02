@@ -1695,12 +1695,22 @@ public abstract class TestBase {
     }
 
     /**
+     * Get the name of the test.
+     *
      * @return the name of the test class
      */
     public String getTestName() {
         return getClass().getSimpleName();
     }
 
+    /**
+     * Build a child process.
+     *
+     * @param name the name
+     * @param childClass the class
+     * @param jvmArgs the argument list
+     * @return the process builder
+     */
     public ProcessBuilder buildChild(String name, Class<? extends TestBase> childClass,
             String... jvmArgs) {
         List<String> args = new ArrayList<>(16);
@@ -1720,8 +1730,7 @@ public abstract class TestBase {
         return processBuilder;
     }
 
-    public abstract static class Child extends TestBase
-    {
+    public abstract static class Child extends TestBase {
         private String url;
         private String user;
         private String password;
@@ -1742,5 +1751,6 @@ public abstract class TestBase {
         public Connection getConnection() throws SQLException {
             return getConnection(url, user, password);
         }
+
     }
 }

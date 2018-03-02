@@ -36,7 +36,30 @@ public class ToChar {
     private static final String[] ROMAN_NUMERALS = { "M", "CM", "D", "CD", "C", "XC",
             "L", "XL", "X", "IX", "V", "IV", "I" };
 
-    static final int MONTHS = 0, SHORT_MONTHS = 1, WEEKDAYS = 2, SHORT_WEEKDAYS = 3, AM_PM = 4;
+    /**
+     * The month field.
+     */
+    static final int MONTHS = 0;
+
+    /**
+     * The month field (short form).
+     */
+    static final int SHORT_MONTHS = 1;
+
+    /**
+     * The weekday field.
+     */
+    static final int WEEKDAYS = 2;
+
+    /**
+     * The weekday field (short form).
+     */
+    static final int SHORT_WEEKDAYS = 3;
+
+    /**
+     * The AM / PM field.
+     */
+    static final int AM_PM = 4;
 
     private static volatile String[][] NAMES;
 
@@ -454,7 +477,13 @@ public class ToChar {
         return hex;
     }
 
-    static String[] getNames(int names) {
+    /**
+     * Get the date (month / weekday / ...) names.
+     *
+     * @param names the field
+     * @return the names
+     */
+    static String[] getDateNames(int names) {
         String[][] result = NAMES;
         if (result == null) {
             result = new String[5][];
@@ -688,8 +717,8 @@ public class ToChar {
                 // Long/short date/time format
 
             } else if (containsAt(format, i, "DL") != null) {
-                String day = getNames(WEEKDAYS)[DateTimeUtils.getSundayDayOfWeek(dateValue)];
-                String month = getNames(MONTHS)[monthOfYear - 1];
+                String day = getDateNames(WEEKDAYS)[DateTimeUtils.getSundayDayOfWeek(dateValue)];
+                String month = getDateNames(MONTHS)[monthOfYear - 1];
                 output.append(day).append(", ").append(month).append(' ').append(dayOfMonth).append(", ");
                 StringUtils.appendZeroPadded(output, 4, posYear);
                 i += 2;
@@ -706,7 +735,7 @@ public class ToChar {
                 output.append(':');
                 StringUtils.appendZeroPadded(output, 2, second);
                 output.append(' ');
-                output.append(getNames(AM_PM)[isAM ? 0 : 1]);
+                output.append(getDateNames(AM_PM)[isAM ? 0 : 1]);
                 i += 2;
 
                 // Day
@@ -718,11 +747,11 @@ public class ToChar {
                 StringUtils.appendZeroPadded(output, 2, dayOfMonth);
                 i += 2;
             } else if ((cap = containsAt(format, i, "DY")) != null) {
-                String day = getNames(SHORT_WEEKDAYS)[DateTimeUtils.getSundayDayOfWeek(dateValue)];
+                String day = getDateNames(SHORT_WEEKDAYS)[DateTimeUtils.getSundayDayOfWeek(dateValue)];
                 output.append(cap.apply(day));
                 i += 2;
             } else if ((cap = containsAt(format, i, "DAY")) != null) {
-                String day = getNames(WEEKDAYS)[DateTimeUtils.getSundayDayOfWeek(dateValue)];
+                String day = getDateNames(WEEKDAYS)[DateTimeUtils.getSundayDayOfWeek(dateValue)];
                 if (fillMode) {
                     day = StringUtils.pad(day, "Wednesday".length(), " ", true);
                 }
@@ -834,14 +863,14 @@ public class ToChar {
                 // Month / quarter
 
             } else if ((cap = containsAt(format, i, "MONTH")) != null) {
-                String month = getNames(MONTHS)[monthOfYear - 1];
+                String month = getDateNames(MONTHS)[monthOfYear - 1];
                 if (fillMode) {
                     month = StringUtils.pad(month, "September".length(), " ", true);
                 }
                 output.append(cap.apply(month));
                 i += 5;
             } else if ((cap = containsAt(format, i, "MON")) != null) {
-                String month = getNames(SHORT_MONTHS)[monthOfYear - 1];
+                String month = getDateNames(SHORT_MONTHS)[monthOfYear - 1];
                 output.append(cap.apply(month));
                 i += 3;
             } else if (containsAt(format, i, "MM") != null) {

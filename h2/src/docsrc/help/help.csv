@@ -115,9 +115,7 @@ MERGE INTO tableName [ ( columnName [,...] ) ]
 ","
 Updates existing rows, and insert rows that don't exist. If no key column is
 specified, the primary key columns are used to find the row. If more than one
-row per new row is affected, an exception is thrown. If the table contains an
-auto-incremented key or identity column, and the row was updated, the generated
-key is set to 0; otherwise it is set to the new key.
+row per new row is affected, an exception is thrown.
 ","
 MERGE INTO TEST KEY(ID) VALUES(2, 'World')
 "
@@ -127,7 +125,7 @@ MERGE INTO targetTableName [ [AS] targetAlias]
 USING { ( select ) | sourceTableName }[ [AS] sourceAlias ]
 ON ( expression )
 [ WHEN MATCHED THEN [ update ] [ delete] ]
-[ WHEN NOT MATCHED THEN insert  ]
+[ WHEN NOT MATCHED THEN insert ]
 ","
 Updates or deletes existing rows, and insert rows that don't exist. The ON clause
 specifies the matching column expression and must be specified. If more than one row
@@ -232,7 +230,7 @@ Can be used to create a recursive or non-recursive query (common table expressio
 For recursive queries the first select has to be a UNION.
 One or more common table entries can be referred to by name.
 Column name declarations are now optional - the column names will be inferred from the named select queries.
-The final action in a WITH statement can be a select , insert , update , merge , delete or create table.
+The final action in a WITH statement can be a select, insert, update, merge, delete or create table.
 ","
 WITH RECURSIVE cte(n) AS (
         SELECT 1
@@ -274,8 +272,8 @@ ALTER SCHEMA TEST RENAME TO PRODUCTION
 ALTER SEQUENCE [ IF EXISTS ] sequenceName [ RESTART WITH long ] [ INCREMENT BY long ]
 [ MINVALUE long | NOMINVALUE | NO MINVALUE ]
 [ MAXVALUE long | NOMAXVALUE | NO MAXVALUE ]
-[ CYCLE long | NOCYCLE |  NO CYCLE ]
-[ CACHE long |  NOCACHE |  NO CACHE ]
+[ CYCLE long | NOCYCLE | NO CYCLE ]
+[ CACHE long | NOCACHE | NO CACHE ]
 ","
 Changes the parameters of a sequence.
 This command does not commit the current transaction; however the new value is used by other
@@ -287,7 +285,7 @@ ALTER SEQUENCE SEQ_ID RESTART WITH 1000
 "Commands (DDL)","ALTER TABLE ADD","
 ALTER TABLE [ IF EXISTS ] tableName ADD [ COLUMN ]
 { [ IF NOT EXISTS ] columnName columnDefinition | ( { columnName columnDefinition } [,...] ) }
-[ { BEFORE | AFTER } columnName ]
+[ { { BEFORE | AFTER } columnName } | FIRST ]
 ","
 Adds a new column to a table.
 This command commits an open transaction in this connection.
@@ -663,8 +661,8 @@ CREATE SEQUENCE [ IF NOT EXISTS ] newSequenceName [ START WITH long ]
 [ INCREMENT BY long ]
 [ MINVALUE long | NOMINVALUE | NO MINVALUE ]
 [ MAXVALUE long | NOMAXVALUE | NO MAXVALUE ]
-[ CYCLE long | NOCYCLE |  NO CYCLE ]
-[ CACHE long |  NOCACHE |  NO CACHE ]
+[ CYCLE long | NOCYCLE | NO CYCLE ]
+[ CACHE long | NOCACHE | NO CACHE ]
 ","
 Creates a new sequence.
 The data type of a sequence is BIGINT.
@@ -2020,8 +2018,9 @@ CALL CSVWRITE('test2.csv', 'SELECT * FROM TEST', 'charset=UTF-8 fieldSeparator=|
 "Other Grammar","Data Type","
 intType | booleanType | tinyintType | smallintType | bigintType | identityType
     | decimalType | doubleType | realType | dateType | timeType | timestampType
-    | binaryType | otherType | varcharType | varcharIgnorecaseType | charType
-    | blobType | clobType | uuidType | arrayType | enumType
+    | timestampWithTimeZoneType | binaryType | otherType | varcharType
+    | varcharIgnorecaseType | charType | blobType | clobType | uuidType
+    | arrayType | enumType
 ","
 A data type definition.
 ","
@@ -2131,7 +2130,7 @@ Long numbers are between -9223372036854775808 and 9223372036854775807.
 "
 
 "Other Grammar","Name","
-{ { A-Z|_  } [ { A-Z|_|0-9 } [...] ] } | quotedName
+{ { A-Z|_ } [ { A-Z|_|0-9 } [...] ] } | quotedName
 ","
 Names are not case sensitive. There is no maximum name length.
 ","
@@ -2258,7 +2257,8 @@ ID + 20
 "
 
 "Other Grammar","Table Expression","
-{ [ schemaName. ] tableName | ( select ) | valuesExpression } [ [ AS ] newTableAlias ]
+{ [ schemaName. ] tableName | ( select ) | valuesExpression }
+[ [ AS ] newTableAlias [ ( columnName [,...] ) ] ]
 [ USE INDEX ([ indexName [,...] ]) ]
 [ { { LEFT | RIGHT } [ OUTER ] | [ INNER ] | CROSS | NATURAL }
     JOIN tableExpression [ ON expression ] ]
@@ -2300,7 +2300,7 @@ Each table has a pseudo-column named ""_ROWID_"" that contains the unique row id
 "
 
 "Other Grammar","Time","
-TIME 'hh:mm:ss[.nnnnnnnnn]'
+TIME [ WITHOUT TIME ZONE ] 'hh:mm:ss[.nnnnnnnnn]'
 ","
 A time literal. A value is between 0:00:00 and 23:59:59.999999999
 and has nanosecond resolution.
@@ -2309,7 +2309,7 @@ TIME '23:59:59'
 "
 
 "Other Grammar","Timestamp","
-TIMESTAMP 'yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]'
+TIMESTAMP [ WITHOUT TIME ZONE ] 'yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]'
 ","
 A timestamp literal. The limitations are the same as for the Java data type
 ""java.sql.Timestamp"", but for compatibility with other databases the suggested
@@ -2319,7 +2319,7 @@ TIMESTAMP '2005-12-31 23:59:59'
 "
 
 "Other Grammar","Timestamp with time zone","
-TIMESTAMP 'yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]
+TIMESTAMP WITH TIME ZONE 'yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]
 [Z | { - | + } timeZoneOffsetString | timeZoneNameString ]'
 ","
 A timestamp with time zone literal.
@@ -2331,8 +2331,16 @@ TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59.123+05'
 TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59.123456789 Europe/London'
 "
 
+"Other Grammar","Date and time","
+date | time | timestamp | timestampWithTimeZone
+","
+A literal value of any date-time data type.
+","
+TIMESTAMP '1999-01-31 10:00:00'
+"
+
 "Other Grammar","Value","
-string | dollarQuotedString | numeric | date | time | timestamp | boolean | bytes | array | null
+string | dollarQuotedString | numeric | dateAndTime | boolean | bytes | array | null
 ","
 A literal value of any data type, or null.
 ","
@@ -2413,10 +2421,11 @@ DECIMAL(20, 2)
 "
 
 "Data Types","DOUBLE Type","
-{ DOUBLE [ PRECISION ] | FLOAT | FLOAT8 }
+{ DOUBLE [ PRECISION ] | FLOAT [ ( precisionInt ) ] | FLOAT8 }
 ","
 A floating point number. Should not be used to represent currency values, because
 of rounding problems.
+If precision value is specified for FLOAT type name, it should be from 25 to 53.
 
 Mapped to ""java.lang.Double"".
 ","
@@ -2424,10 +2433,11 @@ DOUBLE
 "
 
 "Data Types","REAL Type","
-{ REAL | FLOAT4 }
+{ REAL | FLOAT ( precisionInt ) | FLOAT4 }
 ","
 A single precision floating point number. Should not be used to represent currency
 values, because of rounding problems.
+Precision value for FLOAT type name should be from 0 to 24.
 
 Mapped to ""java.lang.Float"".
 ","
@@ -2435,7 +2445,7 @@ REAL
 "
 
 "Data Types","TIME Type","
-TIME
+TIME [ WITHOUT TIME ZONE ]
 ","
 The time data type. The format is hh:mm:ss[.nnnnnnnnn].
 
@@ -2459,7 +2469,7 @@ DATE
 "
 
 "Data Types","TIMESTAMP Type","
-{ TIMESTAMP | DATETIME | SMALLDATETIME }
+{ TIMESTAMP [ WITHOUT TIME ZONE ] | DATETIME | SMALLDATETIME }
 ","
 The timestamp data type. The format is yyyy-MM-dd hh:mm:ss[.nnnnnnnnn].
 Stored internally as a BCD-encoded date, and nanoseconds since midnight.
@@ -2517,7 +2527,7 @@ OTHER
 
 "Data Types","VARCHAR Type","
 { VARCHAR | LONGVARCHAR | VARCHAR2 | NVARCHAR
-    | NVARCHAR2 | VARCHAR_CASESENSITIVE}  [ ( precisionInt ) ]
+    | NVARCHAR2 | VARCHAR_CASESENSITIVE} [ ( precisionInt ) ]
 ","
 A Unicode String.
 Use two single quotes ('') to create a quote.
@@ -2647,7 +2657,7 @@ ENUM('clubs', 'diamonds', 'hearts', 'spades')
 "Data Types","GEOMETRY Type","
 GEOMETRY
 ","
-A spatial geometry type, based on the ""com.vividsolutions.jts"" library.
+A spatial geometry type, based on the ""org.locationtech.jts"" library.
 Normally represented in textual format using the WKT (well known text) format.
 
 Use a quoted string containing a WKT formatted string or ""PreparedStatement.setObject()"" to store values,
@@ -3193,7 +3203,8 @@ CALL HASH('SHA256', STRINGTOUTF8('Password'), 1000)
 "
 
 "Functions (Numeric)","TRUNCATE","
-{ TRUNC | TRUNCATE } ( { {numeric, digitsInt} | timestamp | date | timestampString } )
+{ TRUNC | TRUNCATE } ( { {numeric, digitsInt}
+    | timestamp | timestampWithTimeZone | date | timestampString } )
 ","
 Truncates to a number of digits (to the next value closer to 0).
 This method returns a double.
@@ -3651,7 +3662,7 @@ CALL TO_CHAR(TIMESTAMP '2010-01-01 00:00:00', 'DD MON, YYYY')
 "
 
 "Functions (String)","TRANSLATE","
-TRANSLATE(value , searchString, replacementString]])
+TRANSLATE(value, searchString, replacementString)
 ","
 Oracle-compatible TRANSLATE function that replaces a sequence of characters in a string with another set of characters.
 ","
@@ -3687,7 +3698,7 @@ CURRENT_TIMESTAMP()
 "
 
 "Functions (Time and Date)","DATEADD","
-{ DATEADD| TIMESTAMPADD } (unitString, addIntLong, timestamp)
+{ DATEADD| TIMESTAMPADD } (unitString, addIntLong, dateAndTime)
 ","
 Adds units to a date-time value. The string indicates the unit.
 Use negative values to subtract units.
@@ -3697,24 +3708,26 @@ The same units as in the EXTRACT function are supported.
 This method returns a value with the same type as specified value if unit is compatible with this value.
 If specified unit is a HOUR, MINUTE, SECOND, MILLISECOND, etc and value is a DATE value DATEADD returns combined TIMESTAMP.
 Units DAY, MONTH, YEAR, WEEK, etc are not allowed for TIME values.
+Units TIMEZONE_HOUR and TIMEZONE_MINUTE are only allowed for TIMESTAMP WITH TIME ZONE values.
 ","
 DATEADD('MONTH', 1, DATE '2001-01-31')
 "
 
 "Functions (Time and Date)","DATEDIFF","
-{ DATEDIFF | TIMESTAMPDIFF } (unitString, aTimestamp, bTimestamp)
+{ DATEDIFF | TIMESTAMPDIFF } (unitString, aDateAndTime, bDateAndTime)
 ","
-Returns the the number of crossed unit boundaries between two timestamps.
+Returns the the number of crossed unit boundaries between two date/time values.
 This method returns a long.
 The string indicates the unit.
 The same units as in the EXTRACT function are supported.
-If timestamps have time zone offset component it is ignored.
+Only TIMEZONE_HOUR and TIMEZONE_MINUTE units use the time zone offset component.
+With all other units if date/time values have time zone offset component it is ignored.
 ","
 DATEDIFF('YEAR', T1.CREATED, T2.CREATED)
 "
 
 "Functions (Time and Date)","DAYNAME","
-DAYNAME(date)
+DAYNAME(dateAndTime)
 ","
 Returns the name of the day (in English).
 ","
@@ -3722,7 +3735,7 @@ DAYNAME(CREATED)
 "
 
 "Functions (Time and Date)","DAY_OF_MONTH","
-DAY_OF_MONTH(date)
+DAY_OF_MONTH(dateAndTime)
 ","
 Returns the day of the month (1-31).
 ","
@@ -3730,7 +3743,7 @@ DAY_OF_MONTH(CREATED)
 "
 
 "Functions (Time and Date)","DAY_OF_WEEK","
-DAY_OF_WEEK(date)
+DAY_OF_WEEK(dateAndTime)
 ","
 Returns the day of the week (1 means Sunday).
 ","
@@ -3738,7 +3751,7 @@ DAY_OF_WEEK(CREATED)
 "
 
 "Functions (Time and Date)","DAY_OF_YEAR","
-DAY_OF_YEAR(date)
+DAY_OF_YEAR(dateAndTime)
 ","
 Returns the day of the year (1-366).
 ","
@@ -3749,10 +3762,11 @@ DAY_OF_YEAR(CREATED)
 EXTRACT ( { YEAR | YY | MONTH | MM | QUARTER | WEEK | ISO_WEEK
     | DAY | DD | DAY_OF_YEAR | DOY
     | HOUR | HH | MINUTE | MI | SECOND | SS | EPOCH
-    | MILLISECOND | MS | MICROSECOND | MCS | NANOSECOND | NS }
-    FROM timestamp )
+    | MILLISECOND | MS | MICROSECOND | MCS | NANOSECOND | NS
+    | TIMEZONE_HOUR | TIMEZONE_MINUTE }
+    FROM dateAndTime )
 ","
-Returns a specific value from a timestamps.
+Returns a value of the specific time unit from a date/time value.
 This method returns a numeric value with EPOCH unit and
 an int for all other time units.
 ","
@@ -3760,15 +3774,15 @@ EXTRACT(SECOND FROM CURRENT_TIMESTAMP)
 "
 
 "Functions (Time and Date)","FORMATDATETIME","
-FORMATDATETIME ( timestamp, formatString
+FORMATDATETIME ( dateAndTime, formatString
 [ , localeString [ , timeZoneString ] ] )
 ","
 Formats a date, time or timestamp as a string.
 The most important format characters are:
 y year, M month, d day, H hour, m minute, s second.
 For details of the format, see ""java.text.SimpleDateFormat"".
-timeZoneString may be specified if timestamp is a DATE, TIME or TIMESTAMP.
-timeZoneString is ignored if timestamp is TIMESTAMP WITH TIME ZONE.
+timeZoneString may be specified if dateAndTime is a DATE, TIME or TIMESTAMP.
+timeZoneString is ignored if dateAndTime is TIMESTAMP WITH TIME ZONE.
 This method returns a string.
 ","
 CALL FORMATDATETIME(TIMESTAMP '2001-02-03 04:05:06',
@@ -3776,31 +3790,31 @@ CALL FORMATDATETIME(TIMESTAMP '2001-02-03 04:05:06',
 "
 
 "Functions (Time and Date)","HOUR","
-HOUR(timestamp)
+HOUR(dateAndTime)
 ","
-Returns the hour (0-23) from a timestamp.
+Returns the hour (0-23) from a date/time value.
 ","
 HOUR(CREATED)
 "
 
 "Functions (Time and Date)","MINUTE","
-MINUTE(timestamp)
+MINUTE(dateAndTime)
 ","
-Returns the minute (0-59) from a timestamp.
+Returns the minute (0-59) from a date/time value.
 ","
 MINUTE(CREATED)
 "
 
 "Functions (Time and Date)","MONTH","
-MONTH(timestamp)
+MONTH(dateAndTime)
 ","
-Returns the month (1-12) from a timestamp.
+Returns the month (1-12) from a date/time value.
 ","
 MONTH(CREATED)
 "
 
 "Functions (Time and Date)","MONTHNAME","
-MONTHNAME(date)
+MONTHNAME(dateAndTime)
 ","
 Returns the name of the month (in English).
 ","
@@ -3821,34 +3835,34 @@ CALL PARSEDATETIME('Sat, 3 Feb 2001 03:05:06 GMT',
 "
 
 "Functions (Time and Date)","QUARTER","
-QUARTER(timestamp)
+QUARTER(dateAndTime)
 ","
-Returns the quarter (1-4) from a timestamp.
+Returns the quarter (1-4) from a date/time value.
 ","
 QUARTER(CREATED)
 "
 
 "Functions (Time and Date)","SECOND","
-SECOND(timestamp)
+SECOND(dateAndTime)
 ","
-Returns the second (0-59) from a timestamp.
+Returns the second (0-59) from a date/time value.
 ","
 SECOND(CREATED)
 "
 
 "Functions (Time and Date)","WEEK","
-WEEK(timestamp)
+WEEK(dateAndTime)
 ","
-Returns the week (1-53) from a timestamp.
+Returns the week (1-53) from a date/time value.
 This method uses the current system locale.
 ","
 WEEK(CREATED)
 "
 
 "Functions (Time and Date)","ISO_WEEK","
-ISO_WEEK(timestamp)
+ISO_WEEK(dateAndTime)
 ","
-Returns the week (1-53) from a timestamp.
+Returns the ISO week (1-53) from a date/time value.
 This method uses the ISO definition when
 first week of year should have at least four days
 and week is started with Monday.
@@ -3857,17 +3871,17 @@ ISO_WEEK(CREATED)
 "
 
 "Functions (Time and Date)","YEAR","
-YEAR(timestamp)
+YEAR(dateAndTime)
 ","
-Returns the year from a timestamp.
+Returns the year from a date/time value.
 ","
 YEAR(CREATED)
 "
 
 "Functions (Time and Date)","ISO_YEAR","
-ISO_YEAR(timestamp)
+ISO_YEAR(dateAndTime)
 ","
-Returns the ISO week year from a timestamp.
+Returns the ISO week year from a date/time value.
 ","
 ISO_YEAR(CREATED)
 "
@@ -4239,7 +4253,7 @@ Returns the number of the current row.
 This method returns a long.
 It is supported for SELECT statements, as well as for DELETE and UPDATE.
 The first row has the row number 1, and is calculated before ordering and grouping the result set,
-but after evaluating index conditions (even when the  index conditions are specified in an outer query).
+but after evaluating index conditions (even when the index conditions are specified in an outer query).
 To get the row number after ordering and grouping, use a subquery.
 ","
 SELECT ROWNUM(), * FROM TEST;
@@ -4250,7 +4264,7 @@ SELECT ID FROM (SELECT T.*, ROWNUM AS R FROM TEST T) WHERE R BETWEEN 2 AND 3;
 "Functions (System)","SCHEMA","
 SCHEMA()
 ","
-Returns the name of the default  schema for this session.
+Returns the name of the default schema for this session.
 ","
 CALL SCHEMA()
 "
@@ -4259,7 +4273,7 @@ CALL SCHEMA()
 SCOPE_IDENTITY()
 ","
 Returns the last inserted identity value for this session for the current scope
-(ie. the current statement).
+(the current statement).
 Changes within triggers and Java functions are ignored. See also IDENTITY().
 This method returns a long.
 ","

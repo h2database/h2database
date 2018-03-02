@@ -64,7 +64,7 @@ public class RegularTable extends TableBase {
     private final Trace traceLock;
     private final ArrayList<Index> indexes = New.arrayList();
     private long lastModificationId;
-    private boolean containsLargeObject;
+    private final boolean containsLargeObject;
     private final PageDataIndex mainIndex;
     private int changesSinceAnalyze;
     private int nextAnalyze;
@@ -74,11 +74,14 @@ public class RegularTable extends TableBase {
         super(data);
         nextAnalyze = database.getSettings().analyzeAuto;
         this.isHidden = data.isHidden;
+        boolean b = false;
         for (Column col : getColumns()) {
             if (DataType.isLargeObject(col.getType())) {
-                containsLargeObject = true;
+                b = true;
+                break;
             }
         }
+        containsLargeObject = b;
         if (data.persistData && database.isPersistent()) {
             mainIndex = new PageDataIndex(this, data.id,
                     IndexColumn.wrap(getColumns()),

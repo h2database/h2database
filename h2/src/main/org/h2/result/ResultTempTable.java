@@ -31,16 +31,16 @@ public class ResultTempTable implements ResultExternal {
     private final boolean distinct;
     private final SortOrder sort;
     private Index index;
-    private Session session;
+    private final Session session;
     private Table table;
     private Cursor resultCursor;
     private int rowCount;
-    private int columnCount;
+    private final int columnCount;
 
     private final ResultTempTable parent;
     private boolean closed;
     private int childCount;
-    private boolean containsLob;
+    private final boolean containsLob;
 
     ResultTempTable(Session session, Expression[] expressions, boolean distinct, SortOrder sort) {
         this.session = session;
@@ -49,15 +49,17 @@ public class ResultTempTable implements ResultExternal {
         this.columnCount = expressions.length;
         Schema schema = session.getDatabase().getSchema(Constants.SCHEMA_MAIN);
         CreateTableData data = new CreateTableData();
+        boolean b = false;
         for (int i = 0; i < expressions.length; i++) {
             int type = expressions[i].getType();
             Column col = new Column(COLUMN_NAME + i,
                     type);
             if (type == Value.CLOB || type == Value.BLOB) {
-                containsLob = true;
+                b = true;
             }
             data.columns.add(col);
         }
+        containsLob = b;
         data.id = session.getDatabase().allocateObjectId();
         data.tableName = "TEMP_RESULT_SET_" + data.id;
         data.temporary = true;

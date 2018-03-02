@@ -375,12 +375,13 @@ public class Insert extends Prepared implements ResultTarget {
 
         ArrayList<String> variableNames = new ArrayList<>(
                 duplicateKeyAssignmentMap.size());
+        Expression[] row = list.get(getCurrentRowNumber() - 1);
         for (int i = 0; i < columns.length; i++) {
             String key = table.getSchema().getName() + "." +
                     table.getName() + "." + columns[i].getName();
             variableNames.add(key);
             session.setVariable(key,
-                    list.get(getCurrentRowNumber() - 1)[i].getValue(session));
+                    row[i].getValue(session));
         }
 
         StatementBuilder buff = new StatementBuilder("UPDATE ");
@@ -425,6 +426,7 @@ public class Insert extends Prepared implements ResultTarget {
             indexedColumns = foundIndex.getColumns();
         }
 
+        Expression[] row = list.get(getCurrentRowNumber() - 1);
         Expression condition = null;
         for (Column column : indexedColumns) {
             ExpressionColumn expr = new ExpressionColumn(session.getDatabase(),
@@ -433,14 +435,12 @@ public class Insert extends Prepared implements ResultTarget {
             for (int i = 0; i < columns.length; i++) {
                 if (expr.getColumnName().equals(columns[i].getName())) {
                     if (condition == null) {
-                        condition = new Comparison(session, Comparison.EQUAL,
-                                expr, list.get(getCurrentRowNumber() - 1)[i++]);
+                        condition = new Comparison(session, Comparison.EQUAL, expr, row[i]);
                     } else {
-                        condition = new ConditionAndOr(ConditionAndOr.AND,
-                                condition,
-                                new Comparison(session, Comparison.EQUAL, expr,
-                                        list.get(0)[i++]));
+                        condition = new ConditionAndOr(ConditionAndOr.AND, condition,
+                                new Comparison(session, Comparison.EQUAL, expr, row[i]));
                     }
+                    break;
                 }
             }
         }

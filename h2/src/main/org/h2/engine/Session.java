@@ -126,7 +126,7 @@ public class Session extends SessionWithState {
     private long modificationMetaID = -1;
     private SubQueryInfo subQueryInfo;
     private int parsingView;
-    private Deque<String> viewNameStack = new ArrayDeque<>();
+    private final Deque<String> viewNameStack = new ArrayDeque<>();
     private int preparingQueryExpression;
     private volatile SmallLRUCache<Object, ViewIndex> viewIndexCache;
     private HashMap<Object, ViewIndex> subQueryIndexCache;

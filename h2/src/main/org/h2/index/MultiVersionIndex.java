@@ -73,6 +73,11 @@ public class MultiVersionIndex implements Index {
     }
 
     @Override
+    public boolean isFindUsingFullTableScan() {
+        return base.isFindUsingFullTableScan();
+    }
+
+    @Override
     public Cursor find(TableFilter filter, SearchRow first, SearchRow last) {
         synchronized (sync) {
             Cursor baseCursor = base.find(filter, first, last);

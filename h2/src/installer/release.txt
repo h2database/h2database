@@ -77,7 +77,7 @@ are no longer working (they can be removed, or fixed):
 The following can be skipped currently; benchmarks should probably be removed:
 * To update benchmark data: use latest versions of other dbs, change version(s) in performance.html
 
-## Build the release
+## Build the Release
 
 Change directory to src/installer
 Run ./buildRelease.sh (non-Windows) or buildRelease.bat (Windows)

@@ -5,7 +5,6 @@
  */
 package org.h2.value;
 
-import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -205,15 +204,16 @@ public class ValueTimestampTimeZone extends Value {
             throw DbException.getInvalidValueException("scale", targetScale);
         }
         long n = timeNanos;
-        BigDecimal bd = BigDecimal.valueOf(n);
-        bd = bd.movePointLeft(9);
-        bd = ValueDecimal.setScale(bd, targetScale);
-        bd = bd.movePointRight(9);
-        long n2 = bd.longValue();
+        long n2 = DateTimeUtils.convertScale(n, targetScale);
         if (n2 == n) {
             return this;
         }
-        return fromDateValueAndNanos(dateValue, n2, timeZoneOffsetMins);
+        long dv = dateValue;
+        if (n2 >= DateTimeUtils.NANOS_PER_DAY) {
+            n2 -= DateTimeUtils.NANOS_PER_DAY;
+            dv = DateTimeUtils.dateValueFromAbsoluteDay(DateTimeUtils.absoluteDayFromDateValue(dateValue) + 1);
+        }
+        return fromDateValueAndNanos(dv, n2, timeZoneOffsetMins);
     }
 
     @Override

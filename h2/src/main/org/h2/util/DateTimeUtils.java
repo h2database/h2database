@@ -6,6 +6,7 @@
  */
 package org.h2.util;
 
+import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -19,6 +20,7 @@ import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
+import org.h2.value.ValueDecimal;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
@@ -1446,6 +1448,21 @@ public class DateTimeUtils {
         b.append(':');
         StringUtils.appendZeroPadded(b, 2, offsetMins % 60);
         return b.toString();
+    }
+
+    /**
+     * Converts scale of nanoseconds.
+     *
+     * @param nanosOfDay nanoseconds of day
+     * @param scale fractional seconds precision
+     * @return scaled value
+     */
+    public static long convertScale(long nanosOfDay, int scale) {
+        BigDecimal bd = BigDecimal.valueOf(nanosOfDay);
+        bd = bd.movePointLeft(9);
+        bd = ValueDecimal.setScale(bd, scale);
+        bd = bd.movePointRight(9);
+        return bd.longValue();
     }
 
 }

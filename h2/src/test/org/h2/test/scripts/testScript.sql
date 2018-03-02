@@ -6884,7 +6884,7 @@ DROP TABLE TEST;
 > ok
 
 --- data types (date and time) ----------------------------------------------------------------------------------------------
-CREATE MEMORY TABLE TEST(ID INT, XT TIME, XD DATE, XTS TIMESTAMP);
+CREATE MEMORY TABLE TEST(ID INT, XT TIME, XD DATE, XTS TIMESTAMP(9));
 > ok
 
 INSERT INTO TEST VALUES(0, '0:0:0','1-2-3','2-3-4 0:0:0');
@@ -6941,7 +6941,7 @@ SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
 > SCRIPT
 > ----------------------------------------------------------------------------------------------------------------------------------
 > -- 4 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> CREATE MEMORY TABLE PUBLIC.TEST( ID INT, XT TIME, XD DATE, XTS TIMESTAMP );
+> CREATE MEMORY TABLE PUBLIC.TEST( ID INT, XT TIME, XD DATE, XTS TIMESTAMP(9) );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > INSERT INTO PUBLIC.TEST(ID, XT, XD, XTS) VALUES(0, TIME '00:00:00', DATE '0001-02-03', TIMESTAMP '0002-03-04 00:00:00.0');
 > INSERT INTO PUBLIC.TEST(ID, XT, XD, XTS) VALUES(1, TIME '01:02:03', DATE '0004-05-06', TIMESTAMP '0007-08-09 00:01:02.0');

@@ -282,20 +282,24 @@ public class DataType {
                 24
         );
         add(Value.TIME, Types.TIME,
-                createDate(ValueTime.PRECISION, "TIME", 0, ValueTime.DISPLAY_SIZE),
+                createDate(ValueTime.PRECISION, "TIME",
+                        true, ValueTime.DEFAULT_SCALE, ValueTime.MAXIMUM_SCALE,
+                        ValueTime.DISPLAY_SIZE),
                 new String[]{"TIME", "TIME WITHOUT TIME ZONE"},
                 // 24 for ValueTime, 32 for java.sql.Time
                 56
         );
         add(Value.DATE, Types.DATE,
-                createDate(ValueDate.PRECISION, "DATE", 0, ValueDate.DISPLAY_SIZE),
+                createDate(ValueDate.PRECISION, "DATE",
+                        false, 0, 0, ValueDate.DISPLAY_SIZE),
                 new String[]{"DATE"},
                 // 24 for ValueDate, 32 for java.sql.Data
                 56
         );
         add(Value.TIMESTAMP, Types.TIMESTAMP,
                 createDate(ValueTimestamp.PRECISION, "TIMESTAMP",
-                        ValueTimestamp.DEFAULT_SCALE, ValueTimestamp.DISPLAY_SIZE),
+                        true, ValueTimestamp.DEFAULT_SCALE, ValueTimestamp.MAXIMUM_SCALE,
+                        ValueTimestamp.DISPLAY_SIZE),
                 new String[]{"TIMESTAMP", "TIMESTAMP WITHOUT TIME ZONE",
                         "DATETIME", "DATETIME2", "SMALLDATETIME"},
                 // 24 for ValueTimestamp, 32 for java.sql.Timestamp
@@ -307,7 +311,8 @@ public class DataType {
         // Types.TIMESTAMP_WITH_TIMEZONE once Java 1.8 is required.
         add(Value.TIMESTAMP_TZ, 2014,
                 createDate(ValueTimestampTimeZone.PRECISION, "TIMESTAMP_TZ",
-                        ValueTimestampTimeZone.DEFAULT_SCALE, ValueTimestampTimeZone.DISPLAY_SIZE),
+                        true, ValueTimestampTimeZone.DEFAULT_SCALE, ValueTimestampTimeZone.MAXIMUM_SCALE,
+                        ValueTimestampTimeZone.DISPLAY_SIZE),
                 new String[]{"TIMESTAMP WITH TIME ZONE"},
                 // 26 for ValueTimestampUtc, 32 for java.sql.Timestamp
                 58
@@ -461,14 +466,14 @@ public class DataType {
         return dataType;
     }
 
-    private static DataType createDate(int precision, String prefix, int scale,
+    private static DataType createDate(int precision, String prefix, boolean supportsScale, int scale, int maxScale,
             int displaySize) {
         DataType dataType = new DataType();
         dataType.prefix = prefix + " '";
         dataType.suffix = "'";
         dataType.maxPrecision = precision;
-        dataType.supportsScale = scale != 0;
-        dataType.maxScale = scale;
+        dataType.supportsScale = supportsScale;
+        dataType.maxScale = maxScale;
         dataType.defaultPrecision = precision;
         dataType.defaultScale = scale;
         dataType.defaultDisplaySize = displaySize;

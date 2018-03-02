@@ -259,7 +259,7 @@ public class TestDate extends TestBase {
                 t1.hashCode());
         assertEquals(t1.getString().length(), t1.getDisplaySize());
         assertEquals(ValueTimestamp.PRECISION, t1.getPrecision());
-        assertEquals(10, t1.getScale());
+        assertEquals(9, t1.getScale());
         assertEquals("java.sql.Timestamp", t1.getObject().getClass().getName());
         ValueTimestamp t1b = ValueTimestamp.parse("2001-01-01 01:01:01.111");
         assertTrue(t1 == t1b);

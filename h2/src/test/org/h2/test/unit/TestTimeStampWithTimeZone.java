@@ -52,7 +52,7 @@ public class TestTimeStampWithTimeZone extends TestBase {
     private void test1() throws SQLException {
         Connection conn = getConnection(getTestName());
         Statement stat = conn.createStatement();
-        stat.execute("create table test(id identity, t1 timestamp with time zone)");
+        stat.execute("create table test(id identity, t1 timestamp(9) with time zone)");
         stat.execute("insert into test(t1) values('1970-01-01 12:00:00.00+00:15')");
         // verify NanosSinceMidnight is in local time and not UTC
         stat.execute("insert into test(t1) values('2016-09-24 00:00:00.000000001+00:01')");

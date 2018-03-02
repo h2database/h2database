@@ -33,7 +33,22 @@ public class ValueTimestamp extends Value {
     /**
      * The default scale for timestamps.
      */
-    static final int DEFAULT_SCALE = 10;
+    static final int DEFAULT_SCALE = 6;
+
+    /**
+     * The maximum scale for timestamps.
+     */
+    public static final int MAXIMUM_SCALE = 9;
+
+    /**
+     * Get display size for the specified scale.
+     *
+     * @param scale scale
+     * @return display size
+     */
+    public static int getDisplaySize(int scale) {
+        return scale == 0 ? 19 : 20 + scale;
+    }
 
     /**
      * A bit field with bits for the year, month, and day (see DateTimeUtils for
@@ -184,7 +199,7 @@ public class ValueTimestamp extends Value {
 
     @Override
     public int getScale() {
-        return DEFAULT_SCALE;
+        return MAXIMUM_SCALE;
     }
 
     @Override
@@ -194,7 +209,7 @@ public class ValueTimestamp extends Value {
 
     @Override
     public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
-        if (targetScale >= DEFAULT_SCALE) {
+        if (targetScale >= MAXIMUM_SCALE) {
             return this;
         }
         if (targetScale < 0) {

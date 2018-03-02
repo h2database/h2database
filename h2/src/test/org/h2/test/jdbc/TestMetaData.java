@@ -723,7 +723,7 @@ public class TestMetaData extends TestBase {
                         "" + DatabaseMetaData.columnNullable, "", null,
                         "" + numericType, "0", "12", "3", "YES" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "DATE_V",
-                        "" + Types.TIMESTAMP, "TIMESTAMP", "23", "23", "10",
+                        "" + Types.TIMESTAMP, "TIMESTAMP", "23", "23", "6",
                         "10", "" + DatabaseMetaData.columnNullable, "", null,
                         "" + Types.TIMESTAMP, "0", "23", "4", "YES" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "BLOB_V",

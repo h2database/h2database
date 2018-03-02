@@ -21,13 +21,33 @@ public class ValueTime extends Value {
     /**
      * The precision in digits.
      */
-    public static final int PRECISION = 6;
+    public static final int PRECISION = 9;
 
     /**
      * The display size of the textual representation of a time.
      * Example: 10:00:00
      */
     static final int DISPLAY_SIZE = 8;
+
+    /**
+     * The default scale for time.
+     */
+    static final int DEFAULT_SCALE = 0;
+
+    /**
+     * The maximum scale for time.
+     */
+    public static final int MAXIMUM_SCALE = 9;
+
+    /**
+     * Get display size for the specified scale.
+     *
+     * @param scale scale
+     * @return display size
+     */
+    public static int getDisplaySize(int scale) {
+        return scale == 0 ? 8 : 9 + scale;
+    }
 
     /**
      * Nanoseconds since midnight

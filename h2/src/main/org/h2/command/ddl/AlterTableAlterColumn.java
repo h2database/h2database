@@ -570,9 +570,8 @@ public class AlterTableAlterColumn extends CommandWithColumns {
 
     @Override
     public void addColumn(Column column) {
-        ArrayList<Column> columnsToAdd = this.columnsToAdd;
         if (columnsToAdd == null) {
-            this.columnsToAdd = columnsToAdd = New.arrayList();
+            columnsToAdd = New.arrayList();
         }
         columnsToAdd.add(column);
     }

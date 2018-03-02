@@ -73,7 +73,6 @@ public abstract class CommandWithColumns extends SchemaCommand {
     }
 
     protected void createConstraints() {
-        ArrayList<DefineCommand> constraintCommands = this.constraintCommands;
         if (constraintCommands != null) {
             for (DefineCommand command : constraintCommands) {
                 command.setTransactional(transactional);
@@ -103,9 +102,8 @@ public abstract class CommandWithColumns extends SchemaCommand {
     }
 
     private ArrayList<DefineCommand> getConstraintCommands() {
-        ArrayList<DefineCommand> constraintCommands = this.constraintCommands;
         if (constraintCommands == null) {
-            this.constraintCommands = constraintCommands = New.arrayList();
+            constraintCommands = New.arrayList();
         }
         return constraintCommands;
     }

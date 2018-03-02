@@ -33,6 +33,7 @@ import org.h2.command.ddl.AlterTableRenameConstraint;
 import org.h2.command.ddl.AlterUser;
 import org.h2.command.ddl.AlterView;
 import org.h2.command.ddl.Analyze;
+import org.h2.command.ddl.CommandWithColumns;
 import org.h2.command.ddl.CreateAggregate;
 import org.h2.command.ddl.CreateConstant;
 import org.h2.command.ddl.CreateFunctionAlias;
@@ -6281,21 +6282,16 @@ public class Parser {
         command.setType(CommandInterface.ALTER_TABLE_ADD_COLUMN);
         command.setTableName(tableName);
         command.setIfTableExists(ifTableExists);
-        ArrayList<Column> columnsToAdd = New.arrayList();
         if (readIf("(")) {
             command.setIfNotExists(false);
             do {
-                String columnName = readColumnIdentifier();
-                Column column = parseColumnForTable(columnName, true);
-                columnsToAdd.add(column);
+                parseTableColumnDefinition(command, schema, tableName);
             } while (readIf(","));
             read(")");
         } else {
             boolean ifNotExists = readIfNotExists();
             command.setIfNotExists(ifNotExists);
-            String columnName = readColumnIdentifier();
-            Column column = parseColumnForTable(columnName, true);
-            columnsToAdd.add(column);
+            parseTableColumnDefinition(command, schema, tableName);
         }
         if (readIf("BEFORE")) {
             command.setAddBefore(readColumnIdentifier());
@@ -6304,7 +6300,6 @@ public class Parser {
         } else if (readIf("FIRST")) {
             command.setAddFirst();
         }
-        command.setNewColumns(columnsToAdd);
         return command;
     }
 
@@ -6542,88 +6537,7 @@ public class Parser {
         if (readIf("(")) {
             if (!readIf(")")) {
                 do {
-                    DefineCommand c = parseAlterTableAddConstraintIf(tableName,
-                            schema, false);
-                    if (c != null) {
-                        command.addConstraintCommand(c);
-                    } else {
-                        String columnName = readColumnIdentifier();
-                        Column column = parseColumnForTable(columnName, true);
-                        if (column.isAutoIncrement() && column.isPrimaryKey()) {
-                            column.setPrimaryKey(false);
-                            IndexColumn[] cols = { new IndexColumn() };
-                            cols[0].columnName = column.getName();
-                            AlterTableAddConstraint pk = new AlterTableAddConstraint(
-                                    session, schema, false);
-                            pk.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY);
-                            pk.setTableName(tableName);
-                            pk.setIndexColumns(cols);
-                            command.addConstraintCommand(pk);
-                        }
-                        command.addColumn(column);
-                        String constraintName = null;
-                        if (readIf("CONSTRAINT")) {
-                            constraintName = readColumnIdentifier();
-                        }
-                        // For compatibility with Apache Ignite.
-                        boolean allowAffinityKey = database.getMode().allowAffinityKey;
-                        boolean affinity = allowAffinityKey && readIfAffinity();
-                        if (readIf("PRIMARY")) {
-                            read("KEY");
-                            boolean hash = readIf("HASH");
-                            IndexColumn[] cols = { new IndexColumn() };
-                            cols[0].columnName = column.getName();
-                            AlterTableAddConstraint pk = new AlterTableAddConstraint(
-                                    session, schema, false);
-                            pk.setPrimaryKeyHash(hash);
-                            pk.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY);
-                            pk.setTableName(tableName);
-                            pk.setIndexColumns(cols);
-                            command.addConstraintCommand(pk);
-                            if (readIf("AUTO_INCREMENT")) {
-                                parseAutoIncrement(column);
-                            }
-                            if (affinity) {
-                                CreateIndex idx = createAffinityIndex(schema, tableName, cols);
-                                command.addConstraintCommand(idx);
-                            }
-                        } else if (affinity) {
-                            read("KEY");
-                            IndexColumn[] cols = { new IndexColumn() };
-                            cols[0].columnName = column.getName();
-                            CreateIndex idx = createAffinityIndex(schema, tableName, cols);
-                            command.addConstraintCommand(idx);
-                        } else if (readIf("UNIQUE")) {
-                            AlterTableAddConstraint unique = new AlterTableAddConstraint(
-                                    session, schema, false);
-                            unique.setConstraintName(constraintName);
-                            unique.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE);
-                            IndexColumn[] cols = { new IndexColumn() };
-                            cols[0].columnName = columnName;
-                            unique.setIndexColumns(cols);
-                            unique.setTableName(tableName);
-                            command.addConstraintCommand(unique);
-                        }
-                        if (NullConstraintType.NULL_IS_NOT_ALLOWED == parseNotNullConstraint()) {
-                            column.setNullable(false);
-                        }
-                        if (readIf("CHECK")) {
-                            Expression expr = readExpression();
-                            column.addCheckConstraint(session, expr);
-                        }
-                        if (readIf("REFERENCES")) {
-                            AlterTableAddConstraint ref = new AlterTableAddConstraint(
-                                    session, schema, false);
-                            ref.setConstraintName(constraintName);
-                            ref.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL);
-                            IndexColumn[] cols = { new IndexColumn() };
-                            cols[0].columnName = columnName;
-                            ref.setIndexColumns(cols);
-                            ref.setTableName(tableName);
-                            parseReferences(ref, schema, tableName);
-                            command.addConstraintCommand(ref);
-                        }
-                    }
+                    parseTableColumnDefinition(command, schema, tableName);
                 } while (readIfMore());
             }
         }
@@ -6706,6 +6620,91 @@ public class Parser {
             }
         }
         return command;
+    }
+
+    private void parseTableColumnDefinition(CommandWithColumns command, Schema schema, String tableName) {
+        DefineCommand c = parseAlterTableAddConstraintIf(tableName,
+                schema, false);
+        if (c != null) {
+            command.addConstraintCommand(c);
+        } else {
+            String columnName = readColumnIdentifier();
+            Column column = parseColumnForTable(columnName, true);
+            if (column.isAutoIncrement() && column.isPrimaryKey()) {
+                column.setPrimaryKey(false);
+                IndexColumn[] cols = { new IndexColumn() };
+                cols[0].columnName = column.getName();
+                AlterTableAddConstraint pk = new AlterTableAddConstraint(
+                        session, schema, false);
+                pk.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY);
+                pk.setTableName(tableName);
+                pk.setIndexColumns(cols);
+                command.addConstraintCommand(pk);
+            }
+            command.addColumn(column);
+            String constraintName = null;
+            if (readIf("CONSTRAINT")) {
+                constraintName = readColumnIdentifier();
+            }
+            // For compatibility with Apache Ignite.
+            boolean allowAffinityKey = database.getMode().allowAffinityKey;
+            boolean affinity = allowAffinityKey && readIfAffinity();
+            if (readIf("PRIMARY")) {
+                read("KEY");
+                boolean hash = readIf("HASH");
+                IndexColumn[] cols = { new IndexColumn() };
+                cols[0].columnName = column.getName();
+                AlterTableAddConstraint pk = new AlterTableAddConstraint(
+                        session, schema, false);
+                pk.setPrimaryKeyHash(hash);
+                pk.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY);
+                pk.setTableName(tableName);
+                pk.setIndexColumns(cols);
+                command.addConstraintCommand(pk);
+                if (readIf("AUTO_INCREMENT")) {
+                    parseAutoIncrement(column);
+                }
+                if (affinity) {
+                    CreateIndex idx = createAffinityIndex(schema, tableName, cols);
+                    command.addConstraintCommand(idx);
+                }
+            } else if (affinity) {
+                read("KEY");
+                IndexColumn[] cols = { new IndexColumn() };
+                cols[0].columnName = column.getName();
+                CreateIndex idx = createAffinityIndex(schema, tableName, cols);
+                command.addConstraintCommand(idx);
+            } else if (readIf("UNIQUE")) {
+                AlterTableAddConstraint unique = new AlterTableAddConstraint(
+                        session, schema, false);
+                unique.setConstraintName(constraintName);
+                unique.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE);
+                IndexColumn[] cols = { new IndexColumn() };
+                cols[0].columnName = columnName;
+                unique.setIndexColumns(cols);
+                unique.setTableName(tableName);
+                command.addConstraintCommand(unique);
+            }
+            if (NullConstraintType.NULL_IS_NOT_ALLOWED == parseNotNullConstraint()) {
+                column.setNullable(false);
+            }
+            if (readIf("CHECK")) {
+                Expression expr = readExpression();
+                column.addCheckConstraint(session, expr);
+            }
+            if (readIf("REFERENCES")) {
+                AlterTableAddConstraint ref = new AlterTableAddConstraint(
+                        session, schema, false);
+                ref.setConstraintName(constraintName);
+                ref.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL);
+                IndexColumn[] cols = { new IndexColumn() };
+                cols[0].columnName = columnName;
+                ref.setIndexColumns(cols);
+                ref.setTableName(tableName);
+                parseReferences(ref, schema, tableName);
+                command.addConstraintCommand(ref);
+            }
+        }
     }
 
     /**

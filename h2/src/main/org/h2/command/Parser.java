@@ -4433,7 +4433,6 @@ public class Parser {
             if (t == Value.TIME || t == Value.TIMESTAMP || t == Value.TIMESTAMP_TZ) {
                 if (originalScale >= 0) {
                     scale = originalScale;
-                    precision = dataType.defaultPrecision;
                     switch (t) {
                     case Value.TIME:
                         if (original.equals("TIME WITHOUT TIME ZONE")) {
@@ -4441,7 +4440,7 @@ public class Parser {
                         } else {
                             original = original + '(' + originalScale + ')';
                         }
-                        displaySize = ValueTime.getDisplaySize(originalScale);
+                        precision = displaySize = ValueTime.getDisplaySize(originalScale);
                         break;
                     case Value.TIMESTAMP:
                         if (original.equals("TIMESTAMP WITHOUT TIME ZONE")) {
@@ -4449,11 +4448,11 @@ public class Parser {
                         } else {
                             original = original + '(' + originalScale + ')';
                         }
-                        displaySize = ValueTimestamp.getDisplaySize(originalScale);
+                        precision = displaySize = ValueTimestamp.getDisplaySize(originalScale);
                         break;
                     case Value.TIMESTAMP_TZ:
                         original = "TIMESTAMP(" + originalScale + ") WITH TIME ZONE";
-                        displaySize = ValueTimestampTimeZone.getDisplaySize(originalScale);
+                        precision = displaySize = ValueTimestampTimeZone.getDisplaySize(originalScale);
                         break;
                     }
                 }

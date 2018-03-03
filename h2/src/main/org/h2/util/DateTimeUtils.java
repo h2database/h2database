@@ -1421,7 +1421,7 @@ public class DateTimeUtils {
      * @return formatted string
      */
     public static String timestampTimeZoneToString(long dateValue, long timeNanos, short timeZoneOffsetMins) {
-        StringBuilder buff = new StringBuilder(ValueTimestampTimeZone.DISPLAY_SIZE);
+        StringBuilder buff = new StringBuilder(ValueTimestampTimeZone.MAXIMUM_PRECISION);
         appendDate(buff, dateValue);
         buff.append(' ');
         appendTime(buff, timeNanos, true);

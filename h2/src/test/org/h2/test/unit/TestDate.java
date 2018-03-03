@@ -163,8 +163,9 @@ public class TestDate extends TestBase {
         assertEquals(Value.TIME, t1.getType());
         long nanos = t1.getNanos();
         assertEquals((int) ((nanos >>> 32) ^ nanos), t1.hashCode());
-        assertEquals(t1.getString().length(), t1.getDisplaySize());
-        assertEquals(ValueTime.PRECISION, t1.getPrecision());
+        // Literals return maximum precision
+        assertEquals(ValueTime.MAXIMUM_PRECISION, t1.getDisplaySize());
+        assertEquals(ValueTime.MAXIMUM_PRECISION, t1.getPrecision());
         assertEquals("java.sql.Time", t1.getObject().getClass().getName());
         ValueTime t1b = ValueTime.parse("11:11:11");
         assertTrue(t1 == t1b);
@@ -257,8 +258,9 @@ public class TestDate extends TestBase {
         assertEquals((int) ((dateValue >>> 32) ^ dateValue ^
                 (nanos >>> 32) ^ nanos),
                 t1.hashCode());
-        assertEquals(t1.getString().length(), t1.getDisplaySize());
-        assertEquals(ValueTimestamp.PRECISION, t1.getPrecision());
+        // Literals return maximum precision
+        assertEquals(ValueTimestamp.MAXIMUM_PRECISION, t1.getDisplaySize());
+        assertEquals(ValueTimestamp.MAXIMUM_PRECISION, t1.getPrecision());
         assertEquals(9, t1.getScale());
         assertEquals("java.sql.Timestamp", t1.getObject().getClass().getName());
         ValueTimestamp t1b = ValueTimestamp.parse("2001-01-01 01:01:01.111");

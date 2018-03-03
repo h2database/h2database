@@ -22,15 +22,16 @@ import org.h2.util.DateTimeUtils;
 public class ValueTimestampTimeZone extends Value {
 
     /**
-     * The precision in digits.
+     * The default precision and display size of the textual representation of a timestamp.
+     * Example: 2001-01-01 23:59:59.123456+10:00
      */
-    public static final int PRECISION = 30;
+    public static final int DEFAULT_PRECISION = 32;
 
     /**
-     * The display size of the textual representation of a timestamp. Example:
-     * 2001-01-01 23:59:59.000 +10:00
+     * The maximum precision and display size of the textual representation of a timestamp.
+     * Example: 2001-01-01 23:59:59.123456789+10:00
      */
-    public static final int DISPLAY_SIZE = 30;
+    public static final int MAXIMUM_PRECISION = 35;
 
     /**
      * The default scale for timestamps.
@@ -182,7 +183,7 @@ public class ValueTimestampTimeZone extends Value {
 
     @Override
     public long getPrecision() {
-        return PRECISION;
+        return MAXIMUM_PRECISION;
     }
 
     @Override
@@ -192,7 +193,13 @@ public class ValueTimestampTimeZone extends Value {
 
     @Override
     public int getDisplaySize() {
-        return DISPLAY_SIZE;
+        return MAXIMUM_PRECISION;
+    }
+
+    @Override
+    public boolean checkPrecision(long precision) {
+        // TIMESTAMP WITH TIME ZONE data type does not have precision parameter
+        return true;
     }
 
     @Override

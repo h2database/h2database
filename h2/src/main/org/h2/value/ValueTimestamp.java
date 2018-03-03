@@ -19,15 +19,16 @@ import org.h2.util.DateTimeUtils;
 public class ValueTimestamp extends Value {
 
     /**
-     * The precision in digits.
+     * The default precision and display size of the textual representation of a timestamp.
+     * Example: 2001-01-01 23:59:59.123456
      */
-    public static final int PRECISION = 23;
+    public static final int DEFAULT_PRECISION = 26;
 
     /**
-     * The display size of the textual representation of a timestamp.
-     * Example: 2001-01-01 23:59:59.000
+     * The maximum precision and display size of the textual representation of a timestamp.
+     * Example: 2001-01-01 23:59:59.123456789
      */
-    static final int DISPLAY_SIZE = 23;
+    public static final int MAXIMUM_PRECISION = 29;
 
     /**
      * The default scale for timestamps.
@@ -179,7 +180,7 @@ public class ValueTimestamp extends Value {
 
     @Override
     public String getString() {
-        StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
+        StringBuilder buff = new StringBuilder(MAXIMUM_PRECISION);
         DateTimeUtils.appendDate(buff, dateValue);
         buff.append(' ');
         DateTimeUtils.appendTime(buff, timeNanos, true);
@@ -193,7 +194,7 @@ public class ValueTimestamp extends Value {
 
     @Override
     public long getPrecision() {
-        return PRECISION;
+        return MAXIMUM_PRECISION;
     }
 
     @Override
@@ -203,7 +204,13 @@ public class ValueTimestamp extends Value {
 
     @Override
     public int getDisplaySize() {
-        return DISPLAY_SIZE;
+        return MAXIMUM_PRECISION;
+    }
+
+    @Override
+    public boolean checkPrecision(long precision) {
+        // TIMESTAMP data type does not have precision parameter
+        return true;
     }
 
     @Override

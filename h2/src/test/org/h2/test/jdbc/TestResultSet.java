@@ -1280,11 +1280,11 @@ public class TestResultSet extends TestBase {
                 "TIMESTAMP '9999-12-31 23:59:59' VALUE FROM TEST ORDER BY ID");
         assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" },
                 new int[] { Types.INTEGER, Types.TIMESTAMP },
-                new int[] { 10, 23 }, new int[] { 0, 9 });
+                new int[] { 10, 29 }, new int[] { 0, 9 });
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" },
                 new int[] { Types.INTEGER, Types.TIMESTAMP },
-                new int[] { 10, 23 }, new int[] { 0, 6 });
+                new int[] { 10, 26 }, new int[] { 0, 6 });
         rs.next();
         java.sql.Date date;
         java.sql.Time time;
@@ -1494,7 +1494,7 @@ public class TestResultSet extends TestBase {
                 new String[] { "ID", "D", "T", "TS" },
                 new int[] { Types.INTEGER, Types.DATE,
                 Types.TIME, Types.TIMESTAMP },
-                new int[] { 10, 8, 9, 23 }, new int[] { 0, 0, 0, 9 });
+                new int[] { 10, 10, 8, 29 }, new int[] { 0, 0, 0, 9 });
 
         rs.next();
         assertEquals(0, rs.getInt(1));

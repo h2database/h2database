@@ -19,15 +19,16 @@ import org.h2.util.DateTimeUtils;
 public class ValueTime extends Value {
 
     /**
-     * The precision in digits.
-     */
-    public static final int PRECISION = 9;
-
-    /**
-     * The display size of the textual representation of a time.
+     * The default precision and display size of the textual representation of a time.
      * Example: 10:00:00
      */
-    static final int DISPLAY_SIZE = 8;
+    public static final int DEFAULT_PRECISION = 8;
+
+    /**
+     * The maximum precision and display size of the textual representation of a time.
+     * Example: 10:00:00.123456789
+     */
+    public static final int MAXIMUM_PRECISION = 18;
 
     /**
      * The default scale for time.
@@ -134,7 +135,7 @@ public class ValueTime extends Value {
 
     @Override
     public String getString() {
-        StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
+        StringBuilder buff = new StringBuilder(MAXIMUM_PRECISION);
         DateTimeUtils.appendTime(buff, nanos, false);
         return buff.toString();
     }
@@ -146,12 +147,18 @@ public class ValueTime extends Value {
 
     @Override
     public long getPrecision() {
-        return PRECISION;
+        return MAXIMUM_PRECISION;
     }
 
     @Override
     public int getDisplaySize() {
-        return DISPLAY_SIZE;
+        return MAXIMUM_PRECISION;
+    }
+
+    @Override
+    public boolean checkPrecision(long precision) {
+        // TIME data type does not have precision parameter
+        return true;
     }
 
     @Override

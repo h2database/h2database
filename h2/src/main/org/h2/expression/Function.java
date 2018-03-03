@@ -2590,7 +2590,7 @@ public class Function extends Expression implements FunctionCall {
                 t = Value.DATE;
                 p = ValueDate.PRECISION;
                 s = 0;
-                d = ValueDate.DISPLAY_SIZE;
+                d = ValueDate.PRECISION;
             }
             break;
         case ABS:

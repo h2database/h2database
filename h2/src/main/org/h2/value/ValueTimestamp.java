@@ -183,7 +183,7 @@ public class ValueTimestamp extends Value {
         StringBuilder buff = new StringBuilder(MAXIMUM_PRECISION);
         DateTimeUtils.appendDate(buff, dateValue);
         buff.append(' ');
-        DateTimeUtils.appendTime(buff, timeNanos, true);
+        DateTimeUtils.appendTime(buff, timeNanos);
         return buff.toString();
     }
 

@@ -1346,10 +1346,8 @@ public class DateTimeUtils {
      *
      * @param buff the target string builder
      * @param nanos the time in nanoseconds
-     * @param alwaysAddMillis whether to always add at least ".0"
      */
-    public static void appendTime(StringBuilder buff, long nanos,
-            boolean alwaysAddMillis) {
+    public static void appendTime(StringBuilder buff, long nanos) {
         if (nanos < 0) {
             buff.append('-');
             nanos = -nanos;
@@ -1373,7 +1371,7 @@ public class DateTimeUtils {
         StringUtils.appendZeroPadded(buff, 2, m);
         buff.append(':');
         StringUtils.appendZeroPadded(buff, 2, s);
-        if (alwaysAddMillis || ms > 0 || nanos > 0) {
+        if (ms > 0 || nanos > 0) {
             buff.append('.');
             int start = buff.length();
             StringUtils.appendZeroPadded(buff, 3, ms);
@@ -1424,7 +1422,7 @@ public class DateTimeUtils {
         StringBuilder buff = new StringBuilder(ValueTimestampTimeZone.MAXIMUM_PRECISION);
         appendDate(buff, dateValue);
         buff.append(' ');
-        appendTime(buff, timeNanos, true);
+        appendTime(buff, timeNanos);
         appendTimeZone(buff, timeZoneOffsetMins);
         return buff.toString();
     }

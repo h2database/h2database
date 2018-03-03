@@ -328,7 +328,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs = stat.executeQuery(
                 "call TO_CHAR_2(TIMESTAMP '2001-02-03 04:05:06', 'format')");
         rs.next();
-        assertEquals("2001-02-03 04:05:06.0", rs.getString(1));
+        assertEquals("2001-02-03 04:05:06", rs.getString(1));
         stat.execute("drop alias TO_CHAR_2");
         conn.close();
     }

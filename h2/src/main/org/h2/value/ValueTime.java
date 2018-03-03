@@ -72,7 +72,7 @@ public class ValueTime extends Value {
         if (!SysProperties.UNLIMITED_TIME_RANGE) {
             if (nanos < 0L || nanos >= 86400000000000L) {
                 StringBuilder builder = new StringBuilder();
-                DateTimeUtils.appendTime(builder, nanos, false);
+                DateTimeUtils.appendTime(builder, nanos);
                 throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2,
                         "TIME", builder.toString());
             }
@@ -136,7 +136,7 @@ public class ValueTime extends Value {
     @Override
     public String getString() {
         StringBuilder buff = new StringBuilder(MAXIMUM_PRECISION);
-        DateTimeUtils.appendTime(buff, nanos, false);
+        DateTimeUtils.appendTime(buff, nanos);
         return buff.toString();
     }
 

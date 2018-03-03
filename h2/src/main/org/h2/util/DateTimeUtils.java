@@ -1464,12 +1464,11 @@ public class DateTimeUtils {
             return nanosOfDay;
         }
         int m = CONVERT_SCALE_TABLE[scale];
-        long r = nanosOfDay / m;
-        int d = (int) (nanosOfDay - (r * m));
-        if (d >= m >>> 1) {
-            r++;
+        long mod = nanosOfDay % m;
+        if (mod >= m >>> 1) {
+            nanosOfDay += m;
         }
-        return r * m;
+        return nanosOfDay - mod;
     }
 
 }

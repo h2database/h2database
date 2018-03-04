@@ -161,3 +161,9 @@ SELECT TIMESTAMPADD('TIMEZONE_MINUTE', -45, TIMESTAMP WITH TIME ZONE '2010-01-01
 > ---------------------------
 > 2010-01-01 10:00:00.0+06:45
 > rows: 1
+
+SELECT DATEADD(HOUR, 1, TIME '23:00:00') AS T;
+> T
+> --------
+> 00:00:00
+> rows: 1

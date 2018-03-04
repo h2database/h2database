@@ -58,7 +58,7 @@ public class TestDrop extends TestBase {
         stat.execute("CREATE TABLE TEST_SCHEMA.A (A INT);");
         stat.execute("CREATE TABLE TEST_SCHEMA.B " +
                 "(B INT AS SELECT A FROM TEST_SCHEMA.A);");
-        stat.execute("DROP SCHEMA TEST_SCHEMA");
+        stat.execute("DROP SCHEMA TEST_SCHEMA CASCADE");
     }
 
     private void testInterSchemaDependency() throws SQLException {

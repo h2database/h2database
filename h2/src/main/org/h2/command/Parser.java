@@ -1692,6 +1692,11 @@ public class Parser {
             command.setSchemaName(readUniqueIdentifier());
             ifExists = readIfExists(ifExists);
             command.setIfExists(ifExists);
+            if (readIf("CASCADE")) {
+                command.setDropAction(ConstraintActionType.CASCADE);
+            } else if (readIf("RESTRICT")) {
+                command.setDropAction(ConstraintActionType.RESTRICT);
+            }
             return command;
         } else if (readIf("ALL")) {
             read("OBJECTS");

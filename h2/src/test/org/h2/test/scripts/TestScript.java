@@ -101,7 +101,7 @@ public class TestScript extends TestBase {
                 "uuid", "varchar", "varchar-ignorecase" }) {
             testScript("datatypes/" + s + ".sql");
         }
-        for (String s : new String[] { "alterTableAdd", "createView" }) {
+        for (String s : new String[] { "alterTableAdd", "createView", "dropSchema" }) {
             testScript("ddl/" + s + ".sql");
         }
         for (String s : new String[] { "insertIgnore", "mergeUsing", "script", "with" }) {

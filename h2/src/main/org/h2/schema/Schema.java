@@ -116,6 +116,16 @@ public class Schema extends DbObjectBase {
         return DbObject.SCHEMA;
     }
 
+    /**
+     * Return whether is this schema is empty (does not contain any objects).
+     *
+     * @return {@code true} if this schema is empty, {@code false} otherwise
+     */
+    public boolean isEmpty() {
+        return tablesAndViews.isEmpty() && synonyms.isEmpty() && indexes.isEmpty() && sequences.isEmpty()
+                && triggers.isEmpty() && constraints.isEmpty() && constants.isEmpty() && functions.isEmpty();
+    }
+
     @Override
     public void removeChildrenAndResources(Session session) {
         while (triggers != null && triggers.size() > 0) {

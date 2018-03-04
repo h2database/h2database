@@ -567,6 +567,7 @@ public class Schema extends DbObjectBase {
     public ArrayList<SchemaObject> getAll() {
         ArrayList<SchemaObject> all = New.arrayList();
         all.addAll(getMap(DbObject.TABLE_OR_VIEW).values());
+        all.addAll(getMap(DbObject.SYNONYM).values());
         all.addAll(getMap(DbObject.SEQUENCE).values());
         all.addAll(getMap(DbObject.INDEX).values());
         all.addAll(getMap(DbObject.TRIGGER).values());

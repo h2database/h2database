@@ -1926,8 +1926,8 @@ WEEK
 ISO_WEEK
 ","
 ISO week of year (1-53).
-Monday used as a first day of week.
-First week of year contains 4 or more days.
+ISO definition is used when first week of year should have at least four days
+and week is started with Monday.
 ","
 ISO_WEEK
 "
@@ -4035,7 +4035,7 @@ WEEK(CREATED)
 ISO_WEEK(dateAndTime)
 ","
 Returns the ISO week (1-53) from a date/time value.
-This method uses the ISO definition when
+This function uses the ISO definition when
 first week of year should have at least four days
 and week is started with Monday.
 ","

@@ -560,29 +560,29 @@ insert into test values ('2000-01-20 20:00:00'), ('2000-01-20 20:00:00'), ('2000
 
 select median(v) from test;
 > MEDIAN(V)
-> ---------------------
-> 2000-01-20 20:00:00.0
+> -------------------
+> 2000-01-20 20:00:00
 
 insert into test values (null);
 > update count: 1
 
 select median(v) from test;
 > MEDIAN(V)
-> ---------------------
-> 2000-01-20 20:00:00.0
+> -------------------
+> 2000-01-20 20:00:00
 
 select median(distinct v) from test;
 > MEDIAN(DISTINCT V)
-> ---------------------
-> 2000-01-15 15:00:00.0
+> -------------------
+> 2000-01-15 15:00:00
 
 insert into test values ('2000-01-10 10:00:00');
 > update count: 1
 
 select median(v) from test;
 > MEDIAN(V)
-> ---------------------
-> 2000-01-15 15:00:00.0
+> -------------------
+> 2000-01-15 15:00:00
 
 delete from test;
 > update count: 5
@@ -592,8 +592,8 @@ insert into test values ('2000-01-20 20:00:00'), ('2000-01-21 20:00:00');
 
 select median(v) from test;
 > MEDIAN(V)
-> ---------------------
-> 2000-01-21 08:00:00.0
+> -------------------
+> 2000-01-21 08:00:00
 
 drop table test;
 > ok
@@ -606,29 +606,29 @@ insert into test values ('2000-01-20 20:00:00+04'), ('2000-01-20 20:00:00+04'), 
 
 select median(v) from test;
 > MEDIAN(V)
-> ------------------------
-> 2000-01-20 20:00:00.0+04
+> ----------------------
+> 2000-01-20 20:00:00+04
 
 insert into test values (null);
 > update count: 1
 
 select median(v) from test;
 > MEDIAN(V)
-> ------------------------
-> 2000-01-20 20:00:00.0+04
+> ----------------------
+> 2000-01-20 20:00:00+04
 
 select median(distinct v) from test;
 > MEDIAN(DISTINCT V)
-> ------------------------
-> 2000-01-15 15:00:00.0+03
+> ----------------------
+> 2000-01-15 15:00:00+03
 
 insert into test values ('2000-01-10 10:00:00+02');
 > update count: 1
 
 select median(v) from test;
 > MEDIAN(V)
-> ------------------------
-> 2000-01-15 15:00:00.0+03
+> ----------------------
+> 2000-01-15 15:00:00+03
 
 delete from test;
 > update count: 5
@@ -638,8 +638,8 @@ insert into test values ('2000-01-20 20:00:00+10:15'), ('2000-01-21 20:00:00-09'
 
 select median(v) from test;
 > MEDIAN(V)
-> ---------------------------
-> 2000-01-21 08:00:30.0+00:37
+> -------------------------
+> 2000-01-21 08:00:30+00:37
 
 drop table test;
 > ok

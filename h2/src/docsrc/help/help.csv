@@ -2448,9 +2448,10 @@ REAL
 "
 
 "Data Types","TIME Type","
-TIME [ WITHOUT TIME ZONE ]
+TIME [ ( precisionInt ) ] [ WITHOUT TIME ZONE ]
 ","
 The time data type. The format is hh:mm:ss[.nnnnnnnnn].
+If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
 
 Mapped to ""java.sql.Time"". When converted to a ""java.sql.Date"", the date is set to ""1970-01-01"".
 ""java.time.LocalTime"" is also supported on Java 8 and later versions.
@@ -2472,10 +2473,11 @@ DATE
 "
 
 "Data Types","TIMESTAMP Type","
-{ TIMESTAMP [ WITHOUT TIME ZONE ] | DATETIME | SMALLDATETIME }
+{ TIMESTAMP [ ( precisionInt ) ] [ WITHOUT TIME ZONE ] | DATETIME | SMALLDATETIME }
 ","
 The timestamp data type. The format is yyyy-MM-dd hh:mm:ss[.nnnnnnnnn].
 Stored internally as a BCD-encoded date, and nanoseconds since midnight.
+If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 
 Mapped to ""java.sql.Timestamp"" (""java.util.Date"" may be used too).
 ""java.time.LocalDateTime"" is also supported on Java 8 and later versions.
@@ -2484,10 +2486,11 @@ TIMESTAMP
 "
 
 "Data Types","TIMESTAMP WITH TIME ZONE Type","
-TIMESTAMP WITH TIME ZONE
+TIMESTAMP [ ( precisionInt ) ] WITH TIME ZONE
 ","
 The timestamp with time zone data type.
 Stored internally as a BCD-encoded date, nanoseconds since midnight, and time zone offset in minutes.
+If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 
 Mapped to ""org.h2.api.TimestampWithTimeZone"".
 ""java.time.OffsetDateTime"" and ""java.time.Instant"" are also supported on Java 8 and later versions.

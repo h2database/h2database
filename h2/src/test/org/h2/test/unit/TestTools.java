@@ -764,7 +764,7 @@ public class TestTools extends TestBase {
         assertEquals(new byte[] { (byte) 10, (byte) 20 }, rs.getBytes("f"));
         assertEquals("2007-12-31", rs.getString("g"));
         assertEquals("23:59:59", rs.getString("h"));
-        assertEquals("2007-12-31 23:59:59.0", rs.getString("i"));
+        assertEquals("2007-12-31 23:59:59", rs.getString("i"));
         assertFalse(rs.next());
         conn.close();
     }

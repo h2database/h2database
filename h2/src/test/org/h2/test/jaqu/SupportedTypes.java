@@ -85,7 +85,7 @@ public class SupportedTypes {
         s.myString = Long.toHexString(rand.nextLong());
         s.myUtilDate = new java.util.Date(rand.nextLong());
         s.mySqlDate = new java.sql.Date(rand.nextLong());
-        s.mySqlTime = new java.sql.Time(rand.nextLong());
+        s.mySqlTime = new java.sql.Time(rand.nextLong() / 1_000 * 1_000);
         s.mySqlTimestamp = new java.sql.Timestamp(rand.nextLong());
         return s;
     }

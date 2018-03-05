@@ -4343,6 +4343,7 @@ public class Parser {
     private Column parseColumnWithType(String columnName) {
         String original = currentToken;
         boolean regular = false;
+        int originalScale = -1;
         if (readIf("LONG")) {
             if (readIf("RAW")) {
                 original += " RAW";
@@ -4356,12 +4357,30 @@ public class Parser {
                 original += " VARYING";
             }
         } else if (readIf("TIME")) {
+            if (readIf("(")) {
+                originalScale = readPositiveInt();
+                if (originalScale > ValueTime.MAXIMUM_SCALE) {
+                    throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(originalScale));
+                }
+                read(")");
+            }
             if (readIf("WITHOUT")) {
                 read("TIME");
                 read("ZONE");
                 original += " WITHOUT TIME ZONE";
             }
         } else if (readIf("TIMESTAMP")) {
+            if (readIf("(")) {
+                originalScale = readPositiveInt();
+                // Allow non-standard TIMESTAMP(..., ...) syntax
+                if (readIf(",")) {
+                    originalScale = readPositiveInt();
+                }
+                if (originalScale > ValueTimestamp.MAXIMUM_SCALE) {
+                    throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(originalScale));
+                }
+                read(")");
+            }
             if (readIf("WITH")) {
                 read("TIME");
                 read("ZONE");
@@ -4415,7 +4434,34 @@ public class Parser {
                 : displaySize;
         scale = scale == -1 ? dataType.defaultScale : scale;
         if (dataType.supportsPrecision || dataType.supportsScale) {
-            if (readIf("(")) {
+            int t = dataType.type;
+            if (t == Value.TIME || t == Value.TIMESTAMP || t == Value.TIMESTAMP_TZ) {
+                if (originalScale >= 0) {
+                    scale = originalScale;
+                    switch (t) {
+                    case Value.TIME:
+                        if (original.equals("TIME WITHOUT TIME ZONE")) {
+                            original = "TIME(" + originalScale + ") WITHOUT TIME ZONE";
+                        } else {
+                            original = original + '(' + originalScale + ')';
+                        }
+                        precision = displaySize = ValueTime.getDisplaySize(originalScale);
+                        break;
+                    case Value.TIMESTAMP:
+                        if (original.equals("TIMESTAMP WITHOUT TIME ZONE")) {
+                            original = "TIMESTAMP(" + originalScale + ") WITHOUT TIME ZONE";
+                        } else {
+                            original = original + '(' + originalScale + ')';
+                        }
+                        precision = displaySize = ValueTimestamp.getDisplaySize(originalScale);
+                        break;
+                    case Value.TIMESTAMP_TZ:
+                        original = "TIMESTAMP(" + originalScale + ") WITH TIME ZONE";
+                        precision = displaySize = ValueTimestampTimeZone.getDisplaySize(originalScale);
+                        break;
+                    }
+                }
+            } else if (readIf("(")) {
                 if (!readIf("MAX")) {
                     long p = readLong();
                     if (readIf("K")) {
@@ -4436,14 +4482,7 @@ public class Parser {
                             scale = readInt();
                             original += ", " + scale;
                         } else {
-                            // special case: TIMESTAMP(5) actually means
-                            // TIMESTAMP(23, 5)
-                            if (dataType.type == Value.TIMESTAMP) {
-                                scale = MathUtils.convertLongToInt(p);
-                                p = precision;
-                            } else {
-                                scale = 0;
-                            }
+                            scale = 0;
                         }
                     }
                     precision = p;

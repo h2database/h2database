@@ -19,15 +19,10 @@ import org.h2.util.DateTimeUtils;
 public class ValueDate extends Value {
 
     /**
-     * The precision in digits.
-     */
-    public static final int PRECISION = 8;
-
-    /**
-     * The display size of the textual representation of a date.
+     * The default precision and display size of the textual representation of a date.
      * Example: 2000-01-02
      */
-    public static final int DISPLAY_SIZE = 10;
+    public static final int PRECISION = 10;
 
     private final long dateValue;
 
@@ -97,7 +92,7 @@ public class ValueDate extends Value {
 
     @Override
     public String getString() {
-        StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
+        StringBuilder buff = new StringBuilder(PRECISION);
         DateTimeUtils.appendDate(buff, dateValue);
         return buff.toString();
     }
@@ -114,7 +109,7 @@ public class ValueDate extends Value {
 
     @Override
     public int getDisplaySize() {
-        return DISPLAY_SIZE;
+        return PRECISION;
     }
 
     @Override

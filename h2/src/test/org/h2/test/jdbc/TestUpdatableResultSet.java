@@ -296,7 +296,7 @@ public class TestUpdatableResultSet extends TestBase {
                 ResultSet.CONCUR_UPDATABLE);
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255), "
                 + "DEC DECIMAL(10,2), BOO BIT, BYE TINYINT, BIN BINARY(100), "
-                + "D DATE, T TIME, TS TIMESTAMP, DB DOUBLE, R REAL, L BIGINT, "
+                + "D DATE, T TIME, TS TIMESTAMP(9), DB DOUBLE, R REAL, L BIGINT, "
                 + "O_I INT, SH SMALLINT, CL CLOB, BL BLOB)");
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
         ResultSetMetaData meta = rs.getMetaData();

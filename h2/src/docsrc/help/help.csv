@@ -3919,6 +3919,14 @@ Returns the day of the week (1 means Sunday).
 DAY_OF_WEEK(CREATED)
 "
 
+"Functions (Time and Date)","ISO_DAY_OF_WEEK","
+ISO_DAY_OF_WEEK(dateAndTime)
+","
+Returns the ISO day of the week (1 means Monday).
+","
+ISO_DAY_OF_WEEK(CREATED)
+"
+
 "Functions (Time and Date)","DAY_OF_YEAR","
 DAY_OF_YEAR(dateAndTime)
 ","

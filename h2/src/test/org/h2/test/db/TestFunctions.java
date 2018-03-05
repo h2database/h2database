@@ -376,7 +376,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertContains(rs.getString("VIEW_DEFINITION"), "SCHEMA2.FUNC");
 
         stat.execute("drop view test");
-        stat.execute("drop schema schema2");
+        stat.execute("drop schema schema2 cascade");
 
         conn.close();
     }

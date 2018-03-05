@@ -100,7 +100,8 @@ public class DbSettings extends SettingsBase {
 
     /**
      * Database setting <code>DROP_RESTRICT</code> (default: true).<br />
-     * Whether the default action for DROP TABLE and DROP VIEW is RESTRICT.
+     * Whether the default action for DROP TABLE, DROP VIEW, and DROP SCHEMA
+     * is RESTRICT.
      */
     public final boolean dropRestrict = get("DROP_RESTRICT", true);
 

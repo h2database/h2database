@@ -885,9 +885,11 @@ DROP ROLE READONLY
 "
 
 "Commands (DDL)","DROP SCHEMA","
-DROP SCHEMA [ IF EXISTS ] schemaName
+DROP SCHEMA [ IF EXISTS ] schemaName [ RESTRICT | CASCADE ]
 ","
 Drops a schema.
+The command will fail if objects in this schema exist and the RESTRICT clause is used (the default).
+All objects in this schema are dropped as well if the CASCADE clause is used.
 This command commits an open transaction in this connection.
 ","
 DROP SCHEMA TEST_SCHEMA

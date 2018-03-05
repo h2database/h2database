@@ -68,7 +68,7 @@ public class TestSynonymForTable extends TestBase {
         stat.execute("CREATE SCHEMA IF NOT EXISTS s1");
         stat.execute("CREATE TABLE IF NOT EXISTS s1.backingtable(id INT PRIMARY KEY)");
         stat.execute("CREATE OR REPLACE SYNONYM testsynonym FOR s1.backingtable");
-        stat.execute("DROP SCHEMA s1");
+        stat.execute("DROP SCHEMA s1 CASCADE");
 
         assertThrows(JdbcSQLException.class, stat).execute("SELECT id FROM testsynonym");
         conn.close();

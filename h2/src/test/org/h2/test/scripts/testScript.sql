@@ -979,7 +979,7 @@ select * from v_test;
 set schema public;
 > ok
 
-drop schema a;
+drop schema a cascade;
 > ok
 
 set autocommit true;
@@ -1289,10 +1289,10 @@ select * from a.x, b.x;
 > -- --
 > rows: 0
 
-drop schema a;
+drop schema a cascade;
 > ok
 
-drop schema b;
+drop schema b cascade;
 > ok
 
 create table t1 (id int primary key);
@@ -2551,7 +2551,7 @@ select nextval('abc'), currval('Abc'), nextval('TestSchema', 'ABC');
 set schema public;
 > ok
 
-drop schema "TestSchema";
+drop schema "TestSchema" cascade;
 > ok
 
 drop sequence main_seq;
@@ -2623,7 +2623,7 @@ explain select * from public.test;
 > SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */
 > rows: 1
 
-drop schema TEST_SCHEMA;
+drop schema TEST_SCHEMA cascade;
 > ok
 
 set autocommit true;
@@ -3049,7 +3049,7 @@ SELECT ONE, CONST.ONE FROM DUAL;
 COMMENT ON CONSTANT ONE IS NULL;
 > ok
 
-DROP SCHEMA CONST;
+DROP SCHEMA CONST CASCADE;
 > ok
 
 SELECT CONSTANT_SCHEMA, CONSTANT_NAME, DATA_TYPE, REMARKS, SQL FROM INFORMATION_SCHEMA.CONSTANTS;
@@ -4074,7 +4074,7 @@ script NOPASSWORDS NOSETTINGS drop;
 drop trigger s.test_trigger;
 > ok
 
-drop schema s;
+drop schema s cascade;
 > ok
 
 CREATE MEMORY TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255), y int as id+1);
@@ -5281,7 +5281,7 @@ SELECT INFORMATION_SCHEMA.SCHEMATA.* FROM INFORMATION_SCHEMA.SCHEMATA;
 CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA;
 > ok
 
-DROP SCHEMA TEST_SCHEMA;
+DROP SCHEMA TEST_SCHEMA RESTRICT;
 > ok
 
 create schema Contact_Schema AUTHORIZATION SA;
@@ -5320,10 +5320,10 @@ drop table ClientServer_Schema.PrimaryKey_Seq;
 drop table Contact_Schema.Address;
 > ok
 
-drop schema Contact_Schema;
+drop schema Contact_Schema restrict;
 > ok
 
-drop schema ClientServer_Schema;
+drop schema ClientServer_Schema restrict;
 > ok
 
 --- alter table add / drop / rename column ----------------------------------------------------------------------------------------------
@@ -8747,7 +8747,7 @@ alter schema if exists x rename to z;
 create table z.z (id int);
 > ok
 
-drop schema z;
+drop schema z cascade;
 > ok
 
 ----- Issue#493 -----

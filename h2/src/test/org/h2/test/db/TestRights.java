@@ -388,7 +388,7 @@ public class TestRights extends TestBase {
                 execute("alter user test1 admin false");
         assertThrows(ErrorCode.CANNOT_DROP_2, stat).
                 execute("drop user test1");
-        stat.execute("drop schema b");
+        stat.execute("drop schema b cascade");
         stat.execute("alter user test1 admin false");
         stat.execute("drop user test1");
         conn.close();
@@ -451,7 +451,7 @@ public class TestRights extends TestBase {
         executeSuccess("INSERT INTO  S.TEST (ID, NAME) VALUES (42, 'Adams')");
         executeSuccess("UPDATE S.TEST Set NAME = 'Douglas'");
         executeSuccess("DELETE FROM S.TEST");
-        executeSuccess("DROP SCHEMA S");
+        executeSuccess("DROP SCHEMA S CASCADE");
 
         // ...and on other schemata
         executeSuccess("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");

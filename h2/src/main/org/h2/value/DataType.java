@@ -464,8 +464,8 @@ public class DataType {
         return dataType;
     }
 
-    private static DataType createDate(int maxPrecision, int precision, String prefix, boolean supportsScale, int scale,
-            int maxScale) {
+    private static DataType createDate(int maxPrecision, int precision, String prefix,
+            boolean supportsScale, int scale, int maxScale) {
         DataType dataType = new DataType();
         dataType.prefix = prefix + " '";
         dataType.suffix = "'";

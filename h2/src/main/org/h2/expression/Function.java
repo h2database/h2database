@@ -188,6 +188,10 @@ public class Function extends Expression implements FunctionCall {
         DATE_PART.put("DD", DAY_OF_MONTH);
         DATE_PART.put("D", DAY_OF_MONTH);
         DATE_PART.put("SQL_TSI_DAY", DAY_OF_MONTH);
+        DATE_PART.put("DAY_OF_WEEK", DAY_OF_WEEK);
+        DATE_PART.put("DAYOFWEEK", DAY_OF_WEEK);
+        DATE_PART.put("DOW", DAY_OF_WEEK);
+        DATE_PART.put("ISO_DAY_OF_WEEK", ISO_DAY_OF_WEEK);
         DATE_PART.put("DAYOFYEAR", DAY_OF_YEAR);
         DATE_PART.put("DAY_OF_YEAR", DAY_OF_YEAR);
         DATE_PART.put("DY", DAY_OF_YEAR);
@@ -1898,6 +1902,7 @@ public class Function extends Expression implements FunctionCall {
             count *= 7;
             //$FALL-THROUGH$
         case DAY_OF_WEEK:
+        case ISO_DAY_OF_WEEK:
         case DAY_OF_MONTH:
         case DAY_OF_YEAR:
             if (!withDate) {
@@ -2012,6 +2017,8 @@ public class Function extends Expression implements FunctionCall {
             //$FALL-THROUGH$
         case DAY_OF_MONTH:
         case DAY_OF_YEAR:
+        case DAY_OF_WEEK:
+        case ISO_DAY_OF_WEEK:
             return absolute2 - absolute1;
         case WEEK:
             return weekdiff(absolute1, absolute2, 0);

@@ -78,6 +78,8 @@ public class GenerateDoc {
                 help + "= 'Commands (DDL)' ORDER BY ID", false);
         map("commandsOther",
                 help + "= 'Commands (Other)' ORDER BY ID", false);
+        map("datetimeFields",
+                help + "= 'Datetime fields' ORDER BY ID", true);
         map("otherGrammar",
                 help + "= 'Other Grammar' ORDER BY ID", true);
         map("functionsAggregate",

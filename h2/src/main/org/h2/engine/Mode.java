@@ -335,10 +335,6 @@ public class Mode {
         return MODES.get(StringUtils.toUpperEnglish(name));
     }
 
-    public static Mode getOracle() {
-        return getInstance(ModeEnum.Oracle.name());
-    }
-
     public static Mode getRegular() {
         return getInstance(ModeEnum.REGULAR.name());
     }

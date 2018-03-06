@@ -41,6 +41,7 @@ public class MergeDocs {
             }
             text = disableRailroads(text);
             text = removeHeaderFooter(fileName, text);
+            text = fixLinks(text);
             buff.append(text);
         }
         String finalText = buff.toString();
@@ -90,6 +91,15 @@ public class MergeDocs {
         idx = text.indexOf(start) + start.length();
         text = text.substring(idx + 1);
         return text;
+    }
+
+    private static String fixLinks(String text) {
+        return text
+                .replaceAll("href=\"build.html\"", "href=\"#build_index\"")
+                .replaceAll("href=\"datatypes.html\"", "href=\"#datatypes_index\"")
+                .replaceAll("href=\"faq.html\"", "href=\"#faq_index\"")
+                .replaceAll("href=\"grammar.html\"", "href=\"#grammar_index\"")
+                .replaceAll("href=\"tutorial.html\"", "href=\"#tutorial_index\"");
     }
 
     private static String getContent(String fileName) throws Exception {

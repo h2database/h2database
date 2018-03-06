@@ -456,17 +456,18 @@ public class Build extends BuildBase {
             exec("soffice", args("-invisible", "macro:///Standard.Module1.H2Pdf"));
             copy("docs", files("../h2web/h2.pdf"), "../h2web");
         } catch (Exception e) {
-            print("OpenOffice is not available: " + e);
-            try {
-                if (exec("soffice", args("--convert-to", "pdf", "--outdir", "docs/html",
-                        "docs/html/onePage.html")) == 0) {
-                    File f = new File("docs/html/onePage.pdf");
-                    if (f.exists()) {
-                        f.renameTo(new File("docs/h2.pdf"));
-                    }
-                }
-            } catch (Exception ex) {
-            }
+            println("OpenOffice / LibreOffice is not available or macros H2Pdf is not installed:");
+            println(e.toString());
+            println("********************************************************************************");
+            println("Install and run LibreOffice or OpenOffice.");
+            println("Open Tools - Macros - Organize Macros - LibreOffice Basic...");
+            println("Navigate to My Macros / Standard / Module1 and press Edit button.");
+            println("Put content of h2/src/installer/openoffice.txt here.");
+            println("Edit BaseDir variable value:");
+
+            println("    BaseDir = \"" + new File(System.getProperty("user.dir")).getParentFile().toURI() + '"');
+            println("Close office application and try to build installer again.");
+            println("********************************************************************************");
         }
         delete("docs/html/onePage.html");
         FileList files = files("../h2").keep("../h2/build.*");
@@ -480,7 +481,7 @@ public class Build extends BuildBase {
             exec("makensis", args("/v2", "src/installer/h2.nsi"));
             installer = true;
         } catch (Exception e) {
-            print("NSIS is not available: " + e);
+            println("NSIS is not available: " + e);
         }
         String buildDate = getStaticField("org.h2.engine.Constants", "BUILD_DATE");
         byte[] data = readFile(new File("../h2web/h2.zip"));

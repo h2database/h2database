@@ -45,14 +45,13 @@ public class ParserUtil {
      * Checks if this string is a SQL keyword.
      *
      * @param s the token to check
-     * @param supportOffsetFetch if OFFSET and FETCH are keywords
      * @return true if it is a keyword
      */
-    public static boolean isKeyword(String s, boolean supportOffsetFetch) {
+    public static boolean isKeyword(String s) {
         if (s == null || s.length() == 0) {
             return false;
         }
-        return getSaveTokenType(s, supportOffsetFetch, false) != IDENTIFIER;
+        return getSaveTokenType(s, false) != IDENTIFIER;
     }
 
     /**
@@ -79,18 +78,17 @@ public class ParserUtil {
                 return false;
             }
         }
-        return getSaveTokenType(s, true, functionsAsKeywords) == IDENTIFIER;
+        return getSaveTokenType(s, functionsAsKeywords) == IDENTIFIER;
     }
 
     /**
      * Get the token type.
      *
      * @param s the token
-     * @param supportOffsetFetch whether offset / fetch are supported
      * @param functionsAsKeywords whether "current data / time" functions are keywords
      * @return the token type
      */
-    public static int getSaveTokenType(String s, boolean supportOffsetFetch, boolean functionsAsKeywords) {
+    public static int getSaveTokenType(String s, boolean functionsAsKeywords) {
         switch (s.charAt(0)) {
         case 'A':
             return getKeywordOrIdentifier(s, "ALL", KEYWORD);
@@ -116,15 +114,15 @@ public class ParserUtil {
             }
             return getKeywordOrIdentifier(s, "EXISTS", KEYWORD);
         case 'F':
-            if ("FROM".equals(s)) {
+            if ("FETCH".equals(s)) {
+                return KEYWORD;
+            } else if ("FROM".equals(s)) {
                 return KEYWORD;
             } else if ("FOR".equals(s)) {
                 return KEYWORD;
             } else if ("FOREIGN".equals(s)) {
                 return KEYWORD;
             } else if ("FULL".equals(s)) {
-                return KEYWORD;
-            } else if (supportOffsetFetch && "FETCH".equals(s)) {
                 return KEYWORD;
             }
             return getKeywordOrIdentifier(s, "FALSE", FALSE);
@@ -156,9 +154,9 @@ public class ParserUtil {
             }
             return getKeywordOrIdentifier(s, "NULL", NULL);
         case 'O':
-            if ("ON".equals(s)) {
+            if ("OFFSET".equals(s)) {
                 return KEYWORD;
-            } else if (supportOffsetFetch && "OFFSET".equals(s)) {
+            } else if ("ON".equals(s)) {
                 return KEYWORD;
             }
             return getKeywordOrIdentifier(s, "ORDER", KEYWORD);

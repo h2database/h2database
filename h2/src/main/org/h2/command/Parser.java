@@ -2022,38 +2022,34 @@ public class Parser {
             command.setOrder(orderList);
             currentSelect = oldSelect;
         }
-        if (database.getMode().supportOffsetFetch) {
-            // make sure aggregate functions will not work here
-            Select temp = currentSelect;
-            currentSelect = null;
-
-            // http://sqlpro.developpez.com/SQL2008/
-            if (readIf("OFFSET")) {
-                command.setOffset(readExpression().optimize(session));
-                if (!readIf("ROW")) {
-                    readIf("ROWS");
-                }
+        // make sure aggregate functions will not work here
+        Select temp = currentSelect;
+        currentSelect = null;
+        // http://sqlpro.developpez.com/SQL2008/
+        if (readIf("OFFSET")) {
+            command.setOffset(readExpression().optimize(session));
+            if (!readIf("ROW")) {
+                readIf("ROWS");
             }
-            if (readIf("FETCH")) {
-                if (!readIf("FIRST")) {
-                    read("NEXT");
-                }
-                if (readIf("ROW")) {
-                    command.setLimit(ValueExpression.get(ValueInt.get(1)));
-                } else {
-                    Expression limit = readExpression().optimize(session);
-                    command.setLimit(limit);
-                    if (!readIf("ROW")) {
-                        read("ROWS");
-                    }
-                }
-                read("ONLY");
-            }
-
-            currentSelect = temp;
         }
+        if (readIf("FETCH")) {
+            if (!readIf("FIRST")) {
+                read("NEXT");
+            }
+            if (readIf("ROW")) {
+                command.setLimit(ValueExpression.get(ValueInt.get(1)));
+            } else {
+                Expression limit = readExpression().optimize(session);
+                command.setLimit(limit);
+                if (!readIf("ROW")) {
+                    read("ROWS");
+                }
+            }
+            read("ONLY");
+        }
+        currentSelect = temp;
         if (readIf("LIMIT")) {
-            Select temp = currentSelect;
+            temp = currentSelect;
             // make sure aggregate functions will not work here
             currentSelect = null;
             Expression limit = readExpression().optimize(session);
@@ -4195,7 +4191,7 @@ public class Parser {
             // if not yet converted to uppercase, do it now
             s = StringUtils.toUpperEnglish(s);
         }
-        return getSaveTokenType(s, database.getMode().supportOffsetFetch, false);
+        return getSaveTokenType(s, false);
     }
 
     private boolean isKeyword(String s) {
@@ -4203,11 +4199,11 @@ public class Parser {
             // if not yet converted to uppercase, do it now
             s = StringUtils.toUpperEnglish(s);
         }
-        return ParserUtil.isKeyword(s, false);
+        return ParserUtil.isKeyword(s);
     }
 
-    private static int getSaveTokenType(String s, boolean supportOffsetFetch, boolean functionsAsKeywords) {
-        return ParserUtil.getSaveTokenType(s, supportOffsetFetch, functionsAsKeywords);
+    private static int getSaveTokenType(String s, boolean functionsAsKeywords) {
+        return ParserUtil.getSaveTokenType(s, functionsAsKeywords);
     }
 
     private Column parseColumnForTable(String columnName,

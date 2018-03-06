@@ -147,9 +147,10 @@ public class TestScript extends TestBase {
                 "current-time", "dateadd", "datediff", "dayname",
                 "day-of-month", "day-of-week", "day-of-year", "extract",
                 "formatdatetime", "hour", "minute", "month", "monthname",
-                "parsedatetime", "quarter", "second", "truncate", "week", "year" }) {
+                "parsedatetime", "quarter", "second", "truncate", "week", "year", "date_trunc" }) {
             testScript("functions/timeanddate/" + s + ".sql");
         }
+        
         deleteDb("script");
         System.out.flush();
     }

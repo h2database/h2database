@@ -107,7 +107,7 @@ public class Function extends Expression implements FunctionCall {
             SECOND = 114, WEEK = 115, YEAR = 116, CURRENT_DATE = 117,
             CURRENT_TIME = 118, CURRENT_TIMESTAMP = 119, EXTRACT = 120,
             FORMATDATETIME = 121, PARSEDATETIME = 122, ISO_YEAR = 123,
-            ISO_WEEK = 124, ISO_DAY_OF_WEEK = 125;
+            ISO_WEEK = 124, ISO_DAY_OF_WEEK = 125, DATE_TRUNC = 132;
 
     /**
      * Pseudo functions for DATEADD, DATEDIFF, and EXTRACT.
@@ -419,6 +419,7 @@ public class Function extends Expression implements FunctionCall {
                 1, Value.INT);
         addFunction("ISO_DAY_OF_WEEK", ISO_DAY_OF_WEEK,
                 1, Value.INT);
+        addFunction("DATE_TRUNC", DATE_TRUNC, 2, Value.NULL);
         // system
         addFunctionNotDeterministic("DATABASE", DATABASE,
                 0, Value.STRING);
@@ -1494,6 +1495,9 @@ public class Function extends Expression implements FunctionCall {
         case DATE_DIFF:
             result = ValueLong.get(datediff(v0.getString(), v1, v2));
             break;
+        case DATE_TRUNC:   
+            result = ValueTimestamp.fromDateValueAndNanos(((ValueTimestamp) v1).getDateValue(), 0);
+            break;
         case EXTRACT: {
             int field = getDatePart(v0.getString());
             if (field != EPOCH) {
@@ -2371,6 +2375,10 @@ public class Function extends Expression implements FunctionCall {
             min = 1;
             max = 2;
             break;
+        case DATE_TRUNC:
+            min = 2;
+            max = 2;
+            break;
         case TO_CHAR:
         case TO_DATE:
             min = 1;
@@ -2579,6 +2587,7 @@ public class Function extends Expression implements FunctionCall {
             s = scale;
             d = displaySize;
             break;
+        case DATE_TRUNC:
         case TRUNCATE:
             t = p0.getType();
             s = p0.getScale();
@@ -2745,6 +2754,7 @@ public class Function extends Expression implements FunctionCall {
         case TRIM:
         case STRINGDECODE:
         case UTF8TOSTRING:
+        case DATE_TRUNC:
         case TRUNCATE:
             precision = args[0].getPrecision();
             displaySize = args[0].getDisplaySize();

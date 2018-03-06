@@ -187,7 +187,7 @@ public class FullTextLucene extends FullText {
      */
     public static void dropAll(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
-        stat.execute("DROP SCHEMA IF EXISTS " + SCHEMA);
+        stat.execute("DROP SCHEMA IF EXISTS " + SCHEMA + " CASCADE");
         removeAllTriggers(conn, TRIGGER_PREFIX);
         removeIndexFiles(conn);
     }

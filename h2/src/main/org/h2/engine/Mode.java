@@ -100,13 +100,6 @@ public class Mode {
     public boolean squareBracketQuotedNames;
 
     /**
-     * Support for the syntax
-     * [OFFSET .. ROW|ROWS] [FETCH FIRST .. ROW|ROWS ONLY]
-     * as an alternative for LIMIT .. OFFSET.
-     */
-    public boolean supportOffsetFetch = Constants.VERSION_MINOR >= 4;
-
-    /**
      * The system columns 'CTID' and 'OID' are supported.
      */
     public boolean systemColumns;
@@ -216,7 +209,6 @@ public class Mode {
 
         mode = new Mode(ModeEnum.DB2.name());
         mode.aliasColumnName = true;
-        mode.supportOffsetFetch = true;
         mode.sysDummy1 = true;
         mode.isolationLevelInSelectOrInsertStatement = true;
         // See
@@ -232,7 +224,6 @@ public class Mode {
         mode = new Mode(ModeEnum.Derby.name());
         mode.aliasColumnName = true;
         mode.uniqueIndexNullsHandling = UniqueIndexNullsHandling.FORBID_ANY_DUPLICATES;
-        mode.supportOffsetFetch = true;
         mode.sysDummy1 = true;
         mode.isolationLevelInSelectOrInsertStatement = true;
         // Derby does not support client info properties as of version 10.12.1.1
@@ -298,7 +289,6 @@ public class Mode {
         mode = new Mode(ModeEnum.PostgreSQL.name());
         mode.aliasColumnName = true;
         mode.nullConcatIsNull = true;
-        mode.supportOffsetFetch = true;
         mode.systemColumns = true;
         mode.logIsLogBase10 = true;
         mode.regexpReplaceBackslashReferences = true;
@@ -343,10 +333,6 @@ public class Mode {
      */
     public static Mode getInstance(String name) {
         return MODES.get(StringUtils.toUpperEnglish(name));
-    }
-
-    public static Mode getOracle() {
-        return getInstance(ModeEnum.Oracle.name());
     }
 
     public static Mode getRegular() {

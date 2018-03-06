@@ -70,6 +70,12 @@ public class DateTimeUtils {
             214, 245, 275, 306, 337, 366 };
 
     /**
+     * Multipliers for {@link #convertScale(long, int)}.
+     */
+    private static final int[] CONVERT_SCALE_TABLE = { 1_000_000_000, 100_000_000,
+            10_000_000, 1_000_000, 100_000, 10_000, 1_000, 100, 10 };
+
+    /**
      * The thread local. Can not override initialValue because this would result
      * in an inner class, which would not be garbage collected in a web
      * container, and prevent the class loader of H2 from being garbage
@@ -1340,10 +1346,8 @@ public class DateTimeUtils {
      *
      * @param buff the target string builder
      * @param nanos the time in nanoseconds
-     * @param alwaysAddMillis whether to always add at least ".0"
      */
-    public static void appendTime(StringBuilder buff, long nanos,
-            boolean alwaysAddMillis) {
+    public static void appendTime(StringBuilder buff, long nanos) {
         if (nanos < 0) {
             buff.append('-');
             nanos = -nanos;
@@ -1367,7 +1371,7 @@ public class DateTimeUtils {
         StringUtils.appendZeroPadded(buff, 2, m);
         buff.append(':');
         StringUtils.appendZeroPadded(buff, 2, s);
-        if (alwaysAddMillis || ms > 0 || nanos > 0) {
+        if (ms > 0 || nanos > 0) {
             buff.append('.');
             int start = buff.length();
             StringUtils.appendZeroPadded(buff, 3, ms);
@@ -1415,10 +1419,10 @@ public class DateTimeUtils {
      * @return formatted string
      */
     public static String timestampTimeZoneToString(long dateValue, long timeNanos, short timeZoneOffsetMins) {
-        StringBuilder buff = new StringBuilder(ValueTimestampTimeZone.DISPLAY_SIZE);
+        StringBuilder buff = new StringBuilder(ValueTimestampTimeZone.MAXIMUM_PRECISION);
         appendDate(buff, dateValue);
         buff.append(' ');
-        appendTime(buff, timeNanos, true);
+        appendTime(buff, timeNanos);
         appendTimeZone(buff, timeZoneOffsetMins);
         return buff.toString();
     }
@@ -1446,6 +1450,25 @@ public class DateTimeUtils {
         b.append(':');
         StringUtils.appendZeroPadded(b, 2, offsetMins % 60);
         return b.toString();
+    }
+
+    /**
+     * Converts scale of nanoseconds.
+     *
+     * @param nanosOfDay nanoseconds of day
+     * @param scale fractional seconds precision
+     * @return scaled value
+     */
+    public static long convertScale(long nanosOfDay, int scale) {
+        if (scale >= 9) {
+            return nanosOfDay;
+        }
+        int m = CONVERT_SCALE_TABLE[scale];
+        long mod = nanosOfDay % m;
+        if (mod >= m >>> 1) {
+            nanosOfDay += m;
+        }
+        return nanosOfDay - mod;
     }
 
 }

@@ -1065,7 +1065,6 @@ import java.sql.*;
 import java.util.*;
 public class Test {
     public static void main(String[] args) throws Exception {
-        Class.forName("org.h2.Driver");
         String url = "jdbc:h2:~/test";
         Properties prop = new Properties();
         prop.setProperty("user", "sa");
@@ -1083,7 +1082,6 @@ public class Test {
 }
 </pre>
 <p>
-This example requires Java 1.6.
 When using Swing, use <code>javax.swing.JPasswordField</code>.
 </p>
 
@@ -1780,13 +1778,6 @@ OR X = 2 OR X = 2 OR X = 2 OR X = 2 OR X = 2
         <td>Protocol to protect a password (but not to protect data).
         See also: <a href="http://www.faqs.org/rfcs/rfc2617.html">RFC
         2617: HTTP Digest Access Authentication</a></td>
-    </tr>
-    <tr>
-        <td>GCJ</td>
-        <td>Compiler for Java. <a href="http://gcc.gnu.org/java">GNU
-        Compiler for the Java</a> and <a
-            href="http://www.dobysoft.com/products/nativej">NativeJ
-        (commercial)</a></td>
     </tr>
     <tr>
         <td>HTTPS</td>

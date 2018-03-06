@@ -188,6 +188,10 @@ public class Function extends Expression implements FunctionCall {
         DATE_PART.put("DD", DAY_OF_MONTH);
         DATE_PART.put("D", DAY_OF_MONTH);
         DATE_PART.put("SQL_TSI_DAY", DAY_OF_MONTH);
+        DATE_PART.put("DAY_OF_WEEK", DAY_OF_WEEK);
+        DATE_PART.put("DAYOFWEEK", DAY_OF_WEEK);
+        DATE_PART.put("DOW", DAY_OF_WEEK);
+        DATE_PART.put("ISO_DAY_OF_WEEK", ISO_DAY_OF_WEEK);
         DATE_PART.put("DAYOFYEAR", DAY_OF_YEAR);
         DATE_PART.put("DAY_OF_YEAR", DAY_OF_YEAR);
         DATE_PART.put("DY", DAY_OF_YEAR);
@@ -616,10 +620,6 @@ public class Function extends Expression implements FunctionCall {
         }
     }
 
-    private static strictfp double log10(double value) {
-        return roundMagic(StrictMath.log(value) / StrictMath.log(10));
-    }
-
     @Override
     public Value getValue(Session session) {
         return getValueWithArgs(session, args);
@@ -678,7 +678,7 @@ public class Function extends Expression implements FunctionCall {
             }
             break;
         case LOG10:
-            result = ValueDouble.get(log10(v0.getDouble()));
+            result = ValueDouble.get(Math.log10(v0.getDouble()));
             break;
         case PI:
             result = ValueDouble.get(Math.PI);
@@ -1315,7 +1315,7 @@ public class Function extends Expression implements FunctionCall {
         }
         case REPLACE: {
             if (v0 == ValueNull.INSTANCE || v1 == ValueNull.INSTANCE
-                    || v2 == ValueNull.INSTANCE && database.getMode() != Mode.getOracle()) {
+                    || v2 == ValueNull.INSTANCE && database.getMode().getEnum() != Mode.ModeEnum.Oracle) {
                 result = ValueNull.INSTANCE;
             } else {
                 String s0 = v0.getString();
@@ -1898,6 +1898,7 @@ public class Function extends Expression implements FunctionCall {
             count *= 7;
             //$FALL-THROUGH$
         case DAY_OF_WEEK:
+        case ISO_DAY_OF_WEEK:
         case DAY_OF_MONTH:
         case DAY_OF_YEAR:
             if (!withDate) {
@@ -1942,9 +1943,9 @@ public class Function extends Expression implements FunctionCall {
             forceTimestamp = true;
         }
         timeNanos += count;
-        if (timeNanos > DateTimeUtils.NANOS_PER_DAY || timeNanos < 0) {
+        if (timeNanos >= DateTimeUtils.NANOS_PER_DAY || timeNanos < 0) {
             long d;
-            if (timeNanos > DateTimeUtils.NANOS_PER_DAY) {
+            if (timeNanos >= DateTimeUtils.NANOS_PER_DAY) {
                 d = timeNanos / DateTimeUtils.NANOS_PER_DAY;
             } else {
                 d = (timeNanos - DateTimeUtils.NANOS_PER_DAY + 1) / DateTimeUtils.NANOS_PER_DAY;
@@ -2012,6 +2013,8 @@ public class Function extends Expression implements FunctionCall {
             //$FALL-THROUGH$
         case DAY_OF_MONTH:
         case DAY_OF_YEAR:
+        case DAY_OF_WEEK:
+        case ISO_DAY_OF_WEEK:
             return absolute2 - absolute1;
         case WEEK:
             return weekdiff(absolute1, absolute2, 0);
@@ -2590,7 +2593,7 @@ public class Function extends Expression implements FunctionCall {
                 t = Value.DATE;
                 p = ValueDate.PRECISION;
                 s = 0;
-                d = ValueDate.DISPLAY_SIZE;
+                d = ValueDate.PRECISION;
             }
             break;
         case ABS:

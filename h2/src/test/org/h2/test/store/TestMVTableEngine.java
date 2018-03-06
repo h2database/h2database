@@ -1237,7 +1237,7 @@ public class TestMVTableEngine extends TestBase {
         assertEquals(3d, rs.getFloat(10));
         assertEquals("10:00:00", rs.getString(11));
         assertEquals("2001-01-01", rs.getString(12));
-        assertEquals("2010-10-10 10:10:10.0", rs.getString(13));
+        assertEquals("2010-10-10 10:10:10", rs.getString(13));
         assertEquals(1, rs.getBytes(14).length);
         assertEquals("00000000-0000-0000-0000-000000000000",
                 rs.getString(15));
@@ -1256,7 +1256,7 @@ public class TestMVTableEngine extends TestBase {
         assertEquals(32d, rs.getFloat(10));
         assertEquals("10:00:00", rs.getString(11));
         assertEquals("2001-01-01", rs.getString(12));
-        assertEquals("2010-10-10 10:10:10.0", rs.getString(13));
+        assertEquals("2010-10-10 10:10:10", rs.getString(13));
         assertEquals(1, rs.getBytes(14).length);
         assertEquals("00000000-0000-0000-0000-000000000000",
                 rs.getString(15));
@@ -1276,7 +1276,7 @@ public class TestMVTableEngine extends TestBase {
         assertEquals(0.0d, rs.getFloat(10));
         assertEquals("10:00:00", rs.getString(11));
         assertEquals("2001-01-01", rs.getString(12));
-        assertEquals("2010-10-10 10:10:10.0", rs.getString(13));
+        assertEquals("2010-10-10 10:10:10", rs.getString(13));
         assertEquals(100, rs.getBytes(14).length);
         assertEquals("00000000-0000-0000-0000-000000000000",
                 rs.getString(15));
@@ -1295,7 +1295,7 @@ public class TestMVTableEngine extends TestBase {
         assertEquals(1.0d, rs.getFloat(10));
         assertEquals("10:00:00", rs.getString(11));
         assertEquals("2001-01-01", rs.getString(12));
-        assertEquals("2010-10-10 10:10:10.0", rs.getString(13));
+        assertEquals("2010-10-10 10:10:10", rs.getString(13));
         assertEquals(100, rs.getBytes(14).length);
         assertEquals("00000000-0000-0000-0000-000000000000",
                 rs.getString(15));

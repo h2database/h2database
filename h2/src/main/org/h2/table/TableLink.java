@@ -295,10 +295,10 @@ public class TableLink extends Table {
             precision = Math.max(ValueDate.PRECISION, precision);
             break;
         case Types.TIMESTAMP:
-            precision = Math.max(ValueTimestamp.PRECISION, precision);
+            precision = Math.max(ValueTimestamp.MAXIMUM_PRECISION, precision);
             break;
         case Types.TIME:
-            precision = Math.max(ValueTime.PRECISION, precision);
+            precision = Math.max(ValueTime.MAXIMUM_PRECISION, precision);
             break;
         }
         return precision;

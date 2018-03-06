@@ -885,9 +885,11 @@ DROP ROLE READONLY
 "
 
 "Commands (DDL)","DROP SCHEMA","
-DROP SCHEMA [ IF EXISTS ] schemaName
+DROP SCHEMA [ IF EXISTS ] schemaName [ RESTRICT | CASCADE ]
 ","
 Drops a schema.
+The command will fail if objects in this schema exist and the RESTRICT clause is used (the default).
+All objects in this schema are dropped as well if the CASCADE clause is used.
 This command commits an open transaction in this connection.
 ","
 DROP SCHEMA TEST_SCHEMA
@@ -1792,6 +1794,171 @@ Admin rights are required to execute this command.
 SHUTDOWN COMPACT
 "
 
+"Datetime fields","Datetime field","
+yearField | monthField | dayOfMonthField
+    | hourField | minuteField | secondField
+    | millisecondField | microsecondField | nanosecondField
+    | timezoneHourField | timezoneMinuteField
+    | dayOfWeekField | isoDayOfWeekField
+    | weekOfYearField | isoWeekOfYearField
+    | quarterField | dayOfYearField | epochField
+","
+Fields for EXTRACT, DATEADD, and DATEDIFF functions.
+","
+YEAR
+"
+
+"Datetime fields","Year field","
+YEAR | YYYY | YY | SQL_TSI_YEAR
+","
+Year.
+","
+YEAR
+"
+
+"Datetime fields","Month field","
+MONTH | MM | M | SQL_TSI_MONTH
+","
+Month (1-12).
+","
+MONTH
+"
+
+"Datetime fields","Day of month field","
+DAY | DD | D | SQL_TSI_DAY
+","
+Day of month (1-31).
+","
+DAY
+"
+
+"Datetime fields","Hour field","
+HOUR | HH | SQL_TSI_HOUR
+","
+Hour (0-23).
+","
+HOUR
+"
+
+"Datetime fields","Minute field","
+MINUTE | MI | N | SQL_TSI_MINUTE
+","
+Minute (0-59).
+","
+MINUTE
+"
+
+"Datetime fields","Second field","
+SECOND | SS | S | SQL_TSI_SECOND
+","
+Second (0-59).
+","
+SECOND
+"
+
+"Datetime fields","Millisecond field","
+MILLISECOND | MS
+","
+Millisecond (0-999).
+","
+MILLISECOND
+"
+
+"Datetime fields","Microsecond field","
+MICROSECOND | MCS
+","
+Microsecond (0-999999).
+","
+MICROSECOND
+"
+
+"Datetime fields","Nanosecond field","
+NANOSECOND | NS
+","
+Nanosecond (0-999999999).
+","
+NANOSECOND
+"
+
+"Datetime fields","Timezone hour field","
+TIMEZONE_HOUR
+","
+Timezone hour (from -18 to +18).
+","
+TIMEZONE_HOUR
+"
+
+"Datetime fields","Timezone minute field","
+TIMEZONE_MINUTE
+","
+Timezone minute (from -59 to +59).
+","
+TIMEZONE_MINUTE
+"
+
+"Datetime fields","Day of week field","
+DAY_OF_WEEK | DAYOFWEEK | DOW
+","
+Day of week (1-7). Sunday is 1.
+","
+DAY_OF_WEEK
+"
+
+"Datetime fields","ISO day of week field","
+ISO_DAY_OF_WEEK
+","
+ISO day of week (1-7). Monday is 1.
+","
+ISO_DAY_OF_WEEK
+"
+
+"Datetime fields","Week of year field","
+WEEK | WW | W | SQL_TSI_WEEK
+","
+Week of year (1-53).
+EXTRACT function uses local rules to get number of week in year.
+DATEDIFF function uses Sunday as a first day of week.
+","
+WEEK
+"
+
+"Datetime fields","ISO week of year field","
+ISO_WEEK
+","
+ISO week of year (1-53).
+ISO definition is used when first week of year should have at least four days
+and week is started with Monday.
+","
+ISO_WEEK
+"
+
+"Datetime fields","Quarter field","
+QUARTER
+","
+Quarter (1-4).
+","
+QUARTER
+"
+
+"Datetime fields","Day of year field","
+DAYOFYEAR | DAY_OF_YEAR | DOY | DY
+","
+Day of year (1-366).
+","
+DAYOFYEAR
+"
+
+"Datetime fields","Epoch field","
+EPOCH
+","
+For TIMESTAMP values number of seconds since 1970-01-01 00:00:00 in local time zone.
+For TIMESTAMP WITH TIME ZONE values number of seconds since 1970-01-01 00:00:00 in UTC time zone.
+For DATE values number of seconds since 1970-01-01.
+For TIME values number of seconds since midnight.
+","
+EPOCH
+"
+
 "Other Grammar","Alias","
 name
 ","
@@ -2446,9 +2613,10 @@ REAL
 "
 
 "Data Types","TIME Type","
-TIME [ WITHOUT TIME ZONE ]
+TIME [ ( precisionInt ) ] [ WITHOUT TIME ZONE ]
 ","
 The time data type. The format is hh:mm:ss[.nnnnnnnnn].
+If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
 
 Mapped to ""java.sql.Time"". When converted to a ""java.sql.Date"", the date is set to ""1970-01-01"".
 ""java.time.LocalTime"" is also supported on Java 8 and later versions.
@@ -2470,10 +2638,11 @@ DATE
 "
 
 "Data Types","TIMESTAMP Type","
-{ TIMESTAMP [ WITHOUT TIME ZONE ] | DATETIME | SMALLDATETIME }
+{ TIMESTAMP [ ( precisionInt ) ] [ WITHOUT TIME ZONE ] | DATETIME | SMALLDATETIME }
 ","
 The timestamp data type. The format is yyyy-MM-dd hh:mm:ss[.nnnnnnnnn].
 Stored internally as a BCD-encoded date, and nanoseconds since midnight.
+If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 
 Mapped to ""java.sql.Timestamp"" (""java.util.Date"" may be used too).
 ""java.time.LocalDateTime"" is also supported on Java 8 and later versions.
@@ -2482,10 +2651,11 @@ TIMESTAMP
 "
 
 "Data Types","TIMESTAMP WITH TIME ZONE Type","
-TIMESTAMP WITH TIME ZONE
+TIMESTAMP [ ( precisionInt ) ] WITH TIME ZONE
 ","
 The timestamp with time zone data type.
 Stored internally as a BCD-encoded date, nanoseconds since midnight, and time zone offset in minutes.
+If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 
 Mapped to ""org.h2.api.TimestampWithTimeZone"".
 ""java.time.OffsetDateTime"" and ""java.time.Instant"" are also supported on Java 8 and later versions.
@@ -3699,30 +3869,28 @@ CURRENT_TIMESTAMP()
 "
 
 "Functions (Time and Date)","DATEADD","
-{ DATEADD| TIMESTAMPADD } (unitString, addIntLong, dateAndTime)
+{ DATEADD| TIMESTAMPADD } (datetimeField, addIntLong, dateAndTime)
 ","
 Adds units to a date-time value. The string indicates the unit.
 Use negative values to subtract units.
 addIntLong may be a long value when manipulating milliseconds,
 microseconds, or nanoseconds otherwise its range is restricted to int.
-The same units as in the EXTRACT function are supported.
 This method returns a value with the same type as specified value if unit is compatible with this value.
-If specified unit is a HOUR, MINUTE, SECOND, MILLISECOND, etc and value is a DATE value DATEADD returns combined TIMESTAMP.
-Units DAY, MONTH, YEAR, WEEK, etc are not allowed for TIME values.
-Units TIMEZONE_HOUR and TIMEZONE_MINUTE are only allowed for TIMESTAMP WITH TIME ZONE values.
+If specified field is a HOUR, MINUTE, SECOND, MILLISECOND, etc and value is a DATE value DATEADD returns combined TIMESTAMP.
+Fields DAY, MONTH, YEAR, WEEK, etc are not allowed for TIME values.
+Fields TIMEZONE_HOUR and TIMEZONE_MINUTE are only allowed for TIMESTAMP WITH TIME ZONE values.
 ","
 DATEADD('MONTH', 1, DATE '2001-01-31')
 "
 
 "Functions (Time and Date)","DATEDIFF","
-{ DATEDIFF | TIMESTAMPDIFF } (unitString, aDateAndTime, bDateAndTime)
+{ DATEDIFF | TIMESTAMPDIFF } (datetimeField, aDateAndTime, bDateAndTime)
 ","
 Returns the the number of crossed unit boundaries between two date/time values.
 This method returns a long.
 The string indicates the unit.
-The same units as in the EXTRACT function are supported.
-Only TIMEZONE_HOUR and TIMEZONE_MINUTE units use the time zone offset component.
-With all other units if date/time values have time zone offset component it is ignored.
+Only TIMEZONE_HOUR and TIMEZONE_MINUTE fields use the time zone offset component.
+With all other fields if date/time values have time zone offset component it is ignored.
 ","
 DATEDIFF('YEAR', T1.CREATED, T2.CREATED)
 "
@@ -3751,6 +3919,14 @@ Returns the day of the week (1 means Sunday).
 DAY_OF_WEEK(CREATED)
 "
 
+"Functions (Time and Date)","ISO_DAY_OF_WEEK","
+ISO_DAY_OF_WEEK(dateAndTime)
+","
+Returns the ISO day of the week (1 means Monday).
+","
+ISO_DAY_OF_WEEK(CREATED)
+"
+
 "Functions (Time and Date)","DAY_OF_YEAR","
 DAY_OF_YEAR(dateAndTime)
 ","
@@ -3760,16 +3936,11 @@ DAY_OF_YEAR(CREATED)
 "
 
 "Functions (Time and Date)","EXTRACT","
-EXTRACT ( { YEAR | YY | MONTH | MM | QUARTER | WEEK | ISO_WEEK
-    | DAY | DD | DAY_OF_YEAR | DOY
-    | HOUR | HH | MINUTE | MI | SECOND | SS | EPOCH
-    | MILLISECOND | MS | MICROSECOND | MCS | NANOSECOND | NS
-    | TIMEZONE_HOUR | TIMEZONE_MINUTE }
-    FROM dateAndTime )
+EXTRACT ( datetimeField FROM dateAndTime )
 ","
 Returns a value of the specific time unit from a date/time value.
-This method returns a numeric value with EPOCH unit and
-an int for all other time units.
+This method returns a numeric value with EPOCH field and
+an int for all other fields.
 ","
 EXTRACT(SECOND FROM CURRENT_TIMESTAMP)
 "
@@ -3864,7 +4035,7 @@ WEEK(CREATED)
 ISO_WEEK(dateAndTime)
 ","
 Returns the ISO week (1-53) from a date/time value.
-This method uses the ISO definition when
+This function uses the ISO definition when
 first week of year should have at least four days
 and week is started with Monday.
 ","

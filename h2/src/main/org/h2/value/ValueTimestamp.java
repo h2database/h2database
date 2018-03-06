@@ -5,7 +5,6 @@
  */
 package org.h2.value;
 
-import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -20,20 +19,36 @@ import org.h2.util.DateTimeUtils;
 public class ValueTimestamp extends Value {
 
     /**
-     * The precision in digits.
+     * The default precision and display size of the textual representation of a timestamp.
+     * Example: 2001-01-01 23:59:59.123456
      */
-    public static final int PRECISION = 23;
+    public static final int DEFAULT_PRECISION = 26;
 
     /**
-     * The display size of the textual representation of a timestamp.
-     * Example: 2001-01-01 23:59:59.000
+     * The maximum precision and display size of the textual representation of a timestamp.
+     * Example: 2001-01-01 23:59:59.123456789
      */
-    static final int DISPLAY_SIZE = 23;
+    public static final int MAXIMUM_PRECISION = 29;
 
     /**
      * The default scale for timestamps.
      */
-    static final int DEFAULT_SCALE = 10;
+    static final int DEFAULT_SCALE = 6;
+
+    /**
+     * The maximum scale for timestamps.
+     */
+    public static final int MAXIMUM_SCALE = 9;
+
+    /**
+     * Get display size for the specified scale.
+     *
+     * @param scale scale
+     * @return display size
+     */
+    public static int getDisplaySize(int scale) {
+        return scale == 0 ? 19 : 20 + scale;
+    }
 
     /**
      * A bit field with bits for the year, month, and day (see DateTimeUtils for
@@ -165,10 +180,10 @@ public class ValueTimestamp extends Value {
 
     @Override
     public String getString() {
-        StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
+        StringBuilder buff = new StringBuilder(MAXIMUM_PRECISION);
         DateTimeUtils.appendDate(buff, dateValue);
         buff.append(' ');
-        DateTimeUtils.appendTime(buff, timeNanos, true);
+        DateTimeUtils.appendTime(buff, timeNanos);
         return buff.toString();
     }
 
@@ -179,37 +194,44 @@ public class ValueTimestamp extends Value {
 
     @Override
     public long getPrecision() {
-        return PRECISION;
+        return MAXIMUM_PRECISION;
     }
 
     @Override
     public int getScale() {
-        return DEFAULT_SCALE;
+        return MAXIMUM_SCALE;
     }
 
     @Override
     public int getDisplaySize() {
-        return DISPLAY_SIZE;
+        return MAXIMUM_PRECISION;
+    }
+
+    @Override
+    public boolean checkPrecision(long precision) {
+        // TIMESTAMP data type does not have precision parameter
+        return true;
     }
 
     @Override
     public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
-        if (targetScale >= DEFAULT_SCALE) {
+        if (targetScale >= MAXIMUM_SCALE) {
             return this;
         }
         if (targetScale < 0) {
             throw DbException.getInvalidValueException("scale", targetScale);
         }
         long n = timeNanos;
-        BigDecimal bd = BigDecimal.valueOf(n);
-        bd = bd.movePointLeft(9);
-        bd = ValueDecimal.setScale(bd, targetScale);
-        bd = bd.movePointRight(9);
-        long n2 = bd.longValue();
+        long n2 = DateTimeUtils.convertScale(n, targetScale);
         if (n2 == n) {
             return this;
         }
-        return fromDateValueAndNanos(dateValue, n2);
+        long dv = dateValue;
+        if (n2 >= DateTimeUtils.NANOS_PER_DAY) {
+            n2 -= DateTimeUtils.NANOS_PER_DAY;
+            dv = DateTimeUtils.dateValueFromAbsoluteDay(DateTimeUtils.absoluteDayFromDateValue(dateValue) + 1);
+        }
+        return fromDateValueAndNanos(dv, n2);
     }
 
     @Override

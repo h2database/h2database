@@ -46,6 +46,7 @@ public class TestDateTimeUtils extends TestBase {
         testWeekOfYear();
         testDateValueFromDenormalizedDate();
         testUTC2Value(false);
+        testConvertScale();
     }
 
     private void testParseTimeNanosDB2Format() {
@@ -158,6 +159,39 @@ public class TestDateTimeUtils extends TestBase {
                 assertEquals(ts.getTimeNanos(), DateTimeUtils.nanosFromDate(timeMillis));
             }
         }
+    }
+
+    private void testConvertScale() {
+        assertEquals(555_555_555_555L, DateTimeUtils.convertScale(555_555_555_555L, 9));
+        assertEquals(555_555_555_550L, DateTimeUtils.convertScale(555_555_555_554L, 8));
+        assertEquals(555_555_555_500L, DateTimeUtils.convertScale(555_555_555_549L, 7));
+        assertEquals(555_555_555_000L, DateTimeUtils.convertScale(555_555_555_499L, 6));
+        assertEquals(555_555_550_000L, DateTimeUtils.convertScale(555_555_554_999L, 5));
+        assertEquals(555_555_500_000L, DateTimeUtils.convertScale(555_555_549_999L, 4));
+        assertEquals(555_555_000_000L, DateTimeUtils.convertScale(555_555_499_999L, 3));
+        assertEquals(555_550_000_000L, DateTimeUtils.convertScale(555_554_999_999L, 2));
+        assertEquals(555_500_000_000L, DateTimeUtils.convertScale(555_549_999_999L, 1));
+        assertEquals(555_000_000_000L, DateTimeUtils.convertScale(555_499_999_999L, 0));
+        assertEquals(555_555_555_555L, DateTimeUtils.convertScale(555_555_555_555L, 9));
+        assertEquals(555_555_555_560L, DateTimeUtils.convertScale(555_555_555_555L, 8));
+        assertEquals(555_555_555_600L, DateTimeUtils.convertScale(555_555_555_550L, 7));
+        assertEquals(555_555_556_000L, DateTimeUtils.convertScale(555_555_555_500L, 6));
+        assertEquals(555_555_560_000L, DateTimeUtils.convertScale(555_555_555_000L, 5));
+        assertEquals(555_555_600_000L, DateTimeUtils.convertScale(555_555_550_000L, 4));
+        assertEquals(555_556_000_000L, DateTimeUtils.convertScale(555_555_500_000L, 3));
+        assertEquals(555_560_000_000L, DateTimeUtils.convertScale(555_555_000_000L, 2));
+        assertEquals(555_600_000_000L, DateTimeUtils.convertScale(555_550_000_000L, 1));
+        assertEquals(556_000_000_000L, DateTimeUtils.convertScale(555_500_000_000L, 0));
+        assertEquals(100_999_999_999L, DateTimeUtils.convertScale(100_999_999_999L, 9));
+        assertEquals(101_000_000_000L, DateTimeUtils.convertScale(100_999_999_999L, 8));
+        assertEquals(101_000_000_000L, DateTimeUtils.convertScale(100_999_999_999L, 7));
+        assertEquals(101_000_000_000L, DateTimeUtils.convertScale(100_999_999_999L, 6));
+        assertEquals(101_000_000_000L, DateTimeUtils.convertScale(100_999_999_999L, 5));
+        assertEquals(101_000_000_000L, DateTimeUtils.convertScale(100_999_999_999L, 4));
+        assertEquals(101_000_000_000L, DateTimeUtils.convertScale(100_999_999_999L, 3));
+        assertEquals(101_000_000_000L, DateTimeUtils.convertScale(100_999_999_999L, 2));
+        assertEquals(101_000_000_000L, DateTimeUtils.convertScale(100_999_999_999L, 1));
+        assertEquals(101_000_000_000L, DateTimeUtils.convertScale(100_999_999_999L, 0));
     }
 
 }

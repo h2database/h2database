@@ -979,7 +979,7 @@ select * from v_test;
 set schema public;
 > ok
 
-drop schema a;
+drop schema a cascade;
 > ok
 
 set autocommit true;
@@ -1289,10 +1289,10 @@ select * from a.x, b.x;
 > -- --
 > rows: 0
 
-drop schema a;
+drop schema a cascade;
 > ok
 
-drop schema b;
+drop schema b cascade;
 > ok
 
 create table t1 (id int primary key);
@@ -1330,10 +1330,10 @@ INSERT INTO p VALUES('-1-01-01'), ('0-01-01'), ('0001-01-01');
 
 select d, year(d), extract(year from d), cast(d as timestamp) from p;
 > D          YEAR(D) EXTRACT(YEAR FROM D) CAST(D AS TIMESTAMP)
-> ---------- ------- -------------------- ---------------------
-> -1-01-01   -1      -1                   -1-01-01 00:00:00.0
-> 0-01-01    0       0                    0-01-01 00:00:00.0
-> 0001-01-01 1       1                    0001-01-01 00:00:00.0
+> ---------- ------- -------------------- --------------------
+> -1-01-01   -1      -1                   -1-01-01 00:00:00
+> 0-01-01    0       0                    0-01-01 00:00:00
+> 0001-01-01 1       1                    0001-01-01 00:00:00
 > rows: 3
 
 drop table p;
@@ -2490,14 +2490,14 @@ insert into test values(1, '1999-12-01 23:59:00.000');
 
 select * from test where d= '1999-12-01 23:59:00.000';
 > ID D
-> -- ---------------------
-> 1  1999-12-01 23:59:00.0
+> -- -------------------
+> 1  1999-12-01 23:59:00
 > rows: 1
 
 select * from test where d= timestamp '2006-01-01 12:00:00.000';
 > ID D
-> -- ---------------------
-> 1  2006-01-01 12:00:00.0
+> -- -------------------
+> 1  2006-01-01 12:00:00
 > rows: 1
 
 drop table test;
@@ -2551,7 +2551,7 @@ select nextval('abc'), currval('Abc'), nextval('TestSchema', 'ABC');
 set schema public;
 > ok
 
-drop schema "TestSchema";
+drop schema "TestSchema" cascade;
 > ok
 
 drop sequence main_seq;
@@ -2623,7 +2623,7 @@ explain select * from public.test;
 > SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */
 > rows: 1
 
-drop schema TEST_SCHEMA;
+drop schema TEST_SCHEMA cascade;
 > ok
 
 set autocommit true;
@@ -2684,9 +2684,9 @@ select x/10 y from system_range(1, 100) group by x/10;
 > rows: 11
 
 select timestamp '2001-02-03T10:30:33';
-> TIMESTAMP '2001-02-03 10:30:33.0'
-> ---------------------------------
-> 2001-02-03 10:30:33.0
+> TIMESTAMP '2001-02-03 10:30:33'
+> -------------------------------
+> 2001-02-03 10:30:33
 > rows: 1
 
 CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255));
@@ -3049,7 +3049,7 @@ SELECT ONE, CONST.ONE FROM DUAL;
 COMMENT ON CONSTANT ONE IS NULL;
 > ok
 
-DROP SCHEMA CONST;
+DROP SCHEMA CONST CASCADE;
 > ok
 
 SELECT CONSTANT_SCHEMA, CONSTANT_NAME, DATA_TYPE, REMARKS, SQL FROM INFORMATION_SCHEMA.CONSTANTS;
@@ -4074,7 +4074,7 @@ script NOPASSWORDS NOSETTINGS drop;
 drop trigger s.test_trigger;
 > ok
 
-drop schema s;
+drop schema s cascade;
 > ok
 
 CREATE MEMORY TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255), y int as id+1);
@@ -5281,7 +5281,7 @@ SELECT INFORMATION_SCHEMA.SCHEMATA.* FROM INFORMATION_SCHEMA.SCHEMATA;
 CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA;
 > ok
 
-DROP SCHEMA TEST_SCHEMA;
+DROP SCHEMA TEST_SCHEMA RESTRICT;
 > ok
 
 create schema Contact_Schema AUTHORIZATION SA;
@@ -5320,10 +5320,10 @@ drop table ClientServer_Schema.PrimaryKey_Seq;
 drop table Contact_Schema.Address;
 > ok
 
-drop schema Contact_Schema;
+drop schema Contact_Schema restrict;
 > ok
 
-drop schema ClientServer_Schema;
+drop schema ClientServer_Schema restrict;
 > ok
 
 --- alter table add / drop / rename column ----------------------------------------------------------------------------------------------
@@ -6884,7 +6884,7 @@ DROP TABLE TEST;
 > ok
 
 --- data types (date and time) ----------------------------------------------------------------------------------------------
-CREATE MEMORY TABLE TEST(ID INT, XT TIME, XD DATE, XTS TIMESTAMP);
+CREATE MEMORY TABLE TEST(ID INT, XT TIME, XD DATE, XTS TIMESTAMP(9));
 > ok
 
 INSERT INTO TEST VALUES(0, '0:0:0','1-2-3','2-3-4 0:0:0');
@@ -6911,8 +6911,8 @@ INSERT INTO TEST VALUES(NULL,NULL,NULL,NULL);
 SELECT * FROM TEST;
 > ID   XT       XD         XTS
 > ---- -------- ---------- -----------------------------
-> 0    00:00:00 0001-02-03 0002-03-04 00:00:00.0
-> 1    01:02:03 0004-05-06 0007-08-09 00:01:02.0
+> 0    00:00:00 0001-02-03 0002-03-04 00:00:00
+> 1    01:02:03 0004-05-06 0007-08-09 00:01:02
 > 2    23:59:59 1999-12-31 1999-12-31 23:59:59.123456789
 > null null     null       null
 > rows: 4
@@ -6927,24 +6927,24 @@ SELECT XD+1, XD-1, XD-XD FROM TEST;
 > rows: 4
 
 SELECT ID, CAST(XT AS DATE) T2D, CAST(XTS AS DATE) TS2D,
-CAST(XD AS TIME) D2T, CAST(XTS AS TIME) TS2T,
+CAST(XD AS TIME) D2T, CAST(XTS AS TIME(9)) TS2T,
 CAST(XT AS TIMESTAMP) D2TS, CAST(XD AS TIMESTAMP) D2TS FROM TEST;
-> ID   T2D        TS2D       D2T      TS2T               D2TS                  D2TS
-> ---- ---------- ---------- -------- ------------------ --------------------- ---------------------
-> 0    1970-01-01 0002-03-04 00:00:00 00:00:00           1970-01-01 00:00:00.0 0001-02-03 00:00:00.0
-> 1    1970-01-01 0007-08-09 00:00:00 00:01:02           1970-01-01 01:02:03.0 0004-05-06 00:00:00.0
-> 2    1970-01-01 1999-12-31 00:00:00 23:59:59.123456789 1970-01-01 23:59:59.0 1999-12-31 00:00:00.0
-> null null       null       null     null               null                  null
+> ID   T2D        TS2D       D2T      TS2T               D2TS                D2TS
+> ---- ---------- ---------- -------- ------------------ ------------------- -------------------
+> 0    1970-01-01 0002-03-04 00:00:00 00:00:00           1970-01-01 00:00:00 0001-02-03 00:00:00
+> 1    1970-01-01 0007-08-09 00:00:00 00:01:02           1970-01-01 01:02:03 0004-05-06 00:00:00
+> 2    1970-01-01 1999-12-31 00:00:00 23:59:59.123456789 1970-01-01 23:59:59 1999-12-31 00:00:00
+> null null       null       null     null               null                null
 > rows: 4
 
 SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
 > SCRIPT
 > ----------------------------------------------------------------------------------------------------------------------------------
 > -- 4 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> CREATE MEMORY TABLE PUBLIC.TEST( ID INT, XT TIME, XD DATE, XTS TIMESTAMP );
+> CREATE MEMORY TABLE PUBLIC.TEST( ID INT, XT TIME, XD DATE, XTS TIMESTAMP(9) );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
-> INSERT INTO PUBLIC.TEST(ID, XT, XD, XTS) VALUES(0, TIME '00:00:00', DATE '0001-02-03', TIMESTAMP '0002-03-04 00:00:00.0');
-> INSERT INTO PUBLIC.TEST(ID, XT, XD, XTS) VALUES(1, TIME '01:02:03', DATE '0004-05-06', TIMESTAMP '0007-08-09 00:01:02.0');
+> INSERT INTO PUBLIC.TEST(ID, XT, XD, XTS) VALUES(0, TIME '00:00:00', DATE '0001-02-03', TIMESTAMP '0002-03-04 00:00:00');
+> INSERT INTO PUBLIC.TEST(ID, XT, XD, XTS) VALUES(1, TIME '01:02:03', DATE '0004-05-06', TIMESTAMP '0007-08-09 00:01:02');
 > INSERT INTO PUBLIC.TEST(ID, XT, XD, XTS) VALUES(2, TIME '23:59:59', DATE '1999-12-31', TIMESTAMP '1999-12-31 23:59:59.123456789');
 > INSERT INTO PUBLIC.TEST(ID, XT, XD, XTS) VALUES(NULL, NULL, NULL, NULL);
 > rows: 7
@@ -6959,9 +6959,9 @@ INSERT INTO TEST VALUES(1, '2001-01-01 12:34:56.789123', '2001-01-01 12:34:56.78
 > update count: 1
 
 select * from test;
-> ID T0                    T1                    T2                     T5
-> -- --------------------- --------------------- ---------------------- -------------------------
-> 1  2001-01-01 12:34:57.0 2001-01-01 12:34:56.8 2001-01-01 12:34:56.79 2001-01-01 12:34:56.78912
+> ID T0                  T1                    T2                     T5
+> -- ------------------- --------------------- ---------------------- -------------------------
+> 1  2001-01-01 12:34:57 2001-01-01 12:34:56.8 2001-01-01 12:34:56.79 2001-01-01 12:34:56.78912
 > rows: 1
 
 DROP TABLE IF EXISTS TEST;
@@ -8747,7 +8747,7 @@ alter schema if exists x rename to z;
 create table z.z (id int);
 > ok
 
-drop schema z;
+drop schema z cascade;
 > ok
 
 ----- Issue#493 -----

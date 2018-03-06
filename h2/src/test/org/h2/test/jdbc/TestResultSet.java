@@ -1262,13 +1262,13 @@ public class TestResultSet extends TestBase {
         assertEquals("99999-12-23", rs.getString(1));
         rs = stat.executeQuery("call timestamp '99999-12-23 01:02:03.000'");
         rs.next();
-        assertEquals("99999-12-23 01:02:03.0", rs.getString(1));
+        assertEquals("99999-12-23 01:02:03", rs.getString(1));
         rs = stat.executeQuery("call date '-99999-12-23'");
         rs.next();
         assertEquals("-99999-12-23", rs.getString(1));
         rs = stat.executeQuery("call timestamp '-99999-12-23 01:02:03.000'");
         rs.next();
-        assertEquals("-99999-12-23 01:02:03.0", rs.getString(1));
+        assertEquals("-99999-12-23 01:02:03", rs.getString(1));
 
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE DATETIME)");
         stat.execute("INSERT INTO TEST VALUES(1,DATE '2011-11-11')");
@@ -1280,11 +1280,11 @@ public class TestResultSet extends TestBase {
                 "TIMESTAMP '9999-12-31 23:59:59' VALUE FROM TEST ORDER BY ID");
         assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" },
                 new int[] { Types.INTEGER, Types.TIMESTAMP },
-                new int[] { 10, 23 }, new int[] { 0, 10 });
+                new int[] { 10, 29 }, new int[] { 0, 9 });
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" },
                 new int[] { Types.INTEGER, Types.TIMESTAMP },
-                new int[] { 10, 23 }, new int[] { 0, 10 });
+                new int[] { 10, 26 }, new int[] { 0, 6 });
         rs.next();
         java.sql.Date date;
         java.sql.Time time;
@@ -1431,7 +1431,7 @@ public class TestResultSet extends TestBase {
         ResultSet rs;
 
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, " +
-                "D DATE, T TIME, TS TIMESTAMP)");
+                "D DATE, T TIME, TS TIMESTAMP(9))");
         PreparedStatement prep = conn.prepareStatement(
                 "INSERT INTO TEST VALUES(?, ?, ?, ?)");
         Calendar regular = DateTimeUtils.createGregorianCalendar();
@@ -1494,7 +1494,7 @@ public class TestResultSet extends TestBase {
                 new String[] { "ID", "D", "T", "TS" },
                 new int[] { Types.INTEGER, Types.DATE,
                 Types.TIME, Types.TIMESTAMP },
-                new int[] { 10, 8, 6, 23 }, new int[] { 0, 0, 0, 10 });
+                new int[] { 10, 10, 8, 29 }, new int[] { 0, 0, 0, 9 });
 
         rs.next();
         assertEquals(0, rs.getInt(1));

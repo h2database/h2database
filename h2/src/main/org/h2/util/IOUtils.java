@@ -38,7 +38,7 @@ public class IOUtils {
     /**
      * Close a Closeable without throwing an exception.
      *
-     * @param out the Closeablem or null
+     * @param out the Closeable or null
      */
     public static void closeSilently(Closeable out) {
         if (out != null) {

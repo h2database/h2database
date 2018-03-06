@@ -66,7 +66,7 @@ SELECT * FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS LIMIT 0;
 > ------------------ ----------------- --------------- ------------------------- ------------------------ ---------------------- ------------ ----------- -----------
 > rows: 0
 
--- H2 may return name of the index istead of name of the referenced constraint as UNIQUE_CONSTRAINT_NAME
+-- H2 may return name of the index instead of name of the referenced constraint as UNIQUE_CONSTRAINT_NAME
 SELECT CONSTRAINT_NAME, SUBSTRING(UNIQUE_CONSTRAINT_NAME, 0, 11) AS UCN_PART, MATCH_OPTION, UPDATE_RULE, DELETE_RULE FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
     WHERE CONSTRAINT_CATALOG = DATABASE() AND CONSTRAINT_SCHEMA = SCHEMA() AND UNIQUE_CONSTRAINT_CATALOG = DATABASE() AND UNIQUE_CONSTRAINT_SCHEMA = SCHEMA()
     ORDER BY CONSTRAINT_NAME, UNIQUE_CONSTRAINT_NAME;

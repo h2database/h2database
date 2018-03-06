@@ -84,26 +84,26 @@ public class TestDateStorage extends TestBase {
             prep.execute();
             rs = stat.executeQuery("select * from ts order by x");
             rs.next();
-            assertEquals("2010-03-14 02:15:00.0",
+            assertEquals("2010-03-14 02:15:00",
                     rs.getString(1));
             assertEquals("2010-03-13 18:15:00.0",
                     rs.getTimestamp(1, utcCalendar).toString());
             assertEquals("2010-03-14 03:15:00.0",
                     rs.getTimestamp(1).toString());
-            assertEquals("2010-03-14 02:15:00.0",
+            assertEquals("2010-03-14 02:15:00",
                     rs.getString("x"));
             assertEquals("2010-03-13 18:15:00.0",
                     rs.getTimestamp("x", utcCalendar).toString());
             assertEquals("2010-03-14 03:15:00.0",
                     rs.getTimestamp("x").toString());
             rs.next();
-            assertEquals("2010-03-14 03:15:00.0",
+            assertEquals("2010-03-14 03:15:00",
                     rs.getString(1));
             assertEquals("2010-03-13 19:15:00.0",
                     rs.getTimestamp(1, utcCalendar).toString());
             assertEquals("2010-03-14 03:15:00.0",
                     rs.getTimestamp(1).toString());
-            assertEquals("2010-03-14 03:15:00.0",
+            assertEquals("2010-03-14 03:15:00",
                     rs.getString("x"));
             assertEquals("2010-03-13 19:15:00.0",
                     rs.getTimestamp("x", utcCalendar).toString());

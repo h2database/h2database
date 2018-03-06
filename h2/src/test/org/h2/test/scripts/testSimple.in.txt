@@ -258,7 +258,7 @@ select nextval('"test"."report_id_seq"');
 > 2;
 select nextval('test.report_id_seq');
 > 3;
-drop schema test;
+drop schema test cascade;
 
 create table master(id int primary key);
 create table detail(id int primary key, x bigint, foreign key(x) references master(id) on delete cascade);
@@ -346,14 +346,14 @@ create schema Contact;
 CREATE TABLE Account (id BIGINT);
 CREATE TABLE Person (id BIGINT, FOREIGN KEY (id) REFERENCES Account(id));
 CREATE TABLE Contact.Contact (id BIGINT, FOREIGN KEY (id) REFERENCES public.Person(id));
-drop schema contact;
+drop schema contact cascade;
 drop table account, person;
 
 create schema Contact;
 CREATE TABLE Account (id BIGINT primary key);
 CREATE TABLE Person (id BIGINT primary key, FOREIGN KEY (id) REFERENCES Account);
 CREATE TABLE Contact.Contact (id BIGINT primary key, FOREIGN KEY (id) REFERENCES public.Person);
-drop schema contact;
+drop schema contact cascade;
 drop table account, person;
 
 select extract(hour from timestamp '2001-02-03 14:15:16');
@@ -554,8 +554,8 @@ create table b.test(id int);
 insert into b.test values(2);
 select a.test.id + b.test.id from a.test, b.test;
 > 3;
-drop schema a;
-drop schema b;
+drop schema a cascade;
+drop schema b cascade;
 
 select date '+0011-01-01';
 > 0011-01-01;
@@ -575,7 +575,7 @@ select TEST_SCHEMA.TEST_SEQ.CURRVAL;
 > 0;
 select TEST_SCHEMA.TEST_SEQ.nextval;
 > 1;
-drop schema TEST_SCHEMA;
+drop schema TEST_SCHEMA cascade;
 
 create table test(id int);
 create trigger TEST_TRIGGER before insert on test call "org.h2.test.db.TestTriggersConstraints";
@@ -635,7 +635,7 @@ select remarks from information_schema.schemata where schema_name = 'TESTS';
 > Test Schema;
 select remarks from information_schema.sequences where sequence_name = 'WALK';
 > Walker;
-drop schema tests;
+drop schema tests cascade;
 @reconnect;
 
 create constant abc value 1;

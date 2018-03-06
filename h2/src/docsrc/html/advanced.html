@@ -324,6 +324,7 @@ It is not possible to enable or disable this setting while the database is alrea
 <p>
 If MVCC is enabled, changing the lock mode (<code>LOCK_MODE</code>) has no effect.
 </p>
+<p>
 The MVCC mode is enabled by default in version 1.4.x,
 with the default MVStore storage engine.
 MVCC is disabled by default when using the PageStore storage engine
@@ -335,6 +336,7 @@ with the PageStore storage engine, it can not be used at the same time as
 <code>MULTI_THREADED=TRUE</code>;
 the complete undo log (the list of uncommitted changes) must fit in memory when using multi-version concurrency.
 The setting <code>MAX_MEMORY_UNDO</code> has no effect.
+</p>
 
 <h2 id="clustering">Clustering / High Availability</h2>
 <p>

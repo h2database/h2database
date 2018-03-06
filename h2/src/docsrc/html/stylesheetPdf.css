@@ -32,11 +32,12 @@ body {
     margin: 0px;
 }
 
-h1 {
+h1, p.title {
     background-color: #0000bb;
     padding: 2px 4px 2px 4px;
     color: #fff;
     font-size: 24pt;
+    font-weight: bold;
     line-height: normal;
 }
 

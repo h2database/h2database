@@ -51,7 +51,7 @@ public class MergeDocs {
         writer.println("H2 Documentation");
         writer.println("</title><link rel=\"stylesheet\" type=\"text/css\" " +
                 "href=\"stylesheetPdf.css\" /></head><body>");
-        writer.println("<h1>H2 Database Engine</h1>");
+        writer.println("<p class=\"title\">H2 Database Engine</p>");
         writer.println("<p>Version " + Constants.getFullVersion() + "</p>");
         writer.println(finalText);
         writer.println("</body></html>");

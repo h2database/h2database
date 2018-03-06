@@ -620,10 +620,6 @@ public class Function extends Expression implements FunctionCall {
         }
     }
 
-    private static strictfp double log10(double value) {
-        return roundMagic(StrictMath.log(value) / StrictMath.log(10));
-    }
-
     @Override
     public Value getValue(Session session) {
         return getValueWithArgs(session, args);
@@ -682,7 +678,7 @@ public class Function extends Expression implements FunctionCall {
             }
             break;
         case LOG10:
-            result = ValueDouble.get(log10(v0.getDouble()));
+            result = ValueDouble.get(Math.log10(v0.getDouble()));
             break;
         case PI:
             result = ValueDouble.get(Math.PI);

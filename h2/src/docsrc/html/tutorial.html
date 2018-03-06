@@ -1354,12 +1354,23 @@ CALL TIMESTAMP '2008-01-01 12:00:00+01:00';
 </pre>
 <p>
 If the time zone is not set, the value is parsed using the current time zone setting of the system.
-Date and time information is stored in H2 database files without time zone information.
-If the database is opened using another system time zone, the date and time will be the same.
+Date and time information is stored in H2 database files with or without time zone information depending on used data type.
+</p>
+<ul>
+<li>
+With TIMESTAMP data type if the database is opened using another system time zone, the date and time will be the same.
 That means if you store the value '2000-01-01 12:00:00' in one time zone, then close the database
 and open the database again in a different time zone, you will also get '2000-01-01 12:00:00'.
 Please note that changing the time zone after the H2 driver is loaded is not supported.
-</p>
+</li>
+<li>
+With TIMESTAMP WITH TIME ZONE data type time zone offset is stored and if you store the value
+'2008-01-01 12:00:00+01:00' it remains the same even if you close and reopen the database with a different time zone.
+If you store the value with specified time zone name like '2008-01-01 12:00:00 Europe/Berlin' this name will be
+converted to time zone offset.
+Names of time zones are not stored.
+</li>
+</ul>
 
 <h2 id="spring">Using Spring</h2>
 <h3>Using the TCP Server</h3>

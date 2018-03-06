@@ -6,8 +6,11 @@
 SELECT [ TOP term ] [ DISTINCT | ALL ] selectExpression [,...]
 FROM tableExpression [,...] [ WHERE expression ]
 [ GROUP BY expression [,...] ] [ HAVING expression ]
-[ { UNION [ ALL ] | MINUS | EXCEPT | INTERSECT } select ] [ ORDER BY order [,...] ]
-[ { LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] } | { [ OFFSET expression { ROW | ROWS } ] [ { FETCH { FIRST | NEXT } expression { ROW | ROWS } ONLY } ] } ]
+[ { UNION [ ALL ] | MINUS | EXCEPT | INTERSECT } select ]
+[ ORDER BY order [,...] ]
+[ { LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] }
+    | { [ OFFSET expression { ROW | ROWS } ]
+    [ { FETCH { FIRST | NEXT } expression { ROW | ROWS } ONLY } ] } ]
 [ FOR UPDATE ]
 ","
 Selects data from a table or multiple tables.
@@ -44,7 +47,8 @@ SELECT * FROM (SELECT ID, COUNT(*) FROM TEST
 "Commands (DML)","INSERT","
 INSERT INTO tableName
 { [ ( columnName [,...] ) ]
-    { VALUES { ( { DEFAULT | expression } [,...] ) } [,...] | [ DIRECT ] [ SORTED ] select } } |
+    { VALUES { ( { DEFAULT | expression } [,...] ) } [,...]
+        | [ DIRECT ] [ SORTED ] select } } |
     { SET { columnName = { DEFAULT | expression } } [,...] }
 ","
 Inserts a new row / new rows into a table.
@@ -99,7 +103,8 @@ CALL 15*25
 "
 
 "Commands (DML)","EXPLAIN","
-EXPLAIN { [ PLAN FOR ] | ANALYZE } { select | insert | update | delete | merge }
+EXPLAIN { [ PLAN FOR ] | ANALYZE }
+{ select | insert | update | delete | merge }
 ","
 Shows the execution plan for a statement.
 When using EXPLAIN ANALYZE, the statement is actually executed, and the query plan
@@ -269,7 +274,9 @@ ALTER SCHEMA TEST RENAME TO PRODUCTION
 "
 
 "Commands (DDL)","ALTER SEQUENCE","
-ALTER SEQUENCE [ IF EXISTS ] sequenceName [ RESTART WITH long ] [ INCREMENT BY long ]
+ALTER SEQUENCE [ IF EXISTS ] sequenceName
+[ RESTART WITH long ]
+[ INCREMENT BY long ]
 [ MINVALUE long | NOMINVALUE | NO MINVALUE ]
 [ MAXVALUE long | NOMAXVALUE | NO MAXVALUE ]
 [ CYCLE long | NOCYCLE | NO CYCLE ]
@@ -307,7 +314,8 @@ ALTER TABLE TEST ADD CONSTRAINT NAME_UNIQUE UNIQUE(NAME)
 "
 
 "Commands (DDL)","ALTER TABLE RENAME CONSTRAINT","
-ALTER TABLE [ IF EXISTS ] tableName RENAME oldConstraintName TO newConstraintName
+ALTER TABLE [ IF EXISTS ] tableName RENAME oldConstraintName
+TO newConstraintName
 ","
 Renames a constraint.
 This command commits an open transaction in this connection.
@@ -364,7 +372,8 @@ ALTER TABLE TEST ALTER COLUMN NAME SET INVISIBLE;
 "
 
 "Commands (DDL)","ALTER TABLE DROP COLUMN","
-ALTER TABLE [ IF EXISTS ] tableName DROP COLUMN [ IF EXISTS ] ( columnName [,...] )
+ALTER TABLE [ IF EXISTS ] tableName DROP COLUMN [ IF EXISTS ]
+( columnName [,...] )
 ","
 Removes column(s) from a table.
 This command commits an open transaction in this connection.
@@ -374,7 +383,8 @@ ALTER TABLE TEST DROP COLUMN NAME1, NAME2
 "
 
 "Commands (DDL)","ALTER TABLE DROP CONSTRAINT","
-ALTER TABLE [ IF EXISTS ] tableName DROP { CONSTRAINT [ IF EXISTS ] constraintName | PRIMARY KEY }
+ALTER TABLE [ IF EXISTS ] tableName DROP
+{ CONSTRAINT [ IF EXISTS ] constraintName | PRIMARY KEY }
 ","
 Removes a constraint or a primary key from a table.
 This command commits an open transaction in this connection.
@@ -626,11 +636,13 @@ be the resource name (for example ""java:comp/env/jdbc/Test"").
 Admin rights are required to execute this command.
 This command commits an open transaction in this connection.
 ","
-CREATE LINKED TABLE LINK('org.h2.Driver', 'jdbc:h2:test2', 'sa', 'sa', 'TEST');
+CREATE LINKED TABLE LINK('org.h2.Driver', 'jdbc:h2:test2',
+    'sa', 'sa', 'TEST');
 CREATE LINKED TABLE LINK('', 'jdbc:h2:test2', 'sa', 'sa',
     '(SELECT * FROM TEST WHERE ID>0)');
 CREATE LINKED TABLE LINK('javax.naming.InitialContext',
-    'java:comp/env/jdbc/Test', NULL, NULL, '(SELECT * FROM TEST WHERE ID>0)');
+    'java:comp/env/jdbc/Test', NULL, NULL,
+    '(SELECT * FROM TEST WHERE ID>0)');
 "
 
 "Commands (DDL)","CREATE ROLE","
@@ -643,7 +655,8 @@ CREATE ROLE READONLY
 "
 
 "Commands (DDL)","CREATE SCHEMA","
-CREATE SCHEMA [ IF NOT EXISTS ] name [ AUTHORIZATION ownerUserName ]
+CREATE SCHEMA [ IF NOT EXISTS ] name
+[ AUTHORIZATION ownerUserName ]
 [ WITH tableEngineParamName [,...] ]
 ","
 Creates a new schema. If no owner is specified, the current user is used. The
@@ -658,7 +671,8 @@ CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA
 "
 
 "Commands (DDL)","CREATE SEQUENCE","
-CREATE SEQUENCE [ IF NOT EXISTS ] newSequenceName [ START WITH long ]
+CREATE SEQUENCE [ IF NOT EXISTS ] newSequenceName
+[ START WITH long ]
 [ INCREMENT BY long ]
 [ MINVALUE long | NOMINVALUE | NO MINVALUE ]
 [ MAXVALUE long | NOMAXVALUE | NO MAXVALUE ]
@@ -722,9 +736,12 @@ CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))
 "
 
 "Commands (DDL)","CREATE TRIGGER","
-CREATE TRIGGER [ IF NOT EXISTS ] newTriggerName { BEFORE | AFTER | INSTEAD OF }
-{ INSERT | UPDATE | DELETE | SELECT | ROLLBACK } [,...] ON tableName [ FOR EACH ROW ]
-[ QUEUE int ] [ NOWAIT ] { CALL triggeredClassName | AS sourceCodeString }
+CREATE TRIGGER [ IF NOT EXISTS ] newTriggerName
+{ BEFORE | AFTER | INSTEAD OF }
+{ INSERT | UPDATE | DELETE | SELECT | ROLLBACK }
+[,...] ON tableName [ FOR EACH ROW ]
+[ QUEUE int ] [ NOWAIT ]
+{ CALL triggeredClassName | AS sourceCodeString }
 ","
 Creates a new trigger.
 The trigger class must be public and implement ""org.h2.api.Trigger"".
@@ -1219,7 +1236,8 @@ SET BUILTIN_ALIAS_OVERRIDE TRUE
 
 "Commands (Other)","SET COLLATION","
 SET [ DATABASE ] COLLATION
-{ OFF | collationName [ STRENGTH { PRIMARY | SECONDARY | TERTIARY | IDENTICAL } ] }
+{ OFF | collationName
+    [ STRENGTH { PRIMARY | SECONDARY | TERTIARY | IDENTICAL } ] }
 ","
 Sets the collation used for comparing strings.
 This command can only be executed if there are no tables defined.
@@ -2206,7 +2224,8 @@ DATE '2004-12-31'
 "
 
 "Other Grammar","Decimal","
-[ + | - ] { { number [ . number ] } | { . number } } [ E [ + | - ] expNumber [...] ] ]
+[ + | - ] { { number [ . number ] } | { . number } }
+[ E [ + | - ] expNumber [...] ] ]
 ","
 A decimal number with fixed precision and scale.
 Internally, ""java.lang.BigDecimal"" is used.
@@ -2388,7 +2407,8 @@ FOREIGN KEY(ID) REFERENCES TEST(ID) ON UPDATE CASCADE
 "
 
 "Other Grammar","Script Compression Encryption","
-[ COMPRESSION { DEFLATE | LZF | ZIP | GZIP } ] [ CIPHER cipher PASSWORD string ]
+[ COMPRESSION { DEFLATE | LZF | ZIP | GZIP } ]
+[ CIPHER cipher PASSWORD string ]
 ","
 The compression and encryption algorithm to use for script files.
 When using encryption, only DEFLATE and LZF are supported.
@@ -2638,7 +2658,8 @@ DATE
 "
 
 "Data Types","TIMESTAMP Type","
-{ TIMESTAMP [ ( precisionInt ) ] [ WITHOUT TIME ZONE ] | DATETIME | SMALLDATETIME }
+{ TIMESTAMP [ ( precisionInt ) ] [ WITHOUT TIME ZONE ]
+    | DATETIME | SMALLDATETIME }
 ","
 The timestamp data type. The format is yyyy-MM-dd hh:mm:ss[.nnnnnnnnn].
 Stored internally as a BCD-encoded date, and nanoseconds since midnight.
@@ -2669,7 +2690,8 @@ TIMESTAMP WITH TIME ZONE
 "
 
 "Data Types","BINARY Type","
-{ BINARY | VARBINARY | LONGVARBINARY | RAW | BYTEA } [ ( precisionInt ) ]
+{ BINARY | VARBINARY | LONGVARBINARY | RAW | BYTEA }
+[ ( precisionInt ) ]
 ","
 Represents a byte array. For very long arrays, use BLOB.
 The maximum size is 2 GB, but the whole object is kept in
@@ -2750,7 +2772,8 @@ CHAR(10)
 "
 
 "Data Types","BLOB Type","
-{ BLOB | TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE | OID } [ ( precisionInt ) ]
+{ BLOB | TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE | OID }
+[ ( precisionInt ) ]
 ","
 Like BINARY, but intended for very large values such as files or images. Unlike
 when using BINARY, large objects are not kept fully in-memory. Use
@@ -2763,7 +2786,8 @@ BLOB
 "
 
 "Data Types","CLOB Type","
-{ CLOB | TINYTEXT | TEXT | MEDIUMTEXT | LONGTEXT | NTEXT | NCLOB } [ ( precisionInt ) ]
+{ CLOB | TINYTEXT | TEXT | MEDIUMTEXT | LONGTEXT | NTEXT | NCLOB }
+[ ( precisionInt ) ]
 ","
 CLOB is like VARCHAR, but intended for very large values. Unlike when using
 VARCHAR, large CLOB objects are not kept fully in-memory; instead, they are streamed.

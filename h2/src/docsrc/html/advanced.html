@@ -1065,7 +1065,6 @@ import java.sql.*;
 import java.util.*;
 public class Test {
     public static void main(String[] args) throws Exception {
-        Class.forName("org.h2.Driver");
         String url = "jdbc:h2:~/test";
         Properties prop = new Properties();
         prop.setProperty("user", "sa");
@@ -1083,7 +1082,6 @@ public class Test {
 }
 </pre>
 <p>
-This example requires Java 1.6.
 When using Swing, use <code>javax.swing.JPasswordField</code>.
 </p>
 

@@ -1315,7 +1315,7 @@ public class Function extends Expression implements FunctionCall {
         }
         case REPLACE: {
             if (v0 == ValueNull.INSTANCE || v1 == ValueNull.INSTANCE
-                    || v2 == ValueNull.INSTANCE && database.getMode() != Mode.getOracle()) {
+                    || v2 == ValueNull.INSTANCE && database.getMode().getEnum() != Mode.ModeEnum.Oracle) {
                 result = ValueNull.INSTANCE;
             } else {
                 String s0 = v0.getString();

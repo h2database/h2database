@@ -108,10 +108,9 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Copy database: tool with config GUI and batch mode, extensible (example: compare).
 </li><li>Document, implement tool for long running transactions using user-defined compensation statements.
 </li><li>Support SET TABLE DUAL READONLY.
-</li><li>GCJ: what is the state now?
 </li><li>Events for: database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server. See http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html
 </li><li>Optimization: simpler log compression.
-</li><li>Support standard INFORMATION_SCHEMA tables, as defined in http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt - specially KEY_COLUMN_USAGE: http://dev.mysql.com/doc/refman/5.0/en/information-schema.html, http://www.xcdsql.org/Misc/INFORMATION_SCHEMA%20With%20Rolenames.gif
+</li><li>Support more standard INFORMATION_SCHEMA tables, as defined in SQL standard.
 </li><li>Compatibility: in MySQL, HSQLDB, /0.0 is NULL; in PostgreSQL, Derby: division by zero. HSQLDB: 0.0e1 / 0.0e1 is NaN.
 </li><li>Functional tables should accept parameters from other tables (see FunctionMultiReturn) SELECT * FROM TEST T, P2C(T.A, T.R).
 </li><li>Custom class loader to reload functions on demand.
@@ -154,7 +153,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Java static code analysis: http://www.eclipse.org/tptp/
 </li><li>Compatibility for CREATE SCHEMA AUTHORIZATION.
 </li><li>Implement Clob / Blob truncate and the remaining functionality.
-</li><li>Add multiple columns at the same time with ALTER TABLE .. ADD .. ADD ...
 </li><li>File locking: writing a system property to detect concurrent access from the same VM (different classloaders).
 </li><li>Pure SQL triggers (example: update parent table if the child table is changed).
 </li><li>Add H2 to Gem (Ruby install system).
@@ -166,13 +164,11 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Compact databases without having to close the database (vacuum).
 </li><li>Implement more JDBC 4.0 features.
 </li><li>Support TRANSFORM / PIVOT as in MS Access.
-</li><li>SELECT * FROM (VALUES (...), (...), ....) AS alias(f1, ...).
 </li><li>Support updatable views with join on primary keys (to extend a table).
 </li><li>Public interface for functions (not public static).
 </li><li>Support reading the transaction log.
 </li><li>Feature matrix as in <a href="http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp">i-net software</a>.
 </li><li>Updatable result set on table without primary key or unique index.
-</li><li>Compatibility with Derby and PostgreSQL: VALUES(1), (2); SELECT * FROM (VALUES (1), (2)) AS myTable(c1). Issue 221.
 </li><li>Allow execution time prepare for SELECT * FROM CSVREAD(?, 'columnNameString')
 </li><li>Support data type INTERVAL
 </li><li>Support nested transactions (possibly using savepoints internally).
@@ -231,7 +227,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Native search: support "phrase search", wildcard search (* and ?), case-insensitive search, boolean operators, and grouping
 </li><li>Improve documentation of access rights.
 </li><li>Support opening a database that is in the classpath, maybe using a new file system. Workaround: detect jar file using getClass().getProtectionDomain().getCodeSource().getLocation().
-</li><li>Support ENUM data type (see MySQL, PostgreSQL, MS SQL Server, maybe others).
 </li><li>Remember the user defined data type (domain) of a column.
 </li><li>MVCC: support multi-threaded kernel with multi-version concurrency.
 </li><li>Auto-server: add option to define the port range or list.
@@ -252,9 +247,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Translation: use ${.} in help.csv
 </li><li>Translated .pdf
 </li><li>Recovery tool: bad blocks should be converted to INSERT INTO SYSTEM_ERRORS(...), and things should go into the .trace.db file
-</li><li>Issue 357: support getGeneratedKeys to return multiple rows when used with batch updates.
-    This is supported by MySQL, but not Derby. Both PostgreSQL and HSQLDB don't support getGeneratedKeys.
-    Also support it when using INSERT ... SELECT.
 </li><li>RECOVER=2 to backup the database, run recovery, open the database
 </li><li>Recovery should work with encrypted databases
 </li><li>Corruption: new error code, add help
@@ -353,7 +345,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support INTERVAL data type (see Oracle and others).
 </li><li>Combine Server and Console tool (only keep Server).
 </li><li>Store the Lucene index in the database itself.
-</li><li>Support standard MERGE statement: http://en.wikipedia.org/wiki/Merge_%28SQL%29
 </li><li>Oracle compatibility: support DECODE(x, ...).
 </li><li>MVCC: compare concurrent update behavior with PostgreSQL and Oracle.
 </li><li>HSQLDB compatibility: CREATE FUNCTION (maybe using a Function interface).
@@ -398,7 +389,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Pluggable access control mechanism.
 </li><li>Fulltext search (Lucene): support streaming CLOB data.
 </li><li>Document/example how to create and read an encrypted script file.
-</li><li>Check state of http://issues.apache.org/jira/browse/OPENJPA-1367 (H2 does support cross joins).
 </li><li>Fulltext search (Lucene): only prefix column names with _ if they already start with _. Instead of DATA / QUERY / modified use _DATA, _QUERY, _MODIFIED if possible.
 </li><li>Support a way to create or read compressed encrypted script files using an API.
 </li><li>Scripting language support (Javascript).
@@ -543,12 +533,9 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Issue 283: Improve performance of H2 on Android.
 </li><li>Support INSERT INTO / UPDATE / MERGE ... RETURNING to retrieve the generated key(s).
 </li><li>Column compression option - see http://groups.google.com/group/h2-database/browse_thread/thread/3e223504e52671fa/243da82244343f5d
-</li><li>PostgreSQL compatibility: ALTER TABLE ADD combined with adding a foreign key constraint, as in ALTER TABLE FOO ADD COLUMN PARENT BIGINT REFERENCES FOO(ID).
 </li><li>MS SQL Server compatibility: support @@ROWCOUNT.
-</li><li>PostgreSQL compatibility: LOG(x) is LOG10(x) and not LN(x).
 </li><li>Issue 311: Serialized lock mode: executeQuery of write operations fails.
 </li><li>PostgreSQL compatibility: support PgAdmin III (specially the function current_setting).
-</li><li>MySQL compatibility: support TIMESTAMPADD.
 </li><li>Support SELECT ... FOR UPDATE with joins (supported by PostgreSQL, MySQL, and HSQLDB; but not Derby).
 </li><li>Support SELECT ... FOR UPDATE OF [field-list] (supported by PostgreSQL, MySQL, and HSQLDB; but not Derby).
 </li><li>Support SELECT ... FOR UPDATE OF [table-list] (supported by PostgreSQL, HSQLDB, Sybase).

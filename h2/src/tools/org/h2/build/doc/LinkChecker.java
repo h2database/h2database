@@ -27,7 +27,13 @@ public class LinkChecker {
     private static final boolean TEST_EXTERNAL_LINKS = false;
     private static final boolean OPEN_EXTERNAL_LINKS = false;
     private static final String[] IGNORE_MISSING_LINKS_TO = {
-        "SysProperties", "ErrorCode"
+        "SysProperties", "ErrorCode",
+        // TODO check these replacement link too
+        "#build_index",
+        "#datatypes_index",
+        "#faq_index",
+        "#grammar_index",
+        "#tutorial_index"
     };
 
     private final HashMap<String, String> targets = new HashMap<>();

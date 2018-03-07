@@ -71,7 +71,7 @@ public class AbbaDetector {
             System.out.println(thread + " " + indent +
                     "sync " + getObjectName(o));
         }
-        if (stack.size() > 0) {
+        if (!stack.isEmpty()) {
             markHigher(o, stack);
         }
         stack.push(o);

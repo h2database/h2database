@@ -63,7 +63,7 @@ public class TestAlterSchemaRename extends TestBase {
         rs = stat.executeQuery("select * from s2.tab");
         assertTrue(rs.next());
         assertEquals(3, rs.getInt(1));
-        stat.execute("drop schema s2");
+        stat.execute("drop schema s2 cascade");
     }
 
 
@@ -97,8 +97,8 @@ public class TestAlterSchemaRename extends TestBase {
             stat = conn.createStatement();
             stat.executeQuery("select * from s2_new.v1");
         }
-        stat.execute("drop schema s1");
-        stat.execute("drop schema s2_new");
+        stat.execute("drop schema s1 cascade");
+        stat.execute("drop schema s2_new cascade");
     }
 
     /**
@@ -120,7 +120,7 @@ public class TestAlterSchemaRename extends TestBase {
             stat = conn.createStatement();
             stat.executeQuery("CALL S2.REVERSE('1234')");
         }
-        stat.execute("drop schema s2");
+        stat.execute("drop schema s2 cascade");
     }
 
 }

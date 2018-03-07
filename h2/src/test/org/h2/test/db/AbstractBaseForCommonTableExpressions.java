@@ -17,7 +17,20 @@ import org.h2.test.TestBase;
  */
 public abstract class AbstractBaseForCommonTableExpressions extends TestBase {
 
-    protected void testRepeatedQueryWithSetup(int maxRetries, String[] expectedRowData, String[] expectedColumnNames,
+    /**
+     * Test a query.
+     *
+     * @param maxRetries the number of times the query is run
+     * @param expectedRowData the expected result data
+     * @param expectedColumnNames the expected columns of the result
+     * @param expectedNumberOfRows the expected number of rows
+     * @param setupSQL the SQL statement used for setup
+     * @param withQuery the query
+     * @param closeAndReopenDatabaseConnectionOnIteration whether the connection
+     *            should be re-opened each time
+     * @param expectedColumnTypes the expected datatypes of the result
+     */
+    void testRepeatedQueryWithSetup(int maxRetries, String[] expectedRowData, String[] expectedColumnNames,
             int expectedNumberOfRows, String setupSQL, String withQuery,
             int closeAndReopenDatabaseConnectionOnIteration, String[] expectedColumnTypes) throws SQLException {
 

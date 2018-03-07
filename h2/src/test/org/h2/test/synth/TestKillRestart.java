@@ -5,13 +5,17 @@
  */
 package org.h2.test.synth;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.h2.test.TestBase;
 import org.h2.test.utils.SelfDestructor;
 
@@ -58,7 +62,7 @@ public class TestKillRestart extends TestBase {
                     Thread.sleep(100);
                     printTime("killing: " + i);
                     p.destroy();
-                    p.waitFor();
+                    waitForTimeout(p);
                     break;
                 } else if (s.startsWith("#Fail")) {
                     fail("Failed: " + s);
@@ -66,6 +70,58 @@ public class TestKillRestart extends TestBase {
             }
         }
         deleteDb("killRestart");
+    }
+
+    /**
+     * Wait for a subprocess with timeout.
+     */
+    private static void waitForTimeout(final Process p)
+            throws InterruptedException, IOException {
+        final long pid = getPidOfProcess(p);
+        if (pid == -1) {
+            p.waitFor();
+        }
+        // when we hit Java8 we can use the waitFor(1,TimeUnit.MINUTES) method
+        final CountDownLatch latch = new CountDownLatch(1);
+        new Thread("waitForTimeout") {
+            @Override
+            public void run() {
+                try {
+                    p.waitFor();
+                    latch.countDown();
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }.start();
+        if (!latch.await(2, TimeUnit.MINUTES)) {
+            String[] procDef = { "jstack", "-F", "-m", "-l", "" + pid };
+            new ProcessBuilder().redirectErrorStream(true).command(procDef)
+                    .start();
+            OutputCatcher catcher = new OutputCatcher(p.getInputStream());
+            catcher.start();
+            Thread.sleep(500);
+            throw new IOException("timed out waiting for subprocess to die");
+        }
+    }
+
+    /**
+     * Get the PID of a subprocess. Only works on Linux and OSX.
+     */
+    private static long getPidOfProcess(Process p) {
+        // When we hit Java9 we can call getPid() on Process.
+        long pid = -1;
+        try {
+            if (p.getClass().getName().equals("java.lang.UNIXProcess")) {
+                Field f = p.getClass().getDeclaredField("pid");
+                f.setAccessible(true);
+                pid = f.getLong(p);
+                f.setAccessible(false);
+            }
+        } catch (Exception e) {
+            pid = -1;
+        }
+        return pid;
     }
 
     /**
@@ -77,7 +133,7 @@ public class TestKillRestart extends TestBase {
     public static void main(String... args) {
         SelfDestructor.startCountdown(60);
         String driver = "org.h2.Driver";
-        String url = "jdbc:h2:test", user = "sa", password = "sa";
+        String url = "jdbc:h2:mem:test", user = "sa", password = "sa";
         for (int i = 0; i < args.length; i++) {
             if ("-url".equals(args[i])) {
                 url = args[++i];

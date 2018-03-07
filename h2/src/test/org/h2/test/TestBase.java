@@ -6,6 +6,7 @@
 package org.h2.test;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,7 +31,9 @@ import java.sql.Types;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import java.util.SimpleTimeZone;
 import java.util.concurrent.TimeUnit;
@@ -40,6 +43,7 @@ import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.utils.ProxyCodeGenerator;
 import org.h2.test.utils.ResultVerifier;
+import org.h2.test.utils.SelfDestructor;
 import org.h2.tools.DeleteDbFiles;
 
 /**
@@ -78,6 +82,8 @@ public abstract class TestBase {
     protected long start;
 
     private final LinkedList<byte[]> memory = new LinkedList<>();
+
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
     /**
      * Get the test directory for this test.
@@ -395,7 +401,9 @@ public abstract class TestBase {
      */
     public void printTimeMemory(String s, long time) {
         if (config.big) {
-            println(getMemoryUsed() + " MB: " + s + " ms: " + time);
+            Runtime rt = Runtime.getRuntime();
+            long memNow = rt.totalMemory() - rt.freeMemory();
+            println(memNow / 1024 / 1024 + " MB: " + s + " ms: " + time);
         }
     }
 
@@ -466,6 +474,17 @@ public abstract class TestBase {
      * Log an error message.
      *
      * @param s the message
+     */
+    public static void logErrorMessage(String s) {
+        System.out.flush();
+        System.err.println("ERROR: " + s + "------------------------------");
+        logThrowable(s, null);
+    }
+
+    /**
+     * Log an error message.
+     *
+     * @param s the message
      * @param e the exception
      */
     public static void logError(String s, Throwable e) {
@@ -476,6 +495,10 @@ public abstract class TestBase {
         System.err.println("ERROR: " + s + " " + e.toString() +
                 " ------------------------------");
         e.printStackTrace();
+        logThrowable(null, e);
+    }
+
+    private static void logThrowable(String s, Throwable e) {
         // synchronize on this class, because file locks are only visible to
         // other JVMs
         synchronized (TestBase.class) {
@@ -492,9 +515,14 @@ public abstract class TestBase {
                 }
                 // append
                 FileWriter fw = new FileWriter("error.txt", true);
-                PrintWriter pw = new PrintWriter(fw);
-                e.printStackTrace(pw);
-                pw.close();
+                if (s != null) {
+                    fw.write(s);
+                }
+                if (e != null) {
+                    PrintWriter pw = new PrintWriter(fw);
+                    e.printStackTrace(pw);
+                    pw.close();
+                }
                 fw.close();
                 // unlock
                 lock.release();
@@ -523,7 +551,6 @@ public abstract class TestBase {
      * @param s the message
      */
     static synchronized void printlnWithTime(long millis, String s) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
         s = dateFormat.format(new java.util.Date()) + " " +
                 formatTime(millis) + " " + s;
         System.out.println(s);
@@ -977,7 +1004,7 @@ public abstract class TestBase {
      * @param condition the condition
      * @throws AssertionError if the condition is false
      */
-    protected void assertTrue(String message, boolean condition) {
+    public void assertTrue(String message, boolean condition) {
         if (!condition) {
             fail(message);
         }
@@ -1079,7 +1106,7 @@ public abstract class TestBase {
      *
      * @param stat the statement
      */
-    protected void execute(PreparedStatement stat) throws SQLException {
+    public void execute(PreparedStatement stat) throws SQLException {
         execute(stat, null);
     }
 
@@ -1443,6 +1470,16 @@ public abstract class TestBase {
     }
 
     /**
+     * Get the path to a java executable of the current process
+     *
+     * @return the path to java
+     */
+    private static String getJVM() {
+        return System.getProperty("java.home") + File.separatorChar + "bin"
+                + File.separator + "java";
+    }
+
+    /**
      * Use up almost all memory.
      *
      * @param remainingKB the number of kilobytes that are not referenced
@@ -1469,6 +1506,12 @@ public abstract class TestBase {
      */
     protected void freeMemory() {
         memory.clear();
+        for (int i = 0; i < 5; i++) {
+            System.gc();
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException ignore) {/**/}
+        }
     }
 
     /**
@@ -1672,8 +1715,63 @@ public abstract class TestBase {
         throw (E) e;
     }
 
-    protected String getTestName() {
+    /**
+     * Get the name of the test.
+     *
+     * @return the name of the test class
+     */
+    public String getTestName() {
         return getClass().getSimpleName();
     }
 
+    /**
+     * Build a child process.
+     *
+     * @param name the name
+     * @param childClass the class
+     * @param jvmArgs the argument list
+     * @return the process builder
+     */
+    public ProcessBuilder buildChild(String name, Class<? extends TestBase> childClass,
+            String... jvmArgs) {
+        List<String> args = new ArrayList<>(16);
+        args.add(getJVM());
+        Collections.addAll(args, jvmArgs);
+        Collections.addAll(args, "-cp", getClassPath(),
+                        SelfDestructor.getPropertyString(1),
+                        childClass.getName(),
+                        "-url", getURL(name, true),
+                        "-user", getUser(),
+                        "-password", getPassword());
+        ProcessBuilder processBuilder = new ProcessBuilder()
+//                            .redirectError(ProcessBuilder.Redirect.INHERIT)
+                            .redirectErrorStream(true)
+                            .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+                            .command(args);
+        return processBuilder;
+    }
+
+    public abstract static class Child extends TestBase {
+        private String url;
+        private String user;
+        private String password;
+
+        public Child(String... args) {
+            for (int i = 0; i < args.length; i++) {
+                if ("-url".equals(args[i])) {
+                    url = args[++i];
+                } else if ("-user".equals(args[i])) {
+                    user = args[++i];
+                } else if ("-password".equals(args[i])) {
+                    password = args[++i];
+                }
+                SelfDestructor.startCountdown(60);
+            }
+        }
+
+        public Connection getConnection() throws SQLException {
+            return getConnection(url, user, password);
+        }
+
+    }
 }

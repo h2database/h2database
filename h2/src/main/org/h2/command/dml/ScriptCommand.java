@@ -284,8 +284,7 @@ public class ScriptCommand extends ScriptBase {
                 final ArrayList<Constraint> constraints = table.getConstraints();
                 if (constraints != null) {
                     for (Constraint constraint : constraints) {
-                        if (Constraint.PRIMARY_KEY.equals(
-                                constraint.getConstraintType())) {
+                        if (Constraint.Type.PRIMARY_KEY == constraint.getConstraintType()) {
                             add(constraint.getCreateSQLWithoutIndexes(), false);
                         }
                     }
@@ -336,7 +335,7 @@ public class ScriptCommand extends ScriptBase {
                 if (constraint.getTable().isHidden()) {
                     continue;
                 }
-                if (!Constraint.PRIMARY_KEY.equals(constraint.getConstraintType())) {
+                if (Constraint.Type.PRIMARY_KEY != constraint.getConstraintType()) {
                     add(constraint.getCreateSQLWithoutIndexes(), false);
                 }
             }

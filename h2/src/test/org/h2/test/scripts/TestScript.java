@@ -41,6 +41,7 @@ public class TestScript extends TestBase {
     private boolean reconnectOften;
     private Connection conn;
     private Statement stat;
+    private String fileName;
     private LineNumberReader in;
     private int outputLineNo;
     private PrintStream out;
@@ -81,16 +82,18 @@ public class TestScript extends TestBase {
         reconnectOften = !config.memory && config.big;
 
         testScript("testScript.sql");
+        testScript("derived-column-names.sql");
+        testScript("information_schema.sql");
+        testScript("joins.sql");
         testScript("altertable-index-reuse.sql");
         testScript("query-optimisations.sql");
-        testScript("commands-dml-script.sql");
-        testScript("commands-dml-create-view.sql");
         String decimal2;
         if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
             decimal2 = "decimal_decimal";
         } else {
             decimal2 = "decimal_numeric";
         }
+
         for (String s : new String[] { "array", "bigint", "binary", "blob",
                 "boolean", "char", "clob", "date", "decimal", decimal2, "double", "enum",
                 "geometry", "identity", "int", "other", "real", "smallint",
@@ -98,8 +101,14 @@ public class TestScript extends TestBase {
                 "uuid", "varchar", "varchar-ignorecase" }) {
             testScript("datatypes/" + s + ".sql");
         }
+        for (String s : new String[] { "alterTableAdd", "createView", "dropSchema" }) {
+            testScript("ddl/" + s + ".sql");
+        }
+        for (String s : new String[] { "insertIgnore", "mergeUsing", "script", "with" }) {
+            testScript("dml/" + s + ".sql");
+        }
         for (String s : new String[] { "avg", "bit-and", "bit-or", "count",
-                "group-concat", "max", "min", "selectivity", "stddev-pop",
+                "group-concat", "max", "median", "min", "selectivity", "stddev-pop",
                 "stddev-samp", "sum", "var-pop", "var-samp" }) {
             testScript("functions/aggregate/" + s + ".sql");
         }
@@ -109,7 +118,7 @@ public class TestScript extends TestBase {
                 "expand", "floor", "hash", "length", "log", "mod", "pi",
                 "power", "radians", "rand", "random-uuid", "round",
                 "roundmagic", "secure-rand", "sign", "sin", "sinh", "sqrt",
-                "tan", "tanh", "trunc", "truncate", "zero" }) {
+                "tan", "tanh", "truncate", "zero" }) {
             testScript("functions/numeric/" + s + ".sql");
         }
         for (String s : new String[] { "ascii", "bit-length", "char", "concat",
@@ -134,15 +143,12 @@ public class TestScript extends TestBase {
                 "set", "table", "transaction-id", "truncate-value", "user" }) {
             testScript("functions/system/" + s + ".sql");
         }
-        for (String s : new String[] { "current_date", "current_timestamp",
+        for (String s : new String[] { "add_months", "current_date", "current_timestamp",
                 "current-time", "dateadd", "datediff", "dayname",
                 "day-of-month", "day-of-week", "day-of-year", "extract",
                 "formatdatetime", "hour", "minute", "month", "monthname",
-                "parsedatetime", "quarter", "second", "week", "year" }) {
+                "parsedatetime", "quarter", "second", "truncate", "week", "year" }) {
             testScript("functions/timeanddate/" + s + ".sql");
-        }
-        for (String s : new String[] { "with", "mergeUsing" }) {
-            testScript("dml/" + s + ".sql");
         }
         deleteDb("script");
         System.out.flush();
@@ -155,6 +161,7 @@ public class TestScript extends TestBase {
         // we processed.
         conn = null;
         stat = null;
+        fileName = null;
         in = null;
         outputLineNo = 0;
         out = null;
@@ -172,7 +179,7 @@ public class TestScript extends TestBase {
         conn.close();
         out.close();
         if (errors.length() > 0) {
-            throw new Exception("errors:\n" + errors.toString());
+            throw new Exception("errors in " + scriptFileName + " found");
         }
         // new File(outFile).delete();
     }
@@ -200,6 +207,7 @@ public class TestScript extends TestBase {
         if (is == null) {
             throw new IOException("could not find " + inFile);
         }
+        fileName = inFile;
         in = new LineNumberReader(new InputStreamReader(is, "Cp1252"));
         StringBuilder buff = new StringBuilder();
         while (true) {
@@ -213,7 +221,7 @@ public class TestScript extends TestBase {
                 // do nothing
             } else if (sql.endsWith(";")) {
                 write(sql);
-                buff.append(sql.substring(0, sql.length() - 1));
+                buff.append(sql, 0, sql.length() - 1);
                 sql = buff.toString();
                 buff = new StringBuilder();
                 process(sql);
@@ -381,6 +389,26 @@ public class TestScript extends TestBase {
             head[i] = label;
         }
         rs.close();
+        String line = readLine();
+        putBack = line;
+        if (line != null && line.startsWith(">> ")) {
+            switch (result.size()) {
+            case 0:
+                writeResult(sql, "<no result>", null, ">> ");
+                return;
+            case 1:
+                String[] row = result.get(0);
+                if (row.length == 1) {
+                    writeResult(sql, row[0], null, ">> ");
+                } else {
+                    writeResult(sql, "<row with " + row.length + " values>", null, ">> ");
+                }
+                return;
+            default:
+                writeResult(sql, "<" + result.size() + " rows>", null, ">> ");
+                return;
+            }
+        }
         writeResult(sql, format(head, max), null);
         writeResult(sql, format(null, max), null);
         String[] array = new String[result.size()];
@@ -425,27 +453,27 @@ public class TestScript extends TestBase {
         writeResult(sql, "exception", e);
     }
 
-    private void writeResult(String sql, String s, SQLException e)
-            throws Exception {
+    private void writeResult(String sql, String s, SQLException e) throws Exception {
+        writeResult(sql, s, e, "> ");
+    }
+
+    private void writeResult(String sql, String s, SQLException e, String prefix) throws Exception {
         assertKnownException(sql, e);
-        s = ("> " + s).trim();
+        s = (prefix + s).trim();
         String compare = readLine();
         if (compare != null && compare.startsWith(">")) {
             if (!compare.equals(s)) {
                 if (reconnectOften && sql.toUpperCase().startsWith("EXPLAIN")) {
                     return;
                 }
-                errors.append("line: ");
-                errors.append(outputLineNo);
-                errors.append("\n" + "exp: ");
-                errors.append(compare);
-                errors.append("\n" + "got: ");
-                errors.append(s);
-                errors.append("\n");
+                errors.append(fileName).append('\n');
+                errors.append("line: ").append(outputLineNo).append('\n');
+                errors.append("exp: ").append(compare).append('\n');
+                errors.append("got: ").append(s).append('\n');
                 if (e != null) {
                     TestBase.logError("script", e);
                 }
-                TestBase.logError(errors.toString(), null);
+                TestBase.logErrorMessage(errors.toString());
                 if (failFast) {
                     conn.close();
                     System.exit(1);

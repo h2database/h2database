@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import org.h2.engine.Constants;
+import org.h2.engine.GeneratedKeysMode;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
 import org.h2.expression.ParameterInterface;
@@ -17,6 +18,7 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultRemote;
+import org.h2.result.ResultWithGeneratedKeys;
 import org.h2.util.New;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
@@ -194,10 +196,14 @@ public class CommandRemote implements CommandInterface {
     }
 
     @Override
-    public int executeUpdate() {
+    public ResultWithGeneratedKeys executeUpdate(Object generatedKeysRequest) {
         checkParameters();
+        boolean supportsGeneratedKeys = session.isSupportsGeneratedKeys();
+        boolean readGeneratedKeys = supportsGeneratedKeys && !Boolean.FALSE.equals(generatedKeysRequest);
+        int objectId = readGeneratedKeys ? session.getNextId() : 0;
         synchronized (session) {
             int updateCount = 0;
+            ResultRemote generatedKeys = null;
             boolean autoCommit = false;
             for (int i = 0, count = 0; i < transferList.size(); i++) {
                 prepareIfRequired();
@@ -206,9 +212,39 @@ public class CommandRemote implements CommandInterface {
                     session.traceOperation("COMMAND_EXECUTE_UPDATE", id);
                     transfer.writeInt(SessionRemote.COMMAND_EXECUTE_UPDATE).writeInt(id);
                     sendParameters(transfer);
+                    if (supportsGeneratedKeys) {
+                        int mode = GeneratedKeysMode.valueOf(generatedKeysRequest);
+                        transfer.writeInt(mode);
+                        switch (mode) {
+                        case GeneratedKeysMode.COLUMN_NUMBERS: {
+                            int[] keys = (int[]) generatedKeysRequest;
+                            transfer.writeInt(keys.length);
+                            for (int key : keys) {
+                                transfer.writeInt(key);
+                            }
+                            break;
+                        }
+                        case GeneratedKeysMode.COLUMN_NAMES: {
+                            String[] keys = (String[]) generatedKeysRequest;
+                            transfer.writeInt(keys.length);
+                            for (String key : keys) {
+                                transfer.writeString(key);
+                            }
+                            break;
+                        }
+                        }
+                    }
                     session.done(transfer);
                     updateCount = transfer.readInt();
                     autoCommit = transfer.readBoolean();
+                    if (readGeneratedKeys) {
+                        int columnCount = transfer.readInt();
+                        if (generatedKeys != null) {
+                            generatedKeys.close();
+                            generatedKeys = null;
+                        }
+                        generatedKeys = new ResultRemote(session, transfer, objectId, columnCount, Integer.MAX_VALUE);
+                    }
                 } catch (IOException e) {
                     session.removeServer(e, i--, ++count);
                 }
@@ -216,7 +252,10 @@ public class CommandRemote implements CommandInterface {
             session.setAutoCommitFromServer(autoCommit);
             session.autoCommitIfCluster();
             session.readSessionState();
-            return updateCount;
+            if (generatedKeys != null) {
+                return new ResultWithGeneratedKeys.WithKeys(updateCount, generatedKeys);
+            }
+            return ResultWithGeneratedKeys.of(updateCount);
         }
     }
 

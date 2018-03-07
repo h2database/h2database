@@ -351,12 +351,10 @@ public class WebApp {
             int port = Integer.decode((String) attributes.get("port"));
             prop.setProperty("webPort", String.valueOf(port));
             server.setPort(port);
-            boolean allowOthers = Boolean.parseBoolean(
-                    (String) attributes.get("allowOthers"));
+            boolean allowOthers = Utils.parseBoolean((String) attributes.get("allowOthers"), false, false);
             prop.setProperty("webAllowOthers", String.valueOf(allowOthers));
             server.setAllowOthers(allowOthers);
-            boolean ssl = Boolean.parseBoolean(
-                    (String) attributes.get("ssl"));
+            boolean ssl = Utils.parseBoolean((String) attributes.get("ssl"), false, false);
             prop.setProperty("webSSL", String.valueOf(ssl));
             server.setSSL(ssl);
             server.saveProperties(prop);
@@ -1286,7 +1284,7 @@ public class WebApp {
             ResultSet rs;
             long time = System.currentTimeMillis();
             boolean metadata = false;
-            boolean generatedKeys = false;
+            int generatedKeys = Statement.NO_GENERATED_KEYS;
             boolean edit = false;
             boolean list = false;
             if (isBuiltIn(sql, "@autocommit_true")) {
@@ -1318,7 +1316,7 @@ public class WebApp {
                 sql = sql.substring("@meta".length()).trim();
             }
             if (isBuiltIn(sql, "@generated")) {
-                generatedKeys = true;
+                generatedKeys = Statement.RETURN_GENERATED_KEYS;
                 sql = sql.substring("@generated".length()).trim();
             } else if (isBuiltIn(sql, "@history")) {
                 buff.append(getCommandHistoryString());
@@ -1387,9 +1385,9 @@ public class WebApp {
                 int maxrows = getMaxrows();
                 stat.setMaxRows(maxrows);
                 session.executingStatement = stat;
-                boolean isResultSet = stat.execute(sql);
+                boolean isResultSet = stat.execute(sql, generatedKeys);
                 session.addCommand(sql);
-                if (generatedKeys) {
+                if (generatedKeys == Statement.RETURN_GENERATED_KEYS) {
                     rs = null;
                     rs = stat.getGeneratedKeys();
                 } else {
@@ -1871,7 +1869,7 @@ public class WebApp {
         String setting = attributes.getProperty("name", "");
         server.removeSetting(setting);
         ArrayList<ConnectionInfo> settings = server.getSettings();
-        if (settings.size() > 0) {
+        if (!settings.isEmpty()) {
             attributes.put("setting", settings.get(0));
         }
         server.saveProperties(null);

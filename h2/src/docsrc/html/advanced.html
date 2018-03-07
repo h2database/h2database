@@ -324,6 +324,7 @@ It is not possible to enable or disable this setting while the database is alrea
 <p>
 If MVCC is enabled, changing the lock mode (<code>LOCK_MODE</code>) has no effect.
 </p>
+<p>
 The MVCC mode is enabled by default in version 1.4.x,
 with the default MVStore storage engine.
 MVCC is disabled by default when using the PageStore storage engine
@@ -335,6 +336,7 @@ with the PageStore storage engine, it can not be used at the same time as
 <code>MULTI_THREADED=TRUE</code>;
 the complete undo log (the list of uncommitted changes) must fit in memory when using multi-version concurrency.
 The setting <code>MAX_MEMORY_UNDO</code> has no effect.
+</p>
 
 <h2 id="clustering">Clustering / High Availability</h2>
 <p>
@@ -1065,7 +1067,6 @@ import java.sql.*;
 import java.util.*;
 public class Test {
     public static void main(String[] args) throws Exception {
-        Class.forName("org.h2.Driver");
         String url = "jdbc:h2:~/test";
         Properties prop = new Properties();
         prop.setProperty("user", "sa");
@@ -1083,7 +1084,6 @@ public class Test {
 }
 </pre>
 <p>
-This example requires Java 1.6.
 When using Swing, use <code>javax.swing.JPasswordField</code>.
 </p>
 
@@ -1380,7 +1380,7 @@ Remote TLS connections are supported using the Java Secure Socket Extension
 <p>
 To use your own keystore, set the system properties <code>javax.net.ssl.keyStore</code> and
 <code>javax.net.ssl.keyStorePassword</code> before starting the H2 server and client.
-See also <a href="http://java.sun.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html#CustomizingStores">
+See also <a href="https://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html#CustomizingStores">
 Customizing the Default Key and Trust Stores, Store Types, and Store Passwords</a>
 for more information.
 </p>
@@ -1432,17 +1432,17 @@ that means the probability is about 0.000'000'000'06.
 
 <h2 id="spatial_features">Spatial Features</h2>
 <p>
-H2 supports the geometry and raster data type and spatial indexes if
-the <a href="http://tsusiatsoftware.net/jts/main.html">JTS Topology Suite</a>
+H2 supports the geometry data type and spatial indexes if
+the <a href="https://projects.eclipse.org/projects/locationtech.jts">JTS Topology Suite</a>
 is in the classpath.
 To run the H2 Console tool with the JTS tool, you need to download the
-<a href="http://search.maven.org/remotecontent?filepath=com/vividsolutions/jts-core/1.14.0/jts-core-1.14.0.jar">JTS-CORE 1.14.0 jar file</a>
+<a href="https://search.maven.org/remotecontent?filepath=org/locationtech/jts/jts-core/1.15.0/jts-core-1.15.0.jar">JTS-CORE 1.15.0 jar file</a>
 and place it in the h2 bin directory. Then edit the <code>h2.sh</code> file as follows:
 </p>
 <pre>
 #!/bin/sh
 dir=$(dirname "$0")
-java -cp "$dir/h2.jar:jts-core-1.14.0.jar:$H2DRIVERS:$CLASSPATH" org.h2.tools.Console "$@"
+java -cp "$dir/h2.jar:jts-core-1.15.0.jar:$H2DRIVERS:$CLASSPATH" org.h2.tools.Console "$@"
 </pre>
 <p>
 Here is an example SQL script to create a table with a spatial column and index:
@@ -1782,13 +1782,6 @@ OR X = 2 OR X = 2 OR X = 2 OR X = 2 OR X = 2
         2617: HTTP Digest Access Authentication</a></td>
     </tr>
     <tr>
-        <td>GCJ</td>
-        <td>Compiler for Java. <a href="http://gcc.gnu.org/java">GNU
-        Compiler for the Java</a> and <a
-            href="http://www.dobysoft.com/products/nativej">NativeJ
-        (commercial)</a></td>
-    </tr>
-    <tr>
         <td>HTTPS</td>
         <td>A protocol to provide security to HTTP connections. See
         also: <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818:
@@ -1829,7 +1822,7 @@ OR X = 2 OR X = 2 OR X = 2 OR X = 2 OR X = 2
     <tr>
         <td>SSL/TLS</td>
         <td>Secure Sockets Layer / Transport Layer Security. See also:
-        <a href="http://java.sun.com/products/jsse/">Java Secure Socket
+        <a href="https://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html">Java Secure Socket
         Extension (JSSE)</a></td>
     </tr>
 </table>

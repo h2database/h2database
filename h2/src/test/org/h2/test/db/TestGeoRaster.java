@@ -5,7 +5,7 @@
  */
 package org.h2.test.db;
 
-import com.vividsolutions.jts.geom.*;
+
 import org.h2.api.GeoRaster;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
@@ -56,6 +56,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Iterator;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
 
 
 /**
@@ -1038,15 +1040,15 @@ public class TestGeoRaster extends TestBase {
                 "st_makeemptyraster(10, 10, 1.44754, -2.100, 0.001)," +
                 " 10, 2);");
         assertTrue(rs.next());
-        com.vividsolutions.jts.geom.Point pos =
-                (com.vividsolutions.jts.geom.Point)rs.getObject(1);
+        org.locationtech.jts.geom.Point pos =
+                (org.locationtech.jts.geom.Point)rs.getObject(1);
         assertEquals(1.45653999999999995, pos.getX());
         assertEquals(-2.10099999999999998, pos.getY());
         rs = stat.executeQuery("SELECT ST_RasterToWorldCoord( " +
                 "st_makeemptyraster(100, 100, 555, 256, 2.5), 7, 23);");
         assertTrue(rs.next());
         pos =
-                (com.vividsolutions.jts.geom.Point)rs.getObject(1);
+                (org.locationtech.jts.geom.Point)rs.getObject(1);
         assertEquals(570., pos.getX());
         assertEquals(201., pos.getY());
         rs = stat.executeQuery("SELECT ST_RasterToWorldCoord( " +
@@ -1054,7 +1056,7 @@ public class TestGeoRaster extends TestBase {
                 "-19999);");
         assertTrue(rs.next());
         pos =
-                (com.vividsolutions.jts.geom.Point)rs.getObject(1);
+                (org.locationtech.jts.geom.Point)rs.getObject(1);
         assertEquals(6000200., pos.getX());
         assertEquals(350000., pos.getY());
         conn.close();

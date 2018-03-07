@@ -18,7 +18,7 @@ SQL Grammar
 <!-- } -->
 
 <h1>SQL Grammar</h1>
-<h2>Index</h2>
+<h2 id="grammar_index">Index</h2>
 <h3>Commands (Data Manipulation)</h3>
 <!-- syntax-start
 <p class="notranslate">
@@ -103,6 +103,34 @@ syntax-end -->
 </table>
 <!-- railroad-end -->
 
+<h3>Datetime fields</h3>
+<!-- syntax-start
+<p class="notranslate">
+<c:forEach var="item" items="datetimeFields">
+    <a href="#${item.link}">${item.topic}</a><br />
+</c:forEach>
+</p>
+syntax-end -->
+<!-- railroad-start -->
+<table class="notranslate index">
+    <tr>
+        <td class="index">
+            <c:forEach var="item" items="datetimeFields-0">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td><td class="index">
+            <c:forEach var="item" items="datetimeFields-1">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td><td class="index">
+            <c:forEach var="item" items="datetimeFields-2">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td>
+    </tr>
+</table>
+<!-- railroad-end -->
+
 <h3>Other Grammar</h3>
 <!-- syntax-start
 <p class="notranslate">
@@ -142,7 +170,8 @@ syntax-end -->
 <p>Click on the header to switch between railroad diagram and BNF.</p>
 <!-- railroad-end -->
 
-<c:forEach var="item" items="commands">
+<h2>Commands (Data Manipulation)</h2>
+<c:forEach var="item" items="commandsDML">
 <h3 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h3>
 <!-- railroad-start -->
 <pre name="bnf" style="display: none">
@@ -163,6 +192,73 @@ syntax-end -->
 ${item.example}</p>
 </c:forEach>
 
+<h2>Commands (Data Definition)</h2>
+<c:forEach var="item" items="commandsDDL">
+<h3 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h3>
+<!-- railroad-start -->
+<pre name="bnf" style="display: none">
+${item.syntax}
+</pre>
+<div name="railroad">
+${item.railroad}
+</div>
+<!-- railroad-end -->
+<!-- syntax-start
+<pre>
+${item.syntax}
+</pre>
+syntax-end -->
+<p>${item.text}</p>
+<p>Example:</p>
+<p class="notranslate">
+${item.example}</p>
+</c:forEach>
+
+<h2>Commands (Other)</h2>
+<c:forEach var="item" items="commandsOther">
+<h3 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h3>
+<!-- railroad-start -->
+<pre name="bnf" style="display: none">
+${item.syntax}
+</pre>
+<div name="railroad">
+${item.railroad}
+</div>
+<!-- railroad-end -->
+<!-- syntax-start
+<pre>
+${item.syntax}
+</pre>
+syntax-end -->
+<p>${item.text}</p>
+<p>Example:</p>
+<p class="notranslate">
+${item.example}</p>
+</c:forEach>
+
+<h2>Datetime fields</h2>
+<c:forEach var="item" items="datetimeFields">
+<h3 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h3>
+<!-- railroad-start -->
+<pre name="bnf" style="display: none">
+${item.syntax}
+</pre>
+<div name="railroad">
+${item.railroad}
+</div>
+<!-- railroad-end -->
+<!-- syntax-start
+<pre>
+${item.syntax}
+</pre>
+syntax-end -->
+<p>${item.text}</p>
+<p>Example:</p>
+<p class="notranslate">
+${item.example}</p>
+</c:forEach>
+
+<h2>Other Grammar</h2>
 <c:forEach var="item" items="otherGrammar">
 <h3 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h3>
 <!-- railroad-start -->
@@ -177,6 +273,8 @@ syntax-end -->
 <p>Example:</p>
 <p class="notranslate">${item.example}</p>
 </c:forEach>
+
+<h2>System Tables</h2>
 
 <h3 id="information_schema" class="notranslate">Information Schema</h3>
 <p>

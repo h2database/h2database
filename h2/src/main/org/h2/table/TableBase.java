@@ -5,7 +5,7 @@
  */
 package org.h2.table;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.engine.Database;
@@ -27,7 +27,7 @@ public abstract class TableBase extends Table {
      */
     private final String tableEngine;
     /** Provided table parameters */
-    private List<String> tableEngineParams = new ArrayList<>();
+    private final List<String> tableEngineParams;
 
     private final boolean globalTemporary;
 
@@ -38,6 +38,8 @@ public abstract class TableBase extends Table {
         this.globalTemporary = data.globalTemporary;
         if (data.tableEngineParams != null) {
             this.tableEngineParams = data.tableEngineParams;
+        } else {
+            this.tableEngineParams = Collections.emptyList();
         }
         setTemporary(data.temporary);
         Column[] cols = data.columns.toArray(new Column[0]);

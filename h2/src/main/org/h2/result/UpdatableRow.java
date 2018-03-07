@@ -10,7 +10,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-
 import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
@@ -118,7 +117,7 @@ public class UpdatableRow {
     }
 
     private boolean isIndexUsable(ArrayList<String> indexColumns) {
-        if (indexColumns.size() == 0) {
+        if (indexColumns.isEmpty()) {
             return false;
         }
         for (String c : indexColumns) {

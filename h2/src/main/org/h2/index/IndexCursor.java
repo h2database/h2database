@@ -89,6 +89,11 @@ public class IndexCursor implements Cursor {
                 alwaysFalse = true;
                 break;
             }
+            // If index can perform only full table scan do not try to use it for regular
+            // lookups, each such lookup will perform an own table scan.
+            if (index.isFindUsingFullTableScan()) {
+                continue;
+            }
             Column column = condition.getColumn();
             if (condition.getCompareType() == Comparison.IN_LIST) {
                 if (start == null && end == null) {
@@ -147,6 +152,9 @@ public class IndexCursor implements Cursor {
                     }
                 }
             }
+        }
+        if (inColumn != null) {
+            start = table.getTemplateRow();
         }
     }
 
@@ -326,7 +334,6 @@ public class IndexCursor implements Cursor {
             while (inResult.next()) {
                 Value v = inResult.currentRow()[0];
                 if (v != ValueNull.INSTANCE) {
-                    v = inColumn.convert(v);
                     if (inResultTested == null) {
                         inResultTested = new HashSet<>();
                     }
@@ -342,9 +349,6 @@ public class IndexCursor implements Cursor {
     private void find(Value v) {
         v = inColumn.convert(v);
         int id = inColumn.getColumnId();
-        if (start == null) {
-            start = table.getTemplateRow();
-        }
         start.setValue(id, v);
         cursor = index.find(tableFilter, start, start);
     }

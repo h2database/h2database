@@ -173,7 +173,7 @@ public class Column {
      */
     public Value convert(Value v, Mode mode) {
         try {
-            return v.convertTo(type, MathUtils.convertLongToInt(precision), mode, this);
+            return v.convertTo(type, MathUtils.convertLongToInt(precision), mode, this, getEnumerators());
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.DATA_CONVERSION_ERROR_1) {
                 String target = (table == null ? "" : table.getName() + ": ") +
@@ -321,6 +321,7 @@ public class Column {
                 value = ValueNull.INSTANCE;
             } else {
                 value = localDefaultExpression.getValue(session).convertTo(type);
+                session.getGeneratedKeys().add(this);
                 if (primaryKey) {
                     session.setLastIdentity(value);
                 }
@@ -330,6 +331,7 @@ public class Column {
         if (value == ValueNull.INSTANCE) {
             if (convertNullToDefault) {
                 value = localDefaultExpression.getValue(session).convertTo(type);
+                session.getGeneratedKeys().add(this);
             }
             if (value == ValueNull.INSTANCE && !nullable) {
                 if (mode.convertInsertNullToZero) {

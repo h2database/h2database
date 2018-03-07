@@ -44,6 +44,7 @@ import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.store.DataHandler;
 import org.h2.store.FileLock;
+import org.h2.store.FileLockMethod;
 import org.h2.store.FileStore;
 import org.h2.store.InDoubtTransaction;
 import org.h2.store.LobStorageBackend;
@@ -139,7 +140,7 @@ public class Database implements DataHandler {
     private boolean starting;
     private TraceSystem traceSystem;
     private Trace trace;
-    private final int fileLockMethod;
+    private final FileLockMethod fileLockMethod;
     private Role publicRole;
     private final AtomicLong modificationDataId = new AtomicLong();
     private final AtomicLong modificationMetaId = new AtomicLong();
@@ -208,6 +209,8 @@ public class Database implements DataHandler {
     private RowFactory rowFactory = RowFactory.DEFAULT;
 
     public Database(ConnectionInfo ci, String cipher) {
+        META_LOCK_DEBUGGING.set(null);
+        META_LOCK_DEBUGGING_STACK.set(null);
         String name = ci.getName();
         this.dbSettings = ci.getDbSettings();
         this.reconnectCheckDelayNs = TimeUnit.MILLISECONDS.toNanos(dbSettings.reconnectCheckDelay);
@@ -235,14 +238,14 @@ public class Database implements DataHandler {
         }
         if (dbSettings.mvStore && lockMethodName == null) {
             if (autoServerMode) {
-                fileLockMethod = FileLock.LOCK_FILE;
+                fileLockMethod = FileLockMethod.FILE;
             } else {
-                fileLockMethod = FileLock.LOCK_FS;
+                fileLockMethod = FileLockMethod.FS;
             }
         } else {
             fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
         }
-        if (dbSettings.mvStore && fileLockMethod == FileLock.LOCK_SERIALIZED) {
+        if (dbSettings.mvStore && fileLockMethod == FileLockMethod.SERIALIZED) {
             throw DbException.getUnsupportedException(
                     "MV_STORE combined with FILE_LOCK=SERIALIZED");
         }
@@ -407,7 +410,7 @@ public class Database implements DataHandler {
      */
     private synchronized boolean reconnectModified(boolean pending) {
         if (readOnly || lock == null ||
-                fileLockMethod != FileLock.LOCK_SERIALIZED) {
+                fileLockMethod != FileLockMethod.SERIALIZED) {
             return true;
         }
         try {
@@ -516,7 +519,7 @@ public class Database implements DataHandler {
                 }
                 if (lock != null) {
                     stopServer();
-                    if (fileLockMethod != FileLock.LOCK_SERIALIZED) {
+                    if (fileLockMethod != FileLockMethod.SERIALIZED) {
                         // allow testing shutdown
                         lock.unlock();
                     }
@@ -646,9 +649,9 @@ public class Database implements DataHandler {
             trace.info("opening {0} (build {1})", databaseName, Constants.BUILD_ID);
             if (autoServerMode) {
                 if (readOnly ||
-                        fileLockMethod == FileLock.LOCK_NO ||
-                        fileLockMethod == FileLock.LOCK_SERIALIZED ||
-                        fileLockMethod == FileLock.LOCK_FS ||
+                        fileLockMethod == FileLockMethod.NO ||
+                        fileLockMethod == FileLockMethod.SERIALIZED ||
+                        fileLockMethod == FileLockMethod.FS ||
                         !persistent) {
                     throw DbException.getUnsupportedException(
                             "autoServerMode && (readOnly || " +
@@ -665,8 +668,8 @@ public class Database implements DataHandler {
                             "Lock file exists: " + lockFileName);
                 }
             }
-            if (!readOnly && fileLockMethod != FileLock.LOCK_NO) {
-                if (fileLockMethod != FileLock.LOCK_FS) {
+            if (!readOnly && fileLockMethod != FileLockMethod.NO) {
+                if (fileLockMethod != FileLockMethod.FS) {
                     lock = new FileLock(traceSystem, lockFileName, Constants.LOCK_SLEEP);
                     lock.lock(fileLockMethod);
                     if (autoServerMode) {
@@ -1211,7 +1214,7 @@ public class Database implements DataHandler {
                 trace.info("disconnecting session #{0}", session.getId());
             }
         }
-        if (userSessions.size() == 0 &&
+        if (userSessions.isEmpty() &&
                 session != systemSession && session != lobSession) {
             if (closeDelay == 0) {
                 close(false);
@@ -1255,110 +1258,112 @@ public class Database implements DataHandler {
      *            hook
      */
     void close(boolean fromShutdownHook) {
-        synchronized (this) {
-            if (closing) {
-                return;
-            }
-            throwLastBackgroundException();
-            if (fileLockMethod == FileLock.LOCK_SERIALIZED &&
-                    !reconnectChangePending) {
-                // another connection may have written something - don't write
-                try {
-                    closeOpenFilesAndUnlock(false);
-                } catch (DbException e) {
-                    // ignore
-                }
-                traceSystem.close();
-                Engine.getInstance().close(databaseName);
-                return;
-            }
-            closing = true;
-            stopServer();
-            if (userSessions.size() > 0) {
-                if (!fromShutdownHook) {
+        try {
+            synchronized (this) {
+                if (closing) {
                     return;
                 }
-                trace.info("closing {0} from shutdown hook", databaseName);
-                closeAllSessionsException(null);
-            }
-            trace.info("closing {0}", databaseName);
-            if (eventListener != null) {
-                // allow the event listener to connect to the database
-                closing = false;
-                DatabaseEventListener e = eventListener;
-                // set it to null, to make sure it's called only once
-                eventListener = null;
-                e.closingDatabase();
-                if (userSessions.size() > 0) {
-                    // if a connection was opened, we can't close the database
+                throwLastBackgroundException();
+                if (fileLockMethod == FileLockMethod.SERIALIZED &&
+                        !reconnectChangePending) {
+                    // another connection may have written something - don't write
+                    try {
+                        closeOpenFilesAndUnlock(false);
+                    } catch (DbException e) {
+                        // ignore
+                    }
+                    traceSystem.close();
                     return;
                 }
                 closing = true;
+                stopServer();
+                if (!userSessions.isEmpty()) {
+                    if (!fromShutdownHook) {
+                        return;
+                    }
+                    trace.info("closing {0} from shutdown hook", databaseName);
+                    closeAllSessionsException(null);
+                }
+                trace.info("closing {0}", databaseName);
+                if (eventListener != null) {
+                    // allow the event listener to connect to the database
+                    closing = false;
+                    DatabaseEventListener e = eventListener;
+                    // set it to null, to make sure it's called only once
+                    eventListener = null;
+                    e.closingDatabase();
+                    if (!userSessions.isEmpty()) {
+                        // if a connection was opened, we can't close the database
+                        return;
+                    }
+                    closing = true;
+                }
             }
-        }
-        removeOrphanedLobs();
-        try {
-            if (systemSession != null) {
-                if (powerOffCount != -1) {
-                    for (Table table : getAllTablesAndViews(false)) {
-                        if (table.isGlobalTemporary()) {
-                            table.removeChildrenAndResources(systemSession);
-                        } else {
-                            table.close(systemSession);
+            removeOrphanedLobs();
+            try {
+                if (systemSession != null) {
+                    if (powerOffCount != -1) {
+                        for (Table table : getAllTablesAndViews(false)) {
+                            if (table.isGlobalTemporary()) {
+                                table.removeChildrenAndResources(systemSession);
+                            } else {
+                                table.close(systemSession);
+                            }
+                        }
+                        for (SchemaObject obj : getAllSchemaObjects(
+                                DbObject.SEQUENCE)) {
+                            Sequence sequence = (Sequence) obj;
+                            sequence.close();
                         }
                     }
                     for (SchemaObject obj : getAllSchemaObjects(
-                            DbObject.SEQUENCE)) {
-                        Sequence sequence = (Sequence) obj;
-                        sequence.close();
+                            DbObject.TRIGGER)) {
+                        TriggerObject trigger = (TriggerObject) obj;
+                        try {
+                            trigger.close();
+                        } catch (SQLException e) {
+                            trace.error(e, "close");
+                        }
+                    }
+                    if (powerOffCount != -1) {
+                        meta.close(systemSession);
+                        systemSession.commit(true);
                     }
                 }
-                for (SchemaObject obj : getAllSchemaObjects(
-                        DbObject.TRIGGER)) {
-                    TriggerObject trigger = (TriggerObject) obj;
-                    try {
-                        trigger.close();
-                    } catch (SQLException e) {
-                        trace.error(e, "close");
-                    }
-                }
-                if (powerOffCount != -1) {
-                    meta.close(systemSession);
-                    systemSession.commit(true);
-                }
+            } catch (DbException e) {
+                trace.error(e, "close");
             }
-        } catch (DbException e) {
-            trace.error(e, "close");
-        }
-        tempFileDeleter.deleteAll();
-        try {
-            closeOpenFilesAndUnlock(true);
-        } catch (DbException e) {
-            trace.error(e, "close");
-        }
-        trace.info("closed");
-        traceSystem.close();
-        if (closeOnExit != null) {
-            closeOnExit.reset();
+            tempFileDeleter.deleteAll();
             try {
-                Runtime.getRuntime().removeShutdownHook(closeOnExit);
-            } catch (IllegalStateException e) {
-                // ignore
-            } catch (SecurityException  e) {
-                // applets may not do that - ignore
+                closeOpenFilesAndUnlock(true);
+            } catch (DbException e) {
+                trace.error(e, "close");
             }
-            closeOnExit = null;
-        }
-        Engine.getInstance().close(databaseName);
-        if (deleteFilesOnDisconnect && persistent) {
-            deleteFilesOnDisconnect = false;
-            try {
-                String directory = FileUtils.getParent(databaseName);
-                String name = FileUtils.getName(databaseName);
-                DeleteDbFiles.execute(directory, name, true);
-            } catch (Exception e) {
-                // ignore (the trace is closed already)
+            trace.info("closed");
+            traceSystem.close();
+            if (closeOnExit != null) {
+                closeOnExit.reset();
+                try {
+                    Runtime.getRuntime().removeShutdownHook(closeOnExit);
+                } catch (IllegalStateException e) {
+                    // ignore
+                } catch (SecurityException e) {
+                    // applets may not do that - ignore
+                }
+                closeOnExit = null;
             }
+            if (deleteFilesOnDisconnect && persistent) {
+                deleteFilesOnDisconnect = false;
+                try {
+                    String directory = FileUtils.getParent(databaseName);
+                    String name = FileUtils.getName(databaseName);
+                    DeleteDbFiles.execute(directory, name, true);
+                } catch (Exception e) {
+                    // ignore (the trace is closed already)
+                }
+            }
+        } finally {
+            Engine.getInstance().close(databaseName);
         }
     }
 
@@ -1437,8 +1442,8 @@ public class Database implements DataHandler {
         }
         closeFiles();
         if (persistent && lock == null &&
-                fileLockMethod != FileLock.LOCK_NO &&
-                fileLockMethod != FileLock.LOCK_FS) {
+                fileLockMethod != FileLockMethod.NO &&
+                fileLockMethod != FileLockMethod.FS) {
             // everything already closed (maybe in checkPowerOff)
             // don't delete temp files in this case because
             // the database could be open now (even from within another process)
@@ -1456,7 +1461,7 @@ public class Database implements DataHandler {
             lobSession = null;
         }
         if (lock != null) {
-            if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
+            if (fileLockMethod == FileLockMethod.SERIALIZED) {
                 // wait before deleting the .lock file,
                 // otherwise other connections can not detect that
                 if (lock.load().containsKey("changePending")) {
@@ -1985,7 +1990,7 @@ public class Database implements DataHandler {
         if (readOnly) {
             throw DbException.get(ErrorCode.DATABASE_IS_READ_ONLY);
         }
-        if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
+        if (fileLockMethod == FileLockMethod.SERIALIZED) {
             if (!reconnectChangePending) {
                 throw DbException.get(ErrorCode.DATABASE_IS_READ_ONLY);
             }
@@ -2542,7 +2547,7 @@ public class Database implements DataHandler {
             if (pageSize != Constants.DEFAULT_PAGE_SIZE) {
                 pageStore.setPageSize(pageSize);
             }
-            if (!readOnly && fileLockMethod == FileLock.LOCK_FS) {
+            if (!readOnly && fileLockMethod == FileLockMethod.FS) {
                 pageStore.setLockFile(true);
             }
             pageStore.setLogMode(logMode);
@@ -2578,7 +2583,7 @@ public class Database implements DataHandler {
      * @return true if reconnecting is required
      */
     public boolean isReconnectNeeded() {
-        if (fileLockMethod != FileLock.LOCK_SERIALIZED) {
+        if (fileLockMethod != FileLockMethod.SERIALIZED) {
             return false;
         }
         if (reconnectChangePending) {
@@ -2632,7 +2637,7 @@ public class Database implements DataHandler {
      * the .lock.db file.
      */
     public void checkpointIfRequired() {
-        if (fileLockMethod != FileLock.LOCK_SERIALIZED ||
+        if (fileLockMethod != FileLockMethod.SERIALIZED ||
                 readOnly || !reconnectChangePending || closing) {
             return;
         }
@@ -2661,7 +2666,7 @@ public class Database implements DataHandler {
     }
 
     public boolean isFileLockSerialized() {
-        return fileLockMethod == FileLock.LOCK_SERIALIZED;
+        return fileLockMethod == FileLockMethod.SERIALIZED;
     }
 
     private void flushSequences() {
@@ -2695,7 +2700,7 @@ public class Database implements DataHandler {
      *          false if another connection was faster
      */
     public boolean beforeWriting() {
-        if (fileLockMethod != FileLock.LOCK_SERIALIZED) {
+        if (fileLockMethod != FileLockMethod.SERIALIZED) {
             return true;
         }
         while (checkpointRunning) {
@@ -2724,7 +2729,7 @@ public class Database implements DataHandler {
      * This method is called after updates are finished.
      */
     public void afterWriting() {
-        if (fileLockMethod != FileLock.LOCK_SERIALIZED) {
+        if (fileLockMethod != FileLockMethod.SERIALIZED) {
             return;
         }
         synchronized (reconnectSync) {

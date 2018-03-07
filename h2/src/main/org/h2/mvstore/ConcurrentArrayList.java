@@ -49,6 +49,10 @@ public class ConcurrentArrayList<K> {
      * @param obj the element
      */
     public synchronized void add(K obj) {
+        if (obj == null) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_INTERNAL, "adding null value to list");
+        }
         int len = array.length;
         array = Arrays.copyOf(array, len + 1);
         array[len] = obj;

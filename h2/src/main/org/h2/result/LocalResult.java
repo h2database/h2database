@@ -12,6 +12,7 @@ import java.util.Arrays;
 
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.engine.SessionInterface;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.util.New;
@@ -125,7 +126,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
      * @return the copy if possible, or null if copying is not possible
      */
     @Override
-    public LocalResult createShallowCopy(Session targetSession) {
+    public LocalResult createShallowCopy(SessionInterface targetSession) {
         if (external == null && (rows == null || rows.size() < rowCount)) {
             return null;
         }
@@ -141,7 +142,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
         }
         LocalResult copy = new LocalResult();
         copy.maxMemoryRows = this.maxMemoryRows;
-        copy.session = targetSession;
+        copy.session = (Session) targetSession;
         copy.visibleColumnCount = this.visibleColumnCount;
         copy.expressions = this.expressions;
         copy.rowId = -1;

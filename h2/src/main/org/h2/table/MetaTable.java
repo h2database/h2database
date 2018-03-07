@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import org.h2.command.Command;
 import org.h2.constraint.Constraint;
+import org.h2.constraint.ConstraintActionType;
 import org.h2.constraint.ConstraintCheck;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.constraint.ConstraintUnique;
@@ -109,7 +110,10 @@ public class MetaTable extends Table {
     private static final int SESSION_STATE = 27;
     private static final int QUERY_STATISTICS = 28;
     private static final int SYNONYMS = 29;
-    private static final int META_TABLE_TYPE_COUNT = SYNONYMS + 1;
+    private static final int TABLE_CONSTRAINTS = 30;
+    private static final int KEY_COLUMN_USAGE = 31;
+    private static final int REFERENTIAL_CONSTRAINTS = 32;
+    private static final int META_TABLE_TYPE_COUNT = REFERENTIAL_CONSTRAINTS + 1;
 
     private final int type;
     private final int indexColumn;
@@ -541,20 +545,67 @@ public class MetaTable extends Table {
             break;
         }
         case SYNONYMS: {
-                setObjectName("SYNONYMS");
-                cols = createColumns(
-                        "SYNONYM_CATALOG",
-                        "SYNONYM_SCHEMA",
-                        "SYNONYM_NAME",
-                        "SYNONYM_FOR",
-                        "SYNONYM_FOR_SCHEMA",
-                        "TYPE_NAME",
-                        "STATUS",
-                        "REMARKS",
-                        "ID INT"
-                );
-                indexColumnName = "SYNONYM_NAME";
-                break;
+            setObjectName("SYNONYMS");
+            cols = createColumns(
+                    "SYNONYM_CATALOG",
+                    "SYNONYM_SCHEMA",
+                    "SYNONYM_NAME",
+                    "SYNONYM_FOR",
+                    "SYNONYM_FOR_SCHEMA",
+                    "TYPE_NAME",
+                    "STATUS",
+                    "REMARKS",
+                    "ID INT"
+            );
+            indexColumnName = "SYNONYM_NAME";
+            break;
+        }
+        case TABLE_CONSTRAINTS: {
+            setObjectName("TABLE_CONSTRAINTS");
+            cols = createColumns(
+                    "CONSTRAINT_CATALOG",
+                    "CONSTRAINT_SCHEMA",
+                    "CONSTRAINT_NAME",
+                    "CONSTRAINT_TYPE",
+                    "TABLE_CATALOG",
+                    "TABLE_SCHEMA",
+                    "TABLE_NAME",
+                    "IS_DEFERRABLE",
+                    "INITIALLY_DEFERRED"
+            );
+            indexColumnName = "TABLE_NAME";
+            break;
+        }
+        case KEY_COLUMN_USAGE: {
+            setObjectName("KEY_COLUMN_USAGE");
+            cols = createColumns(
+                    "CONSTRAINT_CATALOG",
+                    "CONSTRAINT_SCHEMA",
+                    "CONSTRAINT_NAME",
+                    "TABLE_CATALOG",
+                    "TABLE_SCHEMA",
+                    "TABLE_NAME",
+                    "COLUMN_NAME",
+                    "ORDINAL_POSITION",
+                    "POSITION_IN_UNIQUE_CONSTRAINT"
+            );
+            indexColumnName = "TABLE_NAME";
+            break;
+        }
+        case REFERENTIAL_CONSTRAINTS: {
+            setObjectName("REFERENTIAL_CONSTRAINTS");
+            cols = createColumns(
+                    "CONSTRAINT_CATALOG",
+                    "CONSTRAINT_SCHEMA",
+                    "CONSTRAINT_NAME",
+                    "UNIQUE_CONSTRAINT_CATALOG",
+                    "UNIQUE_CONSTRAINT_SCHEMA",
+                    "UNIQUE_CONSTRAINT_NAME",
+                    "MATCH_OPTION",
+                    "UPDATE_RULE",
+                    "DELETE_RULE"
+            );
+            break;
         }
         default:
             throw DbException.throwInternalError("type="+type);
@@ -867,8 +918,7 @@ public class MetaTable extends Table {
                         Constraint constraint = constraints.get(k);
                         if (constraint.usesIndex(index)) {
                             if (index.getIndexType().isPrimaryKey()) {
-                                if (constraint.getConstraintType().equals(
-                                        Constraint.PRIMARY_KEY)) {
+                                if (constraint.getConstraintType() == Constraint.Type.PRIMARY_KEY) {
                                     constraintName = constraint.getName();
                                 }
                             } else {
@@ -1543,7 +1593,7 @@ public class MetaTable extends Table {
             for (SchemaObject obj : database.getAllSchemaObjects(
                     DbObject.CONSTRAINT)) {
                 Constraint constraint = (Constraint) obj;
-                if (!(constraint.getConstraintType().equals(Constraint.REFERENTIAL))) {
+                if (constraint.getConstraintType() != Constraint.Type.REFERENTIAL) {
                     continue;
                 }
                 ConstraintReferential ref = (ConstraintReferential) constraint;
@@ -1596,7 +1646,7 @@ public class MetaTable extends Table {
             for (SchemaObject obj : database.getAllSchemaObjects(
                     DbObject.CONSTRAINT)) {
                 Constraint constraint = (Constraint) obj;
-                String constraintType = constraint.getConstraintType();
+                Constraint.Type constraintType = constraint.getConstraintType();
                 String checkExpression = null;
                 IndexColumn[] indexColumns = null;
                 Table table = constraint.getTable();
@@ -1612,12 +1662,12 @@ public class MetaTable extends Table {
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
-                if (constraintType.equals(Constraint.CHECK)) {
+                if (constraintType == Constraint.Type.CHECK) {
                     checkExpression = ((ConstraintCheck) constraint).getExpression().getSQL();
-                } else if (constraintType.equals(Constraint.UNIQUE) ||
-                        constraintType.equals(Constraint.PRIMARY_KEY)) {
+                } else if (constraintType == Constraint.Type.UNIQUE ||
+                        constraintType == Constraint.Type.PRIMARY_KEY) {
                     indexColumns = ((ConstraintUnique) constraint).getColumns();
-                } else if (constraintType.equals(Constraint.REFERENTIAL)) {
+                } else if (constraintType == Constraint.Type.REFERENTIAL) {
                     indexColumns = ((ConstraintReferential) constraint).getColumns();
                 }
                 String columnList = null;
@@ -1637,7 +1687,7 @@ public class MetaTable extends Table {
                         // CONSTRAINT_NAME
                         identifier(constraint.getName()),
                         // CONSTRAINT_TYPE
-                        constraintType,
+                        constraintType.toString(),
                         // TABLE_CATALOG
                         catalog,
                         // TABLE_SCHEMA
@@ -1883,49 +1933,208 @@ public class MetaTable extends Table {
             break;
         }
         case SYNONYMS: {
-                for (TableSynonym synonym : database.getAllSynonyms()) {
+            for (TableSynonym synonym : database.getAllSynonyms()) {
+                add(rows,
+                        // SYNONYM_CATALOG
+                        catalog,
+                        // SYNONYM_SCHEMA
+                        identifier(synonym.getSchema().getName()),
+                        // SYNONYM_NAME
+                        identifier(synonym.getName()),
+                        // SYNONYM_FOR
+                        synonym.getSynonymForName(),
+                        // SYNONYM_FOR_SCHEMA
+                        synonym.getSynonymForSchema().getName(),
+                        // TYPE NAME
+                        "SYNONYM",
+                        // STATUS
+                        "VALID",
+                        // REMARKS
+                        replaceNullWithEmpty(synonym.getComment()),
+                        // ID
+                        "" + synonym.getId()
+                );
+            }
+            break;
+        }
+        case TABLE_CONSTRAINTS: {
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+                Constraint constraint = (Constraint) obj;
+                Constraint.Type constraintType = constraint.getConstraintType();
+                Table table = constraint.getTable();
+                if (hideTable(table, session)) {
+                    continue;
+                }
+                String tableName = identifier(table.getName());
+                if (!checkIndex(session, tableName, indexFrom, indexTo)) {
+                    continue;
+                }
+                add(rows,
+                        // CONSTRAINT_CATALOG
+                        catalog,
+                        // CONSTRAINT_SCHEMA
+                        identifier(constraint.getSchema().getName()),
+                        // CONSTRAINT_NAME
+                        identifier(constraint.getName()),
+                        // CONSTRAINT_TYPE
+                        constraintType.getSqlName(),
+                        // TABLE_CATALOG
+                        catalog,
+                        // TABLE_SCHEMA
+                        identifier(table.getSchema().getName()),
+                        // TABLE_NAME
+                        tableName,
+                        // IS_DEFERRABLE
+                        "NO",
+                        // INITIALLY_DEFERRED
+                        "NO"
+                );
+            }
+            break;
+        }
+        case KEY_COLUMN_USAGE: {
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+                Constraint constraint = (Constraint) obj;
+                Constraint.Type constraintType = constraint.getConstraintType();
+                IndexColumn[] indexColumns = null;
+                Table table = constraint.getTable();
+                if (hideTable(table, session)) {
+                    continue;
+                }
+                String tableName = identifier(table.getName());
+                if (!checkIndex(session, tableName, indexFrom, indexTo)) {
+                    continue;
+                }
+                if (constraintType == Constraint.Type.UNIQUE ||
+                        constraintType == Constraint.Type.PRIMARY_KEY) {
+                    indexColumns = ((ConstraintUnique) constraint).getColumns();
+                } else if (constraintType == Constraint.Type.REFERENTIAL) {
+                    indexColumns = ((ConstraintReferential) constraint).getColumns();
+                }
+                if (indexColumns == null) {
+                    continue;
+                }
+                ConstraintUnique referenced;
+                if (constraintType == Constraint.Type.REFERENTIAL) {
+                    referenced = lookupUniqueForReferential((ConstraintReferential) constraint);
+                } else {
+                    referenced = null;
+                }
+                for (int i = 0; i < indexColumns.length; i++) {
+                    IndexColumn indexColumn = indexColumns[i];
+                    String ordinalPosition = Integer.toString(i + 1);
+                    String positionInUniqueConstraint;
+                    if (constraintType == Constraint.Type.REFERENTIAL) {
+                        positionInUniqueConstraint = ordinalPosition;
+                        if (referenced != null) {
+                            Column c = ((ConstraintReferential) constraint).getRefColumns()[i].column;
+                            IndexColumn[] refColumns = referenced.getColumns();
+                            for (int j = 0; j < refColumns.length; j++) {
+                                if (refColumns[j].column.equals(c)) {
+                                    positionInUniqueConstraint = Integer.toString(j + 1);
+                                    break;
+                                }
+                            }
+                        }
+                    } else {
+                        positionInUniqueConstraint = null;
+                    }
                     add(rows,
-                            // SYNONYM_CATALOG
+                            // CONSTRAINT_CATALOG
                             catalog,
-                            // SYNONYM_SCHEMA
-                            identifier(synonym.getSchema().getName()),
-                            // SYNONYM_NAME
-                            identifier(synonym.getName()),
-                            // SYNONYM_FOR
-                            synonym.getSynonymForName(),
-                            // SYNONYM_FOR_SCHEMA
-                            synonym.getSynonymForSchema().getName(),
-                            // TYPE NAME
-                            "SYNONYM",
-                            // STATUS
-                            "VALID",
-                            // REMARKS
-                            replaceNullWithEmpty(synonym.getComment()),
-                            // ID
-                            "" + synonym.getId()
+                            // CONSTRAINT_SCHEMA
+                            identifier(constraint.getSchema().getName()),
+                            // CONSTRAINT_NAME
+                            identifier(constraint.getName()),
+                            // TABLE_CATALOG
+                            catalog,
+                            // TABLE_SCHEMA
+                            identifier(table.getSchema().getName()),
+                            // TABLE_NAME
+                            tableName,
+                            // COLUMN_NAME
+                            indexColumn.columnName,
+                            // ORDINAL_POSITION
+                            ordinalPosition,
+                            // POSITION_IN_UNIQUE_CONSTRAINT
+                            positionInUniqueConstraint
                     );
                 }
-                break;
             }
+            break;
+        }
+        case REFERENTIAL_CONSTRAINTS: {
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+                if (((Constraint) obj).getConstraintType() != Constraint.Type.REFERENTIAL) {
+                    continue;
+                }
+                ConstraintReferential constraint = (ConstraintReferential) obj;
+                Table table = constraint.getTable();
+                if (hideTable(table, session)) {
+                    continue;
+                }
+                // Should be referenced unique constraint, but H2 uses indexes instead.
+                // So try to find matching unique constraint first and there is no such
+                // constraint use index name to return something.
+                SchemaObject unique = lookupUniqueForReferential(constraint);
+                if (unique == null) {
+                    unique = constraint.getUniqueIndex();
+                }
+                add(rows,
+                        // CONSTRAINT_CATALOG
+                        catalog,
+                        // CONSTRAINT_SCHEMA
+                        identifier(constraint.getSchema().getName()),
+                        // CONSTRAINT_NAME
+                        identifier(constraint.getName()),
+                        // UNIQUE_CONSTRAINT_CATALOG
+                        catalog,
+                        // UNIQUE_CONSTRAINT_SCHEMA
+                        identifier(unique.getSchema().getName()),
+                        // UNIQUE_CONSTRAINT_NAME
+                        unique.getName(),
+                        // MATCH_OPTION
+                        "NONE",
+                        // UPDATE_RULE
+                        constraint.getUpdateAction().getSqlName(),
+                        // DELETE_RULE
+                        constraint.getDeleteAction().getSqlName()
+                );
+            }
+            break;
+        }
         default:
             DbException.throwInternalError("type="+type);
         }
         return rows;
     }
 
-    private static int getRefAction(int action) {
+    private static int getRefAction(ConstraintActionType action) {
         switch (action) {
-        case ConstraintReferential.CASCADE:
+        case CASCADE:
             return DatabaseMetaData.importedKeyCascade;
-        case ConstraintReferential.RESTRICT:
+        case RESTRICT:
             return DatabaseMetaData.importedKeyRestrict;
-        case ConstraintReferential.SET_DEFAULT:
+        case SET_DEFAULT:
             return DatabaseMetaData.importedKeySetDefault;
-        case ConstraintReferential.SET_NULL:
+        case SET_NULL:
             return DatabaseMetaData.importedKeySetNull;
         default:
             throw DbException.throwInternalError("action="+action);
         }
+    }
+
+    private static ConstraintUnique lookupUniqueForReferential(ConstraintReferential referential) {
+        Table table = referential.getRefTable();
+        for (Constraint c : table.getConstraints()) {
+            if (c.getConstraintType() == Constraint.Type.UNIQUE) {
+                ConstraintUnique unique = (ConstraintUnique) c;
+                if (unique.getReferencedColumns(table).equals(referential.getReferencedColumns(table))) {
+                    return unique;
+                }
+            }
+        }
+        return null;
     }
 
     @Override

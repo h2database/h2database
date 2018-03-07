@@ -173,7 +173,7 @@ public class TableLink extends Table {
         try (Statement stat = conn.getConnection().createStatement()) {
             rs = stat.executeQuery("SELECT * FROM " +
                     qualifiedTableName + " T WHERE 1=0");
-            if (columnList.size() == 0) {
+            if (columnList.isEmpty()) {
                 // alternative solution
                 ResultSetMetaData rsMeta = rs.getMetaData();
                 for (i = 0; i < rsMeta.getColumnCount();) {
@@ -295,10 +295,10 @@ public class TableLink extends Table {
             precision = Math.max(ValueDate.PRECISION, precision);
             break;
         case Types.TIMESTAMP:
-            precision = Math.max(ValueTimestamp.PRECISION, precision);
+            precision = Math.max(ValueTimestamp.MAXIMUM_PRECISION, precision);
             break;
         case Types.TIME:
-            precision = Math.max(ValueTime.PRECISION, precision);
+            precision = Math.max(ValueTime.MAXIMUM_PRECISION, precision);
             break;
         }
         return precision;
@@ -501,7 +501,7 @@ public class TableLink extends Table {
                     if (trace.isDebugEnabled()) {
                         StatementBuilder buff = new StatementBuilder();
                         buff.append(getName()).append(":\n").append(sql);
-                        if (params != null && params.size() > 0) {
+                        if (params != null && !params.isEmpty()) {
                             buff.append(" {");
                             int i = 1;
                             for (Value v : params) {

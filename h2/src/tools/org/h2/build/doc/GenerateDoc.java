@@ -70,28 +70,26 @@ public class GenerateDoc {
         // String help = "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION";
         String help = "SELECT ROWNUM ID, * FROM CSVREAD('" +
                 IN_HELP + "', NULL, 'lineComment=#') WHERE SECTION ";
-        map("commands",
-                help + "LIKE 'Commands%' ORDER BY ID", true);
         map("commandsDML",
-                help + "= 'Commands (DML)' ORDER BY ID", false);
+                help + "= 'Commands (DML)' ORDER BY ID", true);
         map("commandsDDL",
-                help + "= 'Commands (DDL)' ORDER BY ID", false);
+                help + "= 'Commands (DDL)' ORDER BY ID", true);
         map("commandsOther",
-                help + "= 'Commands (Other)' ORDER BY ID", false);
+                help + "= 'Commands (Other)' ORDER BY ID", true);
+        map("datetimeFields",
+                help + "= 'Datetime fields' ORDER BY ID", true);
         map("otherGrammar",
                 help + "= 'Other Grammar' ORDER BY ID", true);
         map("functionsAggregate",
-                help + "= 'Functions (Aggregate)' ORDER BY ID", false);
+                help + "= 'Functions (Aggregate)' ORDER BY ID", true);
         map("functionsNumeric",
-                help + "= 'Functions (Numeric)' ORDER BY ID", false);
+                help + "= 'Functions (Numeric)' ORDER BY ID", true);
         map("functionsString",
-                help + "= 'Functions (String)' ORDER BY ID", false);
+                help + "= 'Functions (String)' ORDER BY ID", true);
         map("functionsTimeDate",
-                help + "= 'Functions (Time and Date)' ORDER BY ID", false);
+                help + "= 'Functions (Time and Date)' ORDER BY ID", true);
         map("functionsSystem",
-                help + "= 'Functions (System)' ORDER BY ID", false);
-        map("functionsAll",
-                help + "LIKE 'Functions%' ORDER BY SECTION, ID", true);
+                help + "= 'Functions (System)' ORDER BY ID", true);
         map("dataTypes",
                 help + "LIKE 'Data Types%' ORDER BY SECTION, ID", true);
         map("informationSchema", "SELECT TABLE_NAME TOPIC, " +

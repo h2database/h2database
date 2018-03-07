@@ -723,9 +723,9 @@ public class TestMetaData extends TestBase {
                         "" + DatabaseMetaData.columnNullable, "", null,
                         "" + numericType, "0", "12", "3", "YES" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "DATE_V",
-                        "" + Types.TIMESTAMP, "TIMESTAMP", "23", "23", "10",
+                        "" + Types.TIMESTAMP, "TIMESTAMP", "26", "26", "6",
                         "10", "" + DatabaseMetaData.columnNullable, "", null,
-                        "" + Types.TIMESTAMP, "0", "23", "4", "YES" },
+                        "" + Types.TIMESTAMP, "0", "26", "4", "YES" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "BLOB_V",
                         "" + Types.BLOB, "BLOB", "" + Integer.MAX_VALUE,
                         "" + Integer.MAX_VALUE, "0", "10",
@@ -1084,9 +1084,13 @@ public class TestMetaData extends TestBase {
         rs.next();
         assertEquals("IN_DOUBT", rs.getString("TABLE_NAME"));
         rs.next();
+        assertEquals("KEY_COLUMN_USAGE", rs.getString("TABLE_NAME"));
+        rs.next();
         assertEquals("LOCKS", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("QUERY_STATISTICS", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("REFERENTIAL_CONSTRAINTS", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("RIGHTS", rs.getString("TABLE_NAME"));
         rs.next();
@@ -1105,6 +1109,8 @@ public class TestMetaData extends TestBase {
         assertEquals("SYNONYMS", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("TABLES", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("TABLE_CONSTRAINTS", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("TABLE_PRIVILEGES", rs.getString("TABLE_NAME"));
         rs.next();

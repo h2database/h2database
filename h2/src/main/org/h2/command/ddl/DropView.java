@@ -8,7 +8,7 @@ package org.h2.command.ddl;
 import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
-import org.h2.constraint.ConstraintReferential;
+import org.h2.constraint.ConstraintActionType;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -26,20 +26,20 @@ public class DropView extends SchemaCommand {
 
     private String viewName;
     private boolean ifExists;
-    private int dropAction;
+    private ConstraintActionType dropAction;
 
     public DropView(Session session, Schema schema) {
         super(session, schema);
         dropAction = session.getDatabase().getSettings().dropRestrict ?
-                ConstraintReferential.RESTRICT :
-                ConstraintReferential.CASCADE;
+                ConstraintActionType.RESTRICT :
+                ConstraintActionType.CASCADE;
     }
 
     public void setIfExists(boolean b) {
         ifExists = b;
     }
 
-    public void setDropAction(int dropAction) {
+    public void setDropAction(ConstraintActionType dropAction) {
         this.dropAction = dropAction;
     }
 
@@ -61,7 +61,7 @@ public class DropView extends SchemaCommand {
             }
             session.getUser().checkRight(view, Right.ALL);
 
-            if (dropAction == ConstraintReferential.RESTRICT) {
+            if (dropAction == ConstraintActionType.RESTRICT) {
                 for (DbObject child : view.getChildren()) {
                     if (child instanceof TableView) {
                         throw DbException.get(ErrorCode.CANNOT_DROP_2, viewName, child.getName());

@@ -29,6 +29,10 @@ sub H2Pdf
     HeadingStyle.BreakType = 3 ' Insert Page Break Before
     HeadingStyle.ParaKeepTogether = false
 
+    For i = 1 to 4
+        ParagraphStyles.getByName("Heading " + i).OutlineLevel = i
+    Next
+
     images = document.GraphicObjects
     For i = 0 to images.getCount() - 1
         image = images.getByIndex(i)

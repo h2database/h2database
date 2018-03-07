@@ -247,7 +247,7 @@ class Optimizer {
         TableFilter[] f2 = bestPlan.getFilters();
         topFilter = f2[0];
         for (int i = 0; i < f2.length - 1; i++) {
-            f2[i].addJoin(f2[i + 1], false, false, null);
+            f2[i].addJoin(f2[i + 1], false, null);
         }
         if (parse) {
             return;

@@ -15,6 +15,7 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
 import org.h2.api.ErrorCode;
+import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
@@ -37,14 +38,27 @@ public class DateTimeUtils {
     public static final long MILLIS_PER_DAY = 24 * 60 * 60 * 1000L;
 
     /**
+     * The number of seconds per day.
+     */
+    public static final long SECONDS_PER_DAY = 24 * 60 * 60;
+
+    /**
      * UTC time zone.
      */
     public static final TimeZone UTC = TimeZone.getTimeZone("UTC");
 
-    private static final long NANOS_PER_DAY = MILLIS_PER_DAY * 1000000;
+    /**
+     * The number of nanoseconds per day.
+     */
+    public static final long NANOS_PER_DAY = MILLIS_PER_DAY * 1000000;
 
     private static final int SHIFT_YEAR = 9;
     private static final int SHIFT_MONTH = 5;
+
+    /**
+     * Date value for 1970-01-01.
+     */
+    private static final int EPOCH_DATE_VALUE = (1970 << SHIFT_YEAR) + (1 << SHIFT_MONTH) + 1;
 
     private static final int[] NORMAL_DAYS_PER_MONTH = { 0, 31, 28, 31, 30, 31,
             30, 31, 31, 30, 31, 30, 31 };
@@ -56,6 +70,12 @@ public class DateTimeUtils {
             214, 245, 275, 306, 337, 366 };
 
     /**
+     * Multipliers for {@link #convertScale(long, int)}.
+     */
+    private static final int[] CONVERT_SCALE_TABLE = { 1_000_000_000, 100_000_000,
+            10_000_000, 1_000_000, 100_000, 10_000, 1_000, 100, 10 };
+
+    /**
      * The thread local. Can not override initialValue because this would result
      * in an inner class, which would not be garbage collected in a web
      * container, and prevent the class loader of H2 from being garbage
@@ -63,13 +83,18 @@ public class DateTimeUtils {
      * have that problem, and while it is still a small memory leak, it is not a
      * class loader memory leak.
      */
-    private static final ThreadLocal<Calendar> CACHED_CALENDAR = new ThreadLocal<>();
+    private static final ThreadLocal<GregorianCalendar> CACHED_CALENDAR = new ThreadLocal<>();
 
     /**
      * A cached instance of Calendar used when a timezone is specified.
      */
-    private static final ThreadLocal<Calendar> CACHED_CALENDAR_NON_DEFAULT_TIMEZONE =
+    private static final ThreadLocal<GregorianCalendar> CACHED_CALENDAR_NON_DEFAULT_TIMEZONE =
             new ThreadLocal<>();
+
+    /**
+     * Cached local time zone.
+     */
+    private static volatile TimeZone timeZone;
 
     /**
      * Observed JVM behaviour is that if the timezone of the host computer is
@@ -79,11 +104,23 @@ public class DateTimeUtils {
      * use a fixed value throughout the duration of the JVM's life, rather than
      * have this offset change, possibly midway through a long-running query.
      */
-    private static int zoneOffsetMillis = DateTimeUtils.createGregorianCalendar()
-            .get(Calendar.ZONE_OFFSET);
+    private static int zoneOffsetMillis = createGregorianCalendar().get(Calendar.ZONE_OFFSET);
 
     private DateTimeUtils() {
         // utility class
+    }
+
+    /**
+     * Returns local time zone.
+     *
+     * @return local time zone
+     */
+    private static TimeZone getTimeZone() {
+        TimeZone tz = timeZone;
+        if (tz == null) {
+            timeZone = tz = TimeZone.getDefault();
+        }
+        return tz;
     }
 
     /**
@@ -92,7 +129,8 @@ public class DateTimeUtils {
      */
     public static void resetCalendar() {
         CACHED_CALENDAR.remove();
-        zoneOffsetMillis = DateTimeUtils.createGregorianCalendar().get(Calendar.ZONE_OFFSET);
+        timeZone = null;
+        zoneOffsetMillis = createGregorianCalendar().get(Calendar.ZONE_OFFSET);
     }
 
     /**
@@ -100,10 +138,10 @@ public class DateTimeUtils {
      *
      * @return a calendar instance. A cached instance is returned where possible
      */
-    private static Calendar getCalendar() {
-        Calendar c = CACHED_CALENDAR.get();
+    public static GregorianCalendar getCalendar() {
+        GregorianCalendar c = CACHED_CALENDAR.get();
         if (c == null) {
-            c = DateTimeUtils.createGregorianCalendar();
+            c = createGregorianCalendar();
             CACHED_CALENDAR.set(c);
         }
         c.clear();
@@ -116,10 +154,10 @@ public class DateTimeUtils {
      * @param tz timezone for the calendar, is never null
      * @return a calendar instance. A cached instance is returned where possible
      */
-    private static Calendar getCalendar(TimeZone tz) {
-        Calendar c = CACHED_CALENDAR_NON_DEFAULT_TIMEZONE.get();
+    private static GregorianCalendar getCalendar(TimeZone tz) {
+        GregorianCalendar c = CACHED_CALENDAR_NON_DEFAULT_TIMEZONE.get();
         if (c == null || !c.getTimeZone().equals(tz)) {
-            c = DateTimeUtils.createGregorianCalendar(tz);
+            c = createGregorianCalendar(tz);
             CACHED_CALENDAR_NON_DEFAULT_TIMEZONE.set(c);
         }
         c.clear();
@@ -135,7 +173,7 @@ public class DateTimeUtils {
      *
      * @return a new calendar instance.
      */
-    public static Calendar createGregorianCalendar() {
+    public static GregorianCalendar createGregorianCalendar() {
         return new GregorianCalendar();
     }
 
@@ -149,7 +187,7 @@ public class DateTimeUtils {
      * @param tz timezone for the calendar, is never null
      * @return a new calendar instance.
      */
-    public static Calendar createGregorianCalendar(TimeZone tz) {
+    public static GregorianCalendar createGregorianCalendar(TimeZone tz) {
         return new GregorianCalendar(tz);
     }
 
@@ -270,35 +308,6 @@ public class DateTimeUtils {
     }
 
     /**
-     * Convert a date to the specified time zone.
-     *
-     * @param x the date to convert
-     * @param target the calendar with the target timezone
-     * @return the milliseconds in UTC
-     */
-    public static long convertToLocal(java.util.Date x, Calendar target) {
-        if (target == null) {
-            throw DbException.getInvalidValueException("calendar", null);
-        }
-        target = (Calendar) target.clone();
-        Calendar local = DateTimeUtils.createGregorianCalendar();
-        local.setTime(x);
-        convertTime(local, target);
-        return target.getTimeInMillis();
-    }
-
-    private static void convertTime(Calendar from, Calendar to) {
-        to.set(Calendar.ERA, from.get(Calendar.ERA));
-        to.set(Calendar.YEAR, from.get(Calendar.YEAR));
-        to.set(Calendar.MONTH, from.get(Calendar.MONTH));
-        to.set(Calendar.DAY_OF_MONTH, from.get(Calendar.DAY_OF_MONTH));
-        to.set(Calendar.HOUR_OF_DAY, from.get(Calendar.HOUR_OF_DAY));
-        to.set(Calendar.MINUTE, from.get(Calendar.MINUTE));
-        to.set(Calendar.SECOND, from.get(Calendar.SECOND));
-        to.set(Calendar.MILLISECOND, from.get(Calendar.MILLISECOND));
-    }
-
-    /**
      * Convert the timestamp using the specified calendar.
      *
      * @param x the time
@@ -316,30 +325,6 @@ public class DateTimeUtils {
         long nanos = nanosFromCalendar(cal);
         nanos += x.getNanos() % 1000000;
         return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
-    }
-
-    private static Calendar valueToCalendar(Value value) {
-        Calendar cal;
-        if (value instanceof ValueTimestamp) {
-            cal = createGregorianCalendar();
-            cal.setTime(value.getTimestamp());
-        } else if (value instanceof ValueDate) {
-            cal = createGregorianCalendar();
-            cal.setTime(value.getDate());
-        } else if (value instanceof ValueTime) {
-            cal = createGregorianCalendar();
-            cal.setTime(value.getTime());
-        } else if (value instanceof ValueTimestampTimeZone) {
-            ValueTimestampTimeZone v = (ValueTimestampTimeZone) value;
-            cal = createGregorianCalendar(v.getTimeZone());
-            cal.setTimeInMillis(DateTimeUtils.convertDateValueToMillis(DateTimeUtils.UTC, v.getDateValue())
-                    + v.getTimeNanos() / 1000000L
-                    - v.getTimeZoneOffsetMins() * 60000);
-        } else {
-            cal = createGregorianCalendar();
-            cal.setTime(value.getTimestamp());
-        }
-        return cal;
     }
 
     /**
@@ -403,8 +388,11 @@ public class DateTimeUtils {
         }
         boolean negative;
         hour = Integer.parseInt(s.substring(start, s1));
-        if (hour < 0) {
+        if (hour < 0 || hour == 0 && s.charAt(0) == '-') {
             if (timeOfDay) {
+                /*
+                 * This also forbids -00:00:00 and similar values.
+                 */
                 throw new IllegalArgumentException(s);
             }
             negative = true;
@@ -432,6 +420,145 @@ public class DateTimeUtils {
     }
 
     /**
+     * See:
+     * https://stackoverflow.com/questions/3976616/how-to-find-nth-occurrence-of-character-in-a-string#answer-3976656
+     */
+    private static int findNthIndexOf(String str, char chr, int n) {
+        int pos = str.indexOf(chr);
+        while (--n > 0 && pos != -1)
+            pos = str.indexOf(chr, pos + 1);
+        return pos;
+    }
+
+    /**
+     * Parses timestamp value from the specified string.
+     *
+     * @param s
+     *            string to parse
+     * @param mode
+     *            database mode, or {@code null}
+     * @param withTimeZone
+     *            if {@code true} return {@link ValueTimestampTimeZone} instead of
+     *            {@link ValueTimestamp}
+     * @return parsed timestamp
+     */
+    public static Value parseTimestamp(String s, Mode mode, boolean withTimeZone) {
+        int dateEnd = s.indexOf(' ');
+        if (dateEnd < 0) {
+            // ISO 8601 compatibility
+            dateEnd = s.indexOf('T');
+            if (dateEnd < 0 && mode != null && mode.allowDB2TimestampFormat) {
+                // DB2 also allows dash between date and time
+                dateEnd = findNthIndexOf(s, '-', 3);
+            }
+        }
+        int timeStart;
+        if (dateEnd < 0) {
+            dateEnd = s.length();
+            timeStart = -1;
+        } else {
+            timeStart = dateEnd + 1;
+        }
+        long dateValue = parseDateValue(s, 0, dateEnd);
+        long nanos;
+        short tzMinutes = 0;
+        if (timeStart < 0) {
+            nanos = 0;
+        } else {
+            int timeEnd = s.length();
+            TimeZone tz = null;
+            if (s.endsWith("Z")) {
+                tz = UTC;
+                timeEnd--;
+            } else {
+                int timeZoneStart = s.indexOf('+', dateEnd + 1);
+                if (timeZoneStart < 0) {
+                    timeZoneStart = s.indexOf('-', dateEnd + 1);
+                }
+                if (timeZoneStart >= 0) {
+                    // Allow [timeZoneName] part after time zone offset
+                    int offsetEnd = s.indexOf('[', timeZoneStart + 1);
+                    if (offsetEnd < 0) {
+                        offsetEnd = s.length();
+                    }
+                    String tzName = "GMT" + s.substring(timeZoneStart, offsetEnd);
+                    tz = TimeZone.getTimeZone(tzName);
+                    if (!tz.getID().startsWith(tzName)) {
+                        throw new IllegalArgumentException(
+                                tzName + " (" + tz.getID() + "?)");
+                    }
+                    if (s.charAt(timeZoneStart - 1) == ' ') {
+                        timeZoneStart--;
+                    }
+                    timeEnd = timeZoneStart;
+                } else {
+                    timeZoneStart = s.indexOf(' ', dateEnd + 1);
+                    if (timeZoneStart > 0) {
+                        String tzName = s.substring(timeZoneStart + 1);
+                        tz = TimeZone.getTimeZone(tzName);
+                        if (!tz.getID().startsWith(tzName)) {
+                            throw new IllegalArgumentException(tzName);
+                        }
+                        timeEnd = timeZoneStart;
+                    }
+                }
+            }
+            nanos = parseTimeNanos(s, dateEnd + 1, timeEnd, true);
+            if (tz != null) {
+                if (withTimeZone) {
+                    if (tz != UTC) {
+                        long millis = convertDateTimeValueToMillis(tz, dateValue, nanos / 1000000);
+                        tzMinutes = (short) (tz.getOffset(millis) / 1000 / 60);
+                    }
+                } else {
+                    long millis = convertDateTimeValueToMillis(tz, dateValue, nanos / 1000000);
+                    dateValue = dateValueFromDate(millis);
+                    nanos = nanos % 1000000 + nanosFromDate(millis);
+                }
+            }
+        }
+        if (withTimeZone) {
+            return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, nanos, tzMinutes);
+        }
+        return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
+    }
+
+    /**
+     * Calculates the time zone offset in minutes for the specified time zone, date
+     * value, and nanoseconds since midnight.
+     *
+     * @param tz
+     *            time zone, or {@code null} for default
+     * @param dateValue
+     *            date value
+     * @param timeNanos
+     *            nanoseconds since midnight
+     * @return time zone offset in milliseconds
+     */
+    public static int getTimeZoneOffsetMillis(TimeZone tz, long dateValue, long timeNanos) {
+        long msec = timeNanos / 1_000_000;
+        long utc = convertDateTimeValueToMillis(tz, dateValue, msec);
+        long local = absoluteDayFromDateValue(dateValue) * MILLIS_PER_DAY + msec;
+        return (int) (local - utc);
+    }
+
+    /**
+     * Calculates the milliseconds since epoch for the specified date value,
+     * nanoseconds since midnight, and time zone offset.
+     * @param dateValue
+     *            date value
+     * @param timeNanos
+     *            nanoseconds since midnight
+     * @param offsetMins
+     *            time zone offset in minutes
+     * @return milliseconds since epoch in UTC
+     */
+    public static long getMillis(long dateValue, long timeNanos, short offsetMins) {
+        return absoluteDayFromDateValue(dateValue) * MILLIS_PER_DAY
+                + timeNanos / 1_000_000 - offsetMins * 60_000;
+    }
+
+    /**
      * Calculate the milliseconds since 1970-01-01 (UTC) for the given date and
      * time (in the specified timezone).
      *
@@ -448,9 +575,15 @@ public class DateTimeUtils {
      */
     public static long getMillis(TimeZone tz, int year, int month, int day,
             int hour, int minute, int second, int millis) {
+        GregorianCalendar c;
+        if (tz == null) {
+            c = getCalendar();
+        } else {
+            c = getCalendar(tz);
+        }
+        c.setLenient(false);
         try {
-            return getTimeTry(false, tz, year, month, day, hour, minute, second,
-                    millis);
+            return convertToMillis(c, year, month, day, hour, minute, second, millis);
         } catch (IllegalArgumentException e) {
             // special case: if the time simply doesn't exist because of
             // daylight saving time changes, use the lenient version
@@ -459,14 +592,12 @@ public class DateTimeUtils {
                 if (hour < 0 || hour > 23) {
                     throw e;
                 }
-                return getTimeTry(true, tz, year, month, day, hour, minute,
-                        second, millis);
             } else if (message.indexOf("DAY_OF_MONTH") > 0) {
                 int maxDay;
                 if (month == 2) {
-                    maxDay = new GregorianCalendar().isLeapYear(year) ? 29 : 28;
+                    maxDay = c.isLeapYear(year) ? 29 : 28;
                 } else {
-                    maxDay = 30 + ((month + (month > 7 ? 1 : 0)) & 1);
+                    maxDay = NORMAL_DAYS_PER_MONTH[month];
                 }
                 if (day < 1 || day > maxDay) {
                     throw e;
@@ -475,25 +606,10 @@ public class DateTimeUtils {
                 // using the timezone Brasilia and others,
                 // for example for 2042-10-12 00:00:00.
                 hour += 6;
-                return getTimeTry(true, tz, year, month, day, hour, minute,
-                        second, millis);
-            } else {
-                return getTimeTry(true, tz, year, month, day, hour, minute,
-                        second, millis);
             }
+            c.setLenient(true);
+            return convertToMillis(c, year, month, day, hour, minute, second, millis);
         }
-    }
-
-    private static long getTimeTry(boolean lenient, TimeZone tz, int year,
-            int month, int day, int hour, int minute, int second, int millis) {
-        Calendar c;
-        if (tz == null) {
-            c = getCalendar();
-        } else {
-            c = getCalendar(tz);
-        }
-        c.setLenient(lenient);
-        return convertToMillis(c, year, month, day, hour, minute, second, millis);
     }
 
     private static long convertToMillis(Calendar cal, int year, int month, int day,
@@ -516,37 +632,67 @@ public class DateTimeUtils {
     }
 
     /**
-     * Get the specified field of a date, however with years normalized to
-     * positive or negative, and month starting with 1.
+     * Extracts date value and nanos of day from the specified value.
      *
-     * @param date the date value
-     * @param field the field type
-     * @return the value
+     * @param value
+     *            value to extract fields from
+     * @return array with date value and nanos of day
      */
-    public static int getDatePart(Value date, int field) {
-        Calendar c = valueToCalendar(date);
-        if (field == Calendar.YEAR) {
-            return getYear(c);
+    public static long[] dateAndTimeFromValue(Value value) {
+        long dateValue = EPOCH_DATE_VALUE;
+        long timeNanos = 0;
+        if (value instanceof ValueTimestamp) {
+            ValueTimestamp v = (ValueTimestamp) value;
+            dateValue = v.getDateValue();
+            timeNanos = v.getTimeNanos();
+        } else if (value instanceof ValueDate) {
+            dateValue = ((ValueDate) value).getDateValue();
+        } else if (value instanceof ValueTime) {
+            timeNanos = ((ValueTime) value).getNanos();
+        } else if (value instanceof ValueTimestampTimeZone) {
+            ValueTimestampTimeZone v = (ValueTimestampTimeZone) value;
+            dateValue = v.getDateValue();
+            timeNanos = v.getTimeNanos();
+        } else {
+            ValueTimestamp v = (ValueTimestamp) value.convertTo(Value.TIMESTAMP);
+            dateValue = v.getDateValue();
+            timeNanos = v.getTimeNanos();
         }
-        int value = c.get(field);
-        if (field == Calendar.MONTH) {
-            return value + 1;
-        }
-        return value;
+        return new long[] {dateValue, timeNanos};
     }
 
     /**
-     * Get the year (positive or negative) from a calendar.
+     * Creates a new date-time value with the same type as original value. If
+     * original value is a ValueTimestampTimeZone, returned value will have the same
+     * time zone offset as original value.
      *
-     * @param calendar the calendar
-     * @return the year
+     * @param original
+     *            original value
+     * @param dateValue
+     *            date value for the returned value
+     * @param timeNanos
+     *            nanos of day for the returned value
+     * @param forceTimestamp
+     *            if {@code true} return ValueTimestamp if original argument is
+     *            ValueDate or ValueTime
+     * @return new value with specified date value and nanos of day
      */
-    private static int getYear(Calendar calendar) {
-        int year = calendar.get(Calendar.YEAR);
-        if (calendar.get(Calendar.ERA) == GregorianCalendar.BC) {
-            year = 1 - year;
+    public static Value dateTimeToValue(Value original, long dateValue, long timeNanos, boolean forceTimestamp) {
+        if (!(original instanceof ValueTimestamp)) {
+            if (!forceTimestamp) {
+                if (original instanceof ValueDate) {
+                    return ValueDate.fromDateValue(dateValue);
+                }
+                if (original instanceof ValueTime) {
+                    return ValueTime.fromNanos(timeNanos);
+                }
+            }
+            if (original instanceof ValueTimestampTimeZone) {
+                return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos,
+                        ((ValueTimestampTimeZone) original).getTimeZoneOffsetMins());
+            }
         }
-        return year;
+        return ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
     }
 
     /**
@@ -572,57 +718,144 @@ public class DateTimeUtils {
     }
 
     /**
-     * Return the day of week according to the ISO 8601 specification. Week
-     * starts at Monday. See also http://en.wikipedia.org/wiki/ISO_8601
+     * Returns day of week.
      *
-     * @author Robert Rathsack
-     * @param value the date object which day of week should be calculated
-     * @return the day of the week, Monday as 1 to Sunday as 7
+     * @param dateValue
+     *            the date value
+     * @param firstDayOfWeek
+     *            first day of week, Monday as 1, Sunday as 7 or 0
+     * @return day of week
+     * @see #getIsoDayOfWeek(long)
      */
-    public static int getIsoDayOfWeek(Value value) {
-        int val = valueToCalendar(value).get(Calendar.DAY_OF_WEEK) - 1;
-        return val == 0 ? 7 : val;
+    public static int getDayOfWeek(long dateValue, int firstDayOfWeek) {
+        return getDayOfWeekFromAbsolute(absoluteDayFromDateValue(dateValue), firstDayOfWeek);
+    }
+
+    private static int getDayOfWeekFromAbsolute(long absoluteValue, int firstDayOfWeek) {
+        return absoluteValue >= 0 ? (int) ((absoluteValue - firstDayOfWeek + 11) % 7) + 1
+                : (int) ((absoluteValue - firstDayOfWeek - 2) % 7) + 7;
     }
 
     /**
-     * Returns the week of the year according to the ISO 8601 specification. The
-     * spec defines the first week of the year as the week which contains at
-     * least 4 days of the new year. The week starts at Monday. Therefore
-     * December 29th - 31th could belong to the next year and January 1st - 3th
-     * could belong to the previous year. If January 1st is on Thursday (or
-     * earlier) it belongs to the first week, otherwise to the last week of the
-     * previous year. Hence January 4th always belongs to the first week while
-     * the December 28th always belongs to the last week.
+     * Returns number of day in year.
      *
-     * @author Robert Rathsack
-     * @param value the date object which week of year should be calculated
-     * @return the week of the year
+     * @param dateValue
+     *            the date value
+     * @return number of day in year
      */
-    public static int getIsoWeek(Value value) {
-        Calendar c = valueToCalendar(value);
-        c.setFirstDayOfWeek(Calendar.MONDAY);
-        c.setMinimalDaysInFirstWeek(4);
-        return c.get(Calendar.WEEK_OF_YEAR);
+    public static int getDayOfYear(long dateValue) {
+        int year = yearFromDateValue(dateValue);
+        return (int) (absoluteDayFromDateValue(dateValue) - absoluteDayFromDateValue(dateValue(year, 1, 1))) + 1;
     }
 
     /**
-     * Returns the year according to the ISO week definition.
+     * Returns ISO day of week.
      *
-     * @author Robert Rathsack
-     * @param value the date object which year should be calculated
-     * @return the year
+     * @param dateValue
+     *            the date value
+     * @return ISO day of week, Monday as 1 to Sunday as 7
+     * @see #getSundayDayOfWeek(long)
      */
-    public static int getIsoYear(Value value) {
-        Calendar cal = valueToCalendar(value);
-        cal.setFirstDayOfWeek(Calendar.MONDAY);
-        cal.setMinimalDaysInFirstWeek(4);
-        int year = getYear(cal);
-        int month = cal.get(Calendar.MONTH);
-        int week = cal.get(Calendar.WEEK_OF_YEAR);
-        if (month == 0 && week > 51) {
-            year--;
-        } else if (month == 11 && week == 1) {
-            year++;
+    public static int getIsoDayOfWeek(long dateValue) {
+        return getDayOfWeek(dateValue, 1);
+    }
+
+    /**
+     * Returns ISO number of week in year.
+     *
+     * @param dateValue
+     *            the date value
+     * @return number of week in year
+     * @see #getIsoWeekYear(long)
+     * @see #getWeekOfYear(long, int, int)
+     */
+    public static int getIsoWeekOfYear(long dateValue) {
+        return getWeekOfYear(dateValue, 1, 4);
+    }
+
+    /**
+     * Returns ISO week year.
+     *
+     * @param dateValue
+     *            the date value
+     * @return ISO week year
+     * @see #getIsoWeekOfYear(long)
+     * @see #getWeekYear(long, int, int)
+     */
+    public static int getIsoWeekYear(long dateValue) {
+        return getWeekYear(dateValue, 1, 4);
+    }
+
+    /**
+     * Returns day of week with Sunday as 1.
+     *
+     * @param dateValue
+     *            the date value
+     * @return day of week, Sunday as 1 to Monday as 7
+     * @see #getIsoDayOfWeek(long)
+     */
+    public static int getSundayDayOfWeek(long dateValue) {
+        return getDayOfWeek(dateValue, 0);
+    }
+
+    /**
+     * Returns number of week in year.
+     *
+     * @param dateValue
+     *            the date value
+     * @param firstDayOfWeek
+     *            first day of week, Monday as 1, Sunday as 7 or 0
+     * @param minimalDaysInFirstWeek
+     *            minimal days in first week of year
+     * @return number of week in year
+     * @see #getIsoWeekOfYear(long)
+     */
+    public static int getWeekOfYear(long dateValue, int firstDayOfWeek, int minimalDaysInFirstWeek) {
+        long abs = absoluteDayFromDateValue(dateValue);
+        int year = yearFromDateValue(dateValue);
+        long base = getWeekOfYearBase(year, firstDayOfWeek, minimalDaysInFirstWeek);
+        if (abs - base < 0) {
+            base = getWeekOfYearBase(year - 1, firstDayOfWeek, minimalDaysInFirstWeek);
+        } else if (monthFromDateValue(dateValue) == 12 && 24 + minimalDaysInFirstWeek < dayFromDateValue(dateValue)) {
+            if (abs >= getWeekOfYearBase(year + 1, firstDayOfWeek, minimalDaysInFirstWeek)) {
+                return 1;
+            }
+        }
+        return (int) ((abs - base) / 7) + 1;
+    }
+
+    private static long getWeekOfYearBase(int year, int firstDayOfWeek, int minimalDaysInFirstWeek) {
+        long first = absoluteDayFromDateValue(dateValue(year, 1, 1));
+        int daysInFirstWeek = 8 - getDayOfWeekFromAbsolute(first, firstDayOfWeek);
+        long base = first + daysInFirstWeek;
+        if (daysInFirstWeek >= minimalDaysInFirstWeek) {
+            base -= 7;
+        }
+        return base;
+    }
+
+    /**
+     * Returns week year.
+     *
+     * @param dateValue
+     *            the date value
+     * @param firstDayOfWeek
+     *            first day of week, Monday as 1, Sunday as 7 or 0
+     * @param minimalDaysInFirstWeek
+     *            minimal days in first week of year
+     * @return week year
+     * @see #getIsoWeekYear(long)
+     */
+    public static int getWeekYear(long dateValue, int firstDayOfWeek, int minimalDaysInFirstWeek) {
+        long abs = absoluteDayFromDateValue(dateValue);
+        int year = yearFromDateValue(dateValue);
+        long base = getWeekOfYearBase(year, firstDayOfWeek, minimalDaysInFirstWeek);
+        if (abs - base < 0) {
+            return year - 1;
+        } else if (monthFromDateValue(dateValue) == 12 && 24 + minimalDaysInFirstWeek < dayFromDateValue(dateValue)) {
+            if (abs >= getWeekOfYearBase(year + 1, firstDayOfWeek, minimalDaysInFirstWeek)) {
+                return year + 1;
+            }
         }
         return year;
     }
@@ -689,6 +922,26 @@ public class DateTimeUtils {
     }
 
     /**
+     * Returns number of days in month.
+     *
+     * @param year the year
+     * @param month the month
+     * @return number of days in the specified month
+     */
+    public static int getDaysInMonth(int year, int month) {
+        if (month != 2) {
+            return NORMAL_DAYS_PER_MONTH[month];
+        }
+        // All leap years divisible by 4
+        return (year & 3) == 0
+                // All such years before 1582 are Julian and leap
+                && (year < 1582
+                        // Otherwise check Gregorian conditions
+                        || year % 100 != 0 || year % 400 == 0)
+                ? 29 : 28;
+    }
+
+    /**
      * Verify if the specified date is valid.
      *
      * @param year the year
@@ -700,24 +953,11 @@ public class DateTimeUtils {
         if (month < 1 || month > 12 || day < 1) {
             return false;
         }
-        if (year > 1582) {
-            // Gregorian calendar
-            if (month != 2) {
-                return day <= NORMAL_DAYS_PER_MONTH[month];
-            }
-            // February
-            if ((year & 3) != 0) {
-                return day <= 28;
-            }
-            return day <= ((year % 100 != 0) || (year % 400 == 0) ? 29 : 28);
-        } else if (year == 1582 && month == 10) {
+        if (year == 1582 && month == 10) {
             // special case: days 1582-10-05 .. 1582-10-14 don't exist
-            return day <= 31 && (day < 5 || day > 14);
+            return day < 5 || (day > 14 && day <= 31);
         }
-        if (month != 2 && day <= NORMAL_DAYS_PER_MONTH[month]) {
-            return true;
-        }
-        return day <= ((year & 3) != 0 ? 28 : 29);
+        return day <= getDaysInMonth(year, month);
     }
 
     /**
@@ -735,16 +975,22 @@ public class DateTimeUtils {
     }
 
     /**
-     * Convert an encoded date value to millis, using the supplied timezone.
+     * Convert an encoded date-time value to millis, using the supplied timezone.
      *
      * @param tz the timezone
      * @param dateValue the date value
+     * @param ms milliseconds of day
      * @return the date
      */
-    public static long convertDateValueToMillis(TimeZone tz, long dateValue) {
-        return getMillis(tz, yearFromDateValue(dateValue),
-                monthFromDateValue(dateValue), dayFromDateValue(dateValue), 0,
-                0, 0, 0);
+    public static long convertDateTimeValueToMillis(TimeZone tz, long dateValue, long ms) {
+        long second = ms / 1000;
+        ms -= second * 1000;
+        int minute = (int) (second / 60);
+        second -= minute * 60;
+        int hour = minute / 60;
+        minute -= hour * 60;
+        return getMillis(tz, yearFromDateValue(dateValue), monthFromDateValue(dateValue), dayFromDateValue(dateValue),
+                hour, minute, (int) second, (int) ms);
     }
 
     /**
@@ -757,19 +1003,24 @@ public class DateTimeUtils {
      */
     public static Timestamp convertDateValueToTimestamp(long dateValue,
             long timeNanos) {
-        long millis = timeNanos / 1000000;
-        timeNanos -= millis * 1000000;
-        long s = millis / 1000;
-        millis -= s * 1000;
-        long m = s / 60;
-        s -= m * 60;
-        long h = m / 60;
-        m -= h * 60;
-        long ms = getMillis(null, yearFromDateValue(dateValue),
-                monthFromDateValue(dateValue), dayFromDateValue(dateValue),
-                (int) h, (int) m, (int) s, 0);
-        Timestamp ts = new Timestamp(ms);
-        ts.setNanos((int) (timeNanos + millis * 1000000));
+        Timestamp ts = new Timestamp(convertDateTimeValueToMillis(null, dateValue, timeNanos / 1_000_000));
+        // This method expects the complete nanoseconds value including milliseconds
+        ts.setNanos((int) (timeNanos % 1_000_000_000));
+        return ts;
+    }
+
+    /**
+     * Convert an encoded date value / time value to a timestamp using the specified
+     * time zone offset.
+     *
+     * @param dateValue the date value
+     * @param timeNanos the nanoseconds since midnight
+     * @param offsetMins time zone offset in minutes
+     * @return the timestamp
+     */
+    public static Timestamp convertTimestampTimeZoneToTimestamp(long dateValue, long timeNanos, short offsetMins) {
+        Timestamp ts = new Timestamp(getMillis(dateValue, timeNanos, offsetMins));
+        ts.setNanos((int) (timeNanos % 1_000_000_000));
         return ts;
     }
 
@@ -835,6 +1086,38 @@ public class DateTimeUtils {
     }
 
     /**
+     * Get the date value from a given denormalized date with possible out of range
+     * values of month and/or day. Used after addition or subtraction month or years
+     * to (from) it to get a valid date.
+     *
+     * @param year
+     *            the year
+     * @param month
+     *            the month, if out of range month and year will be normalized
+     * @param day
+     *            the day of the month, if out of range it will be saturated
+     * @return the date value
+     */
+    public static long dateValueFromDenormalizedDate(long year, long month, int day) {
+        long mm1 = month - 1;
+        long yd = mm1 / 12;
+        if (mm1 < 0 && yd * 12 != mm1) {
+            yd--;
+        }
+        int y = (int) (year + yd);
+        int m = (int) (month - yd * 12);
+        if (day < 1) {
+            day = 1;
+        } else {
+            int max = getDaysInMonth(y, m);
+            if (day > max) {
+                day = max;
+            }
+        }
+        return dateValue(y, m, day);
+    }
+
+    /**
      * Convert a UTC datetime in millis to an encoded date in the default
      * timezone.
      *
@@ -842,9 +1125,13 @@ public class DateTimeUtils {
      * @return the date value
      */
     public static long dateValueFromDate(long ms) {
-        Calendar cal = getCalendar();
-        cal.setTimeInMillis(ms);
-        return dateValueFromCalendar(cal);
+        ms += getTimeZone().getOffset(ms);
+        long absoluteDay = ms / MILLIS_PER_DAY;
+        // Round toward negative infinity
+        if (ms < 0 && (absoluteDay * MILLIS_PER_DAY != ms)) {
+            absoluteDay--;
+        }
+        return dateValueFromAbsoluteDay(absoluteDay);
     }
 
     /**
@@ -854,10 +1141,12 @@ public class DateTimeUtils {
      * @return the date value
      */
     private static long dateValueFromCalendar(Calendar cal) {
-        int year, month, day;
-        year = getYear(cal);
-        month = cal.get(Calendar.MONTH) + 1;
-        day = cal.get(Calendar.DAY_OF_MONTH);
+        int year = cal.get(Calendar.YEAR);
+        if (cal.get(Calendar.ERA) == GregorianCalendar.BC) {
+            year = 1 - year;
+        }
+        int month = cal.get(Calendar.MONTH) + 1;
+        int day = cal.get(Calendar.DAY_OF_MONTH);
         return ((long) year << SHIFT_YEAR) | (month << SHIFT_MONTH) | day;
     }
 
@@ -869,9 +1158,13 @@ public class DateTimeUtils {
      * @return the nanoseconds
      */
     public static long nanosFromDate(long ms) {
-        Calendar cal = getCalendar();
-        cal.setTimeInMillis(ms);
-        return nanosFromCalendar(cal);
+        ms += getTimeZone().getOffset(ms);
+        long absoluteDay = ms / MILLIS_PER_DAY;
+        // Round toward negative infinity
+        if (ms < 0 && (absoluteDay * MILLIS_PER_DAY != ms)) {
+            absoluteDay--;
+        }
+        return (ms - absoluteDay * MILLIS_PER_DAY) * 1_000_000;
     }
 
     /**
@@ -912,6 +1205,34 @@ public class DateTimeUtils {
     }
 
     /**
+     * Converts local date value and nanoseconds to timestamp with time zone.
+     *
+     * @param dateValue
+     *            date value
+     * @param timeNanos
+     *            nanoseconds since midnight
+     * @return timestamp with time zone
+     */
+    public static ValueTimestampTimeZone timestampTimeZoneFromLocalDateValueAndNanos(long dateValue, long timeNanos) {
+        int timeZoneOffset = getTimeZoneOffsetMillis(null, dateValue, timeNanos);
+        int offsetMins = timeZoneOffset / 60_000;
+        int correction = timeZoneOffset % 60_000;
+        if (correction != 0) {
+            timeNanos -= correction;
+            if (timeNanos < 0) {
+                timeNanos += NANOS_PER_DAY;
+                dateValue = DateTimeUtils
+                        .dateValueFromAbsoluteDay(absoluteDayFromDateValue(dateValue) - 1);
+            } else if (timeNanos >= NANOS_PER_DAY) {
+                timeNanos -= NANOS_PER_DAY;
+                dateValue = DateTimeUtils
+                        .dateValueFromAbsoluteDay(absoluteDayFromDateValue(dateValue) + 1);
+            }
+        }
+        return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos, (short) offsetMins);
+    }
+
+    /**
      * Calculate the absolute day from an encoded date value.
      *
      * @param dateValue the date value
@@ -926,11 +1247,34 @@ public class DateTimeUtils {
             m += 12;
         }
         long a = ((y * 2922L) >> 3) + DAYS_OFFSET[m - 3] + d - 719484;
-        if (y <= 1582 && ((y < 1582) || (m * 100 + d < 1005))) {
+        if (y <= 1582 && ((y < 1582) || (m * 100 + d < 1015))) {
             // Julian calendar (cutover at 1582-10-04 / 1582-10-15)
             a += 13;
         } else if (y < 1901 || y > 2099) {
             // Gregorian calendar (slow mode)
+            a += (y / 400) - (y / 100) + 15;
+        }
+        return a;
+    }
+
+    /**
+     * Calculate the absolute day from an encoded date value in proleptic Gregorian
+     * calendar.
+     *
+     * @param dateValue the date value
+     * @return the absolute day in proleptic Gregorian calendar
+     */
+    public static long prolepticGregorianAbsoluteDayFromDateValue(long dateValue) {
+        long y = yearFromDateValue(dateValue);
+        int m = monthFromDateValue(dateValue);
+        int d = dayFromDateValue(dateValue);
+        if (m <= 2) {
+            y--;
+            m += 12;
+        }
+        long a = ((y * 2922L) >> 3) + DAYS_OFFSET[m - 3] + d - 719484;
+        if (y < 1901 || y > 2099) {
+            // Slow mode
             a += (y / 400) - (y / 100) + 15;
         }
         return a;
@@ -977,23 +1321,154 @@ public class DateTimeUtils {
     }
 
     /**
-     * Adds the number of months to the date. If the resulting month's number of
-     * days is less than the original's day-of-month, the resulting
-     * day-of-months gets adjusted accordingly: <br>
-     * 30.04.2007 - 2 months = 28.02.2007
+     * Append a date to the string builder.
      *
-     * @param refDate the original date
-     * @param nrOfMonthsToAdd the number of months to add
-     * @return the new timestamp
+     * @param buff the target string builder
+     * @param dateValue the date value
      */
-    public static Timestamp addMonths(Timestamp refDate, int nrOfMonthsToAdd) {
-        Calendar calendar = DateTimeUtils.createGregorianCalendar();
-        calendar.setTime(refDate);
-        calendar.add(Calendar.MONTH, nrOfMonthsToAdd);
+    public static void appendDate(StringBuilder buff, long dateValue) {
+        int y = yearFromDateValue(dateValue);
+        int m = monthFromDateValue(dateValue);
+        int d = dayFromDateValue(dateValue);
+        if (y > 0 && y < 10000) {
+            StringUtils.appendZeroPadded(buff, 4, y);
+        } else {
+            buff.append(y);
+        }
+        buff.append('-');
+        StringUtils.appendZeroPadded(buff, 2, m);
+        buff.append('-');
+        StringUtils.appendZeroPadded(buff, 2, d);
+    }
 
-        Timestamp resultDate = new Timestamp(calendar.getTimeInMillis());
-        resultDate.setNanos(refDate.getNanos());
-        return resultDate;
+    /**
+     * Append a time to the string builder.
+     *
+     * @param buff the target string builder
+     * @param nanos the time in nanoseconds
+     */
+    public static void appendTime(StringBuilder buff, long nanos) {
+        if (nanos < 0) {
+            buff.append('-');
+            nanos = -nanos;
+        }
+        /*
+         * nanos now either in range from 0 to Long.MAX_VALUE or equals to
+         * Long.MIN_VALUE. We need to divide nanos by 1000000 with unsigned division to
+         * get correct result. The simplest way to do this with such constraints is to
+         * divide -nanos by -1000000.
+         */
+        long ms = -nanos / -1000000;
+        nanos -= ms * 1000000;
+        long s = ms / 1000;
+        ms -= s * 1000;
+        long m = s / 60;
+        s -= m * 60;
+        long h = m / 60;
+        m -= h * 60;
+        StringUtils.appendZeroPadded(buff, 2, h);
+        buff.append(':');
+        StringUtils.appendZeroPadded(buff, 2, m);
+        buff.append(':');
+        StringUtils.appendZeroPadded(buff, 2, s);
+        if (ms > 0 || nanos > 0) {
+            buff.append('.');
+            int start = buff.length();
+            StringUtils.appendZeroPadded(buff, 3, ms);
+            if (nanos > 0) {
+                StringUtils.appendZeroPadded(buff, 6, nanos);
+            }
+            for (int i = buff.length() - 1; i > start; i--) {
+                if (buff.charAt(i) != '0') {
+                    break;
+                }
+                buff.deleteCharAt(i);
+            }
+        }
+    }
+
+    /**
+     * Append a time zone to the string builder.
+     *
+     * @param buff the target string builder
+     * @param tz the time zone in minutes
+     */
+    public static void appendTimeZone(StringBuilder buff, short tz) {
+        if (tz < 0) {
+            buff.append('-');
+            tz = (short) -tz;
+        } else {
+            buff.append('+');
+        }
+        int hours = tz / 60;
+        tz -= hours * 60;
+        int mins = tz;
+        StringUtils.appendZeroPadded(buff, 2, hours);
+        if (mins != 0) {
+            buff.append(':');
+            StringUtils.appendZeroPadded(buff, 2, mins);
+        }
+    }
+
+    /**
+     * Formats timestamp with time zone as string.
+     *
+     * @param dateValue the year-month-day bit field
+     * @param timeNanos nanoseconds since midnight
+     * @param timeZoneOffsetMins the time zone offset in minutes
+     * @return formatted string
+     */
+    public static String timestampTimeZoneToString(long dateValue, long timeNanos, short timeZoneOffsetMins) {
+        StringBuilder buff = new StringBuilder(ValueTimestampTimeZone.MAXIMUM_PRECISION);
+        appendDate(buff, dateValue);
+        buff.append(' ');
+        appendTime(buff, timeNanos);
+        appendTimeZone(buff, timeZoneOffsetMins);
+        return buff.toString();
+    }
+
+    /**
+     * Generates time zone name for the specified offset in minutes.
+     *
+     * @param offsetMins
+     *            offset in minutes
+     * @return time zone name
+     */
+    public static String timeZoneNameFromOffsetMins(int offsetMins) {
+        if (offsetMins == 0) {
+            return "UTC";
+        }
+        StringBuilder b = new StringBuilder(9);
+        b.append("GMT");
+        if (offsetMins < 0) {
+            b.append('-');
+            offsetMins = -offsetMins;
+        } else {
+            b.append('+');
+        }
+        StringUtils.appendZeroPadded(b, 2, offsetMins / 60);
+        b.append(':');
+        StringUtils.appendZeroPadded(b, 2, offsetMins % 60);
+        return b.toString();
+    }
+
+    /**
+     * Converts scale of nanoseconds.
+     *
+     * @param nanosOfDay nanoseconds of day
+     * @param scale fractional seconds precision
+     * @return scaled value
+     */
+    public static long convertScale(long nanosOfDay, int scale) {
+        if (scale >= 9) {
+            return nanosOfDay;
+        }
+        int m = CONVERT_SCALE_TABLE[scale];
+        long mod = nanosOfDay % m;
+        if (mod >= m >>> 1) {
+            nanosOfDay += m;
+        }
+        return nanosOfDay - mod;
     }
 
 }

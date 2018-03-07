@@ -25,8 +25,8 @@ import java.util.Vector;
  * Convert RenderedImage into a WKB input stream.
  * This class is used when storing LobDB Raster from external image,
  * BufferedImage or RenderedOp (JAI).
- * @author Nicolas Fortin
- * @author Erwan Bocher
+ * @author Nicolas Fortin, CNRS
+ * @author Erwan Bocher, CNRS
  */
 public class GeoRasterRenderedImage implements GeoRaster {
     private final RenderedImage image;
@@ -98,6 +98,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
      * @param skewY Rotation Y
      * @param srid Srid value
      * @return WKBRasterWrapper instance
+     * @throws IOException
      */
     public static GeoRasterRenderedImage create(RenderedImage image, double scaleX,
                                                 double scaleY, double ipX, double ipY, double skewX, double skewY,
@@ -110,13 +111,14 @@ public class GeoRasterRenderedImage implements GeoRaster {
      * @param image Raster
      * @param scaleX Pixel x scale in current projection unit
      * @param scaleY Pixel y scale in current projection unit
-     * @param ipX Insertion point X
-     * @param ipY Insertion point Y
+     * @param ipX X ordinate of upper-left  pixel's upper-left corner in geographical units
+     * @param ipY Y ordinate of upper-left pixel's upper-left corner in geographical units
      * @param skewX Rotation X
      * @param skewY Rotation Y
      * @param srid Srid value
-     * @param noDataValue NoData value for all bands. Null if it has not nodata
+     * @param noDataValue NoData value for all bands. Null if it has not nodata specified
      * @return WKBRasterWrapper instance
+     * @throws IOException
      */
     public static GeoRasterRenderedImage create(RenderedImage image, double scaleX,
             double scaleY, double ipX, double ipY, double skewX, double skewY,

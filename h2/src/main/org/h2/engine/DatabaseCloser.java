@@ -69,7 +69,8 @@ class DatabaseCloser extends Thread {
                     trace.error(e, "could not close the database");
                     // if this was successful, we ignore the exception
                     // otherwise not
-                } catch (RuntimeException e2) {
+                } catch (Throwable e2) {
+                    e.addSuppressed(e2);
                     throw e;
                 }
             }

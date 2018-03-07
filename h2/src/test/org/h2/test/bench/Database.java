@@ -436,7 +436,7 @@ class Database {
      * @param prep the prepared statement
      */
     void queryReadResult(PreparedStatement prep) throws SQLException {
-        ResultSet rs = prep.executeQuery();
+        ResultSet rs = query(prep);
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();
         while (rs.next()) {

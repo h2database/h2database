@@ -243,7 +243,7 @@ public class Shell extends Tool implements Runnable {
                         s = s.replace('\n', ' ').replace('\r', ' ');
                         println("#" + (1 + i) + ": " + s);
                     }
-                    if (history.size() > 0) {
+                    if (!history.isEmpty()) {
                         println("To re-run a statement, type the number and press and enter");
                     } else {
                         println("No history");

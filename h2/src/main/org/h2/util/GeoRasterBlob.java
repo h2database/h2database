@@ -7,7 +7,6 @@ package org.h2.util;
 
 import org.h2.api.GeoRaster;
 import org.h2.message.DbException;
-import org.h2.util.imageio.RenderedImageReader;
 import org.h2.util.imageio.WKBRasterReader;
 import org.h2.value.Value;
 
@@ -23,9 +22,9 @@ import java.io.InputStream;
 import java.util.Vector;
 
 /**
- * Cast a Value into GeoRaster object.
- * @author Nicolas Fortin
- * @author Erwan Bocher
+ * Cast a Value into a GeoRaster object.
+ * @author Nicolas Fortin, CNRS
+ * @author Erwan Bocher, CNRS
  */
 public class GeoRasterBlob implements GeoRaster {
 

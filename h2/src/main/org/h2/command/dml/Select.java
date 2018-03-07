@@ -44,19 +44,47 @@ import java.util.HashSet;
  */
 public class Select extends Query {
 
+    /**
+     * The main (top) table filter.
+     */
     TableFilter topTableFilter;
+
     private final ArrayList<TableFilter> filters = New.arrayList();
     private final ArrayList<TableFilter> topFilters = New.arrayList();
+
+    /**
+     * The column list, including synthetic columns (columns not shown in the
+     * result).
+     */
     ArrayList<Expression> expressions;
     private Expression[] expressionArray;
     private Expression having;
     private Expression condition;
-    int visibleColumnCount, distinctColumnCount;
+
+    /**
+     * The visible columns (the ones required in the result).
+     */
+    int visibleColumnCount;
+
+    private int distinctColumnCount;
     private ArrayList<SelectOrderBy> orderList;
     private ArrayList<Expression> group;
+
+    /**
+     * The indexes of the group-by columns.
+     */
     int[] groupIndex;
+
+    /**
+     * Whether a column in the expression list is part of a group-by.
+     */
     boolean[] groupByExpression;
+
+    /**
+     * The current group-by values.
+     */
     HashMap<Expression, Object> currentGroup;
+
     private int havingIndex;
     private boolean isGroupQuery, isGroupSortedQuery;
     private boolean isForUpdate, isForUpdateMvcc;
@@ -65,6 +93,10 @@ public class Select extends Query {
     private boolean isPrepared, checkInit;
     private boolean sortUsingIndex;
     private SortOrder sort;
+
+    /**
+     * The id of the current group.
+     */
     int currentGroupRowId;
 
     public Select(Session session) {
@@ -165,6 +197,13 @@ public class Select extends Query {
         return null;
     }
 
+    /**
+     * Create a row with the current values, for queries with group-sort.
+     *
+     * @param keyValues the key values
+     * @param columnCount the number of columns
+     * @return the row
+     */
     Value[] createGroupSortedRow(Value[] keyValues, int columnCount) {
         Value[] row = new Value[columnCount];
         for (int j = 0; groupIndex != null && j < groupIndex.length; j++) {
@@ -632,6 +671,9 @@ public class Select extends Query {
         return null;
     }
 
+    /**
+     * Reset the batch-join after the query result is closed.
+     */
     void resetJoinBatchAfterQuery() {
         JoinBatch jb = getJoinBatch();
         if (jb != null) {
@@ -695,8 +737,9 @@ public class Select extends Query {
             if (filter.isNaturalJoinColumn(c)) {
                 continue;
             }
+            String name = filter.getDerivedColumnName(c);
             ExpressionColumn ec = new ExpressionColumn(
-                    session.getDatabase(), null, alias, c.getName());
+                    session.getDatabase(), null, alias, name != null ? name : c.getName());
             expressions.add(index++, ec);
         }
         return index;
@@ -1004,26 +1047,10 @@ public class Select extends Query {
             Expression on = f.getJoinCondition();
             if (on != null) {
                 if (!on.isEverything(ExpressionVisitor.EVALUATABLE_VISITOR)) {
-                    if (session.getDatabase().getSettings().nestedJoins) {
-                        // need to check that all added are bound to a table
-                        on = on.optimize(session);
-                        if (!f.isJoinOuter() && !f.isJoinOuterIndirect()) {
-                            f.removeJoinCondition();
-                            addCondition(on);
-                        }
-                    } else {
-                        if (f.isJoinOuter()) {
-                            // this will check if all columns exist - it may or
-                            // may not throw an exception
-                            on = on.optimize(session);
-                            // it is not supported even if the columns exist
-                            throw DbException.get(
-                                    ErrorCode.UNSUPPORTED_OUTER_JOIN_CONDITION_1,
-                                    on.getSQL());
-                        }
+                    // need to check that all added are bound to a table
+                    on = on.optimize(session);
+                    if (!f.isJoinOuter() && !f.isJoinOuterIndirect()) {
                         f.removeJoinCondition();
-                        // need to check that all added are bound to a table
-                        on = on.optimize(session);
                         addCondition(on);
                     }
                 }
@@ -1445,7 +1472,7 @@ public class Select extends Query {
                     Value[] row = new Value[columnCount];
                     for (int i = 0; i < columnCount; i++) {
                         Expression expr = expressions.get(i);
-                        row[i] = expr.getValue(session);
+                        row[i] = expr.getValue(getSession());
                     }
                     return row;
                 }
@@ -1483,7 +1510,7 @@ public class Select extends Query {
                     for (int i = 0; i < groupIndex.length; i++) {
                         int idx = groupIndex[i];
                         Expression expr = expressions.get(idx);
-                        keyValues[i] = expr.getValue(session);
+                        keyValues[i] = expr.getValue(getSession());
                     }
 
                     Value[] row = null;
@@ -1500,7 +1527,7 @@ public class Select extends Query {
                     for (int i = 0; i < columnCount; i++) {
                         if (groupByExpression == null || !groupByExpression[i]) {
                             Expression expr = expressions.get(i);
-                            expr.updateAggregate(session);
+                            expr.updateAggregate(getSession());
                         }
                     }
                     if (row != null) {

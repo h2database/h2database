@@ -65,7 +65,7 @@ public class TestCompatibility extends TestBase {
         stat.execute("insert into s2.test(id, name) values(1, 'a')");
         stat.execute("insert into s2.test(id, name) values(1, 'b') " +
                 "on duplicate key update name = values(name)");
-        stat.execute("drop schema s2");
+        stat.execute("drop schema s2 cascade");
         c.close();
     }
 

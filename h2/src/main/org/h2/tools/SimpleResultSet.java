@@ -38,6 +38,7 @@ import org.h2.util.Bits;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
+import org.h2.util.Utils;
 import org.h2.value.DataType;
 
 /**
@@ -115,7 +116,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
      */
     public void addColumn(String name, int sqlType, String sqlTypeName,
             int precision, int scale) {
-        if (rows != null && rows.size() > 0) {
+        if (rows != null && !rows.isEmpty()) {
             throw new IllegalStateException(
                     "Cannot add a column after adding rows");
         }
@@ -498,7 +499,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
             }
             return n.longValue() != 0;
         }
-        return Boolean.parseBoolean(o.toString());
+        return Utils.parseBoolean(o.toString(), false, true);
     }
 
     /**

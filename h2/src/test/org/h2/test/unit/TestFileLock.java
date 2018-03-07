@@ -7,11 +7,11 @@ package org.h2.test.unit;
 
 import java.io.File;
 import java.sql.Connection;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
 import org.h2.store.FileLock;
+import org.h2.store.FileLockMethod;
 import org.h2.test.TestBase;
 
 /**
@@ -77,7 +77,7 @@ public class TestFileLock extends TestBase implements Runnable {
         f.setLastModified(System.currentTimeMillis() + 10000);
         FileLock lock = new FileLock(new TraceSystem(null), getFile(),
                 Constants.LOCK_SLEEP);
-        lock.lock(FileLock.LOCK_FILE);
+        lock.lock(FileLockMethod.FILE);
         lock.unlock();
     }
 
@@ -86,14 +86,14 @@ public class TestFileLock extends TestBase implements Runnable {
                 Constants.LOCK_SLEEP);
         FileLock lock2 = new FileLock(new TraceSystem(null), getFile(),
                 Constants.LOCK_SLEEP);
-        lock1.lock(FileLock.LOCK_FILE);
+        lock1.lock(FileLockMethod.FILE);
         createClassProxy(FileLock.class);
         assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, lock2).lock(
-                FileLock.LOCK_FILE);
+                FileLockMethod.FILE);
         lock1.unlock();
         lock2 = new FileLock(new TraceSystem(null), getFile(),
                 Constants.LOCK_SLEEP);
-        lock2.lock(FileLock.LOCK_FILE);
+        lock2.lock(FileLockMethod.FILE);
         lock2.unlock();
     }
 
@@ -123,8 +123,8 @@ public class TestFileLock extends TestBase implements Runnable {
         while (!stop) {
             lock = new FileLock(new TraceSystem(null), getFile(), 100);
             try {
-                lock.lock(allowSockets ? FileLock.LOCK_SOCKET
-                        : FileLock.LOCK_FILE);
+                lock.lock(allowSockets ? FileLockMethod.SOCKET
+                        : FileLockMethod.FILE);
                 base.trace(lock + " locked");
                 locks++;
                 if (locks > 1) {

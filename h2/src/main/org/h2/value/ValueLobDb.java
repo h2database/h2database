@@ -5,7 +5,6 @@
  */
 package org.h2.value;
 
-import com.vividsolutions.jts.geom.Envelope;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -16,8 +15,8 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-
 import org.h2.api.GeoRaster;
+
 import org.h2.engine.Constants;
 import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
@@ -29,10 +28,14 @@ import org.h2.store.FileStoreInputStream;
 import org.h2.store.FileStoreOutputStream;
 import org.h2.store.LobStorageFrontend;
 import org.h2.store.LobStorageInterface;
+import org.h2.store.RangeReader;
 import org.h2.store.fs.FileUtils;
-import org.h2.table.Column;
-import org.h2.util.*;
-
+import org.h2.util.GeoRasterBlob;
+import org.h2.util.IOUtils;
+import org.h2.util.MathUtils;
+import org.h2.util.RasterUtils;
+import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 /**
  * A implementation of the BLOB and CLOB data types.
  *
@@ -189,12 +192,10 @@ public class ValueLobDb extends Value implements Value.ValueClob,
      *
      * @param t         the new type
      * @param precision the precision
-     * @param mode      the mode
-     * @param column    the column
      * @return the converted value
      */
     @Override
-    public Value convertTo(int t, int precision, Mode mode, Column column) {
+    public Value convertTo(int t, int precision, Mode mode, Object column, String[] enumerators) {
         if (t == type) {
             return this;
         } else if (t == Value.CLOB) {
@@ -222,7 +223,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                 return ValueLobDb.createSmallLob(t, small);
             }
         }
-        return super.convertTo(t, precision, mode, column);
+        return super.convertTo(t, precision, mode, column, null);
     }
 
     @Override
@@ -566,8 +567,16 @@ public class ValueLobDb extends Value implements Value.ValueClob,
      * @param handler the data handler
      * @return the lob value
      */
-    public static ValueLobDb createTempClob(Reader in, long length,
-                                            DataHandler handler) {
+    public static ValueLobDb createTempClob(Reader in, long length,DataHandler handler){
+        if (length >= 0) {
+            // Otherwise BufferedReader may try to read more data than needed and that
+            // blocks the network level
+            try {
+                in = new RangeReader(in, 0, length);
+            } catch (IOException e) {
+                throw DbException.convert(e);
+            }
+        }
         BufferedReader reader;
         if (in instanceof BufferedReader) {
             reader = (BufferedReader) in;
@@ -603,18 +612,6 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         }
     }
 
-    /**
-     * Create a temporary BLOB value from a stream.
-     *
-     * @param in      the input stream
-     * @param length  the number of characters to read, or -1 for no limit
-     * @param handler the data handler
-     * @return the lob value
-     */
-    public static ValueLobDb createTempBlob(InputStream in, long length,
-                                            DataHandler handler) {
-        return createTempBlob(in, length, handler, Value.BLOB);
-    }
 
     /**
      * Create a temporary BLOB value from a stream.
@@ -622,10 +619,10 @@ public class ValueLobDb extends Value implements Value.ValueClob,
      * @param in      the input stream
      * @param length  the number of characters to read, or -1 for no limit
      * @param handler the data handler
+     * @param type type of blob
      * @return the lob value
      */
-    public static ValueLobDb createTempBlob(InputStream in, long length,
-                                            DataHandler handler, int type) {
+    public static ValueLobDb createTempBlob(InputStream in, long length, DataHandler handler, int type) {
         try {
             long remaining = Long.MAX_VALUE;
             boolean compress = handler.getLobCompressionAlgorithm(Value.BLOB) != null;
@@ -645,8 +642,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                 byte[] small = DataUtils.copyBytes(buff, len);
                 return ValueLobDb.createSmallLob(type, small, small.length);
             }
-            ValueLobDb lob = new ValueLobDb(handler, buff, len, in,
-                    remaining, type);
+            ValueLobDb lob = new ValueLobDb(handler, buff, len, in, remaining, type);
             return lob;
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);
@@ -706,7 +702,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                     throw DbException.convertIOException(e, null);
                 }
             } else {
-                lob = ValueLobDb.createTempBlob(getInputStream(), precision, handler);
+                lob = ValueLobDb.createTempBlob(getInputStream(), precision, handler, type);
             }
         }
         return lob;
@@ -804,9 +800,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
 
         @Override
         public Value copy(DataHandler database, int tableId) {
-            ValueLobDb val = (ValueLobDb) database.getLobStorage().createRaster
-                    (getInputStream
-                            (), -1);
+            ValueLobDb val = (ValueLobDb) database.getLobStorage().createRaster(getInputStream(), -1);
             return database.getLobStorage().copyLob(val, tableId, getPrecision());
         }
     }

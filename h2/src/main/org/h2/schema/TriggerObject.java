@@ -203,6 +203,7 @@ public class TriggerObject extends SchemaObjectBase {
      * times for each statement.
      *
      * @param session the session
+     * @param table the table
      * @param oldRow the old row
      * @param newRow the new row
      * @param beforeAction true if this method is called before the operation is
@@ -210,7 +211,7 @@ public class TriggerObject extends SchemaObjectBase {
      * @param rollback when the operation occurred within a rollback
      * @return true if no further action is required (for 'instead of' triggers)
      */
-    public boolean fireRow(Session session, Row oldRow, Row newRow,
+    public boolean fireRow(Session session, Table table, Row oldRow, Row newRow,
             boolean beforeAction, boolean rollback) {
         if (!rowBased || before != beforeAction) {
             return false;
@@ -260,6 +261,7 @@ public class TriggerObject extends SchemaObjectBase {
                     Object o = newList[i];
                     if (o != newListBackup[i]) {
                         Value v = DataType.convertToValue(session, o, Value.UNKNOWN);
+                        session.getGeneratedKeys().add(table.getColumn(i));
                         newRow.setValue(i, v);
                     }
                 }

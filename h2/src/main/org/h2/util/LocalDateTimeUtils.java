@@ -12,7 +12,6 @@ import java.lang.reflect.Method;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
@@ -61,58 +60,107 @@ public class LocalDateTimeUtils {
      */
     public static final Class<?> OFFSET_DATE_TIME;
 
-    // Class<java.time.ZoneOffset>
+    /**
+     * {@code Class<java.time.ZoneOffset>} or {@code null}.
+     */
     private static final Class<?> ZONE_OFFSET;
 
-    // java.time.LocalTime#ofNanoOfDay()
+    /**
+     * {@code java.time.LocalTime#ofNanoOfDay()} or {@code null}.
+     */
     private static final Method LOCAL_TIME_OF_NANO;
 
-    // java.time.LocalTime#toNanoOfDay()
+    /**
+     * {@code java.time.LocalTime#toNanoOfDay()} or {@code null}.
+     */
     private static final Method LOCAL_TIME_TO_NANO;
 
-    // java.time.LocalDate#of(int, int, int)
+    /**
+     * {@code java.time.LocalDate#of(int, int, int)} or {@code null}.
+     */
     private static final Method LOCAL_DATE_OF_YEAR_MONTH_DAY;
-    // java.time.LocalDate#parse(CharSequence)
+    /**
+     * {@code java.time.LocalDate#parse(CharSequence)} or {@code null}.
+     */
     private static final Method LOCAL_DATE_PARSE;
-    // java.time.LocalDate#getYear()
+    /**
+     * {@code java.time.LocalDate#getYear()} or {@code null}.
+     */
     private static final Method LOCAL_DATE_GET_YEAR;
-    // java.time.LocalDate#getMonthValue()
+    /**
+     * {@code java.time.LocalDate#getMonthValue()} or {@code null}.
+     */
     private static final Method LOCAL_DATE_GET_MONTH_VALUE;
-    // java.time.LocalDate#getDayOfMonth()
+    /**
+     * {@code java.time.LocalDate#getDayOfMonth()} or {@code null}.
+     */
     private static final Method LOCAL_DATE_GET_DAY_OF_MONTH;
-    // java.time.LocalDate#atStartOfDay()
+    /**
+     * {@code java.time.LocalDate#atStartOfDay()} or {@code null}.
+     */
     private static final Method LOCAL_DATE_AT_START_OF_DAY;
 
-    // java.sql.Timestamp.from(java.time.Instant)
-    private static final Method TIMESTAMP_FROM;
-    // java.sql.Timestamp.toInstant()
+    /**
+     * {@code java.time.Instant#getEpochSecond()} or {@code null}.
+     */
+    private static final Method INSTANT_GET_EPOCH_SECOND;
+    /**
+     * {@code java.time.Instant#getNano()} or {@code null}.
+     */
+    private static final Method INSTANT_GET_NANO;
+    /**
+     * {@code java.sql.Timestamp.toInstant()} or {@code null}.
+     */
     private static final Method TIMESTAMP_TO_INSTANT;
 
-    // java.time.LocalTime#parse(CharSequence)
+    /**
+     * {@code java.time.LocalTime#parse(CharSequence)} or {@code null}.
+     */
     private static final Method LOCAL_TIME_PARSE;
 
-    // java.time.LocalDateTime#plusNanos(long)
+    /**
+     * {@code java.time.LocalDateTime#plusNanos(long)} or {@code null}.
+     */
     private static final Method LOCAL_DATE_TIME_PLUS_NANOS;
-    // java.time.LocalDateTime#toLocalDate()
+    /**
+     * {@code java.time.LocalDateTime#toLocalDate()} or {@code null}.
+     */
     private static final Method LOCAL_DATE_TIME_TO_LOCAL_DATE;
-    // java.time.LocalDateTime#toLocalTime()
+    /**
+     * {@code java.time.LocalDateTime#toLocalTime()} or {@code null}.
+     */
     private static final Method LOCAL_DATE_TIME_TO_LOCAL_TIME;
-    // java.time.LocalDateTime#parse(CharSequence)
+    /**
+     * {@code java.time.LocalDateTime#parse(CharSequence)} or {@code null}.
+     */
     private static final Method LOCAL_DATE_TIME_PARSE;
 
-    // java.time.ZoneOffset#ofTotalSeconds(int)
+    /**
+     * {@code java.time.ZoneOffset#ofTotalSeconds(int)} or {@code null}.
+     */
     private static final Method ZONE_OFFSET_OF_TOTAL_SECONDS;
 
-    // java.time.OffsetDateTime#of(LocalDateTime, ZoneOffset)
+    /**
+     * {@code java.time.OffsetDateTime#of(LocalDateTime, ZoneOffset)} or
+     * {@code null}.
+     */
     private static final Method OFFSET_DATE_TIME_OF_LOCAL_DATE_TIME_ZONE_OFFSET;
-    // java.time.OffsetDateTime#parse(CharSequence)
+    /**
+     * {@code java.time.OffsetDateTime#parse(CharSequence)} or {@code null}.
+     */
     private static final Method OFFSET_DATE_TIME_PARSE;
-    // java.time.OffsetDateTime#toLocalDateTime()
+    /**
+     * {@code java.time.OffsetDateTime#toLocalDateTime()} or {@code null}.
+     */
     private static final Method OFFSET_DATE_TIME_TO_LOCAL_DATE_TIME;
-    // java.time.OffsetDateTime#getOffset()
+    /**
+     * {@code java.time.OffsetDateTime#getOffset()} or {@code null}.
+     */
     private static final Method OFFSET_DATE_TIME_GET_OFFSET;
 
-    // java.time.ZoneOffset#getTotalSeconds()
+    /**
+     * {@code java.time.ZoneOffset#getTotalSeconds()} or {@code null}.
+     */
     private static final Method ZONE_OFFSET_GET_TOTAL_SECONDS;
 
     private static final boolean IS_JAVA8_DATE_API_PRESENT;
@@ -142,7 +190,8 @@ public class LocalDateTimeUtils {
             LOCAL_DATE_GET_DAY_OF_MONTH = getMethod(LOCAL_DATE, "getDayOfMonth");
             LOCAL_DATE_AT_START_OF_DAY = getMethod(LOCAL_DATE, "atStartOfDay");
 
-            TIMESTAMP_FROM = getMethod(Timestamp.class, "from", INSTANT);
+            INSTANT_GET_EPOCH_SECOND = getMethod(INSTANT, "getEpochSecond");
+            INSTANT_GET_NANO = getMethod(INSTANT, "getNano");
             TIMESTAMP_TO_INSTANT = getMethod(Timestamp.class, "toInstant");
 
             LOCAL_TIME_PARSE = getMethod(LOCAL_TIME, "parse", CharSequence.class);
@@ -170,7 +219,8 @@ public class LocalDateTimeUtils {
             LOCAL_DATE_GET_MONTH_VALUE = null;
             LOCAL_DATE_GET_DAY_OF_MONTH = null;
             LOCAL_DATE_AT_START_OF_DAY = null;
-            TIMESTAMP_FROM = null;
+            INSTANT_GET_EPOCH_SECOND = null;
+            INSTANT_GET_NANO = null;
             TIMESTAMP_TO_INSTANT = null;
             LOCAL_TIME_PARSE = null;
             LOCAL_DATE_TIME_PLUS_NANOS = null;
@@ -441,7 +491,16 @@ public class LocalDateTimeUtils {
      */
     public static Value instantToValue(Object instant) {
         try {
-            return ValueTimestamp.get((Timestamp) TIMESTAMP_FROM.invoke(null, instant));
+            long epochSecond = (long) INSTANT_GET_EPOCH_SECOND.invoke(instant);
+            int nano = (int) INSTANT_GET_NANO.invoke(instant);
+            long absoluteDay = epochSecond / 86_400;
+            // Round toward negative infinity
+            if (epochSecond < 0 && (absoluteDay * 86_400 != epochSecond)) {
+                absoluteDay--;
+            }
+            long timeNanos = (epochSecond - absoluteDay * 86_400) * 1_000_000_000 + nano;
+            return ValueTimestampTimeZone.fromDateValueAndNanos(
+                    DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay), timeNanos, (short) 0);
         } catch (IllegalAccessException e) {
             throw DbException.convert(e);
         } catch (InvocationTargetException e) {
@@ -499,8 +558,15 @@ public class LocalDateTimeUtils {
         int year = DateTimeUtils.yearFromDateValue(dateValue);
         int month = DateTimeUtils.monthFromDateValue(dateValue);
         int day = DateTimeUtils.dayFromDateValue(dateValue);
-
-        return LOCAL_DATE_OF_YEAR_MONTH_DAY.invoke(null, year, month, day);
+        try {
+            return LOCAL_DATE_OF_YEAR_MONTH_DAY.invoke(null, year, month, day);
+        } catch (InvocationTargetException e) {
+            if (year <= 1500 && (year & 3) == 0 && month == 2 && day == 29) {
+                // If proleptic Gregorian doesn't have such date use the next day
+                return LOCAL_DATE_OF_YEAR_MONTH_DAY.invoke(null, year, 3, 1);
+            }
+            throw e;
+        }
     }
 
     private static Object localDateTimeFromDateNanos(long dateValue, long timeNanos)

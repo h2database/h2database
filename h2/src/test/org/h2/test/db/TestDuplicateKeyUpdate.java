@@ -109,12 +109,14 @@ public class TestDuplicateKeyUpdate extends TestBase {
         assertEquals("UPDATE", rs.getNString(1));
 
         stat.execute("INSERT INTO table_test2 (a_text, some_text, updatable_text ) " +
-                "VALUES ('b', 'b', 'test') " +
+                "VALUES ('b', 'b', 'test'), ('c', 'c', 'test2') " +
                 "ON DUPLICATE KEY UPDATE updatable_text=values(updatable_text)");
         rs = stat.executeQuery("SELECT updatable_text " +
-                "FROM table_test2 where a_text = 'b'");
+                "FROM table_test2 where a_text in ('b', 'c') order by a_text");
         rs.next();
         assertEquals("test", rs.getNString(1));
+        rs.next();
+        assertEquals("test2", rs.getNString(1));
     }
 
     private void testDuplicateCache(Connection conn) throws SQLException {

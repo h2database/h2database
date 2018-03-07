@@ -324,6 +324,7 @@ It is not possible to enable or disable this setting while the database is alrea
 <p>
 If MVCC is enabled, changing the lock mode (<code>LOCK_MODE</code>) has no effect.
 </p>
+<p>
 The MVCC mode is enabled by default in version 1.4.x,
 with the default MVStore storage engine.
 MVCC is disabled by default when using the PageStore storage engine
@@ -335,6 +336,7 @@ with the PageStore storage engine, it can not be used at the same time as
 <code>MULTI_THREADED=TRUE</code>;
 the complete undo log (the list of uncommitted changes) must fit in memory when using multi-version concurrency.
 The setting <code>MAX_MEMORY_UNDO</code> has no effect.
+</p>
 
 <h2 id="clustering">Clustering / High Availability</h2>
 <p>
@@ -1378,7 +1380,7 @@ Remote TLS connections are supported using the Java Secure Socket Extension
 <p>
 To use your own keystore, set the system properties <code>javax.net.ssl.keyStore</code> and
 <code>javax.net.ssl.keyStorePassword</code> before starting the H2 server and client.
-See also <a href="http://java.sun.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html#CustomizingStores">
+See also <a href="https://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html#CustomizingStores">
 Customizing the Default Key and Trust Stores, Store Types, and Store Passwords</a>
 for more information.
 </p>
@@ -1820,7 +1822,7 @@ OR X = 2 OR X = 2 OR X = 2 OR X = 2 OR X = 2
     <tr>
         <td>SSL/TLS</td>
         <td>Secure Sockets Layer / Transport Layer Security. See also:
-        <a href="http://java.sun.com/products/jsse/">Java Secure Socket
+        <a href="https://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html">Java Secure Socket
         Extension (JSSE)</a></td>
     </tr>
 </table>

@@ -398,7 +398,6 @@ public class TestCompatibility extends TestBase {
         // check the MySQL index dropping syntax
         stat.execute("ALTER TABLE TEST_COMMENT_ENGINE ADD CONSTRAINT CommentUnique UNIQUE (SOME_ITEM_ID)");
         stat.execute("ALTER TABLE TEST_COMMENT_ENGINE DROP INDEX CommentUnique");
-        stat.execute("DROP INDEX SOME_ITEM_ID ON TEST_COMMENT_ENGINE");
         stat.execute("CREATE INDEX IDX_ATTACHMENT_ID ON TEST_COMMENT_ENGINE (ATTACHMENT_ID)");
         stat.execute("DROP INDEX IDX_ATTACHMENT_ID ON TEST_COMMENT_ENGINE");
 

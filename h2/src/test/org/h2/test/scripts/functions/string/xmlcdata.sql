@@ -4,14 +4,7 @@
 --
 
 CALL XMLCDATA('<characters>');
-> '<![CDATA[<characters>]]>'
-> --------------------------
-> <![CDATA[<characters>]]>
-> rows: 1
+>> <![CDATA[<characters>]]>
 
 CALL XMLCDATA('special text ]]>');
-> 'special text ]]&gt;'
-> ---------------------
-> special text ]]&gt;
-> rows: 1
-
+>> special text ]]&gt;

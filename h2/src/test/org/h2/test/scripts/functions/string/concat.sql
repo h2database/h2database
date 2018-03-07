@@ -13,10 +13,5 @@ select concat(null, null) en, concat(null, 'a') ea, concat('b', null) eb, concat
 > null a  b  abc
 > rows: 1
 
-SELECT CONCAT('a', 'b', 'c', 'd') AS test;
-> TEST
-> ----
-> abcd
-> rows: 1
-
-
+SELECT CONCAT('a', 'b', 'c', 'd');
+>> abcd

@@ -41,10 +41,7 @@ INSERT INTO TEST VALUES (TIMESTAMP '1999-12-31 08:00:00');
 > update count: 1
 
 SELECT TIMESTAMP FROM TEST;
-> TIMESTAMP
-> -------------------
-> 1999-12-31 08:00:00
-> rows: 1
+>> 1999-12-31 08:00:00
 
 DROP TABLE TEST;
 > ok
@@ -84,9 +81,7 @@ INSERT INTO TEST(T0) VALUES ('2000-01-01 23:59:59.999999999');
 > update count: 1
 
 SELECT T0 FROM TEST;
-> T0
-> -------------------
-> 2000-01-02 00:00:00
+>> 2000-01-02 00:00:00
 
 DROP TABLE TEST;
 > ok

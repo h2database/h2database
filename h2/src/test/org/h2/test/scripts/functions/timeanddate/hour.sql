@@ -30,3 +30,6 @@ select hour(ts) h from test;
 
 drop table test;
 > ok
+
+select hour('2001-02-03 14:15:16');
+>> 14

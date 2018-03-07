@@ -188,3 +188,27 @@ SELECT DATEDIFF('TIMEZONE_HOUR', TIMESTAMP WITH TIME ZONE '2010-01-01 10:00:00+0
 SELECT DATEDIFF('TIMEZONE_MINUTE', TIMESTAMP WITH TIME ZONE '2010-01-01 10:00:00+01:15',
     TIMESTAMP WITH TIME ZONE '2012-02-02 12:00:00+02');
 >> 45
+
+select datediff('HOUR', timestamp '2007-01-06 10:00:00Z', '2007-01-06 10:00:00Z');
+>> 0
+
+select datediff('HOUR', timestamp '1234-05-06 10:00:00+01:00', '1234-05-06 10:00:00+02:00');
+>> -1
+
+select datediff('HOUR', timestamp '1234-05-06 10:00:00+01:00', '1234-05-06 10:00:00-02:00');
+>> 3
+
+select timestampdiff(month, '2003-02-01','2003-05-01');
+>> 3
+
+select timestampdiff(YEAR,'2002-05-01','2001-01-01');
+>> -1
+
+select timestampdiff(YEAR,'2017-01-01','2016-12-31 23:59:59');
+>> -1
+
+select timestampdiff(YEAR,'2017-01-01','2017-12-31 23:59:59');
+>> 0
+
+select timestampdiff(MINUTE,'2003-02-01','2003-05-01 12:05:55');
+>> 128885

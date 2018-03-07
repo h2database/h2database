@@ -67,3 +67,12 @@ SELECT EXTRACT(TIMEZONE_MINUTE FROM TIMESTAMP WITH TIME ZONE '2010-01-02 5:00:00
 
 SELECT EXTRACT(TIMEZONE_MINUTE FROM TIMESTAMP WITH TIME ZONE '2010-01-02 5:00:00-08:30');
 >> -30
+
+select extract(hour from timestamp '2001-02-03 14:15:16');
+>> 14
+
+select extract(hour from '2001-02-03 14:15:16');
+>> 14
+
+select extract(week from timestamp '2001-02-03 14:15:16');
+>> 5

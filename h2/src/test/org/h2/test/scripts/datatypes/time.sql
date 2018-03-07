@@ -80,9 +80,7 @@ INSERT INTO TEST(T0) VALUES ('23:59:59.999999999');
 > update count: 1
 
 SELECT T0 FROM TEST;
-> T0
-> ------------------
-> 23:59:59.999999999
+>> 23:59:59.999999999
 
 DROP TABLE TEST;
 > ok

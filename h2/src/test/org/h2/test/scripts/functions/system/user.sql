@@ -15,8 +15,5 @@ select user() x_sa, current_user() x_sa2 from test;
 > SA   SA
 > rows: 1
 
-select current_user() x_sa from test;
-> X_SA
-> ----
-> SA
-> rows: 1
+select current_user() from test;
+>> SA

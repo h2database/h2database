@@ -90,13 +90,13 @@ public class GeoRasterRenderedImage implements GeoRaster {
     /**
      * Wrap a Raster in order to make a WKBRaster of it.
      * @param image Raster
-     * @param scaleX Pixel x scale in current projection unit
-     * @param scaleY Pixel y scale in current projection unit
-     * @param ipX Insertion point X
-     * @param ipY Insertion point Y
-     * @param skewX Rotation X
-     * @param skewY Rotation Y
-     * @param srid Srid value
+     * @param scaleX Pixel width in geographical units 
+     * @param scaleY Pixel height in geographical units
+     * @param ipX X ordinate of upper-left  pixel's upper-left corner in geographical units
+     * @param ipY Y ordinate of upper-left pixel's upper-left corner in geographical units
+     * @param skewX Rotation about X-axis
+     * @param skewY Rotation about Y-axis
+     * @param srid Spatial reference identifier
      * @return WKBRasterWrapper instance
      * @throws IOException
      */
@@ -109,13 +109,13 @@ public class GeoRasterRenderedImage implements GeoRaster {
     /**
      * Wrap a Raster in order to make a WKBRaster of it.
      * @param image Raster
-     * @param scaleX Pixel x scale in current projection unit
-     * @param scaleY Pixel y scale in current projection unit
+     * @param scaleX Pixel width in geographical units 
+     * @param scaleY Pixel height in geographical units
      * @param ipX X ordinate of upper-left  pixel's upper-left corner in geographical units
      * @param ipY Y ordinate of upper-left pixel's upper-left corner in geographical units
-     * @param skewX Rotation X
-     * @param skewY Rotation Y
-     * @param srid Srid value
+     * @param skewX Rotation about X-axis
+     * @param skewY Rotation about Y-axis
+     * @param srid Spatial reference identifier
      * @param noDataValue NoData value for all bands. Null if it has not nodata specified
      * @return WKBRasterWrapper instance
      * @throws IOException

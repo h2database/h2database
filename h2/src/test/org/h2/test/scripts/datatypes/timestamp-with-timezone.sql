@@ -91,9 +91,7 @@ INSERT INTO TEST(T0) VALUES ('2000-01-01 23:59:59.999999999Z');
 > update count: 1
 
 SELECT T0 FROM TEST;
-> T0
-> ----------------------
-> 2000-01-02 00:00:00+00
+>> 2000-01-02 00:00:00+00
 
 DROP TABLE TEST;
 > ok

@@ -15,12 +15,5 @@ select rand(1) e, random() f from test;
 > 0.7308781907032909 0.41008081149220166
 > rows: 1
 
-select rand() e from test;
-> E
-> -------------------
-> 0.20771484130971707
-> rows: 1
-
-
-
-
+select rand() from test;
+>> 0.20771484130971707

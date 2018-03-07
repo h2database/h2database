@@ -67,9 +67,9 @@ public class RasterUtils {
     public static Value makeEmptyRaster(RasterMetaData metaSource) throws IOException {
         RasterMetaData meta =
                 new RasterMetaData(metaSource.width, metaSource.height,
+                        metaSource.srid,
                         metaSource.scaleX, metaSource.scaleY, metaSource.ipX,
-                        metaSource.ipY, metaSource.skewX, metaSource.skewY,
-                        metaSource.srid);
+                        metaSource.ipY, metaSource.skewX, metaSource.skewY);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         meta.writeRasterHeader(out, ByteOrder.BIG_ENDIAN);
         return ValueLobDb.createSmallLob(Value.RASTER, out.toByteArray());
@@ -79,7 +79,9 @@ public class RasterUtils {
      * Convert a raster into an Image using ImageIO ImageWriter.
      * @param value Raster
      * @param suffix Image suffix ex:png
+     * @param session of the current connection
      * @return Image stream
+     * @throws IOException
      */
     public static Value asImage(Value value, String suffix,
             Session session) throws
@@ -194,19 +196,19 @@ public class RasterUtils {
     /**
      * Convert an Image stream into a Raster
      * @param value Image stream
-     * @param upperLeftX Raster position X
-     * @param upperLeftY Raster position Y
-     * @param scaleX Pixel size X
-     * @param scaleY Pixel size Y
-     * @param skewX Pixel rotation X
-     * @param skewY Pixel rotation Y
-     * @param srid Raster coordinates projection system
+     * @param scaleX Pixel width in geographical units
+     * @param scaleY Pixel height in geographical units     * 
+     * @param ipX X ordinate of upper-left  pixel's upper-left corner in geographical units
+     * @param ipY Y ordinate of upper-left pixel's upper-left corner in geographical units
+     * @param skewX Rotation about X-axis
+     * @param skewY Rotation about Y-axis
+     * @param srid Spatial reference identifier
      * @param session Session or null
      * @return The raster value
      * @throws IOException
      */
-    public static Value getFromImage(Value value, double upperLeftX,
-            double upperLeftY, double scaleX, double scaleY, double skewX,
+    public static Value getFromImage(Value value, double scaleX, double scaleY,double ipX,
+            double ipY,  double skewX,
             double skewY, int srid, Session session)
             throws IOException {
         ImageInputStream imageInputStream = new ImageInputStreamWrapper(
@@ -223,14 +225,14 @@ public class RasterUtils {
             if (session != null) {
                 return session.getDataHandler().getLobStorage().createRaster
                         (GeoRasterRenderedImage
-                                .create(image, scaleX, scaleY, upperLeftX,
-                                        upperLeftY, skewX, skewY, srid,
+                                .create(image, scaleX, scaleY, ipX,
+                                        ipY, skewX, skewY, srid,
                                         Double.NaN).asWKBRaster(), -1);
             } else {
                 return ValueLobDb.createSmallLob(Value.RASTER,
                         IOUtils.readBytesAndClose(GeoRasterRenderedImage
-                                .create(image, scaleX, scaleY, upperLeftX,
-                                        upperLeftY, skewX, skewY, srid,
+                                .create(image, scaleX, scaleY, ipX,
+                                        ipY, skewX, skewY, srid,
                                         Double.NaN).asWKBRaster(), -1));
             }
         }
@@ -295,6 +297,9 @@ public class RasterUtils {
         }
     }
 
+    /**
+     * Metadata of a band
+     */
     public static class RasterBandMetaData {
         public static final int BANDTYPE_PIXTYPE_MASK = 0x0F;
         public static final int BANDTYPE_FLAG_OFFDB = (1 << 7);
@@ -313,25 +318,37 @@ public class RasterUtils {
         /**
          * @param noDataValue Pixel value that represent nodata
          * @param pixelType Pixel type
-         * @param hasNoData True if it has nodata
+         * @param hasNodataValue If true, stored nodata value is a true nodata value. 
+         * Otherwise the value stored as a nodata value should be ignored.
          * @param offset Position of the first byte of this band
          */
         public RasterBandMetaData(double noDataValue, PixelType pixelType,
-                boolean hasNoData, long offset) {
+                boolean hasNodataValue, long offset) {
             this.noDataValue = noDataValue;
             this.pixelType = pixelType;
-            this.hasNoData = hasNoData;
+            this.hasNoData = hasNodataValue;
             this.offDB = false;
             this.externalBandId = -1;
             this.externalPath = "";
             setOffset(offset);
         }
 
+        /**
+         * 
+         * @param noDataValue Pixel value that represent nodata
+         * @param pixelType Pixel type
+         * @param hasNodataValue If true, stored nodata value is a true nodata value. 
+         * Otherwise the value stored as a nodata value should be ignored.
+         * @param externalBandId band id to use from the set available 
+         * in the external file 
+         * @param externalPath isOffline flag set, null-terminated path to data file         * 
+         * @param offset Position of the first byte of this band
+         */
         public RasterBandMetaData(double noDataValue, PixelType pixelType,
-                boolean hasNoData, int externalBandId, String externalPath,
+                boolean hasNodataValue, int externalBandId, String externalPath,
                 long offset) {
             this.pixelType = pixelType;
-            this.hasNoData = hasNoData;
+            this.hasNoData = hasNodataValue;
             this.noDataValue = noDataValue;
             this.externalBandId = externalBandId;
             this.externalPath = externalPath;
@@ -339,7 +356,9 @@ public class RasterUtils {
             setOffset(offset);
         }
 
-        /**
+        /** Return the bytes length of the band
+         * @param imageWith Number of pixel columns
+         * @param imageHeight Number of pixel rows
          * @return Band Bytes length
          */
         public long getLength(int imageWith, int imageHeight) {
@@ -352,6 +371,10 @@ public class RasterUtils {
             }
         }
 
+        /**
+         * Set the position of the first byte of this band
+         * @param offset 
+         */
         public void setOffset(long offset) {
             this.offset = offset;
             if(offDB) {
@@ -381,32 +404,92 @@ public class RasterUtils {
         public final int height;
         public final RasterBandMetaData[] bands;
 
-        public RasterMetaData(int width, int height, double scaleX,
+    
+        /**
+         * Build a RasterMetaData
+         * 
+         * @param width Number of pixel columns
+         * @param height Number of pixel rows         * 
+         * @param srid Spatial reference identifier 
+         * @param scaleX Pixel width in geographical units 
+         * @param scaleY Pixel height in geographical units
+         * @param ipX X ordinate of upper-left  pixel's upper-left corner in geographical units
+         * @param ipY Y ordinate of upper-left pixel's upper-left corner in geographical units
+         * @param skewX Rotation about X-axis
+         * @param skewY Rotation about Y-axis
+         */
+        public RasterMetaData(int width, int height,  int srid, double scaleX,
                 double scaleY, double ipX, double ipY, double skewX,
-                double skewY, int srid) {
-            this(LAST_WKB_VERSION, 0, scaleX, scaleY, ipX, ipY, skewX, skewY,
-                    srid, width, height, new RasterBandMetaData[0]);
+                double skewY) {
+            this(LAST_WKB_VERSION, 0, width,  height,srid, scaleX, scaleY, ipX, ipY, skewX, skewY,
+                     new RasterBandMetaData[0]);
         }
 
-        public RasterMetaData(int version, int numBands, double scaleX,
+        /**
+         * Build a RasterMetaData
+         * 
+         * @param version Format version (0 for this structure)       * 
+         * @param width Number of pixel columns
+         * @param height Number of pixel rows 
+         * @param numBands Number of bands         * 
+         * @param srid Spatial reference identifier 
+         * @param scaleX Pixel width in geographical units 
+         * @param scaleY Pixel height in geographical units
+         * @param ipX X ordinate of upper-left  pixel's upper-left corner in geographical units
+         * @param ipY Y ordinate of upper-left pixel's upper-left corner in geographical units
+         * @param skewX Rotation about X-axis
+         * @param skewY Rotation about Y-axis
+         */
+        public RasterMetaData(int version, int numBands, int width, int height, int srid,double scaleX,
                 double scaleY, double ipX, double ipY, double skewX,
-                double skewY, int srid, int width, int height) {
-            this(version, numBands, scaleX, scaleY, ipX, ipY, skewX, skewY,
-                    srid, width, height, new RasterBandMetaData[0]);
+                double skewY) {
+            this(version, numBands, width, height, srid,scaleX, scaleY, ipX, ipY, skewX, skewY,
+                     new RasterBandMetaData[0]);
         }
 
-        public RasterMetaData(int version, int numBands, double scaleX,
+        /**
+         * Build a RasterMetaData
+         * 
+         * @param version Format version (0 for this structure)       * 
+         * @param width Number of pixel columns
+         * @param height Number of pixel rows 
+         * @param numBands Number of bands         * 
+         * @param srid Spatial reference identifier 
+         * @param scaleX Pixel width in geographical units 
+         * @param scaleY Pixel height in geographical units
+         * @param ipX X ordinate of upper-left  pixel's upper-left corner in geographical units
+         * @param ipY Y ordinate of upper-left pixel's upper-left corner in geographical units
+         * @param skewX Rotation about X-axis
+         * @param skewY Rotation about Y-axis
+         * @param bands RasterBandMetaData
+         */
+        public RasterMetaData(int version, int numBands, int width, int height,int srid,double scaleX,
                 double scaleY, double ipX, double ipY, double skewX,
-                double skewY, int srid, int width, int height,
-                RasterBandMetaData[] bands) {
-            this(ByteOrder.BIG_ENDIAN, version, numBands, scaleX, scaleY,
-                    ipX, ipY, skewX, skewY, srid, width, height, bands);
+                double skewY,  RasterBandMetaData[] bands) {
+            this(ByteOrder.BIG_ENDIAN, version, numBands, width, height, srid,scaleX, scaleY,
+                    ipX, ipY, skewX, skewY,  bands); 
         }
 
+        /**
+         * Build a RasterMetaData
+         * 
+         * @param byteOrder 1:ndr/little endian 0:xdr/big endian 
+         * @param version Format version (0 for this structure)       * 
+         * @param width Number of pixel columns
+         * @param height Number of pixel rows 
+         * @param numBands Number of bands         * 
+         * @param srid Spatial reference identifier 
+         * @param scaleX Pixel width in geographical units 
+         * @param scaleY Pixel height in geographical units
+         * @param ipX X ordinate of upper-left  pixel's upper-left corner in geographical units
+         * @param ipY Y ordinate of upper-left pixel's upper-left corner in geographical units
+         * @param skewX Rotation about X-axis
+         * @param skewY Rotation about Y-axis
+         * @param bands RasterBandMetaData
+         */
         public RasterMetaData(ByteOrder byteOrder, int version, int numBands,
-                double scaleX, double scaleY, double ipX, double ipY,
-                double skewX, double skewY, int srid, int width, int height,
-                RasterBandMetaData[] bands) {
+                int width, int height,int srid,double scaleX, double scaleY, double ipX, double ipY,
+                double skewX, double skewY, RasterBandMetaData[] bands) {
             this.endian = byteOrder;
             this.version = version;
             this.numBands = numBands;
@@ -663,8 +746,8 @@ public class RasterUtils {
                     }
                 }
             }
-            return new RasterMetaData(endian, version, numBands, scaleX, scaleY,
-                    ipX, ipY, skewX, skewY, srid, width, height, bands);
+            return new RasterMetaData(endian, version, numBands,width, height, srid,  scaleX, scaleY,
+                    ipX, ipY, skewX, skewY, bands);
         }
 
         public void writeRasterHeader(OutputStream stream, ByteOrder endian)

@@ -206,8 +206,7 @@ public class TestGeoRaster extends TestBase {
 
     public void testEmptyGeoRaster() throws Exception {
         RasterUtils.RasterMetaData meta = new RasterUtils.RasterMetaData
-                (RasterUtils.LAST_WKB_VERSION,0, 2, 3, 0.5, 0.5, 0, 0, 0, 10,
-                        20);
+                (RasterUtils.LAST_WKB_VERSION,0, 10,20,0, 2, 3, 0.5, 0.5, 0, 0);
         // POLYGON((0.5 0.5,0.5 60.5,20.5 60.5,20.5 0.5,0.5 0.5))
         Envelope env = meta.getEnvelope();
         assertEquals(0.5, env.getMinX());
@@ -270,8 +269,8 @@ public class TestGeoRaster extends TestBase {
     private void testLittleEndian() throws IOException {
         // Write as little endian
         RasterUtils.RasterMetaData testRasterLittleEndian = new RasterUtils.RasterMetaData
-                (RasterUtils.LAST_WKB_VERSION,0, 2, 3, 0.5, 0.5, 0, 0, 0, 10,
-                        20);
+                (RasterUtils.LAST_WKB_VERSION,0,10,
+                        20, 0, 2, 3, 0.5, 0.5, 0, 0 );
         ByteArrayOutputStream byteArrayOutputStream =
                 new ByteArrayOutputStream();
         testRasterLittleEndian.writeRasterHeader(byteArrayOutputStream,

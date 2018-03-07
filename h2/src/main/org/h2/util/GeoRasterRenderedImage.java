@@ -79,11 +79,10 @@ public class GeoRasterRenderedImage implements GeoRaster {
             bands[idBand] = band;
             offset += band.getLength(image.getWidth(), image.getHeight());
         }
-        RasterUtils.RasterMetaData fixedMetaData = new RasterUtils
-                .RasterMetaData(RasterUtils.LAST_WKB_VERSION, metaData.bands
-                .length,metaData.scaleX, metaData.scaleY, metaData.ipX,
-                metaData.ipY, metaData.skewX, metaData.skewY, metaData.srid,
-                image.getWidth(), image.getHeight(), bands);
+        RasterUtils.RasterMetaData fixedMetaData = new RasterUtils.RasterMetaData(RasterUtils.LAST_WKB_VERSION, metaData.bands.length, image.getWidth(), image.getHeight(),
+                metaData.srid, metaData.scaleX, metaData.scaleY, metaData.ipX,
+                metaData.ipY, metaData.skewX, metaData.skewY,
+                bands);
         return new GeoRasterRenderedImage(image, fixedMetaData);
     }
 
@@ -184,10 +183,11 @@ public class GeoRasterRenderedImage implements GeoRaster {
                     pixelType, noDataValue != null, offset);
             offset += bands[idBand].getLength(image.getWidth(), image.getHeight());
         }
-        RasterUtils.RasterMetaData rasterMetaData =
-                new RasterUtils.RasterMetaData(RasterUtils.LAST_WKB_VERSION,
-                        bands.length, scaleX, scaleY, ipX, ipY, skewX,
-                        skewY, srid, image.getWidth(), image.getHeight(),
+        RasterUtils.RasterMetaData rasterMetaData
+                = new RasterUtils.RasterMetaData(RasterUtils.LAST_WKB_VERSION,
+                        bands.length, image.getWidth(), image.getHeight(), srid,
+                        scaleX, scaleY, ipX, ipY, skewX,
+                        skewY,
                         bands);
         return new GeoRasterRenderedImage(image, rasterMetaData);
     }

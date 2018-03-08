@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Time;
 import java.text.DateFormatSymbols;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
@@ -30,6 +31,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
+import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.schema.Schema;
@@ -1496,7 +1498,39 @@ public class Function extends Expression implements FunctionCall {
             result = ValueLong.get(datediff(v0.getString(), v1, v2));
             break;
         case DATE_TRUNC:   
-            result = ValueTimestamp.fromDateValueAndNanos(((ValueTimestamp) v1).getDateValue(), 0);
+            // Retrieve the field value (e.g. 'day', 'microseconds', etc.)
+            String fieldValue = v0.getString().toLowerCase();
+
+            long[] fieldDateAndTime = DateTimeUtils.dateAndTimeFromValue(v1);
+            long fieldDateValue = fieldDateAndTime[0];
+
+            if (fieldValue.equals("day")) {
+
+                // Case where we truncate the date to the day if the value is of
+                // type time e.g. '10:00:00'
+                if (v1 instanceof ValueTime) {
+
+                    result = v1.subtract(v1);
+
+                } else if (v1 instanceof ValueDate) {
+
+                    result = v1;
+
+                } else if (v1 instanceof ValueTimestampTimeZone) {
+
+                    ValueTimestampTimeZone v = (ValueTimestampTimeZone) v1;
+                    result = ValueTimestampTimeZone.fromDateValueAndNanos(v.getDateValue(), 0,
+                            v.getTimeZoneOffsetMins());
+
+                } else {
+
+                    result = ValueTimestamp.fromDateValueAndNanos(fieldDateValue, 0);
+                }
+
+            } else {
+
+                throw DbException.getUnsupportedException(v0.getString());
+            }
             break;
         case EXTRACT: {
             int field = getDatePart(v0.getString());

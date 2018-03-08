@@ -1563,7 +1563,7 @@ The current value of the settings can be read in the table
 </p>
 <p>
 For a complete list of settings, see
-<a href="../javadoc/org/h2/engine/SysProperties.html">SysProperties</a>.
+<a href="http://www.h2database.com/javadoc/org/h2/engine/SysProperties.html">SysProperties</a>.
 </p>
 
 <h2 id="server_bind_address">Setting the Server Bind Address</h2>
@@ -1675,7 +1675,8 @@ Java objects serialization is enabled by default for columns of type <code>OTHER
 To disable this feature set the system property <code>h2.serializeJavaObject=false</code> (default: true).
 </p>
 <p>
-Serialization and deserialization of java objects is customizable both at system level and at database level providing a <a href="../javadoc/org/h2/api/JavaObjectSerializer.html">JavaObjectSerializer</a> implementation:
+Serialization and deserialization of java objects is customizable both at system level and at database level providing a
+<a href="http://www.h2database.com/javadoc/org/h2/api/JavaObjectSerializer.html">JavaObjectSerializer</a> implementation:
 <ul>
 <li>
 At system level set the system property <code>h2.javaObjectSerializer</code> with the
@@ -1699,7 +1700,8 @@ It is possible to extend the type system of the database by providing your own i
 of minimal required API basically consisting of type identification and conversion routines.
 </p>
 <p>
-In order to enable this feature, set the system property <code>h2.customDataTypesHandler</code> (default: null) to the fully qualified name of the class providing <a href="../javadoc/org/h2/api/CustomDataTypesHandler.html">CustomDataTypesHandler</a> interface implementation. <br />
+In order to enable this feature, set the system property <code>h2.customDataTypesHandler</code> (default: null) to the fully qualified name of the class providing
+<a href="http://www.h2database.com/javadoc/org/h2/api/CustomDataTypesHandler.html">CustomDataTypesHandler</a> interface implementation. <br />
 The instance of that class will be created by H2 and used to:
 <ul>
 <li>resolve the names and identifiers of extrinsic data types.

@@ -1146,9 +1146,9 @@ Example permission tags:
 For H2, opening a connection is fast if the database is already open.
 Still, using a connection pool improves performance if you open and close connections a lot.
 A simple connection pool is included in H2. It is based on the
-<a href="http://www.source-code.biz/snippets/java/8.htm">Mini Connection Pool Manager</a>
+<a href="http://www.source-code.biz/miniconnectionpoolmanager/">Mini Connection Pool Manager</a>
 from Christian d'Heureuse. There are other, more complex, open source connection pools available,
-for example the <a href="http://jakarta.apache.org/commons/dbcp/">Apache Commons DBCP</a>.
+for example the <a href="http://commons.apache.org/proper/commons-dbcp/">Apache Commons DBCP</a>.
 For H2, it is about twice as faster to get a connection from the built-in connection pool than to get
 one using <code>DriverManager.getConnection()</code>.The build-in connection pool is used as follows:
 </p>

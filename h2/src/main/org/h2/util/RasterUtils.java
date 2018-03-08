@@ -542,6 +542,8 @@ public class RasterUtils {
          * specified pixel.
          *
          * @param band Band id [0-numBands[
+         * @param x offset
+         * @param y offset
          * @return bytes to skip
          */
         public long getStreamOffset(int band, int x, int y) {
@@ -602,6 +604,8 @@ public class RasterUtils {
         }
 
         /**
+         * Fetch raster metadata
+         * 
          * @param raster Raster binary data
          * @return Complete raster and bands metadata.
          * @throws IOException
@@ -612,7 +616,8 @@ public class RasterUtils {
         }
 
         /**
-         *
+         * Fetch raster metadata
+         * 
          * @param raster InputStream. The caller is responsible for closing
          *               the stream
          * @param fetchBandsMetaData If true, each band metadata is read.
@@ -750,6 +755,13 @@ public class RasterUtils {
                     ipX, ipY, skewX, skewY, bands);
         }
 
+        /**
+         * Write the raster header
+         * 
+         * @param stream output stream of raster bytes
+         * @param endian 1:ndr/little endian 0:xdr/big endian 
+         * @throws IOException 
+         */
         public void writeRasterHeader(OutputStream stream, ByteOrder endian)
                 throws IOException {
             byte[] buffer = new byte[RASTER_METADATA_SIZE];
@@ -796,6 +808,14 @@ public class RasterUtils {
         }
 
 
+        /**
+         * Write the band header
+         * 
+         * @param stream output stream of raster bytes
+         * @param band Band id [0-numBands[
+         * @param endian 1:ndr/little endian 0:xdr/big endian 
+         * @throws IOException 
+         */
         public void writeRasterBandHeader(OutputStream stream,int band,
                 ByteOrder endian)
                 throws IOException {
@@ -860,6 +880,8 @@ public class RasterUtils {
         }
 
         /**
+         * Compute the envelope of the raster
+         * 
          * @return The envelope of the raster, take account of the rotation
          * of the raster
          */
@@ -876,6 +898,8 @@ public class RasterUtils {
         }
 
         /**
+         * Get the envelope of the raster
+         * 
          * @return The envelope of the raster. This envelope is larger than
          * the convex hull as
          */

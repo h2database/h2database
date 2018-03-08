@@ -1840,24 +1840,24 @@ public class Function extends Expression implements FunctionCall {
                             rasterMetaData = new RasterUtils.RasterMetaData(
                                     v0.getInt(),
                                     v1.getInt(),
+                                    getNullOrValue(session, args, values, 8).getInt(),
                                     v4.getDouble(),
                                     v5.getDouble(),
                                     v2.getDouble(),
                                     v3.getDouble(),
                                     getNullOrValue(session, args, values, 6)
                                             .getDouble(),
-                                    getNullOrValue(session, args, values, 7)
-                                            .getDouble(),
-                                    getNullOrValue(session, args, values, 8).getInt());
+                                    getNullOrValue(session, args, values, 7).getDouble()
+                            );
                         } else if(args.length == 5) {
                             rasterMetaData = new RasterUtils.RasterMetaData(
                                     v0.getInt(),
                                     v1.getInt(),
+                                    0,
                                     v4.getDouble(),
                                     -v4.getDouble(),
                                     v2.getDouble(),
                                     v3.getDouble(),
-                                    0,
                                     0,
                                     0);
                         } else {

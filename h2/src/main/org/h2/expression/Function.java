@@ -1498,32 +1498,40 @@ public class Function extends Expression implements FunctionCall {
             result = ValueLong.get(datediff(v0.getString(), v1, v2));
             break;
         case DATE_TRUNC:   
-            // Retrieve the field value (e.g. 'day', 'microseconds', etc.)
+            // Retrieve the field value (e.g. 'day', 'microseconds', etc.).
             String fieldValue = v0.getString().toLowerCase();
 
+            // Retrieve the dateValue.
             long[] fieldDateAndTime = DateTimeUtils.dateAndTimeFromValue(v1);
             long fieldDateValue = fieldDateAndTime[0];
 
+            // Case where the date has to be truncated to the day.
             if (fieldValue.equals("day")) {
-
-                // Case where we truncate the date to the day if the value is of
-                // type time e.g. '10:00:00'
+               
                 if (v1 instanceof ValueTime) {
 
+                    // Case where we truncate the time to the day (e.g.
+                    // '10:00:00 -> 00:00:00).
                     result = v1.subtract(v1);
 
                 } else if (v1 instanceof ValueDate) {
 
+                    // Case where we already have the date truncated to the day.
                     result = v1;
 
                 } else if (v1 instanceof ValueTimestampTimeZone) {
 
+                    // Create a new ValueTimestampTimeZone by only setting the
+                    // date. The time in nanoseconds since midnight will be set to 0.
                     ValueTimestampTimeZone v = (ValueTimestampTimeZone) v1;
                     result = ValueTimestampTimeZone.fromDateValueAndNanos(v.getDateValue(), 0,
                             v.getTimeZoneOffsetMins());
 
                 } else {
 
+                    // By default, we create a timestamp by setting the datevalue
+                    // to the datevalue retrieved and the time in nanoseconds
+                    // since midnight to 0.
                     result = ValueTimestamp.fromDateValueAndNanos(fieldDateValue, 0);
                 }
 

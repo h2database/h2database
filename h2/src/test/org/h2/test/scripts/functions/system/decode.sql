@@ -26,3 +26,6 @@ select decode('3', 2.0, 2.0, 3, 3.0);
 
 select decode(4.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0, 9.0);
 >> 4.0
+
+select decode(1, 1, '1', 1, '11') from dual;
+>> 1

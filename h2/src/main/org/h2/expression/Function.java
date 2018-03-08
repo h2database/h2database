@@ -2587,7 +2587,6 @@ public class Function extends Expression implements FunctionCall {
             s = scale;
             d = displaySize;
             break;
-        case DATE_TRUNC:
         case TRUNCATE:
             t = p0.getType();
             s = p0.getScale();
@@ -2754,7 +2753,6 @@ public class Function extends Expression implements FunctionCall {
         case TRIM:
         case STRINGDECODE:
         case UTF8TOSTRING:
-        case DATE_TRUNC:
         case TRUNCATE:
             precision = args[0].getPrecision();
             displaySize = args[0].getDisplaySize();

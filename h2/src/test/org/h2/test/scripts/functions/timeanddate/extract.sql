@@ -18,64 +18,61 @@ SELECT EXTRACT (NANOSECOND FROM TIME '10:00:00.123456789'),
 > rows: 1
 
 select EXTRACT (EPOCH from time '00:00:00');
-> 0
+>> 0
 
 select EXTRACT (EPOCH from time '10:00:00');
-> 36000
+>> 36000
 
 select EXTRACT (EPOCH from time '10:00:00.123456');
-> 36000.123456
+>> 36000.123456
 
 select EXTRACT (EPOCH from date '1970-01-01');
-> 0
+>> 0
 
 select EXTRACT (EPOCH from date '2000-01-03');
-> 946857600
+>> 946857600
 
 select EXTRACT (EPOCH from timestamp '1970-01-01 00:00:00');
-> 0
+>> 0
 
 select EXTRACT (EPOCH from timestamp '1970-01-03 12:00:00.123456');
-> 216000.123456
+>> 216000.123456
 
 select EXTRACT (EPOCH from timestamp '2000-01-03 12:00:00.123456');
-> 946900800.123456
+>> 946900800.123456
 
 select EXTRACT (EPOCH from timestamp '2500-01-03 12:00:00.654321');
-> 16725441600.654321
+>> 16725441600.654321
 
 select EXTRACT (EPOCH from timestamp with time zone '1970-01-01 00:00:00+05');
-> -18000
+>> -18000
 
 select EXTRACT (EPOCH from timestamp with time zone '1970-01-03 12:00:00.123456+05');
-> 198000.123456
+>> 198000.123456
 
 select EXTRACT (EPOCH from timestamp with time zone '2000-01-03 12:00:00.123456+05');
-> 946882800.123456
+>> 946882800.123456
 
 select extract(EPOCH from '2001-02-03 14:15:16');
-> 981209716
+>> 981209716
 
 SELECT EXTRACT(TIMEZONE_HOUR FROM TIMESTAMP WITH TIME ZONE '2010-01-02 5:00:00+07:15');
-> 7
-> -
-> 7
-> rows: 1
+>> 7
 
 SELECT EXTRACT(TIMEZONE_HOUR FROM TIMESTAMP WITH TIME ZONE '2010-01-02 5:00:00-08:30');
-> -8
-> --
-> -8
-> rows: 1
+>> -8
 
 SELECT EXTRACT(TIMEZONE_MINUTE FROM TIMESTAMP WITH TIME ZONE '2010-01-02 5:00:00+07:15');
-> 15
-> --
-> 15
-> rows: 1
+>> 15
 
 SELECT EXTRACT(TIMEZONE_MINUTE FROM TIMESTAMP WITH TIME ZONE '2010-01-02 5:00:00-08:30');
-> -30
-> ---
-> -30
-> rows: 1
+>> -30
+
+select extract(hour from timestamp '2001-02-03 14:15:16');
+>> 14
+
+select extract(hour from '2001-02-03 14:15:16');
+>> 14
+
+select extract(week from timestamp '2001-02-03 14:15:16');
+>> 5

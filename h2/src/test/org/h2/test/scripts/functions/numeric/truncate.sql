@@ -21,8 +21,5 @@ select trunc(null, null) en, trunc(1.99, 0) e1, trunc(-10.9, 0) em10 from test;
 > null 1.0 -10.0
 > rows: 1
 
-select trunc(1.3) R;
-> R
-> ---
-> 1.0
-> rows: 1
+select trunc(1.3);
+>> 1.0

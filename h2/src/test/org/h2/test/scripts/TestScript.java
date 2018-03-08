@@ -390,6 +390,26 @@ public class TestScript extends TestBase {
             head[i] = label;
         }
         rs.close();
+        String line = readLine();
+        putBack = line;
+        if (line != null && line.startsWith(">> ")) {
+            switch (result.size()) {
+            case 0:
+                writeResult(sql, "<no result>", null, ">> ");
+                return;
+            case 1:
+                String[] row = result.get(0);
+                if (row.length == 1) {
+                    writeResult(sql, row[0], null, ">> ");
+                } else {
+                    writeResult(sql, "<row with " + row.length + " values>", null, ">> ");
+                }
+                return;
+            default:
+                writeResult(sql, "<" + result.size() + " rows>", null, ">> ");
+                return;
+            }
+        }
         writeResult(sql, format(head, max), null);
         writeResult(sql, format(null, max), null);
         String[] array = new String[result.size()];
@@ -434,10 +454,13 @@ public class TestScript extends TestBase {
         writeResult(sql, "exception", e);
     }
 
-    private void writeResult(String sql, String s, SQLException e)
-            throws Exception {
+    private void writeResult(String sql, String s, SQLException e) throws Exception {
+        writeResult(sql, s, e, "> ");
+    }
+
+    private void writeResult(String sql, String s, SQLException e, String prefix) throws Exception {
         assertKnownException(sql, e);
-        s = ("> " + s).trim();
+        s = (prefix + s).trim();
         String compare = readLine();
         if (compare != null && compare.startsWith(">")) {
             if (!compare.equals(s)) {

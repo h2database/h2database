@@ -26,3 +26,9 @@ select substring(null from null) en, substring(null from null for null) e1, subs
 > ---- ---- ---- --
 > null null ob   o
 > rows: 1
+
+select substr('[Hello]', 2, 5);
+>> Hello
+
+select substr('Hello World', -5);
+>> World

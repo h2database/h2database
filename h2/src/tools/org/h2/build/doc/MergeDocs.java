@@ -32,7 +32,8 @@ public class MergeDocs {
         String[] pages = { "quickstart.html", "installation.html",
                 "tutorial.html", "features.html", "performance.html",
                 "advanced.html", "grammar.html", "functions.html",
-                "datatypes.html", "build.html", "history.html", "faq.html" };
+                "datatypes.html", "systemtables.html",
+                "build.html", "history.html", "faq.html" };
         StringBuilder buff = new StringBuilder();
         for (String fileName : pages) {
             String text = getContent(fileName);
@@ -41,6 +42,7 @@ public class MergeDocs {
             }
             text = disableRailroads(text);
             text = removeHeaderFooter(fileName, text);
+            text = fixLinks(text);
             buff.append(text);
         }
         String finalText = buff.toString();
@@ -51,7 +53,7 @@ public class MergeDocs {
         writer.println("H2 Documentation");
         writer.println("</title><link rel=\"stylesheet\" type=\"text/css\" " +
                 "href=\"stylesheetPdf.css\" /></head><body>");
-        writer.println("<h1>H2 Database Engine</h1>");
+        writer.println("<p class=\"title\">H2 Database Engine</p>");
         writer.println("<p>Version " + Constants.getFullVersion() + "</p>");
         writer.println(finalText);
         writer.println("</body></html>");
@@ -90,6 +92,15 @@ public class MergeDocs {
         idx = text.indexOf(start) + start.length();
         text = text.substring(idx + 1);
         return text;
+    }
+
+    private static String fixLinks(String text) {
+        return text
+                .replaceAll("href=\"build.html\"", "href=\"#build_index\"")
+                .replaceAll("href=\"datatypes.html\"", "href=\"#datatypes_index\"")
+                .replaceAll("href=\"faq.html\"", "href=\"#faq_index\"")
+                .replaceAll("href=\"grammar.html\"", "href=\"#grammar_index\"")
+                .replaceAll("href=\"tutorial.html\"", "href=\"#tutorial_index\"");
     }
 
     private static String getContent(String fileName) throws Exception {

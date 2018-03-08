@@ -14,30 +14,22 @@ insert into test values (20), (20), (10);
 > update count: 3
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20
+>> 20
 
 insert into test values (null);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20
+>> 20
 
 select median(distinct v) from test;
-> MEDIAN(DISTINCT V)
-> ------------------
-> 15
+>> 15
 
 insert into test values (10);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 15
+>> 15
 
 drop table test;
 > ok
@@ -53,30 +45,22 @@ insert into test values (20), (20), (10);
 > update count: 3
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20
+>> 20
 
 insert into test values (null);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20
+>> 20
 
 select median(distinct v) from test;
-> MEDIAN(DISTINCT V)
-> ------------------
-> 15
+>> 15
 
 insert into test values (10);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 15
+>> 15
 
 drop table test;
 > ok
@@ -92,30 +76,22 @@ insert into test values (20), (20), (10);
 > update count: 3
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20
+>> 20
 
 insert into test values (null);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20
+>> 20
 
 select median(distinct v) from test;
-> MEDIAN(DISTINCT V)
-> ------------------
-> 15
+>> 15
 
 insert into test values (10);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 15
+>> 15
 
 drop table test;
 > ok
@@ -131,30 +107,22 @@ insert into test values (20), (20), (10);
 > update count: 3
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20
+>> 20
 
 insert into test values (null);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20
+>> 20
 
 select median(distinct v) from test;
-> MEDIAN(DISTINCT V)
-> ------------------
-> 15
+>> 15
 
 insert into test values (10);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 15
+>> 15
 
 drop table test;
 > ok
@@ -170,30 +138,22 @@ insert into test values (20), (20), (10);
 > update count: 3
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20
+>> 20
 
 insert into test values (null);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20
+>> 20
 
 select median(distinct v) from test;
-> MEDIAN(DISTINCT V)
-> ------------------
-> 15
+>> 15
 
 insert into test values (10);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 15
+>> 15
 
 drop table test;
 > ok
@@ -209,30 +169,22 @@ insert into test values (20), (20), (10);
 > update count: 3
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20
+>> 20
 
 insert into test values (null);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20
+>> 20
 
 select median(distinct v) from test;
-> MEDIAN(DISTINCT V)
-> ------------------
-> 15
+>> 15
 
 insert into test values (10);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 15
+>> 15
 
 drop table test;
 > ok
@@ -244,30 +196,22 @@ insert into test values (20), (20), (10);
 > update count: 3
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20
+>> 20
 
 insert into test values (null);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20
+>> 20
 
 select median(distinct v) from test;
-> MEDIAN(DISTINCT V)
-> ------------------
-> 15
+>> 15
 
 insert into test values (10);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 15
+>> 15
 
 drop table test;
 > ok
@@ -279,30 +223,22 @@ insert into test values (20), (20), (10);
 > update count: 3
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20
+>> 20
 
 insert into test values (null);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20
+>> 20
 
 select median(distinct v) from test;
-> MEDIAN(DISTINCT V)
-> ------------------
-> 15
+>> 15
 
 insert into test values (10);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 15
+>> 15
 
 drop table test;
 > ok
@@ -314,30 +250,22 @@ insert into test values (20), (20), (10);
 > update count: 3
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20
+>> 20
 
 insert into test values (null);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20
+>> 20
 
 select median(distinct v) from test;
-> MEDIAN(DISTINCT V)
-> ------------------
-> 15
+>> 15
 
 insert into test values (10);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 15
+>> 15
 
 drop table test;
 > ok
@@ -349,30 +277,22 @@ insert into test values (20), (20), (10);
 > update count: 3
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20
+>> 20
 
 insert into test values (null);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20
+>> 20
 
 select median(distinct v) from test;
-> MEDIAN(DISTINCT V)
-> ------------------
-> 15
+>> 15
 
 insert into test values (10);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 15
+>> 15
 
 drop table test;
 > ok
@@ -384,30 +304,22 @@ insert into test values (2), (2), (1);
 > update count: 3
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 2.0
+>> 2.0
 
 insert into test values (null);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 2.0
+>> 2.0
 
 select median(distinct v) from test;
-> MEDIAN(DISTINCT V)
-> ------------------
-> 1.5
+>> 1.5
 
 insert into test values (1);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 1.5
+>> 1.5
 
 drop table test;
 > ok
@@ -419,30 +331,22 @@ insert into test values (2), (2), (1);
 > update count: 3
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 2.0
+>> 2.0
 
 insert into test values (null);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 2.0
+>> 2.0
 
 select median(distinct v) from test;
-> MEDIAN(DISTINCT V)
-> ------------------
-> 1.5
+>> 1.5
 
 insert into test values (1);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 1.5
+>> 1.5
 
 drop table test;
 > ok
@@ -454,30 +358,22 @@ insert into test values (2), (2), (1);
 > update count: 3
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 2
+>> 2
 
 insert into test values (null);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 2
+>> 2
 
 select median(distinct v) from test;
-> MEDIAN(DISTINCT V)
-> ------------------
-> 1.5
+>> 1.5
 
 insert into test values (1);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 1.5
+>> 1.5
 
 drop table test;
 > ok
@@ -489,30 +385,22 @@ insert into test values ('20:00:00'), ('20:00:00'), ('10:00:00');
 > update count: 3
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20:00:00
+>> 20:00:00
 
 insert into test values (null);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20:00:00
+>> 20:00:00
 
 select median(distinct v) from test;
-> MEDIAN(DISTINCT V)
-> ------------------
-> 15:00:00
+>> 15:00:00
 
 insert into test values ('10:00:00');
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 15:00:00
+>> 15:00:00
 
 drop table test;
 > ok
@@ -524,30 +412,22 @@ insert into test values ('2000-01-20'), ('2000-01-20'), ('2000-01-10');
 > update count: 3
 
 select median(v) from test;
-> MEDIAN(V)
-> ----------
-> 2000-01-20
+>> 2000-01-20
 
 insert into test values (null);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ----------
-> 2000-01-20
+>> 2000-01-20
 
 select median(distinct v) from test;
-> MEDIAN(DISTINCT V)
-> ------------------
-> 2000-01-15
+>> 2000-01-15
 
 insert into test values ('2000-01-10');
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ----------
-> 2000-01-15
+>> 2000-01-15
 
 drop table test;
 > ok
@@ -559,30 +439,22 @@ insert into test values ('2000-01-20 20:00:00'), ('2000-01-20 20:00:00'), ('2000
 > update count: 3
 
 select median(v) from test;
-> MEDIAN(V)
-> -------------------
-> 2000-01-20 20:00:00
+>> 2000-01-20 20:00:00
 
 insert into test values (null);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> -------------------
-> 2000-01-20 20:00:00
+>> 2000-01-20 20:00:00
 
 select median(distinct v) from test;
-> MEDIAN(DISTINCT V)
-> -------------------
-> 2000-01-15 15:00:00
+>> 2000-01-15 15:00:00
 
 insert into test values ('2000-01-10 10:00:00');
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> -------------------
-> 2000-01-15 15:00:00
+>> 2000-01-15 15:00:00
 
 delete from test;
 > update count: 5
@@ -591,9 +463,7 @@ insert into test values ('2000-01-20 20:00:00'), ('2000-01-21 20:00:00');
 > update count: 2
 
 select median(v) from test;
-> MEDIAN(V)
-> -------------------
-> 2000-01-21 08:00:00
+>> 2000-01-21 08:00:00
 
 drop table test;
 > ok
@@ -605,30 +475,22 @@ insert into test values ('2000-01-20 20:00:00+04'), ('2000-01-20 20:00:00+04'), 
 > update count: 3
 
 select median(v) from test;
-> MEDIAN(V)
-> ----------------------
-> 2000-01-20 20:00:00+04
+>> 2000-01-20 20:00:00+04
 
 insert into test values (null);
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ----------------------
-> 2000-01-20 20:00:00+04
+>> 2000-01-20 20:00:00+04
 
 select median(distinct v) from test;
-> MEDIAN(DISTINCT V)
-> ----------------------
-> 2000-01-15 15:00:00+03
+>> 2000-01-15 15:00:00+03
 
 insert into test values ('2000-01-10 10:00:00+02');
 > update count: 1
 
 select median(v) from test;
-> MEDIAN(V)
-> ----------------------
-> 2000-01-15 15:00:00+03
+>> 2000-01-15 15:00:00+03
 
 delete from test;
 > update count: 5
@@ -637,9 +499,7 @@ insert into test values ('2000-01-20 20:00:00+10:15'), ('2000-01-21 20:00:00-09'
 > update count: 2
 
 select median(v) from test;
-> MEDIAN(V)
-> -------------------------
-> 2000-01-21 08:00:30+00:37
+>> 2000-01-21 08:00:30+00:37
 
 drop table test;
 > ok
@@ -671,17 +531,13 @@ insert into test values (20), (20), (10);
 > update count: 3
 
 select median(v) from test where v <> 20;
-> MEDIAN(V)
-> ---------
-> 10
+>> 10
 
 create index test_idx on test(v asc);
 > ok
 
 select median(v) from test where v <> 20;
-> MEDIAN(V)
-> ---------
-> 10
+>> 10
 
 drop table test;
 > ok
@@ -697,9 +553,7 @@ insert into test values (20, 1), (10, 2), (20, 3);
 > update count: 3
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20
+>> 20
 
 drop table test;
 > ok
@@ -712,25 +566,19 @@ create index test_idx on test(v desc);
 > ok
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> null
+>> null
 
 insert into test values (10), (20);
 > update count: 2
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 15
+>> 15
 
 insert into test values (20), (10), (20);
 > update count: 3
 
 select median(v) from test;
-> MEDIAN(V)
-> ---------
-> 20
+>> 20
 
 drop table test;
 > ok

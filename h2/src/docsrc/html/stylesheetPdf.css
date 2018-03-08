@@ -5,17 +5,17 @@
  */
 
 td, input, select, textarea, body, code, pre, td, th {
-    font: 9pt Tahoma, Arial, Helvetica, sans-serif;
+    font: 14pt Tahoma, Arial, Helvetica, sans-serif;
     font-weight: normal;
 }
 
 h1, h2, h3, h4, h5 {
-    font: 9pt Arial, Helvetica, sans-serif;
+    font: 14pt Arial, Helvetica, sans-serif;
     font-weight: bold;
 }
 
 td, input, select, textarea, body, code, pre {
-    font-size: 9pt;
+    font-size: 14pt;
 }
 
 pre {
@@ -32,26 +32,27 @@ body {
     margin: 0px;
 }
 
-h1 {
+h1, p.title {
     background-color: #0000bb;
     padding: 2px 4px 2px 4px;
     color: #fff;
-    font-size: 15pt;
+    font-size: 24pt;
+    font-weight: bold;
     line-height: normal;
 }
 
 h2 {
-    font-size: 13pt;
+    font-size: 18pt;
     margin-top: 1.5em;
 }
 
 h3 {
-    font-size: 11pt;
+    font-size: 16pt;
     margin-top: 1.5em;
 }
 
 h4 {
-    font-size: 9pt;
+    font-size: 14pt;
     margin-top: 1.5em;
 }
 
@@ -69,7 +70,7 @@ table {
 }
 
 th {
-    font-size: 9pt;
+    font-size: 14pt;
     font-weight: normal;
     text-align: left;
     background-color: #ece9d8;
@@ -79,7 +80,7 @@ th {
 
 td {
     background-color: #ffffff;
-    font-size: 9pt;
+    font-size: 14pt;
     text-align: left;
     vertical-align: top;
     border: 1px solid #aca899;

@@ -32,7 +32,7 @@ public class MergeDocs {
         String[] pages = { "quickstart.html", "installation.html",
                 "tutorial.html", "features.html", "performance.html",
                 "advanced.html", "grammar.html", "functions.html",
-                "datatypes.html", "systables.html",
+                "datatypes.html", "systemtables.html",
                 "build.html", "history.html", "faq.html" };
         StringBuilder buff = new StringBuilder();
         for (String fileName : pages) {

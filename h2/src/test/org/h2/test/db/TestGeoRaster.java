@@ -48,6 +48,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.net.URISyntaxException;
 import java.nio.ByteOrder;
 import java.sql.Blob;
 import java.sql.Connection;
@@ -63,13 +64,13 @@ import org.locationtech.jts.geom.Geometry;
 /**
  * Unit test of Raster type
  *
- * @author Thomas Crevoisier
- * @author Jules Party
- * @author Nicolas Fortin
+ * @author Thomas Crevoisier, CNRS
+ * @author Jules Party, CNRS
+ * @author Nicolas Fortin, CNRS
  */
 public class TestGeoRaster extends TestBase {
 
-    public static String GetUnitTestImage() {
+    public static String GetUnitTestImage() throws URISyntaxException {
         return new File(TestGeoRaster.class
                 .getResource("h2-logo.png").getFile()).getAbsolutePath();
     }
@@ -445,7 +446,7 @@ public class TestGeoRaster extends TestBase {
         }
     }
 
-    public void testPngLoading() throws IOException {
+    public void testPngLoading() throws IOException, URISyntaxException {
         // Test loading PNG into Raster
         File testFile = new File(GetUnitTestImage());
         // Fetch ImageRead using ImageIO API then convert it to WKB Raster on
@@ -502,7 +503,7 @@ public class TestGeoRaster extends TestBase {
         conn.close();
     }
 
-    public void testImageIOWKBTranslation() throws SQLException, IOException {
+    public void testImageIOWKBTranslation() throws SQLException, IOException, URISyntaxException {
         Connection conn = getConnection("georaster");
         Statement stat = conn.createStatement();
         stat.execute("drop table if exists test");
@@ -878,7 +879,7 @@ public class TestGeoRaster extends TestBase {
 
 
 
-    public void testImageIOReadParametersRegion() throws SQLException, IOException {
+    public void testImageIOReadParametersRegion() throws SQLException, IOException, URISyntaxException {
         deleteDb("georaster");
         Connection conn = getConnection("georaster");
         Statement stat = conn.createStatement();
@@ -943,7 +944,7 @@ public class TestGeoRaster extends TestBase {
         assertEquals(pixelsExpected, pixelsSource);
     }
 
-    public void testImageIOReadParametersSubSampling() throws SQLException, IOException {
+    public void testImageIOReadParametersSubSampling() throws SQLException, IOException, URISyntaxException {
         deleteDb("georaster");
         Connection conn = getConnection("georaster");
         Statement stat = conn.createStatement();

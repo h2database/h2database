@@ -33,16 +33,26 @@ import java.util.List;
 
 /**
  * ImageIO reader for WKB Raster driver
- * @author Nicolas Fortin
- * @author Erwan Bocher
+ * @author Nicolas Fortin, CNRS
+ * @author Erwan Bocher, CNRS
  */
 public class WKBRasterReader extends ImageReader {
     private RasterUtils.RasterMetaData metaData;
 
+    /**
+     * Constructor
+     * 
+     * @param originatingProvider information about the ImageReader class with which it is associated. 
+     */
     public WKBRasterReader(ImageReaderSpi originatingProvider) {
         super(originatingProvider);
     }
 
+    /**
+     * Get the metadata of the WKBRasterReader
+     * @return
+     * @throws IOException 
+     */
     protected RasterUtils.RasterMetaData getMetaData() throws IOException {
         if(input == null) {
             throw new IOException("Call setInput before fetching ImageReader " +
@@ -55,6 +65,12 @@ public class WKBRasterReader extends ImageReader {
         return metaData;
     }
 
+    /**
+     * Get the {@link java.awt.image.ColorModel()}
+     * 
+     * @return
+     * @throws IOException 
+     */
     private ColorModel getColorModel() throws IOException {
         int colorSpaceIndex;
         if(getMetaData().numBands >= 3) {
@@ -119,11 +135,18 @@ public class WKBRasterReader extends ImageReader {
         return true;
     }
 
-    protected SampleModel getSampleModel(ImageReadParam param) throws IOException {
+    /**
+     * Get the {@link java.awt.image.SampleModel()}
+     * 
+     * @param imageReadParam
+     * @return
+     * @throws IOException 
+     */
+    protected SampleModel getSampleModel(ImageReadParam imageReadParam) throws IOException {
         RasterUtils.RasterMetaData meta = getMetaData();
         Rectangle srcRegion = new Rectangle();
         Rectangle destRegion = new Rectangle();
-        computeRegions(param, meta.width, meta.height, null, srcRegion, destRegion);
+        computeRegions(imageReadParam, meta.width, meta.height, null, srcRegion, destRegion);
         int width = destRegion.width;
         int height = destRegion.height;
         final int commonDataType = getCommonDataType(meta);
@@ -131,8 +154,8 @@ public class WKBRasterReader extends ImageReader {
         // Skip band metadata
         int[] bandOffset = new int[meta.numBands];
         int offset = 0;
-        if(param.getSourceRegion() != null) {
-            offset = param.getSourceRegion().y * meta.width + param.getSourceRegion().x;
+        if(imageReadParam.getSourceRegion() != null) {
+            offset = imageReadParam.getSourceRegion().y * meta.width + imageReadParam.getSourceRegion().x;
         }
         for(int i=0; i < meta.numBands; i++) {
             bankIndices[i] = i;
@@ -189,6 +212,11 @@ public class WKBRasterReader extends ImageReader {
         return common;
     }
 
+    /**
+     * Return the datatype of pixel
+     * @param pixelType
+     * @return 
+     */
     public static int getDataTypeFromPixelType(RasterUtils.PixelType
             pixelType) {
         switch (pixelType) {

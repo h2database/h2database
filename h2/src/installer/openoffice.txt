@@ -92,11 +92,15 @@ sub H2Pdf
     dim linkStart(0) As New com.sun.star.beans.PropertyValue
     dim linkEnd(0) As New com.sun.star.beans.PropertyValue
 
-    For i = 1 To 4
+    for i = 1 To 4
         oLevel = toc.LevelFormat.getByIndex(i)
-        x = DimArray(5)
-        x = Array(linkStart, oLevel(0), oLevel(1), oLevel(2), oLevel(3), linkEnd)
-        old = oLevel(0)
+        bound = UBound(oLevel)
+        x = DimArray(bound + 2)
+        x(0) = linkStart
+        for j = 0 to bound
+            x(j + 1) = oLevel(j)
+        next
+        x(bound + 2) = linkEnd
         linkStart(0).Name = "TokenType"
         linkStart(0).Value = "TokenHyperlinkStart"
         linkStart(0).Handle = -1

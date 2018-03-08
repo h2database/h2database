@@ -261,7 +261,7 @@ public class FullText {
     public static void dropAll(Connection conn) throws SQLException {
         init(conn);
         Statement stat = conn.createStatement();
-        stat.execute("DROP SCHEMA IF EXISTS " + SCHEMA);
+        stat.execute("DROP SCHEMA IF EXISTS " + SCHEMA + " CASCADE");
         removeAllTriggers(conn, TRIGGER_PREFIX);
         FullTextSettings setting = FullTextSettings.getInstance(conn);
         setting.removeAllIndexes();
@@ -624,7 +624,7 @@ public class FullText {
                 }
             }
         }
-        if (rIds == null || rIds.size() == 0) {
+        if (rIds == null || rIds.isEmpty()) {
             return result;
         }
         PreparedStatement prepSelectRowById = setting.prepare(conn, SELECT_ROW_BY_ID);
@@ -913,7 +913,7 @@ public class FullText {
             for (int i = 0; rs.next(); i++) {
                 columnTypes[i] = rs.getInt("DATA_TYPE");
             }
-            if (keyList.size() == 0) {
+            if (keyList.isEmpty()) {
                 rs = meta.getPrimaryKeys(null,
                         StringUtils.escapeMetaDataPattern(schemaName),
                         tableName);
@@ -921,7 +921,7 @@ public class FullText {
                     keyList.add(rs.getString("COLUMN_NAME"));
                 }
             }
-            if (keyList.size() == 0) {
+            if (keyList.isEmpty()) {
                 throw throwException("No primary key for table " + tableName);
             }
             ArrayList<String> indexList = New.arrayList();
@@ -938,7 +938,7 @@ public class FullText {
                     Collections.addAll(indexList, StringUtils.arraySplit(columns, ',', true));
                 }
             }
-            if (indexList.size() == 0) {
+            if (indexList.isEmpty()) {
                 indexList.addAll(columnList);
             }
             index.keys = new int[keyList.size()];
@@ -950,11 +950,18 @@ public class FullText {
             useOwnConnection = isMultiThread(conn);
             if(!useOwnConnection) {
                 for (int i = 0; i < SQL.length; i++) {
-                    prepStatements[i] = conn.prepareStatement(SQL[i]);
+                    prepStatements[i] = conn.prepareStatement(SQL[i],
+                            Statement.RETURN_GENERATED_KEYS);
                 }
             }
         }
 
+        /**
+         * Check whether the database is in multi-threaded mode.
+         *
+         * @param conn the connection
+         * @return true if the multi-threaded mode is used
+         */
         static boolean isMultiThread(Connection conn)
                 throws SQLException {
             try (Statement stat = conn.createStatement()) {
@@ -1148,7 +1155,9 @@ public class FullText {
         }
 
         private PreparedStatement getStatement(Connection conn, int index) throws SQLException {
-            return useOwnConnection ? conn.prepareStatement(SQL[index]) : prepStatements[index];
+            return useOwnConnection ?
+                    conn.prepareStatement(SQL[index], Statement.RETURN_GENERATED_KEYS)
+                    : prepStatements[index];
         }
 
     }

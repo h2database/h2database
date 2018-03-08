@@ -18,7 +18,7 @@ Tutorial
 <table class="content"><tr class="content"><td class="content"><div class="contentDiv">
 <!-- } -->
 
-<h1>Tutorial</h1>
+<h1 id="tutorial_index">Tutorial</h1>
 <a href="#tutorial_starting_h2_console">
     Starting and Using the H2 Console</a><br />
 <a href="#console_syntax">
@@ -456,7 +456,6 @@ import java.sql.*;
 public class Test {
     public static void main(String[] a)
             throws Exception {
-        Class.forName("org.h2.Driver");
         Connection conn = DriverManager.
             getConnection("jdbc:h2:~/test", "sa", "");
         // add application code here
@@ -465,8 +464,7 @@ public class Test {
 }
 </pre>
 <p>
-This code first loads the driver (<code>Class.forName(...)</code>)
-and then opens a connection (using <code>DriverManager.getConnection()</code>).
+This code opens a connection (using <code>DriverManager.getConnection()</code>).
 The driver name is <code>"org.h2.Driver"</code>.
 The database URL always needs to start with <code>jdbc:h2:</code>
 to be recognized by this database. The second parameter in the <code>getConnection()</code> call
@@ -867,7 +865,6 @@ String url = "jdbc:h2:/data/data/" +
     ";FILE_LOCK=FS" +
     ";PAGE_SIZE=1024" +
     ";CACHE_SIZE=8192";
-Class.forName("org.h2.Driver");
 conn = DriverManager.getConnection(url);
 ...
 </pre>
@@ -1354,12 +1351,23 @@ CALL TIMESTAMP '2008-01-01 12:00:00+01:00';
 </pre>
 <p>
 If the time zone is not set, the value is parsed using the current time zone setting of the system.
-Date and time information is stored in H2 database files without time zone information.
-If the database is opened using another system time zone, the date and time will be the same.
+Date and time information is stored in H2 database files with or without time zone information depending on used data type.
+</p>
+<ul>
+<li>
+With TIMESTAMP data type if the database is opened using another system time zone, the date and time will be the same.
 That means if you store the value '2000-01-01 12:00:00' in one time zone, then close the database
 and open the database again in a different time zone, you will also get '2000-01-01 12:00:00'.
 Please note that changing the time zone after the H2 driver is loaded is not supported.
-</p>
+</li>
+<li>
+With TIMESTAMP WITH TIME ZONE data type time zone offset is stored and if you store the value
+'2008-01-01 12:00:00+01:00' it remains the same even if you close and reopen the database with a different time zone.
+If you store the value with specified time zone name like '2008-01-01 12:00:00 Europe/Berlin' this name will be
+converted to time zone offset.
+Names of time zones are not stored.
+</li>
+</ul>
 
 <h2 id="spring">Using Spring</h2>
 <h3>Using the TCP Server</h3>

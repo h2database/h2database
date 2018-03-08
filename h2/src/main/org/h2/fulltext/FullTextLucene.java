@@ -187,7 +187,7 @@ public class FullTextLucene extends FullText {
      */
     public static void dropAll(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
-        stat.execute("DROP SCHEMA IF EXISTS " + SCHEMA);
+        stat.execute("DROP SCHEMA IF EXISTS " + SCHEMA + " CASCADE");
         removeAllTriggers(conn, TRIGGER_PREFIX);
         removeIndexFiles(conn);
     }
@@ -505,7 +505,7 @@ public class FullTextLucene extends FullText {
             for (int i = 0; rs.next(); i++) {
                 columnTypes[i] = rs.getInt("DATA_TYPE");
             }
-            if (keyList.size() == 0) {
+            if (keyList.isEmpty()) {
                 rs = meta.getPrimaryKeys(null,
                         StringUtils.escapeMetaDataPattern(schemaName),
                         tableName);
@@ -513,7 +513,7 @@ public class FullTextLucene extends FullText {
                     keyList.add(rs.getString("COLUMN_NAME"));
                 }
             }
-            if (keyList.size() == 0) {
+            if (keyList.isEmpty()) {
                 throw throwException("No primary key for table " + tableName);
             }
             ArrayList<String> indexList = New.arrayList();
@@ -530,7 +530,7 @@ public class FullTextLucene extends FullText {
                             StringUtils.arraySplit(cols, ',', true));
                 }
             }
-            if (indexList.size() == 0) {
+            if (indexList.isEmpty()) {
                 indexList.addAll(columnList);
             }
             keys = new int[keyList.size()];
@@ -703,11 +703,21 @@ public class FullTextLucene extends FullText {
             searcher = new IndexSearcher(reader);
         }
 
+        /**
+         * Start using the searcher.
+         *
+         * @return the searcher
+         */
         synchronized IndexSearcher getSearcher() {
             ++counter;
             return searcher;
         }
 
+        /**
+         * Stop using the searcher.
+         *
+         * @param searcher the searcher
+         */
         synchronized void returnSearcher(IndexSearcher searcher) {
             if (this.searcher == searcher) {
                 --counter;
@@ -738,6 +748,9 @@ public class FullTextLucene extends FullText {
             searcher = new IndexSearcher(IndexReader.open(writer, true));
         }
 
+        /**
+         * Close the index.
+         */
         public synchronized void close() throws IOException {
             for (IndexSearcher searcher : counters.keySet()) {
                 closeSearcher(searcher);

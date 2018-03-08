@@ -10,6 +10,7 @@ import java.util.HashSet;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.Constraint;
+import org.h2.constraint.ConstraintActionType;
 import org.h2.constraint.ConstraintCheck;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.constraint.ConstraintUnique;
@@ -38,8 +39,8 @@ public class AlterTableAddConstraint extends SchemaCommand {
     private String constraintName;
     private String tableName;
     private IndexColumn[] indexColumns;
-    private int deleteAction;
-    private int updateAction;
+    private ConstraintActionType deleteAction = ConstraintActionType.RESTRICT;
+    private ConstraintActionType updateAction = ConstraintActionType.RESTRICT;
     private Schema refSchema;
     private String refTableName;
     private IndexColumn[] refIndexColumns;
@@ -119,7 +120,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             ArrayList<Constraint> constraints = table.getConstraints();
             for (int i = 0; constraints != null && i < constraints.size(); i++) {
                 Constraint c = constraints.get(i);
-                if (Constraint.PRIMARY_KEY.equals(c.getConstraintType())) {
+                if (Constraint.Type.PRIMARY_KEY == c.getConstraintType()) {
                     throw DbException.get(ErrorCode.SECOND_PRIMARY_KEY);
                 }
             }
@@ -298,11 +299,11 @@ public class AlterTableAddConstraint extends SchemaCommand {
         }
     }
 
-    public void setDeleteAction(int action) {
+    public void setDeleteAction(ConstraintActionType action) {
         this.deleteAction = action;
     }
 
-    public void setUpdateAction(int action) {
+    public void setUpdateAction(ConstraintActionType action) {
         this.updateAction = action;
     }
 

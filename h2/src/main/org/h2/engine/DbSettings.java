@@ -7,6 +7,9 @@ package org.h2.engine;
 
 import java.util.HashMap;
 
+import org.h2.message.DbException;
+import org.h2.util.Utils;
+
 /**
  * This class contains various database-level settings. To override the
  * documented default value for a database, append the setting in the database
@@ -97,7 +100,8 @@ public class DbSettings extends SettingsBase {
 
     /**
      * Database setting <code>DROP_RESTRICT</code> (default: true).<br />
-     * Whether the default action for DROP TABLE and DROP VIEW is RESTRICT.
+     * Whether the default action for DROP TABLE, DROP VIEW, and DROP SCHEMA
+     * is RESTRICT.
      */
     public final boolean dropRestrict = get("DROP_RESTRICT", true);
 
@@ -163,12 +167,6 @@ public class DbSettings extends SettingsBase {
      * value.
      */
     public final int maxQueryTimeout = get("MAX_QUERY_TIMEOUT", 0);
-
-    /**
-     * Database setting <code>NESTED_JOINS</code> (default: true).<br />
-     * Whether nested joins should be supported.
-     */
-    public final boolean nestedJoins = get("NESTED_JOINS", true);
 
     /**
      * Database setting <code>OPTIMIZE_DISTINCT</code> (default: true).<br />
@@ -363,6 +361,9 @@ public class DbSettings extends SettingsBase {
 
     private DbSettings(HashMap<String, String> s) {
         super(s);
+        if (s.get("NESTED_JOINS") != null || Utils.getProperty("h2.nestedJoins", null) != null) {
+            throw DbException.getUnsupportedException("NESTED_JOINS setting is not available since 1.4.197");
+        }
     }
 
     /**

@@ -351,17 +351,25 @@ public class TraceObject {
      * @param ex the exception
      * @return the SQL exception object
      */
-    protected SQLException logAndConvert(Exception ex) {
-        SQLException e = DbException.toSQLException(ex);
-        if (trace == null) {
-            DbException.traceThrowable(e);
-        } else {
-            int errorCode = e.getErrorCode();
-            if (errorCode >= 23000 && errorCode < 24000) {
-                trace.info(e, "exception");
+    protected SQLException logAndConvert(Throwable ex) {
+        SQLException e = null;
+        try {
+            e = DbException.toSQLException(ex);
+            if (trace == null) {
+                DbException.traceThrowable(e);
             } else {
-                trace.error(e, "exception");
+                int errorCode = e.getErrorCode();
+                if (errorCode >= 23000 && errorCode < 24000) {
+                    trace.info(e, "exception");
+                } else {
+                    trace.error(e, "exception");
+                }
             }
+        } catch(Throwable ignore) {
+            if (e == null) {
+                e = new SQLException("", "HY000", ex);
+            }
+            e.addSuppressed(ignore);
         }
         return e;
     }

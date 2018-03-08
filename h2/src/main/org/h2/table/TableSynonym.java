@@ -37,6 +37,11 @@ public class TableSynonym extends SchemaObjectBase {
         return synonymFor;
     }
 
+    /**
+     * Set (update) the data.
+     *
+     * @param data the new data
+     */
     public void updateData(CreateSynonymData data) {
         this.data = data;
     }
@@ -45,7 +50,6 @@ public class TableSynonym extends SchemaObjectBase {
     public int getType() {
         return SYNONYM;
     }
-
 
     @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {

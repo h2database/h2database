@@ -12,8 +12,8 @@ import java.io.IOException;
 
 /**
  * A DataBuffer backed by an ImageInputStream
- * @author Nicolas Fortin
- * @author Erwan Bocher
+ * @author Nicolas Fortin, CNRS
+ * @author Erwan Bocher, CNRS
  */
 public class WKBRasterDataBuffer extends DataBuffer {
     private ImageInputStream inputStream;
@@ -37,6 +37,8 @@ public class WKBRasterDataBuffer extends DataBuffer {
      * @param size Main sample size
      * @param inputStream Input stream
      * @param metaData Raster metadata
+     * @param imageReadParam Image parameters to decode the input stream image
+     * @param sampleModel interface for extracting samples of pixels in an image.
      */
     public WKBRasterDataBuffer(int dataType, int size,
             ImageInputStream inputStream, RasterUtils.RasterMetaData metaData, ImageReadParam imageReadParam,
@@ -60,14 +62,29 @@ public class WKBRasterDataBuffer extends DataBuffer {
         specialSubSampling = pixelXSubSampling != 1 || pixelYSubSampling != 1;
     }
 
+    /**
+     * Return the row indice for a pixel position
+     * @param i
+     * @return 
+     */
     private int getRow(int i) {
         return (i - pixelOffset) / metaData.width;
     }
 
+    /**
+     * Return the column indice for a pixel position
+     * @param i
+     * @return 
+     */
     private int getColumn(int i) {
         return (i - pixelOffset) % metaData.width;
     }
 
+    /**
+     * Cache row in order to reused it
+     * @param rowId
+     * @throws IOException 
+     */
     private void cachePixels(int rowId) throws IOException {
         if(cacheRow == null) {
             cacheRow = new ByteArrayInputStream[metaData.numBands];
@@ -82,6 +99,13 @@ public class WKBRasterDataBuffer extends DataBuffer {
         cacheRowId = rowId;
     }
 
+    /**
+     * Load a row according a pixel position
+     * 
+     * @param bank band index
+     * @param i pixel position
+     * @throws IOException 
+     */
     private void seek(int bank, int i) throws IOException {
         if(specialSubSampling) {
             final int column = ((i - pixelOffset) % metaData.width) * pixelXSubSampling;

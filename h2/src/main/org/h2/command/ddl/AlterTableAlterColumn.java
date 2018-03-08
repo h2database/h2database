@@ -48,7 +48,7 @@ import org.h2.util.New;
  * ALTER TABLE ALTER COLUMN SET INVISIBLE,
  * ALTER TABLE DROP COLUMN
  */
-public class AlterTableAlterColumn extends SchemaCommand {
+public class AlterTableAlterColumn extends CommandWithColumns {
 
     private String tableName;
     private Column oldColumn;
@@ -56,6 +56,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
     private int type;
     private Expression defaultExpression;
     private Expression newSelectivity;
+    private boolean addFirst;
     private String addBefore;
     private String addAfter;
     private boolean ifTableExists;
@@ -78,6 +79,10 @@ public class AlterTableAlterColumn extends SchemaCommand {
 
     public void setOldColumn(Column oldColumn) {
         this.oldColumn = oldColumn;
+    }
+
+    public void setAddFirst() {
+        addFirst = true;
     }
 
     public void setAddBefore(String before) {
@@ -170,18 +175,15 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
         case CommandInterface.ALTER_TABLE_ADD_COLUMN: {
             // ifNotExists only supported for single column add
-            if (ifNotExists && columnsToAdd.size() == 1 &&
+            if (ifNotExists && columnsToAdd != null && columnsToAdd.size() == 1 &&
                     table.doesColumnExist(columnsToAdd.get(0).getName())) {
                 break;
             }
-            for (Column column : columnsToAdd) {
-                if (column.isAutoIncrement()) {
-                    int objId = getObjectId();
-                    column.convertAutoIncrementToSequence(session, getSchema(), objId,
-                            table.isTemporary());
-                }
+            ArrayList<Sequence> sequences = generateSequences(columnsToAdd, false);
+            if (columnsToAdd != null) {
+                changePrimaryKeysToNotNull(columnsToAdd);
             }
-            copyData(table);
+            copyData(table, sequences, true);
             break;
         }
         case CommandInterface.ALTER_TABLE_DROP_COLUMN: {
@@ -256,6 +258,10 @@ public class AlterTableAlterColumn extends SchemaCommand {
     }
 
     private void copyData(Table table) {
+        copyData(table, null, false);
+    }
+
+    private void copyData(Table table, ArrayList<Sequence> sequences, boolean createConstraints) {
         if (table.isTemporary()) {
             throw DbException.getUnsupportedException("TEMP TABLE");
         }
@@ -265,6 +271,11 @@ public class AlterTableAlterColumn extends SchemaCommand {
         Column[] columns = table.getColumns();
         ArrayList<Column> newColumns = New.arrayList();
         Table newTable = cloneTableStructure(table, columns, db, tempName, newColumns);
+        if (sequences != null) {
+            for (Sequence sequence : sequences) {
+                table.addSequence(sequence);
+            }
+        }
         try {
             // check if a view would become invalid
             // (because the column to drop is referenced or so)
@@ -303,6 +314,9 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 db.renameSchemaObject(session, so, name);
             }
         }
+        if (createConstraints) {
+            createConstraints();
+        }
         for (TableView view : dependentViews) {
             String sql = view.getCreateSQL(true, true);
             execute(sql, true);
@@ -331,15 +345,19 @@ public class AlterTableAlterColumn extends SchemaCommand {
             }
         } else if (type == CommandInterface.ALTER_TABLE_ADD_COLUMN) {
             int position;
-            if (addBefore != null) {
+            if (addFirst) {
+                position = 0;
+            } else if (addBefore != null) {
                 position = table.getColumn(addBefore).getColumnId();
             } else if (addAfter != null) {
                 position = table.getColumn(addAfter).getColumnId() + 1;
             } else {
                 position = columns.length;
             }
-            for (Column column : columnsToAdd) {
-                newColumns.add(position++, column);
+            if (columnsToAdd != null) {
+                for (Column column : columnsToAdd) {
+                    newColumns.add(position++, column);
+                }
             }
         } else if (type == CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE) {
             int position = oldColumn.getColumnId();
@@ -372,7 +390,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 columnList.append(", ");
             }
             if (type == CommandInterface.ALTER_TABLE_ADD_COLUMN &&
-                    columnsToAdd.contains(nc)) {
+                    columnsToAdd != null && columnsToAdd.contains(nc)) {
                 Expression def = nc.getDefaultExpression();
                 columnList.append(def == null ? "NULL" : def.getSQL());
             } else {
@@ -550,8 +568,12 @@ public class AlterTableAlterColumn extends SchemaCommand {
         this.ifNotExists = ifNotExists;
     }
 
-    public void setNewColumns(ArrayList<Column> columnsToAdd) {
-        this.columnsToAdd = columnsToAdd;
+    @Override
+    public void addColumn(Column column) {
+        if (columnsToAdd == null) {
+            columnsToAdd = New.arrayList();
+        }
+        columnsToAdd.add(column);
     }
 
     public void setColumnsToRemove(ArrayList<Column> columnsToRemove) {

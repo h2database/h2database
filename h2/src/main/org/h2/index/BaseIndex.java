@@ -120,6 +120,10 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         return false;
     }
 
+    @Override
+    public boolean isFindUsingFullTableScan() {
+        return false;
+    }
 
     @Override
     public Cursor find(TableFilter filter, SearchRow first, SearchRow last) {

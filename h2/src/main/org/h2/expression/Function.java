@@ -11,17 +11,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
+import java.text.DateFormatSymbols;
 import java.util.ArrayList;
-import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.TimeZone;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -64,6 +63,7 @@ import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueBytes;
 import org.h2.value.ValueDate;
+import org.h2.value.ValueDecimal;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueInt;
@@ -73,6 +73,7 @@ import org.h2.value.ValueResultSet;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueUuid;
 
 /**
@@ -100,7 +101,7 @@ public class Function extends Expression implements FunctionCall {
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
             XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90,
             LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94, ORA_HASH = 95,
-            TO_DATE = 96, TO_TIMESTAMP = 97, ADD_MONTHS = 98;
+            TO_DATE = 96, TO_TIMESTAMP = 97, ADD_MONTHS = 98, TO_TIMESTAMP_TZ = 99;
 
     public static final int CURDATE = 100, CURTIME = 101, DATE_ADD = 102,
             DATE_DIFF = 103, DAY_NAME = 104, DAY_OF_MONTH = 105,
@@ -110,6 +111,12 @@ public class Function extends Expression implements FunctionCall {
             CURRENT_TIME = 118, CURRENT_TIMESTAMP = 119, EXTRACT = 120,
             FORMATDATETIME = 121, PARSEDATETIME = 122, ISO_YEAR = 123,
             ISO_WEEK = 124, ISO_DAY_OF_WEEK = 125;
+
+    /**
+     * Pseudo functions for DATEADD, DATEDIFF, and EXTRACT.
+     */
+    public static final int MILLISECOND = 126, EPOCH = 127, MICROSECOND = 128, NANOSECOND = 129,
+            TIMEZONE_HOUR = 130, TIMEZONE_MINUTE = 131;
 
     public static final int DATABASE = 150, USER = 151, CURRENT_USER = 152,
             IDENTITY = 153, SCOPE_IDENTITY = 154, AUTOCOMMIT = 155,
@@ -158,6 +165,11 @@ public class Function extends Expression implements FunctionCall {
     private static final HashMap<String, Integer> DATE_PART = new HashMap<>();
     private static final char[] SOUNDEX_INDEX = new char[128];
 
+    /**
+     * English names of months and week days.
+     */
+    private static volatile String[][] MONTHS_AND_WEEKS;
+
     protected Expression[] args;
 
     private final FunctionInfo info;
@@ -169,39 +181,52 @@ public class Function extends Expression implements FunctionCall {
 
     static {
         // DATE_PART
-        DATE_PART.put("SQL_TSI_YEAR", Calendar.YEAR);
-        DATE_PART.put("YEAR", Calendar.YEAR);
-        DATE_PART.put("YYYY", Calendar.YEAR);
-        DATE_PART.put("YY", Calendar.YEAR);
-        DATE_PART.put("SQL_TSI_MONTH", Calendar.MONTH);
-        DATE_PART.put("MONTH", Calendar.MONTH);
-        DATE_PART.put("MM", Calendar.MONTH);
-        DATE_PART.put("M", Calendar.MONTH);
-        DATE_PART.put("SQL_TSI_WEEK", Calendar.WEEK_OF_YEAR);
-        DATE_PART.put("WW", Calendar.WEEK_OF_YEAR);
-        DATE_PART.put("WK", Calendar.WEEK_OF_YEAR);
-        DATE_PART.put("WEEK", Calendar.WEEK_OF_YEAR);
-        DATE_PART.put("DAY", Calendar.DAY_OF_MONTH);
-        DATE_PART.put("DD", Calendar.DAY_OF_MONTH);
-        DATE_PART.put("D", Calendar.DAY_OF_MONTH);
-        DATE_PART.put("SQL_TSI_DAY", Calendar.DAY_OF_MONTH);
-        DATE_PART.put("DAYOFYEAR", Calendar.DAY_OF_YEAR);
-        DATE_PART.put("DAY_OF_YEAR", Calendar.DAY_OF_YEAR);
-        DATE_PART.put("DY", Calendar.DAY_OF_YEAR);
-        DATE_PART.put("DOY", Calendar.DAY_OF_YEAR);
-        DATE_PART.put("SQL_TSI_HOUR", Calendar.HOUR_OF_DAY);
-        DATE_PART.put("HOUR", Calendar.HOUR_OF_DAY);
-        DATE_PART.put("HH", Calendar.HOUR_OF_DAY);
-        DATE_PART.put("SQL_TSI_MINUTE", Calendar.MINUTE);
-        DATE_PART.put("MINUTE", Calendar.MINUTE);
-        DATE_PART.put("MI", Calendar.MINUTE);
-        DATE_PART.put("N", Calendar.MINUTE);
-        DATE_PART.put("SQL_TSI_SECOND", Calendar.SECOND);
-        DATE_PART.put("SECOND", Calendar.SECOND);
-        DATE_PART.put("SS", Calendar.SECOND);
-        DATE_PART.put("S", Calendar.SECOND);
-        DATE_PART.put("MILLISECOND", Calendar.MILLISECOND);
-        DATE_PART.put("MS", Calendar.MILLISECOND);
+        DATE_PART.put("SQL_TSI_YEAR", YEAR);
+        DATE_PART.put("YEAR", YEAR);
+        DATE_PART.put("YYYY", YEAR);
+        DATE_PART.put("YY", YEAR);
+        DATE_PART.put("SQL_TSI_MONTH", MONTH);
+        DATE_PART.put("MONTH", MONTH);
+        DATE_PART.put("MM", MONTH);
+        DATE_PART.put("M", MONTH);
+        DATE_PART.put("QUARTER", QUARTER);
+        DATE_PART.put("SQL_TSI_WEEK", WEEK);
+        DATE_PART.put("WW", WEEK);
+        DATE_PART.put("WK", WEEK);
+        DATE_PART.put("WEEK", WEEK);
+        DATE_PART.put("ISO_WEEK", ISO_WEEK);
+        DATE_PART.put("DAY", DAY_OF_MONTH);
+        DATE_PART.put("DD", DAY_OF_MONTH);
+        DATE_PART.put("D", DAY_OF_MONTH);
+        DATE_PART.put("SQL_TSI_DAY", DAY_OF_MONTH);
+        DATE_PART.put("DAY_OF_WEEK", DAY_OF_WEEK);
+        DATE_PART.put("DAYOFWEEK", DAY_OF_WEEK);
+        DATE_PART.put("DOW", DAY_OF_WEEK);
+        DATE_PART.put("ISO_DAY_OF_WEEK", ISO_DAY_OF_WEEK);
+        DATE_PART.put("DAYOFYEAR", DAY_OF_YEAR);
+        DATE_PART.put("DAY_OF_YEAR", DAY_OF_YEAR);
+        DATE_PART.put("DY", DAY_OF_YEAR);
+        DATE_PART.put("DOY", DAY_OF_YEAR);
+        DATE_PART.put("SQL_TSI_HOUR", HOUR);
+        DATE_PART.put("HOUR", HOUR);
+        DATE_PART.put("HH", HOUR);
+        DATE_PART.put("SQL_TSI_MINUTE", MINUTE);
+        DATE_PART.put("MINUTE", MINUTE);
+        DATE_PART.put("MI", MINUTE);
+        DATE_PART.put("N", MINUTE);
+        DATE_PART.put("SQL_TSI_SECOND", SECOND);
+        DATE_PART.put("SECOND", SECOND);
+        DATE_PART.put("SS", SECOND);
+        DATE_PART.put("S", SECOND);
+        DATE_PART.put("MILLISECOND", MILLISECOND);
+        DATE_PART.put("MS", MILLISECOND);
+        DATE_PART.put("EPOCH", EPOCH);
+        DATE_PART.put("MICROSECOND", MICROSECOND);
+        DATE_PART.put("MCS", MICROSECOND);
+        DATE_PART.put("NANOSECOND", NANOSECOND);
+        DATE_PART.put("NS", NANOSECOND);
+        DATE_PART.put("TIMEZONE_HOUR", TIMEZONE_HOUR);
+        DATE_PART.put("TIMEZONE_MINUTE", TIMEZONE_MINUTE);
 
         // SOUNDEX_INDEX
         String index = "7AEIOUY8HW1BFPV2CGJKQSXZ3DT4L5MN6R";
@@ -333,6 +358,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("TO_DATE", TO_DATE, VAR_ARGS, Value.TIMESTAMP);
         addFunction("TO_TIMESTAMP", TO_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP);
         addFunction("ADD_MONTHS", ADD_MONTHS, 2, Value.TIMESTAMP);
+        addFunction("TO_TIMESTAMP_TZ", TO_TIMESTAMP_TZ, VAR_ARGS, Value.TIMESTAMP_TZ);
         // alias for MSSQLServer
         addFunctionNotDeterministic("GETDATE", CURDATE,
                 0, Value.DATE);
@@ -353,7 +379,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("DATEADD", DATE_ADD,
                 3, Value.TIMESTAMP);
         addFunction("TIMESTAMPADD", DATE_ADD,
-                3, Value.LONG);
+                3, Value.TIMESTAMP);
         addFunction("DATEDIFF", DATE_DIFF,
                 3, Value.LONG);
         addFunction("TIMESTAMPDIFF", DATE_DIFF,
@@ -615,10 +641,6 @@ public class Function extends Expression implements FunctionCall {
         }
     }
 
-    private static strictfp double log10(double value) {
-        return roundMagic(StrictMath.log(value) / StrictMath.log(10));
-    }
-
     @Override
     public Value getValue(Session session) {
         return getValueWithArgs(session, args);
@@ -677,7 +699,7 @@ public class Function extends Expression implements FunctionCall {
             }
             break;
         case LOG10:
-            result = ValueDouble.get(log10(v0.getDouble()));
+            result = ValueDouble.get(Math.log10(v0.getDouble()));
             break;
         case PI:
             result = ValueDouble.get(Math.PI);
@@ -851,58 +873,32 @@ public class Function extends Expression implements FunctionCall {
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case DAY_NAME: {
-            SimpleDateFormat dayName = new SimpleDateFormat(
-                    "EEEE", Locale.ENGLISH);
-            result = ValueString.get(dayName.format(v0.getDate()),
+            int dayOfWeek = DateTimeUtils.getSundayDayOfWeek(DateTimeUtils.dateAndTimeFromValue(v0)[0]);
+            result = ValueString.get(getMonthsAndWeeks(1)[dayOfWeek],
                     database.getMode().treatEmptyStringsAsNull);
             break;
         }
         case DAY_OF_MONTH:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.DAY_OF_MONTH));
-            break;
         case DAY_OF_WEEK:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.DAY_OF_WEEK));
-            break;
         case DAY_OF_YEAR:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.DAY_OF_YEAR));
-            break;
         case HOUR:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.HOUR_OF_DAY));
-            break;
         case MINUTE:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.MINUTE));
-            break;
         case MONTH:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.MONTH));
+        case QUARTER:
+        case ISO_YEAR:
+        case ISO_WEEK:
+        case ISO_DAY_OF_WEEK:
+        case SECOND:
+        case WEEK:
+        case YEAR:
+            result = ValueInt.get(getIntDatePart(v0, info.type));
             break;
         case MONTH_NAME: {
-            SimpleDateFormat monthName = new SimpleDateFormat("MMMM",
-                    Locale.ENGLISH);
-            result = ValueString.get(monthName.format(v0.getDate()),
+            int month = DateTimeUtils.monthFromDateValue(DateTimeUtils.dateAndTimeFromValue(v0)[0]);
+            result = ValueString.get(getMonthsAndWeeks(0)[month - 1],
                     database.getMode().treatEmptyStringsAsNull);
             break;
         }
-        case QUARTER:
-            result = ValueInt.get((DateTimeUtils.getDatePart(v0, Calendar.MONTH) - 1) / 3 + 1);
-            break;
-        case SECOND:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.SECOND));
-            break;
-        case WEEK:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.WEEK_OF_YEAR));
-            break;
-        case YEAR:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0, Calendar.YEAR));
-            break;
-        case ISO_YEAR:
-            result = ValueInt.get(DateTimeUtils.getIsoYear(v0));
-            break;
-        case ISO_WEEK:
-            result = ValueInt.get(DateTimeUtils.getIsoWeek(v0));
-            break;
-        case ISO_DAY_OF_WEEK:
-            result = ValueInt.get(DateTimeUtils.getIsoDayOfWeek(v0));
-            break;
         case CURDATE:
         case CURRENT_DATE: {
             long now = session.getTransactionStart();
@@ -1264,32 +1260,16 @@ public class Function extends Expression implements FunctionCall {
         }
         case TRUNCATE: {
             if (v0.getType() == Value.TIMESTAMP) {
-                java.sql.Timestamp d = v0.getTimestamp();
-                Calendar c = DateTimeUtils.createGregorianCalendar();
-                c.setTime(d);
-                c.set(Calendar.HOUR_OF_DAY, 0);
-                c.set(Calendar.MINUTE, 0);
-                c.set(Calendar.SECOND, 0);
-                c.set(Calendar.MILLISECOND, 0);
-                result = ValueTimestamp.fromMillis(c.getTimeInMillis());
+                result = ValueTimestamp.fromDateValueAndNanos(((ValueTimestamp) v0).getDateValue(), 0);
             } else if (v0.getType() == Value.DATE) {
-                ValueDate vd = (ValueDate) v0;
-                Calendar c = DateTimeUtils.createGregorianCalendar();
-                c.setTime(vd.getDate());
-                c.set(Calendar.HOUR_OF_DAY, 0);
-                c.set(Calendar.MINUTE, 0);
-                c.set(Calendar.SECOND, 0);
-                c.set(Calendar.MILLISECOND, 0);
-                result = ValueTimestamp.fromMillis(c.getTimeInMillis());
+                result = ValueTimestamp.fromDateValueAndNanos(((ValueDate) v0).getDateValue(), 0);
+            } else if (v0.getType() == Value.TIMESTAMP_TZ) {
+                ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v0;
+                result = ValueTimestampTimeZone.fromDateValueAndNanos(ts.getDateValue(), 0,
+                        ts.getTimeZoneOffsetMins());
             } else if (v0.getType() == Value.STRING) {
-                ValueString vd = (ValueString) v0;
-                Calendar c = DateTimeUtils.createGregorianCalendar();
-                c.setTime(ValueTimestamp.parse(vd.getString(), session.getDatabase().getMode()).getDate());
-                c.set(Calendar.HOUR_OF_DAY, 0);
-                c.set(Calendar.MINUTE, 0);
-                c.set(Calendar.SECOND, 0);
-                c.set(Calendar.MILLISECOND, 0);
-                result = ValueTimestamp.fromMillis(c.getTimeInMillis());
+                ValueTimestamp ts = ValueTimestamp.parse(v0.getString(), session.getDatabase().getMode());
+                result = ValueTimestamp.fromDateValueAndNanos(ts.getDateValue(), 0);
             } else {
                 double d = v0.getDouble();
                 int p = v1 == null ? 0 : v1.getInt();
@@ -1356,7 +1336,7 @@ public class Function extends Expression implements FunctionCall {
         }
         case REPLACE: {
             if (v0 == ValueNull.INSTANCE || v1 == ValueNull.INSTANCE
-                    || v2 == ValueNull.INSTANCE && database.getMode() != Mode.getOracle()) {
+                    || v2 == ValueNull.INSTANCE && database.getMode().getEnum() != Mode.ModeEnum.Oracle) {
                 result = ValueNull.INSTANCE;
             } else {
                 String s0 = v0.getString();
@@ -1365,7 +1345,7 @@ public class Function extends Expression implements FunctionCall {
                 if (s2 == null) {
                     s2 = "";
                 }
-                result = ValueString.get(replace(s0, s1, s2),
+                result = ValueString.get(StringUtils.replaceAll(s0, s1, s2),
                         database.getMode().treatEmptyStringsAsNull);
             }
             break;
@@ -1480,7 +1460,8 @@ public class Function extends Expression implements FunctionCall {
             case Value.TIME:
             case Value.DATE:
             case Value.TIMESTAMP:
-                result = ValueString.get(ToChar.toChar(v0.getTimestamp(),
+            case Value.TIMESTAMP_TZ:
+                result = ValueString.get(ToChar.toCharDateTime(v0,
                         v1 == null ? null : v1.getString(),
                         v2 == null ? null : v2.getString()),
                         database.getMode().treatEmptyStringsAsNull);
@@ -1502,15 +1483,19 @@ public class Function extends Expression implements FunctionCall {
             }
             break;
         case TO_DATE:
-            result = ValueTimestamp.get(ToDateParser.toDate(v0.getString(),
-                    v1 == null ? null : v1.getString()));
+            result = ToDateParser.toDate(v0.getString(),
+                    v1 == null ? null : v1.getString());
             break;
         case TO_TIMESTAMP:
-            result = ValueTimestamp.get(ToDateParser.toTimestamp(v0.getString(),
-                    v1 == null ? null : v1.getString()));
+            result = ToDateParser.toTimestamp(v0.getString(),
+                    v1 == null ? null : v1.getString());
             break;
         case ADD_MONTHS:
-            result = ValueTimestamp.get(DateTimeUtils.addMonths(v0.getTimestamp(), v1.getInt()));
+            result = dateadd("MONTH", v1.getInt(), v0);
+            break;
+        case TO_TIMESTAMP_TZ:
+            result = ToDateParser.toTimestampTz(v0.getString(),
+                    v1 == null ? null : v1.getString());
             break;
         case TRANSLATE: {
             String matching = v1.getString();
@@ -1525,16 +1510,63 @@ public class Function extends Expression implements FunctionCall {
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case DATE_ADD:
-            result = ValueTimestamp.get(dateadd(
-                    v0.getString(), v1.getLong(), v2.getTimestamp()));
+            result = dateadd(v0.getString(), v1.getLong(), v2);
             break;
         case DATE_DIFF:
-            result = ValueLong.get(datediff(
-                    v0.getString(), v1.getTimestamp(), v2.getTimestamp()));
+            result = ValueLong.get(datediff(v0.getString(), v1, v2));
             break;
         case EXTRACT: {
             int field = getDatePart(v0.getString());
-            result = ValueInt.get(DateTimeUtils.getDatePart(v1, field));
+            if (field != EPOCH) {
+                result = ValueInt.get(getIntDatePart(v1, field));
+            } else {
+
+                // Case where we retrieve the EPOCH time.
+                // First we retrieve the dateValue and his time in nanoseconds.
+                long[] a = DateTimeUtils.dateAndTimeFromValue(v1);
+                long dateValue = a[0];
+                long timeNanos = a[1];
+                // We compute the time in nanoseconds and the total number of days.
+                BigDecimal timeNanosBigDecimal = new BigDecimal(timeNanos);
+                BigDecimal numberOfDays = new BigDecimal(DateTimeUtils.absoluteDayFromDateValue(dateValue));
+                BigDecimal nanosSeconds = new BigDecimal(1_000_000_000);
+                BigDecimal secondsPerDay = new BigDecimal(DateTimeUtils.SECONDS_PER_DAY);
+
+                // Case where the value is of type time e.g. '10:00:00'
+                if (v1 instanceof ValueTime) {
+
+                    // In order to retrieve the EPOCH time we only have to convert the time
+                    // in nanoseconds (previously retrieved) in seconds.
+                    result = ValueDecimal.get(timeNanosBigDecimal.divide(nanosSeconds));
+
+                } else if (v1 instanceof ValueDate) {
+
+                    // Case where the value is of type date '2000:01:01', we have to retrieve the
+                    // total number of days and multiply it by the number of seconds in a day.
+                    result = ValueDecimal.get(numberOfDays.multiply(secondsPerDay));
+
+                } else if (v1 instanceof ValueTimestampTimeZone) {
+
+                    // Case where the value is a of type ValueTimestampTimeZone
+                    // ('2000:01:01 10:00:00+05').
+                    // We retrieve the time zone offset in minutes
+                    ValueTimestampTimeZone v = (ValueTimestampTimeZone) v1;
+                    BigDecimal timeZoneOffsetSeconds = new BigDecimal(v.getTimeZoneOffsetMins() * 60);
+                    // Sum the time in nanoseconds and the total number of days in seconds
+                    // and adding the timeZone offset in seconds.
+                    result = ValueDecimal.get(timeNanosBigDecimal.divide(nanosSeconds)
+                            .add(numberOfDays.multiply(secondsPerDay)).subtract(timeZoneOffsetSeconds));
+
+                } else {
+
+                    // By default, we have the date and the time ('2000:01:01 10:00:00') if no type
+                    // is given.
+                    // We just have to sum the time in nanoseconds and the total number of days in
+                    // seconds.
+                    result = ValueDecimal
+                            .get(timeNanosBigDecimal.divide(nanosSeconds).add(numberOfDays.multiply(secondsPerDay)));
+                }
+            }
             break;
         }
         case FORMATDATETIME: {
@@ -1545,6 +1577,10 @@ public class Function extends Expression implements FunctionCall {
                         null : v2 == ValueNull.INSTANCE ? null : v2.getString();
                 String tz = v3 == null ?
                         null : v3 == ValueNull.INSTANCE ? null : v3.getString();
+                if (v0 instanceof ValueTimestampTimeZone) {
+                    tz = DateTimeUtils.timeZoneNameFromOffsetMins(
+                            ((ValueTimestampTimeZone) v0).getTimeZoneOffsetMins());
+                }
                 result = ValueString.get(DateTimeUtils.formatDateTime(
                         v0.getTimestamp(), v1.getString(), locale, tz),
                         database.getMode().treatEmptyStringsAsNull);
@@ -1736,8 +1772,9 @@ public class Function extends Expression implements FunctionCall {
             break;
         case SIGNAL: {
             String sqlState = v0.getString();
-            if (sqlState.startsWith("00") || !SIGNAL_PATTERN.matcher(sqlState).matches())
+            if (sqlState.startsWith("00") || !SIGNAL_PATTERN.matcher(sqlState).matches()) {
                 throw DbException.getInvalidValueException("SQLSTATE", sqlState);
+            }
             String msgText = v1.getString();
             throw DbException.fromUser(sqlState, msgText);
         }
@@ -1752,15 +1789,15 @@ public class Function extends Expression implements FunctionCall {
                     }
                     result = ValueArray
                             .get(new Value[]{ValueDouble.get(metaData.ipX),
-                                    ValueDouble.get(metaData.ipY),
-                                    ValueInt.get(metaData.width),
-                                    ValueInt.get(metaData.height),
-                                    ValueDouble.get(metaData.scaleX),
-                                    ValueDouble.get(metaData.scaleY),
-                                    ValueDouble.get(metaData.skewX),
-                                    ValueDouble.get(metaData.skewY),
-                                    ValueInt.get(metaData.srid),
-                                    ValueInt.get(metaData.numBands)});
+                        ValueDouble.get(metaData.ipY),
+                        ValueInt.get(metaData.width),
+                        ValueInt.get(metaData.height),
+                        ValueDouble.get(metaData.scaleX),
+                        ValueDouble.get(metaData.scaleY),
+                        ValueDouble.get(metaData.skewX),
+                        ValueDouble.get(metaData.skewY),
+                        ValueInt.get(metaData.srid),
+                        ValueInt.get(metaData.numBands)});
                 } catch (IOException ex) {
                     throw DbException
                             .get(ErrorCode.IO_EXCEPTION_1, ex, getSQL());
@@ -1770,10 +1807,10 @@ public class Function extends Expression implements FunctionCall {
             case ST_RASTERFROMIMAGE: {
                 try {
                     result = RasterUtils.getFromImage(v0,
-                            getNullOrValue(session, args, values, 1).getDouble(),
-                            getNullOrValue(session, args, values, 2).getDouble(),
                             getNullOrValue(session, args, values, 3).getDouble(),
                             getNullOrValue(session, args, values, 4).getDouble(),
+                            getNullOrValue(session, args, values, 1).getDouble(),
+                            getNullOrValue(session, args, values, 2).getDouble(),
                             getNullOrValue(session, args, values, 5).getDouble(),
                             getNullOrValue(session, args, values, 6).getDouble(),
                             getNullOrValue(session, args, values, 7).getInt(),
@@ -1804,24 +1841,24 @@ public class Function extends Expression implements FunctionCall {
                             rasterMetaData = new RasterUtils.RasterMetaData(
                                     v0.getInt(),
                                     v1.getInt(),
+                                    getNullOrValue(session, args, values, 8).getInt(),
                                     v4.getDouble(),
                                     v5.getDouble(),
                                     v2.getDouble(),
                                     v3.getDouble(),
                                     getNullOrValue(session, args, values, 6)
                                             .getDouble(),
-                                    getNullOrValue(session, args, values, 7)
-                                            .getDouble(),
-                                    getNullOrValue(session, args, values, 8).getInt());
+                                    getNullOrValue(session, args, values, 7).getDouble()
+                            );
                         } else if(args.length == 5) {
                             rasterMetaData = new RasterUtils.RasterMetaData(
                                     v0.getInt(),
                                     v1.getInt(),
+                                    0,
                                     v4.getDouble(),
                                     -v4.getDouble(),
                                     v2.getDouble(),
                                     v3.getDouble(),
-                                    0,
                                     0,
                                     0);
                         } else {
@@ -1888,8 +1925,8 @@ public class Function extends Expression implements FunctionCall {
                                 .convertTo(Value.RASTER))).getMetaData();
                     }
                     // 1 based pixel index
-                    com.vividsolutions.jts.geom.Coordinate coords = metaData.getPixelCoordinate(v1.getInt() - 1, v2.getInt() - 1);
-                    result = ValueGeometry.getFromGeometry(new com.vividsolutions.jts.geom.GeometryFactory()
+                    org.locationtech.jts.geom.Coordinate coords = metaData.getPixelCoordinate(v1.getInt() - 1, v2.getInt() - 1);
+                    result = ValueGeometry.getFromGeometry(new org.locationtech.jts.geom.GeometryFactory()
                             .createPoint(coords));
                 } catch (IOException ex) {
                     throw DbException.convertIOException(ex, getSQL());
@@ -2002,25 +2039,101 @@ public class Function extends Expression implements FunctionCall {
         return p.intValue();
     }
 
-    private static Timestamp dateadd(String part, long count, Timestamp d) {
+    private static Value dateadd(String part, long count, Value v) {
         int field = getDatePart(part);
-        if (field == Calendar.MILLISECOND) {
-            Timestamp ts = new Timestamp(d.getTime() + count);
-            ts.setNanos(ts.getNanos() + (d.getNanos() % 1000000));
-            return ts;
-        }
-        // We allow long for manipulating the millisecond component,
-        // for the rest we only allow int.
-        if (count > Integer.MAX_VALUE) {
+        if (field != MILLISECOND && field != MICROSECOND && field != NANOSECOND &&
+                (count > Integer.MAX_VALUE || count < Integer.MIN_VALUE)) {
             throw DbException.getInvalidValueException("DATEADD count", count);
         }
-        Calendar calendar = DateTimeUtils.createGregorianCalendar();
-        int nanos = d.getNanos() % 1000000;
-        calendar.setTime(d);
-        calendar.add(field, (int) count);
-        Timestamp ts = new Timestamp(calendar.getTimeInMillis());
-        ts.setNanos(ts.getNanos() + nanos);
-        return ts;
+        boolean withDate = !(v instanceof ValueTime);
+        boolean withTime = !(v instanceof ValueDate);
+        boolean forceTimestamp = false;
+        long[] a = DateTimeUtils.dateAndTimeFromValue(v);
+        long dateValue = a[0];
+        long timeNanos = a[1];
+        switch (field) {
+        case QUARTER:
+            count *= 3;
+            //$FALL-THROUGH$
+        case YEAR:
+        case MONTH: {
+            if (!withDate) {
+                throw DbException.getInvalidValueException("DATEADD time part", part);
+            }
+            long year = DateTimeUtils.yearFromDateValue(dateValue);
+            long month = DateTimeUtils.monthFromDateValue(dateValue);
+            int day = DateTimeUtils.dayFromDateValue(dateValue);
+            if (field == YEAR) {
+                year += count;
+            } else {
+                month += count;
+            }
+            dateValue = DateTimeUtils.dateValueFromDenormalizedDate(year, month, day);
+            return DateTimeUtils.dateTimeToValue(v, dateValue, timeNanos, forceTimestamp);
+        }
+        case WEEK:
+        case ISO_WEEK:
+            count *= 7;
+            //$FALL-THROUGH$
+        case DAY_OF_WEEK:
+        case ISO_DAY_OF_WEEK:
+        case DAY_OF_MONTH:
+        case DAY_OF_YEAR:
+            if (!withDate) {
+                throw DbException.getInvalidValueException("DATEADD time part", part);
+            }
+            dateValue = DateTimeUtils.dateValueFromAbsoluteDay(
+                    DateTimeUtils.absoluteDayFromDateValue(dateValue) + count);
+            return DateTimeUtils.dateTimeToValue(v, dateValue, timeNanos, forceTimestamp);
+        case HOUR:
+            count *= 3_600_000_000_000L;
+            break;
+        case MINUTE:
+            count *= 60_000_000_000L;
+            break;
+        case SECOND:
+        case EPOCH:
+            count *= 1_000_000_000;
+            break;
+        case MILLISECOND:
+            count *= 1_000_000;
+            break;
+        case MICROSECOND:
+            count *= 1_000;
+            break;
+        case NANOSECOND:
+            break;
+        case TIMEZONE_HOUR:
+            count *= 60;
+            //$FALL-THROUGH$
+        case TIMEZONE_MINUTE: {
+            if (!(v instanceof ValueTimestampTimeZone)) {
+                throw DbException.getUnsupportedException("DATEADD " + part);
+            }
+            count += ((ValueTimestampTimeZone) v).getTimeZoneOffsetMins();
+            return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos, (short) count);
+        }
+        default:
+            throw DbException.getUnsupportedException("DATEADD " + part);
+        }
+        if (!withTime) {
+            // Treat date as timestamp at the start of this date
+            forceTimestamp = true;
+        }
+        timeNanos += count;
+        if (timeNanos >= DateTimeUtils.NANOS_PER_DAY || timeNanos < 0) {
+            long d;
+            if (timeNanos >= DateTimeUtils.NANOS_PER_DAY) {
+                d = timeNanos / DateTimeUtils.NANOS_PER_DAY;
+            } else {
+                d = (timeNanos - DateTimeUtils.NANOS_PER_DAY + 1) / DateTimeUtils.NANOS_PER_DAY;
+            }
+            timeNanos -= d * DateTimeUtils.NANOS_PER_DAY;
+            return DateTimeUtils.dateTimeToValue(v,
+                    DateTimeUtils.dateValueFromAbsoluteDay(DateTimeUtils.absoluteDayFromDateValue(dateValue) + d),
+                    timeNanos, forceTimestamp);
+        }
+        return DateTimeUtils.dateTimeToValue(v, dateValue, timeNanos, forceTimestamp);
     }
 
     /**
@@ -2031,77 +2144,118 @@ public class Function extends Expression implements FunctionCall {
      * </pre>
      *
      * @param part the part
-     * @param d1 the first date
-     * @param d2 the second date
+     * @param v1 the first date-time value
+     * @param v2 the second date-time value
      * @return the number of crossed boundaries
      */
-    private static long datediff(String part, Timestamp d1, Timestamp d2) {
+    private static long datediff(String part, Value v1, Value v2) {
         int field = getDatePart(part);
-        Calendar calendar = DateTimeUtils.createGregorianCalendar();
-        long t1 = d1.getTime(), t2 = d2.getTime();
-        // need to convert to UTC, otherwise we get inconsistent results with
-        // certain time zones (those that are 30 minutes off)
-        TimeZone zone = calendar.getTimeZone();
-        calendar.setTime(d1);
-        t1 += zone.getOffset(calendar.get(Calendar.ERA),
-                calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH),
-                calendar.get(Calendar.DAY_OF_WEEK),
-                calendar.get(Calendar.MILLISECOND));
-        calendar.setTime(d2);
-        t2 += zone.getOffset(calendar.get(Calendar.ERA),
-                calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH),
-                calendar.get(Calendar.DAY_OF_WEEK),
-                calendar.get(Calendar.MILLISECOND));
+        long[] a1 = DateTimeUtils.dateAndTimeFromValue(v1);
+        long dateValue1 = a1[0];
+        long absolute1 = DateTimeUtils.absoluteDayFromDateValue(dateValue1);
+        long[] a2 = DateTimeUtils.dateAndTimeFromValue(v2);
+        long dateValue2 = a2[0];
+        long absolute2 = DateTimeUtils.absoluteDayFromDateValue(dateValue2);
         switch (field) {
-        case Calendar.MILLISECOND:
-            return t2 - t1;
-        case Calendar.SECOND:
-        case Calendar.MINUTE:
-        case Calendar.HOUR_OF_DAY:
-        case Calendar.DAY_OF_YEAR:
-        case Calendar.WEEK_OF_YEAR: {
-            // first 'normalize' the numbers so both are not negative
-            long hour = 60 * 60 * 1000;
-            long add = Math.min(t1 / hour * hour, t2 / hour * hour);
-            t1 -= add;
-            t2 -= add;
+        case NANOSECOND:
+        case MICROSECOND:
+        case MILLISECOND:
+        case SECOND:
+        case EPOCH:
+        case MINUTE:
+        case HOUR:
+            long timeNanos1 = a1[1];
+            long timeNanos2 = a2[1];
             switch (field) {
-            case Calendar.SECOND:
-                return t2 / 1000 - t1 / 1000;
-            case Calendar.MINUTE:
-                return t2 / (60 * 1000) - t1 / (60 * 1000);
-            case Calendar.HOUR_OF_DAY:
-                return t2 / hour - t1 / hour;
-            case Calendar.DAY_OF_YEAR:
-                return t2 / (hour * 24) - t1 / (hour * 24);
-            case Calendar.WEEK_OF_YEAR:
-                return t2 / (hour * 24 * 7) - t1 / (hour * 24 * 7);
-            default:
-                throw DbException.throwInternalError("field:" + field);
+            case NANOSECOND:
+                return (absolute2 - absolute1) * DateTimeUtils.NANOS_PER_DAY
+                        + (timeNanos2 - timeNanos1);
+            case MICROSECOND:
+                return (absolute2 - absolute1) * (DateTimeUtils.MILLIS_PER_DAY * 1_000)
+                        + (timeNanos2 / 1_000 - timeNanos1 / 1_000);
+            case MILLISECOND:
+                return (absolute2 - absolute1) * DateTimeUtils.MILLIS_PER_DAY
+                        + (timeNanos2 / 1_000_000 - timeNanos1 / 1_000_000);
+            case SECOND:
+            case EPOCH:
+                return (absolute2 - absolute1) * 86_400
+                        + (timeNanos2 / 1_000_000_000 - timeNanos1 / 1_000_000_000);
+            case MINUTE:
+                return (absolute2 - absolute1) * 1_440
+                        + (timeNanos2 / 60_000_000_000L - timeNanos1 / 60_000_000_000L);
+            case HOUR:
+                return (absolute2 - absolute1) * 24
+                        + (timeNanos2 / 3_600_000_000_000L - timeNanos1 / 3_600_000_000_000L);
+            }
+            // Fake fall-through
+            //$FALL-THROUGH$
+        case DAY_OF_MONTH:
+        case DAY_OF_YEAR:
+        case DAY_OF_WEEK:
+        case ISO_DAY_OF_WEEK:
+            return absolute2 - absolute1;
+        case WEEK:
+            return weekdiff(absolute1, absolute2, 0);
+        case ISO_WEEK:
+            return weekdiff(absolute1, absolute2, 1);
+        case MONTH:
+            return (DateTimeUtils.yearFromDateValue(dateValue2) - DateTimeUtils.yearFromDateValue(dateValue1)) * 12
+                    + DateTimeUtils.monthFromDateValue(dateValue2) - DateTimeUtils.monthFromDateValue(dateValue1);
+        case QUARTER:
+            return (DateTimeUtils.yearFromDateValue(dateValue2) - DateTimeUtils.yearFromDateValue(dateValue1)) * 4
+                    + (DateTimeUtils.monthFromDateValue(dateValue2) - 1) / 3
+                    - (DateTimeUtils.monthFromDateValue(dateValue1) - 1) / 3;
+        case YEAR:
+            return DateTimeUtils.yearFromDateValue(dateValue2) - DateTimeUtils.yearFromDateValue(dateValue1);
+        case TIMEZONE_HOUR:
+        case TIMEZONE_MINUTE: {
+            int offsetMinutes1;
+            if (v1 instanceof ValueTimestampTimeZone) {
+                offsetMinutes1 = ((ValueTimestampTimeZone) v1).getTimeZoneOffsetMins();
+            } else {
+                offsetMinutes1 = DateTimeUtils.getTimeZoneOffsetMillis(null, dateValue1, a1[1]);
+            }
+            int offsetMinutes2;
+            if (v2 instanceof ValueTimestampTimeZone) {
+                offsetMinutes2 = ((ValueTimestampTimeZone) v2).getTimeZoneOffsetMins();
+            } else {
+                offsetMinutes2 = DateTimeUtils.getTimeZoneOffsetMillis(null, dateValue2, a2[1]);
+            }
+            if (field == TIMEZONE_HOUR) {
+                return (offsetMinutes2 / 60) - (offsetMinutes1 / 60);
+            } else {
+                return offsetMinutes2 - offsetMinutes1;
             }
         }
-        case Calendar.DATE:
-            return t2 / (24 * 60 * 60 * 1000) - t1 / (24 * 60 * 60 * 1000);
         default:
-            break;
-        }
-        calendar = DateTimeUtils.createGregorianCalendar(DateTimeUtils.UTC);
-        calendar.setTimeInMillis(t1);
-        int year1 = calendar.get(Calendar.YEAR);
-        int month1 = calendar.get(Calendar.MONTH);
-        calendar.setTimeInMillis(t2);
-        int year2 = calendar.get(Calendar.YEAR);
-        int month2 = calendar.get(Calendar.MONTH);
-        int result = year2 - year1;
-        if (field == Calendar.MONTH) {
-            return 12 * result + (month2 - month1);
-        } else if (field == Calendar.YEAR) {
-            return result;
-        } else {
             throw DbException.getUnsupportedException("DATEDIFF " + part);
         }
+    }
+
+    private static long weekdiff(long absolute1, long absolute2, int firstDayOfWeek) {
+        absolute1 += 4 - firstDayOfWeek;
+        long r1 = absolute1 / 7;
+        if (absolute1 < 0 && (r1 * 7 != absolute1)) {
+            r1--;
+        }
+        absolute2 += 4 - firstDayOfWeek;
+        long r2 = absolute2 / 7;
+        if (absolute2 < 0 && (r2 * 7 != absolute2)) {
+            r2--;
+        }
+        return r2 - r1;
+    }
+
+    private static String[] getMonthsAndWeeks(int field) {
+        String[][] result = MONTHS_AND_WEEKS;
+        if (result == null) {
+            result = new String[2][];
+            DateFormatSymbols dfs = DateFormatSymbols.getInstance(Locale.ENGLISH);
+            result[0] = dfs.getMonths();
+            result[1] = dfs.getWeekdays();
+            MONTHS_AND_WEEKS = result;
+        }
+        return result[field];
     }
 
     private static String substring(String s, int start, int length) {
@@ -2118,29 +2272,6 @@ public class Function extends Expression implements FunctionCall {
             length = len - start;
         }
         return s.substring(start, start + length);
-    }
-
-    private static String replace(String s, String replace, String with) {
-        if (s == null || replace == null || with == null) {
-            return null;
-        }
-        if (replace.length() == 0) {
-            // avoid out of memory
-            return s;
-        }
-        StringBuilder buff = new StringBuilder(s.length());
-        int start = 0;
-        int len = replace.length();
-        while (true) {
-            int i = s.indexOf(replace, start);
-            if (i == -1) {
-                break;
-            }
-            buff.append(s.substring(start, i)).append(with);
-            start = i + len;
-        }
-        buff.append(s.substring(start));
-        return buff.toString();
     }
 
     private static String repeat(String s, int count) {
@@ -2259,7 +2390,7 @@ public class Function extends Expression implements FunctionCall {
                 if (buff == null) {
                     buff = new StringBuilder(size);
                     if (i > 0) {
-                        buff.append(original.substring(0, i));
+                        buff.append(original, 0, i);
                     }
                 }
                 if (index < replaceSize) {
@@ -2414,6 +2545,7 @@ public class Function extends Expression implements FunctionCall {
         case XMLTEXT:
         case TRUNCATE:
         case TO_TIMESTAMP:
+        case TO_TIMESTAMP_TZ:
             min = 1;
             max = 2;
             break;
@@ -2643,7 +2775,7 @@ public class Function extends Expression implements FunctionCall {
                 t = Value.DATE;
                 p = ValueDate.PRECISION;
                 s = 0;
-                d = ValueDate.DISPLAY_SIZE;
+                d = ValueDate.PRECISION;
             }
             break;
         case ABS:
@@ -2964,6 +3096,69 @@ public class Function extends Expression implements FunctionCall {
                     0 : escapeCharacter.charAt(0);
             csv.setEscapeCharacter(ec);
         }
+    }
+
+    /**
+     * Get the specified field of a date, however with years normalized to
+     * positive or negative, and month starting with 1.
+     *
+     * @param date the date value
+     * @param field the field type, see {@link Function} for constants
+     * @return the value
+     */
+    public static int getIntDatePart(Value date, int field) {
+        long[] a = DateTimeUtils.dateAndTimeFromValue(date);
+        long dateValue = a[0];
+        long timeNanos = a[1];
+        switch (field) {
+        case YEAR:
+            return DateTimeUtils.yearFromDateValue(dateValue);
+        case MONTH:
+            return DateTimeUtils.monthFromDateValue(dateValue);
+        case DAY_OF_MONTH:
+            return DateTimeUtils.dayFromDateValue(dateValue);
+        case HOUR:
+            return (int) (timeNanos / 3_600_000_000_000L % 24);
+        case MINUTE:
+            return (int) (timeNanos / 60_000_000_000L % 60);
+        case SECOND:
+            return (int) (timeNanos / 1_000_000_000 % 60);
+        case MILLISECOND:
+            return (int) (timeNanos / 1_000_000 % 1_000);
+        case MICROSECOND:
+            return (int) (timeNanos / 1_000 % 1_000_000);
+        case NANOSECOND:
+            return (int) (timeNanos % 1_000_000_000);
+        case DAY_OF_YEAR:
+            return DateTimeUtils.getDayOfYear(dateValue);
+        case DAY_OF_WEEK:
+            return DateTimeUtils.getSundayDayOfWeek(dateValue);
+        case WEEK:
+            GregorianCalendar gc = DateTimeUtils.getCalendar();
+            return DateTimeUtils.getWeekOfYear(dateValue, gc.getFirstDayOfWeek() - 1, gc.getMinimalDaysInFirstWeek());
+        case QUARTER:
+            return (DateTimeUtils.monthFromDateValue(dateValue) - 1) / 3 + 1;
+        case ISO_YEAR:
+            return DateTimeUtils.getIsoWeekYear(dateValue);
+        case ISO_WEEK:
+            return DateTimeUtils.getIsoWeekOfYear(dateValue);
+        case ISO_DAY_OF_WEEK:
+            return DateTimeUtils.getIsoDayOfWeek(dateValue);
+        case TIMEZONE_HOUR:
+        case TIMEZONE_MINUTE: {
+            int offsetMinutes;
+            if (date instanceof ValueTimestampTimeZone) {
+                offsetMinutes = ((ValueTimestampTimeZone) date).getTimeZoneOffsetMins();
+            } else {
+                offsetMinutes = DateTimeUtils.getTimeZoneOffsetMillis(null, dateValue, timeNanos);
+            }
+            if (field == TIMEZONE_HOUR) {
+                return offsetMinutes / 60;
+            }
+            return offsetMinutes % 60;
+        }
+        }
+        throw DbException.getUnsupportedException("getDatePart(" + date + ", " + field + ')');
     }
 
     @Override

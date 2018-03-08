@@ -17,7 +17,7 @@ Frequently Asked Questions
 <table class="content"><tr class="content"><td class="content"><div class="contentDiv">
 <!-- } -->
 
-<h1>Frequently Asked Questions</h1>
+<h1 id="faq_index">Frequently Asked Questions</h1>
 
 <a href="#support">
     I Have a Problem or Feature Request</a><br />
@@ -47,8 +47,6 @@ Frequently Asked Questions
     Column Names are Incorrect?</a><br />
 <a href="#float_is_double">
     Float is Double?</a><br />
-<a href="#gcj">
-    Is the GCJ Version Stable? Faster?</a><br />
 <a href="#how_to_translate">
     How to Translate this Project?</a><br />
 <a href="#how_to_contribute">
@@ -117,7 +115,6 @@ and the database URL starts with <code>jdbc:h2:</code>.
 To connect to a database using JDBC, use the following code:
 </p>
 <pre>
-Class.forName("org.h2.Driver");
 Connection conn = DriverManager.getConnection("jdbc:h2:~/test", "sa", "");
 </pre>
 
@@ -248,10 +245,10 @@ return <code>X</code>. What's wrong?
 This is not a bug. According the the JDBC specification, the method
 <code>ResultSetMetaData.getColumnName()</code> should return the name of the column
 and not the alias name. If you need the alias name, use
-<a href="http://java.sun.com/javase/6/docs/api/java/sql/ResultSetMetaData.html#getColumnLabel(int)"><code>ResultSetMetaData.getColumnLabel()</code></a>.
+<a href="https://docs.oracle.com/javase/7/docs/api/java/sql/ResultSetMetaData.html#getColumnLabel(int)"><code>ResultSetMetaData.getColumnLabel()</code></a>.
 Some other database don't work like this yet (they don't follow the JDBC specification).
 If you need compatibility with those databases, use the <a href="features.html#compatibility">Compatibility Mode</a>,
-or append <a href="../javadoc/org/h2/engine/DbSettings.html#ALIAS_COLUMN_NAME"><code>;ALIAS_COLUMN_NAME=TRUE</code></a> to the database URL.
+or append <a href="http://www.h2database.com/javadoc/org/h2/engine/DbSettings.html#ALIAS_COLUMN_NAME"><code>;ALIAS_COLUMN_NAME=TRUE</code></a> to the database URL.
 </p>
 <p>
 This also applies to DatabaseMetaData calls that return a result set.
@@ -268,17 +265,9 @@ return a <code>java.lang.Float</code>. What's wrong?
 This is not a bug. According the the JDBC specification, the JDBC data type <code>FLOAT</code>
 is equivalent to <code>DOUBLE</code>, and both are mapped to <code>java.lang.Double</code>.
 See also
-<a href="http://java.sun.com/j2se/1.5.0/docs/guide/jdbc/getstart/mapping.html#1055162">
+<a href="https://docs.oracle.com/javase/1.5.0/docs/guide/jdbc/getstart/mapping.html#1055162">
 Mapping SQL and Java Types - 8.3.10 FLOAT</a>.</p>
-
-<h3 id="gcj">Is the GCJ Version Stable? Faster?</h3>
-<p>
-The GCJ version is not as stable as the Java version.
-When running the regression test with the GCJ version, sometimes the application just stops
-at what seems to be a random point without error message.
-Currently, the GCJ version is also slower than when using the Sun VM.
-However, the startup of the GCJ version is faster than when using a VM.
-</p>
+<p>Use REAL or FLOAT(24) data type for <code>java.lang.Float</code> values.</p>
 
 <h3 id="how_to_translate">How to Translate this Project?</h3>
 <p>
@@ -296,7 +285,7 @@ Please start with small patches. That could be adding a test case to improve the
 <a href="build.html#automated">code coverage</a> (the target code coverage for this project is 90%, higher is better).
 You will have to <a href="build.html">develop, build and run the tests</a>.
 Once you are familiar with the code, you could implement missing features from the
-<a href="roadmap.html">feature request list</a>.
+<a href="http://www.h2database.com/html/roadmap.html">feature request list</a>.
 I suggest to start with very small features that are easy to implement.
 Keep in mind to provide test cases as well.
 </p>

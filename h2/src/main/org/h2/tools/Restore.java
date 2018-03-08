@@ -155,41 +155,41 @@ public class Restore extends Tool {
                 originalDbLen = originalDbName.length();
             }
             in = FileUtils.newInputStream(zipFileName);
-            ZipInputStream zipIn = new ZipInputStream(in);
-            while (true) {
-                ZipEntry entry = zipIn.getNextEntry();
-                if (entry == null) {
-                    break;
-                }
-                String fileName = entry.getName();
-                // restoring windows backups on linux and vice versa
-                fileName = fileName.replace('\\', SysProperties.FILE_SEPARATOR.charAt(0));
-                fileName = fileName.replace('/', SysProperties.FILE_SEPARATOR.charAt(0));
-                if (fileName.startsWith(SysProperties.FILE_SEPARATOR)) {
-                    fileName = fileName.substring(1);
-                }
-                boolean copy = false;
-                if (db == null) {
-                    copy = true;
-                } else if (fileName.startsWith(originalDbName + ".")) {
-                    fileName = db + fileName.substring(originalDbLen);
-                    copy = true;
-                }
-                if (copy) {
-                    OutputStream o = null;
-                    try {
-                        o = FileUtils.newOutputStream(
-                                directory + SysProperties.FILE_SEPARATOR + fileName, false);
-                        IOUtils.copy(zipIn, o);
-                        o.close();
-                    } finally {
-                        IOUtils.closeSilently(o);
+            try (ZipInputStream zipIn = new ZipInputStream(in)) {
+                while (true) {
+                    ZipEntry entry = zipIn.getNextEntry();
+                    if (entry == null) {
+                        break;
                     }
+                    String fileName = entry.getName();
+                    // restoring windows backups on linux and vice versa
+                    fileName = fileName.replace('\\', SysProperties.FILE_SEPARATOR.charAt(0));
+                    fileName = fileName.replace('/', SysProperties.FILE_SEPARATOR.charAt(0));
+                    if (fileName.startsWith(SysProperties.FILE_SEPARATOR)) {
+                        fileName = fileName.substring(1);
+                    }
+                    boolean copy = false;
+                    if (db == null) {
+                        copy = true;
+                    } else if (fileName.startsWith(originalDbName + ".")) {
+                        fileName = db + fileName.substring(originalDbLen);
+                        copy = true;
+                    }
+                    if (copy) {
+                        OutputStream o = null;
+                        try {
+                            o = FileUtils.newOutputStream(
+                                    directory + SysProperties.FILE_SEPARATOR + fileName, false);
+                            IOUtils.copy(zipIn, o);
+                            o.close();
+                        } finally {
+                            IOUtils.closeSilently(o);
+                        }
+                    }
+                    zipIn.closeEntry();
                 }
                 zipIn.closeEntry();
             }
-            zipIn.closeEntry();
-            zipIn.close();
         } catch (IOException e) {
             throw DbException.convertIOException(e, zipFileName);
         } finally {

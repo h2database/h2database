@@ -225,6 +225,8 @@ public class TestStringUtils extends TestBase {
                 StringUtils.replaceAll("abcabcabc", "abc", ""));
         assertEquals("abcabcabc",
                 StringUtils.replaceAll("abcabcabc", "aBc", ""));
+        assertEquals("abcabcabc",
+                StringUtils.replaceAll("abcabcabc", "", "abc"));
     }
 
     private void testTrim() {

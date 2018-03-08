@@ -15,6 +15,7 @@ import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
+import org.h2.result.ResultWithGeneratedKeys;
 import org.h2.util.MathUtils;
 
 /**
@@ -149,7 +150,7 @@ public abstract class Command implements CommandInterface {
     @Override
     public void stop() {
         session.endStatement();
-        session.setCurrentCommand(null);
+        session.setCurrentCommand(null, false);
         if (!isTransactional()) {
             session.commit(true);
         } else if (session.getAutoCommit()) {
@@ -193,7 +194,7 @@ public abstract class Command implements CommandInterface {
             }
         }
         synchronized (sync) {
-            session.setCurrentCommand(this);
+            session.setCurrentCommand(this, false);
             try {
                 while (true) {
                     database.checkPowerOff();
@@ -238,7 +239,7 @@ public abstract class Command implements CommandInterface {
     }
 
     @Override
-    public int executeUpdate() {
+    public ResultWithGeneratedKeys executeUpdate(Object generatedKeysRequest) {
         long start = 0;
         Database database = session.getDatabase();
         Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
@@ -252,12 +253,17 @@ public abstract class Command implements CommandInterface {
         }
         synchronized (sync) {
             Session.Savepoint rollback = session.setSavepoint();
-            session.setCurrentCommand(this);
+            session.setCurrentCommand(this, generatedKeysRequest);
             try {
                 while (true) {
                     database.checkPowerOff();
                     try {
-                        return update();
+                        int updateCount = update();
+                        if (!Boolean.FALSE.equals(generatedKeysRequest)) {
+                            return new ResultWithGeneratedKeys.WithKeys(updateCount,
+                                    session.getGeneratedKeys().getKeys(session));
+                        }
+                        return ResultWithGeneratedKeys.of(updateCount);
                     } catch (DbException e) {
                         start = filterConcurrentUpdate(e, start);
                     } catch (OutOfMemoryError e) {

@@ -74,9 +74,9 @@
       <version>${osgi.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.vividsolutions</groupId>
+      <groupId>org.locationtech.jts</groupId>
       <artifactId>jts-core</artifactId>
-      <version>1.14.0</version>
+      <version>1.15.0</version>
     </dependency>
     <!-- END COMPILE DEPENDENCIES !-->
 
@@ -193,16 +193,15 @@
       </resource>
     </resources>
     <testResources>
-      <testResource>
-        <directory>src/test</directory>
-        <includes>
-          <include>org/h2/test/db/h2-logo.png</include>
-          <include>org/h2/test/testSimple.in.txt</include>
-          <include>org/h2/test/testScript.sql</include>
-          <include>org/h2/samples/newsfeed.sql</include>
-          <include>org/h2/samples/optimizations.sql</include>
-        </includes>
-      </testResource>
+  <testResource>
+    <directory>src/test</directory>
+      <includes>
+        <include>org/h2/test/scripts/testSimple.in.txt</include>
+        <include>org/h2/test/scripts/testScript.sql</include>
+        <include>org/h2/samples/newsfeed.sql</include>
+        <include>org/h2/samples/optimizations.sql</include>
+      </includes>
+    </testResource>
     </testResources>
     <plugins>
       <!-- Add tools folder to test sources but consider moving them to src/test -->
@@ -225,6 +224,7 @@
         </executions>
       </plugin>
       <!-- Make sure neither we nor one of our dependencies uses anything outside JDK 1.7 -->
+<!-- commented out for now because it fails to build under JDK1.8+ because we are manually adding the tools jar
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
@@ -265,6 +265,7 @@
           </dependency>
         </dependencies>
       </plugin>
+-->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>

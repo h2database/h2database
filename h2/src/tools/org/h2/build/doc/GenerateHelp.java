@@ -41,10 +41,21 @@ public class GenerateHelp {
             for (int i = 0; i < columnCount; i++) {
                 String s = rs.getString(1 + i);
                 if (i == 3) {
-                    int dot = s.indexOf('.');
-                    if (dot >= 0) {
-                        s = s.substring(0, dot + 1);
+                    int len = s.length();
+                    int end = 0;
+                    for (; end < len; end++) {
+                        char ch = s.charAt(end);
+                        if (ch == '.') {
+                            end++;
+                            break;
+                        }
+                        if (ch == '"') {
+                            do {
+                                end++;
+                            } while (end < len && s.charAt(end) != '"');
+                        }
                     }
+                    s = s.substring(0, end);
                 }
                 row[i] = s;
             }

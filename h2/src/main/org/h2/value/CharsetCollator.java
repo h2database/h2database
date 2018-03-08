@@ -15,6 +15,9 @@ import java.util.Comparator;
  */
 public class CharsetCollator extends Collator {
 
+    /**
+     * The comparator used to compare byte arrays.
+     */
     static final Comparator<byte[]> COMPARATOR = new Comparator<byte[]>() {
         @Override
         public int compare(byte[] b1, byte[] b2) {

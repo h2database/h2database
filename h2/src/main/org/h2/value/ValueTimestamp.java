@@ -5,12 +5,9 @@
  */
 package org.h2.value;
 
-import java.math.BigDecimal;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
@@ -22,20 +19,36 @@ import org.h2.util.DateTimeUtils;
 public class ValueTimestamp extends Value {
 
     /**
-     * The precision in digits.
+     * The default precision and display size of the textual representation of a timestamp.
+     * Example: 2001-01-01 23:59:59.123456
      */
-    public static final int PRECISION = 23;
+    public static final int DEFAULT_PRECISION = 26;
 
     /**
-     * The display size of the textual representation of a timestamp.
-     * Example: 2001-01-01 23:59:59.000
+     * The maximum precision and display size of the textual representation of a timestamp.
+     * Example: 2001-01-01 23:59:59.123456789
      */
-    static final int DISPLAY_SIZE = 23;
+    public static final int MAXIMUM_PRECISION = 29;
 
     /**
      * The default scale for timestamps.
      */
-    static final int DEFAULT_SCALE = 10;
+    static final int DEFAULT_SCALE = 6;
+
+    /**
+     * The maximum scale for timestamps.
+     */
+    public static final int MAXIMUM_SCALE = 9;
+
+    /**
+     * Get display size for the specified scale.
+     *
+     * @param scale scale
+     * @return display size
+     */
+    public static int getDisplaySize(int scale) {
+        return scale == 0 ? 19 : 20 + scale;
+    }
 
     /**
      * A bit field with bits for the year, month, and day (see DateTimeUtils for
@@ -129,102 +142,11 @@ public class ValueTimestamp extends Value {
      */
     public static ValueTimestamp parse(String s, Mode mode) {
         try {
-            return parseTry(s, mode);
+            return (ValueTimestamp) DateTimeUtils.parseTimestamp(s, mode, false);
         } catch (Exception e) {
             throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2,
                     e, "TIMESTAMP", s);
         }
-    }
-
-    /**
-     * See:
-     * https://stackoverflow.com/questions/3976616/how-to-find-nth-occurrence-of-character-in-a-string#answer-3976656
-     */
-    private static int findNthIndexOf(String str, char chr, int n) {
-        int pos = str.indexOf(chr);
-        while (--n > 0 && pos != -1)
-            pos = str.indexOf(chr, pos + 1);
-        return pos;
-    }
-
-    private static ValueTimestamp parseTry(String s, Mode mode) {
-        int dateEnd = s.indexOf(' ');
-        if (dateEnd < 0) {
-            // ISO 8601 compatibility
-            dateEnd = s.indexOf('T');
-            if (dateEnd < 0 && mode != null && mode.allowDB2TimestampFormat) {
-                // DB2 also allows dash between date and time
-                dateEnd = findNthIndexOf(s, '-', 3);
-            }
-        }
-        int timeStart;
-        if (dateEnd < 0) {
-            dateEnd = s.length();
-            timeStart = -1;
-        } else {
-            timeStart = dateEnd + 1;
-        }
-        long dateValue = DateTimeUtils.parseDateValue(s, 0, dateEnd);
-        long nanos;
-        if (timeStart < 0) {
-            nanos = 0;
-        } else {
-            int timeEnd = s.length();
-            TimeZone tz = null;
-            if (s.endsWith("Z")) {
-                tz = DateTimeUtils.UTC;
-                timeEnd--;
-            } else {
-                int timeZoneStart = s.indexOf('+', dateEnd + 1);
-                if (timeZoneStart < 0) {
-                    timeZoneStart = s.indexOf('-', dateEnd + 1);
-                }
-                if (timeZoneStart >= 0) {
-                    String tzName = "GMT" + s.substring(timeZoneStart);
-                    tz = TimeZone.getTimeZone(tzName);
-                    if (!tz.getID().startsWith(tzName)) {
-                        throw new IllegalArgumentException(
-                                tzName + " (" + tz.getID() + "?)");
-                    }
-                    timeEnd = timeZoneStart;
-                } else {
-                    timeZoneStart = s.indexOf(' ', dateEnd + 1);
-                    if (timeZoneStart > 0) {
-                        String tzName = s.substring(timeZoneStart + 1);
-                        tz = TimeZone.getTimeZone(tzName);
-                        if (!tz.getID().startsWith(tzName)) {
-                            throw new IllegalArgumentException(tzName);
-                        }
-                        timeEnd = timeZoneStart;
-                    }
-                }
-            }
-            nanos = DateTimeUtils.parseTimeNanos(s, dateEnd + 1, timeEnd, true);
-            if (tz != null) {
-                int year = DateTimeUtils.yearFromDateValue(dateValue);
-                int month = DateTimeUtils.monthFromDateValue(dateValue);
-                int day = DateTimeUtils.dayFromDateValue(dateValue);
-                long ms = nanos / 1000000;
-                nanos -= ms * 1000000;
-                long second = ms / 1000;
-                ms -= second * 1000;
-                int minute = (int) (second / 60);
-                second -= minute * 60;
-                int hour = minute / 60;
-                minute -= hour * 60;
-                long millis = DateTimeUtils.getMillis(
-                        tz, year, month, day, hour, minute, (int) second, (int) ms);
-                ms = DateTimeUtils.convertToLocal(
-                        new Date(millis),
-                        DateTimeUtils.createGregorianCalendar(DateTimeUtils.UTC));
-                long md = DateTimeUtils.MILLIS_PER_DAY;
-                long absoluteDay = (ms >= 0 ? ms : ms - md + 1) / md;
-                dateValue = DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay);
-                ms -= absoluteDay * md;
-                nanos += ms * 1000000;
-            }
-        }
-        return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
     }
 
     /**
@@ -258,10 +180,10 @@ public class ValueTimestamp extends Value {
 
     @Override
     public String getString() {
-        StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
-        ValueDate.appendDate(buff, dateValue);
+        StringBuilder buff = new StringBuilder(MAXIMUM_PRECISION);
+        DateTimeUtils.appendDate(buff, dateValue);
         buff.append(' ');
-        ValueTime.appendTime(buff, timeNanos, true);
+        DateTimeUtils.appendTime(buff, timeNanos);
         return buff.toString();
     }
 
@@ -272,37 +194,44 @@ public class ValueTimestamp extends Value {
 
     @Override
     public long getPrecision() {
-        return PRECISION;
+        return MAXIMUM_PRECISION;
     }
 
     @Override
     public int getScale() {
-        return DEFAULT_SCALE;
+        return MAXIMUM_SCALE;
     }
 
     @Override
     public int getDisplaySize() {
-        return DISPLAY_SIZE;
+        return MAXIMUM_PRECISION;
+    }
+
+    @Override
+    public boolean checkPrecision(long precision) {
+        // TIMESTAMP data type does not have precision parameter
+        return true;
     }
 
     @Override
     public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
-        if (targetScale >= DEFAULT_SCALE) {
+        if (targetScale >= MAXIMUM_SCALE) {
             return this;
         }
         if (targetScale < 0) {
             throw DbException.getInvalidValueException("scale", targetScale);
         }
         long n = timeNanos;
-        BigDecimal bd = BigDecimal.valueOf(n);
-        bd = bd.movePointLeft(9);
-        bd = ValueDecimal.setScale(bd, targetScale);
-        bd = bd.movePointRight(9);
-        long n2 = bd.longValue();
+        long n2 = DateTimeUtils.convertScale(n, targetScale);
         if (n2 == n) {
             return this;
         }
-        return fromDateValueAndNanos(dateValue, n2);
+        long dv = dateValue;
+        if (n2 >= DateTimeUtils.NANOS_PER_DAY) {
+            n2 -= DateTimeUtils.NANOS_PER_DAY;
+            dv = DateTimeUtils.dateValueFromAbsoluteDay(DateTimeUtils.absoluteDayFromDateValue(dateValue) + 1);
+        }
+        return fromDateValueAndNanos(dv, n2);
     }
 
     @Override

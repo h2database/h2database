@@ -8,6 +8,7 @@ package org.h2.command;
 import java.util.ArrayList;
 import org.h2.expression.ParameterInterface;
 import org.h2.result.ResultInterface;
+import org.h2.result.ResultWithGeneratedKeys;
 
 /**
  * Represents a SQL statement.
@@ -510,9 +511,16 @@ public interface CommandInterface {
     /**
      * Execute the statement
      *
+     * @param generatedKeysRequest
+     *            {@code false} if generated keys are not needed, {@code true} if
+     *            generated keys should be configured automatically, {@code int[]}
+     *            to specify column indices to return generated keys from, or
+     *            {@code String[]} to specify column names to return generated keys
+     *            from
+     *
      * @return the update count
      */
-    int executeUpdate();
+    ResultWithGeneratedKeys executeUpdate(Object generatedKeysRequest);
 
     /**
      * Stop the command execution, release all locks and resources

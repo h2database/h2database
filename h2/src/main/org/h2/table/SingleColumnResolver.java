@@ -43,6 +43,11 @@ public class SingleColumnResolver implements ColumnResolver {
     }
 
     @Override
+    public String getDerivedColumnName(Column column) {
+        return null;
+    }
+
+    @Override
     public String getSchemaName() {
         return null;
     }

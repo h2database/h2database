@@ -39,7 +39,7 @@ class CommandList extends Command {
 
     @Override
     public int update() {
-        int updateCount = command.executeUpdate();
+        int updateCount = command.executeUpdate(false).getUpdateCount();
         executeRemaining();
         return updateCount;
     }

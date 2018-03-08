@@ -315,7 +315,7 @@ public class MergeUsing extends Prepared {
             buff.append(')');
         }
         buff.append('\n');
-        if (valuesExpressionList.size() > 0) {
+        if (!valuesExpressionList.isEmpty()) {
             buff.append("VALUES ");
             int row = 0;
             for (Expression[] expr : valuesExpressionList) {
@@ -376,7 +376,7 @@ public class MergeUsing extends Prepared {
         onCondition.createIndexConditions(session, targetTableFilter);
 
         if (columns == null) {
-            if (valuesExpressionList.size() > 0
+            if (!valuesExpressionList.isEmpty()
                     && valuesExpressionList.get(0).length == 0) {
                 // special case where table is used as a sequence
                 columns = new Column[0];
@@ -384,7 +384,7 @@ public class MergeUsing extends Prepared {
                 columns = targetTable.getColumns();
             }
         }
-        if (valuesExpressionList.size() > 0) {
+        if (!valuesExpressionList.isEmpty()) {
             for (Expression[] expr : valuesExpressionList) {
                 if (expr.length != columns.length) {
                     throw DbException

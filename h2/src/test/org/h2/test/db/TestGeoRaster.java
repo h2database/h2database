@@ -5,7 +5,7 @@
  */
 package org.h2.test.db;
 
-import com.vividsolutions.jts.geom.*;
+
 import org.h2.api.GeoRaster;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
@@ -48,6 +48,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.net.URISyntaxException;
 import java.nio.ByteOrder;
 import java.sql.Blob;
 import java.sql.Connection;
@@ -56,20 +57,21 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Iterator;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
 
 
 /**
  * Unit test of Raster type
  *
- * @author Thomas Crevoisier
- * @author Jules Party
- * @author Nicolas Fortin
+ * @author Thomas Crevoisier, CNRS
+ * @author Jules Party, CNRS
+ * @author Nicolas Fortin, CNRS
  */
 public class TestGeoRaster extends TestBase {
 
-    public static String GetUnitTestImage() {
-        return new File(TestGeoRaster.class
-                .getResource("h2-logo.png").getFile()).getAbsolutePath();
+    public static String GetUnitTestImage() throws URISyntaxException {
+         return new File(TestGeoRaster.class.getResource("h2-logo.png").getFile()).getAbsolutePath();
     }
 
     public static void main(String... a) throws Exception {
@@ -113,6 +115,7 @@ public class TestGeoRaster extends TestBase {
         testWKBRasterFloat();
         testWKBRasterInt();
         testWKBRasterDouble();
+        testST_ImageFromRaster();
     }
 
     private void testWriteRasterFromString() throws Exception {
@@ -204,8 +207,7 @@ public class TestGeoRaster extends TestBase {
 
     public void testEmptyGeoRaster() throws Exception {
         RasterUtils.RasterMetaData meta = new RasterUtils.RasterMetaData
-                (RasterUtils.LAST_WKB_VERSION,0, 2, 3, 0.5, 0.5, 0, 0, 0, 10,
-                        20);
+                (RasterUtils.LAST_WKB_VERSION,0, 10,20,0, 2, 3, 0.5, 0.5, 0, 0);
         // POLYGON((0.5 0.5,0.5 60.5,20.5 60.5,20.5 0.5,0.5 0.5))
         Envelope env = meta.getEnvelope();
         assertEquals(0.5, env.getMinX());
@@ -268,8 +270,8 @@ public class TestGeoRaster extends TestBase {
     private void testLittleEndian() throws IOException {
         // Write as little endian
         RasterUtils.RasterMetaData testRasterLittleEndian = new RasterUtils.RasterMetaData
-                (RasterUtils.LAST_WKB_VERSION,0, 2, 3, 0.5, 0.5, 0, 0, 0, 10,
-                        20);
+                (RasterUtils.LAST_WKB_VERSION,0,10,
+                        20, 0, 2, 3, 0.5, 0.5, 0, 0 );
         ByteArrayOutputStream byteArrayOutputStream =
                 new ByteArrayOutputStream();
         testRasterLittleEndian.writeRasterHeader(byteArrayOutputStream,
@@ -444,7 +446,7 @@ public class TestGeoRaster extends TestBase {
         }
     }
 
-    public void testPngLoading() throws IOException {
+    public void testPngLoading() throws IOException, URISyntaxException {
         // Test loading PNG into Raster
         File testFile = new File(GetUnitTestImage());
         // Fetch ImageRead using ImageIO API then convert it to WKB Raster on
@@ -501,7 +503,7 @@ public class TestGeoRaster extends TestBase {
         conn.close();
     }
 
-    public void testImageIOWKBTranslation() throws SQLException, IOException {
+    public void testImageIOWKBTranslation() throws SQLException, IOException, URISyntaxException {
         Connection conn = getConnection("georaster");
         Statement stat = conn.createStatement();
         stat.execute("drop table if exists test");
@@ -877,7 +879,7 @@ public class TestGeoRaster extends TestBase {
 
 
 
-    public void testImageIOReadParametersRegion() throws SQLException, IOException {
+    public void testImageIOReadParametersRegion() throws SQLException, IOException, URISyntaxException {
         deleteDb("georaster");
         Connection conn = getConnection("georaster");
         Statement stat = conn.createStatement();
@@ -942,7 +944,7 @@ public class TestGeoRaster extends TestBase {
         assertEquals(pixelsExpected, pixelsSource);
     }
 
-    public void testImageIOReadParametersSubSampling() throws SQLException, IOException {
+    public void testImageIOReadParametersSubSampling() throws SQLException, IOException, URISyntaxException {
         deleteDb("georaster");
         Connection conn = getConnection("georaster");
         Statement stat = conn.createStatement();
@@ -1038,15 +1040,15 @@ public class TestGeoRaster extends TestBase {
                 "st_makeemptyraster(10, 10, 1.44754, -2.100, 0.001)," +
                 " 10, 2);");
         assertTrue(rs.next());
-        com.vividsolutions.jts.geom.Point pos =
-                (com.vividsolutions.jts.geom.Point)rs.getObject(1);
+        org.locationtech.jts.geom.Point pos =
+                (org.locationtech.jts.geom.Point)rs.getObject(1);
         assertEquals(1.45653999999999995, pos.getX());
         assertEquals(-2.10099999999999998, pos.getY());
         rs = stat.executeQuery("SELECT ST_RasterToWorldCoord( " +
                 "st_makeemptyraster(100, 100, 555, 256, 2.5), 7, 23);");
         assertTrue(rs.next());
         pos =
-                (com.vividsolutions.jts.geom.Point)rs.getObject(1);
+                (org.locationtech.jts.geom.Point)rs.getObject(1);
         assertEquals(570., pos.getX());
         assertEquals(201., pos.getY());
         rs = stat.executeQuery("SELECT ST_RasterToWorldCoord( " +
@@ -1054,7 +1056,7 @@ public class TestGeoRaster extends TestBase {
                 "-19999);");
         assertTrue(rs.next());
         pos =
-                (com.vividsolutions.jts.geom.Point)rs.getObject(1);
+                (org.locationtech.jts.geom.Point)rs.getObject(1);
         assertEquals(6000200., pos.getX());
         assertEquals(350000., pos.getY());
         conn.close();
@@ -1297,5 +1299,38 @@ public class TestGeoRaster extends TestBase {
                         .getWidth()), val[0]);
             }
         }
+    }
+
+    private void testST_ImageFromRaster() throws SQLException, IOException {
+        deleteDb("georaster");
+        Connection conn = getConnection("georaster");
+        Statement stat = conn.createStatement();
+        // Create an image from scratch
+        final int width = 50, height = 50;
+        RenderedImage image = getTestImage(width, height);
+        stat.execute("drop table if exists testcopy");
+        stat.execute("create table testcopy(id identity, the_raster raster)");
+        PreparedStatement ps = conn.prepareStatement("INSERT INTO testcopy" +
+                "(the_raster) values(?)");
+        ps.setBinaryStream(1, GeoRasterRenderedImage.create(image
+                , 1, -1, 0, 0, 0, 0, 27572)
+                .asWKBRaster());
+        ps.execute();
+        String outputFile = "target/test.png";
+        stat.execute("SELECT FILE_WRITE(ST_IMAGEFROMRASTER(the_raster, 'png'), '" + outputFile + "') FROM testcopy");
+        ResultSet rsImage = stat.executeQuery("SELECT ST_RasterFromImage( File_Read('" + outputFile + "'), 0, 0, 1, -1,0, 0, 27572)");
+        assertTrue(rsImage.next());
+        assertTrue(rsImage.getObject(1) instanceof RenderedImage);
+        RenderedImage wkbRasterImage = (RenderedImage)rsImage.getObject(1);
+        Raster rasterOutput = wkbRasterImage.getData();
+        Raster rasterInput = image.getData();
+        assertEquals(rasterInput.getNumBands(),rasterOutput.getNumBands());
+        for (int y = 0; y < wkbRasterImage.getHeight(); y++) {
+            for (int x = 0; x < wkbRasterImage.getWidth(); x++) {
+                int[] valInput = rasterInput.getPixel(x, y, (int[]) null);
+                int[] valOutput = rasterOutput.getPixel(x, y, (int[]) null);
+                assertEquals(valInput, valOutput);
+            }
+        }        
     }
 }

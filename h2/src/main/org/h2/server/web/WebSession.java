@@ -206,7 +206,7 @@ class WebSession {
                     "${text.admin.notConnected}" : conn.getMetaData().getURL());
             m.put("user", conn == null ?
                     "-" : conn.getMetaData().getUserName());
-            m.put("lastQuery", commandHistory.size() == 0 ?
+            m.put("lastQuery", commandHistory.isEmpty() ?
                     "" : commandHistory.get(0));
             m.put("executing", executingStatement == null ?
                     "${text.admin.no}" : "${text.admin.yes}");

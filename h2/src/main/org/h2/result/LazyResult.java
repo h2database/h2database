@@ -5,7 +5,7 @@
  */
 package org.h2.result;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionInterface;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.value.Value;
@@ -180,7 +180,7 @@ public abstract class LazyResult implements ResultInterface {
     }
 
     @Override
-    public ResultInterface createShallowCopy(Session targetSession) {
+    public ResultInterface createShallowCopy(SessionInterface targetSession) {
         // Copying is impossible with lazy result.
         return null;
     }

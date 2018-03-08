@@ -31,15 +31,17 @@ public class JavaAggregate extends Expression {
     private final Select select;
     private final Expression[] args;
     private int[] argTypes;
+    private Expression filterCondition;
     private int dataType;
     private Connection userConnection;
     private int lastGroupRowId;
 
     public JavaAggregate(UserAggregate userAggregate, Expression[] args,
-            Select select) {
+            Select select, Expression filterCondition) {
         this.userAggregate = userAggregate;
         this.args = args;
         this.select = select;
+        this.filterCondition = filterCondition;
     }
 
     @Override
@@ -47,6 +49,9 @@ public class JavaAggregate extends Expression {
         int cost = 5;
         for (Expression e : args) {
             cost += e.getCost();
+        }
+        if (filterCondition != null) {
+            cost += filterCondition.getCost();
         }
         return cost;
     }
@@ -74,7 +79,11 @@ public class JavaAggregate extends Expression {
             buff.appendExceptFirst(", ");
             buff.append(e.getSQL());
         }
-        return buff.append(')').toString();
+        buff.append(')');
+        if (filterCondition != null) {
+            buff.append(" FILTER (WHERE ").append(filterCondition.getSQL()).append(')');
+        }
+        return buff.toString();
     }
 
     @Override
@@ -101,6 +110,9 @@ public class JavaAggregate extends Expression {
                 return false;
             }
         }
+        if (filterCondition != null && !filterCondition.isEverything(visitor)) {
+            return false;
+        }
         return true;
     }
 
@@ -108,6 +120,9 @@ public class JavaAggregate extends Expression {
     public void mapColumns(ColumnResolver resolver, int level) {
         for (Expression arg : args) {
             arg.mapColumns(resolver, level);
+        }
+        if (filterCondition != null) {
+            filterCondition.mapColumns(resolver, level);
         }
     }
 
@@ -128,6 +143,9 @@ public class JavaAggregate extends Expression {
         } catch (SQLException e) {
             throw DbException.convert(e);
         }
+        if (filterCondition != null) {
+            filterCondition = filterCondition.optimize(session);
+        }
         return this;
     }
 
@@ -135,6 +153,9 @@ public class JavaAggregate extends Expression {
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         for (Expression e : args) {
             e.setEvaluatable(tableFilter, b);
+        }
+        if (filterCondition != null) {
+            filterCondition.setEvaluatable(tableFilter, b);
         }
     }
 
@@ -179,6 +200,12 @@ public class JavaAggregate extends Expression {
             return;
         }
         lastGroupRowId = groupRowId;
+
+        if (filterCondition != null) {
+            if (!filterCondition.getBooleanValue(session)) {
+                return;
+            }
+        }
 
         Aggregate agg = (Aggregate) group.get(this);
         try {

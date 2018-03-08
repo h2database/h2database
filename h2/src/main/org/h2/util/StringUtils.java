@@ -583,7 +583,7 @@ public class StringUtils {
             }
             int n = s.indexOf('\n', i);
             n = n < 0 ? s.length() : n + 1;
-            buff.append(s.substring(i, n));
+            buff.append(s, i, n);
             i = n;
         }
         if (newline && !s.endsWith("\n")) {
@@ -707,7 +707,10 @@ public class StringUtils {
     }
 
     /**
-     * Replace all occurrences of the before string with the after string.
+     * Replace all occurrences of the before string with the after string. Unlike
+     * {@link String#replaceAll(String, String)} this method reads {@code before}
+     * and {@code after} arguments as plain strings and if {@code before} argument
+     * is an empty string this method returns original string {@code s}.
      *
      * @param s the string
      * @param before the old text
@@ -716,18 +719,18 @@ public class StringUtils {
      */
     public static String replaceAll(String s, String before, String after) {
         int next = s.indexOf(before);
-        if (next < 0) {
+        if (next < 0 || before.isEmpty()) {
             return s;
         }
         StringBuilder buff = new StringBuilder(
                 s.length() - before.length() + after.length());
         int index = 0;
         while (true) {
-            buff.append(s.substring(index, next)).append(after);
+            buff.append(s, index, next).append(after);
             index = next + before.length();
             next = s.indexOf(before, index);
             if (next < 0) {
-                buff.append(s.substring(index));
+                buff.append(s, index, s.length());
                 break;
             }
         }

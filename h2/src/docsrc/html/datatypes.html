@@ -18,7 +18,7 @@ Data Types
 <!-- } -->
 
 <h1>Data Types</h1>
-<h2>Index</h2>
+<h2 id="datatypes_index">Index</h2>
 <!-- syntax-start
 <p class="notranslate">
 <c:forEach var="item" items="dataTypes">
@@ -52,7 +52,7 @@ syntax-end -->
 <!-- railroad-end -->
 
 <c:forEach var="item" items="dataTypes">
-<h3 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h3>
+<h2 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h2>
 <!-- railroad-start -->
 <pre name="bnf" style="display: none">
 ${item.syntax}

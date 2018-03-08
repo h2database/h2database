@@ -118,7 +118,7 @@ public class MVTable extends TableBase {
     private final Trace traceLock;
     private int changesSinceAnalyze;
     private int nextAnalyze;
-    private boolean containsLargeObject;
+    private final boolean containsLargeObject;
     private Column rowIdColumn;
 
     private final MVTableEngine.Store store;
@@ -130,11 +130,14 @@ public class MVTable extends TableBase {
         this.store = store;
         this.transactionStore = store.getTransactionStore();
         this.isHidden = data.isHidden;
+        boolean b = false;
         for (Column col : getColumns()) {
             if (DataType.isLargeObject(col.getType())) {
-                containsLargeObject = true;
+                b = true;
+                break;
             }
         }
+        containsLargeObject = b;
         traceLock = database.getTrace(Trace.LOCK);
     }
 
@@ -467,7 +470,7 @@ public class MVTable extends TableBase {
             if (constraints != null) {
                 for (int i = 0, size = constraints.size(); i < size; i++) {
                     Constraint c = constraints.get(i);
-                    if (!(c.getConstraintType().equals(Constraint.REFERENTIAL))) {
+                    if (c.getConstraintType() != Constraint.Type.REFERENTIAL) {
                         continue;
                     }
                     ConstraintReferential ref = (ConstraintReferential) c;
@@ -610,7 +613,7 @@ public class MVTable extends TableBase {
             remaining--;
         }
         sortRows(buffer, index);
-        if (bufferNames.size() > 0) {
+        if (!bufferNames.isEmpty()) {
             String mapName = store.nextTemporaryMapName();
             index.addRowsToBuffer(buffer, mapName);
             bufferNames.add(mapName);

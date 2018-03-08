@@ -25,8 +25,8 @@ import java.util.Vector;
  * Convert RenderedImage into a WKB input stream.
  * This class is used when storing LobDB Raster from external image,
  * BufferedImage or RenderedOp (JAI).
- * @author Nicolas Fortin
- * @author Erwan Bocher
+ * @author Nicolas Fortin, CNRS
+ * @author Erwan Bocher, CNRS
  */
 public class GeoRasterRenderedImage implements GeoRaster {
     private final RenderedImage image;
@@ -79,25 +79,25 @@ public class GeoRasterRenderedImage implements GeoRaster {
             bands[idBand] = band;
             offset += band.getLength(image.getWidth(), image.getHeight());
         }
-        RasterUtils.RasterMetaData fixedMetaData = new RasterUtils
-                .RasterMetaData(RasterUtils.LAST_WKB_VERSION, metaData.bands
-                .length,metaData.scaleX, metaData.scaleY, metaData.ipX,
-                metaData.ipY, metaData.skewX, metaData.skewY, metaData.srid,
-                image.getWidth(), image.getHeight(), bands);
+        RasterUtils.RasterMetaData fixedMetaData = new RasterUtils.RasterMetaData(RasterUtils.LAST_WKB_VERSION, metaData.bands.length, image.getWidth(), image.getHeight(),
+                metaData.srid, metaData.scaleX, metaData.scaleY, metaData.ipX,
+                metaData.ipY, metaData.skewX, metaData.skewY,
+                bands);
         return new GeoRasterRenderedImage(image, fixedMetaData);
     }
 
     /**
      * Wrap a Raster in order to make a WKBRaster of it.
      * @param image Raster
-     * @param scaleX Pixel x scale in current projection unit
-     * @param scaleY Pixel y scale in current projection unit
-     * @param ipX Insertion point X
-     * @param ipY Insertion point Y
-     * @param skewX Rotation X
-     * @param skewY Rotation Y
-     * @param srid Srid value
+     * @param scaleX Pixel width in geographical units 
+     * @param scaleY Pixel height in geographical units
+     * @param ipX X ordinate of upper-left  pixel's upper-left corner in geographical units
+     * @param ipY Y ordinate of upper-left pixel's upper-left corner in geographical units
+     * @param skewX Rotation about X-axis
+     * @param skewY Rotation about Y-axis
+     * @param srid Spatial reference identifier
      * @return WKBRasterWrapper instance
+     * @throws IOException
      */
     public static GeoRasterRenderedImage create(RenderedImage image, double scaleX,
                                                 double scaleY, double ipX, double ipY, double skewX, double skewY,
@@ -108,15 +108,16 @@ public class GeoRasterRenderedImage implements GeoRaster {
     /**
      * Wrap a Raster in order to make a WKBRaster of it.
      * @param image Raster
-     * @param scaleX Pixel x scale in current projection unit
-     * @param scaleY Pixel y scale in current projection unit
-     * @param ipX Insertion point X
-     * @param ipY Insertion point Y
-     * @param skewX Rotation X
-     * @param skewY Rotation Y
-     * @param srid Srid value
-     * @param noDataValue NoData value for all bands. Null if it has not nodata
+     * @param scaleX Pixel width in geographical units 
+     * @param scaleY Pixel height in geographical units
+     * @param ipX X ordinate of upper-left  pixel's upper-left corner in geographical units
+     * @param ipY Y ordinate of upper-left pixel's upper-left corner in geographical units
+     * @param skewX Rotation about X-axis
+     * @param skewY Rotation about Y-axis
+     * @param srid Spatial reference identifier
+     * @param noDataValue NoData value for all bands. Null if it has not nodata specified
      * @return WKBRasterWrapper instance
+     * @throws IOException
      */
     public static GeoRasterRenderedImage create(RenderedImage image, double scaleX,
             double scaleY, double ipX, double ipY, double skewX, double skewY,
@@ -182,10 +183,11 @@ public class GeoRasterRenderedImage implements GeoRaster {
                     pixelType, noDataValue != null, offset);
             offset += bands[idBand].getLength(image.getWidth(), image.getHeight());
         }
-        RasterUtils.RasterMetaData rasterMetaData =
-                new RasterUtils.RasterMetaData(RasterUtils.LAST_WKB_VERSION,
-                        bands.length, scaleX, scaleY, ipX, ipY, skewX,
-                        skewY, srid, image.getWidth(), image.getHeight(),
+        RasterUtils.RasterMetaData rasterMetaData
+                = new RasterUtils.RasterMetaData(RasterUtils.LAST_WKB_VERSION,
+                        bands.length, image.getWidth(), image.getHeight(), srid,
+                        scaleX, scaleY, ipX, ipY, skewX,
+                        skewY,
                         bands);
         return new GeoRasterRenderedImage(image, rasterMetaData);
     }

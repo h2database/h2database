@@ -96,7 +96,8 @@ public class ConnectionInfo implements Cloneable {
                 "CREATE", "CACHE_TYPE", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS",
                 "IFEXISTS", "INIT", "PASSWORD", "RECOVER", "RECOVER_TEST",
                 "USER", "AUTO_SERVER", "AUTO_SERVER_PORT", "NO_UPGRADE",
-                "AUTO_RECONNECT", "OPEN_NEW", "PAGE_SIZE", "PASSWORD_HASH", "JMX" };
+                "AUTO_RECONNECT", "OPEN_NEW", "PAGE_SIZE", "PASSWORD_HASH", "JMX",
+                "SCOPE_GENERATED_KEYS" };
         HashSet<String> set = new HashSet<>(list.size() + connectionTime.length);
         set.addAll(list);
         for (String key : connectionTime) {
@@ -333,16 +334,8 @@ public class ConnectionInfo implements Cloneable {
      * @param defaultValue the default value
      * @return the value
      */
-    boolean getProperty(String key, boolean defaultValue) {
-        String x = getProperty(key, null);
-        if (x == null) {
-            return defaultValue;
-        }
-        // support 0 / 1 (like the parser)
-        if (x.length() == 1 && Character.isDigit(x.charAt(0))) {
-            return Integer.parseInt(x) != 0;
-        }
-        return Boolean.parseBoolean(x);
+    public boolean getProperty(String key, boolean defaultValue) {
+        return Utils.parseBoolean(getProperty(key, null), defaultValue, false);
     }
 
     /**
@@ -353,8 +346,7 @@ public class ConnectionInfo implements Cloneable {
      * @return the value
      */
     public boolean removeProperty(String key, boolean defaultValue) {
-        String x = removeProperty(key, null);
-        return x == null ? defaultValue : Boolean.parseBoolean(x);
+        return Utils.parseBoolean(removeProperty(key, null), defaultValue, false);
     }
 
     /**

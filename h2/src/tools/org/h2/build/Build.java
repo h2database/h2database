@@ -188,7 +188,7 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/h2mig_pagestore_addon.jar" +
             File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
             File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
-            File.pathSeparator + "ext/jts-core-1.14.0.jar" +
+            File.pathSeparator + "ext/jts-core-1.15.0.jar" +
             File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
             File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
             File.pathSeparator + javaToolsJar;
@@ -292,7 +292,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
-                File.pathSeparator + "ext/jts-core-1.14.0.jar" +
+                File.pathSeparator + "ext/jts-core-1.15.0.jar" +
                 File.pathSeparator + javaToolsJar;
         FileList files;
         if (clientOnly) {
@@ -395,9 +395,9 @@ public class Build extends BuildBase {
         downloadOrVerify("ext/org.osgi.enterprise-4.2.0.jar",
                 "org/osgi", "org.osgi.enterprise", "4.2.0",
                 "8634dcb0fc62196e820ed0f1062993c377f74972", offline);
-        downloadOrVerify("ext/jts-core-1.14.0.jar",
-                "com/vividsolutions", "jts-core", "1.14.0",
-                "ff63492fba33a395f0da17720dd1716aba0d8c84", offline);
+        downloadOrVerify("ext/jts-core-1.15.0.jar",
+                "org/locationtech/jts", "jts-core", "1.15.0",
+                "705981b7e25d05a76a3654e597dab6ba423eb79e", offline);
         downloadOrVerify("ext/junit-4.12.jar",
                 "junit", "junit", "4.12",
                 "2973d150c0dc1fefe998f834810d68f278ea58ec", offline);
@@ -456,17 +456,18 @@ public class Build extends BuildBase {
             exec("soffice", args("-invisible", "macro:///Standard.Module1.H2Pdf"));
             copy("docs", files("../h2web/h2.pdf"), "../h2web");
         } catch (Exception e) {
-            print("OpenOffice is not available: " + e);
-            try {
-                if (exec("soffice", args("--convert-to", "pdf", "--outdir", "docs/html",
-                        "docs/html/onePage.html")) == 0) {
-                    File f = new File("docs/html/onePage.pdf");
-                    if (f.exists()) {
-                        f.renameTo(new File("docs/h2.pdf"));
-                    }
-                }
-            } catch (Exception ex) {
-            }
+            println("OpenOffice / LibreOffice is not available or macros H2Pdf is not installed:");
+            println(e.toString());
+            println("********************************************************************************");
+            println("Install and run LibreOffice or OpenOffice.");
+            println("Open Tools - Macros - Organize Macros - LibreOffice Basic...");
+            println("Navigate to My Macros / Standard / Module1 and press Edit button.");
+            println("Put content of h2/src/installer/openoffice.txt here.");
+            println("Edit BaseDir variable value:");
+
+            println("    BaseDir = \"" + new File(System.getProperty("user.dir")).getParentFile().toURI() + '"');
+            println("Close office application and try to build installer again.");
+            println("********************************************************************************");
         }
         delete("docs/html/onePage.html");
         FileList files = files("../h2").keep("../h2/build.*");
@@ -480,7 +481,7 @@ public class Build extends BuildBase {
             exec("makensis", args("/v2", "src/installer/h2.nsi"));
             installer = true;
         } catch (Exception e) {
-            print("NSIS is not available: " + e);
+            println("NSIS is not available: " + e);
         }
         String buildDate = getStaticField("org.h2.engine.Constants", "BUILD_DATE");
         byte[] data = readFile(new File("../h2web/h2.zip"));
@@ -610,8 +611,8 @@ public class Build extends BuildBase {
             exclude("*.DS_Store");
         files = excludeTestMetaInfFiles(files);
         long kb = jar("bin/h2-client" + getJarSuffix(), files, "temp");
-        if (kb < 350 || kb > 450) {
-            throw new RuntimeException("Expected file size 350 - 450 KB, got: " + kb);
+        if (kb < 400 || kb > 500) {
+            throw new RuntimeException("Expected file size 400 - 500 KB, got: " + kb);
         }
     }
 
@@ -691,7 +692,7 @@ public class Build extends BuildBase {
                 "org.h2.tools", "org.h2.api", "org.h2.engine", "org.h2.fulltext",
                 "-classpath",
                 "ext/lucene-core-3.6.2.jar" +
-                File.pathSeparator + "ext/jts-core-1.14.0.jar",
+                File.pathSeparator + "ext/jts-core-1.15.0.jar",
                 "-docletpath", "bin" + File.pathSeparator + "temp",
                 "-doclet", "org.h2.build.doclet.Doclet");
         copy("docs/javadoc", files("src/docsrc/javadoc"), "src/docsrc/javadoc");
@@ -717,7 +718,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-core-3.6.2.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
-                File.pathSeparator + "ext/jts-core-1.14.0.jar",
+                File.pathSeparator + "ext/jts-core-1.15.0.jar",
                 "-subpackages", "org.h2",
                 "-exclude", "org.h2.test.jaqu:org.h2.jaqu");
 
@@ -732,7 +733,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-core-3.6.2.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
-                File.pathSeparator + "ext/jts-core-1.14.0.jar",
+                File.pathSeparator + "ext/jts-core-1.15.0.jar",
                 "-subpackages", "org.h2.mvstore",
                 "-exclude", "org.h2.mvstore.db");
 
@@ -747,7 +748,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-core-3.6.2.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
-                File.pathSeparator + "ext/jts-core-1.14.0.jar",
+                File.pathSeparator + "ext/jts-core-1.15.0.jar",
                 "-subpackages", "org.h2",
                 "-exclude", "org.h2.test.jaqu:org.h2.jaqu",
                 "-package",
@@ -964,7 +965,7 @@ public class Build extends BuildBase {
             javadoc("-sourcepath", "src/main", "org.h2.tools", "org.h2.jmx",
                     "-classpath",
                     "ext/lucene-core-3.6.2.jar" +
-                    File.pathSeparator + "ext/jts-core-1.14.0.jar",
+                    File.pathSeparator + "ext/jts-core-1.15.0.jar",
                     "-docletpath", "bin" + File.pathSeparator + "temp",
                     "-doclet", "org.h2.build.doclet.ResourceDoclet");
         }
@@ -1017,7 +1018,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/h2mig_pagestore_addon.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
-                File.pathSeparator + "ext/jts-core-1.14.0.jar" +
+                File.pathSeparator + "ext/jts-core-1.15.0.jar" +
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
                 File.pathSeparator + javaToolsJar;

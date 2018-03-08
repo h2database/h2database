@@ -41,7 +41,7 @@ public class FileLister {
                 FileLock lock = new FileLock(new TraceSystem(null), fileName,
                         Constants.LOCK_SLEEP);
                 try {
-                    lock.lock(FileLock.LOCK_FILE);
+                    lock.lock(FileLockMethod.FILE);
                     lock.unlock();
                 } catch (DbException e) {
                     throw DbException.get(

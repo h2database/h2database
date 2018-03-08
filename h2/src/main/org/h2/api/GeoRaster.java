@@ -13,7 +13,8 @@ import java.io.InputStream;
 
 /**
  * API for raster related functions
- * @author Nicolas Fortin
+ * @author Nicolas Fortin, CNRS
+ * @author Erwan Bocher, CNRS
  */
 public interface GeoRaster extends RenderedImage {
 
@@ -25,6 +26,7 @@ public interface GeoRaster extends RenderedImage {
 
     /**
      * @return The raster metadata
+     * @throws IOException
      */
     RasterUtils.RasterMetaData getMetaData() throws IOException;
 }

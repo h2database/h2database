@@ -167,25 +167,21 @@ public class Profiler implements Runnable {
                     continue;
                 }
                 String file = arg;
-                Reader reader;
-                LineNumberReader r;
-                reader = new InputStreamReader(
-                        new FileInputStream(file), "CP1252");
-                r = new LineNumberReader(reader);
-                while (true) {
-                    String line = r.readLine();
-                    if (line == null) {
-                        break;
-                    } else if (line.startsWith("Full thread dump")) {
-                        threadDumps++;
+                try (Reader reader = new InputStreamReader(new FileInputStream(file), "CP1252")) {
+                    LineNumberReader r = new LineNumberReader(reader);
+                    while (true) {
+                        String line = r.readLine();
+                        if (line == null) {
+                            break;
+                        } else if (line.startsWith("Full thread dump")) {
+                            threadDumps++;
+                        }
                     }
                 }
-                reader.close();
-                reader = new InputStreamReader(
-                        new FileInputStream(file), "CP1252");
-                r = new LineNumberReader(reader);
-                processList(readStackTrace(r));
-                reader.close();
+                try (Reader reader = new InputStreamReader(new FileInputStream(file), "CP1252")) {
+                    LineNumberReader r = new LineNumberReader(reader);
+                    processList(readStackTrace(r));
+                }
             }
             System.out.println(getTopTraces(5));
         } catch (IOException e) {
@@ -257,7 +253,7 @@ public class Profiler implements Runnable {
                 line = line.substring(3).trim();
                 stack.add(line);
             }
-            if (stack.size() > 0) {
+            if (!stack.isEmpty()) {
                 String[] s = stack.toArray(new String[0]);
                 list.add(s);
             }

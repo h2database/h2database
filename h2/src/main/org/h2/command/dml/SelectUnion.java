@@ -38,27 +38,29 @@ import org.h2.value.ValueNull;
  */
 public class SelectUnion extends Query {
 
-    /**
-     * The type of a UNION statement.
-     */
-    public static final int UNION = 0;
+    public enum UnionType {
+        /**
+         * The type of a UNION statement.
+         */
+        UNION,
 
-    /**
-     * The type of a UNION ALL statement.
-     */
-    public static final int UNION_ALL = 1;
+        /**
+         * The type of a UNION ALL statement.
+         */
+        UNION_ALL,
 
-    /**
-     * The type of an EXCEPT statement.
-     */
-    public static final int EXCEPT = 2;
+        /**
+         * The type of an EXCEPT statement.
+         */
+        EXCEPT,
 
-    /**
-     * The type of an INTERSECT statement.
-     */
-    public static final int INTERSECT = 3;
+        /**
+         * The type of an INTERSECT statement.
+         */
+        INTERSECT
+    }
 
-    private int unionType;
+    private UnionType unionType;
 
     /**
      * The left hand side of the union (the first subquery).
@@ -93,11 +95,11 @@ public class SelectUnion extends Query {
         right.prepareJoinBatch();
     }
 
-    public void setUnionType(int type) {
+    public void setUnionType(UnionType type) {
         this.unionType = type;
     }
 
-    public int getUnionType() {
+    public UnionType getUnionType() {
         return unionType;
     }
 
@@ -178,7 +180,7 @@ public class SelectUnion extends Query {
             limitExpr = ValueExpression.get(ValueInt.get(l));
         }
         if (session.getDatabase().getSettings().optimizeInsertFromSelect) {
-            if (unionType == UNION_ALL && target != null) {
+            if (unionType == UnionType.UNION_ALL && target != null) {
                 if (sort == null && !distinct && maxRows == 0 &&
                         offsetExpr == null && limitExpr == null) {
                     left.query(0, target);
@@ -188,7 +190,7 @@ public class SelectUnion extends Query {
             }
         }
         int columnCount = left.getColumnCount();
-        if (session.isLazyQueryExecution() && unionType == UNION_ALL && !distinct &&
+        if (session.isLazyQueryExecution() && unionType == UnionType.UNION_ALL && !distinct &&
                 sort == null && !randomAccessResult && !isForUpdate &&
                 offsetExpr == null && isReadOnly()) {
             int limit = -1;

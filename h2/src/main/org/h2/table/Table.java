@@ -196,6 +196,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param operation the operation
      * @param row the row
      */
+    @SuppressWarnings("unused")
     public void commit(short operation, Row row) {
         // nothing to do
     }
@@ -233,6 +234,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param allColumnsSet all columns
      * @return the scan index
      */
+    @SuppressWarnings("unused")
     public Index getScanIndex(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
             HashSet<Column> allColumnsSet) {
@@ -464,6 +466,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param session the session
      * @return true if it is
      */
+    @SuppressWarnings("unused")
     public boolean isLockedExclusivelyBy(Session session) {
         return false;
     }
@@ -526,20 +529,20 @@ public abstract class Table extends SchemaObjectBase {
 
     @Override
     public void removeChildrenAndResources(Session session) {
-        while (dependentViews.size() > 0) {
+        while (!dependentViews.isEmpty()) {
             TableView view = dependentViews.get(0);
             dependentViews.remove(0);
             database.removeSchemaObject(session, view);
         }
-        while (synonyms != null && synonyms.size() > 0) {
+        while (synonyms != null && !synonyms.isEmpty()) {
             TableSynonym synonym = synonyms.remove(0);
             database.removeSchemaObject(session, synonym);
         }
-        while (triggers != null && triggers.size() > 0) {
+        while (triggers != null && !triggers.isEmpty()) {
             TriggerObject trigger = triggers.remove(0);
             database.removeSchemaObject(session, trigger);
         }
-        while (constraints != null && constraints.size() > 0) {
+        while (constraints != null && !constraints.isEmpty()) {
             Constraint constraint = constraints.remove(0);
             database.removeSchemaObject(session, constraint);
         }
@@ -551,7 +554,7 @@ public abstract class Table extends SchemaObjectBase {
         database.removeMeta(session, getId());
         // must delete sequences later (in case there is a power failure
         // before removing the table object)
-        while (sequences != null && sequences.size() > 0) {
+        while (sequences != null && !sequences.isEmpty()) {
             Sequence sequence = sequences.remove(0);
             // only remove if no other table depends on this sequence
             // this is possible when calling ALTER TABLE ALTER COLUMN
@@ -972,8 +975,8 @@ public abstract class Table extends SchemaObjectBase {
      *  @return if there are any triggers or rows defined
      */
     public boolean fireRow() {
-        return (constraints != null && constraints.size() > 0) ||
-                (triggers != null && triggers.size() > 0);
+        return (constraints != null && !constraints.isEmpty()) ||
+                (triggers != null && !triggers.isEmpty());
     }
 
     /**
@@ -1023,7 +1026,7 @@ public abstract class Table extends SchemaObjectBase {
             boolean beforeAction, boolean rollback) {
         if (triggers != null) {
             for (TriggerObject trigger : triggers) {
-                boolean done = trigger.fireRow(session, oldRow, newRow, beforeAction, rollback);
+                boolean done = trigger.fireRow(session, this, oldRow, newRow, beforeAction, rollback);
                 if (done) {
                     return true;
                 }
@@ -1160,6 +1163,7 @@ public abstract class Table extends SchemaObjectBase {
      * @return an object array with the sessions involved in the deadlock, or
      *         null
      */
+    @SuppressWarnings("unused")
     public ArrayList<Session> checkDeadlock(Session session, Session clash,
             Set<Session> visited) {
         return null;

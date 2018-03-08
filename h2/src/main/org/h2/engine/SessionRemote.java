@@ -117,8 +117,8 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         Transfer trans = new Transfer(this, socket);
         trans.setSSL(ci.isSSL());
         trans.init();
-        trans.writeInt(Constants.TCP_PROTOCOL_VERSION_6);
-        trans.writeInt(Constants.TCP_PROTOCOL_VERSION_16);
+        trans.writeInt(Constants.TCP_PROTOCOL_VERSION_MIN_SUPPORTED);
+        trans.writeInt(Constants.TCP_PROTOCOL_VERSION_MAX_SUPPORTED);
         trans.writeString(db);
         trans.writeString(ci.getOriginalURL());
         trans.writeString(ci.getUserName());
@@ -210,7 +210,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             CommandInterface c = prepareCommand(
                     "SET CLUSTER " + serverList, Integer.MAX_VALUE);
             // this will set autoCommit to false
-            c.executeUpdate();
+            c.executeUpdate(false);
             // so we need to switch it on
             autoCommit = true;
             cluster = true;
@@ -265,13 +265,13 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                     autoCommitTrue = prepareCommand(
                             "SET AUTOCOMMIT TRUE", Integer.MAX_VALUE);
                 }
-                autoCommitTrue.executeUpdate();
+                autoCommitTrue.executeUpdate(false);
             } else {
                 if (autoCommitFalse == null) {
                     autoCommitFalse = prepareCommand(
                             "SET AUTOCOMMIT FALSE", Integer.MAX_VALUE);
                 }
-                autoCommitFalse.executeUpdate();
+                autoCommitFalse.executeUpdate(false);
             }
         }
     }
@@ -335,8 +335,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         }
         // create the session using reflection,
         // so that the JDBC layer can be compiled without it
-        boolean autoServerMode = Boolean.parseBoolean(
-                ci.getProperty("AUTO_SERVER", "false"));
+        boolean autoServerMode = ci.getProperty("AUTO_SERVER", false);
         ConnectionInfo backup = null;
         try {
             if (autoServerMode) {
@@ -413,11 +412,9 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             serverList = StringUtils.quoteStringSQL(server);
             ci.setProperty("CLUSTER", Constants.CLUSTERING_ENABLED);
         }
-        autoReconnect = Boolean.parseBoolean(ci.getProperty(
-                "AUTO_RECONNECT", "false"));
+        autoReconnect = ci.getProperty("AUTO_RECONNECT", false);
         // AUTO_SERVER implies AUTO_RECONNECT
-        boolean autoServer = Boolean.parseBoolean(ci.getProperty(
-                "AUTO_SERVER", "false"));
+        boolean autoServer = ci.getProperty("AUTO_SERVER", false);
         if (autoServer && serverList != null) {
             throw DbException
                     .getUnsupportedException("autoServer && serverList != null");
@@ -471,7 +468,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
 
     private void switchOffCluster() {
         CommandInterface ci = prepareCommand("SET CLUSTER ''", Integer.MAX_VALUE);
-        ci.executeUpdate();
+        ci.executeUpdate(false);
     }
 
     /**
@@ -485,7 +482,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     public void removeServer(IOException e, int i, int count) {
         trace.debug(e, "removing server because of exception");
         transferList.remove(i);
-        if (transferList.size() == 0 && autoReconnect(count)) {
+        if (transferList.isEmpty() && autoReconnect(count)) {
             return;
         }
         checkClosed();
@@ -656,7 +653,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
 
     @Override
     public boolean isClosed() {
-        return transferList == null || transferList.size() == 0;
+        return transferList == null || transferList.isEmpty();
     }
 
     /**
@@ -872,4 +869,10 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     public void setCurrentSchemaName(String schema) {
         throw DbException.getUnsupportedException("setSchema && remote session");
     }
+
+    @Override
+    public boolean isSupportsGeneratedKeys() {
+        return getClientVersion() >= Constants.TCP_PROTOCOL_VERSION_17;
+    }
+
 }

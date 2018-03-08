@@ -36,8 +36,8 @@ public class ConstraintCheck extends Constraint {
     }
 
     @Override
-    public String getConstraintType() {
-        return Constraint.CHECK;
+    public Type getConstraintType() {
+        return Constraint.Type.CHECK;
     }
 
     public void setTableFilter(TableFilter filter) {

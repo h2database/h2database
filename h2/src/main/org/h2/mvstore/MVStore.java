@@ -237,7 +237,7 @@ public final class MVStore {
      * are counted.
      */
     private int unsavedMemory;
-    private int autoCommitMemory;
+    private final int autoCommitMemory;
     private boolean saveNeeded;
 
     /**
@@ -274,7 +274,7 @@ public final class MVStore {
      */
     private int autoCommitDelay;
 
-    private int autoCompactFillRate;
+    private final int autoCompactFillRate;
     private long autoCompactLastFileOpCount;
 
     private final Object compactSync = new Object();
@@ -376,13 +376,14 @@ public final class MVStore {
             // the parameter is different from the old value
             int delay = DataUtils.getConfigParam(config, "autoCommitDelay", 1000);
             setAutoCommitDelay(delay);
+        } else {
+            autoCommitMemory = 0;
+            autoCompactFillRate = 0;
         }
     }
 
     private void panic(IllegalStateException e) {
-        if (backgroundExceptionHandler != null) {
-            backgroundExceptionHandler.uncaughtException(null, e);
-        }
+        handleException(e);
         panicException = e;
         closeImmediately();
         throw e;
@@ -862,10 +863,8 @@ public final class MVStore {
     public void closeImmediately() {
         try {
             closeStore(false);
-        } catch (Exception e) {
-            if (backgroundExceptionHandler != null) {
-                backgroundExceptionHandler.uncaughtException(null, e);
-            }
+        } catch (Throwable e) {
+            handleException(e);
         }
     }
 
@@ -1479,7 +1478,7 @@ public final class MVStore {
             for (Chunk c : modified) {
                 meta.put(Chunk.getMetaKey(c.id), c.asString());
             }
-            if (modified.size() == 0) {
+            if (modified.isEmpty()) {
                 break;
             }
         }
@@ -1782,7 +1781,7 @@ public final class MVStore {
             synchronized (this) {
                 old = compactGetOldChunks(targetFillRate, write);
             }
-            if (old == null || old.size() == 0) {
+            if (old == null || old.isEmpty()) {
                 return false;
             }
             compactRewrite(old);
@@ -1838,7 +1837,7 @@ public final class MVStore {
             c.collectPriority = (int) (c.getFillRate() * 1000 / age);
             old.add(c);
         }
-        if (old.size() == 0) {
+        if (old.isEmpty()) {
             return null;
         }
 
@@ -2287,7 +2286,7 @@ public final class MVStore {
                 keep = c;
             }
         }
-        if (remove.size() > 0) {
+        if (!remove.isEmpty()) {
             // remove the youngest first, so we don't create gaps
             // (in case we remove many chunks)
             Collections.sort(remove, Collections.reverseOrder());
@@ -2454,29 +2453,27 @@ public final class MVStore {
      * needed.
      */
     void writeInBackground() {
-        if (closed) {
-            return;
-        }
+        try {
+            if (closed) {
+                return;
+            }
 
-        // could also commit when there are many unsaved pages,
-        // but according to a test it doesn't really help
+            // could also commit when there are many unsaved pages,
+            // but according to a test it doesn't really help
 
-        long time = getTimeSinceCreation();
-        if (time <= lastCommitTime + autoCommitDelay) {
-            return;
-        }
-        if (hasUnsavedChanges()) {
-            try {
-                commitAndSave();
-            } catch (Exception e) {
-                if (backgroundExceptionHandler != null) {
-                    backgroundExceptionHandler.uncaughtException(null, e);
+            long time = getTimeSinceCreation();
+            if (time <= lastCommitTime + autoCommitDelay) {
+                return;
+            }
+            if (hasUnsavedChanges()) {
+                try {
+                    commitAndSave();
+                } catch (Throwable e) {
+                    handleException(e);
                     return;
                 }
             }
-        }
-        if (autoCompactFillRate > 0) {
-            try {
+            if (autoCompactFillRate > 0) {
                 // whether there were file read or write operations since
                 // the last time
                 boolean fileOps;
@@ -2492,9 +2489,19 @@ public final class MVStore {
                 // in the bookkeeping?
                 compact(fillRate, autoCommitMemory);
                 autoCompactLastFileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();
-            } catch (Exception e) {
-                if (backgroundExceptionHandler != null) {
-                    backgroundExceptionHandler.uncaughtException(null, e);
+            }
+        } catch (Throwable e) {
+            handleException(e);
+        }
+    }
+
+    private void handleException(Throwable ex) {
+        if (backgroundExceptionHandler != null) {
+            try {
+                backgroundExceptionHandler.uncaughtException(null, ex);
+            } catch(Throwable ignore) {
+                if (ex != ignore) { // OOME may be the same
+                    ex.addSuppressed(ignore);
                 }
             }
         }

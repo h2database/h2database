@@ -626,10 +626,6 @@ Another (more dangerous) solution is to set <code>useDatabaseLock</code> to fals
 
 <h2 id="using_netbeans">Using H2 within NetBeans</h2>
 <p>
-The project <a href="http://kenai.com/projects/nbh2">H2 Database Engine Support For NetBeans</a>
-allows you to start and stop the H2 server from within the IDE.
-</p>
-<p>
 There is a known issue when using the Netbeans SQL Execution Window:
 before executing a query, another query in the form <code>SELECT COUNT(*) FROM &lt;query&gt;</code> is run.
 This is a problem for queries that modify state, such as <code>SELECT SEQ.NEXTVAL</code>.

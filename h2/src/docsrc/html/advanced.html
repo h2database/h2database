@@ -529,7 +529,7 @@ H2 internally uses Unicode, and supports all character encoding systems and char
 <p>
 Using a native wrapper / adapter, Java applications can be run as a Windows Service.
 There are various tools available to do that. The Java Service Wrapper from
-<a href="http://wrapper.tanukisoftware.org">Tanuki Software, Inc.</a>
+<a href="https://wrapper.tanukisoftware.org">Tanuki Software, Inc.</a>
 is included in the installation. Batch files are provided to install, start, stop and uninstall the
 H2 Database Engine Service. This service contains the TCP Server and the H2 Console web application.
 The batch files are located in the directory <code>h2/service</code>.
@@ -538,7 +538,7 @@ The batch files are located in the directory <code>h2/service</code>.
 The service wrapper bundled with H2 is a 32-bit version.
 To use a 64-bit version of Windows (x64), you need to use a 64-bit version of the wrapper,
 for example the one from
-<a href="http://www.krenger.ch/blog/java-service-wrapper-3-5-14-for-windows-x64/">
+<a href="https://www.krenger.ch/blog/java-service-wrapper-3-5-14-for-windows-x64/">
 Simon Krenger</a>.
 </p>
 <p>
@@ -604,7 +604,7 @@ To use the PostgreSQL ODBC driver on 64 bit versions of Windows,
 first run <code>c:/windows/syswow64/odbcad32.exe</code>.
 At this point you set up your DSN just like you would on any other system.
 See also:
-<a href="http://archives.postgresql.org/pgsql-odbc/2005-09/msg00125.php">Re: ODBC Driver on Windows 64 bit</a>
+<a href="https://www.postgresql.org/message-id/dg76q0$khn$1@sea.gmane.org">Re: ODBC Driver on Windows 64 bit</a>
 </p>
 
 <h3>ODBC Installation</h3>
@@ -612,7 +612,7 @@ See also:
 First, the ODBC driver must be installed.
 Any recent PostgreSQL ODBC driver should work, however version 8.2 (<code>psqlodbc-08_02*</code>) or newer is recommended.
 The Windows version of the PostgreSQL ODBC driver is available at
-<a href="http://www.postgresql.org/ftp/odbc/versions/msi">http://www.postgresql.org/ftp/odbc/versions/msi</a>.
+<a href="https://www.postgresql.org/ftp/odbc/versions/msi/">https://www.postgresql.org/ftp/odbc/versions/msi/</a>.
 </p>
 
 <h3>Starting the Server</h3>
@@ -727,11 +727,11 @@ You can access a H2 database on .NET using the JDBC API, or using the ADO.NET in
 <h3>Using the ADO.NET API on .NET</h3>
 <p>
 An implementation of the ADO.NET interface is available in the open source project
-<a href="http://code.google.com/p/h2sharp">H2Sharp</a>.
+<a href="https://code.google.com/archive/p/h2sharp/">H2Sharp</a>.
 </p>
 
 <h3>Using the JDBC API on .NET</h3>
-<ul><li>Install the .NET Framework from <a href="http://www.microsoft.com">Microsoft</a>.
+<ul><li>Install the .NET Framework from <a href="https://www.microsoft.com">Microsoft</a>.
     Mono has not yet been tested.
 </li><li>Install <a href="http://www.ikvm.net">IKVM.NET</a>.
 </li><li>Copy the <code>h2*.jar</code> file to <code>ikvm/bin</code>
@@ -855,9 +855,9 @@ Unfortunately, even when calling <code>FileDescriptor.sync()</code> or
 <code>FileChannel.force()</code>,
 data is not always persisted to the hard drive, because most hard drives do not obey
 <code>fsync()</code>: see
-<a href="http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252">Your Hard Drive Lies to You</a>.
+<a href="https://hardware.slashdot.org/story/05/05/13/0529252/your-hard-drive-lies-to-you">Your Hard Drive Lies to You</a>.
 In Mac OS X, <code>fsync</code> does not flush hard drive buffers. See
-<a href="http://lists.apple.com/archives/darwin-dev/2005/Feb/msg00072.html">Bad fsync?</a>.
+<a href="https://lists.apple.com/archives/darwin-dev/2005/Feb/msg00072.html">Bad fsync?</a>.
 So the situation is confusing, and tests prove there is a problem.
 </p>
 <p>
@@ -1563,7 +1563,7 @@ The current value of the settings can be read in the table
 </p>
 <p>
 For a complete list of settings, see
-<a href="../javadoc/org/h2/engine/SysProperties.html">SysProperties</a>.
+<a href="http://www.h2database.com/javadoc/org/h2/engine/SysProperties.html">SysProperties</a>.
 </p>
 
 <h2 id="server_bind_address">Setting the Server Bind Address</h2>
@@ -1675,7 +1675,8 @@ Java objects serialization is enabled by default for columns of type <code>OTHER
 To disable this feature set the system property <code>h2.serializeJavaObject=false</code> (default: true).
 </p>
 <p>
-Serialization and deserialization of java objects is customizable both at system level and at database level providing a <a href="../javadoc/org/h2/api/JavaObjectSerializer.html">JavaObjectSerializer</a> implementation:
+Serialization and deserialization of java objects is customizable both at system level and at database level providing a
+<a href="http://www.h2database.com/javadoc/org/h2/api/JavaObjectSerializer.html">JavaObjectSerializer</a> implementation:
 <ul>
 <li>
 At system level set the system property <code>h2.javaObjectSerializer</code> with the
@@ -1699,7 +1700,8 @@ It is possible to extend the type system of the database by providing your own i
 of minimal required API basically consisting of type identification and conversion routines.
 </p>
 <p>
-In order to enable this feature, set the system property <code>h2.customDataTypesHandler</code> (default: null) to the fully qualified name of the class providing <a href="../javadoc/org/h2/api/CustomDataTypesHandler.html">CustomDataTypesHandler</a> interface implementation. <br />
+In order to enable this feature, set the system property <code>h2.customDataTypesHandler</code> (default: null) to the fully qualified name of the class providing
+<a href="http://www.h2database.com/javadoc/org/h2/api/CustomDataTypesHandler.html">CustomDataTypesHandler</a> interface implementation. <br />
 The instance of that class will be created by H2 and used to:
 <ul>
 <li>resolve the names and identifiers of extrinsic data types.
@@ -1764,53 +1766,53 @@ OR X = 2 OR X = 2 OR X = 2 OR X = 2 OR X = 2
     <tr>
         <td>AES-128</td>
         <td>A block encryption algorithm. See also: <a
-            href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia:
-        AES</a></td>
+            href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia:
+        Advanced Encryption Standard</a></td>
     </tr>
     <tr>
         <td>Birthday Paradox</td>
         <td>Describes the higher than expected probability that two
         persons in a room have the same birthday. Also valid for randomly
         generated UUIDs. See also: <a
-            href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia:
-        Birthday Paradox</a></td>
+            href="https://en.wikipedia.org/wiki/Birthday_problem">Wikipedia:
+        Birthday problem</a></td>
     </tr>
     <tr>
         <td>Digest</td>
         <td>Protocol to protect a password (but not to protect data).
-        See also: <a href="http://www.faqs.org/rfcs/rfc2617.html">RFC
+        See also: <a href="https://www.ietf.org/rfc/rfc2617.txt">RFC
         2617: HTTP Digest Access Authentication</a></td>
     </tr>
     <tr>
         <td>HTTPS</td>
         <td>A protocol to provide security to HTTP connections. See
-        also: <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818:
+        also: <a href="https://www.ietf.org/rfc/rfc2818.txt">RFC 2818:
         HTTP Over TLS</a></td>
     </tr>
     <tr>
         <td>Modes of Operation</td>
         <td><a
-            href="http://en.wikipedia.org/wiki/Block_cipher_modes_of_operation">Wikipedia:
-        Block cipher modes of operation</a></td>
+            href="https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation">Wikipedia:
+        Block cipher mode of operation</a></td>
     </tr>
     <tr>
         <td>Salt</td>
         <td>Random number to increase the security of passwords. See
-        also: <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia:
+        also: <a href="https://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia:
         Key derivation function</a></td>
     </tr>
     <tr>
         <td>SHA-256</td>
         <td>A cryptographic one-way hash function. See also: <a
-            href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA
-        hash functions</a></td>
+            href="https://en.wikipedia.org/wiki/Secure_Hash_Algorithms">Wikipedia:
+            Secure Hash Algorithms</a></td>
     </tr>
     <tr>
         <td>SQL Injection</td>
         <td>A security vulnerability where an application embeds SQL
         statements or expressions in user input. See also: <a
-            href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia:
-        SQL Injection</a></td>
+            href="https://en.wikipedia.org/wiki/SQL_injection">Wikipedia:
+        SQL injection</a></td>
     </tr>
     <tr>
         <td>Watermark Attack</td>

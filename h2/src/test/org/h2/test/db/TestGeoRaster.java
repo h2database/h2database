@@ -71,8 +71,7 @@ import org.locationtech.jts.geom.Geometry;
 public class TestGeoRaster extends TestBase {
 
     public static String GetUnitTestImage() throws URISyntaxException {
-        return new File(TestGeoRaster.class
-                .getResource("h2-logo.png").getFile()).getAbsolutePath();
+         return new File(TestGeoRaster.class.getResource("h2-logo.png").getFile()).getAbsolutePath();
     }
 
     public static void main(String... a) throws Exception {
@@ -116,6 +115,7 @@ public class TestGeoRaster extends TestBase {
         testWKBRasterFloat();
         testWKBRasterInt();
         testWKBRasterDouble();
+        testST_ImageFromRaster();
     }
 
     private void testWriteRasterFromString() throws Exception {
@@ -1299,5 +1299,38 @@ public class TestGeoRaster extends TestBase {
                         .getWidth()), val[0]);
             }
         }
+    }
+
+    private void testST_ImageFromRaster() throws SQLException, IOException {
+        deleteDb("georaster");
+        Connection conn = getConnection("georaster");
+        Statement stat = conn.createStatement();
+        // Create an image from scratch
+        final int width = 50, height = 50;
+        RenderedImage image = getTestImage(width, height);
+        stat.execute("drop table if exists testcopy");
+        stat.execute("create table testcopy(id identity, the_raster raster)");
+        PreparedStatement ps = conn.prepareStatement("INSERT INTO testcopy" +
+                "(the_raster) values(?)");
+        ps.setBinaryStream(1, GeoRasterRenderedImage.create(image
+                , 1, -1, 0, 0, 0, 0, 27572)
+                .asWKBRaster());
+        ps.execute();
+        String outputFile = "target/test.png";
+        stat.execute("SELECT FILE_WRITE(ST_IMAGEFROMRASTER(the_raster, 'png'), '" + outputFile + "') FROM testcopy");
+        ResultSet rsImage = stat.executeQuery("SELECT ST_RasterFromImage( File_Read('" + outputFile + "'), 0, 0, 1, -1,0, 0, 27572)");
+        assertTrue(rsImage.next());
+        assertTrue(rsImage.getObject(1) instanceof RenderedImage);
+        RenderedImage wkbRasterImage = (RenderedImage)rsImage.getObject(1);
+        Raster rasterOutput = wkbRasterImage.getData();
+        Raster rasterInput = image.getData();
+        assertEquals(rasterInput.getNumBands(),rasterOutput.getNumBands());
+        for (int y = 0; y < wkbRasterImage.getHeight(); y++) {
+            for (int x = 0; x < wkbRasterImage.getWidth(); x++) {
+                int[] valInput = rasterInput.getPixel(x, y, (int[]) null);
+                int[] valOutput = rasterOutput.getPixel(x, y, (int[]) null);
+                assertEquals(valInput, valOutput);
+            }
+        }        
     }
 }

@@ -1772,8 +1772,9 @@ public class Function extends Expression implements FunctionCall {
             break;
         case SIGNAL: {
             String sqlState = v0.getString();
-            if (sqlState.startsWith("00") || !SIGNAL_PATTERN.matcher(sqlState).matches())
+            if (sqlState.startsWith("00") || !SIGNAL_PATTERN.matcher(sqlState).matches()) {
                 throw DbException.getInvalidValueException("SQLSTATE", sqlState);
+            }
             String msgText = v1.getString();
             throw DbException.fromUser(sqlState, msgText);
         }
@@ -1788,15 +1789,15 @@ public class Function extends Expression implements FunctionCall {
                     }
                     result = ValueArray
                             .get(new Value[]{ValueDouble.get(metaData.ipX),
-                                    ValueDouble.get(metaData.ipY),
-                                    ValueInt.get(metaData.width),
-                                    ValueInt.get(metaData.height),
-                                    ValueDouble.get(metaData.scaleX),
-                                    ValueDouble.get(metaData.scaleY),
-                                    ValueDouble.get(metaData.skewX),
-                                    ValueDouble.get(metaData.skewY),
-                                    ValueInt.get(metaData.srid),
-                                    ValueInt.get(metaData.numBands)});
+                        ValueDouble.get(metaData.ipY),
+                        ValueInt.get(metaData.width),
+                        ValueInt.get(metaData.height),
+                        ValueDouble.get(metaData.scaleX),
+                        ValueDouble.get(metaData.scaleY),
+                        ValueDouble.get(metaData.skewX),
+                        ValueDouble.get(metaData.skewY),
+                        ValueInt.get(metaData.srid),
+                        ValueInt.get(metaData.numBands)});
                 } catch (IOException ex) {
                     throw DbException
                             .get(ErrorCode.IO_EXCEPTION_1, ex, getSQL());
@@ -1806,10 +1807,10 @@ public class Function extends Expression implements FunctionCall {
             case ST_RASTERFROMIMAGE: {
                 try {
                     result = RasterUtils.getFromImage(v0,
-                            getNullOrValue(session, args, values, 1).getDouble(),
-                            getNullOrValue(session, args, values, 2).getDouble(),
                             getNullOrValue(session, args, values, 3).getDouble(),
                             getNullOrValue(session, args, values, 4).getDouble(),
+                            getNullOrValue(session, args, values, 1).getDouble(),
+                            getNullOrValue(session, args, values, 2).getDouble(),
                             getNullOrValue(session, args, values, 5).getDouble(),
                             getNullOrValue(session, args, values, 6).getDouble(),
                             getNullOrValue(session, args, values, 7).getInt(),

@@ -87,3 +87,15 @@ select cast(cast(95605327.73 as float) as decimal);
 
 select cast(cast('01020304-0506-0708-090a-0b0c0d0e0f00' as uuid) as binary);
 >> 0102030405060708090a0b0c0d0e0f00
+
+call cast('null' as uuid);
+> exception
+
+select cast('12345678123456781234567812345678' as uuid);
+>> 12345678-1234-5678-1234-567812345678
+
+select cast('000102030405060708090a0b0c0d0e0f' as uuid);
+>> 00010203-0405-0607-0809-0a0b0c0d0e0f
+
+select -cast(0 as double);
+>> 0.0

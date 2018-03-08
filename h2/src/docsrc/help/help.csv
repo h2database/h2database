@@ -2866,7 +2866,7 @@ RASTER
 ","
 A spatial geometry type. This type represent a geo-referenced image.
 
-The internal structure use Raster WKB. It is binary compatible with the PostGIS raster.
+The internal structure use the Well Known Binary format for RASTER type. It is binary compatible with the PostGIS raster (RFC2).
 ","
 RASTER
 "
@@ -4120,9 +4120,9 @@ CALL ARRAY_CONTAINS(('Hello', 'World'), 'Hello')
 "Functions (RASTER)","ST_METADATA","
 ST_METADATA (RASTER)
 ","
-Read the metadata of the raster
-This method returns an array. (Coordinate X, Coordinate Y, Width, Height,
-ScaleX, ScaleY, SkewX, SkewY, SRID, bands count)
+Returns basic meta data about a raster object such as pixel size, rotation (skew), upper, lower left, etc.
+This method returns an array. (UpperleftX, UpperleftY, Width, Height,
+ScaleX, ScaleY, SkewX, SkewY, SRID, Numbands)
 ","
 ST_METADATA(RASTER)
 "
@@ -4140,7 +4140,7 @@ ST_BANDMETADATA(RASTER, 1)
 "Functions (RASTER)","ST_WORLDTORASTERCOORD","
 ST_WORLDTORASTERCOORD (RASTER, x, y)
 ","
-Convert geometric coordinates into 1-based pixel coordinates. This function
+Convert geometric coordinates expressed in the spatial reference coordinate system of the raster into 1-based pixel coordinates. This function
 return an ARRAY with two elements, column and row. This function may return
 negative  pixel index as the output is not bounded to the raster height and
 width.
@@ -4151,8 +4151,8 @@ ST_WorldToRasterCoord(Raster, 1.561, -2.348)
 "Functions (RASTER)","ST_RASTERTOWORLDCOORD","
 ST_RASTERTOWORLDCOORD (RASTER, indexExpression, indexExpression)
 ","
-Convert 1-based pixel coordinates into geometric coordinates. This function
-return an Point with two elements, x and y. This function accept zero and
+Convert 1-based pixel coordinates into the spatial reference coordinate system of the raster. This function
+return a Point with two elements, x and y. This function accept zero and
  negative  pixel index as the input is not bounded to the raster height and
 width.
 ","

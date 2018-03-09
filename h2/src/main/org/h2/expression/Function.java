@@ -1495,7 +1495,7 @@ public class Function extends Expression implements FunctionCall {
         case DATE_DIFF:
             result = ValueLong.get(datediff(v0.getString(), v1, v2));
             break;
-        case DATE_TRUNC:   
+        case DATE_TRUNC:
             // Retrieve the field value (e.g. 'day', 'microseconds', etc.)
             String fieldValue = StringUtils.toUpperEnglish(v0.getString());
 
@@ -1505,24 +1505,20 @@ public class Function extends Expression implements FunctionCall {
 
             // Case where the date has to be truncated to the day.
             if (fieldValue.equals("DAY")) {
-               
-                if (v1 instanceof ValueTime) {
 
-                    // Case where we truncate the time to the day (e.g.
-                    // '10:00:00 -> 00:00:00).
-                    result = v1.subtract(v1);
-
-                } else if (v1 instanceof ValueTimestampTimeZone) {
+                if (v1 instanceof ValueTimestampTimeZone) {
 
                     // Create a new ValueTimestampTimeZone by only setting the
-                    // date. The time in nanoseconds since midnight will be set to 0.
+                    // date. The time in nanoseconds since midnight will be set
+                    // to 0.
                     ValueTimestampTimeZone v = (ValueTimestampTimeZone) v1;
                     result = ValueTimestampTimeZone.fromDateValueAndNanos(v.getDateValue(), 0,
                             v.getTimeZoneOffsetMins());
 
                 } else {
 
-                    // By default, we create a timestamp by setting the datevalue
+                    // By default, we create a timestamp by setting the
+                    // datevalue
                     // to the datevalue retrieved and the time in nanoseconds
                     // since midnight to 0.
                     result = ValueTimestamp.fromDateValueAndNanos(fieldDateValue, 0);

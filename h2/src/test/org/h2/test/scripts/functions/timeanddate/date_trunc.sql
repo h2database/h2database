@@ -1,14 +1,14 @@
 select DATE_TRUNC('day', time '00:00:00');
->> 00:00:00
+>> 1970-01-01 00:00:00
 
 select DATE_TRUNC('DAY', time '00:00:00');
->> 00:00:00
+>> 1970-01-01 00:00:00
 
 select DATE_TRUNC('day', time '15:14:13');
->> 00:00:00
+>> 1970-01-01 00:00:00
 
 select DATE_TRUNC('DAY', time '15:14:13');
->> 00:00:00
+>> 1970-01-01 00:00:00
 
 select DATE_TRUNC('day', date '2015-05-29');
 >> 2015-05-29 00:00:00

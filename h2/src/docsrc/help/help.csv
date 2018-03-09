@@ -395,7 +395,7 @@ ALTER TABLE TEST DROP CONSTRAINT UNIQUE_NAME
 
 "Commands (DDL)","ALTER TABLE SET","
 ALTER TABLE [ IF EXISTS ] tableName SET REFERENTIAL_INTEGRITY
-    { FALSE | TRUE [ CHECK | NOCHECK ] }
+{ FALSE | TRUE } [ CHECK | NOCHECK ]
 ","
 Disables or enables referential integrity checking for a table. This command can
 be used inside a transaction. Enabling referential integrity does not check

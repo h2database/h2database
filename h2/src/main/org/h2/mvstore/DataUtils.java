@@ -725,6 +725,19 @@ public final class DataUtils {
      * @throws IllegalStateException if parsing failed
      */
     public static String getMapName(String s) {
+        return getFromMap(s, "name");
+    }
+
+    /**
+     * Parse a specified pair from key-value pair list.
+     *
+     * @param s the list
+     * @param key the name of the key
+     * @return value of the specified item, or {@code null}
+     * @throws IllegalStateException if parsing failed
+     */
+    public static String getFromMap(String s, String key) {
+        int keyLength = key.length();
         for (int i = 0, size = s.length(); i < size;) {
             int startKey = i;
             i = s.indexOf(':', i);
@@ -732,7 +745,7 @@ public final class DataUtils {
                 throw DataUtils.newIllegalStateException(
                         DataUtils.ERROR_FILE_CORRUPT, "Not a map: {0}", s);
             }
-            if (i++ - startKey == 4 && s.regionMatches(startKey, "name", 0, 4)) {
+            if (i++ - startKey == keyLength && s.regionMatches(startKey, key, 0, keyLength)) {
                 StringBuilder buff = new StringBuilder();
                 i = parseMapValue(buff, s, i, size);
                 return buff.toString();

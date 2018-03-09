@@ -458,7 +458,8 @@ public final class MVStore {
             }
             map = builder.create();
             String config = meta.get(MVMap.getMapKey(id));
-            map.init(this, id, DataUtils.readHexLong(DataUtils.parseMap(config), "createVersion", 0));
+            String v = DataUtils.getFromMap(config, "createVersion");
+            map.init(this, id, v != null ? DataUtils.parseHexLong(v): 0);
             root = getRootPos(meta, id);
         } else {
             id = ++lastMapId;

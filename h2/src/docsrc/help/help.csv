@@ -227,9 +227,8 @@ SHOW TABLES
 "
 
 "Commands (DML)","WITH","
-WITH [ RECURSIVE ] { name [( columnName [,...] )]
-    AS ( select ) [,...] }
-    { select | insert | update | merge | delete | createTable }
+WITH [ RECURSIVE ] { name [( columnName [,...] )] AS ( select ) [,...] }
+{ select | insert | update | merge | delete | createTable }
 ","
 Can be used to create a recursive or non-recursive query (common table expression).
 For recursive queries the first select has to be a UNION.
@@ -373,13 +372,14 @@ ALTER TABLE TEST ALTER COLUMN NAME SET INVISIBLE;
 
 "Commands (DDL)","ALTER TABLE DROP COLUMN","
 ALTER TABLE [ IF EXISTS ] tableName DROP COLUMN [ IF EXISTS ]
-( columnName [,...] )
+columnName [,...] | ( columnName [,...] )
 ","
 Removes column(s) from a table.
 This command commits an open transaction in this connection.
 ","
 ALTER TABLE TEST DROP COLUMN NAME
 ALTER TABLE TEST DROP COLUMN NAME1, NAME2
+ALTER TABLE TEST DROP COLUMN (NAME1, NAME2)
 "
 
 "Commands (DDL)","ALTER TABLE DROP CONSTRAINT","
@@ -394,7 +394,7 @@ ALTER TABLE TEST DROP CONSTRAINT UNIQUE_NAME
 
 "Commands (DDL)","ALTER TABLE SET","
 ALTER TABLE [ IF EXISTS ] tableName SET REFERENTIAL_INTEGRITY
-    { FALSE | TRUE [ CHECK | NOCHECK ] }
+{ FALSE | TRUE } [ CHECK | NOCHECK ]
 ","
 Disables or enables referential integrity checking for a table. This command can
 be used inside a transaction. Enabling referential integrity does not check

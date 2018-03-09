@@ -336,10 +336,7 @@ public final class MVStore {
                 (UncaughtExceptionHandler)config.get("backgroundExceptionHandler");
         meta = new MVMap<>(StringDataType.INSTANCE,
                 StringDataType.INSTANCE);
-        HashMap<String, Object> c = new HashMap<>();
-        c.put("id", 0);
-        c.put("createVersion", currentVersion);
-        meta.init(this, c);
+        meta.init(this, 0, currentVersion);
         if (this.fileStore != null) {
             retentionTime = this.fileStore.getDefaultRetentionTime();
             int kb = DataUtils.getConfigParam(config, "autoCommitBufferSize", 1024);
@@ -445,35 +442,28 @@ public final class MVStore {
      * @param builder the map builder
      * @return the map
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     public synchronized <M extends MVMap<K, V>, K, V> M openMap(
             String name, MVMap.MapBuilder<M, K, V> builder) {
         checkOpen();
         String x = meta.get("name." + name);
         int id;
         long root;
-        HashMap<String, Object> c;
         M map;
         if (x != null) {
             id = DataUtils.parseHexInt(x);
+            @SuppressWarnings("unchecked")
             M old = (M) maps.get(id);
             if (old != null) {
                 return old;
             }
             map = builder.create();
             String config = meta.get(MVMap.getMapKey(id));
-            // Cast from HashMap<String, String> to HashMap<String, Object> is safe
-            c = (HashMap) DataUtils.parseMap(config);
-            c.put("id", id);
-            map.init(this, c);
+            map.init(this, id, DataUtils.readHexLong(DataUtils.parseMap(config), "createVersion", 0));
             root = getRootPos(meta, id);
         } else {
-            c = new HashMap<>();
             id = ++lastMapId;
-            c.put("id", id);
-            c.put("createVersion", currentVersion);
             map = builder.create();
-            map.init(this, c);
+            map.init(this, id, currentVersion);
             markMetaChanged();
             x = Integer.toHexString(id);
             meta.put(MVMap.getMapKey(id), map.asString(name));

@@ -6,7 +6,6 @@
 package org.h2.test.store;
 
 import java.util.AbstractSet;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 import org.h2.mvstore.MVMap;
@@ -32,8 +31,8 @@ public class SequenceMap extends MVMap<Long, Long> {
     }
 
     @Override
-    public void init(MVStore store, HashMap<String, Object> config) {
-        super.init(store, config);
+    public void init(MVStore store, int id, long createVersion) {
+        super.init(store, id, createVersion);
     }
 
     @Override

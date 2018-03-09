@@ -8,7 +8,6 @@ package org.h2.mvstore;
 import java.util.AbstractList;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -96,12 +95,13 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * Open this map with the given store and configuration.
      *
      * @param store the store
-     * @param config the configuration
+     * @param id map id
+     * @param createVersion version in which this map was created
      */
-    protected void init(MVStore store, HashMap<String, Object> config) {
+    protected void init(MVStore store, int id, long createVersion) {
         this.store = store;
-        this.id = DataUtils.readHexInt(config, "id", 0);
-        this.createVersion = DataUtils.readHexLong(config, "createVersion", 0);
+        this.id = id;
+        this.createVersion = createVersion;
         this.writeVersion = store.getCurrentVersion();
         this.root = Page.createEmpty(this,  -1);
     }
@@ -1112,10 +1112,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     MVMap<K, V> openReadOnly() {
         MVMap<K, V> m = new MVMap<>(keyType, valueType);
         m.readOnly = true;
-        HashMap<String, Object> config = new HashMap<>();
-        config.put("id", id);
-        config.put("createVersion", createVersion);
-        m.init(store, config);
+        m.init(store, id, createVersion);
         m.root = root;
         return m;
     }

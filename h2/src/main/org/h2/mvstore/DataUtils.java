@@ -753,10 +753,9 @@ public final class DataUtils {
                         while (i < size) {
                             c = s.charAt(i++);
                             if (c == '\\') {
-                                if (i == size) {
+                                if (i++ == size) {
                                     throw newIllegalStateException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
                                 }
-                                c = s.charAt(i++);
                             } else if (c == '\"') {
                                 break;
                             }

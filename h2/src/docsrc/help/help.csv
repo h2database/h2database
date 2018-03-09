@@ -3260,7 +3260,7 @@ LOG(A)
 "Functions (Numeric)","LOG10","
 LOG10(numeric)
 ","
-See also Java ""Math.log10"" (in Java 5).
+See also Java ""Math.log10"".
 This method returns a double.
 ","
 LOG10(A)

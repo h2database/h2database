@@ -1626,8 +1626,8 @@ public class Parser {
             ifExists = readIfExists(ifExists);
             command.setIfExists(ifExists);
             //Support for MySQL: DROP INDEX index_name ON tbl_name
-            if(readIf("ON")) {
-               	readIdentifierWithSchema();
+            if (readIf("ON")) {
+                readIdentifierWithSchema();
             }
             return command;
         } else if (readIf("USER")) {

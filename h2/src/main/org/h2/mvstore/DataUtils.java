@@ -747,7 +747,7 @@ public final class DataUtils {
             }
             if (i++ - startKey == keyLength && s.regionMatches(startKey, key, 0, keyLength)) {
                 StringBuilder buff = new StringBuilder();
-                i = parseMapValue(buff, s, i, size);
+                parseMapValue(buff, s, i, size);
                 return buff.toString();
             } else {
                 while (i < size) {

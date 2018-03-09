@@ -1496,15 +1496,15 @@ public class Function extends Expression implements FunctionCall {
             result = ValueLong.get(datediff(v0.getString(), v1, v2));
             break;
         case DATE_TRUNC:   
-            // Retrieve the field value (e.g. 'day', 'microseconds', etc.).
-            String fieldValue = v0.getString().toLowerCase();
+            // Retrieve the field value (e.g. 'day', 'microseconds', etc.)
+            String fieldValue = StringUtils.toUpperEnglish(v0.getString());
 
             // Retrieve the dateValue.
             long[] fieldDateAndTime = DateTimeUtils.dateAndTimeFromValue(v1);
             long fieldDateValue = fieldDateAndTime[0];
 
             // Case where the date has to be truncated to the day.
-            if (fieldValue.equals("day")) {
+            if (fieldValue.equals("DAY")) {
                
                 if (v1 instanceof ValueTime) {
 

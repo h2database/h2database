@@ -632,9 +632,7 @@ public final class DataUtils {
                     c = s.charAt(i++);
                     if (c == '\\') {
                         if (i == size) {
-                            throw DataUtils.newIllegalStateException(
-                                    DataUtils.ERROR_FILE_CORRUPT,
-                                    "Not a map: {0}", s);
+                            throw newIllegalStateException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
                         }
                         c = s.charAt(i++);
                     } else if (c == '\"') {
@@ -663,8 +661,7 @@ public final class DataUtils {
             int startKey = i;
             i = s.indexOf(':', i);
             if (i < 0) {
-                throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_FILE_CORRUPT, "Not a map: {0}", s);
+                throw newIllegalStateException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
             }
             String key = s.substring(startKey, i++);
             i = parseMapValue(buff, s, i, size);
@@ -696,20 +693,19 @@ public final class DataUtils {
             int startKey = i;
             i = s.indexOf(':', i);
             if (i < 0) {
-                throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_FILE_CORRUPT, "Not a map: {0}", s);
+                throw newIllegalStateException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
             }
             if (i - startKey == 8 && s.regionMatches(startKey, "fletcher", 0, 8)) {
-                DataUtils.parseMapValue(buff, s, i + 1, size);
+                parseMapValue(buff, s, i + 1, size);
                 int check = (int) Long.parseLong(buff.toString(), 16);
-                if (check == DataUtils.getFletcher32(bytes, start, startKey - 1)) {
+                if (check == getFletcher32(bytes, start, startKey - 1)) {
                     return map;
                 }
                 // Corrupted map
                 return null;
             }
             String key = s.substring(startKey, i++);
-            i = DataUtils.parseMapValue(buff, s, i, size);
+            i = parseMapValue(buff, s, i, size);
             map.put(key, buff.toString());
             buff.setLength(0);
         }
@@ -742,8 +738,7 @@ public final class DataUtils {
             int startKey = i;
             i = s.indexOf(':', i);
             if (i < 0) {
-                throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_FILE_CORRUPT, "Not a map: {0}", s);
+                throw newIllegalStateException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
             }
             if (i++ - startKey == keyLength && s.regionMatches(startKey, key, 0, keyLength)) {
                 StringBuilder buff = new StringBuilder();
@@ -759,9 +754,7 @@ public final class DataUtils {
                             c = s.charAt(i++);
                             if (c == '\\') {
                                 if (i == size) {
-                                    throw DataUtils.newIllegalStateException(
-                                            DataUtils.ERROR_FILE_CORRUPT,
-                                            "Not a map: {0}", s);
+                                    throw newIllegalStateException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
                                 }
                                 c = s.charAt(i++);
                             } else if (c == '\"') {
@@ -1095,8 +1088,7 @@ public final class DataUtils {
 
         @Override
         public V setValue(V value) {
-            throw DataUtils.newUnsupportedOperationException(
-                    "Updating the value is not supported");
+            throw newUnsupportedOperationException("Updating the value is not supported");
         }
 
     }

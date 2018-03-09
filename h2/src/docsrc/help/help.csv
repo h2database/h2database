@@ -373,13 +373,14 @@ ALTER TABLE TEST ALTER COLUMN NAME SET INVISIBLE;
 
 "Commands (DDL)","ALTER TABLE DROP COLUMN","
 ALTER TABLE [ IF EXISTS ] tableName DROP COLUMN [ IF EXISTS ]
-( columnName [,...] )
+columnName [,...] | ( columnName [,...] )
 ","
 Removes column(s) from a table.
 This command commits an open transaction in this connection.
 ","
 ALTER TABLE TEST DROP COLUMN NAME
 ALTER TABLE TEST DROP COLUMN NAME1, NAME2
+ALTER TABLE TEST DROP COLUMN (NAME1, NAME2)
 "
 
 "Commands (DDL)","ALTER TABLE DROP CONSTRAINT","

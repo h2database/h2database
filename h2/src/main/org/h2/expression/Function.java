@@ -1512,11 +1512,6 @@ public class Function extends Expression implements FunctionCall {
                     // '10:00:00 -> 00:00:00).
                     result = v1.subtract(v1);
 
-                } else if (v1 instanceof ValueDate) {
-
-                    // Case where we already have the date truncated to the day.
-                    result = v1;
-
                 } else if (v1 instanceof ValueTimestampTimeZone) {
 
                     // Create a new ValueTimestampTimeZone by only setting the

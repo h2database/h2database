@@ -11,10 +11,10 @@ select DATE_TRUNC('DAY', time '15:14:13');
 >> 00:00:00
 
 select DATE_TRUNC('day', date '2015-05-29');
->> 2015-05-29
+>> 2015-05-29 00:00:00
 
 select DATE_TRUNC('DAY', date '2015-05-29');
->> 2015-05-29
+>> 2015-05-29 00:00:00
 
 select DATE_TRUNC('day', timestamp '2015-05-29 15:14:13');
 >> 2015-05-29 00:00:00

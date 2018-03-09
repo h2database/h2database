@@ -1506,26 +1506,11 @@ public class Function extends Expression implements FunctionCall {
             // Case where the date has to be truncated to the day.
             if (fieldValue.equals("DAY")) {
 
-                if (v1 instanceof ValueTimestampTimeZone) {
-
-                    // Create a new ValueTimestampTimeZone by only setting the
-                    // date. The time in nanoseconds since midnight will be set
-                    // to 0.
-                    ValueTimestampTimeZone v = (ValueTimestampTimeZone) v1;
-                    result = ValueTimestampTimeZone.fromDateValueAndNanos(v.getDateValue(), 0,
-                            v.getTimeZoneOffsetMins());
-
-                } else {
-
-                    // By default, we create a timestamp by setting the
-                    // datevalue
-                    // to the datevalue retrieved and the time in nanoseconds
-                    // since midnight to 0.
-                    result = ValueTimestamp.fromDateValueAndNanos(fieldDateValue, 0);
-                }
+                result = DateTimeUtils.truncateToDay(v1, fieldDateValue);
 
             } else {
 
+                // Return an exception for the other possible value (not yet supported).
                 throw DbException.getUnsupportedException(v0.getString());
             }
             break;

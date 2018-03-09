@@ -1470,5 +1470,35 @@ public class DateTimeUtils {
         }
         return nanosOfDay - mod;
     }
+    
+    /**
+     * Truncate the given date to 'day'
+     * 
+     * @param value the date
+     * @param dateValue the dateValue used if the value is not a timestamp time
+     *            zone
+     * @return date truncated to 'day'
+     */
+    public static Value truncateToDay(Value value, long dateValue) {
+        Value result = null;
+
+        if (value instanceof ValueTimestampTimeZone) {
+
+            // Create a new ValueTimestampTimeZone by only setting the
+            // date. The time in nanoseconds since midnight will be set
+            // to 0.
+            ValueTimestampTimeZone vTmp = (ValueTimestampTimeZone) value;
+            result = ValueTimestampTimeZone.fromDateValueAndNanos(vTmp.getDateValue(), 0, vTmp.getTimeZoneOffsetMins());
+
+        } else {
+
+            // By default, we create a timestamp by setting the
+            // datevalue to the datevalue retrieved and the time in nanoseconds
+            // since midnight to 0.
+            result = ValueTimestamp.fromDateValueAndNanos(dateValue, 0);
+        }
+
+        return result;
+    }
 
 }

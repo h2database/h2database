@@ -2241,15 +2241,6 @@ select * from (select 1), (select 2);
 > 1 2
 > rows: 1
 
-CREATE TABLE TEST(A VARCHAR, B VARCHAR, C VARCHAR AS LOWER(A));
-> ok
-
-ALTER TABLE TEST DROP COLUMN B;
-> ok
-
-DROP TABLE TEST;
-> ok
-
 create table t1(c1 int, c2 int);
 > ok
 

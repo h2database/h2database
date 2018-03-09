@@ -71,9 +71,8 @@ table {
 
 th {
     font-size: 14pt;
-    font-weight: normal;
+    font-weight: bold;
     text-align: left;
-    background-color: #ece9d8;
     border: 1px solid #aca899;
     padding: 2px;
 }

@@ -3895,7 +3895,7 @@ CURRENT_TIMESTAMP()
 "Functions (Time and Date)","DATEADD","
 { DATEADD| TIMESTAMPADD } (datetimeField, addIntLong, dateAndTime)
 ","
-Adds units to a date-time value. The string indicates the unit.
+Adds units to a date-time value. The datetimeField indicates the unit.
 Use negative values to subtract units.
 addIntLong may be a long value when manipulating milliseconds,
 microseconds, or nanoseconds otherwise its range is restricted to int.
@@ -3912,7 +3912,7 @@ DATEADD('MONTH', 1, DATE '2001-01-31')
 ","
 Returns the the number of crossed unit boundaries between two date/time values.
 This method returns a long.
-The string indicates the unit.
+The datetimeField indicates the unit.
 Only TIMEZONE_HOUR and TIMEZONE_MINUTE fields use the time zone offset component.
 With all other fields if date/time values have time zone offset component it is ignored.
 ","

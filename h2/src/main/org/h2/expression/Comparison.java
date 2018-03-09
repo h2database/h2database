@@ -26,7 +26,7 @@ import org.h2.value.ValueNull;
  *
  * @author Thomas Mueller
  * @author Noel Grandin
- * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
+ * @author Nicolas Fortin, UMRAE, Ifsttar
  */
 public class Comparison extends Condition {
 

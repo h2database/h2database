@@ -616,6 +616,7 @@ public class Data {
             }
             break;
         }
+        case Value.RASTER:
         case Value.BLOB:
         case Value.CLOB: {
             writeByte((byte) type);
@@ -822,6 +823,7 @@ public class Data {
             return ValueFloat.get(Float.intBitsToFloat(
                     Integer.reverse(readVarInt())));
         case Value.BLOB:
+        case Value.RASTER:
         case Value.CLOB: {
             int smallLen = readVarInt();
             if (smallLen >= 0) {
@@ -1053,6 +1055,7 @@ public class Data {
         }
         case Value.UUID:
             return 1 + LENGTH_LONG + LENGTH_LONG;
+        case Value.RASTER:
         case Value.BLOB:
         case Value.CLOB: {
             int len = 1;

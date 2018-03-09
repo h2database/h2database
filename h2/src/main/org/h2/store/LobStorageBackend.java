@@ -579,6 +579,12 @@ public class LobStorageBackend implements LobStorageInterface {
     }
 
     @Override
+    public Value createRaster(InputStream in, long maxLength) {
+        init();
+        return addLob(in, maxLength, Value.RASTER, null);
+    }
+
+    @Override
     public Value createBlob(InputStream in, long maxLength) {
         init();
         return addLob(in, maxLength, Value.BLOB, null);

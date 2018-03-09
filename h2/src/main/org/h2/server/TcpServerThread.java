@@ -568,7 +568,8 @@ public class TcpServerThread implements Runnable {
     }
 
     private void writeValue(Value v) throws IOException {
-        if (v.getType() == Value.CLOB || v.getType() == Value.BLOB) {
+        if (v.getType() == Value.CLOB || v.getType() == Value.BLOB || v
+                .getType() == Value.RASTER) {
             if (v instanceof ValueLobDb) {
                 ValueLobDb lob = (ValueLobDb) v;
                 if (lob.isStored()) {

@@ -26,6 +26,8 @@ import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 
+import javax.imageio.stream.ImageInputStream;
+
 /**
  * This utility class contains input/output functions.
  */
@@ -339,6 +341,34 @@ public class IOUtils {
      * @return the number of bytes read, 0 meaning EOF
      */
     public static int readFully(InputStream in, byte[] buffer, int max)
+            throws IOException {
+        try {
+            int result = 0, len = Math.min(max, buffer.length);
+            while (len > 0) {
+                int l = in.read(buffer, result, len);
+                if (l < 0) {
+                    break;
+                }
+                result += l;
+                len -= l;
+            }
+            return result;
+        } catch (Exception e) {
+            throw DbException.convertToIOException(e);
+        }
+    }
+
+    /**
+     * Try to read the given number of bytes to the buffer. This method reads
+     * until the maximum number of bytes have been read or until the end of
+     * file.
+     *
+     * @param in the image input stream
+     * @param buffer the output buffer
+     * @param max the number of bytes to read at most
+     * @return the number of bytes read, 0 meaning EOF
+     */
+    public static int readFully(ImageInputStream in, byte[] buffer, int max)
             throws IOException {
         try {
             int result = 0, len = Math.min(max, buffer.length);

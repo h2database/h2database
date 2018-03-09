@@ -107,19 +107,19 @@ public class ValueLob extends Value {
      */
     private static int dirCounter;
 
-    private final int type;
-    private long precision;
-    private DataHandler handler;
-    private int tableId;
-    private int objectId;
-    private String fileName;
-    private boolean linked;
-    private byte[] small;
-    private int hash;
-    private boolean compressed;
+    protected final int type;
+    protected long precision;
+    protected DataHandler handler;
+    protected int tableId;
+    protected int objectId;
+    protected String fileName;
+    protected boolean linked;
+    protected byte[] small;
+    protected int hash;
+    protected boolean compressed;
     private FileStore tempFile;
 
-    private ValueLob(int type, DataHandler handler, String fileName,
+    protected ValueLob(int type, DataHandler handler, String fileName,
             int tableId, int objectId, boolean linked, long precision,
             boolean compressed) {
         this.type = type;
@@ -136,7 +136,7 @@ public class ValueLob extends Value {
         this.type = type;
         this.small = small;
         if (small != null) {
-            if (type == Value.BLOB) {
+            if (type == Value.BLOB || type == Value.RASTER) {
                 this.precision = small.length;
             } else {
                 this.precision = getString().length();
@@ -412,12 +412,24 @@ public class ValueLob extends Value {
      * @param handler the data handler
      * @return the lob value
      */
-    private static ValueLob createBlob(InputStream in, long length,
+    protected static ValueLob createBlob(InputStream in, long length,
             DataHandler handler) {
+        return createBlob(in, length, handler, Value.BLOB);
+    }
+    /**
+     * Create a BLOB value from a stream.
+     *
+     * @param in the input stream
+     * @param length the number of characters to read, or -1 for no limit
+     * @param handler the data handler
+     * @return the lob value
+     */
+    protected static ValueLob createBlob(InputStream in, long length,
+            DataHandler handler, int type) {
         try {
             if (handler == null) {
                 byte[] data = IOUtils.readBytesAndClose(in, (int) length);
-                return createSmallLob(Value.BLOB, data);
+                return createSmallLob(type, data);
             }
             long remaining = Long.MAX_VALUE;
             boolean compress = handler.getLobCompressionAlgorithm(Value.BLOB) != null;
@@ -435,9 +447,9 @@ public class ValueLob extends Value {
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
                 byte[] small = DataUtils.copyBytes(buff, len);
-                return ValueLob.createSmallLob(Value.BLOB, small);
+                return ValueLob.createSmallLob(type, small);
             }
-            ValueLob lob = new ValueLob(Value.BLOB, null);
+            ValueLob lob = new ValueLob(type, null);
             lob.createFromStream(buff, len, in, remaining, handler);
             return lob;
         } catch (IOException e) {
@@ -511,8 +523,9 @@ public class ValueLob extends Value {
         } else if (t == Value.CLOB) {
             ValueLob copy = ValueLob.createClob(getReader(), -1, handler);
             return copy;
-        } else if (t == Value.BLOB) {
-            ValueLob copy = ValueLob.createBlob(getInputStream(), -1, handler);
+        } else if (t == Value.BLOB || t == Value.RASTER) {
+            ValueLob copy = ValueLob.createBlob(getInputStream(), -1,
+                    handler, t);
             return copy;
         }
         return super.convertTo(t, precision, mode, column, null);
@@ -728,7 +741,7 @@ public class ValueLob extends Value {
         if (p > Integer.MAX_VALUE || p <= 0) {
             p = -1;
         }
-        if (type == Value.BLOB) {
+        if (type == Value.BLOB || type == Value.RASTER) {
             prep.setBinaryStream(parameterIndex, getInputStream(), (int) p);
         } else {
             prep.setCharacterStream(parameterIndex, getReader(), (int) p);
@@ -794,7 +807,7 @@ public class ValueLob extends Value {
                 boolean compress = h.getLobCompressionAlgorithm(type) != null;
                 int len = getBufferSize(h, compress, Long.MAX_VALUE);
                 int tabId = tableId;
-                if (type == Value.BLOB) {
+                if (type == Value.BLOB || type == Value.RASTER) {
                     createFromStream(
                             DataUtils.newBytes(len), 0, getInputStream(), Long.MAX_VALUE, h);
                 } else {
@@ -867,7 +880,7 @@ public class ValueLob extends Value {
         if (type == CLOB) {
             lob = ValueLob.createClob(getReader(), precision, handler);
         } else {
-            lob = ValueLob.createBlob(getInputStream(), precision, handler);
+            lob = ValueLob.createBlob(getInputStream(), precision, handler, type);
         }
         return lob;
     }
@@ -881,7 +894,7 @@ public class ValueLob extends Value {
         if (type == CLOB) {
             lob = ValueLob.createClob(getReader(), precision, handler);
         } else {
-            lob = ValueLob.createBlob(getInputStream(), precision, handler);
+            lob = ValueLob.createBlob(getInputStream(), precision, handler, type);
         }
         return lob;
     }

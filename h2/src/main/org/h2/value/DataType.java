@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.UUID;
 import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
+import org.h2.api.GeoRaster;
+import org.h2.engine.Constants;
 import org.h2.engine.Mode;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SysProperties;
@@ -35,6 +37,8 @@ import org.h2.jdbc.JdbcClob;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.GeoRasterBlob;
+import org.h2.util.GeoRasterRenderedImage;
 import org.h2.util.JdbcUtils;
 import org.h2.util.LocalDateTimeUtils;
 import org.h2.util.Utils;
@@ -359,6 +363,11 @@ public class DataType {
                 createString(false),
                 new String[]{"GEOMETRY"},
                 32
+        );
+        add(Value.RASTER, Types.BLOB, 
+                createLob(),
+                new String[]{"RASTER"},
+                104
         );
         DataType dataType = new DataType();
         dataType.prefix = "(";
@@ -718,6 +727,18 @@ public class DataType {
                 }
                 return ValueGeometry.getFromGeometry(x);
             }
+            case Value.RASTER: {
+                if (session == null) {
+                    byte[] buff = rs.getBytes(columnIndex);
+                    return buff == null ? ValueNull.INSTANCE :
+                            ValueLobDb.createSmallLob(Value.RASTER, buff);
+                }
+                InputStream in = rs.getBinaryStream(columnIndex);
+                v = (in == null) ? ValueNull.INSTANCE :
+                        session.getDataHandler().getLobStorage()
+                                .createRaster(in, -1);
+                break;
+            }
             default:
                 if (JdbcUtils.customDataTypesHandler != null) {
                     return JdbcUtils.customDataTypesHandler.getValue(type,
@@ -780,6 +801,7 @@ public class DataType {
         case Value.STRING_FIXED:
             // "java.lang.String";
             return String.class.getName();
+        case Value.RASTER:
         case Value.BLOB:
             // "java.sql.Blob";
             return java.sql.Blob.class.getName();
@@ -990,6 +1012,8 @@ public class DataType {
             return Value.RESULT_SET;
         } else if (Value.ValueBlob.class.isAssignableFrom(x)) {
             return Value.BLOB;
+        } else if (Value.ValueRasterMarker.class.isAssignableFrom(x)) {
+            return Value.RASTER;
         } else if (Value.ValueClob.class.isAssignableFrom(x)) {
             return Value.CLOB;
         } else if (Date.class.isAssignableFrom(x)) {
@@ -1013,6 +1037,8 @@ public class DataType {
             return Value.ARRAY;
         } else if (isGeometryClass(x)) {
             return Value.GEOMETRY;
+        } else if (GeoRaster.class.isAssignableFrom(x)) {
+            return Value.RASTER;
         } else if (LocalDateTimeUtils.LOCAL_DATE == x) {
             return Value.DATE;
         } else if (LocalDateTimeUtils.LOCAL_TIME == x) {
@@ -1052,7 +1078,11 @@ public class DataType {
             return ValueNull.INSTANCE;
         }
         if (type == Value.JAVA_OBJECT) {
-            return ValueJavaObject.getNoCopy(x, null, session.getDataHandler());
+            if(x instanceof GeoRaster) {
+                return ValueLobDb.createFromGeoRaster((GeoRaster)x);
+            } else {
+                return ValueJavaObject.getNoCopy(x, null, session.getDataHandler());
+            }
         }
         if (x instanceof String) {
             return ValueString.get((String) x);
@@ -1140,6 +1170,8 @@ public class DataType {
             return ValueStringFixed.get(((Character) x).toString());
         } else if (isGeometry(x)) {
             return ValueGeometry.getFromGeometry(x);
+        } else if(x instanceof GeoRaster) {
+            return ValueLobDb.createFromGeoRaster((GeoRaster)x);
         } else if (clazz == LocalDateTimeUtils.LOCAL_DATE) {
             return LocalDateTimeUtils.localDateToDateValue(x);
         } else if (clazz == LocalDateTimeUtils.LOCAL_TIME) {
@@ -1213,7 +1245,7 @@ public class DataType {
      * @return true if the value type is a lob type
      */
     public static boolean isLargeObject(int type) {
-        if (type == Value.BLOB || type == Value.CLOB) {
+        if (type == Value.BLOB || type == Value.CLOB || type == Value.RASTER) {
             return true;
         }
         return false;
@@ -1354,6 +1386,17 @@ public class DataType {
     }
 
     /**
+     * Return whether the type in parameter can be used for spatial index or
+     * not.
+     *
+     * @param type the type to test
+     * @return true if type is spatial
+     */
+    public static boolean isSpatialType(int type) {
+        return (type == Value.GEOMETRY || type == Value.RASTER);
+    }
+
+    /**
      * Convert a value to the specified class.
      *
      * @param conn the database connection
@@ -1369,6 +1412,8 @@ public class DataType {
             return new JdbcClob(conn, v, 0);
         } else if (paramClass == Array.class) {
             return new JdbcArray(conn, v, 0);
+        } else if (paramClass == GeoRaster.class) {
+            return new GeoRasterBlob(v);
         }
         switch (v.getType()) {
         case Value.JAVA_OBJECT: {

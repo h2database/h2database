@@ -492,8 +492,8 @@ public abstract class TestBase {
             e = new Exception(s);
         }
         System.out.flush();
-        System.err.println("ERROR: " + s + " " + e.toString()
-                + " ------------------------------");
+        System.err.println("ERROR: " + s + " " + e.toString() +
+                " ------------------------------");
         e.printStackTrace();
         logThrowable(null, e);
     }
@@ -657,6 +657,27 @@ public abstract class TestBase {
             if (expected[i] != actual[i]) {
                 fail("[" + i + "]: expected: " + (int) expected[i] +
                         " actual: " + (int) actual[i]);
+            }
+        }
+    }
+
+    /**
+     * Check if two values are equal, and if not throw an exception.
+     *
+     * @param expected the expected value
+     * @param actual the actual value
+     * @throws AssertionError if the values are not equal
+     */
+    public void assertEquals(int[] expected, int[] actual) {
+        if (expected == null || actual == null) {
+            assertTrue(expected == actual);
+            return;
+        }
+        assertEquals(expected.length, actual.length);
+        for (int i = 0; i < expected.length; i++) {
+            if (expected[i] != actual[i]) {
+                fail("[" + i + "]: expected: " + expected[i] +
+                        " actual: " + actual[i]);
             }
         }
     }

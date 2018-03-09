@@ -5,6 +5,8 @@
  */
 package org.h2.util;
 
+import org.h2.message.DbException;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +16,7 @@ import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -49,6 +52,312 @@ public class Utils {
 
     private Utils() {
         // utility class
+    }
+
+    /**
+     * Convert a haxadecimal String into the equivalent byte array.
+     *
+     * @param s the string to tansform
+     * @return the equivalent byte array
+     */
+    public static byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        if (len % 2 != 0) {
+            throw DbException.throwInternalError(
+                    "The length of an hexadecimal string must be an even number.");
+        }
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                    + Character.digit(s.charAt(i+1), 16));
+        }
+        return data;
+    }
+
+    /**
+     * Convert an given array of bytes into a short int by precising the
+     * value of endian
+     *
+     * @param buff the array of bytes to convert
+     * @param pos  Read 4 bytes from this position
+     * @return Integer value
+     */
+    public static int readInt(byte[] buff, int pos, ByteOrder endian) {
+        if(endian == ByteOrder.BIG_ENDIAN) {
+            return (buff[pos++] << 24) +
+                    ((buff[pos++] & 0xff) << 16) +
+                    ((buff[pos++] & 0xff) << 8) +
+                    (buff[pos] & 0xff);
+        } else {
+            return  ((buff[pos + 3] & 0xff) << 24)
+                    | ( (buff[pos + 2] & 0xff) << 16)
+                    | ( (buff[pos + 1] & 0xff) << 8)
+                    | ( (buff[pos] & 0xff) );
+        }
+
+    }
+
+    /**
+     * Convert an given array of bytes into a short int using Big Endian
+     * @param buff Buffer to read
+     * @param pos Read 4 bytes from this position
+     * @return Int value
+     */
+    public static int readInt(byte[] buff, int pos) {
+        return readInt(buff, pos, ByteOrder.BIG_ENDIAN);
+    }
+
+    public static double readDouble(byte[] buff, int pos, ByteOrder endian) {
+        return Double.longBitsToDouble(readLong(buff, pos, endian));
+    }
+
+    /**
+     * Convert an given array of bytes into a unsigned int 32 bits (represented
+     * by a long in Java) by precising the value of endian
+     *
+     * @param buff   the array of bytes to convert
+     * @param pos    Read 4 bytes from this position
+     * @param endian {@link ByteOrder#BIG_ENDIAN} or {@link
+     * ByteOrder#LITTLE_ENDIAN}
+     * @return long the result of the conversion
+     */
+    public static long readUnsignedInt32(byte[] buff, int pos,
+            ByteOrder endian) {
+        return readInt(buff, pos, endian) & 0xFFFFFFFFL;
+    }
+
+    /**
+     * Convert an given array of bytes into a short int by precising the
+     * value of endian
+     *
+     * @param buff   the array of bytes to convert
+     * @param pos    Read 2 bytes from this position
+     * @param endian {@link java.nio.ByteOrder#BIG_ENDIAN} or {@link java.nio
+     * .ByteOrder#LITTLE_ENDIAN}
+     * @return short the result of the conversion, it is int, as java does
+     * not support unsigned short
+     */
+    public static int readUnsignedShort(byte[] buff, int pos,
+            ByteOrder endian) {
+        if (endian == ByteOrder.BIG_ENDIAN) {
+            return (((buff[pos] & 0xff) << 8) | ((buff[pos + 1] & 0xff)));
+        } else {
+            return (((buff[pos + 1] & 0xff) << 8) | ((buff[pos] & 0xff)));
+        }
+    }
+
+
+    /**
+     * Convert an given array of bytes into a short int by precising the
+     * value of endian
+     *
+     * @param buff   the array of bytes to convert
+     * @param pos    Read 2 bytes from this position
+     * @param endian {@link java.nio.ByteOrder#BIG_ENDIAN} or {@link java.nio
+     *               .ByteOrder#LITTLE_ENDIAN}
+     * @return short the result of the conversion, it is int, as java does
+     * not support short
+     */
+    public static short readShort(byte[] buff, int pos, ByteOrder endian) {
+        if (endian == ByteOrder.BIG_ENDIAN) {
+            return (short) (((buff[pos]) << 8) | ((buff[pos + 1] & 0xff)));
+        } else {
+            return (short) (((buff[pos + 1]) << 8) | ((buff[pos] & 0xff)));
+        }
+    }
+
+    /**
+     * Read unsigned byte
+     *
+     * @param buff Data
+     * @param pos  Position to read
+     * @return Unsigned byte 0-255
+     */
+    public static int readUnsignedByte(byte[] buff, int pos) {
+        return buff[pos] & 0xff;
+    }
+
+    /**
+     * Write a short value to the byte array at the given position.
+     *
+     * @param buff      the byte array
+     * @param pos       the position
+     * @param value     the value to write
+     * @param byteOrder {@link java.nio.ByteOrder#BIG_ENDIAN} or {@link java
+     * .nio.ByteOrder#LITTLE_ENDIAN}
+     */
+    public static void writeUnsignedShort(byte[] buff, int pos, int value,
+            ByteOrder byteOrder) {
+        if (byteOrder == ByteOrder.BIG_ENDIAN) {
+            buff[pos] = (byte) ((value >> 8) & 0xff);
+            buff[pos + 1] = (byte) (value & 0xff);
+        } else {
+            buff[pos] = (byte) (value & 0xff);
+            buff[pos + 1] = (byte) ((value >> 8) & 0xff);
+        }
+    }
+
+
+    /**
+     * Write a short value to the byte array at the given position.
+     *
+     * @param buff      the byte array
+     * @param pos       the position
+     * @param value     the value to write
+     * @param byteOrder {@link java.nio.ByteOrder#BIG_ENDIAN} or {@link java
+     * .nio.ByteOrder#LITTLE_ENDIAN}
+     */
+    public static void writeShort(byte[] buff, int pos, short value,
+            ByteOrder byteOrder) {
+        if (byteOrder == ByteOrder.BIG_ENDIAN) {
+            buff[pos] = (byte) (value >> 8);
+            buff[pos + 1] = (byte) value;
+        } else {
+            buff[pos] = (byte) value;
+            buff[pos + 1] = (byte) (value >> 8);
+        }
+    }
+
+    /**
+     * Write a long value to the byte array at the given position. The most
+     * significant byte is written first.
+     *
+     * @param buff the byte array
+     * @param pos  the position
+     * @param x    the value to write
+     */
+    public static void writeLong(byte[] buff, int pos, long x) {
+        writeInt(buff, pos, (int) (x >> 32));
+        writeInt(buff, pos + 4, (int) x);
+    }
+
+    /**
+     * Write a long value to the byte array at the given position.
+     *
+     * @param buff      the byte array
+     * @param pos       the position
+     * @param value     the value to write
+     * @param byteOrder {@link java.nio.ByteOrder#BIG_ENDIAN} or {@link java
+     * .nio.ByteOrder#LITTLE_ENDIAN}
+     */
+    public static void writeLong(byte[] buff, int pos, long value,
+            ByteOrder byteOrder) {
+        if (byteOrder == ByteOrder.BIG_ENDIAN) {
+            writeInt(buff, pos, (int) (value >> 32));
+            writeInt(buff, pos + 4, (int) value);
+        } else {
+            writeInt(buff, pos, (int) value, ByteOrder.LITTLE_ENDIAN);
+            writeInt(buff, pos + 4, (int) (value >> 32),
+                    ByteOrder.LITTLE_ENDIAN);
+        }
+    }
+
+    /**
+     * Write an int value to the byte array at the given position. The most
+     * significant byte is written first.
+     *
+     * @param buff  the byte array
+     * @param pos   the position
+     * @param value the value to write
+     */
+    public static void writeInt(byte[] buff, int pos, int value) {
+        writeInt(buff, pos, value, ByteOrder.BIG_ENDIAN);
+    }
+
+    /**
+     * Write an int value to the byte array at the given position.
+     *
+     * @param buff      the byte array
+     * @param pos       the position
+     * @param value     the value to write
+     * @param byteOrder {@link java.nio.ByteOrder#BIG_ENDIAN} or {@link java
+     * .nio.ByteOrder#LITTLE_ENDIAN}
+     */
+    public static void writeInt(byte[] buff, int pos, int value,
+            ByteOrder byteOrder) {
+        if (byteOrder == ByteOrder.BIG_ENDIAN) {
+            buff[pos++] = (byte) (value >> 24);
+            buff[pos++] = (byte) (value >> 16);
+            buff[pos++] = (byte) (value >> 8);
+            buff[pos++] = (byte) value;
+        } else {
+            buff[pos++] = (byte) value;
+            buff[pos++] = (byte) (value >> 8);
+            buff[pos++] = (byte) (value >> 16);
+            buff[pos++] = (byte) (value >> 24);
+        }
+    }
+
+    /**
+     * Write an unsigned int value to the byte array at the given position.
+     *
+     * @param buff      the byte array
+     * @param pos       the position
+     * @param value     the value to write
+     * @param byteOrder {@link java.nio.ByteOrder#BIG_ENDIAN} or {@link java
+     * .nio.ByteOrder#LITTLE_ENDIAN}
+     */
+    public static void writeUnsignedInt(byte[] buff, int pos, long value,
+            ByteOrder byteOrder) {
+        value = value & 0xFFFFFFFFL;
+        if (byteOrder == ByteOrder.BIG_ENDIAN) {
+            buff[pos++] = (byte) ((value >> 24) & 0xFF);
+            buff[pos++] = (byte) ((value >> 16) & 0xFF);
+            buff[pos++] = (byte) ((value >> 8) & 0xFF);
+            buff[pos++] = (byte) (value & 0xFF);
+        } else {
+            buff[pos++] = (byte) (value & 0xFF);
+            buff[pos++] = (byte) ((value >> 8) & 0xFF);
+            buff[pos++] = (byte) ((value >> 16) & 0xFF);
+            buff[pos++] = (byte) ((value >> 24) & 0xFF);
+        }
+    }
+
+    /**
+     * Write a double value to the byte array at the given position.
+     *
+     * @param buff      the byte array
+     * @param pos       the position
+     * @param value     the value to write
+     * @param byteOrder {@link java.nio.ByteOrder#BIG_ENDIAN} or {@link java
+     * .nio.ByteOrder#LITTLE_ENDIAN}
+     */
+    public static void writeDouble(byte[] buff, int pos, double value,
+            ByteOrder byteOrder) {
+        writeLong(buff, pos, Double.doubleToRawLongBits(value), byteOrder);
+    }
+
+    /**
+     * Read a long value from the byte array at the given position. The most
+     * significant byte is read first.
+     *
+     * @param buff the byte array
+     * @param pos  the position
+     * @return the value
+     */
+    public static long readLong(byte[] buff, int pos) {
+        return readLong(buff, pos, ByteOrder.BIG_ENDIAN);
+    }
+
+    /**
+     * Read a long value from the byte array at the given position. The most
+     * significant byte is read first.
+     *
+     * @param buff   the byte array
+     * @param pos    the position
+     * @param endian {@link java.nio.ByteOrder#BIG_ENDIAN} or {@link java.nio
+     * .ByteOrder#LITTLE_ENDIAN}
+     * @return the value
+     */
+    public static long readLong(byte[] buff, int pos, ByteOrder endian) {
+        if (endian == ByteOrder.BIG_ENDIAN) {
+            return (((long) readInt(buff, pos)) << 32) +
+                    (readInt(buff, pos + 4) & 0xffffffffL);
+        } else {
+            return (((long) readInt(buff, pos + 4, ByteOrder.LITTLE_ENDIAN)) <<
+                    32) +
+                    (readInt(buff, pos, ByteOrder.LITTLE_ENDIAN) & 0xffffffffL);
+        }
     }
 
     /**

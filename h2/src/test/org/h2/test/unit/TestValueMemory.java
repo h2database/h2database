@@ -6,8 +6,11 @@
 package org.h2.test.unit;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigDecimal;
+import java.nio.ByteOrder;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
@@ -20,6 +23,7 @@ import org.h2.store.LobStorageFrontend;
 import org.h2.test.TestBase;
 import org.h2.test.utils.MemoryFootprint;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.RasterUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
@@ -219,7 +223,22 @@ public class TestValueMemory extends TestBase implements DataHandler {
             }
             return ValueGeometry.get("POINT (" + random.nextInt(100) + " " +
                     random.nextInt(100) + ")");
-        default:
+        case Value.RASTER:
+            if (DataType.GEOMETRY_CLASS == null) {
+                return ValueNull.INSTANCE;
+            }
+            try {
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                new RasterUtils.RasterMetaData(RasterUtils.LAST_WKB_VERSION, 0,
+                        1, 1, 0, 0,0, 0, 0, 0, 0)
+                        .writeRasterHeader(out, ByteOrder.BIG_ENDIAN);
+                ByteArrayInputStream byteArrayInStream = new
+                        ByteArrayInputStream(out.toByteArray());
+                return getLobStorage().createRaster(byteArrayInStream, -1);
+            } catch (Exception ex) {
+                return ValueNull.INSTANCE;
+            }
+            default:
             throw new AssertionError("type=" + type);
         }
     }

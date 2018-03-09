@@ -5,6 +5,7 @@
  */
 package org.h2.value;
 
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -14,6 +15,7 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import org.h2.api.GeoRaster;
 
 import org.h2.engine.Constants;
 import org.h2.engine.Mode;
@@ -28,11 +30,12 @@ import org.h2.store.LobStorageFrontend;
 import org.h2.store.LobStorageInterface;
 import org.h2.store.RangeReader;
 import org.h2.store.fs.FileUtils;
+import org.h2.util.GeoRasterBlob;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
+import org.h2.util.RasterUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
-
 /**
  * A implementation of the BLOB and CLOB data types.
  *
@@ -40,7 +43,7 @@ import org.h2.util.Utils;
  * Large objects are either stored in the database, or in temporary files.
  */
 public class ValueLobDb extends Value implements Value.ValueClob,
-        Value.ValueBlob {
+        Value.ValueBlob, Value.ValueRasterMarker {
 
     private final int type;
     private final long lobId;
@@ -54,6 +57,9 @@ public class ValueLobDb extends Value implements Value.ValueClob,
      */
     private final long precision;
 
+    // For Raster only
+    private RasterUtils.RasterMetaData cachedMetaData;
+
     private final String fileName;
     private final FileStore tempFile;
     private final int tableId;
@@ -65,7 +71,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     private boolean isRecoveryReference;
 
     private ValueLobDb(int type, DataHandler handler, int tableId, long lobId,
-            byte[] hmac, long precision) {
+                       byte[] hmac, long precision) {
         this.type = type;
         this.handler = handler;
         this.tableId = tableId;
@@ -125,8 +131,8 @@ public class ValueLobDb extends Value implements Value.ValueClob,
      * Create a BLOB in a temporary file.
      */
     private ValueLobDb(DataHandler handler, byte[] buff, int len, InputStream in,
-            long remaining) throws IOException {
-        this.type = Value.BLOB;
+                       long remaining, int type) throws IOException {
+        this.type = type;
         this.handler = handler;
         this.small = null;
         this.lobId = 0;
@@ -167,16 +173,16 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     /**
      * Create a LOB value.
      *
-     * @param type the type
-     * @param handler the data handler
-     * @param tableId the table id
-     * @param id the lob id
-     * @param hmac the message authentication code
+     * @param type      the type
+     * @param handler   the data handler
+     * @param tableId   the table id
+     * @param id        the lob id
+     * @param hmac      the message authentication code
      * @param precision the precision (number of bytes / characters)
      * @return the value
      */
     public static ValueLobDb create(int type, DataHandler handler,
-            int tableId, long id, byte[] hmac, long precision) {
+                                    int tableId, long id, byte[] hmac, long precision) {
         return new ValueLobDb(type, handler, tableId, id, hmac, precision);
     }
 
@@ -184,12 +190,8 @@ public class ValueLobDb extends Value implements Value.ValueClob,
      * Convert a lob to another data type. The data is fully read in memory
      * except when converting to BLOB or CLOB.
      *
-     * @param t the new type
+     * @param t         the new type
      * @param precision the precision
-     * @param mode the mode
-     * @param column the column (if any), used for to improve the error message if conversion fails
-     * @param enumerators the ENUM datatype enumerators (if any),
-     *        for dealing with ENUM conversions
      * @return the converted value
      */
     @Override
@@ -208,6 +210,14 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             if (handler != null) {
                 Value copy = handler.getLobStorage().
                         createBlob(getInputStream(), -1);
+                return copy;
+            } else if (small != null) {
+                return ValueLobDb.createSmallLob(t, small);
+            }
+        } else if (t == Value.RASTER) {
+            if (handler != null) {
+                Value copy = handler.getLobStorage().
+                        createRaster(getInputStream(), -1);
                 return copy;
             } else if (small != null) {
                 return ValueLobDb.createSmallLob(t, small);
@@ -253,6 +263,8 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             Value v;
             if (type == Value.BLOB) {
                 v = s.createBlob(getInputStream(), getPrecision());
+            } else if (type == Value.RASTER) {
+                v = s.createRaster(getInputStream(), getPrecision());
             } else {
                 v = s.createClob(getReader(), getPrecision());
             }
@@ -285,24 +297,33 @@ public class ValueLobDb extends Value implements Value.ValueClob,
 
     @Override
     public String getString() {
-        int len = precision > Integer.MAX_VALUE || precision == 0 ?
-                Integer.MAX_VALUE : (int) precision;
-        try {
-            if (type == Value.CLOB) {
-                if (small != null) {
-                    return new String(small, StandardCharsets.UTF_8);
+        if (type == Value.RASTER) {
+            try {
+                RasterUtils.RasterMetaData metaData = getMetaData();
+                return metaData.toString();
+            } catch (IOException e) {
+                throw DbException.convertIOException(e, toString());
+            }
+        } else {
+            int len = precision > Integer.MAX_VALUE || precision == 0 ?
+                    Integer.MAX_VALUE : (int) precision;
+            try {
+                if (type == Value.CLOB) {
+                    if (small != null) {
+                        return new String(small, StandardCharsets.UTF_8);
+                    }
+                    return IOUtils.readStringAndClose(getReader(), len);
                 }
-                return IOUtils.readStringAndClose(getReader(), len);
+                byte[] buff;
+                if (small != null) {
+                    buff = small;
+                } else {
+                    buff = IOUtils.readBytesAndClose(getInputStream(), len);
+                }
+                return StringUtils.convertBytesToHex(buff);
+            } catch (IOException e) {
+                throw DbException.convertIOException(e, toString());
             }
-            byte[] buff;
-            if (small != null) {
-                buff = small;
-            } else {
-                buff = IOUtils.readBytesAndClose(getInputStream(), len);
-            }
-            return StringUtils.convertBytesToHex(buff);
-        } catch (IOException e) {
-            throw DbException.convertIOException(e, toString());
         }
     }
 
@@ -371,6 +392,8 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     public Object getObject() {
         if (type == Value.CLOB) {
             return getReader();
+        } else if (type == Value.RASTER) {
+            return new GeoRasterBlob(this);
         }
         return getInputStream();
     }
@@ -395,7 +418,8 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             return new BufferedInputStream(new FileStoreInputStream(store,
                     handler, false, alwaysClose), Constants.IO_BUFFER_SIZE);
         }
-        long byteCount = (type == Value.BLOB) ? precision : -1;
+        long byteCount = (type == Value.BLOB || type == Value.RASTER) ? precision
+                : -1;
         try {
             return handler.getLobStorage().getInputStream(this, hmac, byteCount);
         } catch (IOException e) {
@@ -433,7 +457,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         if (p > Integer.MAX_VALUE || p <= 0) {
             p = -1;
         }
-        if (type == Value.BLOB) {
+        if (type == Value.BLOB || type == Value.RASTER) {
             prep.setBinaryStream(parameterIndex, getInputStream(), (int) p);
         } else {
             prep.setCharacterStream(parameterIndex, getReader(), (int) p);
@@ -538,13 +562,12 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     /**
      * Create a temporary CLOB value from a stream.
      *
-     * @param in the reader
-     * @param length the number of characters to read, or -1 for no limit
+     * @param in      the reader
+     * @param length  the number of characters to read, or -1 for no limit
      * @param handler the data handler
      * @return the lob value
      */
-    public static ValueLobDb createTempClob(Reader in, long length,
-            DataHandler handler) {
+    public static ValueLobDb createTempClob(Reader in, long length,DataHandler handler){
         if (length >= 0) {
             // Otherwise BufferedReader may try to read more data than needed and that
             // blocks the network level
@@ -589,16 +612,17 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         }
     }
 
+
     /**
      * Create a temporary BLOB value from a stream.
      *
-     * @param in the input stream
-     * @param length the number of characters to read, or -1 for no limit
+     * @param in      the input stream
+     * @param length  the number of characters to read, or -1 for no limit
      * @param handler the data handler
+     * @param type type of blob
      * @return the lob value
      */
-    public static ValueLobDb createTempBlob(InputStream in, long length,
-            DataHandler handler) {
+    public static ValueLobDb createTempBlob(InputStream in, long length, DataHandler handler, int type) {
         try {
             long remaining = Long.MAX_VALUE;
             boolean compress = handler.getLobCompressionAlgorithm(Value.BLOB) != null;
@@ -616,9 +640,9 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
                 byte[] small = DataUtils.copyBytes(buff, len);
-                return ValueLobDb.createSmallLob(Value.BLOB, small, small.length);
+                return ValueLobDb.createSmallLob(type, small, small.length);
             }
-            ValueLobDb lob = new ValueLobDb(handler, buff, len, in, remaining);
+            ValueLobDb lob = new ValueLobDb(handler, buff, len, in, remaining, type);
             return lob;
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);
@@ -626,7 +650,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     }
 
     private static int getBufferSize(DataHandler handler, boolean compress,
-            long remaining) {
+                                     long remaining) {
         if (remaining < 0 || remaining > Integer.MAX_VALUE) {
             remaining = Integer.MAX_VALUE;
         }
@@ -678,7 +702,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                     throw DbException.convertIOException(e, null);
                 }
             } else {
-                lob = ValueLobDb.createTempBlob(getInputStream(), precision, handler);
+                lob = ValueLobDb.createTempBlob(getInputStream(), precision, handler, type);
             }
         }
         return lob;
@@ -687,7 +711,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     /**
      * Create a LOB object that fits in memory.
      *
-     * @param type the type (Value.BLOB or CLOB)
+     * @param type  the type (Value.BLOB or CLOB)
      * @param small the byte array
      * @return the LOB
      */
@@ -704,13 +728,13 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     /**
      * Create a LOB object that fits in memory.
      *
-     * @param type the type (Value.BLOB or CLOB)
-     * @param small the byte array
+     * @param type      the type (Value.BLOB or CLOB)
+     * @param small     the byte array
      * @param precision the precision
      * @return the LOB
      */
     public static ValueLobDb createSmallLob(int type, byte[] small,
-            long precision) {
+                                            long precision) {
         return new ValueLobDb(type, small, precision);
     }
 
@@ -721,5 +745,63 @@ public class ValueLobDb extends Value implements Value.ValueClob,
 
     public boolean isRecoveryReference() {
         return isRecoveryReference;
+    }
+
+
+    public static ValueLobDb createFromGeoRaster(GeoRaster geoRaster) {
+        try {
+            return new ValueLobDbRaster(geoRaster);
+        } catch (IOException ex) {
+            throw DbException.convertIOException(ex, "Cannot create raster " +
+                    "value");
+        }
+    }
+
+    /**
+     * @return Raster metadata
+     */
+    public RasterUtils.RasterMetaData getMetaData() throws IOException {
+        if (cachedMetaData == null) {
+            cachedMetaData = RasterUtils.RasterMetaData.fetchMetaData(getInputStream(), true);
+        }
+        return cachedMetaData;
+    }
+
+    /**
+     * Temporary lob, used with GeoRaster API in order to reduce the creation
+     * of intermediate Lob when encapsulate raster processing method calls.
+     *
+     * @author Erwan Bocher
+     * @author Nicolas Fortin
+     */
+    private static final class ValueLobDbRaster extends ValueLobDb {
+
+        private GeoRaster geoRaster; // Reference to external content
+
+        private ValueLobDbRaster(GeoRaster geoRaster) throws IOException {
+            super(RASTER, null, geoRaster.getMetaData().getTotalLength());
+            this.geoRaster = geoRaster;
+        }
+
+        @Override
+        public InputStream getInputStream() {
+            return geoRaster.asWKBRaster();
+        }
+
+        @Override
+        public Object getObject() {
+            return geoRaster;
+        }
+
+        @Override
+        public RasterUtils.RasterMetaData getMetaData() throws IOException {
+            return geoRaster.getMetaData();
+        }
+
+        @Override
+        public Value copy(DataHandler database, int tableId) {
+            ValueLobDb val = (ValueLobDb) database.getLobStorage().createRaster(getInputStream(), -1);
+            return database.getLobStorage().copyLob(val, tableId, getPrecision());
+        }
     }
 }

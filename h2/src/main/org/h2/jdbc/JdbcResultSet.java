@@ -618,7 +618,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     @Override
     public short getShort(int columnIndex) throws SQLException {
         try {
-            debugCodeCall("getShort", columnIndex);
+            debugCodeCall("getUnsignedShort", columnIndex);
             return get(columnIndex).getShort();
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -636,7 +636,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     @Override
     public short getShort(String columnLabel) throws SQLException {
         try {
-            debugCodeCall("getShort", columnLabel);
+            debugCodeCall("getUnsignedShort", columnLabel);
             return get(columnLabel).getShort();
         } catch (Exception e) {
             throw logAndConvert(e);

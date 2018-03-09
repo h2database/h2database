@@ -51,7 +51,8 @@ public class JdbcBlob extends TraceObject implements Blob {
         try {
             debugCodeCall("length");
             checkClosed();
-            if (value.getType() == Value.BLOB) {
+            if (value.getType() == Value.BLOB || value.getType() ==
+                    Value.RASTER) {
                 long precision = value.getPrecision();
                 if (precision > 0) {
                     return precision;

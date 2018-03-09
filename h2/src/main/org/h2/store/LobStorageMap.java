@@ -139,9 +139,18 @@ public class LobStorageMap implements LobStorageInterface {
     }
 
     @Override
+    public Value createRaster(InputStream in, long maxLength) {
+        return createBinaryLargeObject(Value.RASTER, in, maxLength);
+    }
+
+    @Override
     public Value createBlob(InputStream in, long maxLength) {
+        return createBinaryLargeObject(Value.BLOB, in, maxLength);
+    }
+
+    private Value createBinaryLargeObject(int type, InputStream in, long
+            maxLength) {
         init();
-        int type = Value.BLOB;
         try {
             if (maxLength != -1
                     && maxLength <= database.getMaxLengthInplaceLob()) {

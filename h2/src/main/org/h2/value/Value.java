@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -29,6 +30,7 @@ import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
+import org.h2.util.RasterUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -175,9 +177,14 @@ public abstract class Value {
     public static final int ENUM = 25;
 
     /**
+     * The value type for georeferenced raster.
+     */
+    public static final int RASTER = 26;
+
+    /**
      * The number of value types.
      */
-    public static final int TYPE_COUNT = ENUM;
+    public static final int TYPE_COUNT = RASTER + 1;
 
     private static SoftReference<Value[]> softCache =
             new SoftReference<>(null);
@@ -339,8 +346,10 @@ public abstract class Value {
             return 42_000;
         case UUID:
             return 43_000;
-        case GEOMETRY:
+        case RASTER: // Raster before Geometry because a geometry cannot be casted into a raster
             return 44_000;
+        case GEOMETRY:
+            return 44_100;
         case ARRAY:
             return 50_000;
         case RESULT_SET:
@@ -916,6 +925,7 @@ public abstract class Value {
             case BYTES: {
                 switch (getType()) {
                 case JAVA_OBJECT:
+                case RASTER:
                 case BLOB:
                     return ValueBytes.getNoCopy(getBytesNoCopy());
                 case UUID:
@@ -977,6 +987,7 @@ public abstract class Value {
                                 ErrorCode.DATA_CONVERSION_ERROR_1, getString());
                 }
             }
+            case RASTER:
             case BLOB: {
                 switch (getType()) {
                 case BYTES:
@@ -1013,6 +1024,16 @@ public abstract class Value {
                     Object object = JdbcUtils.deserialize(getBytesNoCopy(), getDataHandler());
                     if (DataType.isGeometry(object)) {
                         return ValueGeometry.getFromGeometry(object);
+                    }
+                case RASTER:
+                    try {
+                        // Build envelope
+                        return ValueGeometry.getFromGeometry(
+                                ((ValueRasterMarker) this).getMetaData()
+                                        .convexHull());
+                    } catch (IOException ex) {
+                        throw throwUnsupportedExceptionForType(
+                                "Failed to cast raster to geometry");
                     }
                     //$FALL-THROUGH$
                 case TIMESTAMP_TZ:
@@ -1083,6 +1104,8 @@ public abstract class Value {
             case BLOB:
                 return ValueLobDb.createSmallLob(
                         BLOB, StringUtils.convertHexToBytes(s.trim()));
+            case RASTER:
+                return ValueLobDb.createSmallLob(RASTER, StringUtils.convertHexToBytes(s.trim()));
             case ARRAY:
                 return ValueArray.get(new Value[]{ValueString.get(s)});
             case RESULT_SET: {
@@ -1367,6 +1390,16 @@ public abstract class Value {
      */
     public interface ValueBlob {
         // this is a marker interface
+    }
+
+    /**
+     * A "large raster object"
+     * @author Erwan Bocher
+     * @author Nicolas Fortin
+     */
+    public interface ValueRasterMarker {
+        // this is a marker interface
+        RasterUtils.RasterMetaData getMetaData() throws IOException;
     }
 
 }

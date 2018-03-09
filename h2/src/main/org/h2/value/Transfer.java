@@ -411,6 +411,7 @@ public class Transfer {
         case Value.STRING_FIXED:
             writeString(v.getString());
             break;
+        case Value.RASTER:
         case Value.BLOB: {
             if (version >= Constants.TCP_PROTOCOL_VERSION_11) {
                 if (v instanceof ValueLobDb) {
@@ -606,6 +607,7 @@ public class Transfer {
             return ValueStringIgnoreCase.get(readString());
         case Value.STRING_FIXED:
             return ValueStringFixed.get(readString(), ValueStringFixed.PRECISION_DO_NOT_TRIM, null);
+        case Value.RASTER:
         case Value.BLOB: {
             long length = readLong();
             if (version >= Constants.TCP_PROTOCOL_VERSION_11) {
@@ -623,7 +625,14 @@ public class Transfer {
                             Value.BLOB, session.getDataHandler(), tableId, id, hmac, precision);
                 }
             }
-            Value v = session.getDataHandler().getLobStorage().createBlob(in, length);
+            Value v;
+            if(type == Value.BLOB) {
+                v = session.getDataHandler().getLobStorage()
+                        .createBlob(in, length);
+            } else {
+                v = session.getDataHandler().getLobStorage()
+                        .createRaster(in, length);
+            }
             int magic = readInt();
             if (magic != LOB_MAGIC) {
                 throw DbException.get(

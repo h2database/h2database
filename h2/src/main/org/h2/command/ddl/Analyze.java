@@ -105,7 +105,8 @@ public class Analyze extends DefineCommand {
         for (Column col : columns) {
             buff.appendExceptFirst(", ");
             int type = col.getType();
-            if (type == Value.BLOB || type == Value.CLOB) {
+            if (type == Value.BLOB || type == Value.CLOB || type == Value
+                    .RASTER) {
                 // can not index LOB columns, so calculating
                 // the selectivity is not required
                 buff.append("MAX(NULL)");

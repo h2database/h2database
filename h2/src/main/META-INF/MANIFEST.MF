@@ -3,6 +3,7 @@ Implementation-Title: ${title}
 Implementation-URL: http://www.h2database.com
 Implementation-Version: ${version}
 Build-Jdk: ${buildJdk}
+Class-Path: jts-core-1.14.0.jar lucene-core-3.0.2.jar postgresql-8.3-603.jdbc3.jar
 Created-By: ${createdBy}
 ${mainClassTag}
 Bundle-Activator: org.h2.util.DbDriverActivator
@@ -60,3 +61,13 @@ Export-Package: org.h2;version="${version}",
  org.h2.mvstore.rtree;version="${version}"
 Provide-Capability: osgi.service;objectClass:List<String>=org.osgi.service.jdbc.DataSourceFactory
 Premain-Class: org.h2.util.Profiler
+Require-Capability: osgi.extender;
+  filter:="(osgi.extender=osgi.serviceloader.registrar)";resolution:=optional
+SPI-Provider: javax.imageio.spi.ServiceRegistry#lookupProviders(java.lang.Class)
+SPI-Consumer: javax.imageio.spi.ServiceRegistry#lookupProviders(java.lang.Class)
+Provide-Capability: osgi.serviceloader;
+  osgi.serviceloader=java.sql.Driver,
+  osgi.serviceloader;
+   osgi.serviceloader=javax.imageio.spi.ImageInputStreamSpi,
+  osgi.serviceloader;
+   osgi.serviceloader=javax.imageio.spi.ImageReaderSpi

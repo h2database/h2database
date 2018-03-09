@@ -164,7 +164,7 @@ public class ValueGeometry extends Value {
     public boolean intersectsBoundingBox(ValueGeometry r) {
         // the Geometry object caches the envelope
         return getGeometryNoCopy().getEnvelopeInternal().intersects(
-                r.getGeometryNoCopy().getEnvelopeInternal());
+                r.getEnvelope());
     }
 
     /**
@@ -178,6 +178,10 @@ public class ValueGeometry extends Value {
         Envelope mergedEnvelope = new Envelope(getGeometryNoCopy().getEnvelopeInternal());
         mergedEnvelope.expandToInclude(r.getGeometryNoCopy().getEnvelopeInternal());
         return get(gf.toGeometry(mergedEnvelope));
+    }
+
+    public Envelope getEnvelope() {
+        return getGeometryNoCopy().getEnvelopeInternal();
     }
 
     @Override

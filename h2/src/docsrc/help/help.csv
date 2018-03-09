@@ -2092,7 +2092,7 @@ multiple lines long.
 <> | <= | >= | = | < | > | != | &&
 ","
 Comparison operator. The operator != is the same as <>.
-The operator ""&&"" means overlapping; it can only be used with geometry types.
+The operator ""&&"" means overlapping; it can only be used with spatial types such as Geometry or Raster.
 ","
 <>
 "
@@ -2859,6 +2859,16 @@ Use a quoted string containing a WKT formatted string or ""PreparedStatement.set
 and ""ResultSet.getObject(..)"" or ""ResultSet.getString(..)"" to retrieve the values.
 ","
 GEOMETRY
+"
+
+"Data Types","RASTER Type","
+RASTER
+","
+A spatial geometry type. This type represent a geo-referenced image.
+
+The internal structure use the Well Known Binary format for RASTER type. It is binary compatible with the PostGIS raster (RFC2).
+","
+RASTER
 "
 
 "Functions (Aggregate)","AVG","
@@ -4105,6 +4115,81 @@ ARRAY_CONTAINS(arrayExpression, value)
 Returns a boolean true if the array contains the value.
 ","
 CALL ARRAY_CONTAINS(('Hello', 'World'), 'Hello')
+"
+
+"Functions (RASTER)","ST_METADATA","
+ST_METADATA (RASTER)
+","
+Returns basic meta data about a raster object such as pixel size, rotation (skew), upper, lower left, etc.
+This method returns an array. (UpperleftX, UpperleftY, Width, Height,
+ScaleX, ScaleY, SkewX, SkewY, SRID, Numbands)
+","
+ST_METADATA(RASTER)
+"
+
+"Functions (RASTER)","ST_BANDMETADATA","
+ST_BANDMETADATA (RASTER, indexExpression)
+","
+Read the metadata of the raster's band.
+This method returns an array. (PixelType, NoDataValue, IsPixelsOutDatabase,
+ ExternalBandPath)
+","
+ST_BANDMETADATA(RASTER, 1)
+"
+
+"Functions (RASTER)","ST_WORLDTORASTERCOORD","
+ST_WORLDTORASTERCOORD (RASTER, x, y)
+","
+Convert geometric coordinates expressed in the spatial reference coordinate system of the raster into 1-based pixel coordinates. This function
+return an ARRAY with two elements, column and row. This function may return
+negative  pixel index as the output is not bounded to the raster height and
+width.
+","
+ST_WorldToRasterCoord(Raster, 1.561, -2.348)
+"
+
+"Functions (RASTER)","ST_RASTERTOWORLDCOORD","
+ST_RASTERTOWORLDCOORD (RASTER, indexExpression, indexExpression)
+","
+Convert 1-based pixel coordinates into the spatial reference coordinate system of the raster. This function
+return a Point with two elements, x and y. This function accept zero and
+ negative  pixel index as the input is not bounded to the raster height and
+width.
+","
+ST_RasterToWorldCoord(Raster, 50, 64)
+"
+
+"Functions (RASTER)","ST_RASTERFROMIMAGE","
+ST_RASTERFROMIMAGE(BLOB, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE,
+DOUBLE, INTEGER)
+","
+Create a raster from a non-geo-localised image. In order to extend supported
+ format use the plugin system of java ImageIO. The default supported image
+ formats are BMP, GIF, JPEG and PNG. The image pixels are converted into WKB
+ Raster format. Arguments are upperLeftX, upperLeftY, scaleX, scaleY, skewX,
+skewY, srid.
+","
+ST_RASTERFROMIMAGE(FILE_READ('/home/user/aerial.png'), 47.6443, -2.7766, 1, 1,
+0, 0,
+4326)
+"
+
+"Functions (RASTER)","ST_IMAGEFROMRASTER","
+ST_IMAGEFROMRASTER(RASTER, VARCHAR)
+","
+Create an image stream extracted from a raster. Argument are Raster type and
+image driver suffix. ex: 'png', 'bmp', 'jpeg'.
+","
+ST_IMAGEFROMRASTER(RASTER, 'png')
+"
+
+"Functions (RASTER)","ST_MAKEEMPTYRASTER","
+ST_MAKEEMPTYRASTER({RASTER} | {INTEGER,INTEGER,DOUBLE,DOUBLE,DOUBLE [ [ [ ,DOUBLE ], DOUBLE ] ,DOUBLE ] } )
+","
+Create an empty raster. Arguments are raster or width, height, upperleftx, upperlefty,
+scalex, scaley, skewx, skewy, srid.
+","
+ST_MAKEEMPTYRASTER(RASTER)
 "
 
 "Functions (System)","AUTOCOMMIT","

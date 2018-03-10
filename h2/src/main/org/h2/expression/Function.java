@@ -1496,23 +1496,11 @@ public class Function extends Expression implements FunctionCall {
             result = ValueLong.get(datediff(v0.getString(), v1, v2));
             break;
         case DATE_TRUNC:
-            // Retrieve the field value (e.g. 'day', 'microseconds', etc.)
-            String fieldValue = StringUtils.toUpperEnglish(v0.getString());
+            // Retrieve the time unit (e.g. 'day', 'microseconds', etc.)
+            String timeUnit = StringUtils.toUpperEnglish(v0.getString());
 
-            // Retrieve the dateValue.
-            long[] fieldDateAndTime = DateTimeUtils.dateAndTimeFromValue(v1);
-            long fieldDateValue = fieldDateAndTime[0];
+            result = DateTimeUtils.truncateDate(timeUnit, v1);
 
-            // Case where the date has to be truncated to the day.
-            if (fieldValue.equals("DAY")) {
-
-                result = DateTimeUtils.truncateToDay(v1, fieldDateValue);
-
-            } else {
-
-                // Return an exception for the other possible value (not yet supported).
-                throw DbException.getUnsupportedException(v0.getString());
-            }
             break;
         case EXTRACT: {
             int field = getDatePart(v0.getString());

@@ -564,11 +564,7 @@ Shutting down a TCP server can be protected using the option <code>-tcpPassword<
 <h2 id="using_hibernate">Using Hibernate</h2>
 <p>
 This database supports Hibernate version 3.1 and newer. You can use the HSQLDB Dialect,
-or the native H2 Dialect. Unfortunately the H2 Dialect included in some old versions of Hibernate was buggy.
-A <a href="http://opensource.atlassian.com/projects/hibernate/browse/HHH-3401">patch
-for Hibernate</a> has been submitted and is now applied.
-You can rename it to <code>H2Dialect.java</code> and include this as a patch in your application,
-or upgrade to a version of Hibernate where this is fixed.
+or the native H2 Dialect.
 </p>
 <p>
 When using Hibernate, try to use the <code>H2Dialect</code> if possible.
@@ -629,10 +625,6 @@ Another (more dangerous) solution is to set <code>useDatabaseLock</code> to fals
 </p>
 
 <h2 id="using_netbeans">Using H2 within NetBeans</h2>
-<p>
-The project <a href="http://kenai.com/projects/nbh2">H2 Database Engine Support For NetBeans</a>
-allows you to start and stop the H2 server from within the IDE.
-</p>
 <p>
 There is a known issue when using the Netbeans SQL Execution Window:
 before executing a query, another query in the form <code>SELECT COUNT(*) FROM &lt;query&gt;</code> is run.
@@ -1154,9 +1146,9 @@ Example permission tags:
 For H2, opening a connection is fast if the database is already open.
 Still, using a connection pool improves performance if you open and close connections a lot.
 A simple connection pool is included in H2. It is based on the
-<a href="http://www.source-code.biz/snippets/java/8.htm">Mini Connection Pool Manager</a>
+<a href="http://www.source-code.biz/miniconnectionpoolmanager/">Mini Connection Pool Manager</a>
 from Christian d'Heureuse. There are other, more complex, open source connection pools available,
-for example the <a href="http://jakarta.apache.org/commons/dbcp/">Apache Commons DBCP</a>.
+for example the <a href="http://commons.apache.org/proper/commons-dbcp/">Apache Commons DBCP</a>.
 For H2, it is about twice as faster to get a connection from the built-in connection pool than to get
 one using <code>DriverManager.getConnection()</code>.The build-in connection pool is used as follows:
 </p>
@@ -1386,46 +1378,6 @@ Use the following configuration to start and stop the H2 TCP server using the Sp
 <p>
 The <code>destroy-method</code> will help prevent exceptions on hot-redeployment or when restarting the server.
 </p>
-
-<h3>Error Code Incompatibility</h3>
-<p>
-There is an incompatibility with the Spring JdbcTemplate and H2 version 1.3.154 and newer,
-because of a change in the error code. This will cause the JdbcTemplate to not detect
-a duplicate key condition, and so a <code>DataIntegrityViolationException</code> is thrown instead of
-<code>DuplicateKeyException</code>.
-See also <a href="http://jira.spring.io/browse/SPR-8235">the issue SPR-8235</a>.
-The workaround is to add the following XML file to the root of the classpath:
-</p>
-<pre>
-&lt;beans
-    xmlns="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation=
-        "http://www.springframework.org/schema/beans
-        http://www.springframework.org/schema/beans/spring-beans.xsd"
-    &gt;
-    &lt;import resource="classpath:org/springframework/jdbc/support/sql-error-codes.xml"/&gt;
-    &lt;bean id = "H2" class="org.springframework.jdbc.support.SQLErrorCodes"&gt;
-        &lt;property name="badSqlGrammarCodes"&gt;
-            &lt;value&gt;
-                42000,42001,42101,42102,42111,42112,42121,42122,42132
-            &lt;/value&gt;
-        &lt;/property&gt;
-        &lt;property name="duplicateKeyCodes"&gt;
-            &lt;value&gt;23001,23505&lt;/value&gt;
-        &lt;/property&gt;
-        &lt;property name="dataIntegrityViolationCodes"&gt;
-            &lt;value&gt;22003,22012,22025,23000&lt;/value&gt;
-        &lt;/property&gt;
-        &lt;property name="dataAccessResourceFailureCodes"&gt;
-            &lt;value&gt;90046,90100,90117,90121,90126&lt;/value&gt;
-        &lt;/property&gt;
-        &lt;property name="cannotAcquireLockCodes"&gt;
-            &lt;value&gt;50200&lt;/value&gt;
-        &lt;/property&gt;
-    &lt;/bean&gt;
-&lt;/beans&gt;
-</pre>
 
 <h2 id="osgi">OSGi</h2>
 <p>

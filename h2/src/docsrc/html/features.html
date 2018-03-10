@@ -163,8 +163,8 @@ This comparison is based on
 H2 1.3,
 <a href="http://db.apache.org/derby">Apache Derby version 10.8</a>,
 <a href="http://hsqldb.org">HSQLDB 2.2</a>,
-<a href="http://mysql.com">MySQL 5.5</a>,
-<a href="http://www.postgresql.org">PostgreSQL 9.0</a>.
+<a href="https://www.mysql.com/">MySQL 5.5</a>,
+<a href="https://www.postgresql.org/">PostgreSQL 9.0</a>.
 </p>
 <table class="main">
 <tr>
@@ -370,22 +370,12 @@ H2 1.3,
 *8 Derby doesn't support standard compliant information schema tables.<br />
 *9 When using MVCC (multi version concurrency).<br />
 *10 Derby and HSQLDB
-    <a href="http://en.wikipedia.org/wiki/Block_cipher_modes_of_operation#Electronic_codebook_.28ECB.29">don't hide data patterns well</a>.<br />
+    <a href="https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Electronic_Codebook_(ECB)">don't hide data patterns well</a>.<br />
 *11 The MULTI_THREADED option is not enabled by default, and with version 1.3.x not supported when using MVCC.<br />
 *12 Derby doesn't support the <code>EXPLAIN</code> statement, but it supports runtime statistics and retrieving statement execution plans.<br />
 *13 Derby doesn't support the syntax <code>LIMIT .. [OFFSET ..]</code>, however it supports <code>FETCH FIRST .. ROW[S] ONLY</code>.<br />
 *14 Using collations.
 *15 Derby and H2 support <code>ROW_NUMBER() OVER()</code>.
-</p>
-
-<h3>DaffodilDb and One$Db</h3>
-<p>
-It looks like the development of this database has stopped. The last release was February 2006.
-</p>
-
-<h3>McKoi</h3>
-<p>
-It looks like the development of this database has stopped. The last release was August 2004.
 </p>
 
 <h2 id="products_work_with">H2 in Use</h2>
@@ -819,7 +809,7 @@ other database settings can be passed in the database URL.
 Adding <code>;setting=value</code> at the end of a database URL is the
 same as executing the statement <code>SET setting value</code> just after
 connecting. For a list of supported settings, see <a href="grammar.html">SQL Grammar</a>
-or the <a href="../javadoc/org/h2/engine/DbSettings.html">DbSettings</a> javadoc.
+or the <a href="http://www.h2database.com/javadoc/org/h2/engine/DbSettings.html">DbSettings</a> javadoc.
 </p>
 
 <h2 id="custom_access_mode">Custom File Access Mode</h2>
@@ -1326,7 +1316,7 @@ In most cases, this is sufficient, however sometimes it is better to use the sam
 facility as the application, for example Log4j. To do that, this database support SLF4J.
 </p>
 <p>
-<a href="http://www.slf4j.org">SLF4J</a> is a simple facade for various logging APIs
+<a href="https://www.slf4j.org/">SLF4J</a> is a simple facade for various logging APIs
 and allows to plug in the desired implementation at deployment time.
 SLF4J supports implementations such as Logback, Log4j, Jakarta Commons Logging (JCL),
 Java logging, x4juli, and Simple Log.

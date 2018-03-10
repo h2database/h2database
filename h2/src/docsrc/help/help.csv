@@ -227,9 +227,8 @@ SHOW TABLES
 "
 
 "Commands (DML)","WITH","
-WITH [ RECURSIVE ] { name [( columnName [,...] )]
-    AS ( select ) [,...] }
-    { select | insert | update | merge | delete | createTable }
+WITH [ RECURSIVE ] { name [( columnName [,...] )] AS ( select ) [,...] }
+{ select | insert | update | merge | delete | createTable }
 ","
 Can be used to create a recursive or non-recursive query (common table expression).
 For recursive queries the first select has to be a UNION.
@@ -373,13 +372,14 @@ ALTER TABLE TEST ALTER COLUMN NAME SET INVISIBLE;
 
 "Commands (DDL)","ALTER TABLE DROP COLUMN","
 ALTER TABLE [ IF EXISTS ] tableName DROP COLUMN [ IF EXISTS ]
-( columnName [,...] )
+columnName [,...] | ( columnName [,...] )
 ","
 Removes column(s) from a table.
 This command commits an open transaction in this connection.
 ","
 ALTER TABLE TEST DROP COLUMN NAME
 ALTER TABLE TEST DROP COLUMN NAME1, NAME2
+ALTER TABLE TEST DROP COLUMN (NAME1, NAME2)
 "
 
 "Commands (DDL)","ALTER TABLE DROP CONSTRAINT","
@@ -394,7 +394,7 @@ ALTER TABLE TEST DROP CONSTRAINT UNIQUE_NAME
 
 "Commands (DDL)","ALTER TABLE SET","
 ALTER TABLE [ IF EXISTS ] tableName SET REFERENTIAL_INTEGRITY
-    { FALSE | TRUE [ CHECK | NOCHECK ] }
+{ FALSE | TRUE } [ CHECK | NOCHECK ]
 ","
 Disables or enables referential integrity checking for a table. This command can
 be used inside a transaction. Enabling referential integrity does not check
@@ -3260,7 +3260,7 @@ LOG(A)
 "Functions (Numeric)","LOG10","
 LOG10(numeric)
 ","
-See also Java ""Math.log10"" (in Java 5).
+See also Java ""Math.log10"".
 This method returns a double.
 ","
 LOG10(A)
@@ -3895,7 +3895,7 @@ CURRENT_TIMESTAMP()
 "Functions (Time and Date)","DATEADD","
 { DATEADD| TIMESTAMPADD } (datetimeField, addIntLong, dateAndTime)
 ","
-Adds units to a date-time value. The string indicates the unit.
+Adds units to a date-time value. The datetimeField indicates the unit.
 Use negative values to subtract units.
 addIntLong may be a long value when manipulating milliseconds,
 microseconds, or nanoseconds otherwise its range is restricted to int.
@@ -3912,7 +3912,7 @@ DATEADD('MONTH', 1, DATE '2001-01-31')
 ","
 Returns the the number of crossed unit boundaries between two date/time values.
 This method returns a long.
-The string indicates the unit.
+The datetimeField indicates the unit.
 Only TIMEZONE_HOUR and TIMEZONE_MINUTE fields use the time zone offset component.
 With all other fields if date/time values have time zone offset component it is ignored.
 ","

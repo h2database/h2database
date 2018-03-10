@@ -68,8 +68,6 @@ Here is the list of known and confirmed issues:
     USA, or within Europe), even if the timezone itself is different. As a workaround, export the
     database to a SQL script using the old timezone, and create a new database in the new
     timezone.
-</li><li>Apache Harmony: there seems to be a bug in Harmony that affects H2.
-    See <a href="http://issues.apache.org/jira/browse/HARMONY-6505">HARMONY-6505</a>.
 </li><li>Tomcat and Glassfish 3 set most static fields (final or non-final) to <code>null</code> when
     unloading a web application. This can cause a <code>NullPointerException</code> in H2 versions
     1.1.107 and older, and may still not work in newer versions. Please report it if you
@@ -81,11 +79,6 @@ Here is the list of known and confirmed issues:
 </li><li>Some problems have been found with right outer join. Internally, it is converted
     to left outer join, which does not always produce the same results as other databases
     when used in combination with other joins. This problem is fixed in H2 version 1.3.
-</li><li>When using Install4j before 4.1.4 on Linux and enabling <code>pack200</code>,
-    the <code>h2*.jar</code> becomes corrupted by the install process, causing application failure.
-    A workaround is to add an empty file <code>h2*.jar.nopack</code>
-    next to the <code>h2*.jar</code> file.
-    This problem is solved in Install4j 4.1.4.
 </li></ul>
 <p>
 For a complete list, see <a href="https://github.com/h2database/h2database/issues">Open Issues</a>.
@@ -172,7 +165,7 @@ When using one of the following features for production, please ensure your use 
 is well tested (if possible with automated test cases). The areas that are not well tested are:
 </p>
 <ul>
-<li>Platforms other than Windows, Linux, Mac OS X, or JVMs other than Oracle 1.6, 1.7, 1.8.
+<li>Platforms other than Windows, Linux, Mac OS X, or runtime environments other than Oracle / OpenJDK 7, 8, 9.
 </li><li>The features <code>AUTO_SERVER</code> and <code>AUTO_RECONNECT</code>.
 </li><li>Cluster mode, 2-phase commit, savepoints.
 </li><li>Fulltext search.

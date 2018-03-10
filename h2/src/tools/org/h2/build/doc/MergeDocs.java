@@ -32,7 +32,8 @@ public class MergeDocs {
         String[] pages = { "quickstart.html", "installation.html",
                 "tutorial.html", "features.html", "performance.html",
                 "advanced.html", "grammar.html", "functions.html",
-                "datatypes.html", "build.html", "history.html", "faq.html" };
+                "datatypes.html", "systemtables.html",
+                "build.html", "history.html", "faq.html" };
         StringBuilder buff = new StringBuilder();
         for (String fileName : pages) {
             String text = getContent(fileName);
@@ -42,6 +43,7 @@ public class MergeDocs {
             text = disableRailroads(text);
             text = removeHeaderFooter(fileName, text);
             text = fixLinks(text);
+            text = fixTableBorders(text);
             buff.append(text);
         }
         String finalText = buff.toString();
@@ -100,6 +102,12 @@ public class MergeDocs {
                 .replaceAll("href=\"faq.html\"", "href=\"#faq_index\"")
                 .replaceAll("href=\"grammar.html\"", "href=\"#grammar_index\"")
                 .replaceAll("href=\"tutorial.html\"", "href=\"#tutorial_index\"");
+    }
+
+    private static String fixTableBorders(String text) {
+        return text
+                .replaceAll("<table class=\"main\">",
+                        "<table class=\"main\" border=\"1\" cellpadding=\"5\" cellspacing=\"0\">");
     }
 
     private static String getContent(String fileName) throws Exception {

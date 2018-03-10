@@ -159,12 +159,6 @@ syntax-end -->
 </table>
 <!-- railroad-end -->
 
-<h3>System Tables</h3>
-<p class="notranslate">
-<a href="#information_schema">Information Schema</a><br />
-<a href="#range_table">Range Table</a><br />
-</p>
-
 <!-- railroad-start -->
 <h2>Details</h2>
 <p>Click on the header to switch between railroad diagram and BNF.</p>
@@ -273,34 +267,6 @@ syntax-end -->
 <p>Example:</p>
 <p class="notranslate">${item.example}</p>
 </c:forEach>
-
-<h2>System Tables</h2>
-
-<h3 id="information_schema" class="notranslate">Information Schema</h3>
-<p>
-The system tables in the schema <code>INFORMATION_SCHEMA</code> contain the meta data
-of all tables in the database as well as the current settings.
-</p>
-<table class="main">
-<tr><th>Table</th><th>Columns</th></tr>
-<c:forEach var="item" items="informationSchema">
-<tr class="notranslate">
-    <td>${item.topic}</td>
-    <td>${item.syntax}</td>
-</tr>
-</c:forEach>
-</table>
-
-<h3 id="range_table" class="notranslate">Range Table</h3>
-<p>
-The range table is a dynamic system table that contains all values from a start to an end value.
-The table contains one column called X. Both the start and end values are included in the result.
-The table is used as follows:
-</p>
-<p>Example:</p>
-<pre>
-SELECT X FROM SYSTEM_RANGE(1, 10);
-</pre>
 
 <!--[if lte IE 7]><script language="javascript">switchBnf(null);</script><![endif]-->
 

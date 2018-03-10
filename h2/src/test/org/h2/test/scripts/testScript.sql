@@ -15,18 +15,6 @@ select * from test where id in (select id from test order by 'x');
 drop table test;
 > ok
 
-select abs(cast(0.0 as double)) x;
-> X
-> ---
-> 0.0
-> rows: 1
-
-select * from table(a int=(1)), table(b int=(2));
-> A B
-> - -
-> 1 2
-> rows: 1
-
 select x, x in(2, 3) i from system_range(1, 2) group by x;
 > X I
 > - -----
@@ -144,12 +132,6 @@ select case seq.nextval when 2 then 'two' when 3 then 'three' when 1 then 'one' 
 drop sequence seq;
 > ok
 
-select decode(1, 1, '1', 1, '11') r from dual;
-> R
-> -
-> 1
-> rows: 1
-
 create table test(x int);
 > ok
 
@@ -235,9 +217,6 @@ update test set pid = 1 where id = 2;
 
 drop table test;
 > ok
-
-call cast('null' as uuid);
-> exception
 
 create table test(name varchar(255));
 > ok
@@ -418,12 +397,6 @@ explain select -cast(0 as real), -cast(0 as double);
 > PLAN
 > ----------------------------------------------------------------
 > SELECT 0.0, 0.0 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */
-> rows: 1
-
-select -cast(0 as double) nz;
-> NZ
-> ---
-> 0.0
 > rows: 1
 
 select () empty;
@@ -1400,28 +1373,6 @@ DROP ROLE Y;
 DROP ROLE X;
 > ok
 
-create table test as select * from table(id int=(1, 2, 3));
-> ok
-
-SELECT * FROM (SELECT * FROM TEST) ORDER BY id;
-> ID
-> --
-> 1
-> 2
-> 3
-> rows (ordered): 3
-
-SELECT * FROM (SELECT * FROM TEST) x ORDER BY id;
-> ID
-> --
-> 1
-> 2
-> 3
-> rows (ordered): 3
-
-drop table test;
-> ok
-
 select top sum(1) 0 from dual;
 > exception
 
@@ -2064,12 +2015,6 @@ select * from V, C where V.V  = C.C;
 drop table A, B, C, V cascade;
 > ok
 
-explain select * from table(id int = (1, 2), name varchar=('Hello', 'World'));
-> PLAN
-> -----------------------------------------------------------------------------------------------------
-> SELECT TABLE.ID, TABLE.NAME FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World')) /* function */
-> rows: 1
-
 CREATE TABLE TEST(ID INT PRIMARY KEY, FLAG BOOLEAN, NAME VARCHAR);
 > ok
 
@@ -2275,13 +2220,6 @@ select (1, 2);
 > (1, 2)
 > rows: 1
 
-select * from table(id int=(1, 2), name varchar=('Hello', 'World')) x order by id;
-> ID NAME
-> -- -----
-> 1  Hello
-> 2  World
-> rows (ordered): 2
-
 create table array_test(x array);
 > ok
 
@@ -2302,15 +2240,6 @@ select * from (select 1), (select 2);
 > - -
 > 1 2
 > rows: 1
-
-CREATE TABLE TEST(A VARCHAR, B VARCHAR, C VARCHAR AS LOWER(A));
-> ok
-
-ALTER TABLE TEST DROP COLUMN B;
-> ok
-
-DROP TABLE TEST;
-> ok
 
 create table t1(c1 int, c2 int);
 > ok
@@ -2789,18 +2718,6 @@ drop view address_view;
 
 drop table address;
 > ok
-
-select cast('12345678123456781234567812345678' as uuid);
-> '12345678-1234-5678-1234-567812345678'
-> --------------------------------------
-> 12345678-1234-5678-1234-567812345678
-> rows: 1
-
-select cast('000102030405060708090a0b0c0d0e0f' as uuid);
-> '00010203-0405-0607-0809-0a0b0c0d0e0f'
-> --------------------------------------
-> 00010203-0405-0607-0809-0a0b0c0d0e0f
-> rows: 1
 
 CREATE ALIAS PARSE_INT2 FOR "java.lang.Integer.parseInt(java.lang.String, int)";
 > ok

@@ -49,20 +49,21 @@ This database is written in Java and therefore works on many platforms.
 
 <h2 id="environment">Environment</h2>
 <p>
-To run this database, a Java Runtime Environment (JRE) version 1.7 or higher is required.
+To run this database, a Java Runtime Environment (JRE) version 7 or higher is required.
 </p>
 <p>
 To create the database executables, the following software stack was used.
 To use this database, it is not required to install this software however.
 </p>
 <ul><li>Mac OS X and Windows
-</li><li><a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">Oracle JDK Version 1.7</a>
+</li><li><a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">Oracle JDK Version 7</a>
+(version 7 is not available for free download any more)
 </li><li><a href="http://www.eclipse.org">Eclipse</a>
 </li><li>Eclipse Plugins:
     <a href="http://subclipse.tigris.org">Subclipse</a>,
-    <a href="http://eclipse-cs.sourceforge.net">Eclipse Checkstyle Plug-in</a>,
+    <a href="https://checkstyle.github.io/eclipse-cs/">Eclipse Checkstyle Plug-in</a>,
     <a href="http://www.eclemma.org">EclEmma Java Code Coverage</a>
-</li><li><a href="http://www.mozilla.com/firefox">Mozilla Firefox</a>
+</li><li><a href="https://www.mozilla.com/firefox">Mozilla Firefox</a>
 </li><li><a href="http://www.openoffice.org">OpenOffice</a>
 </li><li><a href="http://nsis.sourceforge.net">NSIS</a> (Nullsoft Scriptable Install System)
 </li><li><a href="http://maven.apache.org">Maven</a>
@@ -70,7 +71,7 @@ To use this database, it is not required to install this software however.
 
 <h2 id="building">Building the Software</h2>
 <p>
-You need to install a JDK, for example the Oracle JDK version 1.7 or 1.8.
+You need to install a JDK, for example the Oracle JDK version 7 or 8.
 Ensure that Java binary directory is included in the <code>PATH</code> environment variable, and that
 the environment variable <code>JAVA_HOME</code> points to your Java installation.
 On the command line, go to the directory <code>h2</code> and execute the following command:
@@ -88,12 +89,15 @@ You will get a list of targets. If you want to build the <code>jar</code> file, 
 build jar
 </pre>
 <p>
-To run the build tool in shell mode, use the command line option <code>-</code> as in <code>./build.sh -</code>.
+To run the build tool in shell mode, use the command line option <code>-</code>:
 </p>
+<pre>
+./build.sh -
+</pre>
 
 <h3>Switching the Source Code</h3>
 <p>
-The source code uses Java 1.7 features.
+The source code uses Java 7 features.
 To switch the source code to the installed version of Java, run:
 </p>
 <pre>
@@ -148,7 +152,7 @@ however after a new release it may take a few hours before they are available th
 <h3>Maven Plugin to Start and Stop the TCP Server</h3>
 <p>
 A Maven plugin to start and stop the H2 TCP server is available from
-<a href="http://github.com/ljnelson/h2-maven-plugin">Laird Nelson at GitHub</a>.
+<a href="https://github.com/ljnelson/h2-maven-plugin">Laird Nelson at GitHub</a>.
 To start the H2 server, use:
 </p>
 <pre>
@@ -246,7 +250,7 @@ If you'd like to contribute bug fixes or new features, please consider the follo
 <p>
 For legal reasons, patches need to be public in the form of an
     <a href="https://github.com/h2database/h2database/issues">issue report or attachment</a> or in the form of an email
-    to the <a href="http://groups.google.com/group/h2-database">group</a>.
+    to the <a href="https://groups.google.com/group/h2-database">group</a>.
 Significant contributions need to include the following statement:
 </p>
 <p>
@@ -272,8 +276,7 @@ or if  you have a feature request:
     please report the problem, including the complete error message and stack trace,
     and the root cause stack trace(s).
 </li><li>When sending source code, please use a public web clipboard such as
-    <a href="http://pastebin.com">Pastebin</a>,
-    <a href="http://cl1p.net">Cl1p</a>, or
+    <a href="https://pastebin.com/">Pastebin</a> or
     <a href="http://www.mysticpaste.com/new">Mystic Paste</a>
     to avoid formatting problems.
     Please keep test cases as simple and short as possible,
@@ -285,8 +288,8 @@ or if  you have a feature request:
     Please use the JDBC API and no external tools or libraries.
     The test should include all required initialization code, and
     should be started with the main method.
-</li><li>For large attachments, use a public temporary storage such as
-    <a href="http://rapidshare.com">Rapidshare</a>.
+</li><li>For large attachments, use a public storage such as
+    <a href="https://www.google.com/drive/">Google Drive</a>.
 </li><li>Google Group versus issue tracking:
     Use the
     <a href="http://groups.google.com/group/h2-database">Google Group</a>

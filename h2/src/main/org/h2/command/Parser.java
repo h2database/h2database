@@ -1625,6 +1625,10 @@ public class Parser {
             command.setIndexName(indexName);
             ifExists = readIfExists(ifExists);
             command.setIfExists(ifExists);
+            //Support for MySQL: DROP INDEX index_name ON tbl_name
+            if (readIf("ON")) {
+                readIdentifierWithSchema();
+            }
             return command;
         } else if (readIf("USER")) {
             boolean ifExists = readIfExists(false);
@@ -6099,28 +6103,28 @@ public class Parser {
             } else {
                 readIf("COLUMN");
                 boolean ifExists = readIfExists(false);
-                AlterTableAlterColumn command = new AlterTableAlterColumn(
-                        session, schema);
-                command.setType(CommandInterface.ALTER_TABLE_DROP_COLUMN);
                 ArrayList<Column> columnsToRemove = New.arrayList();
                 Table table = tableIfTableExists(schema, tableName, ifTableExists);
                 // For Oracle compatibility - open bracket required
                 boolean openingBracketDetected = readIf("(");
                 do {
                     String columnName = readColumnIdentifier();
-                    if (table == null) {
-                        return new NoOperation(session);
+                    if (table != null) {
+                        if (!ifExists || table.doesColumnExist(columnName)) {
+                            Column column = table.getColumn(columnName);
+                            columnsToRemove.add(column);
+                        }
                     }
-                    if (ifExists && !table.doesColumnExist(columnName)) {
-                        return new NoOperation(session);
-                    }
-                    Column column = table.getColumn(columnName);
-                    columnsToRemove.add(column);
                 } while (readIf(","));
                 if (openingBracketDetected) {
                     // For Oracle compatibility - close bracket
                     read(")");
                 }
+                if (table == null || columnsToRemove.isEmpty()) {
+                    return new NoOperation(session);
+                }
+                AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
+                command.setType(CommandInterface.ALTER_TABLE_DROP_COLUMN);
                 command.setTableName(tableName);
                 command.setIfTableExists(ifTableExists);
                 command.setColumnsToRemove(columnsToRemove);

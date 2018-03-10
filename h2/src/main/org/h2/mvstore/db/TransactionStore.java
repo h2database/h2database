@@ -1282,7 +1282,7 @@ public class TransactionStore {
                     // transaction (possibly one with the same id)
                     data = map.get(key);
                 } else {
-                    if (map.getId() == (int) d[0]) {
+                    if (map.getId() == (int) d[0] && map.getKeyType().compare(key, d[1]) == 0) {
                         data = (VersionedValue) d[2];
                     } else {
                         // this entry does not belong to this map, try again

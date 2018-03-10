@@ -64,6 +64,9 @@ public class TestMvccMultiThreaded2 extends TestBase {
         ps.setInt(1, 1);
         ps.setInt(2, 100);
         ps.executeUpdate();
+        ps.setInt(1, 2);
+        ps.setInt(2, 200);
+        ps.executeUpdate();
         conn.commit();
 
         ArrayList<SelectForUpdate> threads = new ArrayList<>();
@@ -137,11 +140,20 @@ public class TestMvccMultiThreaded2 extends TestBase {
                     try {
                         PreparedStatement ps = conn.prepareStatement(
                                 "SELECT * FROM test WHERE entity_id = ? FOR UPDATE");
-                        ps.setString(1, "1");
+                        String id;
+                        int value;
+                        if ((iterationsProcessed & 1) == 0) {
+                            id = "1";
+                            value = 100;
+                        } else {
+                            id = "2";
+                            value = 200;
+                        }
+                        ps.setString(1, id);
                         ResultSet rs = ps.executeQuery();
 
                         assertTrue(rs.next());
-                        assertTrue(rs.getInt(2) == 100);
+                        assertTrue(rs.getInt(2) == value);
 
                         conn.commit();
                         iterationsProcessed++;

@@ -452,28 +452,11 @@ public class TestGetGeneratedKeys extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
                 + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL)");
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)", Statement.RETURN_GENERATED_KEYS);
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)");
         prep.addBatch();
         prep.addBatch();
         prep.executeBatch();
         ResultSet rs = prep.getGeneratedKeys();
-
-        assertTrue(rs.next());
-        assertEquals(1L, rs.getLong(1));
-        assertEquals(1L, rs.getLong("ID"));
-        assertEquals(Long.valueOf(1L), rs.getObject(1, Long.class));
-        assertEquals(Long.valueOf(1L), rs.getObject("ID", Long.class));
-        assertTrue(rs.getObject(2) instanceof UUID);
-        assertTrue(rs.getObject("UID") instanceof UUID);
-        assertTrue(rs.getObject("UID", UUID.class) instanceof UUID);
-
-        assertTrue(rs.next());
-        assertEquals(2L, rs.getLong(1));
-        assertEquals(2L, rs.getLong("ID"));
-        assertTrue(rs.getObject(2) instanceof UUID);
-        assertTrue(rs.getObject("UID") instanceof UUID);
-        assertTrue(rs.getObject("UID", UUID.class) instanceof UUID);
-
         assertFalse(rs.next());
         rs.close();
         stat.execute("DROP TABLE TEST");
@@ -615,10 +598,16 @@ public class TestGetGeneratedKeys extends TestBase {
         assertEquals("UID", rs.getMetaData().getColumnName(2));
         assertTrue(rs.next());
         assertEquals(3L, rs.getLong(1));
+        assertEquals(3L, rs.getLong("ID"));
         assertEquals(UUID.class, rs.getObject(2).getClass());
+        assertEquals(UUID.class, rs.getObject("UID").getClass());
+        assertEquals(UUID.class, rs.getObject("UID", UUID.class).getClass());
         assertTrue(rs.next());
         assertEquals(4L, rs.getLong(1));
+        assertEquals(4L, rs.getLong("ID"));
         assertEquals(UUID.class, rs.getObject(2).getClass());
+        assertEquals(UUID.class, rs.getObject("UID").getClass());
+        assertEquals(UUID.class, rs.getObject("UID", UUID.class).getClass());
         assertFalse(rs.next());
         rs.close();
         stat.execute("DROP TABLE TEST");
@@ -656,10 +645,16 @@ public class TestGetGeneratedKeys extends TestBase {
         assertEquals("UID", rs.getMetaData().getColumnName(2));
         assertTrue(rs.next());
         assertEquals(3L, rs.getLong(1));
+        assertEquals(3L, rs.getLong("ID"));
         assertEquals(UUID.class, rs.getObject(2).getClass());
+        assertEquals(UUID.class, rs.getObject("UID").getClass());
+        assertEquals(UUID.class, rs.getObject("UID", UUID.class).getClass());
         assertTrue(rs.next());
         assertEquals(4L, rs.getLong(1));
+        assertEquals(4L, rs.getLong("ID"));
         assertEquals(UUID.class, rs.getObject(2).getClass());
+        assertEquals(UUID.class, rs.getObject("UID").getClass());
+        assertEquals(UUID.class, rs.getObject("UID", UUID.class).getClass());
         assertFalse(rs.next());
         rs.close();
         stat.execute("DROP TABLE TEST");

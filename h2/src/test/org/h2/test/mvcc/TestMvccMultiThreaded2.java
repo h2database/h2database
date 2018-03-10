@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import org.h2.jdbc.JdbcSQLException;
+import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 
@@ -80,9 +81,11 @@ public class TestMvccMultiThreaded2 extends TestBase {
         @SuppressWarnings("unused")
         int minProcessed = Integer.MAX_VALUE, maxProcessed = 0, totalProcessed = 0;
 
+        boolean allOk = true;
         for (SelectForUpdate sfu : threads) {
             // make sure all threads have stopped by joining with them
             sfu.join();
+            allOk &= sfu.ok;
             totalProcessed += sfu.iterationsProcessed;
             if (sfu.iterationsProcessed > maxProcessed) {
                 maxProcessed = sfu.iterationsProcessed;
@@ -102,6 +105,8 @@ public class TestMvccMultiThreaded2 extends TestBase {
 
         IOUtils.closeSilently(conn);
         deleteDb(getTestName());
+
+        assertTrue(allOk);
     }
 
     /**
@@ -110,6 +115,8 @@ public class TestMvccMultiThreaded2 extends TestBase {
     private class SelectForUpdate extends Thread {
 
         public int iterationsProcessed;
+
+        public boolean ok;
 
         SelectForUpdate() {
         }
@@ -149,11 +156,13 @@ public class TestMvccMultiThreaded2 extends TestBase {
                 }
             } catch (SQLException e) {
                 TestBase.logError("SQL error from thread "+getName(), e);
+                throw DbException.convert(e);
             } catch (Exception e) {
                 TestBase.logError("General error from thread "+getName(), e);
                 throw e;
             }
             IOUtils.closeSilently(conn);
+            ok = true;
         }
     }
 }

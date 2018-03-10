@@ -118,6 +118,7 @@ public class Merge extends Prepared {
             }
         } else {
             // process select data for list
+            query.setNeverLazy(true);
             ResultInterface rows = query.query(0);
             count = 0;
             targetTable.fire(session, Trigger.UPDATE | Trigger.INSERT, true);

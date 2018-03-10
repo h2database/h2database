@@ -966,9 +966,10 @@ public class TransactionStore {
                     long size = 0;
                     Cursor<K, VersionedValue> cursor = map.cursor(null);
                     while (cursor.hasNext()) {
-                        VersionedValue data;
                         K key = cursor.next();
-                        data = getValue(key, readLogId, cursor.getValue());
+                        // cursor.getValue() returns outdated value
+                        VersionedValue data = map.get(key);
+                        data = getValue(key, readLogId, data);
                         if (data != null && data.value != null) {
                             size++;
                         }

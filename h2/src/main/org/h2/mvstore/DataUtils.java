@@ -632,9 +632,7 @@ public final class DataUtils {
                     c = s.charAt(i++);
                     if (c == '\\') {
                         if (i == size) {
-                            throw DataUtils.newIllegalStateException(
-                                    DataUtils.ERROR_FILE_CORRUPT,
-                                    "Not a map: {0}", s);
+                            throw newIllegalStateException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
                         }
                         c = s.charAt(i++);
                     } else if (c == '\"') {
@@ -663,8 +661,7 @@ public final class DataUtils {
             int startKey = i;
             i = s.indexOf(':', i);
             if (i < 0) {
-                throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_FILE_CORRUPT, "Not a map: {0}", s);
+                throw newIllegalStateException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
             }
             String key = s.substring(startKey, i++);
             i = parseMapValue(buff, s, i, size);
@@ -696,20 +693,19 @@ public final class DataUtils {
             int startKey = i;
             i = s.indexOf(':', i);
             if (i < 0) {
-                throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_FILE_CORRUPT, "Not a map: {0}", s);
+                throw newIllegalStateException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
             }
             if (i - startKey == 8 && s.regionMatches(startKey, "fletcher", 0, 8)) {
-                DataUtils.parseMapValue(buff, s, i + 1, size);
+                parseMapValue(buff, s, i + 1, size);
                 int check = (int) Long.parseLong(buff.toString(), 16);
-                if (check == DataUtils.getFletcher32(bytes, start, startKey - 1)) {
+                if (check == getFletcher32(bytes, start, startKey - 1)) {
                     return map;
                 }
                 // Corrupted map
                 return null;
             }
             String key = s.substring(startKey, i++);
-            i = DataUtils.parseMapValue(buff, s, i, size);
+            i = parseMapValue(buff, s, i, size);
             map.put(key, buff.toString());
             buff.setLength(0);
         }
@@ -725,16 +721,28 @@ public final class DataUtils {
      * @throws IllegalStateException if parsing failed
      */
     public static String getMapName(String s) {
+        return getFromMap(s, "name");
+    }
+
+    /**
+     * Parse a specified pair from key-value pair list.
+     *
+     * @param s the list
+     * @param key the name of the key
+     * @return value of the specified item, or {@code null}
+     * @throws IllegalStateException if parsing failed
+     */
+    public static String getFromMap(String s, String key) {
+        int keyLength = key.length();
         for (int i = 0, size = s.length(); i < size;) {
             int startKey = i;
             i = s.indexOf(':', i);
             if (i < 0) {
-                throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_FILE_CORRUPT, "Not a map: {0}", s);
+                throw newIllegalStateException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
             }
-            if (i++ - startKey == 4 && s.regionMatches(startKey, "name", 0, 4)) {
+            if (i++ - startKey == keyLength && s.regionMatches(startKey, key, 0, keyLength)) {
                 StringBuilder buff = new StringBuilder();
-                i = parseMapValue(buff, s, i, size);
+                parseMapValue(buff, s, i, size);
                 return buff.toString();
             } else {
                 while (i < size) {
@@ -745,12 +753,9 @@ public final class DataUtils {
                         while (i < size) {
                             c = s.charAt(i++);
                             if (c == '\\') {
-                                if (i == size) {
-                                    throw DataUtils.newIllegalStateException(
-                                            DataUtils.ERROR_FILE_CORRUPT,
-                                            "Not a map: {0}", s);
+                                if (i++ == size) {
+                                    throw newIllegalStateException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
                                 }
-                                c = s.charAt(i++);
                             } else if (c == '\"') {
                                 break;
                             }
@@ -1082,8 +1087,7 @@ public final class DataUtils {
 
         @Override
         public V setValue(V value) {
-            throw DataUtils.newUnsupportedOperationException(
-                    "Updating the value is not supported");
+            throw newUnsupportedOperationException("Updating the value is not supported");
         }
 
     }

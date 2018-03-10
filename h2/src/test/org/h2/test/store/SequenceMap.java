@@ -6,11 +6,9 @@
 package org.h2.test.store;
 
 import java.util.AbstractSet;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 import org.h2.mvstore.MVMap;
-import org.h2.mvstore.MVStore;
 
 /**
  * A custom map returning the keys and values values 1 .. 10.
@@ -29,11 +27,6 @@ public class SequenceMap extends MVMap<Long, Long> {
 
     public SequenceMap() {
         super(null, null);
-    }
-
-    @Override
-    public void init(MVStore store, HashMap<String, Object> config) {
-        super.init(store, config);
     }
 
     @Override

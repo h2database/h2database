@@ -1282,12 +1282,7 @@ public class TransactionStore {
                     // transaction (possibly one with the same id)
                     data = map.get(key);
                 } else {
-                    if (map.getId() == (int) d[0] && map.getKeyType().compare(key, d[1]) == 0) {
-                        data = (VersionedValue) d[2];
-                    } else {
-                        // this entry does not belong to this map, try again
-                        data = map.get(key);
-                    }
+                    data = (VersionedValue) d[2];
                 }
             }
         }
@@ -1534,7 +1529,8 @@ public class TransactionStore {
                             if (to != null && map.getKeyType().compare(k, to) > 0) {
                                 break;
                             }
-                            VersionedValue data = cursor.getValue();
+                            // cursor.getValue() returns outdated value
+                            VersionedValue data = map.get(key);
                             data = getValue(key, readLogId, data);
                             if (data != null && data.value != null) {
                                 @SuppressWarnings("unchecked")

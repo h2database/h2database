@@ -344,7 +344,7 @@ public class TransactionStore {
         }
         // TODO could synchronize on blocks (100 at a time or so)
         rwLock.writeLock().lock();
-        int oldStatus = t.status;
+        int oldStatus = t.getStatus();
         try {
             t.setStatus(Transaction.STATUS_COMMITTING);
             for (long logId = 0; logId < maxLogId; logId++) {

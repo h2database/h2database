@@ -1481,20 +1481,27 @@ public class DateTimeUtils {
     public static Value truncateDate(String timeUnit, Value value) {
         Value result;
 
-        // Retrieve the dateValue.
+        // Retrieve the dateValue and the time in nanoseconds if the date.
         long[] fieldDateAndTime = DateTimeUtils.dateAndTimeFromValue(value);
         long dateValue = fieldDateAndTime[0];
         long timeNanosRetrieved = fieldDateAndTime[1];
 
+        // Variable that contains the number of nanoseconds in 'hour', 'minute',
+        // etc.
         long nanoInHour = 3_600_000_000_000l;
         long nanoInMinute = 60_000_000_000l;
         long nanoInSecond = 1_000_000_000l;
         long nanoInMilliSecond = 1_000_000l;
         long nanoInMicroSecond = 1_000l;
+
+        // Variable used to the time in nanoseconds of the date truncated.
         long timeNanos;
 
+        // Compute the number of time unit in the date, for example, the
+        // number of time unit 'HOUR' in '15:14:13' is '15'. Then convert the
+        // result to nanoseconds.
         if (timeUnit.equals("MICROSECONDS")) {
-            
+
             long microseconds = timeNanosRetrieved / nanoInMicroSecond;
             timeNanos = microseconds * nanoInMicroSecond;
 
@@ -1521,29 +1528,26 @@ public class DateTimeUtils {
         } else if (timeUnit.equals("DAY")) {
 
             timeNanos = 0l;
-           
+
         } else {
 
             // Return an exception for the other possible value (not yet
             // supported).
             throw DbException.getUnsupportedException(timeUnit);
         }
-        
-        
+
         if (value instanceof ValueTimestampTimeZone) {
 
-            // Create a new ValueTimestampTimeZone by only setting the
-            // date. The time in nanoseconds since midnight will be set
-            // to 0.
+            // Case we create a timestamp with timezone with the dateValue and
+            // timeNanos computed.
             ValueTimestampTimeZone vTmp = (ValueTimestampTimeZone) value;
             result = ValueTimestampTimeZone.fromDateValueAndNanos(vTmp.getDateValue(), timeNanos,
                     vTmp.getTimeZoneOffsetMins());
 
         } else {
 
-            // By default, we create a timestamp by setting the
-            // datevalue to the datevalue retrieved and the time in
-            // nanoseconds since midnight to 0.
+            // By default, we create a timestamp with the dateValue and
+            // timeNanos computed.
             result = ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
 
         }

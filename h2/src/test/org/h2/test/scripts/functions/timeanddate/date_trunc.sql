@@ -1,10 +1,256 @@
 --
--- Test time unit 'SECOND'
+-- Test time unit in 'MICROECONDS'
 --
-SELECT DATE_TRUNC('SECOND', time '00:00:00');
+SELECT DATE_TRUNC('MICROSECONDS', time '00:00:00.000');
 >> 1970-01-01 00:00:00
 
-SELECT DATE_TRUNC('second', time '00:00:00');
+SELECT DATE_TRUNC('microseconds', time '00:00:00.000');
+>> 1970-01-01 00:00:00
+
+SELECT DATE_TRUNC('MICROSECONDS', time '15:00:00');
+>> 1970-01-01 15:00:00
+
+SELECT DATE_TRUNC('microseconds', time '15:00:00');
+>> 1970-01-01 15:00:00
+
+SELECT DATE_TRUNC('MICROSECONDS', time '15:14:13');
+>> 1970-01-01 15:14:13
+
+SELECT DATE_TRUNC('microseconds', time '15:14:13');
+>> 1970-01-01 15:14:13
+
+SELECT DATE_TRUNC('MICROSECONDS', time '15:14:13.123456789');
+>> 1970-01-01 15:14:13.123456
+
+SELECT DATE_TRUNC('microseconds', time '15:14:13.123456789');
+>> 1970-01-01 15:14:13.123456
+
+SELECT DATE_TRUNC('MICROSECONDS', date '2015-05-29');
+>> 2015-05-29 00:00:00
+
+SELECT DATE_TRUNC('microseconds', date '2015-05-29');
+>> 2015-05-29 00:00:00
+
+SELECT DATE_TRUNC('MICROSECONDS', date '1970-01-01');
+>> 1970-01-01 00:00:00
+
+SELECT DATE_TRUNC('microseconds', date '1970-01-01');
+>> 1970-01-01 00:00:00
+
+select DATE_TRUNC('MICROSECONDS', timestamp with time zone '2015-05-29 15:14:13');
+>> 2015-05-29 15:14:13+00
+
+select DATE_TRUNC('microseconds', timestamp with time zone '2015-05-29 15:14:13');
+>> 2015-05-29 15:14:13+00
+
+select DATE_TRUNC('MICROSECONDS', timestamp with time zone '2015-05-29 15:14:13.123456789');
+>> 2015-05-29 15:14:13.123456+00
+
+select DATE_TRUNC('microseconds', timestamp with time zone '2015-05-29 15:14:13.123456789');
+>> 2015-05-29 15:14:13.123456+00
+
+select DATE_TRUNC('MICROSECONDS', timestamp with time zone '2015-05-29 15:14:13-06');
+>> 2015-05-29 15:14:13-06
+
+select DATE_TRUNC('microseconds', timestamp with time zone '2015-05-29 15:14:13-06');
+>> 2015-05-29 15:14:13-06
+
+select DATE_TRUNC('MICROSECONDS', timestamp with time zone '2015-05-29 15:14:13.123456789-06');
+>> 2015-05-29 15:14:13.123456-06
+
+select DATE_TRUNC('microseconds', timestamp with time zone '2015-05-29 15:14:13.123456789-06');
+>> 2015-05-29 15:14:13.123456-06
+
+select DATE_TRUNC('MICROSECONDS', timestamp with time zone '2015-05-29 15:14:13+10');
+>> 2015-05-29 15:14:13+10
+
+select DATE_TRUNC('microseconds', timestamp with time zone '2015-05-29 15:14:13+10');
+>> 2015-05-29 15:14:13+10
+
+select DATE_TRUNC('MICROSECONDS', timestamp with time zone '2015-05-29 15:14:13.123456789+10');
+>> 2015-05-29 15:14:13.123456+10
+
+select DATE_TRUNC('microseconds', timestamp with time zone '2015-05-29 15:14:13.123456789+10');
+>> 2015-05-29 15:14:13.123456+10
+
+SELECT DATE_TRUNC('microseconds', timestamp '2015-05-29 15:14:13');
+>> 2015-05-29 15:14:13
+
+SELECT DATE_TRUNC('MICROSECONDS', timestamp '2015-05-29 15:14:13');
+>> 2015-05-29 15:14:13
+
+SELECT DATE_TRUNC('microseconds', timestamp '2015-05-29 15:14:13.123456789');
+>> 2015-05-29 15:14:13.123456
+
+SELECT DATE_TRUNC('MICROSECONDS', timestamp '2015-05-29 15:14:13.123456789');
+>> 2015-05-29 15:14:13.123456
+
+SELECT DATE_TRUNC('microseconds', timestamp '2015-05-29 15:00:00');
+>> 2015-05-29 15:00:00
+
+SELECT DATE_TRUNC('MICROSECONDS', timestamp '2015-05-29 15:00:00');
+>> 2015-05-29 15:00:00
+
+SELECT DATE_TRUNC('microseconds', timestamp '2015-05-29 00:00:00');
+>> 2015-05-29 00:00:00
+
+SELECT DATE_TRUNC('MICROSECONDS', timestamp '2015-05-29 00:00:00');
+>> 2015-05-29 00:00:00
+
+SELECT DATE_TRUNC('microseconds', '2015-05-29 15:14:13');
+>> 2015-05-29 15:14:13
+
+SELECT DATE_TRUNC('MICROSECONDS', '2015-05-29 15:14:13');
+>> 2015-05-29 15:14:13
+
+SELECT DATE_TRUNC('microseconds', '2015-05-29 15:14:13.123456789');
+>> 2015-05-29 15:14:13.123456
+
+SELECT DATE_TRUNC('MICROSECONDS', '2015-05-29 15:14:13.123456789');
+>> 2015-05-29 15:14:13.123456
+
+SELECT DATE_TRUNC('microseconds', '2015-05-29 15:00:00');
+>> 2015-05-29 15:00:00
+
+SELECT DATE_TRUNC('MICROSECONDS', '2015-05-29 15:00:00');
+>> 2015-05-29 15:00:00
+
+SELECT DATE_TRUNC('microseconds', '2015-05-29 00:00:00');
+>> 2015-05-29 00:00:00
+
+SELECT DATE_TRUNC('MICROSECONDS', '2015-05-29 00:00:00');
+>> 2015-05-29 00:00:00
+
+--
+-- Test time unit in 'MILLISECONDSS'
+--
+SELECT DATE_TRUNC('MILLISECONDS', time '00:00:00.000');
+>> 1970-01-01 00:00:00
+
+SELECT DATE_TRUNC('milliseconds', time '00:00:00.000');
+>> 1970-01-01 00:00:00
+
+SELECT DATE_TRUNC('MILLISECONDS', time '15:00:00');
+>> 1970-01-01 15:00:00
+
+SELECT DATE_TRUNC('milliseconds', time '15:00:00');
+>> 1970-01-01 15:00:00
+
+SELECT DATE_TRUNC('MILLISECONDS', time '15:14:13');
+>> 1970-01-01 15:14:13
+
+SELECT DATE_TRUNC('milliseconds', time '15:14:13');
+>> 1970-01-01 15:14:13
+
+SELECT DATE_TRUNC('MILLISECONDS', time '15:14:13.123456');
+>> 1970-01-01 15:14:13.123
+
+SELECT DATE_TRUNC('milliseconds', time '15:14:13.123456');
+>> 1970-01-01 15:14:13.123
+
+SELECT DATE_TRUNC('MILLISECONDS', date '2015-05-29');
+>> 2015-05-29 00:00:00
+
+SELECT DATE_TRUNC('milliseconds', date '2015-05-29');
+>> 2015-05-29 00:00:00
+
+SELECT DATE_TRUNC('MILLISECONDS', date '1970-01-01');
+>> 1970-01-01 00:00:00
+
+SELECT DATE_TRUNC('milliseconds', date '1970-01-01');
+>> 1970-01-01 00:00:00
+
+select DATE_TRUNC('MILLISECONDS', timestamp with time zone '2015-05-29 15:14:13');
+>> 2015-05-29 15:14:13+00
+
+select DATE_TRUNC('milliseconds', timestamp with time zone '2015-05-29 15:14:13');
+>> 2015-05-29 15:14:13+00
+
+select DATE_TRUNC('MILLISECONDS', timestamp with time zone '2015-05-29 15:14:13.123456');
+>> 2015-05-29 15:14:13.123+00
+
+select DATE_TRUNC('milliseconds', timestamp with time zone '2015-05-29 15:14:13.123456');
+>> 2015-05-29 15:14:13.123+00
+
+select DATE_TRUNC('MILLISECONDS', timestamp with time zone '2015-05-29 15:14:13-06');
+>> 2015-05-29 15:14:13-06
+
+select DATE_TRUNC('milliseconds', timestamp with time zone '2015-05-29 15:14:13-06');
+>> 2015-05-29 15:14:13-06
+
+select DATE_TRUNC('MILLISECONDS', timestamp with time zone '2015-05-29 15:14:13.123456-06');
+>> 2015-05-29 15:14:13.123-06
+
+select DATE_TRUNC('milliseconds', timestamp with time zone '2015-05-29 15:14:13.123456-06');
+>> 2015-05-29 15:14:13.123-06
+
+select DATE_TRUNC('MILLISECONDS', timestamp with time zone '2015-05-29 15:14:13+10');
+>> 2015-05-29 15:14:13+10
+
+select DATE_TRUNC('milliseconds', timestamp with time zone '2015-05-29 15:14:13+10');
+>> 2015-05-29 15:14:13+10
+
+select DATE_TRUNC('MILLISECONDS', timestamp with time zone '2015-05-29 15:14:13.123456+10');
+>> 2015-05-29 15:14:13.123+10
+
+select DATE_TRUNC('milliseconds', timestamp with time zone '2015-05-29 15:14:13.123456+10');
+>> 2015-05-29 15:14:13.123+10
+
+SELECT DATE_TRUNC('milliseconds', timestamp '2015-05-29 15:14:13');
+>> 2015-05-29 15:14:13
+
+SELECT DATE_TRUNC('MILLISECONDS', timestamp '2015-05-29 15:14:13');
+>> 2015-05-29 15:14:13
+
+SELECT DATE_TRUNC('milliseconds', timestamp '2015-05-29 15:14:13.123456');
+>> 2015-05-29 15:14:13.123
+
+SELECT DATE_TRUNC('MILLISECONDS', timestamp '2015-05-29 15:14:13.123456');
+>> 2015-05-29 15:14:13.123
+
+SELECT DATE_TRUNC('milliseconds', timestamp '2015-05-29 15:00:00');
+>> 2015-05-29 15:00:00
+
+SELECT DATE_TRUNC('MILLISECONDS', timestamp '2015-05-29 15:00:00');
+>> 2015-05-29 15:00:00
+
+SELECT DATE_TRUNC('milliseconds', timestamp '2015-05-29 00:00:00');
+>> 2015-05-29 00:00:00
+
+SELECT DATE_TRUNC('MILLISECONDS', timestamp '2015-05-29 00:00:00');
+>> 2015-05-29 00:00:00
+
+SELECT DATE_TRUNC('milliseconds', '2015-05-29 15:14:13');
+>> 2015-05-29 15:14:13
+
+SELECT DATE_TRUNC('MILLISECONDS', '2015-05-29 15:14:13');
+>> 2015-05-29 15:14:13
+
+SELECT DATE_TRUNC('milliseconds', '2015-05-29 15:14:13.123456');
+>> 2015-05-29 15:14:13.123
+
+SELECT DATE_TRUNC('MILLISECONDS', '2015-05-29 15:14:13.123456');
+>> 2015-05-29 15:14:13.123
+
+SELECT DATE_TRUNC('milliseconds', '2015-05-29 15:00:00');
+>> 2015-05-29 15:00:00
+
+SELECT DATE_TRUNC('MILLISECONDS', '2015-05-29 15:00:00');
+>> 2015-05-29 15:00:00
+
+SELECT DATE_TRUNC('milliseconds', '2015-05-29 00:00:00');
+>> 2015-05-29 00:00:00
+
+SELECT DATE_TRUNC('MILLISECONDS', '2015-05-29 00:00:00');
+>> 2015-05-29 00:00:00
+
+--
+-- Test time unit 'SECOND'
+--
+SELECT DATE_TRUNC('SECOND', time '00:00:00.000');
+>> 1970-01-01 00:00:00
+
+SELECT DATE_TRUNC('second', time '00:00:00.000');
 >> 1970-01-01 00:00:00
 
 SELECT DATE_TRUNC('SECOND', time '15:00:00');
@@ -17,6 +263,12 @@ SELECT DATE_TRUNC('SECOND', time '15:14:13');
 >> 1970-01-01 15:14:13
 
 SELECT DATE_TRUNC('second', time '15:14:13');
+>> 1970-01-01 15:14:13
+
+SELECT DATE_TRUNC('SECOND', time '15:14:13.123456');
+>> 1970-01-01 15:14:13
+
+SELECT DATE_TRUNC('second', time '15:14:13.123456');
 >> 1970-01-01 15:14:13
 
 SELECT DATE_TRUNC('SECOND', date '2015-05-29');
@@ -37,10 +289,22 @@ select DATE_TRUNC('SECOND', timestamp with time zone '2015-05-29 15:14:13');
 select DATE_TRUNC('second', timestamp with time zone '2015-05-29 15:14:13');
 >> 2015-05-29 15:14:13+00
 
+select DATE_TRUNC('SECOND', timestamp with time zone '2015-05-29 15:14:13.123456');
+>> 2015-05-29 15:14:13+00
+
+select DATE_TRUNC('second', timestamp with time zone '2015-05-29 15:14:13.123456');
+>> 2015-05-29 15:14:13+00
+
 select DATE_TRUNC('SECOND', timestamp with time zone '2015-05-29 15:14:13-06');
 >> 2015-05-29 15:14:13-06
 
 select DATE_TRUNC('second', timestamp with time zone '2015-05-29 15:14:13-06');
+>> 2015-05-29 15:14:13-06
+
+select DATE_TRUNC('SECOND', timestamp with time zone '2015-05-29 15:14:13.123456-06');
+>> 2015-05-29 15:14:13-06
+
+select DATE_TRUNC('second', timestamp with time zone '2015-05-29 15:14:13.123456-06');
 >> 2015-05-29 15:14:13-06
 
 select DATE_TRUNC('SECOND', timestamp with time zone '2015-05-29 15:14:13+10');
@@ -49,10 +313,22 @@ select DATE_TRUNC('SECOND', timestamp with time zone '2015-05-29 15:14:13+10');
 select DATE_TRUNC('second', timestamp with time zone '2015-05-29 15:14:13+10');
 >> 2015-05-29 15:14:13+10
 
+select DATE_TRUNC('SECOND', timestamp with time zone '2015-05-29 15:14:13.123456+10');
+>> 2015-05-29 15:14:13+10
+
+select DATE_TRUNC('second', timestamp with time zone '2015-05-29 15:14:13.123456+10');
+>> 2015-05-29 15:14:13+10
+
 SELECT DATE_TRUNC('second', timestamp '2015-05-29 15:14:13');
 >> 2015-05-29 15:14:13
 
 SELECT DATE_TRUNC('SECOND', timestamp '2015-05-29 15:14:13');
+>> 2015-05-29 15:14:13
+
+SELECT DATE_TRUNC('second', timestamp '2015-05-29 15:14:13.123456');
+>> 2015-05-29 15:14:13
+
+SELECT DATE_TRUNC('SECOND', timestamp '2015-05-29 15:14:13.123456');
 >> 2015-05-29 15:14:13
 
 SELECT DATE_TRUNC('second', timestamp '2015-05-29 15:00:00');
@@ -71,6 +347,12 @@ SELECT DATE_TRUNC('second', '2015-05-29 15:14:13');
 >> 2015-05-29 15:14:13
 
 SELECT DATE_TRUNC('SECOND', '2015-05-29 15:14:13');
+>> 2015-05-29 15:14:13
+
+SELECT DATE_TRUNC('second', '2015-05-29 15:14:13.123456');
+>> 2015-05-29 15:14:13
+
+SELECT DATE_TRUNC('SECOND', '2015-05-29 15:14:13.123456');
 >> 2015-05-29 15:14:13
 
 SELECT DATE_TRUNC('second', '2015-05-29 15:00:00');
@@ -318,18 +600,6 @@ select DATE_TRUNC('DAY', '2015-05-29 15:14:13');
 --
 SELECT DATE_TRUNC('---', '2015-05-29 15:14:13');
 > exception
-
---SELECT DATE_TRUNC('microseconds', '2015-05-29 15:14:13');
---> exception
---
---SELECT DATE_TRUNC('MICROSECONDS', '2015-05-29 15:14:13');
---> exception
---
---SELECT DATE_TRUNC('milliseconds', '2015-05-29 15:14:13');
---> exception
---
---SELECT DATE_TRUNC('MILLISECONDS', '2015-05-29 15:14:13');
---> exception
 
 SELECT DATE_TRUNC('week', '2015-05-29 15:14:13');
 > exception

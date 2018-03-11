@@ -747,7 +747,7 @@ public class TestTransactionStore extends TestBase {
             Class.forName("org.postgresql.Driver");
             for (int i = 0; i < connectionCount; i++) {
                 Connection conn = DriverManager.getConnection(
-                        "jdbc:postgresql:test", "sa", "sa");
+                        "jdbc:postgresql:test?loggerLevel=OFF", "sa", "sa");
                 statements.add(conn.createStatement());
             }
         } catch (Exception e) {

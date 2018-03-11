@@ -479,6 +479,11 @@ public interface CommandInterface {
     int DROP_SYNONYM = 89;
 
     /**
+     * The type of a ALTER TABLE ALTER COLUMN SET ON UPDATE statement.
+     */
+    int ALTER_TABLE_ALTER_COLUMN_ON_UPDATE = 90;
+
+    /**
      * Get command type.
      *
      * @return one of the constants above

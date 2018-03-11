@@ -847,6 +847,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
      *
      * @param columnIndex the column index (1, 2, ...)
      * @param type the class of the returned value
+     * @return the value
      */
     @Override
     public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
@@ -900,6 +901,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
      *
      * @param columnName the column name
      * @param type the class of the returned value
+     * @return the value
      */
     @Override
     public <T> T getObject(String columnName, Class<T> type) throws SQLException {

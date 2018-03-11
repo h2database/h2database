@@ -33,6 +33,7 @@ import java.util.Properties;
 
 import org.h2.command.CommandInterface;
 import org.h2.engine.ConnectionInfo;
+import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcPreparedStatement;
@@ -949,7 +950,7 @@ public class PgServerThread implements Runnable {
         sendParameterStatus("integer_datetimes", "off");
         sendParameterStatus("is_superuser", "off");
         sendParameterStatus("server_encoding", "SQL_ASCII");
-        sendParameterStatus("server_version", "8.1.4");
+        sendParameterStatus("server_version", Constants.PG_VERSION);
         sendParameterStatus("session_authorization", userName);
         sendParameterStatus("standard_conforming_strings", "off");
         // TODO PostgreSQL TimeZone

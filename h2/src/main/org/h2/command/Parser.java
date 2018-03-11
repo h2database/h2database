@@ -992,7 +992,7 @@ public class Parser {
             buff.append("'ISO' AS DATESTYLE FROM DUAL");
         } else if (readIf("SERVER_VERSION")) {
             // for PostgreSQL compatibility
-            buff.append("'8.2.23' AS SERVER_VERSION FROM DUAL");
+            buff.append("'" + Constants.PG_VERSION + "' AS SERVER_VERSION FROM DUAL");
         } else if (readIf("SERVER_ENCODING")) {
             // for PostgreSQL compatibility
             buff.append("'UTF8' AS SERVER_ENCODING FROM DUAL");

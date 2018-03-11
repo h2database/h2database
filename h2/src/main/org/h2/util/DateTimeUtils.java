@@ -1484,53 +1484,68 @@ public class DateTimeUtils {
         // Retrieve the dateValue.
         long[] fieldDateAndTime = DateTimeUtils.dateAndTimeFromValue(value);
         long dateValue = fieldDateAndTime[0];
-        long timeNanos = fieldDateAndTime[1];
+        long timeNanosRetrieved = fieldDateAndTime[1];
 
-        long nanoInHours = 3_600_000_000_000l;
+        long nanoInHour = 3_600_000_000_000l;
+        long nanoInMinute = 60_000_000_000l;
+        long nanoInSecond = 1_000_000_000l;
+        long nanoInMilliSecond = 1_000_000l;
+        long nanoInMicroSecond = 1_000l;
+        long timeNanos;
 
-        if (timeUnit.equals("HOUR")) {
+        if (timeUnit.equals("MICROSECONDS")) {
+            
+            long microseconds = timeNanosRetrieved / nanoInMicroSecond;
+            timeNanos = microseconds * nanoInMicroSecond;
 
-            long hour = timeNanos / nanoInHours;
-            long hourInNano = hour * nanoInHours;
+        } else if (timeUnit.equals("MILLISECONDS")) {
 
-            if (value instanceof ValueTimestampTimeZone) {
+            long milliseconds = timeNanosRetrieved / nanoInMilliSecond;
+            timeNanos = milliseconds * nanoInMilliSecond;
 
-                ValueTimestampTimeZone vTmp = (ValueTimestampTimeZone) value;
-                result = ValueTimestampTimeZone.fromDateValueAndNanos(vTmp.getDateValue(), hourInNano,
-                        vTmp.getTimeZoneOffsetMins());
+        } else if (timeUnit.equals("SECOND")) {
 
-            } else {
+            long seconds = timeNanosRetrieved / nanoInSecond;
+            timeNanos = seconds * nanoInSecond;
 
-                result = ValueTimestamp.fromDateValueAndNanos(dateValue, hourInNano);
+        } else if (timeUnit.equals("MINUTE")) {
 
-            }
+            long minutes = timeNanosRetrieved / nanoInMinute;
+            timeNanos = minutes * nanoInMinute;
+
+        } else if (timeUnit.equals("HOUR")) {
+
+            long hours = timeNanosRetrieved / nanoInHour;
+            timeNanos = hours * nanoInHour;
 
         } else if (timeUnit.equals("DAY")) {
 
-            if (value instanceof ValueTimestampTimeZone) {
-
-                // Create a new ValueTimestampTimeZone by only setting the
-                // date. The time in nanoseconds since midnight will be set
-                // to 0.
-                ValueTimestampTimeZone vTmp = (ValueTimestampTimeZone) value;
-                result = ValueTimestampTimeZone.fromDateValueAndNanos(vTmp.getDateValue(), 0,
-                        vTmp.getTimeZoneOffsetMins());
-
-            } else {
-
-                // By default, we create a timestamp by setting the
-                // datevalue to the datevalue retrieved and the time in
-                // nanoseconds since midnight to 0.
-                result = ValueTimestamp.fromDateValueAndNanos(dateValue, 0);
-
-            }
-        }
-
-        else {
+            timeNanos = 0l;
+           
+        } else {
 
             // Return an exception for the other possible value (not yet
             // supported).
             throw DbException.getUnsupportedException(timeUnit);
+        }
+        
+        
+        if (value instanceof ValueTimestampTimeZone) {
+
+            // Create a new ValueTimestampTimeZone by only setting the
+            // date. The time in nanoseconds since midnight will be set
+            // to 0.
+            ValueTimestampTimeZone vTmp = (ValueTimestampTimeZone) value;
+            result = ValueTimestampTimeZone.fromDateValueAndNanos(vTmp.getDateValue(), timeNanos,
+                    vTmp.getTimeZoneOffsetMins());
+
+        } else {
+
+            // By default, we create a timestamp by setting the
+            // datevalue to the datevalue retrieved and the time in
+            // nanoseconds since midnight to 0.
+            result = ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
+
         }
 
         return result;

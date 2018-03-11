@@ -329,9 +329,11 @@ ALTER TABLE [ IF EXISTS ] tableName ALTER COLUMN columnName
     | { RESTART WITH long }
     | { SELECTIVITY int }
     | { SET DEFAULT expression }
+    | { SET ON UPDATE expression }
     | { SET NULL }
     | { SET NOT NULL }
-    | { SET { VISIBLE | INVISIBLE } } }
+    | { SET { VISIBLE | INVISIBLE } }
+    | { DROP { DEFAULT | ON UPDATE } } }
 ","
 Changes the data type of a column, rename a column,
 change the identity value, or change the selectivity.
@@ -349,6 +351,8 @@ Selectivity 100 means values are unique, 10 means every distinct value appears 1
 
 SET DEFAULT changes the default value of a column.
 
+SET ON UPDATE changes the value that is set on update if value for this column is not specified in update statement.
+
 SET NULL sets a column to allow NULL. The row may not be part of a primary key.
 Single column indexes on this column are dropped.
 
@@ -356,6 +360,10 @@ SET NOT NULL sets a column to not allow NULL. Rows may not contains NULL in this
 
 SET INVISIBLE makes the column hidden, i.e. it will not appear in SELECT * results.
 SET VISIBLE has the reverse effect.
+
+DROP DEFAULT removes the default value of a column.
+
+DROP ON UPDATE removes the value that is set on update of a column.
 
 This command commits an open transaction in this connection.
 ","
@@ -2050,13 +2058,17 @@ AES
 
 "Other Grammar","Column Definition","
 dataType [ VISIBLE | INVISIBLE ]
-[ { DEFAULT expression | AS computedColumnExpression } ] [ [ NOT ] NULL ]
+[ { DEFAULT expression | AS computedColumnExpression } ]
+[ ON UPDATE expression ] [ [ NOT ] NULL ]
 [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
 [ SELECTIVITY selectivity ] [ COMMENT expression ]
 [ PRIMARY KEY [ HASH ] | UNIQUE ] [ CHECK condition ]
 ","
 Default expressions are used if no explicit value was used when adding a row.
 The computed column expression is evaluated and assigned whenever the row changes.
+On update column expression is used if row is updated,
+at least one column have a new value that is different from its previous value
+and value for this column is not set explicitly in update statement.
 
 Identity and auto-increment columns are columns with a sequence as the
 default. The column declared as the identity columns is implicitly the

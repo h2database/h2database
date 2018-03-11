@@ -86,6 +86,7 @@ public class TestScript extends TestBase {
         testScript("information_schema.sql");
         testScript("joins.sql");
         testScript("altertable-index-reuse.sql");
+        testScript("default-and-on_update.sql");
         testScript("query-optimisations.sql");
         String decimal2;
         if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
@@ -150,7 +151,7 @@ public class TestScript extends TestBase {
                 "parsedatetime", "quarter", "second", "truncate", "week", "year", "date_trunc" }) {
             testScript("functions/timeanddate/" + s + ".sql");
         }
-        
+
         deleteDb("script");
         System.out.flush();
     }

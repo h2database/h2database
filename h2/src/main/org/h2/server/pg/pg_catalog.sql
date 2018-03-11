@@ -4,7 +4,7 @@
  * Initial Developer: H2 Group
  */
 ;
-drop schema if exists pg_catalog;
+drop schema if exists pg_catalog cascade;
 create schema pg_catalog;
 
 drop alias if exists pg_convertType;

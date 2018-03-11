@@ -482,7 +482,7 @@ This is achieved using different database URLs. Settings in the URLs are not cas
 <tr>
     <td><a href="advanced.html#tls_connections">Server mode (remote connections)<br /> using TLS</a></td>
     <td class="notranslate">
-        jdbc:h2:ssl://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;<br />
+        jdbc:h2:ssl://&lt;server&gt;[:&lt;port&gt;]/[&lt;path&gt;]&lt;databaseName&gt;<br />
         jdbc:h2:ssl://localhost:8085/~/sample;
     </td>
 </tr>
@@ -1047,6 +1047,7 @@ or the SQL statement <code>SET MODE DB2</code>.
 </li><li>Concatenating <code>NULL</code> with another value
     results in the other value.
 </li><li>Support the pseudo-table SYSIBM.SYSDUMMY1.
+</li><li>Timestamps with dash between date and time are supported.
 </li></ul>
 
 <h3>Derby Compatibility Mode</h3>
@@ -1098,7 +1099,7 @@ or the SQL statement <code>SET MODE MSSQLServer</code>.
 <h3>MySQL Compatibility Mode</h3>
 <p>
 To use the MySQL mode, use the database URL <code>jdbc:h2:~/test;MODE=MySQL</code>
-or the SQL statement <code>SET MODE MySQL</code>.
+or the SQL statement <code>SET MODE MySQL</code>. Use this mode for compatibility with MariaDB too.
 </p>
 <ul><li>When inserting data, if a column is defined to be <code>NOT NULL</code>
     and <code>NULL</code> is inserted,
@@ -1112,6 +1113,9 @@ or the SQL statement <code>SET MODE MySQL</code>.
     digits are not truncated, but the value is rounded.
 </li><li>Concatenating <code>NULL</code> with another value
     results in the other value.
+</li><li>ON DUPLICATE KEY UPDATE is supported in INSERT statements.
+</li><li>INSERT IGNORE is partially supported and may be used to skip rows with duplicate keys if ON DUPLICATE KEY UPDATE is not specified.
+</li><li>REGEXP_REPLACE() uses \ for back-references for compatibility with MariaDB.
 </li></ul>
 <p>
 Text comparison in MySQL is case insensitive by default, while in H2 it is case sensitive (as in most other databases).
@@ -1134,6 +1138,8 @@ or the SQL statement <code>SET MODE Oracle</code>.
 </li><li>Concatenating <code>NULL</code> with another value
     results in the other value.
 </li><li>Empty strings are treated like <code>NULL</code> values.
+</li><li>REGEXP_REPLACE() uses \ for back-references.
+</li><li>DATE data type is treated like TIMESTAMP data type.
 </li></ul>
 
 <h3>PostgreSQL Compatibility Mode</h3>
@@ -1149,6 +1155,19 @@ or the SQL statement <code>SET MODE PostgreSQL</code>.
 </li><li>The system columns <code>CTID</code> and
     <code>OID</code> are supported.
 </li><li>LOG(x) is base 10 in this mode.
+</li><li>REGEXP_REPLACE() uses \ for back-references.
+</li><li>Fixed-width strings are padded with spaces.
+</li></ul>
+
+<h3>Ignite Compatibility Mode</h3>
+<p>
+To use the Ignite mode, use the database URL <code>jdbc:h2:~/test;MODE=Ignite</code>
+or the SQL statement <code>SET MODE Ignite</code>.
+</p>
+<ul><li>Creating indexes in the <code>CREATE TABLE</code> statement is allowed using
+    <code>INDEX(..)</code> or <code>KEY(..)</code>.
+    Example: <code>create table test(id int primary key, name varchar(255), key idx_name(name));</code>
+</li><li>AFFINITY KEY and SHARD KEY keywords may be used in index definition.
 </li></ul>
 
 <h2 id="auto_reconnect">Auto-Reconnect</h2>

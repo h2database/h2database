@@ -992,7 +992,7 @@ public class Parser {
             buff.append("'ISO' AS DATESTYLE FROM DUAL");
         } else if (readIf("SERVER_VERSION")) {
             // for PostgreSQL compatibility
-            buff.append("'8.1.4' AS SERVER_VERSION FROM DUAL");
+            buff.append("'" + Constants.PG_VERSION + "' AS SERVER_VERSION FROM DUAL");
         } else if (readIf("SERVER_ENCODING")) {
             // for PostgreSQL compatibility
             buff.append("'UTF8' AS SERVER_ENCODING FROM DUAL");
@@ -4291,6 +4291,11 @@ public class Parser {
             column.setPrimaryKey(true);
             column.setAutoIncrement(true, start, increment);
         }
+        if (readIf("ON")) {
+            read("UPDATE");
+            Expression onUpdateExpression = readExpression();
+            column.setOnUpdateExpression(session, onUpdateExpression);
+        }
         if (NullConstraintType.NULL_IS_NOT_ALLOWED == parseNotNullConstraint()) {
             column.setNullable(false);
         }
@@ -6205,6 +6210,16 @@ public class Parser {
                     command.setDefaultExpression(null);
                     return command;
                 }
+                if (readIf("ON")) {
+                    read("UPDATE");
+                    AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
+                    command.setTableName(tableName);
+                    command.setIfTableExists(ifTableExists);
+                    command.setOldColumn(column);
+                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_ON_UPDATE);
+                    command.setDefaultExpression(null);
+                    return command;
+                }
                 read("NOT");
                 read("NULL");
                 AlterTableAlterColumn command = new AlterTableAlterColumn(
@@ -6243,11 +6258,14 @@ public class Parser {
                         Expression defaultExpression = readExpression();
                         command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT);
                         command.setDefaultExpression(defaultExpression);
-
+                    } else if (readIf("ON")) {
+                        read("UPDATE");
+                        Expression onUpdateExpression = readExpression();
+                        command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_ON_UPDATE);
+                        command.setDefaultExpression(onUpdateExpression);
                     } else if (readIf("INVISIBLE")) {
                         command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_VISIBILITY);
                         command.setVisible(false);
-
                     } else if (readIf("VISIBLE")) {
                         command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_VISIBILITY);
                         command.setVisible(true);

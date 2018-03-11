@@ -344,7 +344,7 @@ public class TransactionStore {
         }
         // TODO could synchronize on blocks (100 at a time or so)
         rwLock.writeLock().lock();
-        int oldStatus = t.status;
+        int oldStatus = t.getStatus();
         try {
             t.setStatus(Transaction.STATUS_COMMITTING);
             for (long logId = 0; logId < maxLogId; logId++) {
@@ -372,9 +372,7 @@ public class TransactionStore {
                             if (value.value == null) {
                                 map.remove(key);
                             } else {
-                                VersionedValue v2 = new VersionedValue();
-                                v2.value = value.value;
-                                map.put(key, v2);
+                                map.put(key, new VersionedValue(0L, value.value));
                             }
                         }
                     }
@@ -983,9 +981,10 @@ public class TransactionStore {
                     long size = 0;
                     Cursor<K, VersionedValue> cursor = map.cursor(null);
                     while (cursor.hasNext()) {
-                        VersionedValue data;
                         K key = cursor.next();
-                        data = getValue(key, readLogId, cursor.getValue());
+                        // cursor.getValue() returns outdated value
+                        VersionedValue data = map.get(key);
+                        data = getValue(key, readLogId, data);
                         if (data != null && data.value != null) {
                             size++;
                         }
@@ -1068,8 +1067,7 @@ public class TransactionStore {
         @SuppressWarnings("unchecked")
         public V putCommitted(K key, V value) {
             DataUtils.checkArgument(value != null, "The value may not be null");
-            VersionedValue newValue = new VersionedValue();
-            newValue.value = value;
+            VersionedValue newValue = new VersionedValue(0L, value);
             VersionedValue oldValue = map.put(key, newValue);
             return (V) (oldValue == null ? null : oldValue.value);
         }
@@ -1148,10 +1146,9 @@ public class TransactionStore {
                     }
                 }
             }
-            VersionedValue newValue = new VersionedValue();
-            newValue.operationId = getOperationId(
-                    transaction.transactionId, transaction.logId);
-            newValue.value = value;
+            VersionedValue newValue = new VersionedValue(
+                    getOperationId(transaction.transactionId, transaction.logId),
+                    value);
             if (current == null) {
                 // a new value
                 transaction.log(mapId, key, current);
@@ -1548,7 +1545,8 @@ public class TransactionStore {
                             if (to != null && map.getKeyType().compare(k, to) > 0) {
                                 break;
                             }
-                            VersionedValue data = cursor.getValue();
+                            // cursor.getValue() returns outdated value
+                            VersionedValue data = map.get(key);
                             data = getValue(key, readLogId, data);
                             if (data != null && data.value != null) {
                                 @SuppressWarnings("unchecked")
@@ -1656,12 +1654,17 @@ public class TransactionStore {
         /**
          * The operation id.
          */
-        public long operationId;
+        final long operationId;
 
         /**
          * The value.
          */
-        public Object value;
+        final Object value;
+
+        VersionedValue(long operationId, Object value) {
+            this.operationId = operationId;
+            this.value = value;
+        }
 
         @Override
         public String toString() {
@@ -1709,9 +1712,7 @@ public class TransactionStore {
             if (buff.get() == 0) {
                 // fast path (no op ids or null entries)
                 for (int i = 0; i < len; i++) {
-                    VersionedValue v = new VersionedValue();
-                    v.value = valueType.read(buff);
-                    obj[i] = v;
+                    obj[i] = new VersionedValue(0L, valueType.read(buff));
                 }
             } else {
                 // slow path (some entries may be null)
@@ -1723,12 +1724,14 @@ public class TransactionStore {
 
         @Override
         public Object read(ByteBuffer buff) {
-            VersionedValue v = new VersionedValue();
-            v.operationId = DataUtils.readVarLong(buff);
+            long operationId = DataUtils.readVarLong(buff);
+            Object value;
             if (buff.get() == 1) {
-                v.value = valueType.read(buff);
+                value = valueType.read(buff);
+            } else {
+                value = null;
             }
-            return v;
+            return new VersionedValue(operationId, value);
         }
 
         @Override

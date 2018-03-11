@@ -40,7 +40,7 @@ public class TestShow extends TestBase {
             assertResult("read committed", stat, "SHOW DEFAULT_TRANSACTION_ISOLATION");
             assertResult("read committed", stat, "SHOW TRANSACTION ISOLATION LEVEL");
             assertResult("ISO", stat, "SHOW DATESTYLE");
-            assertResult("8.1.4", stat, "SHOW SERVER_VERSION");
+            assertResult("8.2.23", stat, "SHOW SERVER_VERSION");
             assertResult("UTF8", stat, "SHOW SERVER_ENCODING");
         }
     }

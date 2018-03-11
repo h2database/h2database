@@ -843,25 +843,69 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     }
 
     /**
-     * INTERNAL
+     * Returns the value as an Object of the specified type.
      *
      * @param columnIndex the column index (1, 2, ...)
      * @param type the class of the returned value
+     * @return the value
      */
     @Override
     public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
-        throw getUnsupportedException();
+        if (wasNull()) {
+            return null;
+        }
+
+        if (type == BigDecimal.class) {
+            return type.cast(getBigDecimal(columnIndex));
+        } else if (type == BigInteger.class) {
+            return type.cast(getBigDecimal(columnIndex).toBigInteger());
+        } else if (type == String.class) {
+            return type.cast(getString(columnIndex));
+        } else if (type == Boolean.class) {
+            return type.cast(getBoolean(columnIndex));
+        } else if (type == Byte.class) {
+            return type.cast(getByte(columnIndex));
+        } else if (type == Short.class) {
+            return type.cast(getShort(columnIndex));
+        } else if (type == Integer.class) {
+            return type.cast(getInt(columnIndex));
+        } else if (type == Long.class) {
+            return type.cast(getLong(columnIndex));
+        } else if (type == Float.class) {
+            return type.cast(getFloat(columnIndex));
+        } else if (type == Double.class) {
+            return type.cast(getDouble(columnIndex));
+        } else if (type == Date.class) {
+            return type.cast(getDate(columnIndex));
+        } else if (type == Time.class) {
+            return type.cast(getTime(columnIndex));
+        } else if (type == Timestamp.class) {
+            return type.cast(getTimestamp(columnIndex));
+        } else if (type == UUID.class) {
+            return type.cast(getObject(columnIndex));
+        } else if (type == byte[].class) {
+            return type.cast(getBytes(columnIndex));
+        } else if (type == java.sql.Array.class) {
+            return type.cast(getArray(columnIndex));
+        } else if (type == Blob.class) {
+            return type.cast(getBlob(columnIndex));
+        } else if (type == Clob.class) {
+            return type.cast(getClob(columnIndex));
+        } else {
+            throw getUnsupportedException();
+        }
     }
 
     /**
-     * INTERNAL
+     * Returns the value as an Object of the specified type.
      *
      * @param columnName the column name
      * @param type the class of the returned value
+     * @return the value
      */
     @Override
     public <T> T getObject(String columnName, Class<T> type) throws SQLException {
-        throw getUnsupportedException();
+        return getObject(findColumn(columnName), type);
     }
 
     /**

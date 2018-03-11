@@ -530,6 +530,11 @@ public class Constants {
      */
     public static final int QUERY_STATISTICS_MAX_ENTRIES = 100;
 
+    /**
+     * Announced version for PgServer.
+     */
+    public static final String PG_VERSION = "8.2.23";
+
     private Constants() {
         // utility class
     }

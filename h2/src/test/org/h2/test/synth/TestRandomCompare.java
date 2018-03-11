@@ -50,7 +50,7 @@ public class TestRandomCompare extends TestBase {
         try {
             Class.forName("org.postgresql.Driver");
             Connection c2 = DriverManager.getConnection(
-                    "jdbc:postgresql:test", "sa", "sa");
+                    "jdbc:postgresql:test?loggerLevel=OFF", "sa", "sa");
             dbs.add(c2.createStatement());
         } catch (Exception e) {
             // database not installed - ok

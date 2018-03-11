@@ -54,6 +54,9 @@ public class AlterTableAlterColumn extends CommandWithColumns {
     private Column oldColumn;
     private Column newColumn;
     private int type;
+    /**
+     * Default or on update expression.
+     */
     private Expression defaultExpression;
     private Expression newSelectivity;
     private boolean addFirst;
@@ -144,6 +147,12 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             oldColumn.setSequence(null);
             oldColumn.setDefaultExpression(session, defaultExpression);
             removeSequence(table, sequence);
+            db.updateMeta(session, table);
+            break;
+        }
+        case CommandInterface.ALTER_TABLE_ALTER_COLUMN_ON_UPDATE: {
+            checkDefaultReferencesTable(table, defaultExpression);
+            oldColumn.setOnUpdateExpression(session, defaultExpression);
             db.updateMeta(session, table);
             break;
         }
@@ -551,6 +560,11 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         newSelectivity = selectivity;
     }
 
+    /**
+     * Set default or on update expression.
+     *
+     * @param defaultExpression default or on update expression
+     */
     public void setDefaultExpression(Expression defaultExpression) {
         this.defaultExpression = defaultExpression;
     }

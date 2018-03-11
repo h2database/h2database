@@ -1,5 +1,5 @@
 --
--- Test time unit in 'MICROECONDS'
+-- Test time unit in 'MICROSECONDS'
 --
 SELECT DATE_TRUNC('MICROSECONDS', time '00:00:00.000');
 >> 1970-01-01 00:00:00
@@ -122,7 +122,7 @@ SELECT DATE_TRUNC('MICROSECONDS', '2015-05-29 00:00:00');
 >> 2015-05-29 00:00:00
 
 --
--- Test time unit in 'MILLISECONDSS'
+-- Test time unit in 'MILLISECONDS'
 --
 SELECT DATE_TRUNC('MILLISECONDS', time '00:00:00.000');
 >> 1970-01-01 00:00:00

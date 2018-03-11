@@ -1470,10 +1470,10 @@ public class DateTimeUtils {
         }
         return nanosOfDay - mod;
     }
-    
+
     /**
      * Truncate the given date to 'day'
-     * 
+     *
      * @param timeUnit the time unit (e.g. 'DAY', 'HOUR', etc.)
      * @param value the date
      * @return date truncated to 'day'

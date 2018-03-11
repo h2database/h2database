@@ -75,6 +75,7 @@ public class Column {
     private int columnId;
     private boolean nullable = true;
     private Expression defaultExpression;
+    private Expression onUpdateExpression;
     private Expression checkConstraint;
     private String checkConstraintSQL;
     private String originalSQL;
@@ -246,6 +247,23 @@ public class Column {
             }
         }
         this.defaultExpression = defaultExpression;
+    }
+
+    /**
+     * Set the on update expression.
+     *
+     * @param session the session
+     * @param onUpdateExpression the on update expression
+     */
+    public void setOnUpdateExpression(Session session, Expression onUpdateExpression) {
+        // also to test that no column names are used
+        if (onUpdateExpression != null) {
+            onUpdateExpression = onUpdateExpression.optimize(session);
+            if (onUpdateExpression.isConstant()) {
+                onUpdateExpression = ValueExpression.get(onUpdateExpression.getValue(session));
+            }
+        }
+        this.onUpdateExpression = onUpdateExpression;
     }
 
     public int getColumnId() {
@@ -461,11 +479,16 @@ public class Column {
      * @param session the session
      */
     public void prepareExpression(Session session) {
-        if (defaultExpression != null) {
-            computeTableFilter = new TableFilter(session, table, null, false, null, 0,
-                    null);
-            defaultExpression.mapColumns(computeTableFilter, 0);
-            defaultExpression = defaultExpression.optimize(session);
+        if (defaultExpression != null || onUpdateExpression != null) {
+            computeTableFilter = new TableFilter(session, table, null, false, null, 0, null);
+            if (defaultExpression != null) {
+                defaultExpression.mapColumns(computeTableFilter, 0);
+                defaultExpression = defaultExpression.optimize(session);
+            }
+            if (onUpdateExpression != null) {
+                onUpdateExpression.mapColumns(computeTableFilter, 0);
+                onUpdateExpression = onUpdateExpression.optimize(session);
+            }
         }
     }
 
@@ -526,6 +549,12 @@ public class Column {
                 }
             }
         }
+        if (onUpdateExpression != null) {
+            String sql = onUpdateExpression.getSQL();
+            if (sql != null) {
+                buff.append(" ON UPDATE ").append(sql);
+            }
+        }
         if (!nullable) {
             buff.append(" NOT NULL");
         }
@@ -561,6 +590,10 @@ public class Column {
 
     public Expression getDefaultExpression() {
         return defaultExpression;
+    }
+
+    public Expression getOnUpdateExpression() {
+        return onUpdateExpression;
     }
 
     public boolean isAutoIncrement() {
@@ -695,6 +728,10 @@ public class Column {
         return defaultExpression == null ? null : defaultExpression.getSQL();
     }
 
+    String getOnUpdateSQL() {
+        return onUpdateExpression == null ? null : onUpdateExpression.getSQL();
+    }
+
     int getPrecisionAsInt() {
         return MathUtils.convertLongToInt(precision);
     }
@@ -800,6 +837,9 @@ public class Column {
         if (isComputed || newColumn.isComputed) {
             return false;
         }
+        if (onUpdateExpression != null || newColumn.onUpdateExpression != null) {
+            return false;
+        }
         return true;
     }
 
@@ -821,6 +861,7 @@ public class Column {
         // columnId is not set
         nullable = source.nullable;
         defaultExpression = source.defaultExpression;
+        onUpdateExpression = source.onUpdateExpression;
         originalSQL = source.originalSQL;
         // autoIncrement, start, increment is not set
         convertNullToDefault = source.convertNullToDefault;

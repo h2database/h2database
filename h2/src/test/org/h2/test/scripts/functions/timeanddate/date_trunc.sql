@@ -1,3 +1,8 @@
+-- Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- and the EPL 1.0 (http://h2database.com/html/license.html).
+-- Initial Developer: H2 Group
+--
+
 --
 -- Test time unit in 'MICROSECONDS'
 --
@@ -541,7 +546,6 @@ SELECT DATE_TRUNC('hour', '2015-05-29 00:00:00');
 
 SELECT DATE_TRUNC('HOUR', '2015-05-29 00:00:00');
 >> 2015-05-29 00:00:00
-
 
 -- 
 -- Test time unit 'DAY'

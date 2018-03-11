@@ -179,7 +179,8 @@ public class MetaTable extends Table {
                     "SEQUENCE_NAME",
                     "REMARKS",
                     "SOURCE_DATA_TYPE SMALLINT",
-                    "COLUMN_TYPE"
+                    "COLUMN_TYPE",
+                    "COLUMN_ON_UPDATE"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -882,7 +883,9 @@ public class MetaTable extends Table {
                             // SOURCE_DATA_TYPE
                             null,
                             // COLUMN_TYPE
-                            c.getCreateSQLWithoutName()
+                            c.getCreateSQLWithoutName(),
+                            // COLUMN_ON_UPDATE
+                            c.getOnUpdateSQL()
                     );
                 }
             }

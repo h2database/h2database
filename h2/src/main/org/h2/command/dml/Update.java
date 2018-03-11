@@ -7,6 +7,8 @@ package org.h2.command.dml;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Objects;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
@@ -115,19 +117,42 @@ public class Update extends Prepared {
                 if (condition == null || condition.getBooleanValue(session)) {
                     Row oldRow = targetTableFilter.get();
                     Row newRow = table.getTemplateRow();
+                    boolean setOnUpdate = false;
                     for (int i = 0; i < columnCount; i++) {
                         Expression newExpr = expressionMap.get(columns[i]);
+                        Column column = table.getColumn(i);
                         Value newValue;
                         if (newExpr == null) {
+                            if (column.getOnUpdateExpression() != null) {
+                                setOnUpdate = true;
+                            }
                             newValue = oldRow.getValue(i);
                         } else if (newExpr == ValueExpression.getDefault()) {
-                            Column column = table.getColumn(i);
                             newValue = table.getDefaultValue(session, column);
                         } else {
-                            Column column = table.getColumn(i);
                             newValue = column.convert(newExpr.getValue(session));
                         }
                         newRow.setValue(i, newValue);
+                    }
+                    if (setOnUpdate) {
+                        setOnUpdate = false;
+                        for (int i = 0; i < columnCount; i++) {
+                            // Use equals here to detect changes from numeric 0 to 0.0 and similar
+                            if (!Objects.equals(oldRow.getValue(i), newRow.getValue(i))) {
+                                setOnUpdate = true;
+                                break;
+                            }
+                        }
+                        if (setOnUpdate) {
+                            for (int i = 0; i < columnCount; i++) {
+                                if (expressionMap.get(columns[i]) == null) {
+                                    Column column = table.getColumn(i);
+                                    if (column.getOnUpdateExpression() != null) {
+                                        newRow.setValue(i, table.getOnUpdateValue(session, column));
+                                    }
+                                }
+                            }
+                        }
                     }
                     table.validateConvertUpdateSequence(session, newRow);
                     boolean done = false;

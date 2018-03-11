@@ -1479,7 +1479,7 @@ public class DateTimeUtils {
      * @return date truncated to 'day'
      */
     public static Value truncateDate(String timeUnit, Value value) {
-        Value result = null;
+        Value result;
 
         // Retrieve the dateValue.
         long[] fieldDateAndTime = DateTimeUtils.dateAndTimeFromValue(value);

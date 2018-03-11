@@ -1484,9 +1484,28 @@ public class DateTimeUtils {
         // Retrieve the dateValue.
         long[] fieldDateAndTime = DateTimeUtils.dateAndTimeFromValue(value);
         long dateValue = fieldDateAndTime[0];
+        long timeNanos = fieldDateAndTime[1];
 
-        // Case where the date has to be truncated to the day.
-        if (timeUnit.equals("DAY")) {
+        long nanoInHours = 3_600_000_000_000l;
+
+        if (timeUnit.equals("HOUR")) {
+
+            long hour = timeNanos / nanoInHours;
+            long hourInNano = hour * nanoInHours;
+
+            if (value instanceof ValueTimestampTimeZone) {
+
+                ValueTimestampTimeZone vTmp = (ValueTimestampTimeZone) value;
+                result = ValueTimestampTimeZone.fromDateValueAndNanos(vTmp.getDateValue(), hourInNano,
+                        vTmp.getTimeZoneOffsetMins());
+
+            } else {
+
+                result = ValueTimestamp.fromDateValueAndNanos(dateValue, hourInNano);
+
+            }
+
+        } else if (timeUnit.equals("DAY")) {
 
             if (value instanceof ValueTimestampTimeZone) {
 
@@ -1505,7 +1524,9 @@ public class DateTimeUtils {
                 result = ValueTimestamp.fromDateValueAndNanos(dateValue, 0);
 
             }
-        } else {
+        }
+
+        else {
 
             // Return an exception for the other possible value (not yet
             // supported).

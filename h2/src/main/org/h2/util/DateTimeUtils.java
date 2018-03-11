@@ -1470,10 +1470,10 @@ public class DateTimeUtils {
         }
         return nanosOfDay - mod;
     }
-    
+
     /**
      * Truncate the given date to 'day'
-     * 
+     *
      * @param timeUnit the time unit (e.g. 'DAY', 'HOUR', etc.)
      * @param value the date
      * @return date truncated to 'day'
@@ -1500,7 +1500,7 @@ public class DateTimeUtils {
             } else {
 
                 // By default, we create a timestamp by setting the
-                // datevalue to the datevalue retrieved and the time in
+                // date value to the date value retrieved and the time in
                 // nanoseconds since midnight to 0.
                 result = ValueTimestamp.fromDateValueAndNanos(dateValue, 0);
 

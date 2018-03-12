@@ -24,7 +24,9 @@ abstract class AggregateData {
         if (aggregateType == AggregateType.SELECTIVITY) {
             return new AggregateDataSelectivity();
         } else if (aggregateType == AggregateType.GROUP_CONCAT) {
-            return new AggregateDataGroupConcat();
+            return new AggregateDataArrayCollecting();
+        } else if (aggregateType == AggregateType.ARRAY_AGG) {
+            return new AggregateDataArrayCollecting();
         } else if (aggregateType == AggregateType.COUNT_ALL) {
             return new AggregateDataCountAll();
         } else if (aggregateType == AggregateType.COUNT) {

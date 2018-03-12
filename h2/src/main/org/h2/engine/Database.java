@@ -1234,8 +1234,7 @@ public class Database implements DataHandler {
     }
 
     private synchronized void closeAllSessionsException(Session except) {
-        Session[] all = new Session[userSessions.size()];
-        userSessions.toArray(all);
+        Session[] all = userSessions.toArray(new Session[userSessions.size()]);
         for (Session s : all) {
             if (s != except) {
                 try {

@@ -155,8 +155,7 @@ public class IndexCondition {
             v = column.convert(v);
             valueSet.add(v);
         }
-        Value[] array = new Value[valueSet.size()];
-        valueSet.toArray(array);
+        Value[] array = valueSet.toArray(new Value[valueSet.size()]);
         final CompareMode mode = session.getDatabase().getCompareMode();
         Arrays.sort(array, new Comparator<Value>() {
             @Override

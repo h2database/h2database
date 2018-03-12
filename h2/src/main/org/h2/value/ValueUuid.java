@@ -54,7 +54,7 @@ public class ValueUuid extends Value {
         // version 4 (random)
         high = (high & (~0xf000L)) | 0x4000L;
         // variant (Leach-Salz)
-        low = (low & 0x3fffffffffffffffL) | 0x8000000000000000L;
+        low = (low & 0x3fff_ffff_ffff_ffffL) | 0x8000_0000_0000_0000L;
         return new ValueUuid(high, low);
     }
 

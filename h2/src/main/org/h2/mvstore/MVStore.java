@@ -141,7 +141,7 @@ public final class MVStore {
      * Used to mark a chunk as free, when it was detected that live bookkeeping
      * is incorrect.
      */
-    private static final int MARKED_FREE = 10000000;
+    private static final int MARKED_FREE = 10_000_000;
 
     /**
      * The background thread, if any.

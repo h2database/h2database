@@ -48,7 +48,7 @@ public class ValueDecimal extends Value {
     /**
      * The maximum scale of a BigDecimal value.
      */
-    private static final int BIG_DECIMAL_SCALE_MAX = 100000;
+    private static final int BIG_DECIMAL_SCALE_MAX = 100_000;
 
     private final BigDecimal value;
     private String valueString;

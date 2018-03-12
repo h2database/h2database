@@ -129,7 +129,7 @@ public class SysProperties {
      * been set for the database.
      */
     public static final int COLLATOR_CACHE_SIZE =
-            Utils.getProperty("h2.collatorCacheSize", 32000);
+            Utils.getProperty("h2.collatorCacheSize", 32_000);
 
     /**
      * System property <code>h2.consoleTableIndexes</code>
@@ -260,7 +260,7 @@ public class SysProperties {
      * The default maximum number of rows to be kept in memory in a result set.
      */
     public static final int MAX_MEMORY_ROWS =
-            getAutoScaledForMemoryProperty("h2.maxMemoryRows", 40000);
+            getAutoScaledForMemoryProperty("h2.maxMemoryRows", 40_000);
 
     /**
      * System property <code>h2.maxTraceDataLength</code>

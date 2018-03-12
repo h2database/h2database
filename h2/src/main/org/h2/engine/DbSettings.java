@@ -54,7 +54,7 @@ public class DbSettings extends SettingsBase {
      * Database setting <code>ANALYZE_SAMPLE</code> (default: 10000).<br />
      * The default sample size when analyzing a table.
      */
-    public final int analyzeSample = get("ANALYZE_SAMPLE", 10000);
+    public final int analyzeSample = get("ANALYZE_SAMPLE", 10_000);
 
     /**
      * Database setting <code>DATABASE_TO_UPPER</code> (default: true).<br />
@@ -144,7 +144,7 @@ public class DbSettings extends SettingsBase {
      * times out. After the timeout, the LOB is no longer accessible using this
      * reference.
      */
-    public final int lobTimeout = get("LOB_TIMEOUT", 300000);
+    public final int lobTimeout = get("LOB_TIMEOUT", 300_000);
 
     /**
      * Database setting <code>MAX_COMPACT_COUNT</code>

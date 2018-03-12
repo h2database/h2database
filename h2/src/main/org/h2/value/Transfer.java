@@ -372,11 +372,11 @@ public class Transfer {
             } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
                 Timestamp ts = v.getTimestamp();
                 writeLong(DateTimeUtils.getTimeLocalWithoutDst(ts));
-                writeInt(ts.getNanos() % 1000000);
+                writeInt(ts.getNanos() % 1_000_000);
             } else {
                 Timestamp ts = v.getTimestamp();
                 writeLong(ts.getTime());
-                writeInt(ts.getNanos() % 1000000);
+                writeInt(ts.getNanos() % 1_000_000);
             }
             break;
         }
@@ -573,10 +573,10 @@ public class Transfer {
             } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
                 return ValueTimestamp.fromMillisNanos(
                         DateTimeUtils.getTimeUTCWithoutDst(readLong()),
-                        readInt() % 1000000);
+                        readInt() % 1_000_000);
             }
             return ValueTimestamp.fromMillisNanos(readLong(),
-                    readInt() % 1000000);
+                    readInt() % 1_000_000);
         }
         case Value.TIMESTAMP_TZ: {
             return ValueTimestampTimeZone.fromDateValueAndNanos(readLong(),

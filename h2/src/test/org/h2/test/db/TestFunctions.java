@@ -1441,10 +1441,10 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         Statement stat = conn.createStatement();
 
         TimeZone tz = TimeZone.getDefault();
-        boolean daylight = tz.inDaylightTime(new Date());
+        final Timestamp timestamp1979 = Timestamp.valueOf("1979-11-12 08:12:34.560");
+        boolean daylight = tz.inDaylightTime(timestamp1979);
         String tzShortName = tz.getDisplayName(daylight, TimeZone.SHORT);
         String tzLongName = tz.getID();
-        final Timestamp timestamp1979 = Timestamp.valueOf("1979-11-12 08:12:34.560");
 
         stat.executeUpdate("CREATE TABLE T (X TIMESTAMP(6))");
         stat.executeUpdate("INSERT INTO T VALUES " +

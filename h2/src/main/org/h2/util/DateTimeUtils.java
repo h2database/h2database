@@ -1486,14 +1486,6 @@ public class DateTimeUtils {
         long dateValue = fieldDateAndTime[0];
         long timeNanosRetrieved = fieldDateAndTime[1];
 
-        // Variable that contains the number of nanoseconds in 'hour', 'minute',
-        // etc.
-        long nanoInHour = 3_600_000_000_000l;
-        long nanoInMinute = 60_000_000_000l;
-        long nanoInSecond = 1_000_000_000l;
-        long nanoInMilliSecond = 1_000_000l;
-        long nanoInMicroSecond = 1_000l;
-
         // Variable used to the time in nanoseconds of the date truncated.
         long timeNanos;
 
@@ -1502,26 +1494,31 @@ public class DateTimeUtils {
         // result to nanoseconds.
         if (timeUnit.equals("MICROSECONDS")) {
 
+            long nanoInMicroSecond = 1_000l;
             long microseconds = timeNanosRetrieved / nanoInMicroSecond;
             timeNanos = microseconds * nanoInMicroSecond;
 
         } else if (timeUnit.equals("MILLISECONDS")) {
 
+            long nanoInMilliSecond = 1_000_000l;
             long milliseconds = timeNanosRetrieved / nanoInMilliSecond;
             timeNanos = milliseconds * nanoInMilliSecond;
 
         } else if (timeUnit.equals("SECOND")) {
 
+            long nanoInSecond = 1_000_000_000l;
             long seconds = timeNanosRetrieved / nanoInSecond;
             timeNanos = seconds * nanoInSecond;
 
         } else if (timeUnit.equals("MINUTE")) {
 
+            long nanoInMinute = 60_000_000_000l;
             long minutes = timeNanosRetrieved / nanoInMinute;
             timeNanos = minutes * nanoInMinute;
 
         } else if (timeUnit.equals("HOUR")) {
 
+            long nanoInHour = 3_600_000_000_000l;
             long hours = timeNanosRetrieved / nanoInHour;
             timeNanos = hours * nanoInHour;
 

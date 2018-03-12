@@ -566,14 +566,28 @@ public final class DataUtils {
      * @param map the map
      * @return the string builder
      */
-    public static StringBuilder appendMap(StringBuilder buff,
-            HashMap<String, ?> map) {
+    public static StringBuilder appendMap(StringBuilder buff, HashMap<String, ?> map) {
         Object[] keys = map.keySet().toArray();
         Arrays.sort(keys);
         for (Object k : keys) {
-            appendMap(buff, (String) k, map.get(k));
+            String key = (String) k;
+            Object value = map.get(key);
+            if (value instanceof Long) {
+                appendMap(buff, key, (long) value);
+            } else if (value instanceof Integer) {
+                appendMap(buff, key, (int) value);
+            } else {
+                appendMap(buff, key, value.toString());
+            }
         }
         return buff;
+    }
+
+    private static StringBuilder appendMapKey(StringBuilder buff, String key) {
+        if (buff.length() > 0) {
+            buff.append(',');
+        }
+        return buff.append(key).append(':');
     }
 
     /**
@@ -585,25 +599,14 @@ public final class DataUtils {
      * @param key the key
      * @param value the value
      */
-    public static void appendMap(StringBuilder buff, String key, Object value) {
-        if (buff.length() > 0) {
-            buff.append(',');
-        }
-        buff.append(key).append(':');
-        String v;
-        if (value instanceof Long) {
-            v = Long.toHexString((Long) value);
-        } else if (value instanceof Integer) {
-            v = Integer.toHexString((Integer) value);
-        } else {
-            v = value.toString();
-        }
-        if (v.indexOf(',') < 0 && v.indexOf('\"') < 0) {
-            buff.append(v);
+    public static void appendMap(StringBuilder buff, String key, String value) {
+        appendMapKey(buff, key);
+        if (value.indexOf(',') < 0 && value.indexOf('\"') < 0) {
+            buff.append(value);
         } else {
             buff.append('\"');
-            for (int i = 0, size = v.length(); i < size; i++) {
-                char c = v.charAt(i);
+            for (int i = 0, size = value.length(); i < size; i++) {
+                char c = value.charAt(i);
                 if (c == '\"') {
                     buff.append('\\');
                 }
@@ -611,6 +614,30 @@ public final class DataUtils {
             }
             buff.append('\"');
         }
+    }
+
+    /**
+     * Append a key-value pair to the string builder. Keys may not contain a
+     * colon.
+     *
+     * @param buff the target buffer
+     * @param key the key
+     * @param value the value
+     */
+    public static void appendMap(StringBuilder buff, String key, long value) {
+        appendMapKey(buff, key).append(Long.toHexString(value));
+    }
+
+    /**
+     * Append a key-value pair to the string builder. Keys may not contain a
+     * colon.
+     *
+     * @param buff the target buffer
+     * @param key the key
+     * @param value the value
+     */
+    public static void appendMap(StringBuilder buff, String key, int value) {
+        appendMapKey(buff, key).append(Integer.toHexString(value));
     }
 
     /**

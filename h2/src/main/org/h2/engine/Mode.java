@@ -198,6 +198,11 @@ public class Mode {
      */
     public HashMap<String, DataType> typeByNameMap = new HashMap<>();
 
+    /**
+     * Whether to allow C++-style //... line comments.
+     */
+    public boolean allowCppStyleLineComments;
+
     private final String name;
 
     private ModeEnum modeEnum;
@@ -205,6 +210,7 @@ public class Mode {
     static {
         Mode mode = new Mode(ModeEnum.REGULAR.name());
         mode.nullConcatIsNull = true;
+        mode.allowCppStyleLineComments = true;
         add(mode);
 
         mode = new Mode(ModeEnum.DB2.name());
@@ -241,6 +247,7 @@ public class Mode {
         //     org/hsqldb/jdbc/JDBCConnection.html#
         //     setClientInfo%28java.lang.String,%20java.lang.String%29
         mode.supportedClientInfoPropertiesRegEx = null;
+        mode.allowCppStyleLineComments = true;
         add(mode);
 
         mode = new Mode(ModeEnum.MSSQLServer.name());

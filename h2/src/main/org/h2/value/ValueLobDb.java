@@ -27,6 +27,7 @@ import org.h2.store.LobStorageFrontend;
 import org.h2.store.LobStorageInterface;
 import org.h2.store.RangeReader;
 import org.h2.store.fs.FileUtils;
+import org.h2.util.Bits;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
@@ -363,7 +364,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             return Integer.signum(getString().compareTo(v.getString()));
         }
         byte[] v2 = v.getBytesNoCopy();
-        return Utils.compareNotNullSigned(getBytes(), v2);
+        return Bits.compareNotNullSigned(getBytesNoCopy(), v2);
     }
 
     @Override

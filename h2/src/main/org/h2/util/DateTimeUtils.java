@@ -14,6 +14,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.function.Function;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
@@ -1469,87 +1470,6 @@ public class DateTimeUtils {
             nanosOfDay += m;
         }
         return nanosOfDay - mod;
-    }
-
-    /**
-     * Truncate the given date to 'day'
-     *
-     * @param timeUnit the time unit (e.g. 'DAY', 'HOUR', etc.)
-     * @param value the date
-     * @return date truncated to 'day'
-     */
-    public static Value truncateDate(String timeUnit, Value value) {
-        Value result;
-
-        // Retrieve the dateValue and the time in nanoseconds if the date.
-        long[] fieldDateAndTime = DateTimeUtils.dateAndTimeFromValue(value);
-        long dateValue = fieldDateAndTime[0];
-        long timeNanosRetrieved = fieldDateAndTime[1];
-
-        // Variable used to the time in nanoseconds of the date truncated.
-        long timeNanos;
-
-        // Compute the number of time unit in the date, for example, the
-        // number of time unit 'HOUR' in '15:14:13' is '15'. Then convert the
-        // result to nanoseconds.
-        if (timeUnit.equals("MICROSECONDS")) {
-
-            long nanoInMicroSecond = 1_000l;
-            long microseconds = timeNanosRetrieved / nanoInMicroSecond;
-            timeNanos = microseconds * nanoInMicroSecond;
-
-        } else if (timeUnit.equals("MILLISECONDS")) {
-
-            long nanoInMilliSecond = 1_000_000l;
-            long milliseconds = timeNanosRetrieved / nanoInMilliSecond;
-            timeNanos = milliseconds * nanoInMilliSecond;
-
-        } else if (timeUnit.equals("SECOND")) {
-
-            long nanoInSecond = 1_000_000_000l;
-            long seconds = timeNanosRetrieved / nanoInSecond;
-            timeNanos = seconds * nanoInSecond;
-
-        } else if (timeUnit.equals("MINUTE")) {
-
-            long nanoInMinute = 60_000_000_000l;
-            long minutes = timeNanosRetrieved / nanoInMinute;
-            timeNanos = minutes * nanoInMinute;
-
-        } else if (timeUnit.equals("HOUR")) {
-
-            long nanoInHour = 3_600_000_000_000l;
-            long hours = timeNanosRetrieved / nanoInHour;
-            timeNanos = hours * nanoInHour;
-
-        } else if (timeUnit.equals("DAY")) {
-
-            timeNanos = 0l;
-
-        } else {
-
-            // Return an exception for the other possible value (not yet
-            // supported).
-            throw DbException.getUnsupportedException(timeUnit);
-        }
-
-        if (value instanceof ValueTimestampTimeZone) {
-
-            // Case we create a timestamp with timezone with the dateValue and
-            // timeNanos computed.
-            ValueTimestampTimeZone vTmp = (ValueTimestampTimeZone) value;
-            result = ValueTimestampTimeZone.fromDateValueAndNanos(vTmp.getDateValue(), timeNanos,
-                    vTmp.getTimeZoneOffsetMins());
-
-        } else {
-
-            // By default, we create a timestamp with the dateValue and
-            // timeNanos computed.
-            result = ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
-
-        }
-
-        return result;
     }
 
 }

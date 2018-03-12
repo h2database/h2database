@@ -208,9 +208,11 @@ public class Function extends Expression implements FunctionCall {
         DATE_PART.put("SS", SECOND);
         DATE_PART.put("S", SECOND);
         DATE_PART.put("MILLISECOND", MILLISECOND);
+        DATE_PART.put("MILLISECONDS", MILLISECOND);
         DATE_PART.put("MS", MILLISECOND);
         DATE_PART.put("EPOCH", EPOCH);
         DATE_PART.put("MICROSECOND", MICROSECOND);
+        DATE_PART.put("MICROSECONDS", MICROSECOND);
         DATE_PART.put("MCS", MICROSECOND);
         DATE_PART.put("NANOSECOND", NANOSECOND);
         DATE_PART.put("NS", NANOSECOND);
@@ -1496,11 +1498,10 @@ public class Function extends Expression implements FunctionCall {
             result = ValueLong.get(datediff(v0.getString(), v1, v2));
             break;
         case DATE_TRUNC:
-            // Retrieve the time unit (e.g. 'day', 'microseconds', etc.)
-            String timeUnit = StringUtils.toUpperEnglish(v0.getString());
-
-            result = DateTimeUtils.truncateDate(timeUnit, v1);
-
+            // Retrieve the time unit (e.g. 'day', 'microseconds', etc.) and
+            // truncate the date
+            int timeUnit = getDatePart(v0.getString());
+            result = truncateDate(v0.getString(), timeUnit, v1);
             break;
         case EXTRACT: {
             int field = getDatePart(v0.getString());
@@ -2982,6 +2983,95 @@ public class Function extends Expression implements FunctionCall {
         }
         }
         throw DbException.getUnsupportedException("getDatePart(" + date + ", " + field + ')');
+    }
+    
+    /**
+     * Truncate the given date to 'day'
+     *
+     * @param timeUnit the time unit (e.g. 'DAY', 'HOUR', etc.)
+     * @param value the date
+     * @return date truncated to 'day'
+     */
+    public static Value truncateDate(String timeUnitStr, int timeUnit, Value value) {
+        Value result;
+
+        // Retrieve the dateValue and the time in nanoseconds if the date.
+        long[] fieldDateAndTime = DateTimeUtils.dateAndTimeFromValue(value);
+        long dateValue = fieldDateAndTime[0];
+        long timeNanosRetrieved = fieldDateAndTime[1];
+
+        // Variable used to the time in nanoseconds of the date truncated.
+        long timeNanos = 0l;
+
+        // Compute the number of time unit in the date, for example, the
+        // number of time unit 'HOUR' in '15:14:13' is '15'. Then convert the
+        // result to nanoseconds.
+        switch (timeUnit) {
+        
+        case MICROSECOND:
+
+            long nanoInMicroSecond = 1_000l;
+            long microseconds = timeNanosRetrieved / nanoInMicroSecond;
+            timeNanos = microseconds * nanoInMicroSecond;
+            break;
+
+        case MILLISECOND:
+            
+            long nanoInMilliSecond = 1_000_000l;
+            long milliseconds = timeNanosRetrieved / nanoInMilliSecond;
+            timeNanos = milliseconds * nanoInMilliSecond;
+            break;
+
+        case SECOND:
+
+            long nanoInSecond = 1_000_000_000l;
+            long seconds = timeNanosRetrieved / nanoInSecond;
+            timeNanos = seconds * nanoInSecond;
+            break;
+
+        case MINUTE:
+
+            long nanoInMinute = 60_000_000_000l;
+            long minutes = timeNanosRetrieved / nanoInMinute;
+            timeNanos = minutes * nanoInMinute;
+            break;
+
+        case HOUR:
+            
+            long nanoInHour = 3_600_000_000_000l;
+            long hours = timeNanosRetrieved / nanoInHour;
+            timeNanos = hours * nanoInHour;
+            break;
+
+        case DAY_OF_MONTH:
+            
+            timeNanos = 0l;
+            break;
+
+        default:
+            
+            // Return an exception in the timeUnit is not recognized
+            throw DbException.getUnsupportedException(timeUnitStr);
+
+        }
+
+        if (value instanceof ValueTimestampTimeZone) {
+
+            // Case we create a timestamp with timezone with the dateValue and
+            // timeNanos computed.
+            ValueTimestampTimeZone vTmp = (ValueTimestampTimeZone) value;
+            result = ValueTimestampTimeZone.fromDateValueAndNanos(vTmp.getDateValue(), timeNanos,
+                    vTmp.getTimeZoneOffsetMins());
+
+        } else {
+
+            // By default, we create a timestamp with the dateValue and
+            // timeNanos computed.
+            result = ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
+
+        }
+
+        return result;
     }
 
     @Override

@@ -15,7 +15,6 @@ import java.nio.channels.FileLock;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-import org.h2.mvstore.DataUtils;
 import org.h2.security.AES;
 import org.h2.security.BlockCipher;
 import org.h2.security.SHA256;
@@ -194,11 +193,11 @@ public class FilePathEncrypt extends FilePathWrapper {
                 byte[] header = Arrays.copyOf(HEADER, BLOCK_SIZE);
                 salt = MathUtils.secureRandomBytes(SALT_LENGTH);
                 System.arraycopy(salt, 0, header, SALT_POS, salt.length);
-                DataUtils.writeFully(base, 0, ByteBuffer.wrap(header));
+                writeFully(base, 0, ByteBuffer.wrap(header));
                 size = 0;
             } else {
                 salt = new byte[SALT_LENGTH];
-                DataUtils.readFully(base, SALT_POS, ByteBuffer.wrap(salt));
+                readFully(base, SALT_POS, ByteBuffer.wrap(salt));
                 if ((size & BLOCK_SIZE_MASK) != 0) {
                     size -= BLOCK_SIZE;
                 }
@@ -319,7 +318,7 @@ public class FilePathEncrypt extends FilePathWrapper {
                 int plus = (int) (size & BLOCK_SIZE_MASK);
                 if (plus > 0) {
                     temp = ByteBuffer.allocate(plus);
-                    DataUtils.writeFully(base, p + HEADER_LENGTH + l, temp);
+                    writeFully(base, p + HEADER_LENGTH + l, temp);
                 }
                 return len;
             }

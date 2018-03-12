@@ -19,7 +19,6 @@ import org.h2.engine.Constants;
 import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
-import org.h2.mvstore.DataUtils;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
@@ -430,11 +429,11 @@ public class ValueLob extends Value {
                 buff = IOUtils.readBytesAndClose(in, -1);
                 len = buff.length;
             } else {
-                buff = DataUtils.newBytes(len);
+                buff = Utils.newBytes(len);
                 len = IOUtils.readFully(in, buff, len);
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
-                byte[] small = DataUtils.copyBytes(buff, len);
+                byte[] small = Utils.copyBytes(buff, len);
                 return ValueLob.createSmallLob(Value.BLOB, small);
             }
             ValueLob lob = new ValueLob(Value.BLOB, null);
@@ -796,7 +795,7 @@ public class ValueLob extends Value {
                 int tabId = tableId;
                 if (type == Value.BLOB) {
                     createFromStream(
-                            DataUtils.newBytes(len), 0, getInputStream(), Long.MAX_VALUE, h);
+                            Utils.newBytes(len), 0, getInputStream(), Long.MAX_VALUE, h);
                 } else {
                     createFromReader(
                             new char[len], 0, getReader(), Long.MAX_VALUE, h);

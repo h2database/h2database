@@ -26,6 +26,7 @@ import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
+import org.h2.util.Utils;
 
 /**
  * Utility methods used in combination with the MVStore.
@@ -226,7 +227,7 @@ public class MVStoreTool {
                             Compressor compressor = getCompressor(fast);
                             int lenAdd = DataUtils.readVarInt(chunk);
                             int compLen = pageSize + start - chunk.position();
-                            byte[] comp = DataUtils.newBytes(compLen);
+                            byte[] comp = Utils.newBytes(compLen);
                             chunk.get(comp);
                             int l = compLen + lenAdd;
                             data = ByteBuffer.allocate(l);

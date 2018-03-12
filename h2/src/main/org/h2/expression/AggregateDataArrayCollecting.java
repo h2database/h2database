@@ -13,11 +13,11 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
 /**
- * Data stored while calculating a GROUP_CONCAT aggregate.
+ * Data stored while calculating a GROUP_CONCAT/ARRAY_AGG aggregate.
  */
-class AggregateDataGroupConcat extends AggregateData {
+class AggregateDataArrayCollecting extends AggregateData {
     private ArrayList<Value> list;
-    private ValueHashMap<AggregateDataGroupConcat> distinctValues;
+    private ValueHashMap<AggregateDataArrayCollecting> distinctValues;
 
     @Override
     void add(Database database, int dataType, boolean distinct, Value v) {
@@ -40,7 +40,7 @@ class AggregateDataGroupConcat extends AggregateData {
     @Override
     Value getValue(Database database, int dataType, boolean distinct) {
         if (distinct) {
-            groupDistinct(database, dataType);
+            distinct(database, dataType);
         }
         return null;
     }
@@ -49,7 +49,7 @@ class AggregateDataGroupConcat extends AggregateData {
         return list;
     }
 
-    private void groupDistinct(Database database, int dataType) {
+    private void distinct(Database database, int dataType) {
         if (distinctValues == null) {
             return;
         }

@@ -2949,6 +2949,19 @@ Aggregates are only allowed in select statements.
 GROUP_CONCAT(NAME ORDER BY ID SEPARATOR ', ')
 "
 
+"Functions (Aggregate)","ARRAY_AGG","
+ARRAY_AGG ( [ DISTINCT ] string
+[ ORDER BY { expression [ ASC | DESC ] } [,...] ] )
+[ FILTER ( WHERE expression ) ]
+","
+Aggregate the value into an array.
+This method returns an array.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+ARRAY_AGG(NAME ORDER BY ID)
+"
+
 "Functions (Aggregate)","MAX","
 MAX(value) [ FILTER ( WHERE expression ) ]
 ","

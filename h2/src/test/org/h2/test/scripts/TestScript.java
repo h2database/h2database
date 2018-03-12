@@ -110,7 +110,7 @@ public class TestScript extends TestBase {
         }
         for (String s : new String[] { "avg", "bit-and", "bit-or", "count",
                 "group-concat", "max", "median", "min", "selectivity", "stddev-pop",
-                "stddev-samp", "sum", "var-pop", "var-samp" }) {
+                "stddev-samp", "sum", "var-pop", "var-samp", "array-agg" }) {
             testScript("functions/aggregate/" + s + ".sql");
         }
         for (String s : new String[] { "abs", "acos", "asin", "atan", "atan2",

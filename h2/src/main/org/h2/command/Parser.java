@@ -2651,6 +2651,15 @@ public class Parser {
             } else {
                 r = null;
             }
+        } else if (aggregateType == AggregateType.ARRAY_AGG) {
+            boolean distinct = readIf("DISTINCT");
+
+            r = new Aggregate(AggregateType.ARRAY_AGG,
+                readExpression(), currentSelect, distinct);
+            if (readIf("ORDER")) {
+                read("BY");
+                r.setArrayAggOrder(parseSimpleOrderList());
+            }
         } else {
             boolean distinct = readIf("DISTINCT");
             r = new Aggregate(aggregateType, readExpression(), currentSelect,

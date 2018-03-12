@@ -181,13 +181,13 @@ public class CompressTool {
             buff[pos++] = (byte) (0x80 | (x >> 8));
             buff[pos] = (byte) x;
             return 2;
-        } else if (x < 0x200000) {
+        } else if (x < 0x20_0000) {
             buff[pos++] = (byte) (0xc0 | (x >> 16));
             buff[pos++] = (byte) (x >> 8);
             buff[pos] = (byte) x;
             return 3;
-        } else if (x < 0x10000000) {
-            Bits.writeInt(buff, pos, x | 0xe0000000);
+        } else if (x < 0x1000_0000) {
+            Bits.writeInt(buff, pos, x | 0xe000_0000);
             return 4;
         } else {
             buff[pos++] = (byte) 0xf0;
@@ -210,9 +210,9 @@ public class CompressTool {
             return 1;
         } else if (x < 0x4000) {
             return 2;
-        } else if (x < 0x200000) {
+        } else if (x < 0x20_0000) {
             return 3;
-        } else if (x < 0x10000000) {
+        } else if (x < 0x1000_0000) {
             return 4;
         } else {
             return 5;

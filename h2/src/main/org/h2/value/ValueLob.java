@@ -26,6 +26,7 @@ import org.h2.store.FileStoreOutputStream;
 import org.h2.store.RangeInputStream;
 import org.h2.store.RangeReader;
 import org.h2.store.fs.FileUtils;
+import org.h2.util.Bits;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.SmallLRUCache;
@@ -674,7 +675,7 @@ public class ValueLob extends Value {
             return Integer.signum(getString().compareTo(v.getString()));
         }
         byte[] v2 = v.getBytesNoCopy();
-        return Utils.compareNotNullSigned(getBytes(), v2);
+        return Bits.compareNotNullSigned(getBytesNoCopy(), v2);
     }
 
     @Override

@@ -2234,10 +2234,10 @@ public class Function extends Expression implements FunctionCall {
     }
 
     private static double roundMagic(double d) {
-        if ((d < 0.0000000000001) && (d > -0.0000000000001)) {
+        if ((d < 0.000_000_000_000_1) && (d > -0.000_000_000_000_1)) {
             return 0.0;
         }
-        if ((d > 1000000000000.) || (d < -1000000000000.)) {
+        if ((d > 1_000_000_000_000d) || (d < -1_000_000_000_000d)) {
             return d;
         }
         StringBuilder s = new StringBuilder();

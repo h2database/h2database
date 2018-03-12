@@ -78,7 +78,7 @@ public class LobStorageBackend implements LobStorageInterface {
     /**
      * The size of the chunks we use when storing LOBs inside the database file.
      */
-    private static final int BLOCK_LENGTH = 20000;
+    private static final int BLOCK_LENGTH = 20_000;
 
     /**
      * The size of cache for lob block hashes. Each entry needs 2 longs (16

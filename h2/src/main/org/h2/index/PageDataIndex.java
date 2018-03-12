@@ -143,7 +143,7 @@ public class PageDataIndex extends PageIndex {
                 if (add == 0) {
                     // in the first re-try add a small random number,
                     // to avoid collisions after a re-start
-                    row.setKey((long) (row.getKey() + Math.random() * 10000));
+                    row.setKey((long) (row.getKey() + Math.random() * 10_000));
                 } else {
                     row.setKey(row.getKey() + add);
                 }

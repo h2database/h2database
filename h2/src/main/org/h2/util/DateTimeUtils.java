@@ -50,7 +50,7 @@ public class DateTimeUtils {
     /**
      * The number of nanoseconds per day.
      */
-    public static final long NANOS_PER_DAY = MILLIS_PER_DAY * 1000000;
+    public static final long NANOS_PER_DAY = MILLIS_PER_DAY * 1_000_000;
 
     private static final int SHIFT_YEAR = 9;
     private static final int SHIFT_MONTH = 5;
@@ -229,10 +229,10 @@ public class DateTimeUtils {
         cal.clear();
         cal.setLenient(true);
         long nanos = t.getNanos();
-        long millis = nanos / 1000000;
-        nanos -= millis * 1000000;
-        long s = millis / 1000;
-        millis -= s * 1000;
+        long millis = nanos / 1_000_000;
+        nanos -= millis * 1_000_000;
+        long s = millis / 1_000;
+        millis -= s * 1_000;
         long m = s / 60;
         s -= m * 60;
         long h = m / 60;
@@ -257,10 +257,10 @@ public class DateTimeUtils {
         cal.setLenient(true);
         long dateValue = ts.getDateValue();
         long nanos = ts.getTimeNanos();
-        long millis = nanos / 1000000;
-        nanos -= millis * 1000000;
-        long s = millis / 1000;
-        millis -= s * 1000;
+        long millis = nanos / 1_000_000;
+        nanos -= millis * 1_000_000;
+        long s = millis / 1_000;
+        millis -= s * 1_000;
         long m = s / 60;
         s -= m * 60;
         long h = m / 60;
@@ -269,7 +269,7 @@ public class DateTimeUtils {
                 monthFromDateValue(dateValue), dayFromDateValue(dateValue),
                 (int) h, (int) m, (int) s, (int) millis);
         Timestamp x = new Timestamp(ms);
-        x.setNanos((int) (nanos + millis * 1000000));
+        x.setNanos((int) (nanos + millis * 1_000_000));
         return x;
     }
 
@@ -323,7 +323,7 @@ public class DateTimeUtils {
         cal.setTimeInMillis(x.getTime());
         long dateValue = dateValueFromCalendar(cal);
         long nanos = nanosFromCalendar(cal);
-        nanos += x.getNanos() % 1000000;
+        nanos += x.getNanos() % 1_000_000;
         return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
     }
 
@@ -408,14 +408,14 @@ public class DateTimeUtils {
             String n = (s.substring(s3 + 1, end) + "000000000").substring(0, 9);
             nanos = Integer.parseInt(n);
         }
-        if (hour >= 2000000 || minute < 0 || minute >= 60 || second < 0
+        if (hour >= 2_000_000 || minute < 0 || minute >= 60 || second < 0
                 || second >= 60) {
             throw new IllegalArgumentException(s);
         }
         if (timeOfDay && hour >= 24) {
             throw new IllegalArgumentException(s);
         }
-        nanos += ((((hour * 60L) + minute) * 60) + second) * 1000000000;
+        nanos += ((((hour * 60L) + minute) * 60) + second) * 1_000_000_000;
         return negative ? -nanos : nanos;
     }
 
@@ -507,13 +507,13 @@ public class DateTimeUtils {
             if (tz != null) {
                 if (withTimeZone) {
                     if (tz != UTC) {
-                        long millis = convertDateTimeValueToMillis(tz, dateValue, nanos / 1000000);
+                        long millis = convertDateTimeValueToMillis(tz, dateValue, nanos / 1_000_000);
                         tzMinutes = (short) (tz.getOffset(millis) / 1000 / 60);
                     }
                 } else {
-                    long millis = convertDateTimeValueToMillis(tz, dateValue, nanos / 1000000);
+                    long millis = convertDateTimeValueToMillis(tz, dateValue, nanos / 1_000_000);
                     dateValue = dateValueFromDate(millis);
-                    nanos = nanos % 1000000 + nanosFromDate(millis);
+                    nanos = nanos % 1_000_000 + nanosFromDate(millis);
                 }
             }
         }
@@ -1031,9 +1031,9 @@ public class DateTimeUtils {
      * @return the time
      */
     public static Time convertNanoToTime(long nanosSinceMidnight) {
-        long millis = nanosSinceMidnight / 1000000;
-        long s = millis / 1000;
-        millis -= s * 1000;
+        long millis = nanosSinceMidnight / 1_000_000;
+        long s = millis / 1_000;
+        millis -= s * 1_000;
         long m = s / 60;
         s -= m * 60;
         long h = m / 60;
@@ -1246,7 +1246,7 @@ public class DateTimeUtils {
             y--;
             m += 12;
         }
-        long a = ((y * 2922L) >> 3) + DAYS_OFFSET[m - 3] + d - 719484;
+        long a = ((y * 2922L) >> 3) + DAYS_OFFSET[m - 3] + d - 719_484;
         if (y <= 1582 && ((y < 1582) || (m * 100 + d < 1015))) {
             // Julian calendar (cutover at 1582-10-04 / 1582-10-15)
             a += 13;
@@ -1272,7 +1272,7 @@ public class DateTimeUtils {
             y--;
             m += 12;
         }
-        long a = ((y * 2922L) >> 3) + DAYS_OFFSET[m - 3] + d - 719484;
+        long a = ((y * 2922L) >> 3) + DAYS_OFFSET[m - 3] + d - 719_484;
         if (y < 1901 || y > 2099) {
             // Slow mode
             a += (y / 400) - (y / 100) + 15;
@@ -1287,19 +1287,19 @@ public class DateTimeUtils {
      * @return the date value
      */
     public static long dateValueFromAbsoluteDay(long absoluteDay) {
-        long d = absoluteDay + 719468;
+        long d = absoluteDay + 719_468;
         long y100 = 0, offset;
-        if (d > 578040) {
+        if (d > 578_040) {
             // Gregorian calendar
-            long y400 = d / 146097;
-            d -= y400 * 146097;
-            y100 = d / 36524;
-            d -= y100 * 36524;
+            long y400 = d / 146_097;
+            d -= y400 * 146_097;
+            y100 = d / 36_524;
+            d -= y100 * 36_524;
             offset = y400 * 400 + y100 * 100;
         } else {
             // Julian calendar
-            d += 292200000002L;
-            offset = -800000000;
+            d += 292_200_000_002L;
+            offset = -800_000_000;
         }
         long y4 = d / 1461;
         d -= y4 * 1461;
@@ -1330,7 +1330,7 @@ public class DateTimeUtils {
         int y = yearFromDateValue(dateValue);
         int m = monthFromDateValue(dateValue);
         int d = dayFromDateValue(dateValue);
-        if (y > 0 && y < 10000) {
+        if (y > 0 && y < 10_000) {
             StringUtils.appendZeroPadded(buff, 4, y);
         } else {
             buff.append(y);
@@ -1358,10 +1358,10 @@ public class DateTimeUtils {
          * get correct result. The simplest way to do this with such constraints is to
          * divide -nanos by -1000000.
          */
-        long ms = -nanos / -1000000;
-        nanos -= ms * 1000000;
-        long s = ms / 1000;
-        ms -= s * 1000;
+        long ms = -nanos / -1_000_000;
+        nanos -= ms * 1_000_000;
+        long s = ms / 1_000;
+        ms -= s * 1_000;
         long m = s / 60;
         s -= m * 60;
         long h = m / 60;

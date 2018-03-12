@@ -81,8 +81,7 @@ public class SpellChecker {
         // System.out.println(unused);
         if (printDictionary) {
             System.out.println("USED WORDS");
-            String[] list = new String[used.size()];
-            used.toArray(list);
+            String[] list = used.toArray(new String[used.size()]);
             Arrays.sort(list);
             StringBuilder buff = new StringBuilder();
             for (String s : list) {

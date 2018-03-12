@@ -224,7 +224,7 @@ public class MathUtils {
     public static int nextPowerOf2(int x) throws IllegalArgumentException {
         if (x == 0) {
             return 1;
-        } else if (x < 0 || x > 0x40000000 ) {
+        } else if (x < 0 || x > 0x4000_0000 ) {
             throw new IllegalArgumentException("Argument out of range"
                     + " [0x0-0x40000000]. Argument was: " + x);
         }

@@ -149,7 +149,7 @@ public abstract class Query extends Prepared {
     public int getCostAsExpression() {
         // ensure the cost is not larger than 1 million,
         // so that adding other values can't overflow
-        return (int) Math.min(1000000.0, 10.0 + 10.0 * getCost());
+        return (int) Math.min(1_000_000d, 10d + 10d * getCost());
     }
 
     /**

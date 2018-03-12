@@ -311,7 +311,7 @@ public abstract class Command implements CommandInterface {
                 errorCode != ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
             throw e;
         }
-        long now = System.nanoTime() / 1000000;
+        long now = System.nanoTime() / 1_000_000;
         if (start != 0 && now - start > session.getLockTimeout()) {
             throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, e.getCause(), "");
         }
@@ -327,7 +327,7 @@ public abstract class Command implements CommandInterface {
             } catch (InterruptedException e1) {
                 // ignore
             }
-            long slept = System.nanoTime() / 1000000 - now;
+            long slept = System.nanoTime() / 1_000_000 - now;
             if (slept >= sleep) {
                 break;
             }

@@ -135,7 +135,7 @@ public class Aggregate extends Expression {
         ARRAY_AGG
     }
 
-    private static final HashMap<String, AggregateType> AGGREGATES = new HashMap<>(25);
+    private static final HashMap<String, AggregateType> AGGREGATES = new HashMap<>(26);
 
     private final AggregateType type;
     private final Select select;

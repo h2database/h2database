@@ -154,11 +154,6 @@ public final class DataUtils {
     public static final int PAGE_LARGE = 2 * 1024 * 1024;
 
     /**
-     * An 0-size byte array.
-     */
-    private static final byte[] EMPTY_BYTES = {};
-
-    /**
      * Get the length of the variable size int.
      *
      * @param x the value
@@ -935,62 +930,6 @@ public final class DataUtils {
             }
         }
         return 0;
-    }
-
-    /**
-     * Create an array of bytes with the given size. If this is not possible
-     * because not enough memory is available, an OutOfMemoryError with the
-     * requested size in the message is thrown.
-     * <p>
-     * This method should be used if the size of the array is user defined, or
-     * stored in a file, so wrong size data can be distinguished from regular
-     * out-of-memory.
-     * </p>
-     *
-     * @param len the number of bytes requested
-     * @return the byte array
-     * @throws OutOfMemoryError if the allocation was too large
-     */
-    public static byte[] newBytes(int len) {
-        if (len == 0) {
-            return EMPTY_BYTES;
-        }
-        try {
-            return new byte[len];
-        } catch (OutOfMemoryError e) {
-            Error e2 = new OutOfMemoryError("Requested memory: " + len);
-            e2.initCause(e);
-            throw e2;
-        }
-    }
-
-    /**
-     * Creates a copy of array of bytes with the new size. If this is not possible
-     * because not enough memory is available, an OutOfMemoryError with the
-     * requested size in the message is thrown.
-     * <p>
-     * This method should be used if the size of the array is user defined, or
-     * stored in a file, so wrong size data can be distinguished from regular
-     * out-of-memory.
-     * </p>
-     *
-     * @param bytes source array
-     * @param len the number of bytes in the new array
-     * @return the byte array
-     * @throws OutOfMemoryError if the allocation was too large
-     * @see Arrays#copyOf(byte[], int)
-     */
-    public static byte[] copyBytes(byte[] bytes, int len) {
-        if (len == 0) {
-            return EMPTY_BYTES;
-        }
-        try {
-            return Arrays.copyOf(bytes, len);
-        } catch (OutOfMemoryError e) {
-            Error e2 = new OutOfMemoryError("Requested memory: " + len);
-            e2.initCause(e);
-            throw e2;
-        }
     }
 
     /**

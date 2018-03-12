@@ -19,7 +19,6 @@ import org.h2.engine.Constants;
 import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
-import org.h2.mvstore.DataUtils;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
@@ -611,11 +610,11 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                 buff = IOUtils.readBytesAndClose(in, -1);
                 len = buff.length;
             } else {
-                buff = DataUtils.newBytes(len);
+                buff = Utils.newBytes(len);
                 len = IOUtils.readFully(in, buff, len);
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
-                byte[] small = DataUtils.copyBytes(buff, len);
+                byte[] small = Utils.copyBytes(buff, len);
                 return ValueLobDb.createSmallLob(Value.BLOB, small, small.length);
             }
             ValueLobDb lob = new ValueLobDb(handler, buff, len, in, remaining);

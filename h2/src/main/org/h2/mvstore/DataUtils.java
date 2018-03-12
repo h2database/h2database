@@ -12,9 +12,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -570,10 +568,10 @@ public final class DataUtils {
      */
     public static StringBuilder appendMap(StringBuilder buff,
             HashMap<String, ?> map) {
-        ArrayList<String> list = new ArrayList<>(map.keySet());
-        Collections.sort(list);
-        for (String k : list) {
-            appendMap(buff, k, map.get(k));
+        Object[] keys = map.keySet().toArray();
+        Arrays.sort(keys);
+        for (Object k : keys) {
+            appendMap(buff, (String) k, map.get(k));
         }
         return buff;
     }

@@ -6727,6 +6727,7 @@ public class Parser {
                 cols[0].columnName = column.getName();
                 AlterTableAddConstraint pk = new AlterTableAddConstraint(
                         session, schema, false);
+                pk.setConstraintName(constraintName);
                 pk.setPrimaryKeyHash(hash);
                 pk.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY);
                 pk.setTableName(tableName);

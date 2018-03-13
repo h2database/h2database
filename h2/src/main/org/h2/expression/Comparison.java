@@ -16,10 +16,7 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.MathUtils;
-import org.h2.value.Value;
-import org.h2.value.ValueBoolean;
-import org.h2.value.ValueGeometry;
-import org.h2.value.ValueNull;
+import org.h2.value.*;
 
 /**
  * Example comparison expressions are ID=1, NAME=NAME, NAME IS NULL.
@@ -266,10 +263,26 @@ public class Comparison extends Condition {
             }
         }
         int dataType = Value.getHigherOrder(left.getType(), right.getType());
-        l = l.convertTo(dataType);
-        r = r.convertTo(dataType);
+        if (dataType == Value.ENUM) {
+            String[] enumerators = getEnumerators(l, r);
+            l = l.convertToEnum(enumerators);
+            r = r.convertToEnum(enumerators);
+        } else {
+            l = l.convertTo(dataType);
+            r = r.convertTo(dataType);
+        }
         boolean result = compareNotNull(database, l, r, compareType);
         return ValueBoolean.get(result);
+    }
+
+    private String[] getEnumerators(Value left, Value right) {
+        if (left.getType() == Value.ENUM) {
+            return ((ValueEnum) left).getEnumerators();
+        } else if (right.getType() == Value.ENUM) {
+            return ((ValueEnum) right).getEnumerators();
+        } else {
+            return new String[0];
+        }
     }
 
     /**

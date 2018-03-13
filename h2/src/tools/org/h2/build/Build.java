@@ -525,15 +525,21 @@ public class Build extends BuildBase {
     }
 
     /**
+     * Add META-INF/versions for Java 9+.
+     */
+    private void addVersions() {
+        copy("temp/META-INF/versions/9", files("src/java9/precompiled"), "src/java9/precompiled");
+    }
+
+    /**
      * Create the regular h2.jar file.
      */
     @Description(summary = "Create the regular h2.jar file.")
     public void jar() {
         compile();
-        FileList files = files("src/java9/precompiled");
-        copy("temp/META-INF/versions/9", files, "src/java9/precompiled");
+        addVersions();
         manifest("H2 Database Engine", "org.h2.tools.Console");
-        files = files("temp").
+        FileList files = files("temp").
             exclude("temp/android/*").
             exclude("temp/org/h2/android/*").
             exclude("temp/org/h2/build/*").
@@ -596,6 +602,7 @@ public class Build extends BuildBase {
     @Description(summary = "Create h2client.jar with only the remote JDBC implementation.")
     public void jarClient() {
         compile(true, true, false);
+        addVersions();
         FileList files = files("temp").
             exclude("temp/org/h2/build/*").
             exclude("temp/org/h2/dev/*").
@@ -622,6 +629,7 @@ public class Build extends BuildBase {
     @Description(summary = "Create h2mvstore.jar containing only the MVStore.")
     public void jarMVStore() {
         compileMVStore(true);
+        addVersions();
         manifestMVStore();
         FileList files = files("temp");
         files.exclude("*.DS_Store");
@@ -636,6 +644,7 @@ public class Build extends BuildBase {
     @Description(summary = "Create h2small.jar containing only the embedded database.")
     public void jarSmall() {
         compile(false, false, true);
+        addVersions();
         FileList files = files("temp").
             exclude("temp/android/*").
             exclude("temp/org/h2/android/*").

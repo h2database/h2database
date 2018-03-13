@@ -12,9 +12,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -158,11 +156,6 @@ public final class DataUtils {
      * The marker size of a very large page.
      */
     public static final int PAGE_LARGE = 2 * 1024 * 1024;
-
-    /**
-     * An 0-size byte array.
-     */
-    private static final byte[] EMPTY_BYTES = {};
 
     /**
      * Get the length of the variable size int.
@@ -582,14 +575,28 @@ public final class DataUtils {
      * @param map the map
      * @return the string builder
      */
-    public static StringBuilder appendMap(StringBuilder buff,
-            HashMap<String, ?> map) {
-        ArrayList<String> list = new ArrayList<>(map.keySet());
-        Collections.sort(list);
-        for (String k : list) {
-            appendMap(buff, k, map.get(k));
+    public static StringBuilder appendMap(StringBuilder buff, HashMap<String, ?> map) {
+        Object[] keys = map.keySet().toArray();
+        Arrays.sort(keys);
+        for (Object k : keys) {
+            String key = (String) k;
+            Object value = map.get(key);
+            if (value instanceof Long) {
+                appendMap(buff, key, (long) value);
+            } else if (value instanceof Integer) {
+                appendMap(buff, key, (int) value);
+            } else {
+                appendMap(buff, key, value.toString());
+            }
         }
         return buff;
+    }
+
+    private static StringBuilder appendMapKey(StringBuilder buff, String key) {
+        if (buff.length() > 0) {
+            buff.append(',');
+        }
+        return buff.append(key).append(':');
     }
 
     /**
@@ -601,25 +608,14 @@ public final class DataUtils {
      * @param key the key
      * @param value the value
      */
-    public static void appendMap(StringBuilder buff, String key, Object value) {
-        if (buff.length() > 0) {
-            buff.append(',');
-        }
-        buff.append(key).append(':');
-        String v;
-        if (value instanceof Long) {
-            v = Long.toHexString((Long) value);
-        } else if (value instanceof Integer) {
-            v = Integer.toHexString((Integer) value);
-        } else {
-            v = value.toString();
-        }
-        if (v.indexOf(',') < 0 && v.indexOf('\"') < 0) {
-            buff.append(v);
+    public static void appendMap(StringBuilder buff, String key, String value) {
+        appendMapKey(buff, key);
+        if (value.indexOf(',') < 0 && value.indexOf('\"') < 0) {
+            buff.append(value);
         } else {
             buff.append('\"');
-            for (int i = 0, size = v.length(); i < size; i++) {
-                char c = v.charAt(i);
+            for (int i = 0, size = value.length(); i < size; i++) {
+                char c = value.charAt(i);
                 if (c == '\"') {
                     buff.append('\\');
                 }
@@ -627,6 +623,30 @@ public final class DataUtils {
             }
             buff.append('\"');
         }
+    }
+
+    /**
+     * Append a key-value pair to the string builder. Keys may not contain a
+     * colon.
+     *
+     * @param buff the target buffer
+     * @param key the key
+     * @param value the value
+     */
+    public static void appendMap(StringBuilder buff, String key, long value) {
+        appendMapKey(buff, key).append(Long.toHexString(value));
+    }
+
+    /**
+     * Append a key-value pair to the string builder. Keys may not contain a
+     * colon.
+     *
+     * @param buff the target buffer
+     * @param key the key
+     * @param value the value
+     */
+    public static void appendMap(StringBuilder buff, String key, int value) {
+        appendMapKey(buff, key).append(Integer.toHexString(value));
     }
 
     /**
@@ -924,62 +944,6 @@ public final class DataUtils {
             }
         }
         return 0;
-    }
-
-    /**
-     * Create an array of bytes with the given size. If this is not possible
-     * because not enough memory is available, an OutOfMemoryError with the
-     * requested size in the message is thrown.
-     * <p>
-     * This method should be used if the size of the array is user defined, or
-     * stored in a file, so wrong size data can be distinguished from regular
-     * out-of-memory.
-     * </p>
-     *
-     * @param len the number of bytes requested
-     * @return the byte array
-     * @throws OutOfMemoryError if the allocation was too large
-     */
-    public static byte[] newBytes(int len) {
-        if (len == 0) {
-            return EMPTY_BYTES;
-        }
-        try {
-            return new byte[len];
-        } catch (OutOfMemoryError e) {
-            Error e2 = new OutOfMemoryError("Requested memory: " + len);
-            e2.initCause(e);
-            throw e2;
-        }
-    }
-
-    /**
-     * Creates a copy of array of bytes with the new size. If this is not possible
-     * because not enough memory is available, an OutOfMemoryError with the
-     * requested size in the message is thrown.
-     * <p>
-     * This method should be used if the size of the array is user defined, or
-     * stored in a file, so wrong size data can be distinguished from regular
-     * out-of-memory.
-     * </p>
-     *
-     * @param bytes source array
-     * @param len the number of bytes in the new array
-     * @return the byte array
-     * @throws OutOfMemoryError if the allocation was too large
-     * @see Arrays#copyOf(byte[], int)
-     */
-    public static byte[] copyBytes(byte[] bytes, int len) {
-        if (len == 0) {
-            return EMPTY_BYTES;
-        }
-        try {
-            return Arrays.copyOf(bytes, len);
-        } catch (OutOfMemoryError e) {
-            Error e2 = new OutOfMemoryError("Requested memory: " + len);
-            e2.initCause(e);
-            throw e2;
-        }
     }
 
     /**

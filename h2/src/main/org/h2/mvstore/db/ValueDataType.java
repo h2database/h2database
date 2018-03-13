@@ -23,6 +23,7 @@ import org.h2.result.SortOrder;
 import org.h2.store.DataHandler;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.JdbcUtils;
+import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -489,7 +490,7 @@ public class ValueDataType implements DataType {
         case Value.DECIMAL: {
             int scale = readVarInt(buff);
             int len = readVarInt(buff);
-            byte[] buff2 = DataUtils.newBytes(len);
+            byte[] buff2 = Utils.newBytes(len);
             buff.get(buff2, 0, len);
             BigInteger b = new BigInteger(buff2);
             return ValueDecimal.get(new BigDecimal(b, scale));
@@ -514,13 +515,13 @@ public class ValueDataType implements DataType {
         }
         case Value.BYTES: {
             int len = readVarInt(buff);
-            byte[] b = DataUtils.newBytes(len);
+            byte[] b = Utils.newBytes(len);
             buff.get(b, 0, len);
             return ValueBytes.getNoCopy(b);
         }
         case Value.JAVA_OBJECT: {
             int len = readVarInt(buff);
-            byte[] b = DataUtils.newBytes(len);
+            byte[] b = Utils.newBytes(len);
             buff.get(b, 0, len);
             return ValueJavaObject.getNoCopy(null, b, handler);
         }
@@ -550,7 +551,7 @@ public class ValueDataType implements DataType {
         case Value.CLOB: {
             int smallLen = readVarInt(buff);
             if (smallLen >= 0) {
-                byte[] small = DataUtils.newBytes(smallLen);
+                byte[] small = Utils.newBytes(smallLen);
                 buff.get(small, 0, smallLen);
                 return ValueLobDb.createSmallLob(type, small);
             } else if (smallLen == -3) {
@@ -597,7 +598,7 @@ public class ValueDataType implements DataType {
         }
         case Value.GEOMETRY: {
             int len = readVarInt(buff);
-            byte[] b = DataUtils.newBytes(len);
+            byte[] b = Utils.newBytes(len);
             buff.get(b, 0, len);
             return ValueGeometry.get(b);
         }
@@ -607,7 +608,7 @@ public class ValueDataType implements DataType {
             if (JdbcUtils.customDataTypesHandler != null) {
                 int customType = readVarInt(buff);
                 int len = readVarInt(buff);
-                byte[] b = DataUtils.newBytes(len);
+                byte[] b = Utils.newBytes(len);
                 buff.get(b, 0, len);
                 return JdbcUtils.customDataTypesHandler.convert(
                         ValueBytes.getNoCopy(b), customType);
@@ -622,7 +623,7 @@ public class ValueDataType implements DataType {
                 return ValueLong.get(type - LONG_0_7);
             } else if (type >= BYTES_0_31 && type < BYTES_0_31 + 32) {
                 int len = type - BYTES_0_31;
-                byte[] b = DataUtils.newBytes(len);
+                byte[] b = Utils.newBytes(len);
                 buff.get(b, 0, len);
                 return ValueBytes.getNoCopy(b);
             } else if (type >= STRING_0_31 && type < STRING_0_31 + 32) {

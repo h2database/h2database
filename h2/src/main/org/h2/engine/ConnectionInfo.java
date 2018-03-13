@@ -445,9 +445,7 @@ public class ConnectionInfo implements Cloneable {
      * @return the property keys
      */
     String[] getKeys() {
-        String[] keys = new String[prop.size()];
-        prop.keySet().toArray(keys);
-        return keys;
+        return prop.keySet().toArray(new String[prop.size()]);
     }
 
     /**

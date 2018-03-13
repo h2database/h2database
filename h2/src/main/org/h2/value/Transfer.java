@@ -22,7 +22,6 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.message.DbException;
-import org.h2.mvstore.DataUtils;
 import org.h2.security.SHA256;
 import org.h2.store.Data;
 import org.h2.store.DataReader;
@@ -284,7 +283,7 @@ public class Transfer {
         if (len == -1) {
             return null;
         }
-        byte[] b = DataUtils.newBytes(len);
+        byte[] b = Utils.newBytes(len);
         in.readFully(b);
         return b;
     }
@@ -373,11 +372,11 @@ public class Transfer {
             } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
                 Timestamp ts = v.getTimestamp();
                 writeLong(DateTimeUtils.getTimeLocalWithoutDst(ts));
-                writeInt(ts.getNanos() % 1000000);
+                writeInt(ts.getNanos() % 1_000_000);
             } else {
                 Timestamp ts = v.getTimestamp();
                 writeLong(ts.getTime());
-                writeInt(ts.getNanos() % 1000000);
+                writeInt(ts.getNanos() % 1_000_000);
             }
             break;
         }
@@ -574,10 +573,10 @@ public class Transfer {
             } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
                 return ValueTimestamp.fromMillisNanos(
                         DateTimeUtils.getTimeUTCWithoutDst(readLong()),
-                        readInt() % 1000000);
+                        readInt() % 1_000_000);
             }
             return ValueTimestamp.fromMillisNanos(readLong(),
-                    readInt() % 1000000);
+                    readInt() % 1_000_000);
         }
         case Value.TIMESTAMP_TZ: {
             return ValueTimestampTimeZone.fromDateValueAndNanos(readLong(),

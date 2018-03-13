@@ -147,7 +147,7 @@ public final class MVStore {
      * Used to mark a chunk as free, when it was detected that live bookkeeping
      * is incorrect.
      */
-    private static final int MARKED_FREE = 10000000;
+    private static final int MARKED_FREE = 10_000_000;
 
     /**
      * The background thread, if any.
@@ -880,7 +880,7 @@ public final class MVStore {
     }
 
     private void writeStoreHeader() {
-        StringBuilder buff = new StringBuilder();
+        StringBuilder buff = new StringBuilder(112);
         if (lastChunk != null) {
             storeHeader.put("block", lastChunk.block);
             storeHeader.put("chunk", lastChunk.id);
@@ -890,7 +890,7 @@ public final class MVStore {
         byte[] bytes = buff.toString().getBytes(StandardCharsets.ISO_8859_1);
         int checksum = DataUtils.getFletcher32(bytes, 0, bytes.length);
         DataUtils.appendMap(buff, "fletcher", checksum);
-        buff.append("\n");
+        buff.append('\n');
         bytes = buff.toString().getBytes(StandardCharsets.ISO_8859_1);
         ByteBuffer header = ByteBuffer.allocate(2 * BLOCK_SIZE);
         header.put(bytes);

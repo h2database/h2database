@@ -30,7 +30,7 @@ public class DirectInsert {
         Class.forName("org.h2.Driver");
         DeleteDbFiles.execute("~", "test", true);
         String url = "jdbc:h2:~/test";
-        initialInsert(url, 200000);
+        initialInsert(url, 200_000);
         for (int i = 0; i < 3; i++) {
             createAsSelect(url, true);
             createAsSelect(url, false);

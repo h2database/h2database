@@ -354,9 +354,7 @@ public class Session extends SessionWithState {
         if (variables == null) {
             return new String[0];
         }
-        String[] list = new String[variables.size()];
-        variables.keySet().toArray(list);
-        return list;
+        return variables.keySet().toArray(new String[variables.size()]);
     }
 
     /**
@@ -837,8 +835,7 @@ public class Session extends SessionWithState {
             }
         }
         if (savepoints != null) {
-            String[] names = new String[savepoints.size()];
-            savepoints.keySet().toArray(names);
+            String[] names = savepoints.keySet().toArray(new String[savepoints.size()]);
             for (String name : names) {
                 Savepoint sp = savepoints.get(name);
                 int savepointIndex = sp.logIndex;

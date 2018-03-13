@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 
 import org.h2.engine.SysProperties;
+import org.h2.util.Bits;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -93,9 +94,9 @@ public class ValueBytes extends Value {
     protected int compareSecure(Value v, CompareMode mode) {
         byte[] v2 = ((ValueBytes) v).value;
         if (mode.isBinaryUnsigned()) {
-            return Utils.compareNotNullUnsigned(value, v2);
+            return Bits.compareNotNullUnsigned(value, v2);
         }
-        return Utils.compareNotNullSigned(value, v2);
+        return Bits.compareNotNullSigned(value, v2);
     }
 
     @Override

@@ -139,60 +139,6 @@ public class Utils {
     }
 
     /**
-     * Compare the contents of two byte arrays. If the content or length of the
-     * first array is smaller than the second array, -1 is returned. If the
-     * content or length of the second array is smaller than the first array, 1
-     * is returned. If the contents and lengths are the same, 0 is returned.
-     * <p>
-     * This method interprets bytes as signed.
-     *
-     * @param data1 the first byte array (must not be null)
-     * @param data2 the second byte array (must not be null)
-     * @return the result of the comparison (-1, 1 or 0)
-     */
-    public static int compareNotNullSigned(byte[] data1, byte[] data2) {
-        if (data1 == data2) {
-            return 0;
-        }
-        int len = Math.min(data1.length, data2.length);
-        for (int i = 0; i < len; i++) {
-            byte b = data1[i];
-            byte b2 = data2[i];
-            if (b != b2) {
-                return b > b2 ? 1 : -1;
-            }
-        }
-        return Integer.signum(data1.length - data2.length);
-    }
-
-    /**
-     * Compare the contents of two byte arrays. If the content or length of the
-     * first array is smaller than the second array, -1 is returned. If the
-     * content or length of the second array is smaller than the first array, 1
-     * is returned. If the contents and lengths are the same, 0 is returned.
-     * <p>
-     * This method interprets bytes as unsigned.
-     *
-     * @param data1 the first byte array (must not be null)
-     * @param data2 the second byte array (must not be null)
-     * @return the result of the comparison (-1, 1 or 0)
-     */
-    public static int compareNotNullUnsigned(byte[] data1, byte[] data2) {
-        if (data1 == data2) {
-            return 0;
-        }
-        int len = Math.min(data1.length, data2.length);
-        for (int i = 0; i < len; i++) {
-            int b = data1[i] & 0xff;
-            int b2 = data2[i] & 0xff;
-            if (b != b2) {
-                return b > b2 ? 1 : -1;
-            }
-        }
-        return Integer.signum(data1.length - data2.length);
-    }
-
-    /**
      * Copy the contents of the source array to the target array. If the size if
      * the target array is too small, a larger array is created.
      *
@@ -207,6 +153,62 @@ public class Utils {
         }
         System.arraycopy(source, 0, target, 0, len);
         return target;
+    }
+
+    /**
+     * Create an array of bytes with the given size. If this is not possible
+     * because not enough memory is available, an OutOfMemoryError with the
+     * requested size in the message is thrown.
+     * <p>
+     * This method should be used if the size of the array is user defined, or
+     * stored in a file, so wrong size data can be distinguished from regular
+     * out-of-memory.
+     * </p>
+     *
+     * @param len the number of bytes requested
+     * @return the byte array
+     * @throws OutOfMemoryError if the allocation was too large
+     */
+    public static byte[] newBytes(int len) {
+        if (len == 0) {
+            return EMPTY_BYTES;
+        }
+        try {
+            return new byte[len];
+        } catch (OutOfMemoryError e) {
+            Error e2 = new OutOfMemoryError("Requested memory: " + len);
+            e2.initCause(e);
+            throw e2;
+        }
+    }
+
+    /**
+     * Creates a copy of array of bytes with the new size. If this is not possible
+     * because not enough memory is available, an OutOfMemoryError with the
+     * requested size in the message is thrown.
+     * <p>
+     * This method should be used if the size of the array is user defined, or
+     * stored in a file, so wrong size data can be distinguished from regular
+     * out-of-memory.
+     * </p>
+     *
+     * @param bytes source array
+     * @param len the number of bytes in the new array
+     * @return the byte array
+     * @throws OutOfMemoryError if the allocation was too large
+     * @see Arrays#copyOf(byte[], int)
+     */
+    public static byte[] copyBytes(byte[] bytes, int len) {
+        if (len == 0) {
+            return EMPTY_BYTES;
+        }
+        try {
+            return Arrays.copyOf(bytes, len);
+        } catch (OutOfMemoryError e) {
+            Error e2 = new OutOfMemoryError("Requested memory: " + len);
+            e2.initCause(e);
+            throw e2;
+        }
     }
 
     /**

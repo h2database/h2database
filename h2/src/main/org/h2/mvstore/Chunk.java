@@ -228,7 +228,7 @@ public class Chunk {
      * @return the string
      */
     public String asString() {
-        StringBuilder buff = new StringBuilder();
+        StringBuilder buff = new StringBuilder(240);
         DataUtils.appendMap(buff, "chunk", id);
         DataUtils.appendMap(buff, "block", block);
         DataUtils.appendMap(buff, "len", len);
@@ -254,17 +254,17 @@ public class Chunk {
     }
 
     byte[] getFooterBytes() {
-        StringBuilder buff = new StringBuilder();
+        StringBuilder buff = new StringBuilder(FOOTER_LENGTH);
         DataUtils.appendMap(buff, "chunk", id);
         DataUtils.appendMap(buff, "block", block);
         DataUtils.appendMap(buff, "version", version);
         byte[] bytes = buff.toString().getBytes(StandardCharsets.ISO_8859_1);
         int checksum = DataUtils.getFletcher32(bytes, 0, bytes.length);
         DataUtils.appendMap(buff, "fletcher", checksum);
-        while (buff.length() < Chunk.FOOTER_LENGTH - 1) {
+        while (buff.length() < FOOTER_LENGTH - 1) {
             buff.append(' ');
         }
-        buff.append("\n");
+        buff.append('\n');
         return buff.toString().getBytes(StandardCharsets.ISO_8859_1);
     }
 

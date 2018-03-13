@@ -31,7 +31,6 @@ import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
-import org.h2.mvstore.DataUtils;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.security.BlockCipher;
@@ -1819,7 +1818,7 @@ public class Function extends Expression implements FunctionCall {
 
     private static byte[] getPaddedArrayCopy(byte[] data, int blockSize) {
         int size = MathUtils.roundUpInt(data.length, blockSize);
-        return DataUtils.copyBytes(data, size);
+        return Utils.copyBytes(data, size);
     }
 
     private static byte[] decrypt(String algorithm, byte[] key, byte[] data) {
@@ -2235,10 +2234,10 @@ public class Function extends Expression implements FunctionCall {
     }
 
     private static double roundMagic(double d) {
-        if ((d < 0.0000000000001) && (d > -0.0000000000001)) {
+        if ((d < 0.000_000_000_000_1) && (d > -0.000_000_000_000_1)) {
             return 0.0;
         }
-        if ((d > 1000000000000.) || (d < -1000000000000.)) {
+        if ((d > 1_000_000_000_000d) || (d < -1_000_000_000_000d)) {
             return d;
         }
         StringBuilder s = new StringBuilder();

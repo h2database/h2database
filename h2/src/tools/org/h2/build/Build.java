@@ -979,6 +979,8 @@ public class Build extends BuildBase {
             files = files.keep("src/main/org/h2/res/_messages_en.*");
         }
         if (clientOnly) {
+            files = files.exclude("src/main/org/h2/res/help.csv");
+            files = files.exclude("src/main/org/h2/res/h2*");
             files = files.exclude("src/main/org/h2/res/javadoc.properties");
             files = files.exclude("src/main/org/h2/server/*");
         }

@@ -44,7 +44,7 @@ public class ThreadDeadlockDetector {
             public void run() {
                 checkForDeadlocks();
             }
-        }, 10, 10000);
+        }, 10, 10_000);
     }
 
     /**

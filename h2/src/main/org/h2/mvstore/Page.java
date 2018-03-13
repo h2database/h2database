@@ -10,6 +10,7 @@ import java.util.Arrays;
 import org.h2.compress.Compressor;
 import org.h2.engine.Constants;
 import org.h2.mvstore.type.DataType;
+import org.h2.util.Utils;
 import static org.h2.mvstore.DataUtils.PAGE_TYPE_LEAF;
 
 /**
@@ -618,7 +619,7 @@ public abstract class Page implements Cloneable
             }
             int lenAdd = DataUtils.readVarInt(buff);
             int compLen = pageLength + start - buff.position();
-            byte[] comp = DataUtils.newBytes(compLen);
+            byte[] comp = Utils.newBytes(compLen);
             buff.get(comp);
             int l = compLen + lenAdd;
             buff = ByteBuffer.allocate(l);

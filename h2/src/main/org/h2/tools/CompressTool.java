@@ -25,9 +25,9 @@ import org.h2.compress.LZFInputStream;
 import org.h2.compress.LZFOutputStream;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
-import org.h2.mvstore.DataUtils;
 import org.h2.util.Bits;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * A tool to losslessly compress data, and expand the compressed data again.
@@ -44,10 +44,10 @@ public class CompressTool {
 
     private byte[] getBuffer(int min) {
         if (min > MAX_BUFFER_SIZE) {
-            return DataUtils.newBytes(min);
+            return Utils.newBytes(min);
         }
         if (cachedBuffer == null || cachedBuffer.length < min) {
-            cachedBuffer = DataUtils.newBytes(min);
+            cachedBuffer = Utils.newBytes(min);
         }
         return cachedBuffer;
     }
@@ -79,7 +79,7 @@ public class CompressTool {
         Compressor compress = getCompressor(algorithm);
         byte[] buff = getBuffer((len < 100 ? len + 100 : len) * 2);
         int newLen = compress(in, in.length, compress, buff);
-        return DataUtils.copyBytes(buff, newLen);
+        return Utils.copyBytes(buff, newLen);
     }
 
     private static int compress(byte[] in, int len, Compressor compress,
@@ -108,7 +108,7 @@ public class CompressTool {
         try {
             int len = readVariableInt(in, 1);
             int start = 1 + getVariableIntLength(len);
-            byte[] buff = DataUtils.newBytes(len);
+            byte[] buff = Utils.newBytes(len);
             compress.expand(in, start, in.length - start, buff, 0, len);
             return buff;
         } catch (Exception e) {
@@ -181,13 +181,13 @@ public class CompressTool {
             buff[pos++] = (byte) (0x80 | (x >> 8));
             buff[pos] = (byte) x;
             return 2;
-        } else if (x < 0x200000) {
+        } else if (x < 0x20_0000) {
             buff[pos++] = (byte) (0xc0 | (x >> 16));
             buff[pos++] = (byte) (x >> 8);
             buff[pos] = (byte) x;
             return 3;
-        } else if (x < 0x10000000) {
-            Bits.writeInt(buff, pos, x | 0xe0000000);
+        } else if (x < 0x1000_0000) {
+            Bits.writeInt(buff, pos, x | 0xe000_0000);
             return 4;
         } else {
             buff[pos++] = (byte) 0xf0;
@@ -210,9 +210,9 @@ public class CompressTool {
             return 1;
         } else if (x < 0x4000) {
             return 2;
-        } else if (x < 0x200000) {
+        } else if (x < 0x20_0000) {
             return 3;
-        } else if (x < 0x10000000) {
+        } else if (x < 0x1000_0000) {
             return 4;
         } else {
             return 5;

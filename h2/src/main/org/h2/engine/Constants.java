@@ -246,12 +246,12 @@ public class Constants {
     /**
      * The default value for the MAX_MEMORY_UNDO setting.
      */
-    public static final int DEFAULT_MAX_MEMORY_UNDO = 50000;
+    public static final int DEFAULT_MAX_MEMORY_UNDO = 50_000;
 
     /**
      * The default for the setting MAX_OPERATION_MEMORY.
      */
-    public static final int DEFAULT_MAX_OPERATION_MEMORY = 100000;
+    public static final int DEFAULT_MAX_OPERATION_MEMORY = 100_000;
 
     /**
      * The default page size to use for new databases.
@@ -312,7 +312,7 @@ public class Constants {
     /**
      * The highest possible parameter index.
      */
-    public static final int MAX_PARAMETER_INDEX = 100000;
+    public static final int MAX_PARAMETER_INDEX = 100_000;
 
     /**
      * The memory needed by a object of class Data
@@ -409,7 +409,7 @@ public class Constants {
     /**
      * The number of distinct values to keep in memory when running ANALYZE.
      */
-    public static final int SELECTIVITY_DISTINCT_COUNT = 10000;
+    public static final int SELECTIVITY_DISTINCT_COUNT = 10_000;
 
     /**
      * The default directory name of the server properties file for the H2
@@ -517,7 +517,7 @@ public class Constants {
      * The maximum time in milliseconds to keep the cost of a view.
      * 10000 means 10 seconds.
      */
-    public static final int VIEW_COST_CACHE_MAX_AGE = 10000;
+    public static final int VIEW_COST_CACHE_MAX_AGE = 10_000;
 
     /**
      * The name of the index cache that is used for temporary view (subqueries

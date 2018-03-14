@@ -6918,4 +6918,9 @@ public class Parser {
         read();
         return readTableOrView();
     }
+
+    @Override
+    public String toString() {
+        return StringUtils.addAsterisk(sqlCommand, parseIndex);
+    }
 }

@@ -58,7 +58,7 @@ public class DateTimeUtils {
     /**
      * Date value for 1970-01-01.
      */
-    private static final int EPOCH_DATE_VALUE = (1970 << SHIFT_YEAR) + (1 << SHIFT_MONTH) + 1;
+    public static final int EPOCH_DATE_VALUE = (1970 << SHIFT_YEAR) + (1 << SHIFT_MONTH) + 1;
 
     private static final int[] NORMAL_DAYS_PER_MONTH = { 0, 31, 28, 31, 30, 31,
             30, 31, 31, 30, 31, 30, 31 };

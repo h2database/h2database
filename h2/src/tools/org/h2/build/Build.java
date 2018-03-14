@@ -163,15 +163,15 @@ public class Build extends BuildBase {
         downloadUsingMaven("ext/org.jacoco.report-0.8.0.jar",
                 "org.jacoco", "org.jacoco.report", "0.8.0",
                 "1bcab2a451f5a382bc674857c8f3f6d3fa52151d");
-        downloadUsingMaven("ext/asm-6.1-beta.jar",
-                "org.ow2.asm", "asm", "6.1-beta",
-                "bac2f84e42b7db902103a9ec8c4ca1293223e0ea");
-        downloadUsingMaven("ext/asm-commons-6.1-beta.jar",
-                "org.ow2.asm", "asm-commons", "6.1-beta",
-                "4ec77cde3be41559f92d25cdb39b9c55ee479253");
-        downloadUsingMaven("ext/asm-tree-6.1-beta.jar",
-                "org.ow2.asm", "asm-tree", "6.1-beta",
-                "539d3b0f5f7f5b04b1c286de8e76655b59ab2d43");
+        downloadUsingMaven("ext/asm-6.1.jar",
+                "org.ow2.asm", "asm", "6.1",
+                "94a0d17ba8eb24833cd54253ace9b053786a9571");
+        downloadUsingMaven("ext/asm-commons-6.1.jar",
+                "org.ow2.asm", "asm-commons", "6.1",
+                "8a8d242d7ce00fc937a245fae5b65763d13f7cd1");
+        downloadUsingMaven("ext/asm-tree-6.1.jar",
+                "org.ow2.asm", "asm-tree", "6.1",
+                "701262d4b9bcbdc2d4b80617e82db9a2b7f4f088");
         downloadUsingMaven("ext/args4j-2.33.jar",
                 "args4j", "args4j", "2.33",
                 "bd87a75374a6d6523de82fef51fc3cfe9baf9fc9");
@@ -209,9 +209,9 @@ public class Build extends BuildBase {
                 "ext/org.jacoco.cli-0.8.0.jar" + File.pathSeparator
                 + "ext/org.jacoco.core-0.8.0.jar" + File.pathSeparator
                 + "ext/org.jacoco.report-0.8.0.jar" + File.pathSeparator
-                + "ext/asm-6.1-beta.jar" + File.pathSeparator
-                + "ext/asm-commons-6.1-beta.jar" + File.pathSeparator
-                + "ext/asm-tree-6.1-beta.jar" + File.pathSeparator
+                + "ext/asm-6.1.jar" + File.pathSeparator
+                + "ext/asm-commons-6.1.jar" + File.pathSeparator
+                + "ext/asm-tree-6.1.jar" + File.pathSeparator
                 + "ext/args4j-2.33.jar",
                 "org.jacoco.cli.internal.Main", "report", "coverage/jacoco.exec",
                 "--classfiles", "coverage/bin",
@@ -525,15 +525,21 @@ public class Build extends BuildBase {
     }
 
     /**
+     * Add META-INF/versions for Java 9+.
+     */
+    private void addVersions() {
+        copy("temp/META-INF/versions/9", files("src/java9/precompiled"), "src/java9/precompiled");
+    }
+
+    /**
      * Create the regular h2.jar file.
      */
     @Description(summary = "Create the regular h2.jar file.")
     public void jar() {
         compile();
-        FileList files = files("src/java9/precompiled");
-        copy("temp/META-INF/versions/9", files, "src/java9/precompiled");
+        addVersions();
         manifest("H2 Database Engine", "org.h2.tools.Console");
-        files = files("temp").
+        FileList files = files("temp").
             exclude("temp/android/*").
             exclude("temp/org/h2/android/*").
             exclude("temp/org/h2/build/*").
@@ -596,6 +602,7 @@ public class Build extends BuildBase {
     @Description(summary = "Create h2client.jar with only the remote JDBC implementation.")
     public void jarClient() {
         compile(true, true, false);
+        addVersions();
         FileList files = files("temp").
             exclude("temp/org/h2/build/*").
             exclude("temp/org/h2/dev/*").
@@ -622,6 +629,7 @@ public class Build extends BuildBase {
     @Description(summary = "Create h2mvstore.jar containing only the MVStore.")
     public void jarMVStore() {
         compileMVStore(true);
+        addVersions();
         manifestMVStore();
         FileList files = files("temp");
         files.exclude("*.DS_Store");
@@ -636,6 +644,7 @@ public class Build extends BuildBase {
     @Description(summary = "Create h2small.jar containing only the embedded database.")
     public void jarSmall() {
         compile(false, false, true);
+        addVersions();
         FileList files = files("temp").
             exclude("temp/android/*").
             exclude("temp/org/h2/android/*").

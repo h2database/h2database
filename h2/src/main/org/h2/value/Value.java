@@ -593,6 +593,17 @@ public abstract class Value {
     }
 
     /**
+     * Convert value to ENUM value
+     * @param enumerators allowed values for the ENUM to which the value is converted
+     * @return value represented as ENUM
+     */
+    public Value convertToEnum(String[] enumerators) {
+        // Use -1 to indicate "default behaviour" where value conversion should not
+        // depend on any datatype precision.
+        return convertTo(ENUM, -1, null, null, enumerators);
+    }
+
+    /**
      * Compare a value to the specified type.
      *
      * @param targetType the type of the returned value

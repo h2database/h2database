@@ -479,6 +479,27 @@ public class TestPreparedStatement extends TestBase {
             assertEquals(Integer.class, o.getClass());
         }
 
+        for (int i = 0; i < goodSizes.length; i++) {
+            PreparedStatement prep = conn.prepareStatement("SELECT * FROM test_enum WHERE size = ?");
+            prep.setObject(1, goodSizes[i]);
+            ResultSet rs = prep.executeQuery();
+            rs.next();
+            String s = rs.getString(1);
+            assertTrue(s.equals(goodSizes[i]));
+            assertFalse(rs.next());
+        }
+
+        for (int i = 0; i < badSizes.length; i++) {
+            PreparedStatement prep = conn.prepareStatement("SELECT * FROM test_enum WHERE size = ?");
+            prep.setObject(1, badSizes[i]);
+            if (config.lazy) {
+                ResultSet resultSet = prep.executeQuery();
+                assertThrows(ErrorCode.ENUM_VALUE_NOT_PERMITTED, resultSet).next();
+            } else {
+                assertThrows(ErrorCode.ENUM_VALUE_NOT_PERMITTED, prep).executeQuery();
+            }
+        }
+
         stat.execute("DROP TABLE test_enum");
     }
 

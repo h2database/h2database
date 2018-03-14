@@ -147,6 +147,7 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableView;
+import org.h2.util.DateTimeFunctions;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.ParserUtil;
@@ -2798,7 +2799,7 @@ public class Parser {
         }
         case Function.DATE_ADD:
         case Function.DATE_DIFF: {
-            if (Function.isDatePart(currentToken)) {
+            if (DateTimeFunctions.isDatePart(currentToken)) {
                 function.setParameter(0,
                         ValueExpression.get(ValueString.get(currentToken)));
                 read();

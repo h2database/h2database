@@ -1305,7 +1305,7 @@ public class DateTimeUtils {
      */
     public static long dateValueFromAbsoluteDay(long absoluteDay) {
         long d = absoluteDay + 719_468;
-        long y100 = 0, offset;
+        long y100, offset;
         if (d > 578_040) {
             // Gregorian calendar
             long y400 = d / 146_097;
@@ -1315,6 +1315,7 @@ public class DateTimeUtils {
             offset = y400 * 400 + y100 * 100;
         } else {
             // Julian calendar
+            y100 = 0;
             d += 292_200_000_002L;
             offset = -800_000_000;
         }

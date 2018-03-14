@@ -9,12 +9,9 @@ package org.h2.util;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.Locale;
 import java.util.TimeZone;
-import org.h2.api.ErrorCode;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.value.Value;
@@ -58,7 +55,7 @@ public class DateTimeUtils {
     /**
      * Date value for 1970-01-01.
      */
-    private static final int EPOCH_DATE_VALUE = (1970 << SHIFT_YEAR) + (1 << SHIFT_MONTH) + 1;
+    public static final int EPOCH_DATE_VALUE = (1970 << SHIFT_YEAR) + (1 << SHIFT_MONTH) + 1;
 
     private static final int[] NORMAL_DAYS_PER_MONTH = { 0, 31, 28, 31, 30, 31,
             30, 31, 31, 30, 31, 30, 31 };
@@ -744,8 +741,7 @@ public class DateTimeUtils {
      * @return number of day in year
      */
     public static int getDayOfYear(long dateValue) {
-        int year = yearFromDateValue(dateValue);
-        return (int) (absoluteDayFromDateValue(dateValue) - absoluteDayFromDateValue(dateValue(year, 1, 1))) + 1;
+        return (int) (absoluteDayFromDateValue(dateValue) - absoluteDayFromYear(yearFromDateValue(dateValue))) + 1;
     }
 
     /**
@@ -825,7 +821,7 @@ public class DateTimeUtils {
     }
 
     private static long getWeekOfYearBase(int year, int firstDayOfWeek, int minimalDaysInFirstWeek) {
-        long first = absoluteDayFromDateValue(dateValue(year, 1, 1));
+        long first = absoluteDayFromYear(year);
         int daysInFirstWeek = 8 - getDayOfWeekFromAbsolute(first, firstDayOfWeek);
         long base = first + daysInFirstWeek;
         if (daysInFirstWeek >= minimalDaysInFirstWeek) {
@@ -858,67 +854,6 @@ public class DateTimeUtils {
             }
         }
         return year;
-    }
-
-    /**
-     * Formats a date using a format string.
-     *
-     * @param date the date to format
-     * @param format the format string
-     * @param locale the locale
-     * @param timeZone the timezone
-     * @return the formatted date
-     */
-    public static String formatDateTime(java.util.Date date, String format,
-            String locale, String timeZone) {
-        SimpleDateFormat dateFormat = getDateFormat(format, locale, timeZone);
-        synchronized (dateFormat) {
-            return dateFormat.format(date);
-        }
-    }
-
-    /**
-     * Parses a date using a format string.
-     *
-     * @param date the date to parse
-     * @param format the parsing format
-     * @param locale the locale
-     * @param timeZone the timeZone
-     * @return the parsed date
-     */
-    public static java.util.Date parseDateTime(String date, String format,
-            String locale, String timeZone) {
-        SimpleDateFormat dateFormat = getDateFormat(format, locale, timeZone);
-        try {
-            synchronized (dateFormat) {
-                return dateFormat.parse(date);
-            }
-        } catch (Exception e) {
-            // ParseException
-            throw DbException.get(ErrorCode.PARSE_ERROR_1, e, date);
-        }
-    }
-
-    private static SimpleDateFormat getDateFormat(String format, String locale,
-            String timeZone) {
-        try {
-            // currently, a new instance is create for each call
-            // however, could cache the last few instances
-            SimpleDateFormat df;
-            if (locale == null) {
-                df = new SimpleDateFormat(format);
-            } else {
-                Locale l = new Locale(locale);
-                df = new SimpleDateFormat(format, l);
-            }
-            if (timeZone != null) {
-                df.setTimeZone(TimeZone.getTimeZone(timeZone));
-            }
-            return df;
-        } catch (Exception e) {
-            throw DbException.get(ErrorCode.PARSE_ERROR_1, e,
-                    format + "/" + locale + "/" + timeZone);
-        }
     }
 
     /**
@@ -1231,6 +1166,26 @@ public class DateTimeUtils {
     }
 
     /**
+     * Calculate the absolute day for a January, 1 of the specified year.
+     *
+     * @param year
+     *            the year
+     * @return the absolute day
+     */
+    public static long absoluteDayFromYear(long year) {
+        year--;
+        long a = ((year * 1461L) >> 2) - 719_177;
+        if (year < 1582) {
+            // Julian calendar
+            a += 13;
+        } else if (year < 1900 || year > 2099) {
+            // Gregorian calendar (slow mode)
+            a += (year / 400) - (year / 100) + 15;
+        }
+        return a;
+    }
+
+    /**
      * Calculate the absolute day from an encoded date value.
      *
      * @param dateValue the date value
@@ -1244,11 +1199,11 @@ public class DateTimeUtils {
             y--;
             m += 12;
         }
-        long a = ((y * 2922L) >> 3) + DAYS_OFFSET[m - 3] + d - 719_484;
-        if (y <= 1582 && ((y < 1582) || (m * 100 + d < 1015))) {
+        long a = ((y * 1461L) >> 2) + DAYS_OFFSET[m - 3] + d - 719_484;
+        if (y <= 1582 && ((y < 1582) || (m * 100 + d < 10_15))) {
             // Julian calendar (cutover at 1582-10-04 / 1582-10-15)
             a += 13;
-        } else if (y < 1901 || y > 2099) {
+        } else if (y < 1900 || y > 2099) {
             // Gregorian calendar (slow mode)
             a += (y / 400) - (y / 100) + 15;
         }
@@ -1270,8 +1225,8 @@ public class DateTimeUtils {
             y--;
             m += 12;
         }
-        long a = ((y * 2922L) >> 3) + DAYS_OFFSET[m - 3] + d - 719_484;
-        if (y < 1901 || y > 2099) {
+        long a = ((y * 1461L) >> 2) + DAYS_OFFSET[m - 3] + d - 719_484;
+        if (y < 1900 || y > 2099) {
             // Slow mode
             a += (y / 400) - (y / 100) + 15;
         }
@@ -1286,7 +1241,7 @@ public class DateTimeUtils {
      */
     public static long dateValueFromAbsoluteDay(long absoluteDay) {
         long d = absoluteDay + 719_468;
-        long y100 = 0, offset;
+        long y100, offset;
         if (d > 578_040) {
             // Gregorian calendar
             long y400 = d / 146_097;
@@ -1296,6 +1251,7 @@ public class DateTimeUtils {
             offset = y400 * 400 + y100 * 100;
         } else {
             // Julian calendar
+            y100 = 0;
             d += 292_200_000_002L;
             offset = -800_000_000;
         }
@@ -1339,14 +1295,13 @@ public class DateTimeUtils {
         if (day < getDaysInMonth(year, month)) {
             return dateValue + 1;
         }
-        day = 1;
         if (month < 12) {
             month++;
         } else {
             month = 1;
             year++;
         }
-        return dateValue(year, month, day);
+        return dateValue(year, month, 1);
     }
 
     /**

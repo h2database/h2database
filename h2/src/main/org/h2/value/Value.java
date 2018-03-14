@@ -845,8 +845,7 @@ public abstract class Value {
                 case TIME:
                     // because the time has set the date to 1970-01-01,
                     // this will be the result
-                    return ValueDate.fromDateValue(
-                            DateTimeUtils.dateValue(1970, 1, 1));
+                    return ValueDate.fromDateValue(DateTimeUtils.EPOCH_DATE_VALUE);
                 case TIMESTAMP:
                     return ValueDate.fromDateValue(
                             ((ValueTimestamp) this).getDateValue());

@@ -91,8 +91,7 @@ public class ToDateParser {
             }
             if (doyValid) {
                 dateValue = DateTimeUtils.dateValueFromAbsoluteDay(
-                        DateTimeUtils.absoluteDayFromDateValue(DateTimeUtils.dateValue(year, 1, 1))
-                        + dayOfYear - 1);
+                        DateTimeUtils.absoluteDayFromYear(year) + dayOfYear - 1);
             } else {
                 int month = this.month;
                 if (month == 0) {

@@ -70,7 +70,7 @@ public class ValueTimestampTimeZone extends Value {
 
     private ValueTimestampTimeZone(long dateValue, long timeNanos,
             short timeZoneOffsetMins) {
-        if (timeNanos < 0 || timeNanos >= 24L * 60 * 60 * 1000 * 1000 * 1000) {
+        if (timeNanos < 0 || timeNanos >= DateTimeUtils.NANOS_PER_DAY) {
             throw new IllegalArgumentException(
                     "timeNanos out of range " + timeNanos);
         }
@@ -218,7 +218,7 @@ public class ValueTimestampTimeZone extends Value {
         long dv = dateValue;
         if (n2 >= DateTimeUtils.NANOS_PER_DAY) {
             n2 -= DateTimeUtils.NANOS_PER_DAY;
-            dv = DateTimeUtils.dateValueFromAbsoluteDay(DateTimeUtils.absoluteDayFromDateValue(dateValue) + 1);
+            dv = DateTimeUtils.incrementDateValue(dv);
         }
         return fromDateValueAndNanos(dv, n2, timeZoneOffsetMins);
     }
@@ -228,25 +228,25 @@ public class ValueTimestampTimeZone extends Value {
         ValueTimestampTimeZone t = (ValueTimestampTimeZone) o;
         // Maximum time zone offset is +/-18 hours so difference in days between local
         // and UTC cannot be more than one day
-        long daysA = DateTimeUtils.absoluteDayFromDateValue(dateValue);
+        long dateValueA = dateValue;
         long timeA = timeNanos - timeZoneOffsetMins * 60_000_000_000L;
         if (timeA < 0) {
             timeA += DateTimeUtils.NANOS_PER_DAY;
-            daysA--;
+            dateValueA = DateTimeUtils.decrementDateValue(dateValueA);
         } else if (timeA >= DateTimeUtils.NANOS_PER_DAY) {
             timeA -= DateTimeUtils.NANOS_PER_DAY;
-            daysA++;
+            dateValueA = DateTimeUtils.incrementDateValue(dateValueA);
         }
-        long daysB = DateTimeUtils.absoluteDayFromDateValue(t.dateValue);
+        long dateValueB = t.dateValue;
         long timeB = t.timeNanos - t.timeZoneOffsetMins * 60_000_000_000L;
         if (timeB < 0) {
             timeB += DateTimeUtils.NANOS_PER_DAY;
-            daysB--;
+            dateValueB = DateTimeUtils.decrementDateValue(dateValueB);
         } else if (timeB >= DateTimeUtils.NANOS_PER_DAY) {
             timeB -= DateTimeUtils.NANOS_PER_DAY;
-            daysB++;
+            dateValueB = DateTimeUtils.incrementDateValue(dateValueB);
         }
-        int cmp = Long.compare(daysA, daysB);
+        int cmp = Long.compare(dateValueA, dateValueB);
         if (cmp != 0) {
             return cmp;
         }

@@ -377,6 +377,9 @@ public class TestDate extends TestBase {
                     assertEquals(y, DateTimeUtils.yearFromDateValue(date));
                     assertEquals(m, DateTimeUtils.monthFromDateValue(date));
                     assertEquals(d, DateTimeUtils.dayFromDateValue(date));
+                    long nextDateValue = DateTimeUtils.dateValueFromAbsoluteDay(next);
+                    assertEquals(nextDateValue, DateTimeUtils.incrementDateValue(date));
+                    assertEquals(date, DateTimeUtils.decrementDateValue(nextDateValue));
                 }
             }
         }

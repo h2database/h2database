@@ -1221,12 +1221,10 @@ public class DateTimeUtils {
             timeNanos -= correction;
             if (timeNanos < 0) {
                 timeNanos += NANOS_PER_DAY;
-                dateValue = DateTimeUtils
-                        .dateValueFromAbsoluteDay(absoluteDayFromDateValue(dateValue) - 1);
+                dateValue = decrementDateValue(dateValue);
             } else if (timeNanos >= NANOS_PER_DAY) {
                 timeNanos -= NANOS_PER_DAY;
-                dateValue = DateTimeUtils
-                        .dateValueFromAbsoluteDay(absoluteDayFromDateValue(dateValue) + 1);
+                dateValue = incrementDateValue(dateValue);
             }
         }
         return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos, (short) offsetMins);
@@ -1318,6 +1316,63 @@ public class DateTimeUtils {
             m -= 12;
         }
         return dateValue(y, m + 3, (int) d);
+    }
+
+    /**
+     * Return the next date value.
+     *
+     * @param dateValue
+     *            the date value
+     * @return the next date value
+     */
+    public static long incrementDateValue(long dateValue) {
+        int year = yearFromDateValue(dateValue);
+        if (year == 1582) {
+            // Use slow way instead of rarely needed large custom code.
+            return dateValueFromAbsoluteDay(absoluteDayFromDateValue(dateValue) + 1);
+        }
+        int day = dayFromDateValue(dateValue);
+        if (day < 28) {
+            return dateValue + 1;
+        }
+        int month = monthFromDateValue(dateValue);
+        if (day < getDaysInMonth(year, month)) {
+            return dateValue + 1;
+        }
+        day = 1;
+        if (month < 12) {
+            month++;
+        } else {
+            month = 1;
+            year++;
+        }
+        return dateValue(year, month, day);
+    }
+
+    /**
+     * Return the previous date value.
+     *
+     * @param dateValue
+     *            the date value
+     * @return the previous date value
+     */
+    public static long decrementDateValue(long dateValue) {
+        int year = yearFromDateValue(dateValue);
+        if (year == 1582) {
+            // Use slow way instead of rarely needed large custom code.
+            return dateValueFromAbsoluteDay(absoluteDayFromDateValue(dateValue) - 1);
+        }
+        if (dayFromDateValue(dateValue) > 1) {
+            return dateValue - 1;
+        }
+        int month = monthFromDateValue(dateValue);
+        if (month > 1) {
+            month--;
+        } else {
+            month = 12;
+            year--;
+        }
+        return dateValue(year, month, getDaysInMonth(year, month));
     }
 
     /**

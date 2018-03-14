@@ -1339,14 +1339,13 @@ public class DateTimeUtils {
         if (day < getDaysInMonth(year, month)) {
             return dateValue + 1;
         }
-        day = 1;
         if (month < 12) {
             month++;
         } else {
             month = 1;
             year++;
         }
-        return dateValue(year, month, day);
+        return dateValue(year, month, 1);
     }
 
     /**

@@ -9,12 +9,9 @@ package org.h2.util;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.Locale;
 import java.util.TimeZone;
-import org.h2.api.ErrorCode;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.value.Value;
@@ -857,67 +854,6 @@ public class DateTimeUtils {
             }
         }
         return year;
-    }
-
-    /**
-     * Formats a date using a format string.
-     *
-     * @param date the date to format
-     * @param format the format string
-     * @param locale the locale
-     * @param timeZone the timezone
-     * @return the formatted date
-     */
-    public static String formatDateTime(java.util.Date date, String format,
-            String locale, String timeZone) {
-        SimpleDateFormat dateFormat = getDateFormat(format, locale, timeZone);
-        synchronized (dateFormat) {
-            return dateFormat.format(date);
-        }
-    }
-
-    /**
-     * Parses a date using a format string.
-     *
-     * @param date the date to parse
-     * @param format the parsing format
-     * @param locale the locale
-     * @param timeZone the timeZone
-     * @return the parsed date
-     */
-    public static java.util.Date parseDateTime(String date, String format,
-            String locale, String timeZone) {
-        SimpleDateFormat dateFormat = getDateFormat(format, locale, timeZone);
-        try {
-            synchronized (dateFormat) {
-                return dateFormat.parse(date);
-            }
-        } catch (Exception e) {
-            // ParseException
-            throw DbException.get(ErrorCode.PARSE_ERROR_1, e, date);
-        }
-    }
-
-    private static SimpleDateFormat getDateFormat(String format, String locale,
-            String timeZone) {
-        try {
-            // currently, a new instance is create for each call
-            // however, could cache the last few instances
-            SimpleDateFormat df;
-            if (locale == null) {
-                df = new SimpleDateFormat(format);
-            } else {
-                Locale l = new Locale(locale);
-                df = new SimpleDateFormat(format, l);
-            }
-            if (timeZone != null) {
-                df.setTimeZone(TimeZone.getTimeZone(timeZone));
-            }
-            return df;
-        } catch (Exception e) {
-            throw DbException.get(ErrorCode.PARSE_ERROR_1, e,
-                    format + "/" + locale + "/" + timeZone);
-        }
     }
 
     /**

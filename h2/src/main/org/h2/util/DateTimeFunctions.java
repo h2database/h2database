@@ -27,10 +27,13 @@ import static org.h2.expression.Function.YEAR;
 
 import java.math.BigDecimal;
 import java.text.DateFormatSymbols;
+import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.TimeZone;
 
+import org.h2.api.ErrorCode;
 import org.h2.expression.Function;
 import org.h2.message.DbException;
 import org.h2.value.Value;
@@ -371,6 +374,46 @@ public final class DateTimeFunctions {
         return result;
     }
 
+    /**
+     * Formats a date using a format string.
+     *
+     * @param date
+     *            the date to format
+     * @param format
+     *            the format string
+     * @param locale
+     *            the locale
+     * @param timeZone
+     *            the timezone
+     * @return the formatted date
+     */
+    public static String formatDateTime(java.util.Date date, String format, String locale, String timeZone) {
+        SimpleDateFormat dateFormat = getDateFormat(format, locale, timeZone);
+        synchronized (dateFormat) {
+            return dateFormat.format(date);
+        }
+    }
+
+    private static SimpleDateFormat getDateFormat(String format, String locale, String timeZone) {
+        try {
+            // currently, a new instance is create for each call
+            // however, could cache the last few instances
+            SimpleDateFormat df;
+            if (locale == null) {
+                df = new SimpleDateFormat(format);
+            } else {
+                Locale l = new Locale(locale);
+                df = new SimpleDateFormat(format, l);
+            }
+            if (timeZone != null) {
+                df.setTimeZone(TimeZone.getTimeZone(timeZone));
+            }
+            return df;
+        } catch (Exception e) {
+            throw DbException.get(ErrorCode.PARSE_ERROR_1, e, format + "/" + locale + "/" + timeZone);
+        }
+    }
+
     private static int getDatePart(String part) {
         Integer p = DATE_PART.get(StringUtils.toUpperEnglish(part));
         if (p == null) {
@@ -472,6 +515,31 @@ public final class DateTimeFunctions {
      */
     public static boolean isDatePart(String part) {
         return DATE_PART.containsKey(StringUtils.toUpperEnglish(part));
+    }
+
+    /**
+     * Parses a date using a format string.
+     *
+     * @param date
+     *            the date to parse
+     * @param format
+     *            the parsing format
+     * @param locale
+     *            the locale
+     * @param timeZone
+     *            the timeZone
+     * @return the parsed date
+     */
+    public static java.util.Date parseDateTime(String date, String format, String locale, String timeZone) {
+        SimpleDateFormat dateFormat = getDateFormat(format, locale, timeZone);
+        try {
+            synchronized (dateFormat) {
+                return dateFormat.parse(date);
+            }
+        } catch (Exception e) {
+            // ParseException
+            throw DbException.get(ErrorCode.PARSE_ERROR_1, e, date);
+        }
     }
 
     private static long weekdiff(long absolute1, long absolute2, int firstDayOfWeek) {

@@ -1458,7 +1458,7 @@ public class Function extends Expression implements FunctionCall {
                     tz = DateTimeUtils.timeZoneNameFromOffsetMins(
                             ((ValueTimestampTimeZone) v0).getTimeZoneOffsetMins());
                 }
-                result = ValueString.get(DateTimeUtils.formatDateTime(
+                result = ValueString.get(DateTimeFunctions.formatDateTime(
                         v0.getTimestamp(), v1.getString(), locale, tz),
                         database.getMode().treatEmptyStringsAsNull);
             }
@@ -1472,7 +1472,7 @@ public class Function extends Expression implements FunctionCall {
                         null : v2 == ValueNull.INSTANCE ? null : v2.getString();
                 String tz = v3 == null ?
                         null : v3 == ValueNull.INSTANCE ? null : v3.getString();
-                java.util.Date d = DateTimeUtils.parseDateTime(
+                java.util.Date d = DateTimeFunctions.parseDateTime(
                         v0.getString(), v1.getString(), locale, tz);
                 result = ValueTimestamp.fromMillis(d.getTime());
             }

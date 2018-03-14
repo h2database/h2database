@@ -1245,10 +1245,10 @@ public class DateTimeUtils {
             m += 12;
         }
         long a = ((y * 2922L) >> 3) + DAYS_OFFSET[m - 3] + d - 719_484;
-        if (y <= 1582 && ((y < 1582) || (m * 100 + d < 1015))) {
+        if (y <= 1582 && ((y < 1582) || (m * 100 + d < 10_15))) {
             // Julian calendar (cutover at 1582-10-04 / 1582-10-15)
             a += 13;
-        } else if (y < 1901 || y > 2099) {
+        } else if (y < 1900 || y > 2099) {
             // Gregorian calendar (slow mode)
             a += (y / 400) - (y / 100) + 15;
         }
@@ -1271,7 +1271,7 @@ public class DateTimeUtils {
             m += 12;
         }
         long a = ((y * 2922L) >> 3) + DAYS_OFFSET[m - 3] + d - 719_484;
-        if (y < 1901 || y > 2099) {
+        if (y < 1900 || y > 2099) {
             // Slow mode
             a += (y / 400) - (y / 100) + 15;
         }

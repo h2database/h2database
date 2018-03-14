@@ -744,8 +744,7 @@ public class DateTimeUtils {
      * @return number of day in year
      */
     public static int getDayOfYear(long dateValue) {
-        int year = yearFromDateValue(dateValue);
-        return (int) (absoluteDayFromDateValue(dateValue) - absoluteDayFromDateValue(dateValue(year, 1, 1))) + 1;
+        return (int) (absoluteDayFromDateValue(dateValue) - absoluteDayFromYear(yearFromDateValue(dateValue))) + 1;
     }
 
     /**
@@ -825,7 +824,7 @@ public class DateTimeUtils {
     }
 
     private static long getWeekOfYearBase(int year, int firstDayOfWeek, int minimalDaysInFirstWeek) {
-        long first = absoluteDayFromDateValue(dateValue(year, 1, 1));
+        long first = absoluteDayFromYear(year);
         int daysInFirstWeek = 8 - getDayOfWeekFromAbsolute(first, firstDayOfWeek);
         long base = first + daysInFirstWeek;
         if (daysInFirstWeek >= minimalDaysInFirstWeek) {
@@ -1228,6 +1227,26 @@ public class DateTimeUtils {
             }
         }
         return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos, (short) offsetMins);
+    }
+
+    /**
+     * Calculate the absolute day for a January, 1 of the specified year.
+     *
+     * @param year
+     *            the year
+     * @return the absolute day
+     */
+    public static long absoluteDayFromYear(long year) {
+        year--;
+        long a = ((year * 2922L) >> 3) - 719_177;
+        if (year < 1582) {
+            // Julian calendar
+            a += 13;
+        } else if (year < 1900 || year > 2099) {
+            // Gregorian calendar (slow mode)
+            a += (year / 400) - (year / 100) + 15;
+        }
+        return a;
     }
 
     /**

@@ -1238,7 +1238,7 @@ public class DateTimeUtils {
      */
     public static long absoluteDayFromYear(long year) {
         year--;
-        long a = ((year * 2922L) >> 3) - 719_177;
+        long a = ((year * 1461L) >> 2) - 719_177;
         if (year < 1582) {
             // Julian calendar
             a += 13;
@@ -1263,7 +1263,7 @@ public class DateTimeUtils {
             y--;
             m += 12;
         }
-        long a = ((y * 2922L) >> 3) + DAYS_OFFSET[m - 3] + d - 719_484;
+        long a = ((y * 1461L) >> 2) + DAYS_OFFSET[m - 3] + d - 719_484;
         if (y <= 1582 && ((y < 1582) || (m * 100 + d < 10_15))) {
             // Julian calendar (cutover at 1582-10-04 / 1582-10-15)
             a += 13;
@@ -1289,7 +1289,7 @@ public class DateTimeUtils {
             y--;
             m += 12;
         }
-        long a = ((y * 2922L) >> 3) + DAYS_OFFSET[m - 3] + d - 719_484;
+        long a = ((y * 1461L) >> 2) + DAYS_OFFSET[m - 3] + d - 719_484;
         if (y < 1900 || y > 2099) {
             // Slow mode
             a += (y / 400) - (y / 100) + 15;

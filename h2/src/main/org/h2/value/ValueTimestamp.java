@@ -62,7 +62,7 @@ public class ValueTimestamp extends Value {
 
     private ValueTimestamp(long dateValue, long timeNanos) {
         this.dateValue = dateValue;
-        if (timeNanos < 0 || timeNanos >= 24L * 60 * 60 * 1000 * 1000 * 1000) {
+        if (timeNanos < 0 || timeNanos >= DateTimeUtils.NANOS_PER_DAY) {
             throw new IllegalArgumentException("timeNanos out of range " + timeNanos);
         }
         this.timeNanos = timeNanos;
@@ -229,7 +229,7 @@ public class ValueTimestamp extends Value {
         long dv = dateValue;
         if (n2 >= DateTimeUtils.NANOS_PER_DAY) {
             n2 -= DateTimeUtils.NANOS_PER_DAY;
-            dv = DateTimeUtils.dateValueFromAbsoluteDay(DateTimeUtils.absoluteDayFromDateValue(dateValue) + 1);
+            dv = DateTimeUtils.incrementDateValue(dv);
         }
         return fromDateValueAndNanos(dv, n2);
     }

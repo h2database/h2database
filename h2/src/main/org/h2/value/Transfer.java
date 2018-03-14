@@ -349,19 +349,15 @@ public class Transfer {
         case Value.TIME:
             if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
                 writeLong(((ValueTime) v).getNanos());
-            } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
-                writeLong(DateTimeUtils.getTimeLocalWithoutDst(v.getTime()));
             } else {
-                writeLong(v.getTime().getTime());
+                writeLong(DateTimeUtils.getTimeLocalWithoutDst(v.getTime()));
             }
             break;
         case Value.DATE:
             if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
                 writeLong(((ValueDate) v).getDateValue());
-            } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
-                writeLong(DateTimeUtils.getTimeLocalWithoutDst(v.getDate()));
             } else {
-                writeLong(v.getDate().getTime());
+                writeLong(DateTimeUtils.getTimeLocalWithoutDst(v.getDate()));
             }
             break;
         case Value.TIMESTAMP: {
@@ -369,13 +365,9 @@ public class Transfer {
                 ValueTimestamp ts = (ValueTimestamp) v;
                 writeLong(ts.getDateValue());
                 writeLong(ts.getTimeNanos());
-            } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
-                Timestamp ts = v.getTimestamp();
-                writeLong(DateTimeUtils.getTimeLocalWithoutDst(ts));
-                writeInt(ts.getNanos() % 1_000_000);
             } else {
                 Timestamp ts = v.getTimestamp();
-                writeLong(ts.getTime());
+                writeLong(DateTimeUtils.getTimeLocalWithoutDst(ts));
                 writeInt(ts.getNanos() % 1_000_000);
             }
             break;
@@ -555,28 +547,24 @@ public class Transfer {
         case Value.DATE:
             if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
                 return ValueDate.fromDateValue(readLong());
-            } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+            } else {
                 return ValueDate.fromMillis(DateTimeUtils.getTimeUTCWithoutDst(readLong()));
             }
-            return ValueDate.fromMillis(readLong());
         case Value.TIME:
             if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
                 return ValueTime.fromNanos(readLong());
-            } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+            } else {
                 return ValueTime.fromMillis(DateTimeUtils.getTimeUTCWithoutDst(readLong()));
             }
-            return ValueTime.fromMillis(readLong());
         case Value.TIMESTAMP: {
             if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
                 return ValueTimestamp.fromDateValueAndNanos(
                         readLong(), readLong());
-            } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+            } else {
                 return ValueTimestamp.fromMillisNanos(
                         DateTimeUtils.getTimeUTCWithoutDst(readLong()),
                         readInt() % 1_000_000);
             }
-            return ValueTimestamp.fromMillisNanos(readLong(),
-                    readInt() % 1_000_000);
         }
         case Value.TIMESTAMP_TZ: {
             return ValueTimestampTimeZone.fromDateValueAndNanos(readLong(),

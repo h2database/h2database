@@ -1135,7 +1135,7 @@ public class Parser {
                 command.setQuery(parseSelect());
                 read(")");
             }
-            command.setQueryAlias(readFromAlias(null, Arrays.asList("ON")));
+            command.setQueryAlias(readFromAlias(null, Collections.singletonList("ON")));
 
             String[] querySQLOutput = new String[]{null};
             List<Column> columnTemplateList = TableView.createQueryColumnTemplateList(null, command.getQuery(),
@@ -1152,7 +1152,7 @@ public class Parser {
             command.setSourceTableFilter(sourceTableFilter);
         } else {
             /* Its a table name, simulate a query by building a select query for the table */
-            List<String> excludeIdentifiers = Arrays.asList("ON");
+            List<String> excludeIdentifiers = Collections.singletonList("ON");
             TableFilter sourceTableFilter = readSimpleTableFilter(0, excludeIdentifiers);
             command.setSourceTableFilter(sourceTableFilter);
 

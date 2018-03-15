@@ -901,7 +901,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param constraint the constraint to add
      */
     public void addConstraint(Constraint constraint) {
-        if (constraints == null || constraints.indexOf(constraint) < 0) {
+        if (constraints == null || !constraints.contains(constraint)) {
             constraints = add(constraints, constraint);
         }
     }

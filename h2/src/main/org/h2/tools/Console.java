@@ -356,7 +356,7 @@ ShutdownHandler {
             System.gc();
             // Mac OS X: Console tool process did not stop on exit
             String os = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
-            if (os.indexOf("mac") >= 0) {
+            if (os.contains("mac")) {
                 for (Thread t : Thread.getAllStackTraces().keySet()) {
                     if (t.getName().startsWith("AWT-")) {
                         t.interrupt();

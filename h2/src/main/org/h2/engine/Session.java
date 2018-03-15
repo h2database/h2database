@@ -930,7 +930,7 @@ public class Session extends SessionWithState {
                 if (lockMode != Constants.LOCK_MODE_OFF &&
                         !database.isMultiVersion()) {
                     TableType tableType = log.getTable().getTableType();
-                    if (locks.indexOf(log.getTable()) < 0
+                    if (!locks.contains(log.getTable())
                             && TableType.TABLE_LINK != tableType
                             && TableType.EXTERNAL_TABLE_ENGINE != tableType) {
                         DbException.throwInternalError("" + tableType);

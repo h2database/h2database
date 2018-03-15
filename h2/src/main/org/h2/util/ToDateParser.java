@@ -91,8 +91,7 @@ public class ToDateParser {
             }
             if (doyValid) {
                 dateValue = DateTimeUtils.dateValueFromAbsoluteDay(
-                        DateTimeUtils.absoluteDayFromDateValue(DateTimeUtils.dateValue(year, 1, 1))
-                        + dayOfYear - 1);
+                        DateTimeUtils.absoluteDayFromYear(year) + dayOfYear - 1);
             } else {
                 int month = this.month;
                 if (month == 0) {
@@ -126,8 +125,8 @@ public class ToDateParser {
             if (timeZone == null) {
                 timeZone = TimeZone.getDefault();
             }
-            long millis = DateTimeUtils.convertDateTimeValueToMillis(timeZone, dateValue, nanos / 1000000);
-            offset = (short) (timeZone.getOffset(millis) / 1000 / 60);
+            long millis = DateTimeUtils.convertDateTimeValueToMillis(timeZone, dateValue, nanos / 1_000_000);
+            offset = (short) (timeZone.getOffset(millis) / 60_000);
         }
         return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, ts.getTimeNanos(), offset);
     }

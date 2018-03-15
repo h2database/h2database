@@ -9,6 +9,7 @@ import java.nio.ByteBuffer;
 import java.util.HashSet;
 import org.h2.compress.Compressor;
 import org.h2.mvstore.type.DataType;
+import org.h2.util.Utils;
 
 /**
  * A page (a node or a leaf).
@@ -702,7 +703,7 @@ public class Page {
             }
             int lenAdd = DataUtils.readVarInt(buff);
             int compLen = pageLength + start - buff.position();
-            byte[] comp = DataUtils.newBytes(compLen);
+            byte[] comp = Utils.newBytes(compLen);
             buff.get(comp);
             int l = compLen + lenAdd;
             buff = ByteBuffer.allocate(l);

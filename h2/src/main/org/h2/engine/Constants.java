@@ -46,69 +46,69 @@ public class Constants {
     public static final String BUILD_VENDOR_AND_VERSION = null;
 
     /**
-     * The TCP protocol version number 6.
-     */
-    public static final int TCP_PROTOCOL_VERSION_6 = 6;
-
-    /**
-     * The TCP protocol version number 7.
-     */
-    public static final int TCP_PROTOCOL_VERSION_7 = 7;
-
-    /**
      * The TCP protocol version number 8.
+     * @since 1.2.143 (2010-09-18)
      */
     public static final int TCP_PROTOCOL_VERSION_8 = 8;
 
     /**
      * The TCP protocol version number 9.
+     * @since 1.3.158 (2011-07-17)
      */
     public static final int TCP_PROTOCOL_VERSION_9 = 9;
 
     /**
      * The TCP protocol version number 10.
+     * @since 1.3.162 (2011-11-26)
      */
     public static final int TCP_PROTOCOL_VERSION_10 = 10;
 
     /**
      * The TCP protocol version number 11.
+     * @since 1.3.163 (2011-12-30)
      */
     public static final int TCP_PROTOCOL_VERSION_11 = 11;
 
     /**
      * The TCP protocol version number 12.
+     * @since 1.3.168 (2012-07-13)
      */
     public static final int TCP_PROTOCOL_VERSION_12 = 12;
 
     /**
      * The TCP protocol version number 13.
+     * @since 1.3.174 (2013-10-19)
      */
     public static final int TCP_PROTOCOL_VERSION_13 = 13;
 
     /**
      * The TCP protocol version number 14.
+     * @since 1.3.176 (2014-04-05)
      */
     public static final int TCP_PROTOCOL_VERSION_14 = 14;
 
     /**
      * The TCP protocol version number 15.
+     * @since 1.4.178 Beta (2014-05-02)
      */
     public static final int TCP_PROTOCOL_VERSION_15 = 15;
 
     /**
      * The TCP protocol version number 16.
+     * @since 1.4.194 (2017-03-10)
      */
     public static final int TCP_PROTOCOL_VERSION_16 = 16;
 
     /**
      * The TCP protocol version number 17.
+     * @since 1.4.197 (TODO)
      */
     public static final int TCP_PROTOCOL_VERSION_17 = 17;
 
     /**
      * Minimum supported version of TCP protocol.
      */
-    public static final int TCP_PROTOCOL_VERSION_MIN_SUPPORTED = TCP_PROTOCOL_VERSION_6;
+    public static final int TCP_PROTOCOL_VERSION_MIN_SUPPORTED = TCP_PROTOCOL_VERSION_8;
 
     /**
      * Maximum supported version of TCP protocol.
@@ -246,12 +246,12 @@ public class Constants {
     /**
      * The default value for the MAX_MEMORY_UNDO setting.
      */
-    public static final int DEFAULT_MAX_MEMORY_UNDO = 50000;
+    public static final int DEFAULT_MAX_MEMORY_UNDO = 50_000;
 
     /**
      * The default for the setting MAX_OPERATION_MEMORY.
      */
-    public static final int DEFAULT_MAX_OPERATION_MEMORY = 100000;
+    public static final int DEFAULT_MAX_OPERATION_MEMORY = 100_000;
 
     /**
      * The default page size to use for new databases.
@@ -312,7 +312,7 @@ public class Constants {
     /**
      * The highest possible parameter index.
      */
-    public static final int MAX_PARAMETER_INDEX = 100000;
+    public static final int MAX_PARAMETER_INDEX = 100_000;
 
     /**
      * The memory needed by a object of class Data
@@ -404,7 +404,7 @@ public class Constants {
     /**
      * The number of distinct values to keep in memory when running ANALYZE.
      */
-    public static final int SELECTIVITY_DISTINCT_COUNT = 10000;
+    public static final int SELECTIVITY_DISTINCT_COUNT = 10_000;
 
     /**
      * The default directory name of the server properties file for the H2
@@ -512,7 +512,7 @@ public class Constants {
      * The maximum time in milliseconds to keep the cost of a view.
      * 10000 means 10 seconds.
      */
-    public static final int VIEW_COST_CACHE_MAX_AGE = 10000;
+    public static final int VIEW_COST_CACHE_MAX_AGE = 10_000;
 
     /**
      * The name of the index cache that is used for temporary view (subqueries

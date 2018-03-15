@@ -11,6 +11,7 @@ import java.sql.Types;
 
 import org.h2.engine.SysProperties;
 import org.h2.store.DataHandler;
+import org.h2.util.Bits;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Utils;
 
@@ -131,8 +132,7 @@ public class ValueJavaObject extends ValueBytes {
                 if (o1.equals(o2)) {
                     return 0;
                 }
-
-                return Utils.compareNotNullSigned(getBytesNoCopy(), v.getBytesNoCopy());
+                return Bits.compareNotNullSigned(getBytesNoCopy(), v.getBytesNoCopy());
             }
 
             return h1 > h2 ? 1 : -1;

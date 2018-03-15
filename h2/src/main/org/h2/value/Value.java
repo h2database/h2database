@@ -593,6 +593,17 @@ public abstract class Value {
     }
 
     /**
+     * Convert value to ENUM value
+     * @param enumerators allowed values for the ENUM to which the value is converted
+     * @return value represented as ENUM
+     */
+    public Value convertToEnum(String[] enumerators) {
+        // Use -1 to indicate "default behaviour" where value conversion should not
+        // depend on any datatype precision.
+        return convertTo(ENUM, -1, null, null, enumerators);
+    }
+
+    /**
      * Compare a value to the specified type.
      *
      * @param targetType the type of the returned value
@@ -834,8 +845,7 @@ public abstract class Value {
                 case TIME:
                     // because the time has set the date to 1970-01-01,
                     // this will be the result
-                    return ValueDate.fromDateValue(
-                            DateTimeUtils.dateValue(1970, 1, 1));
+                    return ValueDate.fromDateValue(DateTimeUtils.EPOCH_DATE_VALUE);
                 case TIMESTAMP:
                     return ValueDate.fromDateValue(
                             ((ValueTimestamp) this).getDateValue());

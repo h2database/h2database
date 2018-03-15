@@ -70,7 +70,7 @@ public class ValueTime extends Value {
      */
     public static ValueTime fromNanos(long nanos) {
         if (!SysProperties.UNLIMITED_TIME_RANGE) {
-            if (nanos < 0L || nanos >= 86400000000000L) {
+            if (nanos < 0L || nanos >= DateTimeUtils.NANOS_PER_DAY) {
                 StringBuilder builder = new StringBuilder();
                 DateTimeUtils.appendTime(builder, nanos);
                 throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2,

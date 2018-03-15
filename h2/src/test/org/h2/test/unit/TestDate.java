@@ -371,12 +371,18 @@ public class TestDate extends TestBase {
                     if (abs != next && next != Long.MIN_VALUE) {
                         assertEquals(abs, next);
                     }
+                    if (m == 1 && d == 1) {
+                        assertEquals(abs, DateTimeUtils.absoluteDayFromYear(y));
+                    }
                     next = abs + 1;
                     long d2 = DateTimeUtils.dateValueFromAbsoluteDay(abs);
                     assertEquals(date, d2);
                     assertEquals(y, DateTimeUtils.yearFromDateValue(date));
                     assertEquals(m, DateTimeUtils.monthFromDateValue(date));
                     assertEquals(d, DateTimeUtils.dayFromDateValue(date));
+                    long nextDateValue = DateTimeUtils.dateValueFromAbsoluteDay(next);
+                    assertEquals(nextDateValue, DateTimeUtils.incrementDateValue(date));
+                    assertEquals(date, DateTimeUtils.decrementDateValue(nextDateValue));
                 }
             }
         }

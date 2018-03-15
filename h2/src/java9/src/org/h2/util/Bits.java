@@ -8,6 +8,7 @@ package org.h2.util;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 import java.util.UUID;
 
 /**
@@ -27,6 +28,46 @@ public final class Bits {
      * long[] array on big-endian system.
      */
     private static final VarHandle LONG_VH = MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.BIG_ENDIAN);
+
+    /**
+     * Compare the contents of two byte arrays. If the content or length of the
+     * first array is smaller than the second array, -1 is returned. If the content
+     * or length of the second array is smaller than the first array, 1 is returned.
+     * If the contents and lengths are the same, 0 is returned.
+     *
+     * <p>
+     * This method interprets bytes as signed.
+     * </p>
+     *
+     * @param data1
+     *            the first byte array (must not be null)
+     * @param data2
+     *            the second byte array (must not be null)
+     * @return the result of the comparison (-1, 1 or 0)
+     */
+    public static int compareNotNullSigned(byte[] data1, byte[] data2) {
+        return Integer.signum(Arrays.compare(data1, data2));
+    }
+
+    /**
+     * Compare the contents of two byte arrays. If the content or length of the
+     * first array is smaller than the second array, -1 is returned. If the content
+     * or length of the second array is smaller than the first array, 1 is returned.
+     * If the contents and lengths are the same, 0 is returned.
+     *
+     * <p>
+     * This method interprets bytes as unsigned.
+     * </p>
+     *
+     * @param data1
+     *            the first byte array (must not be null)
+     * @param data2
+     *            the second byte array (must not be null)
+     * @return the result of the comparison (-1, 1 or 0)
+     */
+    public static int compareNotNullUnsigned(byte[] data1, byte[] data2) {
+        return Integer.signum(Arrays.compareUnsigned(data1, data2));
+    }
 
     /**
      * Reads a int value from the byte array at the given position in big-endian

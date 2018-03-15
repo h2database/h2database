@@ -47,7 +47,7 @@ public class TableLink extends Table {
 
     private static final int MAX_RETRY = 2;
 
-    private static final long ROW_COUNT_APPROXIMATION = 100000;
+    private static final long ROW_COUNT_APPROXIMATION = 100_000;
 
     private final String originalSchema;
     private String driver, url, user, password, originalTable, qualifiedTableName;

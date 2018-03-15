@@ -20,10 +20,10 @@ import java.util.StringTokenizer;
 
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
-import org.h2.mvstore.DataUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * For each connection to a session, an object of this class is created.
@@ -317,7 +317,7 @@ class WebThread extends WebApp implements Runnable {
         if (multipart) {
             // not supported
         } else if (session != null && len > 0) {
-            byte[] bytes = DataUtils.newBytes(len);
+            byte[] bytes = Utils.newBytes(len);
             for (int pos = 0; pos < len;) {
                 pos += input.read(bytes, pos, len - pos);
             }

@@ -147,6 +147,7 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableView;
+import org.h2.util.DateTimeFunctions;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.ParserUtil;
@@ -2651,6 +2652,15 @@ public class Parser {
             } else {
                 r = null;
             }
+        } else if (aggregateType == AggregateType.ARRAY_AGG) {
+            boolean distinct = readIf("DISTINCT");
+
+            r = new Aggregate(AggregateType.ARRAY_AGG,
+                readExpression(), currentSelect, distinct);
+            if (readIf("ORDER")) {
+                read("BY");
+                r.setArrayAggOrder(parseSimpleOrderList());
+            }
         } else {
             boolean distinct = readIf("DISTINCT");
             r = new Aggregate(aggregateType, readExpression(), currentSelect,
@@ -2789,7 +2799,7 @@ public class Parser {
         }
         case Function.DATE_ADD:
         case Function.DATE_DIFF: {
-            if (Function.isDatePart(currentToken)) {
+            if (DateTimeFunctions.isDatePart(currentToken)) {
                 function.setParameter(0,
                         ValueExpression.get(ValueString.get(currentToken)));
                 read();
@@ -6718,6 +6728,7 @@ public class Parser {
                 cols[0].columnName = column.getName();
                 AlterTableAddConstraint pk = new AlterTableAddConstraint(
                         session, schema, false);
+                pk.setConstraintName(constraintName);
                 pk.setPrimaryKeyHash(hash);
                 pk.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY);
                 pk.setTableName(tableName);
@@ -6907,5 +6918,10 @@ public class Parser {
         initialize(sql);
         read();
         return readTableOrView();
+    }
+
+    @Override
+    public String toString() {
+        return StringUtils.addAsterisk(sqlCommand, parseIndex);
     }
 }

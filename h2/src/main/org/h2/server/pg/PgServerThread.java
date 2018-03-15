@@ -40,7 +40,6 @@ import org.h2.jdbc.JdbcPreparedStatement;
 import org.h2.jdbc.JdbcResultSet;
 import org.h2.jdbc.JdbcStatement;
 import org.h2.message.DbException;
-import org.h2.mvstore.DataUtils;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
@@ -152,7 +151,7 @@ public class PgServerThread implements Runnable {
         }
         int len = dataInRaw.readInt();
         len -= 4;
-        byte[] data = DataUtils.newBytes(len);
+        byte[] data = Utils.newBytes(len);
         dataInRaw.readFully(data, 0, len);
         dataIn = new DataInputStream(new ByteArrayInputStream(data, 0, len));
         switch (x) {
@@ -639,7 +638,7 @@ public class PgServerThread implements Runnable {
             prep.setNull(col, Types.NULL);
         } else if (text) {
             // plain text
-            byte[] data = DataUtils.newBytes(paramLen);
+            byte[] data = Utils.newBytes(paramLen);
             readFully(data);
             String str = new String(data, getEncoding());
             switch (pgType) {
@@ -687,13 +686,13 @@ public class PgServerThread implements Runnable {
                 prep.setDouble(col, dataIn.readDouble());
                 break;
             case PgServer.PG_TYPE_BYTEA:
-                byte[] d1 = DataUtils.newBytes(paramLen);
+                byte[] d1 = Utils.newBytes(paramLen);
                 readFully(d1);
                 prep.setBytes(col, d1);
                 break;
             default:
                 server.trace("Binary format for type: "+pgType+" is unsupported");
-                byte[] d2 = DataUtils.newBytes(paramLen);
+                byte[] d2 = Utils.newBytes(paramLen);
                 readFully(d2);
                 prep.setString(col, new String(d2, getEncoding()));
             }

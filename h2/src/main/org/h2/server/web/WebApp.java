@@ -1775,7 +1775,7 @@ public class WebApp {
         String d = rs.getString(columnIndex);
         if (d == null) {
             return "<i>null</i>";
-        } else if (d.length() > 100000) {
+        } else if (d.length() > 100_000) {
             String s;
             if (isBinary(rs.getMetaData().getColumnType(columnIndex))) {
                 s = PageParser.escapeHtml(d.substring(0, 6)) +

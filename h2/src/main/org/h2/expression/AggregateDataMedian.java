@@ -259,7 +259,7 @@ class AggregateDataMedian extends AggregateData {
                 nanos += DateTimeUtils.NANOS_PER_DAY / 2;
             }
             if ((offset & 1) != 0) {
-                nanos += 30L * 1000000000;
+                nanos += 30_000_000_000L;
             }
             if (nanos >= DateTimeUtils.NANOS_PER_DAY) {
                 nanos -= DateTimeUtils.NANOS_PER_DAY;

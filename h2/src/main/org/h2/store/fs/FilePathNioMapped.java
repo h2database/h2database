@@ -44,7 +44,7 @@ public class FilePathNioMapped extends FilePathNio {
  */
 class FileNioMapped extends FileBase {
 
-    private static final long GC_TIMEOUT_MS = 10000;
+    private static final long GC_TIMEOUT_MS = 10_000;
     private final String name;
     private final MapMode mode;
     private RandomAccessFile file;

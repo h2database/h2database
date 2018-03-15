@@ -85,7 +85,7 @@ public class Parameter extends Expression implements ParameterInterface {
     @Override
     public Expression optimize(Session session) {
         if (session.getDatabase().getMode().treatEmptyStringsAsNull) {
-            if (value != null && value instanceof ValueString) {
+            if (value instanceof ValueString) {
                 value = ValueString.get(value.getString(), true);
             }
         }

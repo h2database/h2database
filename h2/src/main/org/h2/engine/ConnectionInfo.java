@@ -456,7 +456,7 @@ public class ConnectionInfo implements Cloneable {
      */
     String getProperty(String key) {
         Object value = prop.get(key);
-        if (value == null || !(value instanceof String)) {
+        if (!(value instanceof String)) {
             return null;
         }
         return value.toString();

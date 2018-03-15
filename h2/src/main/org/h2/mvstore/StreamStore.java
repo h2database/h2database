@@ -96,6 +96,7 @@ public class StreamStore {
      * @param in the stream
      * @return the id (potentially an empty array)
      */
+    @SuppressWarnings("resource")
     public byte[] put(InputStream in) throws IOException {
         ByteArrayOutputStream id = new ByteArrayOutputStream();
         int level = 0;

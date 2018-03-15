@@ -217,9 +217,9 @@ public class LobStorageMap implements LobStorageInterface {
         long lobId = generateLobId();
         long length = streamStore.length(streamStoreId);
         int tableId = LobStorageFrontend.TABLE_TEMP;
-        Object[] value = new Object[] { streamStoreId, tableId, length, 0 };
+        Object[] value = { streamStoreId, tableId, length, 0 };
         lobMap.put(lobId, value);
-        Object[] key = new Object[] { streamStoreId, lobId };
+        Object[] key = { streamStoreId, lobId };
         refMap.put(key, Boolean.TRUE);
         ValueLobDb lob = ValueLobDb.create(
                 type, database, tableId, lobId, null, length);
@@ -259,7 +259,7 @@ public class LobStorageMap implements LobStorageInterface {
         long lobId = generateLobId();
         value[1] = tableId;
         lobMap.put(lobId, value);
-        Object[] key = new Object[] { streamStoreId, lobId };
+        Object[] key = { streamStoreId, lobId };
         refMap.put(key, Boolean.TRUE);
         ValueLobDb lob = ValueLobDb.create(
                 type, database, tableId, lobId, null, length);
@@ -332,7 +332,7 @@ public class LobStorageMap implements LobStorageInterface {
             return;
         }
         byte[] streamStoreId = (byte[]) value[0];
-        Object[] key = new Object[] {streamStoreId, lobId };
+        Object[] key = {streamStoreId, lobId };
         refMap.remove(key);
         // check if there are more entries for this streamStoreId
         key = new Object[] {streamStoreId, 0L };

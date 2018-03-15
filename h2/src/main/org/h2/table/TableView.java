@@ -732,7 +732,7 @@ public class TableView extends Table {
                 schema, Arrays.asList(columnTemplates), db);
 
         List<Column> columnTemplateList;
-        String[] querySQLOutput = new String[]{null};
+        String[] querySQLOutput = {null};
         ArrayList<String> columnNames = new ArrayList<>();
         for (Column columnTemplate: columnTemplates) {
             columnNames.add(columnTemplate.getName());

@@ -1136,7 +1136,7 @@ public class Parser {
             }
             command.setQueryAlias(readFromAlias(null, Collections.singletonList("ON")));
 
-            String[] querySQLOutput = new String[]{null};
+            String[] querySQLOutput = {null};
             List<Column> columnTemplateList = TableView.createQueryColumnTemplateList(null, command.getQuery(),
                     querySQLOutput);
             TableView temporarySourceTableView = createCTEView(
@@ -5252,7 +5252,7 @@ public class Parser {
         recursiveTable = TableView.createShadowTableForRecursiveTableExpression(
                 isPersistent, session, cteViewName, schema, columns, database);
         List<Column> columnTemplateList;
-        String[] querySQLOutput = new String[]{null};
+        String[] querySQLOutput = {null};
         try {
             read("AS");
             read("(");

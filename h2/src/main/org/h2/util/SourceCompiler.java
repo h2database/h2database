@@ -459,7 +459,7 @@ public class SourceCompiler {
                 Object importCustomizer = Utils.newInstance(
                         "org.codehaus.groovy.control.customizers.ImportCustomizer");
                 // Call the method ImportCustomizer.addImports(String[])
-                String[] importsArray = new String[] {
+                String[] importsArray = {
                         "java.sql.Connection",
                         "java.sql.Types",
                         "java.sql.ResultSet",

@@ -1335,19 +1335,19 @@ public class DataType {
         if (clazz == Boolean.TYPE) {
             return Boolean.FALSE;
         } else if (clazz == Byte.TYPE) {
-            return Byte.valueOf((byte) 0);
+            return (byte) 0;
         } else if (clazz == Character.TYPE) {
-            return Character.valueOf((char) 0);
+            return (char) 0;
         } else if (clazz == Short.TYPE) {
-            return Short.valueOf((short) 0);
+            return (short) 0;
         } else if (clazz == Integer.TYPE) {
-            return Integer.valueOf(0);
+            return 0;
         } else if (clazz == Long.TYPE) {
-            return Long.valueOf(0);
+            return 0L;
         } else if (clazz == Float.TYPE) {
-            return Float.valueOf(0);
+            return (float) 0;
         } else if (clazz == Double.TYPE) {
-            return Double.valueOf(0);
+            return (double) 0;
         }
         throw DbException.throwInternalError(
                 "primitive=" + clazz.toString());

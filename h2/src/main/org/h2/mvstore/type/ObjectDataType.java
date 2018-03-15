@@ -601,7 +601,7 @@ public class ObjectDataType implements DataType {
 
         @Override
         public Object read(ByteBuffer buff, int tag) {
-            return Byte.valueOf(buff.get());
+            return buff.get();
         }
 
     }
@@ -642,7 +642,7 @@ public class ObjectDataType implements DataType {
 
         @Override
         public Object read(ByteBuffer buff, int tag) {
-            return Character.valueOf(buff.getChar());
+            return buff.getChar();
         }
 
     }
@@ -683,7 +683,7 @@ public class ObjectDataType implements DataType {
 
         @Override
         public Object read(ByteBuffer buff, int tag) {
-            return Short.valueOf(buff.getShort());
+            return buff.getShort();
         }
 
     }
@@ -811,7 +811,7 @@ public class ObjectDataType implements DataType {
             case TAG_LONG_FIXED:
                 return buff.getLong();
             }
-            return Long.valueOf(tag - TAG_LONG_0_7);
+            return (long) (tag - TAG_LONG_0_7);
         }
 
     }

@@ -130,7 +130,7 @@ public class ValueShort extends Value {
 
     @Override
     public Object getObject() {
-        return Short.valueOf(value);
+        return value;
     }
 
     @Override

@@ -3000,7 +3000,7 @@ public class Function extends Expression implements FunctionCall {
         long[] fieldDateAndTime = DateTimeUtils.dateAndTimeFromValue(value);
         long dateValue = fieldDateAndTime[0];
         long timeNanosRetrieved = fieldDateAndTime[1];
-        
+
         // Variable used to the time in nanoseconds of the date truncated.
         Long timeNanos = null;
 
@@ -3008,7 +3008,7 @@ public class Function extends Expression implements FunctionCall {
         // number of time unit 'HOUR' in '15:14:13' is '15'. Then convert the
         // result to nanoseconds.
         switch (timeUnit) {
-        
+
         case MICROSECOND:
 
             long nanoInMicroSecond = 1_000l;
@@ -3017,7 +3017,7 @@ public class Function extends Expression implements FunctionCall {
             break;
 
         case MILLISECOND:
-            
+
             long nanoInMilliSecond = 1_000_000l;
             long milliseconds = timeNanosRetrieved / nanoInMilliSecond;
             timeNanos = milliseconds * nanoInMilliSecond;
@@ -3038,19 +3038,21 @@ public class Function extends Expression implements FunctionCall {
             break;
 
         case HOUR:
-            
+
             long nanoInHour = 3_600_000_000_000l;
             long hours = timeNanosRetrieved / nanoInHour;
             timeNanos = hours * nanoInHour;
             break;
 
         case DAY_OF_MONTH:
-            
+
             timeNanos = 0l;
             break;
 
         case WEEK:
-            
+
+            // Use Calendar to retrieve the first day of the week and convert
+            // the date to a dateValue
             Date currentDate = DateTimeUtils.convertDateValueToDate(dateValue);
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(currentDate);
@@ -3059,9 +3061,9 @@ public class Function extends Expression implements FunctionCall {
             dateValue = valueTimestamp.getDateValue();
             timeNanos = 0l;
             break;
-        
+
         }
-        if(timeNanos == null) {
+        if (timeNanos == null) {
             // Return an exception in the timeUnit is not recognized
             throw DbException.getUnsupportedException(timeUnitStr);
 
@@ -3072,8 +3074,7 @@ public class Function extends Expression implements FunctionCall {
             // Case we create a timestamp with timezone with the dateValue and
             // timeNanos computed.
             ValueTimestampTimeZone vTmp = (ValueTimestampTimeZone) value;
-            result = ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos,
-                    vTmp.getTimeZoneOffsetMins());
+            result = ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos, vTmp.getTimeZoneOffsetMins());
 
         } else {
 

@@ -378,7 +378,7 @@ public final class DateTimeFunctions {
         }
         return result;
     }
-    
+
     /**
      * Truncate the given date to 'day'
      *
@@ -389,7 +389,7 @@ public final class DateTimeFunctions {
     public static Value truncateDate(String timeUnitStr, Value value) {
         Value result;
         int timeUnit = getDatePart(timeUnitStr);
-        
+
         // Retrieve the dateValue and the time in nanoseconds if the date.
         long[] fieldDateAndTime = DateTimeUtils.dateAndTimeFromValue(value);
         long dateValue = fieldDateAndTime[0];
@@ -458,6 +458,7 @@ public final class DateTimeFunctions {
 
         }
         if (timeNanos == null) {
+            
             // Return an exception in the timeUnit is not recognized
             throw DbException.getUnsupportedException(timeUnitStr);
 

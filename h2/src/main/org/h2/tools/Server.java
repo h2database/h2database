@@ -655,7 +655,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 if (supported) {
                     // Desktop.getDesktop();
                     Object desktop = desktopClass.getMethod("getDesktop").
-                        invoke(null, new Object[0]);
+                        invoke(null);
                     // desktop.browse(uri);
                     desktopClass.getMethod("browse", URI.class).
                         invoke(desktop, uri);

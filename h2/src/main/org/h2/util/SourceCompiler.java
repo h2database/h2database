@@ -476,7 +476,7 @@ public class SourceCompiler {
                 Object configuration = Utils.newInstance(
                         "org.codehaus.groovy.control.CompilerConfiguration");
                 Utils.callMethod(configuration,
-                        "addCompilationCustomizers", new Object[] { importCustomizerArray });
+                        "addCompilationCustomizers", importCustomizerArray);
 
                 ClassLoader parent = GroovyCompiler.class.getClassLoader();
                 loader = Utils.newInstance(

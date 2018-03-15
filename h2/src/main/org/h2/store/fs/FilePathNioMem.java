@@ -56,8 +56,7 @@ public class FilePathNioMem extends FilePath {
         synchronized (MEMORY_FILES) {
             if (!atomicReplace && !name.equals(newName.name) &&
                     MEMORY_FILES.containsKey(newName.name)) {
-                throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2,
-                        new String[] { name, newName + " (exists)" });
+                throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2, name, newName + " (exists)");
             }
             FileNioMemData f = getMemoryFile();
             f.setName(newName.name);

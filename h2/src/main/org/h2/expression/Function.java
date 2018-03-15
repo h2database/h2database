@@ -714,9 +714,9 @@ public class Function extends Expression implements FunctionCall {
                     String tmp = v.getString();
                     if (!StringUtils.isNullOrEmpty(separator)
                             && !StringUtils.isNullOrEmpty(tmp)) {
-                        tmp = separator.concat(tmp);
+                        tmp = separator + tmp;
                     }
-                    result = ValueString.get(result.getString().concat(tmp),
+                    result = ValueString.get(result.getString() + tmp,
                             database.getMode().treatEmptyStringsAsNull);
                 }
             }

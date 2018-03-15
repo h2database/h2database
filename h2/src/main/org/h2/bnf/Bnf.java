@@ -362,7 +362,7 @@ public class Bnf {
      * @return the tokenizer
      */
     public static StringTokenizer getTokenizer(String s) {
-        return new StringTokenizer(s, " [](){}|.,\r\n<>:-+*/=<\">!'$", true);
+        return new StringTokenizer(s, " [](){}|.,\r\n<>:-+*/=\"!'$", true);
     }
 
 }

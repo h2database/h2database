@@ -30,7 +30,7 @@ public class ValueEnum extends ValueEnumBase {
      *
      * @param enumerators the enumerators
      */
-    public static final void check(final String[] enumerators) {
+    public static void check(final String[] enumerators) {
         switch (validate(enumerators)) {
             case VALID:
                 return;
@@ -45,7 +45,7 @@ public class ValueEnum extends ValueEnumBase {
         }
     }
 
-    private static final void check(final String[] enumerators, final Value value) {
+    private static void check(final String[] enumerators, final Value value) {
         check(enumerators);
 
         if (validate(enumerators, value) != Validation.VALID) {

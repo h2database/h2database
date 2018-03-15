@@ -830,14 +830,14 @@ public class WebApp {
         try {
             StringBuilder result = new StringBuilder(s.length());
             int idx = s.indexOf("<br />");
-            result.append(s.substring(0, idx));
+            result.append(s, 0, idx);
             while (true) {
                 int start = s.indexOf("org.h2.", idx);
                 if (start < 0) {
                     result.append(s.substring(idx));
                     break;
                 }
-                result.append(s.substring(idx, start));
+                result.append(s, idx, start);
                 int end = s.indexOf(')', start);
                 if (end < 0) {
                     result.append(s.substring(idx));

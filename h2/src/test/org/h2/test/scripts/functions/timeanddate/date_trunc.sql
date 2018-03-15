@@ -600,15 +600,66 @@ select DATE_TRUNC('DAY', '2015-05-29 15:14:13');
 
 
 --
+-- Test time unit 'WEEK'
+--
+select DATE_TRUNC('week', time '00:00:00');
+>> 1969-12-29 00:00:00
+
+select DATE_TRUNC('WEEK', time '00:00:00');
+>> 1969-12-29 00:00:00
+
+select DATE_TRUNC('week', time '15:14:13');
+>> 1969-12-29 00:00:00
+
+select DATE_TRUNC('WEEK', time '15:14:13');
+>> 1969-12-29 00:00:00
+
+select DATE_TRUNC('week', date '2015-05-28');
+>> 2015-05-25 00:00:00
+
+select DATE_TRUNC('WEEK', date '2015-05-28');
+>> 2015-05-25 00:00:00
+
+select DATE_TRUNC('week', timestamp '2015-05-29 15:14:13');
+>> 2015-05-25 00:00:00
+
+select DATE_TRUNC('WEEK', timestamp '2015-05-29 15:14:13');
+>> 2015-05-25 00:00:00
+
+select DATE_TRUNC('week', timestamp with time zone '2015-05-29 15:14:13');
+>> 2015-05-25 00:00:00+00
+
+select DATE_TRUNC('WEEK', timestamp with time zone '2015-05-29 15:14:13');
+>> 2015-05-25 00:00:00+00
+
+select DATE_TRUNC('week', timestamp with time zone '2015-05-29 05:14:13-06');
+>> 2015-05-25 00:00:00-06
+
+select DATE_TRUNC('WEEK', timestamp with time zone '2015-05-29 05:14:13-06');
+>> 2015-05-25 00:00:00-06
+
+select DATE_TRUNC('week', timestamp with time zone '2015-05-29 15:14:13+10');
+>> 2015-05-25 00:00:00+10
+
+select DATE_TRUNC('WEEK', timestamp with time zone '2015-05-29 15:14:13+10');
+>> 2015-05-25 00:00:00+10
+
+select DATE_TRUNC('week', '2015-05-29 15:14:13');
+>> 2015-05-25 00:00:00
+
+select DATE_TRUNC('WEEK', '2015-05-29 15:14:13');
+>> 2015-05-25 00:00:00
+
+SELECT DATE_TRUNC('WEEK', '2018-03-14 00:00:00.000');
+>> 2018-03-12 00:00:00
+
+SELECT DATE_TRUNC('week', '2018-03-14 00:00:00.000');
+>> 2018-03-12 00:00:00
+
+--
 -- Test unhandled time unit
 --
 SELECT DATE_TRUNC('---', '2015-05-29 15:14:13');
-> exception
-
-SELECT DATE_TRUNC('week', '2015-05-29 15:14:13');
-> exception
-
-SELECT DATE_TRUNC('WEEK', '2015-05-29 15:14:13');
 > exception
 
 SELECT DATE_TRUNC('month', '2015-05-29 15:14:13');

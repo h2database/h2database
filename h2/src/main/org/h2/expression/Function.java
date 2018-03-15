@@ -13,16 +13,17 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormatSymbols;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.Parser;
@@ -2999,9 +3000,9 @@ public class Function extends Expression implements FunctionCall {
         long[] fieldDateAndTime = DateTimeUtils.dateAndTimeFromValue(value);
         long dateValue = fieldDateAndTime[0];
         long timeNanosRetrieved = fieldDateAndTime[1];
-
+        
         // Variable used to the time in nanoseconds of the date truncated.
-        long timeNanos = 0l;
+        Long timeNanos = null;
 
         // Compute the number of time unit in the date, for example, the
         // number of time unit 'HOUR' in '15:14:13' is '15'. Then convert the
@@ -3048,8 +3049,19 @@ public class Function extends Expression implements FunctionCall {
             timeNanos = 0l;
             break;
 
-        default:
+        case WEEK:
             
+            Date currentDate = DateTimeUtils.convertDateValueToDate(dateValue);
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(currentDate);
+            calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+            ValueTimestamp valueTimestamp = ValueTimestamp.fromMillis(calendar.getTimeInMillis());
+            dateValue = valueTimestamp.getDateValue();
+            timeNanos = 0l;
+            break;
+        
+        }
+        if(timeNanos == null) {
             // Return an exception in the timeUnit is not recognized
             throw DbException.getUnsupportedException(timeUnitStr);
 
@@ -3060,7 +3072,7 @@ public class Function extends Expression implements FunctionCall {
             // Case we create a timestamp with timezone with the dateValue and
             // timeNanos computed.
             ValueTimestampTimeZone vTmp = (ValueTimestampTimeZone) value;
-            result = ValueTimestampTimeZone.fromDateValueAndNanos(vTmp.getDateValue(), timeNanos,
+            result = ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos,
                     vTmp.getTimeZoneOffsetMins());
 
         } else {

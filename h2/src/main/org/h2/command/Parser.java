@@ -1206,8 +1206,7 @@ public class Parser {
         StringBuilder targetMatchQuerySQL = new StringBuilder(
                 "SELECT _ROWID_ FROM " + command.getTargetTable().getName());
         if (command.getTargetTableFilter().getTableAlias() != null) {
-            targetMatchQuerySQL.append(
-                    " AS " + command.getTargetTableFilter().getTableAlias());
+            targetMatchQuerySQL.append(" AS ").append(command.getTargetTableFilter().getTableAlias());
         }
         targetMatchQuerySQL
                 .append(" WHERE ").append(command.getOnCondition().getSQL());

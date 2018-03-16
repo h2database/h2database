@@ -1268,9 +1268,8 @@ public class WebApp {
                     sqlUpper.contains("ALTER") ||
                     sqlUpper.contains("RUNSCRIPT")) {
                 String sessionId = attributes.getProperty("jsessionid");
-                buff.append("<script type=\"text/javascript\">" +
-                        "parent['h2menu'].location='tables.do?jsessionid="
-                        + sessionId + "';</script>");
+                buff.append("<script type=\"text/javascript\">parent['h2menu'].location='tables.do?jsessionid=")
+                        .append(sessionId).append("';</script>");
             }
             Statement stat;
             DbContents contents = session.getContents();

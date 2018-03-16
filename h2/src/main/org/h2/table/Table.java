@@ -371,9 +371,7 @@ public abstract class Table extends SchemaObjectBase {
             return;
         }
         if (sequences != null) {
-            for (Sequence s : sequences) {
-                dependencies.add(s);
-            }
+            dependencies.addAll(sequences);
         }
         ExpressionVisitor visitor = ExpressionVisitor.getDependenciesVisitor(
                 dependencies);

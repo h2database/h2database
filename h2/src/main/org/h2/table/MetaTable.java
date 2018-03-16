@@ -1045,9 +1045,7 @@ public class MetaTable extends Table {
             // database settings
             ArrayList<String> settingNames = New.arrayList();
             HashMap<String, String> s = database.getSettings().getSettings();
-            for (String k : s.keySet()) {
-                settingNames.add(k);
-            }
+            settingNames.addAll(s.keySet());
             Collections.sort(settingNames);
             for (String k : settingNames) {
                 add(rows, k, s.get(k));

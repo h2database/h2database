@@ -6,6 +6,7 @@
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
@@ -340,9 +341,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         }
         Column[] indexCols = idx.getColumns();
         HashSet<Column> indexColsSet = new HashSet<>();
-        for (Column c : indexCols) {
-            indexColsSet.add(c);
-        }
+        Collections.addAll(indexColsSet, indexCols);
         HashSet<Column> colsSet = new HashSet<>();
         for (IndexColumn c : cols) {
             colsSet.add(c.column);

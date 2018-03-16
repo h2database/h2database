@@ -162,8 +162,8 @@ public class ValueEnum extends ValueEnumBase {
         if (DataType.isStringType(value.getType())) {
             final String cleanLabel = sanitize(value.getString());
 
-            for (int i = 0; i < enumerators.length; i++) {
-                if (cleanLabel.equals(sanitize(enumerators[i]))) {
+            for (String enumerator : enumerators) {
+                if (cleanLabel.equals(sanitize(enumerator))) {
                     return Validation.VALID;
                 }
             }

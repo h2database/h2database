@@ -934,8 +934,7 @@ public class Database implements DataHandler {
                         + session +", sessionid="+ session.getId() + " on same thread");
             }
         }
-        boolean wasLocked = meta.lock(session, true, true);
-        return wasLocked;
+        return meta.lock(session, true, true);
     }
 
     /**
@@ -2874,10 +2873,7 @@ public class Database implements DataHandler {
         if (a.equals(b)) {
             return true;
         }
-        if (!dbSettings.databaseToUpper && a.equalsIgnoreCase(b)) {
-            return true;
-        }
-        return false;
+        return !dbSettings.databaseToUpper && a.equalsIgnoreCase(b);
     }
 
     @Override

@@ -1516,9 +1516,8 @@ public class Function extends Expression implements FunctionCall {
             String[] columns = StringUtils.arraySplit(columnList,
                     fieldSeparator, true);
             try {
-                ValueResultSet vr = ValueResultSet.get(csv.read(fileName,
+                result = ValueResultSet.get(csv.read(fileName,
                         columns, charset));
-                result = vr;
             } catch (SQLException e) {
                 throw DbException.convert(e);
             }

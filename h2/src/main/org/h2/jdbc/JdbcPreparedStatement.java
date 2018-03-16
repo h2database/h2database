@@ -280,8 +280,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             debugCodeCall("clearParameters");
             checkClosed();
             ArrayList<? extends ParameterInterface> parameters = command.getParameters();
-            for (int i = 0, size = parameters.size(); i < size; i++) {
-                ParameterInterface param = parameters.get(i);
+            for (ParameterInterface param : parameters) {
                 // can only delete old temp files if they are not in the batch
                 param.setValue(null, batchParameters == null);
             }
@@ -1202,9 +1201,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                         TraceObject.RESULT_SET_META_DATA, id, "getMetaData()");
             }
             String catalog = conn.getCatalog();
-            JdbcResultSetMetaData meta = new JdbcResultSetMetaData(
+            return new JdbcResultSetMetaData(
                     null, this, result, catalog, session.getTrace(), id);
-            return meta;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1294,8 +1292,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                 }
                 batchParameters = null;
                 if (error) {
-                    JdbcBatchUpdateException e = new JdbcBatchUpdateException(next, result);
-                    throw e;
+                    throw new JdbcBatchUpdateException(next, result);
                 }
                 return result;
             } finally {
@@ -1545,9 +1542,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                         TraceObject.PARAMETER_META_DATA, id, "getParameterMetaData()");
             }
             checkClosed();
-            JdbcParameterMetaData meta = new JdbcParameterMetaData(
+            return new JdbcParameterMetaData(
                     session.getTrace(), this, command, id);
-            return meta;
         } catch (Exception e) {
             throw logAndConvert(e);
         }

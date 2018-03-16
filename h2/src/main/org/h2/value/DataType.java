@@ -1213,10 +1213,7 @@ public class DataType {
      * @return true if the value type is a lob type
      */
     public static boolean isLargeObject(int type) {
-        if (type == Value.BLOB || type == Value.CLOB) {
-            return true;
-        }
-        return false;
+        return type == Value.BLOB || type == Value.CLOB;
     }
 
     /**
@@ -1226,11 +1223,7 @@ public class DataType {
      * @return true if the value type is a String type
      */
     public static boolean isStringType(int type) {
-        if (type == Value.STRING || type == Value.STRING_FIXED
-                || type == Value.STRING_IGNORECASE) {
-            return true;
-        }
-        return false;
+        return type == Value.STRING || type == Value.STRING_FIXED || type == Value.STRING_IGNORECASE;
     }
 
     /**

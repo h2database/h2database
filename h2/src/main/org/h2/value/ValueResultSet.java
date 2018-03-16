@@ -32,8 +32,7 @@ public class ValueResultSet extends Value {
      * @return the value
      */
     public static ValueResultSet get(ResultSet rs) {
-        ValueResultSet val = new ValueResultSet(rs);
-        return val;
+        return new ValueResultSet(rs);
     }
 
     /**

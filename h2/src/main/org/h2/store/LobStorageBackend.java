@@ -398,8 +398,7 @@ public class LobStorageBackend implements LobStorageInterface {
                     // For a CLOB, precision is length in chars
                     long precision = countingReaderForClob == null ?
                             small.length : countingReaderForClob.getLength();
-                    ValueLobDb v = ValueLobDb.createSmallLob(type, small, precision);
-                    return v;
+                    return ValueLobDb.createSmallLob(type, small, precision);
                 }
                 // For a BLOB, precision is length in bytes.
                 // For a CLOB, precision is length in chars
@@ -432,9 +431,8 @@ public class LobStorageBackend implements LobStorageInterface {
                 prep.setInt(3, tableId);
                 prep.execute();
                 reuse(sql, prep);
-                ValueLobDb v = ValueLobDb.create(type,
+                return ValueLobDb.create(type,
                         database, tableId, lobId, null, precision);
-                return v;
             }
         }
     }
@@ -589,8 +587,7 @@ public class LobStorageBackend implements LobStorageInterface {
         init();
         long max = maxLength == -1 ? Long.MAX_VALUE : maxLength;
         CountingReaderInputStream in = new CountingReaderInputStream(reader, max);
-        ValueLobDb lob = addLob(in, Long.MAX_VALUE, Value.CLOB, in);
-        return lob;
+        return addLob(in, Long.MAX_VALUE, Value.CLOB, in);
     }
 
     private static void assertNotHolds(Object lock) {

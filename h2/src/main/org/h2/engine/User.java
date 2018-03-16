@@ -145,10 +145,7 @@ public class User extends RightOwner {
                 return true;
             }
         }
-        if (isRightGrantedRecursive(table, rightMask)) {
-            return true;
-        }
-        return false;
+        return isRightGrantedRecursive(table, rightMask);
     }
 
     /**

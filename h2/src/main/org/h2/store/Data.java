@@ -832,9 +832,8 @@ public class Data {
                 int tableId = readVarInt();
                 long lobId = readVarLong();
                 long precision = readVarLong();
-                ValueLobDb lob = ValueLobDb.create(type, handler, tableId,
+                return ValueLobDb.create(type, handler, tableId,
                         lobId, null, precision);
-                return lob;
             } else {
                 int tableId = readVarInt();
                 int objectId = readVarInt();

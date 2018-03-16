@@ -465,9 +465,8 @@ public class ValueLob extends Value {
             tempFile = h.openFile(fileName, "rw", false);
             tempFile.autoDelete();
         }
-        FileStoreOutputStream out = new FileStoreOutputStream(tempFile, h,
+        return new FileStoreOutputStream(tempFile, h,
                 compressionAlgorithm);
-        return out;
     }
 
     private void createFromStream(byte[] buff, int len, InputStream in,
@@ -509,11 +508,9 @@ public class ValueLob extends Value {
         if (t == type) {
             return this;
         } else if (t == Value.CLOB) {
-            ValueLob copy = ValueLob.createClob(getReader(), -1, handler);
-            return copy;
+            return ValueLob.createClob(getReader(), -1, handler);
         } else if (t == Value.BLOB) {
-            ValueLob copy = ValueLob.createBlob(getInputStream(), -1, handler);
-            return copy;
+            return ValueLob.createBlob(getInputStream(), -1, handler);
         }
         return super.convertTo(t, precision, mode, column, null);
     }

@@ -369,8 +369,8 @@ public class Recover extends Tool implements DataHandler {
         writer.println("-- ERROR: " + error + " storageId: "
                 + storageId + " recordLength: " + recordLength + " valueId: " + valueId);
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < data.length; i++) {
-            int x = data[i] & 0xff;
+        for (byte aData1 : data) {
+            int x = aData1 & 0xff;
             if (x >= ' ' && x < 128) {
                 sb.append((char) x);
             } else {
@@ -379,8 +379,8 @@ public class Recover extends Tool implements DataHandler {
         }
         writer.println("-- dump: " + sb.toString());
         sb = new StringBuilder();
-        for (int i = 0; i < data.length; i++) {
-            int x = data[i] & 0xff;
+        for (byte aData : data) {
+            int x = aData & 0xff;
             sb.append(' ');
             if (x < 16) {
                 sb.append('0');

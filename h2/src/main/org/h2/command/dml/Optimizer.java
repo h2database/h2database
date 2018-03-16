@@ -100,9 +100,7 @@ class Optimizer {
         if ((x & 127) == 0) {
             long t = System.nanoTime() - startNs;
             // don't calculate for simple queries (no rows or so)
-            if (cost >= 0 && 10 * t > cost * TimeUnit.MILLISECONDS.toNanos(1)) {
-                return true;
-            }
+            return cost >= 0 && 10 * t > cost * TimeUnit.MILLISECONDS.toNanos(1);
         }
         return false;
     }

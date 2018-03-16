@@ -385,7 +385,7 @@ class FileNioMem extends FileBase {
             }
         }
 
-        FileLock lock = new FileLock(new FakeFileChannel(), position, size, shared) {
+        return new FileLock(new FakeFileChannel(), position, size, shared) {
 
             @Override
             public boolean isValid() {
@@ -397,7 +397,6 @@ class FileNioMem extends FileBase {
                 data.unlock();
             }
         };
-        return lock;
     }
 
     @Override

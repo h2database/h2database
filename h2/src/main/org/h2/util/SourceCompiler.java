@@ -498,9 +498,8 @@ public class SourceCompiler {
                 Object codeSource = Utils.newInstance("groovy.lang.GroovyCodeSource",
                         source, packageAndClassName + ".groovy", "UTF-8");
                 Utils.callMethod(codeSource, "setCachable", false);
-                Class<?> clazz = (Class<?>) Utils.callMethod(
+                return (Class<?>) Utils.callMethod(
                         LOADER, "parseClass", codeSource);
-                return clazz;
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

@@ -171,8 +171,8 @@ public class FilePathDisk extends FilePath {
                 if (!base.endsWith(SysProperties.FILE_SEPARATOR)) {
                     base += SysProperties.FILE_SEPARATOR;
                 }
-                for (int i = 0, len = files.length; i < len; i++) {
-                    list.add(getPath(base + files[i]));
+                for (String file : files) {
+                    list.add(getPath(base + file));
                 }
             }
             return list;
@@ -313,8 +313,7 @@ public class FilePathDisk extends FilePath {
             }
             // otherwise an URL is assumed
             URL url = new URL(name);
-            InputStream in = url.openStream();
-            return in;
+            return url.openStream();
         }
         FileInputStream in = new FileInputStream(name);
         IOUtils.trace("openFileInputStream", name, in);

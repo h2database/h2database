@@ -761,8 +761,7 @@ public class Transfer {
         }
         byte[] data = new byte[8];
         Bits.writeLong(data, 0, lobId);
-        byte[] hmacData = SHA256.getHashWithSalt(data, lobMacSalt);
-        return hmacData;
+        return SHA256.getHashWithSalt(data, lobMacSalt);
     }
 
 }

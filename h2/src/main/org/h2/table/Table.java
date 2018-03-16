@@ -101,8 +101,7 @@ public abstract class Table extends SchemaObjectBase {
     public void rename(String newName) {
         super.rename(newName);
         if (constraints != null) {
-            for (int i = 0, size = constraints.size(); i < size; i++) {
-                Constraint constraint = constraints.get(i);
+            for (Constraint constraint : constraints) {
                 constraint.rebuild();
             }
         }
@@ -264,8 +263,7 @@ public abstract class Table extends SchemaObjectBase {
     public Index getIndex(String indexName) {
         ArrayList<Index> indexes = getIndexes();
         if (indexes != null) {
-            for (int i = 0; i < indexes.size(); i++) {
-                Index index = indexes.get(i);
+            for (Index index : indexes) {
                 if (index.getName().equals(indexName)) {
                     return index;
                 }
@@ -577,8 +575,7 @@ public abstract class Table extends SchemaObjectBase {
         HashSet<Constraint> constraintsToDrop = new HashSet<>();
         if (constraints != null) {
             for (Column col : columnsToDrop) {
-                for (int i = 0, size = constraints.size(); i < size; i++) {
-                    Constraint constraint = constraints.get(i);
+                for (Constraint constraint : constraints) {
                     HashSet<Column> columns = constraint.getReferencedColumns(this);
                     if (!columns.contains(col)) {
                         continue;
@@ -586,8 +583,7 @@ public abstract class Table extends SchemaObjectBase {
                     if (columns.size() == 1) {
                         constraintsToDrop.add(constraint);
                     } else {
-                        throw DbException.get(
-                                ErrorCode.COLUMN_IS_REFERENCED_1, constraint.getSQL());
+                        throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1, constraint.getSQL());
                     }
                 }
             }
@@ -596,8 +592,7 @@ public abstract class Table extends SchemaObjectBase {
         ArrayList<Index> indexes = getIndexes();
         if (indexes != null) {
             for (Column col : columnsToDrop) {
-                for (int i = 0, size = indexes.size(); i < size; i++) {
-                    Index index = indexes.get(i);
+                for (Index index : indexes) {
                     if (index.getCreateSQL() == null) {
                         continue;
                     }
@@ -607,8 +602,7 @@ public abstract class Table extends SchemaObjectBase {
                     if (index.getColumns().length == 1) {
                         indexesToDrop.add(index);
                     } else {
-                        throw DbException.get(
-                                ErrorCode.COLUMN_IS_REFERENCED_1, index.getSQL());
+                        throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1, index.getSQL());
                     }
                 }
             }
@@ -763,8 +757,7 @@ public abstract class Table extends SchemaObjectBase {
     public Index findPrimaryKey() {
         ArrayList<Index> indexes = getIndexes();
         if (indexes != null) {
-            for (int i = 0, size = indexes.size(); i < size; i++) {
-                Index idx = indexes.get(i);
+            for (Index idx : indexes) {
                 if (idx.getIndexType().isPrimaryKey()) {
                     return idx;
                 }
@@ -995,8 +988,7 @@ public abstract class Table extends SchemaObjectBase {
             boolean before) {
         if (constraints != null) {
             // don't use enhanced for loop to avoid creating objects
-            for (int i = 0, size = constraints.size(); i < size; i++) {
-                Constraint constraint = constraints.get(i);
+            for (Constraint constraint : constraints) {
                 if (constraint.isBefore() == before) {
                     constraint.checkRow(session, this, oldRow, newRow);
                 }

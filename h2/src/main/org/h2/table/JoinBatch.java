@@ -1026,8 +1026,8 @@ public final class JoinBatch {
         @Override
         public boolean isBatchFull() {
             // if at least one is full
-            for (int i = 0; i < filters.size(); i++) {
-                if (filters.get(i).isBatchFull()) {
+            for (JoinFilter filter : filters) {
+                if (filter.isBatchFull()) {
                     return true;
                 }
             }
@@ -1118,8 +1118,8 @@ public final class JoinBatch {
             if (joinBatches == null) {
                 return;
             }
-            for (int i = 0, size = joinBatches.size(); i < size; i++) {
-                joinBatches.get(i).viewTopFutureCursor = null;
+            for (JoinBatch joinBatche : joinBatches) {
+                joinBatche.viewTopFutureCursor = null;
             }
         }
     }

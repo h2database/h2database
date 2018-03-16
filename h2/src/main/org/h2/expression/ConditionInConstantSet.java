@@ -142,8 +142,7 @@ public class ConditionInConstantSet extends Condition {
 
     @Override
     public int getCost() {
-        int cost = left.getCost();
-        return cost;
+        return left.getCost();
     }
 
     /**

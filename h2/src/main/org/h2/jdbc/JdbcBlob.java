@@ -190,12 +190,11 @@ public class JdbcBlob extends TraceObject implements Blob {
             if (value.getPrecision() != 0) {
                 throw DbException.getInvalidValueException("length", value.getPrecision());
             }
-            final JdbcConnection c = conn;
             final PipedInputStream in = new PipedInputStream();
             final Task task = new Task() {
                 @Override
                 public void call() {
-                    value = c.createBlob(in, -1);
+                    value = conn.createBlob(in, -1);
                 }
             };
             PipedOutputStream out = new PipedOutputStream(in) {

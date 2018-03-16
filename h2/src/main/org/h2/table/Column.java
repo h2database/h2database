@@ -717,8 +717,7 @@ public class Column {
             sql = checkConstraint.getSQL();
             name = oldName;
         }
-        Expression expr = parser.parseExpression(sql);
-        return expr;
+        return parser.parseExpression(sql);
     }
 
     String getDefaultSQL() {
@@ -778,10 +777,7 @@ public class Column {
         if (defaultExpression != null && !defaultExpression.isEverything(visitor)) {
             return false;
         }
-        if (checkConstraint != null && !checkConstraint.isEverything(visitor)) {
-            return false;
-        }
-        return true;
+        return checkConstraint == null || checkConstraint.isEverything(visitor);
     }
 
     public boolean isPrimaryKey() {
@@ -834,10 +830,7 @@ public class Column {
         if (isComputed || newColumn.isComputed) {
             return false;
         }
-        if (onUpdateExpression != null || newColumn.onUpdateExpression != null) {
-            return false;
-        }
-        return true;
+        return onUpdateExpression == null && newColumn.onUpdateExpression == null;
     }
 
     /**

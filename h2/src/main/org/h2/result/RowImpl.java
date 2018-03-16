@@ -119,8 +119,7 @@ public class RowImpl implements Row {
         if (data != null) {
             int len = data.length;
             m += Constants.MEMORY_OBJECT + len * Constants.MEMORY_POINTER;
-            for (int i = 0; i < len; i++) {
-                Value v = data[i];
+            for (Value v : data) {
                 if (v != null) {
                     m += v.getMemory();
                 }

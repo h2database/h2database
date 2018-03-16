@@ -378,10 +378,7 @@ public class Csv implements SimpleRowSource {
                 }
             }
         }
-        if (columnName.length() == 0) {
-            return false;
-        }
-        return true;
+        return columnName.length() != 0;
     }
 
     private void pushBack() {

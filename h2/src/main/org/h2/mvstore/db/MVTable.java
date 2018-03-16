@@ -468,8 +468,7 @@ public class MVTable extends TableBase {
                 database.getReferentialIntegrity()) {
             ArrayList<Constraint> constraints = getConstraints();
             if (constraints != null) {
-                for (int i = 0, size = constraints.size(); i < size; i++) {
-                    Constraint c = constraints.get(i);
+                for (Constraint c : constraints) {
                     if (c.getConstraintType() != Constraint.Type.REFERENTIAL) {
                         continue;
                     }
@@ -729,23 +728,18 @@ public class MVTable extends TableBase {
         Transaction t = session.getTransaction();
         long savepoint = t.setSavepoint();
         try {
-            for (int i = 0, size = indexes.size(); i < size; i++) {
-                Index index = indexes.get(i);
+            for (Index index : indexes) {
                 index.add(session, row);
             }
         } catch (Throwable e) {
             t.rollbackToSavepoint(savepoint);
             DbException de = DbException.convert(e);
             if (de.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
-                for (int j = 0; j < indexes.size(); j++) {
-                    Index index = indexes.get(j);
-                    if (index.getIndexType().isUnique() &&
-                            index instanceof MultiVersionIndex) {
+                for (Index index : indexes) {
+                    if (index.getIndexType().isUnique() && index instanceof MultiVersionIndex) {
                         MultiVersionIndex mv = (MultiVersionIndex) index;
                         if (mv.isUncommittedFromOtherSession(session, row)) {
-                            throw DbException.get(
-                                    ErrorCode.CONCURRENT_UPDATE_1,
-                                    index.getName());
+                            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, index.getName());
                         }
                     }
                 }

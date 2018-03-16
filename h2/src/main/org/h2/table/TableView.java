@@ -286,11 +286,7 @@ public class TableView extends Table {
                 return false;
             }
         }
-        if (topQuery != null &&
-                !topQuery.isEverything(ExpressionVisitor.QUERY_COMPARABLE_VISITOR)) {
-            return false;
-        }
-        return true;
+        return topQuery == null || topQuery.isEverything(ExpressionVisitor.QUERY_COMPARABLE_VISITOR);
     }
 
     public Query getTopQuery() {
@@ -677,10 +673,7 @@ public class TableView extends Table {
             if (view != other.view) {
                 return false;
             }
-            if (!Arrays.equals(masks, other.masks)) {
-                return false;
-            }
-            return true;
+            return Arrays.equals(masks, other.masks);
         }
     }
 
@@ -703,10 +696,7 @@ public class TableView extends Table {
         if (exception.getErrorCode() != ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1) {
             return false;
         }
-        if (!exception.getMessage().contains("\"" + this.getName() + "\"")) {
-            return false;
-        }
-        return true;
+        return exception.getMessage().contains("\"" + this.getName() + "\"");
     }
 
     public List<Table> getTables() {

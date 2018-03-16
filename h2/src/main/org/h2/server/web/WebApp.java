@@ -1253,8 +1253,7 @@ public class WebApp {
 
     private int getMaxrows() {
         String r = (String) session.get("maxrows");
-        int maxrows = r == null ? 0 : Integer.parseInt(r);
-        return maxrows;
+        return r == null ? 0 : Integer.parseInt(r);
     }
 
     private String getResult(Connection conn, int id, String sql,

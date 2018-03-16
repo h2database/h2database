@@ -166,8 +166,7 @@ public abstract class Prepared {
      */
     protected void checkParameters() {
         if (parameters != null) {
-            for (int i = 0, size = parameters.size(); i < size; i++) {
-                Parameter param = parameters.get(i);
+            for (Parameter param : parameters) {
                 param.checkSet();
             }
         }

@@ -367,39 +367,38 @@ public class Page {
     }
 
     private Page splitLeaf(int at) {
-        int a = at, b = keys.length - a;
-        Object[] aKeys = new Object[a];
+        int b = keys.length - at;
+        Object[] aKeys = new Object[at];
         Object[] bKeys = new Object[b];
-        System.arraycopy(keys, 0, aKeys, 0, a);
-        System.arraycopy(keys, a, bKeys, 0, b);
+        System.arraycopy(keys, 0, aKeys, 0, at);
+        System.arraycopy(keys, at, bKeys, 0, b);
         keys = aKeys;
-        Object[] aValues = new Object[a];
+        Object[] aValues = new Object[at];
         Object[] bValues = new Object[b];
         bValues = new Object[b];
-        System.arraycopy(values, 0, aValues, 0, a);
-        System.arraycopy(values, a, bValues, 0, b);
+        System.arraycopy(values, 0, aValues, 0, at);
+        System.arraycopy(values, at, bValues, 0, b);
         values = aValues;
-        totalCount = a;
-        Page newPage = create(map, version,
+        totalCount = at;
+        return create(map, version,
                 bKeys, bValues,
                 null,
                 b, 0);
-        return newPage;
     }
 
     private Page splitNode(int at) {
-        int a = at, b = keys.length - a;
+        int b = keys.length - at;
 
-        Object[] aKeys = new Object[a];
+        Object[] aKeys = new Object[at];
         Object[] bKeys = new Object[b - 1];
-        System.arraycopy(keys, 0, aKeys, 0, a);
-        System.arraycopy(keys, a + 1, bKeys, 0, b - 1);
+        System.arraycopy(keys, 0, aKeys, 0, at);
+        System.arraycopy(keys, at + 1, bKeys, 0, b - 1);
         keys = aKeys;
 
-        PageReference[] aChildren = new PageReference[a + 1];
+        PageReference[] aChildren = new PageReference[at + 1];
         PageReference[] bChildren = new PageReference[b];
-        System.arraycopy(children, 0, aChildren, 0, a + 1);
-        System.arraycopy(children, a + 1, bChildren, 0, b);
+        System.arraycopy(children, 0, aChildren, 0, at + 1);
+        System.arraycopy(children, at + 1, bChildren, 0, b);
         children = aChildren;
 
         long t = 0;
@@ -411,11 +410,10 @@ public class Page {
         for (PageReference x : bChildren) {
             t += x.count;
         }
-        Page newPage = create(map, version,
+        return create(map, version,
                 bKeys, null,
                 bChildren,
                 t, 0);
-        return newPage;
     }
 
     /**
@@ -918,8 +916,8 @@ public class Page {
     private void recalculateMemory() {
         int mem = DataUtils.PAGE_MEMORY;
         DataType keyType = map.getKeyType();
-        for (int i = 0; i < keys.length; i++) {
-            mem += keyType.getMemory(keys[i]);
+        for (Object key : keys) {
+            mem += keyType.getMemory(key);
         }
         if (this.isLeaf()) {
             DataType valueType = map.getValueType();

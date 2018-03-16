@@ -140,10 +140,7 @@ public class TimestampWithTimeZone implements Serializable, Cloneable {
         if (timeNanos != other.timeNanos) {
             return false;
         }
-        if (timeZoneOffsetMins != other.timeZoneOffsetMins) {
-            return false;
-        }
-        return true;
+        return timeZoneOffsetMins == other.timeZoneOffsetMins;
     }
 
 }

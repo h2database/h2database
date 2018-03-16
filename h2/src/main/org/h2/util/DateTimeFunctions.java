@@ -5,6 +5,7 @@
  */
 package org.h2.util;
 
+import static org.h2.expression.Function.CENTURY;
 import static org.h2.expression.Function.DAY_OF_MONTH;
 import static org.h2.expression.Function.DAY_OF_WEEK;
 import static org.h2.expression.Function.DAY_OF_YEAR;
@@ -105,6 +106,7 @@ public final class DateTimeFunctions {
         DATE_PART.put("TIMEZONE_HOUR", TIMEZONE_HOUR);
         DATE_PART.put("TIMEZONE_MINUTE", TIMEZONE_MINUTE);
         DATE_PART.put("DECADE", DECADE);
+        DATE_PART.put("CENTURY", CENTURY);
     }
 
     /**
@@ -490,6 +492,14 @@ public final class DateTimeFunctions {
             long yearForDecade = DateTimeUtils.yearFromDateValue(dateValue);
             yearForDecade = (long) (Math.floor(yearForDecade / 10) * 10);
             dateValue = DateTimeUtils.dateValue(yearForDecade, 1, 1);
+            timeNanos = 0l;
+            break;
+            
+        case CENTURY:
+            
+            long yearForCentury = DateTimeUtils.yearFromDateValue(dateValue);
+            yearForCentury = (long) (Math.floor( (yearForCentury - 1) / 100) * 100) + 1;
+            dateValue = DateTimeUtils.dateValue(yearForCentury, 1, 1);
             timeNanos = 0l;
             break;
             

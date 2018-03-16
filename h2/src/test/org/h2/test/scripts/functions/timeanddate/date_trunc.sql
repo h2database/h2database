@@ -928,17 +928,72 @@ SELECT DATE_TRUNC('DECADE', '2010-05-29 15:14:13');
 >> 2010-01-01 00:00:00
 
 --
+-- Test time unit 'CENTURY'
+--
+select DATE_TRUNC('century', time '00:00:00');
+>> 1901-01-01 00:00:00
+
+select DATE_TRUNC('CENTURY', time '00:00:00');
+>> 1901-01-01 00:00:00
+
+select DATE_TRUNC('century', time '15:14:13');
+>> 1901-01-01 00:00:00
+
+select DATE_TRUNC('CENTURY', time '15:14:13');
+>> 1901-01-01 00:00:00
+
+select DATE_TRUNC('century', date '2015-05-28');
+>> 2001-01-01 00:00:00
+
+select DATE_TRUNC('CENTURY', date '2015-05-28');
+>> 2001-01-01 00:00:00
+
+select DATE_TRUNC('century', timestamp '2015-05-29 15:14:13');
+>> 2001-01-01 00:00:00
+
+select DATE_TRUNC('CENTURY', timestamp '2015-05-29 15:14:13');
+>> 2001-01-01 00:00:00
+
+select DATE_TRUNC('century', timestamp with time zone '2015-05-29 15:14:13');
+>> 2001-01-01 00:00:00+00
+
+select DATE_TRUNC('CENTURY', timestamp with time zone '2015-05-29 15:14:13');
+>> 2001-01-01 00:00:00+00
+
+select DATE_TRUNC('century', timestamp with time zone '2015-05-29 05:14:13-06');
+>> 2001-01-01 00:00:00-06
+
+select DATE_TRUNC('CENTURY', timestamp with time zone '2015-05-29 05:14:13-06');
+>> 2001-01-01 00:00:00-06
+
+select DATE_TRUNC('century', timestamp with time zone '2015-05-29 15:14:13+10');
+>> 2001-01-01 00:00:00+10
+
+select DATE_TRUNC('CENTURY', timestamp with time zone '2015-05-29 15:14:13+10');
+>> 2001-01-01 00:00:00+10
+
+SELECT DATE_TRUNC('century', '2015-05-29 15:14:13');
+>> 2001-01-01 00:00:00
+
+SELECT DATE_TRUNC('CENTURY', '2015-05-29 15:14:13');
+>> 2001-01-01 00:00:00
+
+SELECT DATE_TRUNC('century', '2199-05-29 15:14:13');
+>> 2101-01-01 00:00:00
+
+SELECT DATE_TRUNC('CENTURY', '2199-05-29 15:14:13');
+>> 2101-01-01 00:00:00
+
+SELECT DATE_TRUNC('century', '2000-05-29 15:14:13');
+>> 1901-01-01 00:00:00
+
+SELECT DATE_TRUNC('CENTURY', '2000-05-29 15:14:13');
+>> 1901-01-01 00:00:00
+
+--
 -- Test unhandled time unit
 --
 SELECT DATE_TRUNC('---', '2015-05-29 15:14:13');
-> exception
-
-
-
-SELECT DATE_TRUNC('century', '2015-05-29 15:14:13');
-> exception
-
-SELECT DATE_TRUNC('CENTURY', '2015-05-29 15:14:13');
 > exception
 
 SELECT DATE_TRUNC('millennium', '2015-05-29 15:14:13');

@@ -308,8 +308,8 @@ public class ToDateParser {
         int orgFormatLen = unmodifiedFormatStr.length();
         int currentFormatPos = orgFormatLen - formatStr.length();
 
-        return format("\n    %s('%s', '%s')", functionName, unmodifiedInputStr, unmodifiedFormatStr) + format(
-                "\n      %s^%s ,  %s^ <-- Parsing failed at this point",
+        return format("\n    %s('%s', '%s')", functionName, unmodifiedInputStr, unmodifiedFormatStr)
+                + format("\n      %s^%s ,  %s^ <-- Parsing failed at this point",
                 format("%" + (functionName.name().length() + currentInputPos) + "s", ""),
                 restInputLen <= 0 ? "" : format("%" + restInputLen + "s", ""),
                 currentFormatPos <= 0 ? "" : format("%" + currentFormatPos + "s", ""));

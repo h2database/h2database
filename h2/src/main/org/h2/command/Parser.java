@@ -4154,40 +4154,39 @@ public class Parser {
                 break;
             }
         } else if (s.length() == 2) {
+            char c1 = s.charAt(1);
             switch (c0) {
             case ':':
-                if ("::".equals(s)) {
-                    return KEYWORD;
-                } else if (":=".equals(s)) {
+                if (c1 == ':' || c1 == '=') {
                     return KEYWORD;
                 }
                 break;
             case '>':
-                if (">=".equals(s)) {
+                if (c1 == '=') {
                     return BIGGER_EQUAL;
                 }
                 break;
             case '<':
-                if ("<=".equals(s)) {
+                if (c1 == '=') {
                     return SMALLER_EQUAL;
-                } else if ("<>".equals(s)) {
+                } else if (c1 == '>') {
                     return NOT_EQUAL;
                 }
                 break;
             case '!':
-                if ("!=".equals(s)) {
+                if (c1 == '=') {
                     return NOT_EQUAL;
-                } else if ("!~".equals(s)) {
+                } else if (c1 == '~') {
                     return KEYWORD;
                 }
                 break;
             case '|':
-                if ("||".equals(s)) {
+                if (c1 == '|') {
                     return STRING_CONCAT;
                 }
                 break;
             case '&':
-                if ("&&".equals(s)) {
+                if (c1 == '&') {
                     return SPATIAL_INTERSECTS;
                 }
                 break;

@@ -794,8 +794,7 @@ public class Parser {
             do {
                 Column column = readTableColumn(filter);
                 columns.add(column);
-            } while (readIf(","));
-            read(")");
+            } while (readIfMore(true));
             read("=");
             Expression expression = readExpression();
             if (columns.size() == 1) {
@@ -906,8 +905,7 @@ public class Parser {
                     column.sortType |= SortOrder.NULLS_LAST;
                 }
             }
-        } while (readIf(","));
-        read(")");
+        } while (readIfMore(true));
         return columns.toArray(new IndexColumn[0]);
     }
 
@@ -916,7 +914,7 @@ public class Parser {
         do {
             String columnName = readColumnIdentifier();
             columns.add(columnName);
-        } while (readIfMore());
+        } while (readIfMore(false));
         return columns.toArray(new String[0]);
     }
 
@@ -931,7 +929,7 @@ public class Parser {
                             column.getSQL());
                 }
                 columns.add(column);
-            } while (readIfMore());
+            } while (readIfMore(false));
         }
         return columns.toArray(new Column[0]);
     }
@@ -944,9 +942,16 @@ public class Parser {
         return table.getColumn(id);
     }
 
-    private boolean readIfMore() {
+    /**
+     * Read comma or closing brace.
+     *
+     * @param strict
+     *            if {@code false} additional comma before brace is allowed
+     * @return {@code true} if comma is read, {@code false} if brace is read
+     */
+    private boolean readIfMore(boolean strict) {
         if (readIf(",")) {
-            return !readIf(")");
+            return strict || !readIf(")");
         }
         read(")");
         return false;
@@ -1110,7 +1115,7 @@ public class Parser {
                         } else {
                             values.add(readExpression());
                         }
-                    } while (readIfMore());
+                    } while (readIfMore(false));
                 }
                 command.addRow(values.toArray(new Expression[0]));
             } while (readIf(","));
@@ -1281,7 +1286,7 @@ public class Parser {
                         } else {
                             values.add(readExpression());
                         }
-                    } while (readIfMore());
+                    } while (readIfMore(false));
                 }
                 command.addRow(values.toArray(new Expression[0]));
                 // the following condition will allow (..),; and (..);
@@ -1340,7 +1345,7 @@ public class Parser {
                         } else {
                             values.add(readExpression());
                         }
-                    } while (readIfMore());
+                    } while (readIfMore(false));
                 }
                 command.addRow(values.toArray(new Expression[0]));
             } while (readIf(","));
@@ -1476,8 +1481,7 @@ public class Parser {
                 String indexName = readIdentifierWithSchema();
                 Index index = table.getIndex(indexName);
                 indexNames.add(index.getName());
-            } while (readIf(","));
-            read(")");
+            } while (readIfMore(true));
         }
         return IndexHints.createUseIndexHints(indexNames);
     }
@@ -1503,8 +1507,7 @@ public class Parser {
             ArrayList<String> derivedColumnNames = New.arrayList();
             do {
                 derivedColumnNames.add(readAliasIdentifier());
-            } while (readIf(","));
-            read(")");
+            } while (readIfMore(true));
             return derivedColumnNames;
         }
         return null;
@@ -2722,8 +2725,7 @@ public class Parser {
         ArrayList<Expression> params = New.arrayList();
         do {
             params.add(readExpression());
-        } while (readIf(","));
-        read(")");
+        } while (readIfMore(true));
         Expression filterCondition;
         if (readIf("FILTER")) {
             read("(");
@@ -2894,8 +2896,7 @@ public class Parser {
                 read("=");
                 function.setParameter(i, readExpression());
                 i++;
-            } while (readIf(","));
-            read(")");
+            } while (readIfMore(true));
             TableFunction tf = (TableFunction) function;
             tf.setColumns(columns);
             break;
@@ -2915,8 +2916,7 @@ public class Parser {
                 int i = 0;
                 do {
                     function.setParameter(i++, readExpression());
-                } while (readIf(","));
-                read(")");
+                } while (readIfMore(true));
             }
         }
         function.doneWithParameters();
@@ -3543,19 +3543,6 @@ public class Parser {
     }
 
     /*
-     * Reads passed token in list, in order and returns true on first match.
-     * If none of the token matches returns false
-     */
-    private boolean readIfOr(String... tokens) {
-        for (String token: tokens) {
-            if (readIf(token)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /*
      * Reads every token in list, in order - returns true if all are found.
      * If any are not found, returns false - AND resets parsing back to state when called.
      */
@@ -4154,40 +4141,39 @@ public class Parser {
                 break;
             }
         } else if (s.length() == 2) {
+            char c1 = s.charAt(1);
             switch (c0) {
             case ':':
-                if ("::".equals(s)) {
-                    return KEYWORD;
-                } else if (":=".equals(s)) {
+                if (c1 == ':' || c1 == '=') {
                     return KEYWORD;
                 }
                 break;
             case '>':
-                if (">=".equals(s)) {
+                if (c1 == '=') {
                     return BIGGER_EQUAL;
                 }
                 break;
             case '<':
-                if ("<=".equals(s)) {
+                if (c1 == '=') {
                     return SMALLER_EQUAL;
-                } else if ("<>".equals(s)) {
+                } else if (c1 == '>') {
                     return NOT_EQUAL;
                 }
                 break;
             case '!':
-                if ("!=".equals(s)) {
+                if (c1 == '=') {
                     return NOT_EQUAL;
-                } else if ("!~".equals(s)) {
+                } else if (c1 == '~') {
                     return KEYWORD;
                 }
                 break;
             case '|':
-                if ("||".equals(s)) {
+                if (c1 == '|') {
                     return STRING_CONCAT;
                 }
                 break;
             case '&':
-                if ("&&".equals(s)) {
+                if (c1 == '&') {
                     return SPATIAL_INTERSECTS;
                 }
                 break;
@@ -4491,7 +4477,9 @@ public class Parser {
                     }
                     original += "(" + p;
                     // Oracle syntax
-                    readIfOr("CHAR", "BYTE");
+                    if (!readIf("CHAR")) {
+                        readIf("BYTE");
+                    }
                     if (dataType.supportsScale) {
                         if (readIf(",")) {
                             scale = readInt();
@@ -4525,13 +4513,12 @@ public class Parser {
                 String enumerator0 = readString();
                 enumeratorList.add(enumerator0);
                 original += "'" + enumerator0 + "'";
-                while (readIf(",")) {
+                while (readIfMore(true)) {
                     original += ',';
                     String enumeratorN = readString();
                     original += "'" + enumeratorN + "'";
                     enumeratorList.add(enumeratorN);
                 }
-                read(")");
                 original += ')';
                 enumerators = enumeratorList.toArray(new String[0]);
             }
@@ -4851,10 +4838,7 @@ public class Parser {
                 columns.set(i, column);
                 row.add(expr);
                 i++;
-            } while (multiColumn && readIf(","));
-            if (multiColumn) {
-                read(")");
-            }
+            } while (multiColumn && readIfMore(true));
             rows.add(row);
         } while (readIf(","));
         int columnCount = columns.size();
@@ -6358,8 +6342,7 @@ public class Parser {
             command.setIfNotExists(false);
             do {
                 parseTableColumnDefinition(command, schema, tableName);
-            } while (readIf(","));
-            read(")");
+            } while (readIfMore(true));
         } else {
             boolean ifNotExists = readIfNotExists();
             command.setIfNotExists(ifNotExists);
@@ -6610,7 +6593,7 @@ public class Parser {
             if (!readIf(")")) {
                 do {
                     parseTableColumnDefinition(command, schema, tableName);
-                } while (readIfMore());
+                } while (readIfMore(false));
             }
         }
         // Allows "COMMENT='comment'" in DDL statements (MySQL syntax)

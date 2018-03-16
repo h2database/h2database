@@ -415,8 +415,8 @@ public class PageStore implements CacheWriter {
     private void writeBack() {
         ArrayList<CacheObject> list = cache.getAllChanged();
         Collections.sort(list);
-        for (CacheObject aList : list) {
-            writeBack(aList);
+        for (CacheObject cacheObject : list) {
+            writeBack(cacheObject);
         }
     }
 

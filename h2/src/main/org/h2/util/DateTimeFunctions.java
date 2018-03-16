@@ -445,14 +445,11 @@ public final class DateTimeFunctions {
 
         case WEEK:
 
-            // Use Calendar to retrieve the first day of the week and convert
-            // the date to a dateValue
-            Date currentDate = DateTimeUtils.convertDateValueToDate(dateValue);
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(currentDate);
-            calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-            ValueTimestamp valueTimestamp = ValueTimestamp.fromMillis(calendar.getTimeInMillis());
-            dateValue = valueTimestamp.getDateValue();
+            long absoluteDay = DateTimeUtils.absoluteDayFromDateValue(dateValue);
+            int dayOfWeek = DateTimeUtils.getDayOfWeekFromAbsolute(absoluteDay, 1);
+            if (dayOfWeek != 1) {
+                dateValue = DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay - dayOfWeek + 1);
+            }
             timeNanos = 0l;
             break;
 

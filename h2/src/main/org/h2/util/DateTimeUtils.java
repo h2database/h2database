@@ -728,7 +728,7 @@ public class DateTimeUtils {
         return getDayOfWeekFromAbsolute(absoluteDayFromDateValue(dateValue), firstDayOfWeek);
     }
 
-    private static int getDayOfWeekFromAbsolute(long absoluteValue, int firstDayOfWeek) {
+    public static int getDayOfWeekFromAbsolute(long absoluteValue, int firstDayOfWeek) {
         return absoluteValue >= 0 ? (int) ((absoluteValue - firstDayOfWeek + 11) % 7) + 1
                 : (int) ((absoluteValue - firstDayOfWeek - 2) % 7) + 7;
     }

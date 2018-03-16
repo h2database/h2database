@@ -818,18 +818,63 @@ SELECT DATE_TRUNC('quarter', '2015-12-29 15:14:13');
 SELECT DATE_TRUNC('QUARTER', '2015-12-29 15:14:13');
 >> 2015-10-01 00:00:00
 
+
+--
+-- Test time unit 'YEAR'
+--
+select DATE_TRUNC('year', time '00:00:00');
+>> 1970-01-01 00:00:00
+
+select DATE_TRUNC('YEAR', time '00:00:00');
+>> 1970-01-01 00:00:00
+
+select DATE_TRUNC('year', time '15:14:13');
+>> 1970-01-01 00:00:00
+
+select DATE_TRUNC('YEAR', time '15:14:13');
+>> 1970-01-01 00:00:00
+
+select DATE_TRUNC('year', date '2015-05-28');
+>> 2015-01-01 00:00:00
+
+select DATE_TRUNC('YEAR', date '2015-05-28');
+>> 2015-01-01 00:00:00
+
+select DATE_TRUNC('year', timestamp '2015-05-29 15:14:13');
+>> 2015-01-01 00:00:00
+
+select DATE_TRUNC('YEAR', timestamp '2015-05-29 15:14:13');
+>> 2015-01-01 00:00:00
+
+select DATE_TRUNC('year', timestamp with time zone '2015-05-29 15:14:13');
+>> 2015-01-01 00:00:00+00
+
+select DATE_TRUNC('YEAR', timestamp with time zone '2015-05-29 15:14:13');
+>> 2015-01-01 00:00:00+00
+
+select DATE_TRUNC('year', timestamp with time zone '2015-05-29 05:14:13-06');
+>> 2015-01-01 00:00:00-06
+
+select DATE_TRUNC('YEAR', timestamp with time zone '2015-05-29 05:14:13-06');
+>> 2015-01-01 00:00:00-06
+
+select DATE_TRUNC('year', timestamp with time zone '2015-05-29 15:14:13+10');
+>> 2015-01-01 00:00:00+10
+
+select DATE_TRUNC('YEAR', timestamp with time zone '2015-05-29 15:14:13+10');
+>> 2015-01-01 00:00:00+10
+
+SELECT DATE_TRUNC('year', '2015-05-29 15:14:13');
+>> 2015-01-01 00:00:00
+
+SELECT DATE_TRUNC('YEAR', '2015-05-29 15:14:13');
+>> 2015-01-01 00:00:00
+
+
 --
 -- Test unhandled time unit
 --
 SELECT DATE_TRUNC('---', '2015-05-29 15:14:13');
-> exception
-
-
-
-SELECT DATE_TRUNC('year', '2015-05-29 15:14:13');
-> exception
-
-SELECT DATE_TRUNC('YEAR', '2015-05-29 15:14:13');
 > exception
 
 SELECT DATE_TRUNC('decade', '2015-05-29 15:14:13');

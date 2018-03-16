@@ -458,24 +458,30 @@ public final class DateTimeFunctions {
             dateValue = DateTimeUtils.dateValue(year, month, 1);
             timeNanos = 0l;
             break;
-            
+
         case QUARTER:
-            
+
             long yearForQuarter = DateTimeUtils.yearFromDateValue(dateValue);
             int monthForQuarter = DateTimeUtils.monthFromDateValue(dateValue);
-            
-            
-            if(monthForQuarter >= 10) {
+
+            if (monthForQuarter >= 10) {
                 monthForQuarter = 10;
-            }else if (monthForQuarter >= 7) {
+            } else if (monthForQuarter >= 7) {
                 monthForQuarter = 7;
-            }else if(monthForQuarter >= 4) {
+            } else if (monthForQuarter >= 4) {
                 monthForQuarter = 4;
-            }else {
+            } else {
                 monthForQuarter = 1;
             }
-            
+
             dateValue = DateTimeUtils.dateValue(yearForQuarter, monthForQuarter, 1);
+            timeNanos = 0l;
+            break;
+
+        case YEAR:
+
+            long yearForYear = DateTimeUtils.yearFromDateValue(dateValue);
+            dateValue = DateTimeUtils.dateValue(yearForYear, 1, 1);
             timeNanos = 0l;
             break;
 

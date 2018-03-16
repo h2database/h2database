@@ -990,14 +990,84 @@ SELECT DATE_TRUNC('century', '2000-05-29 15:14:13');
 SELECT DATE_TRUNC('CENTURY', '2000-05-29 15:14:13');
 >> 1901-01-01 00:00:00
 
+SELECT DATE_TRUNC('century', '2001-05-29 15:14:13');
+>> 2001-01-01 00:00:00
+
+SELECT DATE_TRUNC('CENTURY', '2001-05-29 15:14:13');
+>> 2001-01-01 00:00:00
+
 --
--- Test unhandled time unit
+-- Test time unit 'MILLENNIUM'
+--
+select DATE_TRUNC('millennium', time '00:00:00');
+>> 1001-01-01 00:00:00
+
+select DATE_TRUNC('MILLENNIUM', time '00:00:00');
+>> 1001-01-01 00:00:00
+
+select DATE_TRUNC('millennium', time '15:14:13');
+>> 1001-01-01 00:00:00
+
+select DATE_TRUNC('MILLENNIUM', time '15:14:13');
+>> 1001-01-01 00:00:00
+
+select DATE_TRUNC('millennium', date '2015-05-28');
+>> 2001-01-01 00:00:00
+
+select DATE_TRUNC('MILLENNIUM', date '2015-05-28');
+>> 2001-01-01 00:00:00
+
+select DATE_TRUNC('millennium', timestamp '2015-05-29 15:14:13');
+>> 2001-01-01 00:00:00
+
+select DATE_TRUNC('MILLENNIUM', timestamp '2015-05-29 15:14:13');
+>> 2001-01-01 00:00:00
+
+select DATE_TRUNC('millennium', timestamp with time zone '2015-05-29 15:14:13');
+>> 2001-01-01 00:00:00+00
+
+select DATE_TRUNC('MILLENNIUM', timestamp with time zone '2015-05-29 15:14:13');
+>> 2001-01-01 00:00:00+00
+
+select DATE_TRUNC('millennium', timestamp with time zone '2015-05-29 05:14:13-06');
+>> 2001-01-01 00:00:00-06
+
+select DATE_TRUNC('MILLENNIUM', timestamp with time zone '2015-05-29 05:14:13-06');
+>> 2001-01-01 00:00:00-06
+
+select DATE_TRUNC('millennium', timestamp with time zone '2015-05-29 15:14:13+10');
+>> 2001-01-01 00:00:00+10
+
+select DATE_TRUNC('MILLENNIUM', timestamp with time zone '2015-05-29 15:14:13+10');
+>> 2001-01-01 00:00:00+10
+
+SELECT DATE_TRUNC('millennium', '2015-05-29 15:14:13');
+>> 2001-01-01 00:00:00
+
+SELECT DATE_TRUNC('MILLENNIUM', '2015-05-29 15:14:13');
+>> 2001-01-01 00:00:00
+
+SELECT DATE_TRUNC('millennium', '2001-05-29 15:14:13');
+>> 2001-01-01 00:00:00
+
+SELECT DATE_TRUNC('MILLENNIUM', '2001-05-29 15:14:13');
+>> 2001-01-01 00:00:00
+
+SELECT DATE_TRUNC('millennium', '2000-05-29 15:14:13');
+>> 1001-01-01 00:00:00
+
+SELECT DATE_TRUNC('MILLENNIUM', '2000-05-29 15:14:13');
+>> 1001-01-01 00:00:00
+
+--
+-- Test unhandled time unit and bad date
 --
 SELECT DATE_TRUNC('---', '2015-05-29 15:14:13');
 > exception
 
-SELECT DATE_TRUNC('millennium', '2015-05-29 15:14:13');
+SELECT DATE_TRUNC('', '2015-05-29 15:14:13');
 > exception
 
-SELECT DATE_TRUNC('MILLENNIUM', '2015-05-29 15:14:13');
+SELECT DATE_TRUNC('YEAR', '');
 > exception
+

@@ -26,6 +26,7 @@ import static org.h2.expression.Function.TIMEZONE_HOUR;
 import static org.h2.expression.Function.TIMEZONE_MINUTE;
 import static org.h2.expression.Function.WEEK;
 import static org.h2.expression.Function.YEAR;
+import static org.h2.expression.Function.MILLENNIUM;
 import java.math.BigDecimal;
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
@@ -107,6 +108,7 @@ public final class DateTimeFunctions {
         DATE_PART.put("TIMEZONE_MINUTE", TIMEZONE_MINUTE);
         DATE_PART.put("DECADE", DECADE);
         DATE_PART.put("CENTURY", CENTURY);
+        DATE_PART.put("MILLENNIUM", MILLENNIUM);
     }
 
     /**
@@ -502,10 +504,19 @@ public final class DateTimeFunctions {
             dateValue = DateTimeUtils.dateValue(yearForCentury, 1, 1);
             timeNanos = 0l;
             break;
-            
+
+        case MILLENNIUM:
+
+            long yearForMillennium = DateTimeUtils.yearFromDateValue(dateValue);
+            yearForMillennium = (long) (Math.floor((yearForMillennium - 1) / 1000) * 1000) + 1;
+            dateValue = DateTimeUtils.dateValue(yearForMillennium, 1, 1);
+            timeNanos = 0l;
+            break;
+
         }
+        
         if (timeNanos == null) {
-            
+
             // Return an exception in the timeUnit is not recognized
             throw DbException.getUnsupportedException(timeUnitStr);
 

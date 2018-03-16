@@ -220,7 +220,7 @@ public final class DateTimeFunctions {
     }
 
     /**
-     * Calculate the number) of crossed unit boundaries between two timestamps. This
+     * Calculate the number of crossed unit boundaries between two timestamps. This
      * method is supported for MS SQL Server compatibility.
      * 
      * <pre>

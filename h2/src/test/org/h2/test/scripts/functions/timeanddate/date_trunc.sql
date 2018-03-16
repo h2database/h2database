@@ -1068,6 +1068,9 @@ SELECT DATE_TRUNC('---', '2015-05-29 15:14:13');
 SELECT DATE_TRUNC('', '2015-05-29 15:14:13');
 > exception
 
+SELECT DATE_TRUNC('', '');
+> exception
+
 SELECT DATE_TRUNC('YEAR', '');
 > exception
 

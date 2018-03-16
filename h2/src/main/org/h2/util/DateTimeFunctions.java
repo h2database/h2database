@@ -454,9 +454,9 @@ public final class DateTimeFunctions {
             }
             timeNanos = 0l;
             break;
-            
+
         case MONTH:
-            
+
             long year = DateTimeUtils.yearFromDateValue(dateValue);
             int month = DateTimeUtils.monthFromDateValue(dateValue);
             dateValue = DateTimeUtils.dateValue(year, month, 1);
@@ -468,6 +468,7 @@ public final class DateTimeFunctions {
             long yearForQuarter = DateTimeUtils.yearFromDateValue(dateValue);
             int monthForQuarter = DateTimeUtils.monthFromDateValue(dateValue);
 
+            // Round the month to lower quarter
             if (monthForQuarter >= 10) {
                 monthForQuarter = 10;
             } else if (monthForQuarter >= 7) {
@@ -490,17 +491,17 @@ public final class DateTimeFunctions {
             break;
 
         case DECADE:
-            
+
             long yearForDecade = DateTimeUtils.yearFromDateValue(dateValue);
             yearForDecade = (long) (Math.floor(yearForDecade / 10) * 10);
             dateValue = DateTimeUtils.dateValue(yearForDecade, 1, 1);
             timeNanos = 0l;
             break;
-            
+
         case CENTURY:
-            
+
             long yearForCentury = DateTimeUtils.yearFromDateValue(dateValue);
-            yearForCentury = (long) (Math.floor( (yearForCentury - 1) / 100) * 100) + 1;
+            yearForCentury = (long) (Math.floor((yearForCentury - 1) / 100) * 100) + 1;
             dateValue = DateTimeUtils.dateValue(yearForCentury, 1, 1);
             timeNanos = 0l;
             break;
@@ -514,7 +515,7 @@ public final class DateTimeFunctions {
             break;
 
         }
-        
+
         if (timeNanos == null) {
 
             // Return an exception in the timeUnit is not recognized

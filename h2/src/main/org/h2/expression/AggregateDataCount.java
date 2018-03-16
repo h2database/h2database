@@ -29,7 +29,6 @@ class AggregateDataCount extends AggregateData {
                 distinctValues = ValueHashMap.newInstance();
             }
             distinctValues.put(v, this);
-            return;
         }
     }
 

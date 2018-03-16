@@ -94,7 +94,6 @@ public class ConditionInConstantSet extends Condition {
         }
         if (session.getDatabase().getSettings().optimizeInList) {
             filter.addIndexCondition(IndexCondition.getInList(l, valueList));
-            return;
         }
     }
 

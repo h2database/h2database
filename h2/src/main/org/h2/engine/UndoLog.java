@@ -177,7 +177,6 @@ public class UndoLog {
                 memoryUndo = 0;
                 records.clear();
                 file.autoDelete();
-                return;
             }
         } else {
             if (!entry.isStored()) {

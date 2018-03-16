@@ -275,7 +275,10 @@ public class CompareMode {
         if (strength != o.strength) {
             return false;
         }
-        return binaryUnsigned == o.binaryUnsigned;
+        if (binaryUnsigned != o.binaryUnsigned) {
+            return false;
+        }
+        return true;
     }
 
     @Override

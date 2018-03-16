@@ -219,7 +219,7 @@ public class Update extends Prepared {
         for (Column c : columns) {
             Expression e = expressionMap.get(c);
             e.mapColumns(targetTableFilter, 0);
-            if (sourceTableFilter != null) {
+            if (sourceTableFilter!=null){
                 e.mapColumns(sourceTableFilter, 0);
             }
             expressionMap.put(c, e.optimize(session));

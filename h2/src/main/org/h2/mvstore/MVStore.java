@@ -1408,7 +1408,10 @@ public final class MVStore {
             }
         }
         Chunk r = retainChunk;
-        return r == null || c.version <= r.version;
+        if (r != null && c.version > r.version) {
+            return false;
+        }
+        return true;
     }
 
     private long getTimeSinceCreation() {
@@ -2482,7 +2485,11 @@ public final class MVStore {
                 // the last time
                 boolean fileOps;
                 long fileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();
-                fileOps = autoCompactLastFileOpCount != fileOpCount;
+                if (autoCompactLastFileOpCount != fileOpCount) {
+                    fileOps = true;
+                } else {
+                    fileOps = false;
+                }
                 // use a lower fill rate if there were any file operations
                 int targetFillRate = fileOps ? autoCompactFillRate / 3 : autoCompactFillRate;
                 compact(targetFillRate, autoCommitMemory);

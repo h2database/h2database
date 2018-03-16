@@ -103,7 +103,8 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         ArrayList<String> serverList = new ArrayList<>();
         for (Transfer transfer : transferList) {
             serverList.add(transfer.getSocket().getInetAddress().
-                    getHostAddress() + ":" + transfer.getSocket().getPort());
+                    getHostAddress() + ":" +
+                    transfer.getSocket().getPort());
         }
         return serverList;
     }

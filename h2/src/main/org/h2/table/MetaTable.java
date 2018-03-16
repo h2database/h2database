@@ -714,7 +714,10 @@ public class MetaTable extends Table {
         if (indexFrom != null && db.compare(v, indexFrom) < 0) {
             return false;
         }
-        return indexTo == null || db.compare(v, indexTo) <= 0;
+        if (indexTo != null && db.compare(v, indexTo) > 0) {
+            return false;
+        }
+        return true;
     }
 
     private static String replaceNullWithEmpty(String s) {

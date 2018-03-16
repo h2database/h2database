@@ -2870,10 +2870,7 @@ public class Database implements DataHandler {
      * @return true if they match
      */
     public boolean equalsIdentifiers(String a, String b) {
-        if (a.equals(b)) {
-            return true;
-        }
-        return !dbSettings.databaseToUpper && a.equalsIgnoreCase(b);
+        return a.equals(b) || (!dbSettings.databaseToUpper && a.equalsIgnoreCase(b));
     }
 
     @Override

@@ -232,10 +232,7 @@ public class Select extends Query {
     }
 
     private boolean isHavingNullOrFalse(Value[] row) {
-        if (havingIndex >= 0) {
-            return !row[havingIndex].getBoolean();
-        }
-        return false;
+        return havingIndex >= 0 && !row[havingIndex].getBoolean();
     }
 
     private Index getGroupSortedIndex() {

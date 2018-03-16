@@ -583,7 +583,8 @@ public abstract class Table extends SchemaObjectBase {
                     if (columns.size() == 1) {
                         constraintsToDrop.add(constraint);
                     } else {
-                        throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1, constraint.getSQL());
+                        throw DbException.get(
+                                ErrorCode.COLUMN_IS_REFERENCED_1, constraint.getSQL());
                     }
                 }
             }
@@ -602,7 +603,8 @@ public abstract class Table extends SchemaObjectBase {
                     if (index.getColumns().length == 1) {
                         indexesToDrop.add(index);
                     } else {
-                        throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1, index.getSQL());
+                        throw DbException.get(
+                                ErrorCode.COLUMN_IS_REFERENCED_1, index.getSQL());
                     }
                 }
             }

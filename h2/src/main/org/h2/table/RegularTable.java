@@ -143,7 +143,8 @@ public class RegularTable extends TableBase {
                     if (index.getIndexType().isUnique() && index instanceof MultiVersionIndex) {
                         MultiVersionIndex mv = (MultiVersionIndex) index;
                         if (mv.isUncommittedFromOtherSession(session, row)) {
-                            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, index.getName());
+                            throw DbException.get(
+                                    ErrorCode.CONCURRENT_UPDATE_1, index.getName());
                         }
                     }
                 }

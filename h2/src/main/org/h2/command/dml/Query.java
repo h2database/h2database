@@ -307,7 +307,11 @@ public abstract class Query extends Prepared {
                 !isEverything(ExpressionVisitor.INDEPENDENT_VISITOR)) {
             return false;
         }
-        return db.getModificationDataId() <= lastEval || getMaxDataModificationId() <= lastEval;
+        if (db.getModificationDataId() > lastEval &&
+                getMaxDataModificationId() > lastEval) {
+            return false;
+        }
+        return true;
     }
 
     public final Value[] getParameterValues() {

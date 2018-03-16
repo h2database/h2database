@@ -146,7 +146,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
             String tableType;
             if (types != null && types.length > 0) {
                 StatementBuilder buff = new StatementBuilder("TABLE_TYPE IN(");
-                for (String type : types) {
+                for (String ignored : types) {
                     buff.appendExceptFirst(", ");
                     buff.append('?');
                 }

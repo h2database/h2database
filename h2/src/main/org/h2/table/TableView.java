@@ -286,7 +286,11 @@ public class TableView extends Table {
                 return false;
             }
         }
-        return topQuery == null || topQuery.isEverything(ExpressionVisitor.QUERY_COMPARABLE_VISITOR);
+        if (topQuery != null &&
+                !topQuery.isEverything(ExpressionVisitor.QUERY_COMPARABLE_VISITOR)) {
+            return false;
+        }
+        return true;
     }
 
     public Query getTopQuery() {

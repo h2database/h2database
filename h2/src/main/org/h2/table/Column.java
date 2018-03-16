@@ -777,7 +777,10 @@ public class Column {
         if (defaultExpression != null && !defaultExpression.isEverything(visitor)) {
             return false;
         }
-        return checkConstraint == null || checkConstraint.isEverything(visitor);
+        if (checkConstraint != null && !checkConstraint.isEverything(visitor)) {
+            return false;
+        }
+        return true;
     }
 
     public boolean isPrimaryKey() {
@@ -830,7 +833,10 @@ public class Column {
         if (isComputed || newColumn.isComputed) {
             return false;
         }
-        return onUpdateExpression == null && newColumn.onUpdateExpression == null;
+        if (onUpdateExpression != null || newColumn.onUpdateExpression != null) {
+            return false;
+        }
+        return true;
     }
 
     /**

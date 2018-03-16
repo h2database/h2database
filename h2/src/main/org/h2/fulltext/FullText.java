@@ -471,7 +471,8 @@ public class FullText {
         addColumnData(columns, data, expr);
         Object[] col = columns.toArray();
         Object[] dat = data.toArray();
-        return new Object[][]{col, dat};
+        Object[][] columnData = { col, dat };
+        return columnData;
     }
 
     /**

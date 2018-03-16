@@ -1118,8 +1118,8 @@ public final class JoinBatch {
             if (joinBatches == null) {
                 return;
             }
-            for (JoinBatch joinBatche : joinBatches) {
-                joinBatche.viewTopFutureCursor = null;
+            for (JoinBatch joinBatch : joinBatches) {
+                joinBatch.viewTopFutureCursor = null;
             }
         }
     }

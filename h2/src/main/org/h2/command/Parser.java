@@ -285,11 +285,6 @@ public class Parser {
             if (hasMore) {
                 String remaining = originalSQL.substring(parseIndex);
                 if (remaining.trim().length() != 0) {
-                    // list.addCommand(c);
-                    // do {
-                    // c = parseCommand();
-                    // list.addCommand(c);
-                    // } while (currentToken.equals(";"));
                     c = new CommandList(this, sql, c, remaining);
                 }
             }
@@ -3567,21 +3562,15 @@ public class Parser {
     private boolean equalsToken(String a, String b) {
         if (a == null) {
             return b == null;
-        } else if (a.equals(b)) {
-            return true;
-        } else {
-            return !identifiersToUpper && a.equalsIgnoreCase(b);
-        }
+        } else
+            return a.equals(b) || !identifiersToUpper && a.equalsIgnoreCase(b);
     }
 
     private static boolean equalsTokenIgnoreCase(String a, String b) {
         if (a == null) {
             return b == null;
-        } else if (a.equals(b)) {
-            return true;
-        } else {
-            return a.equalsIgnoreCase(b);
-        }
+        } else
+            return a.equals(b) || a.equalsIgnoreCase(b);
     }
 
     private boolean isTokenInList(Collection<String> upperCaseTokenList) {

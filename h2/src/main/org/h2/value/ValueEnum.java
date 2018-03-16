@@ -10,7 +10,7 @@ import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 
 public class ValueEnum extends ValueEnumBase {
-    private static enum Validation {
+    private enum Validation {
         DUPLICATE,
         EMPTY,
         INVALID,

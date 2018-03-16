@@ -422,8 +422,9 @@ public class DateTimeUtils {
      */
     private static int findNthIndexOf(String str, char chr, int n) {
         int pos = str.indexOf(chr);
-        while (--n > 0 && pos != -1)
+        while (--n > 0 && pos != -1) {
             pos = str.indexOf(chr, pos + 1);
+        }
         return pos;
     }
 

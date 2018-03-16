@@ -720,10 +720,11 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
     public static void startWebServer(Connection conn, boolean ignoreProperties) throws SQLException {
         WebServer webServer = new WebServer();
         String[] args;
-        if (ignoreProperties)
+        if (ignoreProperties) {
             args = new String[] { "-webPort", "0", "-properties", "null"};
-        else
+        } else {
             args = new String[] { "-webPort", "0" };
+        }
         Server web = new Server(webServer, args);
         web.start();
         Server server = new Server();

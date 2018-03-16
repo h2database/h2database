@@ -69,10 +69,11 @@ public class ValueLob extends Value {
      * @return the smaller input stream
      */
     static InputStream rangeInputStream(InputStream inputStream, long oneBasedOffset, long length, long dataSize) {
-        if (dataSize > 0)
+        if (dataSize > 0) {
             rangeCheck(oneBasedOffset - 1, length, dataSize);
-        else
+        } else {
             rangeCheckUnknown(oneBasedOffset - 1, length);
+        }
         try {
             return new RangeInputStream(inputStream, oneBasedOffset - 1, length);
         } catch (IOException e) {
@@ -90,10 +91,11 @@ public class ValueLob extends Value {
      * @return the smaller input stream
      */
     static Reader rangeReader(Reader reader, long oneBasedOffset, long length, long dataSize) {
-        if (dataSize > 0)
+        if (dataSize > 0) {
             rangeCheck(oneBasedOffset - 1, length, dataSize);
-        else
+        } else {
             rangeCheckUnknown(oneBasedOffset - 1, length);
+        }
         try {
             return new RangeReader(reader, oneBasedOffset - 1, length);
         } catch (IOException e) {

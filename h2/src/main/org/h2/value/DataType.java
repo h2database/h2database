@@ -534,18 +534,20 @@ public class DataType {
                     v = ValueBytes.getNoCopy((byte[]) o);
                 } else if (o != null) {
                     v = ValueUuid.get((UUID) o);
-                } else
+                } else {
                     v = ValueNull.INSTANCE;
+                }
                 break;
             }
             case Value.UUID: {
                 Object o = rs.getObject(columnIndex);
                 if (o instanceof UUID) {
                     v = ValueUuid.get((UUID) o);
-                } else if (o != null)
+                } else if (o != null) {
                     v = ValueUuid.get((byte[]) o);
-                else
+                } else {
                     v = ValueNull.INSTANCE;
+                }
                 break;
             }
             case Value.BOOLEAN: {

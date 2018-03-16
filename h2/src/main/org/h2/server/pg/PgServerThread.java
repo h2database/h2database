@@ -653,8 +653,9 @@ public class PgServerThread implements Runnable {
             case PgServer.PG_TYPE_TIME: {
                 // Strip timezone offset
                 int idx = str.indexOf('+');
-                if (idx <= 0)
+                if (idx <= 0) {
                     idx = str.indexOf('-');
+                }
                 if (idx > 0) {
                     str = str.substring(0, idx);
                 }

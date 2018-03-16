@@ -71,8 +71,9 @@ public class DbSchema {
         } else if (contents.isPostgreSQL() &&
                 StringUtils.toUpperEnglish(name).startsWith("PG_")) {
             isSystem = true;
-        } else
+        } else {
             isSystem = contents.isDerby() && name.startsWith("SYS");
+        }
     }
 
     /**

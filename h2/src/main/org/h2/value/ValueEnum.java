@@ -78,8 +78,9 @@ public class ValueEnum extends ValueEnumBase {
         final String cleanLabel = sanitize(value);
 
         for (int i = 0; i < enumerators.length; i++) {
-            if (cleanLabel.equals(sanitize(enumerators[i])))
+            if (cleanLabel.equals(sanitize(enumerators[i]))) {
                 return new ValueEnum(enumerators, i);
+            }
         }
 
         throw DbException.get(ErrorCode.GENERAL_ERROR_1, "Unexpected error");
@@ -106,7 +107,9 @@ public class ValueEnum extends ValueEnumBase {
     }
 
     private static String[] sanitize(final String[] enumerators) {
-        if (enumerators == null || enumerators.length == 0) return null;
+        if (enumerators == null || enumerators.length == 0) {
+            return null;
+        }
 
         final String[] clean = new String[enumerators.length];
 

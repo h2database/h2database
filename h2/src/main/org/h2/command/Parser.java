@@ -3569,8 +3569,9 @@ public class Parser {
             return b == null;
         } else if (a.equals(b)) {
             return true;
-        } else
+        } else {
             return !identifiersToUpper && a.equalsIgnoreCase(b);
+        }
     }
 
     private static boolean equalsTokenIgnoreCase(String a, String b) {
@@ -3578,8 +3579,9 @@ public class Parser {
             return b == null;
         } else if (a.equals(b)) {
             return true;
-        } else
+        } else {
             return a.equalsIgnoreCase(b);
+        }
     }
 
     private boolean isTokenInList(Collection<String> upperCaseTokenList) {

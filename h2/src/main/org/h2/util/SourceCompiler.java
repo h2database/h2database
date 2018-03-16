@@ -209,12 +209,13 @@ public class SourceCompiler {
         if (compiledScript == null) {
             String source = sources.get(packageAndClassName);
             final String lang;
-            if (isJavascriptSource(source))
+            if (isJavascriptSource(source)) {
                 lang = "javascript";
-            else if (isRubySource(source))
+            } else if (isRubySource(source)) {
                 lang = "ruby";
-            else
+            } else {
                 throw new IllegalStateException("Unknown language for " + source);
+            }
 
             final Compilable jsEngine = (Compilable) new ScriptEngineManager().getEngineByName(lang);
             compiledScript = jsEngine.compile(source);

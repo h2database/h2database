@@ -870,10 +870,7 @@ public class Data {
             for (int i = 0; i < columns; i++) {
                 rs.addColumn(readString(), readVarInt(), readVarInt(), readVarInt());
             }
-            while (true) {
-                if (readByte() == 0) {
-                    break;
-                }
+            while (readByte() != 0) {
                 Object[] o = new Object[columns];
                 for (int i = 0; i < columns; i++) {
                     o[i] = readValue().getObject();

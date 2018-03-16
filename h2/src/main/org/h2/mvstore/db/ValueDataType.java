@@ -584,10 +584,7 @@ public class ValueDataType implements DataType {
                         readVarInt(buff),
                         readVarInt(buff));
             }
-            while (true) {
-                if (buff.get() == 0) {
-                    break;
-                }
+            while (buff.get() != 0) {
                 Object[] o = new Object[columns];
                 for (int i = 0; i < columns; i++) {
                     o[i] = ((Value) readValue(buff)).getObject();

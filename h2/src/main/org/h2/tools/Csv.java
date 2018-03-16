@@ -493,12 +493,9 @@ public class Csv implements SimpleRowSource {
             } else if (lineComment != 0 && ch == lineComment) {
                 // comment until end of line
                 inputBufferStart = -1;
-                while (true) {
+                do {
                     ch = readChar();
-                    if (ch == '\n' || ch < 0 || ch == '\r') {
-                        break;
-                    }
-                }
+                } while (ch != '\n' && ch >= 0 && ch != '\r');
                 endOfLine = true;
                 return null;
             } else {

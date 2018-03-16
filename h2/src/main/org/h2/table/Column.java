@@ -455,15 +455,12 @@ public class Column {
             originalSQL = "INT";
         }
         String sequenceName;
-        while (true) {
+        do {
             ValueUuid uuid = ValueUuid.getNewRandom();
             String s = uuid.getString();
             s = StringUtils.toUpperEnglish(s.replace('-', '_'));
             sequenceName = "SYSTEM_SEQUENCE_" + s;
-            if (schema.findSequence(sequenceName) == null) {
-                break;
-            }
-        }
+        } while (schema.findSequence(sequenceName) != null);
         Sequence seq = new Sequence(schema, id, sequenceName, start, increment);
         seq.setTemporary(temporary);
         session.getDatabase().addSchemaObject(session, seq);

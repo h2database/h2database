@@ -250,7 +250,7 @@ public class PageBtreeNode extends PageBtree {
         }
         int firstChild = childPageIds[splitPoint];
         readAllRows();
-        for (; splitPoint < entryCount; ) {
+        while (splitPoint < entryCount) {
             p2.addChild(p2.entryCount, childPageIds[splitPoint + 1], getRow(splitPoint));
             removeChild(splitPoint);
         }

@@ -205,7 +205,7 @@ public class PageBtreeLeaf extends PageBtree {
     PageBtree split(int splitPoint) {
         int newPageId = index.getPageStore().allocatePage();
         PageBtreeLeaf p2 = PageBtreeLeaf.create(index, newPageId, parentPageId);
-        for (; splitPoint < entryCount; ) {
+        while (splitPoint < entryCount) {
             p2.addRow(getRow(splitPoint), false);
             removeRow(splitPoint);
         }

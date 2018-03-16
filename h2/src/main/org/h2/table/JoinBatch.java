@@ -224,7 +224,7 @@ public final class JoinBatch {
             }
             return false;
         }
-        for (;;) {
+        while (true) {
             if (!found) {
                 if (!batchedNext()) {
                     return false;
@@ -272,7 +272,7 @@ public final class JoinBatch {
             jfId--;
         }
 
-        for (;;) {
+        while (true) {
             fetchCurrent(jfId);
 
             if (!current.isDropped()) {
@@ -359,7 +359,7 @@ public final class JoinBatch {
         assert c != null;
         JoinFilter join = jf.join;
 
-        for (;;) {
+        while (true) {
             if (c == null || !c.next()) {
                 if (newCursor && jf.isOuterJoin()) {
                     // replace cursor with null-row

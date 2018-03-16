@@ -590,7 +590,6 @@ public final class MVStore {
                     }
                 }
             } catch (Exception e) {
-                continue;
             }
         }
         if (!validStoreHeader) {

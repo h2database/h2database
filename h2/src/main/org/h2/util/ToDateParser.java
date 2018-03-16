@@ -278,7 +278,6 @@ public class ToDateParser {
             }
             if (!foundAnToken) {
                 p.removeFirstChar();
-                continue;
             }
         }
         return p;

@@ -1086,7 +1086,6 @@ public class Select extends Query {
                     // skip the generation of plan SQL for this already recursive persistent CTEs,
                     // since using a with statement will re-create the common table expression
                     // views.
-                    continue;
                 } else {
                     buff.append("WITH RECURSIVE ").append(t.getName()).append('(');
                     buff.resetCount();

@@ -123,7 +123,6 @@ ShutdownHandler {
         for (int i = 0; args != null && i < args.length; i++) {
             String arg = args[i];
             if (arg == null) {
-                continue;
             } else if ("-?".equals(arg) || "-help".equals(arg)) {
                 showUsage();
                 return;

@@ -1489,10 +1489,8 @@ public class Recover extends Tool implements DataHandler {
                 sb.append(getSQL(columnName, v));
             } catch (Exception e) {
                 writeDataError(writer, "exception " + e, s.getBytes());
-                continue;
             } catch (OutOfMemoryError e) {
                 writeDataError(writer, "out of memory", s.getBytes());
-                continue;
             }
         }
         sb.append(");");

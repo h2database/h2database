@@ -60,12 +60,20 @@ public class DbSchema {
         this.name = name;
         this.quotedName = contents.quoteIdentifier(name);
         this.isDefault = isDefault;
-        isSystem =
-                (name == null) // firebird
-                        || "INFORMATION_SCHEMA".equals(name)
-                        || (!contents.isH2() && StringUtils.toUpperEnglish(name).startsWith("INFO"))
-                        || (contents.isPostgreSQL() && StringUtils.toUpperEnglish(name).startsWith("PG_"))
-                        || (contents.isDerby() && name.startsWith("SYS"));
+        if (name == null) {
+            // firebird
+            isSystem = true;
+        } else if ("INFORMATION_SCHEMA".equals(name)) {
+            isSystem = true;
+        } else if (!contents.isH2() &&
+                StringUtils.toUpperEnglish(name).startsWith("INFO")) {
+            isSystem = true;
+        } else if (contents.isPostgreSQL() &&
+                StringUtils.toUpperEnglish(name).startsWith("PG_")) {
+            isSystem = true;
+        } else {
+            isSystem = contents.isDerby() && name.startsWith("SYS");
+        }
     }
 
     /**

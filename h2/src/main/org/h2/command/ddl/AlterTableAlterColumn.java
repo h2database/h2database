@@ -84,6 +84,9 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         this.oldColumn = oldColumn;
     }
 
+    /**
+     * Add the column as the first column of the table.
+     */
     public void setAddFirst() {
         addFirst = true;
     }

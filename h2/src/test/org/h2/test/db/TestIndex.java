@@ -710,6 +710,11 @@ public class TestIndex extends TestBase {
         trace("---done---");
     }
 
+    /**
+     * This method is called from the database.
+     *
+     * @return the result set
+     */
     public static ResultSet testFunctionIndexFunction() {
         // There are additional callers like JdbcConnection.prepareCommand() and
         // CommandContainer.recompileIfRequired()

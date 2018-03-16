@@ -12,7 +12,9 @@ import org.h2.result.SearchRow;
 import org.h2.value.Value;
 
 /**
- * Abstract function cursor.
+ * Abstract function cursor. This implementation filters the rows (only returns
+ * entries that are larger or equal to "first", and smaller than last or equal
+ * to "last").
  */
 abstract class AbstractFunctionCursor implements Cursor {
     private final FunctionIndex index;
@@ -85,6 +87,11 @@ abstract class AbstractFunctionCursor implements Cursor {
         return false;
     }
 
+    /**
+     * Skip to the next row if one is available. This method does not filter.
+     *
+     * @return true if another row is available
+     */
     abstract boolean nextImpl();
 
     @Override

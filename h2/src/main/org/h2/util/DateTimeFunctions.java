@@ -215,7 +215,7 @@ public final class DateTimeFunctions {
     /**
      * Calculate the number of crossed unit boundaries between two timestamps. This
      * method is supported for MS SQL Server compatibility.
-     * 
+     *
      * <pre>
      * DATEDIFF(YEAR, '2004-12-31', '2005-01-01') = 1
      * </pre>

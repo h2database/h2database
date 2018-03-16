@@ -8,6 +8,7 @@ package org.h2.util;
 import static org.h2.expression.Function.DAY_OF_MONTH;
 import static org.h2.expression.Function.DAY_OF_WEEK;
 import static org.h2.expression.Function.DAY_OF_YEAR;
+import static org.h2.expression.Function.DECADE;
 import static org.h2.expression.Function.EPOCH;
 import static org.h2.expression.Function.HOUR;
 import static org.h2.expression.Function.ISO_DAY_OF_WEEK;
@@ -24,7 +25,6 @@ import static org.h2.expression.Function.TIMEZONE_HOUR;
 import static org.h2.expression.Function.TIMEZONE_MINUTE;
 import static org.h2.expression.Function.WEEK;
 import static org.h2.expression.Function.YEAR;
-
 import java.math.BigDecimal;
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
@@ -32,7 +32,6 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
-
 import org.h2.api.ErrorCode;
 import org.h2.expression.Function;
 import org.h2.message.DbException;
@@ -105,6 +104,7 @@ public final class DateTimeFunctions {
         DATE_PART.put("NS", NANOSECOND);
         DATE_PART.put("TIMEZONE_HOUR", TIMEZONE_HOUR);
         DATE_PART.put("TIMEZONE_MINUTE", TIMEZONE_MINUTE);
+        DATE_PART.put("DECADE", DECADE);
     }
 
     /**
@@ -216,7 +216,7 @@ public final class DateTimeFunctions {
     }
 
     /**
-     * Calculate the number of crossed unit boundaries between two timestamps. This
+     * Calculate the number) of crossed unit boundaries between two timestamps. This
      * method is supported for MS SQL Server compatibility.
      * 
      * <pre>
@@ -485,6 +485,14 @@ public final class DateTimeFunctions {
             timeNanos = 0l;
             break;
 
+        case DECADE:
+            
+            long yearForDecade = DateTimeUtils.yearFromDateValue(dateValue);
+            yearForDecade = (long) (Math.floor(yearForDecade / 10) * 10);
+            dateValue = DateTimeUtils.dateValue(yearForDecade, 1, 1);
+            timeNanos = 0l;
+            break;
+            
         }
         if (timeNanos == null) {
             

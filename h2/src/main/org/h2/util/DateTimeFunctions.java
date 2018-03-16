@@ -26,10 +26,8 @@ import static org.h2.expression.Function.WEEK;
 import static org.h2.expression.Function.YEAR;
 
 import java.math.BigDecimal;
-import java.sql.Date;
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Locale;
@@ -450,6 +448,14 @@ public final class DateTimeFunctions {
             if (dayOfWeek != 1) {
                 dateValue = DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay - dayOfWeek + 1);
             }
+            timeNanos = 0l;
+            break;
+            
+        case MONTH:
+            
+            long year = DateTimeUtils.yearFromDateValue(dateValue);
+            int month = DateTimeUtils.monthFromDateValue(dateValue);
+            dateValue = DateTimeUtils.dateValue(year, month, 1);
             timeNanos = 0l;
             break;
 

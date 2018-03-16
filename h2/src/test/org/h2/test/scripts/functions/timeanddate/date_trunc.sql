@@ -657,15 +657,73 @@ SELECT DATE_TRUNC('week', '2018-03-14 00:00:00.000');
 >> 2018-03-12 00:00:00
 
 --
+-- Test time unit 'MONTH'
+--
+select DATE_TRUNC('month', time '00:00:00');
+>> 1970-01-01 00:00:00
+
+select DATE_TRUNC('MONTH', time '00:00:00');
+>> 1970-01-01 00:00:00
+
+select DATE_TRUNC('month', time '15:14:13');
+>> 1970-01-01 00:00:00
+
+select DATE_TRUNC('MONTH', time '15:14:13');
+>> 1970-01-01 00:00:00
+
+select DATE_TRUNC('month', date '2015-05-28');
+>> 2015-05-01 00:00:00
+
+select DATE_TRUNC('MONTH', date '2015-05-28');
+>> 2015-05-01 00:00:00
+
+select DATE_TRUNC('month', timestamp '2015-05-29 15:14:13');
+>> 2015-05-01 00:00:00
+
+select DATE_TRUNC('MONTH', timestamp '2015-05-29 15:14:13');
+>> 2015-05-01 00:00:00
+
+select DATE_TRUNC('month', timestamp with time zone '2015-05-29 15:14:13');
+>> 2015-05-01 00:00:00+00
+
+select DATE_TRUNC('MONTH', timestamp with time zone '2015-05-29 15:14:13');
+>> 2015-05-01 00:00:00+00
+
+select DATE_TRUNC('month', timestamp with time zone '2015-05-29 05:14:13-06');
+>> 2015-05-01 00:00:00-06
+
+select DATE_TRUNC('MONTH', timestamp with time zone '2015-05-29 05:14:13-06');
+>> 2015-05-01 00:00:00-06
+
+select DATE_TRUNC('month', timestamp with time zone '2015-05-29 15:14:13+10');
+>> 2015-05-01 00:00:00+10
+
+select DATE_TRUNC('MONTH', timestamp with time zone '2015-05-29 15:14:13+10');
+>> 2015-05-01 00:00:00+10
+
+select DATE_TRUNC('month', '2015-05-29 15:14:13');
+>> 2015-05-01 00:00:00
+
+select DATE_TRUNC('MONTH', '2015-05-29 15:14:13');
+>> 2015-05-01 00:00:00
+
+SELECT DATE_TRUNC('MONTH', '2018-03-14 00:00:00.000');
+>> 2018-03-01 00:00:00
+
+SELECT DATE_TRUNC('month', '2018-03-14 00:00:00.000');
+>> 2018-03-01 00:00:00
+
+SELECT DATE_TRUNC('month', '2015-05-29 15:14:13');
+>> 2015-05-01 00:00:00
+
+SELECT DATE_TRUNC('MONTH', '2015-05-29 15:14:13');
+>> 2015-05-01 00:00:00
+
+
+--
 -- Test unhandled time unit
 --
 SELECT DATE_TRUNC('---', '2015-05-29 15:14:13');
-> exception
-
-SELECT DATE_TRUNC('month', '2015-05-29 15:14:13');
-> exception
-
-SELECT DATE_TRUNC('MONTH', '2015-05-29 15:14:13');
 > exception
 
 SELECT DATE_TRUNC('quarter', '2015-05-29 15:14:13');

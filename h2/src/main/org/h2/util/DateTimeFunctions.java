@@ -382,18 +382,18 @@ public final class DateTimeFunctions {
     }
 
     /**
-     * Truncate the given date to 'day'
+     * Truncate the given date to the unit specified
      *
-     * @param timeUnit the time unit (e.g. 'DAY', 'HOUR', etc.)
+     * @param datePartStr the time unit (e.g. 'DAY', 'HOUR', etc.)
      * @param value the date
      * @return date truncated to 'day'
      */
-    public static Value truncateDate(String timeUnitStr, Value value) {
+    public static Value truncateDate(String datePartStr, Value valueDate) {
 
-        int timeUnit = getDatePart(timeUnitStr);
+        int timeUnit = getDatePart(datePartStr);
 
-        // Retrieve the dateValue and the time in nanoseconds if the date.
-        long[] fieldDateAndTime = DateTimeUtils.dateAndTimeFromValue(value);
+        // Retrieve the dateValue and the time in nanoseconds of the date.
+        long[] fieldDateAndTime = DateTimeUtils.dateAndTimeFromValue(valueDate);
         long dateValue = fieldDateAndTime[0];
         long timeNanosRetrieved = fieldDateAndTime[1];
 
@@ -512,17 +512,17 @@ public final class DateTimeFunctions {
         default:
 
             // Return an exception in the timeUnit is not recognized
-            throw DbException.getUnsupportedException(timeUnitStr);
+            throw DbException.getUnsupportedException(datePartStr);
 
         }
 
         Value result;
 
-        if (value instanceof ValueTimestampTimeZone) {
+        if (valueDate instanceof ValueTimestampTimeZone) {
 
             // Case we create a timestamp with timezone with the dateValue and
             // timeNanos computed.
-            ValueTimestampTimeZone vTmp = (ValueTimestampTimeZone) value;
+            ValueTimestampTimeZone vTmp = (ValueTimestampTimeZone) valueDate;
             result = ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos, vTmp.getTimeZoneOffsetMins());
 
         } else {

@@ -16,6 +16,7 @@ import static org.h2.expression.Function.ISO_DAY_OF_WEEK;
 import static org.h2.expression.Function.ISO_WEEK;
 import static org.h2.expression.Function.ISO_YEAR;
 import static org.h2.expression.Function.MICROSECOND;
+import static org.h2.expression.Function.MILLENNIUM;
 import static org.h2.expression.Function.MILLISECOND;
 import static org.h2.expression.Function.MINUTE;
 import static org.h2.expression.Function.MONTH;
@@ -26,7 +27,6 @@ import static org.h2.expression.Function.TIMEZONE_HOUR;
 import static org.h2.expression.Function.TIMEZONE_MINUTE;
 import static org.h2.expression.Function.WEEK;
 import static org.h2.expression.Function.YEAR;
-import static org.h2.expression.Function.MILLENNIUM;
 import java.math.BigDecimal;
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
@@ -389,7 +389,7 @@ public final class DateTimeFunctions {
      * @return date truncated to 'day'
      */
     public static Value truncateDate(String timeUnitStr, Value value) {
-        Value result;
+
         int timeUnit = getDatePart(timeUnitStr);
 
         // Retrieve the dateValue and the time in nanoseconds if the date.
@@ -398,7 +398,7 @@ public final class DateTimeFunctions {
         long timeNanosRetrieved = fieldDateAndTime[1];
 
         // Variable used to the time in nanoseconds of the date truncated.
-        Long timeNanos = null;
+        long timeNanos;
 
         // Compute the number of time unit in the date, for example, the
         // number of time unit 'HOUR' in '15:14:13' is '15'. Then convert the
@@ -407,42 +407,42 @@ public final class DateTimeFunctions {
 
         case MICROSECOND:
 
-            long nanoInMicroSecond = 1_000l;
+            long nanoInMicroSecond = 1_000L;
             long microseconds = timeNanosRetrieved / nanoInMicroSecond;
             timeNanos = microseconds * nanoInMicroSecond;
             break;
 
         case MILLISECOND:
 
-            long nanoInMilliSecond = 1_000_000l;
+            long nanoInMilliSecond = 1_000_000L;
             long milliseconds = timeNanosRetrieved / nanoInMilliSecond;
             timeNanos = milliseconds * nanoInMilliSecond;
             break;
 
         case SECOND:
 
-            long nanoInSecond = 1_000_000_000l;
+            long nanoInSecond = 1_000_000_000L;
             long seconds = timeNanosRetrieved / nanoInSecond;
             timeNanos = seconds * nanoInSecond;
             break;
 
         case MINUTE:
 
-            long nanoInMinute = 60_000_000_000l;
+            long nanoInMinute = 60_000_000_000L;
             long minutes = timeNanosRetrieved / nanoInMinute;
             timeNanos = minutes * nanoInMinute;
             break;
 
         case HOUR:
 
-            long nanoInHour = 3_600_000_000_000l;
+            long nanoInHour = 3_600_000_000_000L;
             long hours = timeNanosRetrieved / nanoInHour;
             timeNanos = hours * nanoInHour;
             break;
 
         case DAY_OF_MONTH:
 
-            timeNanos = 0l;
+            timeNanos = 0L;
             break;
 
         case WEEK:
@@ -452,76 +452,71 @@ public final class DateTimeFunctions {
             if (dayOfWeek != 1) {
                 dateValue = DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay - dayOfWeek + 1);
             }
-            timeNanos = 0l;
+            timeNanos = 0L;
             break;
 
-        case MONTH:
+        case MONTH: {
 
             long year = DateTimeUtils.yearFromDateValue(dateValue);
             int month = DateTimeUtils.monthFromDateValue(dateValue);
             dateValue = DateTimeUtils.dateValue(year, month, 1);
-            timeNanos = 0l;
-            break;
-
-        case QUARTER:
-
-            long yearForQuarter = DateTimeUtils.yearFromDateValue(dateValue);
-            int monthForQuarter = DateTimeUtils.monthFromDateValue(dateValue);
-
-            // Round the month to lower quarter
-            if (monthForQuarter >= 10) {
-                monthForQuarter = 10;
-            } else if (monthForQuarter >= 7) {
-                monthForQuarter = 7;
-            } else if (monthForQuarter >= 4) {
-                monthForQuarter = 4;
-            } else {
-                monthForQuarter = 1;
-            }
-
-            dateValue = DateTimeUtils.dateValue(yearForQuarter, monthForQuarter, 1);
-            timeNanos = 0l;
-            break;
-
-        case YEAR:
-
-            long yearForYear = DateTimeUtils.yearFromDateValue(dateValue);
-            dateValue = DateTimeUtils.dateValue(yearForYear, 1, 1);
-            timeNanos = 0l;
-            break;
-
-        case DECADE:
-
-            long yearForDecade = DateTimeUtils.yearFromDateValue(dateValue);
-            yearForDecade = (long) (Math.floor(yearForDecade / 10) * 10);
-            dateValue = DateTimeUtils.dateValue(yearForDecade, 1, 1);
-            timeNanos = 0l;
-            break;
-
-        case CENTURY:
-
-            long yearForCentury = DateTimeUtils.yearFromDateValue(dateValue);
-            yearForCentury = (long) (Math.floor((yearForCentury - 1) / 100) * 100) + 1;
-            dateValue = DateTimeUtils.dateValue(yearForCentury, 1, 1);
-            timeNanos = 0l;
-            break;
-
-        case MILLENNIUM:
-
-            long yearForMillennium = DateTimeUtils.yearFromDateValue(dateValue);
-            yearForMillennium = (long) (Math.floor((yearForMillennium - 1) / 1000) * 1000) + 1;
-            dateValue = DateTimeUtils.dateValue(yearForMillennium, 1, 1);
-            timeNanos = 0l;
+            timeNanos = 0L;
             break;
 
         }
+        case QUARTER: {
 
-        if (timeNanos == null) {
+            long year = DateTimeUtils.yearFromDateValue(dateValue);
+            int month = DateTimeUtils.monthFromDateValue(dateValue);
+            month = ((month - 1) / 3) * 3 + 1;
+            dateValue = DateTimeUtils.dateValue(year, month, 1);
+            timeNanos = 0L;
+            break;
+
+        }
+        case YEAR: {
+
+            long year = DateTimeUtils.yearFromDateValue(dateValue);
+            dateValue = DateTimeUtils.dateValue(year, 1, 1);
+            timeNanos = 0L;
+            break;
+
+        }
+        case DECADE: {
+
+            long year = DateTimeUtils.yearFromDateValue(dateValue);
+            year = (year / 10) * 10;
+            dateValue = DateTimeUtils.dateValue(year, 1, 1);
+            timeNanos = 0L;
+            break;
+
+        }
+        case CENTURY: {
+
+            long year = DateTimeUtils.yearFromDateValue(dateValue);
+            year = ((year - 1) / 100) * 100 + 1;
+            dateValue = DateTimeUtils.dateValue(year, 1, 1);
+            timeNanos = 0L;
+            break;
+
+        }
+        case MILLENNIUM: {
+
+            long year = DateTimeUtils.yearFromDateValue(dateValue);
+            year = ((year - 1) / 1000) * 1000 + 1;
+            dateValue = DateTimeUtils.dateValue(year, 1, 1);
+            timeNanos = 0L;
+            break;
+
+        }
+        default:
 
             // Return an exception in the timeUnit is not recognized
             throw DbException.getUnsupportedException(timeUnitStr);
 
         }
+
+        Value result;
 
         if (value instanceof ValueTimestampTimeZone) {
 

@@ -79,47 +79,63 @@ The following can be skipped currently; benchmarks should probably be removed:
 
 ## Build the Release
 
-Change directory to src/installer
-Run ./buildRelease.sh (non-Windows) or buildRelease.bat (Windows)
+Run the following commands:
+Non-Windows:
 
-Scan for viruses
-Test installer, H2 Console (test new languages)
-Check docs, versions and links in main, downloads, build numbers
-Check the PDF file size
+    cd src/installer
+    ./buildRelease.sh
+
+Windows:
+
+    cd src/installer
+    buildRelease.bat
+
+Scan for viruses.
+
+Test installer, H2 Console (test new languages).
+
+Check docs, versions and links in main, downloads, build numbers.
+
+Check the PDF file size.
 
 Upload (http and https) to ftp://h2database.com/javadoc
 Upload (http and https) to ftp://h2database.com
 Upload (http and https) to ftp://h2database.com/m2-repo
-Github: create a release
-Newsletter: prepare (always to BCC)
-Newsletter: send to h2-database-jp@googlegroups.com; h2-database@googlegroups.com; h2database-news@googlegroups.com; ...
-Add to http://twitter.com
-- tweet: add @geospatialnews for the new geometry type and disk spatial index
+
+Github: create a release.
+
+Newsletter: send (always to BCC!), the following:
+
+    h2-database-jp@googlegroups.com; h2-database@googlegroups.com; h2database-news@googlegroups.com; ...
+
+Create tweet at http://twitter.com
 
 Sign files and publish files on Maven Central
 (check java version is 1.7)
-./build.sh clean compile jar mavenDeployCentral
-cd /data/h2database/m2-repo/com/h2database
-# remove sha and md5 files:
-find . -name "*.sha1" -delete
-find . -name "*.md5" -delete
-cd h2/1...
-# for each file separately (-javadoc.jar, -sources.jar, .jar, .pom):
-gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-...
-jar -cvf bundle.jar h2-*
-cd ../../h2-mvstore/1...
-# for each file separately (-javadoc.jar, -sources.jar, .jar, .pom):
-gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-mvstore...
-jar -cvf bundle.jar h2-*
-# http://central.sonatype.org/pages/ossrh-guide.html
-# http://central.sonatype.org/pages/manual-staging-bundle-creation-and-deployment.html
-# https://oss.sonatype.org/#welcome - Log In "t..."
-# - Staging Upload
-# - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/.../bundle.jar
-# - Upload Bundle - Staging Repositories - select comh2database - Release - Confirm
-# - Staging Upload
-# - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/.../bundle.jar
-# - Upload Bundle - Staging Repositories - select comh2database - Release - Confirm
 
-Update statistics
-Change version in pom.xml, commit
+    ./build.sh clean compile jar mavenDeployCentral
+    cd /data/h2database/m2-repo/com/h2database
+    # remove sha and md5 files:
+    find . -name "*.sha1" -delete
+    find . -name "*.md5" -delete
+    cd h2/1...
+    # for each file separately (-javadoc.jar, -sources.jar, .jar, .pom):
+    gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-...
+    jar -cvf bundle.jar h2-*
+    cd ../../h2-mvstore/1...
+    # for each file separately (-javadoc.jar, -sources.jar, .jar, .pom):
+    gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-mvstore...
+    jar -cvf bundle.jar h2-*
+    # http://central.sonatype.org/pages/ossrh-guide.html
+    # http://central.sonatype.org/pages/manual-staging-bundle-creation-and-deployment.html
+    # https://oss.sonatype.org/#welcome - Log In "t..."
+    # - Staging Upload
+    # - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/.../bundle.jar
+    # - Upload Bundle - Staging Repositories - select comh2database - Release - Confirm
+    # - Staging Upload
+    # - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/.../bundle.jar
+    # - Upload Bundle - Staging Repositories - select comh2database - Release - Confirm
+
+Update statistics.
+
+Change version in pom.xml, commit.

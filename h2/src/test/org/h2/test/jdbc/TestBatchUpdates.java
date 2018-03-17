@@ -13,6 +13,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 
 /**
@@ -210,6 +212,7 @@ public class TestBatchUpdates extends TestBase {
         String s = COFFEE_UPDATE;
         trace("Prepared Statement String:" + s);
         prep = conn.prepareStatement(s);
+        assertThrows(ErrorCode.PARAMETER_NOT_SET_1, prep).addBatch();
         prep.setInt(1, 2);
         prep.addBatch();
         prep.setInt(1, 3);

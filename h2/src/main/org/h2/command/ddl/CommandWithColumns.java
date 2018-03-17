@@ -60,6 +60,12 @@ public abstract class CommandWithColumns extends SchemaCommand {
         }
     }
 
+    /**
+     * For the given list of columns, disable "nullable" for those columns that
+     * are primary key columns.
+     *
+     * @param columns the list of columns
+     */
     protected void changePrimaryKeysToNotNull(ArrayList<Column> columns) {
         if (pkColumns != null) {
             for (Column c : columns) {
@@ -72,6 +78,9 @@ public abstract class CommandWithColumns extends SchemaCommand {
         }
     }
 
+    /**
+     * Create the constraints.
+     */
     protected void createConstraints() {
         if (constraintCommands != null) {
             for (DefineCommand command : constraintCommands) {
@@ -81,6 +90,15 @@ public abstract class CommandWithColumns extends SchemaCommand {
         }
     }
 
+    /**
+     * For the given list of columns, create sequences for auto-increment
+     * columns (if needed), and then get the list of all sequences of the
+     * columns.
+     *
+     * @param columns the columns
+     * @param temporary whether generated sequences should be temporary
+     * @return the list of sequences (may be empty)
+     */
     protected ArrayList<Sequence> generateSequences(ArrayList<Column> columns, boolean temporary) {
         ArrayList<Sequence> sequences = New.arrayList();
         if (columns != null) {

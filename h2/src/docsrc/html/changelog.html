@@ -21,7 +21,257 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
-<li>PR #967: Adds ARRAY_AGG()
+<li>PR #984: Minor refactorings in Parser
+</li>
+<li>Issue #933: MVStore background writer endless loop
+</li>
+<li>PR #981: Reorganize date-time functions
+</li>
+<li>PR #980: Add Parser.toString() method for improved debugging experience
+</li>
+<li>PR #979: Remove support of TCP protocol versions 6 and 7
+</li>
+<li>PR #977: Add database versions to javadoc of TCP protocol versions and update dictionary.txt
+</li>
+<li>PR #976: Add and use incrementDateValue() and decrementDateValue()
+</li>
+<li>Issue #974: Inline PRIMARY KEY definition loses its name
+</li>
+<li>PR #972: Add META-INF/versions to all non-Android jars that use Bits
+</li>
+<li>PR #971: Update ASM from 6.1-beta to 6.1
+</li>
+<li>PR #970: Added support for ENUM in prepared statement where clause
+</li>
+<li>PR #968: Assorted changes
+</li>
+<li>PR #967: Adds ARRAY_AGG function
+</li>
+<li>PR #966: Do not include help and images in client jar
+</li>
+<li>PR #965: Do not include mvstore.DataUtils in client jar and other changes
+</li>
+<li>PR #964: Fix TestFunctions.testToCharFromDateTime()
+</li>
+<li>PR #963 / Issue #962: Improve documentation of compatibility modes and fix ssl URL description
+</li>
+<li>Issue #219: H2 mode MySQL- ON UPDATE CURRENT_TIMESTAMP not supported
+</li>
+<li>PR #958: More fixes for PgServer
+</li>
+<li>PR #957: Update database size information and links in README.md
+</li>
+<li>PR #956: Move tests added in 821117f1db120a265647a063dca13ab5bee98efc to a proper place
+</li>
+<li>PR #955: Support getObject(?, Class) in generated keys
+</li>
+<li>PR #954: Avoid incorrect reads in iterators of TransactionMap
+</li>
+<li>PR #952: Optimize arguments for MVMap.init()
+</li>
+<li>PR #949: Fix table borders in PDF and other changes
+</li>
+<li>PR #948: Fix some grammar descriptions and ALTER TABLE DROP COLUMN parsing
+</li>
+<li>PR #947: Fix building of documentation and use modern names of Java versions
+</li>
+<li>PR #943: Assorted changes in documentation and a fix for current-time.sql
+</li>
+<li>PR #942: Fix page numbers in TOC in PDF and move System Tables into own HTML / section in PDF
+</li>
+<li>PR #941: Use >> syntax in median.sql and move out more tests from testScript.sql
+</li>
+<li>PR #940: add Support for MySQL: DROP INDEX index_name ON tbl_name
+</li>
+<li>PR #939: Short syntax for SQL tests
+</li>
+<li>Issue #935: The "date_trunc" function is not recognized for 'day'
+</li>
+<li>PR #936: Fix font size, line length, TOC, and many broken links in PDF
+</li>
+<li>PR #931: Assorted changes in documentation
+</li>
+<li>PR #930: Use Math.log10() and remove Mode.getOracle()
+</li>
+<li>PR #929: Remove Mode.supportOffsetFetch
+</li>
+<li>PR #928: Show information about office configuration instead of fallback PDF generation mode
+</li>
+<li>PR #926: Describe datetime fields in documentation
+</li>
+<li>PR #925: Fix time overflow in DATEADD
+</li>
+<li>Issue #416: Add support for DROP SCHEMA x { RESTRICT | CASCADE }
+</li>
+<li>PR #922: Parse and treat fractional seconds precision as described in SQL standard
+</li>
+<li>Issue #919: Add support for mixing adding constraints and columns in multi-add ALTER TABLE statement
+</li>
+<li>PR #916: Implement TABLE_CONSTRAINTS and REFERENTIAL_CONSTRAINTS from the SQL standard
+</li>
+<li>PR #915: Implement INFORMATION_SCHEMA.KEY_COLUMN_USAGE from SQL standard
+</li>
+<li>PR #914: don't allow null values in ConcurrentArrayList
+</li>
+<li>PR #913: Assorted changes in tests and documentation
+</li>
+<li>Issue #755: Missing FLOAT(precision)?
+</li>
+<li>PR #911: Add support for MySQL-style ALTER TABLE ADD ... FIRST
+</li>
+<li>Issue #409: Support derived column list syntax on table alias
+</li>
+<li>PR #908: remove dead code
+</li>
+<li>PR #907: Nest joins only if required and fix some issues with complex joins
+</li>
+<li>PR #906: Fix obscure error on non-standard SELECT * FROM A LEFT JOIN B NATURAL JOIN C
+</li>
+<li>PR #805: Move some JOIN tests from testScript.sql to own file
+</li>
+<li>PR #804: Remove unused parameters from readJoin() and readTableFilter()
+</li>
+<li>Issue #322: CSVREAD WHERE clause containing ORs duplicates number of rows
+</li>
+<li>PR #902: Remove DbSettings.nestedJoins
+</li>
+<li>PR #900: Convert duplicate anonymous classes in TableFilter to nested for reuse
+</li>
+<li>PR #899: Fix ON DUPLICATE KEY UPDATE for inserts with multiple rows
+</li>
+<li>PR #898: Parse TIME WITHOUT TIME ZONE and fix TIMESTAMP as column name
+</li>
+<li>PR #897: Update JTS to version 1.15.0 from LocationTech
+</li>
+<li>PR #896: Assorted changes in help.csv
+</li>
+<li>PR #895: Parse more variants of timestamps with time zones
+</li>
+<li>PR #893: TIMESTAMP WITHOUT TIME ZONE, TIMEZONE_HOUR, and TIMEZONE_MINUTE
+</li>
+<li>PR #892: Assorted minor changes in Parser
+</li>
+<li>PR #891: Update documentation of date-time types and clean up related code a bit
+</li>
+<li>PR #890: Implement conversions for TIMESTAMP WITH TIME ZONE
+</li>
+<li>PR #888: Fix two-phase commit in MVStore
+</li>
+<li>Issue #884: Wrong test Resources path in pom.xml
+</li>
+<li>PR #886: Fix building of documentation
+</li>
+<li>PR #883: Add support for TIMESTAMP WITH TIME ZONE to FORMATDATETIME
+</li>
+<li>PR #881: Reimplement dateValueFromDate() and nanosFromDate() without a Calendar
+</li>
+<li>PR #880: Assorted date-time related changes
+</li>
+<li>PR #879: Reimplement TO_DATE without a Calendar and fix a lot of bugs an incompatibilities
+</li>
+<li>PR #878: Fix IYYY in TO_CHAR and reimplement TRUNCATE without a Calendar
+</li>
+<li>PR #877: Reimplement TO_CHAR without a Calendar and fix 12 AM / 12 PM in it
+</li>
+<li>PR #876: Test out of memory
+</li>
+<li>PR #875: Improve date-time related parts of documentation
+</li>
+<li>PR #872: Assorted date-time related changes
+</li>
+<li>PR #871: Fix OOME in Transfer.readValue() with large CLOB V2
+</li>
+<li>PR #867: TestOutOfMemory stability
+</li>
+<li>Issue #834: Add support for the SQL standard FILTER clause on aggregate functions
+</li>
+<li>PR #864: Minor changes in DateUtils and Function
+</li>
+<li>PR #863: Polish: use isEmpty() to check whether the collection is empty or not.
+</li>
+<li>PR #862: Convert constraint type into enum
+</li>
+<li>PR #861: Avoid resource leak
+</li>
+<li>PR #860: IndexCursor inList
+</li>
+<li>PR #858 / Issue #690 and others: Return all generated rows and columns from getGeneratedKeys()
+</li>
+<li>Make the JDBC client independent of the database engine
+</li>
+<li>PR #857: Do not write each SQL error multiple times in TestScript
+</li>
+<li>PR #856: Fix TestDateTimeUtils.testDayOfWeek() and example with ANY(?
+</li>
+<li>PR #855: Reimplement DATEADD without a Calendar and fix some incompatibilities
+</li>
+<li>PR #854: Improve test stability
+</li>
+<li>PR #851: Reimplement DATEDIFF without a Calendar
+</li>
+<li>Issue #502: SQL "= ANY (?)" supported?
+</li>
+<li>PR #849: Encode date and time in fast and proper way in PgServerThread
+</li>
+<li>PR #847: Reimplement remaining parts of EXTRACT, ISO_YEAR, etc without a Calendar
+</li>
+<li>PR #846: Read known fields directly in DateTimeUtils.getDatePart()
+</li>
+<li>Issue #832: Extract EPOCH from a timestamp
+</li>
+<li>PR #844: Add simple implementations of isWrapperFor() and unwrap() to JdbcDataSource
+</li>
+<li>PR #843: Add MEDIAN to help.csv and fix building of documentation
+</li>
+<li>PR #841: Support indexes with nulls last for MEDIAN aggregate
+</li>
+<li>PR #840: Add MEDIAN aggregate
+</li>
+<li>PR #839: TestTools should not leave testing thread in interrupted state
+</li>
+<li>PR #838: (tests) Excessive calls to Runtime.getRuntime().gc() cause OOM for no reason
+</li>
+<li>Don't use substring when doing StringBuffer#append
+</li>
+<li>PR #837: Use StringUtils.replaceAll() in Function.replace()
+</li>
+<li>PR #836: Allow to read invalid February 29 dates with LocalDate as March 1
+</li>
+<li>PR #835: Inline getTimeTry() into DateTimeUtils.getMillis()
+</li>
+<li>PR #827: Use dateValueFromDate() and nanosFromDate() in parseTimestamp()
+</li>
+<li>Issue #115: to_char fails with pattern FM0D099
+</li>
+<li>PR #825: Merge code for parsing and formatting timestamp values
+</li>
+<li>Enums for ConstraintActionType, UnionType, and OpType
+</li>
+<li>PR 824: Add partial support for INSERT IGNORE in MySQL mode
+</li>
+<li>PR #823: Use ValueByte.getInt() and ValueShort.getInt() in convertTo()
+</li>
+<li>PR #820: Fix some compiler warnings
+</li>
+<li>PR #818: Fixes for remaining issues with boolean parameters
+</li>
+<li>Use enum for file lock method
+</li>
+<li>PR #817: Parse also 1 as true and 0 as false in Utils.parseBoolean()
+</li>
+<li>PR #815: Fix count of completed statements
+</li>
+<li>PR #814: Method.isVarArgs() is available on all supported platforms
+</li>
+<li>Issue #812: TIME values should be in range 0:00:00.000000000 23:59:59.999999999?
+</li>
+<li>PR #811: Issues with Boolean.parseBoolean()
+</li>
+<li>PR #809: Use type constants from LocalDateTimeUtils directly
+</li>
+<li>PR #808: Use HmacSHA256 provided by JRE
+</li>
+<li>PR #807: Use SHA-256 provided by JRE / Android and use rotateLeft / Right in Fog
 </li>
 <li>PR #806: Implement setBytes() and setString() with offset and len
 </li>

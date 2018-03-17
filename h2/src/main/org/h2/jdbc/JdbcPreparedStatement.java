@@ -1329,6 +1329,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                 Value[] set = new Value[size];
                 for (int i = 0; i < size; i++) {
                     ParameterInterface param = parameters.get(i);
+                    param.checkSet();
                     Value value = param.getParamValue();
                     set[i] = value;
                 }

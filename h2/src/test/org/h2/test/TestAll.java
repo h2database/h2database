@@ -142,6 +142,7 @@ import org.h2.test.store.TestKillProcessWhileWriting;
 import org.h2.test.store.TestMVRTree;
 import org.h2.test.store.TestMVStore;
 import org.h2.test.store.TestMVStoreBenchmark;
+import org.h2.test.store.TestMVStoreStopCompact;
 import org.h2.test.store.TestMVStoreTool;
 import org.h2.test.store.TestMVTableEngine;
 import org.h2.test.store.TestObjectDataType;
@@ -889,6 +890,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestMVRTree());
         addTest(new TestMVStore());
         addTest(new TestMVStoreBenchmark());
+        addTest(new TestMVStoreStopCompact());
         addTest(new TestMVStoreTool());
         addTest(new TestMVTableEngine());
         addTest(new TestObjectDataType());

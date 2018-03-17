@@ -371,6 +371,9 @@ public class TestDate extends TestBase {
                     if (abs != next && next != Long.MIN_VALUE) {
                         assertEquals(abs, next);
                     }
+                    if (m == 1 && d == 1) {
+                        assertEquals(abs, DateTimeUtils.absoluteDayFromYear(y));
+                    }
                     next = abs + 1;
                     long d2 = DateTimeUtils.dateValueFromAbsoluteDay(abs);
                     assertEquals(date, d2);

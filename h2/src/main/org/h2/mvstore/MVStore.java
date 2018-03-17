@@ -723,7 +723,7 @@ public final class MVStore {
                 int length = c.len * BLOCK_SIZE;
                 fileStore.markUsed(start, length);
             }
-            assert fileStore.getFileLengthInUse() == _getFileLengthInUse() : fileStore.getFileLengthInUse() + " != " + _getFileLengthInUse();
+            assert fileStore.getFileLengthInUse() == measureFileLengthInUse() : fileStore.getFileLengthInUse() + " != " + measureFileLengthInUse();
             // read all chunk headers and footers within the retention time,
             // to detect unwritten data after a power failure
         } while((newest = verifyLastChunks()) != null);
@@ -1195,7 +1195,7 @@ public final class MVStore {
         long filePos = allocateFileSpace(length, !reuseSpace);
         c.block = filePos / BLOCK_SIZE;
         c.len = length / BLOCK_SIZE;
-        assert fileStore.getFileLengthInUse() == _getFileLengthInUse() : fileStore.getFileLengthInUse() + " != " + _getFileLengthInUse() + " " + c;
+        assert fileStore.getFileLengthInUse() == measureFileLengthInUse() : fileStore.getFileLengthInUse() + " != " + measureFileLengthInUse() + " " + c;
         c.metaRootPos = metaRoot.getPos();
         // calculate and set the likely next position
         if (reuseSpace) {
@@ -1303,7 +1303,7 @@ public final class MVStore {
                         long start = c.block * BLOCK_SIZE;
                         int length = c.len * BLOCK_SIZE;
                         fileStore.free(start, length);
-                        assert fileStore.getFileLengthInUse() == _getFileLengthInUse() : fileStore.getFileLengthInUse() + " != " + _getFileLengthInUse();
+                        assert fileStore.getFileLengthInUse() == measureFileLengthInUse() : fileStore.getFileLengthInUse() + " != " + measureFileLengthInUse();
                     } else {
                         if (c.unused == 0) {
                             c.unused = time;
@@ -2381,7 +2381,7 @@ public final class MVStore {
                 long start = c.block * BLOCK_SIZE;
                 int length = c.len * BLOCK_SIZE;
                 fileStore.free(start, length);
-                assert fileStore.getFileLengthInUse() == _getFileLengthInUse() : fileStore.getFileLengthInUse() + " != " + _getFileLengthInUse();
+                assert fileStore.getFileLengthInUse() == measureFileLengthInUse() : fileStore.getFileLengthInUse() + " != " + measureFileLengthInUse();
                 // overwrite the chunk,
                 // so it is not be used later on
                 WriteBuffer buff = getWriteBuffer();

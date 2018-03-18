@@ -1042,12 +1042,12 @@ public abstract class Value {
                         s.equalsIgnoreCase("t") ||
                         s.equalsIgnoreCase("yes") ||
                         s.equalsIgnoreCase("y")) {
-                    return ValueBoolean.get(true);
+                    return ValueBoolean.TRUE;
                 } else if (s.equalsIgnoreCase("false") ||
                         s.equalsIgnoreCase("f") ||
                         s.equalsIgnoreCase("no") ||
                         s.equalsIgnoreCase("n")) {
-                    return ValueBoolean.get(false);
+                    return ValueBoolean.FALSE;
                 } else {
                     // convert to a number, and if it is not 0 then it is true
                     return ValueBoolean.get(new BigDecimal(s).signum() != 0);

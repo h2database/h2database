@@ -50,6 +50,13 @@ public class TestClearReferences extends TestBase {
         "org.h2.value.Value.softCache",
     };
 
+    /**
+     * Path to main sources. In IDE project may be located either in the root
+     * directory of repository or in the h2 subdirectory.
+     */
+    private final String SOURCE_PATH = new File("h2/src/main/org/h2/Driver.java").exists()
+            ? "h2/src/main/" : "src/main/";
+
     private boolean hasError;
 
     /**
@@ -113,7 +120,7 @@ public class TestClearReferences extends TestBase {
             String className = file.getAbsolutePath().replace('\\', '/');
             className = className.substring(className.lastIndexOf("org/h2"));
             String packageName = className.substring(0, className.lastIndexOf('/'));
-            if (!new File("src/main/" + packageName).exists()) {
+            if (!new File(SOURCE_PATH + packageName).exists()) {
                 return;
             }
             className = className.replace('/', '.');

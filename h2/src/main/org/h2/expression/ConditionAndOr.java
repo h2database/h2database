@@ -100,7 +100,7 @@ public class ConditionAndOr extends Condition {
             if (r == ValueNull.INSTANCE) {
                 return r;
             }
-            return ValueBoolean.get(true);
+            return ValueBoolean.TRUE;
         }
         case OR: {
             if (l.getBoolean()) {
@@ -116,7 +116,7 @@ public class ConditionAndOr extends Condition {
             if (r == ValueNull.INSTANCE) {
                 return r;
             }
-            return ValueBoolean.get(false);
+            return ValueBoolean.FALSE;
         }
         default:
             throw DbException.throwInternalError("type=" + andOrType);

@@ -25,10 +25,14 @@ public class ValueBoolean extends Value {
     public static final int DISPLAY_SIZE = 5;
 
     /**
-     * Of type Object so that Tomcat doesn't set it to null.
+     * TRUE value.
      */
-    private static final Object TRUE = new ValueBoolean(true);
-    private static final Object FALSE = new ValueBoolean(false);
+    public static final ValueBoolean TRUE = new ValueBoolean(true);
+
+    /**
+     * FALSE value.
+     */
+    public static final ValueBoolean FALSE = new ValueBoolean(false);
 
     private final boolean value;
 
@@ -53,7 +57,7 @@ public class ValueBoolean extends Value {
 
     @Override
     public Value negate() {
-        return (ValueBoolean) (value ? FALSE : TRUE);
+        return value ? FALSE : TRUE;
     }
 
     @Override
@@ -95,7 +99,7 @@ public class ValueBoolean extends Value {
      * @return the value
      */
     public static ValueBoolean get(boolean b) {
-        return (ValueBoolean) (b ? TRUE : FALSE);
+        return b ? TRUE : FALSE;
     }
 
     @Override

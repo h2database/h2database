@@ -1048,13 +1048,13 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case ARRAY_CONTAINS: {
-            result = ValueBoolean.get(false);
+            result = ValueBoolean.FALSE;
             if (v0.getType() == Value.ARRAY) {
                 Value v1 = getNullOrValue(session, args, values, 1);
                 Value[] list = ((ValueArray) v0).getList();
                 for (Value v : list) {
                     if (v.equals(v1)) {
-                        result = ValueBoolean.get(true);
+                        result = ValueBoolean.TRUE;
                         break;
                     }
                 }

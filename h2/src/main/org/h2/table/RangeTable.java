@@ -139,7 +139,19 @@ public class RangeTable extends Table {
 
     @Override
     public long getRowCount(Session session) {
-        return Math.max(0, getMax(session) - getMin(session) + 1);
+        long step = getStep(session);
+        if (step == 0L) {
+            throw DbException.get(ErrorCode.STEP_SIZE_MUST_NOT_BE_ZERO);
+        }
+        long delta = getMax(session) - getMin(session);
+        if (step > 0) {
+            if (delta < 0) {
+                return 0;
+            }
+        } else if (delta > 0) {
+            return 0;
+        }
+        return delta / step + 1;
     }
 
     @Override

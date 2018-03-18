@@ -471,7 +471,6 @@ public final class MVStore {
      * @param builder the map builder
      * @return the map
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     public synchronized <M extends MVMap<K, V>, K, V> M openMap(
             String name, MVMap.MapBuilder<M, K, V> builder) {
         int id = getMapId(name);
@@ -1887,30 +1886,8 @@ public final class MVStore {
             // nothing to do
             return null;
         }
-
-        // calculate the fill rate
-        long maxLengthSum = 0;
-        long maxLengthLiveSum = 0;
-
         long time = getTimeSinceCreation();
-
-        for (Chunk c : chunks.values()) {
-            // ignore young chunks, because we don't optimize those
-            if (c.time + retentionTime <= time) {
-                maxLengthSum += c.maxLen;
-                maxLengthLiveSum += c.maxLenLive;
-            }
-        }
-        if (maxLengthLiveSum < 0) {
-            // no old data
-            return null;
-        }
-        // the fill rate of all chunks combined
-        if (maxLengthSum <= 0) {
-            // avoid division by 0
-            maxLengthSum = 1;
-        }
-        int fillRate = (int) (100 * maxLengthLiveSum / maxLengthSum);
+        int fillRate = getCurrentFillRate();
         if (fillRate >= targetFillRate) {
             return null;
         }

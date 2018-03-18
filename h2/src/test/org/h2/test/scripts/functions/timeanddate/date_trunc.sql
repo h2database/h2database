@@ -373,7 +373,7 @@ SELECT DATE_TRUNC('SECOND', '2015-05-29 00:00:00');
 >> 2015-05-29 00:00:00
 
 
--- 
+--
 -- Test time unit 'MINUTE'
 --
 SELECT DATE_TRUNC('MINUTE', time '00:00:00');
@@ -547,7 +547,7 @@ SELECT DATE_TRUNC('hour', '2015-05-29 00:00:00');
 SELECT DATE_TRUNC('HOUR', '2015-05-29 00:00:00');
 >> 2015-05-29 00:00:00
 
--- 
+--
 -- Test time unit 'DAY'
 --
 select DATE_TRUNC('day', time '00:00:00');

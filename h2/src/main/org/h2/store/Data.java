@@ -716,9 +716,9 @@ public class Data {
         case Value.NULL:
             return ValueNull.INSTANCE;
         case BOOLEAN_TRUE:
-            return ValueBoolean.get(true);
+            return ValueBoolean.TRUE;
         case BOOLEAN_FALSE:
-            return ValueBoolean.get(false);
+            return ValueBoolean.FALSE;
         case INT_NEG:
             return ValueInt.get(-readVarInt());
         case Value.ENUM:

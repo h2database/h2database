@@ -151,7 +151,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         case Value.NULL:
             return ValueNull.INSTANCE;
         case Value.BOOLEAN:
-            return ValueBoolean.get(false);
+            return ValueBoolean.FALSE;
         case Value.BYTE:
             return ValueByte.get((byte) random.nextInt());
         case Value.SHORT:

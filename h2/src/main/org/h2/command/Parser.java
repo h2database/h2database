@@ -2443,7 +2443,7 @@ public class Parser {
                     if (database.getMode().prohibitEmptyInPredicate) {
                         throw getSyntaxError();
                     }
-                    r = ValueExpression.get(ValueBoolean.get(false));
+                    r = ValueExpression.get(ValueBoolean.FALSE);
                 } else {
                     if (isSelect()) {
                         Query query = parseSelect();
@@ -2533,7 +2533,7 @@ public class Parser {
                                 } else {
                                     rightFilter.mapAndAddFilter(r);
                                 }
-                                r = ValueExpression.get(ValueBoolean.get(true));
+                                r = ValueExpression.get(ValueBoolean.TRUE);
                             }
                         }
                     } else {
@@ -3280,11 +3280,11 @@ public class Parser {
             break;
         case TRUE:
             read();
-            r = ValueExpression.get(ValueBoolean.get(true));
+            r = ValueExpression.get(ValueBoolean.TRUE);
             break;
         case FALSE:
             read();
-            r = ValueExpression.get(ValueBoolean.get(false));
+            r = ValueExpression.get(ValueBoolean.FALSE);
             break;
         case ROWNUM:
             read();

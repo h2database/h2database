@@ -330,7 +330,7 @@ public class ExpressionColumn extends Expression {
         if (filter == tf && column.getType() == Value.BOOLEAN) {
             IndexCondition cond = IndexCondition.get(
                     Comparison.EQUAL, this, ValueExpression.get(
-                            ValueBoolean.get(true)));
+                            ValueBoolean.TRUE));
             filter.addIndexCondition(cond);
         }
     }
@@ -338,7 +338,7 @@ public class ExpressionColumn extends Expression {
     @Override
     public Expression getNotIfPossible(Session session) {
         return new Comparison(session, Comparison.EQUAL, this,
-                ValueExpression.get(ValueBoolean.get(false)));
+                ValueExpression.get(ValueBoolean.FALSE));
     }
 
 }

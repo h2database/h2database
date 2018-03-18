@@ -108,7 +108,7 @@ public class RangeIndex extends BaseIndex {
 
     @Override
     public long getRowCount(Session session) {
-        return rangeTable.getRowCountApproximation();
+        return rangeTable.getRowCount(session);
     }
 
     @Override

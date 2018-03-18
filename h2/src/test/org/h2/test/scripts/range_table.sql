@@ -118,3 +118,57 @@ SELECT * FROM SYSTEM_RANGE(2, 1, 0);
 
 SELECT COUNT(*) FROM SYSTEM_RANGE(2, 1, 0);
 > exception
+
+SELECT * FROM SYSTEM_RANGE(1, 8, 2);
+> X
+> -
+> 1
+> 3
+> 5
+> 7
+> rows: 4
+
+SELECT * FROM SYSTEM_RANGE(1, 8, 2) WHERE X = 2;
+> X
+> -
+> rows: 0
+
+SELECT COUNT(*) FROM SYSTEM_RANGE(1, 8, 2) WHERE X = 2;
+>> 0
+
+SELECT * FROM SYSTEM_RANGE(1, 8, 2) WHERE X BETWEEN 2 AND 6;
+> X
+> -
+> 3
+> 5
+> rows: 2
+
+SELECT COUNT(*) FROM SYSTEM_RANGE(1, 8, 2) WHERE X BETWEEN 2 AND 6;
+>> 2
+
+SELECT * FROM SYSTEM_RANGE(8, 1, -2) ORDER BY X DESC;
+> X
+> -
+> 8
+> 6
+> 4
+> 2
+> rows (ordered): 4
+
+SELECT * FROM SYSTEM_RANGE(8, 1, -2) WHERE X = 3;
+> X
+> -
+> rows: 0
+
+SELECT COUNT(*) FROM SYSTEM_RANGE(8, 1, -2) WHERE X = 3;
+>> 0
+
+SELECT * FROM SYSTEM_RANGE(8, 1, -2) WHERE X BETWEEN 3 AND 7 ORDER BY 1 DESC;
+> X
+> -
+> 6
+> 4
+> rows (ordered): 2
+
+SELECT COUNT(*) FROM SYSTEM_RANGE(8, 1, -2) WHERE X BETWEEN 3 AND 7;
+>> 2

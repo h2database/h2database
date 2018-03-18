@@ -7,7 +7,6 @@ package org.h2.command.ddl;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
@@ -343,8 +342,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         if (type == CommandInterface.ALTER_TABLE_DROP_COLUMN) {
             for (Column removeCol : columnsToRemove) {
                 Column foundCol = null;
-                for (Iterator<Column> it = newColumns.iterator(); it.hasNext();) {
-                    Column newCol = it.next();
+                for (Column newCol : newColumns) {
                     if (newCol.getName().equals(removeCol.getName())) {
                         foundCol = newCol;
                         break;

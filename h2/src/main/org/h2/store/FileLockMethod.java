@@ -31,5 +31,5 @@ public enum FileLockMethod {
     /**
      * Use the file system to lock the file; don't use a separate lock file.
      */
-    FS;
+    FS
 }

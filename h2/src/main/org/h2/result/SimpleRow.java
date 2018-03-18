@@ -79,8 +79,7 @@ public class SimpleRow implements SearchRow {
         if (memory == 0) {
             int len = data.length;
             memory = Constants.MEMORY_OBJECT + len * Constants.MEMORY_POINTER;
-            for (int i = 0; i < len; i++) {
-                Value v = data[i];
+            for (Value v : data) {
                 if (v != null) {
                     memory += v.getMemory();
                 }

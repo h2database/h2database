@@ -146,7 +146,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
             String tableType;
             if (types != null && types.length > 0) {
                 StatementBuilder buff = new StatementBuilder("TABLE_TYPE IN(");
-                for (int i = 0; i < types.length; i++) {
+                for (String ignored : types) {
                     buff.appendExceptFirst(", ");
                     buff.append('?');
                 }
@@ -1494,8 +1494,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                     + "RADIX NUM_PREC_RADIX "
                     + "FROM INFORMATION_SCHEMA.TYPE_INFO "
                     + "ORDER BY DATA_TYPE, POS");
-            ResultSet rs = prep.executeQuery();
-            return rs;
+            return prep.executeQuery();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -2319,9 +2318,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                     "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?");
             prep.setString(1, "MULTI_THREADED");
             ResultSet rs = prep.executeQuery();
-            if (rs.next() && rs.getString(1).equals("1")) {
-                return false;
-            }
+            return !rs.next() || !rs.getString(1).equals("1");
         }
         return true;
     }
@@ -2563,10 +2560,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     public boolean supportsMixedCaseQuotedIdentifiers() throws SQLException {
         debugCodeCall("supportsMixedCaseQuotedIdentifiers");
         String m = conn.getMode();
-        if (m.equals("MySQL")) {
-            return false;
-        }
-        return true;
+        return !m.equals("MySQL");
     }
 
     /**
@@ -2579,10 +2573,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     public boolean storesUpperCaseIdentifiers() throws SQLException {
         debugCodeCall("storesUpperCaseIdentifiers");
         String m = conn.getMode();
-        if (m.equals("MySQL")) {
-            return false;
-        }
-        return true;
+        return !m.equals("MySQL");
     }
 
     /**
@@ -2595,10 +2586,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     public boolean storesLowerCaseIdentifiers() throws SQLException {
         debugCodeCall("storesLowerCaseIdentifiers");
         String m = conn.getMode();
-        if (m.equals("MySQL")) {
-            return true;
-        }
-        return false;
+        return m.equals("MySQL");
     }
 
     /**
@@ -2623,10 +2611,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     public boolean storesUpperCaseQuotedIdentifiers() throws SQLException {
         debugCodeCall("storesUpperCaseQuotedIdentifiers");
         String m = conn.getMode();
-        if (m.equals("MySQL")) {
-            return true;
-        }
-        return false;
+        return m.equals("MySQL");
     }
 
     /**
@@ -2639,10 +2624,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     public boolean storesLowerCaseQuotedIdentifiers() throws SQLException {
         debugCodeCall("storesLowerCaseQuotedIdentifiers");
         String m = conn.getMode();
-        if (m.equals("MySQL")) {
-            return true;
-        }
-        return false;
+        return m.equals("MySQL");
     }
 
     /**
@@ -2655,10 +2637,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     public boolean storesMixedCaseQuotedIdentifiers() throws SQLException {
         debugCodeCall("storesMixedCaseQuotedIdentifiers");
         String m = conn.getMode();
-        if (m.equals("MySQL")) {
-            return false;
-        }
-        return true;
+        return !m.equals("MySQL");
     }
 
     /**

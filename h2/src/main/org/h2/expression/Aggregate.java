@@ -725,8 +725,7 @@ public class Aggregate extends Expression {
             TableFilter filter = col.getTableFilter();
             if (filter != null) {
                 Table table = filter.getTable();
-                Index index = table.getIndexForColumn(column, true, false);
-                return index;
+                return table.getIndexForColumn(column, true, false);
             }
         }
         return null;
@@ -767,16 +766,14 @@ public class Aggregate extends Expression {
             return false;
         }
         if (groupConcatOrderList != null) {
-            for (int i = 0, size = groupConcatOrderList.size(); i < size; i++) {
-                SelectOrderBy o = groupConcatOrderList.get(i);
+            for (SelectOrderBy o : groupConcatOrderList) {
                 if (!o.expression.isEverything(visitor)) {
                     return false;
                 }
             }
         }
         if (arrayAggOrderList != null) {
-            for (int i = 0, size = arrayAggOrderList.size(); i < size; i++) {
-                SelectOrderBy o = arrayAggOrderList.get(i);
+            for (SelectOrderBy o : arrayAggOrderList) {
                 if (!o.expression.isEverything(visitor)) {
                     return false;
                 }

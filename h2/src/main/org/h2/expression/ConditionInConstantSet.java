@@ -94,7 +94,6 @@ public class ConditionInConstantSet extends Condition {
         }
         if (session.getDatabase().getSettings().optimizeInList) {
             filter.addIndexCondition(IndexCondition.getInList(l, valueList));
-            return;
         }
     }
 
@@ -143,8 +142,7 @@ public class ConditionInConstantSet extends Condition {
 
     @Override
     public int getCost() {
-        int cost = left.getCost();
-        return cost;
+        return left.getCost();
     }
 
     /**

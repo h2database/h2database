@@ -1049,9 +1049,8 @@ public class JdbcConnection extends TraceObject
                     "SAVEPOINT " + JdbcSavepoint.getName(name, 0),
                     Integer.MAX_VALUE);
             set.executeUpdate(false);
-            JdbcSavepoint savepoint = new JdbcSavepoint(this, 0, name, trace,
+            return new JdbcSavepoint(this, 0, name, trace,
                     id);
-            return savepoint;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1599,9 +1598,8 @@ public class JdbcConnection extends TraceObject
                         + "WHERE SCOPE_IDENTITY() IS NOT NULL",
                 getGeneratedKeys);
         ResultInterface result = getGeneratedKeys.executeQuery(0, false);
-        ResultSet rs = new JdbcResultSet(this, stat, getGeneratedKeys, result,
+        return new JdbcResultSet(this, stat, getGeneratedKeys, result,
                 id, false, true, false);
-        return rs;
     }
 
     /**

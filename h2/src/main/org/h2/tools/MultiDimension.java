@@ -183,8 +183,8 @@ public class MultiDimension implements Comparator<long[]> {
         Long[] from = new Long[len];
         Long[] to = new Long[len];
         for (int i = 0; i < len; i++) {
-            from[i] = Long.valueOf(ranges[i][0]);
-            to[i] = Long.valueOf(ranges[i][1]);
+            from[i] = ranges[i][0];
+            to[i] = ranges[i][1];
         }
         prep.setObject(1, from);
         prep.setObject(2, to);

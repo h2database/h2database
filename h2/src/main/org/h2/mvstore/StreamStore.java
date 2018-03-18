@@ -101,10 +101,7 @@ public class StreamStore {
         ByteArrayOutputStream id = new ByteArrayOutputStream();
         int level = 0;
         try {
-            while (true) {
-                if (put(id, in, level)) {
-                    break;
-                }
+            while (!put(id, in, level)) {
                 if (id.size() > maxBlockSize / 2) {
                     id = putIndirectId(id);
                     level++;

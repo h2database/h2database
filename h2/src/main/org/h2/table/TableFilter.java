@@ -376,7 +376,7 @@ public class TableFilter implements ColumnResolver {
         }
         // check if we are at the top table filters all the way up
         SubQueryInfo info = session.getSubQueryInfo();
-        for (;;) {
+        while (true) {
             if (info == null) {
                 return true;
             }

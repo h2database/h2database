@@ -286,10 +286,7 @@ public abstract class PageBtree extends Page {
 
     @Override
     public boolean canRemove() {
-        if (changeCount >= index.getPageStore().getChangeCount()) {
-            return false;
-        }
-        return true;
+        return changeCount < index.getPageStore().getChangeCount();
     }
 
 }

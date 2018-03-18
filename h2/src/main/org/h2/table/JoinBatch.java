@@ -224,7 +224,7 @@ public final class JoinBatch {
             }
             return false;
         }
-        for (;;) {
+        while (true) {
             if (!found) {
                 if (!batchedNext()) {
                     return false;
@@ -272,7 +272,7 @@ public final class JoinBatch {
             jfId--;
         }
 
-        for (;;) {
+        while (true) {
             fetchCurrent(jfId);
 
             if (!current.isDropped()) {
@@ -359,7 +359,7 @@ public final class JoinBatch {
         assert c != null;
         JoinFilter join = jf.join;
 
-        for (;;) {
+        while (true) {
             if (c == null || !c.next()) {
                 if (newCursor && jf.isOuterJoin()) {
                     // replace cursor with null-row
@@ -1026,8 +1026,8 @@ public final class JoinBatch {
         @Override
         public boolean isBatchFull() {
             // if at least one is full
-            for (int i = 0; i < filters.size(); i++) {
-                if (filters.get(i).isBatchFull()) {
+            for (JoinFilter filter : filters) {
+                if (filter.isBatchFull()) {
                     return true;
                 }
             }
@@ -1118,8 +1118,8 @@ public final class JoinBatch {
             if (joinBatches == null) {
                 return;
             }
-            for (int i = 0, size = joinBatches.size(); i < size; i++) {
-                joinBatches.get(i).viewTopFutureCursor = null;
+            for (JoinBatch joinBatch : joinBatches) {
+                joinBatch.viewTopFutureCursor = null;
             }
         }
     }

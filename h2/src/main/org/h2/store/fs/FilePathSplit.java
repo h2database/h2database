@@ -95,8 +95,7 @@ public class FilePathSplit extends FilePathWrapper {
     public ArrayList<FilePath> newDirectoryStream() {
         List<FilePath> list = getBase().newDirectoryStream();
         ArrayList<FilePath> newList = New.arrayList();
-        for (int i = 0, size = list.size(); i < size; i++) {
-            FilePath f = list.get(i);
+        for (FilePath f : list) {
             if (!f.getName().endsWith(PART_SUFFIX)) {
                 newList.add(wrap(f));
             }

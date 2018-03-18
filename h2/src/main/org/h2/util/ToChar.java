@@ -975,7 +975,7 @@ public class ToChar {
     }
 
     /** Represents a capitalization / casing strategy. */
-    static public enum Capitalization {
+    public enum Capitalization {
 
         /**
          * All letters are uppercased.

@@ -138,7 +138,6 @@ public class ConditionIn extends Condition {
                 }
             }
             filter.addIndexCondition(IndexCondition.getInList(l, valueList));
-            return;
         }
     }
 

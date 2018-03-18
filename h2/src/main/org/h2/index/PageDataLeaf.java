@@ -370,7 +370,7 @@ public class PageDataLeaf extends PageData {
     PageData split(int splitPoint) {
         int newPageId = index.getPageStore().allocatePage();
         PageDataLeaf p2 = PageDataLeaf.create(index, newPageId, parentPageId);
-        for (int i = splitPoint; i < entryCount;) {
+        while (splitPoint < entryCount) {
             int split = p2.addRowTry(getRowAt(splitPoint));
             if (split != -1) {
                 DbException.throwInternalError("split " + split);

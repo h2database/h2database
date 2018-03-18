@@ -315,8 +315,7 @@ public class SpatialDataType implements DataType {
             boundsInner.setMin(i, boundsInner.max(i));
             boundsInner.setMax(i, t);
         }
-        for (int i = 0; i < list.size(); i++) {
-            Object o = list.get(i);
+        for (Object o : list) {
             increaseBounds(bounds, o);
             increaseMaxInnerBounds(boundsInner, o);
         }

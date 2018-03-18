@@ -177,7 +177,6 @@ public class UndoLog {
                 memoryUndo = 0;
                 records.clear();
                 file.autoDelete();
-                return;
             }
         } else {
             if (!entry.isStored()) {
@@ -193,8 +192,7 @@ public class UndoLog {
                     file.seek(FileStore.HEADER_LENGTH);
                     rowBuff = Data.create(database, Constants.DEFAULT_PAGE_SIZE);
                     Data buff = rowBuff;
-                    for (int i = 0; i < records.size(); i++) {
-                        UndoLogRecord r = records.get(i);
+                    for (UndoLogRecord r : records) {
                         saveIfPossible(r, buff);
                     }
                 } else {

@@ -714,9 +714,9 @@ public class Function extends Expression implements FunctionCall {
                     String tmp = v.getString();
                     if (!StringUtils.isNullOrEmpty(separator)
                             && !StringUtils.isNullOrEmpty(tmp)) {
-                        tmp = separator.concat(tmp);
+                        tmp = separator + tmp;
                     }
-                    result = ValueString.get(result.getString().concat(tmp),
+                    result = ValueString.get(result.getString() + tmp,
                             database.getMode().treatEmptyStringsAsNull);
                 }
             }
@@ -1512,9 +1512,8 @@ public class Function extends Expression implements FunctionCall {
             String[] columns = StringUtils.arraySplit(columnList,
                     fieldSeparator, true);
             try {
-                ValueResultSet vr = ValueResultSet.get(csv.read(fileName,
+                result = ValueResultSet.get(csv.read(fileName,
                         columns, charset));
-                result = vr;
             } catch (SQLException e) {
                 throw DbException.convert(e);
             }
@@ -1645,8 +1644,9 @@ public class Function extends Expression implements FunctionCall {
             break;
         case SIGNAL: {
             String sqlState = v0.getString();
-            if (sqlState.startsWith("00") || !SIGNAL_PATTERN.matcher(sqlState).matches())
+            if (sqlState.startsWith("00") || !SIGNAL_PATTERN.matcher(sqlState).matches()) {
                 throw DbException.getInvalidValueException("SQLSTATE", sqlState);
+            }
             String msgText = v1.getString();
             throw DbException.fromUser(sqlState, msgText);
         }

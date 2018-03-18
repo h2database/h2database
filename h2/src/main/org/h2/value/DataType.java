@@ -534,18 +534,20 @@ public class DataType {
                     v = ValueBytes.getNoCopy((byte[]) o);
                 } else if (o != null) {
                     v = ValueUuid.get((UUID) o);
-                } else
+                } else {
                     v = ValueNull.INSTANCE;
+                }
                 break;
             }
             case Value.UUID: {
                 Object o = rs.getObject(columnIndex);
                 if (o instanceof UUID) {
                     v = ValueUuid.get((UUID) o);
-                } else if (o != null)
+                } else if (o != null) {
                     v = ValueUuid.get((byte[]) o);
-                else
+                } else {
                     v = ValueNull.INSTANCE;
+                }
                 break;
             }
             case Value.BOOLEAN: {
@@ -1213,10 +1215,7 @@ public class DataType {
      * @return true if the value type is a lob type
      */
     public static boolean isLargeObject(int type) {
-        if (type == Value.BLOB || type == Value.CLOB) {
-            return true;
-        }
-        return false;
+        return type == Value.BLOB || type == Value.CLOB;
     }
 
     /**
@@ -1226,11 +1225,7 @@ public class DataType {
      * @return true if the value type is a String type
      */
     public static boolean isStringType(int type) {
-        if (type == Value.STRING || type == Value.STRING_FIXED
-                || type == Value.STRING_IGNORECASE) {
-            return true;
-        }
-        return false;
+        return type == Value.STRING || type == Value.STRING_FIXED || type == Value.STRING_IGNORECASE;
     }
 
     /**
@@ -1335,19 +1330,19 @@ public class DataType {
         if (clazz == Boolean.TYPE) {
             return Boolean.FALSE;
         } else if (clazz == Byte.TYPE) {
-            return Byte.valueOf((byte) 0);
+            return (byte) 0;
         } else if (clazz == Character.TYPE) {
-            return Character.valueOf((char) 0);
+            return (char) 0;
         } else if (clazz == Short.TYPE) {
-            return Short.valueOf((short) 0);
+            return (short) 0;
         } else if (clazz == Integer.TYPE) {
-            return Integer.valueOf(0);
+            return 0;
         } else if (clazz == Long.TYPE) {
-            return Long.valueOf(0);
+            return 0L;
         } else if (clazz == Float.TYPE) {
-            return Float.valueOf(0);
+            return (float) 0;
         } else if (clazz == Double.TYPE) {
-            return Double.valueOf(0);
+            return (double) 0;
         }
         throw DbException.throwInternalError(
                 "primitive=" + clazz.toString());

@@ -57,10 +57,12 @@ public final class MergedResultSet {
 
         @Override
         public boolean equals(Object obj) {
-            if (this == obj)
+            if (this == obj) {
                 return true;
-            if (obj == null || getClass() != obj.getClass())
+            }
+            if (obj == null || getClass() != obj.getClass()) {
                 return false;
+            }
             ColumnInfo other = (ColumnInfo) obj;
             return name.equals(other.name);
         }

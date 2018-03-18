@@ -122,7 +122,6 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
         for (int i = 0; args != null && i < args.length; i++) {
             String arg = args[i];
             if (arg == null) {
-                continue;
             } else if ("-?".equals(arg) || "-help".equals(arg)) {
                 // ok
             } else if (arg.startsWith("-web")) {
@@ -218,7 +217,6 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
         for (int i = 0; args != null && i < args.length; i++) {
             String arg = args[i];
             if (arg == null) {
-                continue;
             } else if ("-?".equals(arg) || "-help".equals(arg)) {
                 showUsage();
                 return;
@@ -655,7 +653,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 if (supported) {
                     // Desktop.getDesktop();
                     Object desktop = desktopClass.getMethod("getDesktop").
-                        invoke(null, new Object[0]);
+                        invoke(null);
                     // desktop.browse(uri);
                     desktopClass.getMethod("browse", URI.class).
                         invoke(desktop, uri);
@@ -722,10 +720,11 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
     public static void startWebServer(Connection conn, boolean ignoreProperties) throws SQLException {
         WebServer webServer = new WebServer();
         String[] args;
-        if (ignoreProperties)
+        if (ignoreProperties) {
             args = new String[] { "-webPort", "0", "-properties", "null"};
-        else
+        } else {
             args = new String[] { "-webPort", "0" };
+        }
         Server web = new Server(webServer, args);
         web.start();
         Server server = new Server();

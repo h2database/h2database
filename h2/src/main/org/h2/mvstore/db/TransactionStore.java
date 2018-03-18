@@ -280,7 +280,7 @@ public class TransactionStore {
     void log(Transaction t, long logId, int mapId,
             Object key, Object oldValue) {
         Long undoKey = getOperationId(t.getId(), logId);
-        Object[] log = new Object[] { mapId, key, oldValue };
+        Object[] log = { mapId, key, oldValue };
         rwLock.writeLock().lock();
         try {
             if (logId == 0) {

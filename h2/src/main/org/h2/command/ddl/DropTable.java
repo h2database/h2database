@@ -95,8 +95,9 @@ public class DropTable extends SchemaCommand {
                         }
                     }
                 }
-                if (buff.length() > 0)
+                if (buff.length() > 0) {
                     throw DbException.get(ErrorCode.CANNOT_DROP_2, tableName, buff.toString());
+                }
 
             }
             table.lock(session, true, true);

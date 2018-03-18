@@ -139,7 +139,7 @@ public class ValueFloat extends Value {
 
     @Override
     public Object getObject() {
-        return Float.valueOf(value);
+        return value;
     }
 
     @Override

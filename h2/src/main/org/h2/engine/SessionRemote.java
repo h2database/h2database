@@ -101,8 +101,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     @Override
     public ArrayList<String> getClusterServers() {
         ArrayList<String> serverList = new ArrayList<>();
-        for (int i = 0; i < transferList.size(); i++) {
-            Transfer transfer = transferList.get(i);
+        for (Transfer transfer : transferList) {
             serverList.add(transfer.getSocket().getInetAddress().
                     getHostAddress() + ":" +
                     transfer.getSocket().getPort());
@@ -443,8 +442,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         // TODO cluster: support more than 2 connections
         boolean switchOffCluster = false;
         try {
-            for (int i = 0; i < len; i++) {
-                String s = servers[i];
+            for (String s : servers) {
                 try {
                     Transfer trans = initTransfer(ci, databaseName, s);
                     transferList.add(trans);
@@ -626,8 +624,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                     errorCode, null, stackTrace);
             if (errorCode == ErrorCode.CONNECTION_BROKEN_1) {
                 // allow re-connect
-                IOException e = new IOException(s.toString(), s);
-                throw e;
+                throw new IOException(s.toString(), s);
             }
             throw DbException.convert(s);
         } else if (status == STATUS_CLOSED) {

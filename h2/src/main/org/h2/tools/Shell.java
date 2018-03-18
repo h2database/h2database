@@ -473,7 +473,6 @@ public class Shell extends Tool implements Runnable {
             if (listMode) {
                 e.printStackTrace(err);
             }
-            return;
         }
     }
 

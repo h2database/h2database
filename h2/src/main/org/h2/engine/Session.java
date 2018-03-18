@@ -652,8 +652,7 @@ public class Session extends SessionWithState {
             // see the changes
             // TODO should not rely on locking
             if (!locks.isEmpty()) {
-                for (int i = 0, size = locks.size(); i < size; i++) {
-                    Table t = locks.get(i);
+                for (Table t : locks) {
                     if (t instanceof MVTable) {
                         ((MVTable) t).commit();
                     }
@@ -679,8 +678,7 @@ public class Session extends SessionWithState {
                         rows.add(entry.getRow());
                         undoLog.removeLast(false);
                     }
-                    for (int i = 0, size = rows.size(); i < size; i++) {
-                        Row r = rows.get(i);
+                    for (Row r : rows) {
                         r.commit();
                     }
                 }
@@ -930,7 +928,7 @@ public class Session extends SessionWithState {
                 if (lockMode != Constants.LOCK_MODE_OFF &&
                         !database.isMultiVersion()) {
                     TableType tableType = log.getTable().getTableType();
-                    if (locks.indexOf(log.getTable()) < 0
+                    if (!locks.contains(log.getTable())
                             && TableType.TABLE_LINK != tableType
                             && TableType.EXTERNAL_TABLE_ENGINE != tableType) {
                         DbException.throwInternalError("" + tableType);
@@ -942,8 +940,7 @@ public class Session extends SessionWithState {
             if (database.isMultiVersion()) {
                 // see also UndoLogRecord.commit
                 ArrayList<Index> indexes = table.getIndexes();
-                for (int i = 0, size = indexes.size(); i < size; i++) {
-                    Index index = indexes.get(i);
+                for (Index index : indexes) {
                     index.commit(operation, row);
                 }
                 row.commit();
@@ -990,8 +987,7 @@ public class Session extends SessionWithState {
         }
         if (!locks.isEmpty()) {
             // don't use the enhanced for loop to save memory
-            for (int i = 0, size = locks.size(); i < size; i++) {
-                Table t = locks.get(i);
+            for (Table t : locks) {
                 t.unlock(this);
             }
             locks.clear();
@@ -1475,9 +1471,9 @@ public class Session extends SessionWithState {
     public Table[] getLocks() {
         // copy the data without synchronizing
         ArrayList<Table> copy = New.arrayList();
-        for (int i = 0; i < locks.size(); i++) {
+        for (Table lock : locks) {
             try {
-                copy.add(locks.get(i));
+                copy.add(lock);
             } catch (Exception e) {
                 // ignore
                 break;

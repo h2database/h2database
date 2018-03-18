@@ -378,10 +378,7 @@ public class Csv implements SimpleRowSource {
                 }
             }
         }
-        if (columnName.length() == 0) {
-            return false;
-        }
-        return true;
+        return columnName.length() != 0;
     }
 
     private void pushBack() {
@@ -489,16 +486,12 @@ public class Csv implements SimpleRowSource {
                 return null;
             } else if (ch <= ' ') {
                 // ignore spaces
-                continue;
             } else if (lineComment != 0 && ch == lineComment) {
                 // comment until end of line
                 inputBufferStart = -1;
-                while (true) {
+                do {
                     ch = readChar();
-                    if (ch == '\n' || ch < 0 || ch == '\r') {
-                        break;
-                    }
-                }
+                } while (ch != '\n' && ch >= 0 && ch != '\r');
                 endOfLine = true;
                 return null;
             } else {

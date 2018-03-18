@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.Parser;
@@ -108,7 +107,8 @@ public class Function extends Expression implements FunctionCall {
      * Pseudo functions for DATEADD, DATEDIFF, and EXTRACT.
      */
     public static final int MILLISECOND = 126, EPOCH = 127, MICROSECOND = 128, NANOSECOND = 129,
-            TIMEZONE_HOUR = 130, TIMEZONE_MINUTE = 131;
+            TIMEZONE_HOUR = 130, TIMEZONE_MINUTE = 131, DECADE = 132, CENTURY = 133, 
+            MILLENNIUM = 134;
 
     public static final int DATABASE = 150, USER = 151, CURRENT_USER = 152,
             IDENTITY = 153, SCOPE_IDENTITY = 154, AUTOCOMMIT = 155,
@@ -1437,11 +1437,7 @@ public class Function extends Expression implements FunctionCall {
             result = ValueLong.get(DateTimeFunctions.datediff(v0.getString(), v1, v2));
             break;
         case DATE_TRUNC:
-            // Retrieve the time unit (e.g. 'day', 'microseconds', etc.)
-            String timeUnit = StringUtils.toUpperEnglish(v0.getString());
-
-            result = DateTimeUtils.truncateDate(timeUnit, v1);
-
+            result = DateTimeFunctions.truncateDate(v0.getString(), v1);
             break;
         case EXTRACT:
             result = DateTimeFunctions.extract(v0.getString(), v1);

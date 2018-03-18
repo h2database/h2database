@@ -728,7 +728,7 @@ public class DateTimeUtils {
         return getDayOfWeekFromAbsolute(absoluteDayFromDateValue(dateValue), firstDayOfWeek);
     }
 
-    private static int getDayOfWeekFromAbsolute(long absoluteValue, int firstDayOfWeek) {
+    public static int getDayOfWeekFromAbsolute(long absoluteValue, int firstDayOfWeek) {
         return absoluteValue >= 0 ? (int) ((absoluteValue - firstDayOfWeek + 11) % 7) + 1
                 : (int) ((absoluteValue - firstDayOfWeek - 2) % 7) + 7;
     }
@@ -1479,50 +1479,6 @@ public class DateTimeUtils {
             nanosOfDay += m;
         }
         return nanosOfDay - mod;
-    }
-
-    /**
-     * Truncate the given date to 'day'
-     *
-     * @param timeUnit the time unit (e.g. 'DAY', 'HOUR', etc.)
-     * @param value the date
-     * @return date truncated to 'day'
-     */
-    public static Value truncateDate(String timeUnit, Value value) {
-        Value result = null;
-
-        // Retrieve the dateValue.
-        long[] fieldDateAndTime = DateTimeUtils.dateAndTimeFromValue(value);
-        long dateValue = fieldDateAndTime[0];
-
-        // Case where the date has to be truncated to the day.
-        if (timeUnit.equals("DAY")) {
-
-            if (value instanceof ValueTimestampTimeZone) {
-
-                // Create a new ValueTimestampTimeZone by only setting the
-                // date. The time in nanoseconds since midnight will be set
-                // to 0.
-                ValueTimestampTimeZone vTmp = (ValueTimestampTimeZone) value;
-                result = ValueTimestampTimeZone.fromDateValueAndNanos(vTmp.getDateValue(), 0,
-                        vTmp.getTimeZoneOffsetMins());
-
-            } else {
-
-                // By default, we create a timestamp by setting the
-                // date value to the date value retrieved and the time in
-                // nanoseconds since midnight to 0.
-                result = ValueTimestamp.fromDateValueAndNanos(dateValue, 0);
-
-            }
-        } else {
-
-            // Return an exception for the other possible value (not yet
-            // supported).
-            throw DbException.getUnsupportedException(timeUnit);
-        }
-
-        return result;
     }
 
 }

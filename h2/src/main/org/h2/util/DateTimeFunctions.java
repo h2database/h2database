@@ -5,15 +5,18 @@
  */
 package org.h2.util;
 
+import static org.h2.expression.Function.CENTURY;
 import static org.h2.expression.Function.DAY_OF_MONTH;
 import static org.h2.expression.Function.DAY_OF_WEEK;
 import static org.h2.expression.Function.DAY_OF_YEAR;
+import static org.h2.expression.Function.DECADE;
 import static org.h2.expression.Function.EPOCH;
 import static org.h2.expression.Function.HOUR;
 import static org.h2.expression.Function.ISO_DAY_OF_WEEK;
 import static org.h2.expression.Function.ISO_WEEK;
 import static org.h2.expression.Function.ISO_YEAR;
 import static org.h2.expression.Function.MICROSECOND;
+import static org.h2.expression.Function.MILLENNIUM;
 import static org.h2.expression.Function.MILLISECOND;
 import static org.h2.expression.Function.MINUTE;
 import static org.h2.expression.Function.MONTH;
@@ -24,7 +27,6 @@ import static org.h2.expression.Function.TIMEZONE_HOUR;
 import static org.h2.expression.Function.TIMEZONE_MINUTE;
 import static org.h2.expression.Function.WEEK;
 import static org.h2.expression.Function.YEAR;
-
 import java.math.BigDecimal;
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
@@ -32,7 +34,6 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
-
 import org.h2.api.ErrorCode;
 import org.h2.expression.Function;
 import org.h2.message.DbException;
@@ -41,6 +42,7 @@ import org.h2.value.ValueDate;
 import org.h2.value.ValueDecimal;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueTime;
+import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 
 /**
@@ -94,14 +96,19 @@ public final class DateTimeFunctions {
         DATE_PART.put("SS", SECOND);
         DATE_PART.put("S", SECOND);
         DATE_PART.put("MILLISECOND", MILLISECOND);
+        DATE_PART.put("MILLISECONDS", MILLISECOND);
         DATE_PART.put("MS", MILLISECOND);
         DATE_PART.put("EPOCH", EPOCH);
         DATE_PART.put("MICROSECOND", MICROSECOND);
+        DATE_PART.put("MICROSECONDS", MICROSECOND);
         DATE_PART.put("MCS", MICROSECOND);
         DATE_PART.put("NANOSECOND", NANOSECOND);
         DATE_PART.put("NS", NANOSECOND);
         DATE_PART.put("TIMEZONE_HOUR", TIMEZONE_HOUR);
         DATE_PART.put("TIMEZONE_MINUTE", TIMEZONE_MINUTE);
+        DATE_PART.put("DECADE", DECADE);
+        DATE_PART.put("CENTURY", CENTURY);
+        DATE_PART.put("MILLENNIUM", MILLENNIUM);
     }
 
     /**
@@ -371,6 +378,161 @@ public final class DateTimeFunctions {
                         .get(timeNanosBigDecimal.divide(nanosSeconds).add(numberOfDays.multiply(secondsPerDay)));
             }
         }
+        return result;
+    }
+
+    /**
+     * Truncate the given date to the unit specified
+     *
+     * @param datePartStr the time unit (e.g. 'DAY', 'HOUR', etc.)
+     * @param value the date
+     * @return date truncated to 'day'
+     */
+    public static Value truncateDate(String datePartStr, Value valueDate) {
+
+        int timeUnit = getDatePart(datePartStr);
+
+        // Retrieve the dateValue and the time in nanoseconds of the date.
+        long[] fieldDateAndTime = DateTimeUtils.dateAndTimeFromValue(valueDate);
+        long dateValue = fieldDateAndTime[0];
+        long timeNanosRetrieved = fieldDateAndTime[1];
+
+        // Variable used to the time in nanoseconds of the date truncated.
+        long timeNanos;
+
+        // Compute the number of time unit in the date, for example, the
+        // number of time unit 'HOUR' in '15:14:13' is '15'. Then convert the
+        // result to nanoseconds.
+        switch (timeUnit) {
+
+        case MICROSECOND:
+
+            long nanoInMicroSecond = 1_000L;
+            long microseconds = timeNanosRetrieved / nanoInMicroSecond;
+            timeNanos = microseconds * nanoInMicroSecond;
+            break;
+
+        case MILLISECOND:
+
+            long nanoInMilliSecond = 1_000_000L;
+            long milliseconds = timeNanosRetrieved / nanoInMilliSecond;
+            timeNanos = milliseconds * nanoInMilliSecond;
+            break;
+
+        case SECOND:
+
+            long nanoInSecond = 1_000_000_000L;
+            long seconds = timeNanosRetrieved / nanoInSecond;
+            timeNanos = seconds * nanoInSecond;
+            break;
+
+        case MINUTE:
+
+            long nanoInMinute = 60_000_000_000L;
+            long minutes = timeNanosRetrieved / nanoInMinute;
+            timeNanos = minutes * nanoInMinute;
+            break;
+
+        case HOUR:
+
+            long nanoInHour = 3_600_000_000_000L;
+            long hours = timeNanosRetrieved / nanoInHour;
+            timeNanos = hours * nanoInHour;
+            break;
+
+        case DAY_OF_MONTH:
+
+            timeNanos = 0L;
+            break;
+
+        case WEEK:
+
+            long absoluteDay = DateTimeUtils.absoluteDayFromDateValue(dateValue);
+            int dayOfWeek = DateTimeUtils.getDayOfWeekFromAbsolute(absoluteDay, 1);
+            if (dayOfWeek != 1) {
+                dateValue = DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay - dayOfWeek + 1);
+            }
+            timeNanos = 0L;
+            break;
+
+        case MONTH: {
+
+            long year = DateTimeUtils.yearFromDateValue(dateValue);
+            int month = DateTimeUtils.monthFromDateValue(dateValue);
+            dateValue = DateTimeUtils.dateValue(year, month, 1);
+            timeNanos = 0L;
+            break;
+
+        }
+        case QUARTER: {
+
+            long year = DateTimeUtils.yearFromDateValue(dateValue);
+            int month = DateTimeUtils.monthFromDateValue(dateValue);
+            month = ((month - 1) / 3) * 3 + 1;
+            dateValue = DateTimeUtils.dateValue(year, month, 1);
+            timeNanos = 0L;
+            break;
+
+        }
+        case YEAR: {
+
+            long year = DateTimeUtils.yearFromDateValue(dateValue);
+            dateValue = DateTimeUtils.dateValue(year, 1, 1);
+            timeNanos = 0L;
+            break;
+
+        }
+        case DECADE: {
+
+            long year = DateTimeUtils.yearFromDateValue(dateValue);
+            year = (year / 10) * 10;
+            dateValue = DateTimeUtils.dateValue(year, 1, 1);
+            timeNanos = 0L;
+            break;
+
+        }
+        case CENTURY: {
+
+            long year = DateTimeUtils.yearFromDateValue(dateValue);
+            year = ((year - 1) / 100) * 100 + 1;
+            dateValue = DateTimeUtils.dateValue(year, 1, 1);
+            timeNanos = 0L;
+            break;
+
+        }
+        case MILLENNIUM: {
+
+            long year = DateTimeUtils.yearFromDateValue(dateValue);
+            year = ((year - 1) / 1000) * 1000 + 1;
+            dateValue = DateTimeUtils.dateValue(year, 1, 1);
+            timeNanos = 0L;
+            break;
+
+        }
+        default:
+
+            // Return an exception in the timeUnit is not recognized
+            throw DbException.getUnsupportedException(datePartStr);
+
+        }
+
+        Value result;
+
+        if (valueDate instanceof ValueTimestampTimeZone) {
+
+            // Case we create a timestamp with timezone with the dateValue and
+            // timeNanos computed.
+            ValueTimestampTimeZone vTmp = (ValueTimestampTimeZone) valueDate;
+            result = ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos, vTmp.getTimeZoneOffsetMins());
+
+        } else {
+
+            // By default, we create a timestamp with the dateValue and
+            // timeNanos computed.
+            result = ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
+
+        }
+
         return result;
     }
 

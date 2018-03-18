@@ -107,7 +107,7 @@ public class Function extends Expression implements FunctionCall {
      * Pseudo functions for DATEADD, DATEDIFF, and EXTRACT.
      */
     public static final int MILLISECOND = 126, EPOCH = 127, MICROSECOND = 128, NANOSECOND = 129,
-            TIMEZONE_HOUR = 130, TIMEZONE_MINUTE = 131, DECADE = 132, CENTURY = 133, 
+            TIMEZONE_HOUR = 130, TIMEZONE_MINUTE = 131, DECADE = 132, CENTURY = 133,
             MILLENNIUM = 134;
 
     public static final int DATABASE = 150, USER = 151, CURRENT_USER = 152,

@@ -143,7 +143,7 @@ public class TestDatabaseEventListener extends TestBase {
                 MyDatabaseEventListener.class.getName());
         conn = org.h2.Driver.load().connect(url, p);
         conn.close();
-        assertTrue(!calledCreateIndex);
+        assertFalse(calledCreateIndex);
     }
 
     private void testIndexNotRebuilt() throws SQLException {
@@ -176,7 +176,7 @@ public class TestDatabaseEventListener extends TestBase {
                 MyDatabaseEventListener.class.getName());
         conn = org.h2.Driver.load().connect(url, p);
         conn.close();
-        assertTrue(!calledCreateIndex);
+        assertFalse(calledCreateIndex);
     }
 
     private void testCloseLog0(boolean shutdown) throws SQLException {
@@ -205,7 +205,7 @@ public class TestDatabaseEventListener extends TestBase {
         conn = org.h2.Driver.load().connect(url, p);
         conn.close();
         if (calledOpened) {
-            assertTrue(!calledScan);
+            assertFalse(calledScan);
         }
     }
 

@@ -476,7 +476,7 @@ public class TestTools extends TestBase {
         assertEquals(ResultSet.FETCH_FORWARD, rs.getFetchDirection());
         assertEquals(0, rs.getFetchSize());
         assertEquals(ResultSet.TYPE_SCROLL_INSENSITIVE, rs.getType());
-        assertTrue(rs.getStatement() == null);
+        assertNull(rs.getStatement());
         assertFalse(rs.isClosed());
 
         rs.beforeFirst();
@@ -760,7 +760,7 @@ public class TestTools extends TestBase {
         assertEquals(Double.MIN_VALUE, rs.getDouble("b"));
         assertEquals(Long.MIN_VALUE, rs.getLong("c"));
         assertEquals(Short.MIN_VALUE, rs.getShort("d"));
-        assertTrue(!rs.getBoolean("e"));
+        assertFalse(rs.getBoolean("e"));
         assertEquals(new byte[] { (byte) 10, (byte) 20 }, rs.getBytes("f"));
         assertEquals("2007-12-31", rs.getString("g"));
         assertEquals("23:59:59", rs.getString("h"));
@@ -902,8 +902,8 @@ public class TestTools extends TestBase {
                     "SELECT * FROM TEST ORDER BY ID");
             rs.next();
             assertEquals(1, rs.getInt(1));
-            assertTrue(rs.getString(2) == null);
-            assertTrue(rs.getString(3) == null);
+            assertNull(rs.getString(2));
+            assertNull(rs.getString(3));
             rs.next();
             assertEquals(2, rs.getInt(1));
             assertEquals("face", rs.getString(2));

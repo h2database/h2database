@@ -222,8 +222,7 @@ public class MVStoreTool {
                     if (mapId == 0 && details) {
                         ByteBuffer data;
                         if (compressed) {
-                            boolean fast = !((type & DataUtils.PAGE_COMPRESSED_HIGH) ==
-                                    DataUtils.PAGE_COMPRESSED_HIGH);
+                            boolean fast = (type & DataUtils.PAGE_COMPRESSED_HIGH) != DataUtils.PAGE_COMPRESSED_HIGH;
                             Compressor compressor = getCompressor(fast);
                             int lenAdd = DataUtils.readVarInt(chunk);
                             int compLen = pageSize + start - chunk.position();

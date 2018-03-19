@@ -184,7 +184,7 @@ public class TestSynonymForTable extends TestBase {
         assertEquals("BACKINGTABLE", synonyms.getString("SYNONYM_FOR"));
         assertEquals("VALID", synonyms.getString("STATUS"));
         assertEquals("", synonyms.getString("REMARKS"));
-        assertTrue(synonyms.getString("ID") != null);
+        assertNotNull(synonyms.getString("ID"));
         assertFalse(synonyms.next());
         conn.close();
     }

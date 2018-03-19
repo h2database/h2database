@@ -204,7 +204,7 @@ public class TestStatement extends TestBase {
         assertEquals(ResultSet.CONCUR_READ_ONLY,
                 stat2.getResultSetConcurrency());
         assertEquals(0, stat.getMaxFieldSize());
-        assertTrue(!((JdbcStatement) stat2).isClosed());
+        assertFalse(((JdbcStatement) stat2).isClosed());
         stat2.close();
         assertTrue(((JdbcStatement) stat2).isClosed());
 
@@ -279,19 +279,19 @@ public class TestStatement extends TestBase {
         trace("execute");
         result = stat.execute(
                 "CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
-        assertTrue(!result);
+        assertFalse(result);
         result = stat.execute("INSERT INTO TEST VALUES(1,'Hello')");
-        assertTrue(!result);
+        assertFalse(result);
         result = stat.execute("INSERT INTO TEST(VALUE,ID) VALUES('JDBC',2)");
-        assertTrue(!result);
+        assertFalse(result);
         result = stat.execute("UPDATE TEST SET VALUE='LDBC' WHERE ID=2");
-        assertTrue(!result);
+        assertFalse(result);
         result = stat.execute("DELETE FROM TEST WHERE ID=3");
-        assertTrue(!result);
+        assertFalse(result);
         result = stat.execute("SELECT * FROM TEST");
         assertTrue(result);
         result = stat.execute("DROP TABLE TEST");
-        assertTrue(!result);
+        assertFalse(result);
 
         assertThrows(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY, stat).
                 executeQuery("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
@@ -324,9 +324,9 @@ public class TestStatement extends TestBase {
         stat.execute("DROP TABLE TEST");
         stat.executeUpdate("DROP TABLE IF EXISTS TEST");
 
-        assertTrue(stat.getWarnings() == null);
+        assertNull(stat.getWarnings());
         stat.clearWarnings();
-        assertTrue(stat.getWarnings() == null);
+        assertNull(stat.getWarnings());
         assertTrue(conn == stat.getConnection());
 
         assertEquals("SOME_ID", statBC.enquoteIdentifier("SOME_ID", false));

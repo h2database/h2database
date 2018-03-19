@@ -69,7 +69,7 @@ public class RecoverLobTest extends TestBase {
             int id = rs.getInt(1);
             String data = rs.getString(2);
 
-            assertTrue(data != null);
+            assertNotNull(data);
             assertTrue(data.length() == 10000 * id);
 
         }

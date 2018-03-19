@@ -79,13 +79,13 @@ public class TestBatchUpdates extends TestBase {
         } catch (SQLException e) {
             assertContains(e.toString(), "TEST_Y");
             e = e.getNextException();
-            assertTrue(e != null);
+            assertNotNull(e);
             assertContains(e.toString(), "TEST_Y");
             e = e.getNextException();
-            assertTrue(e != null);
+            assertNotNull(e);
             assertContains(e.toString(), "TEST_X");
             e = e.getNextException();
-            assertTrue(e == null);
+            assertNull(e);
         }
         stat.execute("create table test(id int)");
         PreparedStatement prep = conn.prepareStatement("insert into test values(?)");
@@ -98,13 +98,13 @@ public class TestBatchUpdates extends TestBase {
         } catch (SQLException e) {
             assertContains(e.toString(), "TEST_Y");
             e = e.getNextException();
-            assertTrue(e != null);
+            assertNotNull(e);
             assertContains(e.toString(), "TEST_Y");
             e = e.getNextException();
-            assertTrue(e != null);
+            assertNotNull(e);
             assertContains(e.toString(), "TEST_X");
             e = e.getNextException();
-            assertTrue(e == null);
+            assertNull(e);
         }
         stat.execute("drop table test");
         conn.close();
@@ -542,7 +542,7 @@ public class TestBatchUpdates extends TestBase {
             trace("Count val is: " + count);
             // make sure that we have the correct error code for
             // the failed update.
-            if (!(batchUpdates[1] == -3 && count == 1)) {
+            if (batchUpdates[1] != -3 || count != 1) {
                 fail("insert failed");
             }
         }

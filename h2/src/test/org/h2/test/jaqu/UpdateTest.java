@@ -75,7 +75,7 @@ public class UpdateTest extends TestBase {
 
         Order ourUpdatedOrder = db.from(o).where(o.orderDate)
                 .is(valueOf("2007-01-03")).selectFirst();
-        assertTrue("updated order not found", ourUpdatedOrder != null);
+        assertNotNull("updated order not found", ourUpdatedOrder);
 
         // undo update
         ourOrder.orderDate = valueOf("2007-01-02");
@@ -113,7 +113,7 @@ public class UpdateTest extends TestBase {
 
         Order ourUpdatedOrder = db.from(o).where(o.orderDate)
                 .is(valueOf("2007-01-03")).selectFirst();
-        assertTrue("updated order not found", ourUpdatedOrder != null);
+        assertNotNull("updated order not found", ourUpdatedOrder);
 
         // undo update
         ourOrder.orderDate = valueOf("2007-01-02");

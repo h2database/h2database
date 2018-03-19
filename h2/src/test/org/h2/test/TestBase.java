@@ -716,11 +716,7 @@ public abstract class TestBase {
      * @throws AssertionError if the values are not equal
      */
     public void assertEquals(Object expected, Object actual) {
-        if (expected == null || actual == null) {
-            assertTrue(expected == actual);
-            return;
-        }
-        if (!expected.equals(actual)) {
+        if (!Objects.equals(expected, actual)) {
             fail(" expected: " + expected + " actual: " + actual);
         }
     }
@@ -961,7 +957,9 @@ public abstract class TestBase {
      * @throws AssertionError if the condition is false
      */
     public void assertTrue(boolean condition) {
-        assertTrue("Expected: true got: false", condition);
+        if (!condition) {
+            fail("Expected: true got: false");
+        }
     }
 
     /**
@@ -973,6 +971,31 @@ public abstract class TestBase {
     public void assertNull(Object obj) {
         if (obj != null) {
             fail("Expected: null got: " + obj);
+        }
+    }
+
+    /**
+     * Check that the passed object is not null.
+     *
+     * @param obj the object
+     * @throws AssertionError if the condition is false
+     */
+    public void assertNotNull(Object obj) {
+        if (obj == null) {
+            fail("Expected: not null got: null");
+        }
+    }
+
+    /**
+     * Check that the passed object is not null.
+     *
+     * @param message the message to print if the condition is false
+     * @param obj the object
+     * @throws AssertionError if the condition is false
+     */
+    public void assertNotNull(String message, Object obj) {
+        if (obj == null) {
+            fail(message);
         }
     }
 
@@ -996,7 +1019,9 @@ public abstract class TestBase {
      * @throws AssertionError if the condition is true
      */
     protected void assertFalse(boolean value) {
-        assertFalse("Expected: false got: true", value);
+        if (value) {
+            fail("Expected: false got: true");
+        }
     }
 
     /**

@@ -148,13 +148,13 @@ public class TestXA extends TestBase {
         XAResource res = xa.getXAResource();
 
         res.start(xid, XAResource.TMNOFLAGS);
-        assertTrue(!c.getAutoCommit());
+        assertFalse(c.getAutoCommit());
         res.end(xid, XAResource.TMSUCCESS);
         res.commit(xid, true);
         assertTrue(c.getAutoCommit());
 
         res.start(xid, XAResource.TMNOFLAGS);
-        assertTrue(!c.getAutoCommit());
+        assertFalse(c.getAutoCommit());
         res.end(xid, XAResource.TMFAIL);
         res.rollback(xid);
         assertTrue(c.getAutoCommit());
@@ -193,7 +193,7 @@ public class TestXA extends TestBase {
         xa.getXAResource().start(xid,
                 XAResource.TMNOFLAGS);
         Connection c = xa.getConnection();
-        assertTrue(!c.getAutoCommit());
+        assertFalse(c.getAutoCommit());
         c.close();
         xa.close();
     }

@@ -390,7 +390,7 @@ public class TestDeadlock extends TestBase {
     }
 
     private void checkDeadlock() throws SQLException {
-        assertTrue(lastException != null);
+        assertNotNull(lastException);
         assertKnownException(lastException);
         assertEquals(ErrorCode.DEADLOCK_1, lastException.getErrorCode());
         SQLException e2 = lastException.getNextException();

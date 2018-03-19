@@ -404,7 +404,7 @@ public class TestPreparedStatement extends TestBase {
         Thread.sleep(100);
         prep.cancel();
         SQLException e = (SQLException) t.getException();
-        assertTrue(e != null);
+        assertNotNull(e);
         assertEquals(ErrorCode.STATEMENT_WAS_CANCELED, e.getErrorCode());
         prep.setInt(1, 1);
         prep.setInt(2, 1);
@@ -618,7 +618,7 @@ public class TestPreparedStatement extends TestBase {
         rs.next();
         Object o = rs.getObject(2);
         assertTrue(o instanceof byte[]);
-        assertTrue(rs.getObject(3) == null);
+        assertNull(rs.getObject(3));
         rs.next();
         o = rs.getObject(2);
         assertTrue(o instanceof byte[]);
@@ -1446,9 +1446,9 @@ public class TestPreparedStatement extends TestBase {
         assertEquals(ascii2, rs.getString(3));
 
         assertFalse(rs.next());
-        assertTrue(prep.getWarnings() == null);
+        assertNull(prep.getWarnings());
         prep.clearWarnings();
-        assertTrue(prep.getWarnings() == null);
+        assertNull(prep.getWarnings());
         assertTrue(conn == prep.getConnection());
     }
 
@@ -1534,12 +1534,12 @@ public class TestPreparedStatement extends TestBase {
             java.math.BigDecimal x = rs.getBigDecimal(1);
             trace("v=" + v + " x=" + x);
             if (v == null) {
-                assertTrue(x == null);
+                assertNull(x);
             } else {
                 assertTrue(x.compareTo(new java.math.BigDecimal(v)) == 0);
             }
         }
-        assertTrue(!rs.next());
+        assertFalse(rs.next());
     }
 
     private void testColumnMetaDataWithEquals(Connection conn)

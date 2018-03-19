@@ -73,7 +73,6 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     private ArrayList<Transfer> transferList = New.arrayList();
     private int nextId;
     private boolean autoCommit = true;
-    private CommandInterface autoCommitFalse, autoCommitTrue;
     private ConnectionInfo connectionInfo;
     private String databaseName;
     private String cipher;
@@ -246,31 +245,15 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     }
 
     private synchronized void setAutoCommitSend(boolean autoCommit) {
-        if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_8) {
-            for (int i = 0, count = 0; i < transferList.size(); i++) {
-                Transfer transfer = transferList.get(i);
-                try {
-                    traceOperation("SESSION_SET_AUTOCOMMIT", autoCommit ? 1 : 0);
-                    transfer.writeInt(SessionRemote.SESSION_SET_AUTOCOMMIT).
-                            writeBoolean(autoCommit);
-                    done(transfer);
-                } catch (IOException e) {
-                    removeServer(e, i--, ++count);
-                }
-            }
-        } else {
-            if (autoCommit) {
-                if (autoCommitTrue == null) {
-                    autoCommitTrue = prepareCommand(
-                            "SET AUTOCOMMIT TRUE", Integer.MAX_VALUE);
-                }
-                autoCommitTrue.executeUpdate(false);
-            } else {
-                if (autoCommitFalse == null) {
-                    autoCommitFalse = prepareCommand(
-                            "SET AUTOCOMMIT FALSE", Integer.MAX_VALUE);
-                }
-                autoCommitFalse.executeUpdate(false);
+        for (int i = 0, count = 0; i < transferList.size(); i++) {
+            Transfer transfer = transferList.get(i);
+            try {
+                traceOperation("SESSION_SET_AUTOCOMMIT", autoCommit ? 1 : 0);
+                transfer.writeInt(SessionRemote.SESSION_SET_AUTOCOMMIT).
+                        writeBoolean(autoCommit);
+                done(transfer);
+            } catch (IOException e) {
+                removeServer(e, i--, ++count);
             }
         }
     }

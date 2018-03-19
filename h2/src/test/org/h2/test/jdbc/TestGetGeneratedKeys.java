@@ -545,7 +545,7 @@ public class TestGetGeneratedKeys extends TestBase {
     private void testPrepareStatement_int_Execute(Connection conn) throws Exception {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
-                + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL)");
+                + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL, OTHER INT DEFAULT 0)");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)",
                 Statement.NO_GENERATED_KEYS);
         prep.execute();
@@ -579,7 +579,7 @@ public class TestGetGeneratedKeys extends TestBase {
     private void testPrepareStatement_int_ExecuteBatch(Connection conn) throws Exception {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
-                + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL)");
+                + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL, OTHER INT DEFAULT 0)");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)",
                 Statement.NO_GENERATED_KEYS);
         prep.addBatch();
@@ -625,7 +625,7 @@ public class TestGetGeneratedKeys extends TestBase {
     private void testPrepareStatement_int_ExecuteLargeBatch(Connection conn) throws Exception {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
-                + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL)");
+                + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL, OTHER INT DEFAULT 0)");
         JdbcPreparedStatement prep = (JdbcPreparedStatement) conn
                 .prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)", Statement.NO_GENERATED_KEYS);
         prep.addBatch();
@@ -673,7 +673,7 @@ public class TestGetGeneratedKeys extends TestBase {
     private void testPrepareStatement_int_ExecuteLargeUpdate(Connection conn) throws Exception {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
-                + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL)");
+                + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL, OTHER INT DEFAULT 0)");
         JdbcPreparedStatement prep = (JdbcPreparedStatement) conn
                 .prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)", Statement.NO_GENERATED_KEYS);
         prep.executeLargeUpdate();
@@ -708,7 +708,7 @@ public class TestGetGeneratedKeys extends TestBase {
     private void testPrepareStatement_int_ExecuteUpdate(Connection conn) throws Exception {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
-                + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL)");
+                + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL, OTHER INT DEFAULT 0)");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (10)",
                 Statement.NO_GENERATED_KEYS);
         prep.executeUpdate();
@@ -1366,7 +1366,7 @@ public class TestGetGeneratedKeys extends TestBase {
     private void testStatementExecute_int(Connection conn) throws Exception {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
-                + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL)");
+                + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL, OTHER INT DEFAULT 0)");
         stat.execute("INSERT INTO TEST(VALUE) VALUES (10)", Statement.NO_GENERATED_KEYS);
         ResultSet rs = stat.getGeneratedKeys();
         assertFalse(rs.next());
@@ -1508,7 +1508,7 @@ public class TestGetGeneratedKeys extends TestBase {
     private void testStatementExecuteLargeUpdate_int(Connection conn) throws Exception {
         JdbcStatement stat = (JdbcStatement) conn.createStatement();
         stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
-                + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL)");
+                + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL, OTHER INT DEFAULT 0)");
         stat.executeLargeUpdate("INSERT INTO TEST(VALUE) VALUES (10)", Statement.NO_GENERATED_KEYS);
         ResultSet rs = stat.getGeneratedKeys();
         assertFalse(rs.next());
@@ -1650,7 +1650,7 @@ public class TestGetGeneratedKeys extends TestBase {
     private void testStatementExecuteUpdate_int(Connection conn) throws Exception {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT,"
-                + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL)");
+                + "UID UUID NOT NULL DEFAULT RANDOM_UUID(), VALUE INT NOT NULL, OTHER INT DEFAULT 0)");
         stat.executeUpdate("INSERT INTO TEST(VALUE) VALUES (10)", Statement.NO_GENERATED_KEYS);
         ResultSet rs = stat.getGeneratedKeys();
         assertFalse(rs.next());

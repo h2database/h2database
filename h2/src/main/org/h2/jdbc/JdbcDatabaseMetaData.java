@@ -143,19 +143,44 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                         ", " + quoteArray(types) + ");");
             }
             checkClosed();
-            String tableType;
-            if (types != null && types.length > 0) {
-                StatementBuilder buff = new StatementBuilder("TABLE_TYPE IN(");
-                for (String ignored : types) {
-                    buff.appendExceptFirst(", ");
-                    buff.append('?');
-                }
-                tableType = buff.append(')').toString();
-            } else {
-                tableType = "TRUE";
-            }
+            int typesLength = types != null ? types.length : 0;
+            boolean includeSynonyms = types == null || Arrays.asList(types).contains("SYNONYM");
 
-            String tableSelect = "SELECT "
+            // (1024 - 16) is enough for the most cases
+            StringBuilder select = new StringBuilder(1008);
+            if (includeSynonyms) {
+                select.append("SELECT "
+                        + "TABLE_CAT, "
+                        + "TABLE_SCHEM, "
+                        + "TABLE_NAME, "
+                        + "TABLE_TYPE, "
+                        + "REMARKS, "
+                        + "TYPE_CAT, "
+                        + "TYPE_SCHEM, "
+                        + "TYPE_NAME, "
+                        + "SELF_REFERENCING_COL_NAME, "
+                        + "REF_GENERATION, "
+                        + "SQL "
+                        + "FROM ("
+                        + "SELECT "
+                        + "SYNONYM_CATALOG TABLE_CAT, "
+                        + "SYNONYM_SCHEMA TABLE_SCHEM, "
+                        + "SYNONYM_NAME as TABLE_NAME, "
+                        + "TYPE_NAME AS TABLE_TYPE, "
+                        + "REMARKS, "
+                        + "TYPE_NAME TYPE_CAT, "
+                        + "TYPE_NAME TYPE_SCHEM, "
+                        + "TYPE_NAME AS TYPE_NAME, "
+                        + "TYPE_NAME SELF_REFERENCING_COL_NAME, "
+                        + "TYPE_NAME REF_GENERATION, "
+                        + "NULL AS SQL "
+                        + "FROM INFORMATION_SCHEMA.SYNONYMS "
+                        + "WHERE SYNONYM_CATALOG LIKE ?1 ESCAPE ?4 "
+                        + "AND SYNONYM_SCHEMA LIKE ?2 ESCAPE ?4 "
+                        + "AND SYNONYM_NAME LIKE ?3 ESCAPE ?4 "
+                        + "UNION ");
+            }
+            select.append("SELECT "
                     + "TABLE_CATALOG TABLE_CAT, "
                     + "TABLE_SCHEMA TABLE_SCHEM, "
                     + "TABLE_NAME, "
@@ -168,58 +193,30 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                     + "TYPE_NAME REF_GENERATION, "
                     + "SQL "
                     + "FROM INFORMATION_SCHEMA.TABLES "
-                    + "WHERE TABLE_CATALOG LIKE ? ESCAPE ? "
-                    + "AND TABLE_SCHEMA LIKE ? ESCAPE ? "
-                    + "AND TABLE_NAME LIKE ? ESCAPE ? "
-                    + "AND (" + tableType + ") ";
-
-            boolean includeSynonyms = types == null || Arrays.asList(types).contains("SYNONYM");
-            String synonymSelect = "SELECT "
-                    + "SYNONYM_CATALOG TABLE_CAT, "
-                    + "SYNONYM_SCHEMA TABLE_SCHEM, "
-                    + "SYNONYM_NAME as TABLE_NAME, "
-                    + "TYPE_NAME AS TABLE_TYPE, "
-                    + "REMARKS, "
-                    + "TYPE_NAME TYPE_CAT, "
-                    + "TYPE_NAME TYPE_SCHEM, "
-                    + "TYPE_NAME AS TYPE_NAME, "
-                    + "TYPE_NAME SELF_REFERENCING_COL_NAME, "
-                    + "TYPE_NAME REF_GENERATION, "
-                    + "NULL AS SQL "
-                    + "FROM INFORMATION_SCHEMA.SYNONYMS "
-                    + "WHERE SYNONYM_CATALOG LIKE ? ESCAPE ? "
-                    + "AND SYNONYM_SCHEMA LIKE ? ESCAPE ? "
-                    + "AND SYNONYM_NAME LIKE ? ESCAPE ? "
-                    + "AND (" + includeSynonyms + ") ";
-
-            PreparedStatement prep = conn.prepareAutoCloseStatement("SELECT "
-                    + "TABLE_CAT, "
-                    + "TABLE_SCHEM, "
-                    + "TABLE_NAME, "
-                    + "TABLE_TYPE, "
-                    + "REMARKS, "
-                    + "TYPE_CAT, "
-                    + "TYPE_SCHEM, "
-                    + "TYPE_NAME, "
-                    + "SELF_REFERENCING_COL_NAME, "
-                    + "REF_GENERATION, "
-                    + "SQL "
-                    + "FROM (" + synonymSelect  + " UNION " + tableSelect + ") "
-                    + "ORDER BY TABLE_TYPE, TABLE_SCHEM, TABLE_NAME");
+                    + "WHERE TABLE_CATALOG LIKE ?1 ESCAPE ?4 "
+                    + "AND TABLE_SCHEMA LIKE ?2 ESCAPE ?4 "
+                    + "AND TABLE_NAME LIKE ?3 ESCAPE ?4");
+            if (typesLength > 0) {
+                select.append(" AND TABLE_TYPE IN(");
+                for (int i = 0; i < typesLength; i++) {
+                    if (i > 0) {
+                        select.append(", ");
+                    }
+                    select.append('?').append(i + 5);
+                }
+                select.append(')');
+            }
+            if (includeSynonyms) {
+                select.append(')');
+            }
+            PreparedStatement prep = conn.prepareAutoCloseStatement(
+                    select.append(" ORDER BY TABLE_TYPE, TABLE_SCHEM, TABLE_NAME").toString());
             prep.setString(1, getCatalogPattern(catalogPattern));
-            prep.setString(2, "\\");
-            prep.setString(3, getSchemaPattern(schemaPattern));
+            prep.setString(2, getSchemaPattern(schemaPattern));
+            prep.setString(3, getPattern(tableNamePattern));
             prep.setString(4, "\\");
-            prep.setString(5, getPattern(tableNamePattern));
-            prep.setString(6, "\\");
-            prep.setString(7, getCatalogPattern(catalogPattern));
-            prep.setString(8, "\\");
-            prep.setString(9, getSchemaPattern(schemaPattern));
-            prep.setString(10, "\\");
-            prep.setString(11, getPattern(tableNamePattern));
-            prep.setString(12, "\\");
-            for (int i = 0; types != null && i < types.length; i++) {
-                prep.setString(13 + i, types[i]);
+            for (int i = 0; i < typesLength; i++) {
+                prep.setString(5 + i, types[i]);
             }
             return prep.executeQuery();
         } catch (Exception e) {

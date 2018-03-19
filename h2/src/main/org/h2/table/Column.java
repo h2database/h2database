@@ -339,7 +339,9 @@ public class Column {
                 value = ValueNull.INSTANCE;
             } else {
                 value = localDefaultExpression.getValue(session).convertTo(type);
-                session.getGeneratedKeys().add(this);
+                if (!localDefaultExpression.isConstant()) {
+                    session.getGeneratedKeys().add(this);
+                }
                 if (primaryKey) {
                     session.setLastIdentity(value);
                 }
@@ -349,7 +351,9 @@ public class Column {
         if (value == ValueNull.INSTANCE) {
             if (convertNullToDefault) {
                 value = localDefaultExpression.getValue(session).convertTo(type);
-                session.getGeneratedKeys().add(this);
+                if (!localDefaultExpression.isConstant()) {
+                    session.getGeneratedKeys().add(this);
+                }
             }
             if (value == ValueNull.INSTANCE && !nullable) {
                 if (mode.convertInsertNullToZero) {

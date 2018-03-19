@@ -79,6 +79,9 @@ The following can be skipped currently; benchmarks should probably be removed:
 
 ## Build the Release
 
+Switch to Java 1.7.
+In Build.java, comment "-Xdoclint:none", but don't commit that change.
+
 Run the following commands:
 Non-Windows:
 
@@ -110,21 +113,23 @@ Newsletter: send (always to BCC!), the following:
 
 Create tweet at http://twitter.com
 
-Sign files and publish files on Maven Central
-(check java version is 1.7)
+## Sign files and publish files on Maven Central
+
+Switch to Java 1.7.
+In Build.java, comment "-Xdoclint:none", but don't commit that change.
 
     ./build.sh clean compile jar mavenDeployCentral
     cd /data/h2database/m2-repo/com/h2database
     # remove sha and md5 files:
     find . -name "*.sha1" -delete
     find . -name "*.md5" -delete
-    cd h2/1...
+    cd h2/1<latest>
     # for each file separately (-javadoc.jar, -sources.jar, .jar, .pom):
-    gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-...
+    gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-<...>
     jar -cvf bundle.jar h2-*
-    cd ../../h2-mvstore/1...
+    cd ../../h2-mvstore/1<latest>
     # for each file separately (-javadoc.jar, -sources.jar, .jar, .pom):
-    gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-mvstore...
+    gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-mvstore<...>
     jar -cvf bundle.jar h2-*
     # http://central.sonatype.org/pages/ossrh-guide.html
     # http://central.sonatype.org/pages/manual-staging-bundle-creation-and-deployment.html

@@ -367,7 +367,7 @@ public class TestMetaData extends TestBase {
         assertTrue(dr.jdbcCompliant());
 
         assertEquals(0, dr.getPropertyInfo(null, null).length);
-        assertTrue(dr.connect("jdbc:test:false", null) == null);
+        assertNull(dr.connect("jdbc:test:false", null));
 
         assertTrue(meta.getNumericFunctions().length() > 0);
         assertTrue(meta.getStringFunctions().length() > 0);
@@ -994,9 +994,9 @@ public class TestMetaData extends TestBase {
                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR }, null, null);
 
-        assertTrue(conn.getWarnings() == null);
+        assertNull(conn.getWarnings());
         conn.clearWarnings();
-        assertTrue(conn.getWarnings() == null);
+        assertNull(conn.getWarnings());
         conn.close();
     }
 
@@ -1050,7 +1050,7 @@ public class TestMetaData extends TestBase {
 
         rs = meta.getTables(null, Constants.SCHEMA_MAIN,
                 null, new String[] { "TABLE" });
-        assertTrue(rs.getStatement() == null);
+        assertNull(rs.getStatement());
         rs.next();
         assertEquals("TEST", rs.getString("TABLE_NAME"));
         assertFalse(rs.next());

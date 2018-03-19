@@ -739,10 +739,10 @@ public class TestResultSet extends TestBase {
         assertTrue(rs.getString(1).equals("6") && !rs.wasNull());
         assertTrue(rs.getString(2) == null && rs.wasNull());
         o = rs.getObject(2);
-        assertTrue(o == null);
+        assertNull(o);
         assertTrue(rs.wasNull());
         o = rs.getObject(2, Integer.class);
-        assertTrue(o == null);
+        assertNull(o);
         assertTrue(rs.wasNull());
         assertFalse(rs.next());
         assertEquals(0, rs.getRow());
@@ -863,10 +863,10 @@ public class TestResultSet extends TestBase {
         assertTrue(rs.getString(1).equals("6") && !rs.wasNull());
         assertTrue(rs.getString(2) == null && rs.wasNull());
         o = rs.getObject(2);
-        assertTrue(o == null);
+        assertNull(o);
         assertTrue(rs.wasNull());
         o = rs.getObject(2, Short.class);
-        assertTrue(o == null);
+        assertNull(o);
         assertTrue(rs.wasNull());
         assertFalse(rs.next());
         assertEquals(0, rs.getRow());
@@ -994,10 +994,10 @@ public class TestResultSet extends TestBase {
         assertTrue(rs.getString(1).equals("6") && !rs.wasNull());
         assertTrue(rs.getString(2) == null && rs.wasNull());
         o = rs.getObject(2);
-        assertTrue(o == null);
+        assertNull(o);
         assertTrue(rs.wasNull());
         o = rs.getObject(2, Long.class);
-        assertTrue(o == null);
+        assertNull(o);
         assertTrue(rs.wasNull());
         assertFalse(rs.next());
         assertEquals(0, rs.getRow());
@@ -1724,17 +1724,17 @@ public class TestResultSet extends TestBase {
         }
         rs.next();
 
-        assertTrue(rs.getCharacterStream(2) == null);
+        assertNull(rs.getCharacterStream(2));
         assertTrue(rs.wasNull());
         rs.next();
 
-        assertTrue(rs.getAsciiStream("Value") == null);
+        assertNull(rs.getAsciiStream("Value"));
         assertTrue(rs.wasNull());
 
         assertTrue(rs.getStatement() == stat);
-        assertTrue(rs.getWarnings() == null);
+        assertNull(rs.getWarnings());
         rs.clearWarnings();
-        assertTrue(rs.getWarnings() == null);
+        assertNull(rs.getWarnings());
         assertEquals(ResultSet.FETCH_FORWARD, rs.getFetchDirection());
         assertEquals(ResultSet.CONCUR_UPDATABLE, rs.getConcurrency());
         rs.next();

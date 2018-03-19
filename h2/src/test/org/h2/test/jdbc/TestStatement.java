@@ -324,9 +324,9 @@ public class TestStatement extends TestBase {
         stat.execute("DROP TABLE TEST");
         stat.executeUpdate("DROP TABLE IF EXISTS TEST");
 
-        assertTrue(stat.getWarnings() == null);
+        assertNull(stat.getWarnings());
         stat.clearWarnings();
-        assertTrue(stat.getWarnings() == null);
+        assertNull(stat.getWarnings());
         assertTrue(conn == stat.getConnection());
 
         assertEquals("SOME_ID", statBC.enquoteIdentifier("SOME_ID", false));

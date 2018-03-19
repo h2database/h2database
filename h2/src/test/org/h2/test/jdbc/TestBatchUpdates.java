@@ -85,7 +85,7 @@ public class TestBatchUpdates extends TestBase {
             assertTrue(e != null);
             assertContains(e.toString(), "TEST_X");
             e = e.getNextException();
-            assertTrue(e == null);
+            assertNull(e);
         }
         stat.execute("create table test(id int)");
         PreparedStatement prep = conn.prepareStatement("insert into test values(?)");
@@ -104,7 +104,7 @@ public class TestBatchUpdates extends TestBase {
             assertTrue(e != null);
             assertContains(e.toString(), "TEST_X");
             e = e.getNextException();
-            assertTrue(e == null);
+            assertNull(e);
         }
         stat.execute("drop table test");
         conn.close();

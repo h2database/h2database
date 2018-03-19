@@ -385,7 +385,7 @@ public final class DateTimeFunctions {
      * Truncate the given date to the unit specified
      *
      * @param datePartStr the time unit (e.g. 'DAY', 'HOUR', etc.)
-     * @param value the date
+     * @param valueDate the date
      * @return date truncated to 'day'
      */
     public static Value truncateDate(String datePartStr, Value valueDate) {

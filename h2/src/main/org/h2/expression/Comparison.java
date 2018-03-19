@@ -244,7 +244,7 @@ public class Comparison extends Condition {
                 result = l == ValueNull.INSTANCE;
                 break;
             case IS_NOT_NULL:
-                result = !(l == ValueNull.INSTANCE);
+                result = l != ValueNull.INSTANCE;
                 break;
             default:
                 throw DbException.throwInternalError("type=" + compareType);

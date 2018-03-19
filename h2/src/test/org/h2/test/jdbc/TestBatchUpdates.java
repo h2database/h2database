@@ -542,7 +542,7 @@ public class TestBatchUpdates extends TestBase {
             trace("Count val is: " + count);
             // make sure that we have the correct error code for
             // the failed update.
-            if (!(batchUpdates[1] == -3 && count == 1)) {
+            if (batchUpdates[1] != -3 || count != 1) {
                 fail("insert failed");
             }
         }

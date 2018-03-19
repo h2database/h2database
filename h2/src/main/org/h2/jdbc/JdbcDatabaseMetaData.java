@@ -143,18 +143,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                         ", " + quoteArray(types) + ");");
             }
             checkClosed();
-            String tableType;
             int typesLength = types != null ? types.length : 0;
-            if (typesLength > 0) {
-                StatementBuilder buff = new StatementBuilder("TABLE_TYPE IN(");
-                for (int i = 0; i < typesLength; i++) {
-                    buff.appendExceptFirst(", ");
-                    buff.append('?');
-                }
-                tableType = buff.append(')').toString();
-            } else {
-                tableType = "TRUE";
-            }
 
             String tableSelect = "SELECT "
                     + "TABLE_CATALOG TABLE_CAT, "
@@ -171,8 +160,15 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                     + "FROM INFORMATION_SCHEMA.TABLES "
                     + "WHERE TABLE_CATALOG LIKE ? ESCAPE ? "
                     + "AND TABLE_SCHEMA LIKE ? ESCAPE ? "
-                    + "AND TABLE_NAME LIKE ? ESCAPE ? "
-                    + "AND (" + tableType + ") ";
+                    + "AND TABLE_NAME LIKE ? ESCAPE ?";
+            if (typesLength > 0) {
+                StatementBuilder buff = new StatementBuilder(tableSelect).append(" AND TABLE_TYPE IN(");
+                for (int i = 0; i < typesLength; i++) {
+                    buff.appendExceptFirst(", ");
+                    buff.append('?');
+                }
+                tableSelect = buff.append(')').toString();
+            }
 
             boolean includeSynonyms = types == null || Arrays.asList(types).contains("SYNONYM");
             String synonymSelect = "SELECT "

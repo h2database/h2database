@@ -1539,7 +1539,7 @@ public class TestPreparedStatement extends TestBase {
                 assertTrue(x.compareTo(new java.math.BigDecimal(v)) == 0);
             }
         }
-        assertTrue(!rs.next());
+        assertFalse(rs.next());
     }
 
     private void testColumnMetaDataWithEquals(Connection conn)

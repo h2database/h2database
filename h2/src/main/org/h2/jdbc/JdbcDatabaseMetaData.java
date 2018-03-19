@@ -158,14 +158,14 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                     + "TYPE_NAME REF_GENERATION, "
                     + "SQL "
                     + "FROM INFORMATION_SCHEMA.TABLES "
-                    + "WHERE TABLE_CATALOG LIKE ? ESCAPE ? "
-                    + "AND TABLE_SCHEMA LIKE ? ESCAPE ? "
-                    + "AND TABLE_NAME LIKE ? ESCAPE ?";
+                    + "WHERE TABLE_CATALOG LIKE ?1 ESCAPE ?4 "
+                    + "AND TABLE_SCHEMA LIKE ?2 ESCAPE ?4 "
+                    + "AND TABLE_NAME LIKE ?3 ESCAPE ?4";
             if (typesLength > 0) {
                 StatementBuilder buff = new StatementBuilder(tableSelect).append(" AND TABLE_TYPE IN(");
                 for (int i = 0; i < typesLength; i++) {
                     buff.appendExceptFirst(", ");
-                    buff.append('?');
+                    buff.append('?').append(i + 5);
                 }
                 tableSelect = buff.append(')').toString();
             }
@@ -184,9 +184,9 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                     + "TYPE_NAME REF_GENERATION, "
                     + "NULL AS SQL "
                     + "FROM INFORMATION_SCHEMA.SYNONYMS "
-                    + "WHERE SYNONYM_CATALOG LIKE ? ESCAPE ? "
-                    + "AND SYNONYM_SCHEMA LIKE ? ESCAPE ? "
-                    + "AND SYNONYM_NAME LIKE ? ESCAPE ? "
+                    + "WHERE SYNONYM_CATALOG LIKE ?1 ESCAPE ?4 "
+                    + "AND SYNONYM_SCHEMA LIKE ?2 ESCAPE ?4 "
+                    + "AND SYNONYM_NAME LIKE ?3 ESCAPE ?4 "
                     + "AND (" + includeSynonyms + ") ";
 
             PreparedStatement prep = conn.prepareAutoCloseStatement("SELECT "
@@ -204,19 +204,11 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                     + "FROM (" + synonymSelect  + " UNION " + tableSelect + ") "
                     + "ORDER BY TABLE_TYPE, TABLE_SCHEM, TABLE_NAME");
             prep.setString(1, getCatalogPattern(catalogPattern));
-            prep.setString(2, "\\");
-            prep.setString(3, getSchemaPattern(schemaPattern));
+            prep.setString(2, getSchemaPattern(schemaPattern));
+            prep.setString(3, getPattern(tableNamePattern));
             prep.setString(4, "\\");
-            prep.setString(5, getPattern(tableNamePattern));
-            prep.setString(6, "\\");
-            prep.setString(7, getCatalogPattern(catalogPattern));
-            prep.setString(8, "\\");
-            prep.setString(9, getSchemaPattern(schemaPattern));
-            prep.setString(10, "\\");
-            prep.setString(11, getPattern(tableNamePattern));
-            prep.setString(12, "\\");
             for (int i = 0; i < typesLength; i++) {
-                prep.setString(13 + i, types[i]);
+                prep.setString(5 + i, types[i]);
             }
             return prep.executeQuery();
         } catch (Exception e) {

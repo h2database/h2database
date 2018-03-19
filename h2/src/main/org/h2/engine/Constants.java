@@ -101,7 +101,7 @@ public class Constants {
 
     /**
      * The TCP protocol version number 17.
-     * @since 1.4.197 (TODO)
+     * @since 1.4.197 (2018-03-18)
      */
     public static final int TCP_PROTOCOL_VERSION_17 = 17;
 

@@ -528,7 +528,7 @@ public class TestMVStore extends TestBase {
                 sleep(10);
             }
             Throwable e = exRef.get();
-            assertTrue(e != null);
+            assertNotNull(e);
             assertEquals(DataUtils.ERROR_WRITING_FAILED,
                     DataUtils.getErrorCode(e.getMessage()));
         } catch (IllegalStateException e) {
@@ -894,7 +894,7 @@ public class TestMVStore extends TestBase {
         s.close();
         s = openStore(fileName);
         Object test = s.getStoreHeader().get("test");
-        assertFalse(test == null);
+        assertNotNull(test);
         assertEquals("123", test.toString());
         s.close();
     }
@@ -1506,8 +1506,8 @@ public class TestMVStore extends TestBase {
         s.setRetentionTime(45000);
         assertEquals(2, s.getCurrentVersion());
         meta = s.getMetaMap();
-        assertTrue(meta.get("name.data") != null);
-        assertTrue(meta.get("name.data0") != null);
+        assertNotNull(meta.get("name.data"));
+        assertNotNull(meta.get("name.data0"));
         assertNull(meta.get("name.data1"));
         m = s.openMap("data");
         m0 = s.openMap("data0");

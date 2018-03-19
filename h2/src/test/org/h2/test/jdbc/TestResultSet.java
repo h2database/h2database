@@ -632,7 +632,7 @@ public class TestResultSet extends TestBase {
         assertTrue("TEST".equals(meta.getTableName(1)));
         assertTrue("ID".equals(meta.getColumnName(1)));
         assertTrue("VALUE".equals(meta.getColumnName(2)));
-        assertTrue(!meta.isAutoIncrement(1));
+        assertFalse(meta.isAutoIncrement(1));
         assertTrue(meta.isCaseSensitive(1));
         assertTrue(meta.isSearchable(1));
         assertFalse(meta.isCurrency(1));
@@ -709,7 +709,7 @@ public class TestResultSet extends TestBase {
         rs.next();
         assertTrue(rs.getRow() == 2);
         assertTrue(rs.getInt(2) == 0 && !rs.wasNull());
-        assertTrue(!rs.getBoolean(2));
+        assertFalse(rs.getBoolean(2));
         assertTrue(rs.getByte(2) == 0);
         assertTrue(rs.getShort(2) == 0);
         assertTrue(rs.getLong(2) == 0);
@@ -739,10 +739,10 @@ public class TestResultSet extends TestBase {
         assertTrue(rs.getString(1).equals("6") && !rs.wasNull());
         assertTrue(rs.getString(2) == null && rs.wasNull());
         o = rs.getObject(2);
-        assertTrue(o == null);
+        assertNull(o);
         assertTrue(rs.wasNull());
         o = rs.getObject(2, Integer.class);
-        assertTrue(o == null);
+        assertNull(o);
         assertTrue(rs.wasNull());
         assertFalse(rs.next());
         assertEquals(0, rs.getRow());
@@ -829,7 +829,7 @@ public class TestResultSet extends TestBase {
 
         assertTrue(rs.getRow() == 2);
         assertTrue(rs.getShort(2) == 0 && !rs.wasNull());
-        assertTrue(!rs.getBoolean(2));
+        assertFalse(rs.getBoolean(2));
         assertTrue(rs.getByte(2) == 0);
         assertTrue(rs.getInt(2) == 0);
         assertTrue(rs.getLong(2) == 0);
@@ -863,10 +863,10 @@ public class TestResultSet extends TestBase {
         assertTrue(rs.getString(1).equals("6") && !rs.wasNull());
         assertTrue(rs.getString(2) == null && rs.wasNull());
         o = rs.getObject(2);
-        assertTrue(o == null);
+        assertNull(o);
         assertTrue(rs.wasNull());
         o = rs.getObject(2, Short.class);
-        assertTrue(o == null);
+        assertNull(o);
         assertTrue(rs.wasNull());
         assertFalse(rs.next());
         assertEquals(0, rs.getRow());
@@ -960,7 +960,7 @@ public class TestResultSet extends TestBase {
 
         assertTrue(rs.getRow() == 2);
         assertTrue(rs.getLong(2) == 0 && !rs.wasNull());
-        assertTrue(!rs.getBoolean(2));
+        assertFalse(rs.getBoolean(2));
         assertTrue(rs.getByte(2) == 0);
         assertTrue(rs.getShort(2) == 0);
         assertTrue(rs.getInt(2) == 0);
@@ -994,10 +994,10 @@ public class TestResultSet extends TestBase {
         assertTrue(rs.getString(1).equals("6") && !rs.wasNull());
         assertTrue(rs.getString(2) == null && rs.wasNull());
         o = rs.getObject(2);
-        assertTrue(o == null);
+        assertNull(o);
         assertTrue(rs.wasNull());
         o = rs.getObject(2, Long.class);
-        assertTrue(o == null);
+        assertNull(o);
         assertTrue(rs.wasNull());
         assertFalse(rs.next());
         assertEquals(0, rs.getRow());
@@ -1091,7 +1091,7 @@ public class TestResultSet extends TestBase {
         trace("Value: <" + value + "> (should be: <\\%>)");
         assertTrue(rs.getInt(1) == 11 && !rs.wasNull());
         assertTrue(rs.getString(2).equals("\\%") && !rs.wasNull());
-        assertTrue(!rs.next());
+        assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
     }
 
@@ -1122,12 +1122,12 @@ public class TestResultSet extends TestBase {
 
         rs.next();
         assertTrue(rs.getInt(1) == 1);
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         assertTrue(rs.getInt(2) == -1);
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         bd = rs.getBigDecimal(2);
         assertTrue(bd.compareTo(new BigDecimal("-1.00")) == 0);
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         o = rs.getObject(2);
         trace(o.getClass().getName());
         assertTrue(o instanceof BigDecimal);
@@ -1139,12 +1139,12 @@ public class TestResultSet extends TestBase {
 
         rs.next();
         assertTrue(rs.getInt(1) == 2);
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         assertTrue(rs.getInt(2) == 0);
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         bd = rs.getBigDecimal(2);
         assertTrue(bd.compareTo(new BigDecimal("0.00")) == 0);
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
 
         rs.next();
         checkColumnBigDecimal(rs, 2, 1, "1.00");
@@ -1161,7 +1161,7 @@ public class TestResultSet extends TestBase {
         rs.next();
         checkColumnBigDecimal(rs, 2, 0, null);
 
-        assertTrue(!rs.next());
+        assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
 
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE DECIMAL(22,2))");
@@ -1197,13 +1197,13 @@ public class TestResultSet extends TestBase {
         BigDecimal bd;
         rs.next();
         assertTrue(rs.getInt(1) == 1);
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         assertTrue(rs.getInt(2) == -1);
         assertTrue(rs.getInt(3) == -1);
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         bd = rs.getBigDecimal(2);
         assertTrue(bd.compareTo(new BigDecimal("-1.00")) == 0);
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         o = rs.getObject(2);
         trace(o.getClass().getName());
         assertTrue(o instanceof Double);
@@ -1222,17 +1222,17 @@ public class TestResultSet extends TestBase {
         assertTrue(((Float) o).compareTo(-1f) == 0);
         rs.next();
         assertTrue(rs.getInt(1) == 2);
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         assertTrue(rs.getInt(2) == 0);
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         assertTrue(rs.getInt(3) == 0);
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         bd = rs.getBigDecimal(2);
         assertTrue(bd.compareTo(new BigDecimal("0.00")) == 0);
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         bd = rs.getBigDecimal(3);
         assertTrue(bd.compareTo(new BigDecimal("0.00")) == 0);
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         rs.next();
         assertEquals(1.0, rs.getDouble(2));
         assertEquals(1.0f, rs.getFloat(3));
@@ -1248,7 +1248,7 @@ public class TestResultSet extends TestBase {
         rs.next();
         checkColumnBigDecimal(rs, 2, 0, null);
         checkColumnBigDecimal(rs, 3, 0, null);
-        assertTrue(!rs.next());
+        assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
     }
 
@@ -1290,11 +1290,11 @@ public class TestResultSet extends TestBase {
         java.sql.Time time;
         java.sql.Timestamp ts;
         date = rs.getDate(2);
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         time = rs.getTime(2);
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         ts = rs.getTimestamp(2);
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         trace("Date: " + date.toString() + " Time:" + time.toString() +
                 " Timestamp:" + ts.toString());
         trace("Date ms: " + date.getTime() + " Time ms:" + time.getTime() +
@@ -1337,11 +1337,11 @@ public class TestResultSet extends TestBase {
         rs.next();
 
         date = rs.getDate("VALUE");
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         time = rs.getTime("VALUE");
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         ts = rs.getTimestamp("VALUE");
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         trace("Date: " + date.toString() +
                 " Time:" + time.toString() + " Timestamp:" + ts.toString());
         assertEquals("2002-02-02", date.toString());
@@ -1390,7 +1390,7 @@ public class TestResultSet extends TestBase {
             assertTrue(rs.getObject(2,
                             LocalDateTimeUtils.LOCAL_DATE_TIME) == null && rs.wasNull());
         }
-        assertTrue(!rs.next());
+        assertFalse(rs.next());
 
         rs = stat.executeQuery("SELECT DATE '2001-02-03' D, " +
                 "TIME '14:15:16', " +
@@ -1565,31 +1565,31 @@ public class TestResultSet extends TestBase {
         assertEqualsWithNull(new byte[] { (byte) 0x01, (byte) 0x01,
                 (byte) 0x01, (byte) 0x01 },
                 rs.getBytes(2));
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         assertEqualsWithNull(new byte[] { (byte) 0x01, (byte) 0x01,
                 (byte) 0x01, (byte) 0x01 },
                 rs.getObject(2, byte[].class));
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         rs.next();
 
         assertEqualsWithNull(new byte[] { (byte) 0x02, (byte) 0x02,
                 (byte) 0x02, (byte) 0x02 },
                 rs.getBytes("value"));
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         assertEqualsWithNull(new byte[] { (byte) 0x02, (byte) 0x02,
                 (byte) 0x02, (byte) 0x02 },
                 rs.getObject("value", byte[].class));
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         rs.next();
 
         assertEqualsWithNull(new byte[] { (byte) 0x00 },
                 readAllBytes(rs.getBinaryStream(2)));
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         rs.next();
 
         assertEqualsWithNull(new byte[] { (byte) 0xff, (byte) 0xff, (byte) 0xff },
                 readAllBytes(rs.getBinaryStream("VaLuE")));
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         rs.next();
 
         InputStream in = rs.getBinaryStream("value");
@@ -1597,26 +1597,26 @@ public class TestResultSet extends TestBase {
         assertEqualsWithNull(new byte[] { (byte) 0x0b, (byte) 0xce, (byte) 0xc1 }, b);
         Blob blob = rs.getObject("value", Blob.class);
         try {
-            assertTrue(blob != null);
+            assertNotNull(blob);
             assertEqualsWithNull(new byte[] { (byte) 0x0b, (byte) 0xce, (byte) 0xc1 },
                     readAllBytes(blob.getBinaryStream()));
             assertEqualsWithNull(new byte[] { (byte) 0xce,
                     (byte) 0xc1 }, readAllBytes(blob.getBinaryStream(2, 2)));
-            assertTrue(!rs.wasNull());
+            assertFalse(rs.wasNull());
         } finally {
             blob.free();
         }
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         rs.next();
 
         blob = rs.getObject("value", Blob.class);
         try {
-            assertTrue(blob != null);
+            assertNotNull(blob);
             assertEqualsWithNull(new byte[] { (byte) 0x03, (byte) 0x03,
                     (byte) 0x03, (byte) 0x03 }, readAllBytes(blob.getBinaryStream()));
             assertEqualsWithNull(new byte[] { (byte) 0x03,
                     (byte) 0x03 }, readAllBytes(blob.getBinaryStream(2, 2)));
-            assertTrue(!rs.wasNull());
+            assertFalse(rs.wasNull());
             assertThrows(ErrorCode.INVALID_VALUE_2, blob).getBinaryStream(5, 1);
         } finally {
             blob.free();
@@ -1629,19 +1629,19 @@ public class TestResultSet extends TestBase {
 
         blob = rs.getObject("value", Blob.class);
         try {
-            assertTrue(blob != null);
+            assertNotNull(blob);
             assertEqualsWithNull(random, readAllBytes(blob.getBinaryStream()));
             byte[] expected = Arrays.copyOfRange(random, 100, 50102);
             byte[] got = readAllBytes(blob.getBinaryStream(101, 50002));
             assertEqualsWithNull(expected, got);
-            assertTrue(!rs.wasNull());
+            assertFalse(rs.wasNull());
             assertThrows(ErrorCode.INVALID_VALUE_2, blob).getBinaryStream(0x10001, 1);
             assertThrows(ErrorCode.INVALID_VALUE_2, blob).getBinaryStream(0x10002, 0);
         } finally {
             blob.free();
         }
 
-        assertTrue(!rs.next());
+        assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
     }
 
@@ -1669,7 +1669,7 @@ public class TestResultSet extends TestBase {
         assertTrue(obj instanceof java.sql.Clob);
         string = rs.getString(2);
         assertTrue(string != null && string.equals("Test"));
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         rs.next();
         InputStreamReader reader = null;
         try {
@@ -1678,7 +1678,7 @@ public class TestResultSet extends TestBase {
             assertTrue(false);
         }
         string = readString(reader);
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         trace(string);
         assertTrue(string != null && string.equals("Hello"));
         rs.next();
@@ -1688,13 +1688,13 @@ public class TestResultSet extends TestBase {
             assertTrue(false);
         }
         string = readString(reader);
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         trace(string);
         assertTrue(string != null && string.equals("World!"));
         rs.next();
 
         string = readString(rs.getCharacterStream(2));
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         trace(string);
         assertTrue(string != null && string.equals("Hallo"));
         Clob clob = rs.getClob(2);
@@ -1708,33 +1708,33 @@ public class TestResultSet extends TestBase {
         rs.next();
 
         string = readString(rs.getCharacterStream("value"));
-        assertTrue(!rs.wasNull());
+        assertFalse(rs.wasNull());
         trace(string);
         assertTrue(string != null && string.equals("Welt!"));
         rs.next();
 
         clob = rs.getObject("value", Clob.class);
         try {
-            assertTrue(clob != null);
+            assertNotNull(clob);
             string = readString(clob.getCharacterStream());
             assertTrue(string != null && string.equals("Test2"));
-            assertTrue(!rs.wasNull());
+            assertFalse(rs.wasNull());
         } finally {
             clob.free();
         }
         rs.next();
 
-        assertTrue(rs.getCharacterStream(2) == null);
+        assertNull(rs.getCharacterStream(2));
         assertTrue(rs.wasNull());
         rs.next();
 
-        assertTrue(rs.getAsciiStream("Value") == null);
+        assertNull(rs.getAsciiStream("Value"));
         assertTrue(rs.wasNull());
 
         assertTrue(rs.getStatement() == stat);
-        assertTrue(rs.getWarnings() == null);
+        assertNull(rs.getWarnings());
         rs.clearWarnings();
-        assertTrue(rs.getWarnings() == null);
+        assertNull(rs.getWarnings());
         assertEquals(ResultSet.FETCH_FORWARD, rs.getFetchDirection());
         assertEquals(ResultSet.CONCUR_UPDATABLE, rs.getConcurrency());
         rs.next();
@@ -1835,7 +1835,7 @@ public class TestResultSet extends TestBase {
             assertTrue(rs.wasNull());
         } else {
             trace("BigDecimal i=" + i + " bd=" + bd + " ; i1=" + i1 + " bd1=" + bd1);
-            assertTrue(!rs.wasNull());
+            assertFalse(rs.wasNull());
             assertTrue(i1 == i);
             assertTrue(bd1.compareTo(new BigDecimal(bd)) == 0);
         }

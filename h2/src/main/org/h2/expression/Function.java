@@ -956,7 +956,7 @@ public class Function extends Expression implements FunctionCall {
             result = v0;
             for (int i = 0; i < args.length; i++) {
                 Value v = getNullOrValue(session, args, values, i);
-                if (!(v == ValueNull.INSTANCE)) {
+                if (v != ValueNull.INSTANCE) {
                     result = v.convertTo(dataType);
                     break;
                 }
@@ -968,7 +968,7 @@ public class Function extends Expression implements FunctionCall {
             result = ValueNull.INSTANCE;
             for (int i = 0; i < args.length; i++) {
                 Value v = getNullOrValue(session, args, values, i);
-                if (!(v == ValueNull.INSTANCE)) {
+                if (v != ValueNull.INSTANCE) {
                     v = v.convertTo(dataType);
                     if (result == ValueNull.INSTANCE) {
                         result = v;
@@ -1005,7 +1005,7 @@ public class Function extends Expression implements FunctionCall {
                 // (expr, when, then, else)
                 // (expr, when, then, when, then)
                 // (expr, when, then, when, then, else)
-                if (!(v0 == ValueNull.INSTANCE)) {
+                if (v0 != ValueNull.INSTANCE) {
                     for (int i = 1, len = args.length - 1; i < len; i += 2) {
                         Value when = args[i].getValue(session);
                         if (database.areEqual(v0, when)) {

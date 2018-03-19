@@ -47,20 +47,34 @@ public class RangeIndex extends BaseIndex {
 
     @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        long min = rangeTable.getMin(session), start = min;
-        long max = rangeTable.getMax(session), end = max;
+        long min = rangeTable.getMin(session);
+        long max = rangeTable.getMax(session);
         long step = rangeTable.getStep(session);
         try {
-            start = Math.max(min, first == null ? min : first.getValue(0).getLong());
+            long v = first.getValue(0).getLong();
+            if (step > 0) {
+                if (v > min) {
+                    min += (v - min + step - 1) / step * step;
+                }
+            } else if (v > max) {
+                max = v;
+            }
         } catch (Exception e) {
             // error when converting the value - ignore
         }
         try {
-            end = Math.min(max, last == null ? max : last.getValue(0).getLong());
+            long v = last.getValue(0).getLong();
+            if (step > 0) {
+                if (v < max) {
+                    max = v;
+                }
+            } else if (v < min) {
+                min -= (min - v - step - 1) / step * step;
+            }
         } catch (Exception e) {
             // error when converting the value - ignore
         }
-        return new RangeCursor(session, start, end, step);
+        return new RangeCursor(session, min, max, step);
     }
 
     @Override
@@ -108,7 +122,7 @@ public class RangeIndex extends BaseIndex {
 
     @Override
     public long getRowCount(Session session) {
-        return rangeTable.getRowCountApproximation();
+        return rangeTable.getRowCount(session);
     }
 
     @Override

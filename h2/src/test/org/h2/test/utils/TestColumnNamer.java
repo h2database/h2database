@@ -47,7 +47,7 @@ public class TestColumnNamer extends TestBase {
         for (String id : ids) {
             Expression columnExp = ValueExpression.getDefault();
             String newColumnName = columnNamer.getColumnName(columnExp, index + 1, id);
-            assertTrue(newColumnName != null);
+            assertNotNull(newColumnName);
             assertTrue(newColumnName.length() <= 30);
             assertTrue(newColumnName.length() >= 1);
             assertEquals(newColumnName, expectedColumnName[index]);

@@ -141,7 +141,7 @@ public class TestDataUtils extends TestBase {
             }
             try {
                 HashMap<String, String> map = DataUtils.parseMap(buff.toString());
-                assertFalse(map == null);
+                assertNotNull(map);
                 // ok
             } catch (IllegalStateException e) {
                 // ok - but not another exception

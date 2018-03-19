@@ -174,7 +174,7 @@ public class TestMVStoreBenchmark extends TestBase {
                 for (int a = 0; a < 5; a++) {
                     for (int i = 0; i < size; i++) {
                         String x = map.get(i);
-                        assertTrue(x != null);
+                        assertNotNull(x);
                     }
                 }
                 for (int i = 0; i < size; i++) {

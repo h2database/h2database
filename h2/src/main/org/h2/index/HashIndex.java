@@ -90,7 +90,7 @@ public class HashIndex extends BaseIndex {
 
     @Override
     public long getRowCount(Session session) {
-        return getRowCountApproximation();
+        return rows.size();
     }
 
     @Override

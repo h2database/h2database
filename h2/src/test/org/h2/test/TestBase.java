@@ -716,11 +716,7 @@ public abstract class TestBase {
      * @throws AssertionError if the values are not equal
      */
     public void assertEquals(Object expected, Object actual) {
-        if (expected == null || actual == null) {
-            assertTrue(expected == actual);
-            return;
-        }
-        if (!expected.equals(actual)) {
+        if (!Objects.equals(expected, actual)) {
             fail(" expected: " + expected + " actual: " + actual);
         }
     }
@@ -961,7 +957,9 @@ public abstract class TestBase {
      * @throws AssertionError if the condition is false
      */
     public void assertTrue(boolean condition) {
-        assertTrue("Expected: true got: false", condition);
+        if (!condition) {
+            fail("Expected: true got: false");
+        }
     }
 
     /**
@@ -996,7 +994,9 @@ public abstract class TestBase {
      * @throws AssertionError if the condition is true
      */
     protected void assertFalse(boolean value) {
-        assertFalse("Expected: false got: true", value);
+        if (value) {
+            fail("Expected: false got: true");
+        }
     }
 
     /**

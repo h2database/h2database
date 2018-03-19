@@ -1250,7 +1250,6 @@ public class JdbcPreparedStatement extends JdbcStatement implements
     @Override
     public int[] executeBatch() throws SQLException {
         try {
-            int id = getNextId(TraceObject.PREPARED_STATEMENT);
             debugCodeCall("executeBatch");
             if (batchParameters == null) {
                 // TODO batch: check what other database do if no parameters are

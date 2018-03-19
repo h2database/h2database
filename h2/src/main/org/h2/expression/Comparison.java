@@ -275,7 +275,7 @@ public class Comparison extends Condition {
         return ValueBoolean.get(result);
     }
 
-    private String[] getEnumerators(Value left, Value right) {
+    private static String[] getEnumerators(Value left, Value right) {
         if (left.getType() == Value.ENUM) {
             return ((ValueEnum) left).getEnumerators();
         } else if (right.getType() == Value.ENUM) {

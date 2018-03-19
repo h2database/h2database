@@ -144,9 +144,10 @@ public class JdbcDatabaseMetaData extends TraceObject implements
             }
             checkClosed();
             String tableType;
-            if (types != null && types.length > 0) {
+            int typesLength = types != null ? types.length : 0;
+            if (typesLength > 0) {
                 StatementBuilder buff = new StatementBuilder("TABLE_TYPE IN(");
-                for (String ignored : types) {
+                for (int i = 0; i < typesLength; i++) {
                     buff.appendExceptFirst(", ");
                     buff.append('?');
                 }
@@ -218,7 +219,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
             prep.setString(10, "\\");
             prep.setString(11, getPattern(tableNamePattern));
             prep.setString(12, "\\");
-            for (int i = 0; types != null && i < types.length; i++) {
+            for (int i = 0; i < typesLength; i++) {
                 prep.setString(13 + i, types[i]);
             }
             return prep.executeQuery();

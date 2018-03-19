@@ -125,7 +125,7 @@ public class TestNetUtils extends TestBase {
             closeSilently(socket);
             closeSilently(serverSocket);
             if (task != null) {
-                assertTrue(task.getException() != null);
+                assertNotNull(task.getException());
                 assertEquals(javax.net.ssl.SSLHandshakeException.class.getName(),
                         task.getException().getClass().getName());
                 assertContains(task.getException().getMessage(), "certificate_unknown");

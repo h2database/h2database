@@ -975,6 +975,31 @@ public abstract class TestBase {
     }
 
     /**
+     * Check that the passed object is not null.
+     *
+     * @param obj the object
+     * @throws AssertionError if the condition is false
+     */
+    public void assertNotNull(Object obj) {
+        if (obj == null) {
+            fail("Expected: not null got: null");
+        }
+    }
+
+    /**
+     * Check that the passed object is not null.
+     *
+     * @param message the message to print if the condition is false
+     * @param obj the object
+     * @throws AssertionError if the condition is false
+     */
+    public void assertNotNull(String message, Object obj) {
+        if (obj == null) {
+            fail(message);
+        }
+    }
+
+    /**
      * Check that the passed boolean is true.
      *
      * @param message the message to print if the condition is false

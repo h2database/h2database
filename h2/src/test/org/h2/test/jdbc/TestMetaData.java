@@ -127,7 +127,7 @@ public class TestMetaData extends TestBase {
         rs = stat.executeQuery("select 1 from dual");
         rs.next();
         rsMeta = rs.getMetaData();
-        assertTrue(rsMeta.getCatalogName(1) != null);
+        assertNotNull(rsMeta.getCatalogName(1));
         assertEquals("1", rsMeta.getColumnLabel(1));
         assertEquals("1", rsMeta.getColumnName(1));
         assertEquals("", rsMeta.getSchemaName(1));

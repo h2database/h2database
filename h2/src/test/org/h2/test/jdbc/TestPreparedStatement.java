@@ -404,7 +404,7 @@ public class TestPreparedStatement extends TestBase {
         Thread.sleep(100);
         prep.cancel();
         SQLException e = (SQLException) t.getException();
-        assertTrue(e != null);
+        assertNotNull(e);
         assertEquals(ErrorCode.STATEMENT_WAS_CANCELED, e.getErrorCode());
         prep.setInt(1, 1);
         prep.setInt(2, 1);

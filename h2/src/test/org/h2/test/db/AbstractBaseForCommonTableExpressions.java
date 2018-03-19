@@ -57,7 +57,7 @@ public abstract class AbstractBaseForCommonTableExpressions extends TestBase {
             rs = prep.executeQuery();
             for (int columnIndex = 1; columnIndex <= rs.getMetaData().getColumnCount(); columnIndex++) {
 
-                assertTrue(rs.getMetaData().getColumnLabel(columnIndex) != null);
+                assertNotNull(rs.getMetaData().getColumnLabel(columnIndex));
                 assertEquals(expectedColumnNames[columnIndex - 1], rs.getMetaData().getColumnLabel(columnIndex));
                 assertEquals(
                         "wrong type of column " + rs.getMetaData().getColumnLabel(columnIndex) + " on iteration #"

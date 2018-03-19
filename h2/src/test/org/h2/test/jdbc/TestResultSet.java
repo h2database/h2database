@@ -1597,7 +1597,7 @@ public class TestResultSet extends TestBase {
         assertEqualsWithNull(new byte[] { (byte) 0x0b, (byte) 0xce, (byte) 0xc1 }, b);
         Blob blob = rs.getObject("value", Blob.class);
         try {
-            assertTrue(blob != null);
+            assertNotNull(blob);
             assertEqualsWithNull(new byte[] { (byte) 0x0b, (byte) 0xce, (byte) 0xc1 },
                     readAllBytes(blob.getBinaryStream()));
             assertEqualsWithNull(new byte[] { (byte) 0xce,
@@ -1611,7 +1611,7 @@ public class TestResultSet extends TestBase {
 
         blob = rs.getObject("value", Blob.class);
         try {
-            assertTrue(blob != null);
+            assertNotNull(blob);
             assertEqualsWithNull(new byte[] { (byte) 0x03, (byte) 0x03,
                     (byte) 0x03, (byte) 0x03 }, readAllBytes(blob.getBinaryStream()));
             assertEqualsWithNull(new byte[] { (byte) 0x03,
@@ -1629,7 +1629,7 @@ public class TestResultSet extends TestBase {
 
         blob = rs.getObject("value", Blob.class);
         try {
-            assertTrue(blob != null);
+            assertNotNull(blob);
             assertEqualsWithNull(random, readAllBytes(blob.getBinaryStream()));
             byte[] expected = Arrays.copyOfRange(random, 100, 50102);
             byte[] got = readAllBytes(blob.getBinaryStream(101, 50002));
@@ -1715,7 +1715,7 @@ public class TestResultSet extends TestBase {
 
         clob = rs.getObject("value", Clob.class);
         try {
-            assertTrue(clob != null);
+            assertNotNull(clob);
             string = readString(clob.getCharacterStream());
             assertTrue(string != null && string.equals("Test2"));
             assertFalse(rs.wasNull());

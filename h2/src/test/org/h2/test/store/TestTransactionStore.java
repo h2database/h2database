@@ -860,7 +860,7 @@ public class TestTransactionStore extends TestBase {
                             assertNull(map.get(x));
                         }
                     } catch (SQLException e) {
-                        assertTrue(map.get(x) != null);
+                        assertNotNull(map.get(x));
                         assertFalse(map.tryRemove(x));
                         // PostgreSQL needs to rollback
                         buff.append(" -> rollback");

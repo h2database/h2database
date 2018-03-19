@@ -219,16 +219,16 @@ public class TestFileSystem extends TestBase {
         String resource = "org/h2/test/scripts/testSimple.in.txt";
         InputStream in;
         in = getClass().getResourceAsStream("/" + resource);
-        assertTrue(in != null);
+        assertNotNull(in);
         in.close();
         in = getClass().getClassLoader().getResourceAsStream(resource);
-        assertTrue(in != null);
+        assertNotNull(in);
         in.close();
         in = FileUtils.newInputStream("classpath:" + resource);
-        assertTrue(in != null);
+        assertNotNull(in);
         in.close();
         in = FileUtils.newInputStream("classpath:/" + resource);
-        assertTrue(in != null);
+        assertNotNull(in);
         in.close();
     }
 

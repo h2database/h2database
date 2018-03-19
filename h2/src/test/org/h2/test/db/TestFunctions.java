@@ -520,7 +520,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         stat.execute("delete from test");
         rs = stat.executeQuery("call transaction_id()");
         rs.next();
-        assertTrue(rs.getString(1) != null);
+        assertNotNull(rs.getString(1));
         stat.execute("drop table test");
         conn.close();
     }

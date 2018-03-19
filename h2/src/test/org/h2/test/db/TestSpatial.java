@@ -914,7 +914,7 @@ public class TestSpatial extends TestBase {
             count++;
             int id = rs.getInt(1);
             if (id == 3 || id == 6) {
-                assertTrue(rs.getObject(2) != null);
+                assertNotNull(rs.getObject(2));
             } else {
                 assertNull(rs.getObject(2));
             }
@@ -933,7 +933,7 @@ public class TestSpatial extends TestBase {
         count = 0;
         while (rs.next()) {
             count++;
-            assertTrue(rs.getObject(2) != null);
+            assertNotNull(rs.getObject(2));
         }
         assertEquals(2, count);
 

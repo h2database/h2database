@@ -144,8 +144,43 @@ public class JdbcDatabaseMetaData extends TraceObject implements
             }
             checkClosed();
             int typesLength = types != null ? types.length : 0;
+            boolean includeSynonyms = types == null || Arrays.asList(types).contains("SYNONYM");
 
-            String tableSelect = "SELECT "
+            // (1024 - 16) is enough for the most cases
+            StringBuilder select = new StringBuilder(1008);
+            if (includeSynonyms) {
+                select.append("SELECT "
+                        + "TABLE_CAT, "
+                        + "TABLE_SCHEM, "
+                        + "TABLE_NAME, "
+                        + "TABLE_TYPE, "
+                        + "REMARKS, "
+                        + "TYPE_CAT, "
+                        + "TYPE_SCHEM, "
+                        + "TYPE_NAME, "
+                        + "SELF_REFERENCING_COL_NAME, "
+                        + "REF_GENERATION, "
+                        + "SQL "
+                        + "FROM ("
+                        + "SELECT "
+                        + "SYNONYM_CATALOG TABLE_CAT, "
+                        + "SYNONYM_SCHEMA TABLE_SCHEM, "
+                        + "SYNONYM_NAME as TABLE_NAME, "
+                        + "TYPE_NAME AS TABLE_TYPE, "
+                        + "REMARKS, "
+                        + "TYPE_NAME TYPE_CAT, "
+                        + "TYPE_NAME TYPE_SCHEM, "
+                        + "TYPE_NAME AS TYPE_NAME, "
+                        + "TYPE_NAME SELF_REFERENCING_COL_NAME, "
+                        + "TYPE_NAME REF_GENERATION, "
+                        + "NULL AS SQL "
+                        + "FROM INFORMATION_SCHEMA.SYNONYMS "
+                        + "WHERE SYNONYM_CATALOG LIKE ?1 ESCAPE ?4 "
+                        + "AND SYNONYM_SCHEMA LIKE ?2 ESCAPE ?4 "
+                        + "AND SYNONYM_NAME LIKE ?3 ESCAPE ?4 "
+                        + "UNION ");
+            }
+            select.append("SELECT "
                     + "TABLE_CATALOG TABLE_CAT, "
                     + "TABLE_SCHEMA TABLE_SCHEM, "
                     + "TABLE_NAME, "
@@ -160,49 +195,22 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                     + "FROM INFORMATION_SCHEMA.TABLES "
                     + "WHERE TABLE_CATALOG LIKE ?1 ESCAPE ?4 "
                     + "AND TABLE_SCHEMA LIKE ?2 ESCAPE ?4 "
-                    + "AND TABLE_NAME LIKE ?3 ESCAPE ?4";
+                    + "AND TABLE_NAME LIKE ?3 ESCAPE ?4");
             if (typesLength > 0) {
-                StatementBuilder buff = new StatementBuilder(tableSelect).append(" AND TABLE_TYPE IN(");
+                select.append(" AND TABLE_TYPE IN(");
                 for (int i = 0; i < typesLength; i++) {
-                    buff.appendExceptFirst(", ");
-                    buff.append('?').append(i + 5);
+                    if (i > 0) {
+                        select.append(", ");
+                    }
+                    select.append('?').append(i + 5);
                 }
-                tableSelect = buff.append(')').toString();
+                select.append(')');
             }
-
-            boolean includeSynonyms = types == null || Arrays.asList(types).contains("SYNONYM");
-            String synonymSelect = "SELECT "
-                    + "SYNONYM_CATALOG TABLE_CAT, "
-                    + "SYNONYM_SCHEMA TABLE_SCHEM, "
-                    + "SYNONYM_NAME as TABLE_NAME, "
-                    + "TYPE_NAME AS TABLE_TYPE, "
-                    + "REMARKS, "
-                    + "TYPE_NAME TYPE_CAT, "
-                    + "TYPE_NAME TYPE_SCHEM, "
-                    + "TYPE_NAME AS TYPE_NAME, "
-                    + "TYPE_NAME SELF_REFERENCING_COL_NAME, "
-                    + "TYPE_NAME REF_GENERATION, "
-                    + "NULL AS SQL "
-                    + "FROM INFORMATION_SCHEMA.SYNONYMS "
-                    + "WHERE SYNONYM_CATALOG LIKE ?1 ESCAPE ?4 "
-                    + "AND SYNONYM_SCHEMA LIKE ?2 ESCAPE ?4 "
-                    + "AND SYNONYM_NAME LIKE ?3 ESCAPE ?4 "
-                    + "AND (" + includeSynonyms + ") ";
-
-            PreparedStatement prep = conn.prepareAutoCloseStatement("SELECT "
-                    + "TABLE_CAT, "
-                    + "TABLE_SCHEM, "
-                    + "TABLE_NAME, "
-                    + "TABLE_TYPE, "
-                    + "REMARKS, "
-                    + "TYPE_CAT, "
-                    + "TYPE_SCHEM, "
-                    + "TYPE_NAME, "
-                    + "SELF_REFERENCING_COL_NAME, "
-                    + "REF_GENERATION, "
-                    + "SQL "
-                    + "FROM (" + synonymSelect  + " UNION " + tableSelect + ") "
-                    + "ORDER BY TABLE_TYPE, TABLE_SCHEM, TABLE_NAME");
+            if (includeSynonyms) {
+                select.append(')');
+            }
+            PreparedStatement prep = conn.prepareAutoCloseStatement(
+                    select.append(" ORDER BY TABLE_TYPE, TABLE_SCHEM, TABLE_NAME").toString());
             prep.setString(1, getCatalogPattern(catalogPattern));
             prep.setString(2, getSchemaPattern(schemaPattern));
             prep.setString(3, getPattern(tableNamePattern));

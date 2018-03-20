@@ -323,7 +323,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
             int idx = c.getColumnId();
             Value v = r.getValue(idx);
             if (v != null) {
-                array[i] = v.convertTo(c.getType());
+                array[i] = v.convertTo(c.getType(), -1, null, null, c.getEnumerators());
             }
         }
         array[keyColumns - 1] = ValueLong.get(r.getKey());

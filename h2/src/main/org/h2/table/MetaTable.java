@@ -1688,7 +1688,7 @@ public class MetaTable extends Table {
                         // CONSTRAINT_NAME
                         identifier(constraint.getName()),
                         // CONSTRAINT_TYPE
-                        constraintType.toString(),
+                        constraintType.getSqlName(),
                         // TABLE_CATALOG
                         catalog,
                         // TABLE_SCHEMA

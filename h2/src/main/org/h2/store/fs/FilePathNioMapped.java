@@ -223,7 +223,7 @@ class FileNioMapped extends FileBase {
                 file.setLength(newLength);
                 break;
             } catch (IOException e) {
-                if (i > 16 || e.toString().indexOf("user-mapped section open") < 0) {
+                if (i > 16 || !e.toString().contains("user-mapped section open")) {
                     throw e;
                 }
             }

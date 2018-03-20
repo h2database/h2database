@@ -830,14 +830,14 @@ public class WebApp {
         try {
             StringBuilder result = new StringBuilder(s.length());
             int idx = s.indexOf("<br />");
-            result.append(s.substring(0, idx));
+            result.append(s, 0, idx);
             while (true) {
                 int start = s.indexOf("org.h2.", idx);
                 if (start < 0) {
                     result.append(s.substring(idx));
                     break;
                 }
-                result.append(s.substring(idx, start));
+                result.append(s, idx, start);
                 int end = s.indexOf(')', start);
                 if (end < 0) {
                     result.append(s.substring(idx));
@@ -1253,8 +1253,7 @@ public class WebApp {
 
     private int getMaxrows() {
         String r = (String) session.get("maxrows");
-        int maxrows = r == null ? 0 : Integer.parseInt(r);
-        return maxrows;
+        return r == null ? 0 : Integer.parseInt(r);
     }
 
     private String getResult(Connection conn, int id, String sql,
@@ -1268,9 +1267,8 @@ public class WebApp {
                     sqlUpper.contains("ALTER") ||
                     sqlUpper.contains("RUNSCRIPT")) {
                 String sessionId = attributes.getProperty("jsessionid");
-                buff.append("<script type=\"text/javascript\">" +
-                        "parent['h2menu'].location='tables.do?jsessionid="
-                        + sessionId + "';</script>");
+                buff.append("<script type=\"text/javascript\">parent['h2menu'].location='tables.do?jsessionid=")
+                        .append(sessionId).append("';</script>");
             }
             Statement stat;
             DbContents contents = session.getContents();

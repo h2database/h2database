@@ -130,7 +130,7 @@ public class TestReadOnly extends TestBase {
         File f = File.createTempFile("test", "temp");
         assertTrue(f.canWrite());
         f.setReadOnly();
-        assertTrue(!f.canWrite());
+        assertFalse(f.canWrite());
         f.delete();
 
         f = File.createTempFile("test", "temp");
@@ -138,7 +138,7 @@ public class TestReadOnly extends TestBase {
         r.write(1);
         f.setReadOnly();
         r.close();
-        assertTrue(!f.canWrite());
+        assertFalse(f.canWrite());
         f.delete();
 
         deleteDb("readonlyFiles");
@@ -147,7 +147,7 @@ public class TestReadOnly extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
         stat.execute("INSERT INTO TEST VALUES(2, 'World')");
-        assertTrue(!conn.isReadOnly());
+        assertFalse(conn.isReadOnly());
         conn.close();
 
         if (setReadOnly) {

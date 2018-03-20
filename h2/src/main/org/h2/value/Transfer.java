@@ -668,10 +668,7 @@ public class Transfer {
             for (int i = 0; i < columns; i++) {
                 rs.addColumn(readString(), readInt(), readInt(), readInt());
             }
-            while (true) {
-                if (!readBoolean()) {
-                    break;
-                }
+            while (readBoolean()) {
                 Object[] o = new Object[columns];
                 for (int i = 0; i < columns; i++) {
                     o[i] = readValue().getObject();
@@ -764,8 +761,7 @@ public class Transfer {
         }
         byte[] data = new byte[8];
         Bits.writeLong(data, 0, lobId);
-        byte[] hmacData = SHA256.getHashWithSalt(data, lobMacSalt);
-        return hmacData;
+        return SHA256.getHashWithSalt(data, lobMacSalt);
     }
 
 }

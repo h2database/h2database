@@ -134,7 +134,7 @@ public class TestMVRTree extends TestMVStore {
         for (SpatialKey k; it.hasNext();) {
             k = it.next();
             // System.out.println(k + ": " + r.get(k));
-            assertTrue(k != null);
+            assertNotNull(k);
         }
         s.close();
     }
@@ -181,7 +181,7 @@ public class TestMVRTree extends TestMVStore {
         assertEquals(len, r.size());
         int count = 0;
         for (SpatialKey k : r.keySet()) {
-            assertTrue(r.get(k) != null);
+            assertNotNull(r.get(k));
             count++;
         }
         assertEquals(len, count);
@@ -413,7 +413,7 @@ public class TestMVRTree extends TestMVStore {
                 while (it.hasNext()) {
                     SpatialKey n = it.next();
                     String a = map.get(n);
-                    assertFalse(a == null);
+                    assertNotNull(a);
                 }
                 break;
             }
@@ -424,7 +424,7 @@ public class TestMVRTree extends TestMVStore {
                 while (it.hasNext()) {
                     SpatialKey n = it.next();
                     String a = map.get(n);
-                    assertFalse(a == null);
+                    assertNotNull(a);
                 }
                 break;
             }

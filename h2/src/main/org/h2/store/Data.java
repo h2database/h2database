@@ -716,9 +716,9 @@ public class Data {
         case Value.NULL:
             return ValueNull.INSTANCE;
         case BOOLEAN_TRUE:
-            return ValueBoolean.get(true);
+            return ValueBoolean.TRUE;
         case BOOLEAN_FALSE:
-            return ValueBoolean.get(false);
+            return ValueBoolean.FALSE;
         case INT_NEG:
             return ValueInt.get(-readVarInt());
         case Value.ENUM:
@@ -832,9 +832,8 @@ public class Data {
                 int tableId = readVarInt();
                 long lobId = readVarLong();
                 long precision = readVarLong();
-                ValueLobDb lob = ValueLobDb.create(type, handler, tableId,
+                return ValueLobDb.create(type, handler, tableId,
                         lobId, null, precision);
-                return lob;
             } else {
                 int tableId = readVarInt();
                 int objectId = readVarInt();
@@ -870,10 +869,7 @@ public class Data {
             for (int i = 0; i < columns; i++) {
                 rs.addColumn(readString(), readVarInt(), readVarInt(), readVarInt());
             }
-            while (true) {
-                if (readByte() == 0) {
-                    break;
-                }
+            while (readByte() != 0) {
                 Object[] o = new Object[columns];
                 for (int i = 0; i < columns; i++) {
                     o[i] = readValue().getObject();

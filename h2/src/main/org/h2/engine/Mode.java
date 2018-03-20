@@ -44,7 +44,7 @@ public class Mode {
          * Multiple rows with identical values in indexed columns are not allowed in
          * unique index.
          */
-        FORBID_ANY_DUPLICATES;
+        FORBID_ANY_DUPLICATES
     }
 
     private static final HashMap<String, Mode> MODES = new HashMap<>();

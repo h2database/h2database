@@ -376,10 +376,10 @@ public class ConnectionInfo implements Cloneable {
         if (nameNormalized == null) {
             if (!SysProperties.IMPLICIT_RELATIVE_PATH) {
                 if (!FileUtils.isAbsolute(name)) {
-                    if (name.indexOf("./") < 0 &&
-                            name.indexOf(".\\") < 0 &&
-                            name.indexOf(":/") < 0 &&
-                            name.indexOf(":\\") < 0) {
+                    if (!name.contains("./") &&
+                            !name.contains(".\\") &&
+                            !name.contains(":/") &&
+                            !name.contains(":\\")) {
                         // the name could start with "./", or
                         // it could start with a prefix such as "nio:./"
                         // for Windows, the path "\test" is not considered
@@ -456,7 +456,7 @@ public class ConnectionInfo implements Cloneable {
      */
     String getProperty(String key) {
         Object value = prop.get(key);
-        if (value == null || !(value instanceof String)) {
+        if (!(value instanceof String)) {
             return null;
         }
         return value.toString();

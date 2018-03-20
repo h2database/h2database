@@ -245,8 +245,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             SearchRow intersection) {
         ArrayList<Parameter> paramList = query.getParameters();
         if (originalParameters != null) {
-            for (int i = 0, size = originalParameters.size(); i < size; i++) {
-                Parameter orig = originalParameters.get(i);
+            for (Parameter orig : originalParameters) {
                 int idx = orig.getIndex();
                 Value value = orig.getValue(session);
                 setParameter(paramList, idx, value);

@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public abstract class Task implements Runnable {
 
-    private final static AtomicInteger counter = new AtomicInteger();
+    private static final AtomicInteger counter = new AtomicInteger();
 
     /**
      * A flag indicating the get() method has been called.

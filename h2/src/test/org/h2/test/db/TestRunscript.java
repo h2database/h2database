@@ -350,7 +350,7 @@ public class TestRunscript extends TestBase implements Trigger {
         Thread.sleep(200);
         stat.cancel();
         SQLException e = (SQLException) task.getException();
-        assertTrue(e != null);
+        assertNotNull(e);
         assertEquals(ErrorCode.STATEMENT_WAS_CANCELED, e.getErrorCode());
 
         stat.execute("set throttle 1000");
@@ -367,7 +367,7 @@ public class TestRunscript extends TestBase implements Trigger {
         Thread.sleep(200);
         stat.cancel();
         e = (SQLException) task.getException();
-        assertTrue(e != null);
+        assertNotNull(e);
         assertEquals(ErrorCode.STATEMENT_WAS_CANCELED, e.getErrorCode());
 
         conn.close();

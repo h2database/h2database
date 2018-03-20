@@ -110,10 +110,7 @@ public class JavaAggregate extends Expression {
                 return false;
             }
         }
-        if (filterCondition != null && !filterCondition.isEverything(visitor)) {
-            return false;
-        }
-        return true;
+        return filterCondition == null || filterCondition.isEverything(visitor);
     }
 
     @Override

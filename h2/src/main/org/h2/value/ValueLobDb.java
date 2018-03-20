@@ -198,17 +198,15 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             return this;
         } else if (t == Value.CLOB) {
             if (handler != null) {
-                Value copy = handler.getLobStorage().
+                return handler.getLobStorage().
                         createClob(getReader(), -1);
-                return copy;
             } else if (small != null) {
                 return ValueLobDb.createSmallLob(t, small);
             }
         } else if (t == Value.BLOB) {
             if (handler != null) {
-                Value copy = handler.getLobStorage().
+                return handler.getLobStorage().
                         createBlob(getInputStream(), -1);
-                return copy;
             } else if (small != null) {
                 return ValueLobDb.createSmallLob(t, small);
             }
@@ -246,8 +244,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     @Override
     public Value copy(DataHandler database, int tableId) {
         if (small == null) {
-            Value v2 = handler.getLobStorage().copyLob(this, tableId, getPrecision());
-            return v2;
+            return handler.getLobStorage().copyLob(this, tableId, getPrecision());
         } else if (small.length > database.getMaxLengthInplaceLob()) {
             LobStorageInterface s = database.getLobStorage();
             Value v;
@@ -582,8 +579,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                 return ValueLobDb.createSmallLob(Value.CLOB, small, len);
             }
             reader.reset();
-            ValueLobDb lob = new ValueLobDb(handler, reader, remaining);
-            return lob;
+            return new ValueLobDb(handler, reader, remaining);
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);
         }
@@ -618,8 +614,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                 byte[] small = Utils.copyBytes(buff, len);
                 return ValueLobDb.createSmallLob(Value.BLOB, small, small.length);
             }
-            ValueLobDb lob = new ValueLobDb(handler, buff, len, in, remaining);
-            return lob;
+            return new ValueLobDb(handler, buff, len, in, remaining);
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);
         }

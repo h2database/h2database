@@ -542,7 +542,7 @@ class ToDateTokenizer {
     /**
      * The format tokens.
      */
-    public static enum FormatTokenEnum {
+    public enum FormatTokenEnum {
         // 4-digit year
         YYYY(PARSLET_YEAR),
         // 4-digit year with sign (- = B.C.)

@@ -62,16 +62,16 @@ public class ConditionInSelect extends Condition {
         }
         int dataType = rows.getColumnType(0);
         if (dataType == Value.NULL) {
-            return ValueBoolean.get(false);
+            return ValueBoolean.FALSE;
         }
         l = l.convertTo(dataType);
         if (rows.containsDistinct(new Value[] { l })) {
-            return ValueBoolean.get(true);
+            return ValueBoolean.TRUE;
         }
         if (rows.containsDistinct(new Value[] { ValueNull.INSTANCE })) {
             return ValueNull.INSTANCE;
         }
-        return ValueBoolean.get(false);
+        return ValueBoolean.FALSE;
     }
 
     private Value getValueSlow(ResultInterface rows, Value l) {

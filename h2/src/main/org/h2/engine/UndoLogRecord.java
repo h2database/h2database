@@ -66,10 +66,7 @@ public class UndoLogRecord {
      */
     boolean canStore() {
         // if large transactions are enabled, this method is not called
-        if (table.getUniqueIndex() != null) {
-            return true;
-        }
-        return false;
+        return table.getUniqueIndex() != null;
     }
 
     /**

@@ -107,7 +107,7 @@ public class Function extends Expression implements FunctionCall {
      * Pseudo functions for DATEADD, DATEDIFF, and EXTRACT.
      */
     public static final int MILLISECOND = 126, EPOCH = 127, MICROSECOND = 128, NANOSECOND = 129,
-            TIMEZONE_HOUR = 130, TIMEZONE_MINUTE = 131, DECADE = 132, CENTURY = 133, 
+            TIMEZONE_HOUR = 130, TIMEZONE_MINUTE = 131, DECADE = 132, CENTURY = 133,
             MILLENNIUM = 134;
 
     public static final int DATABASE = 150, USER = 151, CURRENT_USER = 152,
@@ -714,9 +714,9 @@ public class Function extends Expression implements FunctionCall {
                     String tmp = v.getString();
                     if (!StringUtils.isNullOrEmpty(separator)
                             && !StringUtils.isNullOrEmpty(tmp)) {
-                        tmp = separator.concat(tmp);
+                        tmp = separator + tmp;
                     }
-                    result = ValueString.get(result.getString().concat(tmp),
+                    result = ValueString.get(result.getString() + tmp,
                             database.getMode().treatEmptyStringsAsNull);
                 }
             }
@@ -956,7 +956,7 @@ public class Function extends Expression implements FunctionCall {
             result = v0;
             for (int i = 0; i < args.length; i++) {
                 Value v = getNullOrValue(session, args, values, i);
-                if (!(v == ValueNull.INSTANCE)) {
+                if (v != ValueNull.INSTANCE) {
                     result = v.convertTo(dataType);
                     break;
                 }
@@ -968,7 +968,7 @@ public class Function extends Expression implements FunctionCall {
             result = ValueNull.INSTANCE;
             for (int i = 0; i < args.length; i++) {
                 Value v = getNullOrValue(session, args, values, i);
-                if (!(v == ValueNull.INSTANCE)) {
+                if (v != ValueNull.INSTANCE) {
                     v = v.convertTo(dataType);
                     if (result == ValueNull.INSTANCE) {
                         result = v;
@@ -1005,7 +1005,7 @@ public class Function extends Expression implements FunctionCall {
                 // (expr, when, then, else)
                 // (expr, when, then, when, then)
                 // (expr, when, then, when, then, else)
-                if (!(v0 == ValueNull.INSTANCE)) {
+                if (v0 != ValueNull.INSTANCE) {
                     for (int i = 1, len = args.length - 1; i < len; i += 2) {
                         Value when = args[i].getValue(session);
                         if (database.areEqual(v0, when)) {
@@ -1048,13 +1048,13 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case ARRAY_CONTAINS: {
-            result = ValueBoolean.get(false);
+            result = ValueBoolean.FALSE;
             if (v0.getType() == Value.ARRAY) {
                 Value v1 = getNullOrValue(session, args, values, 1);
                 Value[] list = ((ValueArray) v0).getList();
                 for (Value v : list) {
                     if (v.equals(v1)) {
-                        result = ValueBoolean.get(true);
+                        result = ValueBoolean.TRUE;
                         break;
                     }
                 }
@@ -1512,9 +1512,8 @@ public class Function extends Expression implements FunctionCall {
             String[] columns = StringUtils.arraySplit(columnList,
                     fieldSeparator, true);
             try {
-                ValueResultSet vr = ValueResultSet.get(csv.read(fileName,
+                result = ValueResultSet.get(csv.read(fileName,
                         columns, charset));
-                result = vr;
             } catch (SQLException e) {
                 throw DbException.convert(e);
             }
@@ -1645,8 +1644,9 @@ public class Function extends Expression implements FunctionCall {
             break;
         case SIGNAL: {
             String sqlState = v0.getString();
-            if (sqlState.startsWith("00") || !SIGNAL_PATTERN.matcher(sqlState).matches())
+            if (sqlState.startsWith("00") || !SIGNAL_PATTERN.matcher(sqlState).matches()) {
                 throw DbException.getInvalidValueException("SQLSTATE", sqlState);
+            }
             String msgText = v1.getString();
             throw DbException.fromUser(sqlState, msgText);
         }

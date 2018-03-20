@@ -219,7 +219,7 @@ public class AbbaLockingDetector implements Runnable {
                         dumpStackTraceElement(info, sb, i, e);
                         startDumping = true;
                     }
-                    sb.append("\t-  locked " + mi);
+                    sb.append("\t-  locked ").append(mi);
                     sb.append('\n');
                 }
             }

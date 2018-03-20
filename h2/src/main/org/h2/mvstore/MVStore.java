@@ -621,8 +621,9 @@ public final class MVStore {
             // the following can fail for various reasons
             try {
                 HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
-                if (m == null)
+                if (m == null) {
                     continue;
+                }
                 int blockSize = DataUtils.readHexInt(
                         m, "blockSize", BLOCK_SIZE);
                 if (blockSize != BLOCK_SIZE) {

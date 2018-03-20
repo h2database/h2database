@@ -153,7 +153,7 @@ public class ThreadDeadlockDetector {
         print.print("\"" + ti.getThreadName() + "\"" + " Id="
                 + ti.getThreadId() + " in " + ti.getThreadState());
         if (ti.getLockName() != null) {
-            print.append(" on lock=" + ti.getLockName());
+            print.append(" on lock=").append(ti.getLockName());
         }
         if (ti.isSuspended()) {
             print.append(" (suspended)");

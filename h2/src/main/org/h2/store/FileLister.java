@@ -113,8 +113,7 @@ public class FileLister {
             }
             if (ok) {
                 if (db == null || f.startsWith(start)) {
-                    String fileName = f;
-                    files.add(fileName);
+                    files.add(f);
                 }
             }
         }

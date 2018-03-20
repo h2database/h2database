@@ -378,8 +378,8 @@ public class TestCacheLongKeyLIRS extends TestBase {
             Integer x = test.get(i);
             Integer y = test.peek(i);
             if (i < size / 2) {
-                assertTrue("i: " + i, x != null);
-                assertTrue("i: " + i, y != null);
+                assertNotNull("i: " + i, x);
+                assertNotNull("i: " + i, y);
                 assertEquals(i * 10, x.intValue());
                 assertEquals(i * 10, y.intValue());
             } else {
@@ -398,7 +398,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         for (int i = 0; i < size; i++) {
             Integer x = test.get(i);
             if (i < size / 2 || i == size - 1 || i == size - 2) {
-                assertTrue("i: " + i, x != null);
+                assertNotNull("i: " + i, x);
                 assertEquals(i * 10, x.intValue());
             } else {
                 assertNull(x);

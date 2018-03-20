@@ -50,7 +50,7 @@ public class TestClassLoaderLeak extends TestBase {
             Thread.sleep(10);
         }
         ClassLoader cl = ref.get();
-        assertTrue(cl == null);
+        assertNull(cl);
         // fill the memory, so a heap dump is created
         // using -XX:+HeapDumpOnOutOfMemoryError
         // which can be analyzed using EclipseMAT

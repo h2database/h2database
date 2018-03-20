@@ -58,7 +58,7 @@ public class DbSchema {
     DbSchema(DbContents contents, String name, boolean isDefault) {
         this.contents = contents;
         this.name = name;
-        this.quotedName =  contents.quoteIdentifier(name);
+        this.quotedName = contents.quoteIdentifier(name);
         this.isDefault = isDefault;
         if (name == null) {
             // firebird

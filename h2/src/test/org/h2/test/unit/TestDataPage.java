@@ -126,8 +126,8 @@ public class TestDataPage extends TestBase implements DataHandler {
 
     private void testValues() {
         testValue(ValueNull.INSTANCE);
-        testValue(ValueBoolean.get(false));
-        testValue(ValueBoolean.get(true));
+        testValue(ValueBoolean.FALSE);
+        testValue(ValueBoolean.TRUE);
         for (int i = 0; i < 256; i++) {
             testValue(ValueByte.get((byte) i));
         }
@@ -205,7 +205,7 @@ public class TestDataPage extends TestBase implements DataHandler {
             }
         }
         testValue(ValueArray.get(new Value[0]));
-        testValue(ValueArray.get(new Value[] { ValueBoolean.get(true),
+        testValue(ValueArray.get(new Value[] { ValueBoolean.TRUE,
                 ValueInt.get(10) }));
 
         SimpleResultSet rs = new SimpleResultSet();

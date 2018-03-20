@@ -219,16 +219,16 @@ public class TestFileSystem extends TestBase {
         String resource = "org/h2/test/scripts/testSimple.in.txt";
         InputStream in;
         in = getClass().getResourceAsStream("/" + resource);
-        assertTrue(in != null);
+        assertNotNull(in);
         in.close();
         in = getClass().getClassLoader().getResourceAsStream(resource);
-        assertTrue(in != null);
+        assertNotNull(in);
         in.close();
         in = FileUtils.newInputStream("classpath:" + resource);
-        assertTrue(in != null);
+        assertNotNull(in);
         in.close();
         in = FileUtils.newInputStream("classpath:/" + resource);
-        assertTrue(in != null);
+        assertNotNull(in);
         in.close();
     }
 
@@ -320,7 +320,7 @@ public class TestFileSystem extends TestBase {
         for (String f : FileUtils.newDirectoryStream(
                 "zip:" + getBaseDir() + "/fsJar.zip")) {
             assertFalse(FileUtils.isAbsolute(f));
-            assertTrue(!FileUtils.isDirectory(f));
+            assertFalse(FileUtils.isDirectory(f));
             assertTrue(FileUtils.size(f) > 0);
             assertTrue(f.endsWith(FileUtils.getName(f)));
             assertEquals(0, FileUtils.lastModified(f));
@@ -599,7 +599,7 @@ public class TestFileSystem extends TestBase {
         IOUtils.copyFiles(fsBase + "/test", fsBase + "/test3");
         FileUtils.move(fsBase + "/test3", fsBase + "/test2");
         FileUtils.move(fsBase + "/test2", fsBase + "/test2");
-        assertTrue(!FileUtils.exists(fsBase + "/test3"));
+        assertFalse(FileUtils.exists(fsBase + "/test3"));
         assertTrue(FileUtils.exists(fsBase + "/test2"));
         assertEquals(10000, FileUtils.size(fsBase + "/test2"));
         byte[] buffer2 = new byte[10000];
@@ -624,7 +624,7 @@ public class TestFileSystem extends TestBase {
             assertTrue(FileUtils.isDirectory(fsBase + "/testDir"));
             if (!fsBase.startsWith("jdbc:")) {
                 FileUtils.deleteRecursive(fsBase + "/testDir", false);
-                assertTrue(!FileUtils.exists(fsBase + "/testDir"));
+                assertFalse(FileUtils.exists(fsBase + "/testDir"));
             }
         }
     }

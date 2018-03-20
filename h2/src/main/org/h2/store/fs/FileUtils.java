@@ -150,8 +150,8 @@ public class FileUtils {
         List<FilePath> list = FilePath.get(path).newDirectoryStream();
         int len = list.size();
         List<String> result = new ArrayList<>(len);
-        for (int i = 0; i < len; i++) {
-            result.add(list.get(i).toString());
+        for (FilePath filePath : list) {
+            result.add(filePath.toString());
         }
         return result;
     }

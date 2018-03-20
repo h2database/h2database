@@ -10,7 +10,7 @@ import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 
 public class ValueEnum extends ValueEnumBase {
-    private static enum Validation {
+    private enum Validation {
         DUPLICATE,
         EMPTY,
         INVALID,
@@ -30,7 +30,7 @@ public class ValueEnum extends ValueEnumBase {
      *
      * @param enumerators the enumerators
      */
-    public static final void check(final String[] enumerators) {
+    public static void check(final String[] enumerators) {
         switch (validate(enumerators)) {
             case VALID:
                 return;
@@ -45,7 +45,7 @@ public class ValueEnum extends ValueEnumBase {
         }
     }
 
-    private static final void check(final String[] enumerators, final Value value) {
+    private static void check(final String[] enumerators, final Value value) {
         check(enumerators);
 
         if (validate(enumerators, value) != Validation.VALID) {
@@ -78,8 +78,9 @@ public class ValueEnum extends ValueEnumBase {
         final String cleanLabel = sanitize(value);
 
         for (int i = 0; i < enumerators.length; i++) {
-            if (cleanLabel.equals(sanitize(enumerators[i])))
+            if (cleanLabel.equals(sanitize(enumerators[i]))) {
                 return new ValueEnum(enumerators, i);
+            }
         }
 
         throw DbException.get(ErrorCode.GENERAL_ERROR_1, "Unexpected error");
@@ -106,7 +107,9 @@ public class ValueEnum extends ValueEnumBase {
     }
 
     private static String[] sanitize(final String[] enumerators) {
-        if (enumerators == null || enumerators.length == 0) return null;
+        if (enumerators == null || enumerators.length == 0) {
+            return null;
+        }
 
         final String[] clean = new String[enumerators.length];
 
@@ -162,8 +165,8 @@ public class ValueEnum extends ValueEnumBase {
         if (DataType.isStringType(value.getType())) {
             final String cleanLabel = sanitize(value.getString());
 
-            for (int i = 0; i < enumerators.length; i++) {
-                if (cleanLabel.equals(sanitize(enumerators[i]))) {
+            for (String enumerator : enumerators) {
+                if (cleanLabel.equals(sanitize(enumerator))) {
                     return Validation.VALID;
                 }
             }

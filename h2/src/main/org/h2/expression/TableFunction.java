@@ -124,9 +124,8 @@ public class TableFunction extends Function {
             }
         }
         result.done();
-        ValueResultSet vr = ValueResultSet.get(getSimpleResultSet(result,
+        return ValueResultSet.get(getSimpleResultSet(result,
                 Integer.MAX_VALUE));
-        return vr;
     }
 
     private static SimpleResultSet getSimpleResultSet(LocalResult rs,

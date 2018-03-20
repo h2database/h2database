@@ -97,14 +97,9 @@ class Optimizer {
     }
 
     private boolean canStop(int x) {
-        if ((x & 127) == 0) {
-            long t = System.nanoTime() - startNs;
-            // don't calculate for simple queries (no rows or so)
-            if (cost >= 0 && 10 * t > cost * TimeUnit.MILLISECONDS.toNanos(1)) {
-                return true;
-            }
-        }
-        return false;
+        return (x & 127) == 0
+                && cost >= 0  // don't calculate for simple queries (no rows or so)
+                && 10 * (System.nanoTime() - startNs) > cost * TimeUnit.MILLISECONDS.toNanos(1);
     }
 
     private void calculateBruteForceAll() {

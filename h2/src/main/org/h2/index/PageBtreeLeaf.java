@@ -154,9 +154,8 @@ public class PageBtreeLeaf extends PageBtree {
             if (entryCount > 0) {
                 byte[] d = data.getBytes();
                 int dataStart = offsets[entryCount - 1];
-                int dataEnd = offset;
                 System.arraycopy(d, dataStart, d, dataStart - rowLength,
-                        dataEnd - dataStart + rowLength);
+                        offset - dataStart + rowLength);
             }
             index.writeRow(data, offset, row, onlyPosition);
         }
@@ -206,7 +205,7 @@ public class PageBtreeLeaf extends PageBtree {
     PageBtree split(int splitPoint) {
         int newPageId = index.getPageStore().allocatePage();
         PageBtreeLeaf p2 = PageBtreeLeaf.create(index, newPageId, parentPageId);
-        for (int i = splitPoint; i < entryCount;) {
+        while (splitPoint < entryCount) {
             p2.addRow(getRow(splitPoint), false);
             removeRow(splitPoint);
         }

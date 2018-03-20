@@ -677,10 +677,7 @@ public class TableView extends Table {
             if (view != other.view) {
                 return false;
             }
-            if (!Arrays.equals(masks, other.masks)) {
-                return false;
-            }
-            return true;
+            return Arrays.equals(masks, other.masks);
         }
     }
 
@@ -703,10 +700,7 @@ public class TableView extends Table {
         if (exception.getErrorCode() != ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1) {
             return false;
         }
-        if (!exception.getMessage().contains("\"" + this.getName() + "\"")) {
-            return false;
-        }
-        return true;
+        return exception.getMessage().contains("\"" + this.getName() + "\"");
     }
 
     public List<Table> getTables() {
@@ -742,7 +736,7 @@ public class TableView extends Table {
                 schema, Arrays.asList(columnTemplates), db);
 
         List<Column> columnTemplateList;
-        String[] querySQLOutput = new String[]{null};
+        String[] querySQLOutput = {null};
         ArrayList<String> columnNames = new ArrayList<>();
         for (Column columnTemplate: columnTemplates) {
             columnNames.add(columnTemplate.getName());

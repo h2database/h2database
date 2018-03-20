@@ -135,10 +135,7 @@ public class ColumnNamer {
             return false;
         }
         Matcher match = configuration.getCompiledRegularExpressionMatchAllowed().matcher(proposedName);
-        if (!match.matches()) {
-            return false;
-        }
-        return true;
+        return match.matches();
     }
 
     private String fixColumnName(String proposedName) {

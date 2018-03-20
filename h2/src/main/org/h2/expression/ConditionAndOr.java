@@ -100,7 +100,7 @@ public class ConditionAndOr extends Condition {
             if (r == ValueNull.INSTANCE) {
                 return r;
             }
-            return ValueBoolean.get(true);
+            return ValueBoolean.TRUE;
         }
         case OR: {
             if (l.getBoolean()) {
@@ -116,7 +116,7 @@ public class ConditionAndOr extends Condition {
             if (r == ValueNull.INSTANCE) {
                 return r;
             }
-            return ValueBoolean.get(false);
+            return ValueBoolean.FALSE;
         }
         default:
             throw DbException.throwInternalError("type=" + andOrType);
@@ -151,8 +151,7 @@ public class ConditionAndOr extends Condition {
                         session, compRight, true);
                 if (added != null) {
                     added = added.optimize(session);
-                    ConditionAndOr a = new ConditionAndOr(AND, this, added);
-                    return a;
+                    return new ConditionAndOr(AND, this, added);
                 }
             }
         }

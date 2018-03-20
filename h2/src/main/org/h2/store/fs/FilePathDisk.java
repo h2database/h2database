@@ -98,12 +98,10 @@ public class FilePathDisk extends FilePath {
             if (ok) {
                 return;
             }
-            throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2,
-                    new String[]{name, newName.name});
+            throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2, name, newName.name);
         }
         if (newFile.exists()) {
-            throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2,
-                new String[] { name, newName + " (exists)" });
+            throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2, name, newName + " (exists)");
         }
         for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
             IOUtils.trace("rename", name + " >" + newName, null);
@@ -113,8 +111,7 @@ public class FilePathDisk extends FilePath {
             }
             wait(i);
         }
-        throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2,
-                new String[]{name, newName.name});
+        throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2, name, newName.name);
     }
 
     private static void wait(int i) {
@@ -174,8 +171,8 @@ public class FilePathDisk extends FilePath {
                 if (!base.endsWith(SysProperties.FILE_SEPARATOR)) {
                     base += SysProperties.FILE_SEPARATOR;
                 }
-                for (int i = 0, len = files.length; i < len; i++) {
-                    list.add(getPath(base + files[i]));
+                for (String file : files) {
+                    list.add(getPath(base + file));
                 }
             }
             return list;
@@ -316,8 +313,7 @@ public class FilePathDisk extends FilePath {
             }
             // otherwise an URL is assumed
             URL url = new URL(name);
-            InputStream in = url.openStream();
-            return in;
+            return url.openStream();
         }
         FileInputStream in = new FileInputStream(name);
         IOUtils.trace("openFileInputStream", name, in);

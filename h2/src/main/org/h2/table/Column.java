@@ -339,7 +339,9 @@ public class Column {
                 value = ValueNull.INSTANCE;
             } else {
                 value = localDefaultExpression.getValue(session).convertTo(type);
-                session.getGeneratedKeys().add(this);
+                if (!localDefaultExpression.isConstant()) {
+                    session.getGeneratedKeys().add(this);
+                }
                 if (primaryKey) {
                     session.setLastIdentity(value);
                 }
@@ -349,7 +351,9 @@ public class Column {
         if (value == ValueNull.INSTANCE) {
             if (convertNullToDefault) {
                 value = localDefaultExpression.getValue(session).convertTo(type);
-                session.getGeneratedKeys().add(this);
+                if (!localDefaultExpression.isConstant()) {
+                    session.getGeneratedKeys().add(this);
+                }
             }
             if (value == ValueNull.INSTANCE && !nullable) {
                 if (mode.convertInsertNullToZero) {
@@ -455,15 +459,12 @@ public class Column {
             originalSQL = "INT";
         }
         String sequenceName;
-        while (true) {
+        do {
             ValueUuid uuid = ValueUuid.getNewRandom();
             String s = uuid.getString();
             s = StringUtils.toUpperEnglish(s.replace('-', '_'));
             sequenceName = "SYSTEM_SEQUENCE_" + s;
-            if (schema.findSequence(sequenceName) == null) {
-                break;
-            }
-        }
+        } while (schema.findSequence(sequenceName) != null);
         Sequence seq = new Sequence(schema, id, sequenceName, start, increment);
         seq.setTemporary(temporary);
         session.getDatabase().addSchemaObject(session, seq);
@@ -720,8 +721,7 @@ public class Column {
             sql = checkConstraint.getSQL();
             name = oldName;
         }
-        Expression expr = parser.parseExpression(sql);
-        return expr;
+        return parser.parseExpression(sql);
     }
 
     String getDefaultSQL() {

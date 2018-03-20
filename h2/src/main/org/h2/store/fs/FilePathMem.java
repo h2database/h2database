@@ -53,8 +53,7 @@ public class FilePathMem extends FilePath {
         synchronized (MEMORY_FILES) {
             if (!atomicReplace && !newName.name.equals(name) &&
                     MEMORY_FILES.containsKey(newName.name)) {
-                throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2,
-                        new String[] { name, newName + " (exists)" });
+                throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2, name, newName + " (exists)");
             }
             FileMemData f = getMemoryFile();
             f.setName(newName.name);
@@ -392,7 +391,7 @@ class FileMem extends FileBase {
             }
         }
 
-        FileLock lock = new FileLock(new FakeFileChannel(), position, size, shared) {
+        return new FileLock(new FakeFileChannel(), position, size, shared) {
 
             @Override
             public boolean isValid() {
@@ -404,7 +403,6 @@ class FileMem extends FileBase {
                 data.unlock();
             }
         };
-        return lock;
     }
 
     @Override

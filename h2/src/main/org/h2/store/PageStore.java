@@ -415,8 +415,8 @@ public class PageStore implements CacheWriter {
     private void writeBack() {
         ArrayList<CacheObject> list = cache.getAllChanged();
         Collections.sort(list);
-        for (int i = 0, size = list.size(); i < size; i++) {
-            writeBack(list.get(i));
+        for (CacheObject cacheObject : list) {
+            writeBack(cacheObject);
         }
     }
 
@@ -1722,8 +1722,7 @@ public class PageStore implements CacheWriter {
                     ic.sortType = Integer.parseInt(s);
                     c = c.substring(0, idx);
                 }
-                Column column = tableCols[Integer.parseInt(c)];
-                ic.column = column;
+                ic.column = tableCols[Integer.parseInt(c)];
                 cols[i] = ic;
             }
             IndexType indexType;
@@ -1980,18 +1979,14 @@ public class PageStore implements CacheWriter {
      * @return true if it is correct
      */
     public static boolean checksumTest(byte[] d, int pageId, int pageSize) {
-        int ps = pageSize;
         int s1 = 255 + (d[0] & 255), s2 = 255 + s1;
         s2 += s1 += d[6] & 255;
-        s2 += s1 += d[(ps >> 1) - 1] & 255;
-        s2 += s1 += d[ps >> 1] & 255;
-        s2 += s1 += d[ps - 2] & 255;
-        s2 += s1 += d[ps - 1] & 255;
-        if (d[1] != (byte) (((s1 & 255) + (s1 >> 8)) ^ pageId)
-                || d[2] != (byte) (((s2 & 255) + (s2 >> 8)) ^ (pageId >> 8))) {
-            return false;
-        }
-        return true;
+        s2 += s1 += d[(pageSize >> 1) - 1] & 255;
+        s2 += s1 += d[pageSize >> 1] & 255;
+        s2 += s1 += d[pageSize - 2] & 255;
+        s2 += s1 += d[pageSize - 1] & 255;
+        return d[1] == (byte) (((s1 & 255) + (s1 >> 8)) ^ pageId) && d[2] == (byte) (((s2 & 255) + (s2 >> 8)) ^ (pageId
+                >> 8));
     }
 
     /**

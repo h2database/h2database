@@ -180,7 +180,7 @@ public class TestMVTableEngine extends TestBase {
         stat.execute("checkpoint");
         stat.execute("shutdown immediately");
         Exception ex = t.getException();
-        assertTrue(ex != null);
+        assertNotNull(ex);
         try {
             conn.close();
         } catch (Exception e) {

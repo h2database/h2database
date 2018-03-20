@@ -170,9 +170,8 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener,
             return;
         }
         isDisposed = true;
-        ArrayList<PooledConnection> list = recycledConnections;
-        for (int i = 0, size = list.size(); i < size; i++) {
-            closeConnection(list.get(i));
+        for (PooledConnection aList : recycledConnections) {
+            closeConnection(aList);
         }
     }
 

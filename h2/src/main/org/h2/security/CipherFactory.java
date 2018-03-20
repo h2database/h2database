@@ -389,10 +389,8 @@ public class CipherFactory {
     private static String[] enableAnonymous(String[] enabled, String[] supported) {
         LinkedHashSet<String> set = new LinkedHashSet<>();
         for (String x : supported) {
-            if (!x.startsWith("SSL") &&
-                    x.indexOf("_anon_") >= 0 &&
-                    (x.indexOf("_AES_") >= 0 || x.indexOf("_3DES_") >= 0) &&
-                    x.indexOf("_SHA") >= 0) {
+            if (!x.startsWith("SSL") && x.contains("_anon_") &&
+                    (x.contains("_AES_") || x.contains("_3DES_")) && x.contains("_SHA")) {
                 set.add(x);
             }
         }

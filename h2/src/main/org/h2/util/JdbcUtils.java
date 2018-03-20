@@ -177,7 +177,7 @@ public class JdbcUtils {
             if (classFactory.match(className)) {
                 try {
                     Class<?> userClass = classFactory.loadClass(className);
-                    if (!(userClass == null)) {
+                    if (userClass != null) {
                         return (Class<Z>) userClass;
                     }
                 } catch (Exception e) {

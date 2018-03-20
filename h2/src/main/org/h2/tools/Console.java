@@ -123,7 +123,6 @@ ShutdownHandler {
         for (int i = 0; args != null && i < args.length; i++) {
             String arg = args[i];
             if (arg == null) {
-                continue;
             } else if ("-?".equals(arg) || "-help".equals(arg)) {
                 showUsage();
                 return;
@@ -356,7 +355,7 @@ ShutdownHandler {
             System.gc();
             // Mac OS X: Console tool process did not stop on exit
             String os = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
-            if (os.indexOf("mac") >= 0) {
+            if (os.contains("mac")) {
                 for (Thread t : Thread.getAllStackTraces().keySet()) {
                     if (t.getName().startsWith("AWT-")) {
                         t.interrupt();

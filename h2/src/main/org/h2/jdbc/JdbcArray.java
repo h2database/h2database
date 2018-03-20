@@ -258,7 +258,7 @@ public class JdbcArray extends TraceObject implements Array {
         // TODO array result set: there are multiple data types possible
         rs.addColumn("VALUE", Types.NULL, 0, 0);
         for (int i = 0; i < array.length; i++) {
-            rs.addRow(Long.valueOf(offset + i + 1), array[i]);
+            rs.addRow(offset + i + 1, array[i]);
         }
         return rs;
     }

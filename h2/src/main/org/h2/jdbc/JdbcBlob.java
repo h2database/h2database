@@ -190,7 +190,7 @@ public class JdbcBlob extends TraceObject implements Blob {
             if (value.getPrecision() != 0) {
                 throw DbException.getInvalidValueException("length", value.getPrecision());
             }
-            final JdbcConnection c = conn;
+            final JdbcConnection c = conn; // local variable avoids generating synthetic accessor method
             final PipedInputStream in = new PipedInputStream();
             final Task task = new Task() {
                 @Override

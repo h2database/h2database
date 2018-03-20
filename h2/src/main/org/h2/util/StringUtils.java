@@ -441,8 +441,7 @@ public class StringUtils {
                 buff[j++] = (byte) ch;
             }
         }
-        String s = new String(buff, 0, j, StandardCharsets.UTF_8);
-        return s;
+        return new String(buff, 0, j, StandardCharsets.UTF_8);
     }
 
     /**

@@ -119,8 +119,9 @@ class AggregateDataMedian extends AggregateData {
                     count--;
                     cursor.next();
                     hasNulls = true;
-                } else
+                } else {
                     break;
+                }
             }
             if (count == 0) {
                 return ValueNull.INSTANCE;

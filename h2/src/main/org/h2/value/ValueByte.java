@@ -130,7 +130,7 @@ public class ValueByte extends Value {
 
     @Override
     public Object getObject() {
-        return Byte.valueOf(value);
+        return value;
     }
 
     @Override

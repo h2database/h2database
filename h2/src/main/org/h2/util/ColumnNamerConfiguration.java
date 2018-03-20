@@ -212,12 +212,12 @@ public class ColumnNamerConfiguration {
             setGenerateUniqueColumnNames(false);
             break;
 
-        default:
         case REGULAR:
         case DB2:
         case Derby:
         case HSQLDB:
         case Ignite:
+            default:
             setMaxIdentiferLength(Integer.MAX_VALUE);
             setRegularExpressionMatchAllowed("(?m)(?s).+");
             setRegularExpressionMatchDisallowed("(?m)(?s)[\\x00]");

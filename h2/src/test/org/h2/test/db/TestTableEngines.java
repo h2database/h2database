@@ -507,7 +507,7 @@ public class TestTableEngines extends TestBase {
         stat.executeUpdate("CREATE TABLE T(ID INT AFFINITY PRIMARY KEY, NAME VARCHAR, AGE INT)" +
                 " ENGINE \"" + AffinityTableEngine.class.getName() + "\"");
         Table tbl = AffinityTableEngine.createdTbl;
-        assertTrue(tbl != null);
+        assertNotNull(tbl);
         assertEquals(3, tbl.getIndexes().size());
         Index aff = tbl.getIndexes().get(2);
         assertTrue(aff.getIndexType().isAffinity());

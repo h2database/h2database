@@ -429,8 +429,7 @@ public abstract class Query extends Prepared {
                                 found = false;
                                 if (filters != null) {
                                     // select id from test order by test.id
-                                    for (int i = 0, size = filters.size(); i < size; i++) {
-                                        TableFilter f = filters.get(i);
+                                    for (TableFilter f : filters) {
                                         if (db.equalsIdentifiers(f.getTableAlias(), tableAlias)) {
                                             found = true;
                                             break;
@@ -487,8 +486,7 @@ public abstract class Query extends Prepared {
                 expressionSQL.add(sql);
             }
             o.columnIndexExpr = ValueExpression.get(ValueInt.get(idx + 1));
-            Expression expr = expressions.get(idx).getNonAliasExpression();
-            o.expression = expr;
+            o.expression = expressions.get(idx).getNonAliasExpression();
         }
     }
 

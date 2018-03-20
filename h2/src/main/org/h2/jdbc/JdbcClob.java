@@ -138,7 +138,7 @@ public class JdbcClob extends TraceObject implements NClob
             if (value.getPrecision() != 0) {
                 throw DbException.getInvalidValueException("length", value.getPrecision());
             }
-            final JdbcConnection c = conn;
+            final JdbcConnection c = conn; // required to avoid synthetic method creation
             // PipedReader / PipedWriter are a lot slower
             // than PipedInputStream / PipedOutputStream
             // (Sun/Oracle Java 1.6.0_20)

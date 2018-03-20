@@ -232,10 +232,7 @@ public class Select extends Query {
     }
 
     private boolean isHavingNullOrFalse(Value[] row) {
-        if (havingIndex >= 0) {
-            return !row[havingIndex].getBoolean();
-        }
-        return false;
+        return havingIndex >= 0 && !row[havingIndex].getBoolean();
     }
 
     private Index getGroupSortedIndex() {
@@ -244,8 +241,7 @@ public class Select extends Query {
         }
         ArrayList<Index> indexes = topTableFilter.getTable().getIndexes();
         if (indexes != null) {
-            for (int i = 0, size = indexes.size(); i < size; i++) {
-                Index index = indexes.get(i);
+            for (Index index : indexes) {
                 if (index.getIndexType().isScan()) {
                     continue;
                 }
@@ -348,8 +344,7 @@ public class Select extends Query {
                 }
                 currentGroup = values;
                 currentGroupRowId++;
-                int len = columnCount;
-                for (int i = 0; i < len; i++) {
+                for (int i = 0; i < columnCount; i++) {
                     if (groupByExpression == null || !groupByExpression[i]) {
                         Expression expr = expressions.get(i);
                         expr.updateAggregate(session);
@@ -426,8 +421,7 @@ public class Select extends Query {
         ArrayList<Index> list = topTableFilter.getTable().getIndexes();
         if (list != null) {
             int[] sortTypes = sort.getSortTypesWithNullPosition();
-            for (int i = 0, size = list.size(); i < size; i++) {
-                Index index = list.get(i);
+            for (Index index : list) {
                 if (index.getCreateSQL() == null) {
                     // can't use the scan index
                     continue;
@@ -1009,8 +1003,7 @@ public class Select extends Query {
 
     @Override
     public void fireBeforeSelectTriggers() {
-        for (int i = 0, size = filters.size(); i < size; i++) {
-            TableFilter filter = filters.get(i);
+        for (TableFilter filter : filters) {
             filter.getTable().fire(session, Trigger.SELECT, true);
         }
     }
@@ -1086,7 +1079,6 @@ public class Select extends Query {
                     // skip the generation of plan SQL for this already recursive persistent CTEs,
                     // since using a with statement will re-create the common table expression
                     // views.
-                    continue;
                 } else {
                     buff.append("WITH RECURSIVE ").append(t.getName()).append('(');
                     buff.resetCount();
@@ -1334,8 +1326,7 @@ public class Select extends Query {
             if (isForUpdate) {
                 return false;
             }
-            for (int i = 0, size = filters.size(); i < size; i++) {
-                TableFilter f = filters.get(i);
+            for (TableFilter f : filters) {
                 if (!f.getTable().isDeterministic()) {
                     return false;
                 }
@@ -1343,8 +1334,7 @@ public class Select extends Query {
             break;
         }
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID: {
-            for (int i = 0, size = filters.size(); i < size; i++) {
-                TableFilter f = filters.get(i);
+            for (TableFilter f : filters) {
                 long m = f.getTable().getMaxDataModificationId();
                 visitor.addDataModificationId(m);
             }
@@ -1357,8 +1347,7 @@ public class Select extends Query {
             break;
         }
         case ExpressionVisitor.GET_DEPENDENCIES: {
-            for (int i = 0, size = filters.size(); i < size; i++) {
-                TableFilter f = filters.get(i);
+            for (TableFilter f : filters) {
                 Table table = f.getTable();
                 visitor.addDependency(table);
                 table.addDependencies(visitor.getDependencies());
@@ -1369,8 +1358,7 @@ public class Select extends Query {
         }
         ExpressionVisitor v2 = visitor.incrementQueryLevel(1);
         boolean result = true;
-        for (int i = 0, size = expressions.size(); i < size; i++) {
-            Expression e = expressions.get(i);
+        for (Expression e : expressions) {
             if (!e.isEverything(v2)) {
                 result = false;
                 break;
@@ -1403,10 +1391,7 @@ public class Select extends Query {
 
     @Override
     public boolean allowGlobalConditions() {
-        if (offsetExpr == null && (limitExpr == null || sort == null)) {
-            return true;
-        }
-        return false;
+        return offsetExpr == null && (limitExpr == null || sort == null);
     }
 
     public SortOrder getSortOrder() {

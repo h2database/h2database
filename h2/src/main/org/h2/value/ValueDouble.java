@@ -139,7 +139,7 @@ public class ValueDouble extends Value {
 
     @Override
     public Object getObject() {
-        return Double.valueOf(value);
+        return value;
     }
 
     @Override

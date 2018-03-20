@@ -209,12 +209,13 @@ public class SourceCompiler {
         if (compiledScript == null) {
             String source = sources.get(packageAndClassName);
             final String lang;
-            if (isJavascriptSource(source))
+            if (isJavascriptSource(source)) {
                 lang = "javascript";
-            else if (isRubySource(source))
+            } else if (isRubySource(source)) {
                 lang = "ruby";
-            else
+            } else {
                 throw new IllegalStateException("Unknown language for " + source);
+            }
 
             final Compilable jsEngine = (Compilable) new ScriptEngineManager().getEngineByName(lang);
             compiledScript = jsEngine.compile(source);
@@ -459,7 +460,7 @@ public class SourceCompiler {
                 Object importCustomizer = Utils.newInstance(
                         "org.codehaus.groovy.control.customizers.ImportCustomizer");
                 // Call the method ImportCustomizer.addImports(String[])
-                String[] importsArray = new String[] {
+                String[] importsArray = {
                         "java.sql.Connection",
                         "java.sql.Types",
                         "java.sql.ResultSet",
@@ -476,7 +477,7 @@ public class SourceCompiler {
                 Object configuration = Utils.newInstance(
                         "org.codehaus.groovy.control.CompilerConfiguration");
                 Utils.callMethod(configuration,
-                        "addCompilationCustomizers", new Object[] { importCustomizerArray });
+                        "addCompilationCustomizers", importCustomizerArray);
 
                 ClassLoader parent = GroovyCompiler.class.getClassLoader();
                 loader = Utils.newInstance(
@@ -498,9 +499,8 @@ public class SourceCompiler {
                 Object codeSource = Utils.newInstance("groovy.lang.GroovyCodeSource",
                         source, packageAndClassName + ".groovy", "UTF-8");
                 Utils.callMethod(codeSource, "setCachable", false);
-                Class<?> clazz = (Class<?>) Utils.callMethod(
+                return (Class<?>) Utils.callMethod(
                         LOADER, "parseClass", codeSource);
-                return clazz;
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

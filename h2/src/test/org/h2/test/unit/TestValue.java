@@ -302,7 +302,7 @@ public class TestValue extends TestBase {
         for (int i = 0; i < d.length - 1; i++) {
             assertTrue(values[i].compareTypeSafe(values[i+1], null) < 0);
             assertTrue(values[i + 1].compareTypeSafe(values[i], null) > 0);
-            assertTrue(!values[i].equals(values[i+1]));
+            assertFalse(values[i].equals(values[i+1]));
         }
     }
 

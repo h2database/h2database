@@ -38,6 +38,7 @@ import org.h2.util.Bits;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
+import org.h2.util.SimpleColumnInfo;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
 
@@ -67,7 +68,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     private int rowId = -1;
     private boolean wasNull;
     private SimpleRowSource source;
-    private ArrayList<Column> columns = New.arrayList();
+    private ArrayList<SimpleColumnInfo> columns = New.arrayList();
     private boolean autoClose = true;
 
     /**
@@ -123,13 +124,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
         if (name == null) {
             name = "C" + (columns.size() + 1);
         }
-        Column column = new Column();
-        column.name = name;
-        column.sqlType = sqlType;
-        column.precision = precision;
-        column.scale = scale;
-        column.sqlTypeName = sqlTypeName;
-        columns.add(column);
+        columns.add(new SimpleColumnInfo(name, sqlType, sqlTypeName, precision, scale));
     }
 
     /**
@@ -1012,7 +1007,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
         if (o == null) {
             return null;
         }
-        switch (columns.get(columnIndex - 1).sqlType) {
+        switch (columns.get(columnIndex - 1).type) {
         case Types.CLOB:
             Clob c = (Clob) o;
             return c.getSubString(1, MathUtils.convertLongToInt(c.length()));
@@ -1868,7 +1863,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
      */
     @Override
     public int getColumnType(int columnIndex) throws SQLException {
-        return getColumn(columnIndex - 1).sqlType;
+        return getColumn(columnIndex - 1).type;
     }
 
     /**
@@ -2045,7 +2040,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
      */
     @Override
     public String getColumnTypeName(int columnIndex) throws SQLException {
-        return getColumn(columnIndex - 1).sqlTypeName;
+        return getColumn(columnIndex - 1).typeName;
     }
 
     /**
@@ -2295,7 +2290,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
         return o;
     }
 
-    private Column getColumn(int i) throws SQLException {
+    private SimpleColumnInfo getColumn(int i) throws SQLException {
         checkColumnIndex(i + 1);
         return columns.get(i);
     }
@@ -2353,37 +2348,6 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
      */
     public boolean getAutoClose() {
         return autoClose;
-    }
-
-    /**
-     * This class holds the data of a result column.
-     */
-    static class Column {
-
-        /**
-         * The column label.
-         */
-        String name;
-
-        /**
-         * The column type Name
-         */
-        String sqlTypeName;
-
-        /**
-         * The SQL type.
-         */
-        int sqlType;
-
-        /**
-         * The precision.
-         */
-        int precision;
-
-        /**
-         * The scale.
-         */
-        int scale;
     }
 
     /**

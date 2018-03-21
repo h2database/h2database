@@ -8,6 +8,7 @@ package org.h2.test.jdbc;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.UUID;
@@ -127,6 +128,9 @@ public class TestGetGeneratedKeys extends TestBase {
         prep.addBatch();
         prep.executeBatch();
         ResultSet rs = prep.getGeneratedKeys();
+        ResultSetMetaData meta = rs.getMetaData();
+        assertEquals("BIGINT", meta.getColumnTypeName(1));
+        assertEquals("UUID", meta.getColumnTypeName(2));
         rs.next();
         assertEquals(1L, rs.getLong(1));
         UUID u1 = (UUID) rs.getObject(2);

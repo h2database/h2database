@@ -135,14 +135,12 @@ public class TableFunction extends Function {
         simple.setAutoClose(false);
         for (int i = 0; i < columnCount; i++) {
             String name = rs.getColumnName(i);
-            /*
-             * TODO Some types, such as Value.BYTES and Value.UUID are mapped to the same
-             * SQL type and we can lose real type here.
-             */
-            int sqlType = DataType.convertTypeToSQLType(rs.getColumnType(i));
+            DataType dataType = DataType.getDataType(rs.getColumnType(i));
+            int sqlType = dataType.sqlType;
+            String sqlTypeName = dataType.name;
             int precision = MathUtils.convertLongToInt(rs.getColumnPrecision(i));
             int scale = rs.getColumnScale(i);
-            simple.addColumn(name, sqlType, precision, scale);
+            simple.addColumn(name, sqlType, sqlTypeName, precision, scale);
         }
         rs.reset();
         for (int i = 0; i < maxrows && rs.next(); i++) {

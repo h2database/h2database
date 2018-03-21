@@ -8,11 +8,14 @@ package org.h2.test.jdbc;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Driver;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.UUID;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
@@ -135,6 +138,13 @@ public class TestMetaData extends TestBase {
         assertEquals(ResultSet.HOLD_CURSORS_OVER_COMMIT, conn.getHoldability());
         assertEquals(ResultSet.HOLD_CURSORS_OVER_COMMIT, rs.getHoldability());
         stat.executeUpdate("drop table test");
+
+        PreparedStatement prep = conn.prepareStatement("SELECT X FROM TABLE (X UUID = ?)");
+        prep.setObject(1, UUID.randomUUID());
+        rs = prep.executeQuery();
+        rsMeta = rs.getMetaData();
+        assertEquals("UUID", rsMeta.getColumnTypeName(1));
+
         conn.close();
     }
 

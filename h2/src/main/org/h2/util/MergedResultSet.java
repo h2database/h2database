@@ -32,6 +32,8 @@ public final class MergedResultSet {
 
         final int type;
 
+        final String typeName;
+
         final int precision;
 
         final int scale;
@@ -43,14 +45,17 @@ public final class MergedResultSet {
          *            name of the column
          * @param type
          *            type of the column, see {@link java.sql.Types}
+         * @param typeName
+         *            type name of the column
          * @param precision
          *            precision of the column
          * @param scale
          *            scale of the column
          */
-        ColumnInfo(String name, int type, int precision, int scale) {
+        ColumnInfo(String name, int type, String typeName, int precision, int scale) {
             this.name = name;
             this.type = type;
+            this.typeName = typeName;
             this.precision = precision;
             this.scale = scale;
         }
@@ -94,8 +99,8 @@ public final class MergedResultSet {
         }
         ColumnInfo[] info = new ColumnInfo[cols];
         for (int i = 1; i <= cols; i++) {
-            ColumnInfo ci = new ColumnInfo(meta.getColumnName(i), meta.getColumnType(i), meta.getPrecision(i),
-                    meta.getScale(i));
+            ColumnInfo ci = new ColumnInfo(meta.getColumnName(i), meta.getColumnType(i), meta.getColumnTypeName(i),
+                    meta.getPrecision(i), meta.getScale(i));
             info[i - 1] = ci;
             if (!columns.contains(ci)) {
                 columns.add(ci);
@@ -123,7 +128,7 @@ public final class MergedResultSet {
     public SimpleResultSet getResult() {
         SimpleResultSet rs = new SimpleResultSet();
         for (ColumnInfo ci : columns) {
-            rs.addColumn(ci.name, ci.type, ci.precision, ci.scale);
+            rs.addColumn(ci.name, ci.type, ci.typeName, ci.precision, ci.scale);
         }
         for (Map<ColumnInfo, Object> map : data) {
             Object[] row = new Object[columns.size()];

@@ -856,6 +856,11 @@ public class DataType {
      */
     public static int convertSQLTypeToValueType(int sqlType, String sqlTypeName) {
         switch (sqlType) {
+            case Types.BINARY:
+                if (sqlTypeName.equalsIgnoreCase("UUID")) {
+                    return Value.UUID;
+                }
+                break;
             case Types.OTHER:
             case Types.JAVA_OBJECT:
                 if (sqlTypeName.equalsIgnoreCase("geometry")) {

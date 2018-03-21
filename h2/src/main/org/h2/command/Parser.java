@@ -3027,7 +3027,7 @@ public class Parser {
             int index = currentValue.getInt() - 1;
             if (index < 0 || index >= Constants.MAX_PARAMETER_INDEX) {
                 throw DbException.getInvalidValueException(
-                        "parameter index", index);
+                        "parameter index", index + 1);
             }
             if (indexedParameterList.size() <= index) {
                 indexedParameterList.ensureCapacity(index + 1);

@@ -44,8 +44,8 @@ public final class MergedResultSet {
         }
         SimpleColumnInfo[] info = new SimpleColumnInfo[cols];
         for (int i = 1; i <= cols; i++) {
-            SimpleColumnInfo ci = new SimpleColumnInfo(meta.getColumnName(i), meta.getColumnType(i), meta.getColumnTypeName(i),
-                    meta.getPrecision(i), meta.getScale(i));
+            SimpleColumnInfo ci = new SimpleColumnInfo(meta.getColumnName(i), meta.getColumnType(i),
+                    meta.getColumnTypeName(i), meta.getPrecision(i), meta.getScale(i));
             info[i - 1] = ci;
             if (!columns.contains(ci)) {
                 columns.add(ci);

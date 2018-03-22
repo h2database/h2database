@@ -405,6 +405,11 @@ public class Aggregate extends Expression {
             if (orderByList != null) {
                 sortWithOrderBy(array);
             }
+            if (orderByList != null) {
+                for (int i = 0; i < array.length; i++) {
+                    array[i] = ((ValueArray) array[i]).getList()[0];
+                }
+            }
             return ValueArray.get(array);
         }
         return data.getValue(session.getDatabase(), dataType, distinct);

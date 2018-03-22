@@ -257,6 +257,16 @@ public class Aggregate extends Expression {
         return new SortOrder(session.getDatabase(), index, sortType, null);
     }
 
+    private void sortWithOrderBy(ArrayList<Value> list) {
+        final SortOrder sortOrder = orderBySort;
+        Collections.sort(list, new Comparator<Value>() {
+            @Override
+            public int compare(Value v1, Value v2) {
+                return sortOrder.compare(((ValueArray) v1).getList(), ((ValueArray) v2).getList());
+            }
+        });
+    }
+
     @Override
     public void updateAggregate(Session session) {
         // TODO aggregates: check nested MIN(MAX(ID)) and so on
@@ -367,15 +377,7 @@ public class Aggregate extends Expression {
                 return ValueNull.INSTANCE;
             }
             if (orderByList != null) {
-                final SortOrder sortOrder = orderBySort;
-                Collections.sort(list, new Comparator<Value>() {
-                    @Override
-                    public int compare(Value v1, Value v2) {
-                        Value[] a1 = ((ValueArray) v1).getList();
-                        Value[] a2 = ((ValueArray) v2).getList();
-                        return sortOrder.compare(a1, a2);
-                    }
-                });
+                sortWithOrderBy(list);
             }
             StatementBuilder buff = new StatementBuilder();
             String sep = groupConcatSeparator == null ?
@@ -402,15 +404,7 @@ public class Aggregate extends Expression {
                 return ValueNull.INSTANCE;
             }
             if (orderByList != null) {
-                final SortOrder sortOrder = orderBySort;
-                Collections.sort(list, new Comparator<Value>() {
-                    @Override
-                    public int compare(Value v1, Value v2) {
-                        Value[] a1 = ((ValueArray) v1).getList();
-                        Value[] a2 = ((ValueArray) v2).getList();
-                        return sortOrder.compare(a1, a2);
-                    }
-                });
+                sortWithOrderBy(list);
             }
             v = ValueArray.get(list.toArray(new Value[list.size()]));
         }

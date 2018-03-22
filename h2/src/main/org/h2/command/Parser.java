@@ -2628,7 +2628,7 @@ public class Parser {
                     readExpression(), currentSelect, distinct);
                 if (readIf("ORDER")) {
                     read("BY");
-                    r.setGroupConcatOrder(parseSimpleOrderList());
+                    r.setOrderByList(parseSimpleOrderList());
                 }
 
                 if (readIf("SEPARATOR")) {
@@ -2642,7 +2642,7 @@ public class Parser {
                 r.setGroupConcatSeparator(readExpression());
                 if (readIf("ORDER")) {
                     read("BY");
-                    r.setGroupConcatOrder(parseSimpleOrderList());
+                    r.setOrderByList(parseSimpleOrderList());
                 }
             } else {
                 r = null;
@@ -2654,7 +2654,7 @@ public class Parser {
                 readExpression(), currentSelect, distinct);
             if (readIf("ORDER")) {
                 read("BY");
-                r.setArrayAggOrder(parseSimpleOrderList());
+                r.setOrderByList(parseSimpleOrderList());
             }
         } else {
             boolean distinct = readIf("DISTINCT");

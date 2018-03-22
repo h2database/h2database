@@ -8,9 +8,7 @@ package org.h2.expression;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashSet;
 
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -39,9 +37,7 @@ import org.h2.value.ValueTimestampTimeZone;
 /**
  * Data stored while calculating a MEDIAN aggregate.
  */
-class AggregateDataMedian extends AggregateData {
-    private Collection<Value> values;
-
+class AggregateDataMedian extends AggregateDataCollecting {
     private static boolean isNullsLast(Index index) {
         IndexColumn ic = index.getIndexColumns()[0];
         int sortType = ic.sortType;
@@ -169,28 +165,11 @@ class AggregateDataMedian extends AggregateData {
     }
 
     @Override
-    void add(Database database, int dataType, boolean distinct, Value v) {
-        if (v == ValueNull.INSTANCE) {
-            return;
-        }
-        Collection<Value> c = values;
-        if (c == null) {
-            values = c = distinct ? new HashSet<Value>() : new ArrayList<Value>();
-        }
-        c.add(v);
-    }
-
-    @Override
     Value getValue(Database database, int dataType, boolean distinct) {
-        Collection<Value> c = values;
-        // Non-null collection cannot be empty here
-        if (c == null) {
+        Value[] a = getArray();
+        if (a == null) {
             return ValueNull.INSTANCE;
         }
-        if (distinct && c instanceof ArrayList) {
-            c = new HashSet<>(c);
-        }
-        Value[] a = c.toArray(new Value[0]);
         final CompareMode mode = database.getCompareMode();
         Arrays.sort(a, new Comparator<Value>() {
             @Override

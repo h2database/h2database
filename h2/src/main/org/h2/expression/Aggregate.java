@@ -6,7 +6,7 @@
 package org.h2.expression;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import org.h2.api.ErrorCode;
@@ -257,9 +257,9 @@ public class Aggregate extends Expression {
         return new SortOrder(session.getDatabase(), index, sortType, null);
     }
 
-    private void sortWithOrderBy(ArrayList<Value> list) {
+    private void sortWithOrderBy(Value[] array) {
         final SortOrder sortOrder = orderBySort;
-        Collections.sort(list, new Comparator<Value>() {
+        Arrays.sort(array, new Comparator<Value>() {
             @Override
             public int compare(Value v1, Value v2) {
                 return sortOrder.compare(((ValueArray) v1).getList(), ((ValueArray) v2).getList());
@@ -370,19 +370,18 @@ public class Aggregate extends Expression {
         if (data == null) {
             data = AggregateData.create(type);
         }
-        Value v = data.getValue(session.getDatabase(), dataType, distinct);
         if (type == AggregateType.GROUP_CONCAT) {
-            ArrayList<Value> list = ((AggregateDataArrayCollecting) data).getList();
-            if (list == null || list.isEmpty()) {
+            Value[] array = ((AggregateDataCollecting) data).getArray();
+            if (array == null) {
                 return ValueNull.INSTANCE;
             }
             if (orderByList != null) {
-                sortWithOrderBy(list);
+                sortWithOrderBy(array);
             }
             StatementBuilder buff = new StatementBuilder();
             String sep = groupConcatSeparator == null ?
                     "," : groupConcatSeparator.getValue(session).getString();
-            for (Value val : list) {
+            for (Value val : array) {
                 String s;
                 if (val.getType() == Value.ARRAY) {
                     s = ((ValueArray) val).getList()[0].getString();
@@ -397,18 +396,18 @@ public class Aggregate extends Expression {
                 }
                 buff.append(s);
             }
-            v = ValueString.get(buff.toString());
+            return ValueString.get(buff.toString());
         } else if (type == AggregateType.ARRAY_AGG) {
-            ArrayList<Value> list = ((AggregateDataArrayCollecting) data).getList();
-            if (list == null || list.isEmpty()) {
+            Value[] array = ((AggregateDataCollecting) data).getArray();
+            if (array == null) {
                 return ValueNull.INSTANCE;
             }
             if (orderByList != null) {
-                sortWithOrderBy(list);
+                sortWithOrderBy(array);
             }
-            v = ValueArray.get(list.toArray(new Value[list.size()]));
+            return ValueArray.get(array);
         }
-        return v;
+        return data.getValue(session.getDatabase(), dataType, distinct);
     }
 
     @Override

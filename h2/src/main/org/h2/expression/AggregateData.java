@@ -21,21 +21,21 @@ abstract class AggregateData {
      * @return the aggregate data object of the specified type
      */
     static AggregateData create(AggregateType aggregateType) {
-        if (aggregateType == AggregateType.SELECTIVITY) {
+        switch (aggregateType) {
+        case SELECTIVITY:
             return new AggregateDataSelectivity();
-        } else if (aggregateType == AggregateType.GROUP_CONCAT) {
-            return new AggregateDataArrayCollecting();
-        } else if (aggregateType == AggregateType.ARRAY_AGG) {
-            return new AggregateDataArrayCollecting();
-        } else if (aggregateType == AggregateType.COUNT_ALL) {
+        case GROUP_CONCAT:
+        case ARRAY_AGG:
+            return new AggregateDataCollecting();
+        case COUNT_ALL:
             return new AggregateDataCountAll();
-        } else if (aggregateType == AggregateType.COUNT) {
+        case COUNT:
             return new AggregateDataCount();
-        } else if (aggregateType == AggregateType.HISTOGRAM) {
+        case HISTOGRAM:
             return new AggregateDataHistogram();
-        } else if (aggregateType == AggregateType.MEDIAN) {
+        case MEDIAN:
             return new AggregateDataMedian();
-        } else {
+        default:
             return new AggregateDataDefault(aggregateType);
         }
     }

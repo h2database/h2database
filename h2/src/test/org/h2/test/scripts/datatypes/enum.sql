@@ -162,3 +162,26 @@ drop table card;
 drop type CARD_SUIT;
 > ok
 
+CREATE TABLE TEST(ID INT, E1 ENUM('A', 'B') DEFAULT 'A', E2 ENUM('C', 'D') DEFAULT 'C' ON UPDATE 'D');
+> ok
+
+INSERT INTO TEST(ID) VALUES (1);
+> update count: 1
+
+SELECT * FROM TEST;
+> ID E1 E2
+> -- -- --
+> 1  A  C
+> rows: 1
+
+UPDATE TEST SET E1 = 'B';
+> update count: 1
+
+SELECT * FROM TEST;
+> ID E1 E2
+> -- -- --
+> 1  B  D
+> rows: 1
+
+DROP TABLE TEST;
+> ok

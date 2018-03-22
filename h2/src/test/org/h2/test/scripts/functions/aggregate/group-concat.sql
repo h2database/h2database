@@ -37,6 +37,32 @@ select group_concat(v order by v asc separator '-'),
 > 1-2-3-4-5-6-7-8-9                        9-8-7-6-5-4
 > rows (ordered): 1
 
+drop table test;
+> ok
+
+create table test (id int auto_increment primary key, v int);
+> ok
+
+insert into test(v) values (7), (2), (8), (3), (7), (3), (9), (-1);
+> update count: 8
+
+select group_concat(v) from test;
+> GROUP_CONCAT(V)
+> ----------------
+> 7,2,8,3,7,3,9,-1
+> rows: 1
+
+select group_concat(distinct v) from test;
+> GROUP_CONCAT(DISTINCT V)
+> ------------------------
+> -1,2,3,7,8,9
+> rows: 1
+
+select group_concat(distinct v order by v desc) from test;
+> GROUP_CONCAT(DISTINCT V ORDER BY V DESC)
+> ----------------------------------------
+> 9,8,7,3,2,-1
+> rows (ordered): 1
 
 drop table test;
 > ok

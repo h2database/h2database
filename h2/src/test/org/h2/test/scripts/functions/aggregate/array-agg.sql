@@ -37,6 +37,32 @@ select ARRAY_AGG(v order by v asc),
 > (1, 2, 3, 4, 5, 6, 7, 8, 9) (9, 8, 7, 6, 5, 4)
 > rows (ordered): 1
 
+drop table test;
+> ok
+
+create table test (id int auto_increment primary key, v int);
+> ok
+
+insert into test(v) values (7), (2), (8), (3), (7), (3), (9), (-1);
+> update count: 8
+
+select array_agg(v) from test;
+> ARRAY_AGG(V)
+> -------------------------
+> (7, 2, 8, 3, 7, 3, 9, -1)
+> rows: 1
+
+select array_agg(distinct v) from test;
+> ARRAY_AGG(DISTINCT V)
+> ---------------------
+> (-1, 2, 3, 7, 8, 9)
+> rows: 1
+
+select array_agg(distinct v order by v desc) from test;
+> ARRAY_AGG(DISTINCT V ORDER BY V DESC)
+> -------------------------------------
+> (9, 8, 7, 3, 2, -1)
+> rows (ordered): 1
 
 drop table test;
 > ok

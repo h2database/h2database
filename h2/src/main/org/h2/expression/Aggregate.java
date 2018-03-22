@@ -12,6 +12,7 @@ import java.util.HashMap;
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectOrderBy;
+import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
@@ -259,12 +260,22 @@ public class Aggregate extends Expression {
 
     private void sortWithOrderBy(Value[] array) {
         final SortOrder sortOrder = orderBySort;
-        Arrays.sort(array, new Comparator<Value>() {
-            @Override
-            public int compare(Value v1, Value v2) {
-                return sortOrder.compare(((ValueArray) v1).getList(), ((ValueArray) v2).getList());
-            }
-        });
+        if (sortOrder != null) {
+            Arrays.sort(array, new Comparator<Value>() {
+                @Override
+                public int compare(Value v1, Value v2) {
+                    return sortOrder.compare(((ValueArray) v1).getList(), ((ValueArray) v2).getList());
+                }
+            });
+        } else {
+            final Database database = select.getSession().getDatabase();
+            Arrays.sort(array, new Comparator<Value> () {
+                @Override
+                public int compare(Value v1, Value v2) {
+                    return database.compare(v1, v2);
+                }
+            });
+        }
     }
 
     @Override
@@ -375,7 +386,7 @@ public class Aggregate extends Expression {
             if (array == null) {
                 return ValueNull.INSTANCE;
             }
-            if (orderByList != null) {
+            if (orderByList != null || distinct) {
                 sortWithOrderBy(array);
             }
             StatementBuilder buff = new StatementBuilder();
@@ -402,7 +413,7 @@ public class Aggregate extends Expression {
             if (array == null) {
                 return ValueNull.INSTANCE;
             }
-            if (orderByList != null) {
+            if (orderByList != null || distinct) {
                 sortWithOrderBy(array);
             }
             if (orderByList != null) {

@@ -143,10 +143,8 @@ public class Aggregate extends Expression {
 
     private Expression on;
     private Expression groupConcatSeparator;
-    private ArrayList<SelectOrderBy> groupConcatOrderList;
-    private ArrayList<SelectOrderBy> arrayAggOrderList;
-    private SortOrder groupConcatSort;
-    private SortOrder arrayOrderSort;
+    private ArrayList<SelectOrderBy> orderByList;
+    private SortOrder orderBySort;
     private int dataType, scale;
     private long precision;
     private int displaySize;
@@ -220,21 +218,12 @@ public class Aggregate extends Expression {
     }
 
     /**
-     * Set the order for GROUP_CONCAT() aggregate.
+     * Set the order for ARRAY_AGG() or GROUP_CONCAT() aggregate.
      *
-     * @param orderBy the order by list
+     * @param orderByList the order by list
      */
-    public void setGroupConcatOrder(ArrayList<SelectOrderBy> orderBy) {
-        this.groupConcatOrderList = orderBy;
-    }
-
-    /**
-     * Set the order for ARRAY_AGG() aggregate.
-     *
-     * @param orderBy the order by list
-     */
-    public void setArrayAggOrder(ArrayList<SelectOrderBy> orderBy) {
-        this.arrayAggOrderList = orderBy;
+    public void setOrderByList(ArrayList<SelectOrderBy> orderByList) {
+        this.orderByList = orderByList;
     }
 
     /**
@@ -255,12 +244,12 @@ public class Aggregate extends Expression {
         this.filterCondition = filterCondition;
     }
 
-    private SortOrder initOrder(ArrayList<SelectOrderBy> orderList, Session session) {
-        int size = orderList.size();
+    private SortOrder initOrder(Session session) {
+        int size = orderByList.size();
         int[] index = new int[size];
         int[] sortType = new int[size];
         for (int i = 0; i < size; i++) {
-            SelectOrderBy o = orderList.get(i);
+            SelectOrderBy o = orderByList.get(i);
             index[i] = i + 1;
             int order = o.descending ? SortOrder.DESCENDING : SortOrder.ASCENDING;
             sortType[i] = order;
@@ -296,12 +285,12 @@ public class Aggregate extends Expression {
         if (type == AggregateType.GROUP_CONCAT) {
             if (v != ValueNull.INSTANCE) {
                 v = v.convertTo(Value.STRING);
-                if (groupConcatOrderList != null) {
-                    int size = groupConcatOrderList.size();
+                if (orderByList != null) {
+                    int size = orderByList.size();
                     Value[] array = new Value[1 + size];
                     array[0] = v;
                     for (int i = 0; i < size; i++) {
-                        SelectOrderBy o = groupConcatOrderList.get(i);
+                        SelectOrderBy o = orderByList.get(i);
                         array[i + 1] = o.expression.getValue(session);
                     }
                     v = ValueArray.get(array);
@@ -310,12 +299,12 @@ public class Aggregate extends Expression {
         }
         if (type == AggregateType.ARRAY_AGG) {
             if (v != ValueNull.INSTANCE) {
-                if (arrayAggOrderList != null) {
-                    int size = arrayAggOrderList.size();
+                if (orderByList != null) {
+                    int size = orderByList.size();
                     Value[] array = new Value[1 + size];
                     array[0] = v;
                     for (int i = 0; i < size; i++) {
-                        SelectOrderBy o = arrayAggOrderList.get(i);
+                        SelectOrderBy o = orderByList.get(i);
                         array[i + 1] = o.expression.getValue(session);
                     }
                     v = ValueArray.get(array);
@@ -377,8 +366,8 @@ public class Aggregate extends Expression {
             if (list == null || list.isEmpty()) {
                 return ValueNull.INSTANCE;
             }
-            if (groupConcatOrderList != null) {
-                final SortOrder sortOrder = groupConcatSort;
+            if (orderByList != null) {
+                final SortOrder sortOrder = orderBySort;
                 Collections.sort(list, new Comparator<Value>() {
                     @Override
                     public int compare(Value v1, Value v2) {
@@ -412,8 +401,8 @@ public class Aggregate extends Expression {
             if (list == null || list.isEmpty()) {
                 return ValueNull.INSTANCE;
             }
-            if (arrayAggOrderList != null) {
-                final SortOrder sortOrder = arrayOrderSort;
+            if (orderByList != null) {
+                final SortOrder sortOrder = orderBySort;
                 Collections.sort(list, new Comparator<Value>() {
                     @Override
                     public int compare(Value v1, Value v2) {
@@ -438,13 +427,8 @@ public class Aggregate extends Expression {
         if (on != null) {
             on.mapColumns(resolver, level);
         }
-        if (groupConcatOrderList != null) {
-            for (SelectOrderBy o : groupConcatOrderList) {
-                o.expression.mapColumns(resolver, level);
-            }
-        }
-        if (arrayAggOrderList != null) {
-            for (SelectOrderBy o : arrayAggOrderList) {
+        if (orderByList != null) {
+            for (SelectOrderBy o : orderByList) {
                 o.expression.mapColumns(resolver, level);
             }
         }
@@ -465,17 +449,11 @@ public class Aggregate extends Expression {
             precision = on.getPrecision();
             displaySize = on.getDisplaySize();
         }
-        if (groupConcatOrderList != null) {
-            for (SelectOrderBy o : groupConcatOrderList) {
+        if (orderByList != null) {
+            for (SelectOrderBy o : orderByList) {
                 o.expression = o.expression.optimize(session);
             }
-            groupConcatSort = initOrder(groupConcatOrderList, session);
-        }
-        if (arrayAggOrderList != null) {
-            for (SelectOrderBy o : arrayAggOrderList) {
-                o.expression = o.expression.optimize(session);
-            }
-            arrayOrderSort = initOrder(arrayAggOrderList, session);
+            orderBySort = initOrder(session);
         }
         if (groupConcatSeparator != null) {
             groupConcatSeparator = groupConcatSeparator.optimize(session);
@@ -564,13 +542,8 @@ public class Aggregate extends Expression {
         if (on != null) {
             on.setEvaluatable(tableFilter, b);
         }
-        if (groupConcatOrderList != null) {
-            for (SelectOrderBy o : groupConcatOrderList) {
-                o.expression.setEvaluatable(tableFilter, b);
-            }
-        }
-        if (arrayAggOrderList != null) {
-            for (SelectOrderBy o : arrayAggOrderList) {
+        if (orderByList != null) {
+            for (SelectOrderBy o : orderByList) {
                 o.expression.setEvaluatable(tableFilter, b);
             }
         }
@@ -603,9 +576,9 @@ public class Aggregate extends Expression {
             buff.append("DISTINCT ");
         }
         buff.append(on.getSQL());
-        if (groupConcatOrderList != null) {
+        if (orderByList != null) {
             buff.append(" ORDER BY ");
-            for (SelectOrderBy o : groupConcatOrderList) {
+            for (SelectOrderBy o : orderByList) {
                 buff.appendExceptFirst(", ");
                 buff.append(o.expression.getSQL());
                 if (o.descending) {
@@ -629,9 +602,9 @@ public class Aggregate extends Expression {
             buff.append("DISTINCT ");
         }
         buff.append(on.getSQL());
-        if (arrayAggOrderList != null) {
+        if (orderByList != null) {
             buff.append(" ORDER BY ");
-            for (SelectOrderBy o : arrayAggOrderList) {
+            for (SelectOrderBy o : orderByList) {
                 buff.appendExceptFirst(", ");
                 buff.append(o.expression.getSQL());
                 if (o.descending) {
@@ -765,15 +738,8 @@ public class Aggregate extends Expression {
                 !groupConcatSeparator.isEverything(visitor)) {
             return false;
         }
-        if (groupConcatOrderList != null) {
-            for (SelectOrderBy o : groupConcatOrderList) {
-                if (!o.expression.isEverything(visitor)) {
-                    return false;
-                }
-            }
-        }
-        if (arrayAggOrderList != null) {
-            for (SelectOrderBy o : arrayAggOrderList) {
+        if (orderByList != null) {
+            for (SelectOrderBy o : orderByList) {
                 if (!o.expression.isEverything(visitor)) {
                     return false;
                 }

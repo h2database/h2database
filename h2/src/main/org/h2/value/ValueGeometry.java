@@ -11,6 +11,7 @@ import java.util.Arrays;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 import org.locationtech.jts.geom.CoordinateSequence;
 import org.locationtech.jts.geom.CoordinateSequenceFilter;
 import org.locationtech.jts.geom.Envelope;
@@ -221,7 +222,7 @@ public class ValueGeometry extends Value {
 
     @Override
     public byte[] getBytes() {
-        return getWKB();
+        return Utils.cloneByteArray(getWKB());
     }
 
     @Override

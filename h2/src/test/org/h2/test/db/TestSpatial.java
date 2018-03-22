@@ -648,13 +648,14 @@ public class TestSpatial extends TestBase {
         GeometryFactory geometryFactory = new GeometryFactory();
         Geometry geometry = geometryFactory.createPoint(new Coordinate(0, 0));
         geometry.setSRID(27572);
-        ValueGeometry valueGeometry =
-                ValueGeometry.getFromGeometry(geometry);
+        ValueGeometry valueGeometry = ValueGeometry.getFromGeometry(geometry);
         Geometry geometry2 = geometryFactory.createPoint(new Coordinate(0, 0));
         geometry2.setSRID(5326);
-        ValueGeometry valueGeometry2 =
-                ValueGeometry.getFromGeometry(geometry2);
+        ValueGeometry valueGeometry2 = ValueGeometry.getFromGeometry(geometry2);
         assertFalse(valueGeometry.equals(valueGeometry2));
+        ValueGeometry valueGeometry3 = ValueGeometry.getFromGeometry(geometry);
+        assertEquals(valueGeometry, valueGeometry3);
+        assertEquals(geometry.getSRID(), valueGeometry3.getGeometry().getSRID());
         // Check illegal geometry (no WKB representation)
         try {
             ValueGeometry.get("POINT EMPTY");

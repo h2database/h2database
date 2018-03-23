@@ -87,6 +87,7 @@ public class TestResultSet extends TestBase {
         testFindColumn();
         testColumnLength();
         testArray();
+        testEnum();
         testLimitMaxRows();
 
         trace("max rows=" + stat.getMaxRows());
@@ -1796,6 +1797,40 @@ public class TestResultSet extends TestBase {
 
         assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
+    }
+
+    private void testEnum() throws SQLException {
+        trace("Test ENUM");
+
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE ENUM('A', 'B', 'C'))");
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?)");
+        prep.setInt(1, 1);
+        prep.setString(2, "A");
+        prep.executeUpdate();
+        prep.setInt(1, 2);
+        prep.setObject(2, "B");
+        prep.executeUpdate();
+        prep.setInt(1, 3);
+        prep.setObject(2, "C");
+        prep.executeUpdate();
+
+        ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
+        testEnumResult(rs, 1, "A", 0);
+        testEnumResult(rs, 2, "B", 1);
+        testEnumResult(rs, 3, "C", 2);
+        assertFalse(rs.next());
+
+        stat.execute("DROP TABLE TEST");
+    }
+
+    private void testEnumResult(ResultSet rs, int id, String name, int ordinal) throws SQLException {
+        assertTrue(rs.next());
+        assertEquals(id, rs.getInt(1));
+        assertEquals(name, rs.getString(2));
+        assertEquals(name, rs.getObject(2));
+        assertEquals(name, rs.getObject(2, String.class));
+        assertEquals(ordinal, rs.getInt(2));
+        assertEquals((Integer) ordinal, rs.getObject(2, Integer.class));
     }
 
     private byte[] readAllBytes(InputStream in) {

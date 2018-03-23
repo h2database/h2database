@@ -1802,7 +1802,7 @@ public class TestResultSet extends TestBase {
     private void testEnum() throws SQLException {
         trace("Test ENUM");
 
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE ENUM('A', 'B', 'C'))");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE ENUM('A', 'B', 'C', 'D', 'E', 'F', 'G'))");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?)");
         prep.setInt(1, 1);
         prep.setString(2, "A");
@@ -1811,13 +1811,29 @@ public class TestResultSet extends TestBase {
         prep.setObject(2, "B");
         prep.executeUpdate();
         prep.setInt(1, 3);
-        prep.setObject(2, "C");
+        prep.setInt(2, 2);
+        prep.executeUpdate();
+        prep.setInt(1, 4);
+        prep.setObject(2, "D", Types.VARCHAR);
+        prep.executeUpdate();
+        prep.setInt(1, 5);
+        prep.setObject(2, "E", Types.OTHER);
+        prep.executeUpdate();
+        prep.setInt(1, 6);
+        prep.setObject(2, 5, Types.OTHER);
+        prep.executeUpdate();
+        prep.setInt(1, 7);
+        prep.setObject(2, 6, Types.INTEGER);
         prep.executeUpdate();
 
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         testEnumResult(rs, 1, "A", 0);
         testEnumResult(rs, 2, "B", 1);
         testEnumResult(rs, 3, "C", 2);
+        testEnumResult(rs, 4, "D", 3);
+        testEnumResult(rs, 5, "E", 4);
+        testEnumResult(rs, 6, "F", 5);
+        testEnumResult(rs, 7, "G", 6);
         assertFalse(rs.next());
 
         stat.execute("DROP TABLE TEST");

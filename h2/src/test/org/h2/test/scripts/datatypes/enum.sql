@@ -189,17 +189,65 @@ DROP TABLE TEST;
 CREATE TABLE TEST(E ENUM('A', 'B'));
 > ok
 
+INSERT INTO TEST VALUES ('B');
+> update count: 1
+
 CREATE VIEW V AS SELECT * FROM TEST;
 > ok
+
+SELECT * FROM V;
+> E
+> -
+> B
+> rows: 1
+
+CREATE VIEW V1 AS SELECT E + 2 AS E FROM TEST;
+> ok
+
+SELECT * FROM V1;
+> E
+> -
+> 3
+> rows: 1
+
+CREATE VIEW V2 AS SELECT E + E AS E FROM TEST;
+> ok
+
+SELECT * FROM V2;
+> E
+> -
+> 2
+> rows: 1
+
+CREATE VIEW V3 AS SELECT -E AS E FROM TEST;
+> ok
+
+SELECT * FROM V3;
+> E
+> --
+> -1
+> rows: 1
 
 SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE COLUMN_NAME = 'E' ORDER BY TABLE_NAME;
 > TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME ORDINAL_POSITION COLUMN_DEFAULT IS_NULLABLE DATA_TYPE CHARACTER_MAXIMUM_LENGTH CHARACTER_OCTET_LENGTH NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE CHARACTER_SET_NAME COLLATION_NAME TYPE_NAME NULLABLE IS_COMPUTED SELECTIVITY CHECK_CONSTRAINT SEQUENCE_NAME REMARKS SOURCE_DATA_TYPE COLUMN_TYPE   COLUMN_ON_UPDATE
 > ------------- ------------ ---------- ----------- ---------------- -------------- ----------- --------- ------------------------ ---------------------- ----------------- ----------------------- ------------- ------------------ -------------- --------- -------- ----------- ----------- ---------------- ------------- ------- ---------------- ------------- ----------------
 > SCRIPT        PUBLIC       TEST       E           1                null           YES         1111      2147483647               2147483647             2147483647        10                      0             Unicode            OFF            ENUM      1        FALSE       50                           null                  null             ENUM('A','B') null
 > SCRIPT        PUBLIC       V          E           1                null           YES         1111      2147483647               2147483647             2147483647        10                      0             Unicode            OFF            ENUM      1        FALSE       50                           null                  null             ENUM('A','B') null
-> rows (ordered): 2
+> SCRIPT        PUBLIC       V1         E           1                null           YES         4         2147483647               2147483647             2147483647        10                      0             Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER       null
+> SCRIPT        PUBLIC       V2         E           1                null           YES         4         2147483647               2147483647             2147483647        10                      0             Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER       null
+> SCRIPT        PUBLIC       V3         E           1                null           YES         4         2147483647               2147483647             2147483647        10                      0             Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER       null
+> rows (ordered): 5
 
 DROP VIEW V;
+> ok
+
+DROP VIEW V1;
+> ok
+
+DROP VIEW V2;
+> ok
+
+DROP VIEW V3;
 > ok
 
 DROP TABLE TEST;

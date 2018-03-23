@@ -193,7 +193,13 @@ public class TableView extends Table {
                 long precision = expr.getPrecision();
                 int scale = expr.getScale();
                 int displaySize = expr.getDisplaySize();
-                Column col = new Column(name, type, precision, scale, displaySize);
+                String[] enumerators = null;
+                if (type == Value.ENUM) {
+                    if (expr instanceof ExpressionColumn) {
+                        enumerators = ((ExpressionColumn) expr).getColumn().getEnumerators();
+                    }
+                }
+                Column col = new Column(name, type, precision, scale, displaySize, enumerators);
                 col.setTable(this, i);
                 // Fetch check constraint from view column source
                 ExpressionColumn fromColumn = null;

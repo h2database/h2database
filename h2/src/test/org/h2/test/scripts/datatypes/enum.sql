@@ -185,3 +185,22 @@ SELECT * FROM TEST;
 
 DROP TABLE TEST;
 > ok
+
+CREATE TABLE TEST(E ENUM('A', 'B'));
+> ok
+
+CREATE VIEW V AS SELECT * FROM TEST;
+> ok
+
+SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE COLUMN_NAME = 'E' ORDER BY TABLE_NAME;
+> TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME ORDINAL_POSITION COLUMN_DEFAULT IS_NULLABLE DATA_TYPE CHARACTER_MAXIMUM_LENGTH CHARACTER_OCTET_LENGTH NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE CHARACTER_SET_NAME COLLATION_NAME TYPE_NAME NULLABLE IS_COMPUTED SELECTIVITY CHECK_CONSTRAINT SEQUENCE_NAME REMARKS SOURCE_DATA_TYPE COLUMN_TYPE   COLUMN_ON_UPDATE
+> ------------- ------------ ---------- ----------- ---------------- -------------- ----------- --------- ------------------------ ---------------------- ----------------- ----------------------- ------------- ------------------ -------------- --------- -------- ----------- ----------- ---------------- ------------- ------- ---------------- ------------- ----------------
+> SCRIPT        PUBLIC       TEST       E           1                null           YES         1111      2147483647               2147483647             2147483647        10                      0             Unicode            OFF            ENUM      1        FALSE       50                           null                  null             ENUM('A','B') null
+> SCRIPT        PUBLIC       V          E           1                null           YES         1111      2147483647               2147483647             2147483647        10                      0             Unicode            OFF            ENUM      1        FALSE       50                           null                  null             ENUM('A','B') null
+> rows (ordered): 2
+
+DROP VIEW V;
+> ok
+
+DROP TABLE TEST;
+> ok

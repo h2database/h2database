@@ -303,13 +303,13 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                     + "CAST(SOURCE_DATA_TYPE AS VARCHAR) SCOPE_TABLE, "
                     + "SOURCE_DATA_TYPE, "
                     + "CASE WHEN SEQUENCE_NAME IS NULL THEN "
-                    + "CAST(? AS VARCHAR) ELSE CAST(? AS VARCHAR) END IS_AUTOINCREMENT, "
+                    + "CAST(?1 AS VARCHAR) ELSE CAST(?2 AS VARCHAR) END IS_AUTOINCREMENT, "
                     + "CAST(SOURCE_DATA_TYPE AS VARCHAR) SCOPE_CATLOG "
                     + "FROM INFORMATION_SCHEMA.COLUMNS "
-                    + "WHERE TABLE_CATALOG LIKE ? ESCAPE ? "
-                    + "AND TABLE_SCHEMA LIKE ? ESCAPE ? "
-                    + "AND TABLE_NAME LIKE ? ESCAPE ? "
-                    + "AND COLUMN_NAME LIKE ? ESCAPE ? "
+                    + "WHERE TABLE_CATALOG LIKE ?3 ESCAPE ?7 "
+                    + "AND TABLE_SCHEMA LIKE ?4 ESCAPE ?7 "
+                    + "AND TABLE_NAME LIKE ?5 ESCAPE ?7 "
+                    + "AND COLUMN_NAME LIKE ?6 ESCAPE ?7 "
                     + "ORDER BY TABLE_SCHEM, TABLE_NAME, ORDINAL_POSITION";
             String synonymSql = "SELECT "
                     + "s.SYNONYM_CATALOG TABLE_CAT, "
@@ -335,15 +335,15 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                     + "CAST(c.SOURCE_DATA_TYPE AS VARCHAR) SCOPE_TABLE, "
                     + "c.SOURCE_DATA_TYPE, "
                     + "CASE WHEN c.SEQUENCE_NAME IS NULL THEN "
-                    + "CAST(? AS VARCHAR) ELSE CAST(? AS VARCHAR) END IS_AUTOINCREMENT, "
+                    + "CAST(?1 AS VARCHAR) ELSE CAST(?2 AS VARCHAR) END IS_AUTOINCREMENT, "
                     + "CAST(c.SOURCE_DATA_TYPE AS VARCHAR) SCOPE_CATLOG "
                     + "FROM INFORMATION_SCHEMA.COLUMNS c JOIN INFORMATION_SCHEMA.SYNONYMS s ON "
                     + "s.SYNONYM_FOR = c.TABLE_NAME "
                     + "AND s.SYNONYM_FOR_SCHEMA = c.TABLE_SCHEMA "
-                    + "WHERE s.SYNONYM_CATALOG LIKE ? ESCAPE ? "
-                    + "AND s.SYNONYM_SCHEMA LIKE ? ESCAPE ? "
-                    + "AND s.SYNONYM_NAME LIKE ? ESCAPE ? "
-                    + "AND c.COLUMN_NAME LIKE ? ESCAPE ? ";
+                    + "WHERE s.SYNONYM_CATALOG LIKE ?3 ESCAPE ?7 "
+                    + "AND s.SYNONYM_SCHEMA LIKE ?4 ESCAPE ?7 "
+                    + "AND s.SYNONYM_NAME LIKE ?5 ESCAPE ?7 "
+                    + "AND c.COLUMN_NAME LIKE ?6 ESCAPE ?7 ";
             PreparedStatement prep = conn.prepareAutoCloseStatement("SELECT "
                     + "TABLE_CAT, "
                     + "TABLE_SCHEM, "
@@ -374,23 +374,10 @@ public class JdbcDatabaseMetaData extends TraceObject implements
             prep.setString(1, "NO");
             prep.setString(2, "YES");
             prep.setString(3, getCatalogPattern(catalogPattern));
-            prep.setString(4, "\\");
-            prep.setString(5, getSchemaPattern(schemaPattern));
-            prep.setString(6, "\\");
-            prep.setString(7, getPattern(tableNamePattern));
-            prep.setString(8, "\\");
-            prep.setString(9, getPattern(columnNamePattern));
-            prep.setString(10, "\\");
-            prep.setString(11, "NO");
-            prep.setString(12, "YES");
-            prep.setString(13, getCatalogPattern(catalogPattern));
-            prep.setString(14, "\\");
-            prep.setString(15, getSchemaPattern(schemaPattern));
-            prep.setString(16, "\\");
-            prep.setString(17, getPattern(tableNamePattern));
-            prep.setString(18, "\\");
-            prep.setString(19, getPattern(columnNamePattern));
-            prep.setString(20, "\\");
+            prep.setString(4, getSchemaPattern(schemaPattern));
+            prep.setString(5, getPattern(tableNamePattern));
+            prep.setString(6, getPattern(columnNamePattern));
+            prep.setString(7, "\\");
             return prep.executeQuery();
         } catch (Exception e) {
             throw logAndConvert(e);

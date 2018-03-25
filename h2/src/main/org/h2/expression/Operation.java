@@ -186,6 +186,8 @@ public class Operation extends Expression {
             dataType = left.getType();
             if (dataType == Value.UNKNOWN) {
                 dataType = Value.DECIMAL;
+            } else if (dataType == Value.ENUM) {
+                dataType = Value.INT;
             }
             break;
         case CONCAT:
@@ -315,7 +317,9 @@ public class Operation extends Expression {
                         DataType.getDataType(r).name);
             } else {
                 dataType = Value.getHigherOrder(l, r);
-                if (DataType.isStringType(dataType) &&
+                if (dataType == Value.ENUM) {
+                    dataType = Value.INT;
+                } else if (DataType.isStringType(dataType) &&
                         session.getDatabase().getMode().allowPlusForStringConcat) {
                     opType = OpType.CONCAT;
                 }

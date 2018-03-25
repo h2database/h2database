@@ -476,7 +476,7 @@ public class TestPreparedStatement extends TestBase {
             assertEquals(goodSizes[i], rs.getString(1));
             assertEquals(i, rs.getInt(1));
             Object o = rs.getObject(1);
-            assertEquals(Integer.class, o.getClass());
+            assertEquals(String.class, o.getClass());
         }
 
         for (int i = 0; i < goodSizes.length; i++) {

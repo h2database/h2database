@@ -1150,11 +1150,8 @@ public class Parser {
             TableFilter sourceTableFilter = readSimpleTableFilter(0, excludeIdentifiers);
             command.setSourceTableFilter(sourceTableFilter);
 
-            StringBuilder buff = new StringBuilder("SELECT * FROM ")
-                    .append(sourceTableFilter.getTable().getName());
-            if (sourceTableFilter.getTableAlias() != null) {
-                buff.append(" AS ").append(sourceTableFilter.getTableAlias());
-            }
+            StringBuilder buff = new StringBuilder("SELECT * FROM ");
+            appendTableWithSchemaAndAlias(buff, sourceTableFilter.getTable(), sourceTableFilter.getTableAlias());
             Prepared preparedQuery = prepare(session, buff.toString(), null/*paramValues*/);
             command.setQuery((Select) preparedQuery);
 
@@ -1197,17 +1194,23 @@ public class Parser {
 
         // build and prepare the targetMatchQuery ready to test each rows
         // existence in the target table (using source row to match)
-        StringBuilder targetMatchQuerySQL = new StringBuilder(
-                "SELECT _ROWID_ FROM " + command.getTargetTable().getName());
-        if (command.getTargetTableFilter().getTableAlias() != null) {
-            targetMatchQuerySQL.append(" AS ").append(command.getTargetTableFilter().getTableAlias());
-        }
+        StringBuilder targetMatchQuerySQL = new StringBuilder("SELECT _ROWID_ FROM ");
+        appendTableWithSchemaAndAlias(targetMatchQuerySQL, command.getTargetTable(),
+                command.getTargetTableFilter().getTableAlias());
         targetMatchQuerySQL
                 .append(" WHERE ").append(command.getOnCondition().getSQL());
         command.setTargetMatchQuery(
                 (Select) parse(targetMatchQuerySQL.toString()));
 
         return command;
+    }
+
+    private static void appendTableWithSchemaAndAlias(StringBuilder buff, Table table, String alias) {
+        buff.append(quoteIdentifier(table.getSchema().getName()))
+            .append('.').append(quoteIdentifier(table.getName()));
+        if (alias != null) {
+            buff.append(" AS ").append(quoteIdentifier(alias));
+        }
     }
 
     private Insert parseInsert() {
@@ -2628,7 +2631,7 @@ public class Parser {
                     readExpression(), currentSelect, distinct);
                 if (readIf("ORDER")) {
                     read("BY");
-                    r.setGroupConcatOrder(parseSimpleOrderList());
+                    r.setOrderByList(parseSimpleOrderList());
                 }
 
                 if (readIf("SEPARATOR")) {
@@ -2642,7 +2645,7 @@ public class Parser {
                 r.setGroupConcatSeparator(readExpression());
                 if (readIf("ORDER")) {
                     read("BY");
-                    r.setGroupConcatOrder(parseSimpleOrderList());
+                    r.setOrderByList(parseSimpleOrderList());
                 }
             } else {
                 r = null;
@@ -2654,7 +2657,7 @@ public class Parser {
                 readExpression(), currentSelect, distinct);
             if (readIf("ORDER")) {
                 read("BY");
-                r.setArrayAggOrder(parseSimpleOrderList());
+                r.setOrderByList(parseSimpleOrderList());
             }
         } else {
             boolean distinct = readIf("DISTINCT");
@@ -3027,7 +3030,7 @@ public class Parser {
             int index = currentValue.getInt() - 1;
             if (index < 0 || index >= Constants.MAX_PARAMETER_INDEX) {
                 throw DbException.getInvalidValueException(
-                        "parameter index", index);
+                        "parameter index", index + 1);
             }
             if (indexedParameterList.size() <= index) {
                 indexedParameterList.ensureCapacity(index + 1);

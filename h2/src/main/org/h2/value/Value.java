@@ -982,7 +982,16 @@ public abstract class Value {
                     case STRING_IGNORECASE:
                     case STRING_FIXED:
                         return ValueEnum.get(enumerators, getString());
-                    default:
+                    case JAVA_OBJECT:
+                        Object object = JdbcUtils.deserialize(getBytesNoCopy(),
+                                getDataHandler());
+                        if (object instanceof String) {
+                            return ValueEnum.get(enumerators, (String) object);
+                        } else if (object instanceof Integer) {
+                            return ValueEnum.get(enumerators, (int) object);
+                        }
+                    //$FALL-THROUGH$
+                default:
                         throw DbException.get(
                                 ErrorCode.DATA_CONVERSION_ERROR_1, getString());
                 }

@@ -11,6 +11,7 @@ import java.util.Arrays;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 import org.locationtech.jts.geom.CoordinateSequence;
 import org.locationtech.jts.geom.CoordinateSequenceFilter;
 import org.locationtech.jts.geom.Envelope;
@@ -140,7 +141,20 @@ public class ValueGeometry extends Value {
      * @return a copy of the geometry object
      */
     public Geometry getGeometry() {
-        return getGeometryNoCopy().copy();
+        Geometry geometry = getGeometryNoCopy();
+        Geometry copy = geometry.copy();
+        /*
+         * Geometry factory is not preserved in WKB format, but SRID is preserved.
+         *
+         * We use a new factory to read geometries from WKB with default SRID value of
+         * 0.
+         *
+         * Geometry.copy() copies the geometry factory and copied value has SRID form
+         * the factory instead of original SRID value. So we need to copy SRID here with
+         * non-recommended (but not deprecated) setSRID() method.
+         */
+        copy.setSRID(geometry.getSRID());
+        return copy;
     }
 
     public Geometry getGeometryNoCopy() {
@@ -221,7 +235,7 @@ public class ValueGeometry extends Value {
 
     @Override
     public byte[] getBytes() {
-        return getWKB();
+        return Utils.cloneByteArray(getWKB());
     }
 
     @Override

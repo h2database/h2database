@@ -334,11 +334,12 @@ public class Column {
         synchronized (this) {
             localDefaultExpression = defaultExpression;
         }
+        Mode mode = session.getDatabase().getMode();
         if (value == null) {
             if (localDefaultExpression == null) {
                 value = ValueNull.INSTANCE;
             } else {
-                value = localDefaultExpression.getValue(session).convertTo(type);
+                value = convert(localDefaultExpression.getValue(session), mode);
                 if (!localDefaultExpression.isConstant()) {
                     session.getGeneratedKeys().add(this);
                 }
@@ -347,10 +348,9 @@ public class Column {
                 }
             }
         }
-        Mode mode = session.getDatabase().getMode();
         if (value == ValueNull.INSTANCE) {
             if (convertNullToDefault) {
-                value = localDefaultExpression.getValue(session).convertTo(type);
+                value = convert(localDefaultExpression.getValue(session), mode);
                 if (!localDefaultExpression.isConstant()) {
                     session.getGeneratedKeys().add(this);
                 }

@@ -21,6 +21,32 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Issue #992: 1.4.196+ client cannot use DatabaseMetaData with 1.4.195- server
+</li>
+<li>Issue #1016: ResultSet.getObject() should return enum value, not ordinal
+</li>
+<li>Issue #1012: NPE when querying INFORMATION_SCHEMA.COLUMNS on a view that references an ENUM column
+</li>
+<li>Issue #1010: MERGE USING table not found with qualified table
+</li>
+<li>PR #1009: Fix ARRAY_AGG with ORDER BY and refactor aggregates
+</li>
+<li>Issue #1006: "Empty enums are not allowed" in 1.4.197 (mode=MYSQL)
+</li>
+<li>PR #1007: Copy also SRID in ValueGeometry.getGeometry()
+</li>
+<li>PR #1004: Preserve type names in more places especially for UUID
+</li>
+<li>Issue #1000: Regression in INFORMATION_SCHEMA.CONSTRAINTS.CONSTRAINT_TYPE content
+</li>
+<li>Issue #997: Can not delete from tables with enums
+</li>
+<li>Issue #994: Too much column in result set for GENERATED_KEYS on table with DEFAULT
+</li>
+<li>PR #993: Fix some compiler warnings and improve assert*() methods
+</li>
+<li>PR #991: Generate shorter queries in JdbcDatabaseMetaData.getTables() and remove some dead code
+</li>
 <li>PR #989: Fix more issues with range table and improve its documentation
 </li>
 </ul>
@@ -389,7 +415,7 @@ Change Log
 </li>
 <li>PR #743: Change REGEXP_REPLACE mode for MariaDB and PostgreSQL
 </li>
-<li>Issue#646 NPE in CREATE VIEW WITH RECURSIVE & NON_RECURSIVE CTE
+<li>Issue#646 NPE in CREATE VIEW WITH RECURSIVE &amp; NON_RECURSIVE CTE
 </li>
 <li>PR #738: Copy javadoc to *BackwardsCompat to fix building of documentation
 </li>
@@ -696,7 +722,7 @@ changed from Types.OTHER (1111) to Types.TIMESTAMP_WITH_TIMEZONE (2014)
 </li>
 <li>Issue #266: Spatial index not updating, fixed by merging PR #267
 </li>
-<li>PR #302: add support for "with"-subqueries into "join" & "sub-query" statements
+<li>PR #302: add support for "with"-subqueries into "join" &amp; "sub-query" statements
 </li>
 <li>Issue #299: Nested derived tables did not always work as expected.
 </li>

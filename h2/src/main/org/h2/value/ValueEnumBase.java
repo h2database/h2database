@@ -77,7 +77,7 @@ public class ValueEnumBase extends Value {
 
     @Override
     public Object getObject() {
-        return ordinal;
+        return label;
     }
 
     @Override

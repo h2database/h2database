@@ -14,11 +14,16 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Properties;
+
+import org.h2.command.CommandInterface;
 import org.h2.engine.Constants;
+import org.h2.engine.SessionInterface;
+import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
+import org.h2.result.ResultInterface;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -30,6 +35,11 @@ public class JdbcDatabaseMetaData extends TraceObject implements
         DatabaseMetaData, JdbcDatabaseMetaDataBackwardsCompat {
 
     private final JdbcConnection conn;
+
+    /**
+     * Whether database has support for synonyms ({@code null} if not yet known).
+     */
+    private Boolean hasSynonyms;
 
     JdbcDatabaseMetaData(JdbcConnection conn, Trace trace, int id) {
         setTrace(trace, TraceObject.DATABASE_META_DATA, id);
@@ -105,6 +115,32 @@ public class JdbcDatabaseMetaData extends TraceObject implements
         return Constants.getFullVersion();
     }
 
+    private boolean hasSynonyms() {
+        Boolean hasSynonyms = this.hasSynonyms;
+        if (hasSynonyms == null) {
+            SessionInterface si = conn.getSession();
+            if (si instanceof SessionRemote) {
+                SessionRemote sr = (SessionRemote) si;
+                int clientVersion = sr.getClientVersion();
+                if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_17) {
+                    hasSynonyms = true;
+                } else if (clientVersion <= Constants.TCP_PROTOCOL_VERSION_15) {
+                    hasSynonyms = false;
+                } else { // 1.4.194-1.4.196
+                    CommandInterface c = sr.prepareCommand("CALL H2VERSION()", Integer.MAX_VALUE);
+                    ResultInterface result = c.executeQuery(0, false);
+                    result.next();
+                    String s = result.currentRow()[0].getString();
+                    result.close();
+                    hasSynonyms = "1.4.196".equals(s);
+                }
+            } else {
+                hasSynonyms = true;
+            }
+        }
+        return hasSynonyms;
+    }
+
     /**
      * Gets the list of tables in the database. The result set is sorted by
      * TABLE_TYPE, TABLE_SCHEM, and TABLE_NAME.
@@ -144,7 +180,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
             }
             checkClosed();
             int typesLength = types != null ? types.length : 0;
-            boolean includeSynonyms = types == null || Arrays.asList(types).contains("SYNONYM");
+            boolean includeSynonyms = hasSynonyms() && (types == null || Arrays.asList(types).contains("SYNONYM"));
 
             // (1024 - 16) is enough for the most cases
             StringBuilder select = new StringBuilder(1008);
@@ -279,7 +315,72 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                         +quote(columnNamePattern)+");");
             }
             checkClosed();
-            String tableSql = "SELECT "
+            boolean includeSynonyms = hasSynonyms();
+
+            StringBuilder select = new StringBuilder(2432);
+            if (includeSynonyms) {
+                select.append("SELECT "
+                        + "TABLE_CAT, "
+                        + "TABLE_SCHEM, "
+                        + "TABLE_NAME, "
+                        + "COLUMN_NAME, "
+                        + "DATA_TYPE, "
+                        + "TYPE_NAME, "
+                        + "COLUMN_SIZE, "
+                        + "BUFFER_LENGTH, "
+                        + "DECIMAL_DIGITS, "
+                        + "NUM_PREC_RADIX, "
+                        + "NULLABLE, "
+                        + "REMARKS, "
+                        + "COLUMN_DEF, "
+                        + "SQL_DATA_TYPE, "
+                        + "SQL_DATETIME_SUB, "
+                        + "CHAR_OCTET_LENGTH, "
+                        + "ORDINAL_POSITION, "
+                        + "IS_NULLABLE, "
+                        + "SCOPE_CATALOG, "
+                        + "SCOPE_SCHEMA, "
+                        + "SCOPE_TABLE, "
+                        + "SOURCE_DATA_TYPE, "
+                        + "IS_AUTOINCREMENT, "
+                        + "SCOPE_CATLOG "
+                        + "FROM ("
+                        + "SELECT "
+                        + "s.SYNONYM_CATALOG TABLE_CAT, "
+                        + "s.SYNONYM_SCHEMA TABLE_SCHEM, "
+                        + "s.SYNONYM_NAME TABLE_NAME, "
+                        + "c.COLUMN_NAME, "
+                        + "c.DATA_TYPE, "
+                        + "c.TYPE_NAME, "
+                        + "c.CHARACTER_MAXIMUM_LENGTH COLUMN_SIZE, "
+                        + "c.CHARACTER_MAXIMUM_LENGTH BUFFER_LENGTH, "
+                        + "c.NUMERIC_SCALE DECIMAL_DIGITS, "
+                        + "c.NUMERIC_PRECISION_RADIX NUM_PREC_RADIX, "
+                        + "c.NULLABLE, "
+                        + "c.REMARKS, "
+                        + "c.COLUMN_DEFAULT COLUMN_DEF, "
+                        + "c.DATA_TYPE SQL_DATA_TYPE, "
+                        + "ZERO() SQL_DATETIME_SUB, "
+                        + "c.CHARACTER_OCTET_LENGTH CHAR_OCTET_LENGTH, "
+                        + "c.ORDINAL_POSITION, "
+                        + "c.IS_NULLABLE IS_NULLABLE, "
+                        + "CAST(c.SOURCE_DATA_TYPE AS VARCHAR) SCOPE_CATALOG, "
+                        + "CAST(c.SOURCE_DATA_TYPE AS VARCHAR) SCOPE_SCHEMA, "
+                        + "CAST(c.SOURCE_DATA_TYPE AS VARCHAR) SCOPE_TABLE, "
+                        + "c.SOURCE_DATA_TYPE, "
+                        + "CASE WHEN c.SEQUENCE_NAME IS NULL THEN "
+                        + "CAST(?1 AS VARCHAR) ELSE CAST(?2 AS VARCHAR) END IS_AUTOINCREMENT, "
+                        + "CAST(c.SOURCE_DATA_TYPE AS VARCHAR) SCOPE_CATLOG "
+                        + "FROM INFORMATION_SCHEMA.COLUMNS c JOIN INFORMATION_SCHEMA.SYNONYMS s ON "
+                        + "s.SYNONYM_FOR = c.TABLE_NAME "
+                        + "AND s.SYNONYM_FOR_SCHEMA = c.TABLE_SCHEMA "
+                        + "WHERE s.SYNONYM_CATALOG LIKE ?3 ESCAPE ?7 "
+                        + "AND s.SYNONYM_SCHEMA LIKE ?4 ESCAPE ?7 "
+                        + "AND s.SYNONYM_NAME LIKE ?5 ESCAPE ?7 "
+                        + "AND c.COLUMN_NAME LIKE ?6 ESCAPE ?7 "
+                        + "UNION ");
+            }
+            select.append("SELECT "
                     + "TABLE_CATALOG TABLE_CAT, "
                     + "TABLE_SCHEMA TABLE_SCHEM, "
                     + "TABLE_NAME, "
@@ -309,68 +410,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                     + "WHERE TABLE_CATALOG LIKE ?3 ESCAPE ?7 "
                     + "AND TABLE_SCHEMA LIKE ?4 ESCAPE ?7 "
                     + "AND TABLE_NAME LIKE ?5 ESCAPE ?7 "
-                    + "AND COLUMN_NAME LIKE ?6 ESCAPE ?7 "
-                    + "ORDER BY TABLE_SCHEM, TABLE_NAME, ORDINAL_POSITION";
-            String synonymSql = "SELECT "
-                    + "s.SYNONYM_CATALOG TABLE_CAT, "
-                    + "s.SYNONYM_SCHEMA TABLE_SCHEM, "
-                    + "s.SYNONYM_NAME TABLE_NAME, "
-                    + "c.COLUMN_NAME, "
-                    + "c.DATA_TYPE, "
-                    + "c.TYPE_NAME, "
-                    + "c.CHARACTER_MAXIMUM_LENGTH COLUMN_SIZE, "
-                    + "c.CHARACTER_MAXIMUM_LENGTH BUFFER_LENGTH, "
-                    + "c.NUMERIC_SCALE DECIMAL_DIGITS, "
-                    + "c.NUMERIC_PRECISION_RADIX NUM_PREC_RADIX, "
-                    + "c.NULLABLE, "
-                    + "c.REMARKS, "
-                    + "c.COLUMN_DEFAULT COLUMN_DEF, "
-                    + "c.DATA_TYPE SQL_DATA_TYPE, "
-                    + "ZERO() SQL_DATETIME_SUB, "
-                    + "c.CHARACTER_OCTET_LENGTH CHAR_OCTET_LENGTH, "
-                    + "c.ORDINAL_POSITION, "
-                    + "c.IS_NULLABLE IS_NULLABLE, "
-                    + "CAST(c.SOURCE_DATA_TYPE AS VARCHAR) SCOPE_CATALOG, "
-                    + "CAST(c.SOURCE_DATA_TYPE AS VARCHAR) SCOPE_SCHEMA, "
-                    + "CAST(c.SOURCE_DATA_TYPE AS VARCHAR) SCOPE_TABLE, "
-                    + "c.SOURCE_DATA_TYPE, "
-                    + "CASE WHEN c.SEQUENCE_NAME IS NULL THEN "
-                    + "CAST(?1 AS VARCHAR) ELSE CAST(?2 AS VARCHAR) END IS_AUTOINCREMENT, "
-                    + "CAST(c.SOURCE_DATA_TYPE AS VARCHAR) SCOPE_CATLOG "
-                    + "FROM INFORMATION_SCHEMA.COLUMNS c JOIN INFORMATION_SCHEMA.SYNONYMS s ON "
-                    + "s.SYNONYM_FOR = c.TABLE_NAME "
-                    + "AND s.SYNONYM_FOR_SCHEMA = c.TABLE_SCHEMA "
-                    + "WHERE s.SYNONYM_CATALOG LIKE ?3 ESCAPE ?7 "
-                    + "AND s.SYNONYM_SCHEMA LIKE ?4 ESCAPE ?7 "
-                    + "AND s.SYNONYM_NAME LIKE ?5 ESCAPE ?7 "
-                    + "AND c.COLUMN_NAME LIKE ?6 ESCAPE ?7 ";
-            PreparedStatement prep = conn.prepareAutoCloseStatement("SELECT "
-                    + "TABLE_CAT, "
-                    + "TABLE_SCHEM, "
-                    + "TABLE_NAME, "
-                    + "COLUMN_NAME, "
-                    + "DATA_TYPE, "
-                    + "TYPE_NAME, "
-                    + "COLUMN_SIZE, "
-                    + "BUFFER_LENGTH, "
-                    + "DECIMAL_DIGITS, "
-                    + "NUM_PREC_RADIX, "
-                    + "NULLABLE, "
-                    + "REMARKS, "
-                    + "COLUMN_DEF, "
-                    + "SQL_DATA_TYPE, "
-                    + "SQL_DATETIME_SUB, "
-                    + "CHAR_OCTET_LENGTH, "
-                    + "ORDINAL_POSITION, "
-                    + "IS_NULLABLE, "
-                    + "SCOPE_CATALOG, "
-                    + "SCOPE_SCHEMA, "
-                    + "SCOPE_TABLE, "
-                    + "SOURCE_DATA_TYPE, "
-                    + "IS_AUTOINCREMENT, "
-                    + "SCOPE_CATLOG "
-                    + "FROM ((" + tableSql + ") UNION (" + synonymSql
-                    + ")) ORDER BY TABLE_SCHEM, TABLE_NAME, ORDINAL_POSITION");
+                    + "AND COLUMN_NAME LIKE ?6 ESCAPE ?7");
+            if (includeSynonyms) {
+                select.append(')');
+            }
+            PreparedStatement prep = conn.prepareAutoCloseStatement(
+                    select.append(" ORDER BY TABLE_SCHEM, TABLE_NAME, ORDINAL_POSITION").toString());
             prep.setString(1, "NO");
             prep.setString(2, "YES");
             prep.setString(3, getCatalogPattern(catalogPattern));

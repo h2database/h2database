@@ -137,6 +137,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
             } else {
                 hasSynonyms = true;
             }
+            this.hasSynonyms = hasSynonyms;
         }
         return hasSynonyms;
     }

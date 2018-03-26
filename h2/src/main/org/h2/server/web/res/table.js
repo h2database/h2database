@@ -163,6 +163,10 @@ function getInnerText(el) {
     return str;
 }
 
+function isNullCell(td) {
+    return td.childNodes.length == 1 && (td.childNodes[0].nodeName == "I");
+}
+
 function resortTable(link) {
     // get the span
     var span;
@@ -175,26 +179,31 @@ function resortTable(link) {
     var td = link.parentNode;
     var column = td.cellIndex;
     var table = getParent(td,'TABLE');
-
-    if (table.rows.length <= 1) return;
+    var rows = table.rows;
+    if (rows.length <= 1) return;
 
     // detect sort type
     var sortNumeric = false;
-    var x = getInnerText(table.rows[1].cells[column]);
+    var x = getInnerText(rows[1].cells[column]);
     if (x.match(/^[\d\.]+$/)) {
         sortNumeric = true;
     }
     var newRows = new Array();
-    var rows = table.rows;
     for (i=1; i<rows.length; i++) {
         var o = new Object();
         o.data = rows[i];
         o.id = i;
-        if (sortNumeric) {
-            o.sort = parseFloat(getInnerText(o.data.cells[column]));
-            if (isNaN(o.sort)) o.sort = 0;
-        } else {
-            o.sort = getInnerText(o.data.cells[column]);
+        var td = o.data.cells[column];
+        var n = isNullCell(td);
+        o.isNull = n;
+        if (!n) {
+            var txt = getInnerText(td);
+            if (sortNumeric) {
+                o.sort = parseFloat(txt);
+                if (isNaN(o.sort)) o.sort = 0;
+            } else {
+                o.sort = txt;
+            }
         }
         newRows[i-1] = o;
     }
@@ -240,6 +249,10 @@ function getParent(el, pTagName) {
 }
 
 function sortCallback(ra, rb) {
+    if (ra.isNull) {
+        return rb.isNull ? (ra.id - rb.id) : -1;
+    } else if (rb.IsNull) {
+        return 1;
+    }
     return (ra.sort==rb.sort) ? (ra.id-rb.id) : (ra.sort<rb.sort ? -1 : 1);
 }
-

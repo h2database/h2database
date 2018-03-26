@@ -49,6 +49,7 @@ public class TestMetaData extends TestBase {
         testColumnMetaData();
         testColumnPrecision();
         testColumnDefault();
+        testColumnGenerated();
         testCrossReferences();
         testProcedureColumns();
         testUDTs();
@@ -229,6 +230,24 @@ public class TestMetaData extends TestBase {
         rs.next();
         assertEquals("B", rs.getString("COLUMN_NAME"));
         assertEquals("NULL", rs.getString("COLUMN_DEF"));
+        assertFalse(rs.next());
+        stat.execute("DROP TABLE TEST");
+        conn.close();
+    }
+
+    private void testColumnGenerated() throws SQLException {
+        Connection conn = getConnection("metaData");
+        DatabaseMetaData meta = conn.getMetaData();
+        ResultSet rs;
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(A INT, B INT AS A + 1)");
+        rs = meta.getColumns(null, null, "TEST", null);
+        rs.next();
+        assertEquals("A", rs.getString("COLUMN_NAME"));
+        assertEquals("NO", rs.getString("IS_GENERATEDCOLUMN"));
+        rs.next();
+        assertEquals("B", rs.getString("COLUMN_NAME"));
+        assertEquals("YES", rs.getString("IS_GENERATEDCOLUMN"));
         assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
         conn.close();
@@ -704,20 +723,20 @@ public class TestMetaData extends TestBase {
                 Constants.SCHEMA_MAIN, "TEST", "TABLE", "" } });
         trace("getColumns");
         rs = meta.getColumns(null, null, "TEST", null);
-        assertResultSetMeta(rs, 24, new String[] { "TABLE_CAT", "TABLE_SCHEM",
+        assertResultSetMeta(rs, 25, new String[] { "TABLE_CAT", "TABLE_SCHEM",
                 "TABLE_NAME", "COLUMN_NAME", "DATA_TYPE", "TYPE_NAME",
                 "COLUMN_SIZE", "BUFFER_LENGTH", "DECIMAL_DIGITS",
                 "NUM_PREC_RADIX", "NULLABLE", "REMARKS", "COLUMN_DEF",
                 "SQL_DATA_TYPE", "SQL_DATETIME_SUB", "CHAR_OCTET_LENGTH",
                 "ORDINAL_POSITION", "IS_NULLABLE", "SCOPE_CATALOG",
                 "SCOPE_SCHEMA", "SCOPE_TABLE", "SOURCE_DATA_TYPE",
-                "IS_AUTOINCREMENT", "SCOPE_CATLOG" }, new int[] {
+                "IS_AUTOINCREMENT", "IS_GENERATEDCOLUMN", "SCOPE_CATLOG" }, new int[] {
                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                 Types.INTEGER, Types.VARCHAR, Types.INTEGER, Types.INTEGER,
                 Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.VARCHAR,
                 Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.INTEGER,
                 Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                Types.VARCHAR, Types.SMALLINT, Types.VARCHAR, Types.VARCHAR },
+                Types.VARCHAR, Types.SMALLINT, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR },
                 null, null);
         assertResultSetOrdered(rs, new String[][] {
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "ID",

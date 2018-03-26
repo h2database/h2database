@@ -289,6 +289,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * <li>SCOPE_TABLE (String) always null</li>
      * <li>SOURCE_DATA_TYPE (short) null</li>
      * <li>IS_AUTOINCREMENT (String) "NO" or "YES"</li>
+     * <li>IS_GENERATEDCOLUMN (String) "NO" or "YES"</li>
      * <li>SCOPE_CATLOG (String) always null (the typo is on purpose,
      * for compatibility with the JDBC specification prior to 4.1)</li>
      * </ol>
@@ -343,6 +344,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                         + "SCOPE_TABLE, "
                         + "SOURCE_DATA_TYPE, "
                         + "IS_AUTOINCREMENT, "
+                        + "IS_GENERATEDCOLUMN, "
                         + "SCOPE_CATLOG "
                         + "FROM ("
                         + "SELECT "
@@ -370,6 +372,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                         + "c.SOURCE_DATA_TYPE, "
                         + "CASE WHEN c.SEQUENCE_NAME IS NULL THEN "
                         + "CAST(?1 AS VARCHAR) ELSE CAST(?2 AS VARCHAR) END IS_AUTOINCREMENT, "
+                        + "CASE WHEN c.IS_COMPUTED THEN "
+                        + "CAST(?2 AS VARCHAR) ELSE CAST(?1 AS VARCHAR) END IS_GENERATEDCOLUMN, "
                         + "CAST(c.SOURCE_DATA_TYPE AS VARCHAR) SCOPE_CATLOG "
                         + "FROM INFORMATION_SCHEMA.COLUMNS c JOIN INFORMATION_SCHEMA.SYNONYMS s ON "
                         + "s.SYNONYM_FOR = c.TABLE_NAME "
@@ -405,6 +409,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                     + "SOURCE_DATA_TYPE, "
                     + "CASE WHEN SEQUENCE_NAME IS NULL THEN "
                     + "CAST(?1 AS VARCHAR) ELSE CAST(?2 AS VARCHAR) END IS_AUTOINCREMENT, "
+                    + "CASE WHEN IS_COMPUTED THEN "
+                    + "CAST(?2 AS VARCHAR) ELSE CAST(?1 AS VARCHAR) END IS_GENERATEDCOLUMN, "
                     + "CAST(SOURCE_DATA_TYPE AS VARCHAR) SCOPE_CATLOG "
                     + "FROM INFORMATION_SCHEMA.COLUMNS "
                     + "WHERE TABLE_CATALOG LIKE ?3 ESCAPE ?7 "

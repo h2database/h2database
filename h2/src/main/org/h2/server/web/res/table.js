@@ -183,10 +183,16 @@ function resortTable(link) {
     if (rows.length <= 1) return;
 
     // detect sort type
-    var sortNumeric = false;
-    var x = getInnerText(rows[1].cells[column]);
-    if (x.match(/^[\d\.]+$/)) {
-        sortNumeric = true;
+    var sortNumeric = true;
+    for (i = 1; i < rows.length; i++) {
+        var td = rows[i].cells[column];
+        if (!isNullCell(td)) {
+            var x = getInnerText(td);
+            if (!x.match(/^[\d\.]+$/)) {
+                sortNumeric = false;
+                break;
+            }
+        }
     }
     var newRows = new Array();
     for (i=1; i<rows.length; i++) {

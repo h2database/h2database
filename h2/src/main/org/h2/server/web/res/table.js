@@ -188,7 +188,9 @@ function resortTable(link) {
         var td = rows[i].cells[column];
         if (!isNullCell(td)) {
             var x = getInnerText(td);
-            if (!x.match(/^[\d\.]+$/)) {
+            // H2 does not return numeric values with leading +, but may return
+            // values in scientific notation
+            if (!x.match(/^\-?\d*\.?\d+(?:[Ee][\+\-]?\d+)?$/)) {
                 sortNumeric = false;
                 break;
             }

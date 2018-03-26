@@ -290,8 +290,6 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * <li>SOURCE_DATA_TYPE (short) null</li>
      * <li>IS_AUTOINCREMENT (String) "NO" or "YES"</li>
      * <li>IS_GENERATEDCOLUMN (String) "NO" or "YES"</li>
-     * <li>SCOPE_CATLOG (String) always null (the typo is on purpose,
-     * for compatibility with the JDBC specification prior to 4.1)</li>
      * </ol>
      *
      * @param catalogPattern null (to get all objects) or the catalog name
@@ -344,8 +342,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                         + "SCOPE_TABLE, "
                         + "SOURCE_DATA_TYPE, "
                         + "IS_AUTOINCREMENT, "
-                        + "IS_GENERATEDCOLUMN, "
-                        + "SCOPE_CATLOG "
+                        + "IS_GENERATEDCOLUMN "
                         + "FROM ("
                         + "SELECT "
                         + "s.SYNONYM_CATALOG TABLE_CAT, "
@@ -373,8 +370,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                         + "CASE WHEN c.SEQUENCE_NAME IS NULL THEN "
                         + "CAST(?1 AS VARCHAR) ELSE CAST(?2 AS VARCHAR) END IS_AUTOINCREMENT, "
                         + "CASE WHEN c.IS_COMPUTED THEN "
-                        + "CAST(?2 AS VARCHAR) ELSE CAST(?1 AS VARCHAR) END IS_GENERATEDCOLUMN, "
-                        + "CAST(c.SOURCE_DATA_TYPE AS VARCHAR) SCOPE_CATLOG "
+                        + "CAST(?2 AS VARCHAR) ELSE CAST(?1 AS VARCHAR) END IS_GENERATEDCOLUMN "
                         + "FROM INFORMATION_SCHEMA.COLUMNS c JOIN INFORMATION_SCHEMA.SYNONYMS s ON "
                         + "s.SYNONYM_FOR = c.TABLE_NAME "
                         + "AND s.SYNONYM_FOR_SCHEMA = c.TABLE_SCHEMA "
@@ -410,8 +406,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                     + "CASE WHEN SEQUENCE_NAME IS NULL THEN "
                     + "CAST(?1 AS VARCHAR) ELSE CAST(?2 AS VARCHAR) END IS_AUTOINCREMENT, "
                     + "CASE WHEN IS_COMPUTED THEN "
-                    + "CAST(?2 AS VARCHAR) ELSE CAST(?1 AS VARCHAR) END IS_GENERATEDCOLUMN, "
-                    + "CAST(SOURCE_DATA_TYPE AS VARCHAR) SCOPE_CATLOG "
+                    + "CAST(?2 AS VARCHAR) ELSE CAST(?1 AS VARCHAR) END IS_GENERATEDCOLUMN "
                     + "FROM INFORMATION_SCHEMA.COLUMNS "
                     + "WHERE TABLE_CATALOG LIKE ?3 ESCAPE ?7 "
                     + "AND TABLE_SCHEMA LIKE ?4 ESCAPE ?7 "
@@ -3058,12 +3053,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     /**
      * Gets the minor version of the supported JDBC API.
      *
-     * @return the minor version (0)
+     * @return the minor version (1)
      */
     @Override
     public int getJDBCMinorVersion() {
         debugCodeCall("getJDBCMinorVersion");
-        return 0;
+        return 1;
     }
 
     /**

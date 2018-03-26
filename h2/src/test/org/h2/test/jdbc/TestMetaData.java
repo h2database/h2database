@@ -423,7 +423,7 @@ public class TestMetaData extends TestBase {
                 meta.getDriverMinorVersion());
         int majorVersion = 4;
         assertEquals(majorVersion, meta.getJDBCMajorVersion());
-        assertEquals(0, meta.getJDBCMinorVersion());
+        assertEquals(1, meta.getJDBCMinorVersion());
         assertEquals("H2", meta.getDatabaseProductName());
         assertEquals(Connection.TRANSACTION_READ_COMMITTED,
                 meta.getDefaultTransactionIsolation());
@@ -723,20 +723,20 @@ public class TestMetaData extends TestBase {
                 Constants.SCHEMA_MAIN, "TEST", "TABLE", "" } });
         trace("getColumns");
         rs = meta.getColumns(null, null, "TEST", null);
-        assertResultSetMeta(rs, 25, new String[] { "TABLE_CAT", "TABLE_SCHEM",
+        assertResultSetMeta(rs, 24, new String[] { "TABLE_CAT", "TABLE_SCHEM",
                 "TABLE_NAME", "COLUMN_NAME", "DATA_TYPE", "TYPE_NAME",
                 "COLUMN_SIZE", "BUFFER_LENGTH", "DECIMAL_DIGITS",
                 "NUM_PREC_RADIX", "NULLABLE", "REMARKS", "COLUMN_DEF",
                 "SQL_DATA_TYPE", "SQL_DATETIME_SUB", "CHAR_OCTET_LENGTH",
                 "ORDINAL_POSITION", "IS_NULLABLE", "SCOPE_CATALOG",
                 "SCOPE_SCHEMA", "SCOPE_TABLE", "SOURCE_DATA_TYPE",
-                "IS_AUTOINCREMENT", "IS_GENERATEDCOLUMN", "SCOPE_CATLOG" }, new int[] {
+                "IS_AUTOINCREMENT", "IS_GENERATEDCOLUMN" }, new int[] {
                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                 Types.INTEGER, Types.VARCHAR, Types.INTEGER, Types.INTEGER,
                 Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.VARCHAR,
                 Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.INTEGER,
                 Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                Types.VARCHAR, Types.SMALLINT, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR },
+                Types.VARCHAR, Types.SMALLINT, Types.VARCHAR, Types.VARCHAR },
                 null, null);
         assertResultSetOrdered(rs, new String[][] {
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "ID",

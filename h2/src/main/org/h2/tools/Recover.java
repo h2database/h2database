@@ -1248,15 +1248,10 @@ public class Recover extends Tool implements DataHandler {
     private int dumpPageFreeList(PrintWriter writer, Data s, long pageId,
             long pageCount) {
         int pagesAddressed = PageFreeList.getPagesAddressed(pageSize);
-        BitSet used = new BitSet();
-        for (int i = 0; i < pagesAddressed; i += 8) {
-            int x = s.readByte() & 255;
-            for (int j = 0; j < 8; j++) {
-                if ((x & (1 << j)) != 0) {
-                    used.set(i + j);
-                }
-            }
-        }
+        int len = pagesAddressed >> 3;
+        byte[] b = new byte[len];
+        s.read(b, 0, len);
+        BitSet used = BitSet.valueOf(b);
         int free = 0;
         for (long i = 0, j = pageId; i < pagesAddressed && j < pageCount; i++, j++) {
             if (i == 0 || j % 100 == 0) {

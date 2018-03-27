@@ -23,18 +23,17 @@ public class PageFreeList extends Page {
     private static final int DATA_START = 3;
 
     private final PageStore store;
-    private BitSet used;
+    private final BitSet used;
     private final int pageCount;
     private boolean full;
     private Data data;
 
-    private PageFreeList(PageStore store, int pageId) {
+    private PageFreeList(PageStore store, int pageId, int pageCount, BitSet used) {
         // kept in cache, and array list in page store
         setPos(pageId);
         this.store = store;
-        pageCount = (store.getPageSize() - DATA_START) * 8;
-        used = new BitSet(pageCount);
-        used.set(0);
+        this.pageCount = pageCount;
+        this.used = used;
     }
 
     /**
@@ -46,9 +45,15 @@ public class PageFreeList extends Page {
      * @return the page
      */
     static PageFreeList read(PageStore store, Data data, int pageId) {
-        PageFreeList p = new PageFreeList(store, pageId);
+        data.reset();
+        data.readByte();
+        data.readShortInt();
+        int length = store.getPageSize() - DATA_START;
+        byte[] b = new byte[length];
+        data.read(b, 0, b.length);
+        PageFreeList p = new PageFreeList(store, pageId, length * 8, BitSet.valueOf(b));
         p.data = data;
-        p.read();
+        p.full = false;
         return p;
     }
 
@@ -60,7 +65,10 @@ public class PageFreeList extends Page {
      * @return the page
      */
     static PageFreeList create(PageStore store, int pageId) {
-        return new PageFreeList(store, pageId);
+        int pageCount = (store.getPageSize() - DATA_START) * 8;
+        BitSet used = new BitSet(pageCount);
+        used.set(0);
+        return new PageFreeList(store, pageId, pageCount, used);
     }
 
     /**
@@ -151,19 +159,6 @@ public class PageFreeList extends Page {
         store.logUndo(this, data);
         used.clear(pageId - getPos());
         store.update(this);
-    }
-
-    /**
-     * Read the page from the disk.
-     */
-    private void read() {
-        data.reset();
-        data.readByte();
-        data.readShortInt();
-        byte[] b = new byte[pageCount >>> 3];
-        data.read(b, 0, b.length);
-        used = BitSet.valueOf(b);
-        full = false;
     }
 
     @Override

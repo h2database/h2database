@@ -21,6 +21,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -62,7 +63,6 @@ import org.h2.store.PageFreeList;
 import org.h2.store.PageLog;
 import org.h2.store.PageStore;
 import org.h2.store.fs.FileUtils;
-import org.h2.util.BitField;
 import org.h2.util.IOUtils;
 import org.h2.util.IntArray;
 import org.h2.util.MathUtils;
@@ -1248,7 +1248,7 @@ public class Recover extends Tool implements DataHandler {
     private int dumpPageFreeList(PrintWriter writer, Data s, long pageId,
             long pageCount) {
         int pagesAddressed = PageFreeList.getPagesAddressed(pageSize);
-        BitField used = new BitField();
+        BitSet used = new BitSet();
         for (int i = 0; i < pagesAddressed; i += 8) {
             int x = s.readByte() & 255;
             for (int j = 0; j < 8; j++) {

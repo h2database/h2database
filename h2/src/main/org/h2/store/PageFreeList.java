@@ -5,8 +5,9 @@
  */
 package org.h2.store;
 
+import java.util.BitSet;
+
 import org.h2.engine.Session;
-import org.h2.util.BitField;
 
 /**
  * The list of free pages of a page store. The format of a free list trunk page
@@ -22,7 +23,7 @@ public class PageFreeList extends Page {
     private static final int DATA_START = 3;
 
     private final PageStore store;
-    private final BitField used;
+    private BitSet used;
     private final int pageCount;
     private boolean full;
     private Data data;
@@ -32,7 +33,7 @@ public class PageFreeList extends Page {
         setPos(pageId);
         this.store = store;
         pageCount = (store.getPageSize() - DATA_START) * 8;
-        used = new BitField(pageCount);
+        used = new BitSet(pageCount);
         used.set(0);
     }
 
@@ -69,7 +70,7 @@ public class PageFreeList extends Page {
      * @param first the first page to look for
      * @return the page, or -1 if all pages are used
      */
-    int allocate(BitField exclude, int first) {
+    int allocate(BitSet exclude, int first) {
         if (full) {
             return -1;
         }
@@ -159,10 +160,9 @@ public class PageFreeList extends Page {
         data.reset();
         data.readByte();
         data.readShortInt();
-        for (int i = 0; i < pageCount; i += 8) {
-            int x = data.readByte() & 255;
-            used.setByte(i, x);
-        }
+        byte[] b = new byte[pageCount >>> 3];
+        data.read(b, 0, b.length);
+        used = BitSet.valueOf(b);
         full = false;
     }
 
@@ -171,8 +171,12 @@ public class PageFreeList extends Page {
         data = store.createData();
         data.writeByte((byte) Page.TYPE_FREE_LIST);
         data.writeShortInt(0);
-        for (int i = 0; i < pageCount; i += 8) {
-            data.writeByte((byte) used.getByte(i));
+        int cnt = pageCount >>> 3;
+        byte[] b = used.toByteArray();
+        int l = Math.min(b.length, cnt);
+        data.write(b, 0, l);
+        for (int i = cnt - l; i > 0; i--) {
+            data.writeByte((byte) 0);
         }
         store.writePage(getPos(), data);
     }

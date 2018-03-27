@@ -8,6 +8,7 @@ package org.h2.engine;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -64,7 +65,6 @@ import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
-import org.h2.util.BitField;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
@@ -123,7 +123,7 @@ public class Database implements DataHandler {
     private final Set<Session> userSessions =
             Collections.synchronizedSet(new HashSet<Session>());
     private final AtomicReference<Session> exclusiveSession = new AtomicReference<>();
-    private final BitField objectIds = new BitField();
+    private final BitSet objectIds = new BitSet();
     private final Object lobSyncObject = new Object();
 
     private Schema mainSchema;
@@ -792,7 +792,7 @@ public class Database implements DataHandler {
             }
             // mark all ids used in the page store
             if (pageStore != null) {
-                BitField f = pageStore.getObjectIds();
+                BitSet f = pageStore.getObjectIds();
                 for (int i = 0, len = f.length(); i < len; i++) {
                     if (f.get(i) && !objectIds.get(i)) {
                         trace.info("unused object id: " + i);

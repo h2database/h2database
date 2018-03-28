@@ -49,6 +49,8 @@ public class Update extends Prepared {
     /** The limit expression as specified in the LIMIT clause. */
     private Expression limitExpr;
 
+    private boolean updateToCurrentValuesReturnsZero;
+
     private final ArrayList<Column> columns = New.arrayList();
     private final HashMap<Column, Expression> expressionMap  = new HashMap<>();
 
@@ -134,7 +136,7 @@ public class Update extends Prepared {
                         }
                         newRow.setValue(i, newValue);
                     }
-                    if (setOnUpdate) {
+                    if (setOnUpdate || updateToCurrentValuesReturnsZero) {
                         setOnUpdate = false;
                         for (int i = 0; i < columnCount; i++) {
                             // Use equals here to detect changes from numeric 0 to 0.0 and similar
@@ -152,6 +154,8 @@ public class Update extends Prepared {
                                     }
                                 }
                             }
+                        } else if (updateToCurrentValuesReturnsZero) {
+                            count--;
                         }
                     }
                     table.validateConvertUpdateSequence(session, newRow);
@@ -267,5 +271,15 @@ public class Update extends Prepared {
 
     public void setSourceTableFilter(TableFilter sourceTableFilter) {
         this.sourceTableFilter = sourceTableFilter;
+    }
+
+    /**
+     * Sets expected update count for update to current values case.
+     *
+     * @param updateToCurrentValuesReturnsZero if zero should be returned as update
+     *        count if update set row to current values
+     */
+    public void setUpdateToCurrentValuesReturnsZero(boolean updateToCurrentValuesReturnsZero) {
+        this.updateToCurrentValuesReturnsZero = updateToCurrentValuesReturnsZero;
     }
 }

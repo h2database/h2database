@@ -181,11 +181,15 @@ public class Insert extends Prepared implements ResultTarget {
                     try {
                         table.addRow(session, newRow);
                     } catch (DbException de) {
-                        if (!handleOnDuplicate(de)) {
+                        if (handleOnDuplicate(de)) {
+                            // MySQL returns 2 for updated row
+                            // TODO: detect no-op change
+                            rowNumber++;
+                        } else {
                             // INSERT IGNORE case
                             rowNumber--;
-                            continue;
                         }
+                        continue;
                     }
                     generatedKeys.confirmRow(newRow);
                     session.log(table, UndoLogRecord.INSERT, newRow);
@@ -399,16 +403,17 @@ public class Insert extends Prepared implements ResultTarget {
         }
         buff.append(prepareUpdateCondition(foundIndex).getSQL());
         String sql = buff.toString();
-        Prepared command = session.prepare(sql);
+        Update command = (Update) session.prepare(sql);
+        command.setUpdateToCurrentValuesReturnsZero(true);
         for (Parameter param : command.getParameters()) {
             Parameter insertParam = parameters.get(param.getIndex());
             param.setValue(insertParam.getValue(session));
         }
-        command.update();
+        boolean result = command.update() > 0;
         for (String variableName : variableNames) {
             session.setVariable(variableName, ValueNull.INSTANCE);
         }
-        return true;
+        return result;
     }
 
     private Expression prepareUpdateCondition(Index foundIndex) {

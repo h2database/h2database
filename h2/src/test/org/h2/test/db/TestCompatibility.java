@@ -63,8 +63,20 @@ public class TestCompatibility extends TestBase {
         stat.execute("create schema s2");
         stat.execute("create table s2.test(id int primary key, name varchar(255))");
         stat.execute("insert into s2.test(id, name) values(1, 'a')");
-        stat.execute("insert into s2.test(id, name) values(1, 'b') " +
-                "on duplicate key update name = values(name)");
+        assertEquals(2, stat.executeUpdate("insert into s2.test(id, name) values(1, 'b') " +
+                "on duplicate key update name = values(name)"));
+        assertEquals(0, stat.executeUpdate("insert into s2.test(id, name) values(1, 'b') " +
+                "on duplicate key update name = values(name)"));
+        assertEquals(1, stat.executeUpdate("insert into s2.test(id, name) values(2, 'c') " +
+                "on duplicate key update name = values(name)"));
+        ResultSet rs = stat.executeQuery("select id, name from s2.test order by id");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertEquals("b", rs.getString(2));
+        assertTrue(rs.next());
+        assertEquals(2, rs.getInt(1));
+        assertEquals("c", rs.getString(2));
+        assertFalse(rs.next());
         stat.execute("drop schema s2 cascade");
         c.close();
     }

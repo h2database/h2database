@@ -226,7 +226,7 @@ public final class MVStore {
 
     private Compressor compressorHigh;
 
-    public final UncaughtExceptionHandler backgroundExceptionHandler;
+    private final UncaughtExceptionHandler backgroundExceptionHandler;
 
     private volatile long currentVersion;
 
@@ -235,8 +235,19 @@ public final class MVStore {
      */
     private long lastStoredVersion = INITIAL_VERSION;
 
+    /**
+     * Oldest store version in use. All version beyond this can be safely dropped
+     */
     private final AtomicLong oldestVersionToKeep = new AtomicLong();
+
+    /**
+     * Collection of all versions used by currently open transactions.
+     */
     private final Deque<TxCounter> versions = new LinkedList<>();
+
+    /**
+     * Counter of open transactions for the latest (current) store version
+     */
     private volatile TxCounter currentTxCounter = new TxCounter(currentVersion);
 
     /**
@@ -2819,6 +2830,11 @@ public final class MVStore {
         setOldestVersionToKeep(txCounter != null ? txCounter.version : currentTxCounter.version);
     }
 
+    /**
+     * Class TxCounter is a simple data structure to hold version of the store
+     * along with the counter of open transactions,
+     * which are still operating on this version.
+     */
     public static final class TxCounter {
         public final long version;
         public final AtomicInteger counter = new AtomicInteger();

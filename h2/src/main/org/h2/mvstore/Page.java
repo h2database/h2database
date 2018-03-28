@@ -66,6 +66,18 @@ public abstract class Page implements Cloneable
     private volatile boolean removedInMemory;
 
     /**
+     * The estimated number of bytes used per page object.
+     */
+    private static final int PAGE_MEMORY = Constants.MEMORY_OBJECT + 2 * Constants.MEMORY_POINTER + Constants.MEMORY_ARRAY + 17;
+    protected static final int PAGE_NODE_MEMORY = PAGE_MEMORY + Constants.MEMORY_POINTER + 8 + Constants.MEMORY_ARRAY;
+    protected static final int PAGE_LEAF_MEMORY = PAGE_MEMORY + Constants.MEMORY_POINTER + Constants.MEMORY_ARRAY;
+
+    /**
+     * The estimated number of bytes used per child entry.
+     */
+    protected static final int PAGE_MEMORY_CHILD = Constants.MEMORY_POINTER + 16; //  16 = two longs
+
+    /**
      * An empty object array.
      */
     private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
@@ -100,13 +112,13 @@ public abstract class Page implements Cloneable
      */
     static Page createEmptyLeaf(MVMap<?, ?> map) {
         Page page = new Leaf(map, EMPTY_OBJECT_ARRAY, EMPTY_OBJECT_ARRAY);
-        page.initMemoryAccount(DataUtils.PAGE_LEAF_EMPTY_MEMORY);
+        page.initMemoryAccount(PAGE_LEAF_MEMORY);
         return page;
     }
 
     public static Page createEmptyNode(MVMap<?, ?> map) {
         Page page = new NonLeaf(map, EMPTY_OBJECT_ARRAY, SINGLE_EMPTY, 0);
-        page.initMemoryAccount(DataUtils.PAGE_NODE_EMPTY_MEMORY);
+        page.initMemoryAccount(PAGE_NODE_MEMORY);
         return page;
     }
 
@@ -775,7 +787,7 @@ public abstract class Page implements Cloneable
 
     protected void recalculateMemory() {
         assert isPersistent();
-        int mem = Constants.MEMORY_ARRAY;
+        int mem = 0;
         DataType keyType = map.getKeyType();
         for (Object key : keys) {
             mem += Constants.MEMORY_POINTER + keyType.getMemory(key);
@@ -999,7 +1011,7 @@ public abstract class Page implements Cloneable
 
             totalCount += childPage.getTotalCount();
             if (isPersistent()) {
-                addMemory(Constants.MEMORY_POINTER + DataUtils.PAGE_MEMORY_CHILD);
+                addMemory(PAGE_MEMORY_CHILD);
             }
         }
 
@@ -1008,7 +1020,7 @@ public abstract class Page implements Cloneable
             int childCount = getRawChildPageCount();
             super.remove(index);
             if(isPersistent()) {
-                addMemory(-(Constants.MEMORY_POINTER + DataUtils.PAGE_MEMORY_CHILD));
+                addMemory(-PAGE_MEMORY_CHILD);
             }
             totalCount -= children[index].count;
             PageReference newChildren[] = new PageReference[childCount - 1];
@@ -1116,8 +1128,8 @@ public abstract class Page implements Cloneable
         @Override
         protected void recalculateMemory() {
             super.recalculateMemory();
-            int mem = DataUtils.PAGE_NODE_MEMORY + Constants.MEMORY_ARRAY +
-                    getRawChildPageCount() * (Constants.MEMORY_POINTER + DataUtils.PAGE_MEMORY_CHILD);
+            int mem = PAGE_NODE_MEMORY +
+                    getRawChildPageCount() * PAGE_MEMORY_CHILD;
             addMemory(mem);
         }
 
@@ -1310,7 +1322,7 @@ public abstract class Page implements Cloneable
         @Override
         protected void recalculateMemory() {
             super.recalculateMemory();
-            int mem = DataUtils.PAGE_LEAF_MEMORY + Constants.MEMORY_ARRAY;
+            int mem = PAGE_LEAF_MEMORY;
             DataType valueType = map.getValueType();
             for (Object value : values) {
                 mem += valueType.getMemory(value);

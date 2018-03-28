@@ -1199,16 +1199,6 @@ public class TransactionStore {
         }
 
         /**
-         * Get the most recent value for the given key.
-         *
-         * @param key the key
-         * @return the value or null
-         */
-        public V getLatest(K key) {
-            return get(key, Long.MAX_VALUE);
-        }
-
-        /**
          * Whether the map contains the key.
          *
          * @param key the key

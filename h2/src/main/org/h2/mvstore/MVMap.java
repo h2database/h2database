@@ -21,14 +21,8 @@ import org.h2.mvstore.type.StringDataType;
 /**
  * A stored map.
  * <p>
- * Read operations can happen concurrently with all other
+ * All read and write operations can happen concurrently with all other
  * operations, without risk of corruption.
- * <p>
- * Write operations first read the relevant area from disk to memory
- * concurrently, and only then modify the data. The in-memory part of write
- * operations is synchronized. For scalable concurrent in-memory write
- * operations, the map should be split into multiple smaller sub-maps that are
- * then synchronized independently.
  *
  * @param <K> the key class
  * @param <V> the value class
@@ -887,7 +881,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * Forget those old versions that are no longer needed.
      * @param rootReference to inspect
      */
-    void removeUnusedOldVersions(RootReference rootReference) {
+    private void removeUnusedOldVersions(RootReference rootReference) {
         long oldest = store.getOldestVersionToKeep();
         // We are trying to keep at least one previous version (if any) here.
         // This is not really necessary, just need to mimic existing
@@ -1129,7 +1123,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return Page.createEmptyLeaf(this);
     }
 
-    public Page createEmptyNode() {
+    protected Page createEmptyNode() {
         return Page.createEmptyNode(this);
     }
 
@@ -1404,312 +1398,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
     }
 
-    public interface EntryProcessor<K,V> {
-        boolean process(K key, V value);
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <K,V> void process(Page root, K from, EntryProcessor<K,V> entryProcessor) {
-        CursorPos cursorPos = Cursor.traverseDown(root, from);
-        CursorPos keeper = null;
-        while (true) {
-            Page page = cursorPos.page;
-            int index = cursorPos.index;
-            if (index >= (page.isLeaf() ? page.getKeyCount() : root.map.getChildPageCount(page))) {
-                CursorPos tmp = cursorPos;
-                cursorPos = cursorPos.parent;
-                tmp.parent = keeper;
-                keeper = tmp;
-                if(cursorPos == null) {
-                    return;
-                }
-            } else {
-                while (!page.isLeaf()) {
-                    page = page.getChildPage(index);
-                    if (keeper == null) {
-                        cursorPos = new CursorPos(page, 0, cursorPos);
-                    } else {
-                        CursorPos tmp = keeper;
-                        keeper = keeper.parent;
-                        tmp.parent = cursorPos;
-                        tmp.page = page;
-                        tmp.index = 0;
-                        cursorPos = tmp;
-                    }
-                    index = 0;
-                }
-                K key = (K) page.getKey(index);
-                V value = (V) page.getValue(index);
-                if(entryProcessor.process(key, value)) {
-                    return;
-                }
-            }
-            ++cursorPos.index;
-        }
-
-    }
-
-    public interface LeafProcessor
-    {
-        CursorPos locate(Page rootPage);
-        Page[] process(CursorPos pos);
-        CursorPos locateNext(Page rootPage);
-        void stepBack();
-        void confirmSuccess();
-    }
-
-    public final void operateBatch(LeafProcessor processor) {
-        beforeWrite();
-        int attempt = 0;
-        RootReference rootReference = getRoot();
-        RootReference oldRootReference = null;
-        CursorPos pos;
-        while(true) {
-            if (rootReference.semaphore) {
-                Thread.yield();
-                rootReference = getRoot();
-                continue;
-            }
-            pos = processor.locate(rootReference.root);
-
-            if (pos == null) {
-                return;
-            }
-            Page replacement[] = processor.process(pos);
-            if (replacement == null) {
-                if(rootReference != getRoot()) {
-                    processor.stepBack();
-                    rootReference = getRoot();
-                    continue;
-                }
-                return;
-            }
-            int contention = 0;
-            if (oldRootReference != null) {
-                long updateAttemptCounter = rootReference.updateAttemptCounter - oldRootReference.updateAttemptCounter;
-                assert updateAttemptCounter >= 0 : updateAttemptCounter;
-                long updateCounter = rootReference.updateCounter - oldRootReference.updateCounter;
-                assert updateCounter >= 0 : updateCounter;
-                assert updateAttemptCounter >= updateCounter : updateAttemptCounter + " >= " + updateCounter;
-                contention = (int)((updateAttemptCounter+1) / (updateCounter+1));
-            }
-            oldRootReference = rootReference;
-            ++attempt;
-            CursorPos tip = pos;
-            Page p = pos.page;
-            pos = pos.parent;
-
-            int unsavedMemory = 0;
-            boolean needUnlock = false;
-            try {
-                if (attempt > 4 && !(needUnlock = lockRoot(processor, rootReference, attempt, contention))) {
-                    processor.stepBack();
-                    rootReference = getRoot();
-                    continue;
-                }
-                int index;
-                switch (replacement.length) {
-                case 0:
-                    if (pos != null) {
-                        p = pos.page;
-                        index = pos.index;
-                        pos = pos.parent;
-                        assert p.getKeyCount() > 0;
-                        if (p.getKeyCount() == 1) {
-                            assert index <= 1;
-                            p = p.getChildPage(1 - index);
-                            break;
-                        }
-                        p = p.copy();
-                        p.remove(index);
-                    } else {
-                        p = createEmptyLeaf();
-                    }
-                    break;
-                case 1:
-                    p = replacement[0];
-                    int keyCount;
-                    while ((keyCount = p.getKeyCount()) > store.getKeysPerPage() || p.getMemory() > store.getMaxPageSize()
-                            && keyCount > (p.isLeaf() ? 1 : 2)) {
-                        long totalCount = p.getTotalCount();
-                        int at = keyCount >> 1;
-                        Object k = p.getKey(at);
-                        Page split = p.split(at);
-                        unsavedMemory += p.getMemory();
-                        unsavedMemory += split.getMemory();
-                        if (pos == null) {
-                            Object keys[] = { k };
-                            Page.PageReference children[] = {
-                                    new Page.PageReference(p),
-                                    new Page.PageReference(split)
-                            };
-                            p = Page.create(this, keys, null, children, totalCount, 0);
-                            break;
-                        }
-                        Page c = p;
-                        p = pos.page;
-                        index = pos.index;
-                        pos = pos.parent;
-                        p = p.copy();
-                        p.setChild(index, split);
-                        p.insertNode(index, k, c);
-                    }
-                default:
-                    break;
-                }
-                unsavedMemory += p.getMemory();
-                while (pos != null) {
-                    Page c = p;
-                    p = pos.page;
-                    p = p.copy();
-                    p.setChild(pos.index, c);
-                    unsavedMemory += p.getMemory();
-                    pos = pos.parent;
-                }
-                if ((pos = processor.locateNext(p)) != null) {
-                    continue; // Multi-node batch operation
-                }
-                if(needUnlock) {
-                    unlockRoot(p, attempt);
-                    needUnlock = false;
-                } else if(!updateRoot(rootReference, p, attempt)) {
-                    processor.stepBack();
-                    rootReference = getRoot();
-                    continue;
-                }
-                while (tip != null) {
-                    tip.page.removePage();
-                    tip = tip.parent;
-                }
-                if (store.getFileStore() != null) {
-                    store.registerUnsavedPage(unsavedMemory);
-                }
-                processor.confirmSuccess();
-                break;
-            } finally {
-                if(needUnlock) {
-                    unlockRoot(rootReference.root, attempt);
-                }
-            }
-        }
-    }
-
-    private boolean lockRoot(LeafProcessor processor, RootReference rootReference,
-                             int attempt, int contention) {
-        boolean success = root.compareAndSet(rootReference, new RootReference(rootReference));
-        if (!success) {
-            processor.stepBack();
-            if(attempt > 8) {
-                if (attempt <= 24) {
-                    Thread.yield();
-                } else {
-                    try {
-                        Thread.sleep(0, 100 / contention + 50);
-                    } catch (InterruptedException ignore) {/**/}
-                }
-            }
-        }
-        return success;
-    }
-
-    private void unlockRoot(Page newRoot, int attempt) {
-        boolean success;
-        do {
-            RootReference rootReference = getRoot();
-            RootReference updatedRootReference = new RootReference(rootReference, newRoot, attempt);
-            success = root.compareAndSet(rootReference, updatedRootReference);
-        } while(!success);
-    }
-
-    public static CursorPos traverseDown(Page p, Object key) {
-        CursorPos pos = null;
-        while (!p.isLeaf()) {
-            assert p.getKeyCount() > 0;
-            int index = p.binarySearch(key) + 1;
-            if (index < 0) {
-                index = -index;
-            }
-            pos = new CursorPos(p, index, pos);
-            p = p.getChildPage(index);
-        }
-        return new CursorPos(p, p.binarySearch(key), pos);
-    }
-
-    public static final class SingleDecisionMaker<K,V> implements LeafProcessor
-    {
-        private final DecisionMaker<? super V> decisionMaker;
-        private final K key;
-        private final V value;
-        private       V result;
-
-        public SingleDecisionMaker(K key, V value, DecisionMaker<? super V> decisionMaker) {
-            this.decisionMaker = decisionMaker;
-            this.key = key;
-            this.value = value;
-        }
-
-        @Override
-        public CursorPos locate(Page rootPage) {
-            return traverseDown(rootPage, key);
-        }
-
-        @Override
-        public CursorPos locateNext(Page rootPage) {
-            return null;
-        }
-
-        @Override
-        public void stepBack() {
-            decisionMaker.reset();
-        }
-
-        @Override
-        public void confirmSuccess() {}
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public Page[] process(CursorPos pos) {
-            Page leaf = pos.page;
-            int index = pos.index;
-            result = index < 0 ? null : (V)leaf.getValue(index);
-            Decision decision = decisionMaker.decide(result, value);
-            switch (decision) {
-                case ABORT:
-                    return null;
-                case REMOVE: {
-                    if (index < 0) {
-                        return null;
-                    }
-                    if (leaf.getTotalCount() == 1) {
-                        return new Page[0];
-                    }
-                    leaf = leaf.copy();
-                    leaf.remove(index);
-                    return new Page[] { leaf };
-                }
-                case PUT: {
-                    V v = decisionMaker.selectValue(result, value);
-                    leaf = leaf.copy();
-                    if (index < 0) {
-                        leaf.insertLeaf(-index - 1, key, v);
-                    } else {
-                        leaf.setValue(index, v);
-                    }
-                    return new Page[] { leaf };
-                }
-                default:
-                return null;
-            }
-        }
-
-        public V getResult() {
-            return result;
-        }
-    }
-
     public enum Decision { ABORT, REMOVE, PUT }
 
-    public abstract static class DecisionMaker<V> {
+    public abstract static class DecisionMaker<V>
+    {
         public static final DecisionMaker<Object> DEFAULT = new DecisionMaker<Object>() {
             @Override
             public Decision decide(Object existingValue, Object providedValue) {
@@ -1778,9 +1470,178 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     public V operate(K key, V value, DecisionMaker<? super V> decisionMaker) {
-        SingleDecisionMaker<K, V> processor = new SingleDecisionMaker<>(key, value, decisionMaker);
-        operateBatch(processor);
-        return processor.getResult();
+        beforeWrite();
+        int attempt = 0;
+        RootReference oldRootReference = null;
+        while(true) {
+            RootReference rootReference = getRoot();
+            int contention = 0;
+            if (oldRootReference != null) {
+                long updateAttemptCounter = rootReference.updateAttemptCounter - oldRootReference.updateAttemptCounter;
+                assert updateAttemptCounter >= 0 : updateAttemptCounter;
+                long updateCounter = rootReference.updateCounter - oldRootReference.updateCounter;
+                assert updateCounter >= 0 : updateCounter;
+                assert updateAttemptCounter >= updateCounter : updateAttemptCounter + " >= " + updateCounter;
+                contention = (int)((updateAttemptCounter+1) / (updateCounter+1));
+            }
+            oldRootReference = rootReference;
+            ++attempt;
+            CursorPos pos = traverseDown(rootReference.root, key);
+            Page p = pos.page;
+            int index = pos.index;
+            CursorPos tip = pos;
+            pos = pos.parent;
+            final V result = index < 0 ? null : (V)p.getValue(index);
+            Decision decision = decisionMaker.decide(result, value);
+
+            int unsavedMemory = 0;
+            boolean needUnlock = false;
+            try {
+                switch (decision) {
+                    case ABORT:
+                        if(rootReference != getRoot()) {
+                            decisionMaker.reset();
+                            continue;
+                        }
+                        return result;
+                    case REMOVE: {
+                        if (index < 0) {
+                            return null;
+                        }
+                        if (attempt > 2 && !(needUnlock = lockRoot(decisionMaker, rootReference, attempt, contention))) {
+                            continue;
+                        }
+                        if (p.getTotalCount() == 1 && pos != null) {
+                            p = pos.page;
+                            index = pos.index;
+                            pos = pos.parent;
+                            if (p.getKeyCount() == 1) {
+                                assert index <= 1;
+                                p = p.getChildPage(1 - index);
+                                break;
+                            }
+                            assert p.getKeyCount() > 1;
+                        }
+                        p = p.copy();
+                        p.remove(index);
+                        break;
+                    }
+                    case PUT: {
+                        if (attempt > 2 && !(needUnlock = lockRoot(decisionMaker, rootReference, attempt, contention))) {
+                            continue;
+                        }
+                        value = decisionMaker.selectValue(result, value);
+                        p = p.copy();
+                        if (index < 0) {
+                            p.insertLeaf(-index - 1, key, value);
+                            int keyCount;
+                            while ((keyCount = p.getKeyCount()) > store.getKeysPerPage() || p.getMemory() > store.getMaxPageSize()
+                                    && keyCount > (p.isLeaf() ? 1 : 2)) {
+                                long totalCount = p.getTotalCount();
+                                int at = keyCount >> 1;
+                                Object k = p.getKey(at);
+                                Page split = p.split(at);
+                                unsavedMemory += p.getMemory();
+                                unsavedMemory += split.getMemory();
+                                if (pos == null) {
+                                    Object keys[] = { k };
+                                    Page.PageReference children[] = {
+                                            new Page.PageReference(p),
+                                            new Page.PageReference(split)
+                                    };
+                                    p = Page.create(this, keys, null, children, totalCount, 0);
+                                    break;
+                                }
+                                Page c = p;
+                                p = pos.page;
+                                index = pos.index;
+                                pos = pos.parent;
+                                p = p.copy();
+                                p.setChild(index, split);
+                                p.insertNode(index, k, c);
+                            }
+                        } else {
+                            p.setValue(index, value);
+                        }
+                        break;
+                    }
+                }
+                unsavedMemory += p.getMemory();
+                while (pos != null) {
+                    Page c = p;
+                    p = pos.page;
+                    p = p.copy();
+                    p.setChild(pos.index, c);
+                    unsavedMemory += p.getMemory();
+                    pos = pos.parent;
+                }
+                if(needUnlock) {
+                    unlockRoot(p, attempt);
+                    needUnlock = false;
+                } else if(!updateRoot(rootReference, p, attempt)) {
+                    decisionMaker.reset();
+                    continue;
+                }
+                while (tip != null) {
+                    tip.page.removePage();
+                    tip = tip.parent;
+                }
+                if (store.getFileStore() != null) {
+                    store.registerUnsavedPage(unsavedMemory);
+                }
+                return result;
+            } finally {
+                if(needUnlock) {
+                    unlockRoot(rootReference.root, attempt);
+                }
+            }
+        }
+    }
+
+    private boolean lockRoot(DecisionMaker<? super V> decisionMaker, RootReference rootReference,
+                             int attempt, int contention) {
+        boolean success = lockRoot(rootReference);
+        if (!success) {
+            decisionMaker.reset();
+            if(attempt > 4) {
+                if (attempt <= 24) {
+                    Thread.yield();
+                } else {
+                    try {
+                        Thread.sleep(0, 100 / contention + 50);
+                    } catch (InterruptedException ignore) {/**/}
+                }
+            }
+        }
+        return success;
+    }
+
+    private boolean lockRoot(RootReference rootReference) {
+        return !rootReference.semaphore
+            && root.compareAndSet(rootReference, new RootReference(rootReference));
+    }
+
+    private void unlockRoot(Page newRoot, int attempt) {
+        boolean success;
+        do {
+            RootReference rootReference = getRoot();
+            RootReference updatedRootReference = new RootReference(rootReference, newRoot, attempt);
+            success = root.compareAndSet(rootReference, updatedRootReference);
+        } while(!success);
+    }
+
+    public static CursorPos traverseDown(Page p, Object key) {
+        CursorPos pos = null;
+        while (!p.isLeaf()) {
+            assert p.getKeyCount() > 0;
+            int index = p.binarySearch(key) + 1;
+            if (index < 0) {
+                index = -index;
+            }
+            pos = new CursorPos(p, index, pos);
+            p = p.getChildPage(index);
+        }
+        return new CursorPos(p, p.binarySearch(key), pos);
     }
 
     private static final class EqualsDecisionMaker<V> extends DecisionMaker<V> {

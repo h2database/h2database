@@ -77,6 +77,17 @@ public class TestCompatibility extends TestBase {
         assertEquals(2, rs.getInt(1));
         assertEquals("c", rs.getString(2));
         assertFalse(rs.next());
+        // Check qualified names in ON UPDATE case
+        assertEquals(2, stat.executeUpdate("insert into s2.test(id, name) values(2, 'd') " +
+                "on duplicate key update test.name = values(name)"));
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat)
+                .executeUpdate("insert into s2.test(id, name) values(2, 'd') " +
+                        "on duplicate key update test2.name = values(name)");
+        assertEquals(2, stat.executeUpdate("insert into s2.test(id, name) values(2, 'e') " +
+                "on duplicate key update s2.test.name = values(name)"));
+        assertThrows(ErrorCode.SCHEMA_NAME_MUST_MATCH, stat)
+                .executeUpdate("insert into s2.test(id, name) values(2, 'd') " +
+                        "on duplicate key update s3.test.name = values(name)");
         stat.execute("drop schema s2 cascade");
         c.close();
     }

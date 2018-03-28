@@ -1232,7 +1232,24 @@ public class Parser {
                 read("KEY");
                 read("UPDATE");
                 do {
-                    Column column = parseColumn(table);
+                    String columnName = readColumnIdentifier();
+                    if (readIf(".")) {
+                        String schemaOrTableName = columnName;
+                        String tableOrColumnName = readColumnIdentifier();
+                        if (readIf(".")) {
+                            if (!table.getSchema().getName().equals(schemaOrTableName)) {
+                                throw DbException.get(ErrorCode.SCHEMA_NAME_MUST_MATCH);
+                            }
+                            columnName = readColumnIdentifier();
+                        } else {
+                            columnName = tableOrColumnName;
+                            tableOrColumnName = schemaOrTableName;
+                        }
+                        if (!table.getName().equals(tableOrColumnName)) {
+                            throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableOrColumnName);
+                        }
+                    }
+                    Column column = table.getColumn(columnName);
                     read("=");
                     Expression expression;
                     if (readIf("DEFAULT")) {

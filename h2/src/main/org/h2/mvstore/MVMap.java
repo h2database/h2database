@@ -1400,6 +1400,17 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     public enum Decision { ABORT, REMOVE, PUT }
 
+    /**
+     * Class DecisionMaker provides callback interface (and should become a such in Java 8)
+     * for MVMap.operate method.
+     * It provides control logic to make a decision about how to proceed with update
+     * at the point in execution when proper place and possible existing value
+     * for insert/update/delete key is found.
+     * Revised value for insert/update is also provided based on original input value
+     * and value currently existing in the map.
+     *
+     * @param <V> value type of the map
+     */
     public abstract static class DecisionMaker<V>
     {
         public static final DecisionMaker<Object> DEFAULT = new DecisionMaker<Object>() {
@@ -1462,10 +1473,35 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             }
         };
 
+        /**
+         * Makes adecision about how to proceed with update.
+         * @param existingValue value currently exists in the map
+         * @param providedValue original input value
+         * @return PUT if a new value need to replace existing one or
+         *             new value to be inserted if there is none
+         *         REMOVE if existin value should be deleted
+         *         ABORT if update operation should be aborted
+         */
         public abstract Decision decide(V existingValue, V providedValue);
+
+        /**
+         * Provides revised value for insert/update based on original input value
+         * and value currently existing in the map.
+         * This method is not invoked only after decide(), if it returns PUT.
+         * @param existingValue value currently exists in the map
+         * @param providedValue original input value
+         * @param <T> value type
+         * @return value to be used by insert/update
+         */
         public <T extends V> T selectValue(T existingValue, T providedValue) {
             return providedValue;
         }
+
+        /**
+         * Resets internal state (if any) of a this DecisionMaker to it's initial state.
+         * This method is invoked whenever concurrent update failure is encountered,
+         * so we can re-start update process.
+         */
         public void reset() {}
     }
 

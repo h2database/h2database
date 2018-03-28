@@ -22,6 +22,7 @@ import java.sql.SQLException;
 import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.util.BitSet;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +30,6 @@ import org.h2.api.ErrorCode;
 import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
-import org.h2.util.BitField;
 import org.h2.value.ValueNull;
 
 /**
@@ -41,7 +41,7 @@ import org.h2.value.ValueNull;
 public class JdbcCallableStatement extends JdbcPreparedStatement implements
         CallableStatement, JdbcCallableStatementBackwardsCompat {
 
-    private BitField outParameters;
+    private BitSet outParameters;
     private int maxOutParameters;
     private HashMap<String, Integer> namedParameters;
 
@@ -1637,7 +1637,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
                 maxOutParameters = Math.min(
                         getParameterMetaData().getParameterCount(),
                         getCheckedMetaData().getColumnCount());
-                outParameters = new BitField();
+                outParameters = new BitSet();
             }
             checkIndexBounds(parameterIndex);
             ParameterInterface param = command.getParameters().get(--parameterIndex);

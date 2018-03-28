@@ -49,6 +49,7 @@ public class TestMetaData extends TestBase {
         testColumnMetaData();
         testColumnPrecision();
         testColumnDefault();
+        testColumnGenerated();
         testCrossReferences();
         testProcedureColumns();
         testUDTs();
@@ -234,6 +235,24 @@ public class TestMetaData extends TestBase {
         conn.close();
     }
 
+    private void testColumnGenerated() throws SQLException {
+        Connection conn = getConnection("metaData");
+        DatabaseMetaData meta = conn.getMetaData();
+        ResultSet rs;
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(A INT, B INT AS A + 1)");
+        rs = meta.getColumns(null, null, "TEST", null);
+        rs.next();
+        assertEquals("A", rs.getString("COLUMN_NAME"));
+        assertEquals("NO", rs.getString("IS_GENERATEDCOLUMN"));
+        rs.next();
+        assertEquals("B", rs.getString("COLUMN_NAME"));
+        assertEquals("YES", rs.getString("IS_GENERATEDCOLUMN"));
+        assertFalse(rs.next());
+        stat.execute("DROP TABLE TEST");
+        conn.close();
+    }
+
     private void testProcedureColumns() throws SQLException {
         Connection conn = getConnection("metaData");
         DatabaseMetaData meta = conn.getMetaData();
@@ -404,7 +423,7 @@ public class TestMetaData extends TestBase {
                 meta.getDriverMinorVersion());
         int majorVersion = 4;
         assertEquals(majorVersion, meta.getJDBCMajorVersion());
-        assertEquals(0, meta.getJDBCMinorVersion());
+        assertEquals(1, meta.getJDBCMinorVersion());
         assertEquals("H2", meta.getDatabaseProductName());
         assertEquals(Connection.TRANSACTION_READ_COMMITTED,
                 meta.getDefaultTransactionIsolation());
@@ -711,7 +730,7 @@ public class TestMetaData extends TestBase {
                 "SQL_DATA_TYPE", "SQL_DATETIME_SUB", "CHAR_OCTET_LENGTH",
                 "ORDINAL_POSITION", "IS_NULLABLE", "SCOPE_CATALOG",
                 "SCOPE_SCHEMA", "SCOPE_TABLE", "SOURCE_DATA_TYPE",
-                "IS_AUTOINCREMENT", "SCOPE_CATLOG" }, new int[] {
+                "IS_AUTOINCREMENT", "IS_GENERATEDCOLUMN" }, new int[] {
                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                 Types.INTEGER, Types.VARCHAR, Types.INTEGER, Types.INTEGER,
                 Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.VARCHAR,

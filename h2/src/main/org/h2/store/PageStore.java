@@ -8,6 +8,7 @@ package org.h2.store;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
@@ -42,7 +43,6 @@ import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
 import org.h2.table.Table;
 import org.h2.table.TableType;
-import org.h2.util.BitField;
 import org.h2.util.Cache;
 import org.h2.util.CacheLRU;
 import org.h2.util.CacheObject;
@@ -180,7 +180,7 @@ public class PageStore implements CacheWriter {
     /**
      * Each free page is marked with a set bit.
      */
-    private final BitField freed = new BitField();
+    private final BitSet freed = new BitSet();
     private final ArrayList<PageFreeList> freeLists = New.arrayList();
 
     private boolean recordPageReads;
@@ -1160,7 +1160,7 @@ public class PageStore implements CacheWriter {
      * @param exclude the exclude list
      * @param after all allocated pages are higher than this page
      */
-    void allocatePages(IntArray list, int pagesToAllocate, BitField exclude,
+    void allocatePages(IntArray list, int pagesToAllocate, BitSet exclude,
             int after) {
         list.ensureCapacity(list.size() + pagesToAllocate);
         for (int i = 0; i < pagesToAllocate; i++) {
@@ -1186,7 +1186,7 @@ public class PageStore implements CacheWriter {
         return pos;
     }
 
-    private int allocatePage(BitField exclude, int first) {
+    private int allocatePage(BitSet exclude, int first) {
         int page;
         for (int i = firstFreeListIndex;; i++) {
             PageFreeList list = getFreeList(i);
@@ -2020,8 +2020,8 @@ public class PageStore implements CacheWriter {
         this.lockFile = lockFile;
     }
 
-    public BitField getObjectIds() {
-        BitField f = new BitField();
+    public BitSet getObjectIds() {
+        BitSet f = new BitSet();
         Cursor cursor = metaIndex.find(pageStoreSession, null, null);
         while (cursor.next()) {
             Row row = cursor.get();

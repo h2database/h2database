@@ -48,6 +48,7 @@ public class TestRights extends TestBase {
         testSchemaRenameUser();
         testAccessRights();
         testSchemaAdminRole();
+        testSchemaDrop();
         deleteDb("rights");
     }
 
@@ -488,6 +489,24 @@ public class TestRights extends TestBase {
         execute("UPDATE SCHEMA_RIGHT_TEST_EXISTS.TEST_EXISTS Set NAME = 'Douglas'");
         assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat).
         execute("DELETE FROM SCHEMA_RIGHT_TEST_EXISTS.TEST_EXISTS");
+        conn.close();
+    }
+
+    private void testSchemaDrop() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("rights");
+        Connection conn = getConnection("rights");
+        stat = conn.createStatement();
+        stat.execute("create user test password '' admin");
+        stat.execute("create schema b");
+        stat.execute("grant select on schema b to test");
+        stat.execute("drop schema b cascade");
+        conn.close();
+        conn = getConnection("rights");
+        stat = conn.createStatement();
+        stat.execute("drop user test");
         conn.close();
     }
 

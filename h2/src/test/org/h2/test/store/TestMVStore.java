@@ -833,9 +833,6 @@ public class TestMVStore extends TestBase {
         }
         s.close();
         int[] expectedReadsForCacheSize = {
-//                3407, 2590, 1924, 1440, 1330, 956, 918
-//                1880, 1789, 1578, 1374, 995, 711, 541
-//                942, 1789, 1578, 1374, 995, 711, 541
                 1880, 1789, 1616, 1374, 970, 711, 541   // compressed
 //                1887, 1775, 1599, 1355, 1035, 732, 507    // uncompressed
         };
@@ -1372,7 +1369,6 @@ public class TestMVStore extends TestBase {
         s.close();
 
         s = openStore(fileName);
-        s.setAutoCommitDelay(0);
         m = s.openMap("data");
         assertEquals("Hi", m.get("1"));
         assertEquals(null, m.get("2"));
@@ -1381,7 +1377,7 @@ public class TestMVStore extends TestBase {
         // which is rather implementation artifact then intentional.
         // Once store is closed, only one sinle version of the data
         // will exists upon re-opening - the latest.
-        // I hope nobody relies on this.
+        // I hope nobody relies on this "multi-versioning".
 /*
         mOld = m.openVersion(old3);
         assertEquals("Hallo", mOld.get("1"));
@@ -1423,6 +1419,7 @@ public class TestMVStore extends TestBase {
             }
         }
         assertTrue(s.compact(100, 50 * 1024));
+        // compaction alone will not guarantee file size reduction
         s.compactMoveChunks();
         s.close();
         long len2 = FileUtils.size(fileName);
@@ -1441,10 +1438,8 @@ public class TestMVStore extends TestBase {
             assertEquals(i + 1, m.size());
         }
         assertEquals(1000, m.size());
-        // previously (131896) we fail to account for initial root page for every map
-        // there are two of them here (meta and "data"), hence lack of 256 bytes
-//        assertEquals(132152, s.getUnsavedMemory());
-        assertEquals(84940, s.getUnsavedMemory());
+        // memory calculations were adjusted, so as this out-of-the-thin-air number
+        assertEquals(84730, s.getUnsavedMemory());
         s.commit();
         assertEquals(2, s.getFileStore().getWriteCount());
         s.close();
@@ -1524,12 +1519,13 @@ public class TestMVStore extends TestBase {
         assertNull(meta.get("name.data1"));
         assertNull(m0.get("1"));
         assertEquals("Hello", m.get("1"));
-        assertEquals(3, s.commit());
+        // no changes - no real commit here
+        assertEquals(2, s.commit());
         s.close();
 
         s = openStore(fileName);
         s.setRetentionTime(45000);
-        assertEquals(3, s.getCurrentVersion());
+        assertEquals(2, s.getCurrentVersion());
         meta = s.getMetaMap();
         assertNotNull(meta.get("name.data"));
         assertNotNull(meta.get("name.data0"));
@@ -1542,12 +1538,12 @@ public class TestMVStore extends TestBase {
         m.put("1",  "Hallo");
         s.commit();
         long v3 = s.getCurrentVersion();
-        assertEquals(4, v3);
+        assertEquals(3, v3);
         s.close();
 
         s = openStore(fileName);
         s.setRetentionTime(45000);
-        assertEquals(4, s.getCurrentVersion());
+        assertEquals(3, s.getCurrentVersion());
         m = s.openMap("data");
         m.put("1",  "Hi");
         s.close();

@@ -740,6 +740,9 @@ public final class MVStore {
         } while((newest = verifyLastChunks()) != null);
 
         setWriteVersion(currentVersion);
+        if (lastStoredVersion == INITIAL_VERSION) {
+            lastStoredVersion = currentVersion - 1;
+        }
     }
 
     private void loadChunkMeta() {
@@ -2330,6 +2333,7 @@ public final class MVStore {
             currentVersion = version;
             setWriteVersion(version);
             metaChanged = false;
+            lastStoredVersion = INITIAL_VERSION;
             return;
         }
         DataUtils.checkArgument(
@@ -2401,13 +2405,10 @@ public final class MVStore {
                 }
             }
         }
-        // rollback might have rolled back the stored chunk metadata as well
-        if (lastChunk != null) {
-            for (Chunk c : chunks.values()) {
-                meta.put(Chunk.getMetaKey(c.id), c.asString());
-            }
-        }
         currentVersion = version;
+        if (lastStoredVersion == INITIAL_VERSION) {
+            lastStoredVersion = currentVersion - 1;
+        }
     }
 
     private static long getRootPos(MVMap<String, String> map, int mapId) {

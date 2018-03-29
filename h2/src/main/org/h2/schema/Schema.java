@@ -18,6 +18,7 @@ import org.h2.engine.DbObject;
 import org.h2.engine.DbObjectBase;
 import org.h2.engine.DbSettings;
 import org.h2.engine.FunctionAlias;
+import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
 import org.h2.engine.User;
@@ -171,6 +172,11 @@ public class Schema extends DbObjectBase {
         while (functions != null && functions.size() > 0) {
             FunctionAlias obj = (FunctionAlias) functions.values().toArray()[0];
             database.removeSchemaObject(session, obj);
+        }
+        for (Right right : database.getAllRights()) {
+            if (right.getGrantedObject() == this) {
+                database.removeDatabaseObject(session, right);
+            }
         }
         database.removeMeta(session, getId());
         owner = null;

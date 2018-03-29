@@ -1297,7 +1297,9 @@ public class Database implements DataHandler {
                     closing = true;
                 }
             }
-            removeOrphanedLobs();
+            if(!this.isReadOnly()) {
+                removeOrphanedLobs();
+            }
             try {
                 if (systemSession != null) {
                     if (powerOffCount != -1) {

@@ -28,7 +28,8 @@ import org.h2.mvstore.type.StringDataType;
  * @param <V> the value class
  */
 public class MVMap<K, V> extends AbstractMap<K, V>
-        implements ConcurrentMap<K, V>, Cloneable {
+                         implements ConcurrentMap<K, V>
+{
 
     /**
      * The store.
@@ -53,7 +54,15 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     private           boolean readOnly;
     private           boolean isVolatile;
 
+    /**
+     * This is a magic number for a version parameter in setNewRoot() call
+     * which meens "keep version the same it is now".
+     */
     private   static final long KEEP_CURRENT = -2;
+    /**
+     * This designates the "last stored" version for a store which was
+     * just open for the first time.
+     */
     public    static final long INITIAL_VERSION = -1;
 
     protected MVMap(Map<String, Object> config) {
@@ -814,7 +823,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         RootReference previous = currentRoot;
         long updateCounter = 1;
         if(currentRoot != null) {
-            if (obeyLock && currentRoot.semaphore) {
+            if (obeyLock && currentRoot.lockedForUpdate) {
                 return null;
             }
 
@@ -1184,7 +1193,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         /**
          * Indicator that map is locked for update.
          */
-        public  final    boolean       semaphore;
+        public  final    boolean       lockedForUpdate;
         /**
          * Reference to the previous root in the chain.
          */
@@ -1200,13 +1209,13 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
         private RootReference(Page root, long version, RootReference previous,
                               long updateCounter, long updateAttemptCounter,
-                              boolean semaphore) {
+                              boolean lockedForUpdate) {
             this.root = root;
             this.version = version;
             this.previous = previous;
             this.updateCounter = updateCounter;
             this.updateAttemptCounter = updateAttemptCounter;
-            this.semaphore = semaphore;
+            this.lockedForUpdate = lockedForUpdate;
         }
 
         // This one is used for locking
@@ -1216,7 +1225,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             this.previous = r.previous;
             this.updateCounter = r.updateCounter;
             this.updateAttemptCounter = r.updateAttemptCounter;
-            this.semaphore = true;
+            this.lockedForUpdate = true;
         }
 
         // This one is used for unlocking
@@ -1226,7 +1235,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             this.previous = r.previous;
             this.updateCounter = r.updateCounter + 1;
             this.updateAttemptCounter = r.updateAttemptCounter + attempt;
-            this.semaphore = false;
+            this.lockedForUpdate = false;
         }
 
         // This one is used for version change
@@ -1241,7 +1250,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             this.previous = previous;
             this.updateCounter = r.updateCounter + 1;
             this.updateAttemptCounter = r.updateAttemptCounter + attempt;
-            this.semaphore = r.semaphore;
+            this.lockedForUpdate = r.lockedForUpdate;
         }
 
         // This one is used for r/o snapshots
@@ -1251,12 +1260,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             this.previous = null;
             this.updateCounter = 1;
             this.updateAttemptCounter = 1;
-            this.semaphore = false;
+            this.lockedForUpdate = false;
         }
 
         @Override
         public String toString() {
-            return "RootReference("+ System.identityHashCode(root)+","+version+","+ semaphore +")";
+            return "RootReference("+ System.identityHashCode(root)+","+version+","+ lockedForUpdate +")";
         }
     }
 
@@ -1652,7 +1661,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     private boolean lockRoot(RootReference rootReference) {
-        return !rootReference.semaphore
+        return !rootReference.lockedForUpdate
             && root.compareAndSet(rootReference, new RootReference(rootReference));
     }
 

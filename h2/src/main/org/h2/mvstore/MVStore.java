@@ -2758,7 +2758,7 @@ public final class MVStore {
         return fileStore != null && fileStore.isReadOnly();
     }
 
-    public synchronized double getUpdateFailureRatio() {
+    public double getUpdateFailureRatio() {
         long updateCounter = this.updateCounter;
         long updateAttemptCounter = this.updateAttemptCounter;
         MVMap.RootReference rootReference = meta.getRoot();

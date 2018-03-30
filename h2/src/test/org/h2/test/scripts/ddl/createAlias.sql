@@ -68,6 +68,12 @@ SET BUILTIN_ALIAS_OVERRIDE=1;
 CREATE ALIAS TRUNC FOR "java.lang.Math.floor(double)";
 > ok
 
+SELECT TRUNC(1.5);
+>> 1.0
+
+SELECT TRUNC(-1.5);
+>> -2.0
+
 DROP ALIAS TRUNC;
 > ok
 

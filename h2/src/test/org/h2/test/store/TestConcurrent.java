@@ -672,7 +672,7 @@ public class TestConcurrent extends TestMVStore {
         try {
             for (int k = 0; k < 10000; k++) {
                 Iterator<Integer> it = map.keyIterator(r.nextInt(len));
-                long old = s.getCurrentVersion();
+                long old = map.getVersion();
                 s.commit();
                 while (map.getVersion() == old) {
                     Thread.yield();

@@ -1054,6 +1054,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return m;
     }
 
+    /**
+     * Get version of the map, which is the version of the store,
+     * at which map was modified last time.
+     *
+     * @return version
+     */
     public final long getVersion() {
         RootReference rootReference = getRoot();
         RootReference previous = rootReference.previous;

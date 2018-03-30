@@ -1689,15 +1689,6 @@ explain select * from test where id in(1, 2, null);
 drop table test;
 > ok
 
-create alias "SYSDATE" for "java.lang.Integer.parseInt(java.lang.String)";
-> exception
-
-create alias "MIN" for "java.lang.Integer.parseInt(java.lang.String)";
-> exception
-
-create alias "CAST" for "java.lang.Integer.parseInt(java.lang.String)";
-> exception
-
 CREATE TABLE PARENT(A INT, B INT, PRIMARY KEY(A, B));
 > ok
 
@@ -5097,44 +5088,6 @@ SELECT count(*) FROM test_null WHERE not ('X'=null and 1=0);
 > rows: 1
 
 drop table if exists test_null;
-> ok
-
---- function alias ---------------------------------------------------------------------------------------------
-CREATE ALIAS MY_SQRT FOR "java.lang.Math.sqrt";
-> ok
-
-SELECT MY_SQRT(2.0) MS, SQRT(2.0);
-> MS                 1.4142135623730951
-> ------------------ ------------------
-> 1.4142135623730951 1.4142135623730951
-> rows: 1
-
-SELECT MY_SQRT(SUM(X)), SUM(X), MY_SQRT(55) FROM SYSTEM_RANGE(1, 10);
-> PUBLIC.MY_SQRT(SUM(X)) SUM(X) PUBLIC.MY_SQRT(55)
-> ---------------------- ------ ------------------
-> 7.416198487095663      55     7.416198487095663
-> rows: 1
-
-SELECT MY_SQRT(-1.0) MS, SQRT(NULL) S;
-> MS  S
-> --- ----
-> NaN null
-> rows: 1
-
-SCRIPT NOPASSWORDS NOSETTINGS;
-> SCRIPT
-> ------------------------------------------------------------
-> CREATE FORCE ALIAS PUBLIC.MY_SQRT FOR "java.lang.Math.sqrt";
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
-> rows: 2
-
-SELECT ALIAS_NAME, JAVA_CLASS, JAVA_METHOD, DATA_TYPE, COLUMN_COUNT, RETURNS_RESULT, REMARKS FROM INFORMATION_SCHEMA.FUNCTION_ALIASES;
-> ALIAS_NAME JAVA_CLASS     JAVA_METHOD DATA_TYPE COLUMN_COUNT RETURNS_RESULT REMARKS
-> ---------- -------------- ----------- --------- ------------ -------------- -------
-> MY_SQRT    java.lang.Math sqrt        8         1            2
-> rows: 1
-
-DROP ALIAS MY_SQRT;
 > ok
 
 --- schema ----------------------------------------------------------------------------------------------

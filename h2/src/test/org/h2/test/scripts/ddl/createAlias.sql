@@ -49,3 +49,54 @@ SELECT ALIAS_NAME, JAVA_CLASS, JAVA_METHOD, DATA_TYPE, COLUMN_COUNT, RETURNS_RES
 
 DROP ALIAS MY_SQRT;
 > ok
+
+CREATE SCHEMA TEST_SCHEMA;
+> ok
+
+CREATE ALIAS TRUNC FOR "java.lang.Math.floor(double)";
+> exception
+
+CREATE ALIAS PUBLIC.TRUNC FOR "java.lang.Math.floor(double)";
+> exception
+
+CREATE ALIAS TEST_SCHEMA.TRUNC FOR "java.lang.Math.round(double)";
+> exception
+
+SET BUILTIN_ALIAS_OVERRIDE=1;
+> ok
+
+CREATE ALIAS TRUNC FOR "java.lang.Math.floor(double)";
+> ok
+
+DROP ALIAS TRUNC;
+> ok
+
+CREATE ALIAS PUBLIC.TRUNC FOR "java.lang.Math.floor(double)";
+> ok
+
+CREATE ALIAS TEST_SCHEMA.TRUNC FOR "java.lang.Math.round(double)";
+> ok
+
+SELECT PUBLIC.TRUNC(1.5);
+>> 1.0
+
+SELECT PUBLIC.TRUNC(-1.5);
+>> -2.0
+
+SELECT TEST_SCHEMA.TRUNC(1.5);
+>> 2
+
+SELECT TEST_SCHEMA.TRUNC(-1.5);
+>> -1
+
+DROP ALIAS PUBLIC.TRUNC;
+> ok
+
+DROP ALIAS TEST_SCHEMA.TRUNC;
+> ok
+
+SET BUILTIN_ALIAS_OVERRIDE=0;
+> ok
+
+DROP SCHEMA TEST_SCHEMA RESTRICT;
+> ok

@@ -1659,7 +1659,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 } else {
                     try {
                         Thread.sleep(0, 100 / contention + 50);
-                    } catch (InterruptedException ignore) {/**/}
+                    } catch (InterruptedException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
             }
         }

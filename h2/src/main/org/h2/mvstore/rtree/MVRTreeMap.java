@@ -26,7 +26,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     /**
      * The spatial key type.
      */
-    private final SpatialDataType keyType;
+    final SpatialDataType keyType;
 
     private boolean quadraticSplit;
 
@@ -177,29 +177,29 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     private V operate(Page p, Object key, V value, DecisionMaker<? super V> decisionMaker) {
         V result = null;
         if (p.isLeaf()) {
-            int indx = -1;
+            int index = -1;
             int keyCount = p.getKeyCount();
             for (int i = 0; i < keyCount; i++) {
                 if (keyType.equals(p.getKey(i), key)) {
-                    indx = i;
+                    index = i;
                 }
             }
-            result = indx < 0 ? null : (V)p.getValue(indx);
+            result = index < 0 ? null : (V)p.getValue(index);
             Decision decision = decisionMaker.decide(result, value);
             switch (decision) {
                 case ABORT: break;
                 case REMOVE:
-                    if(indx >= 0) {
-                        p.remove(indx);
+                    if(index >= 0) {
+                        p.remove(index);
                     }
                     break;
                 case PUT:
                     value = decisionMaker.selectValue(result, value);
-                    if(indx < 0) {
+                    if(index < 0) {
                         p.insertLeaf(p.getKeyCount(), key, value);
                     } else {
-                        p.setKey(indx, key);
-                        p.setValue(indx, value);
+                        p.setKey(index, key);
+                        p.setValue(index, value);
                     }
                     break;
             }
@@ -608,6 +608,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
          * @param valueType the key type
          * @return this
          */
+        @Override
         public Builder<V> valueType(DataType valueType) {
             setValueType(valueType);
             return this;

@@ -28,7 +28,7 @@ import org.h2.mvstore.type.StringDataType;
  * @param <V> the value class
  */
 public class MVMap<K, V> extends AbstractMap<K, V>
-                         implements ConcurrentMap<K, V>
+                            implements ConcurrentMap<K, V>
 {
 
     /**
@@ -58,16 +58,16 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * This designates the "last stored" version for a store which was
      * just open for the first time.
      */
-    public    static final long INITIAL_VERSION = -1;
+    static final long INITIAL_VERSION = -1;
 
     protected MVMap(Map<String, Object> config) {
-        this((MVStore)config.get("store"),
-             (DataType)config.get("key"),
-             (DataType)config.get("val"),
-             DataUtils.readHexInt(config, "id", 0),
-             DataUtils.readHexLong(config, "createVersion", 0),
-             new AtomicReference<RootReference>()
-             );
+        this((MVStore) config.get("store"),
+                (DataType) config.get("key"),
+                (DataType) config.get("val"),
+                DataUtils.readHexInt(config, "id", 0),
+                DataUtils.readHexLong(config, "createVersion", 0),
+                new AtomicReference<RootReference>()
+        );
         setInitialRoot(createEmptyLeaf(), store.getCurrentVersion());
     }
 
@@ -83,9 +83,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         setInitialRoot(createEmptyLeaf(), store.getCurrentVersion());
     }
 
-    @SuppressWarnings("unchecked")
     private MVMap(MVStore store, DataType keyType, DataType valueType, int id, long createVersion,
-                  AtomicReference<RootReference> root) {
+                    AtomicReference<RootReference> root) {
         this.store = store;
         this.id = id;
         this.createVersion = createVersion;
@@ -142,7 +141,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param value the value (may not be null)
      * @return the old value if the key existed, or null otherwise
      */
-    @SuppressWarnings("unchecked")
     public final V put(K key, V value, DecisionMaker<? super V> decisionMaker) {
         DataUtils.checkArgument(value != null, "The value may not be null");
         return operate(key, value, decisionMaker);
@@ -174,7 +172,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param index the index
      * @return the key
      */
-    @SuppressWarnings("unchecked")
     public final K getKey(long index) {
         if (index < 0 || index >= sizeAsLong()) {
             return null;
@@ -186,7 +183,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 if (index >= offset + p.getKeyCount()) {
                     return null;
                 }
-                return (K) p.getKey((int) (index - offset));
+                @SuppressWarnings("unchecked")
+                K key = (K) p.getKey((int) (index - offset));
+                return key;
             }
             int i = 0, size = getChildPageCount(p);
             for (; i < size; i++) {
@@ -386,30 +385,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return (V) Page.get(p, key);
     }
 
-    /**
-     * Get the value for the given key, or null if not found.
-     *
-     * @param p the page
-     * @param key the key
-     * @return the value or null
-     */
-    protected Object binarySearch(Page p, Object key) {
-        int x = p.binarySearch(key);
-        if (!p.isLeaf()) {
-            if (x < 0) {
-                x = -x - 1;
-            } else {
-                x++;
-            }
-            p = p.getChildPage(x);
-            return binarySearch(p, key);
-        }
-        if (x >= 0) {
-            return p.getValue(x);
-        }
-        return null;
-    }
-
     @Override
     public final boolean containsKey(Object key) {
         return get(key) != null;
@@ -472,7 +447,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param value the expected value
      * @return true if the item was removed
      */
-    @SuppressWarnings("unchecked")
     @Override
     public boolean remove(Object key, Object value) {
         EqualsDecisionMaker<V> decisionMaker = new EqualsDecisionMaker<>(valueType, (V)value);
@@ -499,7 +473,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param datatype to use for comparison
      * @return true if they are equal
      */
-    public static boolean areValuesEqual(DataType datatype, Object a, Object b) {
+    static boolean areValuesEqual(DataType datatype, Object a, Object b) {
         return a == b
             || a != null && b != null && datatype.compare(a, b) == 0;
     }
@@ -799,12 +773,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param newRootPage the new root page
      * @param attemptUpdateCounter how many attempt (including current)
      *                            were made to update root
-     * @param obeyLock false means override root iven if it marked as locked (used to unlock)
-     *                 true will fail to update, if rott is currently locked
+     * @param obeyLock false means override root even if it's marked as locked (used to unlock)
+     *                 true will fail to update, if root is currently locked
      * @return new RootReference or null if update failed
      */
     private RootReference setNewRoot(RootReference oldRoot, Page newRootPage,
-                                     int attemptUpdateCounter, boolean obeyLock) {
+                                        int attemptUpdateCounter, boolean obeyLock) {
         RootReference currentRoot = getRoot();
         assert newRootPage != null || currentRoot != null;
         if (currentRoot != oldRoot && oldRoot != null) {
@@ -830,7 +804,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
 
         RootReference updatedRootReference = new RootReference(newRootPage, newVersion, previous, updateCounter,
-                                                               attemptUpdateCounter, false);
+                                                                attemptUpdateCounter, false);
         boolean success = root.compareAndSet(currentRoot, updatedRootReference);
         return success ? updatedRootReference : null;
     }
@@ -862,7 +836,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     /**
      * Use the new root page from now on.
-     * @param oldRoot the old root reference, will use the current root reference, if null is specified
+     * @param oldRoot the old root reference, will use the current root reference,
+     *                if null is specified
      * @param newRoot the new root page
      */
     protected final boolean updateRoot(RootReference oldRoot, Page newRoot, int attemptUpdateCounter) {
@@ -1078,7 +1053,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param name the map name (or null)
      * @return the string
      */
-     protected String asString(String name) {
+    protected String asString(String name) {
         StringBuilder buff = new StringBuilder();
         if (name != null) {
             DataUtils.appendMap(buff, "name", name);
@@ -1179,7 +1154,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         /**
          * Indicator that map is locked for update.
          */
-        public  final    boolean       lockedForUpdate;
+                final    boolean       lockedForUpdate;
         /**
          * Reference to the previous root in the chain.
          */
@@ -1193,9 +1168,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
          */
         public  final    long          updateAttemptCounter;
 
-        private RootReference(Page root, long version, RootReference previous,
-                              long updateCounter, long updateAttemptCounter,
-                              boolean lockedForUpdate) {
+        RootReference(Page root, long version, RootReference previous,
+                      long updateCounter, long updateAttemptCounter,
+                      boolean lockedForUpdate) {
             this.root = root;
             this.version = version;
             this.previous = previous;
@@ -1205,7 +1180,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
 
         // This one is used for locking
-        private RootReference(RootReference r) {
+        RootReference(RootReference r) {
             this.root = r.root;
             this.version = r.version;
             this.previous = r.previous;
@@ -1215,7 +1190,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
 
         // This one is used for unlocking
-        private RootReference(RootReference r, Page root, int attempt) {
+        RootReference(RootReference r, Page root, int attempt) {
             this.root = root;
             this.version = r.version;
             this.previous = r.previous;
@@ -1225,7 +1200,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
 
         // This one is used for version change
-        private RootReference(RootReference r, long version, int attempt) {
+        RootReference(RootReference r, long version, int attempt) {
             RootReference previous = r;
             RootReference tmp;
             while ((tmp = previous.previous) != null && tmp.root == r.root) {
@@ -1240,7 +1215,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
 
         // This one is used for r/o snapshots
-        private RootReference(Page root, long version) {
+        RootReference(Page root, long version) {
             this.root = root;
             this.version = version;
             this.previous = null;
@@ -1373,16 +1348,19 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
         public Builder() {}
 
+        @Override
         public Builder<K,V> keyType(DataType dataType) {
             setKeyType(dataType);
             return this;
         }
 
+        @Override
         public Builder<K,V> valueType(DataType dataType) {
             setValueType(dataType);
             return this;
         }
 
+        @Override
         protected MVMap<K, V> create(Map<String, Object> config) {
             Object type = config.get("type");
             if(type == null || type.equals("rtree")) {
@@ -1443,7 +1421,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             }
         };
 
-        private static final DecisionMaker<Object> IF_ABSENT = new DecisionMaker<Object>() {
+        static final DecisionMaker<Object> IF_ABSENT = new DecisionMaker<Object>() {
             @Override
             public Decision decide(Object existingValue, Object providedValue) {
                 return existingValue == null ? Decision.PUT : Decision.ABORT;
@@ -1455,7 +1433,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             }
         };
 
-        private static final DecisionMaker<Object> IF_PRESENT = new DecisionMaker<Object>() {
+        static final DecisionMaker<Object> IF_PRESENT = new DecisionMaker<Object>() {
             @Override
             public Decision decide(Object existingValue, Object providedValue) {
                 return existingValue != null ? Decision.PUT : Decision.ABORT;
@@ -1468,12 +1446,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         };
 
         /**
-         * Makes adecision about how to proceed with update.
+         * Makes a decision about how to proceed with the update.
          * @param existingValue value currently exists in the map
          * @param providedValue original input value
          * @return PUT if a new value need to replace existing one or
          *             new value to be inserted if there is none
-         *         REMOVE if existin value should be deleted
+         *         REMOVE if existing value should be deleted
          *         ABORT if update operation should be aborted
          */
         public abstract Decision decide(V existingValue, V providedValue);
@@ -1507,7 +1485,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             RootReference rootReference = getRoot();
             int contention = 0;
             if (oldRootReference != null) {
-                long updateAttemptCounter = rootReference.updateAttemptCounter - oldRootReference.updateAttemptCounter;
+                long updateAttemptCounter = rootReference.updateAttemptCounter -
+                                            oldRootReference.updateAttemptCounter;
                 assert updateAttemptCounter >= 0 : updateAttemptCounter;
                 long updateCounter = rootReference.updateCounter - oldRootReference.updateCounter;
                 assert updateCounter >= 0 : updateCounter;
@@ -1521,7 +1500,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             int index = pos.index;
             CursorPos tip = pos;
             pos = pos.parent;
-            final V result = index < 0 ? null : (V)p.getValue(index);
+            V result = index < 0 ? null : (V)p.getValue(index);
             Decision decision = decisionMaker.decide(result, value);
 
             int unsavedMemory = 0;
@@ -1538,7 +1517,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                         if (index < 0) {
                             return null;
                         }
-                        if (attempt > 2 && !(needUnlock = lockRoot(decisionMaker, rootReference, attempt, contention))) {
+                        if (attempt > 2 && !(needUnlock = lockRoot(decisionMaker, rootReference,
+                                                                    attempt, contention))) {
                             continue;
                         }
                         if (p.getTotalCount() == 1 && pos != null) {
@@ -1557,7 +1537,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                         break;
                     }
                     case PUT: {
-                        if (attempt > 2 && !(needUnlock = lockRoot(decisionMaker, rootReference, attempt, contention))) {
+                        if (attempt > 2 && !(needUnlock = lockRoot(decisionMaker, rootReference,
+                                                                    attempt, contention))) {
                             continue;
                         }
                         value = decisionMaker.selectValue(result, value);
@@ -1565,7 +1546,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                         if (index < 0) {
                             p.insertLeaf(-index - 1, key, value);
                             int keyCount;
-                            while ((keyCount = p.getKeyCount()) > store.getKeysPerPage() || p.getMemory() > store.getMaxPageSize()
+                            while ((keyCount = p.getKeyCount()) > store.getKeysPerPage()
+                                    || p.getMemory() > store.getMaxPageSize()
                                     && keyCount > (p.isLeaf() ? 1 : 2)) {
                                 long totalCount = p.getTotalCount();
                                 int at = keyCount >> 1;
@@ -1629,7 +1611,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     private boolean lockRoot(DecisionMaker<? super V> decisionMaker, RootReference rootReference,
-                             int attempt, int contention) {
+                                int attempt, int contention) {
         boolean success = lockRoot(rootReference);
         if (!success) {
             decisionMaker.reset();
@@ -1681,7 +1663,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         private final V        expectedValue;
         private       Decision decision;
 
-        private EqualsDecisionMaker(DataType dataType, V expectedValue) {
+        EqualsDecisionMaker(DataType dataType, V expectedValue) {
             this.dataType = dataType;
             this.expectedValue = expectedValue;
         }
@@ -1699,7 +1681,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             decision = null;
         }
 
-        public Decision getDecision() {
+        Decision getDecision() {
             return decision;
         }
 

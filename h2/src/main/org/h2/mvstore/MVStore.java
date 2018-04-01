@@ -158,7 +158,7 @@ public final class MVStore {
 
     private volatile boolean closed;
 
-    private final FileStore fileStore;
+    final FileStore fileStore;
     private final boolean fileStoreIsProvided;
 
     private final int pageSplitSize;
@@ -170,14 +170,14 @@ public final class MVStore {
      * It is split in 16 segments. The stack move distance is 2% of the expected
      * number of entries.
      */
-    private final CacheLongKeyLIRS<Page> cache;
+    final CacheLongKeyLIRS<Page> cache;
 
     /**
      * The page chunk references cache. The default size is 4 MB, and the
      * average size is 2 KB. It is split in 16 segments. The stack move distance
      * is 2% of the expected number of entries.
      */
-    private final CacheLongKeyLIRS<int[]> cacheChunkRef;
+    final CacheLongKeyLIRS<int[]> cacheChunkRef;
 
     /**
      * The newest chunk. If nothing was stored yet, this field is not set.
@@ -505,15 +505,14 @@ public final class MVStore {
     }
 
     public synchronized <M extends MVMap<K, V>, K, V> M openMap(int id,
-                                       MVMap.MapBuilder<M, K, V> builder) {
+                                        MVMap.MapBuilder<M, K, V> builder) {
         @SuppressWarnings("unchecked")
         M map = (M) getMap(id);
         if (map == null) {
             String configAsString = meta.get(MVMap.getMapKey(id));
             if(configAsString != null) {
-                HashMap<String, Object> config = new HashMap<>();
-                HashMap<String, String> cfg = DataUtils.parseMap(configAsString);
-                config.putAll(cfg);
+                HashMap<String, Object> config =
+                        new HashMap<String, Object>(DataUtils.parseMap(configAsString));
                 config.put("id", id);
                 map = builder.create(this, config);
                 map.init();
@@ -729,7 +728,8 @@ public final class MVStore {
                 int length = c.len * BLOCK_SIZE;
                 fileStore.markUsed(start, length);
             }
-            assert fileStore.getFileLengthInUse() == measureFileLengthInUse() : fileStore.getFileLengthInUse() + " != " + measureFileLengthInUse();
+            assert fileStore.getFileLengthInUse() == measureFileLengthInUse() :
+                    fileStore.getFileLengthInUse() + " != " + measureFileLengthInUse();
             // read all chunk headers and footers within the retention time,
             // to detect unwritten data after a power failure
         } while((newest = verifyLastChunks()) != null);
@@ -989,7 +989,7 @@ public final class MVStore {
      * @param pos the position
      * @return the chunk
      */
-    private Chunk getChunk(long pos) {
+    Chunk getChunk(long pos) {
         Chunk c = getChunkIfFound(pos);
         if (c == null) {
             int chunkId = DataUtils.getPageChunkId(pos);
@@ -1203,7 +1203,8 @@ public final class MVStore {
         long filePos = allocateFileSpace(length, !reuseSpace);
         c.block = filePos / BLOCK_SIZE;
         c.len = length / BLOCK_SIZE;
-        assert fileStore.getFileLengthInUse() == measureFileLengthInUse() : fileStore.getFileLengthInUse() + " != " + measureFileLengthInUse() + " " + c;
+        assert fileStore.getFileLengthInUse() == measureFileLengthInUse() :
+                fileStore.getFileLengthInUse() + " != " + measureFileLengthInUse() + " " + c;
         c.metaRootPos = metaRoot.getPos();
         // calculate and set the likely next position
         if (reuseSpace) {
@@ -1311,7 +1312,8 @@ public final class MVStore {
                         long start = c.block * BLOCK_SIZE;
                         int length = c.len * BLOCK_SIZE;
                         fileStore.free(start, length);
-                        assert fileStore.getFileLengthInUse() == measureFileLengthInUse() : fileStore.getFileLengthInUse() + " != " + measureFileLengthInUse();
+                        assert fileStore.getFileLengthInUse() == measureFileLengthInUse() :
+                                fileStore.getFileLengthInUse() + " != " + measureFileLengthInUse();
                     } else {
                         if (c.unused == 0) {
                             c.unused = time;
@@ -1370,7 +1372,7 @@ public final class MVStore {
         private       ChunkIdsCollector child;
         private       int               mapId;
 
-        private ChunkIdsCollector(int mapId) {
+        ChunkIdsCollector(int mapId) {
             this.parent = null;
             this.mapId = mapId;
         }
@@ -1448,7 +1450,7 @@ public final class MVStore {
                                     "Negative position {0}; p={1}, c={2}", filePos, pos, chunk.toString());
                         }
                         long maxPos = (chunk.block + chunk.len) * BLOCK_SIZE;
-                        Page.readChildrensPositions(fileStore, pos, filePos, maxPos, childCollector);
+                        Page.readChildrenPositions(fileStore, pos, filePos, maxPos, childCollector);
                     }
                     // and cache resulting set of chunk ids
                     if (cacheChunkRef != null) {
@@ -1476,9 +1478,9 @@ public final class MVStore {
 
         private int[] getChunkIds() {
             int chunkIds[] = new int[referenced.size()];
-            int indx = 0;
+            int index = 0;
             for (int chunkId : referenced) {
-                chunkIds[indx++] = chunkId;
+                chunkIds[index++] = chunkId;
             }
             return chunkIds;
         }
@@ -1948,7 +1950,7 @@ public final class MVStore {
             @Override
             public int compare(Chunk o1, Chunk o2) {
                 int comp = Integer.compare(o1.collectPriority,
-                                           o2.collectPriority);
+                                            o2.collectPriority);
                 if (comp == 0) {
                     comp = Long.compare(o1.maxLenLive,
                                         o2.maxLenLive);
@@ -2202,7 +2204,7 @@ public final class MVStore {
             long current = this.oldestVersionToKeep.get();
             // Oldest version may only advance, never goes back
             success = oldestVersionToKeep <= current ||
-                      this.oldestVersionToKeep.compareAndSet(current, oldestVersionToKeep);
+                        this.oldestVersionToKeep.compareAndSet(current, oldestVersionToKeep);
         } while (!success);
     }
 
@@ -2391,7 +2393,8 @@ public final class MVStore {
                 long start = c.block * BLOCK_SIZE;
                 int length = c.len * BLOCK_SIZE;
                 fileStore.free(start, length);
-                assert fileStore.getFileLengthInUse() == measureFileLengthInUse() : fileStore.getFileLengthInUse() + " != " + measureFileLengthInUse();
+                assert fileStore.getFileLengthInUse() == measureFileLengthInUse() :
+                        fileStore.getFileLengthInUse() + " != " + measureFileLengthInUse();
                 // overwrite the chunk,
                 // so it is not be used later on
                 WriteBuffer buff = getWriteBuffer();
@@ -2486,16 +2489,15 @@ public final class MVStore {
                 "Renaming the meta map is not allowed");
         int id = map.getId();
         String oldName = getMapName(id);
-        if (oldName.equals(newName)) {
-            return;
+        if (oldName != null && !oldName.equals(newName)) {
+            DataUtils.checkArgument(
+                    !meta.containsKey("name." + newName),
+                    "A map named {0} already exists", newName);
+            meta.remove("name." + oldName);
+            meta.put(MVMap.getMapKey(id), map.asString(newName));
+            meta.put("name." + newName, Integer.toHexString(id));
+            markMetaChanged();
         }
-        DataUtils.checkArgument(
-                !meta.containsKey("name." + newName),
-                "A map named {0} already exists", newName);
-        meta.remove("name." + oldName);
-        meta.put(MVMap.getMapKey(id), map.asString(newName));
-        meta.put("name." + newName, Integer.toHexString(id));
-        markMetaChanged();
     }
 
     /**
@@ -2857,7 +2859,7 @@ public final class MVStore {
         public final long version;
         public final AtomicInteger counter = new AtomicInteger();
 
-        private TxCounter(long version) {
+        TxCounter(long version) {
             this.version = version;
         }
 
@@ -3136,7 +3138,5 @@ public final class MVStore {
             // Cast from HashMap<String, String> to HashMap<String, Object> is safe
             return new Builder((HashMap) DataUtils.parseMap(s));
         }
-
     }
-
 }

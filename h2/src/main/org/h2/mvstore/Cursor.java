@@ -118,7 +118,6 @@ public final class Cursor<K, V> implements Iterator<K> {
      *
      * @param n the number of entries to skip
      */
-    @SuppressWarnings("unchecked")
     public void skip(long n) {
         if (n < 10) {
             while (n-- > 0 && hasNext()) {
@@ -126,10 +125,11 @@ public final class Cursor<K, V> implements Iterator<K> {
             }
         } else if(hasNext()) {
             assert cursorPos != null;
-            CursorPos curPos = cursorPos;
+            CursorPos cp = cursorPos;
             CursorPos parent;
-            while ((parent = curPos.parent) != null) curPos = parent;
-            Page root = curPos.page;
+            while ((parent = cp.parent) != null) cp = parent;
+            Page root = cp.page;
+            @SuppressWarnings("unchecked")
             MVMap<K, ?> map = (MVMap<K, ?>) root.map;
             long index = map.getKeyIndex(next());
             last = map.getKey(index + n);

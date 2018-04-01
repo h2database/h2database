@@ -1375,7 +1375,7 @@ public class TestMVStore extends TestBase {
 
         // This test tries to cast in bronze some peculiar behaviour,
         // which is rather implementation artifact then intentional.
-        // Once store is closed, only one sinle version of the data
+        // Once store is closed, only one single version of the data
         // will exists upon re-opening - the latest.
         // I hope nobody relies on this "multi-versioning".
 /*

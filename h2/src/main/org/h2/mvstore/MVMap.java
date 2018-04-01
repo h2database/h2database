@@ -1516,7 +1516,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             }
             oldRootReference = rootReference;
             ++attempt;
-Thread.yield();
             CursorPos pos = traverseDown(rootReference.root, key);
             Page p = pos.page;
             int index = pos.index;

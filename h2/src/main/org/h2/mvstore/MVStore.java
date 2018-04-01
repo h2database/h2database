@@ -1420,7 +1420,9 @@ public final class MVStore {
         }
 
         public void visit(long pos) {
-            assert DataUtils.isPageSaved(pos);
+            if (!DataUtils.isPageSaved(pos)) {
+                return;
+            }
             register(DataUtils.getPageChunkId(pos));
             if (DataUtils.getPageType(pos) != DataUtils.PAGE_TYPE_LEAF) {
                 int chunkIds[];

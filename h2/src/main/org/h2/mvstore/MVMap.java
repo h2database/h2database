@@ -447,6 +447,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param value the expected value
      * @return true if the item was removed
      */
+    @SuppressWarnings("unchecked")
     @Override
     public boolean remove(Object key, Object value) {
         EqualsDecisionMaker<V> decisionMaker = new EqualsDecisionMaker<>(valueType, (V)value);
@@ -1169,8 +1170,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         public  final    long          updateAttemptCounter;
 
         RootReference(Page root, long version, RootReference previous,
-                      long updateCounter, long updateAttemptCounter,
-                      boolean lockedForUpdate) {
+                        long updateCounter, long updateAttemptCounter,
+                        boolean lockedForUpdate) {
             this.root = root;
             this.version = version;
             this.previous = previous;
@@ -1500,6 +1501,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             int index = pos.index;
             CursorPos tip = pos;
             pos = pos.parent;
+            @SuppressWarnings("unchecked")
             V result = index < 0 ? null : (V)p.getValue(index);
             Decision decision = decisionMaker.decide(result, value);
 

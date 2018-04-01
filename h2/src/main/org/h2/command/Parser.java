@@ -2707,7 +2707,7 @@ public class Parser {
         return orderList;
     }
 
-    private JavaFunction readJavaFunction(Schema schema, String functionName) {
+    private JavaFunction readJavaFunction(Schema schema, String functionName, boolean throwIfNotFound) {
         FunctionAlias functionAlias = null;
         if (schema != null) {
             functionAlias = schema.findFunction(functionName);
@@ -2716,7 +2716,11 @@ public class Parser {
                     functionName);
         }
         if (functionAlias == null) {
-            throw DbException.get(ErrorCode.FUNCTION_NOT_FOUND_1, functionName);
+            if (throwIfNotFound) {
+                throw DbException.get(ErrorCode.FUNCTION_NOT_FOUND_1, functionName);
+            } else {
+                return null;
+            }
         }
         Expression[] args;
         ArrayList<Expression> argList = New.arrayList();
@@ -2761,7 +2765,14 @@ public class Parser {
 
     private Expression readFunction(Schema schema, String name) {
         if (schema != null) {
-            return readJavaFunction(schema, name);
+            return readJavaFunction(schema, name, true);
+        }
+        boolean allowOverride = database.isAllowBuiltinAliasOverride();
+        if (allowOverride) {
+            JavaFunction jf = readJavaFunction(null, name, false);
+            if (jf != null) {
+                return jf;
+            }
         }
         AggregateType agg = getAggregateType(name);
         if (agg != null) {
@@ -2773,7 +2784,10 @@ public class Parser {
             if (aggregate != null) {
                 return readJavaAggregate(aggregate);
             }
-            return readJavaFunction(null, name);
+            if (allowOverride) {
+                throw DbException.get(ErrorCode.FUNCTION_NOT_FOUND_1, name);
+            }
+            return readJavaFunction(null, name, true);
         }
         switch (function.getFunctionType()) {
         case Function.CAST: {
@@ -5114,19 +5128,12 @@ public class Parser {
 
     private CreateFunctionAlias parseCreateFunctionAlias(boolean force) {
         boolean ifNotExists = readIfNotExists();
-        final boolean newAliasSameNameAsBuiltin = Function.getFunction(database, currentToken) != null;
-        String aliasName;
-        if (database.isAllowBuiltinAliasOverride() && newAliasSameNameAsBuiltin) {
-            aliasName = currentToken;
-            schemaName = session.getCurrentSchemaName();
-            read();
-        } else {
-            aliasName = readIdentifierWithSchema();
-        }
+        String aliasName = readIdentifierWithSchema();
+        final boolean newAliasSameNameAsBuiltin = Function.getFunction(database, aliasName) != null;
         if (database.isAllowBuiltinAliasOverride() && newAliasSameNameAsBuiltin) {
             // fine
         } else if (isKeyword(aliasName) ||
-                Function.getFunction(database, aliasName) != null ||
+                newAliasSameNameAsBuiltin ||
                 getAggregateType(aliasName) != null) {
             throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1,
                     aliasName);

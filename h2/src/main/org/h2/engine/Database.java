@@ -267,6 +267,8 @@ public class Database implements DataHandler {
                 ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
         this.multiThreaded =
                 ci.getProperty("MULTI_THREADED", false);
+        this.allowBuiltinAliasOverride =
+                ci.getProperty("BUILTIN_ALIAS_OVERRIDE", false);
         boolean closeAtVmShutdown =
                 dbSettings.dbCloseOnExit;
         int traceLevelFile =
@@ -1297,7 +1299,9 @@ public class Database implements DataHandler {
                     closing = true;
                 }
             }
-            removeOrphanedLobs();
+            if(!this.isReadOnly()) {
+                removeOrphanedLobs();
+            }
             try {
                 if (systemSession != null) {
                     if (powerOffCount != -1) {

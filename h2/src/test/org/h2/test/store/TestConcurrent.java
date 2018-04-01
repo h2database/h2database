@@ -117,7 +117,12 @@ public class TestConcurrent extends TestMVStore {
                     int i = 0;
                     while (!stop) {
                         s.compact(100, 1024 * 1024);
-                        dataMap.put(i % 1000, i * 10);
+                        MVStore.TxCounter token = s.registerVersionUsage();
+                        try {
+                            dataMap.put(i % 1000, i * 10);
+                        } finally {
+                            s.deregisterVersionUsage(token);
+                        }
                         s.commit();
                         i++;
                     }
@@ -126,7 +131,12 @@ public class TestConcurrent extends TestMVStore {
             task.execute();
             for (int i = 0; i < 1000 && !task.isFinished(); i++) {
                 s.compact(100, 1024 * 1024);
-                dataMap.put(i % 1000, i * 10);
+                MVStore.TxCounter token = s.registerVersionUsage();
+                try {
+                    dataMap.put(i % 1000, i * 10);
+                } finally {
+                    s.deregisterVersionUsage(token);
+                }
                 s.commit();
             }
             task.get();
@@ -721,7 +731,10 @@ public class TestConcurrent extends TestMVStore {
                         m.get(rand.nextInt(size));
                     } catch (ConcurrentModificationException e) {
                         detected.incrementAndGet();
-                    } catch (NegativeArraySizeException | ArrayIndexOutOfBoundsException | IllegalArgumentException | NullPointerException e) {
+                    } catch ( NegativeArraySizeException
+                            | ArrayIndexOutOfBoundsException
+                            | IllegalArgumentException
+                            | NullPointerException e) {
                         notDetected.incrementAndGet();
                     }
                 }
@@ -741,7 +754,10 @@ public class TestConcurrent extends TestMVStore {
                         m.get(rand.nextInt(size));
                     } catch (ConcurrentModificationException e) {
                         detected.incrementAndGet();
-                    } catch (NegativeArraySizeException | ArrayIndexOutOfBoundsException | IllegalArgumentException | NullPointerException e) {
+                    } catch ( NegativeArraySizeException
+                            | ArrayIndexOutOfBoundsException
+                            | NullPointerException
+                            | IllegalArgumentException e) {
                         notDetected.incrementAndGet();
                     }
                 }

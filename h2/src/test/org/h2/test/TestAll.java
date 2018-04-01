@@ -135,7 +135,6 @@ import org.h2.test.store.TestCacheConcurrentLIRS;
 import org.h2.test.store.TestCacheLIRS;
 import org.h2.test.store.TestCacheLongKeyLIRS;
 import org.h2.test.store.TestConcurrent;
-import org.h2.test.store.TestConcurrentLinkedList;
 import org.h2.test.store.TestDataUtils;
 import org.h2.test.store.TestFreeSpace;
 import org.h2.test.store.TestKillProcessWhileWriting;
@@ -882,7 +881,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestCacheConcurrentLIRS());
         addTest(new TestCacheLIRS());
         addTest(new TestCacheLongKeyLIRS());
-        addTest(new TestConcurrentLinkedList());
         addTest(new TestDataUtils());
         addTest(new TestFreeSpace());
         addTest(new TestKillProcessWhileWriting());

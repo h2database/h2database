@@ -41,13 +41,7 @@ public class TestConcurrent extends TestMVStore {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase init = TestBase.createCaller().init();
-        init.config.memory = true;
-        init.config.multiThreaded = true;
-        for (int i = 0; i < 1000; i++) {
-            System.out.println("Pass #" + i);
-            init.test();
-        }
+        TestBase.createCaller().init().test();
     }
 
     @Override

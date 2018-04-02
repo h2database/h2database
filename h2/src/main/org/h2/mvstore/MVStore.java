@@ -1743,7 +1743,7 @@ public final class MVStore {
         Collections.sort(move, new Comparator<Chunk>() {
             @Override
             public int compare(Chunk o1, Chunk o2) {
-                return Long.compare(o1.block, o2.block);
+                return Long.signum(o1.block - o2.block);
             }
         });
         // find which is the last block to keep

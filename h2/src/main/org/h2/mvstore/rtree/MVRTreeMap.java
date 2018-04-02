@@ -48,7 +48,6 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public V get(Object key) {
         V result = get(getRootPage(), key);
         return result;
@@ -130,7 +129,6 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
      * @return the old value if the key existed, or null otherwise
      */
     @Override
-    @SuppressWarnings("unchecked")
     public V remove(Object key) {
         return operate((SpatialKey) key, null, DecisionMaker.REMOVE);
     }
@@ -295,7 +293,6 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public V put(SpatialKey key, V value) {
         return operate(key, value, DecisionMaker.PUT);
     }

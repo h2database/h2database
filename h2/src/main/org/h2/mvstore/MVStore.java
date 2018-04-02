@@ -1743,9 +1743,7 @@ public final class MVStore {
         Collections.sort(move, new Comparator<Chunk>() {
             @Override
             public int compare(Chunk o1, Chunk o2) {
-                int res = Long.signum(o1.block - o2.block);
-                assert res == Long.compare(o1.block, o2.block);
-                return res;
+                return Long.compare(o1.block, o2.block);
             }
         });
         // find which is the last block to keep
@@ -1949,11 +1947,9 @@ public final class MVStore {
         Collections.sort(old, new Comparator<Chunk>() {
             @Override
             public int compare(Chunk o1, Chunk o2) {
-                int comp = Integer.compare(o1.collectPriority,
-                                            o2.collectPriority);
+                int comp = Integer.compare(o1.collectPriority, o2.collectPriority);
                 if (comp == 0) {
-                    comp = Long.compare(o1.maxLenLive,
-                                        o2.maxLenLive);
+                    comp = Long.compare(o1.maxLenLive, o2.maxLenLive);
                 }
                 return comp;
             }

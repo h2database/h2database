@@ -565,7 +565,6 @@ public abstract class Page implements Cloneable
      */
     public abstract void insertNode(int index, Object key, Page childPage);
 
-    @SuppressWarnings("SuspiciousSystemArraycopy")
     final void insertKey(int index, Object key) {
         int keyCount = getKeyCount();
         assert index <= keyCount : index + " > " + keyCount;
@@ -1285,7 +1284,6 @@ public abstract class Page implements Cloneable
         }
 
         @Override
-        @SuppressWarnings("SuspiciousSystemArraycopy")
         public void insertLeaf(int index, Object key, Object value) {
             int keyCount = getKeyCount();
             insertKey(index, key);

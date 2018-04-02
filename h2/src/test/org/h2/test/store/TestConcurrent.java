@@ -766,6 +766,7 @@ public class TestConcurrent extends TestMVStore {
 
     private static void testConcurrentRead() throws InterruptedException {
         final MVStore s = openStore(null);
+        s.setVersionsToKeep(100);
         final MVMap<Integer, Integer> m = s.openMap("data");
         final int size = 3;
         int x = (int) s.getCurrentVersion();

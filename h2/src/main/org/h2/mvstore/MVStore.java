@@ -1151,11 +1151,7 @@ public final class MVStore {
         c.metaRootPos = metaRoot.getPos();
         // calculate and set the likely next position
         if (reuseSpace) {
-            int predictBlocks = c.len;
-            long predictedNextStart = fileStore.allocate(
-                    predictBlocks * BLOCK_SIZE);
-            fileStore.free(predictedNextStart, predictBlocks * BLOCK_SIZE);
-            c.next = predictedNextStart / BLOCK_SIZE;
+            c.next = fileStore.predictAllocation(c.len * BLOCK_SIZE) / BLOCK_SIZE;
         } else {
             // just after this chunk
             c.next = 0;

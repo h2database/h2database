@@ -39,20 +39,20 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     /**
      * Reference to the current root page.
      */
-    private final     AtomicReference<RootReference> root;
+    private final AtomicReference<RootReference> root;
 
-    private int       id;
-    private long      createVersion;
-    private final     DataType keyType;
-    private final     DataType valueType;
+    private int id;
+    private long createVersion;
+    private final DataType keyType;
+    private final DataType valueType;
 
     /**
      * Whether the map is closed. Volatile so we don't accidentally write to a
      * closed map in multithreaded mode.
      */
     private volatile  boolean closed;
-    private           boolean readOnly;
-    private           boolean isVolatile;
+    private boolean readOnly;
+    private boolean isVolatile;
 
     /**
      * This designates the "last stored" version for a store which was
@@ -72,7 +72,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     // constructor for cloneIt()
-    protected MVMap(MVMap<K,V> source) {
+    protected MVMap(MVMap<K, V> source) {
         this(source.store, source.keyType, source.valueType, source.id, source.createVersion,
                 new AtomicReference<>(source.root.get()));
     }
@@ -93,7 +93,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         this.root = root;
     }
 
-    protected MVMap<K,V> cloneIt() {
+    protected MVMap<K, V> cloneIt() {
         return new MVMap<>(this);
     }
 
@@ -1356,7 +1356,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
 
         @Override
-        public Builder<K,V> valueType(DataType dataType) {
+        public Builder<K, V> valueType(DataType dataType) {
             setValueType(dataType);
             return this;
         }

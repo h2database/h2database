@@ -172,7 +172,7 @@ public class FreeSpaceBitSet {
         if (cardinality == 0) {
             return 0;
         }
-        return (int)(100L * cardinality / set.length());
+        return Math.max(1, (int)(100L * cardinality / set.length()));
     }
 
     /**

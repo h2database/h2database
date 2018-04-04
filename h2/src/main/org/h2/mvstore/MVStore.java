@@ -197,7 +197,7 @@ public final class MVStore {
      * The map of temporarily freed storage space caused by freed pages.
      * It contains the number of freed entries per chunk.
      */
-    private final Map<Integer,Chunk> freedPageSpace = new HashMap<>();
+    private final Map<Integer, Chunk> freedPageSpace = new HashMap<>();
 
     /**
      * The metadata map. Write access to this map needs to be synchronized on
@@ -524,10 +524,10 @@ public final class MVStore {
         return map;
     }
 
-    public <K,V> MVMap<K,V> getMap(int id) {
+    public <K, V> MVMap<K,V> getMap(int id) {
         checkOpen();
         @SuppressWarnings("unchecked")
-        MVMap<K,V> map = (MVMap<K, V>) maps.get(id);
+        MVMap<K, V> map = (MVMap<K, V>) maps.get(id);
         return map;
     }
 

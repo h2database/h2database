@@ -14,13 +14,13 @@ import java.util.Iterator;
  * @param <V> the value type
  */
 public final class Cursor<K, V> implements Iterator<K> {
-    private final K           to;
-    private       CursorPos   cursorPos;
-    private       CursorPos   keeper;
-    private       K           current;
-    private       K           last;
-    private       V           lastValue;
-    private       Page        lastPage;
+    private final K to;
+    private CursorPos cursorPos;
+    private CursorPos keeper;
+    private K current;
+    private K last;
+    private V lastValue;
+    private Page lastPage;
 
     public Cursor(Page root, K from) {
         this(root, from, null);

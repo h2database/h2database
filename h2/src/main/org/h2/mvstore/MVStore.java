@@ -662,8 +662,6 @@ public final class MVStore {
         }
         setLastChunk(newest);
         loadChunkMeta();
-        // read all chunk headers and footers within the retention time,
-        // to detect unwritten data after a power failure
         // build the free space list
         fileStore.clear();
         for (Chunk c : chunks.values()) {
@@ -677,6 +675,8 @@ public final class MVStore {
         }
         assert fileStore.getFileLengthInUse() == measureFileLengthInUse() :
                 fileStore.getFileLengthInUse() + " != " + measureFileLengthInUse();
+        // read all chunk headers and footers within the retention time,
+        // to detect unwritten data after a power failure
         verifyLastChunks();
     }
 

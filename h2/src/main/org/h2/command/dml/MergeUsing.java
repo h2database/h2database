@@ -399,9 +399,6 @@ public class MergeUsing extends Prepared {
             }
         } else {
             query.prepare();
-            if (query.getColumnCount() != columns.length) {
-                throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
-            }
         }
 
         int embeddedStatementsCount = 0;

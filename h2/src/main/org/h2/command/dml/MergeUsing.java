@@ -397,6 +397,8 @@ public class MergeUsing extends Prepared {
                     }
                 }
             }
+        } else {
+            query.prepare();
         }
 
         int embeddedStatementsCount = 0;

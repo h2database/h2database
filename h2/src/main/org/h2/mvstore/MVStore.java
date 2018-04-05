@@ -738,6 +738,8 @@ public final class MVStore {
         if (lastStoredVersion == INITIAL_VERSION) {
             lastStoredVersion = currentVersion - 1;
         }
+        assert fileStore.getFileLengthInUse() == measureFileLengthInUse() :
+                fileStore.getFileLengthInUse() + " != " + measureFileLengthInUse();
     }
 
     private void loadChunkMeta() {

@@ -54,12 +54,12 @@ public class FileStore {
     /**
      * The file name.
      */
-    protected String fileName;
+    private String fileName;
 
     /**
      * Whether this store is read-only.
      */
-    protected boolean readOnly;
+    private boolean readOnly;
 
     /**
      * The file size (cached).
@@ -69,7 +69,7 @@ public class FileStore {
     /**
      * The file.
      */
-    protected FileChannel file;
+    private FileChannel file;
 
     /**
      * The encrypted file (if encryption is used).

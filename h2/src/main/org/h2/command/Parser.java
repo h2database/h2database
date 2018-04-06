@@ -2343,7 +2343,7 @@ public class Parser {
     }
 
     private void setSQL(Prepared command, String start, int startIndex) {
-        String sql = originalSQL.substring(startIndex, lastParseIndex).trim();
+        String sql = StringUtils.trimSubstring(originalSQL, startIndex, lastParseIndex);
         if (start != null) {
             sql = start + " " + sql;
         }

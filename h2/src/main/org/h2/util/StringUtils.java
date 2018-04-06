@@ -863,6 +863,24 @@ public class StringUtils {
     }
 
     /**
+     * Trim a character from a substring. Equivalence of {@code substring(begin, end).trim()}.
+     *
+     * @param s the string
+     * @param beginIndex start index of substring (inclusive)
+     * @param endIndex end index of substring (exclusive)
+     * @return trimmed substring
+     */
+    public static String trimSubstring(String s, int beginIndex, int endIndex) {
+        while (beginIndex < endIndex && s.charAt(beginIndex) <= ' ') {
+            beginIndex++;
+        }
+        while (beginIndex < endIndex && s.charAt(endIndex - 1) <= ' ') {
+            endIndex--;
+        }
+        return s.substring(beginIndex, endIndex);
+    }
+
+    /**
      * Get the string from the cache if possible. If the string has not been
      * found, it is added to the cache. If there is such a string in the cache,
      * that one is returned.

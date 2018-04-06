@@ -244,9 +244,9 @@ public class DbContextRule implements Rule {
         }
         String incompleteSentence = sentence.getQueryUpper();
         String incompleteFunctionName = incompleteSentence;
-        if (incompleteSentence.contains("(")) {
-            incompleteFunctionName = incompleteSentence.substring(0,
-                    incompleteSentence.indexOf('(')).trim();
+        int bracketIndex = incompleteSentence.indexOf('(');
+        if (bracketIndex != -1) {
+            incompleteFunctionName = StringUtils.trimSubstring(incompleteSentence, 0, bracketIndex);
         }
 
         // Common elements

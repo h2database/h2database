@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.h2.util.New;
+import org.h2.util.StringUtils;
 
 /**
  * A page parser can parse an HTML page and replace the tags there.
@@ -141,7 +142,7 @@ public class PageParser {
                         setError(i);
                         return;
                     }
-                    String item = p.substring(i, j).trim();
+                    String item = StringUtils.trimSubstring(p, i, j);
                     i = j;
                     String s = (String) get(item);
                     replaceTags(s);

@@ -40,6 +40,7 @@ public class TestStringUtils extends TestBase {
         testPad();
         testReplaceAll();
         testTrim();
+        testTrimSubstring();
     }
 
     private void testHex() {
@@ -252,5 +253,15 @@ public class TestStringUtils extends TestBase {
                 StringUtils.trim("zzbbzz", true, true, "z"));
     }
 
+    private void testTrimSubstring() {
+        assertEquals("", StringUtils.trimSubstring("", 0, 0));
+        assertEquals("", StringUtils.trimSubstring("    ", 0, 0));
+        assertEquals("", StringUtils.trimSubstring("    ", 4, 4));
+        assertEquals("select", StringUtils.trimSubstring(" select  from", 1, 7));
+        assertEquals("a b", StringUtils.trimSubstring(" a b ", 1, 4));
+        new AssertThrows(StringIndexOutOfBoundsException.class) { @Override
+            public void test() { StringUtils.trimSubstring(" with (", 1, 8); }
+        };
+    }
 
 }

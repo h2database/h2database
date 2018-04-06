@@ -1644,9 +1644,10 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                 for (String a : array) {
                     buff.appendExceptFirst(",");
                     String f = a.trim();
-                    if (f.indexOf(' ') >= 0) {
+                    int spaceIndex = f.indexOf(' ');
+                    if (spaceIndex >= 0) {
                         // remove 'Function' from 'INSERT Function'
-                        f = f.substring(0, f.indexOf(' ')).trim();
+                        f = StringUtils.trimSubstring(f, 0, spaceIndex);
                     }
                     buff.append(f);
                 }

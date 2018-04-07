@@ -54,12 +54,12 @@ public class FileStore {
     /**
      * The file name.
      */
-    protected String fileName;
+    private String fileName;
 
     /**
      * Whether this store is read-only.
      */
-    protected boolean readOnly;
+    private boolean readOnly;
 
     /**
      * The file size (cached).
@@ -69,17 +69,17 @@ public class FileStore {
     /**
      * The file.
      */
-    protected FileChannel file;
+    private FileChannel file;
 
     /**
      * The encrypted file (if encryption is used).
      */
-    protected FileChannel encryptedFile;
+    private FileChannel encryptedFile;
 
     /**
      * The file lock.
      */
-    protected FileLock fileLock;
+    private FileLock fileLock;
 
     @Override
     public String toString() {
@@ -335,6 +335,16 @@ public class FileStore {
      */
     public long allocate(int length) {
         return freeSpace.allocate(length);
+    }
+
+    /**
+     * Calculate starting position of the prospective allocation.
+     *
+     * @param length the number of bytes to allocate
+     * @return the start position in bytes
+     */
+    public long predictAllocation(int length) {
+        return freeSpace.predictAllocation(length);
     }
 
     /**

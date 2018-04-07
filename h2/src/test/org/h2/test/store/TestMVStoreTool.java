@@ -39,7 +39,13 @@ public class TestMVStoreTool extends TestBase {
     }
 
     private void testCompact() {
+        if (config.memory) {
+            return;
+        }
         String fileName = getBaseDir() + "/testCompact.h3";
+        String fileNameNew = fileName + ".new";
+        String fileNameCompressed = fileNameNew + ".compress";
+
         FileUtils.createDirectories(getBaseDir());
         FileUtils.delete(fileName);
         // store with a very small page size, to make sure
@@ -47,10 +53,19 @@ public class TestMVStoreTool extends TestBase {
         MVStore s = new MVStore.Builder().
                 pageSplitSize(1000).
                 fileName(fileName).autoCommitDisabled().open();
+        s.setRetentionTime(0);
+        long start = System.currentTimeMillis();
         MVMap<Integer, String> map = s.openMap("data");
-        for (int i = 0; i < 10; i++) {
+        int size = config.big ? 2_000_000 : 20_000;
+        for (int i = 0; i < size; i++) {
             map.put(i, "Hello World " + i * 10);
-            if (i % 3 == 0) {
+            if (i % 10000 == 0) {
+                s.commit();
+            }
+        }
+        for (int i = 0; i < size; i += 2) {
+            map.remove(i);
+            if (i % 10000 == 0) {
                 s.commit();
             }
         }
@@ -75,29 +90,38 @@ public class TestMVStoreTool extends TestBase {
             }
         }
         s.close();
+        trace("Created in " + (System.currentTimeMillis() - start) + " ms.");
 
-        MVStoreTool.compact(fileName, fileName + ".new", false);
-        MVStoreTool.compact(fileName, fileName + ".new.compress", true);
+        start = System.currentTimeMillis();
+        MVStoreTool.compact(fileName, fileNameNew, false);
+        MVStoreTool.compact(fileName, fileNameCompressed, true);
+        trace("Compacted in " + (System.currentTimeMillis() - start) + " ms.");
+        long size1 = FileUtils.size(fileName);
+        long size2 = FileUtils.size(fileNameNew);
+        long size3 = FileUtils.size(fileNameCompressed);
+        assertTrue("size1: " + size1 + " size2: " + size2 + " size3: " + size3,
+                size2 < size1 && size3 < size2);
+
+        start = System.currentTimeMillis();
+        MVStoreTool.compact(fileNameNew, false);
+        assertEquals(size2, FileUtils.size(fileNameNew));
+        MVStoreTool.compact(fileNameCompressed, true);
+        assertEquals(size3, FileUtils.size(fileNameCompressed));
+        trace("Recompacted in " + (System.currentTimeMillis() - start) + " ms.");
+
+        start = System.currentTimeMillis();
         MVStore s1 = new MVStore.Builder().
                 fileName(fileName).readOnly().open();
         MVStore s2 = new MVStore.Builder().
-                fileName(fileName + ".new").readOnly().open();
+                fileName(fileNameNew).readOnly().open();
         MVStore s3 = new MVStore.Builder().
-                fileName(fileName + ".new.compress").readOnly().open();
+                fileName(fileNameCompressed).readOnly().open();
         assertEquals(s1, s2);
         assertEquals(s1, s3);
         s1.close();
         s2.close();
         s3.close();
-        long size1 = FileUtils.size(fileName);
-        long size2 = FileUtils.size(fileName + ".new");
-        long size3 = FileUtils.size(fileName + ".new.compress");
-        assertTrue("size1: " + size1 + " size2: " + size2 + " size3: " + size3,
-                size2 < size1 && size3 < size2);
-        MVStoreTool.compact(fileName, false);
-        assertEquals(size2, FileUtils.size(fileName));
-        MVStoreTool.compact(fileName, true);
-        assertEquals(size3, FileUtils.size(fileName));
+        trace("Verified in " + (System.currentTimeMillis() - start) + " ms.");
     }
 
     private void assertEquals(MVStore a, MVStore b) {
@@ -111,7 +135,7 @@ public class TestMVStoreTool extends TestBase {
                 assertEquals(ma.sizeAsLong(), mb.sizeAsLong());
                 for (Entry<SpatialKey, String> e : ma.entrySet()) {
                     Object x = mb.get(e.getKey());
-                    assertEquals(e.getValue().toString(), x.toString());
+                    assertEquals(e.getValue(), x.toString());
                 }
 
             } else {

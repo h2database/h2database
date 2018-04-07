@@ -1104,35 +1104,25 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     final void copyFrom(MVMap<K, V> sourceMap) {
         beforeWrite();
-        setRoot(copy(sourceMap.getRootPage(), null));
+        setRoot(copy(sourceMap.getRootPage()));
     }
 
-    private Page copy(Page source, CursorPos parent) {
+    private Page copy(Page source) {
         Page target = source.copy(this);
         store.registerUnsavedPage(target.getMemory());
         if (!source.isLeaf()) {
-            CursorPos pos = new CursorPos(target, 0, parent);
             for (int i = 0; i < getChildPageCount(target); i++) {
                 if (source.getChildPagePos(i) != 0) {
                     // position 0 means no child
                     // (for example the last entry of an r-tree node)
                     // (the MVMap is also used for r-trees for compacting)
-                    pos.index = i;
-                    Page child = copy(source.getChildPage(i), pos);
+                    Page child = copy(source.getChildPage(i));
                     target.setChild(i, child);
-                    pos.page = target;
                 }
             }
 
-            if(store.isSaveNeeded()) {
-                Page child = target;
-                for(CursorPos p = parent; p != null; p = p.parent) {
-                    p.page.setChild(p.index, child);
-                    child = p.page;
-                }
-                setRoot(child);
-                beforeWrite();
-            }
+            setRoot(target);
+            beforeWrite();
         }
         return target;
     }

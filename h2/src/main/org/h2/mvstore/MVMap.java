@@ -1103,8 +1103,19 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param sourceMap the source map
      */
     final void copyFrom(MVMap<K, V> sourceMap) {
-        beforeWrite();
-        setRoot(copy(sourceMap.getRootPage()));
+        // We are going to cheat a little bit in the copy()
+        // by setting map's root to an arbitrary nodes
+        // to allow for just created ones to be saved.
+        // That's why it's important to preserve all chunks
+        // created in the process, especially it retention time
+        // is set to a lower value, or even 0.
+        MVStore.TxCounter txCounter = store.registerVersionUsage();
+        try {
+            beforeWrite();
+            setRoot(copy(sourceMap.getRootPage()));
+        } finally {
+            store.deregisterVersionUsage(txCounter);
+        }
     }
 
     private Page copy(Page source) {

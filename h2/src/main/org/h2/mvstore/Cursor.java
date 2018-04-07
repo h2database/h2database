@@ -13,7 +13,7 @@ import java.util.Iterator;
  * @param <K> the key type
  * @param <V> the value type
  */
-public final class Cursor<K, V> implements Iterator<K> {
+public class Cursor<K, V> implements Iterator<K> {
     private final K to;
     private CursorPos cursorPos;
     private CursorPos keeper;

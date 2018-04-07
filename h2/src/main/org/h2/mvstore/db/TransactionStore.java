@@ -475,7 +475,7 @@ public class TransactionStore {
         t.setStatus(Transaction.STATUS_CLOSED);
         openTransactions.clear(t.transactionId);
         if (oldStatus == Transaction.STATUS_PREPARED || store.getAutoCommitDelay() == 0) {
-            store.commit();
+            store.tryCommit();
             return;
         }
         // to avoid having to store the transaction log,
@@ -486,7 +486,7 @@ public class TransactionStore {
             int max = store.getAutoCommitMemory();
             // save at 3/4 capacity
             if (unsaved * 4 > max * 3) {
-                store.commit();
+                store.tryCommit();
             }
         }
     }

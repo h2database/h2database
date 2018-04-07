@@ -127,7 +127,7 @@ MVStore:
 /**
  * A persistent storage for maps.
  */
-public final class MVStore {
+public class MVStore {
 
     /**
      * Whether assertions are enabled.
@@ -1038,6 +1038,25 @@ public final class MVStore {
     }
 
     /**
+     * Unlike regular commit this method returns immediately if there is commit
+     * in progress on another thread, otherwise it acts as regular commit.
+     *
+     * This method may return BEFORE this thread changes are actually persisted!
+     *
+     * @return the new version (incremented if there were changes)
+     */
+    public long tryCommit() {
+        // unlike synchronization, this will also prevent re-entrance,
+        // which may be possible, if the meta map have changed
+        if (currentStoreThread.compareAndSet(null, Thread.currentThread())) {
+            synchronized (this) {
+                store();
+            }
+        }
+        return currentVersion;
+    }
+
+    /**
      * Commit the changes.
      * <p>
      * This method does nothing if there are no unsaved changes,
@@ -1053,42 +1072,42 @@ public final class MVStore {
      *
      * @return the new version (incremented if there were changes)
      */
-    public long commit() {
-        // unlike synchronization, this will also prevent re-entrance,
-        // which may be possible, if the meta map have changed
-        if (currentStoreThread.compareAndSet(null, Thread.currentThread())) {
-            synchronized (this) {
-                try {
-                    currentStoreVersion = currentVersion;
-                    if (!closed && hasUnsavedChangesInternal()) {
-                        if (fileStore == null) {
-                            lastStoredVersion = currentVersion;
-                            ++currentVersion;
-                            setWriteVersion(currentVersion);
-                            metaChanged = false;
-                        } else {
-                            if (fileStore.isReadOnly()) {
-                                throw DataUtils.newIllegalStateException(
-                                        DataUtils.ERROR_WRITING_FAILED, "This store is read-only");
-                            }
-                            try {
-                                storeNow();
-                            } catch (IllegalStateException e) {
-                                panic(e);
-                            } catch (Throwable e) {
-                                panic(DataUtils.newIllegalStateException(DataUtils.ERROR_INTERNAL, e.toString(), e));
-                            }
-                        }
+    public synchronized long commit() {
+        currentStoreThread.set(Thread.currentThread());
+        store();
+        return currentVersion;
+    }
+
+    private void store() {
+        try {
+            if (!closed && hasUnsavedChangesInternal()) {
+                currentStoreVersion = currentVersion;
+                if (fileStore == null) {
+                    lastStoredVersion = currentVersion;
+                    //noinspection NonAtomicOperationOnVolatileField
+                    ++currentVersion;
+                    setWriteVersion(currentVersion);
+                    metaChanged = false;
+                } else {
+                    if (fileStore.isReadOnly()) {
+                        throw DataUtils.newIllegalStateException(
+                                DataUtils.ERROR_WRITING_FAILED, "This store is read-only");
                     }
-                } finally {
-                    // in any case reset the current store version,
-                    // to allow closing the store
-                    currentStoreVersion = -1;
-                    currentStoreThread.set(null);
+                    try {
+                        storeNow();
+                    } catch (IllegalStateException e) {
+                        panic(e);
+                    } catch (Throwable e) {
+                        panic(DataUtils.newIllegalStateException(DataUtils.ERROR_INTERNAL, e.toString(), e));
+                    }
                 }
             }
-        }
-        return currentVersion;
+        } finally {
+             // in any case reset the current store version,
+             // to allow closing the store
+             currentStoreVersion = -1;
+             currentStoreThread.set(null);
+         }
     }
 
     private void storeNow() {
@@ -2283,7 +2302,7 @@ public final class MVStore {
             saveNeeded = false;
             // check again, because it could have been written by now
             if (unsavedMemory > autoCommitMemory && autoCommitMemory > 0) {
-                commit();
+                tryCommit();
             }
         }
     }
@@ -2578,7 +2597,7 @@ public final class MVStore {
             if (time <= lastCommitTime + autoCommitDelay) {
                 return;
             }
-            commit();
+            tryCommit();
             if (autoCompactFillRate > 0) {
                 // whether there were file read or write operations since
                 // the last time

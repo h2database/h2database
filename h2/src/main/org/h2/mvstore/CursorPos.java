@@ -8,7 +8,7 @@ package org.h2.mvstore;
 /**
  * A position in a cursor
  */
-public final class CursorPos {
+public class CursorPos {
 
     /**
      * The current page.

@@ -43,7 +43,7 @@ import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreTool;
 import org.h2.mvstore.StreamStore;
 import org.h2.mvstore.tx.TransactionStore;
-import org.h2.mvstore.tx.TransactionStore.TransactionMap;
+import org.h2.mvstore.tx.TransactionMap;
 import org.h2.mvstore.db.ValueDataType;
 import org.h2.result.Row;
 import org.h2.result.RowFactory;

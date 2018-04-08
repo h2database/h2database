@@ -31,7 +31,7 @@ import org.h2.message.Trace;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.db.MVTableEngine.Store;
 import org.h2.mvstore.tx.TransactionStore;
-import org.h2.mvstore.tx.TransactionStore.Transaction;
+import org.h2.mvstore.tx.Transaction;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObject;

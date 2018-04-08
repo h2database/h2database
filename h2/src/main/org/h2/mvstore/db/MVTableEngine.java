@@ -266,17 +266,11 @@ public class MVTableEngine implements TableEngine {
         public void removeTemporaryMaps(BitSet objectIds) {
             for (String mapName : store.getMapNames()) {
                 if (mapName.startsWith("temp.")) {
-                    MVMap<?, ?> map = store.openMap(mapName);
-                    store.removeMap(map);
+                    store.removeMap(mapName);
                 } else if (mapName.startsWith("table.") || mapName.startsWith("index.")) {
                     int id = Integer.parseInt(mapName.substring(1 + mapName.indexOf('.')));
                     if (!objectIds.get(id)) {
-                        ValueDataType keyType = new ValueDataType(null, null, null);
-                        ValueDataType valueType = new ValueDataType(null, null, null);
-                        Transaction t = transactionStore.begin();
-                        TransactionMap<?, ?> m = t.openMap(mapName, keyType, valueType);
-                        transactionStore.removeMap(m);
-                        t.commit();
+                        store.removeMap(mapName);
                     }
                 }
             }

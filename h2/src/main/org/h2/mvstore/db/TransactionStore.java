@@ -149,6 +149,16 @@ public class TransactionStore {
     }
 
     /**
+     * Check whether a given map exists.
+     *
+     * @param name the map name
+     * @return true if it exists
+     */
+    public boolean hasMap(String name) {
+        return store.hasMap(name);
+    }
+
+    /**
      * Combine the transaction id and the log id to an operation id.
      *
      * @param transactionId the transaction id
@@ -893,7 +903,7 @@ public class TransactionStore {
         /**
          * The map id.
          */
-        final int mapId;
+        public final int mapId;
 
         /**
          * If a record was read that was updated by this transaction, and the
@@ -1639,7 +1649,7 @@ public class TransactionStore {
      * A versioned value (possibly null). It contains a pointer to the old
      * value, and the value itself.
      */
-    static class VersionedValue {
+    public static class VersionedValue {
 
         /**
          * The operation id.
@@ -1673,7 +1683,7 @@ public class TransactionStore {
 
         private final DataType valueType;
 
-        VersionedValueType(DataType valueType) {
+        public VersionedValueType(DataType valueType) {
             this.valueType = valueType;
         }
 

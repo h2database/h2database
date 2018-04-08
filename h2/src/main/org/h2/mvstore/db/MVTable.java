@@ -515,7 +515,7 @@ public class MVTable extends TableBase {
         int mainIndexColumn;
         mainIndexColumn = getMainIndexColumn(indexType, cols);
         if (database.isStarting()) {
-            if (transactionStore.store.hasMap("index." + indexId)) {
+            if (transactionStore.hasMap("index." + indexId)) {
                 mainIndexColumn = -1;
             }
         } else if (primaryIndex.getRowCountMax() != 0) {

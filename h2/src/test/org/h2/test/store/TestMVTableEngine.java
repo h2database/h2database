@@ -26,7 +26,7 @@ import org.h2.engine.Database;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
-import org.h2.mvstore.db.TransactionStore;
+import org.h2.mvstore.tx.TransactionStore;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.Recover;

@@ -115,7 +115,7 @@ class WebThread extends WebApp implements Runnable {
             if (begin < 0 || end < begin) {
                 file = "";
             } else {
-                file = head.substring(begin + 1, end).trim();
+                file = StringUtils.trimSubstring(head, begin + 1, end);
             }
             trace(head + ": " + file);
             file = getAllowedFile(file);

@@ -139,16 +139,6 @@ public final class DataUtils {
     public static final long COMPRESSED_VAR_LONG_MAX = 0x1ffffffffffffL;
 
     /**
-     * The estimated number of bytes used per page object.
-     */
-    public static final int PAGE_MEMORY = 128;
-
-    /**
-     * The estimated number of bytes used per child entry.
-     */
-    public static final int PAGE_MEMORY_CHILD = 16;
-
-    /**
      * The marker size of a very large page.
      */
     public static final int PAGE_LARGE = 2 * 1024 * 1024;
@@ -520,6 +510,16 @@ public final class DataUtils {
      */
     public static int getPageType(long pos) {
         return ((int) pos) & 1;
+    }
+
+    /**
+     * Find out if page was saved.
+     *
+     * @param pos the position
+     * @return true if page has been saved
+     */
+    public static boolean isPageSaved(long pos) {
+        return pos != 0;
     }
 
     /**
@@ -1005,7 +1005,7 @@ public final class DataUtils {
      * @return the parsed value
      * @throws IllegalStateException if parsing fails
      */
-    public static int readHexInt(HashMap<String, ?> map, String key, int defaultValue) {
+    public static int readHexInt(Map<String, ?> map, String key, int defaultValue) {
         Object v = map.get(key);
         if (v == null) {
             return defaultValue;

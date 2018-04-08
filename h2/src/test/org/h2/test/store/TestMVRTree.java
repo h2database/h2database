@@ -296,7 +296,7 @@ public class TestMVRTree extends TestMVStore {
         }
         g2d.setColor(Color.red);
         ArrayList<SpatialKey> list = New.arrayList();
-        r.addNodeKeys(list,  r.getRoot());
+        r.addNodeKeys(list,  r.getRootPage());
         for (SpatialKey x : list) {
             int[] rect = scale(b, x, width, height);
             g2d.drawRect(rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1]);

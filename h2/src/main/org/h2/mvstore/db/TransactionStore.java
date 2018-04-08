@@ -475,7 +475,7 @@ public class TransactionStore {
         t.setStatus(Transaction.STATUS_CLOSED);
         openTransactions.clear(t.transactionId);
         if (oldStatus == Transaction.STATUS_PREPARED || store.getAutoCommitDelay() == 0) {
-            store.commit();
+            store.tryCommit();
             return;
         }
         // to avoid having to store the transaction log,
@@ -486,7 +486,7 @@ public class TransactionStore {
             int max = store.getAutoCommitMemory();
             // save at 3/4 capacity
             if (unsaved * 4 > max * 3) {
-                store.commit();
+                store.tryCommit();
             }
         }
     }
@@ -681,6 +681,8 @@ public class TransactionStore {
 
         private int status;
 
+        private MVStore.TxCounter txCounter;
+
         private String name;
 
         Transaction(TransactionStore store, int transactionId, int status,
@@ -721,6 +723,19 @@ public class TransactionStore {
          */
         public long setSavepoint() {
             return logId;
+        }
+
+        public void markStatementStart() {
+            markStatementEnd();
+            txCounter = store.store.registerVersionUsage();
+        }
+
+        public void markStatementEnd() {
+            MVStore.TxCounter counter = txCounter;
+            txCounter = null;
+            if(counter != null) {
+                store.store.deregisterVersionUsage(counter);
+            }
         }
 
         /**
@@ -1181,16 +1196,6 @@ public class TransactionStore {
          */
         public V get(K key) {
             return get(key, readLogId);
-        }
-
-        /**
-         * Get the most recent value for the given key.
-         *
-         * @param key the key
-         * @return the value or null
-         */
-        public V getLatest(K key) {
-            return get(key, Long.MAX_VALUE);
         }
 
         /**

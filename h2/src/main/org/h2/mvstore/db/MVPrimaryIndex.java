@@ -114,18 +114,16 @@ public class MVPrimaryIndex extends BaseIndex {
 
         TransactionMap<Value, Value> map = getMap(session);
         Value key = ValueLong.get(row.getKey());
-        Value old = map.getLatest(key);
-        if (old != null) {
-            String sql = "PRIMARY KEY ON " + table.getSQL();
-            if (mainIndexColumn >= 0 && mainIndexColumn < indexColumns.length) {
-                sql += "(" + indexColumns[mainIndexColumn].getSQL() + ")";
-            }
-            DbException e = DbException.get(ErrorCode.DUPLICATE_KEY_1, sql);
-            e.setSource(this);
-            throw e;
-        }
         try {
-            map.put(key, ValueArray.get(row.getValueList()));
+            if (map.put(key, ValueArray.get(row.getValueList())) != null) {
+                String sql = "PRIMARY KEY ON " + table.getSQL();
+                if (mainIndexColumn >= 0 && mainIndexColumn < indexColumns.length) {
+                    sql += "(" + indexColumns[mainIndexColumn].getSQL() + ")";
+                }
+                DbException e = DbException.get(ErrorCode.DUPLICATE_KEY_1, sql);
+                e.setSource(this);
+                throw e;
+            }
         } catch (IllegalStateException e) {
             throw mvTable.convertException(e);
         }

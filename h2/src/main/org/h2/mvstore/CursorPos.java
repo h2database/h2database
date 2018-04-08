@@ -23,7 +23,7 @@ public class CursorPos {
     /**
      * The position in the parent page, if any.
      */
-    public final CursorPos parent;
+    public CursorPos parent;
 
     public CursorPos(Page page, int index, CursorPos parent) {
         this.page = page;

@@ -3,7 +3,7 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.mvstore.db;
+package org.h2.mvstore.tx;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -903,7 +903,7 @@ public class TransactionStore {
         /**
          * The map id.
          */
-        public final int mapId;
+        final int mapId;
 
         /**
          * If a record was read that was updated by this transaction, and the
@@ -919,7 +919,7 @@ public class TransactionStore {
          * Key: key the key of the data.
          * Value: { transactionId, oldVersion, value }
          */
-        final MVMap<K, VersionedValue> map;
+        public final MVMap<K, VersionedValue> map;
 
         /**
          * The transaction which is used for this map.

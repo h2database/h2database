@@ -149,6 +149,16 @@ public class TransactionStore {
     }
 
     /**
+     * Check whether a given map exists.
+     *
+     * @param name the map name
+     * @return true if it exists
+     */
+    public boolean hasMap(String name) {
+        return store.hasMap(name);
+    }
+
+    /**
      * Combine the transaction id and the log id to an operation id.
      *
      * @param transactionId the transaction id

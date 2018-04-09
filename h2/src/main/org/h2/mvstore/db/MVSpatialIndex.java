@@ -20,7 +20,6 @@ import org.h2.message.DbException;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionMap;
 import org.h2.mvstore.tx.VersionedValue;
-import org.h2.mvstore.tx.TransactionStore.VersionedValueType;
 import org.h2.mvstore.rtree.MVRTreeMap;
 import org.h2.mvstore.rtree.MVRTreeMap.RTreeCursor;
 import org.h2.mvstore.rtree.SpatialKey;
@@ -97,7 +96,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         }
         mapName = "index." + getId();
         ValueDataType vt = new ValueDataType(null, null, null);
-        VersionedValueType valueType = new VersionedValueType(vt);
+        VersionedValue.Type valueType = new VersionedValue.Type(vt);
         MVRTreeMap.Builder<VersionedValue> mapBuilder =
                 new MVRTreeMap.Builder<VersionedValue>().
                 valueType(valueType);

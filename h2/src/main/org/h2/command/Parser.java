@@ -2736,6 +2736,7 @@ public class Parser {
     }
 
     private JavaAggregate readJavaAggregate(UserAggregate aggregate) {
+        boolean distinct = readIf("DISTINCT");
         ArrayList<Expression> params = New.arrayList();
         do {
             params.add(readExpression());
@@ -2750,7 +2751,7 @@ public class Parser {
             filterCondition = null;
         }
         Expression[] list = params.toArray(new Expression[0]);
-        JavaAggregate agg = new JavaAggregate(aggregate, list, currentSelect, filterCondition);
+        JavaAggregate agg = new JavaAggregate(aggregate, list, currentSelect, distinct, filterCondition);
         currentSelect.setGroupQuery();
         return agg;
     }

@@ -32,6 +32,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Currency;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -694,6 +695,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
         @Override
         public Object getResult() {
+            Collections.sort(list);
             return list.get(list.size() / 2);
         }
 
@@ -793,6 +795,15 @@ public class TestFunctions extends TestBase implements AggregateFunction {
                 "SELECT SIMPLE_MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
         rs.next();
         assertEquals("5", rs.getString(1));
+
+        stat.execute("CREATE TABLE DATA(V INT)");
+        stat.execute("INSERT INTO DATA VALUES (1), (3), (2), (1), (1), (2), (1), (1), (1), (1), (1)");
+        rs = stat.executeQuery(
+                "SELECT SIMPLE_MEDIAN(V), SIMPLE_MEDIAN(DISTINCT V) FROM DATA");
+        rs.next();
+        assertEquals("1", rs.getString(1));
+        assertEquals("2", rs.getString(2));
+
         conn.close();
 
         if (config.memory) {

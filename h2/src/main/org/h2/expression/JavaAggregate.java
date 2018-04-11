@@ -20,6 +20,7 @@ import org.h2.table.TableFilter;
 import org.h2.util.StatementBuilder;
 import org.h2.value.DataType;
 import org.h2.value.Value;
+import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
 
 /**
@@ -31,16 +32,18 @@ public class JavaAggregate extends Expression {
     private final Select select;
     private final Expression[] args;
     private int[] argTypes;
+    private final boolean distinct;
     private Expression filterCondition;
     private int dataType;
     private Connection userConnection;
     private int lastGroupRowId;
 
     public JavaAggregate(UserAggregate userAggregate, Expression[] args,
-            Select select, Expression filterCondition) {
+            Select select, boolean distinct, Expression filterCondition) {
         this.userAggregate = userAggregate;
         this.args = args;
         this.select = select;
+        this.distinct = distinct;
         this.filterCondition = filterCondition;
     }
 
@@ -169,9 +172,29 @@ public class JavaAggregate extends Expression {
             throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
         try {
-            Aggregate agg = (Aggregate) group.get(this);
-            if (agg == null) {
+            Aggregate agg;
+            if (distinct) {
                 agg = getInstance();
+                AggregateDataCollecting data = (AggregateDataCollecting) group.get(this);
+                if (data != null) {
+                    for (Value value : data.values) {
+                        if (args.length == 1) {
+                            agg.add(value.getObject());
+                        } else {
+                            Value[] values = ((ValueArray) value).getList();
+                            Object[] argValues = new Object[args.length];
+                            for (int i = 0, len = args.length; i < len; i++) {
+                                argValues[i] = values[i].getObject();
+                            }
+                            agg.add(argValues);
+                        }
+                    }
+                }
+            } else {
+                agg = (Aggregate) group.get(this);
+                if (agg == null) {
+                    agg = getInstance();
+                }
             }
             Object obj = agg.getResult();
             if (obj == null) {
@@ -204,24 +227,36 @@ public class JavaAggregate extends Expression {
             }
         }
 
-        Aggregate agg = (Aggregate) group.get(this);
         try {
-            if (agg == null) {
-                agg = getInstance();
-                group.put(this, agg);
-            }
-            Object[] argValues = new Object[args.length];
-            Object arg = null;
-            for (int i = 0, len = args.length; i < len; i++) {
-                Value v = args[i].getValue(session);
-                v = v.convertTo(argTypes[i]);
-                arg = v.getObject();
-                argValues[i] = arg;
-            }
-            if (args.length == 1) {
-                agg.add(arg);
+            if (distinct) {
+                AggregateDataCollecting data = (AggregateDataCollecting) group.get(this);
+                if (data == null) {
+                    data = new AggregateDataCollecting();
+                    group.put(this, data);
+                }
+                Value[] argValues = new Value[args.length];
+                Value arg = null;
+                for (int i = 0, len = args.length; i < len; i++) {
+                    arg = args[i].getValue(session);
+                    arg = arg.convertTo(argTypes[i]);
+                    argValues[i] = arg;
+                }
+                data.add(session.getDatabase(), dataType, true, args.length == 1 ? arg : ValueArray.get(argValues));
             } else {
-                agg.add(argValues);
+                Aggregate agg = (Aggregate) group.get(this);
+                if (agg == null) {
+                    agg = getInstance();
+                    group.put(this, agg);
+                }
+                Object[] argValues = new Object[args.length];
+                Object arg = null;
+                for (int i = 0, len = args.length; i < len; i++) {
+                    Value v = args[i].getValue(session);
+                    v = v.convertTo(argTypes[i]);
+                    arg = v.getObject();
+                    argValues[i] = arg;
+                }
+                agg.add(args.length == 1 ? arg : argValues);
             }
         } catch (SQLException e) {
             throw DbException.convert(e);

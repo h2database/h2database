@@ -97,6 +97,11 @@ public final class DataUtils {
     public static final int ERROR_TRANSACTION_ILLEGAL_STATE = 103;
 
     /**
+     * The transaction contains too many changes.
+     */
+    public static final int ERROR_TRANSACTION_TOO_BIG = 104;
+
+    /**
      * The type for leaf page.
      */
     public static final int PAGE_TYPE_LEAF = 0;

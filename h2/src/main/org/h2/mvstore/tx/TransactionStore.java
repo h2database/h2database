@@ -156,6 +156,9 @@ public class TransactionStore {
         return store.hasMap(name);
     }
 
+    private static final int LOG_ID_BITS = Transaction.LOG_ID_BITS;
+    private static final long LOG_ID_MASK = (1L << LOG_ID_BITS) - 1;
+
     /**
      * Combine the transaction id and the log id to an operation id.
      *
@@ -164,11 +167,11 @@ public class TransactionStore {
      * @return the operation id
      */
     static long getOperationId(int transactionId, long logId) {
-        DataUtils.checkArgument(transactionId >= 0 && transactionId < (1 << 24),
+        DataUtils.checkArgument(transactionId >= 0 && transactionId < (1 << (64 - LOG_ID_BITS)),
                 "Transaction id out of range: {0}", transactionId);
-        DataUtils.checkArgument(logId >= 0 && logId < (1L << 40),
+        DataUtils.checkArgument(logId >= 0 && logId <= LOG_ID_MASK,
                 "Transaction log id out of range: {0}", logId);
-        return ((long) transactionId << 40) | logId;
+        return ((long) transactionId << LOG_ID_BITS) | logId;
     }
 
     /**
@@ -178,7 +181,7 @@ public class TransactionStore {
      * @return the transaction id
      */
     static int getTransactionId(long operationId) {
-        return (int) (operationId >>> 40);
+        return (int) (operationId >>> LOG_ID_BITS);
     }
 
     /**
@@ -188,7 +191,7 @@ public class TransactionStore {
      * @return the log id
      */
     static long getLogId(long operationId) {
-        return operationId & ((1L << 40) - 1);
+        return operationId & LOG_ID_MASK;
     }
 
     /**

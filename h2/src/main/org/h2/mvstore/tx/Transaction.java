@@ -50,7 +50,7 @@ public class Transaction {
      * This transaction's id can not be re-used until all the above is completed
      * and transaction is closed.
      */
-    public static final int STATUS_COMMITTED    = 4;
+    private static final int STATUS_COMMITTED = 4;
 
     /**
      * The status of a transaction that currently in a process of rolling back
@@ -68,6 +68,12 @@ public class Transaction {
             "CLOSED", "OPEN", "PREPARED", "COMMITTING",
             "COMMITTED", "ROLLING_BACK", "ROLLED_BACK"
     };
+    static final int LOG_ID_BITS = 40;
+    private static final int LOG_ID_BITS1 = LOG_ID_BITS + 1;
+    private static final long LOG_ID_MASK = (1L << LOG_ID_BITS) - 1;
+    private static final int STATUS_BITS = 4;
+    private static final int STATUS_MASK = (1 << STATUS_BITS) - 1;
+
 
     /**
      * The transaction store.
@@ -81,8 +87,9 @@ public class Transaction {
 
     /*
      * Transation state is an atomic composite field:
-     * bit 44       : flag whether transaction had rollback(s)
-     * bits 42-40   : status
+     * bit  45      : flag whether transaction had rollback(s)
+     * bits 44-41   : status
+     * bits 40      : overflow control bit, always 0
      * bits 39-0    : log id of the last entry in the undo log map
      */
     private final AtomicLong statusAndLogId;
@@ -202,6 +209,12 @@ public class Transaction {
     void log(int mapId, Object key, VersionedValue oldValue) {
         long currentState = statusAndLogId.getAndIncrement();
         long logId = getLogId(currentState);
+        if (logId > LOG_ID_MASK) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_TRANSACTION_TOO_BIG,
+                    "Transaction {0} has too many changes",
+                    transactionId);
+        }
         store.log(this, logId, mapId, key, oldValue);
     }
 
@@ -211,6 +224,12 @@ public class Transaction {
     void logUndo() {
         long currentState = statusAndLogId.decrementAndGet();
         long logId = getLogId(currentState);
+        if (logId == LOG_ID_MASK) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_TRANSACTION_CORRUPT,
+                    "Transaction {0} has internal error",
+                    transactionId);
+        }
         store.logUndo(this, logId);
     }
 
@@ -269,7 +288,7 @@ public class Transaction {
      * Commit the transaction. Afterwards, this transaction is closed.
      */
     public void commit() {
-        long state = setStatus(Transaction.STATUS_COMMITTING);
+        long state = setStatus(STATUS_COMMITTING);
         long logId = Transaction.getLogId(state);
         int oldStatus = Transaction.getStatus(state);
         store.commit(this, logId, oldStatus);
@@ -357,16 +376,16 @@ public class Transaction {
     }
 
 
-    public static int getStatus(long state) {
-        return (int)(state >>> 40) & 15;
+    private static int getStatus(long state) {
+        return (int)(state >>> LOG_ID_BITS1) & STATUS_MASK;
     }
 
-    public static long getLogId(long state) {
-        return state & ((1L << 40) - 1);
+    private static long getLogId(long state) {
+        return state & LOG_ID_MASK;
     }
 
     private static boolean hasRollback(long state) {
-        return (state & (1L << 44)) != 0;
+        return (state & (1L << (STATUS_BITS + LOG_ID_BITS1))) != 0;
     }
 
     private static boolean hasChanges(long state) {
@@ -374,9 +393,12 @@ public class Transaction {
     }
 
     private static long composeState(int status, long logId, boolean hasRollback) {
+        assert (logId & ~LOG_ID_MASK) == 0 : logId;
+        assert (status & ~STATUS_MASK) == 0 : status;
+
         if (hasRollback) {
-            status |= 16;
+            status |= 1 << STATUS_BITS;
         }
-        return ((long)status << 40) | logId;
+        return ((long)status << LOG_ID_BITS1) | logId;
     }
 }

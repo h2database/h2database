@@ -345,16 +345,15 @@ public class TransactionStore {
      *
      * @param t the transaction
      * @param maxLogId the last log id
+     * @param oldStatus last status
      */
-    void commit(Transaction t, long maxLogId) {
+    void commit(Transaction t, long maxLogId, int oldStatus) {
         if (store.isClosed()) {
             return;
         }
         // TODO could synchronize on blocks (100 at a time or so)
         rwLock.writeLock().lock();
-        int oldStatus = t.getStatus();
         try {
-            t.setStatus(Transaction.STATUS_COMMITTING);
             for (long logId = 0; logId < maxLogId; logId++) {
                 Long undoKey = getOperationId(t.getId(), logId);
                 Object[] op = undoLog.get(undoKey);

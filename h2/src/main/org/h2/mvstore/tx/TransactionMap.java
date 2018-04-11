@@ -277,7 +277,7 @@ public class TransactionMap<K, V> {
             }
         }
         VersionedValue newValue = new VersionedValue(
-                TransactionStore.getOperationId(transaction.transactionId, transaction.logId),
+                TransactionStore.getOperationId(transaction.transactionId, transaction.getLogId()),
                 value);
         if (current == null) {
             // a new value

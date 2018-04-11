@@ -70,7 +70,8 @@ public class Transaction {
     };
     static final int LOG_ID_BITS = 40;
     private static final int LOG_ID_BITS1 = LOG_ID_BITS + 1;
-    private static final long LOG_ID_MASK = (1L << LOG_ID_BITS) - 1;
+    private static final long LOG_ID_LIMIT = 1L << LOG_ID_BITS;
+    private static final long LOG_ID_MASK = (1L << LOG_ID_BITS1) - 1;
     private static final int STATUS_BITS = 4;
     private static final int STATUS_MASK = (1 << STATUS_BITS) - 1;
 
@@ -89,7 +90,7 @@ public class Transaction {
      * Transation state is an atomic composite field:
      * bit  45      : flag whether transaction had rollback(s)
      * bits 44-41   : status
-     * bits 40      : overflow control bit, always 0
+     * bits 40      : overflow control bit, 1 indicates overflow
      * bits 39-0    : log id of the last entry in the undo log map
      */
     private final AtomicLong statusAndLogId;
@@ -209,7 +210,7 @@ public class Transaction {
     void log(int mapId, Object key, VersionedValue oldValue) {
         long currentState = statusAndLogId.getAndIncrement();
         long logId = getLogId(currentState);
-        if (logId > LOG_ID_MASK) {
+        if (logId >= LOG_ID_LIMIT) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_TRANSACTION_TOO_BIG,
                     "Transaction {0} has too many changes",
@@ -224,7 +225,7 @@ public class Transaction {
     void logUndo() {
         long currentState = statusAndLogId.decrementAndGet();
         long logId = getLogId(currentState);
-        if (logId == LOG_ID_MASK) {
+        if (logId >= LOG_ID_LIMIT) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_TRANSACTION_CORRUPT,
                     "Transaction {0} has internal error",
@@ -393,7 +394,7 @@ public class Transaction {
     }
 
     private static long composeState(int status, long logId, boolean hasRollback) {
-        assert (logId & ~LOG_ID_MASK) == 0 : logId;
+        assert logId < LOG_ID_LIMIT : logId;
         assert (status & ~STATUS_MASK) == 0 : status;
 
         if (hasRollback) {

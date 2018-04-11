@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -39,6 +40,7 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
+import org.h2.util.Bits;
 import org.h2.util.DateTimeFunctions;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
@@ -274,7 +276,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("RPAD", RPAD, VAR_ARGS, Value.STRING);
         addFunction("LPAD", LPAD, VAR_ARGS, Value.STRING);
         addFunction("TO_CHAR", TO_CHAR, VAR_ARGS, Value.STRING);
-        addFunction("ORA_HASH", ORA_HASH, VAR_ARGS, Value.INT);
+        addFunction("ORA_HASH", ORA_HASH, VAR_ARGS, Value.LONG);
         addFunction("TRANSLATE", TRANSLATE, 3, Value.STRING);
         addFunction("REGEXP_LIKE", REGEXP_LIKE, VAR_ARGS, Value.BOOLEAN);
 
@@ -1372,9 +1374,9 @@ public class Function extends Expression implements FunctionCall {
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case ORA_HASH:
-            result = ValueLong.get(oraHash(v0.getString(),
-                    v1 == null ? null : v1.getInt(),
-                    v2 == null ? null : v2.getInt()));
+            result = oraHash(v0,
+                    v1 == null ? 0xffff_ffffL : v1.getLong(),
+                    v2 == null ? 0L : v2.getLong());
             break;
         case TO_CHAR:
             switch (v0.getType()){
@@ -1942,17 +1944,57 @@ public class Function extends Expression implements FunctionCall {
         return new String(chars);
     }
 
-    private static Integer oraHash(String s, Integer bucket, Integer seed) {
-        int hc = s.hashCode();
-        if (seed != null && seed.intValue() != 0) {
-            hc *= seed.intValue() * 17;
+    private static Value oraHash(Value value, long bucket, long seed) {
+        if ((bucket & 0xffff_ffff_0000_0000L) != 0L) {
+            throw DbException.getInvalidValueException("bucket", bucket);
         }
-        if (bucket == null  || bucket.intValue() <= 0) {
-            // do nothing
-        } else {
-            hc %= bucket.intValue();
+        if ((seed & 0xffff_ffff_0000_0000L) != 0L) {
+            throw DbException.getInvalidValueException("seed", seed);
         }
-        return hc;
+        MessageDigest md;
+        switch (value.getType()) {
+        case Value.NULL:
+            return ValueNull.INSTANCE;
+        case Value.STRING:
+        case Value.STRING_FIXED:
+        case Value.STRING_IGNORECASE:
+            try {
+                md = MessageDigest.getInstance("SHA-1");
+                md.update(value.getString().getBytes(StandardCharsets.UTF_8));
+            } catch (Exception ex) {
+                throw DbException.convert(ex);
+            }
+            break;
+        case Value.BLOB:
+        case Value.CLOB:
+            try {
+                md = MessageDigest.getInstance("SHA-1");
+                byte[] buf = new byte[4096];
+                try (InputStream is = value.getInputStream()) {
+                    for (int r; (r = is.read(buf)) > 0; ) {
+                        md.update(buf, 0, r);
+                    }
+                }
+            } catch (Exception ex) {
+                throw DbException.convert(ex);
+            }
+            break;
+        default:
+            try {
+                md = MessageDigest.getInstance("SHA-1");
+                md.update(value.getBytesNoCopy());
+            } catch (Exception ex) {
+                throw DbException.convert(ex);
+            }
+        }
+        if (seed != 0L) {
+            byte[] b = new byte[4];
+            Bits.writeInt(b, 0, (int) seed);
+            md.update(b);
+        }
+        long hc = Bits.readLong(md.digest(), 0);
+        // Strip sign and use modulo operation to get value from 0 to bucket inclusive
+        return ValueLong.get((hc & Long.MAX_VALUE) % (bucket + 1));
     }
 
     private static int makeRegexpFlags(String stringFlags) {

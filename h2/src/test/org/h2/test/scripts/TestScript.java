@@ -119,7 +119,7 @@ public class TestScript extends TestBase {
         for (String s : new String[] { "abs", "acos", "asin", "atan", "atan2",
                 "bitand", "bitget", "bitor", "bitxor", "ceil", "compress",
                 "cos", "cosh", "cot", "decrypt", "degrees", "encrypt", "exp",
-                "expand", "floor", "hash", "length", "log", "mod", "pi",
+                "expand", "floor", "hash", "length", "log", "mod", "ora-hash", "pi",
                 "power", "radians", "rand", "random-uuid", "round",
                 "roundmagic", "secure-rand", "sign", "sin", "sinh", "sqrt",
                 "tan", "tanh", "truncate", "zero" }) {
@@ -128,7 +128,7 @@ public class TestScript extends TestBase {
         for (String s : new String[] { "ascii", "bit-length", "char", "concat",
                 "concat-ws", "difference", "hextoraw", "insert", "instr",
                 "left", "length", "locate", "lower", "lpad", "ltrim",
-                "octet-length", "ora-hash", "position", "rawtohex", "regexp-like",
+                "octet-length", "position", "rawtohex", "regexp-like",
                 "regex-replace", "repeat", "replace", "right", "rpad", "rtrim",
                 "soundex", "space", "stringdecode", "stringencode",
                 "stringtoutf8", "substring", "to-char", "translate", "trim",

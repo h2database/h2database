@@ -24,7 +24,7 @@ public class VersionedValue {
     /**
      * The value.
      */
-    final Object value;
+    public final Object value;
 
     VersionedValue(long operationId, Object value) {
         this.operationId = operationId;

@@ -30,10 +30,12 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
+import org.h2.mvstore.MVMap;
 import org.h2.mvstore.db.MVTable;
 import org.h2.mvstore.db.MVTableEngine;
-import org.h2.mvstore.tx.TransactionStore.Change;
+import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.tx.Transaction;
+import org.h2.mvstore.tx.VersionedValue;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
@@ -59,7 +61,7 @@ import org.h2.value.ValueString;
  * mode, this object resides on the server side and communicates with a
  * SessionRemote object on the client side.
  */
-public class Session extends SessionWithState {
+public class Session extends SessionWithState implements TransactionStore.RollbackListener {
 
     /**
      * This special log position means that the log entry has been written.
@@ -649,20 +651,22 @@ public class Session extends SessionWithState {
         currentTransactionName = null;
         transactionStart = 0;
         if (transaction != null) {
-            // increment the data mod count, so that other sessions
-            // see the changes
-            // TODO should not rely on locking
-            if (!locks.isEmpty()) {
-                for (Table t : locks) {
-                    if (t instanceof MVTable) {
-                        ((MVTable) t).commit();
+            try {
+                // increment the data mod count, so that other sessions
+                // see the changes
+                // TODO should not rely on locking
+                if (!locks.isEmpty()) {
+                    for (Table t : locks) {
+                        if (t instanceof MVTable) {
+                            ((MVTable) t).commit();
+                        }
                     }
                 }
+                transaction.commit();
+            } finally {
+                transaction = null;
             }
-            transaction.commit();
-            transaction = null;
-        }
-        if (containsUncommitted()) {
+        } else if (containsUncommitted()) {
             // need to commit even if rollback is not possible
             // (create/drop table and so on)
             database.commit(this);
@@ -768,18 +772,9 @@ public class Session extends SessionWithState {
         checkCommitRollback();
         currentTransactionName = null;
         transactionStart = 0;
-        boolean needCommit = false;
-        if (undoLog.size() > 0) {
+        boolean needCommit = undoLog.size() > 0 || transaction != null;
+        if(needCommit) {
             rollbackTo(null, false);
-            needCommit = true;
-        }
-        if (transaction != null) {
-            rollbackTo(null, false);
-            needCommit = true;
-            // rollback stored the undo operations in the transaction
-            // committing will end the transaction
-            transaction.commit();
-            transaction = null;
         }
         if (!locks.isEmpty() || needCommit) {
             database.commit(this);
@@ -806,29 +801,11 @@ public class Session extends SessionWithState {
             undoLog.removeLast(trimToSize);
         }
         if (transaction != null) {
-            long savepointId = savepoint == null ? 0 : savepoint.transactionSavepoint;
-            HashMap<String, MVTable> tableMap =
-                    database.getMvStore().getTables();
-            Iterator<Change> it = transaction.getChanges(savepointId);
-            while (it.hasNext()) {
-                Change c = it.next();
-                MVTable t = tableMap.get(c.mapName);
-                if (t != null) {
-                    long key = ((ValueLong) c.key).getLong();
-                    ValueArray value = (ValueArray) c.value;
-                    short op;
-                    Row row;
-                    if (value == null) {
-                        op = UndoLogRecord.INSERT;
-                        row = t.getRow(this, key);
-                    } else {
-                        op = UndoLogRecord.DELETE;
-                        row = createRow(value.getList(), Row.MEMORY_CALCULATE);
-                    }
-                    row.setKey(key);
-                    UndoLogRecord log = new UndoLogRecord(t, op, row);
-                    log.undo(this);
-                }
+            if (savepoint == null) {
+                transaction.rollback();
+                transaction = null;
+            } else {
+                transaction.rollbackToSavepoint(savepoint.transactionSavepoint);
             }
         }
         if (savepoints != null) {
@@ -840,6 +817,9 @@ public class Session extends SessionWithState {
                     savepoints.remove(name);
                 }
             }
+        }
+        if(queryCache != null) {
+            queryCache.clear();
         }
     }
 
@@ -1112,7 +1092,7 @@ public class Session extends SessionWithState {
      */
     public boolean containsUncommitted() {
         if (database.getMvStore() != null) {
-            return transaction != null;
+            return transaction != null && transaction.hasChanges();
         }
         return firstUncommittedLog != Session.LOG_WRITTEN;
     }
@@ -1688,7 +1668,7 @@ public class Session extends SessionWithState {
                     database.shutdownImmediately();
                     throw DbException.get(ErrorCode.DATABASE_IS_CLOSED);
                 }
-                transaction = store.getTransactionStore().begin();
+                transaction = store.getTransactionStore().begin(this);
             }
             startStatement = -1;
         }
@@ -1767,6 +1747,64 @@ public class Session extends SessionWithState {
         }
         tablesToAnalyze.add(table);
     }
+
+    @Override
+    public void onRollback(MVMap<Object, VersionedValue> map, Object key,
+                           VersionedValue existingValue,
+                           VersionedValue restoredValue) {
+        // Here we are relying on the fact that map which backs table's primary index
+        // has the same name as the table itself
+        MVTableEngine.Store store = database.getMvStore();
+        if(store != null) {
+            MVTable table = store.getTable(map.getName());
+            if (table != null) {
+                long recKey = ((ValueLong)key).getLong();
+                Row oldRow = getRowFromVersionedValue(table, recKey, existingValue);
+                Row newRow = getRowFromVersionedValue(table, recKey, restoredValue);
+                table.fireAfterRow(this, oldRow, newRow, true);
+
+                if (table.getContainsLargeObject()) {
+                    if (oldRow != null) {
+                        for (int i = 0, len = oldRow.getColumnCount(); i < len; i++) {
+                            Value v = oldRow.getValue(i);
+                            if (v.isLinkedToTable()) {
+                                removeAtCommit(v);
+                            }
+                        }
+                    }
+                    if (newRow != null) {
+                        for (int i = 0, len = newRow.getColumnCount(); i < len; i++) {
+                            Value v = newRow.getValue(i);
+                            if (v.isLinkedToTable()) {
+                                removeAtCommitStop(v);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static Row getRowFromVersionedValue(MVTable table, long recKey,
+                                                VersionedValue versionedValue) {
+        Object value = versionedValue == null ? null : versionedValue.value;
+        Row result = null;
+        if (value != null) {
+            Row result11;
+            if(value instanceof Row) {
+                result11 = (Row) value;
+                assert result11.getKey() == recKey
+                     : result11.getKey() + " != " + recKey;
+            } else {
+                ValueArray array = (ValueArray) value;
+                result11 = table.createRow(array.getList(), 0);
+                result11.setKey(recKey);
+            }
+            result = result11;
+        }
+        return result;
+    }
+
 
     /**
      * Represents a savepoint (a position in a transaction to where one can roll

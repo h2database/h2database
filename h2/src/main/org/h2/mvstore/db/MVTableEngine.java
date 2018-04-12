@@ -162,7 +162,7 @@ public class MVTableEngine implements TableEngine {
                 this.transactionStore = new TransactionStore(
                         store,
                         new ValueDataType(db.getCompareMode(), db, null));
-                transactionStore.init();
+//                transactionStore.init();
             } catch (IllegalStateException e) {
                 throw convertIllegalStateException(e);
             }
@@ -206,8 +206,8 @@ public class MVTableEngine implements TableEngine {
             return transactionStore;
         }
 
-        public HashMap<String, MVTable> getTables() {
-            return new HashMap<>(tableMap);
+        public MVTable getTable(String tableName) {
+            return tableMap.get(tableName);
         }
 
         /**

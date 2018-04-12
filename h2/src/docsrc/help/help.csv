@@ -3426,7 +3426,7 @@ CALL TRIM(CHAR(0) FROM UTF8TOSTRING(
 "
 
 "Functions (Numeric)","HASH","
-HASH(algorithmString, dataBytes, iterationInt)
+HASH(algorithmString, expression [, iterationInt])
 ","
 Calculate the hash value using an algorithm, and repeat this process for a number of iterations.
 Currently, the only algorithm supported is SHA256.

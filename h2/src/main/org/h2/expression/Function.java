@@ -31,7 +31,6 @@ import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.security.BlockCipher;
 import org.h2.security.CipherFactory;
-import org.h2.security.SHA256;
 import org.h2.store.fs.FileUtils;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
@@ -213,7 +212,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("TRUNCATE", TRUNCATE, VAR_ARGS, Value.NULL);
         // same as TRUNCATE
         addFunction("TRUNC", TRUNCATE, VAR_ARGS, Value.NULL);
-        addFunction("HASH", HASH, 3, Value.BYTES);
+        addFunction("HASH", HASH, VAR_ARGS, Value.BYTES);
         addFunction("ENCRYPT", ENCRYPT, 3, Value.BYTES);
         addFunction("DECRYPT", DECRYPT, 3, Value.BYTES);
         addFunctionNotDeterministic("SECURE_RAND", SECURE_RAND, 1, Value.BYTES);
@@ -1203,8 +1202,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case HASH:
-            result = ValueBytes.getNoCopy(getHash(v0.getString(),
-                    v1.getBytesNoCopy(), v2.getInt()));
+            result = getHash(v0.getString(), v1, v2 == null ? 1 : v2.getInt());
             break;
         case ENCRYPT:
             result = ValueBytes.getNoCopy(encrypt(v0.getString(),
@@ -1728,14 +1726,22 @@ public class Function extends Expression implements FunctionCall {
         return newData;
     }
 
-    private static byte[] getHash(String algorithm, byte[] bytes, int iterations) {
+    private static Value getHash(String algorithm, Value value, int iterations) {
         if (!"SHA256".equalsIgnoreCase(algorithm)) {
             throw DbException.getInvalidValueException("algorithm", algorithm);
         }
-        for (int i = 0; i < iterations; i++) {
-            bytes = SHA256.getHash(bytes, false);
+        if (iterations <= 0) {
+            throw DbException.getInvalidValueException("iterations", iterations);
         }
-        return bytes;
+        MessageDigest md = hashImpl(value, "SHA-256");
+        if (md == null) {
+            return ValueNull.INSTANCE;
+        }
+        byte[] b = md.digest();
+        for (int i = 1; i < iterations; i++) {
+            b = md.digest(b);
+        }
+        return ValueBytes.getNoCopy(b);
     }
 
     private static String substring(String s, int start, int length) {
@@ -1951,15 +1957,30 @@ public class Function extends Expression implements FunctionCall {
         if ((seed & 0xffff_ffff_0000_0000L) != 0L) {
             throw DbException.getInvalidValueException("seed", seed);
         }
+        MessageDigest md = hashImpl(value, "SHA-1");
+        if (md == null) {
+            return ValueNull.INSTANCE;
+        }
+        if (seed != 0L) {
+            byte[] b = new byte[4];
+            Bits.writeInt(b, 0, (int) seed);
+            md.update(b);
+        }
+        long hc = Bits.readLong(md.digest(), 0);
+        // Strip sign and use modulo operation to get value from 0 to bucket inclusive
+        return ValueLong.get((hc & Long.MAX_VALUE) % (bucket + 1));
+    }
+
+    private static MessageDigest hashImpl(Value value, String algorithm) {
         MessageDigest md;
         switch (value.getType()) {
         case Value.NULL:
-            return ValueNull.INSTANCE;
+            return null;
         case Value.STRING:
         case Value.STRING_FIXED:
         case Value.STRING_IGNORECASE:
             try {
-                md = MessageDigest.getInstance("SHA-1");
+                md = MessageDigest.getInstance(algorithm);
                 md.update(value.getString().getBytes(StandardCharsets.UTF_8));
             } catch (Exception ex) {
                 throw DbException.convert(ex);
@@ -1968,7 +1989,7 @@ public class Function extends Expression implements FunctionCall {
         case Value.BLOB:
         case Value.CLOB:
             try {
-                md = MessageDigest.getInstance("SHA-1");
+                md = MessageDigest.getInstance(algorithm);
                 byte[] buf = new byte[4096];
                 try (InputStream is = value.getInputStream()) {
                     for (int r; (r = is.read(buf)) > 0; ) {
@@ -1981,20 +2002,13 @@ public class Function extends Expression implements FunctionCall {
             break;
         default:
             try {
-                md = MessageDigest.getInstance("SHA-1");
+                md = MessageDigest.getInstance(algorithm);
                 md.update(value.getBytesNoCopy());
             } catch (Exception ex) {
                 throw DbException.convert(ex);
             }
         }
-        if (seed != 0L) {
-            byte[] b = new byte[4];
-            Bits.writeInt(b, 0, (int) seed);
-            md.update(b);
-        }
-        long hc = Bits.readLong(md.digest(), 0);
-        // Strip sign and use modulo operation to get value from 0 to bucket inclusive
-        return ValueLong.get((hc & Long.MAX_VALUE) % (bucket + 1));
+        return md;
     }
 
     private static int makeRegexpFlags(String stringFlags) {
@@ -2082,6 +2096,7 @@ public class Function extends Expression implements FunctionCall {
             min = 1;
             max = 3;
             break;
+        case HASH:
         case REPLACE:
         case LOCATE:
         case INSTR:

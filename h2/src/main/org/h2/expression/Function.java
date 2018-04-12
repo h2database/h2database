@@ -81,7 +81,7 @@ public class Function extends Expression implements FunctionCall {
             TRUNCATE = 27, SECURE_RAND = 28, HASH = 29, ENCRYPT = 30,
             DECRYPT = 31, COMPRESS = 32, EXPAND = 33, ZERO = 34,
             RANDOM_UUID = 35, COSH = 36, SINH = 37, TANH = 38, LN = 39,
-            BITGET = 40;
+            BITGET = 40, ORA_HASH = 41;
 
     public static final int ASCII = 50, BIT_LENGTH = 51, CHAR = 52,
             CHAR_LENGTH = 53, CONCAT = 54, DIFFERENCE = 55, HEXTORAW = 56,
@@ -93,7 +93,7 @@ public class Function extends Expression implements FunctionCall {
             STRINGDECODE = 80, STRINGTOUTF8 = 81, UTF8TOSTRING = 82,
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
             XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90,
-            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94, ORA_HASH = 95,
+            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94, /* 95 */
             TO_DATE = 96, TO_TIMESTAMP = 97, ADD_MONTHS = 98, TO_TIMESTAMP_TZ = 99;
 
     public static final int CURDATE = 100, CURTIME = 101, DATE_ADD = 102,
@@ -223,6 +223,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("RANDOM_UUID", RANDOM_UUID, 0, Value.UUID);
         addFunctionNotDeterministic("SYS_GUID", RANDOM_UUID, 0, Value.UUID);
         addFunctionNotDeterministic("UUID", RANDOM_UUID, 0, Value.UUID);
+        addFunction("ORA_HASH", ORA_HASH, VAR_ARGS, Value.LONG);
         // string
         addFunction("ASCII", ASCII, 1, Value.INT);
         addFunction("BIT_LENGTH", BIT_LENGTH, 1, Value.LONG);
@@ -276,7 +277,6 @@ public class Function extends Expression implements FunctionCall {
         addFunction("RPAD", RPAD, VAR_ARGS, Value.STRING);
         addFunction("LPAD", LPAD, VAR_ARGS, Value.STRING);
         addFunction("TO_CHAR", TO_CHAR, VAR_ARGS, Value.STRING);
-        addFunction("ORA_HASH", ORA_HASH, VAR_ARGS, Value.LONG);
         addFunction("TRANSLATE", TRANSLATE, 3, Value.STRING);
         addFunction("REGEXP_LIKE", REGEXP_LIKE, VAR_ARGS, Value.BOOLEAN);
 
@@ -1223,6 +1223,11 @@ public class Function extends Expression implements FunctionCall {
                     compress(v0.getBytesNoCopy(), algorithm));
             break;
         }
+        case ORA_HASH:
+            result = oraHash(v0,
+                    v1 == null ? 0xffff_ffffL : v1.getLong(),
+                    v2 == null ? 0L : v2.getLong());
+            break;
         case DIFFERENCE:
             result = ValueInt.get(getDifference(
                     v0.getString(), v1.getString()));
@@ -1372,11 +1377,6 @@ public class Function extends Expression implements FunctionCall {
             result = ValueString.get(StringUtils.pad(v0.getString(),
                     v1.getInt(), v2 == null ? null : v2.getString(), false),
                     database.getMode().treatEmptyStringsAsNull);
-            break;
-        case ORA_HASH:
-            result = oraHash(v0,
-                    v1 == null ? 0xffff_ffffL : v1.getLong(),
-                    v2 == null ? 0L : v2.getLong());
             break;
         case TO_CHAR:
             switch (v0.getType()){

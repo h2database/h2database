@@ -54,11 +54,6 @@ public class ValueEnum extends ValueEnumBase {
         }
     }
 
-    @Override
-    protected int compareSecure(final Value v, final CompareMode mode) {
-        return Integer.compare(getInt(), v.getInt());
-    }
-
     /**
      * Create an ENUM value from the provided enumerators
      * and value.

@@ -752,7 +752,6 @@ public class DataType {
             // "java.lang.Short";
             return Short.class.getName();
         case Value.INT:
-        case Value.ENUM:
             // "java.lang.Integer";
             return Integer.class.getName();
         case Value.LONG:
@@ -780,6 +779,7 @@ public class DataType {
         case Value.STRING:
         case Value.STRING_IGNORECASE:
         case Value.STRING_FIXED:
+        case Value.ENUM:
             // "java.lang.String";
             return String.class.getName();
         case Value.BLOB:

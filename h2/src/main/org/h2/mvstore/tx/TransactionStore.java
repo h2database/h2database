@@ -159,7 +159,11 @@ public class TransactionStore {
                             int status;
                             String name;
                             if (data == null) {
-                                status = Transaction.STATUS_OPEN;
+                                if (undoLog.containsKey(getOperationId(transactionId, 0))) {
+                                    status = Transaction.STATUS_OPEN;
+                                } else {
+                                    status = Transaction.STATUS_COMMITTING;
+                                }
                                 name = null;
                             } else {
                                 status = (Integer) data[0];

@@ -569,7 +569,7 @@ public class Select extends Query {
                 limitRows = Math.min(l, limitRows);
             }
         }
-        boolean lazy = session.isLazyQueryExecution() &&
+        lazy = session.isLazyQueryExecution() &&
                 target == null && !isForUpdate && !isQuickAggregateQuery &&
                 limitRows != 0 && offsetExpr == null && isReadOnly();
         int columnCount = expressions.size();

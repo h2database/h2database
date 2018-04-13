@@ -68,6 +68,8 @@ public abstract class Query extends Prepared {
     private boolean cacheableChecked;
     private boolean neverLazy;
 
+    protected boolean lazy;
+
     Query(Session session) {
         super(session);
     }
@@ -348,7 +350,7 @@ public abstract class Query extends Prepared {
         }
         fireBeforeSelectTriggers();
         if (noCache || !session.getDatabase().getOptimizeReuseResults() ||
-                session.isLazyQueryExecution()) {
+                lazy) {
             return queryWithoutCacheLazyCheck(limit, target);
         }
         Value[] params = getParameterValues();

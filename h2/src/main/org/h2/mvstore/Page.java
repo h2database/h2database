@@ -798,8 +798,8 @@ public abstract class Page implements Cloneable
 
     public final int getMemory() {
         if (isPersistent()) {
-            assert memory == calculateMemory() :
-                    "Memory calculation error " + memory + " != " + calculateMemory();
+//            assert memory == calculateMemory() :
+//                    "Memory calculation error " + memory + " != " + calculateMemory();
             return memory;
         }
         return 0;

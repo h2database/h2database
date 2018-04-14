@@ -971,7 +971,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             }
         }
         if (!locks.isEmpty()) {
-            // don't use the enhanced for loop to save memory
             for (Table t : locks) {
                 t.unlock(this);
             }

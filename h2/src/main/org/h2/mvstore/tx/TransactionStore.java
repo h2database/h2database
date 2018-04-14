@@ -92,7 +92,7 @@ public class TransactionStore {
      * Position in array is "transaction id".
      * VolatileReferenceArray would do the job here, but there is no such thing in Java yet
      */
-    private final AtomicReferenceArray<Transaction> transactions = new AtomicReferenceArray<>(MAX_OPEN_TRANSACTIONS);
+    private final AtomicReferenceArray<Transaction> transactions = new AtomicReferenceArray<>(MAX_OPEN_TRANSACTIONS + 1);
 
     /**
      * The next id of a temporary map.
@@ -104,7 +104,7 @@ public class TransactionStore {
      * Hard limit on the number of concurrently opened transactions
      */
     // TODO: introduce constructor parameter instead of a static field, driven by URL parameter
-    private static final int MAX_OPEN_TRANSACTIONS = 0x400;
+    private static final int MAX_OPEN_TRANSACTIONS = 65535;
 
 
 

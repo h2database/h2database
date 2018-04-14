@@ -10,8 +10,6 @@ import java.util.BitSet;
 /**
  * Class VersionedBitSet extends standard BitSet to add a version field.
  * This will allow bit set and version to be changed atomically.
- *
- * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
 final class VersionedBitSet extends BitSet
 {
@@ -27,15 +25,8 @@ final class VersionedBitSet extends BitSet
         this.version = version;
     }
 
-    public VersionedBitSet cloneIt() {
-        VersionedBitSet res = (VersionedBitSet) super.clone();
-        res.version = version;
-        return res;
-    }
-
     @Override
-    @SuppressWarnings("MethodDoesntCallSuperMethod")
-    public Object clone() {
-        return cloneIt();
+    public VersionedBitSet clone() {
+        return (VersionedBitSet)super.clone();
     }
 }

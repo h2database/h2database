@@ -63,8 +63,20 @@ public class TransactionStore {
 
     private final DataType dataType;
 
+    /**
+     * This BitSet is used as vacancy indicator for transaction slots in transactions[].
+     * It provides easy way to find first unoccupied slot, and also allows for copy-on-write
+     * non-blocking updates.
+     */
     final AtomicReference<VersionedBitSet> openTransactions = new AtomicReference<>(new VersionedBitSet());
 
+    /**
+     * This is intended to be the source of ultimate truth about transaction being committed.
+     * Once bit is set, corresponding transaction is logically committed,
+     * although it might be plenty of "uncommitted" entries in various maps
+     * and undo record are still around.
+     * Nevertheless, all of those should be considered by other transactions as committed.
+     */
     final AtomicReference<BitSet> committingTransactions = new AtomicReference<>(new BitSet());
 
     private boolean init;
@@ -78,6 +90,7 @@ public class TransactionStore {
     /**
      * Array holding all open transaction objects.
      * Position in array is "transaction id".
+     * VolatileReferenceArray would do the job here, but there is no such thing in Java yet
      */
     private final AtomicReferenceArray<Transaction> transactions = new AtomicReferenceArray<>(MAX_OPEN_TRANSACTIONS);
 
@@ -91,7 +104,7 @@ public class TransactionStore {
      * Hard limit on the number of concurrently opened transactions
      */
     // TODO: introduce constructor parameter instead of a static field, driven by URL parameter
-    private static final int MAX_OPEN_TRANSACTIONS = 0x100;
+    private static final int MAX_OPEN_TRANSACTIONS = 0x400;
 
 
 
@@ -195,7 +208,7 @@ public class TransactionStore {
      */
     public void setMaxTransactionId(int max) {
         DataUtils.checkArgument(max <= MAX_OPEN_TRANSACTIONS,
-                "Concurrent transactions limit is too hight: {0}", max);
+                "Concurrent transactions limit is too high: {0}", max);
         this.maxTransactionId = max;
     }
 
@@ -322,7 +335,7 @@ public class TransactionStore {
                         "There are {0} open transactions",
                         transactionId - 1);
             }
-            VersionedBitSet clone = original.cloneIt();
+            VersionedBitSet clone = original.clone();
             clone.set(transactionId);
             sequenceNo = clone.getVersion() + 1;
             clone.setVersion(sequenceNo);
@@ -331,8 +344,8 @@ public class TransactionStore {
 
         Transaction transaction = new Transaction(this, transactionId, sequenceNo, status, name, logId, listener);
 
-        success = transactions.compareAndSet(transactionId, null, transaction);
-        assert success;
+        assert transactions.get(transactionId) == null;
+        transactions.set(transactionId, transaction);
 
         return transaction;
     }
@@ -420,7 +433,9 @@ public class TransactionStore {
      *
      * @param t the transaction
      * @param maxLogId the last log id
-     * @param hasChanges false for R/O tx
+     * @param hasChanges true if there were updates within specified
+     *                   transaction (even fully rolled back),
+     *                   false if just data access
      */
     void commit(Transaction t, long maxLogId, boolean hasChanges) {
         if (store.isClosed()) {
@@ -571,12 +586,14 @@ public class TransactionStore {
         int txId = t.transactionId;
         t.setStatus(Transaction.STATUS_CLOSED);
 
-        boolean success = transactions.compareAndSet(txId, t, null);
-        assert success;
+        assert transactions.get(txId) == t : transactions.get(txId) + " != " + t;
+        transactions.set(txId, null);
+
+        boolean success;
         do {
             VersionedBitSet original = openTransactions.get();
             assert original.get(txId);
-            VersionedBitSet clone = original.cloneIt();
+            VersionedBitSet clone = original.clone();
             clone.clear(txId);
             success = openTransactions.compareAndSet(original, clone);
         } while(!success);
@@ -755,16 +772,31 @@ public class TransactionStore {
         }
     }
 
+    /**
+     * This listener can be registered with the transaction to be notified of
+     * every compensating change during transaction rollback.
+     * Normally this is not required, if no external resources were modified,
+     * because state of all transactional maps will be restored automatically.
+     * Only state of external resources, possibly modified by triggers
+     * need to be restored.
+     */
     public interface RollbackListener {
 
         RollbackListener NONE = new RollbackListener() {
             @Override
             public void onRollback(MVMap<Object, VersionedValue> map, Object key,
-                                   VersionedValue existingValue, VersionedValue restoredValue) {
-
+                                    VersionedValue existingValue, VersionedValue restoredValue) {
+                // do nothing
             }
         };
 
+        /**
+         * Notified of a single map change (add/update/remove)
+         * @param map modified
+         * @param key of the modified entry
+         * @param existingValue value in the map (null if delete is rolled back)
+         * @param restoredValue value to be restored (null if add is rolled back)
+         */
         void onRollback(MVMap<Object,VersionedValue> map, Object key,
                         VersionedValue existingValue, VersionedValue restoredValue);
     }

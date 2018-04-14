@@ -98,7 +98,7 @@ public class Transaction {
     public final long sequenceNum;
 
     /*
-     * Transation state is an atomic composite field:
+     * Transaction state is an atomic composite field:
      * bit  45      : flag whether transaction had rollback(s)
      * bits 44-41   : status
      * bits 40      : overflow control bit, 1 indicates overflow
@@ -166,9 +166,9 @@ public class Transaction {
                             currentStatus == STATUS_COMMITTED ||
                             currentStatus == STATUS_ROLLED_BACK;
                     break;
-               default:
-                   valid = false;
-                   break;
+                default:
+                    valid = false;
+                    break;
             }
             if (!valid) {
                 throw DataUtils.newIllegalStateException(
@@ -276,7 +276,7 @@ public class Transaction {
      * @return the transaction map
      */
     public <K, V> TransactionMap<K, V> openMap(String name,
-                                               DataType keyType, DataType valueType) {
+                                                DataType keyType, DataType valueType) {
         MVMap<K, VersionedValue> map = store.openMap(name, keyType, valueType);
         return openMap(map);
     }

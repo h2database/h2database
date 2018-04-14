@@ -1439,7 +1439,7 @@ public class TestMVStore extends TestBase {
         }
         assertEquals(1000, m.size());
         // memory calculations were adjusted, so as this out-of-the-thin-air number
-        assertEquals(84730, s.getUnsavedMemory());
+        assertEquals(93522, s.getUnsavedMemory());
         s.commit();
         assertEquals(2, s.getFileStore().getWriteCount());
         s.close();

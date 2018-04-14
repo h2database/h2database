@@ -3291,6 +3291,19 @@ This method returns a double.
 LOG10(A)
 "
 
+"Functions (Numeric)","ORA_HASH","
+ORA_HASH(expression [, bucketLong [, seedLong]])
+","
+Computes a hash value.
+Optional bucket argument determines the maximum returned value.
+This argument should be between 0 and 4294967295, default is 4294967295.
+Optional seed argument is combined with the given expression to return the different values for the same expression.
+This argument should be between 0 and 4294967295, default is 0.
+This method returns a long value between 0 and the specified or default bucket value inclusive.
+","
+ORA_HASH(A)
+"
+
 "Functions (Numeric)","RADIANS","
 RADIANS(numeric)
 ","
@@ -3413,7 +3426,7 @@ CALL TRIM(CHAR(0) FROM UTF8TOSTRING(
 "
 
 "Functions (Numeric)","HASH","
-HASH(algorithmString, dataBytes, iterationInt)
+HASH(algorithmString, expression [, iterationInt])
 ","
 Calculate the hash value using an algorithm, and repeat this process for a number of iterations.
 Currently, the only algorithm supported is SHA256.

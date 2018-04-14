@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,7 +31,6 @@ import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.security.BlockCipher;
 import org.h2.security.CipherFactory;
-import org.h2.security.SHA256;
 import org.h2.store.fs.FileUtils;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
@@ -39,6 +39,7 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
+import org.h2.util.Bits;
 import org.h2.util.DateTimeFunctions;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
@@ -79,7 +80,7 @@ public class Function extends Expression implements FunctionCall {
             TRUNCATE = 27, SECURE_RAND = 28, HASH = 29, ENCRYPT = 30,
             DECRYPT = 31, COMPRESS = 32, EXPAND = 33, ZERO = 34,
             RANDOM_UUID = 35, COSH = 36, SINH = 37, TANH = 38, LN = 39,
-            BITGET = 40;
+            BITGET = 40, ORA_HASH = 41;
 
     public static final int ASCII = 50, BIT_LENGTH = 51, CHAR = 52,
             CHAR_LENGTH = 53, CONCAT = 54, DIFFERENCE = 55, HEXTORAW = 56,
@@ -91,7 +92,7 @@ public class Function extends Expression implements FunctionCall {
             STRINGDECODE = 80, STRINGTOUTF8 = 81, UTF8TOSTRING = 82,
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
             XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90,
-            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94, ORA_HASH = 95,
+            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94, /* 95 */
             TO_DATE = 96, TO_TIMESTAMP = 97, ADD_MONTHS = 98, TO_TIMESTAMP_TZ = 99;
 
     public static final int CURDATE = 100, CURTIME = 101, DATE_ADD = 102,
@@ -211,7 +212,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("TRUNCATE", TRUNCATE, VAR_ARGS, Value.NULL);
         // same as TRUNCATE
         addFunction("TRUNC", TRUNCATE, VAR_ARGS, Value.NULL);
-        addFunction("HASH", HASH, 3, Value.BYTES);
+        addFunction("HASH", HASH, VAR_ARGS, Value.BYTES);
         addFunction("ENCRYPT", ENCRYPT, 3, Value.BYTES);
         addFunction("DECRYPT", DECRYPT, 3, Value.BYTES);
         addFunctionNotDeterministic("SECURE_RAND", SECURE_RAND, 1, Value.BYTES);
@@ -221,6 +222,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("RANDOM_UUID", RANDOM_UUID, 0, Value.UUID);
         addFunctionNotDeterministic("SYS_GUID", RANDOM_UUID, 0, Value.UUID);
         addFunctionNotDeterministic("UUID", RANDOM_UUID, 0, Value.UUID);
+        addFunction("ORA_HASH", ORA_HASH, VAR_ARGS, Value.LONG);
         // string
         addFunction("ASCII", ASCII, 1, Value.INT);
         addFunction("BIT_LENGTH", BIT_LENGTH, 1, Value.LONG);
@@ -274,7 +276,6 @@ public class Function extends Expression implements FunctionCall {
         addFunction("RPAD", RPAD, VAR_ARGS, Value.STRING);
         addFunction("LPAD", LPAD, VAR_ARGS, Value.STRING);
         addFunction("TO_CHAR", TO_CHAR, VAR_ARGS, Value.STRING);
-        addFunction("ORA_HASH", ORA_HASH, VAR_ARGS, Value.INT);
         addFunction("TRANSLATE", TRANSLATE, 3, Value.STRING);
         addFunction("REGEXP_LIKE", REGEXP_LIKE, VAR_ARGS, Value.BOOLEAN);
 
@@ -1201,8 +1202,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case HASH:
-            result = ValueBytes.getNoCopy(getHash(v0.getString(),
-                    v1.getBytesNoCopy(), v2.getInt()));
+            result = getHash(v0.getString(), v1, v2 == null ? 1 : v2.getInt());
             break;
         case ENCRYPT:
             result = ValueBytes.getNoCopy(encrypt(v0.getString(),
@@ -1221,6 +1221,11 @@ public class Function extends Expression implements FunctionCall {
                     compress(v0.getBytesNoCopy(), algorithm));
             break;
         }
+        case ORA_HASH:
+            result = oraHash(v0,
+                    v1 == null ? 0xffff_ffffL : v1.getLong(),
+                    v2 == null ? 0L : v2.getLong());
+            break;
         case DIFFERENCE:
             result = ValueInt.get(getDifference(
                     v0.getString(), v1.getString()));
@@ -1370,11 +1375,6 @@ public class Function extends Expression implements FunctionCall {
             result = ValueString.get(StringUtils.pad(v0.getString(),
                     v1.getInt(), v2 == null ? null : v2.getString(), false),
                     database.getMode().treatEmptyStringsAsNull);
-            break;
-        case ORA_HASH:
-            result = ValueLong.get(oraHash(v0.getString(),
-                    v1 == null ? null : v1.getInt(),
-                    v2 == null ? null : v2.getInt()));
             break;
         case TO_CHAR:
             switch (v0.getType()){
@@ -1726,14 +1726,22 @@ public class Function extends Expression implements FunctionCall {
         return newData;
     }
 
-    private static byte[] getHash(String algorithm, byte[] bytes, int iterations) {
+    private static Value getHash(String algorithm, Value value, int iterations) {
         if (!"SHA256".equalsIgnoreCase(algorithm)) {
             throw DbException.getInvalidValueException("algorithm", algorithm);
         }
-        for (int i = 0; i < iterations; i++) {
-            bytes = SHA256.getHash(bytes, false);
+        if (iterations <= 0) {
+            throw DbException.getInvalidValueException("iterations", iterations);
         }
-        return bytes;
+        MessageDigest md = hashImpl(value, "SHA-256");
+        if (md == null) {
+            return ValueNull.INSTANCE;
+        }
+        byte[] b = md.digest();
+        for (int i = 1; i < iterations; i++) {
+            b = md.digest(b);
+        }
+        return ValueBytes.getNoCopy(b);
     }
 
     private static String substring(String s, int start, int length) {
@@ -1942,17 +1950,65 @@ public class Function extends Expression implements FunctionCall {
         return new String(chars);
     }
 
-    private static Integer oraHash(String s, Integer bucket, Integer seed) {
-        int hc = s.hashCode();
-        if (seed != null && seed.intValue() != 0) {
-            hc *= seed.intValue() * 17;
+    private static Value oraHash(Value value, long bucket, long seed) {
+        if ((bucket & 0xffff_ffff_0000_0000L) != 0L) {
+            throw DbException.getInvalidValueException("bucket", bucket);
         }
-        if (bucket == null  || bucket.intValue() <= 0) {
-            // do nothing
-        } else {
-            hc %= bucket.intValue();
+        if ((seed & 0xffff_ffff_0000_0000L) != 0L) {
+            throw DbException.getInvalidValueException("seed", seed);
         }
-        return hc;
+        MessageDigest md = hashImpl(value, "SHA-1");
+        if (md == null) {
+            return ValueNull.INSTANCE;
+        }
+        if (seed != 0L) {
+            byte[] b = new byte[4];
+            Bits.writeInt(b, 0, (int) seed);
+            md.update(b);
+        }
+        long hc = Bits.readLong(md.digest(), 0);
+        // Strip sign and use modulo operation to get value from 0 to bucket inclusive
+        return ValueLong.get((hc & Long.MAX_VALUE) % (bucket + 1));
+    }
+
+    private static MessageDigest hashImpl(Value value, String algorithm) {
+        MessageDigest md;
+        switch (value.getType()) {
+        case Value.NULL:
+            return null;
+        case Value.STRING:
+        case Value.STRING_FIXED:
+        case Value.STRING_IGNORECASE:
+            try {
+                md = MessageDigest.getInstance(algorithm);
+                md.update(value.getString().getBytes(StandardCharsets.UTF_8));
+            } catch (Exception ex) {
+                throw DbException.convert(ex);
+            }
+            break;
+        case Value.BLOB:
+        case Value.CLOB:
+            try {
+                md = MessageDigest.getInstance(algorithm);
+                byte[] buf = new byte[4096];
+                try (InputStream is = value.getInputStream()) {
+                    for (int r; (r = is.read(buf)) > 0; ) {
+                        md.update(buf, 0, r);
+                    }
+                }
+            } catch (Exception ex) {
+                throw DbException.convert(ex);
+            }
+            break;
+        default:
+            try {
+                md = MessageDigest.getInstance(algorithm);
+                md.update(value.getBytesNoCopy());
+            } catch (Exception ex) {
+                throw DbException.convert(ex);
+            }
+        }
+        return md;
     }
 
     private static int makeRegexpFlags(String stringFlags) {
@@ -2040,6 +2096,7 @@ public class Function extends Expression implements FunctionCall {
             min = 1;
             max = 3;
             break;
+        case HASH:
         case REPLACE:
         case LOCATE:
         case INSTR:

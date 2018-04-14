@@ -119,7 +119,7 @@ public class TestScript extends TestBase {
         for (String s : new String[] { "abs", "acos", "asin", "atan", "atan2",
                 "bitand", "bitget", "bitor", "bitxor", "ceil", "compress",
                 "cos", "cosh", "cot", "decrypt", "degrees", "encrypt", "exp",
-                "expand", "floor", "hash", "length", "log", "mod", "pi",
+                "expand", "floor", "hash", "length", "log", "mod", "ora-hash", "pi",
                 "power", "radians", "rand", "random-uuid", "round",
                 "roundmagic", "secure-rand", "sign", "sin", "sinh", "sqrt",
                 "tan", "tanh", "truncate", "zero" }) {

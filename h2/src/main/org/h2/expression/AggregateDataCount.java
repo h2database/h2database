@@ -41,8 +41,7 @@ class AggregateDataCount extends AggregateData {
                 count = 0;
             }
         }
-        Value v = ValueLong.get(count);
-        return v.convertTo(dataType);
+        return ValueLong.get(count).convertTo(dataType);
     }
 
 }

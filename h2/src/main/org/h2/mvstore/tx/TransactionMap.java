@@ -47,7 +47,7 @@ public class TransactionMap<K, V> {
     final Transaction transaction;
 
     TransactionMap(Transaction transaction, MVMap<K, VersionedValue> map,
-                   int mapId) {
+                    int mapId) {
         this.transaction = transaction;
         this.map = map;
         this.mapId = mapId;

@@ -82,12 +82,23 @@ public class Transaction {
     final TransactionStore store;
 
     /**
+     * Listener for this transaction's rollback changes.
+     */
+    final TransactionStore.RollbackListener listener;
+
+    /**
      * The transaction id.
+     * More appropriate name for this field would be "slotId"
      */
     final int transactionId;
 
+    /**
+     * This is really a transaction identity, because it's not re-used.
+     */
+    public final long sequenceNum;
+
     /*
-     * Transation state is an atomic composite field:
+     * Transaction state is an atomic composite field:
      * bit  45      : flag whether transaction had rollback(s)
      * bits 44-41   : status
      * bits 40      : overflow control bit, 1 indicates overflow
@@ -99,12 +110,16 @@ public class Transaction {
 
     private String name;
 
-    Transaction(TransactionStore store, int transactionId, int status,
-                String name, long logId) {
+    boolean wasStored;
+
+    Transaction(TransactionStore store, int transactionId, long sequenceNum, int status,
+                String name, long logId, TransactionStore.RollbackListener listener) {
         this.store = store;
         this.transactionId = transactionId;
+        this.sequenceNum = sequenceNum;
         this.statusAndLogId = new AtomicLong(composeState(status, logId, false));
         this.name = name;
+        this.listener = listener;
     }
 
     public int getId() {
@@ -151,9 +166,9 @@ public class Transaction {
                             currentStatus == STATUS_COMMITTED ||
                             currentStatus == STATUS_ROLLED_BACK;
                     break;
-               default:
-                   valid = false;
-                   break;
+                default:
+                    valid = false;
+                    break;
             }
             if (!valid) {
                 throw DataUtils.newIllegalStateException(
@@ -166,6 +181,10 @@ public class Transaction {
                 return currentState;
             }
         }
+    }
+
+    public boolean hasChanges() {
+        return hasChanges(statusAndLogId.get());
     }
 
     public void setName(String name) {
@@ -257,7 +276,7 @@ public class Transaction {
      * @return the transaction map
      */
     public <K, V> TransactionMap<K, V> openMap(String name,
-                                               DataType keyType, DataType valueType) {
+                                                DataType keyType, DataType valueType) {
         MVMap<K, VersionedValue> map = store.openMap(name, keyType, valueType);
         return openMap(map);
     }
@@ -289,10 +308,12 @@ public class Transaction {
      * Commit the transaction. Afterwards, this transaction is closed.
      */
     public void commit() {
+        assert store.openTransactions.get().get(transactionId);
         long state = setStatus(STATUS_COMMITTING);
         long logId = Transaction.getLogId(state);
-        int oldStatus = Transaction.getStatus(state);
-        store.commit(this, logId, oldStatus);
+        boolean hasChanges = hasChanges(state);
+
+        store.commit(this, logId, hasChanges);
     }
 
     /**
@@ -330,7 +351,7 @@ public class Transaction {
                 store.rollbackTo(this, logId, 0);
             }
         } finally {
-            store.endTransaction(this, STATUS_ROLLED_BACK);
+            store.endTransaction(this, true);
         }
     }
 
@@ -373,7 +394,7 @@ public class Transaction {
     @Override
     public String toString() {
         long state = statusAndLogId.get();
-        return transactionId + " " +  STATUS_NAMES[getStatus(state)] + " " + getLogId(state);
+        return transactionId + "(" + sequenceNum + ") " + STATUS_NAMES[getStatus(state)] + " " + getLogId(state);
     }
 
 

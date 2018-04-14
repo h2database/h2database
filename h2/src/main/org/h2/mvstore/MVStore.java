@@ -1103,11 +1103,11 @@ public class MVStore {
                 }
             }
         } finally {
-             // in any case reset the current store version,
-             // to allow closing the store
-             currentStoreVersion = -1;
-             currentStoreThread.set(null);
-         }
+            // in any case reset the current store version,
+            // to allow closing the store
+            currentStoreVersion = -1;
+            currentStoreThread.set(null);
+        }
     }
 
     private void storeNow() {

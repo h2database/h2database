@@ -11,6 +11,8 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
@@ -18,7 +20,6 @@ import org.h2.mvstore.MVStore;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
-import org.h2.util.New;
 
 /**
  * A store that supports concurrent MVCC read-committed transactions.
@@ -62,16 +63,51 @@ public class TransactionStore {
 
     private final DataType dataType;
 
-    private final BitSet openTransactions = new BitSet();
+    /**
+     * This BitSet is used as vacancy indicator for transaction slots in transactions[].
+     * It provides easy way to find first unoccupied slot, and also allows for copy-on-write
+     * non-blocking updates.
+     */
+    final AtomicReference<VersionedBitSet> openTransactions = new AtomicReference<>(new VersionedBitSet());
+
+    /**
+     * This is intended to be the source of ultimate truth about transaction being committed.
+     * Once bit is set, corresponding transaction is logically committed,
+     * although it might be plenty of "uncommitted" entries in various maps
+     * and undo record are still around.
+     * Nevertheless, all of those should be considered by other transactions as committed.
+     */
+    final AtomicReference<BitSet> committingTransactions = new AtomicReference<>(new BitSet());
 
     private boolean init;
 
-    private int maxTransactionId = 0xffff;
+    /**
+     * Soft limit on the number of concurrently opened transactions.
+     * Not really needed but used by some test.
+     */
+    private int maxTransactionId = MAX_OPEN_TRANSACTIONS;
+
+    /**
+     * Array holding all open transaction objects.
+     * Position in array is "transaction id".
+     * VolatileReferenceArray would do the job here, but there is no such thing in Java yet
+     */
+    private final AtomicReferenceArray<Transaction> transactions =
+                                                        new AtomicReferenceArray<>(MAX_OPEN_TRANSACTIONS + 1);
 
     /**
      * The next id of a temporary map.
      */
     private int nextTempMapId;
+
+
+    /**
+     * Hard limit on the number of concurrently opened transactions
+     */
+    // TODO: introduce constructor parameter instead of a static field, driven by URL parameter
+    private static final int MAX_OPEN_TRANSACTIONS = 65535;
+
+
 
     /**
      * Create a new transaction store.
@@ -113,25 +149,54 @@ public class TransactionStore {
      * If the transaction store is corrupt, this method can throw an exception,
      * in which case the store can only be used for reading.
      */
-    public synchronized void init() {
-        init = true;
-        // remove all temporary maps
-        for (String mapName : store.getMapNames()) {
-            if (mapName.startsWith("temp.")) {
-                MVMap<Object, Integer> temp = openTempMap(mapName);
-                store.removeMap(temp);
-            }
-        }
-        rwLock.writeLock().lock();
-        try {
-            if (undoLog.size() > 0) {
-                for (Long key : undoLog.keySet()) {
-                    int transactionId = getTransactionId(key);
-                    openTransactions.set(transactionId);
+    public void init() {
+        init(RollbackListener.NONE);
+    }
+
+    public synchronized void init(RollbackListener listener) {
+        if (!init) {
+            // remove all temporary maps
+            for (String mapName : store.getMapNames()) {
+                if (mapName.startsWith("temp.")) {
+                    MVMap<Object, Integer> temp = openTempMap(mapName);
+                    store.removeMap(temp);
                 }
             }
-        } finally {
-            rwLock.writeLock().unlock();
+            rwLock.writeLock().lock();
+            try {
+                if (!undoLog.isEmpty()) {
+                    Long key = undoLog.firstKey();
+                    while (key != null) {
+                        int transactionId = getTransactionId(key);
+                        if (!openTransactions.get().get(transactionId)) {
+                            Object[] data = preparedTransactions.get(transactionId);
+                            int status;
+                            String name;
+                            if (data == null) {
+                                if (undoLog.containsKey(getOperationId(transactionId, 0))) {
+                                    status = Transaction.STATUS_OPEN;
+                                } else {
+                                    status = Transaction.STATUS_COMMITTING;
+                                }
+                                name = null;
+                            } else {
+                                status = (Integer) data[0];
+                                name = (String) data[1];
+                            }
+                            long nextTxUndoKey = getOperationId(transactionId + 1, 0);
+                            Long lastUndoKey = undoLog.lowerKey(nextTxUndoKey);
+                            assert lastUndoKey != null;
+                            assert getTransactionId(lastUndoKey) == transactionId;
+                            long logId = getLogId(lastUndoKey) + 1;
+                            registerTransaction(transactionId, status, name, logId, listener);
+                            key = undoLog.ceilingKey(nextTxUndoKey);
+                        }
+                    }
+                }
+            } finally {
+                rwLock.writeLock().unlock();
+            }
+            init = true;
         }
     }
 
@@ -143,6 +208,8 @@ public class TransactionStore {
      * @param max the maximum id
      */
     public void setMaxTransactionId(int max) {
+        DataUtils.checkArgument(max <= MAX_OPEN_TRANSACTIONS,
+                "Concurrent transactions limit is too high: {0}", max);
         this.maxTransactionId = max;
     }
 
@@ -200,32 +267,21 @@ public class TransactionStore {
      * @return the list of transactions (sorted by id)
      */
     public List<Transaction> getOpenTransactions() {
+        if(!init) {
+            init();
+        }
         rwLock.readLock().lock();
         try {
-            ArrayList<Transaction> list = New.arrayList();
-            Long key = undoLog.firstKey();
-            while (key != null) {
-                int transactionId = getTransactionId(key);
-                key = undoLog.lowerKey(getOperationId(transactionId + 1, 0));
-                long logId = getLogId(key) + 1;
-                Object[] data = preparedTransactions.get(transactionId);
-                int status;
-                String name;
-                if (data == null) {
-                    if (undoLog.containsKey(getOperationId(transactionId, 0))) {
-                        status = Transaction.STATUS_OPEN;
-                    } else {
-                        status = Transaction.STATUS_COMMITTING;
+            ArrayList<Transaction> list = new ArrayList<>();
+            int transactionId = 0;
+            BitSet bitSet = openTransactions.get();
+            while((transactionId = bitSet.nextSetBit(transactionId + 1)) > 0) {
+                Transaction transaction = getTransaction(transactionId);
+                if(transaction != null) {
+                    if(transaction.getStatus() != Transaction.STATUS_CLOSED) {
+                        list.add(transaction);
                     }
-                    name = null;
-                } else {
-                    status = (Integer) data[0];
-                    name = (String) data[1];
                 }
-                Transaction t = new Transaction(this, transactionId, status,
-                        name, logId);
-                list.add(t);
-                key = undoLog.ceilingKey(getOperationId(transactionId + 1, 0));
             }
             return list;
         } finally {
@@ -245,25 +301,54 @@ public class TransactionStore {
      *
      * @return the transaction
      */
-    public synchronized Transaction begin() {
+    public Transaction begin() {
+        return begin(RollbackListener.NONE);
+    }
+
+    /**
+     * Begin a new transaction.
+     * @param listener to be notified in case of a rollback
+     *
+     * @return the transaction
+     */
+    public Transaction begin(RollbackListener listener) {
+        Transaction transaction = registerTransaction(0, Transaction.STATUS_OPEN, null, 0, listener);
+        return transaction;
+    }
+
+    private Transaction registerTransaction(int txId, int status, String name, long logId,
+                                            RollbackListener listener) {
 
         int transactionId;
-        int status;
-        if (!init) {
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_TRANSACTION_ILLEGAL_STATE,
-                    "Not initialized");
-        }
-        transactionId = openTransactions.nextClearBit(1);
-        if (transactionId > maxTransactionId) {
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_TOO_MANY_OPEN_TRANSACTIONS,
-                    "There are {0} open transactions",
-                    transactionId - 1);
-        }
-        openTransactions.set(transactionId);
-        status = Transaction.STATUS_OPEN;
-        return new Transaction(this, transactionId, status, null, 0);
+        long sequenceNo;
+        boolean success;
+        do {
+            VersionedBitSet original = openTransactions.get();
+            if (txId == 0) {
+                transactionId = original.nextClearBit(1);
+            } else {
+                transactionId = txId;
+                assert !original.get(transactionId);
+            }
+            if (transactionId > maxTransactionId) {
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_TOO_MANY_OPEN_TRANSACTIONS,
+                        "There are {0} open transactions",
+                        transactionId - 1);
+            }
+            VersionedBitSet clone = original.clone();
+            clone.set(transactionId);
+            sequenceNo = clone.getVersion() + 1;
+            clone.setVersion(sequenceNo);
+            success = openTransactions.compareAndSet(original, clone);
+        } while(!success);
+
+        Transaction transaction = new Transaction(this, transactionId, sequenceNo, status, name, logId, listener);
+
+        assert transactions.get(transactionId) == null;
+        transactions.set(transactionId, transaction);
+
+        return transaction;
     }
 
     /**
@@ -276,6 +361,7 @@ public class TransactionStore {
                 t.getName() != null) {
             Object[] v = { t.getStatus(), t.getName() };
             preparedTransactions.put(t.getId(), v);
+            t.wasStored = true;
         }
     }
 
@@ -348,23 +434,30 @@ public class TransactionStore {
      *
      * @param t the transaction
      * @param maxLogId the last log id
-     * @param oldStatus last status
+     * @param hasChanges true if there were updates within specified
+     *                   transaction (even fully rolled back),
+     *                   false if just data access
      */
-    void commit(Transaction t, long maxLogId, int oldStatus) {
+    void commit(Transaction t, long maxLogId, boolean hasChanges) {
         if (store.isClosed()) {
             return;
         }
+        int transactionId = t.transactionId;
+        // this is an atomic action that causes all changes
+        // made by this transaction, to be considered as "committed"
+        flipCommittingTransactionsBit(transactionId, true);
+
         // TODO could synchronize on blocks (100 at a time or so)
         rwLock.writeLock().lock();
         try {
             for (long logId = 0; logId < maxLogId; logId++) {
-                Long undoKey = getOperationId(t.getId(), logId);
+                Long undoKey = getOperationId(transactionId, logId);
                 Object[] op = undoLog.get(undoKey);
                 if (op == null) {
                     // partially committed: load next
                     undoKey = undoLog.ceilingKey(undoKey);
                     if (undoKey == null ||
-                            getTransactionId(undoKey) != t.getId()) {
+                            getTransactionId(undoKey) != transactionId) {
                         break;
                     }
                     logId = getLogId(undoKey) - 1;
@@ -391,8 +484,20 @@ public class TransactionStore {
             }
         } finally {
             rwLock.writeLock().unlock();
+            flipCommittingTransactionsBit(transactionId, false);
         }
-        endTransaction(t, oldStatus);
+        endTransaction(t, hasChanges);
+    }
+
+    private void flipCommittingTransactionsBit(int transactionId, boolean flag) {
+        boolean success;
+        do {
+            BitSet original = committingTransactions.get();
+            assert original.get(transactionId) != flag : flag ? "Double commit" : "Mysterious bit's disappearance";
+            BitSet clone = (BitSet) original.clone();
+            clone.set(transactionId, flag);
+            success = committingTransactions.compareAndSet(original, clone);
+        } while(!success);
     }
 
     /**
@@ -465,7 +570,7 @@ public class TransactionStore {
      * @param mapName the map name
      * @return the map
      */
-    MVMap<Object, Integer> openTempMap(String mapName) {
+    private MVMap<Object, Integer> openTempMap(String mapName) {
         MVMap.Builder<Object, Integer> mapBuilder =
                 new MVMap.Builder<Object, Integer>().
                 keyType(dataType);
@@ -473,32 +578,54 @@ public class TransactionStore {
     }
 
     /**
-     * End this transaction
+     * End this transaction. Change status to CLOSED and vacate transaction slot.
+     * Will try to commit MVStore if autocommitDelay is 0 or if database is idle
+     * and amount of unsaved changes is sizable.
      *
      * @param t the transaction
-     * @param oldStatus status of this transaction
+     * @param hasChanges false for R/O tx
      */
-    synchronized void endTransaction(Transaction t, int oldStatus) {
-        if (oldStatus == Transaction.STATUS_PREPARED) {
-            preparedTransactions.remove(t.getId());
-        }
+    synchronized void endTransaction(Transaction t, boolean hasChanges) {
+        int txId = t.transactionId;
         t.setStatus(Transaction.STATUS_CLOSED);
-        openTransactions.clear(t.transactionId);
-        if (oldStatus == Transaction.STATUS_PREPARED || store.getAutoCommitDelay() == 0) {
-            store.tryCommit();
-            return;
-        }
-        // to avoid having to store the transaction log,
-        // if there is no open transaction,
-        // and if there have been many changes, store them now
-        if (undoLog.isEmpty()) {
-            int unsaved = store.getUnsavedMemory();
-            int max = store.getAutoCommitMemory();
-            // save at 3/4 capacity
-            if (unsaved * 4 > max * 3) {
+
+        assert transactions.get(txId) == t : transactions.get(txId) + " != " + t;
+        transactions.set(txId, null);
+
+        boolean success;
+        do {
+            VersionedBitSet original = openTransactions.get();
+            assert original.get(txId);
+            VersionedBitSet clone = original.clone();
+            clone.clear(txId);
+            success = openTransactions.compareAndSet(original, clone);
+        } while(!success);
+
+        if (hasChanges) {
+            boolean wasStored = t.wasStored;
+            if (wasStored && !preparedTransactions.isClosed()) {
+                preparedTransactions.remove(txId);
+            }
+            if (wasStored || store.getAutoCommitDelay() == 0) {
                 store.tryCommit();
+            } else {
+                // to avoid having to store the transaction log,
+                // if there is no open transaction,
+                // and if there have been many changes, store them now
+                if (undoLog.isEmpty()) {
+                    int unsaved = store.getUnsavedMemory();
+                    int max = store.getAutoCommitMemory();
+                    // save at 3/4 capacity
+                    if (unsaved * 4 > max * 3) {
+                        store.tryCommit();
+                    }
+                }
             }
         }
+    }
+
+    Transaction getTransaction(int transactionId) {
+        return transactions.get(transactionId);
     }
 
     /**
@@ -530,13 +657,15 @@ public class TransactionStore {
                 if (map != null) {
                     Object key = op[1];
                     VersionedValue oldValue = (VersionedValue) op[2];
+                    VersionedValue currentValue;
                     if (oldValue == null) {
                         // this transaction added the value
-                        map.remove(key);
+                        currentValue = map.remove(key);
                     } else {
                         // this transaction updated the value
-                        map.put(key, oldValue);
+                        currentValue = map.put(key, oldValue);
                     }
+                    t.listener.onRollback(map, key, currentValue, oldValue);
                 }
                 undoLog.remove(undoKey);
             }
@@ -561,22 +690,19 @@ public class TransactionStore {
             private long logId = maxLogId - 1;
             private Change current;
 
-            {
-                fetchNext();
-            }
-
             private void fetchNext() {
                 rwLock.writeLock().lock();
                 try {
+                    int transactionId = t.getId();
                     while (logId >= toLogId) {
-                        Long undoKey = getOperationId(t.getId(), logId);
+                        Long undoKey = getOperationId(transactionId, logId);
                         Object[] op = undoLog.get(undoKey);
                         logId--;
                         if (op == null) {
                             // partially rolled back: load previous
                             undoKey = undoLog.floorKey(undoKey);
                             if (undoKey == null ||
-                                    getTransactionId(undoKey) != t.getId()) {
+                                    getTransactionId(undoKey) != transactionId) {
                                 break;
                             }
                             logId = getLogId(undoKey);
@@ -584,15 +710,9 @@ public class TransactionStore {
                         }
                         int mapId = ((Integer) op[0]).intValue();
                         MVMap<Object, VersionedValue> m = openMap(mapId);
-                        if (m == null) {
-                            // map was removed later on
-                        } else {
-                            current = new Change();
-                            current.mapName = m.getName();
-                            current.key = op[1];
+                        if (m != null) { // could be null if map was removed later on
                             VersionedValue oldValue = (VersionedValue) op[2];
-                            current.value = oldValue == null ?
-                                    null : oldValue.value;
+                            current = new Change(m.getName(), op[1], oldValue == null ? null : oldValue.value);
                             return;
                         }
                     }
@@ -604,16 +724,19 @@ public class TransactionStore {
 
             @Override
             public boolean hasNext() {
+                if(current == null) {
+                    fetchNext();
+                }
                 return current != null;
             }
 
             @Override
             public Change next() {
-                if (current == null) {
+                if(!hasNext()) {
                     throw DataUtils.newUnsupportedOperationException("no data");
                 }
                 Change result = current;
-                fetchNext();
+                current = null;
                 return result;
             }
 
@@ -633,19 +756,53 @@ public class TransactionStore {
         /**
          * The name of the map where the change occurred.
          */
-        public String mapName;
+        public final String mapName;
 
         /**
          * The key.
          */
-        public Object key;
+        public final Object key;
 
         /**
          * The value.
          */
-        public Object value;
+        public final Object value;
+
+        public Change(String mapName, Object key, Object value) {
+            this.mapName = mapName;
+            this.key = key;
+            this.value = value;
+        }
     }
 
+    /**
+     * This listener can be registered with the transaction to be notified of
+     * every compensating change during transaction rollback.
+     * Normally this is not required, if no external resources were modified,
+     * because state of all transactional maps will be restored automatically.
+     * Only state of external resources, possibly modified by triggers
+     * need to be restored.
+     */
+    public interface RollbackListener {
+
+        RollbackListener NONE = new RollbackListener() {
+            @Override
+            public void onRollback(MVMap<Object, VersionedValue> map, Object key,
+                                    VersionedValue existingValue, VersionedValue restoredValue) {
+                // do nothing
+            }
+        };
+
+        /**
+         * Notified of a single map change (add/update/remove)
+         * @param map modified
+         * @param key of the modified entry
+         * @param existingValue value in the map (null if delete is rolled back)
+         * @param restoredValue value to be restored (null if add is rolled back)
+         */
+        void onRollback(MVMap<Object,VersionedValue> map, Object key,
+                        VersionedValue existingValue, VersionedValue restoredValue);
+    }
 
     /**
      * A data type that contains an array of objects with the specified data

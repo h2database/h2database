@@ -92,7 +92,8 @@ public class TransactionStore {
      * Position in array is "transaction id".
      * VolatileReferenceArray would do the job here, but there is no such thing in Java yet
      */
-    private final AtomicReferenceArray<Transaction> transactions = new AtomicReferenceArray<>(MAX_OPEN_TRANSACTIONS + 1);
+    private final AtomicReferenceArray<Transaction> transactions =
+                                                        new AtomicReferenceArray<>(MAX_OPEN_TRANSACTIONS + 1);
 
     /**
      * The next id of a temporary map.
@@ -577,7 +578,9 @@ public class TransactionStore {
     }
 
     /**
-     * End this transaction
+     * End this transaction. Change status to CLOSED and vacate transaction slot.
+     * Will try to commit MVStore if autocommitDelay is 0 or if database is idle
+     * and amount of unsaved changes is sizable.
      *
      * @param t the transaction
      * @param hasChanges false for R/O tx

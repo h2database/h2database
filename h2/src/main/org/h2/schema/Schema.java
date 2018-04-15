@@ -128,6 +128,18 @@ public class Schema extends DbObjectBase {
     }
 
     @Override
+    public ArrayList<DbObject> getChildren() {
+        ArrayList<DbObject> children = New.arrayList();
+        ArrayList<Right> rights = database.getAllRights();
+        for (Right right : rights) {
+            if (right.getGrantedObject() == this) {
+                children.add(right);
+            }
+        }
+        return children;
+    }
+
+    @Override
     public void removeChildrenAndResources(Session session) {
         while (triggers != null && triggers.size() > 0) {
             TriggerObject obj = (TriggerObject) triggers.values().toArray()[0];

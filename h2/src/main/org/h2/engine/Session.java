@@ -648,6 +648,17 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      */
     public void commit(boolean ddl) {
         checkCommitRollback();
+
+        int rowCount = getDatabase().getSettings().analyzeSample / 10;
+        if (tablesToAnalyze != null) {
+            for (Table table : tablesToAnalyze) {
+                Analyze.analyzeTable(this, table, rowCount, false);
+            }
+            // analyze can lock the meta
+            database.unlockMeta(this);
+        }
+        tablesToAnalyze = null;
+
         currentTransactionName = null;
         transactionStart = 0;
         if (transaction != null) {
@@ -699,16 +710,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                 autoCommitAtTransactionEnd = false;
             }
         }
-
-        int rows = getDatabase().getSettings().analyzeSample / 10;
-        if (tablesToAnalyze != null) {
-            for (Table table : tablesToAnalyze) {
-                Analyze.analyzeTable(this, table, rows, false);
-            }
-            // analyze can lock the meta
-            database.unlockMeta(this);
-        }
-        tablesToAnalyze = null;
 
         endTransaction();
     }

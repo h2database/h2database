@@ -15,7 +15,6 @@ import java.sql.Types;
 import java.util.Arrays;
 import java.util.Properties;
 
-import org.h2.command.CommandInterface;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SessionRemote;
@@ -23,7 +22,6 @@ import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
-import org.h2.result.ResultInterface;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -35,11 +33,6 @@ public class JdbcDatabaseMetaData extends TraceObject implements
         DatabaseMetaData, JdbcDatabaseMetaDataBackwardsCompat {
 
     private final JdbcConnection conn;
-
-    /**
-     * Whether database has support for synonyms ({@code null} if not yet known).
-     */
-    private Boolean hasSynonyms;
 
     JdbcDatabaseMetaData(JdbcConnection conn, Trace trace, int id) {
         setTrace(trace, TraceObject.DATABASE_META_DATA, id);
@@ -116,30 +109,9 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     }
 
     private boolean hasSynonyms() {
-        Boolean hasSynonyms = this.hasSynonyms;
-        if (hasSynonyms == null) {
-            SessionInterface si = conn.getSession();
-            if (si instanceof SessionRemote) {
-                SessionRemote sr = (SessionRemote) si;
-                int clientVersion = sr.getClientVersion();
-                if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_17) {
-                    hasSynonyms = true;
-                } else if (clientVersion <= Constants.TCP_PROTOCOL_VERSION_15) {
-                    hasSynonyms = false;
-                } else { // 1.4.194-1.4.196
-                    CommandInterface c = sr.prepareCommand("CALL H2VERSION()", Integer.MAX_VALUE);
-                    ResultInterface result = c.executeQuery(0, false);
-                    result.next();
-                    String s = result.currentRow()[0].getString();
-                    result.close();
-                    hasSynonyms = "1.4.196".equals(s);
-                }
-            } else {
-                hasSynonyms = true;
-            }
-            this.hasSynonyms = hasSynonyms;
-        }
-        return hasSynonyms;
+        SessionInterface si = conn.getSession();
+        return !(si instanceof SessionRemote)
+                || ((SessionRemote) si).getClientVersion() >= Constants.TCP_PROTOCOL_VERSION_17;
     }
 
     /**

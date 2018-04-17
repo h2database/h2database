@@ -4475,6 +4475,20 @@ public class Parser {
                         precision = displaySize = ValueTimestampTimeZone.getDisplaySize(originalScale);
                         break;
                     }
+                } else if (original.equals("DATETIME")) {
+                    if (readIf("(")) {
+                        originalScale = readPositiveInt();
+                        if (originalScale > ValueTime.MAXIMUM_SCALE) {
+                            throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(originalScale));
+                        }
+                        read(")");
+                        scale = originalScale;
+                        original = original + '(' + originalScale + ')';
+                        precision = displaySize = ValueTimestamp.getDisplaySize(originalScale);
+                    }
+                } else if (original.equals("SMALLDATETIME")) {
+                    scale = 0;
+                    precision = displaySize = ValueTimestamp.getDisplaySize(0);
                 }
             } else if (readIf("(")) {
                 if (!readIf("MAX")) {
@@ -4561,7 +4575,6 @@ public class Parser {
             throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION,
                     Integer.toString(scale), Long.toString(precision));
         }
-
 
         Column column = new Column(columnName, type, precision, scale,
             displaySize, enumerators);

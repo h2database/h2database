@@ -2671,11 +2671,12 @@ DATE
 
 "Data Types","TIMESTAMP Type","
 { TIMESTAMP [ ( precisionInt ) ] [ WITHOUT TIME ZONE ]
-    | DATETIME | SMALLDATETIME }
+    | DATETIME [ ( precisionInt ) ] | SMALLDATETIME }
 ","
 The timestamp data type. The format is yyyy-MM-dd hh:mm:ss[.nnnnnnnnn].
 Stored internally as a BCD-encoded date, and nanoseconds since midnight.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
+Fractional seconds precision of SMALLDATETIME is always 0 and cannot be specified.
 
 Mapped to ""java.sql.Timestamp"" (""java.util.Date"" may be used too).
 ""java.time.LocalDateTime"" is also supported on Java 8 and later versions.

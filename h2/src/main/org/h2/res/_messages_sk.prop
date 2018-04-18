@@ -140,6 +140,7 @@
 90107=Nemôžem zmazať {0} lebo {1} zavisí na {0}
 90108=Nedostatok pamäte.
 90109=Pohľad (view) {0} je nesprávny: {1}
+90110=#Comparing ARRAY to scalar value
 90111=Chyba prístupu k linkovanej tabuľke SQL príkazom {0}, dôvod: {1}
 90112=Riadok nenájdený pri pokuse o vymazanie cez index {0}
 90113=Nepodporované nastavenie spojenia {0}

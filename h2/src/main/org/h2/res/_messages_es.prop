@@ -140,6 +140,7 @@
 90107=Imposible eliminar {0} debido a que {1} depende de él.
 90108=Memoria Insuficiente - Out of memory. Tamaño: {0}
 90109=La Vista {0} es invalida: {1}
+90110=#Comparing ARRAY to scalar value
 90111=Error accediendo Linked Table con sentencia SQL {0}, causa: {1}
 90112=Fila no encontrada mientras se intentaba borrar del indice {0}
 90113=Parametro de conexión No soportado {0}

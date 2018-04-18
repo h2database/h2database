@@ -140,6 +140,7 @@
 90107=Nelze odstranit {0}, protože {1} na něm závisí
 90108=Nedostatek paměti.
 90109=Pohled {0} je neplatný: {1}
+90110=#Comparing ARRAY to scalar value
 90111=Chyba přístupu propojené tabulky s SQL příkazem {0}, příčina: {1}
 90112=Řádek nebyl nalezen při pokusu o smazání z indexu {0}
 90113=Nepodporované nastavení připojení {0}

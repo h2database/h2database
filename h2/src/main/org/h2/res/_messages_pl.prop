@@ -140,6 +140,7 @@
 90107=Nie można skasować {0} ponieważ zależy od {1}
 90108=Brak pamięci.
 90109=Widok {0} jest nieprawidłowy
+90110=#Comparing ARRAY to scalar value
 90111=Błąd dostępu do tabeli skrzyżowań przy pomocy zapytania SQL {0}, błąd: {1}
 90112=Rekord nie znaleziony przy probie kasowania z indeksu {0}
 90113=Nie wspierana opcja połączenia {0}

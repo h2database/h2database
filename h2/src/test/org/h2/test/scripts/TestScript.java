@@ -19,7 +19,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
-
 import org.h2.engine.SysProperties;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
@@ -108,7 +107,8 @@ public class TestScript extends TestBase {
                 "dropSchema" }) {
             testScript("ddl/" + s + ".sql");
         }
-        for (String s : new String[] { "insertIgnore", "mergeUsing", "script", "with" }) {
+        for (String s : new String[] { "error_reporting", "insertIgnore",
+                "mergeUsing", "script", "with" }) {
             testScript("dml/" + s + ".sql");
         }
         for (String s : new String[] { "avg", "bit-and", "bit-or", "count",

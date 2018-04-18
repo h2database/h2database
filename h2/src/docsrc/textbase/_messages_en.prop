@@ -140,6 +140,7 @@
 90107=Cannot drop {0} because {1} depends on it
 90108=Out of memory.
 90109=View {0} is invalid: {1}
+90110=Comparing ARRAY to scalar value
 90111=Error accessing linked table with SQL statement {0}, cause: {1}
 90112=Row not found when trying to delete from index {0}
 90113=Unsupported connection setting {0}

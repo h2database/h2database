@@ -140,6 +140,7 @@
 90107=Não pode apagar {0} por que depende de {1}
 90108=#Out of memory.
 90109=Vista {0} é inválida: {1}
+90110=#Comparing ARRAY to scalar value
 90111=Erro ao acessar a tabela lincada com a instrução SQL {0}, causa: {1}
 90112=A linha não foi encontrada ao tentar eliminar apartir do índice {0}
 90113=Não suporta a definição de conecção {0}

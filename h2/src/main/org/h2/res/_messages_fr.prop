@@ -140,6 +140,7 @@
 90107=Impossible de supprimer {0} car {1} dépend de lui
 90108=Mémoire insuffisante.
 90109=La vue {0} est invalide: {1}
+90110=#Comparing ARRAY to scalar value
 90111=Erreur lors de l'accès à la table liée à l'aide de l'instruction SQL {0}, cause: {1}
 90112=Ligne non trouvée lors de la tentative de suppression à partir de l'index {0}
 90113=Paramétrage de connexion non pris en charge {0}

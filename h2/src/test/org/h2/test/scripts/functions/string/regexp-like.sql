@@ -4,7 +4,7 @@
 --
 
 call select 1 from dual where regexp_like('x', 'x', '\');
-> exception
+> exception INVALID_VALUE_2
 
 select x from dual where REGEXP_LIKE('A', '[a-z]', 'i');
 >> 1

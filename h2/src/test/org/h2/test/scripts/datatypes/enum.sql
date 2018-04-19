@@ -73,13 +73,13 @@ select * from card where rank = 5;
 --- ENUM edge cases
 
 insert into card (rank, suit) values(6, ' ');
-> exception
+> exception ENUM_VALUE_NOT_PERMITTED
 
 alter table card alter column suit enum('hearts', 'clubs', 'spades', 'diamonds', 'clubs');
-> exception
+> exception ENUM_DUPLICATE
 
 alter table card alter column suit enum('hearts', 'clubs', 'spades', 'diamonds', '');
-> exception
+> exception ENUM_EMPTY
 
 drop table card;
 > ok
@@ -118,7 +118,7 @@ insert into card (rank, suit) values (0, 'clubs'), (3, 'hearts'), (1, 'clubs');
 > update count: 3
 
 insert into card (rank, suit) values (0, 'clubs');
-> exception
+> exception DUPLICATE_KEY_1
 
 select rank from card where suit = 'clubs';
 > RANK

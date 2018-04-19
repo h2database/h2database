@@ -84,7 +84,7 @@ INSERT INTO PARENT VALUES(1);
 > update count: 1
 
 SELECT * FROM PARENT P LEFT OUTER JOIN CHILD C ON C.PARENTID=P.ID;
-> exception
+> exception COLUMN_NOT_FOUND_1
 
 DROP TABLE PARENT, CHILD;
 > ok
@@ -380,7 +380,7 @@ select * from left_hand left join right_hand on left_hand.id=right_hand.id where
 
 -- h2: 0 (2 cols); postgresql: 0 (1 col), mysql: exception; derby, hsqldb: no natural join
 select * from left_hand natural join right_hand where left_hand.id=1 having right_hand.id=2;
-> exception
+> exception MUST_GROUP_BY_COLUMN_1
 
 -- h2, mysql, hsqldb: 0 rows; postgresql, derby: exception
 select * from left_hand left outer join right_hand on left_hand.id=right_hand.id where left_hand.id=1 group by left_hand.id having right_hand.id=2;

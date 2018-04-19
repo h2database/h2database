@@ -52,7 +52,7 @@ CREATE TABLE TEST(A INT NOT NULL, B INT);
 
 -- column B may be null
 ALTER TABLE TEST ADD (CONSTRAINT PK_B PRIMARY KEY (B));
-> exception
+> exception COLUMN_MUST_NOT_BE_NULLABLE_1
 
 ALTER TABLE TEST ADD (CONSTRAINT PK_A PRIMARY KEY (A));
 > ok
@@ -70,16 +70,16 @@ SELECT * FROM TEST;
 > rows: 1
 
 INSERT INTO TEST VALUES (11, 20, 30, 40);
-> exception
+> exception DUPLICATE_KEY_1
 
 INSERT INTO TEST VALUES (10, 12, 30, 40);
-> exception
+> exception DUPLICATE_KEY_1
 
 INSERT INTO TEST VALUES (10, 20, 1, 40);
-> exception
+> exception DUPLICATE_KEY_1
 
 INSERT INTO TEST VALUES (10, 20, 30, 14);
-> exception
+> exception DUPLICATE_KEY_1
 
 INSERT INTO TEST VALUES (10, 20, 30, 40);
 > update count: 1

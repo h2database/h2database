@@ -4,7 +4,7 @@
 --
 
 call regexp_replace('x', 'x', '\');
-> exception
+> exception LIKE_ESCAPE_ERROR_1
 
 CALL REGEXP_REPLACE('abckaboooom', 'o+', 'o');
 >> abckabom

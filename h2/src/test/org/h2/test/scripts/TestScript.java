@@ -11,6 +11,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.PrintStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,7 +20,10 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
+import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
@@ -454,16 +459,30 @@ public class TestScript extends TestBase {
         return buff.toString();
     }
 
-    private void writeException(String sql, SQLException e) throws Exception {
-        writeResult(sql, "exception", e);
+    /** Convert the error code to a symbolic name from ErrorCode. */
+    private static final Map<Integer, String> ERROR_CODE_TO_NAME = new HashMap<>();
+    static {
+        try {
+            for (Field field : ErrorCode.class.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers())) {
+                    ERROR_CODE_TO_NAME.put(field.getInt(null), field.getName());
+                }
+            }
+        } catch (IllegalAccessException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
-    private void writeResult(String sql, String s, SQLException e) throws Exception {
-        writeResult(sql, s, e, "> ");
+    private void writeException(String sql, SQLException ex) throws Exception {
+        writeResult(sql, "exception " + ERROR_CODE_TO_NAME.get(ex.getErrorCode()), ex);
     }
 
-    private void writeResult(String sql, String s, SQLException e, String prefix) throws Exception {
-        assertKnownException(sql, e);
+    private void writeResult(String sql, String s, SQLException ex) throws Exception {
+        writeResult(sql, s, ex, "> ");
+    }
+
+    private void writeResult(String sql, String s, SQLException ex, String prefix) throws Exception {
+        assertKnownException(sql, ex);
         s = (prefix + s).trim();
         String compare = readLine();
         if (compare != null && compare.startsWith(">")) {
@@ -472,11 +491,11 @@ public class TestScript extends TestBase {
                     return;
                 }
                 errors.append(fileName).append('\n');
-                errors.append("line: ").append(outputLineNo).append('\n');
+                errors.append("line: ").append(in.getLineNumber()).append('\n');
                 errors.append("exp: ").append(compare).append('\n');
                 errors.append("got: ").append(s).append('\n');
-                if (e != null) {
-                    TestBase.logError("script", e);
+                if (ex != null) {
+                    TestBase.logError("script", ex);
                 }
                 TestBase.logErrorMessage(errors.toString());
                 if (failFast) {

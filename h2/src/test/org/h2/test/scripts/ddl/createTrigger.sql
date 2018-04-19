@@ -10,7 +10,7 @@ CREATE FORCE TRIGGER T_COUNT BEFORE INSERT ON COUNT CALL "com.Unknown";
 > ok
 
 INSERT INTO COUNT VALUES(NULL);
-> exception
+> exception ERROR_CREATING_TRIGGER_OBJECT_3
 
 DROP TRIGGER T_COUNT;
 > ok
@@ -22,7 +22,7 @@ insert into items values(DEFAULT);
 > update count: 1
 
 DROP TABLE COUNT;
-> exception
+> exception CANNOT_DROP_2
 
 insert into items values(DEFAULT);
 > update count: 1
@@ -47,7 +47,7 @@ CREATE FORCE TRIGGER T_COUNT BEFORE INSERT OR UPDATE ON COUNT CALL "com.Unknown"
 > ok
 
 INSERT INTO COUNT VALUES(NULL);
-> exception
+> exception ERROR_CREATING_TRIGGER_OBJECT_3
 
 UPDATE COUNT SET X=2 WHERE X=1;
-> exception
+> exception ERROR_CREATING_TRIGGER_OBJECT_3

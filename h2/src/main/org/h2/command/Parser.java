@@ -5082,7 +5082,9 @@ public class Parser {
             } else {
                 throw getSyntaxError();
             }
-        } while (readIf(","));
+        } while (readIf(",")
+                || (database.getMode().getEnum() == ModeEnum.PostgreSQL
+                        && readIf("OR")));
         read("ON");
         String tableName = readIdentifierWithSchema();
         checkSchema(schema);

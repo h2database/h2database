@@ -6,7 +6,6 @@
 package org.h2.engine;
 
 import java.util.HashMap;
-
 import org.h2.message.DbException;
 import org.h2.util.Utils;
 

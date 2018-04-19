@@ -1391,33 +1391,6 @@ drop table test;
 select rtrim() from dual;
 > exception INVALID_PARAMETER_COUNT_2
 
-CREATE TABLE COUNT(X INT);
-> ok
-
-CREATE FORCE TRIGGER T_COUNT BEFORE INSERT ON COUNT CALL "com.Unknown";
-> ok
-
-INSERT INTO COUNT VALUES(NULL);
-> exception ERROR_CREATING_TRIGGER_OBJECT_3
-
-DROP TRIGGER T_COUNT;
-> ok
-
-CREATE TABLE ITEMS(ID INT CHECK ID < SELECT MAX(ID) FROM COUNT);
-> ok
-
-insert into items values(DEFAULT);
-> update count: 1
-
-DROP TABLE COUNT;
-> exception CANNOT_DROP_2
-
-insert into items values(DEFAULT);
-> update count: 1
-
-drop table items, count;
-> ok
-
 CREATE TABLE TEST(ID INT PRIMARY KEY, LABEL CHAR(20), LOOKUP CHAR(30));
 > ok
 

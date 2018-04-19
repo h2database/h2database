@@ -166,6 +166,7 @@ public class Database implements DataHandler {
     private final String cacheType;
     private final String accessModeData;
     private boolean referentialIntegrity = true;
+    /** ie. the MVCC setting */
     private boolean multiVersion;
     private DatabaseCloser closeOnExit;
     private Mode mode = Mode.getRegular();
@@ -279,13 +280,13 @@ public class Database implements DataHandler {
                 TraceSystem.DEFAULT_TRACE_LEVEL_SYSTEM_OUT);
         this.cacheType = StringUtils.toUpperEnglish(
                 ci.removeProperty("CACHE_TYPE", Constants.CACHE_TYPE_DEFAULT));
-        openDatabase(traceLevelFile, traceLevelSystemOut, closeAtVmShutdown);
+        openDatabase(traceLevelFile, traceLevelSystemOut, closeAtVmShutdown, ci);
     }
 
     private void openDatabase(int traceLevelFile, int traceLevelSystemOut,
-            boolean closeAtVmShutdown) {
+            boolean closeAtVmShutdown, ConnectionInfo ci) {
         try {
-            open(traceLevelFile, traceLevelSystemOut);
+            open(traceLevelFile, traceLevelSystemOut, ci);
             if (closeAtVmShutdown) {
                 try {
                     closeOnExit = new DatabaseCloser(this, 0, true);
@@ -608,7 +609,7 @@ public class Database implements DataHandler {
         return dbSettings.databaseToUpper ? StringUtils.toUpperEnglish(n) : n;
     }
 
-    private synchronized void open(int traceLevelFile, int traceLevelSystemOut) {
+    private synchronized void open(int traceLevelFile, int traceLevelSystemOut, ConnectionInfo ci) {
         if (persistent) {
             String dataFileName = databaseName + Constants.SUFFIX_OLD_DATABASE_FILE;
             boolean existsData = FileUtils.exists(dataFileName);
@@ -631,6 +632,9 @@ public class Database implements DataHandler {
             }
             if (existsPage && !existsMv) {
                 dbSettings.mvStore = false;
+                // Need to re-init this because the first time we do it we don't
+                // know if we have an mvstore or a pagestore.
+                multiVersion = ci.getProperty("MVCC", false);
             }
             if (readOnly) {
                 if (traceLevelFile >= TraceSystem.DEBUG) {

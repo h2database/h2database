@@ -7,7 +7,7 @@ CREATE TABLE test (id INT NOT NULL, name VARCHAR);
 > ok
 
 select * from test where id = (1, 2);
-> exception
+> exception COMPARING_ARRAY_TO_SCALAR
 
 drop table test;
 > ok

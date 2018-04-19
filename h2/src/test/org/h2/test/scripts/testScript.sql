@@ -213,7 +213,7 @@ insert into test values (2, null);
 > update count: 1
 
 update test set pid = 1 where id = 2;
-> exception
+> exception REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1
 
 drop table test;
 > ok
@@ -222,7 +222,7 @@ create table test(name varchar(255));
 > ok
 
 select * from test union select * from test order by test.name;
-> exception
+> exception ORDER_BY_NOT_IN_RESULT
 
 insert into test values('a'), ('b'), ('c');
 > update count: 3
@@ -305,7 +305,7 @@ drop table test;
 > ok
 
 select x from dual order by y.x;
-> exception
+> exception COLUMN_NOT_FOUND_1
 
 create table test(id int primary key, name varchar(255), row_number int);
 > ok
@@ -361,7 +361,7 @@ drop table test;
 > ok
 
 select 2^2;
-> exception
+> exception SYNTAX_ERROR_1
 
 select * from dual where x in (select x from dual group by x order by max(x));
 > X
@@ -370,7 +370,7 @@ select * from dual where x in (select x from dual group by x order by max(x));
 > rows (ordered): 1
 
 create table test(d decimal(1, 2));
-> exception
+> exception INVALID_VALUE_SCALE_PRECISION
 
 call truncate_value('Test 123', 4, false);
 > 'Test'
@@ -379,7 +379,7 @@ call truncate_value('Test 123', 4, false);
 > rows: 1
 
 call truncate_value(1234567890.123456789, 4, false);
-> exception
+> exception NUMERIC_VALUE_OUT_OF_RANGE_1
 
 call truncate_value(1234567890.123456789, 4, true);
 > 1234567890.1234567
@@ -501,7 +501,7 @@ create table test(id x);
 > ok
 
 insert into test values(null);
-> exception
+> exception NULL_NOT_ALLOWED
 
 drop table test;
 > ok
@@ -587,7 +587,7 @@ create view x as select * from test;
 > ok
 
 drop table test restrict;
-> exception
+> exception CANNOT_DROP_2
 
 drop table test cascade;
 > ok
@@ -631,7 +631,7 @@ delete from a where x = 0 and y is null;
 > update count: 1
 
 delete from a where x = 0 and y = 0;
-> exception
+> exception REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1
 
 drop table b;
 > ok
@@ -648,7 +648,7 @@ create table test(a int primary key, b int references(a));
 > ok
 
 merge into test values(1, 2);
-> exception
+> exception REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1
 
 drop table test;
 > ok
@@ -825,13 +825,13 @@ create table test(id identity);
 > ok
 
 set password test;
-> exception
+> exception COLUMN_NOT_FOUND_1
 
 alter user sa set password test;
-> exception
+> exception COLUMN_NOT_FOUND_1
 
 comment on table test is test;
-> exception
+> exception COLUMN_NOT_FOUND_1
 
 select 1 from test a where 1 in(select 1 from test b where b.id in(select 1 from test c where c.id=a.id));
 > 1
@@ -851,7 +851,7 @@ select @n := case when x = 1 then 1 else @n * x end f from system_range(1, 4);
 > rows: 4
 
 select * from (select "x" from dual);
-> exception
+> exception COLUMN_NOT_FOUND_1
 
 select * from(select 1 from system_range(1, 2) group by sin(x) order by sin(x));
 > 1
@@ -867,13 +867,13 @@ create table child(id int references parent(id)) as select 1;
 > ok
 
 delete from parent;
-> exception
+> exception REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1
 
 drop table parent, child;
 > ok
 
 create domain integer as varchar;
-> exception
+> exception USER_DATA_TYPE_ALREADY_EXISTS_1
 
 create domain int as varchar;
 > ok
@@ -903,13 +903,13 @@ insert into test values(0, 0), (1, NULL), (2, 1), (3, 3), (4, 3);
 > update count: 5
 
 delete from test where id = 3;
-> exception
+> exception REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1
 
 delete from test where id = 0;
 > update count: 1
 
 delete from test where id = 1;
-> exception
+> exception REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1
 
 drop table test;
 > ok
@@ -986,13 +986,13 @@ select 1 as id, id as b, count(*)  from test group by id;
 > rows: 2
 
 select id+1 as x, count(*) from test group by -x;
-> exception
+> exception COLUMN_NOT_FOUND_1
 
 select id+1 as x, count(*) from test group by x having x>2;
-> exception
+> exception MUST_GROUP_BY_COLUMN_1
 
 select id+1 as x, count(*) from test group by 1;
-> exception
+> exception MUST_GROUP_BY_COLUMN_1
 
 drop table test;
 > ok
@@ -1141,7 +1141,7 @@ CREATE ROLE TEST_A;
 > ok
 
 GRANT TEST_A TO TEST_A;
-> exception
+> exception ROLE_ALREADY_GRANTED_1
 
 CREATE ROLE TEST_B;
 > ok
@@ -1150,7 +1150,7 @@ GRANT TEST_A TO TEST_B;
 > ok
 
 GRANT TEST_B TO TEST_A;
-> exception
+> exception ROLE_ALREADY_GRANTED_1
 
 DROP ROLE TEST_A;
 > ok
@@ -1194,7 +1194,7 @@ drop table test;
 > ok
 
 alter table information_schema.help rename to information_schema.help2;
-> exception
+> exception FEATURE_NOT_SUPPORTED_1
 
 help abc;
 > ID SECTION TOPIC SYNTAX TEXT
@@ -1359,7 +1359,7 @@ CREATE ROLE X;
 > ok
 
 GRANT X TO X;
-> exception
+> exception ROLE_ALREADY_GRANTED_1
 
 CREATE ROLE Y;
 > ok
@@ -1374,7 +1374,7 @@ DROP ROLE X;
 > ok
 
 select top sum(1) 0 from dual;
-> exception
+> exception SYNTAX_ERROR_1
 
 create table test(id int primary key, name varchar) as select 1, 'Hello World';
 > ok
@@ -1389,7 +1389,7 @@ drop table test;
 > ok
 
 select rtrim() from dual;
-> exception
+> exception INVALID_PARAMETER_COUNT_2
 
 CREATE TABLE COUNT(X INT);
 > ok
@@ -1398,7 +1398,7 @@ CREATE FORCE TRIGGER T_COUNT BEFORE INSERT ON COUNT CALL "com.Unknown";
 > ok
 
 INSERT INTO COUNT VALUES(NULL);
-> exception
+> exception ERROR_CREATING_TRIGGER_OBJECT_3
 
 DROP TRIGGER T_COUNT;
 > ok
@@ -1410,7 +1410,7 @@ insert into items values(DEFAULT);
 > update count: 1
 
 DROP TABLE COUNT;
-> exception
+> exception CANNOT_DROP_2
 
 insert into items values(DEFAULT);
 > update count: 1
@@ -1435,13 +1435,13 @@ DROP TABLE TEST;
 > ok
 
 call 'a' regexp 'Ho.*\';
-> exception
+> exception LIKE_ESCAPE_ERROR_1
 
 set @t = 0;
 > ok
 
 call set(1, 2);
-> exception
+> exception CAN_ONLY_ASSIGN_TO_VARIABLE_1
 
 select x, set(@t, ifnull(@t, 0) + x) from system_range(1, 3);
 > X SET(@T, (IFNULL(@T, 0) + X))
@@ -1543,7 +1543,7 @@ CREATE TABLE TEST(ID INTEGER NOT NULL, ID2 INTEGER DEFAULT 0);
 > ok
 
 ALTER TABLE test ALTER COLUMN ID2 RENAME TO ID;
-> exception
+> exception DUPLICATE_COLUMN_NAME_1
 
 drop table test;
 > ok
@@ -1630,7 +1630,7 @@ select * from dual where x = 1000000000000000000000;
 > rows: 0
 
 select * from dual where x = 'Hello';
-> exception
+> exception DATA_CONVERSION_ERROR_1
 
 create table test(id smallint primary key);
 > ok
@@ -1792,7 +1792,7 @@ ALTER TABLE A SET REFERENTIAL_INTEGRITY FALSE;
 > ok
 
 ALTER TABLE A SET REFERENTIAL_INTEGRITY TRUE CHECK;
-> exception
+> exception REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1
 
 DROP TABLE A;
 > ok
@@ -1813,7 +1813,7 @@ INSERT INTO CHILD VALUES(2);
 > update count: 1
 
 ALTER TABLE CHILD ADD CONSTRAINT CP FOREIGN KEY(PID) REFERENCES PARENT(ID);
-> exception
+> exception REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1
 
 UPDATE CHILD SET PID=1;
 > update count: 1
@@ -1831,7 +1831,7 @@ INSERT INTO A VALUES(1, 2);
 > update count: 1
 
 ALTER TABLE A ADD CONSTRAINT AC FOREIGN KEY(SK) REFERENCES A(ID);
-> exception
+> exception REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1
 
 DROP TABLE A;
 > ok
@@ -1843,7 +1843,7 @@ INSERT INTO TEST VALUES(0), (1), (100);
 > update count: 3
 
 ALTER TABLE TEST ADD CONSTRAINT T CHECK ID<100;
-> exception
+> exception CHECK_CONSTRAINT_VIOLATED_1
 
 UPDATE TEST SET ID=20 WHERE ID=100;
 > update count: 1
@@ -1909,7 +1909,7 @@ insert into test values(1, 1);
 > update count: 1
 
 insert into test values(2, 3);
-> exception
+> exception REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1
 
 set autocommit false;
 > ok
@@ -1927,7 +1927,7 @@ set referential_integrity true;
 > ok
 
 insert into test values(7, 7), (8, 9);
-> exception
+> exception REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1
 
 set autocommit true;
 > ok
@@ -2080,7 +2080,7 @@ create table d(d double, r real);
 > ok
 
 insert into d(d, d, r) values(1.1234567890123456789, 1.1234567890123456789, 3);
-> exception
+> exception DUPLICATE_COLUMN_NAME_1
 
 insert into d values(1.1234567890123456789, 1.1234567890123456789);
 > update count: 1
@@ -2266,7 +2266,7 @@ drop all objects;
 > ok
 
 call abc;
-> exception
+> exception COLUMN_NOT_FOUND_1
 
 create table FOO(id integer primary key);
 > ok
@@ -2281,7 +2281,7 @@ truncate table bar;
 > ok
 
 truncate table foo;
-> exception
+> exception CANNOT_TRUNCATE_1
 
 drop table bar, foo;
 > ok
@@ -2555,7 +2555,7 @@ insert into content values(0, 0), (0, 0);
 > update count: 2
 
 insert into content values(0, 1);
-> exception
+> exception CHECK_CONSTRAINT_VIOLATED_1
 
 insert into content values(1, 1), (2, 2);
 > update count: 2
@@ -2564,7 +2564,7 @@ insert into content values(2, 1);
 > update count: 1
 
 insert into content values(2, 3);
-> exception
+> exception CHECK_CONSTRAINT_VIOLATED_1
 
 drop table content;
 > ok
@@ -2640,7 +2640,7 @@ select id/(10*100) from test group by id/(10*100);
 > rows: 1
 
 select id/1000 from test group by id/100;
-> exception
+> exception MUST_GROUP_BY_COLUMN_1
 
 drop table test;
 > ok
@@ -2724,7 +2724,7 @@ insert into test values(null);
 > update count: 1
 
 insert into test values('aa');
-> exception
+> exception CHECK_CONSTRAINT_VIOLATED_1
 
 insert into test values('AA');
 > update count: 1
@@ -2753,13 +2753,13 @@ insert into address(id, name, name2) values(1, 'test@abc', 'test@gmail.com');
 > update count: 1
 
 insert into address(id, name, name2) values(2, 'test@abc', 'test@acme');
-> exception
+> exception CHECK_CONSTRAINT_VIOLATED_1
 
 insert into address(id, name, name2) values(3, 'test_abc', 'test@gmail');
-> exception
+> exception CHECK_CONSTRAINT_VIOLATED_1
 
 insert into address2(name) values('test@abc');
-> exception
+> exception TABLE_OR_VIEW_NOT_FOUND_1
 
 CREATE DOMAIN STRING AS VARCHAR(255) DEFAULT '' NOT NULL;
 > ok
@@ -2852,7 +2852,7 @@ create force view address_view as select * from address;
 > ok
 
 create table address(id identity, name varchar check instr(value, '@') > 1);
-> exception
+> exception COLUMN_NOT_FOUND_1
 
 create table address(id identity, name varchar check instr(name, '@') > 1);
 > ok
@@ -2882,7 +2882,7 @@ create table c();
 > ok
 
 drop table information_schema.columns;
-> exception
+> exception CANNOT_DROP_TABLE_1
 
 create table columns as select * from information_schema.columns;
 > ok
@@ -3106,7 +3106,7 @@ INSERT INTO TEST2 VALUES(2, 'World');
 > update count: 1
 
 INSERT INTO TEST2 VALUES(3, 'WoRlD');
-> exception
+> exception DUPLICATE_KEY_1
 
 drop index idx_test2_name;
 > ok
@@ -3352,7 +3352,7 @@ create force view t1 as select * from t1;
 > ok
 
 select * from t1;
-> exception
+> exception VIEW_IS_INVALID_2
 
 drop table t1;
 > ok
@@ -3533,10 +3533,10 @@ select count(*) from test where id in ((select id from test));
 > rows: 1
 
 select count(*) from test where id = ((select id from test));
-> exception
+> exception SCALAR_SUBQUERY_CONTAINS_MORE_THAN_ONE_ROW
 
 select count(*) from test where id = ((select id from test), 1);
-> exception
+> exception COMPARING_ARRAY_TO_SCALAR
 
 select (select id from test where 1=0) from test;
 > SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan: FALSE */ WHERE FALSE
@@ -3588,7 +3588,7 @@ insert into test values(6, 'F');
 > update count: 1
 
 select max(id) from test where id = max(id) group by id;
-> exception
+> exception INVALID_USE_OF_AGGREGATE_FUNCTION_1
 
 select * from test where a=TRUE=a;
 > ID A
@@ -3663,13 +3663,13 @@ create table test (id identity, value int not null);
 > ok
 
 create primary key on test(id);
-> exception
+> exception SECOND_PRIMARY_KEY
 
 alter table test drop primary key;
 > ok
 
 alter table test drop primary key;
-> exception
+> exception INDEX_NOT_FOUND_1
 
 create primary key on test(id, id, id);
 > ok
@@ -3826,7 +3826,7 @@ select test."ID" from test;
 > rows: 0
 
 select test."id" from test;
-> exception
+> exception COLUMN_NOT_FOUND_1
 
 select "TEST"."ID" from test;
 > ID
@@ -3834,7 +3834,7 @@ select "TEST"."ID" from test;
 > rows: 0
 
 select "test"."ID" from test;
-> exception
+> exception COLUMN_NOT_FOUND_1
 
 select public."TEST".id from test;
 > ID
@@ -3852,7 +3852,7 @@ select public."TEST"."ID" from test;
 > rows: 0
 
 select public."test"."ID" from test;
-> exception
+> exception COLUMN_NOT_FOUND_1
 
 select "PUBLIC"."TEST".id from test;
 > ID
@@ -3870,7 +3870,7 @@ select public."TEST"."ID" from test;
 > rows: 0
 
 select "public"."TEST"."ID" from test;
-> exception
+> exception COLUMN_NOT_FOUND_1
 
 drop table test;
 > ok
@@ -4053,7 +4053,7 @@ create table test(ID INT default next value for seq1);
 > ok
 
 drop sequence seq1;
-> exception
+> exception CANNOT_DROP_2
 
 alter table test add column name varchar;
 > ok
@@ -4154,7 +4154,7 @@ INSERT INTO CHILD VALUES(1, '1');
 > update count: 1
 
 INSERT INTO CHILD VALUES(2, 'Hello');
-> exception
+> exception DATA_CONVERSION_ERROR_1
 
 DROP TABLE IF EXISTS CHILD;
 > ok
@@ -4322,13 +4322,13 @@ INSERT INTO label VALUES ( 0, 0, 0, 'TEST');
 > update count: 1
 
 INSERT INTO label VALUES ( 1, 0, 0, 'TEST');
-> exception
+> exception DUPLICATE_KEY_1
 
 INSERT INTO label VALUES ( 1, 0, 0, 'TEST1');
 > update count: 1
 
 INSERT INTO label VALUES ( 2, 2, 1, 'TEST');
-> exception
+> exception REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1
 
 drop table label;
 > ok
@@ -4457,7 +4457,7 @@ TRUNCATE TABLE CHILD;
 > ok
 
 TRUNCATE TABLE PARENT;
-> exception
+> exception CANNOT_TRUNCATE_1
 
 DROP TABLE CHILD;
 > ok
@@ -4549,19 +4549,19 @@ EXPLAIN MERGE INTO TEST(ID, NAME) KEY(ID) VALUES(3, 'How do you do');
 > rows: 1
 
 MERGE INTO TEST(ID, NAME) KEY(NAME) VALUES(3, 'Fine');
-> exception
+> exception LOCK_TIMEOUT_1
 
 MERGE INTO TEST(ID, NAME) KEY(NAME) VALUES(4, 'Fine!');
 > update count: 1
 
 MERGE INTO TEST(ID, NAME) KEY(NAME) VALUES(4, 'Fine! And you');
-> exception
+> exception LOCK_TIMEOUT_1
 
 MERGE INTO TEST(ID, NAME) KEY(NAME, ID) VALUES(5, 'I''m ok');
 > update count: 1
 
 MERGE INTO TEST(ID, NAME) KEY(NAME, ID) VALUES(5, 'Oh, fine');
-> exception
+> exception DUPLICATE_KEY_1
 
 MERGE INTO TEST(ID, NAME) VALUES(6, 'Oh, fine.');
 > update count: 1
@@ -4980,7 +4980,7 @@ select * from test;
 > rows: 4
 
 UPDATE test SET name='Hi';
-> exception
+> exception DUPLICATE_KEY_1
 
 select * from test;
 > ID NAME  B
@@ -5281,7 +5281,7 @@ CREATE UNIQUE INDEX IDX_NAME_ID ON TEST(ID, NAME);
 > ok
 
 ALTER TABLE TEST DROP COLUMN NAME;
-> exception
+> exception COLUMN_IS_REFERENCED_1
 
 DROP INDEX IDX_NAME_ID;
 > ok
@@ -6009,7 +6009,7 @@ DROP VIEW CHILDREN_CLASSES;
 > ok
 
 DROP VIEW CHILDREN_CLASS12;
-> exception
+> exception VIEW_NOT_FOUND_1
 
 CREATE VIEW V_UNION AS SELECT * FROM CHILDREN UNION ALL SELECT * FROM CHILDREN;
 > ok
@@ -6170,7 +6170,7 @@ DROP TABLE TEST_B cascade;
 > ok
 
 DROP VIEW TEST_ALL;
-> exception
+> exception VIEW_NOT_FOUND_1
 
 DROP VIEW IF EXISTS TEST_ALL;
 > ok
@@ -6203,7 +6203,7 @@ INSERT INTO TEST VALUES(2, 'World');
 > update count: 1
 
 ROLLBACK TO SAVEPOINT NOT_EXISTING;
-> exception
+> exception SAVEPOINT_IS_INVALID_1
 
 ROLLBACK TO SAVEPOINT TEST;
 > ok
@@ -6283,16 +6283,16 @@ DROP TABLE TEST;
 
 --- syntax errors ----------------------------------------------------------------------------------------------
 CREATE SOMETHING STRANGE;
-> exception
+> exception SYNTAX_ERROR_2
 
 SELECT T1.* T2;
-> exception
+> exception SYNTAX_ERROR_1
 
 select replace('abchihihi', 'i', 'o') abcehohoho, replace('this is tom', 'i') 1e_th_st_om from test;
-> exception
+> exception SYNTAX_ERROR_1
 
 select monthname(date )'005-0E9-12') d_set fm test;
-> exception
+> exception SYNTAX_ERROR_1
 
 call substring('bob', 2, -1);
 > ''
@@ -6463,10 +6463,10 @@ SELECT * FROM TEST;
 > rows: 1
 
 DROP_ TABLE_ TEST_T;
-> exception
+> exception SYNTAX_ERROR_2
 
 DROP TABLE TEST /*;
-> exception
+> exception SYNTAX_ERROR_1
 
 DROP TABLE TEST;
 > ok
@@ -6568,13 +6568,13 @@ select 1 from test, test where 1 in (select 1 from test where id=1);
 > rows: 9
 
 select * from test, test where id=id;
-> exception
+> exception AMBIGUOUS_COLUMN_NAME_1
 
 select 1 from test, test where id=id;
-> exception
+> exception AMBIGUOUS_COLUMN_NAME_1
 
 select 1 from test where id in (select id from test, test);
-> exception
+> exception AMBIGUOUS_COLUMN_NAME_1
 
 DROP TABLE TEST;
 > ok
@@ -6683,13 +6683,13 @@ INSERT INTO TEST VALUES(0, '0:0:0','1-2-3','2-3-4 0:0:0');
 > update count: 1
 
 INSERT INTO TEST VALUES(1, '01:02:03','2001-02-03','2001-02-29 0:0:0');
-> exception
+> exception INVALID_DATETIME_CONSTANT_2
 
 INSERT INTO TEST VALUES(1, '24:62:03','2001-02-03','2001-02-01 0:0:0');
-> exception
+> exception INVALID_DATETIME_CONSTANT_2
 
 INSERT INTO TEST VALUES(1, '23:02:03','2001-04-31','2001-02-01 0:0:0');
-> exception
+> exception INVALID_DATETIME_CONSTANT_2
 
 INSERT INTO TEST VALUES(1,'1:2:3','4-5-6','7-8-9 0:1:2');
 > update count: 1
@@ -6964,25 +6964,25 @@ SELECT 2/3 FROM TEST WHERE ID=1;
 > rows: 1
 
 SELECT ID/ID FROM TEST;
-> exception
+> exception DIVISION_BY_ZERO_1
 
 SELECT XT/XT FROM TEST;
-> exception
+> exception DIVISION_BY_ZERO_1
 
 SELECT X_SM/X_SM FROM TEST;
-> exception
+> exception DIVISION_BY_ZERO_1
 
 SELECT XB/XB FROM TEST;
-> exception
+> exception DIVISION_BY_ZERO_1
 
 SELECT XD/XD FROM TEST;
-> exception
+> exception DIVISION_BY_ZERO_1
 
 SELECT XD2/XD2 FROM TEST;
-> exception
+> exception DIVISION_BY_ZERO_1
 
 SELECT XR/XR FROM TEST;
-> exception
+> exception DIVISION_BY_ZERO_1
 
 SELECT ID++0, -X1, -XT, -X_SM, -XB, -XD, -XD2, -XR FROM TEST;
 > ID + 0 - X1  - XT - X_SM - XB - XD  - XD2 - XR
@@ -7650,7 +7650,7 @@ CREATE TABLE TEST(ID INT, CONSTRAINT PK PRIMARY KEY(ID), NAME VARCHAR, PARENT IN
 > ok
 
 ALTER TABLE TEST DROP PRIMARY KEY;
-> exception
+> exception INDEX_BELONGS_TO_CONSTRAINT_2
 
 ALTER TABLE TEST DROP CONSTRAINT PK;
 > ok
@@ -7665,7 +7665,7 @@ INSERT INTO TEST VALUES(3, 'Karin', 2);
 > update count: 1
 
 INSERT INTO TEST VALUES(4, 'Joe', 5);
-> exception
+> exception REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1
 
 INSERT INTO TEST VALUES(4, 'Joe', 3);
 > update count: 1
@@ -7683,7 +7683,7 @@ ALTER TABLE TEST DROP PRIMARY KEY;
 > ok
 
 ALTER TABLE TEST DROP PRIMARY KEY;
-> exception
+> exception INDEX_NOT_FOUND_1
 
 ALTER TABLE TEST DROP CONSTRAINT A_UNIQUE;
 > ok
@@ -7704,7 +7704,7 @@ ALTER TABLE TEST DROP CONSTRAINT C1;
 > ok
 
 ALTER TABLE TEST DROP CONSTRAINT C1;
-> exception
+> exception CONSTRAINT_NOT_FOUND_1
 
 DROP TABLE TEST;
 > ok
@@ -7725,16 +7725,16 @@ ALTER TABLE A_TEST ADD CONSTRAINT DATE_UNIQUE_2 UNIQUE(A_DATE);
 > ok
 
 INSERT INTO A_TEST VALUES(NULL, NULL, NULL, NULL);
-> exception
+> exception NULL_NOT_ALLOWED
 
 INSERT INTO A_TEST VALUES(1, 'A', NULL, NULL);
-> exception
+> exception CHECK_CONSTRAINT_VIOLATED_1
 
 INSERT INTO A_TEST VALUES(1, 'AB', NULL, NULL);
 > update count: 1
 
 INSERT INTO A_TEST VALUES(1, 'AB', NULL, NULL);
-> exception
+> exception DUPLICATE_KEY_1
 
 INSERT INTO A_TEST VALUES(2, 'AB', NULL, NULL);
 > update count: 1
@@ -7743,7 +7743,7 @@ INSERT INTO A_TEST VALUES(3, 'AB', '2004-01-01', NULL);
 > update count: 1
 
 INSERT INTO A_TEST VALUES(4, 'AB', '2004-01-01', NULL);
-> exception
+> exception DUPLICATE_KEY_1
 
 INSERT INTO A_TEST VALUES(5, 'ABC', '2004-01-02', NULL);
 > update count: 1
@@ -7761,10 +7761,10 @@ ALTER TABLE B_TEST ADD PRIMARY KEY(B_INT);
 > ok
 
 INSERT INTO B_TEST VALUES(10, 'X');
-> exception
+> exception CHECK_CONSTRAINT_VIOLATED_1
 
 INSERT INTO B_TEST VALUES(1, 'X');
-> exception
+> exception CHECK_CONSTRAINT_VIOLATED_1
 
 INSERT INTO B_TEST VALUES(1, 'XX');
 > update count: 1
@@ -7791,7 +7791,7 @@ ALTER TABLE B_TEST ADD CONSTRAINT C2 FOREIGN KEY(B_INT) REFERENCES A_TEST(A_INT)
 > ok
 
 UPDATE A_TEST SET A_INT = A_INT*10;
-> exception
+> exception NULL_NOT_ALLOWED
 
 SELECT * FROM B_TEST;
 > B_INT B_VARCHAR
@@ -7889,7 +7889,7 @@ INSERT INTO FAMILY VALUES(1, 'Capone');
 > update count: 1
 
 INSERT INTO CHILD VALUES(100, 1, 1, 'early');
-> exception
+> exception REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1
 
 INSERT INTO PARENT VALUES(1, 1, 'Sue');
 > update count: 1
@@ -7922,7 +7922,7 @@ SELECT * FROM CHILD;
 > rows: 4
 
 UPDATE CHILD SET PARENTID=-1 WHERE PARENTID IS NOT NULL;
-> exception
+> exception REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1
 
 DELETE FROM PARENT WHERE ID=2;
 > update count: 1
@@ -8022,7 +8022,7 @@ INSERT INTO INVOICE_LINE VALUES(1, 100, 10, 'Apples', 20.35), (1, 100, 20, 'Pape
 > update count: 4
 
 INSERT INTO INVOICE_LINE VALUES(1, 102, 20, 'Nothing', 30.00);
-> exception
+> exception REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1
 
 DELETE FROM INVOICE WHERE ID = 100;
 > update count: 1
@@ -8304,13 +8304,13 @@ drop table test;
 > ok
 
 select 0 from ((
-    select 0 as f from dual u1 where null in (?, ?, ?, ?, ?)
+select 0 as f from dual u1 where null in (?, ?, ?, ?, ?)
 ) union all (
-    select u2.f from (
-        select 0 as f from (
-            select 0 from dual u2f1f1 where now() = ?
-        ) u2f1
-    ) u2
+select u2.f from (
+select 0 as f from (
+select 0 from dual u2f1f1 where now() = ?
+) u2f1
+) u2
 )) where f = 12345;
 {
 11, 22, 33, 44, 55, null
@@ -8330,7 +8330,7 @@ alter table if exists x add column a varchar;
 > ok
 
 alter table if exists x add column a varchar;
-> exception
+> exception DUPLICATE_COLUMN_NAME_1
 
 alter table if exists y alter column a rename to b;
 > ok
@@ -8339,7 +8339,7 @@ alter table if exists x alter column a rename to b;
 > ok
 
 alter table if exists x alter column a rename to b;
-> exception
+> exception COLUMN_NOT_FOUND_1
 
 alter table if exists y alter column b set default 'a';
 > ok
@@ -8372,7 +8372,7 @@ alter table if exists x alter column b set not null;
 > ok
 
 insert into x(id) values(1);
-> exception
+> exception NULL_NOT_ALLOWED
 
 alter table if exists y alter column b drop not null;
 > ok
@@ -8399,13 +8399,13 @@ alter table if exists x add constraint x_pk primary key (id);
 > ok
 
 alter table if exists x add constraint x_pk primary key (id);
-> exception
+> exception CONSTRAINT_ALREADY_EXISTS_1
 
 insert into x(id) values(1);
 > update count: 1
 
 insert into x(id) values(1);
-> exception
+> exception DUPLICATE_KEY_1
 
 delete from x;
 > update count: 1
@@ -8417,10 +8417,10 @@ alter table if exists x add constraint x_check check (b = 'a');
 > ok
 
 alter table if exists x add constraint x_check check (b = 'a');
-> exception
+> exception CONSTRAINT_ALREADY_EXISTS_1
 
 insert into x(id, b) values(1, 'b');
-> exception
+> exception CHECK_CONSTRAINT_VIOLATED_1
 
 alter table if exists y rename constraint x_check to x_check1;
 > ok
@@ -8429,7 +8429,7 @@ alter table if exists x rename constraint x_check to x_check1;
 > ok
 
 alter table if exists x rename constraint x_check to x_check1;
-> exception
+> exception CONSTRAINT_NOT_FOUND_1
 
 alter table if exists y drop constraint x_check1;
 > ok
@@ -8459,13 +8459,13 @@ alter table if exists z add constraint z_uk unique (b);
 > ok
 
 alter table if exists z add constraint z_uk unique (b);
-> exception
+> exception CONSTRAINT_ALREADY_EXISTS_1
 
 insert into z(id, b) values(1, 'b');
 > update count: 1
 
 insert into z(id, b) values(1, 'b');
-> exception
+> exception DUPLICATE_KEY_1
 
 delete from z;
 > update count: 1
@@ -8477,7 +8477,7 @@ alter table if exists z drop column b;
 > ok
 
 alter table if exists z drop column b;
-> exception
+> exception COLUMN_NOT_FOUND_1
 
 alter table if exists y drop primary key;
 > ok
@@ -8486,7 +8486,7 @@ alter table if exists z drop primary key;
 > ok
 
 alter table if exists z drop primary key;
-> exception
+> exception INDEX_NOT_FOUND_1
 
 create table x (id int not null primary key);
 > ok
@@ -8498,10 +8498,10 @@ alter table if exists z add constraint z_fk foreign key (id) references x (id);
 > ok
 
 alter table if exists z add constraint z_fk foreign key (id) references x (id);
-> exception
+> exception CONSTRAINT_ALREADY_EXISTS_1
 
 insert into z (id) values (1);
-> exception
+> exception REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1
 
 alter table if exists y drop foreign key z_fk;
 > ok
@@ -8510,7 +8510,7 @@ alter table if exists z drop foreign key z_fk;
 > ok
 
 alter table if exists z drop foreign key z_fk;
-> exception
+> exception CONSTRAINT_NOT_FOUND_1
 
 insert into z (id) values (1);
 > update count: 1

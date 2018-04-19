@@ -13,7 +13,7 @@ INSERT INTO TEST VALUES (1, 10), (2, 20), (3, 30), (4, 40);
 > update count: 4
 
 INSERT INTO TEST VALUES (3, 31), (5, 51);
-> exception
+> exception DUPLICATE_KEY_1
 
 SELECT * FROM TEST ORDER BY ID;
 > ID VALUE

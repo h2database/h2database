@@ -1063,14 +1063,14 @@ SELECT DATE_TRUNC('MILLENNIUM', '2000-05-29 15:14:13');
 -- Test unhandled time unit and bad date
 --
 SELECT DATE_TRUNC('---', '2015-05-29 15:14:13');
-> exception
+> exception INVALID_VALUE_2
 
 SELECT DATE_TRUNC('', '2015-05-29 15:14:13');
-> exception
+> exception INVALID_VALUE_2
 
 SELECT DATE_TRUNC('', '');
-> exception
+> exception INVALID_VALUE_2
 
 SELECT DATE_TRUNC('YEAR', '');
-> exception
+> exception INVALID_DATETIME_CONSTANT_2
 

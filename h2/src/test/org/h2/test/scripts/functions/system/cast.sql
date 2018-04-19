@@ -89,7 +89,7 @@ select cast(cast('01020304-0506-0708-090a-0b0c0d0e0f00' as uuid) as binary);
 >> 0102030405060708090a0b0c0d0e0f00
 
 call cast('null' as uuid);
-> exception
+> exception DATA_CONVERSION_ERROR_1
 
 select cast('12345678123456781234567812345678' as uuid);
 >> 12345678-1234-5678-1234-567812345678

@@ -50,6 +50,7 @@ public class TestRecovery extends TestBase {
         testWithTransactionLog();
         testCompressedAndUncompressed();
         testRunScript();
+        testRunScript2();
     }
 
     private void testRecoverTestMode() throws Exception {
@@ -318,4 +319,43 @@ public class TestRecovery extends TestBase {
         FileUtils.deleteRecursive(dir, false);
     }
 
+    private void testRunScript2() throws SQLException {
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        DeleteDbFiles.execute(getBaseDir(), "recovery2", true);
+        org.h2.Driver.load();
+        Connection conn = getConnection("recovery");
+        Statement stat = conn.createStatement();
+        stat.execute("SET COLLATION EN");
+        stat.execute("SET BINARY_COLLATION UNSIGNED");
+        stat.execute("CREATE TABLE TEST(A VARCHAR)");
+        conn.close();
+
+        final Recover recover = new Recover();
+        final ByteArrayOutputStream buff = new ByteArrayOutputStream(); // capture the console output
+        recover.setOut(new PrintStream(buff));
+        recover.runTool("-dir", getBaseDir(), "-db", "recovery", "-trace");
+        String consoleOut = new String(buff.toByteArray());
+        assertContains(consoleOut, "Created file");
+
+        Connection conn2 = getConnection("recovery2");
+        Statement stat2 = conn2.createStatement();
+
+        stat2.execute("runscript from '" + getBaseDir() + "/recovery.h2.sql'");
+        stat2.execute("select * from test");
+        conn2.close();
+
+        conn = getConnection("recovery");
+        stat = conn.createStatement();
+        conn2 = getConnection("recovery2");
+        stat2 = conn2.createStatement();
+        assertEqualDatabases(stat, stat2);
+        conn.close();
+        conn2.close();
+
+        deleteDb("recovery");
+        deleteDb("recovery2");
+        FileUtils.delete(getBaseDir() + "/recovery.h2.sql");
+        String dir = getBaseDir() + "/recovery.lobs.db";
+        FileUtils.deleteRecursive(dir, false);
+    }
 }

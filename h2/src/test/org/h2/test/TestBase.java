@@ -1398,7 +1398,7 @@ public abstract class TestBase {
     }
 
     /**
-     * Check if two databases contain the same met data.
+     * Check if two databases contain the same meta data.
      *
      * @param stat1 the connection to the first database
      * @param stat2 the connection to the second database

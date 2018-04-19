@@ -13,7 +13,6 @@ import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
-
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
@@ -106,8 +105,6 @@ public class TestSampleApps extends TestBase {
         // tools
         testApp("Allows changing the database file encryption password or algorithm*",
                 org.h2.tools.ChangeFileEncryption.class, "-help");
-        testApp("Allows changing the database file encryption password or algorithm*",
-                org.h2.tools.ChangeFileEncryption.class);
         testApp("Deletes all files belonging to a database.*",
                 org.h2.tools.DeleteDbFiles.class, "-help");
         FileUtils.delete(getBaseDir() + "/optimizations.sql");

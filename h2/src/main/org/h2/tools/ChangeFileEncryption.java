@@ -68,7 +68,7 @@ public class ChangeFileEncryption extends Tool {
             new ChangeFileEncryption().runTool(args);
         } catch (SQLException ex) {
             ex.printStackTrace(System.err);
-            System.exit(-1);
+            System.exit(1);
         }
     }
 

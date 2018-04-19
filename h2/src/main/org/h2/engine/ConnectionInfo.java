@@ -6,7 +6,6 @@
 package org.h2.engine;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -91,15 +90,14 @@ public class ConnectionInfo implements Cloneable {
     }
 
     static {
-        ArrayList<String> list = SetTypes.getTypes();
         String[] connectionTime = { "ACCESS_MODE_DATA", "AUTOCOMMIT", "CIPHER",
                 "CREATE", "CACHE_TYPE", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS",
                 "IFEXISTS", "INIT", "PASSWORD", "RECOVER", "RECOVER_TEST",
                 "USER", "AUTO_SERVER", "AUTO_SERVER_PORT", "NO_UPGRADE",
                 "AUTO_RECONNECT", "OPEN_NEW", "PAGE_SIZE", "PASSWORD_HASH", "JMX",
                 "SCOPE_GENERATED_KEYS" };
-        HashSet<String> set = new HashSet<>(list.size() + connectionTime.length);
-        set.addAll(list);
+        HashSet<String> set = new HashSet<>(128);
+        set.addAll(SetTypes.getTypes());
         for (String key : connectionTime) {
             if (!set.add(key) && SysProperties.CHECK) {
                 DbException.throwInternalError(key);

@@ -1076,7 +1076,7 @@ public class TableFilter implements ColumnResolver {
         if (count != derivedColumnNames.size()) {
             throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
         }
-        HashMap<Column, String> map = new HashMap<>(count);
+        HashMap<Column, String> map = new HashMap<>();
         for (int i = 0; i < count; i++) {
             String alias = derivedColumnNames.get(i);
             for (int j = 0; j < i; j++) {

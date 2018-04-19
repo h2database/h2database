@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.store.FileLister;
@@ -1033,18 +1032,18 @@ public class TestTools extends TestBase {
         conn.close();
         String[] args = { "-dir", dir, "-db", "testChangeFileEncryption",
                 "-cipher", "AES", "-decrypt", "abc", "-quiet" };
-        ChangeFileEncryption.main(args);
+        new ChangeFileEncryption().runTool(args);
         args = new String[] { "-dir", dir, "-db", "testChangeFileEncryption",
                 "-cipher", "AES", "-encrypt", "def", "-quiet" };
-        ChangeFileEncryption.main(args);
+        new ChangeFileEncryption().runTool(args);
         conn = getConnection(url, "sa", "def 123");
         stat = conn.createStatement();
         stat.execute("SELECT * FROM TEST");
         new AssertThrows(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1) {
             @Override
             public void test() throws SQLException {
-                ChangeFileEncryption.main(new String[] { "-dir", dir, "-db",
-                        "testChangeFileEncryption", "-cipher", "AES",
+                new ChangeFileEncryption().runTool(new String[] { "-dir", dir,
+                        "-db", "testChangeFileEncryption", "-cipher", "AES",
                         "-decrypt", "def", "-quiet" });
             }
         };
@@ -1055,14 +1054,8 @@ public class TestTools extends TestBase {
     }
 
     private void testChangeFileEncryptionWithWrongPassword() throws SQLException {
-        if (config.mvStore) {
-            // the file system encryption abstraction used by the MVStore
-            // doesn't detect wrong passwords
-            return;
-        }
         org.h2.Driver.load();
         final String dir = getBaseDir();
-        // TODO: this doesn't seem to work in MVSTORE mode yet
         String url = "jdbc:h2:" + dir + "/testChangeFileEncryption;CIPHER=AES";
         DeleteDbFiles.execute(dir, "testChangeFileEncryption", true);
         Connection conn = getConnection(url, "sa", "abc 123");

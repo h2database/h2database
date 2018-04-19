@@ -34,14 +34,14 @@ drop table items, count;
 -- PostgreSQL syntax tests
 -- ---------------------------------------------------------------------------
 
-set mode postgesql;
+set mode postgresql;
 > ok
 
 CREATE TABLE COUNT(X INT);
 > ok
 
 INSERT INTO COUNT VALUES(1);
-> ok
+> update count: 1
 
 CREATE FORCE TRIGGER T_COUNT BEFORE INSERT OR UPDATE ON COUNT CALL "com.Unknown";
 > ok

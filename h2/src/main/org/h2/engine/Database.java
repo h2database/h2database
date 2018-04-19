@@ -2568,7 +2568,8 @@ public class Database implements DataHandler {
     }
 
     /**
-     * Get the first user defined table.
+     * Get the first user defined table, excluding the LOB_BLOCKS table that the
+     * Recover tool creates.
      *
      * @return the table or null if no table is defined
      */
@@ -2577,6 +2578,11 @@ public class Database implements DataHandler {
             if (table.getCreateSQL() != null) {
                 if (table.isHidden()) {
                     // LOB tables
+                    continue;
+                }
+                // exclude the LOB_MAP that the Recover tool creates
+                if (table.getName().equals("LOB_BLOCKS") && table.getSchema()
+                        .getName().equals("INFORMATION_SCHEMA")) {
                     continue;
                 }
                 return table;

@@ -42,9 +42,9 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreTool;
 import org.h2.mvstore.StreamStore;
-import org.h2.mvstore.tx.TransactionStore;
-import org.h2.mvstore.tx.TransactionMap;
 import org.h2.mvstore.db.ValueDataType;
+import org.h2.mvstore.tx.TransactionMap;
+import org.h2.mvstore.tx.TransactionStore;
 import org.h2.result.Row;
 import org.h2.result.RowFactory;
 import org.h2.result.SimpleRow;
@@ -555,6 +555,7 @@ public class Recover extends Tool implements DataHandler {
             schema.clear();
             objectIdSet = new HashSet<>();
             dumpPageStore(writer, pageCount);
+            writeSchemaSET(writer);
             writeSchema(writer);
             try {
                 dumpPageLogStream(writer, logKey, logFirstTrunkPage,
@@ -616,11 +617,51 @@ public class Recover extends Tool implements DataHandler {
             writeError(writer, e);
         }
         try {
+            // extract the metadata so we can dump the settings
             for (String mapName : mv.getMapNames()) {
                 if (!mapName.startsWith("table.")) {
                     continue;
                 }
                 String tableId = mapName.substring("table.".length());
+                if (Integer.parseInt(tableId) == 0) {
+                    ValueDataType keyType = new ValueDataType(
+                            null, this, null);
+                    ValueDataType valueType = new ValueDataType(
+                            null, this, null);
+                    TransactionMap<Value, Value> dataMap = store.begin().openMap(
+                            mapName, keyType, valueType);
+                    Iterator<Value> dataIt = dataMap.keyIterator(null);
+                    while (dataIt.hasNext()) {
+                        Value rowId = dataIt.next();
+                        Value[] values = ((ValueArray) dataMap.get(rowId))
+                                .getList();
+                        try {
+                            SimpleRow r = new SimpleRow(values);
+                            MetaRecord meta = new MetaRecord(r);
+                            schema.add(meta);
+                            if (meta.getObjectType() == DbObject.TABLE_OR_VIEW) {
+                                String sql = values[3].getString();
+                                String name = extractTableOrViewName(sql);
+                                tableMap.put(meta.getId(), name);
+                            }
+                        } catch (Throwable t) {
+                            writeError(writer, t);
+                        }
+                    }
+                }
+            }
+            // Have to do these before the tables because settings like COLLATION may affect some of them,
+            // and we can't change settings after we have created user tables
+            writeSchemaSET(writer);
+            writer.println("---- Table Data ----");
+            for (String mapName : mv.getMapNames()) {
+                if (!mapName.startsWith("table.")) {
+                    continue;
+                }
+                String tableId = mapName.substring("table.".length());
+                if (Integer.parseInt(tableId) == 0) {
+                    continue;
+                }
                 ValueDataType keyType = new ValueDataType(
                         null, this, null);
                 ValueDataType valueType = new ValueDataType(
@@ -655,20 +696,6 @@ public class Recover extends Tool implements DataHandler {
                     }
                     buff.append(");");
                     writer.println(buff.toString());
-                    if (storageId == 0) {
-                        try {
-                            SimpleRow r = new SimpleRow(values);
-                            MetaRecord meta = new MetaRecord(r);
-                            schema.add(meta);
-                            if (meta.getObjectType() == DbObject.TABLE_OR_VIEW) {
-                                String sql = values[3].getString();
-                                String name = extractTableOrViewName(sql);
-                                tableMap.put(meta.getId(), name);
-                            }
-                        } catch (Throwable t) {
-                            writeError(writer, t);
-                        }
-                    }
                 }
             }
             writeSchema(writer);
@@ -1513,11 +1540,22 @@ public class Recover extends Tool implements DataHandler {
         columnTypeMap = new HashMap<>();
     }
 
+    private void writeSchemaSET(PrintWriter writer) {
+        writer.println("---- Schema SET ----");
+        for (MetaRecord m : schema) {
+            if (m.getObjectType() == DbObject.SETTING) {
+                String sql = m.getSQL();
+                writer.println(sql + ";");
+            }
+        }
+    }
+
     private void writeSchema(PrintWriter writer) {
         writer.println("---- Schema ----");
         Collections.sort(schema);
         for (MetaRecord m : schema) {
-            if (!isSchemaObjectTypeDelayed(m)) {
+            if (m.getObjectType() != DbObject.SETTING
+                    && !isSchemaObjectTypeDelayed(m)) {
                 // create, but not referential integrity constraints and so on
                 // because they could fail on duplicate keys
                 String sql = m.getSQL();

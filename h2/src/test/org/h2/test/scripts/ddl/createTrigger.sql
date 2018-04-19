@@ -30,3 +30,24 @@ insert into items values(DEFAULT);
 drop table items, count;
 > ok
 
+-- ---------------------------------------------------------------------------
+-- PostgreSQL syntax tests
+-- ---------------------------------------------------------------------------
+
+set mode postgesql;
+> ok
+
+CREATE TABLE COUNT(X INT);
+> ok
+
+INSERT INTO COUNT VALUES(1);
+> ok
+
+CREATE FORCE TRIGGER T_COUNT BEFORE INSERT OR UPDATE ON COUNT CALL "com.Unknown";
+> ok
+
+INSERT INTO COUNT VALUES(NULL);
+> exception
+
+UPDATE COUNT SET X=2 WHERE X=1;
+> exception

@@ -1667,7 +1667,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
             if (namedParameters == null) {
                 ResultSetMetaData meta = getCheckedMetaData();
                 int columnCount = meta.getColumnCount();
-                HashMap<String, Integer> map = new HashMap<>(columnCount);
+                HashMap<String, Integer> map = new HashMap<>();
                 for (int i = 1; i <= columnCount; i++) {
                     map.put(meta.getColumnLabel(i), i);
                 }

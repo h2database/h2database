@@ -619,8 +619,7 @@ class ToDateTokenizer {
         private static final List<FormatTokenEnum> EMPTY_LIST = Collections
                 .emptyList();
 
-        private static final Map<Character, List<FormatTokenEnum>> CACHE = new HashMap<>(
-                FormatTokenEnum.values().length);
+        private static final Map<Character, List<FormatTokenEnum>> CACHE = new HashMap<>(64);
         private final ToDateParslet toDateParslet;
         private final Pattern patternToUse;
 

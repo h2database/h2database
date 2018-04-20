@@ -33,8 +33,8 @@ import org.h2.message.TraceSystem;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.db.MVTable;
 import org.h2.mvstore.db.MVTableEngine;
-import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.tx.Transaction;
+import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.tx.VersionedValue;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
@@ -1419,7 +1419,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     @Override
     public String toString() {
-        return "#" + serialId + " (user: " + user.getName() + ")";
+        return "#" + serialId + " (user: " + (user == null ? "<null>" : user.getName()) + ")";
     }
 
     public void setUndoLogEnabled(boolean b) {

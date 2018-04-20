@@ -642,6 +642,14 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         test();
         testUnit();
 
+        // basic pagestore testing
+        memory = false;
+        multiThreaded = false;
+        mvStore = false;
+        test();
+        testUnit();
+
+        mvStore = true;
         memory = true;
         multiThreaded = false;
         networked = true;

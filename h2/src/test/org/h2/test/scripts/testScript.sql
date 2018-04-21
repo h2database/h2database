@@ -90,24 +90,6 @@ AND studentID = 2;
 drop table results;
 > ok
 
-create table test(a int, b int);
-> ok
-
-insert into test values(1, 1);
-> update count: 1
-
-create index on test(a, b desc);
-> ok
-
-select * from test where a = 1;
-> A B
-> - -
-> 1 1
-> rows: 1
-
-drop table test;
-> ok
-
 create table test(id int, name varchar) as select 1, 'a';
 > ok
 
@@ -130,20 +112,6 @@ select case seq.nextval when 2 then 'two' when 3 then 'three' when 1 then 'one' 
 > rows: 1
 
 drop sequence seq;
-> ok
-
-create table test(x int);
-> ok
-
-create hash index on test(x);
-> ok
-
-select 1 from test group by x;
-> 1
-> -
-> rows: 0
-
-drop table test;
 > ok
 
 select * from dual where x = x + 1 or x in(2, 0);

@@ -87,6 +87,7 @@ public class TestScript extends TestBase {
 
         testScript("testScript.sql");
         testScript("derived-column-names.sql");
+        testScript("indexes.sql");
         testScript("information_schema.sql");
         testScript("joins.sql");
         testScript("range_table.sql");

@@ -5,10 +5,10 @@
  */
 package org.h2.mvstore.db;
 
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import org.h2.api.ErrorCode;
+import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.BaseIndex;
@@ -17,16 +17,15 @@ import org.h2.index.IndexType;
 import org.h2.index.SpatialIndex;
 import org.h2.index.SpatialTreeIndex;
 import org.h2.message.DbException;
-import org.h2.mvstore.tx.Transaction;
-import org.h2.mvstore.tx.TransactionMap;
-import org.h2.mvstore.tx.VersionedValue;
 import org.h2.mvstore.rtree.MVRTreeMap;
 import org.h2.mvstore.rtree.MVRTreeMap.RTreeCursor;
 import org.h2.mvstore.rtree.SpatialKey;
+import org.h2.mvstore.tx.Transaction;
+import org.h2.mvstore.tx.TransactionMap;
+import org.h2.mvstore.tx.VersionedValue;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
-import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
@@ -251,7 +250,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     @Override
     public double getCost(Session session, int[] masks, TableFilter[] filters,
             int filter, SortOrder sortOrder,
-            HashSet<Column> allColumnsSet) {
+            AllColumnsForPlan allColumnsSet) {
         return SpatialTreeIndex.getCostRangeIndex(masks, columns);
     }
 

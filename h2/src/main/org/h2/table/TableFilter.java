@@ -7,9 +7,9 @@ package org.h2.table;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
+import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.command.dml.Select;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -194,7 +194,7 @@ public class TableFilter implements ColumnResolver {
      * @return the best plan item
      */
     public PlanItem getBestPlanItem(Session s, TableFilter[] filters, int filter,
-            HashSet<Column> allColumnsSet) {
+            AllColumnsForPlan allColumnsSet) {
         PlanItem item1 = null;
         SortOrder sortOrder = null;
         if (select != null) {

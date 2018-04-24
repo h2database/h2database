@@ -8,7 +8,6 @@ package org.h2.command.dml;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
@@ -16,7 +15,6 @@ import org.h2.command.Prepared;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
@@ -236,7 +234,7 @@ public class Update extends Prepared {
             filters = new TableFilter[] { targetTableFilter, sourceTableFilter };
         }
         PlanItem item = targetTableFilter.getBestPlanItem(session, filters, 0,
-                ExpressionVisitor.allColumnsForTableFilters(filters));
+                new AllColumnsForPlan(filters));
         targetTableFilter.setPlanItem(item);
         targetTableFilter.prepare();
     }

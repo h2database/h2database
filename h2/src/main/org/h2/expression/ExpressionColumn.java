@@ -311,8 +311,11 @@ public class ExpressionColumn extends Expression {
                 visitor.addDependency(column.getTable());
             }
             return true;
-        case ExpressionVisitor.GET_COLUMNS:
-            visitor.addColumn(column);
+        case ExpressionVisitor.GET_COLUMNS1:
+            visitor.addColumn1(column);
+            return true;
+        case ExpressionVisitor.GET_COLUMNS2:
+            visitor.addColumn2(column);
             return true;
         default:
             throw DbException.throwInternalError("type=" + visitor.getType());

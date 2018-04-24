@@ -75,7 +75,8 @@ public class Variable extends Expression {
         case ExpressionVisitor.NOT_FROM_RESOLVER:
         case ExpressionVisitor.QUERY_COMPARABLE:
         case ExpressionVisitor.GET_DEPENDENCIES:
-        case ExpressionVisitor.GET_COLUMNS:
+        case ExpressionVisitor.GET_COLUMNS1:
+        case ExpressionVisitor.GET_COLUMNS2:
             return true;
         case ExpressionVisitor.DETERMINISTIC:
             return false;

@@ -13,6 +13,7 @@ import java.util.Map;
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.command.ddl.CreateTableData;
+import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.command.dml.Query;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -268,7 +269,7 @@ public class TableView extends Table {
     @Override
     public PlanItem getBestPlanItem(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            HashSet<Column> allColumnsSet) {
+            AllColumnsForPlan allColumnsSet) {
         final CacheKey cacheKey = new CacheKey(masks, this);
         Map<Object, ViewIndex> indexCache = session.getViewIndexCache(topQuery != null);
         ViewIndex i = indexCache.get(cacheKey);
@@ -481,7 +482,7 @@ public class TableView extends Table {
     @Override
     public Index getScanIndex(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            HashSet<Column> allColumnsSet) {
+            AllColumnsForPlan allColumnsSet) {
         if (createException != null) {
             String msg = createException.getMessage();
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2,

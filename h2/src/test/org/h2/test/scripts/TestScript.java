@@ -86,6 +86,7 @@ public class TestScript extends TestBase {
 
         testScript("testScript.sql");
         testScript("derived-column-names.sql");
+        testScript("indexes.sql");
         testScript("information_schema.sql");
         if (config.mvStore) {
             // we get slightly different explain plan stuff here in PageStore mode

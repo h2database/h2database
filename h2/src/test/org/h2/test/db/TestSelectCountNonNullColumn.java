@@ -64,8 +64,8 @@ public class TestSelectCountNonNullColumn extends TestBase {
             assertEquals(expect, rs.getLong(1));
         } else {
             // System.out.println(rs.getString(1));
-            assertEquals("SELECT\n" + "    COUNT(*)\n" + "FROM PUBLIC.SIMPLE\n"
-                    + "    /* PUBLIC.SIMPLE.tableScan */\n"
+            assertEquals("SELECT\n    COUNT(*)\nFROM PUBLIC.SIMPLE\n"
+                    + "    /* PUBLIC.PRIMARY_KEY_9 */\n"
                     + "/* direct lookup */", rs.getString(1));
         }
     }

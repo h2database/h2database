@@ -5,8 +5,8 @@
  */
 package org.h2.index;
 
-import java.util.HashSet;
 import java.util.Iterator;
+import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVStore;
@@ -201,7 +201,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     @Override
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            HashSet<Column> allColumnsSet) {
+            AllColumnsForPlan allColumnsSet) {
         return getCostRangeIndex(masks, columns);
     }
 

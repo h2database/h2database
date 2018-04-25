@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
+import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
@@ -236,7 +237,7 @@ public abstract class Table extends SchemaObjectBase {
     @SuppressWarnings("unused")
     public Index getScanIndex(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            HashSet<Column> allColumnsSet) {
+            AllColumnsForPlan allColumnsSet) {
         return getScanIndex(session);
     }
 
@@ -712,7 +713,7 @@ public abstract class Table extends SchemaObjectBase {
      */
     public PlanItem getBestPlanItem(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            HashSet<Column> allColumnsSet) {
+            AllColumnsForPlan allColumnsSet) {
         PlanItem item = new PlanItem();
         item.setIndex(getScanIndex(session));
         item.cost = item.getIndex().getCost(session, null, filters, filter, null, allColumnsSet);

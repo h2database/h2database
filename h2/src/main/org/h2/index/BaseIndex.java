@@ -5,8 +5,9 @@
  */
 package org.h2.index;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import org.h2.api.ErrorCode;
+import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
@@ -163,7 +164,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      */
     protected final long getCostRangeIndex(int[] masks, long rowCount,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            boolean isScanIndex, HashSet<Column> allColumnsSet) {
+            boolean isScanIndex, AllColumnsForPlan allColumnsSet) {
         rowCount += Constants.COST_ROW_OFFSET;
         int totalSelectivity = 0;
         long rowsCost = rowCount;
@@ -246,10 +247,12 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         // satisfy the query without needing to read from the primary table
         // (scan index), make that one slightly lower cost.
         boolean needsToReadFromScanIndex = true;
-        if (!isScanIndex && allColumnsSet != null && !allColumnsSet.isEmpty()) {
+        if (!isScanIndex && allColumnsSet != null) {
             boolean foundAllColumnsWeNeed = true;
-            for (Column c : allColumnsSet) {
-                if (c.getTable() == getTable()) {
+            ArrayList<Column> foundCols = allColumnsSet.get(getTable());
+            if (foundCols != null)
+            {
+                for (Column c : foundCols) {
                     boolean found = false;
                     for (Column c2 : columns) {
                         if (c == c2) {

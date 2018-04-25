@@ -2649,7 +2649,8 @@ public class Function extends Expression implements FunctionCall {
         case ExpressionVisitor.NOT_FROM_RESOLVER:
         case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
-        case ExpressionVisitor.GET_COLUMNS:
+        case ExpressionVisitor.GET_COLUMNS1:
+        case ExpressionVisitor.GET_COLUMNS2:
             return true;
         default:
             throw DbException.throwInternalError("type=" + visitor.getType());

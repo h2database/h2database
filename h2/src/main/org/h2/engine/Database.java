@@ -1440,7 +1440,7 @@ public class Database implements DataHandler {
             }
         }
         reconnectModified(false);
-        if (mvStore != null) {
+        if (mvStore != null && !mvStore.getStore().isClosed()) {
             long maxCompactTime = dbSettings.maxCompactTime;
             if (compactMode == CommandInterface.SHUTDOWN_COMPACT) {
                 mvStore.compactFile(dbSettings.maxCompactTime);

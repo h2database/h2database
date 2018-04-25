@@ -50,6 +50,9 @@ public class TestMVTableEngine extends TestBase {
 
     @Override
     public void test() throws Exception {
+        if (!config.mvStore) {
+            return;
+        }
         testLobCopy();
         testLobReuse();
         testShutdownDuringLobCreation();

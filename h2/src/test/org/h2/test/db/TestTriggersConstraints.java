@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.HashSet;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.engine.Session;
@@ -119,8 +118,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         stat.execute("create trigger test_u before update on test " +
                 "for each row call \"" + DeleteTrigger.class.getName() + "\"");
         // this threw a NullPointerException
-        assertThrows(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, stat).
-                execute("update test set id = 2");
+        stat.execute("update test set id = 2");
         stat.execute("drop table test");
         conn.close();
     }

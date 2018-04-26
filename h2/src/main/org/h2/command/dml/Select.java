@@ -49,8 +49,8 @@ public class Select extends Query {
      */
     TableFilter topTableFilter;
 
-    private final ArrayList<TableFilter> filters = New.arrayList();
-    private final ArrayList<TableFilter> topFilters = New.arrayList();
+    private final ArrayList<TableFilter> filters = Utils.newSmallArrayList();
+    private final ArrayList<TableFilter> topFilters = Utils.newSmallArrayList();
 
     /**
      * The column list, including synthetic columns (columns not shown in the
@@ -394,7 +394,7 @@ public class Select extends Query {
         if (sort == null) {
             return null;
         }
-        ArrayList<Column> sortColumns = New.arrayList();
+        ArrayList<Column> sortColumns = Utils.newSmallArrayList();
         for (int idx : sort.getQueryColumnIndexes()) {
             if (idx < 0 || idx >= expressions.size()) {
                 throw DbException.getInvalidValueException("ORDER BY", idx + 1);
@@ -516,7 +516,7 @@ public class Select extends Query {
         }
         ArrayList<Row> forUpdateRows = null;
         if (isForUpdateMvcc) {
-            forUpdateRows = New.arrayList();
+            forUpdateRows = Utils.newSmallArrayList();
         }
         int sampleSize = getSampleSizeValue(session);
         LazyResultQueryFlat lazyResult = new LazyResultQueryFlat(expressionArray,
@@ -748,7 +748,7 @@ public class Select extends Query {
         visibleColumnCount = expressions.size();
         ArrayList<String> expressionSQL;
         if (orderList != null || group != null) {
-            expressionSQL = New.arrayList();
+            expressionSQL = Utils.newSmallArrayList();
             for (int i = 0; i < visibleColumnCount; i++) {
                 Expression expr = expressions.get(i);
                 expr = expr.getNonAliasExpression();
@@ -965,7 +965,7 @@ public class Select extends Query {
 
     @Override
     public void prepareJoinBatch() {
-        ArrayList<TableFilter> list = New.arrayList();
+        ArrayList<TableFilter> list = Utils.newSmallArrayList();
         TableFilter f = getTopTableFilter();
         do {
             if (f.getNestedJoin() != null) {

@@ -12,7 +12,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import org.h2.util.New;
 
 /**
  * Represents a connection to a real database.

@@ -12,6 +12,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.CreateTableData;
@@ -39,7 +40,7 @@ import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObject;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
+import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -62,7 +63,7 @@ public class RegularTable extends TableBase {
      */
     private final ArrayDeque<Session> waitingSessions = new ArrayDeque<>();
     private final Trace traceLock;
-    private final ArrayList<Index> indexes = New.arrayList();
+    private final ArrayList<Index> indexes = Utils.newSmallArrayList();
     private long lastModificationId;
     private final boolean containsLargeObject;
     private final PageDataIndex mainIndex;
@@ -616,7 +617,7 @@ public class RegularTable extends TableBase {
                 visited = new HashSet<>();
             } else if (clash == session) {
                 // we found a circle where this session is involved
-                return New.arrayList();
+                return Utils.newSmallArrayList();
             } else if (visited.contains(session)) {
                 // we have already checked this session.
                 // there is a circle, but the sessions in the circle need to

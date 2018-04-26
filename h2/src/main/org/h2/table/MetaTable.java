@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
+
 import org.h2.command.Command;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintActionType;
@@ -57,7 +58,6 @@ import org.h2.store.InDoubtTransaction;
 import org.h2.store.PageStore;
 import org.h2.tools.Csv;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -750,7 +750,7 @@ public class MetaTable extends Table {
             }
         }
 
-        ArrayList<Row> rows = New.arrayList();
+        ArrayList<Row> rows = Utils.newSmallArrayList();
         String catalog = identifier(database.getShortName());
         boolean admin = session.getUser().isAdmin();
         switch (type) {
@@ -1043,7 +1043,7 @@ public class MetaTable extends Table {
             add(rows, "RETENTION_TIME", "" + database.getRetentionTime());
             add(rows, "LOG", "" + database.getLogMode());
             // database settings
-            ArrayList<String> settingNames = New.arrayList();
+            ArrayList<String> settingNames = Utils.newSmallArrayList();
             HashMap<String, String> s = database.getSettings().getSettings();
             settingNames.addAll(s.keySet());
             Collections.sort(settingNames);
@@ -2285,7 +2285,7 @@ public class MetaTable extends Table {
 
     @Override
     public ArrayList<Index> getIndexes() {
-        ArrayList<Index> list = New.arrayList();
+        ArrayList<Index> list = Utils.newSmallArrayList();
         if (metaIndex == null) {
             return list;
         }

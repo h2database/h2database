@@ -8,6 +8,7 @@ package org.h2.jaqu;
 import static org.h2.jaqu.ValidationRemark.consider;
 import static org.h2.jaqu.ValidationRemark.error;
 import static org.h2.jaqu.ValidationRemark.warn;
+
 import java.lang.reflect.Modifier;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -21,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.h2.jaqu.Table.IndexType;
 import org.h2.jaqu.Table.JQColumn;
 import org.h2.jaqu.Table.JQIndex;
@@ -29,7 +31,6 @@ import org.h2.jaqu.Table.JQTable;
 import org.h2.jaqu.TableDefinition.FieldDefinition;
 import org.h2.jaqu.TableDefinition.IndexDefinition;
 import org.h2.util.JdbcUtils;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 

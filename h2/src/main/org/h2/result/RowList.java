@@ -6,12 +6,13 @@
 package org.h2.result;
 
 import java.util.ArrayList;
+
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.store.Data;
 import org.h2.store.FileStore;
-import org.h2.util.New;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 
 /**
@@ -21,7 +22,7 @@ import org.h2.value.Value;
 public class RowList {
 
     private final Session session;
-    private final ArrayList<Row> list = New.arrayList();
+    private final ArrayList<Row> list = Utils.newSmallArrayList();
     private int size;
     private int index, listIndex;
     private FileStore file;
@@ -68,7 +69,7 @@ public class RowList {
                     // otherwise the temp file is deleted
                     if (v.getSmall() == null && v.getTableId() == 0) {
                         if (lobs == null) {
-                            lobs = New.arrayList();
+                            lobs = Utils.newSmallArrayList();
                         }
                         // need to create a copy, otherwise,
                         // if stored multiple times, it may be renamed

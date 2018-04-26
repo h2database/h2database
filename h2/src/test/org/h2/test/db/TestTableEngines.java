@@ -25,6 +25,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.h2.api.TableEngine;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.AllColumnsForPlan;
@@ -50,7 +51,6 @@ import org.h2.table.TableFilter;
 import org.h2.table.TableType;
 import org.h2.test.TestBase;
 import org.h2.util.DoneFuture;
-import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;

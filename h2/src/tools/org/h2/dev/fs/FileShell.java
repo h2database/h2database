@@ -20,13 +20,13 @@ import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
 import org.h2.command.dml.BackupCommand;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
 

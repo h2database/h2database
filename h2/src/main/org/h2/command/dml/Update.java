@@ -8,6 +8,7 @@ package org.h2.command.dml;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
@@ -25,9 +26,9 @@ import org.h2.table.Column;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -49,7 +50,7 @@ public class Update extends Prepared {
 
     private boolean updateToCurrentValuesReturnsZero;
 
-    private final ArrayList<Column> columns = New.arrayList();
+    private final ArrayList<Column> columns = Utils.newSmallArrayList();
     private final HashMap<Column, Expression> expressionMap  = new HashMap<>();
 
     public Update(Session session) {

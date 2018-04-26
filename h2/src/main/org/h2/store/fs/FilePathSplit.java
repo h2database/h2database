@@ -14,9 +14,9 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
-import org.h2.util.New;
 
 /**
  * A file system that may split files into multiple smaller files.
@@ -94,7 +94,7 @@ public class FilePathSplit extends FilePathWrapper {
     @Override
     public ArrayList<FilePath> newDirectoryStream() {
         List<FilePath> list = getBase().newDirectoryStream();
-        ArrayList<FilePath> newList = New.arrayList();
+        ArrayList<FilePath> newList = new ArrayList<>();
         for (FilePath f : list) {
             if (!f.getName().endsWith(PART_SUFFIX)) {
                 newList.add(wrap(f));
@@ -120,7 +120,7 @@ public class FilePathSplit extends FilePathWrapper {
 
     @Override
     public FileChannel open(String mode) throws IOException {
-        ArrayList<FileChannel> list = New.arrayList();
+        ArrayList<FileChannel> list = new ArrayList<>();
         list.add(getBase().open(mode));
         for (int i = 1;; i++) {
             FilePath f = getBase(i);

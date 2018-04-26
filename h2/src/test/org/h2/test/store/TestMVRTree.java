@@ -17,16 +17,17 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
+
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageOutputStream;
+
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.rtree.MVRTreeMap;
 import org.h2.mvstore.rtree.SpatialKey;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.New;
 
 /**
  * Tests the r-tree.
@@ -219,7 +220,7 @@ public class TestMVRTree extends TestMVStore {
         add(r, "Bellinzona", key(11, 46.12, 9.01, 17373));
         add(r, "Chur", key(12, 46.51, 9.32, 33756));
         // render(r, getBaseDir() + "/test.png");
-        ArrayList<String> list = New.arrayList();
+        ArrayList<String> list = new ArrayList<>();
         for (SpatialKey x : r.keySet()) {
             list.add(r.get(x));
         }
@@ -295,7 +296,7 @@ public class TestMVRTree extends TestMVStore {
             g2d.drawChars(s.toCharArray(), 0, s.length(), rect[0], rect[1] - 4);
         }
         g2d.setColor(Color.red);
-        ArrayList<SpatialKey> list = New.arrayList();
+        ArrayList<SpatialKey> list = new ArrayList<>();
         r.addNodeKeys(list,  r.getRootPage());
         for (SpatialKey x : list) {
             int[] rect = scale(b, x, width, height);

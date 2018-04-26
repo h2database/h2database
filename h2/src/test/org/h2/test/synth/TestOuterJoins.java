@@ -15,9 +15,9 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
+
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.New;
 import org.h2.util.ScriptReader;
 
 /**

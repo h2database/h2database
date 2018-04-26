@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
@@ -68,7 +69,6 @@ import org.h2.tools.Server;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
-import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
@@ -773,7 +773,7 @@ public class Database implements DataHandler {
         objectIds.set(0);
         starting = true;
         Cursor cursor = metaIdIndex.find(systemSession, null, null);
-        ArrayList<MetaRecord> records = New.arrayList();
+        ArrayList<MetaRecord> records = new ArrayList<>();
         while (cursor.next()) {
             MetaRecord rec = new MetaRecord(cursor.get());
             objectIds.set(rec.getId());
@@ -1589,7 +1589,7 @@ public class Database implements DataHandler {
         if (includeMeta) {
             initMetaTables();
         }
-        ArrayList<Table> list = New.arrayList();
+        ArrayList<Table> list = new ArrayList<>();
         for (Schema schema : schemas.values()) {
             list.addAll(schema.getAllTablesAndViews());
         }

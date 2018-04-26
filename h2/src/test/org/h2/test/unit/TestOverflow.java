@@ -8,8 +8,8 @@ package org.h2.test.unit;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Random;
+
 import org.h2.test.TestBase;
-import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueString;
 

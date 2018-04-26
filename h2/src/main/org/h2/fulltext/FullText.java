@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
+
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
 import org.h2.engine.Session;
@@ -35,9 +36,9 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * This class implements the native full text search.
@@ -462,8 +463,8 @@ public class FullText {
      * @return an array containing the column name list and the data list
      */
     protected static Object[][] parseKey(Connection conn, String key) {
-        ArrayList<String> columns = New.arrayList();
-        ArrayList<String> data = New.arrayList();
+        ArrayList<String> columns = Utils.newSmallArrayList();
+        ArrayList<String> data = Utils.newSmallArrayList();
         JdbcConnection c = (JdbcConnection) conn;
         Session session = (Session) c.getSession();
         Parser p = new Parser(session);
@@ -891,13 +892,13 @@ public class FullText {
             if (!setting.isInitialized()) {
                 FullText.init(conn);
             }
-            ArrayList<String> keyList = New.arrayList();
+            ArrayList<String> keyList = Utils.newSmallArrayList();
             DatabaseMetaData meta = conn.getMetaData();
             ResultSet rs = meta.getColumns(null,
                     StringUtils.escapeMetaDataPattern(schemaName),
                     StringUtils.escapeMetaDataPattern(tableName),
                     null);
-            ArrayList<String> columnList = New.arrayList();
+            ArrayList<String> columnList = Utils.newSmallArrayList();
             while (rs.next()) {
                 columnList.add(rs.getString("COLUMN_NAME"));
             }
@@ -924,7 +925,7 @@ public class FullText {
             if (keyList.isEmpty()) {
                 throw throwException("No primary key for table " + tableName);
             }
-            ArrayList<String> indexList = New.arrayList();
+            ArrayList<String> indexList = Utils.newSmallArrayList();
             PreparedStatement prep = conn.prepareStatement(
                     "SELECT ID, COLUMNS FROM " + SCHEMA + ".INDEXES" +
                     " WHERE SCHEMA=? AND TABLE=?");

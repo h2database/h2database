@@ -15,7 +15,7 @@ import org.h2.engine.Session;
 import org.h2.engine.SessionInterface;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
-import org.h2.util.New;
+import org.h2.util.Utils;
 import org.h2.util.ValueHashMap;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -74,7 +74,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
                 this.maxMemoryRows = Integer.MAX_VALUE;
             }
         }
-        rows = New.arrayList();
+        rows = Utils.newSmallArrayList();
         this.visibleColumnCount = visibleColumnCount;
         rowId = -1;
         this.expressions = expressions;
@@ -345,7 +345,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
                     ResultExternal temp = external;
                     external = null;
                     temp.reset();
-                    rows = New.arrayList();
+                    rows = Utils.newSmallArrayList();
                     // TODO use offset directly if possible
                     while (true) {
                         Value[] list = temp.next();

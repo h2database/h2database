@@ -25,7 +25,7 @@ import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.New;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
@@ -317,7 +317,7 @@ public abstract class Query extends Prepared {
     public final Value[] getParameterValues() {
         ArrayList<Parameter> list = getParameters();
         if (list == null) {
-            list = New.arrayList();
+            list = Utils.newSmallArrayList();
         }
         int size = list.size();
         Value[] params = new Value[size];
@@ -562,7 +562,7 @@ public abstract class Query extends Prepared {
      */
     void addParameter(Parameter param) {
         if (parameters == null) {
-            parameters = New.arrayList();
+            parameters = Utils.newSmallArrayList();
         }
         parameters.add(param);
     }

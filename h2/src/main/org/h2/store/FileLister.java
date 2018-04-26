@@ -9,13 +9,13 @@ import java.nio.channels.FileChannel;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
-import org.h2.util.New;
 
 /**
  * Utility class to list the files of a database.
@@ -86,7 +86,7 @@ public class FileLister {
      */
     public static ArrayList<String> getDatabaseFiles(String dir, String db,
             boolean all) {
-        ArrayList<String> files = New.arrayList();
+        ArrayList<String> files = new ArrayList<>();
         // for Windows, File.getCanonicalPath("...b.") returns just "...b"
         String start = db == null ? null : (FileUtils.toRealPath(dir + "/" + db) + ".");
         for (String f : FileUtils.newDirectoryStream(dir)) {

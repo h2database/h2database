@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
@@ -24,8 +25,8 @@ import org.h2.result.RowImpl;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 
 /**
@@ -101,8 +102,7 @@ public class MergeUsing extends Prepared {
     private TableFilter targetTableFilter;
     private Column[] columns;
     private Column[] keys;
-    private final ArrayList<Expression[]> valuesExpressionList = New
-            .arrayList();
+    private final ArrayList<Expression[]> valuesExpressionList = Utils.newSmallArrayList();
     private Query query;
 
     // MergeUsing fields

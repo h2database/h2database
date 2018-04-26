@@ -28,7 +28,6 @@ import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
-import org.h2.util.New;
 
 /**
  * Test the page store.

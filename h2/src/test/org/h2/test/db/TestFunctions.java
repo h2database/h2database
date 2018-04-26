@@ -41,6 +41,7 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.TimeZone;
 import java.util.UUID;
+
 import org.h2.api.Aggregate;
 import org.h2.api.AggregateFunction;
 import org.h2.api.ErrorCode;
@@ -53,7 +54,6 @@ import org.h2.test.ap.TestAnnotationProcessor;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.util.ToChar.Capitalization;
 import org.h2.util.ToDateParser;

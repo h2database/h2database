@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import org.h2.test.TestBase;
-import org.h2.util.New;
 
 /**
  * Represents an in-memory result.

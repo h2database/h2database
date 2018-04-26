@@ -11,7 +11,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import org.h2.util.New;
+
 import org.h2.util.StringUtils;
 
 /**
@@ -219,7 +219,7 @@ public class MultiDimension implements Comparator<long[]> {
             }
         }
         int total = getSize(min, max, len);
-        ArrayList<long[]> list = New.arrayList();
+        ArrayList<long[]> list = new ArrayList<>();
         addMortonRanges(list, min, max, len, 0);
         combineEntries(list, total);
         return list.toArray(new long[0][]);

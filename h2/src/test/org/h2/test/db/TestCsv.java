@@ -30,7 +30,6 @@ import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.Csv;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**

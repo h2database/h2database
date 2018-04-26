@@ -30,9 +30,9 @@ import org.h2.result.Row;
 import org.h2.result.RowList;
 import org.h2.schema.Schema;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
@@ -53,7 +53,7 @@ public class TableLink extends Table {
     private String driver, url, user, password, originalTable, qualifiedTableName;
     private TableLinkConnection conn;
     private HashMap<String, PreparedStatement> preparedMap = new HashMap<>();
-    private final ArrayList<Index> indexes = New.arrayList();
+    private final ArrayList<Index> indexes = Utils.newSmallArrayList();
     private final boolean emitUpdates;
     private LinkedIndex linkedIndex;
     private DbException connectException;
@@ -127,7 +127,7 @@ public class TableLink extends Table {
         rs.close();
         rs = meta.getColumns(null, originalSchema, originalTable, null);
         int i = 0;
-        ArrayList<Column> columnList = New.arrayList();
+        ArrayList<Column> columnList = Utils.newSmallArrayList();
         HashMap<String, Column> columnMap = new HashMap<>();
         String catalog = null, schema = null;
         while (rs.next()) {
@@ -215,7 +215,7 @@ public class TableLink extends Table {
         ArrayList<Column> list;
         if (rs != null && rs.next()) {
             // the problem is, the rows are not sorted by KEY_SEQ
-            list = New.arrayList();
+            list = Utils.newSmallArrayList();
             do {
                 int idx = rs.getInt("KEY_SEQ");
                 if (pkName == null) {
@@ -245,7 +245,7 @@ public class TableLink extends Table {
             rs = null;
         }
         String indexName = null;
-        list = New.arrayList();
+        list = Utils.newSmallArrayList();
         IndexType indexType = null;
         if (rs != null) {
             while (rs.next()) {

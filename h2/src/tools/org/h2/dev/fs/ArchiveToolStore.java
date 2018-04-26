@@ -15,14 +15,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.store.fs.FileUtils;
-import org.h2.util.New;
 
 /**
  * An archive tool to compress directories, using the MVStore backend.

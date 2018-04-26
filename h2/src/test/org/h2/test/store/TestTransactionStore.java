@@ -15,17 +15,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
-import org.h2.mvstore.tx.TransactionStore;
-import org.h2.mvstore.tx.TransactionStore.Change;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionMap;
+import org.h2.mvstore.tx.TransactionStore;
+import org.h2.mvstore.tx.TransactionStore.Change;
 import org.h2.mvstore.type.ObjectDataType;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.New;
 import org.h2.util.Task;
 
 /**

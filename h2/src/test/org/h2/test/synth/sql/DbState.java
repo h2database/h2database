@@ -6,7 +6,6 @@
 package org.h2.test.synth.sql;
 
 import java.util.ArrayList;
-import org.h2.util.New;
 
 /**
  * Represents a connection to a simulated database.

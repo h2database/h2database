@@ -7,7 +7,6 @@ package org.h2.test.synth.sql;
 
 import java.sql.Types;
 import java.util.ArrayList;
-import org.h2.util.New;
 
 /**
  * Represents an expression.

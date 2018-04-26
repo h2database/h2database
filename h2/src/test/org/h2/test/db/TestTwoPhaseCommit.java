@@ -12,7 +12,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 
 import org.h2.test.TestBase;
-import org.h2.util.New;
 
 /**
  * Tests for the two-phase-commit feature.

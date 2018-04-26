@@ -31,6 +31,7 @@ import java.util.Calendar;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.store.FileLister;
@@ -44,7 +45,6 @@ import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Restore;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
 
 /**
  * A test that calls random methods with random parameters from JDBC objects.

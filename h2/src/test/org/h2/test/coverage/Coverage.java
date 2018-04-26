@@ -16,8 +16,6 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-import org.h2.util.New;
-
 /**
  * Tool to instrument java files with profiler calls. The tool can be used for
  * profiling an application and for coverage testing. This class is not used at

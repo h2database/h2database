@@ -6,6 +6,7 @@
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
+
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
@@ -17,7 +18,6 @@ import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.table.Table;
 import org.h2.table.TableType;
-import org.h2.util.New;
 
 /**
  * This class represents the statement
@@ -132,7 +132,7 @@ public class DropDatabase extends DefineCommand {
                 db.removeDatabaseObject(session, role);
             }
         }
-        ArrayList<DbObject> dbObjects = New.arrayList();
+        ArrayList<DbObject> dbObjects = new ArrayList<>();
         dbObjects.addAll(db.getAllRights());
         dbObjects.addAll(db.getAllAggregates());
         dbObjects.addAll(db.getAllUserDataTypes());

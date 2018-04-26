@@ -23,7 +23,6 @@ package org.h2.test.trace;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**

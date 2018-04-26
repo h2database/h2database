@@ -6,10 +6,10 @@
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
+
 import org.h2.engine.Session;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
-import org.h2.util.New;
 
 /**
  * The data required to create a table.
@@ -34,7 +34,7 @@ public class CreateTableData {
     /**
      * The column list.
      */
-    public ArrayList<Column> columns = New.arrayList();
+    public ArrayList<Column> columns = new ArrayList<>();
 
     /**
      * Whether this is a temporary table.

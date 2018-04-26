@@ -18,7 +18,6 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.test.TestBase;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**

@@ -8,11 +8,12 @@ package org.h2.value;
 import java.lang.reflect.Array;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
+
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
+import org.h2.util.Utils;
 
 /**
  * Implementation of the ARRAY data type.
@@ -210,7 +211,7 @@ public class ValueArray extends Value {
         if (!force) {
             return this;
         }
-        ArrayList<Value> list = New.arrayList();
+        ArrayList<Value> list = Utils.newSmallArrayList();
         for (Value v : values) {
             v = v.convertPrecision(precision, true);
             // empty byte arrays or strings have precision 0

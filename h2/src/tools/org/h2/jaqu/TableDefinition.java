@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.h2.jaqu.Table.IndexType;
 import org.h2.jaqu.Table.JQColumn;
 import org.h2.jaqu.Table.JQIndex;
@@ -21,7 +22,6 @@ import org.h2.jaqu.Table.JQSchema;
 import org.h2.jaqu.Table.JQTable;
 import org.h2.jaqu.util.ClassUtils;
 import org.h2.jaqu.util.StatementLogger;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 

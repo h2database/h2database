@@ -25,7 +25,6 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 
 /**
  * This file system stores files on disk.
@@ -162,7 +161,7 @@ public class FilePathDisk extends FilePath {
 
     @Override
     public List<FilePath> newDirectoryStream() {
-        ArrayList<FilePath> list = New.arrayList();
+        ArrayList<FilePath> list = new ArrayList<>();
         File f = new File(name);
         try {
             String[] files = f.list();

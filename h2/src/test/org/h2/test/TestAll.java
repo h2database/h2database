@@ -436,7 +436,7 @@ java org.h2.test.TestAll timer
     /**
      * The list of tests.
      */
-    ArrayList<TestBase> tests = New.arrayList();
+    ArrayList<TestBase> tests = new ArrayList<>();
 
     private Server server;
 

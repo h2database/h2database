@@ -57,7 +57,7 @@ public class TestClassLoaderLeak extends TestBase {
         // (check incoming references to TestClassLoader)
         boolean fillMemory = false;
         if (fillMemory) {
-            ArrayList<byte[]> memory = New.arrayList();
+            ArrayList<byte[]> memory = new ArrayList<>();
             for (int i = 0; i < Integer.MAX_VALUE; i++) {
                 memory.add(new byte[1024]);
             }

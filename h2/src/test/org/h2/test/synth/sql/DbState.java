@@ -16,8 +16,8 @@ public class DbState implements DbInterface {
     private boolean connected;
     private boolean autoCommit;
     private final TestSynth config;
-    private ArrayList<Table> tables = New.arrayList();
-    private ArrayList<Index> indexes = New.arrayList();
+    private ArrayList<Table> tables = new ArrayList<>();
+    private ArrayList<Index> indexes = new ArrayList<>();
 
     DbState(TestSynth config) {
         this.config = config;
@@ -25,8 +25,8 @@ public class DbState implements DbInterface {
 
     @Override
     public void reset() {
-        tables = New.arrayList();
-        indexes = New.arrayList();
+        tables = new ArrayList<>();
+        indexes = new ArrayList<>();
     }
 
     @Override

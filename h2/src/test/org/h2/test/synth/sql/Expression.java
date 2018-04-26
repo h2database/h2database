@@ -35,7 +35,7 @@ public class Expression {
         if (config.random().getBoolean(30)) {
             return new String[] { "*" };
         }
-        ArrayList<String> exp = New.arrayList();
+        ArrayList<String> exp = new ArrayList<>();
         String sql = "";
         if (config.random().getBoolean(10)) {
             sql += "DISTINCT ";

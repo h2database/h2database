@@ -26,7 +26,7 @@ import org.h2.util.ScriptReader;
  */
 public class TestNestedJoins extends TestBase {
 
-    private final ArrayList<Statement> dbs = New.arrayList();
+    private final ArrayList<Statement> dbs = new ArrayList<>();
 
     /**
      * Run just this test.
@@ -218,7 +218,7 @@ public class TestNestedJoins extends TestBase {
     }
 
     private static String getResult(ResultSet rs) throws SQLException {
-        ArrayList<String> list = New.arrayList();
+        ArrayList<String> list = new ArrayList<>();
         while (rs.next()) {
             StringBuilder buff = new StringBuilder();
             for (int i = 0; i < rs.getMetaData().getColumnCount(); i++) {

@@ -30,8 +30,8 @@ public class TestPowerOffFs2 extends TestBase {
     private FilePathDebug fs;
 
     private String url;
-    private final ArrayList<Connection> connections = New.arrayList();
-    private final ArrayList<String> tables = New.arrayList();
+    private final ArrayList<Connection> connections = new ArrayList<>();
+    private final ArrayList<String> tables = new ArrayList<>();
 
     /**
      * Run just this test.

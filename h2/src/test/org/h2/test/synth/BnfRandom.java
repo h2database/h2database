@@ -22,7 +22,7 @@ public class BnfRandom implements BnfVisitor {
     private static final boolean SHOW_SYNTAX = false;
 
     private final Random random = new Random();
-    private final ArrayList<RuleHead> statements = New.arrayList();
+    private final ArrayList<RuleHead> statements = new ArrayList<>();
 
     private int level;
     private String sql;

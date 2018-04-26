@@ -105,7 +105,7 @@ public class TestFuzzOptimizations extends TestBase {
             long seed = seedGenerator.nextLong();
             println("seed: " + seed);
             Random random = new Random(seed);
-            ArrayList<String> params = New.arrayList();
+            ArrayList<String> params = new ArrayList<>();
             String condition = getRandomCondition(random, params, columns,
                     compares, values);
             String message = "seed: " + seed + " " + condition;

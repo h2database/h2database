@@ -278,7 +278,7 @@ public class FileShell extends Tool {
                 recursive = true;
             }
             String target = getFile(list[i++]);
-            ArrayList<String> source = New.arrayList();
+            ArrayList<String> source = new ArrayList<>();
             readFileList(list, i, source, recursive);
             zip(target, currentWorkingDirectory, source);
         }

@@ -217,7 +217,7 @@ public class FilePathZip2 extends FilePath {
             ZipInputStream file = openZip();
             String dirName = getEntryName();
             String prefix = path.substring(0, path.length() - dirName.length());
-            ArrayList<FilePath> list = New.arrayList();
+            ArrayList<FilePath> list = new ArrayList<>();
             while (true) {
                 ZipEntry entry = file.getNextEntry();
                 if (entry == null) {

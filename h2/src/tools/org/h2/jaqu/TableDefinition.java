@@ -96,12 +96,12 @@ class TableDefinition<T> {
     int tableVersion;
     private boolean createTableIfRequired = true;
     private final Class<T> clazz;
-    private final ArrayList<FieldDefinition> fields = New.arrayList();
+    private final ArrayList<FieldDefinition> fields = new ArrayList<>();
     private final IdentityHashMap<Object, FieldDefinition> fieldMap =
             ClassUtils.newIdentityHashMap();
 
     private List<String> primaryKeyColumnNames;
-    private final ArrayList<IndexDefinition> indexes = New.arrayList();
+    private final ArrayList<IndexDefinition> indexes = new ArrayList<>();
     private boolean memoryTable;
 
     TableDefinition(Class<T> clazz) {
@@ -156,7 +156,7 @@ class TableDefinition<T> {
     }
 
     private ArrayList<String> mapColumnNames(Object[] columns) {
-        ArrayList<String> columnNames = New.arrayList();
+        ArrayList<String> columnNames = new ArrayList<>();
         for (Object column : columns) {
             columnNames.add(getColumnName(column));
         }
@@ -209,7 +209,7 @@ class TableDefinition<T> {
             strictTypeMapping = tableAnnotation.strictTypeMapping();
         }
 
-        List<Field> classFields = New.arrayList();
+        List<Field> classFields = new ArrayList<>();
         classFields.addAll(Arrays.asList(clazz.getDeclaredFields()));
         if (inheritColumns) {
             Class<?> superClass = clazz.getSuperclass();
@@ -254,7 +254,7 @@ class TableDefinition<T> {
                 fields.add(fieldDef);
             }
         }
-        List<String> primaryKey = New.arrayList();
+        List<String> primaryKey = new ArrayList<>();
         for (FieldDefinition fieldDef : fields) {
             if (fieldDef.isPrimaryKey) {
                 primaryKey.add(fieldDef.columnName);
@@ -500,7 +500,7 @@ class TableDefinition<T> {
      * @return the column list
      */
     private static List<String> getColumns(String index) {
-        List<String> cols = New.arrayList();
+        List<String> cols = new ArrayList<>();
         if (index == null || index.length() == 0) {
             return null;
         }
@@ -573,7 +573,7 @@ class TableDefinition<T> {
     }
 
     List<IndexDefinition> getIndexes(IndexType type) {
-        List<IndexDefinition> list = New.arrayList();
+        List<IndexDefinition> list = new ArrayList<>();
         for (IndexDefinition def:indexes) {
             if (def.type.equals(type)) {
                 list.add(def);

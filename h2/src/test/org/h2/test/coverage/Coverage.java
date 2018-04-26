@@ -26,8 +26,8 @@ import org.h2.util.New;
 public class Coverage {
     private static final String IMPORT = "import " +
             Coverage.class.getPackage().getName() + ".Profile";
-    private final ArrayList<String> files = New.arrayList();
-    private final ArrayList<String> exclude = New.arrayList();
+    private final ArrayList<String> files = new ArrayList<>();
+    private final ArrayList<String> exclude = new ArrayList<>();
     private Tokenizer tokenizer;
     private Writer writer;
     private Writer data;

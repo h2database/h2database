@@ -179,7 +179,7 @@ public class TestCompress extends TestBase {
         }
 
         for (int j = 0; j < 4; j++) {
-            ArrayList<byte[]> comp = New.arrayList();
+            ArrayList<byte[]> comp = new ArrayList<>();
             InputStream in = FileUtils.newInputStream("memFS:compress.h2.db");
             while (true) {
                 int len = in.read(buff2);

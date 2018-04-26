@@ -338,7 +338,7 @@ public class Csv implements SimpleRowSource {
     }
 
     private void readHeader() throws IOException {
-        ArrayList<String> list = New.arrayList();
+        ArrayList<String> list = new ArrayList<>();
         while (true) {
             String v = readValue();
             if (v == null) {

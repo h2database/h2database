@@ -38,8 +38,8 @@ public class TestKillRestartMulti extends TestBase {
     private String url;
     private String user = "sa";
     private String password = "sa";
-    private final ArrayList<Connection> connections = New.arrayList();
-    private final ArrayList<String> tables = New.arrayList();
+    private final ArrayList<Connection> connections = new ArrayList<>();
+    private final ArrayList<String> tables = new ArrayList<>();
     private int openCount;
 
 

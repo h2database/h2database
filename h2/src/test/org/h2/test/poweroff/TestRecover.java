@@ -106,7 +106,7 @@ public class TestRecover {
         SimpleDateFormat sd = new SimpleDateFormat("yyMMdd-HHmmss");
         String date = sd.format(new Date());
         File zipFile = new File(root, "backup-" + date + "-" + node + ".zip");
-        ArrayList<File> list = New.arrayList();
+        ArrayList<File> list = new ArrayList<>();
         File base = new File(sourcePath);
         listRecursive(list, base);
         if (list.size() == 0) {

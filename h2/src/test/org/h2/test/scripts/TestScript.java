@@ -40,7 +40,7 @@ public class TestScript extends TestBase {
 
     /** If set to true, the test will exit at the first failure. */
     private boolean failFast;
-    private final ArrayList<String> statements = New.arrayList();
+    private final ArrayList<String> statements = new ArrayList<>();
 
     private boolean reconnectOften;
     private Connection conn;
@@ -49,7 +49,7 @@ public class TestScript extends TestBase {
     private LineNumberReader in;
     private int outputLineNo;
     private PrintStream out;
-    private final ArrayList<String[]> result = New.arrayList();
+    private final ArrayList<String[]> result = new ArrayList<>();
     private String putBack;
     private StringBuilder errors;
 

@@ -42,7 +42,7 @@ public class TestOverflow extends TestBase {
     }
 
     private void test(int type, long minValue, long maxValue) {
-        values = New.arrayList();
+        values = new ArrayList<>();
         this.dataType = type;
         this.min = new BigInteger("" + minValue);
         this.max = new BigInteger("" + maxValue);

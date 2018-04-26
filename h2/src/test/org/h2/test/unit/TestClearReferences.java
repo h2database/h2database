@@ -93,7 +93,7 @@ public class TestClearReferences extends TestBase {
     }
 
     private void clear() throws Exception {
-        ArrayList<Class <?>> classes = New.arrayList();
+        ArrayList<Class <?>> classes = new ArrayList<>();
         findClasses(classes, new File("bin/org/h2"));
         findClasses(classes, new File("temp/org/h2"));
         for (Class<?> clazz : classes) {

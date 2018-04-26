@@ -474,7 +474,7 @@ public class TestDate extends TestBase {
      * @return the list
      */
     public static ArrayList<TimeZone> getDistinctTimeZones() {
-        ArrayList<TimeZone> distinct = New.arrayList();
+        ArrayList<TimeZone> distinct = new ArrayList<>();
         for (String id : TimeZone.getAvailableIDs()) {
             TimeZone t = TimeZone.getTimeZone(id);
             for (TimeZone d : distinct) {

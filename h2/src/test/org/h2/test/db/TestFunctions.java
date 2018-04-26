@@ -685,7 +685,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      */
     public static class MedianString implements AggregateFunction {
 
-        private final ArrayList<String> list = New.arrayList();
+        private final ArrayList<String> list = new ArrayList<>();
 
         @Override
         public void add(Object value) {
@@ -715,7 +715,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      */
     public static class MedianStringType implements Aggregate {
 
-        private final ArrayList<String> list = New.arrayList();
+        private final ArrayList<String> list = new ArrayList<>();
 
         @Override
         public void add(Object value) {

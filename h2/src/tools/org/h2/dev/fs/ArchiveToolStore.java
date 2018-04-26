@@ -68,7 +68,7 @@ public class ArchiveToolStore {
         start();
         long tempSize = 8 * 1024 * 1024;
         String tempFileName = fileName + ".temp";
-        ArrayList<String> fileNames = New.arrayList();
+        ArrayList<String> fileNames = new ArrayList<>();
 
         System.out.println("Reading the file list");
         long totalSize = addFiles(sourceDir, fileNames);
@@ -160,7 +160,7 @@ public class ArchiveToolStore {
             filesTemp.put(name, posArray);
         }
         storeTemp.commit();
-        ArrayList<Cursor<int[], byte[]>> list = New.arrayList();
+        ArrayList<Cursor<int[], byte[]>> list = new ArrayList<>();
         totalSize = 0;
         for (int i = 1; i <= segmentId; i++) {
             MVMap<int[], byte[]> data = storeTemp.openMap("data" + i);
@@ -379,7 +379,7 @@ public class ArchiveToolStore {
             storeTemp.commit();
         }
 
-        ArrayList<Cursor<int[], byte[]>> list = New.arrayList();
+        ArrayList<Cursor<int[], byte[]>> list = new ArrayList<>();
         totalSize = 0;
         currentSize = 0;
         for (int i = 1; i <= lastSegment; i++) {

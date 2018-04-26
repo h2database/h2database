@@ -45,7 +45,7 @@ class DbConnection implements DbInterface {
         log("reset;");
         DatabaseMetaData meta = conn.getMetaData();
         Statement stat = conn.createStatement();
-        ArrayList<String> tables = New.arrayList();
+        ArrayList<String> tables = new ArrayList<>();
         ResultSet rs = meta.getTables(null, null, null, new String[] { "TABLE" });
         while (rs.next()) {
             String schemaName = rs.getString("TABLE_SCHEM");

@@ -103,7 +103,7 @@ public class TestMultiThreadedKernel extends TestBase {
     }
 
     private void testConcurrentRead() throws Exception {
-        ArrayList<Task> list = New.arrayList();
+        ArrayList<Task> list = new ArrayList<>();
         int size = 2;
         final int count = 1000;
         final Connection[] connections = new Connection[count];
@@ -144,7 +144,7 @@ public class TestMultiThreadedKernel extends TestBase {
     }
 
     private void testCache() throws Exception {
-        ArrayList<Task> list = New.arrayList();
+        ArrayList<Task> list = new ArrayList<>();
         int size = 3;
         final int count = 100;
         final Connection[] connections = new Connection[count];

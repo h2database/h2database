@@ -144,7 +144,7 @@ public class TestSynth extends TestBase {
 
     private void testRun(int seed) throws Exception {
         random.setSeed(seed);
-        commands = New.arrayList();
+        commands = new ArrayList<>();
         add(Command.getConnect(this));
         add(Command.getReset(this));
 
@@ -202,7 +202,7 @@ public class TestSynth extends TestBase {
     private boolean process(int seed, int id, Command command) throws Exception {
         try {
 
-            ArrayList<Result> results = New.arrayList();
+            ArrayList<Result> results = new ArrayList<>();
             for (int i = 0; i < databases.size(); i++) {
                 DbInterface db = databases.get(i);
                 Result result = command.run(db);
@@ -278,7 +278,7 @@ public class TestSynth extends TestBase {
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);
         deleteDb("synth/synth");
-        databases = New.arrayList();
+        databases = new ArrayList<>();
 
         // mode = HSQLDB;
         // addDatabase("org.hsqldb.jdbcDriver", "jdbc:hsqldb:test", "sa", "" );

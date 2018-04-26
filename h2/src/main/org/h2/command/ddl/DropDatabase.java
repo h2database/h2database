@@ -54,7 +54,7 @@ public class DropDatabase extends DefineCommand {
         boolean runLoopAgain;
         do {
             ArrayList<Table> tables = db.getAllTablesAndViews(false);
-            ArrayList<Table> toRemove = New.arrayList();
+            ArrayList<Table> toRemove = new ArrayList<>();
             for (Table t : tables) {
                 if (t.getName() != null &&
                         TableType.VIEW == t.getTableType()) {
@@ -99,7 +99,7 @@ public class DropDatabase extends DefineCommand {
                 db.removeDatabaseObject(session, schema);
             }
         }
-        ArrayList<SchemaObject> list = New.arrayList();
+        ArrayList<SchemaObject> list = new ArrayList<>();
         for (SchemaObject obj : db.getAllSchemaObjects(DbObject.SEQUENCE))  {
             // ignore these. the ones we want to drop will get dropped when we
             // drop their associated tables, and we will ignore the problematic

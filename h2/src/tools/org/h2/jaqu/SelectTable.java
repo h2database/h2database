@@ -23,7 +23,7 @@ class SelectTable<T> {
     private final String as;
     private final TableDefinition<T> aliasDef;
     private final boolean outerJoin;
-    private final ArrayList<Token> joinConditions = New.arrayList();
+    private final ArrayList<Token> joinConditions = new ArrayList<>();
     private final T alias;
 
     @SuppressWarnings("unchecked")

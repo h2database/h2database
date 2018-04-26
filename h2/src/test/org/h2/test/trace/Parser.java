@@ -209,7 +209,7 @@ class Parser {
                     read("[");
                     read("]");
                     read("{");
-                    ArrayList<Object> values = New.arrayList();
+                    ArrayList<Object> values = new ArrayList<>();
                     do {
                         values.add(parseValue().getValue());
                     } while (readIf(","));
@@ -250,7 +250,7 @@ class Parser {
 
     private void parseCall(String objectName, Object o, String methodName) {
         stat.setMethodCall(objectName, o, methodName);
-        ArrayList<Arg> args = New.arrayList();
+        ArrayList<Arg> args = new ArrayList<>();
         read("(");
         while (true) {
             if (readIf(")")) {

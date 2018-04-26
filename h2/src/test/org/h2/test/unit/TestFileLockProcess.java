@@ -76,7 +76,7 @@ public class TestFileLockProcess extends TestBase {
         String[] procDef = { "java", selfDestruct,
                 "-cp", getClassPath(),
                 getClass().getName(), url };
-        ArrayList<Process> processes = New.arrayList();
+        ArrayList<Process> processes = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             Thread.sleep(100);
             if (i % 10 == 0) {

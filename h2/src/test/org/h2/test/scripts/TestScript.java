@@ -91,6 +91,7 @@ public class TestScript extends TestBase {
         testScript("joins.sql");
         testScript("range_table.sql");
         testScript("altertable-index-reuse.sql");
+        testScript("altertable-fk.sql");
         testScript("default-and-on_update.sql");
         testScript("query-optimisations.sql");
         String decimal2;

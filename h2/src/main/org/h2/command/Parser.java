@@ -6878,7 +6878,7 @@ public class Parser {
         if (s == null) {
             return "\"\"";
         }
-        if (ParserUtil.isSimpleIdentifier(s, false)) {
+        if (ParserUtil.isSimpleIdentifier(s)) {
             return s;
         }
         return StringUtils.quoteIdentifier(s);

@@ -58,11 +58,10 @@ public class ParserUtil {
      * Is this a simple identifier (in the JDBC specification sense).
      *
      * @param s identifier to check
-     * @param functionsAsKeywords treat system functions as keywords
      * @return is specified identifier may be used without quotes
      * @throws NullPointerException if s is {@code null}
      */
-    public static boolean isSimpleIdentifier(String s, boolean functionsAsKeywords) {
+    public static boolean isSimpleIdentifier(String s) {
         if (s.length() == 0) {
             return false;
         }
@@ -78,7 +77,7 @@ public class ParserUtil {
                 return false;
             }
         }
-        return getSaveTokenType(s, functionsAsKeywords) == IDENTIFIER;
+        return getSaveTokenType(s, true) == IDENTIFIER;
     }
 
     /**

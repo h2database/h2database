@@ -684,10 +684,6 @@ public class Parser {
             if (equalsToken("SESSION", schemaName)) {
                 // for local temporary tables
                 schema = database.getSchema(session.getCurrentSchemaName());
-            } else if (database.getMode().sysDummy1 &&
-                    "SYSIBM".equals(schemaName)) {
-                // IBM DB2 and Apache Derby compatibility: SYSIBM.SYSDUMMY1
-                schema = database.getSchema(session.getCurrentSchemaName());
             }
         }
         return schema;
@@ -1372,7 +1368,7 @@ public class Parser {
     private TableFilter readTableFilter() {
         Table table;
         String alias = null;
-        if (readIf("(")) {
+        label: if (readIf("(")) {
             if (isSelect()) {
                 Query query = parseSelectUnion();
                 read(")");
@@ -1406,7 +1402,19 @@ public class Parser {
             table = parseValuesTable(0).getTable();
         } else {
             String tableName = readIdentifierWithSchema(null);
-            Schema schema = getSchema();
+            Schema schema;
+            if (schemaName == null) {
+                schema = null;
+            } else {
+                schema = findSchema(schemaName);
+                if (schema == null) {
+                    if (isDualTable(tableName)) {
+                        table = getDualTable(false);
+                        break label;
+                    }
+                    throw DbException.get(ErrorCode.SCHEMA_NOT_FOUND_1, schemaName);
+                }
+            }
             boolean foundLeftBracket = readIf("(");
             if (foundLeftBracket && readIf("INDEX")) {
                 // Sybase compatibility with
@@ -1442,13 +1450,8 @@ public class Parser {
                     }
                     table = new FunctionTable(mainSchema, session, expr, call);
                 }
-            } else if (equalsToken("DUAL", tableName)) {
-                table = getDualTable(false);
-            } else if (database.getMode().sysDummy1 &&
-                    equalsToken("SYSDUMMY1", tableName)) {
-                table = getDualTable(false);
             } else {
-                table = readTableOrView(tableName);
+                table = readTableOrView(tableName, true);
             }
         }
         ArrayList<String> derivedColumnNames = null;
@@ -5933,29 +5936,41 @@ public class Parser {
         return command;
     }
 
-    private Table readTableOrView() {
-        return readTableOrView(readIdentifierWithSchema(null));
+    boolean isDualTable(String tableName) {
+        return ((schemaName == null || equalsToken(schemaName, "SYS")) && equalsToken("DUAL", tableName))
+                || (database.getMode().sysDummy1 && (schemaName == null || equalsToken(schemaName, "SYSIBM")))
+                        && equalsToken("SYSDUMMY1", tableName);
     }
 
-    private Table readTableOrView(String tableName) {
-        // same algorithm than readSequence
+    private Table readTableOrView() {
+        return readTableOrView(readIdentifierWithSchema(null), false);
+    }
+
+    private Table readTableOrView(String tableName, boolean allowDual) {
         if (schemaName != null) {
-            return getSchema().getTableOrView(session, tableName);
-        }
-        Table table = database.getSchema(session.getCurrentSchemaName())
-                .resolveTableOrView(session, tableName);
-        if (table != null) {
-            return table;
-        }
-        String[] schemaNames = session.getSchemaSearchPath();
-        if (schemaNames != null) {
-            for (String name : schemaNames) {
-                Schema s = database.getSchema(name);
-                table = s.resolveTableOrView(session, tableName);
-                if (table != null) {
-                    return table;
+            Table table = getSchema().resolveTableOrView(session, tableName);
+            if (table != null) {
+                return table;
+            }
+        } else {
+            Table table = database.getSchema(session.getCurrentSchemaName())
+                    .resolveTableOrView(session, tableName);
+            if (table != null) {
+                return table;
+            }
+            String[] schemaNames = session.getSchemaSearchPath();
+            if (schemaNames != null) {
+                for (String name : schemaNames) {
+                    Schema s = database.getSchema(name);
+                    table = s.resolveTableOrView(session, tableName);
+                    if (table != null) {
+                        return table;
+                    }
                 }
             }
+        }
+        if (allowDual && isDualTable(tableName)) {
+            return getDualTable(false);
         }
         throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
     }

@@ -4206,7 +4206,7 @@ public class Parser {
             // if not yet converted to uppercase, do it now
             s = StringUtils.toUpperEnglish(s);
         }
-        return getSaveTokenType(s, false);
+        return ParserUtil.getSaveTokenType(s, false);
     }
 
     private boolean isKeyword(String s) {
@@ -4215,10 +4215,6 @@ public class Parser {
             s = StringUtils.toUpperEnglish(s);
         }
         return ParserUtil.isKeyword(s);
-    }
-
-    private static int getSaveTokenType(String s, boolean functionsAsKeywords) {
-        return ParserUtil.getSaveTokenType(s, functionsAsKeywords);
     }
 
     private Column parseColumnForTable(String columnName,

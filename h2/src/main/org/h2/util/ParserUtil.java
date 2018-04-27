@@ -84,10 +84,11 @@ public class ParserUtil {
      * Get the token type.
      *
      * @param s the token
-     * @param functionsAsKeywords whether "current data / time" functions are keywords
+     * @param additionalKeywords whether TOP, INTERSECTS, and "current data /
+     *                           time" functions are keywords
      * @return the token type
      */
-    public static int getSaveTokenType(String s, boolean functionsAsKeywords) {
+    public static int getSaveTokenType(String s, boolean additionalKeywords) {
         switch (s.charAt(0)) {
         case 'A':
             return getKeywordOrIdentifier(s, "ALL", KEYWORD);
@@ -99,7 +100,7 @@ public class ParserUtil {
             } else if ("CROSS".equals(s)) {
                 return KEYWORD;
             }
-            if (functionsAsKeywords) {
+            if (additionalKeywords) {
                 if ("CURRENT_DATE".equals(s) || "CURRENT_TIME".equals(s) || "CURRENT_TIMESTAMP".equals(s)) {
                     return KEYWORD;
                 }
@@ -130,12 +131,15 @@ public class ParserUtil {
         case 'H':
             return getKeywordOrIdentifier(s, "HAVING", KEYWORD);
         case 'I':
-            if ("INNER".equals(s)) {
-                return KEYWORD;
-            } else if ("INTERSECT".equals(s)) {
+            if ("INNER".equals(s) || "INTERSECT".equals(s) || "IS".equals(s)) {
                 return KEYWORD;
             }
-            return getKeywordOrIdentifier(s, "IS", KEYWORD);
+            if (additionalKeywords) {
+                if ("INTERSECTS".equals(s)) {
+                    return KEYWORD;
+                }
+            }
+            return IDENTIFIER;
         case 'J':
             return getKeywordOrIdentifier(s, "JOIN", KEYWORD);
         case 'L':
@@ -167,7 +171,7 @@ public class ParserUtil {
             if ("SELECT".equals(s)) {
                 return KEYWORD;
             }
-            if (functionsAsKeywords) {
+            if (additionalKeywords) {
                 if ("SYSDATE".equals(s) || "SYSTIME".equals(s) || "SYSTIMESTAMP".equals(s)) {
                     return KEYWORD;
                 }
@@ -177,8 +181,8 @@ public class ParserUtil {
             if ("TRUE".equals(s)) {
                 return TRUE;
             }
-            if (functionsAsKeywords) {
-                if ("TODAY".equals(s)) {
+            if (additionalKeywords) {
+                if ("TODAY".equals(s) || "TOP".equals(s)) {
                     return KEYWORD;
                 }
             }

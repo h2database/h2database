@@ -85,6 +85,7 @@ public abstract class Table extends SchemaObjectBase {
      */
     private final CopyOnWriteArrayList<TableView> dependentViews = new CopyOnWriteArrayList<>();
     private ArrayList<TableSynonym> synonyms;
+    /** Is foreign key constraint checking enabled for this table. */
     private boolean checkForeignKeyConstraints = true;
     private boolean onCommitDrop, onCommitTruncate;
     private volatile Row nullRow;
@@ -1065,6 +1066,9 @@ public abstract class Table extends SchemaObjectBase {
         checkForeignKeyConstraints = enabled;
     }
 
+    /**
+     * @return is foreign key constraint checking enabled for this table.
+     */
     public boolean getCheckForeignKeyConstraints() {
         return checkForeignKeyConstraints;
     }

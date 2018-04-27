@@ -470,6 +470,17 @@ public class ConstraintReferential extends Constraint {
         buildDeleteSQL();
     }
 
+    public void updateOnTableColumnRename() {
+        if (deleteAction != null) {
+            deleteSQL = null;
+            buildDeleteSQL();
+        }
+        if (updateAction != null) {
+            updateSQL = null;
+            buildUpdateSQL();
+        }
+    }
+
     private void buildDeleteSQL() {
         if (deleteAction == ConstraintActionType.RESTRICT) {
             return;

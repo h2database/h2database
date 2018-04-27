@@ -7,6 +7,7 @@ package org.h2.command.ddl;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
+import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
@@ -62,6 +63,7 @@ public class AlterTableRenameColumn extends SchemaCommand {
         Column column = table.getColumn(oldName);
         session.getUser().checkRight(table, Right.ALL);
         table.checkSupportAlter();
+
         // we need to update CHECK constraint
         // since it might reference the name of the column
         Expression newCheckExpr = column.getCheckConstraint(session, newName);
@@ -70,6 +72,15 @@ public class AlterTableRenameColumn extends SchemaCommand {
         column.addCheckConstraint(session, newCheckExpr);
         table.setModified();
         db.updateMeta(session, table);
+
+        // if we have foreign key constraints pointing at this table, we need to update them
+        for (DbObject childDbObject : table.getChildren()) {
+            if (childDbObject instanceof ConstraintReferential) {
+                ConstraintReferential ref = (ConstraintReferential) childDbObject;
+                ref.updateOnTableColumnRename();
+            }
+        }
+
         for (DbObject child : table.getChildren()) {
             if (child.getCreateSQL() != null) {
                 db.updateMeta(session, child);

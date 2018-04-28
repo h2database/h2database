@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.command.ddl.CreateTableData;
@@ -34,9 +35,9 @@ import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
 import org.h2.util.ColumnNamer;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 
 /**
@@ -174,7 +175,7 @@ public class TableView extends Table {
             this.querySQL = compiledQuery.getPlanSQL();
             tables = new ArrayList<>(compiledQuery.getTables());
             ArrayList<Expression> expressions = compiledQuery.getExpressions();
-            ArrayList<Column> list = New.arrayList();
+            ArrayList<Column> list = Utils.newSmallArrayList();
             ColumnNamer columnNamer = new ColumnNamer(session);
             for (int i = 0, count = compiledQuery.getColumnCount(); i < count; i++) {
                 Expression expr = expressions.get(i);
@@ -235,7 +236,7 @@ public class TableView extends Table {
             if (isRecursiveQueryExceptionDetected(createException)) {
                 this.isRecursiveQueryDetected = true;
             }
-            tables = New.arrayList();
+            tables = Utils.newSmallArrayList();
             cols = new Column[0];
             if (allowRecursive && columnTemplates != null) {
                 cols = new Column[columnTemplates.length];

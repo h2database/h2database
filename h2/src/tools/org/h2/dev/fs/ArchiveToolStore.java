@@ -15,14 +15,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.store.fs.FileUtils;
-import org.h2.util.New;
 
 /**
  * An archive tool to compress directories, using the MVStore backend.
@@ -68,7 +68,7 @@ public class ArchiveToolStore {
         start();
         long tempSize = 8 * 1024 * 1024;
         String tempFileName = fileName + ".temp";
-        ArrayList<String> fileNames = New.arrayList();
+        ArrayList<String> fileNames = new ArrayList<>();
 
         System.out.println("Reading the file list");
         long totalSize = addFiles(sourceDir, fileNames);
@@ -160,7 +160,7 @@ public class ArchiveToolStore {
             filesTemp.put(name, posArray);
         }
         storeTemp.commit();
-        ArrayList<Cursor<int[], byte[]>> list = New.arrayList();
+        ArrayList<Cursor<int[], byte[]>> list = new ArrayList<>();
         totalSize = 0;
         for (int i = 1; i <= segmentId; i++) {
             MVMap<int[], byte[]> data = storeTemp.openMap("data" + i);
@@ -379,7 +379,7 @@ public class ArchiveToolStore {
             storeTemp.commit();
         }
 
-        ArrayList<Cursor<int[], byte[]>> list = New.arrayList();
+        ArrayList<Cursor<int[], byte[]>> list = new ArrayList<>();
         totalSize = 0;
         currentSize = 0;
         for (int i = 1; i <= lastSegment; i++) {

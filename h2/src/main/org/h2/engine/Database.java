@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
@@ -68,7 +69,6 @@ import org.h2.tools.Server;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
-import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
@@ -773,7 +773,7 @@ public class Database implements DataHandler {
         objectIds.set(0);
         starting = true;
         Cursor cursor = metaIdIndex.find(systemSession, null, null);
-        ArrayList<MetaRecord> records = New.arrayList();
+        ArrayList<MetaRecord> records = new ArrayList<>();
         while (cursor.next()) {
             MetaRecord rec = new MetaRecord(cursor.get());
             objectIds.set(rec.getId());
@@ -1553,7 +1553,7 @@ public class Database implements DataHandler {
      */
     public ArrayList<SchemaObject> getAllSchemaObjects() {
         initMetaTables();
-        ArrayList<SchemaObject> list = New.arrayList();
+        ArrayList<SchemaObject> list = new ArrayList<>();
         for (Schema schema : schemas.values()) {
             list.addAll(schema.getAll());
         }
@@ -1570,7 +1570,7 @@ public class Database implements DataHandler {
         if (type == DbObject.TABLE_OR_VIEW) {
             initMetaTables();
         }
-        ArrayList<SchemaObject> list = New.arrayList();
+        ArrayList<SchemaObject> list = new ArrayList<>();
         for (Schema schema : schemas.values()) {
             list.addAll(schema.getAll(type));
         }
@@ -1589,7 +1589,7 @@ public class Database implements DataHandler {
         if (includeMeta) {
             initMetaTables();
         }
-        ArrayList<Table> list = New.arrayList();
+        ArrayList<Table> list = new ArrayList<>();
         for (Schema schema : schemas.values()) {
             list.addAll(schema.getAllTablesAndViews());
         }
@@ -1602,7 +1602,7 @@ public class Database implements DataHandler {
      * @return all objects of that type
      */
     public ArrayList<TableSynonym> getAllSynonyms() {
-        ArrayList<TableSynonym> list = New.arrayList();
+        ArrayList<TableSynonym> list = new ArrayList<>();
         for (Schema schema : schemas.values()) {
             list.addAll(schema.getAllSynonyms());
         }
@@ -1616,7 +1616,8 @@ public class Database implements DataHandler {
      * @return the list
      */
     public ArrayList<Table> getTableOrViewByName(String name) {
-        ArrayList<Table> list = New.arrayList();
+        // we expect that at most one table matches, at least in most cases
+        ArrayList<Table> list = new ArrayList<>(1);
         for (Schema schema : schemas.values()) {
             Table table = schema.getTableOrViewByName(name);
             if (table != null) {

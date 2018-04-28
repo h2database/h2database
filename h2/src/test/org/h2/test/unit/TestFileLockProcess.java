@@ -8,9 +8,9 @@ package org.h2.test.unit;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.ArrayList;
+
 import org.h2.test.TestBase;
 import org.h2.test.utils.SelfDestructor;
-import org.h2.util.New;
 
 /**
  * Tests database file locking.
@@ -76,7 +76,7 @@ public class TestFileLockProcess extends TestBase {
         String[] procDef = { "java", selfDestruct,
                 "-cp", getClassPath(),
                 getClass().getName(), url };
-        ArrayList<Process> processes = New.arrayList();
+        ArrayList<Process> processes = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             Thread.sleep(100);
             if (i % 10 == 0) {

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.CreateSynonymData;
 import org.h2.command.ddl.CreateTableData;
@@ -30,8 +31,8 @@ import org.h2.table.RegularTable;
 import org.h2.table.Table;
 import org.h2.table.TableLink;
 import org.h2.table.TableSynonym;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * A schema as created by the SQL statement
@@ -129,7 +130,7 @@ public class Schema extends DbObjectBase {
 
     @Override
     public ArrayList<DbObject> getChildren() {
-        ArrayList<DbObject> children = New.arrayList();
+        ArrayList<DbObject> children = Utils.newSmallArrayList();
         ArrayList<Right> rights = database.getAllRights();
         for (Right right : rights) {
             if (right.getGrantedObject() == this) {
@@ -593,7 +594,7 @@ public class Schema extends DbObjectBase {
      * @return a (possible empty) list of all objects
      */
     public ArrayList<SchemaObject> getAll() {
-        ArrayList<SchemaObject> all = New.arrayList();
+        ArrayList<SchemaObject> all = Utils.newSmallArrayList();
         all.addAll(getMap(DbObject.TABLE_OR_VIEW).values());
         all.addAll(getMap(DbObject.SYNONYM).values());
         all.addAll(getMap(DbObject.SEQUENCE).values());

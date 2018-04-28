@@ -14,9 +14,9 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
+
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
-import org.h2.util.New;
 
 /**
  * Transactional tests, including transaction isolation tests, and tests related
@@ -483,7 +483,7 @@ public class TestTransaction extends TestBase {
         test(stat, "CREATE TABLE NEST1(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
         test(stat, "CREATE TABLE NEST2(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
         DatabaseMetaData meta = conn.getMetaData();
-        ArrayList<String> result = New.arrayList();
+        ArrayList<String> result = new ArrayList<>();
         ResultSet rs1, rs2;
         rs1 = meta.getTables(null, null, "NEST%", null);
         while (rs1.next()) {
@@ -497,7 +497,7 @@ public class TestTransaction extends TestBase {
         }
         // should be NEST1.ID, NEST1.NAME, NEST2.ID, NEST2.NAME
         assertEquals(result.toString(), 4, result.size());
-        result = New.arrayList();
+        result = new ArrayList<>();
         test(stat, "INSERT INTO NEST1 VALUES(1,'A')");
         test(stat, "INSERT INTO NEST1 VALUES(2,'B')");
         test(stat, "INSERT INTO NEST2 VALUES(1,'1')");
@@ -515,7 +515,7 @@ public class TestTransaction extends TestBase {
         }
         // should be A/1, A/2, B/1, B/2
         assertEquals(result.toString(), 4, result.size());
-        result = New.arrayList();
+        result = new ArrayList<>();
         rs1 = s1.executeQuery("SELECT * FROM NEST1 ORDER BY ID");
         rs2 = s1.executeQuery("SELECT * FROM NEST2 ORDER BY ID");
         assertThrows(ErrorCode.OBJECT_CLOSED, rs1).next();

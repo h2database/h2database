@@ -7,7 +7,8 @@ package org.h2.bnf;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import org.h2.util.New;
+
+import org.h2.util.Utils;
 
 /**
  * Represents a sequence of BNF rules, or a list of alternative rules.
@@ -19,7 +20,7 @@ public class RuleList implements Rule {
     private boolean mapSet;
 
     public RuleList(Rule first, Rule next, boolean or) {
-        list = New.arrayList();
+        list = Utils.newSmallArrayList();
         if (first instanceof RuleList && ((RuleList) first).or == or) {
             list.addAll(((RuleList) first).list);
         } else {

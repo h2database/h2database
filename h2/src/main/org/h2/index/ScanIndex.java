@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Constants;
@@ -24,7 +25,7 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
 import org.h2.table.TableFilter;
-import org.h2.util.New;
+import org.h2.util.Utils;
 
 /**
  * The scan index is not really an 'index' in the strict sense, because it can
@@ -34,7 +35,7 @@ import org.h2.util.New;
  */
 public class ScanIndex extends BaseIndex {
     private long firstFree = -1;
-    private ArrayList<Row> rows = New.arrayList();
+    private ArrayList<Row> rows = Utils.newSmallArrayList();
     private final RegularTable tableData;
     private int rowCountDiff;
     private final HashMap<Integer, Integer> sessionRowCount;
@@ -59,7 +60,7 @@ public class ScanIndex extends BaseIndex {
 
     @Override
     public void truncate(Session session) {
-        rows = New.arrayList();
+        rows = Utils.newSmallArrayList();
         firstFree = -1;
         if (tableData.getContainsLargeObject() && tableData.isPersistData()) {
             database.getLobStorage().removeAllForTable(table.getId());
@@ -140,7 +141,7 @@ public class ScanIndex extends BaseIndex {
     public void remove(Session session, Row row) {
         // in-memory
         if (!database.isMultiVersion() && rowCount == 1) {
-            rows = New.arrayList();
+            rows = Utils.newSmallArrayList();
             firstFree = -1;
         } else {
             Row free = session.createRow(null, 1);

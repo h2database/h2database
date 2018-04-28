@@ -18,7 +18,6 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.test.TestBase;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**
@@ -27,7 +26,7 @@ import org.h2.util.StringUtils;
  */
 public class TestJoin extends TestBase {
 
-    private final ArrayList<Connection> connections = New.arrayList();
+    private final ArrayList<Connection> connections = new ArrayList<>();
     private Random random;
     private int paramCount;
     private StringBuilder buff;
@@ -288,7 +287,7 @@ public class TestJoin extends TestBase {
         }
         b.append(":\n");
         String result = b.toString();
-        ArrayList<String> list = New.arrayList();
+        ArrayList<String> list = new ArrayList<>();
         while (rs.next()) {
             b = new StringBuilder();
             for (int i = 0; i < columnCount; i++) {

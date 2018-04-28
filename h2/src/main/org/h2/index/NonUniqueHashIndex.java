@@ -6,6 +6,7 @@
 package org.h2.index;
 
 import java.util.ArrayList;
+
 import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
@@ -16,7 +17,7 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
 import org.h2.table.TableFilter;
-import org.h2.util.New;
+import org.h2.util.Utils;
 import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
 
@@ -58,7 +59,7 @@ public class NonUniqueHashIndex extends BaseIndex {
         Value key = row.getValue(indexColumn);
         ArrayList<Long> positions = rows.get(key);
         if (positions == null) {
-            positions = New.arrayList();
+            positions = Utils.newSmallArrayList();
             rows.put(key, positions);
         }
         positions.add(row.getKey());

@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
@@ -30,7 +31,6 @@ import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
@@ -338,7 +338,7 @@ public class Csv implements SimpleRowSource {
     }
 
     private void readHeader() throws IOException {
-        ArrayList<String> list = New.arrayList();
+        ArrayList<String> list = new ArrayList<>();
         while (true) {
             String v = readValue();
             if (v == null) {

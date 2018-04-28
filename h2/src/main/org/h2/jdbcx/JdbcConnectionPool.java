@@ -25,13 +25,15 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+
 import javax.sql.ConnectionEvent;
 import javax.sql.ConnectionEventListener;
 import javax.sql.ConnectionPoolDataSource;
 import javax.sql.DataSource;
 import javax.sql.PooledConnection;
+
 import org.h2.message.DbException;
-import org.h2.util.New;
+import org.h2.util.Utils;
 
 /**
  * A simple standalone JDBC connection pool.
@@ -67,7 +69,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener,
     private static final int DEFAULT_MAX_CONNECTIONS = 10;
 
     private final ConnectionPoolDataSource dataSource;
-    private final ArrayList<PooledConnection> recycledConnections = New.arrayList();
+    private final ArrayList<PooledConnection> recycledConnections = Utils.newSmallArrayList();
     private PrintWriter logWriter;
     private int maxConnections = DEFAULT_MAX_CONNECTIONS;
     private int timeout = DEFAULT_TIMEOUT;

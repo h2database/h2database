@@ -11,9 +11,9 @@ import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.h2.jaqu.Table.JQTable;
 import org.h2.util.JdbcUtils;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**
@@ -58,7 +58,7 @@ public class DbInspector {
     public List<String> generateModel(String schema, String table,
             String packageName, boolean annotateSchema, boolean trimStrings) {
         try {
-            List<String> models = New.arrayList();
+            List<String> models = new ArrayList<>();
             List<TableInspector> tables = getTables(schema, table);
             for (TableInspector t : tables) {
                 t.read(metaData);
@@ -134,7 +134,7 @@ public class DbInspector {
         ResultSet rs = null;
         try {
             rs = getMetaData().getSchemas();
-            ArrayList<String> schemaList = New.arrayList();
+            ArrayList<String> schemaList = new ArrayList<>();
             while (rs.next()) {
                 schemaList.add(rs.getString("TABLE_SCHEM"));
             }
@@ -143,7 +143,7 @@ public class DbInspector {
             String jaquTables = DbVersion.class.getAnnotation(JQTable.class)
                     .name();
 
-            List<TableInspector> tables = New.arrayList();
+            List<TableInspector> tables = new ArrayList<>();
             if (schemaList.size() == 0) {
                 schemaList.add(null);
             }
@@ -165,7 +165,7 @@ public class DbInspector {
                 return tables;
             }
             // schema subset OR table subset OR exact match
-            List<TableInspector> matches = New.arrayList();
+            List<TableInspector> matches = new ArrayList<>();
             for (TableInspector t : tables) {
                 if (t.matches(schema, table)) {
                     matches.add(t);

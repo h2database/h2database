@@ -5,6 +5,8 @@
  */
 package org.h2.command.dml;
 
+import java.util.ArrayList;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.Command;
@@ -21,11 +23,9 @@ import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
+import org.h2.util.Utils;
 import org.h2.value.Value;
-
-import java.util.ArrayList;
 
 /**
  * This class represents the MySQL-compatibility REPLACE statement
@@ -35,7 +35,7 @@ public class Replace extends Prepared {
     private Table table;
     private Column[] columns;
     private Column[] keys;
-    private final ArrayList<Expression[]> list = New.arrayList();
+    private final ArrayList<Expression[]> list = Utils.newSmallArrayList();
     private Query query;
     private Prepared update;
 

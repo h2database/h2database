@@ -154,7 +154,7 @@ public class CacheLRU implements Cache {
 
     private void removeOld() {
         int i = 0;
-        ArrayList<CacheObject> changed = New.arrayList();
+        ArrayList<CacheObject> changed = new ArrayList<>();
         long mem = memory;
         int rc = recordCount;
         boolean flushed = false;
@@ -349,7 +349,7 @@ public class CacheLRU implements Cache {
         // if(Database.CHECK) {
         // testConsistency();
         // }
-        ArrayList<CacheObject> list = New.arrayList();
+        ArrayList<CacheObject> list = new ArrayList<>();
         CacheObject rec = head.cacheNext;
         while (rec != head) {
             if (rec.isChanged()) {

@@ -12,7 +12,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import org.h2.util.New;
 
 /**
  * Represents a connection to a real database.
@@ -45,7 +44,7 @@ class DbConnection implements DbInterface {
         log("reset;");
         DatabaseMetaData meta = conn.getMetaData();
         Statement stat = conn.createStatement();
-        ArrayList<String> tables = New.arrayList();
+        ArrayList<String> tables = new ArrayList<>();
         ResultSet rs = meta.getTables(null, null, null, new String[] { "TABLE" });
         while (rs.next()) {
             String schemaName = rs.getString("TABLE_SCHEM");

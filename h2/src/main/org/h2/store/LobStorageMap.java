@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map.Entry;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.message.DbException;
@@ -20,7 +21,6 @@ import org.h2.mvstore.MVStore;
 import org.h2.mvstore.StreamStore;
 import org.h2.mvstore.db.MVTableEngine.Store;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueLobDb;
@@ -297,7 +297,7 @@ public class LobStorageMap implements LobStorageInterface {
         }
         // this might not be very efficient -
         // to speed it up, we would need yet another map
-        ArrayList<Long> list = New.arrayList();
+        ArrayList<Long> list = new ArrayList<>();
         for (Entry<Long, Object[]> e : lobMap.entrySet()) {
             Object[] value = e.getValue();
             int t = (Integer) value[1];

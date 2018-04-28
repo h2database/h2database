@@ -6,6 +6,7 @@
 package org.h2.command.dml;
 
 import java.util.ArrayList;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.Command;
@@ -25,8 +26,8 @@ import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 
 /**
@@ -39,7 +40,7 @@ public class Merge extends Prepared {
     private TableFilter targetTableFilter;
     private Column[] columns;
     private Column[] keys;
-    private final ArrayList<Expression[]> valuesExpressionList = New.arrayList();
+    private final ArrayList<Expression[]> valuesExpressionList = Utils.newSmallArrayList();
     private Query query;
     private Prepared update;
 

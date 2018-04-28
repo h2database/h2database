@@ -37,7 +37,6 @@ import org.h2.message.DbException;
 import org.h2.util.Bits;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
 import org.h2.util.SimpleColumnInfo;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
@@ -68,7 +67,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     private int rowId = -1;
     private boolean wasNull;
     private SimpleRowSource source;
-    private ArrayList<SimpleColumnInfo> columns = New.arrayList();
+    private ArrayList<SimpleColumnInfo> columns = Utils.newSmallArrayList();
     private boolean autoClose = true;
 
     /**
@@ -76,7 +75,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
      * addRow.
      */
     public SimpleResultSet() {
-        rows = New.arrayList();
+        rows = Utils.newSmallArrayList();
     }
 
     /**

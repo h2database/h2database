@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.command.dml.AllColumnsForPlan;
@@ -36,7 +37,7 @@ import org.h2.schema.Schema;
 import org.h2.schema.SchemaObjectBase;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
-import org.h2.util.New;
+import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -84,6 +85,7 @@ public abstract class Table extends SchemaObjectBase {
      */
     private final CopyOnWriteArrayList<TableView> dependentViews = new CopyOnWriteArrayList<>();
     private ArrayList<TableSynonym> synonyms;
+    /** Is foreign key constraint checking enabled for this table. */
     private boolean checkForeignKeyConstraints = true;
     private boolean onCommitDrop, onCommitTruncate;
     private volatile Row nullRow;
@@ -387,7 +389,7 @@ public abstract class Table extends SchemaObjectBase {
 
     @Override
     public ArrayList<DbObject> getChildren() {
-        ArrayList<DbObject> children = New.arrayList();
+        ArrayList<DbObject> children = Utils.newSmallArrayList();
         ArrayList<Index> indexes = getIndexes();
         if (indexes != null) {
             children.addAll(indexes);
@@ -928,7 +930,7 @@ public abstract class Table extends SchemaObjectBase {
 
     private static <T> ArrayList<T> add(ArrayList<T> list, T obj) {
         if (list == null) {
-            list = New.arrayList();
+            list = Utils.newSmallArrayList();
         }
         // self constraints are two entries in the list
         list.add(obj);
@@ -1064,6 +1066,9 @@ public abstract class Table extends SchemaObjectBase {
         checkForeignKeyConstraints = enabled;
     }
 
+    /**
+     * @return is foreign key constraint checking enabled for this table.
+     */
     public boolean getCheckForeignKeyConstraints() {
         return checkForeignKeyConstraints;
     }

@@ -8,13 +8,14 @@ package org.h2.table;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+
 import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.message.Trace;
 import org.h2.table.TableFilter.TableFilterVisitor;
-import org.h2.util.New;
+import org.h2.util.Utils;
 
 /**
  * A possible query execution plan. The time required to execute a query depends
@@ -37,8 +38,8 @@ public class Plan {
     public Plan(TableFilter[] filters, int count, Expression condition) {
         this.filters = new TableFilter[count];
         System.arraycopy(filters, 0, this.filters, 0, count);
-        final ArrayList<Expression> allCond = New.arrayList();
-        final ArrayList<TableFilter> all = New.arrayList();
+        final ArrayList<Expression> allCond = Utils.newSmallArrayList();
+        final ArrayList<TableFilter> all = Utils.newSmallArrayList();
         if (condition != null) {
             allCond.add(condition);
         }

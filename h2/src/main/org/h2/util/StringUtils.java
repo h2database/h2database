@@ -462,7 +462,7 @@ public class StringUtils {
         if (length == 0) {
             return new String[0];
         }
-        ArrayList<String> list = New.arrayList();
+        ArrayList<String> list = Utils.newSmallArrayList();
         StringBuilder buff = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
             char c = s.charAt(i);

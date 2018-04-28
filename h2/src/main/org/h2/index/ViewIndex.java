@@ -7,6 +7,7 @@ package org.h2.index;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
@@ -29,7 +30,7 @@ import org.h2.table.JoinBatch;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
 import org.h2.util.IntArray;
-import org.h2.util.New;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 
 /**
@@ -334,7 +335,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             }
         }
         int len = paramColumnIndex.size();
-        ArrayList<Column> columnList = New.arrayList();
+        ArrayList<Column> columnList = Utils.newSmallArrayList();
         for (int i = 0; i < len;) {
             int idx = paramColumnIndex.get(i);
             columnList.add(table.getColumn(idx));

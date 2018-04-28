@@ -7,7 +7,6 @@ package org.h2.test.synth.sql;
 
 import java.sql.Types;
 import java.util.ArrayList;
-import org.h2.util.New;
 
 /**
  * Represents an expression.
@@ -35,7 +34,7 @@ public class Expression {
         if (config.random().getBoolean(30)) {
             return new String[] { "*" };
         }
-        ArrayList<String> exp = New.arrayList();
+        ArrayList<String> exp = new ArrayList<>();
         String sql = "";
         if (config.random().getBoolean(10)) {
             sql += "DISTINCT ";

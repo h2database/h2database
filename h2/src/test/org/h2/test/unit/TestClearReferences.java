@@ -9,9 +9,9 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+
 import org.h2.test.TestBase;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
 import org.h2.value.ValueInt;
 
 /**
@@ -93,7 +93,7 @@ public class TestClearReferences extends TestBase {
     }
 
     private void clear() throws Exception {
-        ArrayList<Class <?>> classes = New.arrayList();
+        ArrayList<Class <?>> classes = new ArrayList<>();
         findClasses(classes, new File("bin/org/h2"));
         findClasses(classes, new File("temp/org/h2"));
         for (Class<?> clazz : classes) {

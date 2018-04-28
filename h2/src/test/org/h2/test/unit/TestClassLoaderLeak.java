@@ -12,8 +12,8 @@ import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.util.ArrayList;
+
 import org.h2.test.TestBase;
-import org.h2.util.New;
 
 /**
  * Test that static references within the database engine don't reference the
@@ -57,7 +57,7 @@ public class TestClassLoaderLeak extends TestBase {
         // (check incoming references to TestClassLoader)
         boolean fillMemory = false;
         if (fillMemory) {
-            ArrayList<byte[]> memory = New.arrayList();
+            ArrayList<byte[]> memory = new ArrayList<>();
             for (int i = 0; i < Integer.MAX_VALUE; i++) {
                 memory.add(new byte[1024]);
             }

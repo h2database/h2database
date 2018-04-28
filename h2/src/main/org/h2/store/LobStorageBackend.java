@@ -15,6 +15,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.SysProperties;
@@ -23,7 +24,7 @@ import org.h2.message.DbException;
 import org.h2.tools.CompressTool;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueLobDb;
 
@@ -293,7 +294,7 @@ public class LobStorageBackend implements LobStorageInterface {
                     prep.setLong(1, lobId);
                     prep.setLong(2, lobId);
                     ResultSet rs = prep.executeQuery();
-                    ArrayList<Long> blocks = New.arrayList();
+                    ArrayList<Long> blocks = Utils.newSmallArrayList();
                     while (rs.next()) {
                         blocks.add(rs.getLong(1));
                         int hash = rs.getInt(2);

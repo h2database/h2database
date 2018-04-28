@@ -16,7 +16,6 @@ import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.util.New;
 
 public abstract class CommandWithColumns extends SchemaCommand {
 
@@ -100,7 +99,7 @@ public abstract class CommandWithColumns extends SchemaCommand {
      * @return the list of sequences (may be empty)
      */
     protected ArrayList<Sequence> generateSequences(ArrayList<Column> columns, boolean temporary) {
-        ArrayList<Sequence> sequences = New.arrayList();
+        ArrayList<Sequence> sequences = new ArrayList<>();
         if (columns != null) {
             for (Column c : columns) {
                 if (c.isAutoIncrement()) {
@@ -121,7 +120,7 @@ public abstract class CommandWithColumns extends SchemaCommand {
 
     private ArrayList<DefineCommand> getConstraintCommands() {
         if (constraintCommands == null) {
-            constraintCommands = New.arrayList();
+            constraintCommands = new ArrayList<>();
         }
         return constraintCommands;
     }

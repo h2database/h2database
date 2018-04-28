@@ -27,13 +27,13 @@ import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.FileStore;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreTool;
-import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.tx.Transaction;
+import org.h2.mvstore.tx.TransactionStore;
 import org.h2.store.InDoubtTransaction;
 import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FileUtils;
 import org.h2.table.TableBase;
-import org.h2.util.New;
+import org.h2.util.Utils;
 
 /**
  * A table engine that internally uses the MVStore.
@@ -299,7 +299,7 @@ public class MVTableEngine implements TableEngine {
 
         public ArrayList<InDoubtTransaction> getInDoubtTransactions() {
             List<Transaction> list = transactionStore.getOpenTransactions();
-            ArrayList<InDoubtTransaction> result = New.arrayList();
+            ArrayList<InDoubtTransaction> result = Utils.newSmallArrayList();
             for (Transaction t : list) {
                 if (t.getStatus() == Transaction.STATUS_PREPARED) {
                     result.add(new MVInDoubtTransaction(store, t));

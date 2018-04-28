@@ -23,11 +23,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**
@@ -40,7 +40,7 @@ public class TestScript extends TestBase {
 
     /** If set to true, the test will exit at the first failure. */
     private boolean failFast;
-    private final ArrayList<String> statements = New.arrayList();
+    private final ArrayList<String> statements = new ArrayList<>();
 
     private boolean reconnectOften;
     private Connection conn;
@@ -48,7 +48,7 @@ public class TestScript extends TestBase {
     private String fileName;
     private LineNumberReader in;
     private PrintStream out;
-    private final ArrayList<String[]> result = New.arrayList();
+    private final ArrayList<String[]> result = new ArrayList<>();
     private String putBack;
     private StringBuilder errors;
 
@@ -86,6 +86,7 @@ public class TestScript extends TestBase {
 
         testScript("testScript.sql");
         testScript("derived-column-names.sql");
+        testScript("dual.sql");
         testScript("indexes.sql");
         testScript("information_schema.sql");
         if (config.mvStore) {
@@ -94,6 +95,7 @@ public class TestScript extends TestBase {
         }
         testScript("range_table.sql");
         testScript("altertable-index-reuse.sql");
+        testScript("altertable-fk.sql");
         testScript("default-and-on_update.sql");
         testScript("query-optimisations.sql");
         String decimal2;

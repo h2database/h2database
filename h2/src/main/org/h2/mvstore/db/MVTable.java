@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.CreateTableData;
@@ -30,8 +31,8 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.db.MVTableEngine.Store;
-import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.tx.Transaction;
+import org.h2.mvstore.tx.TransactionStore;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObject;
@@ -42,7 +43,7 @@ import org.h2.table.TableBase;
 import org.h2.table.TableType;
 import org.h2.util.DebuggingThreadLocal;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
+import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 
@@ -103,7 +104,7 @@ public class MVTable extends TableBase {
     }
 
     private MVPrimaryIndex primaryIndex;
-    private final ArrayList<Index> indexes = New.arrayList();
+    private final ArrayList<Index> indexes = Utils.newSmallArrayList();
     private volatile long lastModificationId;
     private volatile Session lockExclusiveSession;
 
@@ -376,7 +377,7 @@ public class MVTable extends TableBase {
                 visited = new HashSet<>();
             } else if (clash == session) {
                 // we found a circle where this session is involved
-                return New.arrayList();
+                return Utils.newSmallArrayList();
             } else if (visited.contains(session)) {
                 // we have already checked this session.
                 // there is a circle, but the sessions in the circle need to
@@ -597,7 +598,7 @@ public class MVTable extends TableBase {
         ArrayList<Row> buffer = new ArrayList<>(bufferSize);
         String n = getName() + ":" + index.getName();
         int t = MathUtils.convertLongToInt(total);
-        ArrayList<String> bufferNames = New.arrayList();
+        ArrayList<String> bufferNames = Utils.newSmallArrayList();
         while (cursor.next()) {
             Row row = cursor.get();
             buffer.add(row);

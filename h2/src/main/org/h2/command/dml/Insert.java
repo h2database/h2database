@@ -24,6 +24,7 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.expression.Parameter;
 import org.h2.expression.SequenceValue;
 import org.h2.index.Index;
+import org.h2.index.PageDataIndex;
 import org.h2.message.DbException;
 import org.h2.mvstore.db.MVPrimaryIndex;
 import org.h2.result.ResultInterface;
@@ -423,11 +424,18 @@ public class Insert extends Prepared implements ResultTarget {
         // It returns all of the columns in the table when we call
         // getIndexColumns() or getColumns().
         // Don't have time right now to fix that, so just special-case it.
+        // PageDataIndex has the same problem.
         final Column[] indexedColumns;
         if (foundIndex instanceof MVPrimaryIndex) {
             MVPrimaryIndex foundMV = (MVPrimaryIndex) foundIndex;
             indexedColumns = new Column[] { foundMV.getIndexColumns()[foundMV
                     .getMainIndexColumn()].column };
+        } else if (foundIndex instanceof PageDataIndex) {
+            PageDataIndex foundPD = (PageDataIndex) foundIndex;
+            int mainIndexColumn = foundPD.getMainIndexColumn();
+            indexedColumns = mainIndexColumn >= 0
+                    ? new Column[] { foundPD.getIndexColumns()[mainIndexColumn].column }
+                    : foundIndex.getColumns();
         } else {
             indexedColumns = foundIndex.getColumns();
         }

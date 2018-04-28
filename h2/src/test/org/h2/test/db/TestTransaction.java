@@ -35,7 +35,6 @@ public class TestTransaction extends TestBase {
 
     @Override
     public void test() throws SQLException {
-        config.mvStore = false;
         testClosingConnectionWithSessionTempTable();
         testClosingConnectionWithLockedTable();
         testConstraintCreationRollback();

@@ -127,17 +127,25 @@ public class SortOrder implements Comparator<Value[]> {
             } else {
                 buff.append('=').append(StringUtils.unEnclose(list[idx].getSQL()));
             }
-            int type = sortTypes[i++];
-            if ((type & DESCENDING) != 0) {
-                buff.append(" DESC");
-            }
-            if ((type & NULLS_FIRST) != 0) {
-                buff.append(" NULLS FIRST");
-            } else if ((type & NULLS_LAST) != 0) {
-                buff.append(" NULLS LAST");
-            }
+            typeToString(buff.builder(), sortTypes[i++]);
         }
         return buff.toString();
+    }
+
+    /**
+     * Appends type information (DESC, NULLS FIRST, NULLS LAST) to the specified statement builder.
+     * @param builder statement builder
+     * @param type sort type
+     */
+    public static void typeToString(StringBuilder builder, int type) {
+        if ((type & DESCENDING) != 0) {
+            builder.append(" DESC");
+        }
+        if ((type & NULLS_FIRST) != 0) {
+            builder.append(" NULLS FIRST");
+        } else if ((type & NULLS_LAST) != 0) {
+            builder.append(" NULLS LAST");
+        }
     }
 
     /**

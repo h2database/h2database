@@ -524,15 +524,14 @@ public abstract class Query extends Prepared {
                 }
             }
             index[i] = idx;
-            boolean desc = o.descending;
+            int type = o.sortType;
             if (reverse) {
-                desc = !desc;
-            }
-            int type = desc ? SortOrder.DESCENDING : SortOrder.ASCENDING;
-            if (o.nullsFirst) {
-                type += SortOrder.NULLS_FIRST;
-            } else if (o.nullsLast) {
-                type += SortOrder.NULLS_LAST;
+                // TODO NULLS FIRST / LAST should be inverted too?
+                if ((type & SortOrder.DESCENDING) != 0) {
+                    type &= ~SortOrder.DESCENDING;
+                } else {
+                    type |= SortOrder.DESCENDING;
+                }
             }
             sortType[i] = type;
         }

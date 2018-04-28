@@ -252,8 +252,7 @@ public class Aggregate extends Expression {
         for (int i = 0; i < size; i++) {
             SelectOrderBy o = orderByList.get(i);
             index[i] = i + 1;
-            int order = o.descending ? SortOrder.DESCENDING : SortOrder.ASCENDING;
-            sortType[i] = order;
+            sortType[i] = o.sortType;
         }
         return new SortOrder(session.getDatabase(), index, sortType, null);
     }
@@ -590,9 +589,7 @@ public class Aggregate extends Expression {
             for (SelectOrderBy o : orderByList) {
                 buff.appendExceptFirst(", ");
                 buff.append(o.expression.getSQL());
-                if (o.descending) {
-                    buff.append(" DESC");
-                }
+                SortOrder.typeToString(buff.builder(), o.sortType);
             }
         }
         if (groupConcatSeparator != null) {
@@ -616,9 +613,7 @@ public class Aggregate extends Expression {
             for (SelectOrderBy o : orderByList) {
                 buff.appendExceptFirst(", ");
                 buff.append(o.expression.getSQL());
-                if (o.descending) {
-                    buff.append(" DESC");
-                }
+                SortOrder.typeToString(buff.builder(), o.sortType);
             }
         }
         buff.append(')');

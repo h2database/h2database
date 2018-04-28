@@ -882,22 +882,28 @@ public class Parser {
         do {
             IndexColumn column = new IndexColumn();
             column.columnName = readColumnIdentifier();
+            column.sortType = parseSortType();
             columns.add(column);
-            if (readIf("ASC")) {
-                // ignore
-            } else if (readIf("DESC")) {
-                column.sortType = SortOrder.DESCENDING;
-            }
-            if (readIf("NULLS")) {
-                if (readIf("FIRST")) {
-                    column.sortType |= SortOrder.NULLS_FIRST;
-                } else {
-                    read("LAST");
-                    column.sortType |= SortOrder.NULLS_LAST;
-                }
-            }
         } while (readIfMore(true));
         return columns.toArray(new IndexColumn[0]);
+    }
+
+    private int parseSortType() {
+        int sortType = 0;
+        if (readIf("ASC")) {
+            // ignore
+        } else if (readIf("DESC")) {
+            sortType = SortOrder.DESCENDING;
+        }
+        if (readIf("NULLS")) {
+            if (readIf("FIRST")) {
+                sortType |= SortOrder.NULLS_FIRST;
+            } else {
+                read("LAST");
+                sortType |= SortOrder.NULLS_LAST;
+            }
+        }
+        return sortType;
     }
 
     private String[] parseColumnList() {
@@ -2029,19 +2035,7 @@ public class Parser {
                 } else {
                     order.expression = expr;
                 }
-                if (readIf("DESC")) {
-                    order.descending = true;
-                } else {
-                    readIf("ASC");
-                }
-                if (readIf("NULLS")) {
-                    if (readIf("FIRST")) {
-                        order.nullsFirst = true;
-                    } else {
-                        read("LAST");
-                        order.nullsLast = true;
-                    }
-                }
+                order.sortType = parseSortType();
                 orderList.add(order);
             } while (readIf(","));
             command.setOrder(orderList);
@@ -2701,11 +2695,7 @@ public class Parser {
         do {
             SelectOrderBy order = new SelectOrderBy();
             order.expression = readExpression();
-            if (readIf("DESC")) {
-                order.descending = true;
-            } else {
-                readIf("ASC");
-            }
+            order.sortType = parseSortType();
             orderList.add(order);
         } while (readIf(","));
         return orderList;

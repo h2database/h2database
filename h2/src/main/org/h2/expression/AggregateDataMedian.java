@@ -12,6 +12,7 @@ import java.util.Comparator;
 
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.engine.SysProperties;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.result.SearchRow;
@@ -42,7 +43,8 @@ class AggregateDataMedian extends AggregateDataCollecting {
         IndexColumn ic = index.getIndexColumns()[0];
         int sortType = ic.sortType;
         return (sortType & SortOrder.NULLS_LAST) != 0
-                || (sortType & SortOrder.DESCENDING) != 0 && (sortType & SortOrder.NULLS_FIRST) == 0;
+                || (sortType & SortOrder.NULLS_FIRST) == 0
+                        && ((sortType & SortOrder.DESCENDING) != 0 ^ SysProperties.SORT_NULLS_HIGH);
     }
 
     /**

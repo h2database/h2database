@@ -152,6 +152,20 @@ public class TestTwoPhaseCommit extends TestBase {
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
         assertFalse(rs.next());
+        conn.setAutoCommit(false);
+        stat.execute("INSERT INTO TEST VALUES (3)");
+        stat.execute("PREPARE COMMIT \"#3\"");
+        stat.execute("SHUTDOWN IMMEDIATELY");
+        conn = getConnection("twoPhaseCommit");
+        stat = conn.createStatement();
+        rs = stat.executeQuery("SELECT TRANSACTION, STATE FROM INFORMATION_SCHEMA.IN_DOUBT");
+        assertTrue(rs.next());
+        assertEquals("#3", rs.getString("TRANSACTION"));
+        assertEquals("IN_DOUBT", rs.getString("STATE"));
+        rs = stat.executeQuery("SELECT ID FROM TEST");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertFalse(rs.next());
         conn.close();
         deleteDb("twoPhaseCommit");
     }

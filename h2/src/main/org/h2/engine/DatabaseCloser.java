@@ -33,9 +33,7 @@ class DatabaseCloser extends Thread {
      * database has been closed, or after a session has been created.
      */
     void reset() {
-        synchronized (this) {
-            databaseRef = null;
-        }
+        databaseRef = null;
     }
 
     @Override
@@ -53,10 +51,9 @@ class DatabaseCloser extends Thread {
             }
         }
         Database database = null;
-        synchronized (this) {
-            if (databaseRef != null) {
-                database = databaseRef.get();
-            }
+        WeakReference<Database> ref = this.databaseRef;
+        if (ref != null) {
+            database = ref.get();
         }
         if (database != null) {
             try {

@@ -111,7 +111,7 @@ public class TestScript extends TestBase {
             testScript("datatypes/" + s + ".sql");
         }
         for (String s : new String[] { "alterTableAdd", "alterTableDropColumn",
-                "createAlias", "createView", "createTable", "createTrigger",
+                "createAlias", "createSynonym", "createView", "createTable", "createTrigger",
                 "dropSchema" }) {
             testScript("ddl/" + s + ".sql");
         }

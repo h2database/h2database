@@ -111,20 +111,6 @@ public class StringUtils {
     }
 
     /**
-     * Check is a string starts with another string, ignoring the case.
-     *
-     * @param s the string to check (must be longer than start)
-     * @param start the prefix of s
-     * @return true if start is a prefix of s
-     */
-    public static boolean startsWithIgnoreCase(String s, String start) {
-        if (s.length() < start.length()) {
-            return false;
-        }
-        return s.substring(0, start.length()).equalsIgnoreCase(start);
-    }
-
-    /**
      * Convert a string to a SQL literal. Null is converted to NULL. The text is
      * enclosed in single quotes. If there are any special characters, the
      * method STRINGDECODE is used.

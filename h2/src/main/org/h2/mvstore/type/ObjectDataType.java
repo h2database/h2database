@@ -288,7 +288,7 @@ public class ObjectDataType implements DataType {
      * @return true if yes
      */
     static boolean isBigInteger(Object obj) {
-        return obj instanceof BigInteger && obj.getClass() == BigInteger.class;
+        return obj != null && obj.getClass() == BigInteger.class;
     }
 
     /**
@@ -298,7 +298,7 @@ public class ObjectDataType implements DataType {
      * @return true if yes
      */
     static boolean isBigDecimal(Object obj) {
-        return obj instanceof BigDecimal && obj.getClass() == BigDecimal.class;
+        return obj != null && obj.getClass() == BigDecimal.class;
     }
 
     /**
@@ -308,7 +308,7 @@ public class ObjectDataType implements DataType {
      * @return true if yes
      */
     static boolean isDate(Object obj) {
-        return obj instanceof Date && obj.getClass() == Date.class;
+        return obj != null && obj.getClass() == Date.class;
     }
 
     /**

@@ -45,7 +45,7 @@ public class TestSpaceReuse extends TestBase {
             conn.createStatement().execute("delete from t");
             conn.close();
             String fileName = getBaseDir() + "/spaceReuse";
-            if (Constants.VERSION_MINOR >= 4) {
+            if (config.mvStore) {
                 fileName += Constants.SUFFIX_MV_FILE;
             } else {
                 fileName += Constants.SUFFIX_PAGE_FILE;

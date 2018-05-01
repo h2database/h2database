@@ -71,7 +71,7 @@ public class ValueGeometry extends Value {
      * @return the value
      */
     public static ValueGeometry getFromGeometry(Object o) {
-        return get((Geometry) o);
+        return get(convertToWKB((Geometry) o));
     }
 
     private static ValueGeometry get(Geometry g) {

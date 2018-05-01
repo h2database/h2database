@@ -8452,6 +8452,7 @@ select * from test where year in (select distinct year from test order by year d
 > ---- ---------
 > 2016 order
 > 2016 execution
+> rows (ordered): 2
 
 drop table test;
 > ok

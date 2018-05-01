@@ -494,10 +494,7 @@ public class TestScript extends TestBase {
                 if (reconnectOften && sql.toUpperCase().startsWith("EXPLAIN")) {
                     return;
                 }
-                errors.append(fileName).append('\n');
-                errors.append("line: ").append(in.getLineNumber()).append('\n');
-                errors.append("exp: ").append(compare).append('\n');
-                errors.append("got: ").append(s).append('\n');
+                addWriteResultError(compare, s);
                 if (ex != null) {
                     TestBase.logError("script", ex);
                 }
@@ -508,9 +505,18 @@ public class TestScript extends TestBase {
                 }
             }
         } else {
+            addWriteResultError("<nothing>", s);
+            TestBase.logErrorMessage(errors.toString());
             putBack = compare;
         }
         write(s);
+    }
+
+    private void addWriteResultError(String expected, String got) {
+        errors.append(fileName).append('\n');
+        errors.append("line: ").append(in.getLineNumber()).append('\n');
+        errors.append("exp: ").append(expected).append('\n');
+        errors.append("got: ").append(got).append('\n');
     }
 
     private void write(String s) {

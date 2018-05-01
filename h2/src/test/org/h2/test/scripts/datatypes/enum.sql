@@ -24,6 +24,7 @@ select * from card;
 > 0    clubs
 > 3    hearts
 > 4    null
+> rows: 3
 
 select * from card order by suit;
 > RANK SUIT
@@ -31,6 +32,7 @@ select * from card order by suit;
 > 4    null
 > 3    hearts
 > 0    clubs
+> rows (ordered): 3
 
 insert into card (rank, suit) values (8, 'diamonds'), (10, 'clubs'), (7, 'hearts');
 > update count: 3
@@ -42,17 +44,13 @@ select suit, count(rank) from card group by suit order by suit, count(rank);
 > hearts   2
 > clubs    2
 > diamonds 1
+> rows (ordered): 4
 
 select rank from card where suit = 'diamonds';
-> RANK
-> ----
-> 8
+>> 8
 
 select column_type from information_schema.columns where COLUMN_NAME = 'SUIT';
-> COLUMN_TYPE
-> ------------------------------------------
-> ENUM('hearts','clubs','spades','diamonds')
-> rows: 1
+>> ENUM('hearts','clubs','spades','diamonds')
 
 --- ENUM integer-based operations
 
@@ -61,6 +59,7 @@ select rank from card where suit = 1;
 > ----
 > 0
 > 10
+> rows: 2
 
 insert into card (rank, suit) values(5, 2);
 > update count: 1
@@ -69,6 +68,7 @@ select * from card where rank = 5;
 > RANK SUIT
 > ---- ------
 > 5    spades
+> rows: 1
 
 --- ENUM edge cases
 
@@ -100,6 +100,7 @@ select * from card;
 > ---- ------
 > 0    clubs
 > 3    hearts
+> rows: 2
 
 drop table card;
 > ok
@@ -125,6 +126,7 @@ select rank from card where suit = 'clubs';
 > ----
 > 0
 > 1
+> rows: 2
 
 drop table card;
 > ok
@@ -143,18 +145,21 @@ insert into card (rank, suit) values (0, 'clubs'), (3, 'hearts'), (1, 'clubs');
 > update count: 3
 
 create index idx_card_suite on card(`suit`);
+> ok
 
 select rank from card where suit = 'clubs';
 > RANK
 > ----
 > 0
 > 1
+> rows: 2
 
 select rank from card where suit in ('clubs');
 > RANK
 > ----
 > 0
 > 1
+> rows: 2
 
 drop table card;
 > ok

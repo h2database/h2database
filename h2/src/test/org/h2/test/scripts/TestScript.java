@@ -86,6 +86,7 @@ public class TestScript extends TestBase {
         reconnectOften = !config.memory && config.big;
 
         testScript("testScript.sql");
+        testScript("comments.sql");
         testScript("derived-column-names.sql");
         testScript("dual.sql");
         testScript("indexes.sql");

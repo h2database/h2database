@@ -50,6 +50,7 @@ import org.h2.tools.ChangeFileEncryption;
 import org.h2.tools.Console;
 import org.h2.tools.ConvertTraceFile;
 import org.h2.tools.DeleteDbFiles;
+import org.h2.tools.GUIConsole;
 import org.h2.tools.Recover;
 import org.h2.tools.Restore;
 import org.h2.tools.RunScript;
@@ -127,7 +128,7 @@ public class TestTools extends TestBase {
 
     private void testConsole() throws Exception {
         String old = System.getProperty(SysProperties.H2_BROWSER);
-        Console c = new Console();
+        GUIConsole c = new GUIConsole();
         c.setOut(new PrintStream(new ByteArrayOutputStream()));
         try {
 

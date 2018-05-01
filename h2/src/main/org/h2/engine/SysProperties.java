@@ -93,26 +93,19 @@ public class SysProperties {
             Utils.getProperty("h2.bindAddress", null);
 
     /**
-     * System property <code>h2.check</code> (default: true).<br />
+     * System property <code>h2.check</code>
+     * (default: true for JDK/JRE, false for Android).<br />
      * Assertions in the database engine.
      */
-    //## CHECK ##
     public static final boolean CHECK =
-            Utils.getProperty("h2.check", true);
-    /*/
-    public static final boolean CHECK = false;
-    //*/
+            Utils.getProperty("h2.check", !"0.9".equals(Utils.getProperty("java.specification.version", null)));
 
     /**
      * System property <code>h2.check2</code> (default: false).<br />
      * Additional assertions in the database engine.
      */
-    //## CHECK ##
     public static final boolean CHECK2 =
             Utils.getProperty("h2.check2", false);
-    /*/
-    public static final boolean CHECK2 = false;
-    //*/
 
     /**
      * System property <code>h2.clientTraceDirectory</code> (default:

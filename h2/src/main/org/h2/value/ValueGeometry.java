@@ -167,8 +167,7 @@ public class ValueGeometry extends Value {
                     default:
                         break getSRID;
                     }
-                    int type = Bits.readInt(bytes, 1);
-                    if ((type & (bigEndian ? 0x2000_0000 : 0x20)) != 0 && bytes.length >= 9) {
+                    if ((bytes[bigEndian ? 1 : 4] & 0x20) != 0 && bytes.length >= 9) {
                         srid = Bits.readInt(bytes, 5);
                         if (!bigEndian) {
                             srid = Integer.reverseBytes(srid);

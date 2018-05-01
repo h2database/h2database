@@ -86,6 +86,7 @@ public class TestScript extends TestBase {
         reconnectOften = !config.memory && config.big;
 
         testScript("testScript.sql");
+        testScript("comments.sql");
         testScript("derived-column-names.sql");
         testScript("dual.sql");
         testScript("indexes.sql");
@@ -206,7 +207,37 @@ public class TestScript extends TestBase {
         while (true) {
             String s = in.readLine();
             if (s == null) {
-                return s;
+                return null;
+            }
+            if (s.startsWith("#")) {
+                int end = s.indexOf('#', 1);
+                if (end < 3) {
+                    fail("Bad line \"" + s + '\"');
+                }
+                boolean val;
+                switch (s.charAt(1)) {
+                case '+':
+                    val = true;
+                    break;
+                case '-':
+                    val = false;
+                    break;
+                default:
+                    fail("Bad line \"" + s + '\"');
+                    return null;
+                }
+                String flag = s.substring(2, end);
+                s = s.substring(end + 1);
+                switch (flag) {
+                case "mvStore":
+                    if (config.mvStore == val) {
+                        break;
+                    } else {
+                        continue;
+                    }
+                default:
+                    fail("Unknown flag \"" + flag + '\"');
+                }
             }
             s = s.trim();
             if (s.length() > 0) {
@@ -493,10 +524,7 @@ public class TestScript extends TestBase {
                 if (reconnectOften && sql.toUpperCase().startsWith("EXPLAIN")) {
                     return;
                 }
-                errors.append(fileName).append('\n');
-                errors.append("line: ").append(in.getLineNumber()).append('\n');
-                errors.append("exp: ").append(compare).append('\n');
-                errors.append("got: ").append(s).append('\n');
+                addWriteResultError(compare, s);
                 if (ex != null) {
                     TestBase.logError("script", ex);
                 }
@@ -507,9 +535,18 @@ public class TestScript extends TestBase {
                 }
             }
         } else {
+            addWriteResultError("<nothing>", s);
+            TestBase.logErrorMessage(errors.toString());
             putBack = compare;
         }
         write(s);
+    }
+
+    private void addWriteResultError(String expected, String got) {
+        errors.append(fileName).append('\n');
+        errors.append("line: ").append(in.getLineNumber()).append('\n');
+        errors.append("exp: ").append(expected).append('\n');
+        errors.append("got: ").append(got).append('\n');
     }
 
     private void write(String s) {

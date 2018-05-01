@@ -3384,24 +3384,6 @@ call select 1.0/3.0*3.0, 100.0/2.0, -25.0/100.0, 0.0/3.0, 6.9/2.0, 0.72179425150
 > (0.999999999999999999999999990, 50, -0.25, 0, 3.45, 1.35822361752313607260107721120531135706133161972E-10)
 > rows: 1
 
-CALL 1 /* comment */ ;;
-> 1
-> -
-> 1
-> rows: 1
-
-CALL 1 /* comment */ ;
-> 1
-> -
-> 1
-> rows: 1
-
-call /* remark * / * /* ** // end */ 1;
-> 1
-> -
-> 1
-> rows: 1
-
 call (select x from dual where x is null);
 > SELECT X FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX: X IS NULL */ /* scanCount: 1 */ WHERE X IS NULL
 > -------------------------------------------------------------------------------------------------------
@@ -6384,34 +6366,6 @@ SELECT ID, MAX(NAME) FROM TEST GROUP BY ID HAVING MAX(NAME) LIKE 'World%';
 DROP TABLE TEST;
 > ok
 
---- remarks/comments/syntax ----------------------------------------------------------------------------------------------
-CREATE TABLE TEST(
-ID INT PRIMARY KEY, -- this is the primary key, type {integer}
-NAME VARCHAR(255) -- this is a string
-);
-> ok
-
-INSERT INTO TEST VALUES(
-1 /* ID */,
-'Hello' // NAME
-);
-> update count: 1
-
-SELECT * FROM TEST;
-> ID NAME
-> -- -----
-> 1  Hello
-> rows: 1
-
-DROP_ TABLE_ TEST_T;
-> exception SYNTAX_ERROR_2
-
-DROP TABLE TEST /*;
-> exception SYNTAX_ERROR_1
-
-DROP TABLE TEST;
-> ok
-
 --- exists ----------------------------------------------------------------------------------------------
 CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255));
 > ok
@@ -8498,6 +8452,7 @@ select * from test where year in (select distinct year from test order by year d
 > ---- ---------
 > 2016 order
 > 2016 execution
+> rows (ordered): 2
 
 drop table test;
 > ok

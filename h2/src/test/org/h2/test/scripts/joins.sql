@@ -265,10 +265,8 @@ explain select * from test1
 inner join test2 on test1.id=test2.id left
 outer join test3 on test2.id=test3.id
 where test3.id is null;
-> PLAN
-> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST1.ID, TEST2.ID, TEST3.ID FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ LEFT OUTER JOIN PUBLIC.TEST3 /* PUBLIC.PRIMARY_KEY_4C0: ID = TEST2.ID */ ON TEST2.ID = TEST3.ID INNER JOIN PUBLIC.TEST1 /* PUBLIC.PRIMARY_KEY_4: ID = TEST2.ID */ ON 1=1 WHERE (TEST3.ID IS NULL) AND (TEST1.ID = TEST2.ID)
-> rows: 1
+#+mvStore#>> SELECT TEST1.ID, TEST2.ID, TEST3.ID FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ LEFT OUTER JOIN PUBLIC.TEST3 /* PUBLIC.PRIMARY_KEY_4C0: ID = TEST2.ID */ ON TEST2.ID = TEST3.ID INNER JOIN PUBLIC.TEST1 /* PUBLIC.PRIMARY_KEY_4: ID = TEST2.ID */ ON 1=1 WHERE (TEST3.ID IS NULL) AND (TEST1.ID = TEST2.ID)
+#-mvStore#>> SELECT TEST1.ID, TEST2.ID, TEST3.ID FROM PUBLIC.TEST1 /* PUBLIC.TEST1.tableScan */ INNER JOIN PUBLIC.TEST2 /* PUBLIC.PRIMARY_KEY_4C: ID = TEST1.ID AND ID = TEST1.ID */ ON 1=1 /* WHERE TEST1.ID = TEST2.ID */ LEFT OUTER JOIN PUBLIC.TEST3 /* PUBLIC.PRIMARY_KEY_4C0: ID = TEST2.ID */ ON TEST2.ID = TEST3.ID WHERE (TEST3.ID IS NULL) AND (TEST1.ID = TEST2.ID)
 
 insert into test1 select x from system_range(2, 1000);
 > update count: 999
@@ -285,10 +283,7 @@ explain select * from test1
 inner join test2 on test1.id=test2.id
 left outer join test3 on test2.id=test3.id
 where test3.id is null;
-> PLAN
-> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST1.ID, TEST2.ID, TEST3.ID FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ LEFT OUTER JOIN PUBLIC.TEST3 /* PUBLIC.PRIMARY_KEY_4C0: ID = TEST2.ID */ ON TEST2.ID = TEST3.ID INNER JOIN PUBLIC.TEST1 /* PUBLIC.PRIMARY_KEY_4: ID = TEST2.ID */ ON 1=1 WHERE (TEST3.ID IS NULL) AND (TEST1.ID = TEST2.ID)
-> rows: 1
+>> SELECT TEST1.ID, TEST2.ID, TEST3.ID FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ LEFT OUTER JOIN PUBLIC.TEST3 /* PUBLIC.PRIMARY_KEY_4C0: ID = TEST2.ID */ ON TEST2.ID = TEST3.ID INNER JOIN PUBLIC.TEST1 /* PUBLIC.PRIMARY_KEY_4: ID = TEST2.ID */ ON 1=1 WHERE (TEST3.ID IS NULL) AND (TEST1.ID = TEST2.ID)
 
 SELECT TEST1.ID, TEST2.ID, TEST3.ID
 FROM TEST2
@@ -764,21 +759,36 @@ DROP TABLE C;
 > ok
 
 CREATE TABLE T1(X1 INT);
+> ok
 CREATE TABLE T2(X2 INT);
+> ok
 CREATE TABLE T3(X3 INT);
+> ok
 CREATE TABLE T4(X4 INT);
+> ok
 CREATE TABLE T5(X5 INT);
+> ok
 
 INSERT INTO T1 VALUES (1);
+> update count: 1
 INSERT INTO T1 VALUES (NULL);
+> update count: 1
 INSERT INTO T2 VALUES (1);
+> update count: 1
 INSERT INTO T2 VALUES (NULL);
+> update count: 1
 INSERT INTO T3 VALUES (1);
+> update count: 1
 INSERT INTO T3 VALUES (NULL);
+> update count: 1
 INSERT INTO T4 VALUES (1);
+> update count: 1
 INSERT INTO T4 VALUES (NULL);
+> update count: 1
 INSERT INTO T5 VALUES (1);
+> update count: 1
 INSERT INTO T5 VALUES (NULL);
+> update count: 1
 
 SELECT T1.X1, T2.X2, T3.X3, T4.X4, T5.X5 FROM (
     T1 INNER JOIN (

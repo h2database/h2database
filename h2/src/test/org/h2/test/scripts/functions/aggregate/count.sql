@@ -18,6 +18,7 @@ select count(v), count(v) filter (where v >= 4) from test where v <= 10;
 > rows: 1
 
 create index test_idx on test(v);
+> ok
 
 select count(v), count(v) filter (where v >= 4) from test where v <= 10;
 > COUNT(V) COUNT(V) FILTER (WHERE (V >= 4))

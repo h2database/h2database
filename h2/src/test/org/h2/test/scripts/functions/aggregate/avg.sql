@@ -18,6 +18,7 @@ select avg(v), avg(v) filter (where v >= 40) from test where v <= 100;
 > rows: 1
 
 create index test_idx on test(v);
+> ok
 
 select avg(v), avg(v) filter (where v >= 40) from test where v <= 100;
 > AVG(V) AVG(V) FILTER (WHERE (V >= 40))

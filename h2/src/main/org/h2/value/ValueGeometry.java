@@ -72,6 +72,10 @@ public class ValueGeometry extends Value {
      * @return the value
      */
     public static ValueGeometry getFromGeometry(Object o) {
+        /*
+         * Do not pass untrusted source geometry object to a cache, use only its WKB
+         * representation. Geometries are not fully immutable.
+         */
         return get(convertToWKB((Geometry) o));
     }
 

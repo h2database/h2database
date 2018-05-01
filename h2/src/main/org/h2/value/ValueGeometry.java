@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
+import org.h2.util.Bits;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.locationtech.jts.geom.CoordinateSequence;
@@ -71,7 +72,11 @@ public class ValueGeometry extends Value {
      * @return the value
      */
     public static ValueGeometry getFromGeometry(Object o) {
-        return get((Geometry) o);
+        /*
+         * Do not pass untrusted source geometry object to a cache, use only its WKB
+         * representation. Geometries are not fully immutable.
+         */
+        return get(convertToWKB((Geometry) o));
     }
 
     private static ValueGeometry get(Geometry g) {
@@ -143,24 +148,37 @@ public class ValueGeometry extends Value {
     public Geometry getGeometry() {
         Geometry geometry = getGeometryNoCopy();
         Geometry copy = geometry.copy();
-        /*
-         * Geometry factory is not preserved in WKB format, but SRID is preserved.
-         *
-         * We use a new factory to read geometries from WKB with default SRID value of
-         * 0.
-         *
-         * Geometry.copy() copies the geometry factory and copied value has SRID form
-         * the factory instead of original SRID value. So we need to copy SRID here with
-         * non-recommended (but not deprecated) setSRID() method.
-         */
-        copy.setSRID(geometry.getSRID());
         return copy;
     }
 
     public Geometry getGeometryNoCopy() {
         if (geometry == null) {
             try {
-                geometry = new WKBReader().read(bytes);
+                int srid = 0;
+                getSRID: if (bytes.length >= 9) {
+                    boolean bigEndian;
+                    switch (bytes[0]) {
+                    case 0:
+                        bigEndian = true;
+                        break;
+                    case 1:
+                        bigEndian = false;
+                        break;
+                    default:
+                        break getSRID;
+                    }
+                    if ((bytes[bigEndian ? 1 : 4] & 0x20) != 0) {
+                        srid = Bits.readInt(bytes, 5);
+                        if (!bigEndian) {
+                            srid = Integer.reverseBytes(srid);
+                        }
+                    }
+                }
+                /*
+                 * No-arg WKBReader() constructor instantiates a new GeometryFactory and a new
+                 * PrecisionModel anyway, so special case for srid == 0 is not needed.
+                 */
+                geometry = new WKBReader(new GeometryFactory(new PrecisionModel(), srid)).read(bytes);
             } catch (ParseException ex) {
                 throw DbException.convert(ex);
             }

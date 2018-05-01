@@ -207,7 +207,37 @@ public class TestScript extends TestBase {
         while (true) {
             String s = in.readLine();
             if (s == null) {
-                return s;
+                return null;
+            }
+            if (s.startsWith("#")) {
+                int end = s.indexOf('#', 1);
+                if (end < 3) {
+                    fail("Bad line \"" + s + '\"');
+                }
+                boolean val;
+                switch (s.charAt(1)) {
+                case '+':
+                    val = true;
+                    break;
+                case '-':
+                    val = false;
+                    break;
+                default:
+                    fail("Bad line \"" + s + '\"');
+                    return null;
+                }
+                String flag = s.substring(2, end);
+                s = s.substring(end + 1);
+                switch (flag) {
+                case "mvStore":
+                    if (config.mvStore == val) {
+                        break;
+                    } else {
+                        continue;
+                    }
+                default:
+                    fail("Unknown flag \"" + flag + '\"');
+                }
             }
             s = s.trim();
             if (s.length() > 0) {

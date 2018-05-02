@@ -205,26 +205,33 @@ public class Insert extends Prepared implements ResultTarget {
                 query.query(0, this);
             } else {
                 ResultInterface rows = query.query(0);
+                int updatedRows = 0;
                 while (rows.next()) {
                     generatedKeys.nextRow();
                     Value[] r = rows.currentRow();
-					try {
-						Row newRow = addRowImpl(r);
-						if (newRow != null) {
-							generatedKeys.confirmRow(newRow);
-						}
-					} catch (DbException de) {
+                    try {
+                        Expression[] exp = new Expression[columns.length];
+                        for (int j = 0, len = columns.length; j < len; j++) {
+                            exp[j] = ValueExpression.get(r[j]);
+                        }
+                        addRow(exp);
+                        Row newRow = addRowImpl(r);
+                        if (newRow != null) {
+                            generatedKeys.confirmRow(newRow);
+                        }
+                    } catch (DbException de) {
                         if (handleOnDuplicate(de)) {
                             // MySQL returns 2 for updated row
                             // TODO: detect no-op change
-                            rowNumber++;
+                        	updatedRows++;
                         } else {
                             // INSERT IGNORE case
                             rowNumber--;
                         }
-					}
+                    }
                 }
                 rows.close();
+                rowNumber += updatedRows;
             }
         }
         table.fire(session, Trigger.INSERT, false);
@@ -239,14 +246,12 @@ public class Insert extends Prepared implements ResultTarget {
     private Row addRowImpl(Value[] values) {
         Row newRow = table.getTemplateRow();
         setCurrentRowNumber(++rowNumber);
-		Expression[] exp = new Expression[columns.length];
         for (int j = 0, len = columns.length; j < len; j++) {
             Column c = columns[j];
             int index = c.getColumnId();
             try {
                 Value v = c.convert(values[j], session.getDatabase().getMode());
                 newRow.setValue(index, v);
-				exp[j] = ValueExpression.get(v);
             } catch (DbException ex) {
                 throw setRow(ex, rowNumber, getSQL(values));
             }
@@ -254,7 +259,6 @@ public class Insert extends Prepared implements ResultTarget {
         table.validateConvertUpdateSequence(session, newRow);
         boolean done = table.fireBeforeRow(session, null, newRow);
         if (!done) {
-			addRow(exp);
             table.addRow(session, newRow);
             session.log(table, UndoLogRecord.INSERT, newRow);
             table.fireAfterRow(session, null, newRow, false);

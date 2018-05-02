@@ -76,3 +76,23 @@ SELECT * FROM TEST ORDER BY ID;
 > 6  61
 > 7  71
 > rows (ordered): 7
+
+INSERT INTO TESTREF VALUES (8, 81), (9, 91);
+> update count: 2
+
+INSERT INTO TEST (ID, VALUE) SELECT ID, VALUE FROM TESTREF ON DUPLICATE KEY UPDATE VALUE=83;
+> update count: 10
+
+SELECT * FROM TEST ORDER BY ID;
+> ID VALUE
+> -- -----
+> 1  83
+> 2  83
+> 3  30
+> 4  40
+> 5  52
+> 6  83
+> 7  83
+> 8  81
+> 9  91
+> rows (ordered): 9

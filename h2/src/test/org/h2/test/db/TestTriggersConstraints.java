@@ -117,7 +117,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         stat.execute("create table test(id int) as select 1");
         stat.execute("create trigger test_u before update on test " +
                 "for each row call \"" + DeleteTrigger.class.getName() + "\"");
-        // this threw a NullPointerException
+        // this used to throw a NullPointerException before we fixed it
         stat.execute("update test set id = 2");
         stat.execute("drop table test");
         conn.close();

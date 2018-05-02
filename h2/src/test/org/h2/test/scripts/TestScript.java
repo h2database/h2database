@@ -90,10 +90,7 @@ public class TestScript extends TestBase {
         testScript("dual.sql");
         testScript("indexes.sql");
         testScript("information_schema.sql");
-        if (config.mvStore) {
-            // we get slightly different explain plan stuff here in PageStore mode
-            testScript("joins.sql");
-        }
+        testScript("joins.sql");
         testScript("range_table.sql");
         testScript("altertable-index-reuse.sql");
         testScript("altertable-fk.sql");

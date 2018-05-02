@@ -231,6 +231,7 @@ public class Insert extends Prepared implements ResultTarget {
                     }
                 }
                 rows.close();
+                list.clear();
                 rowNumber += updatedRows;
             }
         }

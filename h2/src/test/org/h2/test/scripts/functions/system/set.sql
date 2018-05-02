@@ -24,6 +24,7 @@ SELECT 1 AS VERY_VERY_VERY_LONG_ID_VERY_VERY_VERY_LONG_ID, SUM(X)+1 AS _12345678
 > VERY_VERY_VERY_LONG_ID_VERY_VE _123456789012345 SUMX1 SUMX147 x noName6 noName7
 > ------------------------------ ---------------- ----- ------- - ------- -------
 > 1                              4                4     51      x !!!     !!!!
+> rows: 1
 
 SET COLUMN_NAME_RULES=EMULATE='Oracle';
 > ok
@@ -33,6 +34,7 @@ SELECT 1 AS VERY_VERY_VERY_LONG_ID, SUM(X)+1 AS _123456789012345, SUM(X)+1 , SUM
 > VERY_VERY_VERY_LONG_ID _123456789012345 SUMX1 SUMX147 x _UNNAMED_6 _UNNAMED_7
 > ---------------------- ---------------- ----- ------- - ---------- ----------
 > 1                      4                4     51      x !!!        !!!!
+> rows: 1
 
 SET COLUMN_NAME_RULES=EMULATE='Oracle';
 > ok
@@ -42,6 +44,7 @@ SELECT 1 AS VERY_VERY_VERY_LONG_ID, SUM(X)+1 AS _123456789012345, SUM(X)+1 , SUM
 > VERY_VERY_VERY_LONG_ID _123456789012345 SUMX1 SUMX147 x _UNNAMED_6 _UNNAMED_7 _23456789012345678901234567890XXX
 > ---------------------- ---------------- ----- ------- - ---------- ---------- ---------------------------------
 > 1                      4                4     51      x !!!        !!!!       Very Long
+> rows: 1
 
 SET COLUMN_NAME_RULES=EMULATE='PostgreSQL';
 > ok
@@ -51,6 +54,7 @@ SELECT 1 AS VERY_VERY_VERY_LONG_ID, SUM(X)+1 AS _123456789012345, SUM(X)+1 , SUM
 > VERY_VERY_VERY_LONG_ID _123456789012345 SUMX1 SUMX147 x _UNNAMED_6 _UNNAMED_7 QuotedColumnId
 > ---------------------- ---------------- ----- ------- - ---------- ---------- --------------
 > 1                      4                4     51      x !!!        !!!!       999
+> rows: 1
 
 SET COLUMN_NAME_RULES=DEFAULT;
 > ok

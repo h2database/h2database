@@ -406,11 +406,17 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     public void removeLocalTempTable(Table table) {
         // Exception thrown in org.h2.engine.Database.removeMeta if line below
         // is missing with TestGeneralCommonTableQueries
-        database.lockMeta(this);
-        modificationId++;
-        localTempTables.remove(table.getName());
-        synchronized (database) {
-            table.removeChildrenAndResources(this);
+        boolean wasLocked = database.lockMeta(this);
+        try {
+            modificationId++;
+            localTempTables.remove(table.getName());
+            synchronized (database) {
+                table.removeChildrenAndResources(this);
+            }
+        } finally {
+            if (!wasLocked) {
+                database.unlockMeta(this);
+            }
         }
     }
 

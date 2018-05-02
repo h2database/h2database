@@ -18,6 +18,7 @@ select max(v), max(v) filter (where v <= 8) from test where v <= 10;
 > rows: 1
 
 create index test_idx on test(v);
+> ok
 
 select max(v), max(v) filter (where v <= 8) from test where v <= 10;
 > MAX(V) MAX(V) FILTER (WHERE (V <= 8))

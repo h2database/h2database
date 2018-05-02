@@ -13,6 +13,7 @@ select regexp_replace('Sylvain', 'S..', 'TOTO', 'mni');
 >> TOTOvain
 
 set mode oracle;
+> ok
 
 select regexp_replace('first last', '(\w+) (\w+)', '\2 \1');
 >> last first
@@ -27,6 +28,7 @@ select regexp_replace('first last', '(\w+) (\w+)', '$2 $1');
 >> $2 $1
 
 set mode regular;
+> ok
 
 select regexp_replace('first last', '(\w+) (\w+)', '\2 \1');
 >> 2 1

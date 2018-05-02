@@ -56,7 +56,7 @@ public class CreateSynonym extends SchemaCommand {
         data.session = session;
         db.lockMeta(session);
 
-        if (data.synonymForSchema.findTableOrView(session, data.synonymName) != null) {
+        if (getSchema().findTableOrView(session, data.synonymName) != null) {
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, data.synonymName);
         }
 

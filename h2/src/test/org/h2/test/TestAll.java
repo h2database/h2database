@@ -286,7 +286,7 @@ java org.h2.test.TestAll timer
     /**
      * Whether the MVStore storage is used.
      */
-    public boolean mvStore = Constants.VERSION_MINOR >= 4;
+    public boolean mvStore = true;
 
     /**
      * If the test should run with many rows.

@@ -598,6 +598,7 @@ select median(v), median(v) filter (where v >= 40) from test where v <= 100;
 > rows: 1
 
 create index test_idx on test(v);
+> ok
 
 select median(v), median(v) filter (where v >= 40) from test where v <= 100;
 > MEDIAN(V) MEDIAN(V) FILTER (WHERE (V >= 40))
@@ -623,6 +624,7 @@ insert into test values
     ('First', 10), ('First', 10), ('First', 20), ('First', 30), ('First', 30),
     ('Second', 5), ('Second', 4), ('Second', 20), ('Second', 22), ('Second', 300),
     ('Third', 3), ('Third', 100), ('Third', 150), ('Third', 170), ('Third', 400);
+> update count: 15
 
 select dept, median(amount) from test group by dept order by dept;
 > DEPT   MEDIAN(AMOUNT)

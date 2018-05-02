@@ -200,14 +200,14 @@ public class Mode {
 
     private final String name;
 
-    private ModeEnum modeEnum;
+    private final ModeEnum modeEnum;
 
     static {
-        Mode mode = new Mode(ModeEnum.REGULAR.name());
+        Mode mode = new Mode(ModeEnum.REGULAR);
         mode.nullConcatIsNull = true;
         add(mode);
 
-        mode = new Mode(ModeEnum.DB2.name());
+        mode = new Mode(ModeEnum.DB2);
         mode.aliasColumnName = true;
         mode.sysDummy1 = true;
         mode.isolationLevelInSelectOrInsertStatement = true;
@@ -221,7 +221,7 @@ public class Mode {
         mode.allowDB2TimestampFormat = true;
         add(mode);
 
-        mode = new Mode(ModeEnum.Derby.name());
+        mode = new Mode(ModeEnum.Derby);
         mode.aliasColumnName = true;
         mode.uniqueIndexNullsHandling = UniqueIndexNullsHandling.FORBID_ANY_DUPLICATES;
         mode.sysDummy1 = true;
@@ -230,7 +230,7 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx = null;
         add(mode);
 
-        mode = new Mode(ModeEnum.HSQLDB.name());
+        mode = new Mode(ModeEnum.HSQLDB);
         mode.aliasColumnName = true;
         mode.convertOnlyToSmallerScale = true;
         mode.nullConcatIsNull = true;
@@ -243,7 +243,7 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx = null;
         add(mode);
 
-        mode = new Mode(ModeEnum.MSSQLServer.name());
+        mode = new Mode(ModeEnum.MSSQLServer);
         mode.aliasColumnName = true;
         mode.squareBracketQuotedNames = true;
         mode.uniqueIndexNullsHandling = UniqueIndexNullsHandling.FORBID_ANY_DUPLICATES;
@@ -255,7 +255,7 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx = null;
         add(mode);
 
-        mode = new Mode(ModeEnum.MySQL.name());
+        mode = new Mode(ModeEnum.MySQL);
         mode.convertInsertNullToZero = true;
         mode.indexDefinitionInCreateTable = true;
         mode.lowerCaseIdentifiers = true;
@@ -271,7 +271,7 @@ public class Mode {
         mode.prohibitEmptyInPredicate = true;
         add(mode);
 
-        mode = new Mode(ModeEnum.Oracle.name());
+        mode = new Mode(ModeEnum.Oracle);
         mode.aliasColumnName = true;
         mode.convertOnlyToSmallerScale = true;
         mode.uniqueIndexNullsHandling = UniqueIndexNullsHandling.ALLOW_DUPLICATES_WITH_ALL_NULLS;
@@ -286,7 +286,7 @@ public class Mode {
         mode.typeByNameMap.put("DATE", DataType.getDataType(Value.TIMESTAMP));
         add(mode);
 
-        mode = new Mode(ModeEnum.PostgreSQL.name());
+        mode = new Mode(ModeEnum.PostgreSQL);
         mode.aliasColumnName = true;
         mode.nullConcatIsNull = true;
         mode.systemColumns = true;
@@ -309,16 +309,16 @@ public class Mode {
         mode.disallowedTypes = disallowedTypes;
         add(mode);
 
-        mode = new Mode(ModeEnum.Ignite.name());
+        mode = new Mode(ModeEnum.Ignite);
         mode.nullConcatIsNull = true;
         mode.allowAffinityKey = true;
         mode.indexDefinitionInCreateTable = true;
         add(mode);
     }
 
-    private Mode(String name) {
-        this.name = name;
-        this.modeEnum = ModeEnum.valueOf(name);
+    private Mode(ModeEnum modeEnum) {
+        this.name = modeEnum.name();
+        this.modeEnum = modeEnum;
     }
 
     private static void add(Mode mode) {

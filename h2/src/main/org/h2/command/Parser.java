@@ -4465,11 +4465,12 @@ public class Parser {
                         precision = displaySize = ValueTimestampTimeZone.getDisplaySize(originalScale);
                         break;
                     }
-                } else if (original.equals("DATETIME")) {
+                } else if (original.equals("DATETIME") || original.equals("DATETIME2")) {
                     if (readIf("(")) {
                         originalScale = readPositiveInt();
                         if (originalScale > ValueTime.MAXIMUM_SCALE) {
-                            throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(originalScale));
+                            throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION,
+                                    Integer.toString(originalScale));
                         }
                         read(")");
                         scale = originalScale;

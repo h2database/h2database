@@ -11,7 +11,7 @@ select row_number() over () as rnum, str from test where str = 'A';
 > RNUM STR
 > ---- ---
 > 1    A
+> rows: 1
 
 drop table test;
 > ok
-

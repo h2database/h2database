@@ -43,6 +43,8 @@ public class TestTwoPhaseCommit extends TestBase {
         openWith(false);
         test(false);
 
+        testInDoubtAfterShutdown();
+
         if (!config.mvStore) {
             testLargeTransactionName();
         }
@@ -115,4 +117,57 @@ public class TestTwoPhaseCommit extends TestBase {
         stat.execute("PREPARE COMMIT XID_TEST_TRANSACTION_WITH_LONG_NAME");
         crash(conn);
     }
+
+    private void testInDoubtAfterShutdown() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("twoPhaseCommit");
+        Connection conn = getConnection("twoPhaseCommit");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST (ID INT PRIMARY KEY)");
+        conn.setAutoCommit(false);
+        stat.execute("INSERT INTO TEST VALUES (1)");
+        stat.execute("PREPARE COMMIT \"#1\"");
+        conn.commit();
+        stat.execute("SHUTDOWN IMMEDIATELY");
+        conn = getConnection("twoPhaseCommit");
+        stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("SELECT TRANSACTION, STATE FROM INFORMATION_SCHEMA.IN_DOUBT");
+        assertFalse(rs.next());
+        rs = stat.executeQuery("SELECT ID FROM TEST");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertFalse(rs.next());
+        conn.setAutoCommit(false);
+        stat.execute("INSERT INTO TEST VALUES (2)");
+        stat.execute("PREPARE COMMIT \"#2\"");
+        conn.rollback();
+        stat.execute("SHUTDOWN IMMEDIATELY");
+        conn = getConnection("twoPhaseCommit");
+        stat = conn.createStatement();
+        rs = stat.executeQuery("SELECT TRANSACTION, STATE FROM INFORMATION_SCHEMA.IN_DOUBT");
+        assertFalse(rs.next());
+        rs = stat.executeQuery("SELECT ID FROM TEST");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertFalse(rs.next());
+        conn.setAutoCommit(false);
+        stat.execute("INSERT INTO TEST VALUES (3)");
+        stat.execute("PREPARE COMMIT \"#3\"");
+        stat.execute("SHUTDOWN IMMEDIATELY");
+        conn = getConnection("twoPhaseCommit");
+        stat = conn.createStatement();
+        rs = stat.executeQuery("SELECT TRANSACTION, STATE FROM INFORMATION_SCHEMA.IN_DOUBT");
+        assertTrue(rs.next());
+        assertEquals("#3", rs.getString("TRANSACTION"));
+        assertEquals("IN_DOUBT", rs.getString("STATE"));
+        rs = stat.executeQuery("SELECT ID FROM TEST");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertFalse(rs.next());
+        conn.close();
+        deleteDb("twoPhaseCommit");
+    }
+
 }

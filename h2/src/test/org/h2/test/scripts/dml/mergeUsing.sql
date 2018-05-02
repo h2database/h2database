@@ -19,6 +19,7 @@ SELECT * FROM PARENT;
 > -- -----
 > 1  Coco1
 > 2  Coco2
+> rows: 2
 
 EXPLAIN PLAN
     MERGE INTO PARENT AS P
@@ -28,9 +29,7 @@ EXPLAIN PLAN
             UPDATE SET P.NAME = S.NAME WHERE 2 = 2 WHEN NOT
         MATCHED THEN
             INSERT (ID, NAME) VALUES (S.ID, S.NAME);
-> PLAN
-> ---------------------------------------------------------------------------------------------------------------------------------
-> MERGE INTO PUBLIC.PARENT(ID, NAME) KEY(ID) SELECT X AS ID, ('Coco' || X) AS NAME FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX */
+>> MERGE INTO PUBLIC.PARENT(ID, NAME) KEY(ID) SELECT X AS ID, ('Coco' || X) AS NAME FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX */
 
 DROP TABLE PARENT;
 > ok

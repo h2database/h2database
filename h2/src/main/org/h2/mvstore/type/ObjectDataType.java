@@ -288,7 +288,7 @@ public class ObjectDataType implements DataType {
      * @return true if yes
      */
     static boolean isBigInteger(Object obj) {
-        return obj instanceof BigInteger && obj.getClass() == BigInteger.class;
+        return obj != null && obj.getClass() == BigInteger.class;
     }
 
     /**
@@ -298,7 +298,7 @@ public class ObjectDataType implements DataType {
      * @return true if yes
      */
     static boolean isBigDecimal(Object obj) {
-        return obj instanceof BigDecimal && obj.getClass() == BigDecimal.class;
+        return obj != null && obj.getClass() == BigDecimal.class;
     }
 
     /**
@@ -308,7 +308,7 @@ public class ObjectDataType implements DataType {
      * @return true if yes
      */
     static boolean isDate(Object obj) {
-        return obj instanceof Date && obj.getClass() == Date.class;
+        return obj != null && obj.getClass() == Date.class;
     }
 
     /**
@@ -1247,21 +1247,13 @@ public class ObjectDataType implements DataType {
             Class<?> type = obj.getClass().getComponentType();
             if (type.isPrimitive()) {
                 int len = Array.getLength(obj);
-                if (type == boolean.class) {
+                if (type == boolean.class || type == byte.class) {
                     size += len;
-                } else if (type == byte.class) {
-                    size += len;
-                } else if (type == char.class) {
+                } else if (type == char.class || type == short.class) {
                     size += len * 2;
-                } else if (type == short.class) {
-                    size += len * 2;
-                } else if (type == int.class) {
+                } else if (type == int.class || type == float.class) {
                     size += len * 4;
-                } else if (type == float.class) {
-                    size += len * 4;
-                } else if (type == double.class) {
-                    size += len * 8;
-                } else if (type == long.class) {
+                } else if (type == double.class || type == long.class) {
                     size += len * 8;
                 }
             } else {

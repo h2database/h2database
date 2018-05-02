@@ -26,7 +26,9 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.geom.util.AffineTransformation;
+import org.locationtech.jts.io.ByteOrderValues;
 import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKBWriter;
 import org.locationtech.jts.io.WKTReader;
 
 /**
@@ -604,6 +606,26 @@ public class TestSpatial extends TestBase {
         // Test SRID
         copy = ValueGeometry.get(geom3d.getBytes());
         assertEquals(27572, copy.getGeometry().getSRID());
+        Point point = new GeometryFactory().createPoint((new Coordinate(1.1d, 1.2d)));
+        // SRID 0
+        checkSRID(ValueGeometry.getFromGeometry(point).getBytes(), 0);
+        checkSRID(new WKBWriter(2, ByteOrderValues.BIG_ENDIAN, false).write(point), 0);
+        checkSRID(new WKBWriter(2, ByteOrderValues.BIG_ENDIAN, true).write(point), 0);
+        checkSRID(new WKBWriter(2, ByteOrderValues.LITTLE_ENDIAN, false).write(point), 0);
+        checkSRID(new WKBWriter(2, ByteOrderValues.LITTLE_ENDIAN, true).write(point), 0);
+        // SRID 1,000,000,000
+        point.setSRID(1_000_000_000);
+        checkSRID(ValueGeometry.getFromGeometry(point).getBytes(), 1_000_000_000);
+        checkSRID(new WKBWriter(2, ByteOrderValues.BIG_ENDIAN, true).write(point), 1_000_000_000);
+        checkSRID(new WKBWriter(2, ByteOrderValues.LITTLE_ENDIAN, true).write(point), 1_000_000_000);
+    }
+
+    private void checkSRID(byte[] bytes, int srid) {
+        Point point = (Point) ValueGeometry.get(bytes).getGeometry();
+        assertEquals(1.1, point.getX());
+        assertEquals(1.2, point.getY());
+        assertEquals(srid, point.getSRID());
+        assertEquals(srid, point.getFactory().getSRID());
     }
 
     /**

@@ -20,6 +20,7 @@ select bit_or(v), bit_or(v) filter (where v >= 8) from test where v <= 512;
 > rows: 1
 
 create index test_idx on test(v);
+> ok
 
 select bit_or(v), bit_or(v) filter (where v >= 8) from test where v <= 512;
 > BIT_OR(V) BIT_OR(V) FILTER (WHERE (V >= 8))

@@ -48,7 +48,6 @@ public class TestTransaction extends TestBase {
         testReferential();
         testSavepoint();
         testIsolation();
-        testTwoPhaseCommit();
         deleteDb("transaction");
     }
 
@@ -542,44 +541,6 @@ public class TestTransaction extends TestBase {
     private void test(Statement stat, String sql) throws SQLException {
         trace(sql);
         stat.execute(sql);
-    }
-
-    private void testTwoPhaseCommit() throws SQLException {
-        if (config.memory) {
-            return;
-        }
-        deleteDb("transaction2pc");
-        Connection conn = getConnection("transaction2pc");
-        Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TEST (ID INT PRIMARY KEY)");
-        conn.setAutoCommit(false);
-        stat.execute("INSERT INTO TEST VALUES (1)");
-        stat.execute("PREPARE COMMIT \"#1\"");
-        conn.commit();
-        stat.execute("SHUTDOWN IMMEDIATELY");
-        conn = getConnection("transaction2pc");
-        stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("SELECT TRANSACTION, STATE FROM INFORMATION_SCHEMA.IN_DOUBT");
-        assertFalse(rs.next());
-        rs = stat.executeQuery("SELECT ID FROM TEST");
-        assertTrue(rs.next());
-        assertEquals(1, rs.getInt(1));
-        assertFalse(rs.next());
-        conn.setAutoCommit(false);
-        stat.execute("INSERT INTO TEST VALUES (2)");
-        stat.execute("PREPARE COMMIT \"#2\"");
-        conn.rollback();
-        stat.execute("SHUTDOWN IMMEDIATELY");
-        conn = getConnection("transaction2pc");
-        stat = conn.createStatement();
-        rs = stat.executeQuery("SELECT TRANSACTION, STATE FROM INFORMATION_SCHEMA.IN_DOUBT");
-        assertFalse(rs.next());
-        rs = stat.executeQuery("SELECT ID FROM TEST");
-        assertTrue(rs.next());
-        assertEquals(1, rs.getInt(1));
-        assertFalse(rs.next());
-        conn.close();
-        deleteDb("transaction2pc");
     }
 
 }

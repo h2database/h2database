@@ -225,7 +225,7 @@ public class Insert extends Prepared implements ResultTarget {
                     }
                 }
                 rows.close();
-             }
+            }
         }
         table.fire(session, Trigger.INSERT, false);
         return rowNumber;

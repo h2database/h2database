@@ -88,7 +88,7 @@ public abstract class Page implements Cloneable
             MEMORY_POINTER +          // children
             MEMORY_ARRAY +            // Object[] children
             8;                        // totalCount
-    
+
     /**
      * The estimated number of bytes used per empty leaf page.
      */

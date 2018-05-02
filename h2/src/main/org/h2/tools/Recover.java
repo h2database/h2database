@@ -649,8 +649,8 @@ public class Recover extends Tool implements DataHandler {
                     }
                 }
             }
-            // Have to do these before the tables because settings like COLLATION may affect some of them,
-            // and we can't change settings after we have created user tables
+            // Have to do these before the tables because settings like COLLATION may affect
+            // some of them, and we can't change settings after we have created user tables
             writeSchemaSET(writer);
             writer.println("---- Table Data ----");
             for (String mapName : mv.getMapNames()) {

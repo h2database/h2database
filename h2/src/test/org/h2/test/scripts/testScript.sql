@@ -484,7 +484,8 @@ explain insert into test(id) direct sorted select x from system_range(1, 100);
 >> INSERT INTO PUBLIC.TEST(ID) DIRECT SORTED SELECT X FROM SYSTEM_RANGE(1, 100) /* PUBLIC.RANGE_INDEX */
 
 explain select * from test limit 10 sample_size 10;
->> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ LIMIT 10 SAMPLE_SIZE 10
+#+mvStore#>> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ LIMIT 10 SAMPLE_SIZE 10
+#-mvStore#>> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ LIMIT 10 SAMPLE_SIZE 10
 
 drop table test;
 > ok
@@ -1234,7 +1235,8 @@ insert into t2 select x from system_range(1, 1000);
 > update count: 1000
 
 explain select count(*) from t1 where t1.id in ( select t2.id from t2 );
->> SELECT COUNT(*) FROM PUBLIC.T1 /* PUBLIC.PRIMARY_KEY_A: ID IN(SELECT T2.ID FROM PUBLIC.T2 /++ PUBLIC.T2.tableScan ++/) */ WHERE T1.ID IN( SELECT T2.ID FROM PUBLIC.T2 /* PUBLIC.T2.tableScan */)
+#+mvStore#>> SELECT COUNT(*) FROM PUBLIC.T1 /* PUBLIC.PRIMARY_KEY_A: ID IN(SELECT T2.ID FROM PUBLIC.T2 /++ PUBLIC.T2.tableScan ++/) */ WHERE T1.ID IN( SELECT T2.ID FROM PUBLIC.T2 /* PUBLIC.T2.tableScan */)
+#-mvStore#>> SELECT COUNT(*) FROM PUBLIC.T1 /* PUBLIC.PRIMARY_KEY_A: ID IN(SELECT T2.ID FROM PUBLIC.T2 /++ PUBLIC.PRIMARY_KEY_A5 ++/) */ WHERE T1.ID IN( SELECT T2.ID FROM PUBLIC.T2 /* PUBLIC.PRIMARY_KEY_A5 */)
 
 select count(*) from t1 where t1.id in ( select t2.id from t2 );
 > COUNT(*)
@@ -1559,7 +1561,8 @@ explain select * from test where id = 1;
 >> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ WHERE ID = 1
 
 EXPLAIN SELECT * FROM TEST WHERE ID = (SELECT MAX(ID) FROM TEST);
->> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/ /++ direct lookup ++/) */ WHERE ID = (SELECT MAX(ID) FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ /* direct lookup */)
+#+mvStore#>> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/ /++ direct lookup ++/) */ WHERE ID = (SELECT MAX(ID) FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ /* direct lookup */)
+#-mvStore#>> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.PRIMARY_KEY_2 ++/ /++ direct lookup ++/) */ WHERE ID = (SELECT MAX(ID) FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ /* direct lookup */)
 
 drop table test;
 > ok
@@ -2888,9 +2891,9 @@ CREATE TABLE X (ID INTEGER PRIMARY KEY);
 insert into x values(0), (1), (10);
 > update count: 3
 
-SELECT t1.ID, (SELECT t1.id || ':' || AVG(t2.ID) FROM X t2) FROM X t1;
-> ID SELECT ((T1.ID || ':') || AVG(T2.ID)) FROM PUBLIC.X T2 /* PUBLIC.X.tableScan */ /* scanCount: 4 */
-> -- --------------------------------------------------------------------------------------------------
+SELECT t1.ID, (SELECT t1.id || ':' || AVG(t2.ID) FROM X t2) AS col2 FROM X t1;
+> ID COL2
+> -- ----
 > 0  0:3
 > 1  1:3
 > 10 10:3
@@ -2913,12 +2916,12 @@ select * from test order by id;
 > 3  33
 > rows (ordered): 3
 
-select rownum, (select count(*) from test), rownum from test;
-> ROWNUM() SELECT COUNT(*) FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ /* direct lookup */ ROWNUM()
-> -------- -------------------------------------------------------------------------------- --------
-> 1        3                                                                                1
-> 2        3                                                                                2
-> 3        3                                                                                3
+select rownum, (select count(*) from test) as col2, rownum from test;
+> ROWNUM() COL2 ROWNUM()
+> -------- ---- --------
+> 1        3    1
+> 2        3    2
+> 3        3    3
 > rows: 3
 
 delete from test t0 where rownum<2;
@@ -3167,7 +3170,8 @@ select * from test t1 where id in(id);
 > rows: 2
 
 explain select * from test t1 where id in(select id from test);
->> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/) */ WHERE ID IN( SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */)
+#+mvStore#>> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/) */ WHERE ID IN( SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */)
+#-mvStore#>> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /++ PUBLIC.PRIMARY_KEY_2 ++/) */ WHERE ID IN( SELECT ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */)
 
 select * from test t1 where id in(select id from test);
 > ID NAME
@@ -3177,7 +3181,8 @@ select * from test t1 where id in(select id from test);
 > rows: 2
 
 explain select * from test t1 where id in(1, select max(id) from test);
->> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/ /++ direct lookup ++/)) */ WHERE ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ /* direct lookup */))
+#+mvStore#>> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/ /++ direct lookup ++/)) */ WHERE ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ /* direct lookup */))
+#-mvStore#>> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.PRIMARY_KEY_2 ++/ /++ direct lookup ++/)) */ WHERE ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ /* direct lookup */))
 
 select * from test t1 where id in(1, select max(id) from test);
 > ID NAME
@@ -3583,7 +3588,8 @@ create table test(id int primary key);
 > ok
 
 explain select * from test a inner join test b left outer join test c on c.id = a.id;
->> SELECT A.ID, C.ID, B.ID FROM PUBLIC.TEST A /* PUBLIC.TEST.tableScan */ LEFT OUTER JOIN PUBLIC.TEST C /* PUBLIC.PRIMARY_KEY_2: ID = A.ID */ ON C.ID = A.ID INNER JOIN PUBLIC.TEST B /* PUBLIC.TEST.tableScan */ ON 1=1
+#+mvStore#>> SELECT A.ID, C.ID, B.ID FROM PUBLIC.TEST A /* PUBLIC.TEST.tableScan */ LEFT OUTER JOIN PUBLIC.TEST C /* PUBLIC.PRIMARY_KEY_2: ID = A.ID */ ON C.ID = A.ID INNER JOIN PUBLIC.TEST B /* PUBLIC.TEST.tableScan */ ON 1=1
+#-mvStore#>> SELECT A.ID, C.ID, B.ID FROM PUBLIC.TEST A /* PUBLIC.PRIMARY_KEY_2 */ LEFT OUTER JOIN PUBLIC.TEST C /* PUBLIC.PRIMARY_KEY_2: ID = A.ID */ ON C.ID = A.ID INNER JOIN PUBLIC.TEST B /* PUBLIC.PRIMARY_KEY_2 */ ON 1=1
 
 SELECT T.ID FROM TEST "T";
 > ID
@@ -4548,10 +4554,12 @@ update test set (id, name)=(select id+1, name || 'Ho' from test t1 where test.id
 > update count: 2
 
 explain update test set (id, name)=(id+1, name || 'Hi');
->> UPDATE PUBLIC.TEST /* PUBLIC.TEST.tableScan */ SET ID = ARRAY_GET(((ID + 1), (NAME || 'Hi')), 1), NAME = ARRAY_GET(((ID + 1), (NAME || 'Hi')), 2)
+#+mvStore#>> UPDATE PUBLIC.TEST /* PUBLIC.TEST.tableScan */ SET ID = ARRAY_GET(((ID + 1), (NAME || 'Hi')), 1), NAME = ARRAY_GET(((ID + 1), (NAME || 'Hi')), 2)
+#-mvStore#>> UPDATE PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ SET ID = ARRAY_GET(((ID + 1), (NAME || 'Hi')), 1), NAME = ARRAY_GET(((ID + 1), (NAME || 'Hi')), 2)
 
 explain update test set (id, name)=(select id+1, name || 'Ho' from test t1 where test.id=t1.id);
->> UPDATE PUBLIC.TEST /* PUBLIC.TEST.tableScan */ SET ID = ARRAY_GET((SELECT (ID + 1), (NAME || 'Ho') FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE TEST.ID = T1.ID), 1), NAME = ARRAY_GET((SELECT (ID + 1), (NAME || 'Ho') FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE TEST.ID = T1.ID), 2)
+#+mvStore#>> UPDATE PUBLIC.TEST /* PUBLIC.TEST.tableScan */ SET ID = ARRAY_GET((SELECT (ID + 1), (NAME || 'Ho') FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE TEST.ID = T1.ID), 1), NAME = ARRAY_GET((SELECT (ID + 1), (NAME || 'Ho') FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE TEST.ID = T1.ID), 2)
+#-mvStore#>> UPDATE PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ SET ID = ARRAY_GET((SELECT (ID + 1), (NAME || 'Ho') FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE TEST.ID = T1.ID), 1), NAME = ARRAY_GET((SELECT (ID + 1), (NAME || 'Ho') FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE TEST.ID = T1.ID), 2)
 
 select * from test;
 > ID NAME
@@ -5467,10 +5475,12 @@ EXPLAIN SELECT * FROM TEST WHERE ID=1 GROUP BY NAME, ID;
 >> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ WHERE ID = 1 GROUP BY NAME, ID
 
 EXPLAIN PLAN FOR UPDATE TEST SET NAME='Hello', ID=1 WHERE NAME LIKE 'T%' ESCAPE 'x';
->> UPDATE PUBLIC.TEST /* PUBLIC.TEST.tableScan */ SET NAME = 'Hello', ID = 1 WHERE NAME LIKE 'T%' ESCAPE 'x'
+#+mvStore#>> UPDATE PUBLIC.TEST /* PUBLIC.TEST.tableScan */ SET NAME = 'Hello', ID = 1 WHERE NAME LIKE 'T%' ESCAPE 'x'
+#-mvStore#>> UPDATE PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ SET NAME = 'Hello', ID = 1 WHERE NAME LIKE 'T%' ESCAPE 'x'
 
 EXPLAIN PLAN FOR DELETE FROM TEST;
->> DELETE FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */
+#+mvStore#>> DELETE FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */
+#-mvStore#>> DELETE FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */
 
 EXPLAIN PLAN FOR SELECT NAME, COUNT(*) FROM TEST GROUP BY NAME HAVING COUNT(*) > 1;
 >> SELECT NAME, COUNT(*) FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ GROUP BY NAME HAVING COUNT(*) > 1
@@ -5491,13 +5501,16 @@ EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID IN(1, 2);
 >> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(1, 2) */ WHERE ID IN(1, 2)
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID IN(SELECT ID FROM TEST);
->> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/) */ WHERE ID IN( SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */)
+#+mvStore#>> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/) */ WHERE ID IN( SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */)
+#-mvStore#>> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /++ PUBLIC.PRIMARY_KEY_2 ++/) */ WHERE ID IN( SELECT ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */)
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID NOT IN(SELECT ID FROM TEST);
->> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ WHERE NOT (ID IN( SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */))
+#+mvStore#>> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ WHERE NOT (ID IN( SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */))
+#-mvStore#>> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ WHERE NOT (ID IN( SELECT ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */))
 
 EXPLAIN PLAN FOR SELECT CAST(ID AS VARCHAR(255)) FROM TEST;
->> SELECT CAST(ID AS VARCHAR(255)) FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */
+#+mvStore#>> SELECT CAST(ID AS VARCHAR(255)) FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */
+#-mvStore#>> SELECT CAST(ID AS VARCHAR(255)) FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */
 
 EXPLAIN PLAN FOR SELECT LEFT(NAME, 2) FROM TEST;
 >> SELECT LEFT(NAME, 2) FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */
@@ -5606,7 +5619,8 @@ EXPLAIN SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE CLASS=0;
 >> (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN.tableScan */) EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN.tableScan */ WHERE CLASS = 0)
 
 EXPLAIN SELECT CLASS FROM CHILDREN INTERSECT SELECT ID FROM CLASSES;
->> (SELECT CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN.tableScan */) INTERSECT (SELECT ID FROM PUBLIC.CLASSES /* PUBLIC.CLASSES.tableScan */)
+#+mvStore#>> (SELECT CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN.tableScan */) INTERSECT (SELECT ID FROM PUBLIC.CLASSES /* PUBLIC.CLASSES.tableScan */)
+#-mvStore#>> (SELECT CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN.tableScan */) INTERSECT (SELECT ID FROM PUBLIC.CLASSES /* PUBLIC.PRIMARY_KEY_5 */)
 
 SELECT CLASS FROM CHILDREN INTERSECT SELECT ID FROM CLASSES;
 > CLASS

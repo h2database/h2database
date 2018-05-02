@@ -39,3 +39,40 @@ SELECT * FROM TEST ORDER BY ID;
 > 4  40
 > 5  52
 > rows (ordered): 5
+
+CREATE TABLE TESTREF(ID BIGINT PRIMARY KEY, VALUE INT NOT NULL);
+> ok
+
+INSERT INTO TESTREF VALUES (1, 11), (2, 21), (6, 61), (7, 71);
+> update count: 4
+
+INSERT INTO TEST (ID, VALUE) SELECT ID, VALUE FROM TESTREF;
+> exception DUPLICATE_KEY_1
+
+SELECT * FROM TEST ORDER BY ID;
+> ID VALUE
+> -- -----
+> 1  10
+> 2  20
+> 3  30
+> 4  40
+> 5  52
+> rows (ordered): 5
+
+INSERT IGNORE INTO TEST (ID, VALUE) SELECT ID, VALUE FROM TESTREF;
+> update count: 2
+
+INSERT IGNORE INTO TEST (ID, VALUE) SELECT ID, VALUE FROM TESTREF;
+> ok
+
+SELECT * FROM TEST ORDER BY ID;
+> ID VALUE
+> -- -----
+> 1  10
+> 2  20
+> 3  30
+> 4  40
+> 5  52
+> 6  61
+> 7  71
+> rows (ordered): 7

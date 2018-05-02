@@ -23,6 +23,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.Parameter;
 import org.h2.expression.SequenceValue;
+import org.h2.expression.ValueExpression;
 import org.h2.index.Index;
 import org.h2.index.PageDataIndex;
 import org.h2.message.DbException;
@@ -207,10 +208,21 @@ public class Insert extends Prepared implements ResultTarget {
                 while (rows.next()) {
                     generatedKeys.nextRow();
                     Value[] r = rows.currentRow();
-                    Row newRow = addRowImpl(r);
-                    if (newRow != null) {
-                        generatedKeys.confirmRow(newRow);
-                    }
+					try {
+						Row newRow = addRowImpl(r);
+						if (newRow != null) {
+							generatedKeys.confirmRow(newRow);
+						}
+					} catch (DbException de) {
+                        if (handleOnDuplicate(de)) {
+                            // MySQL returns 2 for updated row
+                            // TODO: detect no-op change
+                            rowNumber++;
+                        } else {
+                            // INSERT IGNORE case
+                            rowNumber--;
+                        }
+					}
                 }
                 rows.close();
             }
@@ -227,12 +239,14 @@ public class Insert extends Prepared implements ResultTarget {
     private Row addRowImpl(Value[] values) {
         Row newRow = table.getTemplateRow();
         setCurrentRowNumber(++rowNumber);
+		Expression[] exp = new Expression[columns.length];
         for (int j = 0, len = columns.length; j < len; j++) {
             Column c = columns[j];
             int index = c.getColumnId();
             try {
                 Value v = c.convert(values[j], session.getDatabase().getMode());
                 newRow.setValue(index, v);
+				exp[j] = ValueExpression.get(v);
             } catch (DbException ex) {
                 throw setRow(ex, rowNumber, getSQL(values));
             }
@@ -240,6 +254,7 @@ public class Insert extends Prepared implements ResultTarget {
         table.validateConvertUpdateSequence(session, newRow);
         boolean done = table.fireBeforeRow(session, null, newRow);
         if (!done) {
+			addRow(exp);
             table.addRow(session, newRow);
             session.log(table, UndoLogRecord.INSERT, newRow);
             table.fireAfterRow(session, null, newRow, false);

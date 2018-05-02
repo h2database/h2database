@@ -217,7 +217,7 @@ public class Insert extends Prepared implements ResultTarget {
                         if (handleOnDuplicate(de, r)) {
                             // MySQL returns 2 for updated row
                             // TODO: detect no-op change
-                        	rowNumber++;
+                            rowNumber++;
                         } else {
                             // INSERT IGNORE case
                             rowNumber--;
@@ -395,16 +395,19 @@ public class Insert extends Prepared implements ResultTarget {
         ArrayList<String> variableNames = new ArrayList<>(
                 duplicateKeyAssignmentMap.size());
         Expression[] row = (currentRow == null) ? list.get(getCurrentRowNumber() - 1) 
-        		: new Expression[columns.length];
+                : new Expression[columns.length];
         for (int i = 0; i < columns.length; i++) {
             String key = table.getSchema().getName() + "." +
                     table.getName() + "." + columns[i].getName();
             variableNames.add(key);
+            Value value;
             if (currentRow != null) {
-            	row[i] = ValueExpression.get(currentRow[i]);
+                value = currentRow[i];
+                row[i] = ValueExpression.get(value);
+            } else {
+                value = row[i].getValue(session);
             }
-            session.setVariable(key,
-            		(currentRow == null) ? row[i].getValue(session) : currentRow[i]);
+            session.setVariable(key, value);
         }
 
         StatementBuilder buff = new StatementBuilder("UPDATE ");

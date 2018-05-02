@@ -184,7 +184,7 @@ public class Insert extends Prepared implements ResultTarget {
                     try {
                         table.addRow(session, newRow);
                     } catch (DbException de) {
-                        if (handleOnDuplicate(de)) {
+                        if (handleOnDuplicate(de, null)) {
                             // MySQL returns 2 for updated row
                             // TODO: detect no-op change
                             rowNumber++;
@@ -205,25 +205,19 @@ public class Insert extends Prepared implements ResultTarget {
                 query.query(0, this);
             } else {
                 ResultInterface rows = query.query(0);
-                int updatedRows = 0;
                 while (rows.next()) {
                     generatedKeys.nextRow();
                     Value[] r = rows.currentRow();
                     try {
-                        Expression[] exp = new Expression[columns.length];
-                        for (int j = 0, len = columns.length; j < len; j++) {
-                            exp[j] = ValueExpression.get(r[j]);
-                        }
-                        addRow(exp);
                         Row newRow = addRowImpl(r);
                         if (newRow != null) {
                             generatedKeys.confirmRow(newRow);
                         }
                     } catch (DbException de) {
-                        if (handleOnDuplicate(de)) {
+                        if (handleOnDuplicate(de, r)) {
                             // MySQL returns 2 for updated row
                             // TODO: detect no-op change
-                        	updatedRows++;
+                        	rowNumber++;
                         } else {
                             // INSERT IGNORE case
                             rowNumber--;
@@ -231,9 +225,7 @@ public class Insert extends Prepared implements ResultTarget {
                     }
                 }
                 rows.close();
-                list.clear();
-                rowNumber += updatedRows;
-            }
+             }
         }
         table.fire(session, Trigger.INSERT, false);
         return rowNumber;
@@ -385,9 +377,10 @@ public class Insert extends Prepared implements ResultTarget {
 
     /**
      * @param de duplicate key exception
+     * @param currentRow current row values (optional)
      * @return {@code true} if row was updated, {@code false} if row was ignored
      */
-    private boolean handleOnDuplicate(DbException de) {
+    private boolean handleOnDuplicate(DbException de, Value[] currentRow) {
         if (de.getErrorCode() != ErrorCode.DUPLICATE_KEY_1) {
             throw de;
         }
@@ -401,13 +394,17 @@ public class Insert extends Prepared implements ResultTarget {
 
         ArrayList<String> variableNames = new ArrayList<>(
                 duplicateKeyAssignmentMap.size());
-        Expression[] row = list.get(getCurrentRowNumber() - 1);
+        Expression[] row = (currentRow == null) ? list.get(getCurrentRowNumber() - 1) 
+        		: new Expression[columns.length];
         for (int i = 0; i < columns.length; i++) {
             String key = table.getSchema().getName() + "." +
                     table.getName() + "." + columns[i].getName();
             variableNames.add(key);
+            if (currentRow != null) {
+            	row[i] = ValueExpression.get(currentRow[i]);
+            }
             session.setVariable(key,
-                    row[i].getValue(session));
+            		(currentRow == null) ? row[i].getValue(session) : currentRow[i]);
         }
 
         StatementBuilder buff = new StatementBuilder("UPDATE ");
@@ -423,7 +420,7 @@ public class Insert extends Prepared implements ResultTarget {
             throw DbException.getUnsupportedException(
                     "Unable to apply ON DUPLICATE KEY UPDATE, no index found!");
         }
-        buff.append(prepareUpdateCondition(foundIndex).getSQL());
+        buff.append(prepareUpdateCondition(foundIndex, row).getSQL());
         String sql = buff.toString();
         Update command = (Update) session.prepare(sql);
         command.setUpdateToCurrentValuesReturnsZero(true);
@@ -438,7 +435,7 @@ public class Insert extends Prepared implements ResultTarget {
         return result;
     }
 
-    private Expression prepareUpdateCondition(Index foundIndex) {
+    private Expression prepareUpdateCondition(Index foundIndex, Expression[] row) {
         // MVPrimaryIndex is playing fast and loose with it's implementation of
         // the Index interface.
         // It returns all of the columns in the table when we call
@@ -460,7 +457,6 @@ public class Insert extends Prepared implements ResultTarget {
             indexedColumns = foundIndex.getColumns();
         }
 
-        Expression[] row = list.get(getCurrentRowNumber() - 1);
         Expression condition = null;
         for (Column column : indexedColumns) {
             ExpressionColumn expr = new ExpressionColumn(session.getDatabase(),

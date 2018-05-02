@@ -14,10 +14,7 @@ select sum(n) from (
     )
     select n from r
 );
-> SUM(N)
-> ------
-> 6
-> rows: 1
+>> 6
 
 select sum(n) from (select 0) join (
     with recursive r(n) as (
@@ -25,10 +22,7 @@ select sum(n) from (select 0) join (
     )
     select n from r
 ) on 1=1;
-> SUM(N)
-> ------
-> 6
-> rows: 1
+>> 6
 
 select 0 from (
     select 0 where 0 in (

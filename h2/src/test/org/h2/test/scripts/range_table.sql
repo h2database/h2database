@@ -23,16 +23,10 @@ EXPLAIN PLAN FOR SELECT * FROM SYSTEM_RANGE(1, 20);
 
 select sum(x) from system_range(2, 1000) r where
 not exists(select * from system_range(2, 32) r2 where r.x>r2.x and mod(r.x, r2.x)=0);
-> SUM(X)
-> ------
-> 76127
-> rows: 1
+>> 76127
 
 SELECT COUNT(*) FROM SYSTEM_RANGE(0, 2111222333);
-> COUNT(*)
-> ----------
-> 2111222334
-> rows: 1
+>> 2111222334
 
 select * from system_range(2, 100) r where
 not exists(select * from system_range(2, 11) r2 where r.x>r2.x and mod(r.x, r2.x)=0);
@@ -136,19 +130,13 @@ SELECT COUNT(*) FROM SYSTEM_RANGE(10, 2, -2);
 >> 5
 
 SELECT * FROM SYSTEM_RANGE(1, 1);
-> X
-> -
-> 1
-> rows: 1
+>> 1
 
 SELECT COUNT(*) FROM SYSTEM_RANGE(1, 1);
 >> 1
 
 SELECT * FROM SYSTEM_RANGE(1, 1, -1);
-> X
-> -
-> 1
-> rows: 1
+>> 1
 
 SELECT COUNT(*) FROM SYSTEM_RANGE(1, 1, -1);
 >> 1

@@ -7173,10 +7173,7 @@ CALL NEXT VALUE FOR TEST_LONG;
 > rows: 1
 
 CALL IDENTITY();
-> IDENTITY()
-> -----------------
-> 90123456789012345
-> rows: 1
+>> 90123456789012345
 
 SELECT SEQUENCE_NAME, CURRENT_VALUE, INCREMENT FROM INFORMATION_SCHEMA.SEQUENCES;
 > SEQUENCE_NAME CURRENT_VALUE     INCREMENT
@@ -7825,28 +7822,19 @@ insert into test(name) values('World');
 > update count: 1
 
 call identity();
-> IDENTITY()
-> ----------
-> 2
-> rows: 1
+>> 2
 
 insert into test(id, name) values(1234567890123456, 'World');
 > update count: 1
 
 call identity();
-> IDENTITY()
-> ----------------
-> 1234567890123456
-> rows: 1
+>> 1234567890123456
 
 insert into test(name) values('World');
 > update count: 1
 
 call identity();
-> IDENTITY()
-> ----------------
-> 1234567890123457
-> rows: 1
+>> 1234567890123457
 
 select * from test order by id;
 > ID               NAME
@@ -7876,28 +7864,19 @@ insert into test(name) values('World');
 > update count: 1
 
 call identity();
-> IDENTITY()
-> ----------
-> 2
-> rows: 1
+>> 2
 
 insert into test(id, name) values(1234567890123456, 'World');
 > update count: 1
 
 call identity();
-> IDENTITY()
-> ----------------
-> 1234567890123456
-> rows: 1
+>> 1234567890123456
 
 insert into test(name) values('World');
 > update count: 1
 
 call identity();
-> IDENTITY()
-> ----------------
-> 1234567890123457
-> rows: 1
+>> 1234567890123457
 
 select * from test order by id;
 > ID               NAME
@@ -7997,10 +7976,7 @@ insert into x(id) values(1);
 > update count: 1
 
 select b from x;
-> B
-> -
-> a
-> rows: 1
+>> a
 
 delete from x;
 > update count: 1
@@ -8030,10 +8006,7 @@ insert into x(id) values(1);
 > update count: 1
 
 select b from x;
-> B
-> ----
-> null
-> rows: 1
+>> null
 
 delete from x;
 > update count: 1

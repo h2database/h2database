@@ -90,35 +90,32 @@ public class ResultTempTable implements ResultExternal {
     }
 
     private void createIndex() {
-        IndexColumn[] indexCols = null;
+        IndexColumn[] indexCols;
         if (sort != null) {
             int[] colIndex = sort.getQueryColumnIndexes();
             int len = colIndex.length;
-            int totalLen;
-            BitSet used;
             if (distinct) {
-                totalLen = columnCount;
-                used = new BitSet();
-            } else {
-                totalLen = len;
-                used = null;
-            }
-            indexCols = new IndexColumn[totalLen];
-            for (int i = 0; i < len; i++) {
-                int idx = colIndex[i];
-                if (used != null) {
+                BitSet used = new BitSet();
+                indexCols = new IndexColumn[columnCount];
+                for (int i = 0; i < len; i++) {
+                    int idx = colIndex[i];
                     used.set(idx);
+                    IndexColumn indexColumn = createIndexColumn(idx);
+                    indexColumn.sortType = sort.getSortTypes()[i];
+                    indexCols[i] = indexColumn;
                 }
-                IndexColumn indexColumn = createIndexColumn(idx);
-                indexColumn.sortType = sort.getSortTypes()[i];
-                indexCols[i] = indexColumn;
-            }
-            if (used != null) {
                 int idx = 0;
-                for (int i = len; i < totalLen; i++) {
+                for (int i = len; i < columnCount; i++) {
                     idx = used.nextClearBit(idx);
                     indexCols[i] = createIndexColumn(idx);
                     idx++;
+                }
+            } else {
+                indexCols = new IndexColumn[len];
+                for (int i = 0; i < len; i++) {
+                    IndexColumn indexColumn = createIndexColumn(colIndex[i]);
+                    indexColumn.sortType = sort.getSortTypes()[i];
+                    indexCols[i] = indexColumn;
                 }
             }
         } else {

@@ -27,13 +27,6 @@ public class RecoverLobTest extends TestBase {
     }
 
     @Override
-    public TestBase init() throws Exception {
-        TestBase tb = super.init();
-        config.mvStore = false;
-        return tb;
-    }
-
-    @Override
     public void test() throws Exception {
         if (config.mvStore || config.memory) {
             return;

@@ -121,6 +121,22 @@ public class TestBigResult extends TestBase {
         testSortingAndDistinct2(stat, sql, count, partCount);
         // external result
         testSortingAndDistinct2(stat, sql, 10, partCount);
+        /*
+         * One more distinct only
+         */
+        sql = "SELECT VALUE1 FROM (SELECT DISTINCT VALUE1 FROM TEST)";
+        // local result
+        testSortingAndDistinct3DistinctOnly(stat, sql, count, partCount);
+        // external result
+        testSortingAndDistinct3DistinctOnly(stat, sql, 1, partCount);
+        /*
+         * One more sorting and distinct
+         */
+        sql = "SELECT VALUE1 FROM (SELECT DISTINCT VALUE1 FROM TEST ORDER BY VALUE1)";
+        // local result
+        testSortingAndDistinct3(stat, sql, count, partCount);
+        // external result
+        testSortingAndDistinct3(stat, sql, 1, partCount);
         conn.close();
     }
 
@@ -163,6 +179,30 @@ public class TestBigResult extends TestBase {
             }
         }
         assertEquals(partCount * 11 + 1, set.nextClearBit(partCount + 1));
+        assertFalse(rs.next());
+    }
+
+    private void testSortingAndDistinct3(Statement stat, String sql, int maxRows, int partCount) throws SQLException {
+        ResultSet rs;
+        stat.execute("SET MAX_MEMORY_ROWS " + maxRows);
+        rs = stat.executeQuery(sql);
+        for (int i = 1; i <= partCount; i++) {
+            assertTrue(rs.next());
+            assertEquals(i, rs.getInt(1));
+        }
+        assertFalse(rs.next());
+    }
+
+    private void testSortingAndDistinct3DistinctOnly(Statement stat, String sql, int maxRows, int partCount) throws SQLException {
+        ResultSet rs;
+        stat.execute("SET MAX_MEMORY_ROWS " + maxRows);
+        rs = stat.executeQuery(sql);
+        BitSet set = new BitSet(partCount);
+        for (int i = 1; i <= partCount; i++) {
+            assertTrue(rs.next());
+            set.set(rs.getInt(1));
+        }
+        assertEquals(partCount + 1, set.nextClearBit(1));
         assertFalse(rs.next());
     }
 

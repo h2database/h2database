@@ -289,6 +289,10 @@ public class LocalResult implements ResultInterface, ResultTarget {
         return ValueArray.get(values);
     }
 
+    private void createExternalResult() {
+        external = new ResultTempTable(session, expressions, distinct, sort);
+    }
+
     /**
      * Add a row to this object.
      *
@@ -303,7 +307,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
                 distinctRows.put(array, values);
                 rowCount = distinctRows.size();
                 if (rowCount > maxMemoryRows) {
-                    external = new ResultTempTable(session, expressions, true, sort);
+                    createExternalResult();
                     rowCount = external.addRows(distinctRows.values());
                     distinctRows = null;
                 }
@@ -316,7 +320,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
         rowCount++;
         if (rows.size() > maxMemoryRows) {
             if (external == null) {
-                external = new ResultTempTable(session, expressions, false, sort);
+                createExternalResult();
             }
             addRowsToDisk();
         }
@@ -353,7 +357,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
                             break;
                         }
                         if (external == null) {
-                            external = new ResultTempTable(session, expressions, true, sort);
+                            createExternalResult();
                         }
                         rows.add(list);
                         if (rows.size() > maxMemoryRows) {

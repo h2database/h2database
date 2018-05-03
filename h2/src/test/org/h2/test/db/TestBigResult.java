@@ -10,7 +10,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
+import java.util.BitSet;
 
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
@@ -35,6 +37,7 @@ public class TestBigResult extends TestBase {
             return;
         }
         testLargeSubquery();
+        testSortingAndDistinct();
         testLargeUpdateDelete();
         testCloseConnectionDelete();
         testOrderGroup();
@@ -64,6 +67,226 @@ public class TestBigResult extends TestBase {
         }
         assertEquals(len / 2, count);
         conn.close();
+    }
+
+    private void testSortingAndDistinct() throws SQLException {
+        deleteDb("bigResult");
+        Connection conn = getConnection("bigResult");
+        Statement stat = conn.createStatement();
+        int count = getSize(1000, 4000);
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE INT NOT NULL)");
+        PreparedStatement ps = conn.prepareStatement("INSERT INTO TEST VALUES (?, ?)");
+        for (int i = 0; i < count; i++) {
+            ps.setInt(1, i);
+            ps.setInt(2, count - i);
+            ps.executeUpdate();
+        }
+        // local result
+        testSortintAndDistinct1(stat, count, count);
+        // external result
+        testSortintAndDistinct1(stat, 10, count);
+        stat.execute("DROP TABLE TEST");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE1 INT NOT NULL, VALUE2 INT NOT NULL)");
+        ps = conn.prepareStatement("INSERT INTO TEST VALUES (?, ?, ?)");
+        int partCount = count / 10;
+        for (int i = 0; i < count; i++) {
+            ps.setInt(1, i);
+            int a = i / 10;
+            int b = i % 10;
+            ps.setInt(2, partCount - a);
+            ps.setInt(3, 10 - b);
+            ps.executeUpdate();
+        }
+        String sql;
+        /*
+         * Sorting only
+         */
+        sql = "SELECT VALUE2, VALUE1 FROM (SELECT ID, VALUE2, VALUE1 FROM TEST ORDER BY VALUE2)";
+        // local result
+        testSortingAndDistinct2(stat, sql, count, partCount);
+        // external result
+        testSortingAndDistinct2(stat, sql, 10, partCount);
+        /*
+         * Distinct only
+         */
+        sql = "SELECT VALUE2, VALUE1 FROM (SELECT DISTINCT ID, VALUE2, VALUE1 FROM TEST)";
+        // local result
+        testSortingAndDistinct2DistinctOnly(stat, sql, count, partCount);
+        // external result
+        testSortingAndDistinct2DistinctOnly(stat, sql, 10, partCount);
+        /*
+         * Sorting and distinct
+         */
+        sql = "SELECT VALUE2, VALUE1 FROM (SELECT DISTINCT ID, VALUE2, VALUE1 FROM TEST ORDER BY VALUE2)";
+        // local result
+        testSortingAndDistinct2(stat, sql, count, partCount);
+        // external result
+        testSortingAndDistinct2(stat, sql, 10, partCount);
+        /*
+         * One more distinct only
+         */
+        sql = "SELECT VALUE1 FROM (SELECT DISTINCT VALUE1 FROM TEST)";
+        // local result
+        testSortingAndDistinct3DistinctOnly(stat, sql, count, partCount);
+        // external result
+        testSortingAndDistinct3DistinctOnly(stat, sql, 1, partCount);
+        /*
+         * One more sorting and distinct
+         */
+        sql = "SELECT VALUE1 FROM (SELECT DISTINCT VALUE1 FROM TEST ORDER BY VALUE1)";
+        // local result
+        testSortingAndDistinct3(stat, sql, count, partCount);
+        // external result
+        testSortingAndDistinct3(stat, sql, 1, partCount);
+        stat.execute("DROP TABLE TEST");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE INT)");
+        ps = conn.prepareStatement("INSERT INTO TEST VALUES (?, ?)");
+        for (int i = 0; i < count; i++) {
+            ps.setInt(1, i);
+            int j = i / 10;
+            if (j == 0) {
+                ps.setNull(2, Types.INTEGER);
+            } else {
+                ps.setInt(2, j);
+            }
+            ps.executeUpdate();
+        }
+        /*
+         * Sorting and distinct
+         */
+        sql = "SELECT DISTINCT VALUE FROM TEST ORDER BY VALUE";
+        // local result
+        testSortingAndDistinct4(stat, sql, count, partCount);
+        // external result
+        testSortingAndDistinct4(stat, sql, 1, partCount);
+        /*
+         * Distinct only
+         */
+        sql = "SELECT DISTINCT VALUE FROM TEST";
+        // local result
+        testSortingAndDistinct4DistinctOnly(stat, sql, count, partCount);
+        // external result
+        testSortingAndDistinct4DistinctOnly(stat, sql, 1, partCount);
+        /*
+         * Sorting only
+         */
+        sql = "SELECT VALUE FROM TEST ORDER BY VALUE";
+        // local result
+        testSortingAndDistinct4SortingOnly(stat, sql, count, partCount);
+        // external result
+        testSortingAndDistinct4SortingOnly(stat, sql, 1, partCount);
+        conn.close();
+    }
+
+    private void testSortintAndDistinct1(Statement stat, int maxRows, int count) throws SQLException {
+        stat.execute("SET MAX_MEMORY_ROWS " + maxRows);
+        ResultSet rs = stat.executeQuery("SELECT VALUE FROM (SELECT DISTINCT ID, VALUE FROM TEST ORDER BY VALUE)");
+        for (int i = 1; i <= count; i++) {
+            assertTrue(rs.next());
+            assertEquals(rs.getInt(1), i);
+        }
+        assertFalse(rs.next());
+    }
+
+    private void testSortingAndDistinct2(Statement stat, String sql, int maxRows, int partCount) throws SQLException {
+        ResultSet rs;
+        stat.execute("SET MAX_MEMORY_ROWS " + maxRows);
+        rs = stat.executeQuery(sql);
+        BitSet set = new BitSet(partCount);
+        for (int i = 1; i <= 10; i++) {
+            set.clear();
+            for (int j = 1; j <= partCount; j++) {
+                assertTrue(rs.next());
+                assertEquals(i, rs.getInt(1));
+                set.set(rs.getInt(2));
+            }
+            assertEquals(partCount + 1, set.nextClearBit(1));
+        }
+        assertFalse(rs.next());
+    }
+
+    private void testSortingAndDistinct2DistinctOnly(Statement stat, String sql, int maxRows, int partCount) throws SQLException {
+        ResultSet rs;
+        stat.execute("SET MAX_MEMORY_ROWS " + maxRows);
+        rs = stat.executeQuery(sql);
+        BitSet set = new BitSet(partCount * 10);
+        for (int i = 1; i <= 10; i++) {
+            for (int j = 1; j <= partCount; j++) {
+                assertTrue(rs.next());
+                set.set(rs.getInt(1) * partCount + rs.getInt(2));
+            }
+        }
+        assertEquals(partCount * 11 + 1, set.nextClearBit(partCount + 1));
+        assertFalse(rs.next());
+    }
+
+    private void testSortingAndDistinct3(Statement stat, String sql, int maxRows, int partCount) throws SQLException {
+        ResultSet rs;
+        stat.execute("SET MAX_MEMORY_ROWS " + maxRows);
+        rs = stat.executeQuery(sql);
+        for (int i = 1; i <= partCount; i++) {
+            assertTrue(rs.next());
+            assertEquals(i, rs.getInt(1));
+        }
+        assertFalse(rs.next());
+    }
+
+    private void testSortingAndDistinct3DistinctOnly(Statement stat, String sql, int maxRows, int partCount) throws SQLException {
+        ResultSet rs;
+        stat.execute("SET MAX_MEMORY_ROWS " + maxRows);
+        rs = stat.executeQuery(sql);
+        BitSet set = new BitSet(partCount);
+        for (int i = 1; i <= partCount; i++) {
+            assertTrue(rs.next());
+            set.set(rs.getInt(1));
+        }
+        assertEquals(partCount + 1, set.nextClearBit(1));
+        assertFalse(rs.next());
+    }
+
+    private void testSortingAndDistinct4(Statement stat, String sql, int maxRows, int count) throws SQLException {
+        stat.execute("SET MAX_MEMORY_ROWS " + maxRows);
+        ResultSet rs = stat.executeQuery(sql);
+        for (int i = 0; i < count; i++) {
+            assertTrue(rs.next());
+            assertEquals(i, rs.getInt(1));
+            if (i == 0) {
+                assertTrue(rs.wasNull());
+            }
+        }
+        assertFalse(rs.next());
+    }
+
+    private void testSortingAndDistinct4DistinctOnly(Statement stat, String sql, int maxRows, int count) throws SQLException {
+        stat.execute("SET MAX_MEMORY_ROWS " + maxRows);
+        ResultSet rs = stat.executeQuery(sql);
+        BitSet set = new BitSet();
+        for (int i = 0; i < count; i++) {
+            assertTrue(rs.next());
+            int v = rs.getInt(1);
+            if (v == 0) {
+                assertTrue(rs.wasNull());
+            }
+            assertFalse(set.get(v));
+            set.set(v);
+        }
+        assertFalse(rs.next());
+        assertEquals(count, set.nextClearBit(0));
+    }
+
+    private void testSortingAndDistinct4SortingOnly(Statement stat, String sql, int maxRows, int count) throws SQLException {
+        stat.execute("SET MAX_MEMORY_ROWS " + maxRows);
+        ResultSet rs = stat.executeQuery(sql);
+        for (int i = 0; i < count; i++) {
+            for (int j = 0; j < 10; j++) {
+                assertTrue(rs.next());
+                assertEquals(i, rs.getInt(1));
+                if (i == 0) {
+                    assertTrue(rs.wasNull());
+                }
+            }
+        }
+        assertFalse(rs.next());
     }
 
     private void testLargeUpdateDelete() throws SQLException {

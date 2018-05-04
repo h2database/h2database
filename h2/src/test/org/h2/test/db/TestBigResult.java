@@ -5,6 +5,8 @@
  */
 package org.h2.test.db;
 
+import java.sql.Blob;
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,6 +14,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 
 import org.h2.store.FileLister;
@@ -38,6 +41,7 @@ public class TestBigResult extends TestBase {
         }
         testLargeSubquery();
         testSortingAndDistinct();
+        testLOB();
         testLargeUpdateDelete();
         testCloseConnectionDelete();
         testOrderGroup();
@@ -287,6 +291,66 @@ public class TestBigResult extends TestBase {
             }
         }
         assertFalse(rs.next());
+    }
+
+    private void testLOB() throws SQLException {
+        deleteDb("bigResult");
+        Connection conn = getConnection("bigResult");
+        Statement stat = conn.createStatement();
+        stat.execute("SET MAX_MEMORY_ROWS " + 1);
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE BLOB NOT NULL)");
+        PreparedStatement ps = conn.prepareStatement("INSERT INTO TEST VALUES (?, ?)");
+        int length = 1_000_000;
+        byte[] data = new byte[length];
+        for (int i = 1; i <= 10; i++) {
+            ps.setInt(1, i);
+            Arrays.fill(data, (byte) i);
+            ps.setBytes(2, data);
+            ps.executeUpdate();
+        }
+        Blob[] blobs = new Blob[10];
+        ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
+        for (int i = 1; i <= 10; i++) {
+            assertTrue(rs.next());
+            assertEquals(i, rs.getInt(1));
+            blobs[i - 1] = rs.getBlob(2);
+        }
+        assertFalse(rs.next());
+        rs.close();
+        for (int i = 1; i <= 10; i++) {
+            Blob b = blobs[i - 1];
+            byte[] bytes = b.getBytes(1, (int) b.length());
+            Arrays.fill(data, (byte) i);
+            assertEquals(data, bytes);
+            b.free();
+        }
+        stat.execute("DROP TABLE TEST");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE CLOB NOT NULL)");
+        ps = conn.prepareStatement("INSERT INTO TEST VALUES (?, ?)");
+        char[] cdata = new char[length];
+        for (int i = 1; i <= 10; i++) {
+            ps.setInt(1, i);
+            Arrays.fill(cdata, (char) i);
+            ps.setString(2, new String(cdata));
+            ps.executeUpdate();
+        }
+        Clob[] clobs = new Clob[10];
+        rs = stat.executeQuery("SELECT * FROM TEST");
+        for (int i = 1; i <= 10; i++) {
+            assertTrue(rs.next());
+            assertEquals(i, rs.getInt(1));
+            clobs[i - 1] = rs.getClob(2);
+        }
+        assertFalse(rs.next());
+        rs.close();
+        for (int i = 1; i <= 10; i++) {
+            Clob c = clobs[i - 1];
+            String string = c.getSubString(1, (int) c.length());
+            Arrays.fill(cdata, (char) i);
+            assertEquals(new String(cdata), string);
+            c.free();
+        }
+        conn.close();
     }
 
     private void testLargeUpdateDelete() throws SQLException {

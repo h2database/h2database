@@ -15,6 +15,7 @@ import org.h2.engine.Session;
 import org.h2.engine.SessionInterface;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
+import org.h2.mvstore.db.MVTempResult;
 import org.h2.util.Utils;
 import org.h2.util.ValueHashMap;
 import org.h2.value.DataType;
@@ -290,7 +291,10 @@ public class LocalResult implements ResultInterface, ResultTarget {
     }
 
     private void createExternalResult() {
-        external = new ResultTempTable(session, expressions, distinct, sort);
+        Database database = session.getDatabase();
+        external = database.getMvStore() != null
+                ? MVTempResult.of(database, expressions, distinct, sort)
+                        : new ResultTempTable(session, expressions, distinct, sort);
     }
 
     /**

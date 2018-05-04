@@ -278,19 +278,7 @@ public class ResultTempTable implements ResultExternal {
             } else {
                 idx = table.getScanIndex(session);
             }
-            if (session.getDatabase().getMvStore() != null) {
-                // sometimes the transaction is already committed,
-                // in which case we can't use the session
-                if (idx.getRowCount(session) == 0 && rowCount > 0) {
-                    // this means querying is not transactional
-                    resultCursor = idx.find((Session) null, null, null);
-                } else {
-                    // the transaction is still open
-                    resultCursor = idx.find(session, null, null);
-                }
-            } else {
-                resultCursor = idx.find(session, null, null);
-            }
+            resultCursor = idx.find(session, null, null);
         }
         if (!resultCursor.next()) {
             return null;

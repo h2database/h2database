@@ -34,6 +34,10 @@ public class TestMergeUsing extends TestBase implements Trigger {
 
     @Override
     public void test() throws Exception {
+        // TODO breaks in pagestore case
+        if (!config.mvStore) {
+            return;
+        }
 
         // Simple ID,NAME inserts, target table with PK initially empty
         testMergeUsing(

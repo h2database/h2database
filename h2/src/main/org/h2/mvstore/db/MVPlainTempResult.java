@@ -22,13 +22,17 @@ import org.h2.value.ValueLong;
  */
 class MVPlainTempResult extends MVTempResult {
 
+    private final ValueDataType valueType;
     private final MVMap<ValueLong, ValueArray> map;
     private long counter;
+
+    private MVMap<ValueArray, Boolean> index;
 
     private Cursor<ValueLong, ValueArray> cursor;
 
     private MVPlainTempResult(MVPlainTempResult parent) {
         super(parent);
+        this.valueType = null;
         this.map = parent.map;
     }
 
@@ -36,7 +40,7 @@ class MVPlainTempResult extends MVTempResult {
         super(session);
         Database db = session.getDatabase();
         ValueDataType keyType = new ValueDataType(null, null, null);
-        ValueDataType valueType = new ValueDataType(db.getCompareMode(), db, new int[expressions.length]);
+        valueType = new ValueDataType(db.getCompareMode(), db, new int[expressions.length]);
         Builder<ValueLong, ValueArray> builder = new MVMap.Builder<ValueLong, ValueArray>().keyType(keyType)
                 .valueType(valueType);
         map = store.openMap("tmp", builder);
@@ -50,7 +54,23 @@ class MVPlainTempResult extends MVTempResult {
 
     @Override
     public boolean contains(Value[] values) {
-        throw DbException.getUnsupportedException("contains()");
+        if (parent != null) {
+            return parent.contains(values);
+        }
+        if (index == null) {
+            createIndex();
+        }
+        return index.containsKey(ValueArray.get(values));
+    }
+
+    private void createIndex() {
+        Builder<ValueArray, Boolean> builder = new MVMap.Builder<ValueArray, Boolean>().keyType(valueType);
+        index = store.openMap("idx", builder);
+        Cursor<ValueLong, ValueArray> c = map.cursor(null);
+        while (c.hasNext()) {
+            c.next();
+            index.putIfAbsent(c.getValue(), true);
+        }
     }
 
     @Override

@@ -5,6 +5,7 @@
  */
 package org.h2.test.db;
 
+import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 
 import org.h2.store.FileLister;
@@ -38,6 +40,7 @@ public class TestBigResult extends TestBase {
         }
         testLargeSubquery();
         testSortingAndDistinct();
+        testLOB();
         testLargeUpdateDelete();
         testCloseConnectionDelete();
         testOrderGroup();
@@ -287,6 +290,39 @@ public class TestBigResult extends TestBase {
             }
         }
         assertFalse(rs.next());
+    }
+
+    private void testLOB() throws SQLException {
+        deleteDb("bigResult");
+        Connection conn = getConnection("bigResult");
+        Statement stat = conn.createStatement();
+        stat.execute("SET MAX_MEMORY_ROWS " + 1);
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE BLOB NOT NULL)");
+        PreparedStatement ps = conn.prepareStatement("INSERT INTO TEST VALUES (?, ?)");
+        byte[] data = new byte[1_000_000];
+        for (int i = 1; i <= 10; i++) {
+            ps.setInt(1, i);
+            Arrays.fill(data, (byte) i);
+            ps.setBytes(2, data);
+            ps.executeUpdate();
+        }
+        Blob[] blobs = new Blob[10];
+        ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
+        for (int i = 1; i <= 10; i++) {
+            assertTrue(rs.next());
+            assertEquals(i, rs.getInt(1));
+            blobs[i - 1] = rs.getBlob(2);
+        }
+        assertFalse(rs.next());
+        rs.close();
+        for (int i = 1; i <= 10; i++) {
+            Blob b = blobs[i - 1];
+            byte[] bytes = b.getBytes(1, (int) b.length());
+            Arrays.fill(data, (byte) i);
+            assertEquals(data, bytes);
+            b.free();
+        }
+        conn.close();
     }
 
     private void testLargeUpdateDelete() throws SQLException {

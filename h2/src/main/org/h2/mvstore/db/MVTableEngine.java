@@ -75,12 +75,7 @@ public class MVTableEngine implements TableEngine {
             }
             if (key != null) {
                 encrypted = true;
-                char[] password = new char[key.length / 2];
-                for (int i = 0; i < password.length; i++) {
-                    password[i] = (char) (((key[i + i] & 255) << 16) |
-                            ((key[i + i + 1]) & 255));
-                }
-                builder.encryptionKey(password);
+                builder.encryptionKey(decodePassword(key));
             }
             if (db.getSettings().compressData) {
                 builder.compress();
@@ -99,6 +94,15 @@ public class MVTableEngine implements TableEngine {
         store.open(db, builder, encrypted);
         db.setMvStore(store);
         return store;
+    }
+
+    static char[] decodePassword(byte[] key) {
+        char[] password = new char[key.length / 2];
+        for (int i = 0; i < password.length; i++) {
+            password[i] = (char) (((key[i + i] & 255) << 16) |
+                    ((key[i + i + 1]) & 255));
+        }
+        return password;
     }
 
     @Override

@@ -23,6 +23,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.Parameter;
 import org.h2.expression.SequenceValue;
+import org.h2.expression.ValueExpression;
 import org.h2.index.Index;
 import org.h2.index.PageDataIndex;
 import org.h2.message.DbException;
@@ -183,7 +184,7 @@ public class Insert extends Prepared implements ResultTarget {
                     try {
                         table.addRow(session, newRow);
                     } catch (DbException de) {
-                        if (handleOnDuplicate(de)) {
+                        if (handleOnDuplicate(de, null)) {
                             // MySQL returns 2 for updated row
                             // TODO: detect no-op change
                             rowNumber++;
@@ -207,9 +208,20 @@ public class Insert extends Prepared implements ResultTarget {
                 while (rows.next()) {
                     generatedKeys.nextRow();
                     Value[] r = rows.currentRow();
-                    Row newRow = addRowImpl(r);
-                    if (newRow != null) {
-                        generatedKeys.confirmRow(newRow);
+                    try {
+                        Row newRow = addRowImpl(r);
+                        if (newRow != null) {
+                            generatedKeys.confirmRow(newRow);
+                        }
+                    } catch (DbException de) {
+                        if (handleOnDuplicate(de, r)) {
+                            // MySQL returns 2 for updated row
+                            // TODO: detect no-op change
+                            rowNumber++;
+                        } else {
+                            // INSERT IGNORE case
+                            rowNumber--;
+                        }
                     }
                 }
                 rows.close();
@@ -365,9 +377,10 @@ public class Insert extends Prepared implements ResultTarget {
 
     /**
      * @param de duplicate key exception
+     * @param currentRow current row values (optional)
      * @return {@code true} if row was updated, {@code false} if row was ignored
      */
-    private boolean handleOnDuplicate(DbException de) {
+    private boolean handleOnDuplicate(DbException de, Value[] currentRow) {
         if (de.getErrorCode() != ErrorCode.DUPLICATE_KEY_1) {
             throw de;
         }
@@ -381,13 +394,20 @@ public class Insert extends Prepared implements ResultTarget {
 
         ArrayList<String> variableNames = new ArrayList<>(
                 duplicateKeyAssignmentMap.size());
-        Expression[] row = list.get(getCurrentRowNumber() - 1);
+        Expression[] row = (currentRow == null) ? list.get(getCurrentRowNumber() - 1) 
+                : new Expression[columns.length];
         for (int i = 0; i < columns.length; i++) {
             String key = table.getSchema().getName() + "." +
                     table.getName() + "." + columns[i].getName();
             variableNames.add(key);
-            session.setVariable(key,
-                    row[i].getValue(session));
+            Value value;
+            if (currentRow != null) {
+                value = currentRow[i];
+                row[i] = ValueExpression.get(value);
+            } else {
+                value = row[i].getValue(session);
+            }
+            session.setVariable(key, value);
         }
 
         StatementBuilder buff = new StatementBuilder("UPDATE ");
@@ -403,7 +423,7 @@ public class Insert extends Prepared implements ResultTarget {
             throw DbException.getUnsupportedException(
                     "Unable to apply ON DUPLICATE KEY UPDATE, no index found!");
         }
-        buff.append(prepareUpdateCondition(foundIndex).getSQL());
+        buff.append(prepareUpdateCondition(foundIndex, row).getSQL());
         String sql = buff.toString();
         Update command = (Update) session.prepare(sql);
         command.setUpdateToCurrentValuesReturnsZero(true);
@@ -418,7 +438,7 @@ public class Insert extends Prepared implements ResultTarget {
         return result;
     }
 
-    private Expression prepareUpdateCondition(Index foundIndex) {
+    private Expression prepareUpdateCondition(Index foundIndex, Expression[] row) {
         // MVPrimaryIndex is playing fast and loose with it's implementation of
         // the Index interface.
         // It returns all of the columns in the table when we call
@@ -440,7 +460,6 @@ public class Insert extends Prepared implements ResultTarget {
             indexedColumns = foundIndex.getColumns();
         }
 
-        Expression[] row = list.get(getCurrentRowNumber() - 1);
         Expression condition = null;
         for (Column column : indexedColumns) {
             ExpressionColumn expr = new ExpressionColumn(session.getDatabase(),

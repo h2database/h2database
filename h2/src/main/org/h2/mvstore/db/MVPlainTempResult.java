@@ -22,20 +22,54 @@ import org.h2.value.ValueLong;
  */
 class MVPlainTempResult extends MVTempResult {
 
+    /**
+     * The type of the values in the main map and keys in the index.
+     */
     private final ValueDataType valueType;
+
+    /**
+     * Map with identities of rows as keys rows as values.
+     */
     private final MVMap<ValueLong, ValueArray> map;
+
+    /**
+     * Counter for the identities of rows. A separate counter is used instead of
+     * {@link #rowCount} because rows due to presence of {@link #removeRow(Value[])}
+     * method to ensure that each row will have an own identity.
+     */
     private long counter;
 
+    /**
+     * Optional index. This index is created only if {@link #contains(Value[])}
+     * method is invoked. Only the root result should have an index if required.
+     */
     private MVMap<ValueArray, Boolean> index;
 
+    /**
+     * Cursor for the {@link #next()} method.
+     */
     private Cursor<ValueLong, ValueArray> cursor;
 
+    /**
+     * Creates a shallow copy of the result.
+     *
+     * @param parent
+     *                   parent result
+     */
     private MVPlainTempResult(MVPlainTempResult parent) {
         super(parent);
         this.valueType = null;
         this.map = parent.map;
     }
 
+    /**
+     * Creates a new plain temporary result.
+     *
+     * @param session
+     *                        database session.
+     * @param expressions
+     *                        column expressions
+     */
     MVPlainTempResult(Session session, Expression[] expressions) {
         super(session);
         Database db = session.getDatabase();
@@ -48,12 +82,14 @@ class MVPlainTempResult extends MVTempResult {
 
     @Override
     public int addRow(Value[] values) {
+        assert parent == null && index == null;
         map.put(ValueLong.get(counter++), ValueArray.get(values));
         return ++rowCount;
     }
 
     @Override
     public boolean contains(Value[] values) {
+        // Only parent result maintains the index
         if (parent != null) {
             return parent.contains(values);
         }

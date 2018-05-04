@@ -23,6 +23,13 @@ import org.h2.value.Value;
 
 /**
  * Temporary result.
+ *
+ * <p>
+ * A separate MVStore in a temporary file is used for each result. The file is
+ * removed when this result and all its copies are closed.
+ * {@link TempFileDeleter} is also used to delete this file if results are not
+ * closed properly.
+ * </p>
  */
 public abstract class MVTempResult implements ResultExternal {
 
@@ -44,20 +51,52 @@ public abstract class MVTempResult implements ResultExternal {
                 : new MVPlainTempResult(session, expressions);
     }
 
+    /**
+     * MVStore.
+     */
     final MVStore store;
 
+    /**
+     * Count of rows. Used only in a root results, copies always have 0 value.
+     */
     int rowCount;
 
+    /**
+     * Parent store for copies. If {@code null} this result is a root result.
+     */
     final MVTempResult parent;
 
+    /**
+     * Count of child results.
+     */
     int childCount;
 
+    /**
+     * Whether this result is closed.
+     */
     boolean closed;
 
+    /**
+     * Temporary file deleter.
+     */
     private final TempFileDeleter tempFileDeleter;
+
+    /**
+     * Name of the temporary file.
+     */
     private final String fileName;
+
+    /**
+     * Reference to the record in the temporary file deleter.
+     */
     private final Reference<?> fileRef;
 
+    /**
+     * Creates a shallow copy of the result.
+     *
+     * @param parent
+     *                   parent result
+     */
     MVTempResult(MVTempResult parent) {
         this.parent = parent;
         this.store = parent.store;
@@ -66,6 +105,12 @@ public abstract class MVTempResult implements ResultExternal {
         this.fileRef = null;
     }
 
+    /**
+     * Creates a new temporary result.
+     *
+     * @param session
+     *                    database session
+     */
     MVTempResult(Session session) {
         try {
             fileName = FileUtils.createTempFile("h2tmp", Constants.SUFFIX_TEMP_FILE, false, true);

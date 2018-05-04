@@ -33,6 +33,30 @@ import org.h2.value.Value;
  */
 public abstract class MVTempResult implements ResultExternal {
 
+    private static final class CloseImpl implements AutoCloseable {
+        /**
+         * MVStore.
+         */
+        private final MVStore store;
+
+        /**
+         * File name.
+         */
+        private final String fileName;
+
+        CloseImpl(MVStore store, String fileName) {
+            this.store = store;
+            this.fileName = fileName;
+        }
+
+        @Override
+        public void close() throws Exception {
+            store.closeImmediately();
+            FileUtils.tryDelete(fileName);
+        }
+
+    }
+
     /**
      * Creates MVStore-based temporary result.
      *
@@ -82,9 +106,9 @@ public abstract class MVTempResult implements ResultExternal {
     private final TempFileDeleter tempFileDeleter;
 
     /**
-     * Name of the temporary file.
+     * Closeable to close the storage.
      */
-    private final String fileName;
+    private final CloseImpl closeable;
 
     /**
      * Reference to the record in the temporary file deleter.
@@ -100,8 +124,8 @@ public abstract class MVTempResult implements ResultExternal {
     MVTempResult(MVTempResult parent) {
         this.parent = parent;
         this.store = parent.store;
-        this.fileName = null;
         this.tempFileDeleter = null;
+        this.closeable = null;
         this.fileRef = null;
     }
 
@@ -113,7 +137,7 @@ public abstract class MVTempResult implements ResultExternal {
      */
     MVTempResult(Session session) {
         try {
-            fileName = FileUtils.createTempFile("h2tmp", Constants.SUFFIX_TEMP_FILE, false, true);
+            String fileName = FileUtils.createTempFile("h2tmp", Constants.SUFFIX_TEMP_FILE, false, true);
             Builder builder = new MVStore.Builder().fileName(fileName);
             byte[] key = session.getDatabase().getFileEncryptionKey();
             if (key != null) {
@@ -121,7 +145,8 @@ public abstract class MVTempResult implements ResultExternal {
             }
             store = builder.open();
             tempFileDeleter = session.getDatabase().getTempFileDeleter();
-            fileRef = tempFileDeleter.addFile(fileName, this);
+            closeable = new CloseImpl(store, fileName);
+            fileRef = tempFileDeleter.addFile(closeable, this);
         } catch (IOException e) {
             throw DbException.convert(e);
         }
@@ -159,7 +184,7 @@ public abstract class MVTempResult implements ResultExternal {
 
     private void delete() {
         store.closeImmediately();
-        tempFileDeleter.deleteFile(fileRef, fileName);
+        tempFileDeleter.deleteFile(fileRef, closeable);
     }
 
     @Override

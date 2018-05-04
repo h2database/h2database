@@ -183,7 +183,6 @@ public abstract class MVTempResult implements ResultExternal {
     }
 
     private void delete() {
-        store.closeImmediately();
         tempFileDeleter.deleteFile(fileRef, closeable);
     }
 

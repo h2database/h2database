@@ -8,7 +8,6 @@ package org.h2.mvstore.db;
 import java.util.BitSet;
 
 import org.h2.engine.Database;
-import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.MVMap;
@@ -78,8 +77,8 @@ class MVSortedTempResult extends MVTempResult {
     /**
      * Creates a new sorted temporary result.
      *
-     * @param session
-     *                        database session
+     * @param database
+     *                        database
      * @param expressions
      *                        column expressions
      * @param distinct
@@ -88,10 +87,9 @@ class MVSortedTempResult extends MVTempResult {
      *                        sort order, or {@code null} if this result does not
      *                        need any sorting
      */
-    MVSortedTempResult(Session session, Expression[] expressions, boolean distinct, SortOrder sort) {
-        super(session);
+    MVSortedTempResult(Database database, Expression[] expressions, boolean distinct, SortOrder sort) {
+        super(database);
         this.distinct = distinct;
-        Database db = session.getDatabase();
         int length = expressions.length;
         int[] sortTypes = new int[length];
         int[] indexes;
@@ -146,7 +144,7 @@ class MVSortedTempResult extends MVTempResult {
             indexes = null;
         }
         this.indexes = indexes;
-        ValueDataType keyType = new ValueDataType(db.getCompareMode(), db, sortTypes);
+        ValueDataType keyType = new ValueDataType(database.getCompareMode(), database, sortTypes);
         Builder<ValueArray, Long> builder = new MVMap.Builder<ValueArray, Long>().keyType(keyType);
         map = store.openMap("tmp", builder);
     }

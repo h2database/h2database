@@ -291,8 +291,9 @@ public class LocalResult implements ResultInterface, ResultTarget {
     }
 
     private void createExternalResult() {
-        external = session.getDatabase().getMvStore() != null
-                ? MVTempResult.of(session, expressions, distinct, sort)
+        Database database = session.getDatabase();
+        external = database.getMvStore() != null
+                ? MVTempResult.of(database, expressions, distinct, sort)
                         : new ResultTempTable(session, expressions, distinct, sort);
     }
 

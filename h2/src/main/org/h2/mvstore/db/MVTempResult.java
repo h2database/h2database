@@ -10,7 +10,7 @@ import java.lang.ref.Reference;
 import java.util.ArrayList;
 
 import org.h2.engine.Constants;
-import org.h2.engine.Session;
+import org.h2.engine.Database;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVStore;
@@ -60,8 +60,8 @@ public abstract class MVTempResult implements ResultExternal {
     /**
      * Creates MVStore-based temporary result.
      *
-     * @param session
-     *                        session
+     * @param database
+     *                        database
      * @param expressions
      *                        expressions
      * @param distinct
@@ -70,9 +70,9 @@ public abstract class MVTempResult implements ResultExternal {
      *                        sort order, or {@code null}
      * @return temporary result
      */
-    public static ResultExternal of(Session session, Expression[] expressions, boolean distinct, SortOrder sort) {
-        return distinct || sort != null ? new MVSortedTempResult(session, expressions, distinct, sort)
-                : new MVPlainTempResult(session, expressions);
+    public static ResultExternal of(Database database, Expression[] expressions, boolean distinct, SortOrder sort) {
+        return distinct || sort != null ? new MVSortedTempResult(database, expressions, distinct, sort)
+                : new MVPlainTempResult(database, expressions);
     }
 
     /**
@@ -132,19 +132,19 @@ public abstract class MVTempResult implements ResultExternal {
     /**
      * Creates a new temporary result.
      *
-     * @param session
-     *                    database session
+     * @param database
+     *                     database
      */
-    MVTempResult(Session session) {
+    MVTempResult(Database database) {
         try {
             String fileName = FileUtils.createTempFile("h2tmp", Constants.SUFFIX_TEMP_FILE, false, true);
             Builder builder = new MVStore.Builder().fileName(fileName);
-            byte[] key = session.getDatabase().getFileEncryptionKey();
+            byte[] key = database.getFileEncryptionKey();
             if (key != null) {
                 builder.encryptionKey(MVTableEngine.decodePassword(key));
             }
             store = builder.open();
-            tempFileDeleter = session.getDatabase().getTempFileDeleter();
+            tempFileDeleter = database.getTempFileDeleter();
             closeable = new CloseImpl(store, fileName);
             fileRef = tempFileDeleter.addFile(closeable, this);
         } catch (IOException e) {

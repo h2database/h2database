@@ -6,7 +6,6 @@
 package org.h2.mvstore.db;
 
 import org.h2.engine.Database;
-import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.mvstore.Cursor;
@@ -65,16 +64,15 @@ class MVPlainTempResult extends MVTempResult {
     /**
      * Creates a new plain temporary result.
      *
-     * @param session
-     *                        database session.
+     * @param database
+     *                        database
      * @param expressions
      *                        column expressions
      */
-    MVPlainTempResult(Session session, Expression[] expressions) {
-        super(session);
-        Database db = session.getDatabase();
+    MVPlainTempResult(Database database, Expression[] expressions) {
+        super(database);
         ValueDataType keyType = new ValueDataType(null, null, null);
-        valueType = new ValueDataType(db.getCompareMode(), db, new int[expressions.length]);
+        valueType = new ValueDataType(database.getCompareMode(), database, new int[expressions.length]);
         Builder<ValueLong, ValueArray> builder = new MVMap.Builder<ValueLong, ValueArray>().keyType(keyType)
                 .valueType(valueType);
         map = store.openMap("tmp", builder);

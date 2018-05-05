@@ -12,6 +12,21 @@ import org.h2.value.ValueNull;
 
 /**
  * This hash map supports keys of type Value.
+ * <p>
+ * ValueHashMap is a very simple implementation without allocation of additional
+ * objects for entries. It's very fast with good distribution of hashes, but if
+ * hashes have a lot of collisions this implementation tends to be very slow.
+ * <p>
+ * HashMap in archaic versions of Java have some overhead for allocation of
+ * entries, but slightly better behaviour with limited number of collisions,
+ * because collisions have no impact on non-colliding entires. HashMap in modern
+ * versions of Java also have the same overhead, but it builds a trees of keys
+ * with colliding hashes, that's why even if the all keys have exactly the same
+ * hash code it still offers a good performance similar to TreeMap. So
+ * ValueHashMap is faster in typical cases, but may behave really bad in some
+ * cases. HashMap is slower in typical cases, but its performance does not
+ * degrade too much even in the worst possible case (if keys are comparable,
+ * like our Value class).
  *
  * @param <V> the value type
  */

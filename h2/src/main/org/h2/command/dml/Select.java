@@ -187,9 +187,7 @@ public class Select extends Query {
     public void setCurrentGroupExprData(Expression expr, Object obj) {
         Integer index = exprToIndexInGroupByData.get(expr);
         if (index != null) {
-            if (currentGroupByExprData[index] != null) {
-                throw DbException.throwInternalError();
-            }
+            assert currentGroupByExprData[index] != null;
             currentGroupByExprData[index] = obj;
             return;
         }
@@ -368,73 +366,77 @@ public class Select extends Query {
         currentGroupByExprData = null;
         currentGroupsKey = null;
         exprToIndexInGroupByData.clear();
-        int rowNumber = 0;
-        setCurrentRowNumber(0);
-        ValueArray defaultGroup = ValueArray.get(new Value[0]);
-        int sampleSize = getSampleSizeValue(session);
-        while (topTableFilter.next()) {
-            setCurrentRowNumber(rowNumber + 1);
-            if (isConditionMet()) {
-                rowNumber++;
-                if (groupIndex == null) {
-                    currentGroupsKey = defaultGroup;
-                } else {
-                    Value[] keyValues = new Value[groupIndex.length];
-                    // update group
-                    for (int i = 0; i < groupIndex.length; i++) {
-                        int idx = groupIndex[i];
-                        Expression expr = expressions.get(idx);
-                        keyValues[i] = expr.getValue(session);
+        try {
+            int rowNumber = 0;
+            setCurrentRowNumber(0);
+            ValueArray defaultGroup = ValueArray.get(new Value[0]);
+            int sampleSize = getSampleSizeValue(session);
+            while (topTableFilter.next()) {
+                setCurrentRowNumber(rowNumber + 1);
+                if (isConditionMet()) {
+                    rowNumber++;
+                    if (groupIndex == null) {
+                        currentGroupsKey = defaultGroup;
+                    } else {
+                        Value[] keyValues = new Value[groupIndex.length];
+                        // update group
+                        for (int i = 0; i < groupIndex.length; i++) {
+                            int idx = groupIndex[i];
+                            Expression expr = expressions.get(idx);
+                            keyValues[i] = expr.getValue(session);
+                        }
+                        currentGroupsKey = ValueArray.get(keyValues);
                     }
-                    currentGroupsKey = ValueArray.get(keyValues);
-                }
-                Object[] values = groupByData.get(currentGroupsKey);
-                if (values == null) {
-                    values = new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())];
-                    groupByData.put(currentGroupsKey, values);
-                }
-                currentGroupByExprData = values;
-                currentGroupRowId++;
-                for (int i = 0; i < columnCount; i++) {
-                    if (groupByExpression == null || !groupByExpression[i]) {
-                        Expression expr = expressions.get(i);
-                        expr.updateAggregate(session);
+                    Object[] values = groupByData.get(currentGroupsKey);
+                    if (values == null) {
+                        values = new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())];
+                        groupByData.put(currentGroupsKey, values);
                     }
-                }
-                if (sampleSize > 0 && rowNumber >= sampleSize) {
-                    break;
+                    currentGroupByExprData = values;
+                    currentGroupRowId++;
+                    for (int i = 0; i < columnCount; i++) {
+                        if (groupByExpression == null || !groupByExpression[i]) {
+                            Expression expr = expressions.get(i);
+                            expr.updateAggregate(session);
+                        }
+                    }
+                    if (sampleSize > 0 && rowNumber >= sampleSize) {
+                        break;
+                    }
                 }
             }
-        }
-        if (groupIndex == null && groupByData.size() == 0) {
-            groupByData.put(defaultGroup, new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())]);
-        }
-        ArrayList<Value> keys = groupByData.keys();
-        for (Value v : keys) {
-            currentGroupsKey = (ValueArray) v;
-            currentGroupByExprData = groupByData.get(currentGroupsKey);
-            Value[] keyValues = currentGroupsKey.getList();
-            Value[] row = new Value[columnCount];
-            for (int j = 0; groupIndex != null && j < groupIndex.length; j++) {
-                row[groupIndex[j]] = keyValues[j];
+            if (groupIndex == null && groupByData.size() == 0) {
+                groupByData.put(defaultGroup,
+                        new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())]);
             }
-            for (int j = 0; j < columnCount; j++) {
-                if (groupByExpression != null && groupByExpression[j]) {
+            ArrayList<Value> keys = groupByData.keys();
+            for (Value v : keys) {
+                currentGroupsKey = (ValueArray) v;
+                currentGroupByExprData = groupByData.get(currentGroupsKey);
+                Value[] keyValues = currentGroupsKey.getList();
+                Value[] row = new Value[columnCount];
+                for (int j = 0; groupIndex != null && j < groupIndex.length; j++) {
+                    row[groupIndex[j]] = keyValues[j];
+                }
+                for (int j = 0; j < columnCount; j++) {
+                    if (groupByExpression != null && groupByExpression[j]) {
+                        continue;
+                    }
+                    Expression expr = expressions.get(j);
+                    row[j] = expr.getValue(session);
+                }
+                if (isHavingNullOrFalse(row)) {
                     continue;
                 }
-                Expression expr = expressions.get(j);
-                row[j] = expr.getValue(session);
+                row = keepOnlyDistinct(row, columnCount);
+                result.addRow(row);
             }
-            if (isHavingNullOrFalse(row)) {
-                continue;
-            }
-            row = keepOnlyDistinct(row, columnCount);
-            result.addRow(row);
+        } finally {
+            groupByData = null;
+            currentGroupsKey = null;
+            currentGroupByExprData = null;
+            exprToIndexInGroupByData.clear();
         }
-        groupByData = null;
-        currentGroupsKey = null;
-        currentGroupByExprData = null;
-        exprToIndexInGroupByData.clear();
     }
 
     /**

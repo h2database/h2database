@@ -120,11 +120,6 @@ public class Select extends Query {
      * Key into groupByData that produces currentGroupByExprData. Not used in lazy mode.
      */
     private ValueArray currentGroupsKey;
-    /**
-     * Cache the lookups into exprToIndexInGroupByData
-     */
-    private Expression cachedLookup;
-    private Integer cachedLookupIndex;
     
     private int havingIndex;
     private boolean isGroupQuery, isGroupSortedQuery;
@@ -207,8 +202,6 @@ public class Select extends Query {
         if (index == null) {
             return null;
         }
-        cachedLookup = expr;
-        cachedLookupIndex = index;
         return currentGroupByExprData[index];
     }
 
@@ -216,11 +209,6 @@ public class Select extends Query {
      * Set the group-by data for the current group and the passed in expression.
      */
     public void setCurrentGroupExprData(Expression expr, Object obj) {
-        if (cachedLookup == expr) {
-            assert currentGroupByExprData[cachedLookupIndex] == null;
-            currentGroupByExprData[cachedLookupIndex] = obj;
-            return;
-        }
         Integer index = exprToIndexInGroupByData.get(expr);
         if (index != null) {
             assert currentGroupByExprData[index] == null;
@@ -402,8 +390,6 @@ public class Select extends Query {
         currentGroupByExprData = null;
         currentGroupsKey = null;
         exprToIndexInGroupByData.clear();
-        cachedLookup = null;
-        cachedLookupIndex = null;
         try {
             int rowNumber = 0;
             setCurrentRowNumber(0);
@@ -473,8 +459,6 @@ public class Select extends Query {
             currentGroupsKey = null;
             currentGroupByExprData = null;
             exprToIndexInGroupByData.clear();
-            cachedLookup = null;
-            cachedLookupIndex = null;
         }
     }
 

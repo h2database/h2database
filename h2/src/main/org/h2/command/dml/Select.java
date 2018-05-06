@@ -193,12 +193,12 @@ public class Select extends Query {
      */
     public void setCurrentGroupExprData(Expression expr, Object obj) {
         if (cachedLookup == expr) {
-            assert currentGroupByExprData[cachedLookupIndex] != null;
+            assert currentGroupByExprData[cachedLookupIndex] == null;
             currentGroupByExprData[cachedLookupIndex] = obj;
         }
         Integer index = exprToIndexInGroupByData.get(expr);
         if (index != null) {
-            assert currentGroupByExprData[index] != null;
+            assert currentGroupByExprData[index] == null;
             currentGroupByExprData[index] = obj;
             return;
         }

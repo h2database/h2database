@@ -6,11 +6,12 @@
 package org.h2.index;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
+import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.command.dml.Query;
 import org.h2.command.dml.SelectUnion;
 import org.h2.engine.Constants;
@@ -29,7 +30,7 @@ import org.h2.table.JoinBatch;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
 import org.h2.util.IntArray;
-import org.h2.util.New;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 
 /**
@@ -151,7 +152,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
     @Override
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            HashSet<Column> allColumnsSet) {
+            AllColumnsForPlan allColumnsSet) {
         return recursive ? 1000 : query.getCost();
     }
 
@@ -334,7 +335,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             }
         }
         int len = paramColumnIndex.size();
-        ArrayList<Column> columnList = New.arrayList();
+        ArrayList<Column> columnList = Utils.newSmallArrayList();
         for (int i = 0; i < len;) {
             int idx = paramColumnIndex.get(i);
             columnList.add(table.getColumn(idx));

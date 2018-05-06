@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -26,8 +25,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.h2.api.TableEngine;
 import org.h2.command.ddl.CreateTableData;
+import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.index.BaseIndex;
@@ -41,10 +42,15 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
-import org.h2.table.*;
+import org.h2.table.IndexColumn;
+import org.h2.table.RegularTable;
+import org.h2.table.SubQueryInfo;
+import org.h2.table.Table;
+import org.h2.table.TableBase;
+import org.h2.table.TableFilter;
+import org.h2.table.TableType;
 import org.h2.test.TestBase;
 import org.h2.util.DoneFuture;
-import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
@@ -215,7 +221,7 @@ public class TestTableEngines extends TestBase {
         stat.executeUpdate("CREATE INDEX IDX_C_B_A ON T(C, B, A)");
         stat.executeUpdate("CREATE INDEX IDX_B_A ON T(B, A)");
 
-        List<List<Object>> dataSet = New.arrayList();
+        List<List<Object>> dataSet = new ArrayList<>();
 
         dataSet.add(Arrays.<Object>asList(1, "1", 1L));
         dataSet.add(Arrays.<Object>asList(1, "0", 2L));
@@ -849,7 +855,7 @@ public class TestTableEngines extends TestBase {
 
     private static List<List<Object>> query(List<List<Object>> dataSet,
             RowFilter filter, RowComparator sort) {
-        List<List<Object>> res = New.arrayList();
+        List<List<Object>> res = new ArrayList<>();
         if (filter == null) {
             res.addAll(dataSet);
         } else {
@@ -868,7 +874,7 @@ public class TestTableEngines extends TestBase {
     private static List<List<Object>> query(Statement stat, String query) throws SQLException {
         ResultSet rs = stat.executeQuery(query);
         int cols = rs.getMetaData().getColumnCount();
-        List<List<Object>> list = New.arrayList();
+        List<List<Object>> list = new ArrayList<>();
         while (rs.next()) {
             List<Object> row = new ArrayList<>(cols);
             for (int i = 1; i <= cols; i++) {
@@ -950,7 +956,7 @@ public class TestTableEngines extends TestBase {
                 @Override
                 public double getCost(Session session, int[] masks,
                         TableFilter[] filters, int filter, SortOrder sortOrder,
-                        HashSet<Column> allColumnsSet) {
+                        AllColumnsForPlan allColumnsSet) {
                     return 0;
                 }
 
@@ -1174,7 +1180,7 @@ public class TestTableEngines extends TestBase {
                 @Override
                 public double getCost(Session session, int[] masks,
                         TableFilter[] filters, int filter, SortOrder sortOrder,
-                        HashSet<Column> allColumnsSet) {
+                        AllColumnsForPlan allColumnsSet) {
                     return 0;
                 }
 
@@ -1345,7 +1351,7 @@ public class TestTableEngines extends TestBase {
             @Override
             public double getCost(Session session, int[] masks,
                     TableFilter[] filters, int filter, SortOrder sortOrder,
-                    HashSet<Column> allColumnsSet) {
+                    AllColumnsForPlan allColumnsSet) {
                 doTests(session);
                 return getCostRangeIndex(masks, getRowCount(session), filters,
                         filter, sortOrder, true, allColumnsSet);
@@ -1538,7 +1544,7 @@ public class TestTableEngines extends TestBase {
             }
             lookupBatches.incrementAndGet();
             return new IndexLookupBatch() {
-                List<SearchRow> searchRows = New.arrayList();
+                List<SearchRow> searchRows = new ArrayList<>();
 
                 @Override
                 public String getPlanSQL() {
@@ -1695,7 +1701,7 @@ public class TestTableEngines extends TestBase {
         @Override
         public double getCost(Session session, int[] masks,
                 TableFilter[] filters, int filter, SortOrder sortOrder,
-                HashSet<Column> allColumnsSet) {
+                AllColumnsForPlan allColumnsSet) {
             doTests(session);
             return getCostRangeIndex(masks, set.size(), filters, filter,
                     sortOrder, false, allColumnsSet);

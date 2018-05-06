@@ -7,6 +7,7 @@ package org.h2.command.ddl;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
@@ -31,7 +32,6 @@ import org.h2.schema.TriggerObject;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableView;
-import org.h2.util.New;
 
 /**
  * This class represents the statements
@@ -280,7 +280,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         String baseName = table.getName();
         String tempName = db.getTempTableName(baseName, session);
         Column[] columns = table.getColumns();
-        ArrayList<Column> newColumns = New.arrayList();
+        ArrayList<Column> newColumns = new ArrayList<>();
         Table newTable = cloneTableStructure(table, columns, db, tempName, newColumns);
         if (sequences != null) {
             for (Sequence sequence : sequences) {
@@ -422,7 +422,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
 
         execute(newTableSQL, true);
         newTable = newTableSchema.getTableOrView(session, newTableName);
-        ArrayList<String> triggers = New.arrayList();
+        ArrayList<String> triggers = new ArrayList<>();
         for (DbObject child : table.getChildren()) {
             if (child instanceof Sequence) {
                 continue;
@@ -586,7 +586,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
     @Override
     public void addColumn(Column column) {
         if (columnsToAdd == null) {
-            columnsToAdd = New.arrayList();
+            columnsToAdd = new ArrayList<>();
         }
         columnsToAdd.add(column);
     }

@@ -6,10 +6,11 @@
 package org.h2.server.web;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.h2.util.New;
+
 import org.h2.util.StringUtils;
 
 /**
@@ -97,7 +98,7 @@ public class PageParser {
                         List<Object> list = (List<Object>) get(items);
                         if (list == null) {
                             result.append("?items?");
-                            list = New.arrayList();
+                            list = new ArrayList<>();
                         }
                         if (list.isEmpty()) {
                             parseBlockUntil("</c:forEach>");

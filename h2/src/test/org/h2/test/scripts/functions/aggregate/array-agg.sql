@@ -20,6 +20,7 @@ select array_agg(v order by v asc),
 > rows (ordered): 1
 
 create index test_idx on test(v);
+> ok
 
 select ARRAY_AGG(v order by v asc),
     ARRAY_AGG(v order by v desc) filter (where v >= '4')

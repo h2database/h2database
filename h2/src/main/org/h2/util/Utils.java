@@ -14,6 +14,7 @@ import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -304,6 +305,16 @@ public class Utils {
             return EMPTY_INT_ARRAY;
         }
         return new int[len];
+    }
+
+    /**
+     * Create a new ArrayList with an initial capacity of 4.
+     *
+     * @param <T> the type
+     * @return the object
+     */
+    public static <T> ArrayList<T> newSmallArrayList() {
+        return new ArrayList<>(4);
     }
 
     /**

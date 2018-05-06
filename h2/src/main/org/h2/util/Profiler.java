@@ -348,7 +348,7 @@ public class Profiler implements Runnable {
                 return;
             }
             try {
-                Thread.sleep(interval);
+                Thread.sleep(interval, 0);
             } catch (Exception e) {
                 // ignore
             }

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
+
 import org.h2.Driver;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FilePathRec;
@@ -232,7 +233,6 @@ import org.h2.test.utils.TestColumnNamer;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
 import org.h2.util.AbbaLockingDetector;
-import org.h2.util.New;
 import org.h2.util.Profiler;
 import org.h2.util.StringUtils;
 import org.h2.util.Task;
@@ -286,7 +286,7 @@ java org.h2.test.TestAll timer
     /**
      * Whether the MVStore storage is used.
      */
-    public boolean mvStore = Constants.VERSION_MINOR >= 4;
+    public boolean mvStore = true;
 
     /**
      * If the test should run with many rows.
@@ -436,7 +436,7 @@ java org.h2.test.TestAll timer
     /**
      * The list of tests.
      */
-    ArrayList<TestBase> tests = New.arrayList();
+    ArrayList<TestBase> tests = new ArrayList<>();
 
     private Server server;
 

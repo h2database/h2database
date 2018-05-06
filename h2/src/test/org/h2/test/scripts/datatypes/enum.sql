@@ -24,6 +24,7 @@ select * from card;
 > 0    clubs
 > 3    hearts
 > 4    null
+> rows: 3
 
 select * from card order by suit;
 > RANK SUIT
@@ -31,6 +32,7 @@ select * from card order by suit;
 > 4    null
 > 3    hearts
 > 0    clubs
+> rows (ordered): 3
 
 insert into card (rank, suit) values (8, 'diamonds'), (10, 'clubs'), (7, 'hearts');
 > update count: 3
@@ -42,17 +44,13 @@ select suit, count(rank) from card group by suit order by suit, count(rank);
 > hearts   2
 > clubs    2
 > diamonds 1
+> rows (ordered): 4
 
 select rank from card where suit = 'diamonds';
-> RANK
-> ----
-> 8
+>> 8
 
 select column_type from information_schema.columns where COLUMN_NAME = 'SUIT';
-> COLUMN_TYPE
-> ------------------------------------------
-> ENUM('hearts','clubs','spades','diamonds')
-> rows: 1
+>> ENUM('hearts','clubs','spades','diamonds')
 
 --- ENUM integer-based operations
 
@@ -61,6 +59,7 @@ select rank from card where suit = 1;
 > ----
 > 0
 > 10
+> rows: 2
 
 insert into card (rank, suit) values(5, 2);
 > update count: 1
@@ -69,6 +68,7 @@ select * from card where rank = 5;
 > RANK SUIT
 > ---- ------
 > 5    spades
+> rows: 1
 
 --- ENUM edge cases
 
@@ -100,6 +100,7 @@ select * from card;
 > ---- ------
 > 0    clubs
 > 3    hearts
+> rows: 2
 
 drop table card;
 > ok
@@ -125,6 +126,7 @@ select rank from card where suit = 'clubs';
 > ----
 > 0
 > 1
+> rows: 2
 
 drop table card;
 > ok
@@ -143,18 +145,21 @@ insert into card (rank, suit) values (0, 'clubs'), (3, 'hearts'), (1, 'clubs');
 > update count: 3
 
 create index idx_card_suite on card(`suit`);
+> ok
 
 select rank from card where suit = 'clubs';
 > RANK
 > ----
 > 0
 > 1
+> rows: 2
 
 select rank from card where suit in ('clubs');
 > RANK
 > ----
 > 0
 > 1
+> rows: 2
 
 drop table card;
 > ok
@@ -196,37 +201,25 @@ CREATE VIEW V AS SELECT * FROM TEST;
 > ok
 
 SELECT * FROM V;
-> E
-> -
-> B
-> rows: 1
+>> B
 
 CREATE VIEW V1 AS SELECT E + 2 AS E FROM TEST;
 > ok
 
 SELECT * FROM V1;
-> E
-> -
-> 3
-> rows: 1
+>> 3
 
 CREATE VIEW V2 AS SELECT E + E AS E FROM TEST;
 > ok
 
 SELECT * FROM V2;
-> E
-> -
-> 2
-> rows: 1
+>> 2
 
 CREATE VIEW V3 AS SELECT -E AS E FROM TEST;
 > ok
 
 SELECT * FROM V3;
-> E
-> --
-> -1
-> rows: 1
+>> -1
 
 SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE COLUMN_NAME = 'E' ORDER BY TABLE_NAME;
 > TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME ORDINAL_POSITION COLUMN_DEFAULT IS_NULLABLE DATA_TYPE CHARACTER_MAXIMUM_LENGTH CHARACTER_OCTET_LENGTH NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE CHARACTER_SET_NAME COLLATION_NAME TYPE_NAME NULLABLE IS_COMPUTED SELECTIVITY CHECK_CONSTRAINT SEQUENCE_NAME REMARKS SOURCE_DATA_TYPE COLUMN_TYPE   COLUMN_ON_UPDATE

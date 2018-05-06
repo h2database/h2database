@@ -19,8 +19,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.h2.util.New;
-
 /**
  * This servlet lets the H2 Console be used in a standard servlet container
  * such as Tomcat or Jetty.
@@ -34,7 +32,7 @@ public class WebServlet extends HttpServlet {
     public void init() {
         ServletConfig config = getServletConfig();
         Enumeration<?> en = config.getInitParameterNames();
-        ArrayList<String> list = New.arrayList();
+        ArrayList<String> list = new ArrayList<>();
         while (en.hasMoreElements()) {
             String name = en.nextElement().toString();
             String value = config.getInitParameter(name);

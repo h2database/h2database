@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.CRC32;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.ddl.CreateTableData;
@@ -49,7 +50,6 @@ import org.h2.util.CacheObject;
 import org.h2.util.CacheWriter;
 import org.h2.util.IntArray;
 import org.h2.util.IntIntHashMap;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
@@ -181,7 +181,7 @@ public class PageStore implements CacheWriter {
      * Each free page is marked with a set bit.
      */
     private final BitSet freed = new BitSet();
-    private final ArrayList<PageFreeList> freeLists = New.arrayList();
+    private final ArrayList<PageFreeList> freeLists = new ArrayList<>();
 
     private boolean recordPageReads;
     private ArrayList<Integer> recordedPagesList;
@@ -553,7 +553,7 @@ public class PageStore implements CacheWriter {
             writeBack();
             cache.clear();
             ArrayList<Table> tables = database.getAllTablesAndViews(false);
-            recordedPagesList = New.arrayList();
+            recordedPagesList = new ArrayList<>();
             recordedPagesIndex = new IntIntHashMap();
             recordPageReads = true;
             Session sysSession = database.getSystemSession();

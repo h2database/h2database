@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.Parser;
@@ -45,7 +46,6 @@ import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.ToChar;
@@ -473,7 +473,7 @@ public class Function extends Expression implements FunctionCall {
         this.database = database;
         this.info = info;
         if (info.parameterCount == VAR_ARGS) {
-            varArgs = New.arrayList();
+            varArgs = Utils.newSmallArrayList();
         } else {
             args = new Expression[info.parameterCount];
         }
@@ -2649,7 +2649,8 @@ public class Function extends Expression implements FunctionCall {
         case ExpressionVisitor.NOT_FROM_RESOLVER:
         case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
-        case ExpressionVisitor.GET_COLUMNS:
+        case ExpressionVisitor.GET_COLUMNS1:
+        case ExpressionVisitor.GET_COLUMNS2:
             return true;
         default:
             throw DbException.throwInternalError("type=" + visitor.getType());

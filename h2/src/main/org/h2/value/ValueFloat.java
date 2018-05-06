@@ -34,6 +34,7 @@ public class ValueFloat extends Value {
 
     private static final ValueFloat ZERO = new ValueFloat(0.0F);
     private static final ValueFloat ONE = new ValueFloat(1.0F);
+    private static final ValueFloat NAN = new ValueFloat(Float.NaN);
 
     private final float value;
 
@@ -88,7 +89,7 @@ public class ValueFloat extends Value {
             return "POWER(0, -1)";
         } else if (value == Float.NEGATIVE_INFINITY) {
             return "(-POWER(0, -1))";
-        } else if (Double.isNaN(value)) {
+        } else if (Float.isNaN(value)) {
             // NaN
             return "SQRT(-1)";
         }
@@ -133,8 +134,11 @@ public class ValueFloat extends Value {
 
     @Override
     public int hashCode() {
-        long hash = Float.floatToIntBits(value);
-        return (int) (hash ^ (hash >> 32));
+        /*
+         * NaNs are normalized in get() method, so it's safe to use
+         * floatToRawIntBits() instead of floatToIntBits() here.
+         */
+        return Float.floatToRawIntBits(value);
     }
 
     @Override
@@ -160,6 +164,8 @@ public class ValueFloat extends Value {
         } else if (d == 0.0F) {
             // -0.0 == 0.0, and we want to return 0.0 for both
             return ZERO;
+        } else if (Float.isNaN(d)) {
+            return NAN;
         }
         return (ValueFloat) Value.cache(new ValueFloat(d));
     }

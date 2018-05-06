@@ -10,6 +10,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+
 import org.h2.test.TestBase;
 
 /**
@@ -29,15 +33,24 @@ public abstract class AbstractBaseForCommonTableExpressions extends TestBase {
      * @param closeAndReopenDatabaseConnectionOnIteration whether the connection
      *            should be re-opened each time
      * @param expectedColumnTypes the expected datatypes of the result
+     * @param anyOrder whether any order of rows should be allowed.
+     *                 If {@code true}, this method may sort expectedRowData.
      */
     void testRepeatedQueryWithSetup(int maxRetries, String[] expectedRowData, String[] expectedColumnNames,
             int expectedNumberOfRows, String setupSQL, String withQuery,
-            int closeAndReopenDatabaseConnectionOnIteration, String[] expectedColumnTypes) throws SQLException {
+            int closeAndReopenDatabaseConnectionOnIteration, String[] expectedColumnTypes,
+            boolean anyOrder) throws SQLException {
 
         deleteDb("commonTableExpressionQueries");
         Connection conn = getConnection("commonTableExpressionQueries");
         PreparedStatement prep;
         ResultSet rs;
+
+        if (anyOrder) {
+            Arrays.sort(expectedRowData);
+        }
+        ArrayList<String> rowData = new ArrayList<>();
+        StringBuilder buf = new StringBuilder();
 
         for (int queryRunTries = 1; queryRunTries <= maxRetries; queryRunTries++) {
 
@@ -65,17 +78,18 @@ public abstract class AbstractBaseForCommonTableExpressions extends TestBase {
                         expectedColumnTypes[columnIndex - 1], rs.getMetaData().getColumnTypeName(columnIndex));
             }
 
-            int rowNdx = 0;
+            rowData.clear();
             while (rs.next()) {
-                StringBuffer buf = new StringBuffer();
+                buf.setLength(0);
                 for (int columnIndex = 1; columnIndex <= rs.getMetaData().getColumnCount(); columnIndex++) {
-                    buf.append("|" + rs.getString(columnIndex));
+                    buf.append('|').append(rs.getString(columnIndex));
                 }
-                assertEquals(expectedRowData[rowNdx], buf.toString());
-                rowNdx++;
+                rowData.add(buf.toString());
             }
-
-            assertEquals(expectedNumberOfRows, rowNdx);
+            if (anyOrder) {
+                Collections.sort(rowData);
+            }
+            assertEquals(expectedRowData, rowData.toArray(new String[0]));
 
             rs.close();
             prep.close();

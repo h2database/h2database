@@ -16,9 +16,9 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
 import org.h2.message.DbException;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 
 /**
  * This is a read-only file system that allows
@@ -139,7 +139,7 @@ public class FilePathZip extends FilePath {
     @Override
     public ArrayList<FilePath> newDirectoryStream() {
         String path = name;
-        ArrayList<FilePath> list = New.arrayList();
+        ArrayList<FilePath> list = new ArrayList<>();
         try {
             if (path.indexOf('!') < 0) {
                 path += "!";

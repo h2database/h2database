@@ -10,9 +10,7 @@ INSERT INTO tab_with_timezone(x) VALUES ('2017-01-01');
 > update count: 1
 
 SELECT "Query".* FROM (select * from tab_with_timezone where x > '2016-01-01') AS "Query";
-> X
-> ----------------------
-> 2017-01-01 00:00:00+00
+>> 2017-01-01 00:00:00+00
 
 DELETE FROM tab_with_timezone;
 > update count: 1

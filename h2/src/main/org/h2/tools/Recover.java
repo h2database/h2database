@@ -66,7 +66,6 @@ import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.IntArray;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -650,8 +649,8 @@ public class Recover extends Tool implements DataHandler {
                     }
                 }
             }
-            // Have to do these before the tables because settings like COLLATION may affect some of them,
-            // and we can't change settings after we have created user tables
+            // Have to do these before the tables because settings like COLLATION may affect
+            // some of them, and we can't change settings after we have created user tables
             writeSchemaSET(writer);
             writer.println("---- Table Data ----");
             for (String mapName : mv.getMapNames()) {
@@ -1534,7 +1533,7 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void resetSchema() {
-        schema = New.arrayList();
+        schema = new ArrayList<>();
         objectIdSet = new HashSet<>();
         tableMap = new HashMap<>();
         columnTypeMap = new HashMap<>();

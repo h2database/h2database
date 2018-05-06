@@ -8,7 +8,8 @@ package org.h2.index;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
-import java.util.HashSet;
+
+import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
@@ -19,8 +20,8 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
 import org.h2.table.TableLink;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -57,7 +58,7 @@ public class LinkedIndex extends BaseIndex {
 
     @Override
     public void add(Session session, Row row) {
-        ArrayList<Value> params = New.arrayList();
+        ArrayList<Value> params = Utils.newSmallArrayList();
         StatementBuilder buff = new StatementBuilder("INSERT INTO ");
         buff.append(targetTableName).append(" VALUES(");
         for (int i = 0; i < row.getColumnCount(); i++) {
@@ -84,7 +85,7 @@ public class LinkedIndex extends BaseIndex {
 
     @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        ArrayList<Value> params = New.arrayList();
+        ArrayList<Value> params = Utils.newSmallArrayList();
         StatementBuilder buff = new StatementBuilder("SELECT * FROM ");
         buff.append(targetTableName).append(" T");
         for (int i = 0; first != null && i < first.getColumnCount(); i++) {
@@ -144,7 +145,7 @@ public class LinkedIndex extends BaseIndex {
     @Override
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            HashSet<Column> allColumnsSet) {
+            AllColumnsForPlan allColumnsSet) {
         return 100 + getCostRangeIndex(masks, rowCount +
                 Constants.COST_ROW_OFFSET, filters, filter, sortOrder, false, allColumnsSet);
     }
@@ -183,7 +184,7 @@ public class LinkedIndex extends BaseIndex {
 
     @Override
     public void remove(Session session, Row row) {
-        ArrayList<Value> params = New.arrayList();
+        ArrayList<Value> params = Utils.newSmallArrayList();
         StatementBuilder buff = new StatementBuilder("DELETE FROM ");
         buff.append(targetTableName).append(" WHERE ");
         for (int i = 0; i < row.getColumnCount(); i++) {
@@ -219,7 +220,7 @@ public class LinkedIndex extends BaseIndex {
      * @param newRow the new data
      */
     public void update(Row oldRow, Row newRow) {
-        ArrayList<Value> params = New.arrayList();
+        ArrayList<Value> params = Utils.newSmallArrayList();
         StatementBuilder buff = new StatementBuilder("UPDATE ");
         buff.append(targetTableName).append(" SET ");
         for (int i = 0; i < newRow.getColumnCount(); i++) {

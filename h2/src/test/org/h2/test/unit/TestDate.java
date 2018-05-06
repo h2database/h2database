@@ -13,13 +13,13 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDouble;
@@ -474,7 +474,7 @@ public class TestDate extends TestBase {
      * @return the list
      */
     public static ArrayList<TimeZone> getDistinctTimeZones() {
-        ArrayList<TimeZone> distinct = New.arrayList();
+        ArrayList<TimeZone> distinct = new ArrayList<>();
         for (String id : TimeZone.getAvailableIDs()) {
             TimeZone t = TimeZone.getTimeZone(id);
             for (TimeZone d : distinct) {

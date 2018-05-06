@@ -7,12 +7,13 @@ package org.h2.result;
 
 import java.io.IOException;
 import java.util.ArrayList;
+
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.util.New;
+import org.h2.util.Utils;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
 
@@ -46,7 +47,7 @@ public class ResultRemote implements ResultInterface {
             columns[i] = new ResultColumn(transfer);
         }
         rowId = -1;
-        result = New.arrayList();
+        result = Utils.newSmallArrayList();
         this.fetchSize = fetchSize;
         fetchRows(false);
     }

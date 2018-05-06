@@ -50,10 +50,7 @@ INSERT INTO TEST VALUES (TIME '08:00:00');
 > update count: 1
 
 SELECT TIME FROM TEST;
-> TIME
-> --------
-> 08:00:00
-> rows: 1
+>> 08:00:00
 
 DROP TABLE TEST;
 > ok

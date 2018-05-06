@@ -8,7 +8,6 @@ package org.h2.command.dml;
 import java.util.BitSet;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.table.Plan;
@@ -48,11 +47,13 @@ class Optimizer {
     private TableFilter topFilter;
     private double cost;
     private Random random;
+    final AllColumnsForPlan allColumnsSet;
 
     Optimizer(TableFilter[] filters, Expression condition, Session session) {
         this.filters = filters;
         this.condition = condition;
         this.session = session;
+        allColumnsSet = new AllColumnsForPlan(filters);
     }
 
     /**
@@ -134,7 +135,7 @@ class Optimizer {
                         }
                         list[i] = filters[j];
                         Plan part = new Plan(list, i+1, condition);
-                        double costNow = part.calculateCost(session);
+                        double costNow = part.calculateCost(session, allColumnsSet);
                         if (costPart < 0 || costNow < costPart) {
                             costPart = costNow;
                             bestPart = j;
@@ -177,7 +178,7 @@ class Optimizer {
 
     private boolean testPlan(TableFilter[] list) {
         Plan p = new Plan(list, list.length, condition);
-        double costNow = p.calculateCost(session);
+        double costNow = p.calculateCost(session, allColumnsSet);
         if (cost < 0 || costNow < cost) {
             cost = costNow;
             bestPlan = p;

@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import org.h2.test.TestBase;
-import org.h2.util.New;
 
 /**
  * Represents an in-memory result.
@@ -59,8 +58,8 @@ class Result implements Comparable<Result> {
         this.sql = sql;
         type = RESULT_SET;
         try {
-            rows = New.arrayList();
-            header = New.arrayList();
+            rows = new ArrayList<>();
+            header = new ArrayList<>();
             ResultSetMetaData meta = rs.getMetaData();
             int len = meta.getColumnCount();
             Column[] cols = new Column[len];

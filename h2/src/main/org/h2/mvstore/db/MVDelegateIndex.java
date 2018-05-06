@@ -5,8 +5,8 @@
  */
 package org.h2.mvstore.db;
 
-import java.util.HashSet;
 import java.util.List;
+import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Session;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
@@ -94,7 +94,7 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
     @Override
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            HashSet<Column> allColumnsSet) {
+            AllColumnsForPlan allColumnsSet) {
         return 10 * getCostRangeIndex(masks, mainIndex.getRowCountApproximation(),
                 filters, filter, sortOrder, true, allColumnsSet);
     }

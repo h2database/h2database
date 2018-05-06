@@ -1757,7 +1757,7 @@ In this case, only the <code>fire</code> method needs to be implemented:
 <pre>
 import org.h2.tools.TriggerAdapter;
 ...
-public class TriggerSample implements TriggerAdapter {
+public class TriggerSample extends TriggerAdapter {
 
     public void fire(Connection conn, ResultSet oldRow, ResultSet newRow)
             throws SQLException {

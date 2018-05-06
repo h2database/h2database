@@ -16,7 +16,4 @@ insert into person select convert(x,varchar) as firstname, (convert(x,varchar) |
 -- can directly use the index.
 --
 explain analyze SELECT * FROM person WHERE firstname IN ('FirstName1', 'FirstName2') AND lastname='LastName1';
-> PLAN
-> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT PERSON.FIRSTNAME, PERSON.LASTNAME FROM PUBLIC.PERSON /* PUBLIC.PERSON_1: FIRSTNAME IN('FirstName1', 'FirstName2') AND LASTNAME = 'LastName1' */ /* scanCount: 1 */ WHERE (FIRSTNAME IN('FirstName1', 'FirstName2')) AND (LASTNAME = 'LastName1')
-> rows: 1
+>> SELECT PERSON.FIRSTNAME, PERSON.LASTNAME FROM PUBLIC.PERSON /* PUBLIC.PERSON_1: FIRSTNAME IN('FirstName1', 'FirstName2') AND LASTNAME = 'LastName1' */ /* scanCount: 1 */ WHERE (FIRSTNAME IN('FirstName1', 'FirstName2')) AND (LASTNAME = 'LastName1')

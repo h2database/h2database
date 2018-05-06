@@ -30,7 +30,6 @@ import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.Csv;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**
@@ -353,7 +352,7 @@ public class TestCsv extends TestBase {
         int len = getSize(1000, 10000);
         PreparedStatement prep = conn.prepareStatement(
                 "insert into test(a, b) values(?, ?)");
-        ArrayList<String[]> list = New.arrayList();
+        ArrayList<String[]> list = new ArrayList<>();
         Random random = new Random(1);
         for (int i = 0; i < len; i++) {
             String a = randomData(random), b = randomData(random);

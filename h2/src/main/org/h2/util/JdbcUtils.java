@@ -144,7 +144,7 @@ public class JdbcUtils {
         if (allowedClassNames == null) {
             // initialize the static fields
             String s = SysProperties.ALLOWED_CLASSES;
-            ArrayList<String> prefixes = New.arrayList();
+            ArrayList<String> prefixes = new ArrayList<>();
             boolean allowAll = false;
             HashSet<String> classNames = new HashSet<>();
             for (String p : StringUtils.arraySplit(s, ',', true)) {

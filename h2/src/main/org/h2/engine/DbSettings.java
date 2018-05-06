@@ -329,10 +329,10 @@ public class DbSettings extends SettingsBase {
 
     /**
      * Database setting <code>MV_STORE</code>
-     * (default: false for version 1.3, true for version 1.4).<br />
+     * (default: true).<br />
      * Use the MVStore storage engine.
      */
-    public boolean mvStore = get("MV_STORE", Constants.VERSION_MINOR >= 4);
+    public boolean mvStore = get("MV_STORE", true);
 
     /**
      * Database setting <code>COMPRESS</code>

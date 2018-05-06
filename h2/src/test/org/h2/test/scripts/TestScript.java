@@ -23,11 +23,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**
@@ -40,7 +40,7 @@ public class TestScript extends TestBase {
 
     /** If set to true, the test will exit at the first failure. */
     private boolean failFast;
-    private final ArrayList<String> statements = New.arrayList();
+    private final ArrayList<String> statements = new ArrayList<>();
 
     private boolean reconnectOften;
     private Connection conn;
@@ -49,7 +49,7 @@ public class TestScript extends TestBase {
     private LineNumberReader in;
     private int outputLineNo;
     private PrintStream out;
-    private final ArrayList<String[]> result = New.arrayList();
+    private final ArrayList<String[]> result = new ArrayList<>();
     private String putBack;
     private StringBuilder errors;
 
@@ -86,11 +86,15 @@ public class TestScript extends TestBase {
         reconnectOften = !config.memory && config.big;
 
         testScript("testScript.sql");
+        testScript("comments.sql");
         testScript("derived-column-names.sql");
+        testScript("dual.sql");
+        testScript("indexes.sql");
         testScript("information_schema.sql");
         testScript("joins.sql");
         testScript("range_table.sql");
         testScript("altertable-index-reuse.sql");
+        testScript("altertable-fk.sql");
         testScript("default-and-on_update.sql");
         testScript("query-optimisations.sql");
         String decimal2;
@@ -108,7 +112,7 @@ public class TestScript extends TestBase {
             testScript("datatypes/" + s + ".sql");
         }
         for (String s : new String[] { "alterTableAdd", "alterTableDropColumn",
-                "createAlias", "createView", "createTable", "createTrigger",
+                "createAlias", "createSynonym", "createView", "createTable", "createTrigger",
                 "dropSchema" }) {
             testScript("ddl/" + s + ".sql");
         }
@@ -203,7 +207,37 @@ public class TestScript extends TestBase {
         while (true) {
             String s = in.readLine();
             if (s == null) {
-                return s;
+                return null;
+            }
+            if (s.startsWith("#")) {
+                int end = s.indexOf('#', 1);
+                if (end < 3) {
+                    fail("Bad line \"" + s + '\"');
+                }
+                boolean val;
+                switch (s.charAt(1)) {
+                case '+':
+                    val = true;
+                    break;
+                case '-':
+                    val = false;
+                    break;
+                default:
+                    fail("Bad line \"" + s + '\"');
+                    return null;
+                }
+                String flag = s.substring(2, end);
+                s = s.substring(end + 1);
+                switch (flag) {
+                case "mvStore":
+                    if (config.mvStore == val) {
+                        break;
+                    } else {
+                        continue;
+                    }
+                default:
+                    fail("Unknown flag \"" + flag + '\"');
+                }
             }
             s = s.trim();
             if (s.length() > 0) {
@@ -490,10 +524,7 @@ public class TestScript extends TestBase {
                 if (reconnectOften && sql.toUpperCase().startsWith("EXPLAIN")) {
                     return;
                 }
-                errors.append(fileName).append('\n');
-                errors.append("line: ").append(in.getLineNumber()).append('\n');
-                errors.append("exp: ").append(compare).append('\n');
-                errors.append("got: ").append(s).append('\n');
+                addWriteResultError(compare, s);
                 if (ex != null) {
                     TestBase.logError("script", ex);
                 }
@@ -504,9 +535,18 @@ public class TestScript extends TestBase {
                 }
             }
         } else {
+            addWriteResultError("<nothing>", s);
+            TestBase.logErrorMessage(errors.toString());
             putBack = compare;
         }
         write(s);
+    }
+
+    private void addWriteResultError(String expected, String got) {
+        errors.append(fileName).append('\n');
+        errors.append("line: ").append(in.getLineNumber()).append('\n');
+        errors.append("exp: ").append(expected).append('\n');
+        errors.append("got: ").append(got).append('\n');
     }
 
     private void write(String s) {

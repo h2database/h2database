@@ -40,16 +40,10 @@ create table test(a int, b int) as select x, x from system_range(1, 100);
 
 -- the table t1 should be processed first
 explain select * from test t2, test t1 where t1.a=1 and t1.b = t2.b;
-> PLAN
-> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T2.A, T2.B, T1.A, T1.B FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ /* WHERE T1.A = 1 */ INNER JOIN PUBLIC.TEST T2 /* PUBLIC.TEST.tableScan */ ON 1=1 WHERE (T1.A = 1) AND (T1.B = T2.B)
-> rows: 1
+>> SELECT T2.A, T2.B, T1.A, T1.B FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ /* WHERE T1.A = 1 */ INNER JOIN PUBLIC.TEST T2 /* PUBLIC.TEST.tableScan */ ON 1=1 WHERE (T1.A = 1) AND (T1.B = T2.B)
 
 explain select * from test t1, test t2 where t1.a=1 and t1.b = t2.b;
-> PLAN
-> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.A, T1.B, T2.A, T2.B FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ /* WHERE T1.A = 1 */ INNER JOIN PUBLIC.TEST T2 /* PUBLIC.TEST.tableScan */ ON 1=1 WHERE (T1.A = 1) AND (T1.B = T2.B)
-> rows: 1
+>> SELECT T1.A, T1.B, T2.A, T2.B FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ /* WHERE T1.A = 1 */ INNER JOIN PUBLIC.TEST T2 /* PUBLIC.TEST.tableScan */ ON 1=1 WHERE (T1.A = 1) AND (T1.B = T2.B)
 
 drop table test;
 > ok
@@ -128,10 +122,7 @@ CREATE TABLE TESTB(ID IDENTITY);
 > ok
 
 explain SELECT TESTA.ID A, TESTB.ID B FROM TESTA, TESTB ORDER BY TESTA.ID, TESTB.ID;
-> PLAN
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TESTA.ID AS A, TESTB.ID AS B FROM PUBLIC.TESTA /* PUBLIC.TESTA.tableScan */ INNER JOIN PUBLIC.TESTB /* PUBLIC.TESTB.tableScan */ ON 1=1 ORDER BY 1, 2
-> rows (ordered): 1
+>> SELECT TESTA.ID AS A, TESTB.ID AS B FROM PUBLIC.TESTA /* PUBLIC.TESTA.tableScan */ INNER JOIN PUBLIC.TESTB /* PUBLIC.TESTB.tableScan */ ON 1=1 ORDER BY 1, 2
 
 DROP TABLE IF EXISTS TESTA, TESTB;
 > ok
@@ -213,10 +204,7 @@ is null or three.val>=DATE'2006-07-01';
 explain select * from one natural join two left join two three on
 one.id=three.id left join one four on two.id=four.id where three.val
 is null or three.val>=DATE'2006-07-01';
-> PLAN
-> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT ONE.ID, TWO.VAL, THREE.ID, THREE.VAL, FOUR.ID FROM PUBLIC.ONE /* PUBLIC.ONE.tableScan */ INNER JOIN PUBLIC.TWO /* PUBLIC.PRIMARY_KEY_14: ID = PUBLIC.ONE.ID AND ID = PUBLIC.ONE.ID */ ON 1=1 /* WHERE PUBLIC.ONE.ID = PUBLIC.TWO.ID */ LEFT OUTER JOIN PUBLIC.TWO THREE /* PUBLIC.PRIMARY_KEY_14: ID = ONE.ID */ ON ONE.ID = THREE.ID LEFT OUTER JOIN PUBLIC.ONE FOUR /* PUBLIC.PRIMARY_KEY_1: ID = TWO.ID */ ON TWO.ID = FOUR.ID WHERE (PUBLIC.ONE.ID = PUBLIC.TWO.ID) AND ((THREE.VAL IS NULL) OR (THREE.VAL >= DATE '2006-07-01'))
-> rows: 1
+>> SELECT ONE.ID, TWO.VAL, THREE.ID, THREE.VAL, FOUR.ID FROM PUBLIC.ONE /* PUBLIC.ONE.tableScan */ INNER JOIN PUBLIC.TWO /* PUBLIC.PRIMARY_KEY_14: ID = PUBLIC.ONE.ID AND ID = PUBLIC.ONE.ID */ ON 1=1 /* WHERE PUBLIC.ONE.ID = PUBLIC.TWO.ID */ LEFT OUTER JOIN PUBLIC.TWO THREE /* PUBLIC.PRIMARY_KEY_14: ID = ONE.ID */ ON ONE.ID = THREE.ID LEFT OUTER JOIN PUBLIC.ONE FOUR /* PUBLIC.PRIMARY_KEY_1: ID = TWO.ID */ ON TWO.ID = FOUR.ID WHERE (PUBLIC.ONE.ID = PUBLIC.TWO.ID) AND ((THREE.VAL IS NULL) OR (THREE.VAL >= DATE '2006-07-01'))
 
 -- Query #4: same as #3, but the joins have been manually re-ordered
 -- Correct result set, same as expected for #3.
@@ -265,10 +253,8 @@ explain select * from test1
 inner join test2 on test1.id=test2.id left
 outer join test3 on test2.id=test3.id
 where test3.id is null;
-> PLAN
-> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST1.ID, TEST2.ID, TEST3.ID FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ LEFT OUTER JOIN PUBLIC.TEST3 /* PUBLIC.PRIMARY_KEY_4C0: ID = TEST2.ID */ ON TEST2.ID = TEST3.ID INNER JOIN PUBLIC.TEST1 /* PUBLIC.PRIMARY_KEY_4: ID = TEST2.ID */ ON 1=1 WHERE (TEST3.ID IS NULL) AND (TEST1.ID = TEST2.ID)
-> rows: 1
+#+mvStore#>> SELECT TEST1.ID, TEST2.ID, TEST3.ID FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ LEFT OUTER JOIN PUBLIC.TEST3 /* PUBLIC.PRIMARY_KEY_4C0: ID = TEST2.ID */ ON TEST2.ID = TEST3.ID INNER JOIN PUBLIC.TEST1 /* PUBLIC.PRIMARY_KEY_4: ID = TEST2.ID */ ON 1=1 WHERE (TEST3.ID IS NULL) AND (TEST1.ID = TEST2.ID)
+#-mvStore#>> SELECT TEST1.ID, TEST2.ID, TEST3.ID FROM PUBLIC.TEST1 /* PUBLIC.TEST1.tableScan */ INNER JOIN PUBLIC.TEST2 /* PUBLIC.PRIMARY_KEY_4C: ID = TEST1.ID AND ID = TEST1.ID */ ON 1=1 /* WHERE TEST1.ID = TEST2.ID */ LEFT OUTER JOIN PUBLIC.TEST3 /* PUBLIC.PRIMARY_KEY_4C0: ID = TEST2.ID */ ON TEST2.ID = TEST3.ID WHERE (TEST3.ID IS NULL) AND (TEST1.ID = TEST2.ID)
 
 insert into test1 select x from system_range(2, 1000);
 > update count: 999
@@ -285,10 +271,7 @@ explain select * from test1
 inner join test2 on test1.id=test2.id
 left outer join test3 on test2.id=test3.id
 where test3.id is null;
-> PLAN
-> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST1.ID, TEST2.ID, TEST3.ID FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ LEFT OUTER JOIN PUBLIC.TEST3 /* PUBLIC.PRIMARY_KEY_4C0: ID = TEST2.ID */ ON TEST2.ID = TEST3.ID INNER JOIN PUBLIC.TEST1 /* PUBLIC.PRIMARY_KEY_4: ID = TEST2.ID */ ON 1=1 WHERE (TEST3.ID IS NULL) AND (TEST1.ID = TEST2.ID)
-> rows: 1
+>> SELECT TEST1.ID, TEST2.ID, TEST3.ID FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ LEFT OUTER JOIN PUBLIC.TEST3 /* PUBLIC.PRIMARY_KEY_4C0: ID = TEST2.ID */ ON TEST2.ID = TEST3.ID INNER JOIN PUBLIC.TEST1 /* PUBLIC.PRIMARY_KEY_4: ID = TEST2.ID */ ON 1=1 WHERE (TEST3.ID IS NULL) AND (TEST1.ID = TEST2.ID)
 
 SELECT TEST1.ID, TEST2.ID, TEST3.ID
 FROM TEST2
@@ -585,10 +568,7 @@ select * from t1 natural join t2;
 > rows: 0
 
 explain select * from t1 natural join t2;
-> PLAN
-> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.T2 /* PUBLIC.T2.tableScan */ INNER JOIN PUBLIC.T1 /* PUBLIC.T1.tableScan */ ON 1=1 WHERE (PUBLIC.T1.ID = PUBLIC.T2.ID) AND (PUBLIC.T1.NAME = PUBLIC.T2.NAME)
-> rows: 1
+>> SELECT T1.ID, T1.NAME FROM PUBLIC.T2 /* PUBLIC.T2.tableScan */ INNER JOIN PUBLIC.T1 /* PUBLIC.T1.tableScan */ ON 1=1 WHERE (PUBLIC.T1.ID = PUBLIC.T2.ID) AND (PUBLIC.T1.NAME = PUBLIC.T2.NAME)
 
 drop table t1;
 > ok
@@ -622,10 +602,7 @@ select c.*, i.*, l.* from customer c natural join invoice i natural join INVOICE
 > rows: 2
 
 explain select c.*, i.*, l.* from customer c natural join invoice i natural join INVOICE_LINE l;
-> PLAN
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT C.CUSTOMERID, C.CUSTOMER_NAME, I.INVOICEID, I.INVOICE_TEXT, L.LINE_ID, L.LINE_TEXT FROM PUBLIC.INVOICE I /* PUBLIC.INVOICE.tableScan */ INNER JOIN PUBLIC.INVOICE_LINE L /* PUBLIC.INVOICE_LINE.tableScan */ ON 1=1 /* WHERE (PUBLIC.I.CUSTOMERID = PUBLIC.L.CUSTOMERID) AND (PUBLIC.I.INVOICEID = PUBLIC.L.INVOICEID) */ INNER JOIN PUBLIC.CUSTOMER C /* PUBLIC.CUSTOMER.tableScan */ ON 1=1 WHERE (PUBLIC.C.CUSTOMERID = PUBLIC.I.CUSTOMERID) AND ((PUBLIC.I.CUSTOMERID = PUBLIC.L.CUSTOMERID) AND (PUBLIC.I.INVOICEID = PUBLIC.L.INVOICEID))
-> rows: 1
+>> SELECT C.CUSTOMERID, C.CUSTOMER_NAME, I.INVOICEID, I.INVOICE_TEXT, L.LINE_ID, L.LINE_TEXT FROM PUBLIC.INVOICE I /* PUBLIC.INVOICE.tableScan */ INNER JOIN PUBLIC.INVOICE_LINE L /* PUBLIC.INVOICE_LINE.tableScan */ ON 1=1 /* WHERE (PUBLIC.I.CUSTOMERID = PUBLIC.L.CUSTOMERID) AND (PUBLIC.I.INVOICEID = PUBLIC.L.INVOICEID) */ INNER JOIN PUBLIC.CUSTOMER C /* PUBLIC.CUSTOMER.tableScan */ ON 1=1 WHERE (PUBLIC.C.CUSTOMERID = PUBLIC.I.CUSTOMERID) AND ((PUBLIC.I.CUSTOMERID = PUBLIC.L.CUSTOMERID) AND (PUBLIC.I.INVOICEID = PUBLIC.L.INVOICEID))
 
 drop table customer;
 > ok
@@ -764,21 +741,36 @@ DROP TABLE C;
 > ok
 
 CREATE TABLE T1(X1 INT);
+> ok
 CREATE TABLE T2(X2 INT);
+> ok
 CREATE TABLE T3(X3 INT);
+> ok
 CREATE TABLE T4(X4 INT);
+> ok
 CREATE TABLE T5(X5 INT);
+> ok
 
 INSERT INTO T1 VALUES (1);
+> update count: 1
 INSERT INTO T1 VALUES (NULL);
+> update count: 1
 INSERT INTO T2 VALUES (1);
+> update count: 1
 INSERT INTO T2 VALUES (NULL);
+> update count: 1
 INSERT INTO T3 VALUES (1);
+> update count: 1
 INSERT INTO T3 VALUES (NULL);
+> update count: 1
 INSERT INTO T4 VALUES (1);
+> update count: 1
 INSERT INTO T4 VALUES (NULL);
+> update count: 1
 INSERT INTO T5 VALUES (1);
+> update count: 1
 INSERT INTO T5 VALUES (NULL);
+> update count: 1
 
 SELECT T1.X1, T2.X2, T3.X3, T4.X4, T5.X5 FROM (
     T1 INNER JOIN (

@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 import org.h2.engine.Constants;
 import org.h2.server.web.ConnectionInfo;
 import org.h2.util.JdbcUtils;
-import org.h2.util.New;
 import org.h2.util.ScriptReader;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
@@ -49,7 +48,7 @@ public class Shell extends Tool implements Runnable {
     private Statement stat;
     private boolean listMode;
     private int maxColumnSize = 100;
-    private final ArrayList<String> history = New.arrayList();
+    private final ArrayList<String> history = new ArrayList<>();
     private boolean stopHide;
     private String serverPropertiesDir = Constants.SERVER_PROPERTIES_DIR;
 
@@ -487,7 +486,7 @@ public class Shell extends Tool implements Runnable {
         ResultSetMetaData meta = rs.getMetaData();
         int len = meta.getColumnCount();
         boolean truncated = false;
-        ArrayList<String[]> rows = New.arrayList();
+        ArrayList<String[]> rows = new ArrayList<>();
         // buffer the header
         String[] columns = new String[len];
         for (int i = 0; i < len; i++) {

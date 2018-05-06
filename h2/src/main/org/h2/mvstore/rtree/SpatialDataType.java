@@ -7,10 +7,11 @@ package org.h2.mvstore.rtree;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.DataType;
-import org.h2.util.New;
+import org.h2.util.Utils;
 
 /**
  * A spatial data type. This class supports up to 31 dimensions. Each dimension
@@ -356,7 +357,7 @@ public class SpatialDataType implements DataType {
         for (Object o : list) {
             SpatialKey a = (SpatialKey) o;
             if (a.isNull()) {
-                result = New.arrayList();
+                result = Utils.newSmallArrayList();
                 break;
             }
         }

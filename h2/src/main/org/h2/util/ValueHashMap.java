@@ -204,24 +204,27 @@ public class ValueHashMap<V> extends HashBase {
     }
 
     private final class EntryIterator implements Iterator<Map.Entry<Value, V>> {
-        int keysIndex = -1;
+        private int keysIndex = -1;
+        private int left = size;
 
         @Override
         public boolean hasNext() {
-            if (keysIndex >= keys.length)
-                return false;
-            do {
-                keysIndex++;
-                if (keysIndex >= keys.length)
-                    return false;
-                if (keys[keysIndex] != null && keys[keysIndex] != ValueNull.DELETED)
-                    return true;
-            } while (true);
+            return left > 0;
         }
 
         @Override
         public Map.Entry<Value, V> next() {
-            return new DataUtils.MapEntry<Value, V>(keys[keysIndex], values[keysIndex]);
+            left--;
+            do {
+                keysIndex++;
+                if (keys[keysIndex] != null && keys[keysIndex] != ValueNull.DELETED)
+                    return new DataUtils.MapEntry<Value, V>(keys[keysIndex], values[keysIndex]);
+            } while (true);
+        }
+        
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
         }
     }
 

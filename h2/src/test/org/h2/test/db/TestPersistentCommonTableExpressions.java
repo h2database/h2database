@@ -98,7 +98,7 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
         int expectedNumberOfRows = expectedRowData.length;
 
         testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, setupSQL,
-                withQuery, maxRetries - 1, expectedColumnTypes);
+                withQuery, maxRetries - 1, expectedColumnTypes, true);
 
     }
 
@@ -147,7 +147,7 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
         String[] expectedColumnTypes = new String[]{"INTEGER", "INTEGER", "INTEGER", "INTEGER"};
         int expectedNumberOfRows = 11;
         testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, setupSQL,
-                withQuery, maxRetries - 1, expectedColumnTypes);
+                withQuery, maxRetries - 1, expectedColumnTypes, false);
     }
 
     private void testPersistentNonRecursiveTableInCreateView() throws Exception {
@@ -186,7 +186,7 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
         String[] expectedColumnTypes = new String[]{"INTEGER", "INTEGER", "INTEGER", "INTEGER"};
         int expectedNumberOfRows = 5;
         testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, setupSQL,
-                withQuery, maxRetries - 1, expectedColumnTypes);
+                withQuery, maxRetries - 1, expectedColumnTypes, false);
     }
 
     private void testPersistentNonRecursiveTableInCreateViewDropAllObjects() throws Exception {
@@ -224,7 +224,7 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
         String[] expectedColumnTypes = new String[]{"INTEGER", "INTEGER", "INTEGER", "INTEGER"};
         int expectedNumberOfRows = 5;
         testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, setupSQL,
-                withQuery, maxRetries - 1, expectedColumnTypes);
+                withQuery, maxRetries - 1, expectedColumnTypes, false);
     }
 
     private void testPersistentRecursiveTableInCreateViewDropAllObjects() throws Exception {
@@ -271,6 +271,6 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
         String[] expectedColumnTypes = new String[]{"INTEGER", "INTEGER", "INTEGER", "INTEGER"};
         int expectedNumberOfRows = 11;
         testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, setupSQL,
-                withQuery, maxRetries - 1, expectedColumnTypes);
+                withQuery, maxRetries - 1, expectedColumnTypes, false);
     }
 }

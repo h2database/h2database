@@ -54,7 +54,12 @@ public class ValueHashMap<V> extends HashBase {
     }
 
     private int getIndex(Value key) {
-        return key.hashCode() & mask;
+        int h = key.hashCode();
+        /*
+         * Add some protection against hashes with the same less significant bits
+         * (ValueDouble with integer values, for example).
+         */
+        return (h ^ h >>> 16) & mask;
     }
 
     /**

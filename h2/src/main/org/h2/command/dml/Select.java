@@ -5,6 +5,13 @@
  */
 package org.h2.command.dml;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.TreeMap;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
@@ -12,23 +19,39 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
-import org.h2.expression.*;
+import org.h2.expression.Alias;
+import org.h2.expression.Comparison;
+import org.h2.expression.ConditionAndOr;
+import org.h2.expression.Expression;
+import org.h2.expression.ExpressionColumn;
+import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.Parameter;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
-import org.h2.result.*;
-import org.h2.table.*;
-import org.h2.util.*;
+import org.h2.result.LazyResult;
+import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
+import org.h2.result.ResultTarget;
+import org.h2.result.Row;
+import org.h2.result.SearchRow;
+import org.h2.result.SortOrder;
+import org.h2.table.Column;
+import org.h2.table.ColumnResolver;
+import org.h2.table.IndexColumn;
+import org.h2.table.JoinBatch;
+import org.h2.table.Table;
+import org.h2.table.TableFilter;
+import org.h2.table.TableView;
+import org.h2.util.ColumnNamer;
+import org.h2.util.StatementBuilder;
+import org.h2.util.StringUtils;
+import org.h2.util.Utils;
+import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
 
 /**
  * This class represents a simple SELECT statement.
@@ -92,7 +115,7 @@ public class Select extends Query {
     /**
      * Map of group-by key to group-by expression data e.g. AggregateData
      */
-    private ValueHashMap<Object[]> groupByData;
+    private HashMap<Value, Object[]> groupByData;
     /**
      * Key into groupByData that produces currentGroupByExprData. Not used in lazy mode.
      */
@@ -375,7 +398,7 @@ public class Select extends Query {
     }
 
     private void queryGroup(int columnCount, LocalResult result) {
-        groupByData = ValueHashMap.newInstance();
+        groupByData = new HashMap<>();
         currentGroupByExprData = null;
         currentGroupsKey = null;
         exprToIndexInGroupByData.clear();
@@ -424,7 +447,7 @@ public class Select extends Query {
                 groupByData.put(defaultGroup,
                         new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())]);
             }
-            for (Map.Entry<Value, Object[]> entry : groupByData.entries()) {
+            for (Map.Entry<Value, Object[]> entry : groupByData.entrySet()) {
                 currentGroupsKey = (ValueArray) entry.getKey();
                 currentGroupByExprData = entry.getValue();
                 Value[] keyValues = currentGroupsKey.getList();

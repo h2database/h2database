@@ -379,6 +379,8 @@ public class Select extends Query {
         currentGroupByExprData = null;
         currentGroupsKey = null;
         exprToIndexInGroupByData.clear();
+        cachedLookup = null;
+        cachedLookupIndex = null;
         try {
             int rowNumber = 0;
             setCurrentRowNumber(0);
@@ -448,6 +450,8 @@ public class Select extends Query {
             currentGroupsKey = null;
             currentGroupByExprData = null;
             exprToIndexInGroupByData.clear();
+            cachedLookup = null;
+            cachedLookupIndex = null;
         }
     }
 

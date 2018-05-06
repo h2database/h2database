@@ -196,6 +196,7 @@ public class Select extends Query {
         if (cachedLookup == expr) {
             assert currentGroupByExprData[cachedLookupIndex] == null;
             currentGroupByExprData[cachedLookupIndex] = obj;
+            return;
         }
         Integer index = exprToIndexInGroupByData.get(expr);
         if (index != null) {

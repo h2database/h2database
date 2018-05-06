@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 /**
  * This class represents a simple SELECT statement.
@@ -420,10 +421,9 @@ public class Select extends Query {
                 groupByData.put(defaultGroup,
                         new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())]);
             }
-            ArrayList<Value> keys = groupByData.keys();
-            for (Value v : keys) {
-                currentGroupsKey = (ValueArray) v;
-                currentGroupByExprData = groupByData.get(currentGroupsKey);
+            for (Map.Entry<Value, Object[]> entry : groupByData.entries()) {
+                currentGroupsKey = (ValueArray) entry.getKey();
+                currentGroupByExprData = entry.getValue();
                 Value[] keyValues = currentGroupsKey.getList();
                 Value[] row = new Value[columnCount];
                 for (int j = 0; groupIndex != null && j < groupIndex.length; j++) {

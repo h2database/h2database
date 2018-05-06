@@ -6,7 +6,10 @@
 package org.h2.util;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map;
 import org.h2.message.DbException;
+import org.h2.mvstore.DataUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -187,6 +190,39 @@ public class ValueHashMap<V> extends HashBase {
             }
         }
         return list;
+    }
+    
+    public Iterable<Map.Entry<Value, V>> entries() {
+        return new EntryIterable();
+    }
+    
+    private final class EntryIterable implements Iterable<Map.Entry<Value, V>> {
+        @Override
+        public Iterator<Map.Entry<Value, V>> iterator() {
+            return new EntryIterator();
+        }
+    }
+
+    private final class EntryIterator implements Iterator<Map.Entry<Value, V>> {
+        int keysIndex = -1;
+
+        @Override
+        public boolean hasNext() {
+            if (keysIndex >= keys.length)
+                return false;
+            do {
+                keysIndex++;
+                if (keysIndex >= keys.length)
+                    return false;
+                if (keys[keysIndex] != null && keys[keysIndex] != ValueNull.DELETED)
+                    return true;
+            } while (true);
+        }
+
+        @Override
+        public Map.Entry<Value, V> next() {
+            return new DataUtils.MapEntry<Value, V>(keys[keysIndex], values[keysIndex]);
+        }
     }
 
     /**

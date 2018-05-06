@@ -492,7 +492,7 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
         int expectedNumberOfRows = expectedRowData.length;
 
         testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, setupSQL,
-                withQuery, maxRetries - 1, expectedColumnTypes);
+                withQuery, maxRetries - 1, expectedColumnTypes, false);
 
     }
 
@@ -512,7 +512,7 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
         int expectedNumberOfRows = expectedRowData.length;
 
         testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, setupSQL,
-                withQuery, maxRetries - 1, expectedColumnTypes);
+                withQuery, maxRetries - 1, expectedColumnTypes, false);
 
     }
 
@@ -549,7 +549,7 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
             int expectedNumberOfRows = expectedRowData.length;
 
             testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows,
-                    setupSQL, withQuery, maxRetries - 1, expectedColumnTypes);
+                    setupSQL, withQuery, maxRetries - 1, expectedColumnTypes, false);
         } finally {
             config = backupConfig;
         }
@@ -576,6 +576,6 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
         int expectedNumberOfRows = expectedRowData.length;
 
         testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, setupSQL,
-                withQuery, maxRetries - 1, expectedColumnTypes);
+                withQuery, maxRetries - 1, expectedColumnTypes, false);
     }
 }

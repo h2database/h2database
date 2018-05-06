@@ -6312,6 +6312,8 @@ SELECT 'abc', 'Papa Joe''s', CAST(-1 AS SMALLINT), CAST(2 AS BIGINT), CAST(0 AS 
 > abc   Papa Joe's    -1 2 0.0 0a0f    125 TRUE FALSE
 > rows: 1
 
+-- ' This apostrophe is here to fix syntax highlighing in the text editors.
+
 SELECT CAST('abcd' AS VARCHAR(255)), CAST('ef_gh' AS VARCHAR(3));
 > 'abcd' 'ef_'
 > ------ -----
@@ -6888,10 +6890,10 @@ INSERT INTO TEST VALUES(?, ?, ?);
 SELECT IFNULL(NAME, '') || ': ' || GROUP_CONCAT(VALUE ORDER BY NAME, VALUE DESC SEPARATOR ', ') FROM TEST GROUP BY NAME;
 > (IFNULL(NAME, '') || ': ') || GROUP_CONCAT(VALUE ORDER BY NAME, VALUE DESC SEPARATOR ', ')
 > ------------------------------------------------------------------------------------------
-> Apples: 1.50, 1.20, 1.10
-> Oranges: 2.05, 1.80
 > Bananas: 2.50
+> Apples: 1.50, 1.20, 1.10
 > Cherries: 5.10
+> Oranges: 2.05, 1.80
 > : 3.10, -10.00
 > rows (ordered): 5
 

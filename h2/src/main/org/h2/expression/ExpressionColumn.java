@@ -159,14 +159,13 @@ public class ExpressionColumn extends Expression {
         if (select == null) {
             throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
         }
-        HashMap<Expression, Object> values = select.getCurrentGroup();
-        if (values == null) {
+        if (!select.isCurrentGroup()) {
             // this is a different level (the enclosing query)
             return;
         }
-        Value v = (Value) values.get(this);
+        Value v = (Value) select.getCurrentGroupExprData(this);
         if (v == null) {
-            values.put(this, now);
+            select.setCurrentGroupExprData(this, now);
         } else {
             if (!database.areEqual(now, v)) {
                 throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
@@ -178,9 +177,8 @@ public class ExpressionColumn extends Expression {
     public Value getValue(Session session) {
         Select select = columnResolver.getSelect();
         if (select != null) {
-            HashMap<Expression, Object> values = select.getCurrentGroup();
-            if (values != null) {
-                Value v = (Value) values.get(this);
+            if (select.isCurrentGroup()) {
+                Value v = (Value) select.getCurrentGroupExprData(this);
                 if (v != null) {
                     return v;
                 }

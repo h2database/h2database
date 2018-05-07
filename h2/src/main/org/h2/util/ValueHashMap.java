@@ -5,11 +5,12 @@
  */
 package org.h2.util;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import org.h2.message.DbException;
-import org.h2.mvstore.DataUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -34,8 +35,8 @@ import org.h2.value.ValueNull;
  */
 public class ValueHashMap<V> extends HashBase {
 
-    private Value[] keys;
-    private V[] values;
+    Value[] keys;
+    V[] values;
 
     /**
      * Create a new value hash map.
@@ -197,6 +198,9 @@ public class ValueHashMap<V> extends HashBase {
     }
     
     private final class EntryIterable implements Iterable<Map.Entry<Value, V>> {
+        EntryIterable() {
+        }
+
         @Override
         public Iterator<Map.Entry<Value, V>> iterator() {
             return new EntryIterator();
@@ -207,6 +211,9 @@ public class ValueHashMap<V> extends HashBase {
         private int keysIndex = -1;
         private int left = size;
 
+        EntryIterator() {
+        }
+
         @Override
         public boolean hasNext() {
             return left > 0;
@@ -214,12 +221,15 @@ public class ValueHashMap<V> extends HashBase {
 
         @Override
         public Map.Entry<Value, V> next() {
+            if (left <= 0)
+                throw new NoSuchElementException();
             left--;
-            do {
+            for (;;) {
                 keysIndex++;
-                if (keys[keysIndex] != null && keys[keysIndex] != ValueNull.DELETED)
-                    return new DataUtils.MapEntry<Value, V>(keys[keysIndex], values[keysIndex]);
-            } while (true);
+                Value key = keys[keysIndex];
+                if (key != null && key != ValueNull.DELETED)
+                    return new AbstractMap.SimpleImmutableEntry<Value, V>(keys[keysIndex], values[keysIndex]);
+            }
         }
         
         @Override

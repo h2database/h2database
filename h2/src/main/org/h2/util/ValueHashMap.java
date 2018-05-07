@@ -228,7 +228,7 @@ public class ValueHashMap<V> extends HashBase {
                 keysIndex++;
                 Value key = keys[keysIndex];
                 if (key != null && key != ValueNull.DELETED)
-                    return new AbstractMap.SimpleImmutableEntry<Value, V>(keys[keysIndex], values[keysIndex]);
+                    return new AbstractMap.SimpleImmutableEntry<Value, V>(key, values[keysIndex]);
             }
         }
         

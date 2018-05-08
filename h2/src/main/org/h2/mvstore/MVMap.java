@@ -673,7 +673,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                     @Override
                     public Entry<K, V> next() {
                         K k = cursor.next();
-                        return new DataUtils.MapEntry<>(k, cursor.getValue());
+                        return new SimpleImmutableEntry<>(k, cursor.getValue());
                     }
 
                     @Override

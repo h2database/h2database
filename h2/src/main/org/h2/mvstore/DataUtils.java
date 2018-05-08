@@ -1027,39 +1027,6 @@ public final class DataUtils {
     }
 
     /**
-     * An entry of a map.
-     *
-     * @param <K> the key type
-     * @param <V> the value type
-     */
-    public static final class MapEntry<K, V> implements Map.Entry<K, V> {
-
-        private final K key;
-        private final V value;
-
-        public MapEntry(K key, V value) {
-            this.key = key;
-            this.value = value;
-        }
-
-        @Override
-        public K getKey() {
-            return key;
-        }
-
-        @Override
-        public V getValue() {
-            return value;
-        }
-
-        @Override
-        public V setValue(V value) {
-            throw newUnsupportedOperationException("Updating the value is not supported");
-        }
-
-    }
-
-    /**
      * Get the configuration parameter value, or default.
      *
      * @param config the configuration

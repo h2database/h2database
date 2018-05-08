@@ -29,10 +29,6 @@ public class ValueArray extends Value {
         this.values = list;
     }
 
-    private ValueArray(Value[] list) {
-        this(Object.class, list);
-    }
-
     /**
      * Get or create a array value for the given value array.
      * Do not clone the data.
@@ -41,7 +37,7 @@ public class ValueArray extends Value {
      * @return the value
      */
     public static ValueArray get(Value[] list) {
-        return new ValueArray(list);
+        return new ValueArray(Object.class, list);
     }
 
     /**

@@ -113,10 +113,6 @@ public class TestOldVersion extends TestBase {
     }
 
     private void testOldClientNewServer() throws Exception {
-        // TODO fails in pagestore mode
-        if (!config.mvStore) {
-            return;
-        }
         Server server = org.h2.tools.Server.createTcpServer();
         server.start();
         int port = server.getPort();

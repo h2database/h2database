@@ -141,7 +141,14 @@ public class TestOldVersion extends TestBase {
 
     private static ClassLoader getClassLoader(String jarFile) throws Exception {
         URL[] urls = { new URL(jarFile) };
-        return new URLClassLoader(urls, null);
+        return new URLClassLoader(urls, null) {
+            @Override
+            protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+                if (name.startsWith("org.h2."))
+                    return super.loadClass(name, resolve);
+                return TestOldVersion.class.getClassLoader().loadClass(name);
+            }
+        };
     }
 
     private static Driver getDriver(ClassLoader cl) throws Exception {

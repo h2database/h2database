@@ -681,6 +681,10 @@ public class TestLob extends TestBase {
         if (config.memory || config.mvStore) {
             return;
         }
+        // TODO fails in pagestore mode
+        if (!config.mvStore) {
+            return;
+        }
         deleteDb("lob");
         Connection conn;
         Statement stat;

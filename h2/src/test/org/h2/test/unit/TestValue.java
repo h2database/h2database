@@ -336,7 +336,7 @@ public class TestValue extends TestBase {
                 new Value[] {ValueString.get("1"), ValueString.get("22"), ValueString.get("333")});
         assertEquals(6, src.getPrecision());
         assertSame(src, src.convertPrecision(5, false));
-        assertEquals(src, src.convertPrecision(6, true));
+        assertSame(src, src.convertPrecision(6, true));
         ValueArray exp = ValueArray.get(
                 new Value[] {ValueString.get("1"), ValueString.get("22"), ValueString.get("33")});
         assertEquals(exp, src.convertPrecision(5, true));

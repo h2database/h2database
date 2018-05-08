@@ -108,7 +108,7 @@ public class Select extends Query {
     /**
      * Maps an expression object to an index, to use in accessing the Object[] pointed to by groupByData.
      */
-    private final HashMap<Expression,Integer> exprToIndexInGroupByData = new HashMap<>();
+    final HashMap<Expression,Integer> exprToIndexInGroupByData = new HashMap<>();
     /**
      * Map of group-by key to group-by expression data e.g. AggregateData
      */
@@ -116,7 +116,7 @@ public class Select extends Query {
     /**
      * Key into groupByData that produces currentGroupByExprData. Not used in lazy mode.
      */
-    private ValueArray currentGroupsKey;
+    ValueArray currentGroupsKey;
     
     private int havingIndex;
     private boolean isGroupQuery, isGroupSortedQuery;

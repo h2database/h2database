@@ -7,11 +7,9 @@ package org.h2.command.dml;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.TreeMap;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
@@ -48,7 +46,6 @@ import org.h2.util.ColumnNamer;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
-import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
@@ -111,7 +108,7 @@ public class Select extends Query {
     /**
      * Maps an expression object to an index, to use in accessing the Object[] pointed to by groupByData.
      */
-    private final HashMap<Expression,Integer> exprToIndexInGroupByData = new HashMap<>();
+    final HashMap<Expression,Integer> exprToIndexInGroupByData = new HashMap<>();
     /**
      * Map of group-by key to group-by expression data e.g. AggregateData
      */
@@ -119,7 +116,7 @@ public class Select extends Query {
     /**
      * Key into groupByData that produces currentGroupByExprData. Not used in lazy mode.
      */
-    private ValueArray currentGroupsKey;
+    ValueArray currentGroupsKey;
     
     private int havingIndex;
     private boolean isGroupQuery, isGroupSortedQuery;

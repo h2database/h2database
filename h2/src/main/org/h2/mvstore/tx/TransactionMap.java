@@ -9,6 +9,8 @@ import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.type.DataType;
+
+import java.util.AbstractMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -671,7 +673,7 @@ public class TransactionMap<K, V> {
                         if (data != null && data.value != null) {
                             @SuppressWarnings("unchecked")
                             final V value = (V) data.value;
-                            current = new DataUtils.MapEntry<>(key, value);
+                            current = new AbstractMap.SimpleImmutableEntry<>(key, value);
                             currentKey = key;
                             return;
                         }

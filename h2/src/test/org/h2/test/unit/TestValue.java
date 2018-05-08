@@ -332,18 +332,24 @@ public class TestValue extends TestBase {
     }
 
     private void testArray() {
-        ValueArray src = ValueArray.get(
+        ValueArray src = ValueArray.get(String.class,
                 new Value[] {ValueString.get("1"), ValueString.get("22"), ValueString.get("333")});
         assertEquals(6, src.getPrecision());
         assertSame(src, src.convertPrecision(5, false));
         assertSame(src, src.convertPrecision(6, true));
-        ValueArray exp = ValueArray.get(
+        ValueArray exp = ValueArray.get(String.class,
                 new Value[] {ValueString.get("1"), ValueString.get("22"), ValueString.get("33")});
-        assertEquals(exp, src.convertPrecision(5, true));
-        exp = ValueArray.get(new Value[] {ValueString.get("1"), ValueString.get("22")});
-        assertEquals(exp, src.convertPrecision(3, true));
-        exp = ValueArray.get(new Value[0]);
-        assertEquals(exp, src.convertPrecision(0, true));
+        Value got = src.convertPrecision(5, true);
+        assertEquals(exp, got);
+        assertEquals(String.class, ((ValueArray) got).getComponentType());
+        exp = ValueArray.get(String.class, new Value[] {ValueString.get("1"), ValueString.get("22")});
+        got = src.convertPrecision(3, true);
+        assertEquals(exp, got);
+        assertEquals(String.class, ((ValueArray) got).getComponentType());
+        exp = ValueArray.get(String.class, new Value[0]);
+        got = src.convertPrecision(0, true);
+        assertEquals(exp, got);
+        assertEquals(String.class, ((ValueArray) got).getComponentType());
     }
 
     private void testUUID() {

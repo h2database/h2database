@@ -225,9 +225,9 @@ public class ValueArray extends Value {
             newValues[i] = v;
         }
         if (i < length) {
-            return get(Arrays.copyOf(newValues, i));
+            return get(componentType, Arrays.copyOf(newValues, i));
         }
-        return modified ? get(newValues) : this;
+        return modified ? get(componentType, newValues) : this;
     }
 
 }

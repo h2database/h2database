@@ -5,6 +5,7 @@
  */
 package org.h2.mvstore.db;
 
+import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -18,7 +19,6 @@ import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
-import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionMap;
 import org.h2.result.Row;
@@ -261,7 +261,7 @@ public class MVPrimaryIndex extends BaseIndex {
                     Collections.<Entry<Value, Value>> emptyList().iterator());
         }
         Value value = map.get(v);
-        Entry<Value, Value> e = new DataUtils.MapEntry<Value, Value>(v, value);
+        Entry<Value, Value> e = new AbstractMap.SimpleImmutableEntry<Value, Value>(v, value);
         List<Entry<Value, Value>> list = Collections.singletonList(e);
         MVStoreCursor c = new MVStoreCursor(session, list.iterator());
         c.next();

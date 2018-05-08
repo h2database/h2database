@@ -7,6 +7,7 @@ package org.h2.expression;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Map;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.util.ValueHashMap;
@@ -47,9 +48,9 @@ class AggregateDataHistogram extends AggregateData {
         }
         ValueArray[] values = new ValueArray[distinctValues.size()];
         int i = 0;
-        for (Value dv : distinctValues.keys()) {
-            AggregateDataHistogram d = distinctValues.get(dv);
-            values[i] = ValueArray.get(new Value[] { dv, ValueLong.get(d.count) });
+        for (Map.Entry<Value,AggregateDataHistogram> entry : distinctValues.entries()) {
+            AggregateDataHistogram d = entry.getValue();
+            values[i] = ValueArray.get(new Value[] { entry.getKey(), ValueLong.get(d.count) });
             i++;
         }
         final CompareMode compareMode = database.getCompareMode();

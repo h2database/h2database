@@ -133,8 +133,12 @@ public class ValueDouble extends Value {
 
     @Override
     public int hashCode() {
-        long hash = Double.doubleToLongBits(value);
-        return (int) (hash ^ (hash >> 32));
+        /*
+         * NaNs are normalized in get() method, so it's safe to use
+         * doubleToRawLongBits() instead of doubleToLongBits() here.
+         */
+        long hash = Double.doubleToRawLongBits(value);
+        return (int) (hash ^ (hash >>> 32));
     }
 
     @Override

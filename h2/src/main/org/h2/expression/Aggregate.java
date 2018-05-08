@@ -283,8 +283,7 @@ public class Aggregate extends Expression {
         // if (on != null) {
         // on.updateAggregate();
         // }
-        HashMap<Expression, Object> group = select.getCurrentGroup();
-        if (group == null) {
+        if (!select.isCurrentGroup()) {
             // this is a different level (the enclosing query)
             return;
         }
@@ -296,10 +295,10 @@ public class Aggregate extends Expression {
         }
         lastGroupRowId = groupRowId;
 
-        AggregateData data = (AggregateData) group.get(this);
+        AggregateData data = (AggregateData) select.getCurrentGroupExprData(this);
         if (data == null) {
             data = AggregateData.create(type);
-            group.put(this, data);
+            select.setCurrentGroupExprData(this, data);
         }
         Value v = on == null ? null : on.getValue(session);
         if (type == AggregateType.GROUP_CONCAT) {
@@ -372,13 +371,13 @@ public class Aggregate extends Expression {
                 DbException.throwInternalError("type=" + type);
             }
         }
-        HashMap<Expression, Object> group = select.getCurrentGroup();
-        if (group == null) {
-            throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
+        if (!select.isCurrentGroup()) {    
+            throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());    
         }
-        AggregateData data = (AggregateData) group.get(this);
+        AggregateData data = (AggregateData)select.getCurrentGroupExprData(this);
         if (data == null) {
             data = AggregateData.create(type);
+            select.setCurrentGroupExprData(this, data);
         }
         if (type == AggregateType.GROUP_CONCAT) {
             Value[] array = ((AggregateDataCollecting) data).getArray();

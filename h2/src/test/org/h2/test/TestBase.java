@@ -850,6 +850,19 @@ public abstract class TestBase {
     }
 
     /**
+     * Check if two objects are the same, and if not throw an exception.
+     *
+     * @param expected the expected value
+     * @param actual the actual value
+     * @throws AssertionError if the objects are not the same
+     */
+    public void assertSame(Object expected, Object actual) {
+        if (expected != actual) {
+            fail(" expected: " + expected + " != actual: " + actual);
+        }
+    }
+
+    /**
      * Check if the first value is larger or equal than the second value, and if
      * not throw an exception.
      *

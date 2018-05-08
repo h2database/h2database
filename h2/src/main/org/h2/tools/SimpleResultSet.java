@@ -2252,6 +2252,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     // --- private -----------------------------
 
     private void update(int columnIndex, Object obj) throws SQLException {
+        checkClosed();
         checkColumnIndex(columnIndex);
         this.currentRow[columnIndex - 1] = obj;
     }
@@ -2266,6 +2267,12 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     static SQLException getUnsupportedException() {
         return DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1).
                 getSQLException();
+    }
+
+    private void checkClosed() throws SQLException {
+        if (columns == null) {
+            throw DbException.get(ErrorCode.OBJECT_CLOSED).getSQLException();
+        }
     }
 
     private void checkColumnIndex(int columnIndex) throws SQLException {

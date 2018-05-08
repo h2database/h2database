@@ -449,7 +449,7 @@ public class MVTable extends TableBase {
                 }
             }
             synchronized (getLockSyncObject()) {
-                if (lockSharedSessions.size() > 0) {
+                if (!lockSharedSessions.isEmpty()) {
                     lockSharedSessions.remove(s);
                     if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
                         if (SHARED_LOCKS.get() != null) {

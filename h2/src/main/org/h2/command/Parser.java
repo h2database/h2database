@@ -5929,8 +5929,8 @@ public class Parser {
 
     boolean isDualTable(String tableName) {
         return ((schemaName == null || equalsToken(schemaName, "SYS")) && equalsToken("DUAL", tableName))
-                || (database.getMode().sysDummy1 && (schemaName == null || equalsToken(schemaName, "SYSIBM")))
-                        && equalsToken("SYSDUMMY1", tableName);
+                || (database.getMode().sysDummy1 && (schemaName == null || equalsToken(schemaName, "SYSIBM"))
+                        && equalsToken("SYSDUMMY1", tableName));
     }
 
     private Table readTableOrView() {

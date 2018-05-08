@@ -5320,7 +5320,7 @@ public class Parser {
                 if (isPersistent) {
                     db.addSchemaObject(targetSession, view);
                     view.lock(targetSession, true, true);
-                    targetSession.getDatabase().removeSchemaObject(targetSession, view);
+                    db.removeSchemaObject(targetSession, view);
                 } else {
                     session.removeLocalTempTable(view);
                 }
@@ -5330,7 +5330,7 @@ public class Parser {
                         isPersistent);
             }
             // both removeSchemaObject and removeLocalTempTable hold meta locks
-            targetSession.getDatabase().unlockMeta(targetSession);
+            db.unlockMeta(targetSession);
         }
         view.setTableExpression(true);
         view.setTemporary(!isPersistent);

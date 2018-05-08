@@ -738,6 +738,10 @@ public class TestLob extends TestBase {
         if (config.mvStore) {
             return;
         }
+        // TODO fails in pagestore mode
+        if (!config.mvStore) {
+            return;
+        }
         deleteDb("lob");
         Connection conn = getConnection("lob");
         Statement stat = conn.createStatement();

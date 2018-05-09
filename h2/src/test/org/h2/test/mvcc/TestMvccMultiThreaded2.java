@@ -43,6 +43,9 @@ public class TestMvccMultiThreaded2 extends TestBase {
 
     @Override
     public void test() throws SQLException, InterruptedException {
+        if (!config.mvcc) {
+            return;
+        }
         testSelectForUpdateConcurrency();
     }
 

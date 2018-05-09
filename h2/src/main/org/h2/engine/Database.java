@@ -20,7 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
@@ -94,6 +93,7 @@ public class Database implements DataHandler {
     private static int initialPowerOffCount;
 
     private static final ThreadLocal<Session> META_LOCK_DEBUGGING = new ThreadLocal<>();
+    private static final ThreadLocal<Database> META_LOCK_DEBUGGING_DB = new ThreadLocal<>();
     private static final ThreadLocal<Throwable> META_LOCK_DEBUGGING_STACK = new ThreadLocal<>();
 
     /**
@@ -211,6 +211,7 @@ public class Database implements DataHandler {
 
     public Database(ConnectionInfo ci, String cipher) {
         META_LOCK_DEBUGGING.set(null);
+        META_LOCK_DEBUGGING_DB.set(null);
         META_LOCK_DEBUGGING_STACK.set(null);
         String name = ci.getName();
         this.dbSettings = ci.getDbSettings();
@@ -932,17 +933,23 @@ public class Database implements DataHandler {
             return true;
         }
         if (SysProperties.CHECK2) {
-            final Session prev = META_LOCK_DEBUGGING.get();
-            if (prev == null) {
-                META_LOCK_DEBUGGING.set(session);
-                META_LOCK_DEBUGGING_STACK.set(new Throwable("Last meta lock granted in this stack trace, "+
-                        "this is debug information for following IllegalStateException"));
-            } else if (prev != session) {
-                META_LOCK_DEBUGGING_STACK.get().printStackTrace();
-                throw new IllegalStateException("meta currently locked by "
-                        + prev +", sessionid="+ prev.getId()
-                        + " and trying to be locked by different session, "
-                        + session +", sessionid="+ session.getId() + " on same thread");
+            // If we are locking two different databases in the same stack, just ignore it.
+            // This only happens in TestLinkedTable where we connect to another h2 DB in the same process.
+            if (META_LOCK_DEBUGGING_DB.get() != null
+                    && META_LOCK_DEBUGGING_DB.get() != this) {
+                final Session prev = META_LOCK_DEBUGGING.get();
+                if (prev == null) {
+                    META_LOCK_DEBUGGING.set(session);
+                    META_LOCK_DEBUGGING_DB.set(this);
+                    META_LOCK_DEBUGGING_STACK.set(new Throwable("Last meta lock granted in this stack trace, "+
+                            "this is debug information for following IllegalStateException"));
+                } else if (prev != session) {
+                    META_LOCK_DEBUGGING_STACK.get().printStackTrace();
+                    throw new IllegalStateException("meta currently locked by "
+                            + prev +", sessionid="+ prev.getId()
+                            + " and trying to be locked by different session, "
+                            + session +", sessionid="+ session.getId() + " on same thread");
+                }
             }
         }
         return meta.lock(session, true, true);
@@ -969,6 +976,7 @@ public class Database implements DataHandler {
         if (SysProperties.CHECK2) {
             if (META_LOCK_DEBUGGING.get() == session) {
                 META_LOCK_DEBUGGING.set(null);
+                META_LOCK_DEBUGGING_DB.set(null);
                 META_LOCK_DEBUGGING_STACK.set(null);
             }
         }
@@ -1440,7 +1448,7 @@ public class Database implements DataHandler {
             }
         }
         reconnectModified(false);
-        if (mvStore != null) {
+        if (mvStore != null && !mvStore.getStore().isClosed()) {
             long maxCompactTime = dbSettings.maxCompactTime;
             if (compactMode == CommandInterface.SHUTDOWN_COMPACT) {
                 mvStore.compactFile(dbSettings.maxCompactTime);

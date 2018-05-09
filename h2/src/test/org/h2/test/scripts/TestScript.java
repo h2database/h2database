@@ -47,7 +47,6 @@ public class TestScript extends TestBase {
     private Statement stat;
     private String fileName;
     private LineNumberReader in;
-    private int outputLineNo;
     private PrintStream out;
     private final ArrayList<String[]> result = new ArrayList<>();
     private String putBack;
@@ -177,7 +176,6 @@ public class TestScript extends TestBase {
         stat = null;
         fileName = null;
         in = null;
-        outputLineNo = 0;
         out = null;
         result.clear();
         putBack = null;
@@ -550,7 +548,6 @@ public class TestScript extends TestBase {
     }
 
     private void write(String s) {
-        outputLineNo++;
         out.println(s);
     }
 

@@ -312,8 +312,11 @@ public class PageDataIndex extends PageIndex {
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
             AllColumnsForPlan allColumnsSet) {
+        // The +200 is so that indexes that can return the same data, but have less columns, will take precedence.
+        // This all works out easier in the MVStore case, because MVStore uses the same cost calculation
+        // code for the ScanIndex (i.e. the MVPrimaryIndex) and all other indices.
         return 10 * (tableData.getRowCountApproximation() +
-                Constants.COST_ROW_OFFSET);
+                Constants.COST_ROW_OFFSET) + 200;
     }
 
     @Override

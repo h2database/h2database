@@ -49,29 +49,33 @@ public class RangeIndex extends BaseIndex {
         long min = rangeTable.getMin(session);
         long max = rangeTable.getMax(session);
         long step = rangeTable.getStep(session);
-        try {
-            long v = first.getValue(0).getLong();
-            if (step > 0) {
-                if (v > min) {
-                    min += (v - min + step - 1) / step * step;
-                }
-            } else if (v > max) {
-                max = v;
-            }
-        } catch (Exception e) {
-            // error when converting the value - ignore
-        }
-        try {
-            long v = last.getValue(0).getLong();
-            if (step > 0) {
-                if (v < max) {
+        if (first != null) {
+            try {
+                long v = first.getValue(0).getLong();
+                if (step > 0) {
+                    if (v > min) {
+                        min += (v - min + step - 1) / step * step;
+                    }
+                } else if (v > max) {
                     max = v;
                 }
-            } else if (v < min) {
-                min -= (min - v - step - 1) / step * step;
+            } catch (DbException e) {
+                // error when converting the value - ignore
             }
-        } catch (Exception e) {
-            // error when converting the value - ignore
+        }
+        if (last != null) {
+            try {
+                long v = last.getValue(0).getLong();
+                if (step > 0) {
+                    if (v < max) {
+                        max = v;
+                    }
+                } else if (v < min) {
+                    min -= (min - v - step - 1) / step * step;
+                }
+            } catch (DbException e) {
+                // error when converting the value - ignore
+            }
         }
         return new RangeCursor(session, min, max, step);
     }

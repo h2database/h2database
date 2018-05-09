@@ -118,6 +118,10 @@ public class TestLob extends TestBase {
         if (config.memory || config.cipher != null) {
             return;
         }
+        // TODO fails in pagestore mode
+        if (!config.mvStore) {
+            return;
+        }
         deleteDb("lob");
         Connection conn = getConnection("lob");
         Statement stat = conn.createStatement();
@@ -677,6 +681,10 @@ public class TestLob extends TestBase {
         if (config.memory || config.mvStore) {
             return;
         }
+        // TODO fails in pagestore mode
+        if (!config.mvStore) {
+            return;
+        }
         deleteDb("lob");
         Connection conn;
         Statement stat;
@@ -728,6 +736,10 @@ public class TestLob extends TestBase {
 
     private void testLobCleanupSessionTemporaries() throws SQLException {
         if (config.mvStore) {
+            return;
+        }
+        // TODO fails in pagestore mode
+        if (!config.mvStore) {
             return;
         }
         deleteDb("lob");

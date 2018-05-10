@@ -21,11 +21,37 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>PR #1126: Fix an issue with code coverage and building of documentation
+</li>
+<li>PR #1123: Fix TCP version check
+</li>
+<li>PR #1122: Assorted changes
+</li>
+<li>PR #1121: Add some protection to ValueHashMap against hashes with the same less significant bits
+</li>
+<li>Issue #1097: H2 10x slower than HSQLDB and 6x than Apache Derby for specific query with GROUP BY and DISTINCT subquery
+</li>
+<li>Issue #1093: Use temporary files for ResultSet buffer tables in MVStore
+</li>
+<li>PR #1117: Fix sorting with distinct in ResultTempTable
+</li>
+<li>Issue #1095: Add support for INSERT IGNORE INTO &lt;table&gt; (&lt;columns&gt;) SELECT in MySQL Mode
+</li>
+<li>PR #1114: Minor cleanup and formatting fixes
+</li>
+<li>PR #1112: Improve test scripts
+</li>
+<li>PR #1111: Use a better fix for issue with SRID
+</li>
+<li>Issue #1107: Restore support of DATETIME2 with specified fractional seconds precision
+</li>
 <li>Issue #1106: Get rid of SwitchSource
 </li>
 <li>PR #1105: Assorted minor changes
 </li>
 <li>Issue #1102: CREATE SYNONYM rejects valid definition
+</li>
+<li>PR #1103: Remove redundant synchronization
 </li>
 <li>Issue #1048: 1.4.197 regression. org.h2.jdbc.JdbcSQLException: Timeout trying to lock table "SYS"
 </li>
@@ -43,7 +69,15 @@ Change Log
 </li>
 <li>PR #1087: improve performance of planning large queries
 </li>
+<li>PR #1085: Add tests for simple one-column index sorting
+</li>
+<li>PR #1084: re-enable some pagestore testing
+</li>
+<li>PR #1083: Assorted changes
+</li>
 <li>Issue #394: Recover tool places COLLATION and BINARY_COLLATION after temporary tables
+</li>
+<li>PR #1081: Session.getTransactionId should return a more distinguishing value
 </li>
 <li>Improve the script-based unit testing to check the error code of the exception thrown.
 </li>

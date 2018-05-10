@@ -28,7 +28,8 @@ public class TestBigResult extends TestBase {
     /**
      * Run just this test.
      *
-     * @param a ignored
+     * @param a
+     *              ignored
      */
     public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
@@ -56,13 +57,11 @@ public class TestBigResult extends TestBase {
         int len = getSize(1000, 4000);
         stat.execute("SET MAX_MEMORY_ROWS " + (len / 10));
         stat.execute("CREATE TABLE RECOVERY(TRANSACTION_ID INT, SQL_STMT VARCHAR)");
-        stat.execute("INSERT INTO RECOVERY " +
-                "SELECT X, CASE MOD(X, 2) WHEN 0 THEN 'commit' ELSE 'begin' END " +
-                "FROM SYSTEM_RANGE(1, "+len+")");
-        ResultSet rs = stat.executeQuery("SELECT * FROM RECOVERY " +
-                "WHERE SQL_STMT LIKE 'begin%' AND " +
-                "TRANSACTION_ID NOT IN(SELECT TRANSACTION_ID FROM RECOVERY " +
-                "WHERE SQL_STMT='commit' OR SQL_STMT='rollback')");
+        stat.execute("INSERT INTO RECOVERY " + "SELECT X, CASE MOD(X, 2) WHEN 0 THEN 'commit' ELSE 'begin' END "
+                + "FROM SYSTEM_RANGE(1, " + len + ")");
+        ResultSet rs = stat.executeQuery("SELECT * FROM RECOVERY " + "WHERE SQL_STMT LIKE 'begin%' AND "
+                + "TRANSACTION_ID NOT IN(SELECT TRANSACTION_ID FROM RECOVERY "
+                + "WHERE SQL_STMT='commit' OR SQL_STMT='rollback')");
         int count = 0, last = 1;
         while (rs.next()) {
             assertEquals(last, rs.getInt(1));
@@ -86,9 +85,9 @@ public class TestBigResult extends TestBase {
             ps.executeUpdate();
         }
         // local result
-        testSortintAndDistinct1(stat, count, count);
+        testSortingAndDistinct1(stat, count, count);
         // external result
-        testSortintAndDistinct1(stat, 10, count);
+        testSortingAndDistinct1(stat, 10, count);
         stat.execute("DROP TABLE TEST");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE1 INT NOT NULL, VALUE2 INT NOT NULL)");
         ps = conn.prepareStatement("INSERT INTO TEST VALUES (?, ?, ?)");
@@ -182,7 +181,7 @@ public class TestBigResult extends TestBase {
         conn.close();
     }
 
-    private void testSortintAndDistinct1(Statement stat, int maxRows, int count) throws SQLException {
+    private void testSortingAndDistinct1(Statement stat, int maxRows, int count) throws SQLException {
         stat.execute("SET MAX_MEMORY_ROWS " + maxRows);
         ResultSet rs = stat.executeQuery("SELECT VALUE FROM (SELECT DISTINCT ID, VALUE FROM TEST ORDER BY VALUE)");
         for (int i = 1; i <= count; i++) {
@@ -209,7 +208,8 @@ public class TestBigResult extends TestBase {
         assertFalse(rs.next());
     }
 
-    private void testSortingAndDistinct2DistinctOnly(Statement stat, String sql, int maxRows, int partCount) throws SQLException {
+    private void testSortingAndDistinct2DistinctOnly(Statement stat, String sql, int maxRows, int partCount)
+            throws SQLException {
         ResultSet rs;
         stat.execute("SET MAX_MEMORY_ROWS " + maxRows);
         rs = stat.executeQuery(sql);
@@ -235,7 +235,8 @@ public class TestBigResult extends TestBase {
         assertFalse(rs.next());
     }
 
-    private void testSortingAndDistinct3DistinctOnly(Statement stat, String sql, int maxRows, int partCount) throws SQLException {
+    private void testSortingAndDistinct3DistinctOnly(Statement stat, String sql, int maxRows, int partCount)
+            throws SQLException {
         ResultSet rs;
         stat.execute("SET MAX_MEMORY_ROWS " + maxRows);
         rs = stat.executeQuery(sql);
@@ -261,7 +262,8 @@ public class TestBigResult extends TestBase {
         assertFalse(rs.next());
     }
 
-    private void testSortingAndDistinct4DistinctOnly(Statement stat, String sql, int maxRows, int count) throws SQLException {
+    private void testSortingAndDistinct4DistinctOnly(Statement stat, String sql, int maxRows, int count)
+            throws SQLException {
         stat.execute("SET MAX_MEMORY_ROWS " + maxRows);
         ResultSet rs = stat.executeQuery(sql);
         BitSet set = new BitSet();
@@ -278,7 +280,8 @@ public class TestBigResult extends TestBase {
         assertEquals(count, set.nextClearBit(0));
     }
 
-    private void testSortingAndDistinct4SortingOnly(Statement stat, String sql, int maxRows, int count) throws SQLException {
+    private void testSortingAndDistinct4SortingOnly(Statement stat, String sql, int maxRows, int count)
+            throws SQLException {
         stat.execute("SET MAX_MEMORY_ROWS " + maxRows);
         ResultSet rs = stat.executeQuery(sql);
         for (int i = 0; i < count; i++) {
@@ -377,8 +380,7 @@ public class TestBigResult extends TestBase {
         // rs.close();
         conn.close();
         deleteDb("bigResult");
-        ArrayList<String> files = FileLister.getDatabaseFiles(getBaseDir(),
-                "bigResult", true);
+        ArrayList<String> files = FileLister.getDatabaseFiles(getBaseDir(), "bigResult", true);
         if (files.size() > 0) {
             fail("file not deleted: " + files.get(0));
         }
@@ -415,15 +417,10 @@ public class TestBigResult extends TestBase {
         Connection conn = getConnection("bigResult");
         Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST");
-        stat.execute("CREATE TABLE TEST(" +
-                "ID INT PRIMARY KEY, " +
-                "Name VARCHAR(255), " +
-                "FirstName VARCHAR(255), " +
-                "Points INT," +
-                "LicenseID INT)");
+        stat.execute("CREATE TABLE TEST(" + "ID INT PRIMARY KEY, " + "Name VARCHAR(255), " + "FirstName VARCHAR(255), "
+                + "Points INT," + "LicenseID INT)");
         int len = getSize(10, 5000);
-        PreparedStatement prep = conn.prepareStatement(
-                "INSERT INTO TEST VALUES(?, ?, ?, ?, ?)");
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?, ?, ?, ?)");
         for (int i = 0; i < len; i++) {
             prep.setInt(1, i);
             prep.setString(2, "Name " + i);
@@ -474,8 +471,7 @@ public class TestBigResult extends TestBase {
             prep.setString(2, "" + i / 200);
             prep.execute();
         }
-        Statement s2 = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-                ResultSet.CONCUR_UPDATABLE);
+        Statement s2 = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
         rs = s2.executeQuery("SELECT NAME FROM DATA");
         rs.last();
         conn.setAutoCommit(true);

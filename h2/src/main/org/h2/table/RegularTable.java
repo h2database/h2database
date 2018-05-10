@@ -459,8 +459,8 @@ public class RegularTable extends TableBase {
             return true;
         }
         if (!exclusive && lockSharedSessions.containsKey(session)) {
-          return true;
-      }
+            return true;
+        }
         synchronized (database) {
             if (!exclusive && lockSharedSessions.contains(session)) {
                 return true;

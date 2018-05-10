@@ -492,11 +492,11 @@ public class TestScript extends TestBase {
     }
 
     /** Convert the error code to a symbolic name from ErrorCode. */
-    private static final Map<Integer, String> ERROR_CODE_TO_NAME = new HashMap<>();
+    private static final Map<Integer, String> ERROR_CODE_TO_NAME = new HashMap<>(256);
     static {
         try {
             for (Field field : ErrorCode.class.getDeclaredFields()) {
-                if (Modifier.isStatic(field.getModifiers())) {
+                if (field.getModifiers() == (Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL)) {
                     ERROR_CODE_TO_NAME.put(field.getInt(null), field.getName());
                 }
             }

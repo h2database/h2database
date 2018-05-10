@@ -192,11 +192,11 @@ public class ValueHashMap<V> extends HashBase {
         }
         return list;
     }
-    
+
     public Iterable<Map.Entry<Value, V>> entries() {
         return new EntryIterable();
     }
-    
+
     private final class EntryIterable implements Iterable<Map.Entry<Value, V>> {
         EntryIterable() {
         }
@@ -231,7 +231,7 @@ public class ValueHashMap<V> extends HashBase {
                     return new AbstractMap.SimpleImmutableEntry<>(key, values[keysIndex]);
             }
         }
-        
+
         @Override
         public void remove() {
             throw new UnsupportedOperationException();

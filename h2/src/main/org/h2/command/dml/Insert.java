@@ -394,7 +394,7 @@ public class Insert extends Prepared implements ResultTarget {
 
         ArrayList<String> variableNames = new ArrayList<>(
                 duplicateKeyAssignmentMap.size());
-        Expression[] row = (currentRow == null) ? list.get(getCurrentRowNumber() - 1) 
+        Expression[] row = (currentRow == null) ? list.get(getCurrentRowNumber() - 1)
                 : new Expression[columns.length];
         for (int i = 0; i < columns.length; i++) {
             String key = table.getSchema().getName() + "." +

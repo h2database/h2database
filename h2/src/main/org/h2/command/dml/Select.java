@@ -106,7 +106,8 @@ public class Select extends Query {
      */
     Object[] currentGroupByExprData;
     /**
-     * Maps an expression object to an index, to use in accessing the Object[] pointed to by groupByData.
+     * Maps an expression object to an index, to use in accessing the Object[]
+     * pointed to by groupByData.
      */
     final HashMap<Expression,Integer> exprToIndexInGroupByData = new HashMap<>();
     /**
@@ -117,7 +118,7 @@ public class Select extends Query {
      * Key into groupByData that produces currentGroupByExprData. Not used in lazy mode.
      */
     ValueArray currentGroupsKey;
-    
+
     private int havingIndex;
     private boolean isGroupQuery, isGroupSortedQuery;
     private boolean isForUpdate, isForUpdateMvcc;
@@ -1580,11 +1581,13 @@ public class Select extends Query {
                     Value[] row = null;
                     if (previousKeyValues == null) {
                         previousKeyValues = keyValues;
-                        currentGroupByExprData = new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())];
+                        currentGroupByExprData =new Object[Math.max(exprToIndexInGroupByData.size(),
+                                expressions.size())];
                     } else if (!Arrays.equals(previousKeyValues, keyValues)) {
                         row = createGroupSortedRow(previousKeyValues, columnCount);
                         previousKeyValues = keyValues;
-                        currentGroupByExprData = new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())];
+                        currentGroupByExprData = new Object[Math.max(exprToIndexInGroupByData.size(),
+                                expressions.size())];
                     }
                     currentGroupRowId++;
 

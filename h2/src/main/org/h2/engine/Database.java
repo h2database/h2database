@@ -934,7 +934,8 @@ public class Database implements DataHandler {
         }
         if (SysProperties.CHECK2) {
             // If we are locking two different databases in the same stack, just ignore it.
-            // This only happens in TestLinkedTable where we connect to another h2 DB in the same process.
+            // This only happens in TestLinkedTable where we connect to another h2 DB in the
+            // same process.
             if (META_LOCK_DEBUGGING_DB.get() != null
                     && META_LOCK_DEBUGGING_DB.get() != this) {
                 final Session prev = META_LOCK_DEBUGGING.get();

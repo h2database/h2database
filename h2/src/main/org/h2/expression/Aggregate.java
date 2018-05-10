@@ -371,8 +371,8 @@ public class Aggregate extends Expression {
                 DbException.throwInternalError("type=" + type);
             }
         }
-        if (!select.isCurrentGroup()) {    
-            throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());    
+        if (!select.isCurrentGroup()) {
+            throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
         AggregateData data = (AggregateData)select.getCurrentGroupExprData(this);
         if (data == null) {

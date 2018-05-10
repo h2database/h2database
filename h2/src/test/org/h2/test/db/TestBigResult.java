@@ -85,9 +85,9 @@ public class TestBigResult extends TestBase {
             ps.executeUpdate();
         }
         // local result
-        testSortintAndDistinct1(stat, count, count);
+        testSortingAndDistinct1(stat, count, count);
         // external result
-        testSortintAndDistinct1(stat, 10, count);
+        testSortingAndDistinct1(stat, 10, count);
         stat.execute("DROP TABLE TEST");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE1 INT NOT NULL, VALUE2 INT NOT NULL)");
         ps = conn.prepareStatement("INSERT INTO TEST VALUES (?, ?, ?)");
@@ -181,7 +181,7 @@ public class TestBigResult extends TestBase {
         conn.close();
     }
 
-    private void testSortintAndDistinct1(Statement stat, int maxRows, int count) throws SQLException {
+    private void testSortingAndDistinct1(Statement stat, int maxRows, int count) throws SQLException {
         stat.execute("SET MAX_MEMORY_ROWS " + maxRows);
         ResultSet rs = stat.executeQuery("SELECT VALUE FROM (SELECT DISTINCT ID, VALUE FROM TEST ORDER BY VALUE)");
         for (int i = 1; i <= count; i++) {

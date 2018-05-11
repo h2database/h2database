@@ -272,7 +272,7 @@ public class Comparison extends Condition {
         }
         int dataType = Value.getHigherOrder(left.getType(), right.getType());
         if (dataType == Value.ENUM) {
-            String[] enumerators = getEnumerators(l, r);
+            String[] enumerators = ValueEnum.getEnumeratorsForBinaryOperation(l, r);
             l = l.convertToEnum(enumerators);
             r = r.convertToEnum(enumerators);
         } else {
@@ -281,16 +281,6 @@ public class Comparison extends Condition {
         }
         boolean result = compareNotNull(database, l, r, compareType);
         return ValueBoolean.get(result);
-    }
-
-    private static String[] getEnumerators(Value left, Value right) {
-        if (left.getType() == Value.ENUM) {
-            return ((ValueEnum) left).getEnumerators();
-        } else if (right.getType() == Value.ENUM) {
-            return ((ValueEnum) right).getEnumerators();
-        } else {
-            return new String[0];
-        }
     }
 
     /**

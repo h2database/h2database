@@ -89,6 +89,10 @@ public class ParserUtil {
      * @return the token type
      */
     public static int getSaveTokenType(String s, boolean additionalKeywords) {
+        /*
+         * JdbcDatabaseMetaData.getSQLKeywords() and tests should be updated when new
+         * non-SQL:2003 keywords are introduced here.
+         */
         switch (s.charAt(0)) {
         case 'A':
             return getKeywordOrIdentifier(s, "ALL", KEYWORD);

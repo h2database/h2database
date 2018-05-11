@@ -44,10 +44,10 @@ public class JdbcSQLException extends SQLException {
             int errorCode, Throwable cause, String stackTrace) {
         super(message, state, errorCode);
         this.originalMessage = message;
-        setSQL(sql);
         this.cause = cause;
         this.stackTrace = stackTrace;
-        buildMessage();
+        // setSQL() invokes buildBessage() by itself
+        setSQL(sql);
         initCause(cause);
     }
 

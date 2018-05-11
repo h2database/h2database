@@ -1253,8 +1253,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
         try {
             debugCodeCall("executeBatch");
             if (batchParameters == null) {
-                // TODO batch: check what other database do if no parameters are
-                // set
+                // Empty batch is allowed, see JDK-4639504 and other issues
                 batchParameters = Utils.newSmallArrayList();
             }
             batchIdentities = new MergedResultSet();

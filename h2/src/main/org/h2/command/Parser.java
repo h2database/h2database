@@ -3864,6 +3864,7 @@ public class Parser {
         parseIndex = i;
         String sub = sqlCommand.substring(start, i);
         checkLiterals(false);
+        BigDecimal bd;
         if (!containsE && sub.indexOf('.') < 0) {
             BigInteger bi = new BigInteger(sub);
             if (bi.compareTo(ValueLong.MAX_BI) <= 0) {
@@ -3875,12 +3876,13 @@ public class Parser {
                 currentTokenType = VALUE;
                 return;
             }
-        }
-        BigDecimal bd;
-        try {
-            bd = new BigDecimal(sub);
-        } catch (NumberFormatException e) {
-            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, sub);
+            bd = new BigDecimal(bi);
+        } else {
+            try {
+                bd = new BigDecimal(sub);
+            } catch (NumberFormatException e) {
+                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, sub);
+            }
         }
         currentValue = ValueDecimal.get(bd);
         currentTokenType = VALUE;

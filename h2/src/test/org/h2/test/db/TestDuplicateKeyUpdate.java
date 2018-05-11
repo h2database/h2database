@@ -40,6 +40,7 @@ public class TestDuplicateKeyUpdate extends TestBase {
         testOnDuplicateKeyInsertMultiValue(conn);
         testPrimaryKeyAndUniqueKey(conn);
         testUpdateCountAndQualifiedNames(conn);
+        testEnum(conn);
         conn.close();
         deleteDb("duplicateKeyUpdate");
     }
@@ -298,6 +299,16 @@ public class TestDuplicateKeyUpdate extends TestBase {
                 .executeUpdate("insert into s2.test(id, name) values(2, 'd') " +
                         "on duplicate key update s3.test.name = values(name)");
         stat.execute("drop schema s2 cascade");
+    }
+
+    private void testEnum(Connection conn) throws SQLException {
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(e enum('a', 'b') unique)");
+        PreparedStatement ps = conn.prepareStatement("insert into test(e) values (?) on duplicate key update e = e");
+        ps.setString(1, "a");
+        assertEquals(1, ps.executeUpdate());
+        assertEquals(0, ps.executeUpdate());
+        stat.execute("drop table test");
     }
 
 }

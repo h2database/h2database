@@ -40,6 +40,7 @@ import org.h2.schema.TriggerObject;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
+import org.h2.value.ValueEnum;
 import org.h2.value.ValueNull;
 
 /**
@@ -1192,8 +1193,14 @@ public abstract class Table extends SchemaObjectBase {
             return 0;
         }
         int dataType = Value.getHigherOrder(a.getType(), b.getType());
-        a = a.convertTo(dataType);
-        b = b.convertTo(dataType);
+        if (dataType == Value.ENUM) {
+            String[] enumerators = ValueEnum.getEnumeratorsForBinaryOperation(a, b);
+            a = a.convertToEnum(enumerators);
+            b = b.convertToEnum(enumerators);
+        } else {
+            a = a.convertTo(dataType);
+            b = b.convertTo(dataType);
+        }
         return a.compareTypeSafe(b, compareMode);
     }
 

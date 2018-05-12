@@ -113,7 +113,7 @@ public class ExpressionVisitor {
             new ExpressionVisitor(QUERY_COMPARABLE);
 
     private final int type;
-    private final int queryLevel;
+    private int queryLevel;
     private final HashSet<DbObject> dependencies;
     private final AllColumnsForPlan columns1;
     private final Table table;
@@ -245,11 +245,9 @@ public class ExpressionVisitor {
      * Increment or decrement the query level.
      *
      * @param offset 1 to increment, -1 to decrement
-     * @return a clone of this expression visitor, with the changed query level
      */
-    public ExpressionVisitor incrementQueryLevel(int offset) {
-        return new ExpressionVisitor(type, queryLevel + offset, dependencies,
-                columns1, table, resolver, maxDataModificationId, columns2);
+    public void incrementQueryLevel(int offset) {
+        queryLevel += offset;
     }
 
     /**

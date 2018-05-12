@@ -12,7 +12,6 @@ import java.util.HashMap;
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectOrderBy;
-import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
@@ -267,13 +266,7 @@ public class Aggregate extends Expression {
                 }
             });
         } else {
-            final Database database = select.getSession().getDatabase();
-            Arrays.sort(array, new Comparator<Value> () {
-                @Override
-                public int compare(Value v1, Value v2) {
-                    return database.compare(v1, v2);
-                }
-            });
+            Arrays.sort(array, select.getSession().getDatabase().getCompareMode());
         }
     }
 

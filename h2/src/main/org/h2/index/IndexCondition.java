@@ -7,7 +7,6 @@ package org.h2.index;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import org.h2.command.dml.Query;
@@ -21,7 +20,6 @@ import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.table.TableType;
 import org.h2.util.StatementBuilder;
-import org.h2.value.CompareMode;
 import org.h2.value.Value;
 
 /**
@@ -156,13 +154,7 @@ public class IndexCondition {
             valueSet.add(v);
         }
         Value[] array = valueSet.toArray(new Value[valueSet.size()]);
-        final CompareMode mode = session.getDatabase().getCompareMode();
-        Arrays.sort(array, new Comparator<Value>() {
-            @Override
-            public int compare(Value o1, Value o2) {
-                return o1.compareTo(o2, mode);
-            }
-        });
+        Arrays.sort(array, session.getDatabase().getCompareMode());
         return array;
     }
 

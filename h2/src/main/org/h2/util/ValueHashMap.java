@@ -179,18 +179,22 @@ public class ValueHashMap<V> extends HashBase {
     }
 
     /**
-     * Get the list of keys.
+     * Get the keys.
      *
      * @return all keys
      */
-    public ArrayList<Value> keys() {
-        ArrayList<Value> list = new ArrayList<>(size);
-        for (Value k : keys) {
-            if (k != null && k != ValueNull.DELETED) {
-                list.add(k);
-            }
+    public Iterable<Value> keys() {
+        return new KeyIterable();
+    }
+
+    private final class KeyIterable implements Iterable<Value> {
+        KeyIterable() {
         }
-        return list;
+
+        @Override
+        public Iterator<Value> iterator() {
+            return new UnifiedIterator<>(false);
+        }
     }
 
     public Iterable<Map.Entry<Value, V>> entries() {
@@ -203,15 +207,18 @@ public class ValueHashMap<V> extends HashBase {
 
         @Override
         public Iterator<Map.Entry<Value, V>> iterator() {
-            return new EntryIterator();
+            return new UnifiedIterator<>(true);
         }
     }
 
-    private final class EntryIterator implements Iterator<Map.Entry<Value, V>> {
-        private int keysIndex = -1;
-        private int left = size;
+    final class UnifiedIterator<T> implements Iterator<T> {
+        int keysIndex = -1;
+        int left = size;
 
-        EntryIterator() {
+        private final boolean forEntries;
+
+        UnifiedIterator(boolean forEntries) {
+            this.forEntries = forEntries;
         }
 
         @Override
@@ -219,16 +226,18 @@ public class ValueHashMap<V> extends HashBase {
             return left > 0;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
-        public Map.Entry<Value, V> next() {
+        public T next() {
             if (left <= 0)
                 throw new NoSuchElementException();
             left--;
             for (;;) {
                 keysIndex++;
                 Value key = keys[keysIndex];
-                if (key != null && key != ValueNull.DELETED)
-                    return new AbstractMap.SimpleImmutableEntry<>(key, values[keysIndex]);
+                if (key != null && key != ValueNull.DELETED) {
+                    return (T) (forEntries ? new AbstractMap.SimpleImmutableEntry<>(key, values[keysIndex]) : key);
+                }
             }
         }
 

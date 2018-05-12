@@ -62,6 +62,37 @@ public class ExpressionVisitor {
             new ExpressionVisitor(EVALUATABLE);
 
     /**
+     * Count of cached INDEPENDENT and EVALUATABLE visitors with different query
+     * level.
+     */
+    private static final int CACHED = 8;
+
+    /**
+     * INDEPENDENT listeners with query level 0, 1, ...
+     */
+    private static final ExpressionVisitor[] INDEPENDENT_VISITORS;
+
+    /**
+     * EVALUATABLE listeners with query level 0, 1, ...
+     */
+    private static final ExpressionVisitor[] EVALUATABLE_VISITORS;
+
+    static {
+        ExpressionVisitor[] a = new ExpressionVisitor[CACHED];
+        a[0] = INDEPENDENT_VISITOR;
+        for (int i = 1; i < CACHED; i++) {
+            a[i] = new ExpressionVisitor(INDEPENDENT, i);
+        }
+        INDEPENDENT_VISITORS = a;
+        a = new ExpressionVisitor[CACHED];
+        a[0] = EVALUATABLE_VISITOR;
+        for (int i = 1; i < CACHED; i++) {
+            a[i] = new ExpressionVisitor(EVALUATABLE, i);
+        }
+        EVALUATABLE_VISITORS = a;
+    }
+
+    /**
      * Request to set the latest modification id (addDataModificationId).
      */
     public static final int SET_MAX_DATA_MODIFICATION_ID = 4;
@@ -140,6 +171,17 @@ public class ExpressionVisitor {
     private ExpressionVisitor(int type) {
         this.type = type;
         this.queryLevel = 0;
+        this.dependencies = null;
+        this.columns1 = null;
+        this.columns2 = null;
+        this.table = null;
+        this.resolver = null;
+        this.maxDataModificationId = null;
+    }
+
+    private ExpressionVisitor(int type, int queryLevel) {
+        this.type = type;
+        this.queryLevel = queryLevel;
         this.dependencies = null;
         this.columns1 = null;
         this.columns2 = null;
@@ -245,11 +287,18 @@ public class ExpressionVisitor {
      * Increment or decrement the query level.
      *
      * @param offset 1 to increment, -1 to decrement
-     * @return a clone of this expression visitor, with the changed query level
+     * @return this visitor or its clone with the changed query level
      */
     public ExpressionVisitor incrementQueryLevel(int offset) {
-        return new ExpressionVisitor(type, queryLevel + offset, dependencies,
-                columns1, table, resolver, maxDataModificationId, columns2);
+        if (type == INDEPENDENT) {
+            offset += queryLevel;
+            return offset < CACHED ? INDEPENDENT_VISITORS[offset] : new ExpressionVisitor(INDEPENDENT, offset);
+        } else if (type == EVALUATABLE) {
+            offset += queryLevel;
+            return offset < CACHED ? EVALUATABLE_VISITORS[offset] : new ExpressionVisitor(EVALUATABLE, offset);
+        } else {
+            return this;
+        }
     }
 
     /**
@@ -287,6 +336,7 @@ public class ExpressionVisitor {
     }
 
     int getQueryLevel() {
+        assert type == INDEPENDENT || type == EVALUATABLE;
         return queryLevel;
     }
 

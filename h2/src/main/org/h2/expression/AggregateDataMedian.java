@@ -8,7 +8,6 @@ package org.h2.expression;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -173,12 +172,7 @@ class AggregateDataMedian extends AggregateDataCollecting {
             return ValueNull.INSTANCE;
         }
         final CompareMode mode = database.getCompareMode();
-        Arrays.sort(a, new Comparator<Value>() {
-            @Override
-            public int compare(Value o1, Value o2) {
-                return o1.compareTo(o2, mode);
-            }
-        });
+        Arrays.sort(a, mode);
         int len = a.length;
         int idx = len / 2;
         Value v1 = a[idx];

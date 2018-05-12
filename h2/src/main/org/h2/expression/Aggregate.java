@@ -267,13 +267,7 @@ public class Aggregate extends Expression {
                 }
             });
         } else {
-            final Database database = select.getSession().getDatabase();
-            Arrays.sort(array, new Comparator<Value> () {
-                @Override
-                public int compare(Value v1, Value v2) {
-                    return database.compare(v1, v2);
-                }
-            });
+            Arrays.sort(array, select.getSession().getDatabase().getCompareMode());
         }
     }
 

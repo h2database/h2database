@@ -40,8 +40,8 @@ public class TestScript extends TestBase {
 
     /** If set to true, the test will exit at the first failure. */
     private boolean failFast;
-    private final ArrayList<String> statements = new ArrayList<>();
-    private boolean getAllStatementsMode;
+    /** If set to a value the test will add all executed statements to this list */
+    private ArrayList<String> statements;
 
     private boolean reconnectOften;
     private Connection conn;
@@ -72,15 +72,14 @@ public class TestScript extends TestBase {
      */
     public ArrayList<String> getAllStatements(TestAll conf) throws Exception {
         config = conf;
-        if (statements.isEmpty()) {
-            try {
-                getAllStatementsMode = true;
-                test();
-            } finally {
-                getAllStatementsMode = false;
-            }
+        ArrayList<String> result = new ArrayList<>(4000);
+        try {
+            statements = result;
+            test();
+        } finally {
+            this.statements = null;
         }
-        return statements;
+        return result;
     }
 
     @Override
@@ -187,7 +186,7 @@ public class TestScript extends TestBase {
         putBack = null;
         errors = null;
 
-        if (!getAllStatementsMode) {
+        if (statements == null) {
             println("Running commands in " + scriptFileName);
         }
         final String outFile = "test.out.txt";
@@ -310,7 +309,9 @@ public class TestScript extends TestBase {
                 }
             }
         }
-        statements.add(sql);
+        if (statements != null) {
+            statements.add(sql);
+        }
         if (sql.indexOf('?') == -1) {
             processStatement(sql);
         } else {

@@ -66,7 +66,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
     private final HashMap<Class <?>, ArrayList<Method>> classMethods =
             new HashMap<>();
     private RandomGen random = new RandomGen();
-    private final ArrayList<String> statements = new ArrayList<>();
+    private ArrayList<String> statements;
     private int openCount;
     private long callCount;
     private volatile long maxWait = 60;
@@ -536,10 +536,9 @@ public class TestCrashAPI extends TestBase implements Runnable {
         }
         startServerIfRequired();
         TestScript script = new TestScript();
-        ArrayList<String> add = script.getAllStatements(config);
+        statements = script.getAllStatements(config);
         initMethods();
         org.h2.Driver.load();
-        statements.addAll(add);
         return this;
     }
 

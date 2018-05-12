@@ -1435,20 +1435,18 @@ public class Select extends Query {
         default:
         }
         ExpressionVisitor v2 = visitor.incrementQueryLevel(1);
-        boolean result = true;
         for (Expression e : expressions) {
             if (!e.isEverything(v2)) {
-                result = false;
-                break;
+                return false;
             }
         }
-        if (result && condition != null && !condition.isEverything(v2)) {
-            result = false;
+        if (condition != null && !condition.isEverything(v2)) {
+            return false;
         }
-        if (result && having != null && !having.isEverything(v2)) {
-            result = false;
+        if (having != null && !having.isEverything(v2)) {
+            return false;
         }
-        return result;
+        return true;
     }
 
     @Override

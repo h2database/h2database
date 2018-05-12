@@ -11,6 +11,7 @@ import java.io.StringWriter;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.sql.BatchUpdateException;
 import java.sql.Blob;
 import java.sql.CallableStatement;
@@ -65,7 +66,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
     private final HashMap<Class <?>, ArrayList<Method>> classMethods =
             new HashMap<>();
     private RandomGen random = new RandomGen();
-    private final ArrayList<String> statements = new ArrayList<>();
+    private ArrayList<String> statements;
     private int openCount;
     private long callCount;
     private volatile long maxWait = 60;
@@ -370,6 +371,10 @@ public class TestCrashAPI extends TestBase implements Runnable {
     }
 
     private Object callRandom(int seed, int id, int objectId, Object o, Method m) {
+        // TODO m.isDefault() can be used on Java 8
+        boolean isDefault =
+                (m.getModifiers() & (Modifier.ABSTRACT | Modifier.PUBLIC | Modifier.STATIC)) == Modifier.PUBLIC
+                && m.getDeclaringClass().isInterface();
         Class<?>[] paramClasses = m.getParameterTypes();
         Object[] params = new Object[paramClasses.length];
         for (int i = 0; i < params.length; i++) {
@@ -385,7 +390,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
             TestBase.logError("error", e);
         } catch (InvocationTargetException e) {
             Throwable t = e.getTargetException();
-            printIfBad(seed, id, objectId, t);
+            printIfBad(seed, id, objectId, t, isDefault);
         }
         if (result == null) {
             return null;
@@ -398,6 +403,10 @@ public class TestCrashAPI extends TestBase implements Runnable {
     }
 
     private void printIfBad(int seed, int id, int objectId, Throwable t) {
+        printIfBad(seed, id, objectId, t, false);
+    }
+
+    private void printIfBad(int seed, int id, int objectId, Throwable t, boolean isDefault) {
         if (t instanceof BatchUpdateException) {
             // do nothing
         } else if (t.getClass().getName().contains("SQLClientInfoException")) {
@@ -421,6 +430,8 @@ public class TestCrashAPI extends TestBase implements Runnable {
                 // General error [HY000]
                 printError(seed, id, s);
             }
+        } else if (isDefault && t instanceof NullPointerException) {
+            // do nothing, default methods may throw this exception
         } else {
             printError(seed, id, t);
         }
@@ -525,10 +536,9 @@ public class TestCrashAPI extends TestBase implements Runnable {
         }
         startServerIfRequired();
         TestScript script = new TestScript();
-        ArrayList<String> add = script.getAllStatements(config);
+        statements = script.getAllStatements(config);
         initMethods();
         org.h2.Driver.load();
-        statements.addAll(add);
         return this;
     }
 

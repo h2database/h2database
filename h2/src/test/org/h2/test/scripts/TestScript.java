@@ -40,7 +40,8 @@ public class TestScript extends TestBase {
 
     /** If set to true, the test will exit at the first failure. */
     private boolean failFast;
-    private final ArrayList<String> statements = new ArrayList<>();
+    /** If set to a value the test will add all executed statements to this list */
+    private ArrayList<String> statements;
 
     private boolean reconnectOften;
     private Connection conn;
@@ -71,10 +72,14 @@ public class TestScript extends TestBase {
      */
     public ArrayList<String> getAllStatements(TestAll conf) throws Exception {
         config = conf;
-        if (statements.isEmpty()) {
+        ArrayList<String> result = new ArrayList<>(4000);
+        try {
+            statements = result;
             test();
+        } finally {
+            this.statements = null;
         }
-        return statements;
+        return result;
     }
 
     @Override
@@ -181,7 +186,9 @@ public class TestScript extends TestBase {
         putBack = null;
         errors = null;
 
-        println("Running commands in " + scriptFileName);
+        if (statements == null) {
+            println("Running commands in " + scriptFileName);
+        }
         final String outFile = "test.out.txt";
         conn = getConnection("script");
         stat = conn.createStatement();
@@ -260,7 +267,7 @@ public class TestScript extends TestBase {
             if (sql.startsWith("--")) {
                 write(sql);
             } else if (sql.startsWith(">")) {
-                // do nothing
+                addWriteResultError("<command>", sql);
             } else if (sql.endsWith(";")) {
                 write(sql);
                 buff.append(sql, 0, sql.length() - 1);
@@ -302,7 +309,9 @@ public class TestScript extends TestBase {
                 }
             }
         }
-        statements.add(sql);
+        if (statements != null) {
+            statements.add(sql);
+        }
         if (sql.indexOf('?') == -1) {
             processStatement(sql);
         } else {
@@ -526,7 +535,6 @@ public class TestScript extends TestBase {
                 if (ex != null) {
                     TestBase.logError("script", ex);
                 }
-                TestBase.logErrorMessage(errors.toString());
                 if (failFast) {
                     conn.close();
                     System.exit(1);
@@ -534,17 +542,18 @@ public class TestScript extends TestBase {
             }
         } else {
             addWriteResultError("<nothing>", s);
-            TestBase.logErrorMessage(errors.toString());
             putBack = compare;
         }
         write(s);
     }
 
     private void addWriteResultError(String expected, String got) {
+        int idx = errors.length();
         errors.append(fileName).append('\n');
         errors.append("line: ").append(in.getLineNumber()).append('\n');
         errors.append("exp: ").append(expected).append('\n');
         errors.append("got: ").append(got).append('\n');
+        TestBase.logErrorMessage(errors.substring(idx));
     }
 
     private void write(String s) {

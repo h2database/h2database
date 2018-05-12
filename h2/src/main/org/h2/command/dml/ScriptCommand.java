@@ -318,12 +318,7 @@ public class ScriptCommand extends ScriptBase {
             // Generate CREATE CONSTRAINT ...
             final ArrayList<SchemaObject> constraints = db.getAllSchemaObjects(
                     DbObject.CONSTRAINT);
-            Collections.sort(constraints, new Comparator<SchemaObject>() {
-                @Override
-                public int compare(SchemaObject c1, SchemaObject c2) {
-                    return ((Constraint) c1).compareTo((Constraint) c2);
-                }
-            });
+            Collections.sort(constraints, null);
             for (SchemaObject obj : constraints) {
                 if (excludeSchema(obj.getSchema())) {
                     continue;

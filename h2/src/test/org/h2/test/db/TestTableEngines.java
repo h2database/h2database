@@ -132,6 +132,8 @@ public class TestTableEngines extends TestBase {
                     EndlessTableEngine.createTableData.tableEngineParams.get(1));
             conn.close();
         }
+        // Prevent memory leak
+        EndlessTableEngine.createTableData = null;
         deleteDb("tableEngine");
     }
 
@@ -150,6 +152,8 @@ public class TestTableEngines extends TestBase {
         assertEquals("param2",
             EndlessTableEngine.createTableData.tableEngineParams.get(1));
         conn.close();
+        // Prevent memory leak
+        EndlessTableEngine.createTableData = null;
         deleteDb("tableEngine");
     }
 
@@ -513,6 +517,8 @@ public class TestTableEngines extends TestBase {
         stat.executeUpdate("CREATE TABLE T(ID INT AFFINITY PRIMARY KEY, NAME VARCHAR, AGE INT)" +
                 " ENGINE \"" + AffinityTableEngine.class.getName() + "\"");
         Table tbl = AffinityTableEngine.createdTbl;
+        // Prevent memory leak
+        AffinityTableEngine.createdTbl = null;
         assertNotNull(tbl);
         assertEquals(3, tbl.getIndexes().size());
         Index aff = tbl.getIndexes().get(2);
@@ -552,6 +558,8 @@ public class TestTableEngines extends TestBase {
         }
         stat.execute("CREATE TABLE u (a int, b int) ENGINE " + engine);
         TreeSetTable u = TreeSetIndexTableEngine.created;
+        // Prevent memory leak
+        TreeSetIndexTableEngine.created = null;
         stat.execute("CREATE INDEX U_IDX_A ON u(a)");
         stat.execute("CREATE INDEX U_IDX_B ON u(b)");
         setBatchSize(u, 0);
@@ -704,6 +712,8 @@ public class TestTableEngines extends TestBase {
                 assertEquals(10, table.getRowCount(null));
             }
         }
+        // Prevent memory leak
+        TreeSetIndexTableEngine.created = null;
 
         int[] zeroBatchSizes = new int[batchSizes.length];
         int tests = 1 << (batchSizes.length * 4);

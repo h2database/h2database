@@ -260,7 +260,8 @@ public class TestScript extends TestBase {
             if (sql.startsWith("--")) {
                 write(sql);
             } else if (sql.startsWith(">")) {
-                // do nothing
+                addWriteResultError("<command>", sql);
+                TestBase.logErrorMessage(errors.toString());
             } else if (sql.endsWith(";")) {
                 write(sql);
                 buff.append(sql, 0, sql.length() - 1);

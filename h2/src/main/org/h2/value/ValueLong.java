@@ -127,11 +127,15 @@ public class ValueLong extends Value {
 
     @Override
     public Value divide(Value v) {
-        ValueLong other = (ValueLong) v;
-        if (other.value == 0) {
+        long y = ((ValueLong) v).value;
+        if (y == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
         }
-        return ValueLong.get(value / other.value);
+        long x = value;
+        if (x == Long.MIN_VALUE && y == -1) {
+            throw getOverflow();
+        }
+        return ValueLong.get(x / y);
     }
 
     @Override

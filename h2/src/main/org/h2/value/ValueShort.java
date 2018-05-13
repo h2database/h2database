@@ -75,7 +75,7 @@ public class ValueShort extends Value {
         if (other.value == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
         }
-        return ValueShort.get((short) (value / other.value));
+        return checkRange(value / other.value);
     }
 
     @Override

@@ -179,11 +179,14 @@ public abstract class Value {
      */
     public static final int TYPE_COUNT = ENUM;
 
-    private static SoftReference<Value[]> softCache =
-            new SoftReference<>(null);
+    private static SoftReference<Value[]> softCache;
     private static final BigDecimal MAX_LONG_DECIMAL =
             BigDecimal.valueOf(Long.MAX_VALUE);
-    private static final BigDecimal MIN_LONG_DECIMAL =
+
+    /**
+     * The smallest Long value, as a BigDecimal.
+     */
+    public static final BigDecimal MIN_LONG_DECIMAL =
             BigDecimal.valueOf(Long.MIN_VALUE);
 
     /**
@@ -396,11 +399,8 @@ public abstract class Value {
     static Value cache(Value v) {
         if (SysProperties.OBJECT_CACHE) {
             int hash = v.hashCode();
-            if (softCache == null) {
-                softCache = new SoftReference<>(null);
-            }
-            Value[] cache = softCache.get();
-            if (cache == null) {
+            Value[] cache;
+            if (softCache == null || (cache = softCache.get()) == null) {
                 cache = new Value[SysProperties.OBJECT_CACHE_SIZE];
                 softCache = new SoftReference<>(cache);
             }

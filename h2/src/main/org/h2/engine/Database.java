@@ -1564,7 +1564,7 @@ public class Database implements DataHandler {
         initMetaTables();
         ArrayList<SchemaObject> list = new ArrayList<>();
         for (Schema schema : schemas.values()) {
-            list.addAll(schema.getAll());
+            schema.getAll(list);
         }
         return list;
     }
@@ -1581,7 +1581,7 @@ public class Database implements DataHandler {
         }
         ArrayList<SchemaObject> list = new ArrayList<>();
         for (Schema schema : schemas.values()) {
-            list.addAll(schema.getAll(type));
+            schema.getAll(type, list);
         }
         return list;
     }

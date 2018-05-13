@@ -75,7 +75,7 @@ public class ValueByte extends Value {
         if (other.value == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
         }
-        return ValueByte.get((byte) (value / other.value));
+        return checkRange(value / other.value);
     }
 
     @Override

@@ -595,14 +595,14 @@ public class Schema extends DbObjectBase {
      */
     public ArrayList<SchemaObject> getAll() {
         ArrayList<SchemaObject> all = Utils.newSmallArrayList();
-        all.addAll(getMap(DbObject.TABLE_OR_VIEW).values());
-        all.addAll(getMap(DbObject.SYNONYM).values());
-        all.addAll(getMap(DbObject.SEQUENCE).values());
-        all.addAll(getMap(DbObject.INDEX).values());
-        all.addAll(getMap(DbObject.TRIGGER).values());
-        all.addAll(getMap(DbObject.CONSTRAINT).values());
-        all.addAll(getMap(DbObject.CONSTANT).values());
-        all.addAll(getMap(DbObject.FUNCTION_ALIAS).values());
+        all.addAll(tablesAndViews.values());
+        all.addAll(synonyms.values());
+        all.addAll(sequences.values());
+        all.addAll(indexes.values());
+        all.addAll(triggers.values());
+        all.addAll(constraints.values());
+        all.addAll(constants.values());
+        all.addAll(functions.values());
         return all;
     }
 

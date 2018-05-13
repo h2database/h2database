@@ -43,7 +43,6 @@ public class ValueLong extends Value {
      */
     public static final int DISPLAY_SIZE = 20;
 
-    private static final BigInteger MIN_BI = BigInteger.valueOf(Long.MIN_VALUE);
     private static final int STATIC_SIZE = 100;
     private static final ValueLong[] STATIC_CACHE;
 
@@ -110,32 +109,20 @@ public class ValueLong extends Value {
         return add(other.negate());
     }
 
-    private static boolean isInteger(long a) {
-        return a >= Integer.MIN_VALUE && a <= Integer.MAX_VALUE;
-    }
-
     @Override
     public Value multiply(Value v) {
-        ValueLong other = (ValueLong) v;
-        long result = value * other.value;
-        if (value == 0 || value == 1 || other.value == 0 || other.value == 1) {
-            return ValueLong.get(result);
-        }
-        if (isInteger(value) && isInteger(other.value)) {
-            return ValueLong.get(result);
-        }
-        // just checking one case is not enough: Long.MIN_VALUE * -1
-        // probably this is correct but I'm not sure
-        // if (result / value == other.value && result / other.value == value) {
-        //    return ValueLong.get(result);
-        //}
-        BigInteger bv = BigInteger.valueOf(value);
-        BigInteger bo = BigInteger.valueOf(other.value);
-        BigInteger br = bv.multiply(bo);
-        if (br.compareTo(MIN_BI) < 0 || br.compareTo(MAX_BI) > 0) {
+        long x = value;
+        long y = ((ValueLong) v).value;
+        long result = x * y;
+        // Check whether numbers are large enough to overflow and second value != 0
+        if ((Math.abs(x) | Math.abs(y)) >>> 31 != 0 && y != 0
+                // Check with division
+                && (result / y != x
+                // Also check the special condition that is not handled above
+                || x == Long.MIN_VALUE && y == -1)) {
             throw getOverflow();
         }
-        return ValueLong.get(br.longValue());
+        return ValueLong.get(result);
     }
 
     @Override

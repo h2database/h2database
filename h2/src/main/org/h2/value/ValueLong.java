@@ -5,7 +5,6 @@
  */
 package org.h2.value;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -32,11 +31,6 @@ public class ValueLong extends Value {
      * The largest Long value, as a BigInteger.
      */
     public static final BigInteger MAX_BI = BigInteger.valueOf(Long.MAX_VALUE);
-
-    /**
-     * The smallest Long value, as a BigDecimal.
-     */
-    public static final BigDecimal MIN_BD = BigDecimal.valueOf(Long.MIN_VALUE);
 
     /**
      * The precision in digits.

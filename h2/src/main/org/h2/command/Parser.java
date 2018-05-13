@@ -3259,7 +3259,7 @@ public class Parser {
                     r = ValueExpression.get(ValueInt.get(Integer.MIN_VALUE));
                 } else if (r.getType() == Value.DECIMAL &&
                         r.getValue(session).getBigDecimal()
-                                .compareTo(ValueLong.MIN_BD) == 0) {
+                                .compareTo(Value.MIN_LONG_DECIMAL) == 0) {
                     // convert Long.MIN_VALUE to type 'long'
                     // (Long.MAX_VALUE+1 is of type 'decimal')
                     r = ValueExpression.get(ValueLong.MIN);

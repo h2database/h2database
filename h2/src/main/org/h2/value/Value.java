@@ -182,7 +182,11 @@ public abstract class Value {
     private static SoftReference<Value[]> softCache;
     private static final BigDecimal MAX_LONG_DECIMAL =
             BigDecimal.valueOf(Long.MAX_VALUE);
-    private static final BigDecimal MIN_LONG_DECIMAL =
+
+    /**
+     * The smallest Long value, as a BigDecimal.
+     */
+    public static final BigDecimal MIN_LONG_DECIMAL =
             BigDecimal.valueOf(Long.MIN_VALUE);
 
     /**

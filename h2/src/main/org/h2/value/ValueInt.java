@@ -70,7 +70,7 @@ public class ValueInt extends Value {
     }
 
     private static ValueInt checkRange(long x) {
-        if (x < Integer.MIN_VALUE || x > Integer.MAX_VALUE) {
+        if ((int) x != x) {
             throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, Long.toString(x));
         }
         return ValueInt.get((int) x);

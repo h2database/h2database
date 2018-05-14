@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -27,6 +28,17 @@ public class MathUtils {
      * True if the secure random object is seeded.
      */
     static volatile boolean seeded;
+
+	/**
+	 * Android versions that less than 21 doesn't support Java 7 and class ThreadLocalRandom is not available.
+	 * For older versions will be used base Random class covered by ThreadLocal.
+	 */
+	private static ThreadLocal<Random> sRandom = new ThreadLocal<Random>() {
+		@Override
+		protected Random initialValue() {
+			return new Random(System.nanoTime());
+		}
+	};
 
     private MathUtils() {
         // utility class
@@ -270,7 +282,7 @@ public class MathUtils {
      * @param bytes the target array
      */
     public static void randomBytes(byte[] bytes) {
-        ThreadLocalRandom.current().nextBytes(bytes);
+        getRandom().nextBytes(bytes);
     }
 
     /**
@@ -296,7 +308,7 @@ public class MathUtils {
      * @return the random long value
      */
     public static int randomInt(int lowerThan) {
-        return ThreadLocalRandom.current().nextInt(lowerThan);
+        return getRandom().nextInt(lowerThan);
     }
 
     /**
@@ -310,4 +322,12 @@ public class MathUtils {
         return getSecureRandom().nextInt(lowerThan);
     }
 
+    private static Random getRandom() {
+        try {
+            Class.forName("java.util.concurrent.ThreadLocalRandom");
+            return ThreadLocalRandom.current();
+        } catch (ClassNotFoundException ignored) {
+        	return sRandom.get();
+        }
+    }
 }

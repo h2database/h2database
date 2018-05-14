@@ -322,12 +322,12 @@ public class MathUtils {
         return getSecureRandom().nextInt(lowerThan);
     }
 
-    private static Random getRandom() {
-        try {
-            Class.forName("java.util.concurrent.ThreadLocalRandom");
-            return ThreadLocalRandom.current();
-        } catch (ClassNotFoundException ignored) {
-        	return sRandom.get();
-        }
-    }
+	private static Random getRandom() {
+		try {
+			Class.forName("java.util.concurrent.ThreadLocalRandom");
+			return ThreadLocalRandom.current();
+		} catch (ClassNotFoundException ignored) {
+			return sRandom.get();
+		}
+	}
 }

@@ -335,7 +335,7 @@ public class JdbcDataSource extends TraceObject implements XADataSource,
         ref.add(new StringRefAddr("url", url));
         ref.add(new StringRefAddr("user", userName));
         ref.add(new StringRefAddr("password", convertToString(passwordChars)));
-        ref.add(new StringRefAddr("loginTimeout", String.valueOf(loginTimeout)));
+        ref.add(new StringRefAddr("loginTimeout", Integer.toString(loginTimeout)));
         ref.add(new StringRefAddr("description", description));
         return ref;
     }

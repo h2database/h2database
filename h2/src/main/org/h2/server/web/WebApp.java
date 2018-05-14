@@ -349,7 +349,7 @@ public class WebApp {
         try {
             Properties prop = new SortedProperties();
             int port = Integer.decode((String) attributes.get("port"));
-            prop.setProperty("webPort", String.valueOf(port));
+            prop.setProperty("webPort", Integer.toString(port));
             server.setPort(port);
             boolean allowOthers = Utils.parseBoolean((String) attributes.get("allowOthers"), false, false);
             prop.setProperty("webAllowOthers", String.valueOf(allowOthers));

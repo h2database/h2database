@@ -115,7 +115,7 @@ public class ValueByte extends Value {
 
     @Override
     public String getString() {
-        return String.valueOf(value);
+        return Integer.toString(value);
     }
 
     @Override

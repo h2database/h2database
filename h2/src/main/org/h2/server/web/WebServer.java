@@ -645,7 +645,7 @@ public class WebServer implements Service {
                 }
             } else {
                 for (int i = 0;; i++) {
-                    String data = prop.getProperty(String.valueOf(i));
+                    String data = prop.getProperty(Integer.toString(i));
                     if (data == null) {
                         break;
                     }
@@ -689,7 +689,7 @@ public class WebServer implements Service {
             for (int i = 0; i < len; i++) {
                 ConnectionInfo info = settings.get(i);
                 if (info != null) {
-                    prop.setProperty(String.valueOf(len - i - 1), info.getString());
+                    prop.setProperty(Integer.toString(len - i - 1), info.getString());
                 }
             }
             if (!"null".equals(serverPropertiesDir)) {

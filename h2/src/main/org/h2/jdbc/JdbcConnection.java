@@ -1866,10 +1866,9 @@ public class JdbcConnection extends TraceObject
                 }
             }
 
-            p.setProperty(NUM_SERVERS, String.valueOf(serverList.size()));
+            p.setProperty(NUM_SERVERS, Integer.toString(serverList.size()));
             for (int i = 0; i < serverList.size(); i++) {
-                p.setProperty(PREFIX_SERVER + String.valueOf(i),
-                        serverList.get(i));
+                p.setProperty(PREFIX_SERVER + i, serverList.get(i));
             }
 
             return p;

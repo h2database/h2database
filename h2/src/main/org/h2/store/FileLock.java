@@ -401,7 +401,7 @@ public class FileLock implements Runnable {
             serverSocket = NetUtils.createServerSocket(0, false);
             int port = serverSocket.getLocalPort();
             properties.setProperty("ipAddress", ipAddress);
-            properties.setProperty("port", String.valueOf(port));
+            properties.setProperty("port", Integer.toString(port));
         } catch (Exception e) {
             trace.debug(e, "lock");
             serverSocket = null;

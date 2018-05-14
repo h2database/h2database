@@ -61,19 +61,17 @@ public class ValueLong extends Value {
 
     @Override
     public Value add(Value v) {
-        ValueLong other = (ValueLong) v;
-        long result = value + other.value;
-        int sv = Long.signum(value);
-        int so = Long.signum(other.value);
-        int sr = Long.signum(result);
-        // if the operands have different signs overflow can not occur
-        // if the operands have the same sign,
-        // and the result has a different sign, then it is an overflow
-        // it can not be an overflow when one of the operands is 0
-        if (sv != so || sr == so || sv == 0 || so == 0) {
-            return ValueLong.get(result);
+        long x = value;
+        long y = ((ValueLong) v).value;
+        long result = x + y;
+        /*
+         * If signs of both summands are different from the sign of the sum there is an
+         * overflow.
+         */
+        if (((x ^ result) & (y ^ result)) < 0) {
+            throw getOverflow();
         }
-        throw getOverflow();
+        return ValueLong.get(result);
     }
 
     @Override
@@ -96,17 +94,17 @@ public class ValueLong extends Value {
 
     @Override
     public Value subtract(Value v) {
-        ValueLong other = (ValueLong) v;
-        int sv = Long.signum(value);
-        int so = Long.signum(other.value);
-        // if the operands have the same sign, then overflow can not occur
-        // if the second operand is 0, then overflow can not occur
-        if (sv == so || so == 0) {
-            return ValueLong.get(value - other.value);
+        long x = value;
+        long y = ((ValueLong) v).value;
+        long result = x - y;
+        /*
+         * If minuend and subtrahend have different signs and minuend and difference
+         * have different signs there is an overflow.
+         */
+        if (((x ^ y) & (x ^ result)) < 0) {
+            throw getOverflow();
         }
-        // now, if the other value is Long.MIN_VALUE, it must be an overflow
-        // x - Long.MIN_VALUE overflows for x>=0
-        return add(other.negate());
+        return ValueLong.get(result);
     }
 
     @Override
@@ -170,7 +168,7 @@ public class ValueLong extends Value {
 
     @Override
     public String getString() {
-        return String.valueOf(value);
+        return Long.toString(value);
     }
 
     @Override

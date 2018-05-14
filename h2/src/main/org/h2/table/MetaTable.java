@@ -843,7 +843,7 @@ public class MetaTable extends Table {
                             // COLUMN_NAME
                             identifier(c.getName()),
                             // ORDINAL_POSITION
-                            String.valueOf(j + 1),
+                            Integer.toString(j + 1),
                             // COLUMN_DEFAULT
                             c.getDefaultSQL(),
                             // IS_NULLABLE
@@ -1104,9 +1104,9 @@ public class MetaTable extends Table {
                         // TYPE_NAME
                         t.name,
                         // DATA_TYPE
-                        String.valueOf(t.sqlType),
+                        Integer.toString(t.sqlType),
                         // PRECISION
-                        String.valueOf(MathUtils.convertLongToInt(t.maxPrecision)),
+                        Integer.toString(MathUtils.convertLongToInt(t.maxPrecision)),
                         // PREFIX
                         t.prefix,
                         // SUFFIX
@@ -1116,13 +1116,13 @@ public class MetaTable extends Table {
                         // AUTO_INCREMENT
                         String.valueOf(t.autoIncrement),
                         // MINIMUM_SCALE
-                        String.valueOf(t.minScale),
+                        Integer.toString(t.minScale),
                         // MAXIMUM_SCALE
-                        String.valueOf(t.maxScale),
+                        Integer.toString(t.maxScale),
                         // RADIX
                         t.decimal ? "10" : null,
                         // POS
-                        String.valueOf(t.sqlTypePos),
+                        Integer.toString(t.sqlTypePos),
                         // CASE_SENSITIVE
                         String.valueOf(t.caseSensitive),
                         // NULLABLE
@@ -1145,7 +1145,7 @@ public class MetaTable extends Table {
                 for (int i = 0; rs.next(); i++) {
                     add(rows,
                         // ID
-                        String.valueOf(i),
+                        Integer.toString(i),
                         // SECTION
                         rs.getString(1).trim(),
                         // TOPIC
@@ -1173,19 +1173,19 @@ public class MetaTable extends Table {
                         // SEQUENCE_NAME
                         identifier(s.getName()),
                         // CURRENT_VALUE
-                        String.valueOf(s.getCurrentValue()),
+                        Long.toString(s.getCurrentValue()),
                         // INCREMENT
-                        String.valueOf(s.getIncrement()),
+                        Long.toString(s.getIncrement()),
                         // IS_GENERATED
                         s.getBelongsToTable() ? "TRUE" : "FALSE",
                         // REMARKS
                         replaceNullWithEmpty(s.getComment()),
                         // CACHE
-                        String.valueOf(s.getCacheSize()),
+                        Long.toString(s.getCacheSize()),
                         // MIN_VALUE
-                        String.valueOf(s.getMinValue()),
+                        Long.toString(s.getMinValue()),
                         // MAX_VALUE
-                        String.valueOf(s.getMaxValue()),
+                        Long.toString(s.getMaxValue()),
                         // IS_CYCLE
                         s.getCycle() ? "TRUE" : "FALSE",
                         // ID
@@ -1627,11 +1627,11 @@ public class MetaTable extends Table {
                             // FKCOLUMN_NAME
                             identifier(cols[j].column.getName()),
                             // ORDINAL_POSITION
-                            String.valueOf(j + 1),
+                            Integer.toString(j + 1),
                             // UPDATE_RULE SMALLINT
-                            String.valueOf(update),
+                            Integer.toString(update),
                             // DELETE_RULE SMALLINT
-                            String.valueOf(delete),
+                            Integer.toString(delete),
                             // FK_NAME
                             identifier(ref.getName()),
                             // PK_NAME

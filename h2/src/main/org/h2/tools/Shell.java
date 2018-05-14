@@ -333,7 +333,7 @@ public class Shell extends Tool implements Runnable {
             String data = null;
             boolean found = false;
             for (int i = 0;; i++) {
-                String d = prop.getProperty(String.valueOf(i));
+                String d = prop.getProperty(Integer.toString(i));
                 if (d == null) {
                     break;
                 }

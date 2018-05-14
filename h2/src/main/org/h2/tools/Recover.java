@@ -1070,7 +1070,7 @@ public class Recover extends Tool implements DataHandler {
 
     private String setStorage(int storageId) {
         this.storageId = storageId;
-        this.storageName = "O_" + String.valueOf(storageId).replace('-', 'M');
+        this.storageName = "O_" + Integer.toString(storageId).replace('-', 'M');
         return storageName;
     }
 

@@ -83,9 +83,9 @@ public class Sequence extends SchemaObjectBase {
         this.belongsToTable = belongsToTable;
         if (!isValid(this.value, this.minValue, this.maxValue, this.increment)) {
             throw DbException.get(ErrorCode.SEQUENCE_ATTRIBUTES_INVALID, name,
-                    String.valueOf(this.value), String.valueOf(this.minValue),
-                    String.valueOf(this.maxValue),
-                    String.valueOf(this.increment));
+                    Long.toString(this.value), Long.toString(this.minValue),
+                    Long.toString(this.maxValue),
+                    Long.toString(this.increment));
         }
     }
 

@@ -146,7 +146,7 @@ public class Function extends Expression implements FunctionCall {
     private static final int VAR_ARGS = -1;
     private static final long PRECISION_UNKNOWN = -1;
 
-    private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>();
+    private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>(256);
     private static final char[] SOUNDEX_INDEX = new char[128];
 
     protected Expression[] args;

@@ -118,7 +118,7 @@ public class ValueDouble extends Value {
 
     @Override
     public String getString() {
-        return String.valueOf(value);
+        return Double.toString(value);
     }
 
     @Override

@@ -119,7 +119,7 @@ public class ValueFloat extends Value {
 
     @Override
     public String getString() {
-        return String.valueOf(value);
+        return Float.toString(value);
     }
 
     @Override

@@ -1173,19 +1173,19 @@ public class MetaTable extends Table {
                         // SEQUENCE_NAME
                         identifier(s.getName()),
                         // CURRENT_VALUE
-                        String.valueOf(s.getCurrentValue()),
+                        Long.toString(s.getCurrentValue()),
                         // INCREMENT
-                        String.valueOf(s.getIncrement()),
+                        Long.toString(s.getIncrement()),
                         // IS_GENERATED
                         s.getBelongsToTable() ? "TRUE" : "FALSE",
                         // REMARKS
                         replaceNullWithEmpty(s.getComment()),
                         // CACHE
-                        String.valueOf(s.getCacheSize()),
+                        Long.toString(s.getCacheSize()),
                         // MIN_VALUE
-                        String.valueOf(s.getMinValue()),
+                        Long.toString(s.getMinValue()),
                         // MAX_VALUE
-                        String.valueOf(s.getMaxValue()),
+                        Long.toString(s.getMaxValue()),
                         // IS_CYCLE
                         s.getCycle() ? "TRUE" : "FALSE",
                         // ID

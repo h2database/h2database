@@ -170,7 +170,7 @@ public class ValueLong extends Value {
 
     @Override
     public String getString() {
-        return String.valueOf(value);
+        return Long.toString(value);
     }
 
     @Override

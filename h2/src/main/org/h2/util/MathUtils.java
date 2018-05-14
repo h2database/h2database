@@ -36,7 +36,12 @@ public class MathUtils {
 	private static ThreadLocal<Random> sRandom = new ThreadLocal<Random>() {
 		@Override
 		protected Random initialValue() {
-			return new Random(System.nanoTime());
+			try {
+				Class.forName("java.util.concurrent.ThreadLocalRandom");
+				return ThreadLocalRandom.current();
+			} catch (ClassNotFoundException ignored) {
+				return new Random(System.nanoTime());
+			}
 		}
 	};
 
@@ -282,7 +287,7 @@ public class MathUtils {
      * @param bytes the target array
      */
     public static void randomBytes(byte[] bytes) {
-        getRandom().nextBytes(bytes);
+        sRandom.get().nextBytes(bytes);
     }
 
     /**
@@ -308,7 +313,7 @@ public class MathUtils {
      * @return the random long value
      */
     public static int randomInt(int lowerThan) {
-        return getRandom().nextInt(lowerThan);
+        return sRandom.get().nextInt(lowerThan);
     }
 
     /**
@@ -321,13 +326,4 @@ public class MathUtils {
     public static int secureRandomInt(int lowerThan) {
         return getSecureRandom().nextInt(lowerThan);
     }
-
-	private static Random getRandom() {
-		try {
-			Class.forName("java.util.concurrent.ThreadLocalRandom");
-			return ThreadLocalRandom.current();
-		} catch (ClassNotFoundException ignored) {
-			return sRandom.get();
-		}
-	}
 }

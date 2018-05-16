@@ -126,8 +126,7 @@ public class TransactionMap<K, V> {
                 Cursor<K, VersionedValue> cursor = map.cursor(null);
                 while (cursor.hasNext()) {
                     K key = cursor.next();
-                    // cursor.getValue() returns outdated value
-                    VersionedValue data = map.get(key);
+                    VersionedValue data = cursor.getValue();
                     data = getValue(mapRootPage, undoRootPage, key, readLogId, data, committingTransactions);
                     if (data != null && data.value != null) {
                         size++;

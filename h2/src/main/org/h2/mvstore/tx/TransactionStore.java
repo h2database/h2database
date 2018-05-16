@@ -374,7 +374,7 @@ public class TransactionStore {
      * @param key the key
      * @param oldValue the old value
      */
-    void log(Transaction t, long logId, int mapId,
+    long log(Transaction t, long logId, int mapId,
             Object key, Object oldValue) {
         Long undoKey = getOperationId(t.getId(), logId);
         Object[] log = { mapId, key, oldValue };
@@ -393,6 +393,7 @@ public class TransactionStore {
         } finally {
             rwLock.writeLock().unlock();
         }
+        return undoKey;
     }
 
     /**

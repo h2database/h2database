@@ -31,6 +31,10 @@ public class VersionedValue {
         this.value = value;
     }
 
+    public long getOperationId() {
+        return operationId;
+    }
+
     @Override
     public String toString() {
         return value + (operationId == 0 ? "" : (

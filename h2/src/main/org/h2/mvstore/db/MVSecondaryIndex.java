@@ -210,7 +210,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         }
         if (unique != null) {
             // This code expects that mayHaveDuplicates(row) == false
-            Iterator<Value> it = map.keyIterator(unique, true);
+            Iterator<Value> it = map.keyIterator(unique, null, true);
             while (it.hasNext()) {
                 ValueArray k = (ValueArray) it.next();
                 if (compareRows(row, convertToSearchRow(k)) != 0) {

@@ -56,6 +56,7 @@ class OnExitDatabaseCloser extends Thread {
 
     @Override
     public void run() {
+        RuntimeException root = null;
         for (Database database : DATABASES.keySet()) {
             try {
                 database.close(true);
@@ -69,9 +70,16 @@ class OnExitDatabaseCloser extends Thread {
                     // otherwise not
                 } catch (Throwable e2) {
                     e.addSuppressed(e2);
-                    throw e;
+                    if (root == null) {
+                        root = e;
+                    } else {
+                        root.addSuppressed(e);
+                    }
                 }
             }
+        }
+        if (root != null) {
+            throw root;
         }
     }
 

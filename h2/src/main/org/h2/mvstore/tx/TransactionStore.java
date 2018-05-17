@@ -366,18 +366,14 @@ public class TransactionStore {
     }
 
     /**
-     * Log an entry.
+     * Add an undoLog entry.
      *
-     * @param t the transaction
-     * @param logId the log id
-     * @param mapId the map id
-     * @param key the key
-     * @param oldValue the old value
+     * @param transactionId id of the transaction
+     * @param logId sequential number of the log record within transaction
+     * @param undoLogRecord Object[]
      */
-    long log(Transaction t, long logId, int mapId,
-            Object key, Object oldValue) {
-        Long undoKey = getOperationId(t.getId(), logId);
-        Object[] log = { mapId, key, oldValue };
+    long addUndoLogRecord(int transactionId, long logId, Object[] undoLogRecord) {
+        Long undoKey = getOperationId(transactionId, logId);
         rwLock.writeLock().lock();
         try {
             if (logId == 0) {
@@ -386,10 +382,10 @@ public class TransactionStore {
                             DataUtils.ERROR_TOO_MANY_OPEN_TRANSACTIONS,
                             "An old transaction with the same id " +
                             "is still open: {0}",
-                            t.getId());
+                            transactionId);
                 }
             }
-            undoLog.put(undoKey, log);
+            undoLog.put(undoKey, undoLogRecord);
         } finally {
             rwLock.writeLock().unlock();
         }
@@ -399,11 +395,11 @@ public class TransactionStore {
     /**
      * Remove a log entry.
      *
-     * @param t the transaction
-     * @param logId the log id
+     * @param transactionId id of the transaction
+     * @param logId sequential number of the log record within transaction
      */
-    public void logUndo(Transaction t, long logId) {
-        Long undoKey = getOperationId(t.getId(), logId);
+    public void removeUndoLogRecord(int transactionId, long logId) {
+        Long undoKey = getOperationId(transactionId, logId);
         rwLock.writeLock().lock();
         try {
             Object[] old = undoLog.remove(undoKey);
@@ -411,7 +407,7 @@ public class TransactionStore {
                 throw DataUtils.newIllegalStateException(
                         DataUtils.ERROR_TRANSACTION_ILLEGAL_STATE,
                         "Transaction {0} was concurrently rolled back",
-                        t.getId());
+                        transactionId);
             }
         } finally {
             rwLock.writeLock().unlock();
@@ -435,11 +431,8 @@ public class TransactionStore {
      *
      * @param t the transaction
      * @param maxLogId the last log id
-     * @param hasChanges true if there were updates within specified
-     *                   transaction (even fully rolled back),
-     *                   false if just data access
      */
-    void commit(Transaction t, long maxLogId, boolean hasChanges) {
+    void commit(Transaction t, long maxLogId) {
         if (store.isClosed()) {
             return;
         }
@@ -487,7 +480,6 @@ public class TransactionStore {
             rwLock.writeLock().unlock();
             flipCommittingTransactionsBit(transactionId, false);
         }
-        endTransaction(t, hasChanges);
     }
 
     private void flipCommittingTransactionsBit(int transactionId, boolean flag) {

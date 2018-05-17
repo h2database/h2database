@@ -230,7 +230,7 @@ public class Transaction {
      * @param key the key
      * @param oldValue the old value
      */
-    void log(int mapId, Object key, VersionedValue oldValue) {
+    long log(int mapId, Object key, VersionedValue oldValue) {
         long currentState = statusAndLogId.getAndIncrement();
         long logId = getLogId(currentState);
         if (logId >= LOG_ID_LIMIT) {
@@ -239,7 +239,10 @@ public class Transaction {
                     "Transaction {0} has too many changes",
                     transactionId);
         }
-        store.log(this, logId, mapId, key, oldValue);
+        int currentStatus = getStatus(currentState);
+        checkOpen(currentStatus);
+        long undoKey = store.addUndoLogRecord(transactionId, logId, new Object[]{ mapId, key, oldValue });
+        return undoKey;
     }
 
     /**
@@ -254,7 +257,9 @@ public class Transaction {
                     "Transaction {0} has internal error",
                     transactionId);
         }
-        store.logUndo(this, logId);
+        int currentStatus = getStatus(currentState);
+        checkOpen(currentStatus);
+        store.removeUndoLogRecord(transactionId, logId);
     }
 
     /**
@@ -313,11 +318,29 @@ public class Transaction {
      */
     public void commit() {
         assert store.openTransactions.get().get(transactionId);
-        long state = setStatus(STATUS_COMMITTING);
-        long logId = Transaction.getLogId(state);
-        boolean hasChanges = hasChanges(state);
-
-        store.commit(this, logId, hasChanges);
+        Throwable ex = null;
+        boolean hasChanges = false;
+        try {
+            long state = setStatus(STATUS_COMMITTING);
+            long logId = getLogId(state);
+            hasChanges = hasChanges(state);
+            if (hasChanges) {
+                store.commit(this, logId);
+            }
+        } catch (Throwable e) {
+            ex = e;
+            throw e;
+        } finally {
+            try {
+                store.endTransaction(this, hasChanges);
+            } catch (Throwable e) {
+                if (ex == null) {
+                    throw e;
+                } else {
+                    ex.addSuppressed(e);
+                }
+            }
+        }
     }
 
     /**
@@ -377,12 +400,23 @@ public class Transaction {
     }
 
     /**
+     * Check whether this transaction is open.
+     */
+    private void checkOpen(int status) {
+        if (status != STATUS_OPEN) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_TRANSACTION_ILLEGAL_STATE,
+                    "Transaction {0} has status {1}, not open", transactionId, status);
+        }
+    }
+
+    /**
      * Check whether this transaction is open or prepared.
      */
     void checkNotClosed() {
         if (getStatus() == STATUS_CLOSED) {
             throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_CLOSED, "Transaction is closed");
+                    DataUtils.ERROR_CLOSED, "Transaction {0} is closed", transactionId);
         }
     }
 

@@ -168,7 +168,6 @@ public class Database implements DataHandler {
     private boolean referentialIntegrity = true;
     /** ie. the MVCC setting */
     private boolean multiVersion;
-    private OnExitDatabaseCloser closeOnExit;
     private Mode mode = Mode.getRegular();
     private boolean multiThreaded;
     private int maxOperationMemory =
@@ -289,17 +288,7 @@ public class Database implements DataHandler {
         try {
             open(traceLevelFile, traceLevelSystemOut, ci);
             if (closeAtVmShutdown) {
-                try {
-                    closeOnExit = new OnExitDatabaseCloser(this);
-                } catch (IllegalStateException e) {
-                    // shutdown in progress - just don't register the handler
-                    // (maybe an application wants to write something into a
-                    // database at shutdown time)
-                } catch (SecurityException  e) {
-                    // applets may not do that - ignore
-                    // Google App Engine doesn't allow
-                    // to instantiate classes that extend Thread
-                }
+                OnExitDatabaseCloser.register(this);
             }
         } catch (Throwable e) {
             if (e instanceof OutOfMemoryError) {
@@ -1357,10 +1346,7 @@ public class Database implements DataHandler {
             }
             trace.info("closed");
             traceSystem.close();
-            if (closeOnExit != null) {
-                closeOnExit.reset();
-                closeOnExit = null;
-            }
+            OnExitDatabaseCloser.unregister(this);
             if (deleteFilesOnDisconnect && persistent) {
                 deleteFilesOnDisconnect = false;
                 try {

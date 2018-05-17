@@ -5,7 +5,7 @@
  */
 package org.h2.engine;
 
-import java.lang.ref.WeakReference;
+import java.util.WeakHashMap;
 
 import org.h2.message.Trace;
 
@@ -14,35 +14,49 @@ import org.h2.message.Trace;
  */
 class OnExitDatabaseCloser extends Thread {
 
-    private final Trace trace;
-    private volatile WeakReference<Database> databaseRef;
+    private static final WeakHashMap<Database, Void> DATABASES = new WeakHashMap<>();
 
-    OnExitDatabaseCloser(Database db) {
-        databaseRef = new WeakReference<>(db);
-        trace = db.getTrace(Trace.DATABASE);
-        Runtime.getRuntime().addShutdownHook(this);
+    private static OnExitDatabaseCloser INSTANCE;
+
+    static synchronized void register(Database db) {
+        DATABASES.put(db, null);
+        if (INSTANCE == null) {
+            try {
+                // Assign INSTANCE unconditionally to avoid further attempts to register a
+                // shutdown hook in case of exception.
+                Runtime.getRuntime().addShutdownHook(INSTANCE = new OnExitDatabaseCloser());
+            } catch (IllegalStateException e) {
+                // shutdown in progress - just don't register the handler
+                // (maybe an application wants to write something into a
+                // database at shutdown time)
+            } catch (SecurityException e) {
+                // applets may not do that - ignore
+                // Google App Engine doesn't allow
+                // to instantiate classes that extend Thread
+            }
+        }
     }
 
-    /**
-     * Stop and disable the database closer. This method is called after the
-     * database has been closed.
-     */
-    void reset() {
-        databaseRef = null;
-        try {
-            Runtime.getRuntime().removeShutdownHook(this);
-        } catch (IllegalStateException e) {
-            // ignore
-        } catch (SecurityException e) {
-            // applets may not do that - ignore
+    static synchronized void unregister(Database db) {
+        DATABASES.remove(db);
+        if (DATABASES.isEmpty() && INSTANCE != null) {
+            try {
+                Runtime.getRuntime().removeShutdownHook(INSTANCE);
+            } catch (IllegalStateException e) {
+                // ignore
+            } catch (SecurityException e) {
+                // applets may not do that - ignore
+            }
+            INSTANCE = null;
         }
+    }
+
+    private OnExitDatabaseCloser() {
     }
 
     @Override
     public void run() {
-        Database database;
-        WeakReference<Database> ref = databaseRef;
-        if (ref != null && (database = ref.get()) != null) {
+        for (Database database : DATABASES.keySet()) {
             try {
                 database.close(true);
             } catch (RuntimeException e) {
@@ -50,7 +64,7 @@ class OnExitDatabaseCloser extends Thread {
                 // if loading classes is no longer allowed
                 // it would throw an IllegalStateException
                 try {
-                    trace.error(e, "could not close the database");
+                    database.getTrace(Trace.DATABASE).error(e, "could not close the database");
                     // if this was successful, we ignore the exception
                     // otherwise not
                 } catch (Throwable e2) {

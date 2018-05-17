@@ -157,7 +157,7 @@ public class Database implements DataHandler {
 
     private int powerOffCount = initialPowerOffCount;
     private int closeDelay;
-    private DatabaseCloser delayedCloser;
+    private DelayedDatabaseCloser delayedCloser;
     private volatile boolean closing;
     private boolean ignoreCase;
     private boolean deleteFilesOnDisconnect;
@@ -168,7 +168,6 @@ public class Database implements DataHandler {
     private boolean referentialIntegrity = true;
     /** ie. the MVCC setting */
     private boolean multiVersion;
-    private DatabaseCloser closeOnExit;
     private Mode mode = Mode.getRegular();
     private boolean multiThreaded;
     private int maxOperationMemory =
@@ -289,18 +288,7 @@ public class Database implements DataHandler {
         try {
             open(traceLevelFile, traceLevelSystemOut, ci);
             if (closeAtVmShutdown) {
-                try {
-                    closeOnExit = new DatabaseCloser(this, 0, true);
-                    Runtime.getRuntime().addShutdownHook(closeOnExit);
-                } catch (IllegalStateException e) {
-                    // shutdown in progress - just don't register the handler
-                    // (maybe an application wants to write something into a
-                    // database at shutdown time)
-                } catch (SecurityException  e) {
-                    // applets may not do that - ignore
-                    // Google App Engine doesn't allow
-                    // to instantiate classes that extend Thread
-                }
+                OnExitDatabaseCloser.register(this);
             }
         } catch (Throwable e) {
             if (e instanceof OutOfMemoryError) {
@@ -1240,10 +1228,7 @@ public class Database implements DataHandler {
             } else if (closeDelay < 0) {
                 return;
             } else {
-                delayedCloser = new DatabaseCloser(this, closeDelay * 1000, false);
-                delayedCloser.setName("H2 Close Delay " + getShortName());
-                delayedCloser.setDaemon(true);
-                delayedCloser.start();
+                delayedCloser = new DelayedDatabaseCloser(this, closeDelay * 1000);
             }
         }
         if (session != systemSession &&
@@ -1361,17 +1346,7 @@ public class Database implements DataHandler {
             }
             trace.info("closed");
             traceSystem.close();
-            if (closeOnExit != null) {
-                closeOnExit.reset();
-                try {
-                    Runtime.getRuntime().removeShutdownHook(closeOnExit);
-                } catch (IllegalStateException e) {
-                    // ignore
-                } catch (SecurityException e) {
-                    // applets may not do that - ignore
-                }
-                closeOnExit = null;
-            }
+            OnExitDatabaseCloser.unregister(this);
             if (deleteFilesOnDisconnect && persistent) {
                 deleteFilesOnDisconnect = false;
                 try {

@@ -10,27 +10,28 @@ import java.lang.ref.WeakReference;
 import org.h2.message.Trace;
 
 /**
- * This class is responsible to close a database if the application did not
- * close a connection. A database closer object only exists if there is no user
- * connected to the database.
+ * This class is responsible to close a database after the specified delay. A
+ * database closer object only exists if there is no user connected to the
+ * database.
  */
-class DatabaseCloser extends Thread {
+class DelayedDatabaseCloser extends Thread {
 
-    private final boolean shutdownHook;
     private final Trace trace;
     private volatile WeakReference<Database> databaseRef;
     private int delayInMillis;
 
-    DatabaseCloser(Database db, int delayInMillis, boolean shutdownHook) {
-        this.databaseRef = new WeakReference<>(db);
+    DelayedDatabaseCloser(Database db, int delayInMillis) {
+        databaseRef = new WeakReference<>(db);
         this.delayInMillis = delayInMillis;
-        this.shutdownHook = shutdownHook;
         trace = db.getTrace(Trace.DATABASE);
+        setName("H2 Close Delay " + db.getShortName());
+        setDaemon(true);
+        start();
     }
 
     /**
-     * Stop and disable the database closer. This method is called after the
-     * database has been closed, or after a session has been created.
+     * Stop and disable the database closer. This method is called after a session
+     * has been created.
      */
     void reset() {
         databaseRef = null;
@@ -46,18 +47,16 @@ class DatabaseCloser extends Thread {
             } catch (Exception e) {
                 // ignore InterruptedException
             }
-            if (databaseRef == null) {
+            WeakReference<Database> ref = databaseRef;
+            if (ref == null || ref.get() == null) {
                 return;
             }
         }
-        Database database = null;
-        WeakReference<Database> ref = this.databaseRef;
-        if (ref != null) {
-            database = ref.get();
-        }
-        if (database != null) {
+        Database database;
+        WeakReference<Database> ref = databaseRef;
+        if (ref != null && (database = ref.get()) != null) {
             try {
-                database.close(shutdownHook);
+                database.close(false);
             } catch (RuntimeException e) {
                 // this can happen when stopping a web application,
                 // if loading classes is no longer allowed

@@ -16,15 +16,18 @@ class OnExitDatabaseCloser extends Thread {
 
     private static final WeakHashMap<Database, Void> DATABASES = new WeakHashMap<>();
 
-    private static OnExitDatabaseCloser INSTANCE;
+    private static final Thread INSTANCE = new OnExitDatabaseCloser();
+
+    private static boolean registered;
 
     static synchronized void register(Database db) {
         DATABASES.put(db, null);
-        if (INSTANCE == null) {
+        if (!registered) {
+            // Mark as registered unconditionally to avoid further attempts to register a
+            // shutdown hook in case of exception.
+            registered = true;
             try {
-                // Assign INSTANCE unconditionally to avoid further attempts to register a
-                // shutdown hook in case of exception.
-                Runtime.getRuntime().addShutdownHook(INSTANCE = new OnExitDatabaseCloser());
+                Runtime.getRuntime().addShutdownHook(INSTANCE);
             } catch (IllegalStateException e) {
                 // shutdown in progress - just don't register the handler
                 // (maybe an application wants to write something into a
@@ -39,7 +42,7 @@ class OnExitDatabaseCloser extends Thread {
 
     static synchronized void unregister(Database db) {
         DATABASES.remove(db);
-        if (DATABASES.isEmpty() && INSTANCE != null) {
+        if (DATABASES.isEmpty() && registered) {
             try {
                 Runtime.getRuntime().removeShutdownHook(INSTANCE);
             } catch (IllegalStateException e) {
@@ -47,7 +50,7 @@ class OnExitDatabaseCloser extends Thread {
             } catch (SecurityException e) {
                 // applets may not do that - ignore
             }
-            INSTANCE = null;
+            registered = false;
         }
     }
 

@@ -183,7 +183,7 @@ public abstract class Page implements Cloneable
      * @param p the root page
      * @return the value, or null if not found
      */
-    public static Object get(Page p, Object key) {
+    static Object get(Page p, Object key) {
         while (true) {
             int index = p.binarySearch(key);
             if (p.isLeaf()) {

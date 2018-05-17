@@ -48,12 +48,6 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         return new MVRTreeMap<>(this);
     }
 
-    @Override
-    public V get(Object key) {
-        V result = get(getRootPage(), key);
-        return result;
-    }
-
     /**
      * Iterate over all keys that have an intersection with the given rectangle.
      *
@@ -102,6 +96,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
      * @return the value, or null if not found
      */
     @SuppressWarnings("unchecked")
+    @Override
     public V get(Page p, Object key) {
         int keyCount = p.getKeyCount();
         if (!p.isLeaf()) {

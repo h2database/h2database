@@ -176,7 +176,7 @@ public class PageBtreeLeaf extends PageBtree {
         written = false;
         changeCount = index.getPageStore().getChangeCount();
         if (entryCount <= 0) {
-            DbException.throwInternalError("" + entryCount);
+            DbException.throwInternalError(Integer.toString(entryCount));
         }
         int startNext = at > 0 ? offsets[at - 1] : index.getPageStore().getPageSize();
         int rowLength = startNext - offsets[at];

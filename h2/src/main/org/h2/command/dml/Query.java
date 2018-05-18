@@ -520,7 +520,7 @@ public abstract class Query extends Prepared {
                 }
                 idx -= 1;
                 if (idx < 0 || idx >= expressionCount) {
-                    throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT, "" + (idx + 1));
+                    throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT, Integer.toString(idx + 1));
                 }
             }
             index[i] = idx;

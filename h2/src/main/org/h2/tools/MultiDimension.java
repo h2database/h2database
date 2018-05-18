@@ -65,7 +65,7 @@ public class MultiDimension implements Comparator<long[]> {
      */
     public int getMaxValue(int dimensions) {
         if (dimensions < 2 || dimensions > 32) {
-            throw new IllegalArgumentException("" + dimensions);
+            throw new IllegalArgumentException(Integer.toString(dimensions));
         }
         int bitsPerValue = getBitsPerValue(dimensions);
         return (int) ((1L << bitsPerValue) - 1);
@@ -270,18 +270,18 @@ public class MultiDimension implements Comparator<long[]> {
     private void addMortonRanges(ArrayList<long[]> list, int[] min, int[] max,
             int len, int level) {
         if (level > 100) {
-            throw new IllegalArgumentException("" + level);
+            throw new IllegalArgumentException(Integer.toString(level));
         }
         int largest = 0, largestDiff = 0;
         long size = 1;
         for (int i = 0; i < len; i++) {
             int diff = max[i] - min[i];
             if (diff < 0) {
-                throw new IllegalArgumentException(""+ diff);
+                throw new IllegalArgumentException(Integer.toString(diff));
             }
             size *= diff + 1;
             if (size < 0) {
-                throw new IllegalArgumentException("" + size);
+                throw new IllegalArgumentException(Long.toString(size));
             }
             if (diff > largestDiff) {
                 largestDiff = diff;

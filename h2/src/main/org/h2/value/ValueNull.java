@@ -13,6 +13,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.sql.Types;
 
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
@@ -160,7 +161,7 @@ public class ValueNull extends Value {
     @Override
     public void set(PreparedStatement prep, int parameterIndex)
             throws SQLException {
-        prep.setNull(parameterIndex, DataType.convertTypeToSQLType(Value.NULL));
+        prep.setNull(parameterIndex, Types.NULL);
     }
 
     @Override

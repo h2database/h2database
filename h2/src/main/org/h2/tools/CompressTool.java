@@ -264,7 +264,7 @@ public class CompressTool {
         default:
             throw DbException.get(
                     ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1,
-                    "" + algorithm);
+                    Integer.toString(algorithm));
         }
     }
 

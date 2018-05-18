@@ -808,7 +808,7 @@ public class TableFilter implements ColumnResolver {
                 IndexLookupBatch lookupBatch = joinBatch.getLookupBatch(joinFilterId);
                 if (lookupBatch == null) {
                     if (joinFilterId != 0) {
-                        throw DbException.throwInternalError("" + joinFilterId);
+                        throw DbException.throwInternalError(Integer.toString(joinFilterId));
                     }
                 } else {
                     planBuff.append("batched:");

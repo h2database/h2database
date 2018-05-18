@@ -86,7 +86,7 @@ public abstract class LazyFuture<T> implements Future<T> {
         case S_CANCELED:
             throw new CancellationException();
         default:
-            throw DbException.throwInternalError("" + state);
+            throw DbException.throwInternalError(Integer.toString(state));
         }
     }
 

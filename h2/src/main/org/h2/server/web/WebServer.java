@@ -672,14 +672,11 @@ public class WebServer implements Service {
                 Properties old = loadProperties();
                 prop = new SortedProperties();
                 prop.setProperty("webPort",
-                        "" + SortedProperties.getIntProperty(old,
-                        "webPort", port));
+                        Integer.toString(SortedProperties.getIntProperty(old, "webPort", port)));
                 prop.setProperty("webAllowOthers",
-                        "" + SortedProperties.getBooleanProperty(old,
-                        "webAllowOthers", allowOthers));
+                        Boolean.toString(SortedProperties.getBooleanProperty(old, "webAllowOthers", allowOthers)));
                 prop.setProperty("webSSL",
-                        "" + SortedProperties.getBooleanProperty(old,
-                        "webSSL", ssl));
+                        Boolean.toString(SortedProperties.getBooleanProperty(old, "webSSL", ssl)));
                 if (commandHistoryString != null) {
                     prop.setProperty(COMMAND_HISTORY, commandHistoryString);
                 }

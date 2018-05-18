@@ -137,7 +137,6 @@ public class CreateTable extends CommandWithColumns {
                 }
             }
             HashSet<DbObject> set = new HashSet<>();
-            set.clear();
             table.addDependencies(set);
             for (DbObject obj : set) {
                 if (obj == table) {

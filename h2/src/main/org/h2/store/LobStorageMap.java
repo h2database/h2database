@@ -279,8 +279,7 @@ public class LobStorageMap implements LobStorageInterface {
             if (lob.getTableId() == LobStorageFrontend.TABLE_RESULT ||
                     lob.getTableId() == LobStorageFrontend.TABLE_ID_SESSION_VARIABLE) {
                 throw DbException.get(
-                        ErrorCode.LOB_CLOSED_ON_TIMEOUT_1, "" +
-                                lob.getLobId() + "/" + lob.getTableId());
+                        ErrorCode.LOB_CLOSED_ON_TIMEOUT_1, lob.getLobId() + "/" + lob.getTableId());
             }
             throw DbException.throwInternalError("Lob not found: " +
                     lob.getLobId() + "/" + lob.getTableId());

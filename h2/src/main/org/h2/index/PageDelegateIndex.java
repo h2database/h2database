@@ -32,7 +32,7 @@ public class PageDelegateIndex extends PageIndex {
         this.initBaseIndex(table, id, name, cols, indexType);
         this.mainIndex = mainIndex;
         if (!database.isPersistent() || id < 0) {
-            throw DbException.throwInternalError("" + name);
+            throw DbException.throwInternalError(name);
         }
         PageStore store = database.getPageStore();
         store.addIndex(this);

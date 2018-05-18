@@ -1098,7 +1098,7 @@ public class JdbcConnection extends TraceObject
     private static JdbcSavepoint convertSavepoint(Savepoint savepoint) {
         if (!(savepoint instanceof JdbcSavepoint)) {
             throw DbException.get(ErrorCode.SAVEPOINT_IS_INVALID_1,
-                    "" + savepoint);
+                    String.valueOf(savepoint));
         }
         return (JdbcSavepoint) savepoint;
     }

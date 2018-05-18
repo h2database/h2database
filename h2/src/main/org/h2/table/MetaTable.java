@@ -1764,11 +1764,11 @@ public class MetaTable extends Table {
                         // SELECTIVITY INT
                         Integer.toString(col.getSelectivity()),
                         // CHECK_CONSTRAINT
-                        "" + col.getCheckConstraintSQL(session, "VALUE"),
+                        col.getCheckConstraintSQL(session, "VALUE"),
                         // REMARKS
                         replaceNullWithEmpty(dt.getComment()),
                         // SQL
-                        "" + dt.getCreateSQL(),
+                        dt.getCreateSQL(),
                         // ID
                         Integer.toString(dt.getId())
                 );

@@ -281,7 +281,8 @@ public class TransactionMap<K, V> {
 
             Page mapRootPage = mapRootReference.root;
             current = map.get(mapRootPage, key);
-            VersionedValue old = getValue(mapRootPage, undoLogRootReference.root, key, readLogId, current, committingTransactions);
+            VersionedValue old = getValue(mapRootPage, undoLogRootReference.root, key, readLogId, current,
+                    committingTransactions);
             if (!map.areValuesEqual(old, current)) {
                 assert current != null;
                 long tx = TransactionStore.getTransactionId(current.getOperationId());
@@ -681,8 +682,7 @@ public class TransactionMap<K, V> {
 
     private static final class KeyIterator<K> extends TMIterator<K,K> {
 
-        public KeyIterator(TransactionMap<K, ?> transactionMap,
-                           K from, K to, boolean includeUncommitted) {
+        public KeyIterator(TransactionMap<K, ?> transactionMap, K from, K to, boolean includeUncommitted) {
             super(transactionMap, from, to, includeUncommitted);
         }
 
@@ -714,8 +714,7 @@ public class TransactionMap<K, V> {
         private final boolean includeAllUncommitted;
         private X current;
 
-        protected TMIterator(TransactionMap<K,?> transactionMap, K from, K to, boolean includeAllUncommitted)
-        {
+        protected TMIterator(TransactionMap<K,?> transactionMap, K from, K to, boolean includeAllUncommitted) {
             this.transactionMap = transactionMap;
             TransactionStore store = transactionMap.transaction.store;
             MVMap<K, VersionedValue> map = transactionMap.map;
@@ -726,7 +725,8 @@ public class TransactionMap<K, V> {
                 committingTransactions = store.committingTransactions.get();
                 undoRoot = store.undoLog.getRootPage();
                 mapRootReference = map.getRoot();
-            } while(committingTransactions != store.committingTransactions.get() || undoRoot != store.undoLog.getRootPage());
+            } while (committingTransactions != store.committingTransactions.get()
+                    || undoRoot != store.undoLog.getRootPage());
 
             this.root = mapRootReference.root;
             this.undoRoot = undoRoot;

@@ -432,7 +432,7 @@ public class TransactionMap<K, V> {
      *                               at the time when snapshot was taken
      * @return the value
      */
-    private VersionedValue getValue(Page root, Page undoRoot, K key, long maxLog,
+    VersionedValue getValue(Page root, Page undoRoot, K key, long maxLog,
                                     VersionedValue data, BitSet committingTransactions) {
         while (true) {
             if (data == null) {

@@ -44,3 +44,26 @@ with
 > - -- -- --
 > 0 -1 1  10
 > rows: 1
+
+CREATE SCHEMA SCH;
+> ok
+
+CREATE FORCE VIEW TABLE_EXPRESSION SCH.R1(N) AS
+(SELECT 1)
+UNION ALL
+(SELECT (N + 1) FROM SCH.R1 WHERE N < 3);
+> ok
+
+CREATE VIEW SCH.R2(N) AS
+(SELECT 1)
+UNION ALL
+(SELECT (N + 1) FROM SCH.R1 WHERE N < 3);
+> ok
+
+SELECT * FROM SCH.R2;
+> N
+> -
+> 1
+> 2
+> 3
+> rows: 3

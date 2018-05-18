@@ -207,7 +207,7 @@ public class Profiler implements Runnable {
 
     private static List<Object[]> readRunnableStackTraces(int pid) {
         try {
-            String jstack = exec("jstack", "" + pid);
+            String jstack = exec("jstack", Integer.toString(pid));
             LineNumberReader r = new LineNumberReader(
                     new StringReader(jstack));
             return readStackTrace(r);

@@ -102,7 +102,8 @@ public class ColumnNamer {
         }
         // go with a innocuous default name pattern
         if (columnName == null) {
-            columnName = configuration.getDefaultColumnNamePattern().replace("$$", "" + (indexOfColumn + 1));
+            columnName = configuration.getDefaultColumnNamePattern()
+                    .replace("$$", Integer.toString(indexOfColumn + 1));
         }
         if (existingColumnNames.contains(columnName) && configuration.isGenerateUniqueColumnNames()) {
             columnName = generateUniqueName(columnName);

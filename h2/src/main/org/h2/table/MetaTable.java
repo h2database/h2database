@@ -12,6 +12,7 @@ import java.io.Reader;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -797,15 +798,15 @@ public class MetaTable extends Table {
                         // REMARKS
                         replaceNullWithEmpty(table.getComment()),
                         // LAST_MODIFICATION
-                        "" + table.getMaxDataModificationId(),
+                        Long.toString(table.getMaxDataModificationId()),
                         // ID
-                        "" + table.getId(),
+                        Integer.toString(table.getId()),
                         // TYPE_NAME
                         null,
                         // TABLE_CLASS
                         table.getClass().getName(),
                         // ROW_COUNT_ESTIMATE
-                        "" + table.getRowCountApproximation()
+                        Long.toString(table.getRowCountApproximation())
                 );
             }
             break;
@@ -833,6 +834,7 @@ public class MetaTable extends Table {
                 for (int j = 0; j < cols.length; j++) {
                     Column c = cols[j];
                     DataType dataType = c.getDataType();
+                    String precision = Integer.toString(c.getPrecisionAsInt());
                     Sequence sequence = c.getSequence();
                     add(rows,
                             // TABLE_CATALOG
@@ -850,17 +852,17 @@ public class MetaTable extends Table {
                             // IS_NULLABLE
                             c.isNullable() ? "YES" : "NO",
                             // DATA_TYPE
-                            "" + dataType.sqlType,
+                            Integer.toString(dataType.sqlType),
                             // CHARACTER_MAXIMUM_LENGTH
-                            "" + c.getPrecisionAsInt(),
+                            precision,
                             // CHARACTER_OCTET_LENGTH
-                            "" + c.getPrecisionAsInt(),
+                            precision,
                             // NUMERIC_PRECISION
-                            "" + c.getPrecisionAsInt(),
+                            precision,
                             // NUMERIC_PRECISION_RADIX
                             "10",
                             // NUMERIC_SCALE
-                            "" + c.getScale(),
+                            Integer.toString(c.getScale()),
                             // CHARACTER_SET_NAME
                             CHARACTER_SET_NAME,
                             // COLLATION_NAME
@@ -868,13 +870,13 @@ public class MetaTable extends Table {
                             // TYPE_NAME
                             identifier(dataType.name),
                             // NULLABLE
-                            "" + (c.isNullable() ?
-                                    DatabaseMetaData.columnNullable :
-                                    DatabaseMetaData.columnNoNulls) ,
+                            c.isNullable() ?
+                                    "" + DatabaseMetaData.columnNullable :
+                                    "" + DatabaseMetaData.columnNoNulls,
                             // IS_COMPUTED
-                            "" + (c.getComputed() ? "TRUE" : "FALSE"),
+                            c.getComputed() ? "TRUE" : "FALSE",
                             // SELECTIVITY
-                            "" + (c.getSelectivity()),
+                            Integer.toString(c.getSelectivity()),
                             // CHECK_CONSTRAINT
                             c.getCheckConstraintSQL(session, c.getName()),
                             // SEQUENCE_NAME
@@ -954,7 +956,7 @@ public class MetaTable extends Table {
                                 // INDEX_NAME
                                 identifier(index.getName()),
                                 // ORDINAL_POSITION
-                                "" + (k+1),
+                                Integer.toString(k + 1),
                                 // COLUMN_NAME
                                 identifier(column.getName()),
                                 // CARDINALITY
@@ -981,9 +983,9 @@ public class MetaTable extends Table {
                                 // SQL
                                 index.getCreateSQL(),
                                 // ID
-                                "" + index.getId(),
+                                Integer.toString(index.getId()),
                                 // SORT_TYPE
-                                "" + idxCol.sortType,
+                                Integer.toString(idxCol.sortType),
                                 // CONSTRAINT_NAME
                                 constraintName,
                                 // INDEX_CLASS
@@ -1013,7 +1015,7 @@ public class MetaTable extends Table {
             for (Setting s : database.getAllSettings()) {
                 String value = s.getStringValue();
                 if (value == null) {
-                    value = "" + s.getIntValue();
+                    value = Integer.toString(s.getIntValue());
                 }
                 add(rows,
                         identifier(s.getName()),
@@ -1023,7 +1025,7 @@ public class MetaTable extends Table {
             add(rows, "info.BUILD_ID", "" + Constants.BUILD_ID);
             add(rows, "info.VERSION_MAJOR", "" + Constants.VERSION_MAJOR);
             add(rows, "info.VERSION_MINOR", "" + Constants.VERSION_MINOR);
-            add(rows, "info.VERSION", "" + Constants.getFullVersion());
+            add(rows, "info.VERSION", Constants.getFullVersion());
             if (admin) {
                 String[] settings = {
                         "java.runtime.version", "java.vm.name",
@@ -1040,9 +1042,9 @@ public class MetaTable extends Table {
             add(rows, "MODE", database.getMode().getName());
             add(rows, "MULTI_THREADED", database.isMultiThreaded() ? "1" : "0");
             add(rows, "MVCC", database.isMultiVersion() ? "TRUE" : "FALSE");
-            add(rows, "QUERY_TIMEOUT", "" + session.getQueryTimeout());
-            add(rows, "RETENTION_TIME", "" + database.getRetentionTime());
-            add(rows, "LOG", "" + database.getLogMode());
+            add(rows, "QUERY_TIMEOUT", Integer.toString(session.getQueryTimeout()));
+            add(rows, "RETENTION_TIME", Integer.toString(database.getRetentionTime()));
+            add(rows, "LOG", Integer.toString(database.getLogMode()));
             // database settings
             ArrayList<String> settingNames = Utils.newSmallArrayList();
             HashMap<String, String> s = database.getSettings().getSettings();
@@ -1055,27 +1057,27 @@ public class MetaTable extends Table {
                 PageStore store = database.getPageStore();
                 if (store != null) {
                     add(rows, "info.FILE_WRITE_TOTAL",
-                            "" + store.getWriteCountTotal());
+                            Long.toString(store.getWriteCountTotal()));
                     add(rows, "info.FILE_WRITE",
-                            "" + store.getWriteCount());
+                            Long.toString(store.getWriteCount()));
                     add(rows, "info.FILE_READ",
-                            "" + store.getReadCount());
+                            Long.toString(store.getReadCount()));
                     add(rows, "info.PAGE_COUNT",
-                            "" + store.getPageCount());
+                            Integer.toString(store.getPageCount()));
                     add(rows, "info.PAGE_SIZE",
-                            "" + store.getPageSize());
+                            Integer.toString(store.getPageSize()));
                     add(rows, "info.CACHE_MAX_SIZE",
-                            "" + store.getCache().getMaxMemory());
+                            Integer.toString(store.getCache().getMaxMemory()));
                     add(rows, "info.CACHE_SIZE",
-                            "" + store.getCache().getMemory());
+                            Integer.toString(store.getCache().getMemory()));
                 }
                 Store mvStore = database.getMvStore();
                 if (mvStore != null) {
                     FileStore fs = mvStore.getStore().getFileStore();
-                    add(rows, "info.FILE_WRITE", "" +
-                            fs.getWriteCount());
-                    add(rows, "info.FILE_READ", "" +
-                            fs.getReadCount());
+                    add(rows, "info.FILE_WRITE",
+                            Long.toString(fs.getWriteCount()));
+                    add(rows, "info.FILE_READ",
+                            Long.toString(fs.getReadCount()));
                     long size;
                     try {
                         size = fs.getFile().size();
@@ -1084,14 +1086,14 @@ public class MetaTable extends Table {
                     }
                     int pageSize = 4 * 1024;
                     long pageCount = size / pageSize;
-                    add(rows, "info.PAGE_COUNT", "" +
-                            pageCount);
-                    add(rows, "info.PAGE_SIZE", "" +
-                            pageSize);
-                    add(rows, "info.CACHE_MAX_SIZE", "" +
-                            mvStore.getStore().getCacheSize());
-                    add(rows, "info.CACHE_SIZE", "" +
-                            mvStore.getStore().getCacheSizeUsed());
+                    add(rows, "info.PAGE_COUNT",
+                            Long.toString(pageCount));
+                    add(rows, "info.PAGE_SIZE",
+                            Integer.toString(pageSize));
+                    add(rows, "info.CACHE_MAX_SIZE",
+                            Integer.toString(mvStore.getStore().getCacheSize()));
+                    add(rows, "info.CACHE_SIZE",
+                            Integer.toString(mvStore.getStore().getCacheSizeUsed()));
                 }
             }
             break;
@@ -1190,7 +1192,7 @@ public class MetaTable extends Table {
                         // IS_CYCLE
                         s.getCycle() ? "TRUE" : "FALSE",
                         // ID
-                        "" + s.getId()
+                        Integer.toString(s.getId())
                     );
             }
             break;
@@ -1206,7 +1208,7 @@ public class MetaTable extends Table {
                             // REMARKS
                             replaceNullWithEmpty(u.getComment()),
                             // ID
-                            "" + u.getId()
+                            Integer.toString(u.getId())
                     );
                 }
             }
@@ -1221,7 +1223,7 @@ public class MetaTable extends Table {
                             // REMARKS
                             replaceNullWithEmpty(r.getComment()),
                             // ID
-                            "" + r.getId()
+                            Integer.toString(r.getId())
                     );
                 }
             }
@@ -1265,7 +1267,7 @@ public class MetaTable extends Table {
                                 // TABLE_NAME
                                 tableName,
                                 // ID
-                                "" + r.getId()
+                                Integer.toString(r.getId())
                         );
                     } else {
                         add(rows,
@@ -1282,7 +1284,7 @@ public class MetaTable extends Table {
                                 // TABLE_NAME
                                 "",
                                 // ID
-                                "" + r.getId()
+                                Integer.toString(r.getId())
                         );
                     }
                 }
@@ -1315,17 +1317,17 @@ public class MetaTable extends Table {
                             // JAVA_METHOD
                             alias.getJavaMethodName(),
                             // DATA_TYPE
-                            "" + DataType.convertTypeToSQLType(method.getDataType()),
+                            Integer.toString(DataType.convertTypeToSQLType(method.getDataType())),
                             // TYPE_NAME
                             DataType.getDataType(method.getDataType()).name,
                             // COLUMN_COUNT INT
-                            "" + method.getParameterCount(),
+                            Integer.toString(method.getParameterCount()),
                             // RETURNS_RESULT SMALLINT
-                            "" + returnsResult,
+                            Integer.toString(returnsResult),
                             // REMARKS
                             replaceNullWithEmpty(alias.getComment()),
                             // ID
-                            "" + alias.getId(),
+                            Integer.toString(alias.getId()),
                             // SOURCE
                             alias.getSource()
                             // when adding more columns, see also below
@@ -1346,17 +1348,17 @@ public class MetaTable extends Table {
                         // JAVA_METHOD
                         "",
                         // DATA_TYPE
-                        "" + DataType.convertTypeToSQLType(Value.NULL),
+                        "" + Types.NULL,
                         // TYPE_NAME
                         DataType.getDataType(Value.NULL).name,
                         // COLUMN_COUNT INT
                         "1",
                         // RETURNS_RESULT SMALLINT
-                        "" + returnsResult,
+                        Integer.toString(returnsResult),
                         // REMARKS
                         replaceNullWithEmpty(agg.getComment()),
                         // ID
-                        "" + agg.getId(),
+                        Integer.toString(agg.getId()),
                         // SOURCE
                         ""
                         // when adding more columns, see also below
@@ -1390,19 +1392,19 @@ public class MetaTable extends Table {
                                 // JAVA_METHOD
                                 alias.getJavaMethodName(),
                                 // COLUMN_COUNT
-                                "" + method.getParameterCount(),
+                                Integer.toString(method.getParameterCount()),
                                 // POS INT
                                 "0",
                                 // COLUMN_NAME
                                 "P0",
                                 // DATA_TYPE
-                                "" + DataType.convertTypeToSQLType(method.getDataType()),
+                                Integer.toString(DataType.convertTypeToSQLType(method.getDataType())),
                                 // TYPE_NAME
                                 dt.name,
                                 // PRECISION INT
-                                "" + MathUtils.convertLongToInt(dt.defaultPrecision),
+                                Integer.toString(MathUtils.convertLongToInt(dt.defaultPrecision)),
                                 // SCALE
-                                "" + dt.defaultScale,
+                                Integer.toString(dt.defaultScale),
                                 // RADIX
                                 "10",
                                 // NULLABLE SMALLINT
@@ -1437,23 +1439,23 @@ public class MetaTable extends Table {
                                 // JAVA_METHOD
                                 alias.getJavaMethodName(),
                                 // COLUMN_COUNT
-                                "" + method.getParameterCount(),
+                                Integer.toString(method.getParameterCount()),
                                 // POS INT
-                                "" + (k + (method.hasConnectionParam() ? 0 : 1)),
+                                Integer.toString(k + (method.hasConnectionParam() ? 0 : 1)),
                                 // COLUMN_NAME
                                 "P" + (k + 1),
                                 // DATA_TYPE
-                                "" + DataType.convertTypeToSQLType(dt.type),
+                                Integer.toString(DataType.convertTypeToSQLType(dt.type)),
                                 // TYPE_NAME
                                 dt.name,
                                 // PRECISION INT
-                                "" + MathUtils.convertLongToInt(dt.defaultPrecision),
+                                Integer.toString(MathUtils.convertLongToInt(dt.defaultPrecision)),
                                 // SCALE
-                                "" + dt.defaultScale,
+                                Integer.toString(dt.defaultScale),
                                 // RADIX
                                 "10",
                                 // NULLABLE SMALLINT
-                                "" + nullable,
+                                Integer.toString(nullable),
                                 // COLUMN_TYPE
                                 "" + DatabaseMetaData.procedureColumnIn,
                                 // REMARKS
@@ -1486,7 +1488,7 @@ public class MetaTable extends Table {
                         // REMARKS
                         replaceNullWithEmpty(schema.getComment()),
                         // ID
-                        "" + schema.getId()
+                        Integer.toString(schema.getId())
                 );
             }
             break;
@@ -1572,7 +1574,7 @@ public class MetaTable extends Table {
                         // REMARKS
                         replaceNullWithEmpty(view.getComment()),
                         // ID
-                        "" + view.getId()
+                        Integer.toString(view.getId())
                 );
             }
             break;
@@ -1708,7 +1710,7 @@ public class MetaTable extends Table {
                         // SQL
                         constraint.getCreateSQL(),
                         // ID
-                        "" + constraint.getId()
+                        Integer.toString(constraint.getId())
                     );
             }
             break;
@@ -1726,13 +1728,13 @@ public class MetaTable extends Table {
                         // CONSTANT_NAME
                         identifier(constant.getName()),
                         // CONSTANT_TYPE
-                        "" + DataType.convertTypeToSQLType(expr.getType()),
+                        Integer.toString(DataType.convertTypeToSQLType(expr.getType())),
                         // REMARKS
                         replaceNullWithEmpty(constant.getComment()),
                         // SQL
                         expr.getSQL(),
                         // ID
-                        "" + constant.getId()
+                        Integer.toString(constant.getId())
                     );
             }
             break;
@@ -1752,15 +1754,15 @@ public class MetaTable extends Table {
                         // IS_NULLABLE
                         col.isNullable() ? "YES" : "NO",
                         // DATA_TYPE
-                        "" + col.getDataType().sqlType,
+                        Integer.toString(col.getDataType().sqlType),
                         // PRECISION INT
-                        "" + col.getPrecisionAsInt(),
+                        Integer.toString(col.getPrecisionAsInt()),
                         // SCALE INT
-                        "" + col.getScale(),
+                        Integer.toString(col.getScale()),
                         // TYPE_NAME
                         col.getDataType().name,
                         // SELECTIVITY INT
-                        "" + col.getSelectivity(),
+                        Integer.toString(col.getSelectivity()),
                         // CHECK_CONSTRAINT
                         "" + col.getCheckConstraintSQL(session, "VALUE"),
                         // REMARKS
@@ -1768,7 +1770,7 @@ public class MetaTable extends Table {
                         // SQL
                         "" + dt.getCreateSQL(),
                         // ID
-                        "" + dt.getId()
+                        Integer.toString(dt.getId())
                 );
             }
             break;
@@ -1794,19 +1796,19 @@ public class MetaTable extends Table {
                         // TABLE_NAME
                         identifier(table.getName()),
                         // BEFORE BIT
-                        "" + trigger.isBefore(),
+                        Boolean.toString(trigger.isBefore()),
                         // JAVA_CLASS
                         trigger.getTriggerClassName(),
                         // QUEUE_SIZE INT
-                        "" + trigger.getQueueSize(),
+                        Integer.toString(trigger.getQueueSize()),
                         // NO_WAIT BIT
-                        "" + trigger.isNoWait(),
+                        Boolean.toString(trigger.isNoWait()),
                         // REMARKS
                         replaceNullWithEmpty(trigger.getComment()),
                         // SQL
                         trigger.getCreateSQL(),
                         // ID
-                        "" + trigger.getId()
+                        Integer.toString(trigger.getId())
                 );
             }
             break;
@@ -1822,7 +1824,7 @@ public class MetaTable extends Table {
                     }
                     add(rows,
                             // ID
-                            "" + s.getId(),
+                            Integer.toString(s.getId()),
                             // USER_NAME
                             s.getUser().getName(),
                             // SESSION_START
@@ -1832,7 +1834,7 @@ public class MetaTable extends Table {
                             // STATEMENT_START
                             new Timestamp(start).toString(),
                             // CONTAINS_UNCOMMITTED
-                            "" + s.containsUncommitted()
+                            Boolean.toString(s.containsUncommitted())
                     );
                 }
             }
@@ -1848,7 +1850,7 @@ public class MetaTable extends Table {
                                 // TABLE_NAME
                                 table.getName(),
                                 // SESSION_ID
-                                "" + s.getId(),
+                                Integer.toString(s.getId()),
                                 // LOCK_TYPE
                                 table.isLockedExclusivelyBy(s) ? "WRITE" : "READ"
                         );
@@ -1909,27 +1911,27 @@ public class MetaTable extends Table {
                             // SQL_STATEMENT
                             entry.sqlStatement,
                             // EXECUTION_COUNT
-                            "" + entry.count,
+                            Integer.toString(entry.count),
                             // MIN_EXECUTION_TIME
-                            "" + entry.executionTimeMinNanos / 1000d / 1000,
+                            Double.toString(entry.executionTimeMinNanos / 1_000_000d),
                             // MAX_EXECUTION_TIME
-                            "" + entry.executionTimeMaxNanos / 1000d / 1000,
+                            Double.toString(entry.executionTimeMaxNanos / 1_000_000d),
                             // CUMULATIVE_EXECUTION_TIME
-                            "" + entry.executionTimeCumulativeNanos / 1000d / 1000,
+                            Double.toString(entry.executionTimeCumulativeNanos / 1_000_000d),
                             // AVERAGE_EXECUTION_TIME
-                            "" + entry.executionTimeMeanNanos / 1000d / 1000,
+                            Double.toString(entry.executionTimeMeanNanos / 1_000_000d),
                             // STD_DEV_EXECUTION_TIME
-                            "" + entry.getExecutionTimeStandardDeviation() / 1000d / 1000,
+                            Double.toString(entry.getExecutionTimeStandardDeviation() / 1_000_000d),
                             // MIN_ROW_COUNT
-                            "" + entry.rowCountMin,
+                            Integer.toString(entry.rowCountMin),
                             // MAX_ROW_COUNT
-                            "" + entry.rowCountMax,
+                            Integer.toString(entry.rowCountMax),
                             // CUMULATIVE_ROW_COUNT
-                            "" + entry.rowCountCumulative,
+                            Long.toString(entry.rowCountCumulative),
                             // AVERAGE_ROW_COUNT
-                            "" + entry.rowCountMean,
+                            Double.toString(entry.rowCountMean),
                             // STD_DEV_ROW_COUNT
-                            "" + entry.getRowCountStandardDeviation()
+                            Double.toString(entry.getRowCountStandardDeviation())
                     );
                 }
             }
@@ -1955,7 +1957,7 @@ public class MetaTable extends Table {
                         // REMARKS
                         replaceNullWithEmpty(synonym.getComment()),
                         // ID
-                        "" + synonym.getId()
+                        Integer.toString(synonym.getId())
                 );
             }
             break;

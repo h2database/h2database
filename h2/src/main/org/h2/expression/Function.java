@@ -557,7 +557,7 @@ public class Function extends Expression implements FunctionCall {
         } else {
             if (index >= args.length) {
                 throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2,
-                        info.name, "" + args.length);
+                        info.name, Integer.toString(args.length));
             }
             args[index] = param;
         }
@@ -2165,7 +2165,7 @@ public class Function extends Expression implements FunctionCall {
             if (len > 0 && args[len - 1] == null) {
                 throw DbException.get(
                         ErrorCode.INVALID_PARAMETER_COUNT_2,
-                        info.name, "" + len);
+                        info.name, Integer.toString(len));
             }
         }
     }

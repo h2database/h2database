@@ -832,6 +832,7 @@ public class MetaTable extends Table {
                 String collation = database.getCompareMode().getName();
                 for (int j = 0; j < cols.length; j++) {
                     Column c = cols[j];
+                    DataType dataType = c.getDataType();
                     Sequence sequence = c.getSequence();
                     add(rows,
                             // TABLE_CATALOG
@@ -849,7 +850,7 @@ public class MetaTable extends Table {
                             // IS_NULLABLE
                             c.isNullable() ? "YES" : "NO",
                             // DATA_TYPE
-                            "" + DataType.convertTypeToSQLType(c.getType()),
+                            "" + dataType.sqlType,
                             // CHARACTER_MAXIMUM_LENGTH
                             "" + c.getPrecisionAsInt(),
                             // CHARACTER_OCTET_LENGTH
@@ -865,7 +866,7 @@ public class MetaTable extends Table {
                             // COLLATION_NAME
                             collation,
                             // TYPE_NAME
-                            identifier(DataType.getDataType(c.getType()).name),
+                            identifier(dataType.name),
                             // NULLABLE
                             "" + (c.isNullable() ?
                                     DatabaseMetaData.columnNullable :

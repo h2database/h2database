@@ -23,7 +23,6 @@ public class AlterIndexRename extends DefineCommand {
     private boolean ifExists;
     private Schema oldSchema;
     private String oldIndexName;
-    private Index oldIndex;
     private String newIndexName;
 
     public AlterIndexRename(Session session) {
@@ -50,7 +49,7 @@ public class AlterIndexRename extends DefineCommand {
     public int update() {
         session.commit(true);
         Database db = session.getDatabase();
-        oldIndex = oldSchema.findIndex(session, oldIndexName);
+        Index oldIndex = oldSchema.findIndex(session, oldIndexName);
         if (oldIndex == null) {
             if (!ifExists) {
                 throw DbException.get(ErrorCode.INDEX_NOT_FOUND_1,

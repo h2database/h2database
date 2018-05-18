@@ -778,7 +778,7 @@ public class TableFilter implements ColumnResolver {
             return buff.toString();
         }
         if (table.isView() && ((TableView) table).isRecursive()) {
-            buff.append(table.getName());
+            buff.append(table.getSchema().getSQL()).append('.').append(table.getName());
         } else {
             buff.append(table.getSQL());
         }

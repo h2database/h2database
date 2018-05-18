@@ -20,7 +20,13 @@ class OnExitDatabaseCloser extends Thread {
 
     private static boolean registered;
 
+    private static boolean terminated;
+
     static synchronized void register(Database db) {
+        if (terminated) {
+            // Shutdown in progress
+            return;
+        }
         DATABASES.put(db, null);
         if (!registered) {
             // Mark as registered unconditionally to avoid further attempts to register a
@@ -41,6 +47,11 @@ class OnExitDatabaseCloser extends Thread {
     }
 
     static synchronized void unregister(Database db) {
+        if (terminated) {
+            // Shutdown in progress, do nothing
+            // This method can be called from the onShutdown()
+            return;
+        }
         DATABASES.remove(db);
         if (DATABASES.isEmpty() && registered) {
             try {
@@ -54,11 +65,8 @@ class OnExitDatabaseCloser extends Thread {
         }
     }
 
-    private OnExitDatabaseCloser() {
-    }
-
-    @Override
-    public void run() {
+    private static synchronized void onShutdown() {
+        terminated = true;
         RuntimeException root = null;
         for (Database database : DATABASES.keySet()) {
             try {
@@ -84,6 +92,14 @@ class OnExitDatabaseCloser extends Thread {
         if (root != null) {
             throw root;
         }
+    }
+
+    private OnExitDatabaseCloser() {
+    }
+
+    @Override
+    public void run() {
+        onShutdown();
     }
 
 }

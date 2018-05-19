@@ -258,7 +258,7 @@ public class MVPrimaryIndex extends BaseIndex {
         ValueLong v = (ValueLong) (first ? map.firstKey() : map.lastKey());
         if (v == null) {
             return new MVStoreCursor(session,
-                    Collections.<Entry<Value, Value>> emptyList().iterator());
+                    Collections.<Entry<Value, Value>> emptyIterator());
         }
         Value value = map.get(v);
         Entry<Value, Value> e = new AbstractMap.SimpleImmutableEntry<Value, Value>(v, value);

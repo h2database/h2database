@@ -307,7 +307,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
             }
             if (min == null) {
                 return new MVStoreCursor(session,
-                        Collections.<Value>emptyList().iterator(), null);
+                        Collections.<Value>emptyIterator(), null);
             }
         }
         return new MVStoreCursor(session, map.keyIterator(min), last);
@@ -394,7 +394,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         while (true) {
             if (key == null) {
                 return new MVStoreCursor(session,
-                        Collections.<Value>emptyList().iterator(), null);
+                        Collections.<Value>emptyIterator(), null);
             }
             if (((ValueArray) key).getList()[0] != ValueNull.INSTANCE) {
                 break;

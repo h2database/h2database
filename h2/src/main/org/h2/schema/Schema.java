@@ -672,10 +672,9 @@ public class Schema extends DbObjectBase {
     public void remove(SchemaObject obj) {
         String objName = obj.getName();
         Map<String, SchemaObject> map = getMap(obj.getType());
-        if (SysProperties.CHECK && !map.containsKey(objName)) {
+        if (map.remove(objName) == null) {
             DbException.throwInternalError("not found: " + objName);
         }
-        map.remove(objName);
         freeUniqueName(objName);
     }
 

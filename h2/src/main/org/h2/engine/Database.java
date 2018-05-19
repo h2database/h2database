@@ -73,7 +73,6 @@ import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
-import org.h2.value.CaseInsensitiveConcurrentMap;
 import org.h2.value.CaseInsensitiveMap;
 import org.h2.value.CompareMode;
 import org.h2.value.NullableKeyConcurrentMap;
@@ -2860,9 +2859,7 @@ public class Database implements DataHandler {
      * @return the hash map
      */
     public <V> ConcurrentHashMap<String, V> newConcurrentStringMap() {
-        return dbSettings.databaseToUpper ?
-                new NullableKeyConcurrentMap<V>() :
-                new CaseInsensitiveConcurrentMap<V>();
+        return new NullableKeyConcurrentMap<>(!dbSettings.databaseToUpper);
     }
 
     /**

@@ -606,8 +606,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
      */
     @Override
     public Clob getClob(int columnIndex) throws SQLException {
-        Clob c = (Clob) get(columnIndex);
-        return c == null ? null : c;
+        return (Clob) get(columnIndex);
     }
 
     /**

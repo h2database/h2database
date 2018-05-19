@@ -51,7 +51,7 @@ public class PageBtreeIndex extends PageIndex {
         // trace.setLevel(TraceSystem.DEBUG);
         tableData = table;
         if (!database.isPersistent() || id < 0) {
-            throw DbException.throwInternalError("" + indexName);
+            throw DbException.throwInternalError(indexName);
         }
         this.store = database.getPageStore();
         store.addIndex(this);
@@ -154,7 +154,7 @@ public class PageBtreeIndex extends PageIndex {
             store.update(empty);
             return empty;
         } else if (!(p instanceof PageBtree)) {
-            throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "" + p);
+            throw DbException.get(ErrorCode.FILE_CORRUPTED_1, String.valueOf(p));
         }
         return (PageBtree) p;
     }

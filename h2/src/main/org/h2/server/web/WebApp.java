@@ -301,7 +301,7 @@ public class WebApp {
                 for (Map.Entry<String, String> entry : map.entrySet()) {
                     String key = entry.getKey();
                     String value = entry.getValue();
-                    String type = "" + key.charAt(0);
+                    String type = String.valueOf(key.charAt(0));
                     if (Integer.parseInt(type) > 2) {
                         continue;
                     }
@@ -1182,14 +1182,14 @@ public class WebApp {
             rs.addRow("conn.getCatalog", conn.getCatalog());
             rs.addRow("conn.getAutoCommit", Boolean.toString(conn.getAutoCommit()));
             rs.addRow("conn.getTransactionIsolation", Integer.toString(conn.getTransactionIsolation()));
-            rs.addRow("conn.getWarnings", "" + conn.getWarnings());
+            rs.addRow("conn.getWarnings", String.valueOf(conn.getWarnings()));
             String map;
             try {
-                map = "" + conn.getTypeMap();
+                map = String.valueOf(conn.getTypeMap());
             } catch (SQLException e) {
                 map = e.toString();
             }
-            rs.addRow("conn.getTypeMap", "" + map);
+            rs.addRow("conn.getTypeMap", map);
             rs.addRow("conn.isReadOnly", Boolean.toString(conn.isReadOnly()));
             rs.addRow("conn.getHoldability", Integer.toString(conn.getHoldability()));
             addDatabaseMetaData(rs, meta);
@@ -1229,7 +1229,7 @@ public class WebApp {
             if (m.getParameterTypes().length == 0) {
                 try {
                     Object o = m.invoke(meta);
-                    rs.addRow("meta." + m.getName(), "" + o);
+                    rs.addRow("meta." + m.getName(), String.valueOf(o));
                 } catch (InvocationTargetException e) {
                     rs.addRow("meta." + m.getName(), e.getTargetException().toString());
                 } catch (Exception e) {

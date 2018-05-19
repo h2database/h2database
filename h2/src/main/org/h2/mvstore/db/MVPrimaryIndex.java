@@ -368,7 +368,7 @@ public class MVPrimaryIndex extends BaseIndex {
     /**
      * A cursor.
      */
-    class MVStoreCursor implements Cursor {
+    static class MVStoreCursor implements Cursor {
 
         private final Session session;
         private final Iterator<Entry<Value, Value>> it;

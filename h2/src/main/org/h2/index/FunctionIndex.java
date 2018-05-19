@@ -5,13 +5,12 @@
  */
 package org.h2.index;
 
-import java.util.HashSet;
+import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
-import org.h2.table.Column;
 import org.h2.table.FunctionTable;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
@@ -61,7 +60,7 @@ public class FunctionIndex extends BaseIndex {
     @Override
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            HashSet<Column> allColumnsSet) {
+            AllColumnsForPlan allColumnsSet) {
         if (masks != null) {
             throw DbException.getUnsupportedException("ALIAS");
         }

@@ -5,6 +5,11 @@
  */
 package org.h2.command.dml;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
@@ -12,22 +17,38 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
-import org.h2.expression.*;
+import org.h2.expression.Alias;
+import org.h2.expression.Comparison;
+import org.h2.expression.ConditionAndOr;
+import org.h2.expression.Expression;
+import org.h2.expression.ExpressionColumn;
+import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.Parameter;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
-import org.h2.result.*;
-import org.h2.table.*;
-import org.h2.util.*;
+import org.h2.result.LazyResult;
+import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
+import org.h2.result.ResultTarget;
+import org.h2.result.Row;
+import org.h2.result.SearchRow;
+import org.h2.result.SortOrder;
+import org.h2.table.Column;
+import org.h2.table.ColumnResolver;
+import org.h2.table.IndexColumn;
+import org.h2.table.JoinBatch;
+import org.h2.table.Table;
+import org.h2.table.TableFilter;
+import org.h2.table.TableView;
+import org.h2.util.ColumnNamer;
+import org.h2.util.StatementBuilder;
+import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 
 /**
  * This class represents a simple SELECT statement.
@@ -49,8 +70,8 @@ public class Select extends Query {
      */
     TableFilter topTableFilter;
 
-    private final ArrayList<TableFilter> filters = new ArrayList<>();
-    private final ArrayList<TableFilter> topFilters = new ArrayList<>();
+    private final ArrayList<TableFilter> filters = Utils.newSmallArrayList();
+    private final ArrayList<TableFilter> topFilters = Utils.newSmallArrayList();
 
     /**
      * The column list, including synthetic columns (columns not shown in the
@@ -81,9 +102,22 @@ public class Select extends Query {
     boolean[] groupByExpression;
 
     /**
-     * The current group-by values.
+     * The array of current group-by expression data e.g. AggregateData.
      */
-    HashMap<Expression, Object> currentGroup;
+    Object[] currentGroupByExprData;
+    /**
+     * Maps an expression object to an index, to use in accessing the Object[]
+     * pointed to by groupByData.
+     */
+    final HashMap<Expression,Integer> exprToIndexInGroupByData = new HashMap<>();
+    /**
+     * Map of group-by key to group-by expression data e.g. AggregateData
+     */
+    private HashMap<Value, Object[]> groupByData;
+    /**
+     * Key into groupByData that produces currentGroupByExprData. Not used in lazy mode.
+     */
+    ValueArray currentGroupsKey;
 
     private int havingIndex;
     private boolean isGroupQuery, isGroupSortedQuery;
@@ -151,8 +185,45 @@ public class Select extends Query {
         return group;
     }
 
-    public HashMap<Expression, Object> getCurrentGroup() {
-        return currentGroup;
+    /**
+     * Is there currently a group-by active
+     */
+    public boolean isCurrentGroup() {
+        return currentGroupByExprData != null;
+    }
+
+    /**
+     * Get the group-by data for the current group and the passed in expression.
+     */
+    public Object getCurrentGroupExprData(Expression expr) {
+        Integer index = exprToIndexInGroupByData.get(expr);
+        if (index == null) {
+            return null;
+        }
+        return currentGroupByExprData[index];
+    }
+
+    /**
+     * Set the group-by data for the current group and the passed in expression.
+     */
+    public void setCurrentGroupExprData(Expression expr, Object obj) {
+        Integer index = exprToIndexInGroupByData.get(expr);
+        if (index != null) {
+            assert currentGroupByExprData[index] == null;
+            currentGroupByExprData[index] = obj;
+            return;
+        }
+        index = exprToIndexInGroupByData.size();
+        exprToIndexInGroupByData.put(expr, index);
+        if (index >= currentGroupByExprData.length) {
+            currentGroupByExprData = Arrays.copyOf(currentGroupByExprData, currentGroupByExprData.length * 2);
+            // this can be null in lazy mode
+            if (currentGroupsKey != null) {
+                // since we changed the size of the array, update the object in the groups map
+                groupByData.put(currentGroupsKey, currentGroupByExprData);
+            }
+        }
+        currentGroupByExprData[index] = obj;
     }
 
     public int getCurrentGroupRowId() {
@@ -313,72 +384,79 @@ public class Select extends Query {
     }
 
     private void queryGroup(int columnCount, LocalResult result) {
-        ValueHashMap<HashMap<Expression, Object>> groups =
-                ValueHashMap.newInstance();
-        int rowNumber = 0;
-        setCurrentRowNumber(0);
-        currentGroup = null;
-        ValueArray defaultGroup = ValueArray.get(new Value[0]);
-        int sampleSize = getSampleSizeValue(session);
-        while (topTableFilter.next()) {
-            setCurrentRowNumber(rowNumber + 1);
-            if (isConditionMet()) {
-                Value key;
-                rowNumber++;
-                if (groupIndex == null) {
-                    key = defaultGroup;
-                } else {
-                    Value[] keyValues = new Value[groupIndex.length];
-                    // update group
-                    for (int i = 0; i < groupIndex.length; i++) {
-                        int idx = groupIndex[i];
-                        Expression expr = expressions.get(idx);
-                        keyValues[i] = expr.getValue(session);
+        groupByData = new HashMap<>();
+        currentGroupByExprData = null;
+        currentGroupsKey = null;
+        exprToIndexInGroupByData.clear();
+        try {
+            int rowNumber = 0;
+            setCurrentRowNumber(0);
+            ValueArray defaultGroup = ValueArray.get(new Value[0]);
+            int sampleSize = getSampleSizeValue(session);
+            while (topTableFilter.next()) {
+                setCurrentRowNumber(rowNumber + 1);
+                if (isConditionMet()) {
+                    rowNumber++;
+                    if (groupIndex == null) {
+                        currentGroupsKey = defaultGroup;
+                    } else {
+                        Value[] keyValues = new Value[groupIndex.length];
+                        // update group
+                        for (int i = 0; i < groupIndex.length; i++) {
+                            int idx = groupIndex[i];
+                            Expression expr = expressions.get(idx);
+                            keyValues[i] = expr.getValue(session);
+                        }
+                        currentGroupsKey = ValueArray.get(keyValues);
                     }
-                    key = ValueArray.get(keyValues);
-                }
-                HashMap<Expression, Object> values = groups.get(key);
-                if (values == null) {
-                    values = new HashMap<>();
-                    groups.put(key, values);
-                }
-                currentGroup = values;
-                currentGroupRowId++;
-                for (int i = 0; i < columnCount; i++) {
-                    if (groupByExpression == null || !groupByExpression[i]) {
-                        Expression expr = expressions.get(i);
-                        expr.updateAggregate(session);
+                    Object[] values = groupByData.get(currentGroupsKey);
+                    if (values == null) {
+                        values = new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())];
+                        groupByData.put(currentGroupsKey, values);
                     }
-                }
-                if (sampleSize > 0 && rowNumber >= sampleSize) {
-                    break;
+                    currentGroupByExprData = values;
+                    currentGroupRowId++;
+                    for (int i = 0; i < columnCount; i++) {
+                        if (groupByExpression == null || !groupByExpression[i]) {
+                            Expression expr = expressions.get(i);
+                            expr.updateAggregate(session);
+                        }
+                    }
+                    if (sampleSize > 0 && rowNumber >= sampleSize) {
+                        break;
+                    }
                 }
             }
-        }
-        if (groupIndex == null && groups.size() == 0) {
-            groups.put(defaultGroup, new HashMap<Expression, Object>());
-        }
-        ArrayList<Value> keys = groups.keys();
-        for (Value v : keys) {
-            ValueArray key = (ValueArray) v;
-            currentGroup = groups.get(key);
-            Value[] keyValues = key.getList();
-            Value[] row = new Value[columnCount];
-            for (int j = 0; groupIndex != null && j < groupIndex.length; j++) {
-                row[groupIndex[j]] = keyValues[j];
+            if (groupIndex == null && groupByData.size() == 0) {
+                groupByData.put(defaultGroup,
+                        new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())]);
             }
-            for (int j = 0; j < columnCount; j++) {
-                if (groupByExpression != null && groupByExpression[j]) {
+            for (Map.Entry<Value, Object[]> entry : groupByData.entrySet()) {
+                currentGroupsKey = (ValueArray) entry.getKey();
+                currentGroupByExprData = entry.getValue();
+                Value[] keyValues = currentGroupsKey.getList();
+                Value[] row = new Value[columnCount];
+                for (int j = 0; groupIndex != null && j < groupIndex.length; j++) {
+                    row[groupIndex[j]] = keyValues[j];
+                }
+                for (int j = 0; j < columnCount; j++) {
+                    if (groupByExpression != null && groupByExpression[j]) {
+                        continue;
+                    }
+                    Expression expr = expressions.get(j);
+                    row[j] = expr.getValue(session);
+                }
+                if (isHavingNullOrFalse(row)) {
                     continue;
                 }
-                Expression expr = expressions.get(j);
-                row[j] = expr.getValue(session);
+                row = keepOnlyDistinct(row, columnCount);
+                result.addRow(row);
             }
-            if (isHavingNullOrFalse(row)) {
-                continue;
-            }
-            row = keepOnlyDistinct(row, columnCount);
-            result.addRow(row);
+        } finally {
+            groupByData = null;
+            currentGroupsKey = null;
+            currentGroupByExprData = null;
+            exprToIndexInGroupByData.clear();
         }
     }
 
@@ -394,7 +472,7 @@ public class Select extends Query {
         if (sort == null) {
             return null;
         }
-        ArrayList<Column> sortColumns = new ArrayList<>();
+        ArrayList<Column> sortColumns = Utils.newSmallArrayList();
         for (int idx : sort.getQueryColumnIndexes()) {
             if (idx < 0 || idx >= expressions.size()) {
                 throw DbException.getInvalidValueException("ORDER BY", idx + 1);
@@ -516,7 +594,7 @@ public class Select extends Query {
         }
         ArrayList<Row> forUpdateRows = null;
         if (isForUpdateMvcc) {
-            forUpdateRows = new ArrayList<>();
+            forUpdateRows = Utils.newSmallArrayList();
         }
         int sampleSize = getSampleSizeValue(session);
         LazyResultQueryFlat lazyResult = new LazyResultQueryFlat(expressionArray,
@@ -1357,20 +1435,18 @@ public class Select extends Query {
         default:
         }
         ExpressionVisitor v2 = visitor.incrementQueryLevel(1);
-        boolean result = true;
         for (Expression e : expressions) {
             if (!e.isEverything(v2)) {
-                result = false;
-                break;
+                return false;
             }
         }
-        if (result && condition != null && !condition.isEverything(v2)) {
-            result = false;
+        if (condition != null && !condition.isEverything(v2)) {
+            return false;
         }
-        if (result && having != null && !having.isEverything(v2)) {
-            result = false;
+        if (having != null && !having.isEverything(v2)) {
+            return false;
         }
-        return result;
+        return true;
     }
 
     @Override
@@ -1475,13 +1551,15 @@ public class Select extends Query {
 
         LazyResultGroupSorted(Expression[] expressions, int columnCount) {
             super(expressions, columnCount);
-            currentGroup = null;
+            currentGroupByExprData = null;
+            currentGroupsKey = null;
         }
 
         @Override
         public void reset() {
             super.reset();
-            currentGroup = null;
+            currentGroupByExprData = null;
+            currentGroupsKey = null;
         }
 
         @Override
@@ -1501,11 +1579,13 @@ public class Select extends Query {
                     Value[] row = null;
                     if (previousKeyValues == null) {
                         previousKeyValues = keyValues;
-                        currentGroup = new HashMap<>();
+                        currentGroupByExprData =new Object[Math.max(exprToIndexInGroupByData.size(),
+                                expressions.size())];
                     } else if (!Arrays.equals(previousKeyValues, keyValues)) {
                         row = createGroupSortedRow(previousKeyValues, columnCount);
                         previousKeyValues = keyValues;
-                        currentGroup = new HashMap<>();
+                        currentGroupByExprData = new Object[Math.max(exprToIndexInGroupByData.size(),
+                                expressions.size())];
                     }
                     currentGroupRowId++;
 

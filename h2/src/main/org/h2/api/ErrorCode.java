@@ -2062,7 +2062,7 @@ public class ErrorCode {
         case FEATURE_NOT_SUPPORTED_1: return "HYC00";
         case LOCK_TIMEOUT_1: return "HYT00";
         default:
-            return "" + errorCode;
+            return Integer.toString(errorCode);
         }
     }
 

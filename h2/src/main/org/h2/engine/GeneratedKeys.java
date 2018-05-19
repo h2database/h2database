@@ -17,6 +17,7 @@ import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -27,17 +28,17 @@ public final class GeneratedKeys {
     /**
      * Data for result set with generated keys.
      */
-    private final ArrayList<Map<Column, Value>> data = new ArrayList<>();
+    private final ArrayList<Map<Column, Value>> data = Utils.newSmallArrayList();
 
     /**
      * Columns with generated keys in the current row.
      */
-    private final ArrayList<Column> row = new ArrayList<>();
+    private final ArrayList<Column> row = Utils.newSmallArrayList();
 
     /**
      * All columns with generated keys.
      */
-    private final ArrayList<Column> allColumns = new ArrayList<>();
+    private final ArrayList<Column> allColumns = Utils.newSmallArrayList();
 
     /**
      * Request for keys gathering. {@code false} if generated keys are not needed,

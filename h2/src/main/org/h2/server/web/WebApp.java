@@ -33,6 +33,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
+
 import org.h2.api.ErrorCode;
 import org.h2.bnf.Bnf;
 import org.h2.bnf.context.DbColumn;
@@ -337,8 +338,8 @@ public class WebApp {
     }
 
     private String admin() {
-        session.put("port", "" + server.getPort());
-        session.put("allowOthers", "" + server.getAllowOthers());
+        session.put("port", Integer.toString(server.getPort()));
+        session.put("allowOthers", Boolean.toString(server.getAllowOthers()));
         session.put("ssl", String.valueOf(server.getSSL()));
         session.put("sessions", server.getSessions());
         return "admin.jsp";
@@ -348,7 +349,7 @@ public class WebApp {
         try {
             Properties prop = new SortedProperties();
             int port = Integer.decode((String) attributes.get("port"));
-            prop.setProperty("webPort", String.valueOf(port));
+            prop.setProperty("webPort", Integer.toString(port));
             server.setPort(port);
             boolean allowOthers = Utils.parseBoolean((String) attributes.get("allowOthers"), false, false);
             prop.setProperty("webAllowOthers", String.valueOf(allowOthers));
@@ -1171,16 +1172,16 @@ public class WebApp {
             SimpleResultSet rs = new SimpleResultSet();
             rs.addColumn("Type", Types.VARCHAR, 0, 0);
             rs.addColumn("KB", Types.VARCHAR, 0, 0);
-            rs.addRow("Used Memory", "" + Utils.getMemoryUsed());
-            rs.addRow("Free Memory", "" + Utils.getMemoryFree());
+            rs.addRow("Used Memory", Integer.toString(Utils.getMemoryUsed()));
+            rs.addRow("Free Memory", Integer.toString(Utils.getMemoryFree()));
             return rs;
         } else if (isBuiltIn(sql, "@info")) {
             SimpleResultSet rs = new SimpleResultSet();
             rs.addColumn("KEY", Types.VARCHAR, 0, 0);
             rs.addColumn("VALUE", Types.VARCHAR, 0, 0);
             rs.addRow("conn.getCatalog", conn.getCatalog());
-            rs.addRow("conn.getAutoCommit", "" + conn.getAutoCommit());
-            rs.addRow("conn.getTransactionIsolation", "" + conn.getTransactionIsolation());
+            rs.addRow("conn.getAutoCommit", Boolean.toString(conn.getAutoCommit()));
+            rs.addRow("conn.getTransactionIsolation", Integer.toString(conn.getTransactionIsolation()));
             rs.addRow("conn.getWarnings", "" + conn.getWarnings());
             String map;
             try {
@@ -1189,8 +1190,8 @@ public class WebApp {
                 map = e.toString();
             }
             rs.addRow("conn.getTypeMap", "" + map);
-            rs.addRow("conn.isReadOnly", "" + conn.isReadOnly());
-            rs.addRow("conn.getHoldability", "" + conn.getHoldability());
+            rs.addRow("conn.isReadOnly", Boolean.toString(conn.isReadOnly()));
+            rs.addRow("conn.getHoldability", Integer.toString(conn.getHoldability()));
             addDatabaseMetaData(rs, meta);
             return rs;
         } else if (isBuiltIn(sql, "@attributes")) {
@@ -1327,7 +1328,7 @@ public class WebApp {
             } else if (isBuiltIn(sql, "@maxrows")) {
                 int maxrows = (int) Double.parseDouble(
                         sql.substring("@maxrows".length()).trim());
-                session.put("maxrows", "" + maxrows);
+                session.put("maxrows", Integer.toString(maxrows));
                 return "${text.result.maxrowsSet}";
             } else if (isBuiltIn(sql, "@parameter_meta")) {
                 sql = sql.substring("@parameter_meta".length()).trim();
@@ -1419,7 +1420,8 @@ public class WebApp {
     }
 
     private static boolean isBuiltIn(String sql, String builtIn) {
-        return StringUtils.startsWithIgnoreCase(sql, builtIn);
+        int len = builtIn.length();
+        return sql.length() >= len && sql.regionMatches(true, 0, builtIn, 0, len);
     }
 
     private String executeLoop(Connection conn, int count, String sql)

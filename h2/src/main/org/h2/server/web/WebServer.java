@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
@@ -644,7 +645,7 @@ public class WebServer implements Service {
                 }
             } else {
                 for (int i = 0;; i++) {
-                    String data = prop.getProperty(String.valueOf(i));
+                    String data = prop.getProperty(Integer.toString(i));
                     if (data == null) {
                         break;
                     }
@@ -671,14 +672,11 @@ public class WebServer implements Service {
                 Properties old = loadProperties();
                 prop = new SortedProperties();
                 prop.setProperty("webPort",
-                        "" + SortedProperties.getIntProperty(old,
-                        "webPort", port));
+                        Integer.toString(SortedProperties.getIntProperty(old, "webPort", port)));
                 prop.setProperty("webAllowOthers",
-                        "" + SortedProperties.getBooleanProperty(old,
-                        "webAllowOthers", allowOthers));
+                        Boolean.toString(SortedProperties.getBooleanProperty(old, "webAllowOthers", allowOthers)));
                 prop.setProperty("webSSL",
-                        "" + SortedProperties.getBooleanProperty(old,
-                        "webSSL", ssl));
+                        Boolean.toString(SortedProperties.getBooleanProperty(old, "webSSL", ssl)));
                 if (commandHistoryString != null) {
                     prop.setProperty(COMMAND_HISTORY, commandHistoryString);
                 }
@@ -688,7 +686,7 @@ public class WebServer implements Service {
             for (int i = 0; i < len; i++) {
                 ConnectionInfo info = settings.get(i);
                 if (info != null) {
-                    prop.setProperty(String.valueOf(len - i - 1), info.getString());
+                    prop.setProperty(Integer.toString(len - i - 1), info.getString());
                 }
             }
             if (!"null".equals(serverPropertiesDir)) {

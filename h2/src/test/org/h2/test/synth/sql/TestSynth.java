@@ -6,6 +6,7 @@
 package org.h2.test.synth.sql;
 
 import java.util.ArrayList;
+
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.MathUtils;

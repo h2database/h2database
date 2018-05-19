@@ -23,7 +23,7 @@ public class QueryStatisticsData {
             new Comparator<QueryEntry>() {
         @Override
         public int compare(QueryEntry o1, QueryEntry o2) {
-            return (int) Math.signum(o1.lastUpdateTime - o2.lastUpdateTime);
+            return Long.signum(o1.lastUpdateTime - o2.lastUpdateTime);
         }
     };
 

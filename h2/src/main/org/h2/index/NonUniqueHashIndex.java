@@ -6,7 +6,8 @@
 package org.h2.index;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+
+import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.Row;
@@ -16,6 +17,7 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
 import org.h2.table.TableFilter;
+import org.h2.util.Utils;
 import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
 
@@ -57,7 +59,7 @@ public class NonUniqueHashIndex extends BaseIndex {
         Value key = row.getValue(indexColumn);
         ArrayList<Long> positions = rows.get(key);
         if (positions == null) {
-            positions = new ArrayList<>();
+            positions = Utils.newSmallArrayList();
             rows.put(key, positions);
         }
         positions.add(row.getKey());
@@ -132,7 +134,7 @@ public class NonUniqueHashIndex extends BaseIndex {
     @Override
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            HashSet<Column> allColumnsSet) {
+            AllColumnsForPlan allColumnsSet) {
         for (Column column : columns) {
             int index = column.getColumnId();
             int mask = masks[index];

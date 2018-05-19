@@ -15,6 +15,8 @@ import org.h2.engine.Session;
 import org.h2.engine.SessionInterface;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
+import org.h2.mvstore.db.MVTempResult;
+import org.h2.util.Utils;
 import org.h2.util.ValueHashMap;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -73,7 +75,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
                 this.maxMemoryRows = Integer.MAX_VALUE;
             }
         }
-        rows = new ArrayList<>();
+        rows = Utils.newSmallArrayList();
         this.visibleColumnCount = visibleColumnCount;
         rowId = -1;
         this.expressions = expressions;
@@ -288,6 +290,13 @@ public class LocalResult implements ResultInterface, ResultTarget {
         return ValueArray.get(values);
     }
 
+    private void createExternalResult() {
+        Database database = session.getDatabase();
+        external = database.getMvStore() != null
+                ? MVTempResult.of(database, expressions, distinct, sort)
+                        : new ResultTempTable(session, expressions, distinct, sort);
+    }
+
     /**
      * Add a row to this object.
      *
@@ -302,7 +311,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
                 distinctRows.put(array, values);
                 rowCount = distinctRows.size();
                 if (rowCount > maxMemoryRows) {
-                    external = new ResultTempTable(session, expressions, true, sort);
+                    createExternalResult();
                     rowCount = external.addRows(distinctRows.values());
                     distinctRows = null;
                 }
@@ -315,7 +324,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
         rowCount++;
         if (rows.size() > maxMemoryRows) {
             if (external == null) {
-                external = new ResultTempTable(session, expressions, false, sort);
+                createExternalResult();
             }
             addRowsToDisk();
         }
@@ -344,7 +353,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
                     ResultExternal temp = external;
                     external = null;
                     temp.reset();
-                    rows = new ArrayList<>();
+                    rows = Utils.newSmallArrayList();
                     // TODO use offset directly if possible
                     while (true) {
                         Value[] list = temp.next();
@@ -352,7 +361,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
                             break;
                         }
                         if (external == null) {
-                            external = new ResultTempTable(session, expressions, true, sort);
+                            createExternalResult();
                         }
                         rows.add(list);
                         if (rows.size() > maxMemoryRows) {

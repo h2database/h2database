@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map.Entry;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.message.DbException;

@@ -8,6 +8,7 @@ package org.h2.mvstore.rtree;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
+
 import org.h2.mvstore.CursorPos;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
@@ -44,12 +45,6 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     @Override
     public MVRTreeMap<V> cloneIt() {
         return new MVRTreeMap<>(this);
-    }
-
-    @Override
-    public V get(Object key) {
-        V result = get(getRootPage(), key);
-        return result;
     }
 
     /**
@@ -100,6 +95,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
      * @return the value, or null if not found
      */
     @SuppressWarnings("unchecked")
+    @Override
     public V get(Page p, Object key) {
         int keyCount = p.getKeyCount();
         if (!p.isLeaf()) {

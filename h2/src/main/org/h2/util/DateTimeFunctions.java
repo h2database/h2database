@@ -49,7 +49,7 @@ import org.h2.value.ValueTimestampTimeZone;
  * Date and time functions.
  */
 public final class DateTimeFunctions {
-    private static final HashMap<String, Integer> DATE_PART = new HashMap<>();
+    private static final HashMap<String, Integer> DATE_PART = new HashMap<>(128);
 
     /**
      * English names of months and week days.

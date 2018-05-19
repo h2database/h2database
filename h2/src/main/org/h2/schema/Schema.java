@@ -6,9 +6,11 @@
 package org.h2.schema;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.CreateSynonymData;
 import org.h2.command.ddl.CreateTableData;
@@ -31,6 +33,7 @@ import org.h2.table.Table;
 import org.h2.table.TableLink;
 import org.h2.table.TableSynonym;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * A schema as created by the SQL statement
@@ -128,7 +131,7 @@ public class Schema extends DbObjectBase {
 
     @Override
     public ArrayList<DbObject> getChildren() {
-        ArrayList<DbObject> children = new ArrayList<>();
+        ArrayList<DbObject> children = Utils.newSmallArrayList();
         ArrayList<Right> rights = database.getAllRights();
         for (Right right : rights) {
             if (right.getGrantedObject() == this) {
@@ -589,30 +592,46 @@ public class Schema extends DbObjectBase {
     /**
      * Get all objects.
      *
-     * @return a (possible empty) list of all objects
+     * @param addTo
+     *                  list to add objects to, or {@code null} to allocate a new
+     *                  list
+     * @return the specified list with added objects, or a new (possibly empty) list
+     *         with all objects
      */
-    public ArrayList<SchemaObject> getAll() {
-        ArrayList<SchemaObject> all = new ArrayList<>(tablesAndViews.size()*2);
-        all.addAll(getMap(DbObject.TABLE_OR_VIEW).values());
-        all.addAll(getMap(DbObject.SYNONYM).values());
-        all.addAll(getMap(DbObject.SEQUENCE).values());
-        all.addAll(getMap(DbObject.INDEX).values());
-        all.addAll(getMap(DbObject.TRIGGER).values());
-        all.addAll(getMap(DbObject.CONSTRAINT).values());
-        all.addAll(getMap(DbObject.CONSTANT).values());
-        all.addAll(getMap(DbObject.FUNCTION_ALIAS).values());
-        return all;
+    public ArrayList<SchemaObject> getAll(ArrayList<SchemaObject> addTo) {
+        if (addTo == null) {
+            addTo = Utils.newSmallArrayList();
+        }
+        addTo.addAll(tablesAndViews.values());
+        addTo.addAll(synonyms.values());
+        addTo.addAll(sequences.values());
+        addTo.addAll(indexes.values());
+        addTo.addAll(triggers.values());
+        addTo.addAll(constraints.values());
+        addTo.addAll(constants.values());
+        addTo.addAll(functions.values());
+        return addTo;
     }
 
     /**
      * Get all objects of the given type.
      *
-     * @param type the object type
-     * @return a (possible empty) list of all objects
+     * @param type
+     *                  the object type
+     * @param addTo
+     *                  list to add objects to, or {@code null} to allocate a new
+     *                  list
+     * @return the specified list with added objects, or a new (possibly empty) list
+     *         with objects of the given type
      */
-    public ArrayList<SchemaObject> getAll(int type) {
-        Map<String, SchemaObject> map = getMap(type);
-        return new ArrayList<>(map.values());
+    public ArrayList<SchemaObject> getAll(int type, ArrayList<SchemaObject> addTo) {
+        Collection<SchemaObject> values = getMap(type).values();
+        if (addTo != null) {
+            addTo.addAll(values);
+        } else {
+            addTo = new ArrayList<>(values);
+        }
+        return addTo;
     }
 
     /**

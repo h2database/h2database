@@ -22,8 +22,7 @@ import org.h2.message.DbException;
  */
 public class StringUtils {
 
-    private static SoftReference<String[]> softCache =
-            new SoftReference<>(null);
+    private static SoftReference<String[]> softCache;
     private static long softCacheCreatedNs;
 
     private static final char[] HEX = "0123456789abcdef".toCharArray();
@@ -108,20 +107,6 @@ public class StringUtils {
      */
     public static String toLowerEnglish(String s) {
         return s.toLowerCase(Locale.ENGLISH);
-    }
-
-    /**
-     * Check is a string starts with another string, ignoring the case.
-     *
-     * @param s the string to check (must be longer than start)
-     * @param start the prefix of s
-     * @return true if start is a prefix of s
-     */
-    public static boolean startsWithIgnoreCase(String s, String start) {
-        if (s.length() < start.length()) {
-            return false;
-        }
-        return s.substring(0, start.length()).equalsIgnoreCase(start);
     }
 
     /**
@@ -462,7 +447,7 @@ public class StringUtils {
         if (length == 0) {
             return new String[0];
         }
-        ArrayList<String> list = new ArrayList<>();
+        ArrayList<String> list = Utils.newSmallArrayList();
         StringBuilder buff = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
             char c = s.charAt(i);
@@ -916,7 +901,7 @@ public class StringUtils {
      * Clear the cache. This method is used for testing.
      */
     public static void clearCache() {
-        softCache = new SoftReference<>(null);
+        softCache = null;
     }
 
     /**

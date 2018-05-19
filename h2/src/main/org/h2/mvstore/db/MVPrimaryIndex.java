@@ -5,20 +5,20 @@
  */
 package org.h2.mvstore.db;
 
+import java.util.AbstractMap;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
 import org.h2.api.ErrorCode;
+import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
-import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionMap;
 import org.h2.result.Row;
@@ -209,7 +209,7 @@ public class MVPrimaryIndex extends BaseIndex {
     @Override
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            HashSet<Column> allColumnsSet) {
+            AllColumnsForPlan allColumnsSet) {
         try {
             return 10 * getCostRangeIndex(masks, dataMap.sizeAsLongMax(),
                     filters, filter, sortOrder, true, allColumnsSet);
@@ -261,7 +261,7 @@ public class MVPrimaryIndex extends BaseIndex {
                     Collections.<Entry<Value, Value>> emptyList().iterator());
         }
         Value value = map.get(v);
-        Entry<Value, Value> e = new DataUtils.MapEntry<Value, Value>(v, value);
+        Entry<Value, Value> e = new AbstractMap.SimpleImmutableEntry<Value, Value>(v, value);
         List<Entry<Value, Value>> list = Collections.singletonList(e);
         MVStoreCursor c = new MVStoreCursor(session, list.iterator());
         c.next();

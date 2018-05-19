@@ -69,7 +69,7 @@ public class SortedProperties extends Properties {
      * @return the value if set, or the default value if not
      */
     public static int getIntProperty(Properties prop, String key, int def) {
-        String value = prop.getProperty(key, "" + def);
+        String value = prop.getProperty(key, Integer.toString(def));
         try {
             return Integer.decode(value);
         } catch (Exception e) {

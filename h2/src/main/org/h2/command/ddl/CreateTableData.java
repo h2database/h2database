@@ -6,6 +6,7 @@
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
+
 import org.h2.engine.Session;
 import org.h2.schema.Schema;
 import org.h2.table.Column;

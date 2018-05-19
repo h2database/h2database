@@ -18,6 +18,7 @@ select min(v), min(v) filter (where v >= 4) from test where v >= 2;
 > rows: 1
 
 create index test_idx on test(v);
+> ok
 
 select min(v), min(v) filter (where v >= 4) from test where v >= 2;
 > MIN(V) MIN(V) FILTER (WHERE (V >= 4))

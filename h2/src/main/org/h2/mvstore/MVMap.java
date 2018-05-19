@@ -379,9 +379,19 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the value, or null if not found
      */
     @Override
+    public final V get(Object key) {
+        return get(getRootPage(), key);
+    }
+
+    /**
+     * Get the value for the given key from a snapshot, or null if not found.
+     *
+     * @param p the root of a snapshot
+     * @param key the key
+     * @return the value, or null if not found
+     */
     @SuppressWarnings("unchecked")
-    public V get(Object key) {
-        Page p = getRootPage();
+    public V get(Page p, Object key) {
         return (V) Page.get(p, key);
     }
 
@@ -673,7 +683,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                     @Override
                     public Entry<K, V> next() {
                         K k = cursor.next();
-                        return new DataUtils.MapEntry<>(k, cursor.getValue());
+                        return new SimpleImmutableEntry<>(k, cursor.getValue());
                     }
 
                     @Override

@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.util.ArrayList;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.SessionInterface;
@@ -22,6 +23,7 @@ import org.h2.result.ResultWithGeneratedKeys;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * Represents a statement.
@@ -727,7 +729,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             checkClosed();
             sql = JdbcConnection.translateSQL(sql, escapeProcessing);
             if (batchCommands == null) {
-                batchCommands = new ArrayList<>();
+                batchCommands = Utils.newSmallArrayList();
             }
             batchCommands.add(sql);
         } catch (Exception e) {
@@ -764,7 +766,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
                 if (batchCommands == null) {
                     // TODO batch: check what other database do if no commands
                     // are set
-                    batchCommands = new ArrayList<>();
+                    batchCommands = Utils.newSmallArrayList();
                 }
                 int size = batchCommands.size();
                 int[] result = new int[size];
@@ -1403,7 +1405,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
      */
     @Override
     public boolean isSimpleIdentifier(String identifier) throws SQLException {
-        return ParserUtil.isSimpleIdentifier(identifier, true);
+        return ParserUtil.isSimpleIdentifier(identifier);
     }
 
     /**

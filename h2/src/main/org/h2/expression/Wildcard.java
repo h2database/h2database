@@ -100,7 +100,7 @@ public class Wildcard extends Expression {
         if (visitor.getType() == ExpressionVisitor.QUERY_COMPARABLE) {
             return true;
         }
-        throw DbException.throwInternalError("" + visitor.getType());
+        throw DbException.throwInternalError(Integer.toString(visitor.getType()));
     }
 
     @Override

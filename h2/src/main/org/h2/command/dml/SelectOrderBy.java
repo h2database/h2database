@@ -6,6 +6,7 @@
 package org.h2.command.dml;
 
 import org.h2.expression.Expression;
+import org.h2.result.SortOrder;
 
 /**
  * Describes one element of the ORDER BY clause of a query.
@@ -25,19 +26,9 @@ public class SelectOrderBy {
     public Expression columnIndexExpr;
 
     /**
-     * If the column should be sorted descending.
+     * Sort type for this column.
      */
-    public boolean descending;
-
-    /**
-     * If NULL should be appear first.
-     */
-    public boolean nullsFirst;
-
-    /**
-     * If NULL should be appear at the end.
-     */
-    public boolean nullsLast;
+    public int sortType;
 
     public String getSQL() {
         StringBuilder buff = new StringBuilder();
@@ -46,14 +37,7 @@ public class SelectOrderBy {
         } else {
             buff.append(columnIndexExpr.getSQL());
         }
-        if (descending) {
-            buff.append(" DESC");
-        }
-        if (nullsFirst) {
-            buff.append(" NULLS FIRST");
-        } else if (nullsLast) {
-            buff.append(" NULLS LAST");
-        }
+        SortOrder.typeToString(buff, sortType);
         return buff.toString();
     }
 

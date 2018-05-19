@@ -50,20 +50,31 @@ public class SortOrder implements Comparator<Value[]> {
     public static final int NULLS_LAST = 4;
 
     /**
-     * The default sort order for NULL.
+     * The default comparison result for NULL, either 1 or -1.
      */
-    private static final int DEFAULT_NULL_SORT =
-            SysProperties.SORT_NULLS_HIGH ? 1 : -1;
+    private static final int DEFAULT_NULL_SORT;
 
     /**
-     * The default sort order bit for NULLs last.
+     * The default NULLs sort order bit for ASC indexes.
      */
-    private static final int DEFAULT_NULLS_LAST = SysProperties.SORT_NULLS_HIGH ? NULLS_LAST : NULLS_FIRST;
+    private static final int DEFAULT_ASC_NULLS;
 
     /**
-     * The default sort order bit for NULLs first.
+     * The default NULLs sort order bit for DESC indexes.
      */
-    private static final int DEFAULT_NULLS_FIRST = SysProperties.SORT_NULLS_HIGH ? NULLS_FIRST : NULLS_LAST;
+    private static final int DEFAULT_DESC_NULLS;
+
+    static {
+        if (SysProperties.SORT_NULLS_HIGH) {
+            DEFAULT_NULL_SORT = 1;
+            DEFAULT_ASC_NULLS = NULLS_LAST;
+            DEFAULT_DESC_NULLS = NULLS_FIRST;
+        } else { // default
+            DEFAULT_NULL_SORT = -1;
+            DEFAULT_ASC_NULLS = NULLS_FIRST;
+            DEFAULT_DESC_NULLS = NULLS_LAST;
+        }
+    }
 
     private final Database database;
 
@@ -116,17 +127,25 @@ public class SortOrder implements Comparator<Value[]> {
             } else {
                 buff.append('=').append(StringUtils.unEnclose(list[idx].getSQL()));
             }
-            int type = sortTypes[i++];
-            if ((type & DESCENDING) != 0) {
-                buff.append(" DESC");
-            }
-            if ((type & NULLS_FIRST) != 0) {
-                buff.append(" NULLS FIRST");
-            } else if ((type & NULLS_LAST) != 0) {
-                buff.append(" NULLS LAST");
-            }
+            typeToString(buff.builder(), sortTypes[i++]);
         }
         return buff.toString();
+    }
+
+    /**
+     * Appends type information (DESC, NULLS FIRST, NULLS LAST) to the specified statement builder.
+     * @param builder statement builder
+     * @param type sort type
+     */
+    public static void typeToString(StringBuilder builder, int type) {
+        if ((type & DESCENDING) != 0) {
+            builder.append(" DESC");
+        }
+        if ((type & NULLS_FIRST) != 0) {
+            builder.append(" NULLS FIRST");
+        } else if ((type & NULLS_LAST) != 0) {
+            builder.append(" NULLS LAST");
+        }
     }
 
     /**
@@ -292,9 +311,9 @@ public class SortOrder implements Comparator<Value[]> {
      * @param sortType sort type bit mask
      * @return bit mask with either {@link #NULLS_FIRST} or {@link #NULLS_LAST} explicitly set.
      */
-    public static int addExplicitNullPosition(final int sortType) {
-        if ((sortType & NULLS_FIRST) != NULLS_FIRST && (sortType & NULLS_LAST) != NULLS_LAST) {
-            return sortType | ((sortType & DESCENDING) == ASCENDING ? DEFAULT_NULLS_LAST : DEFAULT_NULLS_FIRST);
+    public static int addExplicitNullPosition(int sortType) {
+        if ((sortType & (NULLS_FIRST | NULLS_LAST)) == 0) {
+            return sortType | ((sortType & DESCENDING) == 0 ? DEFAULT_ASC_NULLS : DEFAULT_DESC_NULLS);
         } else {
             return sortType;
         }

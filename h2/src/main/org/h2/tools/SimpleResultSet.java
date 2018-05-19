@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Map;
 import java.util.UUID;
-
 import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcResultSetBackwardsCompat;
 import org.h2.message.DbException;
@@ -67,7 +66,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     private int rowId = -1;
     private boolean wasNull;
     private SimpleRowSource source;
-    private ArrayList<SimpleColumnInfo> columns = new ArrayList<>();
+    private ArrayList<SimpleColumnInfo> columns = Utils.newSmallArrayList();
     private boolean autoClose = true;
 
     /**
@@ -75,7 +74,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
      * addRow.
      */
     public SimpleResultSet() {
-        rows = new ArrayList<>();
+        rows = Utils.newSmallArrayList();
     }
 
     /**
@@ -243,7 +242,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     @Override
     public void beforeFirst() throws SQLException {
         if (autoClose) {
-            throw DbException.get(ErrorCode.RESULT_SET_NOT_SCROLLABLE);
+            throw DbException.get(ErrorCode.RESULT_SET_NOT_SCROLLABLE).getSQLException();
         }
         rowId = -1;
         if (source != null) {
@@ -2253,6 +2252,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     // --- private -----------------------------
 
     private void update(int columnIndex, Object obj) throws SQLException {
+        checkClosed();
         checkColumnIndex(columnIndex);
         this.currentRow[columnIndex - 1] = obj;
     }
@@ -2267,6 +2267,12 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     static SQLException getUnsupportedException() {
         return DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1).
                 getSQLException();
+    }
+
+    private void checkClosed() throws SQLException {
+        if (columns == null) {
+            throw DbException.get(ErrorCode.OBJECT_CLOSED).getSQLException();
+        }
     }
 
     private void checkColumnIndex(int columnIndex) throws SQLException {

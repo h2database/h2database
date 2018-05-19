@@ -10,6 +10,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import org.h2.util.Utils;
+
 /**
  * Contains meta data information about a procedure.
  * This class is used by the H2 Console.
@@ -72,7 +74,7 @@ public class DbProcedure {
      */
     void readParameters(DatabaseMetaData meta) throws SQLException {
         ResultSet rs = meta.getProcedureColumns(null, schema.name, name, null);
-        ArrayList<DbColumn> list = new ArrayList<>();
+        ArrayList<DbColumn> list = Utils.newSmallArrayList();
         while (rs.next()) {
             DbColumn column = DbColumn.getProcedureColumn(schema.getContents(), rs);
             if (column.getPosition() > 0) {

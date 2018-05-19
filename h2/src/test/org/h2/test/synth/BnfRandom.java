@@ -7,6 +7,7 @@ package org.h2.test.synth;
 
 import java.util.ArrayList;
 import java.util.Random;
+
 import org.h2.bnf.Bnf;
 import org.h2.bnf.BnfVisitor;
 import org.h2.bnf.Rule;

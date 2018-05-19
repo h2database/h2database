@@ -388,7 +388,7 @@ public class PageDataNode extends PageData {
         entryCount--;
         length -= 4 + Data.getVarLongLen(keys[removedKeyIndex]);
         if (entryCount < 0) {
-            DbException.throwInternalError("" + entryCount);
+            DbException.throwInternalError(Integer.toString(entryCount));
         }
         keys = remove(keys, entryCount + 1, removedKeyIndex);
         childPageIds = remove(childPageIds, entryCount + 2, i);

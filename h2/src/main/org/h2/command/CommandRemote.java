@@ -19,6 +19,7 @@ import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultRemote;
 import org.h2.result.ResultWithGeneratedKeys;
+import org.h2.util.Utils;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -46,7 +47,7 @@ public class CommandRemote implements CommandInterface {
         this.transferList = transferList;
         trace = session.getTrace();
         this.sql = sql;
-        parameters = new ArrayList<>();
+        parameters = Utils.newSmallArrayList();
         prepare(session, true);
         // set session late because prepare might fail - in this case we don't
         // need to close the object

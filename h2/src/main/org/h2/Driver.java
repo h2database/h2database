@@ -35,7 +35,7 @@ public class Driver implements java.sql.Driver, JdbcDriverBackwardsCompat {
     private static final ThreadLocal<Connection> DEFAULT_CONNECTION =
             new ThreadLocal<>();
 
-    private static volatile boolean registered;
+    private static boolean registered;
 
     static {
         load();

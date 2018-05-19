@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Future;
+
 import org.h2.command.dml.Query;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectUnion;
@@ -26,6 +27,7 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.util.DoneFuture;
 import org.h2.util.LazyFuture;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
 
@@ -771,7 +773,7 @@ public final class JoinBatch {
     private abstract static class ViewIndexLookupBatchBase<R extends QueryRunnerBase>
             implements IndexLookupBatch {
         protected final ViewIndex viewIndex;
-        private final ArrayList<Future<Cursor>> result = new ArrayList<>();
+        private final ArrayList<Future<Cursor>> result = Utils.newSmallArrayList();
         private int resultSize;
         private boolean findCalled;
 
@@ -1013,8 +1015,8 @@ public final class JoinBatch {
                 assert !jb.batchedSubQuery;
                 jb.batchedSubQuery = true;
                 if (joinBatches == null) {
-                    joinBatches = new ArrayList<>();
-                    filters = new ArrayList<>();
+                    joinBatches = Utils.newSmallArrayList();
+                    filters = Utils.newSmallArrayList();
                 }
                 filters.add(jb.filters[0]);
                 joinBatches.add(jb);

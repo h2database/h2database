@@ -12,6 +12,7 @@ import java.util.ArrayList;
 
 import org.h2.engine.SysProperties;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * Contains meta data information about a database schema.
@@ -133,13 +134,14 @@ public class DbSchema {
     }
 
     /**
-     * Read all procedures in the dataBase.
+     * Read all procedures in the database.
+     *
      * @param meta the database meta data
      * @throws SQLException Error while fetching procedures
      */
     public void readProcedures(DatabaseMetaData meta) throws SQLException {
         ResultSet rs = meta.getProcedures(null, name, null);
-        ArrayList<DbProcedure> list = new ArrayList<>();
+        ArrayList<DbProcedure> list = Utils.newSmallArrayList();
         while (rs.next()) {
             list.add(new DbProcedure(this, rs));
         }

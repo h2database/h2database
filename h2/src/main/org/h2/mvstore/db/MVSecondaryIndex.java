@@ -7,12 +7,13 @@ package org.h2.mvstore.db;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
+
 import org.h2.api.ErrorCode;
+import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.BaseIndex;
@@ -208,7 +209,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         }
         if (unique != null) {
             // This code expects that mayHaveDuplicates(row) == false
-            Iterator<Value> it = map.keyIterator(unique, true);
+            Iterator<Value> it = map.keyIterator(unique, null, true);
             while (it.hasNext()) {
                 ValueArray k = (ValueArray) it.next();
                 if (compareRows(row, convertToSearchRow(k)) != 0) {
@@ -357,7 +358,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     @Override
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            HashSet<Column> allColumnsSet) {
+            AllColumnsForPlan allColumnsSet) {
         try {
             return 10 * getCostRangeIndex(masks, dataMap.sizeAsLongMax(),
                     filters, filter, sortOrder, false, allColumnsSet);

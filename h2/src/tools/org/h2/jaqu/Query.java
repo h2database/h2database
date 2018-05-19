@@ -14,9 +14,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
+
 import org.h2.jaqu.bytecode.ClassReader;
-import org.h2.jaqu.util.StatementLogger;
 import org.h2.jaqu.util.ClassUtils;
+import org.h2.jaqu.util.StatementLogger;
 import org.h2.util.JdbcUtils;
 
 /**

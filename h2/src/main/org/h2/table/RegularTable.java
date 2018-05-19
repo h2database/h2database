@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
@@ -39,6 +40,7 @@ import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObject;
 import org.h2.util.MathUtils;
+import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -53,7 +55,10 @@ public class RegularTable extends TableBase {
     private Index scanIndex;
     private long rowCount;
     private volatile Session lockExclusiveSession;
-    private HashSet<Session> lockSharedSessions = new HashSet<>();
+
+    // using a ConcurrentHashMap as a set
+    private ConcurrentHashMap<Session, Session> lockSharedSessions =
+            new ConcurrentHashMap<>();
 
     /**
      * The queue of sessions waiting to lock the table. It is a FIFO queue to
@@ -61,7 +66,7 @@ public class RegularTable extends TableBase {
      */
     private final ArrayDeque<Session> waitingSessions = new ArrayDeque<>();
     private final Trace traceLock;
-    private final ArrayList<Index> indexes = new ArrayList<>(1);
+    private final ArrayList<Index> indexes = Utils.newSmallArrayList();
     private long lastModificationId;
     private final boolean containsLargeObject;
     private final PageDataIndex mainIndex;
@@ -433,11 +438,6 @@ public class RegularTable extends TableBase {
     }
 
     @Override
-    public boolean isLockedExclusivelyBy(Session session) {
-        return lockExclusiveSession == session;
-    }
-
-    @Override
     public boolean lock(Session session, boolean exclusive,
             boolean forceLockEvenInMvcc) {
         int lockMode = database.getLockMode();
@@ -458,10 +458,10 @@ public class RegularTable extends TableBase {
         if (lockExclusiveSession == session) {
             return true;
         }
+        if (!exclusive && lockSharedSessions.containsKey(session)) {
+            return true;
+        }
         synchronized (database) {
-            if (lockExclusiveSession == session) {
-                return true;
-            }
             if (!exclusive && lockSharedSessions.contains(session)) {
                 return true;
             }
@@ -541,7 +541,7 @@ public class RegularTable extends TableBase {
                     lockExclusiveSession = session;
                     return true;
                 } else if (lockSharedSessions.size() == 1 &&
-                        lockSharedSessions.contains(session)) {
+                        lockSharedSessions.containsKey(session)) {
                     traceLock(session, exclusive, "add (upgraded) for ");
                     lockExclusiveSession = session;
                     return true;
@@ -560,10 +560,10 @@ public class RegularTable extends TableBase {
                         return true;
                     }
                 }
-                if (!lockSharedSessions.contains(session)) {
+                if (!lockSharedSessions.containsKey(session)) {
                     traceLock(session, exclusive, "ok");
                     session.addLock(this);
-                    lockSharedSessions.add(session);
+                    lockSharedSessions.put(session, session);
                 }
                 return true;
             }
@@ -614,17 +614,17 @@ public class RegularTable extends TableBase {
                 clash = session;
                 visited = new HashSet<>();
             } else if (clash == session) {
-                // we found a circle where this session is involved
+                // we found a cycle where this session is involved
                 return new ArrayList<>(0);
             } else if (visited.contains(session)) {
                 // we have already checked this session.
-                // there is a circle, but the sessions in the circle need to
+                // there is a cycle, but the sessions in the cycle need to
                 // find it out themselves
                 return null;
             }
             visited.add(session);
             ArrayList<Session> error = null;
-            for (Session s : lockSharedSessions) {
+            for (Session s : lockSharedSessions.keySet()) {
                 if (s == session) {
                     // it doesn't matter if we have locked the object already
                     continue;
@@ -638,10 +638,13 @@ public class RegularTable extends TableBase {
                     }
                 }
             }
-            if (error == null && lockExclusiveSession != null) {
-                Table t = lockExclusiveSession.getWaitForLock();
+            // take a local copy so we don't see inconsistent data, since we are
+            // not locked while checking the lockExclusiveSession value
+            Session copyOfLockExclusiveSession = lockExclusiveSession;
+            if (error == null && copyOfLockExclusiveSession != null) {
+                Table t = copyOfLockExclusiveSession.getWaitForLock();
                 if (t != null) {
-                    error = t.checkDeadlock(lockExclusiveSession, clash, visited);
+                    error = t.checkDeadlock(copyOfLockExclusiveSession, clash, visited);
                     if (error != null) {
                         error.add(session);
                     }
@@ -664,10 +667,16 @@ public class RegularTable extends TableBase {
     }
 
     @Override
+    public boolean isLockedExclusivelyBy(Session session) {
+        return lockExclusiveSession == session;
+    }
+
+    @Override
     public void unlock(Session s) {
         if (database != null) {
             traceLock(s, lockExclusiveSession == s, "unlock");
             if (lockExclusiveSession == s) {
+                lockSharedSessions.remove(s);
                 lockExclusiveSession = null;
             }
             synchronized (database) {

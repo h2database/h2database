@@ -8,6 +8,7 @@ package org.h2.test.unit;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.ArrayList;
+
 import org.h2.test.TestBase;
 import org.h2.test.utils.SelfDestructor;
 

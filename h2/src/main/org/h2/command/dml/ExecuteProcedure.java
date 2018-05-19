@@ -6,6 +6,7 @@
 package org.h2.command.dml;
 
 import java.util.ArrayList;
+
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.Procedure;
@@ -13,6 +14,7 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
 import org.h2.result.ResultInterface;
+import org.h2.util.Utils;
 
 /**
  * This class represents the statement
@@ -20,7 +22,7 @@ import org.h2.result.ResultInterface;
  */
 public class ExecuteProcedure extends Prepared {
 
-    private final ArrayList<Expression> expressions = new ArrayList<>();
+    private final ArrayList<Expression> expressions = Utils.newSmallArrayList();
     private Procedure procedure;
 
     public ExecuteProcedure(Session session) {

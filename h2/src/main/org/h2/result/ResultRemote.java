@@ -7,6 +7,7 @@ package org.h2.result;
 
 import java.io.IOException;
 import java.util.ArrayList;
+
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;

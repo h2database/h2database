@@ -60,6 +60,10 @@ public class TestMultiThread extends TestBase implements Runnable {
 
     @Override
     public void test() throws Exception {
+        // pagestore and multithreaded was always experimental, we're not going to fix that
+        if (!config.mvStore) {
+            return;
+        }
         testConcurrentSchemaChange();
         testConcurrentLobAdd();
         testConcurrentView();

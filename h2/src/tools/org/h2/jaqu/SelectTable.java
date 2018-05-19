@@ -6,6 +6,7 @@
 package org.h2.jaqu;
 
 import java.util.ArrayList;
+
 import org.h2.jaqu.util.ClassUtils;
 
 /**

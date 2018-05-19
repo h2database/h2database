@@ -14,6 +14,7 @@ import java.util.ArrayList;
 
 import org.h2.command.Parser;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * Keeps meta data information about a database.
@@ -195,7 +196,7 @@ public class DbContents {
             return new String[] { null };
         }
         ResultSet rs = meta.getSchemas();
-        ArrayList<String> schemaList = new ArrayList<>();
+        ArrayList<String> schemaList = Utils.newSmallArrayList();
         while (rs.next()) {
             String schema = rs.getString("TABLE_SCHEM");
             String[] ignoreNames = null;

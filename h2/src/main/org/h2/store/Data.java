@@ -18,7 +18,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Arrays;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
@@ -26,6 +25,7 @@ import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
@@ -90,6 +90,7 @@ public class Data {
     private static final int LOCAL_TIME = 132;
     private static final int LOCAL_DATE = 133;
     private static final int LOCAL_TIMESTAMP = 134;
+    private static final byte CUSTOM_DATA_TYPE = (byte)135;
 
     private static final long MILLIS_PER_MINUTE = 1000 * 60;
 
@@ -694,6 +695,14 @@ public class Data {
             break;
         }
         default:
+            if (JdbcUtils.customDataTypesHandler != null) {
+                byte[] b = v.getBytesNoCopy();
+                writeByte(CUSTOM_DATA_TYPE);
+                writeVarInt(type);
+                writeVarInt(b.length);
+                write(b, 0, b.length);
+                break;
+            }
             DbException.throwInternalError("type=" + v.getType());
         }
         if (SysProperties.CHECK2) {
@@ -877,6 +886,18 @@ public class Data {
                 rs.addRow(o);
             }
             return ValueResultSet.get(rs);
+        }
+        case CUSTOM_DATA_TYPE: {
+            if (JdbcUtils.customDataTypesHandler != null) {
+                int customType = readVarInt();
+                int len = readVarInt();
+                byte[] b = Utils.newBytes(len);
+                read(b, 0, len);
+                return JdbcUtils.customDataTypesHandler.convert(
+                        ValueBytes.getNoCopy(b), customType);
+            }
+            throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1,
+                    "No CustomDataTypesHandler has been set up");
         }
         default:
             if (type >= INT_0_15 && type < INT_0_15 + 16) {
@@ -1126,6 +1147,11 @@ public class Data {
             return len;
         }
         default:
+            if (JdbcUtils.customDataTypesHandler != null) {
+                byte[] b = v.getBytesNoCopy();
+                return 1 + getVarIntLen(v.getType())
+                    + getVarIntLen(b.length) + b.length;
+            }
             throw DbException.throwInternalError("type=" + v.getType());
         }
     }

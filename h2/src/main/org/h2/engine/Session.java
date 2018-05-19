@@ -15,6 +15,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
@@ -33,8 +34,8 @@ import org.h2.message.TraceSystem;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.db.MVTable;
 import org.h2.mvstore.db.MVTableEngine;
-import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.tx.Transaction;
+import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.tx.VersionedValue;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
@@ -49,6 +50,7 @@ import org.h2.table.TableFilter;
 import org.h2.table.TableType;
 import org.h2.util.ColumnNamerConfiguration;
 import org.h2.util.SmallLRUCache;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueLong;
@@ -79,7 +81,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private ConnectionInfo connectionInfo;
     private final User user;
     private final int id;
-    private final ArrayList<Table> locks = new ArrayList<>();
+    private final ArrayList<Table> locks = Utils.newSmallArrayList();
     private final UndoLog undoLog;
     private boolean autoCommit = true;
     private Random random;
@@ -373,7 +375,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     public ArrayList<Table> getLocalTempTables() {
         if (localTempTables == null) {
-            return new ArrayList<>();
+            return Utils.newSmallArrayList();
         }
         return new ArrayList<>(localTempTables.values());
     }
@@ -404,11 +406,17 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     public void removeLocalTempTable(Table table) {
         // Exception thrown in org.h2.engine.Database.removeMeta if line below
         // is missing with TestGeneralCommonTableQueries
-        database.lockMeta(this);
-        modificationId++;
-        localTempTables.remove(table.getName());
-        synchronized (database) {
-            table.removeChildrenAndResources(this);
+        boolean wasLocked = database.lockMeta(this);
+        try {
+            modificationId++;
+            localTempTables.remove(table.getName());
+            synchronized (database) {
+                table.removeChildrenAndResources(this);
+            }
+        } finally {
+            if (!wasLocked) {
+                database.unlockMeta(this);
+            }
         }
     }
 
@@ -1418,7 +1426,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     @Override
     public String toString() {
-        return "#" + serialId + " (user: " + user.getName() + ")";
+        return "#" + serialId + " (user: " + (user == null ? "<null>" : user.getName()) + ")";
     }
 
     public void setUndoLogEnabled(boolean b) {

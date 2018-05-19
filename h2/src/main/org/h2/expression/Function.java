@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.Parser;
@@ -145,7 +146,7 @@ public class Function extends Expression implements FunctionCall {
     private static final int VAR_ARGS = -1;
     private static final long PRECISION_UNKNOWN = -1;
 
-    private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>();
+    private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>(256);
     private static final char[] SOUNDEX_INDEX = new char[128];
 
     protected Expression[] args;
@@ -472,7 +473,7 @@ public class Function extends Expression implements FunctionCall {
         this.database = database;
         this.info = info;
         if (info.parameterCount == VAR_ARGS) {
-            varArgs = new ArrayList<>();
+            varArgs = Utils.newSmallArrayList();
         } else {
             args = new Expression[info.parameterCount];
         }
@@ -556,7 +557,7 @@ public class Function extends Expression implements FunctionCall {
         } else {
             if (index >= args.length) {
                 throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2,
-                        info.name, "" + args.length);
+                        info.name, Integer.toString(args.length));
             }
             args[index] = param;
         }
@@ -2164,7 +2165,7 @@ public class Function extends Expression implements FunctionCall {
             if (len > 0 && args[len - 1] == null) {
                 throw DbException.get(
                         ErrorCode.INVALID_PARAMETER_COUNT_2,
-                        info.name, "" + len);
+                        info.name, Integer.toString(len));
             }
         }
     }
@@ -2648,7 +2649,8 @@ public class Function extends Expression implements FunctionCall {
         case ExpressionVisitor.NOT_FROM_RESOLVER:
         case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
-        case ExpressionVisitor.GET_COLUMNS:
+        case ExpressionVisitor.GET_COLUMNS1:
+        case ExpressionVisitor.GET_COLUMNS2:
             return true;
         default:
             throw DbException.throwInternalError("type=" + visitor.getType());

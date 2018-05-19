@@ -285,7 +285,7 @@ java org.h2.test.TestAll timer
     /**
      * Whether the MVStore storage is used.
      */
-    public boolean mvStore = Constants.VERSION_MINOR >= 4;
+    public boolean mvStore = true;
 
     /**
      * If the test should run with many rows.
@@ -641,6 +641,16 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         test();
         testUnit();
 
+        // basic pagestore testing
+        memory = false;
+        multiThreaded = false;
+        mvStore = false;
+        mvcc = false;
+        test();
+        testUnit();
+
+        mvStore = true;
+        mvcc = true;
         memory = true;
         multiThreaded = false;
         networked = true;
@@ -1111,7 +1121,11 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
     public String toString() {
         StringBuilder buff = new StringBuilder();
         appendIf(buff, lazy, "lazy");
-        appendIf(buff, mvStore, "mvStore");
+        if (mvStore) {
+            buff.append("mvStore ");
+        } else {
+            buff.append("pageStore ");
+        }
         appendIf(buff, big, "big");
         appendIf(buff, networked, "net");
         appendIf(buff, memory, "memory");

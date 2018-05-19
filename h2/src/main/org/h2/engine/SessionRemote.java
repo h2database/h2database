@@ -8,6 +8,7 @@ package org.h2.engine;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
@@ -30,6 +31,7 @@ import org.h2.util.NetUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
+import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
@@ -69,7 +71,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
 
     private TraceSystem traceSystem;
     private Trace trace;
-    private ArrayList<Transfer> transferList = new ArrayList<>();
+    private ArrayList<Transfer> transferList = Utils.newSmallArrayList();
     private int nextId;
     private boolean autoCommit = true;
     private ConnectionInfo connectionInfo;

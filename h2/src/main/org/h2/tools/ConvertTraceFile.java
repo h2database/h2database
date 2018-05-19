@@ -207,7 +207,7 @@ public class ConvertTraceFile extends Tool {
     }
 
     private static String padNumberLeft(long number, int digits) {
-        return StringUtils.pad(String.valueOf(number), digits, " ", false);
+        return StringUtils.pad(Long.toString(number), digits, " ", false);
     }
 
     private void addToStats(String sql, int resultCount, long time) {

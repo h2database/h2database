@@ -17,7 +17,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.Properties;
-
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
@@ -141,7 +140,14 @@ public class TestOldVersion extends TestBase {
 
     private static ClassLoader getClassLoader(String jarFile) throws Exception {
         URL[] urls = { new URL(jarFile) };
-        return new URLClassLoader(urls, null);
+        return new URLClassLoader(urls, null) {
+            @Override
+            protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+                if (name.startsWith("org.h2."))
+                    return super.loadClass(name, resolve);
+                return TestOldVersion.class.getClassLoader().loadClass(name);
+            }
+        };
     }
 
     private static Driver getDriver(ClassLoader cl) throws Exception {

@@ -23,7 +23,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.h2.build.code.SwitchSource;
 import org.h2.build.doc.XMLParser;
 
 /**
@@ -231,34 +230,11 @@ public class Build extends BuildBase {
         m.invoke(d, new File("coverage/report/index.html"));
     }
 
-    /**
-     * Switch the source code to the current JDK.
-     */
-    @Description(summary = "Switch the source code to match the current JDK.")
-    public void switchSource() {
-        switchSource(true);
-    }
-
     private static String getTargetJavaVersion() {
         return System.getProperty("version");
     }
 
-    private static void switchSource(boolean enableCheck) {
-        try {
-            String version = getTargetJavaVersion();
-            String check = enableCheck ? "+CHECK" : "-CHECK";
-            if (version == null) {
-                SwitchSource.main("-dir", "src", "-auto", check);
-            } else {
-                SwitchSource.main("-dir", "src", "-version", version, check);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private void compileMVStore(boolean debugInfo) {
-        switchSource(debugInfo);
         clean();
         mkdir("temp");
         String classpath = "temp";
@@ -282,7 +258,6 @@ public class Build extends BuildBase {
 
     private void compile(boolean debugInfo, boolean clientOnly,
             boolean basicResourcesOnly) {
-        switchSource(debugInfo);
         clean();
         mkdir("temp");
         download();

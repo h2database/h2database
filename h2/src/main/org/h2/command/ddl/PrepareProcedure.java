@@ -6,6 +6,7 @@
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
+
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.Procedure;

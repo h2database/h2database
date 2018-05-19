@@ -7,10 +7,12 @@ package org.h2.engine;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+
 import org.h2.message.DbException;
 import org.h2.store.Data;
 import org.h2.store.FileStore;
 import org.h2.table.Table;
+import org.h2.util.Utils;
 
 /**
  * Each session keeps a undo log if rollback is required.
@@ -18,8 +20,8 @@ import org.h2.table.Table;
 public class UndoLog {
 
     private final Database database;
-    private final ArrayList<Long> storedEntriesPos = new ArrayList<>();
-    private final ArrayList<UndoLogRecord> records = new ArrayList<>();
+    private final ArrayList<Long> storedEntriesPos = Utils.newSmallArrayList();
+    private final ArrayList<UndoLogRecord> records = Utils.newSmallArrayList();
     private FileStore file;
     private Data rowBuff;
     private int memoryUndo;

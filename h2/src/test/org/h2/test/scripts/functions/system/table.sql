@@ -32,10 +32,7 @@ drop table test;
 > ok
 
 explain select * from table(id int = (1, 2), name varchar=('Hello', 'World'));
-> PLAN
-> -----------------------------------------------------------------------------------------------------
-> SELECT TABLE.ID, TABLE.NAME FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World')) /* function */
-> rows: 1
+>> SELECT TABLE.ID, TABLE.NAME FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World')) /* function */
 
 select * from table(id int=(1, 2), name varchar=('Hello', 'World')) x order by id;
 > ID NAME

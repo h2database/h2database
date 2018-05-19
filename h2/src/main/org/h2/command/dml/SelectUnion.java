@@ -7,6 +7,7 @@ package org.h2.command.dml;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Session;

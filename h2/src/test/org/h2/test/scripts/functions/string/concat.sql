@@ -6,6 +6,7 @@ create memory table test(id int primary key, name varchar(255));
 > ok
 
 insert into test values(1, 'Hello');
+> update count: 1
 
 select concat(null, null) en, concat(null, 'a') ea, concat('b', null) eb, concat('ab', 'c') abc from test;
 > EN   EA EB ABC

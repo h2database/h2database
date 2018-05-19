@@ -127,4 +127,12 @@ public class StatementBuilder {
         return builder.length();
     }
 
+    /**
+     * Return underlying builder.
+     * @return underlying builder
+     */
+    public StringBuilder builder() {
+        return builder;
+    }
+
 }

@@ -7,7 +7,6 @@ package org.h2.expression;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.HashMap;
 import org.h2.api.Aggregate;
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
@@ -167,15 +166,14 @@ public class JavaAggregate extends Expression {
 
     @Override
     public Value getValue(Session session) {
-        HashMap<Expression, Object> group = select.getCurrentGroup();
-        if (group == null) {
+        if (!select.isCurrentGroup()) {
             throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
         try {
             Aggregate agg;
             if (distinct) {
                 agg = getInstance();
-                AggregateDataCollecting data = (AggregateDataCollecting) group.get(this);
+                AggregateDataCollecting data = (AggregateDataCollecting) select.getCurrentGroupExprData(this);
                 if (data != null) {
                     for (Value value : data.values) {
                         if (args.length == 1) {
@@ -191,7 +189,7 @@ public class JavaAggregate extends Expression {
                     }
                 }
             } else {
-                agg = (Aggregate) group.get(this);
+                agg = (Aggregate) select.getCurrentGroupExprData(this);
                 if (agg == null) {
                     agg = getInstance();
                 }
@@ -208,8 +206,7 @@ public class JavaAggregate extends Expression {
 
     @Override
     public void updateAggregate(Session session) {
-        HashMap<Expression, Object> group = select.getCurrentGroup();
-        if (group == null) {
+        if (!select.isCurrentGroup()) {
             // this is a different level (the enclosing query)
             return;
         }
@@ -229,10 +226,10 @@ public class JavaAggregate extends Expression {
 
         try {
             if (distinct) {
-                AggregateDataCollecting data = (AggregateDataCollecting) group.get(this);
+                AggregateDataCollecting data = (AggregateDataCollecting) select.getCurrentGroupExprData(this);
                 if (data == null) {
                     data = new AggregateDataCollecting();
-                    group.put(this, data);
+                    select.setCurrentGroupExprData(this, data);
                 }
                 Value[] argValues = new Value[args.length];
                 Value arg = null;
@@ -243,10 +240,10 @@ public class JavaAggregate extends Expression {
                 }
                 data.add(session.getDatabase(), dataType, true, args.length == 1 ? arg : ValueArray.get(argValues));
             } else {
-                Aggregate agg = (Aggregate) group.get(this);
+                Aggregate agg = (Aggregate) select.getCurrentGroupExprData(this);
                 if (agg == null) {
                     agg = getInstance();
-                    group.put(this, agg);
+                    select.setCurrentGroupExprData(this, agg);
                 }
                 Object[] argValues = new Object[args.length];
                 Object arg = null;

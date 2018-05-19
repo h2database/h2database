@@ -70,7 +70,7 @@ public class ValueInt extends Value {
     }
 
     private static ValueInt checkRange(long x) {
-        if (x < Integer.MIN_VALUE || x > Integer.MAX_VALUE) {
+        if ((int) x != x) {
             throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, Long.toString(x));
         }
         return ValueInt.get((int) x);
@@ -100,11 +100,15 @@ public class ValueInt extends Value {
 
     @Override
     public Value divide(Value v) {
-        ValueInt other = (ValueInt) v;
-        if (other.value == 0) {
+        int y = ((ValueInt) v).value;
+        if (y == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
         }
-        return ValueInt.get(value / other.value);
+        int x = value;
+        if (x == Integer.MIN_VALUE && y == -1) {
+            throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, "2147483648");
+        }
+        return ValueInt.get(x / y);
     }
 
     @Override
@@ -144,7 +148,7 @@ public class ValueInt extends Value {
 
     @Override
     public String getString() {
-        return String.valueOf(value);
+        return Integer.toString(value);
     }
 
     @Override

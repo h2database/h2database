@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.DateTools;
@@ -485,13 +486,13 @@ public class FullTextLucene extends FullText {
             this.table = tableName;
             this.indexPath = getIndexPath(conn);
             this.indexAccess = getIndexAccess(conn);
-            ArrayList<String> keyList = new ArrayList<>();
+            ArrayList<String> keyList = Utils.newSmallArrayList();
             DatabaseMetaData meta = conn.getMetaData();
             ResultSet rs = meta.getColumns(null,
                     StringUtils.escapeMetaDataPattern(schemaName),
                     StringUtils.escapeMetaDataPattern(tableName),
                     null);
-            ArrayList<String> columnList = new ArrayList<>();
+            ArrayList<String> columnList = Utils.newSmallArrayList();
             while (rs.next()) {
                 columnList.add(rs.getString("COLUMN_NAME"));
             }
@@ -515,7 +516,7 @@ public class FullTextLucene extends FullText {
             if (keyList.isEmpty()) {
                 throw throwException("No primary key for table " + tableName);
             }
-            ArrayList<String> indexList = new ArrayList<>();
+            ArrayList<String> indexList = Utils.newSmallArrayList();
             PreparedStatement prep = conn.prepareStatement(
                     "SELECT COLUMNS FROM " + SCHEMA
                     + ".INDEXES WHERE SCHEMA=? AND TABLE=?");

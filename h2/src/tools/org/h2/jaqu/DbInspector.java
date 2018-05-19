@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.h2.jaqu.Table.JQTable;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;

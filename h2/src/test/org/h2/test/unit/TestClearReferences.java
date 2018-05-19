@@ -9,6 +9,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+
 import org.h2.test.TestBase;
 import org.h2.util.MathUtils;
 import org.h2.value.ValueInt;

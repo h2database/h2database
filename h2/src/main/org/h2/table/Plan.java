@@ -37,8 +37,8 @@ public class Plan {
     public Plan(TableFilter[] filters, int count, Expression condition) {
         this.filters = new TableFilter[count];
         System.arraycopy(filters, 0, this.filters, 0, count);
-        final ArrayList<Expression> allCond = new ArrayList<>(count/2);
-        final ArrayList<TableFilter> all = new ArrayList<>(count);
+        final ArrayList<Expression> allCond = new ArrayList<>();
+        final ArrayList<TableFilter> all = new ArrayList<>();
         if (condition != null) {
             allCond.add(condition);
         }

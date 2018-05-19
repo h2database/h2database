@@ -13,6 +13,7 @@ import java.util.Map;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
+import org.h2.command.Parser;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -1158,7 +1159,9 @@ public class Select extends Query {
                     // since using a with statement will re-create the common table expression
                     // views.
                 } else {
-                    buff.append("WITH RECURSIVE ").append(t.getName()).append('(');
+                    buff.append("WITH RECURSIVE ")
+                            .append(t.getSchema().getSQL()).append('.').append(Parser.quoteIdentifier(t.getName()))
+                            .append('(');
                     buff.resetCount();
                     for (Column c : t.getColumns()) {
                         buff.appendExceptFirst(",");

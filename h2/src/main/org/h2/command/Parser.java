@@ -208,7 +208,10 @@ public class Parser {
             new Comparator<TableFilter>() {
         @Override
         public int compare(TableFilter o1, TableFilter o2) {
-            return o1 == o2 ? 0 : compareTableFilters(o1, o2);
+            if (o1 == o2)
+                return 0;
+            assert o1.getOrderInFrom() != o2.getOrderInFrom();
+            return o1.getOrderInFrom() > o2.getOrderInFrom() ? 1 : -1;
         }
     };
 
@@ -2160,41 +2163,8 @@ public class Parser {
         // Parser can reorder joined table filters, need to explicitly sort them
         // to get the order as it was in the original query.
         if (session.isForceJoinOrder()) {
-            sortTableFilters(command.getTopFilters());
+            Collections.sort(command.getTopFilters(), TABLE_FILTER_COMPARATOR);
         }
-    }
-
-    private static void sortTableFilters(ArrayList<TableFilter> filters) {
-        if (filters.size() < 2) {
-            return;
-        }
-        // Most probably we are already sorted correctly.
-        boolean sorted = true;
-        TableFilter prev = filters.get(0);
-        for (int i = 1; i < filters.size(); i++) {
-            TableFilter next = filters.get(i);
-            if (compareTableFilters(prev, next) > 0) {
-                sorted = false;
-                break;
-            }
-            prev = next;
-        }
-        // If not, then sort manually.
-        if (!sorted) {
-            Collections.sort(filters, TABLE_FILTER_COMPARATOR);
-        }
-    }
-
-    /**
-     * Find out which of the table filters appears first in the "from" clause.
-     *
-     * @param o1 the first table filter
-     * @param o2 the second table filter
-     * @return -1 if o1 appears first, and 1 if o2 appears first
-     */
-    static int compareTableFilters(TableFilter o1, TableFilter o2) {
-        assert o1.getOrderInFrom() != o2.getOrderInFrom();
-        return o1.getOrderInFrom() > o2.getOrderInFrom() ? 1 : -1;
     }
 
     private void parseJoinTableFilter(TableFilter top, final Select command) {

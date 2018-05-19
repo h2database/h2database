@@ -44,7 +44,6 @@ import org.h2.result.SortOrder;
 import org.h2.table.*;
 import org.h2.test.TestBase;
 import org.h2.util.DoneFuture;
-import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
@@ -215,7 +214,7 @@ public class TestTableEngines extends TestBase {
         stat.executeUpdate("CREATE INDEX IDX_C_B_A ON T(C, B, A)");
         stat.executeUpdate("CREATE INDEX IDX_B_A ON T(B, A)");
 
-        List<List<Object>> dataSet = New.arrayList();
+        List<List<Object>> dataSet = new ArrayList<>();
 
         dataSet.add(Arrays.<Object>asList(1, "1", 1L));
         dataSet.add(Arrays.<Object>asList(1, "0", 2L));
@@ -849,7 +848,7 @@ public class TestTableEngines extends TestBase {
 
     private static List<List<Object>> query(List<List<Object>> dataSet,
             RowFilter filter, RowComparator sort) {
-        List<List<Object>> res = New.arrayList();
+        List<List<Object>> res = new ArrayList<>();
         if (filter == null) {
             res.addAll(dataSet);
         } else {
@@ -868,7 +867,7 @@ public class TestTableEngines extends TestBase {
     private static List<List<Object>> query(Statement stat, String query) throws SQLException {
         ResultSet rs = stat.executeQuery(query);
         int cols = rs.getMetaData().getColumnCount();
-        List<List<Object>> list = New.arrayList();
+        List<List<Object>> list = new ArrayList<>();
         while (rs.next()) {
             List<Object> row = new ArrayList<>(cols);
             for (int i = 1; i <= cols; i++) {
@@ -1538,7 +1537,7 @@ public class TestTableEngines extends TestBase {
             }
             lookupBatches.incrementAndGet();
             return new IndexLookupBatch() {
-                List<SearchRow> searchRows = New.arrayList();
+                List<SearchRow> searchRows = new ArrayList<>();
 
                 @Override
                 public String getPlanSQL() {

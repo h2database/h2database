@@ -11,7 +11,6 @@ import org.h2.message.DbException;
 import org.h2.store.Data;
 import org.h2.store.FileStore;
 import org.h2.table.Table;
-import org.h2.util.New;
 
 /**
  * Each session keeps a undo log if rollback is required.
@@ -19,8 +18,8 @@ import org.h2.util.New;
 public class UndoLog {
 
     private final Database database;
-    private final ArrayList<Long> storedEntriesPos = New.arrayList();
-    private final ArrayList<UndoLogRecord> records = New.arrayList();
+    private final ArrayList<Long> storedEntriesPos = new ArrayList<>();
+    private final ArrayList<UndoLogRecord> records = new ArrayList<>();
     private FileStore file;
     private Data rowBuff;
     private int memoryUndo;

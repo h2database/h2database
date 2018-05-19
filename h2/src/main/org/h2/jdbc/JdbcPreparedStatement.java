@@ -35,7 +35,6 @@ import org.h2.result.ResultWithGeneratedKeys;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MergedResultSet;
-import org.h2.util.New;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
@@ -1254,7 +1253,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (batchParameters == null) {
                 // TODO batch: check what other database do if no parameters are
                 // set
-                batchParameters = New.arrayList();
+                batchParameters = new ArrayList<>();
             }
             batchIdentities = new MergedResultSet();
             int size = batchParameters.size();
@@ -1330,7 +1329,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                     set[i] = value;
                 }
                 if (batchParameters == null) {
-                    batchParameters = New.arrayList();
+                    batchParameters = new ArrayList<>();
                 }
                 batchParameters.add(set);
             } finally {

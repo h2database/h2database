@@ -45,7 +45,6 @@ import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.ToChar;
@@ -473,7 +472,7 @@ public class Function extends Expression implements FunctionCall {
         this.database = database;
         this.info = info;
         if (info.parameterCount == VAR_ARGS) {
-            varArgs = New.arrayList();
+            varArgs = new ArrayList<>();
         } else {
             args = new Expression[info.parameterCount];
         }

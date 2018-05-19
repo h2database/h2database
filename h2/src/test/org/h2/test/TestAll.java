@@ -232,7 +232,6 @@ import org.h2.test.utils.TestColumnNamer;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
 import org.h2.util.AbbaLockingDetector;
-import org.h2.util.New;
 import org.h2.util.Profiler;
 import org.h2.util.StringUtils;
 import org.h2.util.Task;
@@ -436,7 +435,7 @@ java org.h2.test.TestAll timer
     /**
      * The list of tests.
      */
-    ArrayList<TestBase> tests = New.arrayList();
+    ArrayList<TestBase> tests = new ArrayList<>();
 
     private Server server;
 

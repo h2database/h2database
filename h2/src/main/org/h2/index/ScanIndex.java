@@ -23,7 +23,6 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
 import org.h2.table.TableFilter;
-import org.h2.util.New;
 
 /**
  * The scan index is not really an 'index' in the strict sense, because it can
@@ -33,7 +32,7 @@ import org.h2.util.New;
  */
 public class ScanIndex extends BaseIndex {
     private long firstFree = -1;
-    private ArrayList<Row> rows = New.arrayList();
+    private ArrayList<Row> rows = new ArrayList<>();
     private final RegularTable tableData;
     private int rowCountDiff;
     private final HashMap<Integer, Integer> sessionRowCount;
@@ -58,7 +57,7 @@ public class ScanIndex extends BaseIndex {
 
     @Override
     public void truncate(Session session) {
-        rows = New.arrayList();
+        rows = new ArrayList<>();
         firstFree = -1;
         if (tableData.getContainsLargeObject() && tableData.isPersistData()) {
             database.getLobStorage().removeAllForTable(table.getId());
@@ -139,7 +138,7 @@ public class ScanIndex extends BaseIndex {
     public void remove(Session session, Row row) {
         // in-memory
         if (!database.isMultiVersion() && rowCount == 1) {
-            rows = New.arrayList();
+            rows = new ArrayList<>();
             firstFree = -1;
         } else {
             Row free = session.createRow(null, 1);

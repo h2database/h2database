@@ -9,7 +9,6 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import org.h2.util.New;
 
 /**
  * Contains meta data information about a procedure.
@@ -73,7 +72,7 @@ public class DbProcedure {
      */
     void readParameters(DatabaseMetaData meta) throws SQLException {
         ResultSet rs = meta.getProcedureColumns(null, schema.name, name, null);
-        ArrayList<DbColumn> list = New.arrayList();
+        ArrayList<DbColumn> list = new ArrayList<>();
         while (rs.next()) {
             DbColumn column = DbColumn.getProcedureColumn(schema.getContents(), rs);
             if (column.getPosition() > 0) {

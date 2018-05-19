@@ -21,7 +21,6 @@ import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
-import org.h2.util.New;
 
 
 /**
@@ -39,7 +38,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
 
     // this connection is replaced whenever getConnection is called
     private volatile Connection handleConn;
-    private final ArrayList<ConnectionEventListener> listeners = New.arrayList();
+    private final ArrayList<ConnectionEventListener> listeners = new ArrayList<>();
     private Xid currentTransaction;
     private boolean prepared;
 
@@ -193,7 +192,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
         try (Statement stat = physicalConn.createStatement()) {
             ResultSet rs = stat.executeQuery("SELECT * FROM " +
                     "INFORMATION_SCHEMA.IN_DOUBT ORDER BY TRANSACTION");
-            ArrayList<Xid> list = New.arrayList();
+            ArrayList<Xid> list = new ArrayList<>();
             while (rs.next()) {
                 String tid = rs.getString("TRANSACTION");
                 int id = getNextId(XID);

@@ -28,7 +28,6 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.New;
 
 /**
  * This class represents the statement
@@ -52,7 +51,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
     private boolean primaryKeyHash;
     private boolean ifTableExists;
     private final boolean ifNotExists;
-    private final ArrayList<Index> createdIndexes = New.arrayList();
+    private final ArrayList<Index> createdIndexes = new ArrayList<>();
 
     public AlterTableAddConstraint(Session session, Schema schema,
             boolean ifNotExists) {

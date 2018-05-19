@@ -48,7 +48,6 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableType;
 import org.h2.util.ColumnNamerConfiguration;
-import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -80,7 +79,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private ConnectionInfo connectionInfo;
     private final User user;
     private final int id;
-    private final ArrayList<Table> locks = New.arrayList();
+    private final ArrayList<Table> locks = new ArrayList<>();
     private final UndoLog undoLog;
     private boolean autoCommit = true;
     private Random random;
@@ -374,7 +373,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     public ArrayList<Table> getLocalTempTables() {
         if (localTempTables == null) {
-            return New.arrayList();
+            return new ArrayList<>();
         }
         return new ArrayList<>(localTempTables.values());
     }
@@ -686,8 +685,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (undoLog.size() > 0) {
             // commit the rows when using MVCC
             if (database.isMultiVersion()) {
-                ArrayList<Row> rows = New.arrayList();
                 synchronized (database) {
+                    ArrayList<Row> rows = new ArrayList<>(undoLog.size());
                     while (undoLog.size() > 0) {
                         UndoLogRecord entry = undoLog.getLast();
                         entry.commit();
@@ -1455,7 +1454,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     public Table[] getLocks() {
         // copy the data without synchronizing
-        ArrayList<Table> copy = New.arrayList();
+        ArrayList<Table> copy = new ArrayList<>(locks.size());
         for (Table lock : locks) {
             try {
                 copy.add(lock);

@@ -25,7 +25,6 @@ import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
@@ -39,7 +38,7 @@ public class Merge extends Prepared {
     private TableFilter targetTableFilter;
     private Column[] columns;
     private Column[] keys;
-    private final ArrayList<Expression[]> valuesExpressionList = New.arrayList();
+    private final ArrayList<Expression[]> valuesExpressionList = new ArrayList<>();
     private Query query;
     private Prepared update;
 

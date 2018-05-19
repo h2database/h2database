@@ -27,7 +27,6 @@ import org.h2.table.Column;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
@@ -51,7 +50,7 @@ public class Update extends Prepared {
 
     private boolean updateToCurrentValuesReturnsZero;
 
-    private final ArrayList<Column> columns = New.arrayList();
+    private final ArrayList<Column> columns = new ArrayList<>();
     private final HashMap<Column, Expression> expressionMap  = new HashMap<>();
 
     public Update(Session session) {

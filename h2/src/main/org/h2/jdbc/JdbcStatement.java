@@ -20,7 +20,6 @@ import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultWithGeneratedKeys;
 import org.h2.tools.SimpleResultSet;
-import org.h2.util.New;
 import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
 
@@ -728,7 +727,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             checkClosed();
             sql = JdbcConnection.translateSQL(sql, escapeProcessing);
             if (batchCommands == null) {
-                batchCommands = New.arrayList();
+                batchCommands = new ArrayList<>();
             }
             batchCommands.add(sql);
         } catch (Exception e) {
@@ -765,7 +764,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
                 if (batchCommands == null) {
                     // TODO batch: check what other database do if no commands
                     // are set
-                    batchCommands = New.arrayList();
+                    batchCommands = new ArrayList<>();
                 }
                 int size = batchCommands.size();
                 int[] result = new int[size];

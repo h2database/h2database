@@ -18,7 +18,6 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
-import org.h2.util.New;
 
 /**
  * This class represents the statements
@@ -32,7 +31,7 @@ public class GrantRevoke extends DefineCommand {
     private ArrayList<String> roleNames;
     private int operationType;
     private int rightMask;
-    private final ArrayList<Table> tables = New.arrayList();
+    private final ArrayList<Table> tables = new ArrayList<>();
     private Schema schema;
     private RightOwner grantee;
 
@@ -60,7 +59,7 @@ public class GrantRevoke extends DefineCommand {
      */
     public void addRoleName(String roleName) {
         if (roleNames == null) {
-            roleNames = New.arrayList();
+            roleNames = new ArrayList<>();
         }
         roleNames.add(roleName);
     }

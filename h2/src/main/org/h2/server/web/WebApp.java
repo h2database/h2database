@@ -55,7 +55,6 @@ import org.h2.tools.RunScript;
 import org.h2.tools.Script;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.JdbcUtils;
-import org.h2.util.New;
 import org.h2.util.Profiler;
 import org.h2.util.ScriptReader;
 import org.h2.util.SortedProperties;
@@ -990,7 +989,7 @@ public class WebApp {
         String sql = attributes.getProperty("sql").trim();
         try {
             ScriptReader r = new ScriptReader(new StringReader(sql));
-            final ArrayList<String> list = New.arrayList();
+            final ArrayList<String> list = new ArrayList<>();
             while (true) {
                 String s = r.readStatement();
                 if (s == null) {
@@ -1425,7 +1424,7 @@ public class WebApp {
 
     private String executeLoop(Connection conn, int count, String sql)
             throws SQLException {
-        ArrayList<Integer> params = New.arrayList();
+        ArrayList<Integer> params = new ArrayList<>();
         int idx = 0;
         while (!stop) {
             idx = sql.indexOf('?', idx);

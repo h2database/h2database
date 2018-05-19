@@ -24,7 +24,6 @@ import org.h2.api.ErrorCode;
 import org.h2.compress.CompressLZF;
 import org.h2.message.DbException;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
 
 /**
  * This file system keeps files fully in memory. There is an option to compress
@@ -98,7 +97,7 @@ public class FilePathMem extends FilePath {
 
     @Override
     public List<FilePath> newDirectoryStream() {
-        ArrayList<FilePath> list = New.arrayList();
+        ArrayList<FilePath> list = new ArrayList<>();
         synchronized (MEMORY_FILES) {
             for (String n : MEMORY_FILES.tailMap(name).keySet()) {
                 if (n.startsWith(name)) {

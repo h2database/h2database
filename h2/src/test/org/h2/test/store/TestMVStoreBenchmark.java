@@ -14,7 +14,6 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import org.h2.mvstore.MVStore;
 import org.h2.test.TestBase;
-import org.h2.util.New;
 
 /**
  * Tests the performance and memory usage claims in the documentation.
@@ -77,7 +76,7 @@ public class TestMVStoreBenchmark extends TestBase {
         ArrayList<Map<Integer, String>> mapList;
         long mem;
 
-        mapList = New.arrayList();
+        mapList = new ArrayList<>(count);
         mem = getMemory();
         for (int i = 0; i < count; i++) {
             mapList.add(new HashMap<Integer, String>(size));
@@ -86,7 +85,7 @@ public class TestMVStoreBenchmark extends TestBase {
         hash = getMemory() - mem;
         mapList.size();
 
-        mapList = New.arrayList();
+        mapList = new ArrayList<>(count);
         mem = getMemory();
         for (int i = 0; i < count; i++) {
             mapList.add(new TreeMap<Integer, String>());
@@ -95,7 +94,7 @@ public class TestMVStoreBenchmark extends TestBase {
         tree = getMemory() - mem;
         mapList.size();
 
-        mapList = New.arrayList();
+        mapList = new ArrayList<>(count);
         mem = getMemory();
         MVStore store = MVStore.open(null);
         for (int i = 0; i < count; i++) {

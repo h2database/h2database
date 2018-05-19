@@ -31,7 +31,6 @@ import javax.sql.ConnectionPoolDataSource;
 import javax.sql.DataSource;
 import javax.sql.PooledConnection;
 import org.h2.message.DbException;
-import org.h2.util.New;
 
 /**
  * A simple standalone JDBC connection pool.
@@ -67,7 +66,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener,
     private static final int DEFAULT_MAX_CONNECTIONS = 10;
 
     private final ConnectionPoolDataSource dataSource;
-    private final ArrayList<PooledConnection> recycledConnections = New.arrayList();
+    private final ArrayList<PooledConnection> recycledConnections = new ArrayList<>();
     private PrintWriter logWriter;
     private int maxConnections = DEFAULT_MAX_CONNECTIONS;
     private int timeout = DEFAULT_TIMEOUT;

@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Random;
 import org.h2.test.TestBase;
 import org.h2.util.JdbcUtils;
-import org.h2.util.New;
 import org.h2.util.Task;
 
 /**
@@ -103,9 +102,9 @@ public class TestMultiThreadedKernel extends TestBase {
     }
 
     private void testConcurrentRead() throws Exception {
-        ArrayList<Task> list = New.arrayList();
         int size = 2;
         final int count = 1000;
+        ArrayList<Task> list = new ArrayList<>(size);
         final Connection[] connections = new Connection[count];
         String url = getURL("multiThreadedKernel;" +
                 "MULTI_THREADED=TRUE;CACHE_SIZE=16", true);
@@ -144,9 +143,9 @@ public class TestMultiThreadedKernel extends TestBase {
     }
 
     private void testCache() throws Exception {
-        ArrayList<Task> list = New.arrayList();
         int size = 3;
         final int count = 100;
+        ArrayList<Task> list = new ArrayList<>(size);
         final Connection[] connections = new Connection[count];
         String url = getURL("multiThreadedKernel;" +
                 "MULTI_THREADED=TRUE;CACHE_SIZE=1", true);

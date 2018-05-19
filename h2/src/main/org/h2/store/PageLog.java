@@ -20,7 +20,6 @@ import org.h2.result.Row;
 import org.h2.result.RowFactory;
 import org.h2.util.IntArray;
 import org.h2.util.IntIntHashMap;
-import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -835,7 +834,7 @@ public class PageLog {
     }
 
     ArrayList<InDoubtTransaction> getInDoubtTransactions() {
-        ArrayList<InDoubtTransaction> list = New.arrayList();
+        ArrayList<InDoubtTransaction> list = new ArrayList<>();
         for (SessionState state : sessionStates.values()) {
             PageStoreInDoubtTransaction in = state.inDoubtTransaction;
             if (in != null) {

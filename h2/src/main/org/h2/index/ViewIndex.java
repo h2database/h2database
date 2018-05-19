@@ -29,7 +29,6 @@ import org.h2.table.JoinBatch;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
 import org.h2.util.IntArray;
-import org.h2.util.New;
 import org.h2.value.Value;
 
 /**
@@ -334,7 +333,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             }
         }
         int len = paramColumnIndex.size();
-        ArrayList<Column> columnList = New.arrayList();
+        ArrayList<Column> columnList = new ArrayList<>(len);
         for (int i = 0; i < len;) {
             int idx = paramColumnIndex.get(i);
             columnList.add(table.getColumn(idx));

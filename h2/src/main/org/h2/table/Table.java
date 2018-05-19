@@ -35,7 +35,6 @@ import org.h2.schema.Schema;
 import org.h2.schema.SchemaObjectBase;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
-import org.h2.util.New;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -386,7 +385,7 @@ public abstract class Table extends SchemaObjectBase {
 
     @Override
     public ArrayList<DbObject> getChildren() {
-        ArrayList<DbObject> children = New.arrayList();
+        ArrayList<DbObject> children = new ArrayList<>();
         ArrayList<Index> indexes = getIndexes();
         if (indexes != null) {
             children.addAll(indexes);
@@ -927,7 +926,7 @@ public abstract class Table extends SchemaObjectBase {
 
     private static <T> ArrayList<T> add(ArrayList<T> list, T obj) {
         if (list == null) {
-            list = New.arrayList();
+            list = new ArrayList<>(1);
         }
         // self constraints are two entries in the list
         list.add(obj);

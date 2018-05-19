@@ -29,7 +29,6 @@ import org.h2.jaqu.Table.JQTable;
 import org.h2.jaqu.TableDefinition.FieldDefinition;
 import org.h2.jaqu.TableDefinition.IndexDefinition;
 import org.h2.util.JdbcUtils;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 
@@ -47,7 +46,7 @@ public class TableInspector {
     private final String table;
     private final boolean forceUpperCase;
     private final Class<? extends java.util.Date> dateTimeClass;
-    private final List<String> primaryKeys = New.arrayList();
+    private final List<String> primaryKeys = new ArrayList<>();
     private Map<String, IndexInspector> indexes;
     private Map<String, ColumnInspector> columns;
 
@@ -268,7 +267,7 @@ public class TableInspector {
         if (list.size() == 1) {
             ap.addParameter(parameter, list.get(0).getColumnsString());
         } else {
-            List<String> parameters = New.arrayList();
+            List<String> parameters = new ArrayList<>();
             for (IndexInspector index : list) {
                 parameters.add(index.getColumnsString());
             }
@@ -278,7 +277,7 @@ public class TableInspector {
     }
 
     private List<IndexInspector> getIndexes(IndexType type) {
-        List<IndexInspector> list = New.arrayList();
+        List<IndexInspector> list = new ArrayList<>();
         for (IndexInspector index : indexes.values()) {
             if (index.type.equals(type)) {
                 list.add(index);
@@ -378,7 +377,7 @@ public class TableInspector {
      */
     <T> List<ValidationRemark> validate(TableDefinition<T> def,
             boolean throwError) {
-        List<ValidationRemark> remarks = New.arrayList();
+        List<ValidationRemark> remarks = new ArrayList<>();
 
         // model class definition validation
         if (!Modifier.isPublic(def.getModelClass().getModifiers())) {

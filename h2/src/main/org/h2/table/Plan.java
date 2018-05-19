@@ -14,7 +14,6 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.message.Trace;
 import org.h2.table.TableFilter.TableFilterVisitor;
-import org.h2.util.New;
 
 /**
  * A possible query execution plan. The time required to execute a query depends
@@ -37,8 +36,8 @@ public class Plan {
     public Plan(TableFilter[] filters, int count, Expression condition) {
         this.filters = new TableFilter[count];
         System.arraycopy(filters, 0, this.filters, 0, count);
-        final ArrayList<Expression> allCond = New.arrayList();
-        final ArrayList<TableFilter> all = New.arrayList();
+        final ArrayList<Expression> allCond = new ArrayList<>(count/2);
+        final ArrayList<TableFilter> all = new ArrayList<>(count);
         if (condition != null) {
             allCond.add(condition);
         }

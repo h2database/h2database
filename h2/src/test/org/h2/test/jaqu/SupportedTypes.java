@@ -7,11 +7,11 @@ package org.h2.test.jaqu;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import org.h2.jaqu.Table.JQColumn;
 import org.h2.jaqu.Table.JQTable;
-import org.h2.util.New;
 
 /**
  * A data class that contains a column for each data type.
@@ -64,7 +64,7 @@ public class SupportedTypes {
     private java.sql.Timestamp mySqlTimestamp;
 
     static List<SupportedTypes> createList() {
-        List<SupportedTypes> list = New.arrayList();
+        List<SupportedTypes> list = new ArrayList<>(10);
         for (int i = 0; i < 10; i++) {
             list.add(randomValue());
         }

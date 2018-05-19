@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 
 /**
@@ -210,7 +209,7 @@ public class ValueArray extends Value {
         if (!force) {
             return this;
         }
-        ArrayList<Value> list = New.arrayList();
+        ArrayList<Value> list = new ArrayList<>(values.length);
         for (Value v : values) {
             v = v.convertPrecision(precision, true);
             // empty byte arrays or strings have precision 0

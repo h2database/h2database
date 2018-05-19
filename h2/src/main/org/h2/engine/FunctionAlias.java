@@ -22,7 +22,6 @@ import org.h2.schema.Schema;
 import org.h2.schema.SchemaObjectBase;
 import org.h2.table.Table;
 import org.h2.util.JdbcUtils;
-import org.h2.util.New;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -144,7 +143,7 @@ public class FunctionAlias extends SchemaObjectBase {
     private void loadClass() {
         Class<?> javaClass = JdbcUtils.loadUserClass(className);
         Method[] methods = javaClass.getMethods();
-        ArrayList<JavaMethod> list = New.arrayList();
+        ArrayList<JavaMethod> list = new ArrayList<>(1);
         for (int i = 0, len = methods.length; i < len; i++) {
             Method m = methods[i];
             if (!Modifier.isStatic(m.getModifiers())) {

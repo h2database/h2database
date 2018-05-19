@@ -25,7 +25,6 @@ import org.h2.mvstore.tx.TransactionMap;
 import org.h2.mvstore.type.ObjectDataType;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.New;
 import org.h2.util.Task;
 
 /**
@@ -326,7 +325,7 @@ public class TestTransactionStore extends TestBase {
         ts = new TransactionStore(s);
         ts.init();
         ts.setMaxTransactionId(16);
-        ArrayList<Transaction> fifo = New.arrayList();
+        ArrayList<Transaction> fifo = new ArrayList<>();
         int open = 0;
         for (int i = 0; i < 64; i++) {
             Transaction t = null;
@@ -739,9 +738,9 @@ public class TestTransactionStore extends TestBase {
     }
 
     private void testCompareWithPostgreSQL() throws Exception {
-        ArrayList<Statement> statements = New.arrayList();
-        ArrayList<Transaction> transactions = New.arrayList();
-        ArrayList<TransactionMap<Integer, String>> maps = New.arrayList();
+        ArrayList<Statement> statements = new ArrayList<>();
+        ArrayList<Transaction> transactions = new ArrayList<>();
+        ArrayList<TransactionMap<Integer, String>> maps = new ArrayList<>();
         int connectionCount = 3, opCount = 1000, rowCount = 10;
         try {
             Class.forName("org.postgresql.Driver");

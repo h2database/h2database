@@ -31,7 +31,6 @@ import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -44,7 +43,7 @@ public class Insert extends Prepared implements ResultTarget {
 
     private Table table;
     private Column[] columns;
-    private final ArrayList<Expression[]> list = New.arrayList();
+    private final ArrayList<Expression[]> list = new ArrayList<>();
     private Query query;
     private boolean sortedInsertMode;
     private int rowNumber;

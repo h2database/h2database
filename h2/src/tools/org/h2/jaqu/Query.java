@@ -18,7 +18,6 @@ import org.h2.jaqu.bytecode.ClassReader;
 import org.h2.jaqu.util.StatementLogger;
 import org.h2.jaqu.util.ClassUtils;
 import org.h2.util.JdbcUtils;
-import org.h2.util.New;
 
 /**
  * This class represents a query.
@@ -29,13 +28,12 @@ public class Query<T> {
 
     private final Db db;
     private SelectTable<T> from;
-    private final ArrayList<Token> conditions = New.arrayList();
-    private final ArrayList<UpdateColumn> updateColumnDeclarations = New
-            .arrayList();
-    private final ArrayList<SelectTable<?>> joins = New.arrayList();
+    private final ArrayList<Token> conditions = new ArrayList<>();
+    private final ArrayList<UpdateColumn> updateColumnDeclarations = new ArrayList<>();
+    private final ArrayList<SelectTable<?>> joins = new ArrayList<>();
     private final IdentityHashMap<Object, SelectColumn<T>> aliasMap = ClassUtils
             .newIdentityHashMap();
-    private final ArrayList<OrderExpression<T>> orderByList = New.arrayList();
+    private final ArrayList<OrderExpression<T>> orderByList = new ArrayList<>();
     private Object[] groupByExpressions;
     private long limit;
     private long offset;
@@ -99,7 +97,7 @@ public class Query<T> {
     }
 
     private List<T> select(boolean distinct) {
-        List<T> result = New.arrayList();
+        List<T> result = new ArrayList<>();
         TableDefinition<T> def = from.getAliasDefinition();
         SQLStatement stat = getSelectStatement(distinct);
         def.appendSelectList(stat);
@@ -178,7 +176,7 @@ public class Query<T> {
     }
 
     private <X> List<X> select(Class<X> clazz, X x, boolean distinct) {
-        List<X> result = New.arrayList();
+        List<X> result = new ArrayList<>();
         TableDefinition<X> def = db.define(clazz);
         SQLStatement stat = getSelectStatement(distinct);
         def.appendSelectList(stat, this, x);
@@ -207,7 +205,7 @@ public class Query<T> {
         appendSQL(stat, x);
         appendFromWhere(stat);
         ResultSet rs = stat.executeQuery();
-        List<X> result = New.arrayList();
+        List<X> result = new ArrayList<>();
         Statement s = null;
         try {
             s = rs.getStatement();

@@ -27,7 +27,6 @@ import org.h2.mvstore.type.ObjectDataType;
 import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.New;
 import org.h2.util.Task;
 
 /**
@@ -387,7 +386,7 @@ public class TestConcurrent extends TestMVStore {
                     fileName(fileName).autoCommitDisabled().open();
             try {
                 s.setRetentionTime(0);
-                final ArrayList<MVMap<Integer, Integer>> list = New.arrayList();
+                final ArrayList<MVMap<Integer, Integer>> list = new ArrayList<>(count);
                 for (int i = 0; i < count; i++) {
                     MVMap<Integer, Integer> m = s.openMap("d" + i);
                     list.add(m);

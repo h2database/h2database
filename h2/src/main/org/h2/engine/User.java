@@ -18,7 +18,6 @@ import org.h2.table.Table;
 import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
@@ -224,7 +223,7 @@ public class User extends RightOwner {
 
     @Override
     public ArrayList<DbObject> getChildren() {
-        ArrayList<DbObject> children = New.arrayList();
+        ArrayList<DbObject> children = new ArrayList<>();
         for (Right right : database.getAllRights()) {
             if (right.getGrantee() == this) {
                 children.add(right);

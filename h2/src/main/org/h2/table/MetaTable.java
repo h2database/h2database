@@ -57,7 +57,6 @@ import org.h2.store.InDoubtTransaction;
 import org.h2.store.PageStore;
 import org.h2.tools.Csv;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -750,7 +749,7 @@ public class MetaTable extends Table {
             }
         }
 
-        ArrayList<Row> rows = New.arrayList();
+        ArrayList<Row> rows = new ArrayList<>();
         String catalog = identifier(database.getShortName());
         boolean admin = session.getUser().isAdmin();
         switch (type) {
@@ -1043,8 +1042,8 @@ public class MetaTable extends Table {
             add(rows, "RETENTION_TIME", "" + database.getRetentionTime());
             add(rows, "LOG", "" + database.getLogMode());
             // database settings
-            ArrayList<String> settingNames = New.arrayList();
             HashMap<String, String> s = database.getSettings().getSettings();
+            ArrayList<String> settingNames = new ArrayList<>(s.size());
             settingNames.addAll(s.keySet());
             Collections.sort(settingNames);
             for (String k : settingNames) {
@@ -2285,7 +2284,7 @@ public class MetaTable extends Table {
 
     @Override
     public ArrayList<Index> getIndexes() {
-        ArrayList<Index> list = New.arrayList();
+        ArrayList<Index> list = new ArrayList<>(2);
         if (metaIndex == null) {
             return list;
         }

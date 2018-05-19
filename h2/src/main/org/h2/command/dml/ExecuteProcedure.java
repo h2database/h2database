@@ -13,7 +13,6 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
 import org.h2.result.ResultInterface;
-import org.h2.util.New;
 
 /**
  * This class represents the statement
@@ -21,7 +20,7 @@ import org.h2.util.New;
  */
 public class ExecuteProcedure extends Prepared {
 
-    private final ArrayList<Expression> expressions = New.arrayList();
+    private final ArrayList<Expression> expressions = new ArrayList<>();
     private Procedure procedure;
 
     public ExecuteProcedure(Session session) {

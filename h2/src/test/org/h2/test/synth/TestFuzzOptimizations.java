@@ -18,7 +18,6 @@ import java.util.Random;
 import org.h2.test.TestBase;
 import org.h2.test.db.Db;
 import org.h2.test.db.Db.Prepared;
-import org.h2.util.New;
 
 /**
  * This test executes random SQL statements to test if optimizations are working
@@ -105,7 +104,7 @@ public class TestFuzzOptimizations extends TestBase {
             long seed = seedGenerator.nextLong();
             println("seed: " + seed);
             Random random = new Random(seed);
-            ArrayList<String> params = New.arrayList();
+            ArrayList<String> params = new ArrayList<>();
             String condition = getRandomCondition(random, params, columns,
                     compares, values);
             String message = "seed: " + seed + " " + condition;

@@ -34,7 +34,6 @@ import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
-import org.h2.util.New;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
@@ -469,7 +468,7 @@ public class WebServer implements Service {
     }
 
     ArrayList<HashMap<String, Object>> getSessions() {
-        ArrayList<HashMap<String, Object>> list = New.arrayList();
+        ArrayList<HashMap<String, Object>> list = new ArrayList<>(sessions.size());
         for (WebSession s : sessions.values()) {
             list.add(s.getInfo());
         }
@@ -527,7 +526,7 @@ public class WebServer implements Service {
     }
 
     public ArrayList<String> getCommandHistoryList() {
-        ArrayList<String> result = New.arrayList();
+        ArrayList<String> result = new ArrayList<>();
         if (commandHistoryString == null) {
             return result;
         }
@@ -634,7 +633,7 @@ public class WebServer implements Service {
      * @return the list
      */
     synchronized ArrayList<ConnectionInfo> getSettings() {
-        ArrayList<ConnectionInfo> settings = New.arrayList();
+        ArrayList<ConnectionInfo> settings = new ArrayList<>();
         if (connInfoMap.size() == 0) {
             Properties prop = loadProperties();
             if (prop.size() == 0) {

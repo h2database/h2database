@@ -27,7 +27,6 @@ import org.h2.store.fs.FileUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
-import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
@@ -70,7 +69,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
 
     private TraceSystem traceSystem;
     private Trace trace;
-    private ArrayList<Transfer> transferList = New.arrayList();
+    private ArrayList<Transfer> transferList = new ArrayList<>();
     private int nextId;
     private boolean autoCommit = true;
     private ConnectionInfo connectionInfo;

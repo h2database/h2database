@@ -66,7 +66,6 @@ import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.IntArray;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -1534,7 +1533,7 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void resetSchema() {
-        schema = New.arrayList();
+        schema = new ArrayList<>();
         objectIdSet = new HashSet<>();
         tableMap = new HashMap<>();
         columnTypeMap = new HashMap<>();

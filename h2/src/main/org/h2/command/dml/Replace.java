@@ -21,7 +21,6 @@ import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
@@ -35,7 +34,7 @@ public class Replace extends Prepared {
     private Table table;
     private Column[] columns;
     private Column[] keys;
-    private final ArrayList<Expression[]> list = New.arrayList();
+    private final ArrayList<Expression[]> list = new ArrayList<>();
     private Query query;
     private Prepared update;
 

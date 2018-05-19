@@ -39,7 +39,6 @@ import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObject;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -62,7 +61,7 @@ public class RegularTable extends TableBase {
      */
     private final ArrayDeque<Session> waitingSessions = new ArrayDeque<>();
     private final Trace traceLock;
-    private final ArrayList<Index> indexes = New.arrayList();
+    private final ArrayList<Index> indexes = new ArrayList<>(1);
     private long lastModificationId;
     private final boolean containsLargeObject;
     private final PageDataIndex mainIndex;
@@ -616,7 +615,7 @@ public class RegularTable extends TableBase {
                 visited = new HashSet<>();
             } else if (clash == session) {
                 // we found a circle where this session is involved
-                return New.arrayList();
+                return new ArrayList<>(0);
             } else if (visited.contains(session)) {
                 // we have already checked this session.
                 // there is a circle, but the sessions in the circle need to

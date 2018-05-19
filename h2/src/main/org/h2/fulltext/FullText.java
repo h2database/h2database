@@ -35,7 +35,6 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 
@@ -462,8 +461,8 @@ public class FullText {
      * @return an array containing the column name list and the data list
      */
     protected static Object[][] parseKey(Connection conn, String key) {
-        ArrayList<String> columns = New.arrayList();
-        ArrayList<String> data = New.arrayList();
+        ArrayList<String> columns = new ArrayList<>();
+        ArrayList<String> data = new ArrayList<>();
         JdbcConnection c = (JdbcConnection) conn;
         Session session = (Session) c.getSession();
         Parser p = new Parser(session);
@@ -891,13 +890,13 @@ public class FullText {
             if (!setting.isInitialized()) {
                 FullText.init(conn);
             }
-            ArrayList<String> keyList = New.arrayList();
+            ArrayList<String> keyList = new ArrayList<>();
             DatabaseMetaData meta = conn.getMetaData();
             ResultSet rs = meta.getColumns(null,
                     StringUtils.escapeMetaDataPattern(schemaName),
                     StringUtils.escapeMetaDataPattern(tableName),
                     null);
-            ArrayList<String> columnList = New.arrayList();
+            ArrayList<String> columnList = new ArrayList<>();
             while (rs.next()) {
                 columnList.add(rs.getString("COLUMN_NAME"));
             }
@@ -924,7 +923,7 @@ public class FullText {
             if (keyList.isEmpty()) {
                 throw throwException("No primary key for table " + tableName);
             }
-            ArrayList<String> indexList = New.arrayList();
+            ArrayList<String> indexList = new ArrayList<>();
             PreparedStatement prep = conn.prepareStatement(
                     "SELECT ID, COLUMNS FROM " + SCHEMA + ".INDEXES" +
                     " WHERE SCHEMA=? AND TABLE=?");

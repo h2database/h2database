@@ -121,7 +121,6 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
 
     @Override
     public void addBufferedRows(List<String> bufferNames) {
-        ArrayList<String> mapNames = new ArrayList<>(bufferNames);
         CompareMode compareMode = database.getCompareMode();
         int buffersCount = bufferNames.size();
         Queue<Source> queue = new PriorityQueue<>(buffersCount, new Source.Comparator(compareMode));
@@ -156,7 +155,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
                 }
             }
         } finally {
-            for (String tempMapName : mapNames) {
+            for (String tempMapName : bufferNames) {
                 MVMap<ValueArray, Value> map = openMap(tempMapName);
                 map.getStore().removeMap(map);
             }

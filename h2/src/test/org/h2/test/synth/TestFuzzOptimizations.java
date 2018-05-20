@@ -117,11 +117,16 @@ public class TestFuzzOptimizations extends TestBase {
                 }
                 executeAndCompare(condition, params, message);
             }
-            if (!config.mvStore) {
+            if (!config.mvStore && config.travis) {
                 /*
                  * Travis tests have problems with automatic garbage collection, so request a GC
                  * explicitly and print its results.
                  */
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
                 println((Utils.getMemoryUsed() >> 10) + " MiB used");
             }
         }

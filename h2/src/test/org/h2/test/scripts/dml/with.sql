@@ -6,13 +6,28 @@ explain with recursive r(n) as (
     (select 1) union all (select n+1 from r where n < 3)
 )
 select n from r;
->> WITH RECURSIVE R(N) AS ( (SELECT 1 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */) UNION ALL (SELECT (N + 1) FROM PUBLIC.R /* PUBLIC.R.tableScan */ WHERE N < 3) ) SELECT N FROM R R /* null */
+>> WITH RECURSIVE PUBLIC.R(N) AS ( (SELECT 1 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */) UNION ALL (SELECT (N + 1) FROM PUBLIC.R /* PUBLIC.R.tableScan */ WHERE N < 3) ) SELECT N FROM PUBLIC.R R /* null */
+
+explain with recursive "r"(n) as (
+    (select 1) union all (select n+1 from "r" where n < 3)
+)
+select n from "r";
+>> WITH RECURSIVE PUBLIC."r"(N) AS ( (SELECT 1 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */) UNION ALL (SELECT (N + 1) FROM PUBLIC."r" /* PUBLIC."r".tableScan */ WHERE N < 3) ) SELECT N FROM PUBLIC."r" "r" /* null */
+
 
 select sum(n) from (
     with recursive r(n) as (
         (select 1) union all (select n+1 from r where n < 3)
     )
     select n from r
+);
+>> 6
+
+select sum(n) from (
+    with recursive "r"(n) as (
+        (select 1) union all (select n+1 from "r" where n < 3)
+    )
+    select n from "r"
 );
 >> 6
 
@@ -44,3 +59,26 @@ with
 > - -- -- --
 > 0 -1 1  10
 > rows: 1
+
+CREATE SCHEMA SCH;
+> ok
+
+CREATE FORCE VIEW TABLE_EXPRESSION SCH.R1(N) AS
+(SELECT 1)
+UNION ALL
+(SELECT (N + 1) FROM SCH.R1 WHERE N < 3);
+> ok
+
+CREATE VIEW SCH.R2(N) AS
+(SELECT 1)
+UNION ALL
+(SELECT (N + 1) FROM SCH.R1 WHERE N < 3);
+> ok
+
+SELECT * FROM SCH.R2;
+> N
+> -
+> 1
+> 2
+> 3
+> rows: 3

@@ -10,11 +10,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.h2.util.SoftHashMap;
 
 /**
@@ -45,8 +46,7 @@ final class FullTextSettings {
     /**
      * The set of indexes in this database.
      */
-    private final Map<Integer, IndexInfo> indexes = Collections
-            .synchronizedMap(new HashMap<Integer, IndexInfo>());
+    private final ConcurrentHashMap<Integer, IndexInfo> indexes = new ConcurrentHashMap<>();
 
     /**
      * The prepared statement cache.

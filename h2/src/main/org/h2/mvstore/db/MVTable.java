@@ -377,7 +377,7 @@ public class MVTable extends TableBase {
                 visited = new HashSet<>();
             } else if (clash == session) {
                 // we found a circle where this session is involved
-                return Utils.newSmallArrayList();
+                return new ArrayList<>(0);
             } else if (visited.contains(session)) {
                 // we have already checked this session.
                 // there is a circle, but the sessions in the circle need to

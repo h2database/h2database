@@ -65,7 +65,7 @@ public class SupportedTypes {
     private java.sql.Timestamp mySqlTimestamp;
 
     static List<SupportedTypes> createList() {
-        List<SupportedTypes> list = new ArrayList<>();
+        List<SupportedTypes> list = new ArrayList<>(10);
         for (int i = 0; i < 10; i++) {
             list.add(randomValue());
         }

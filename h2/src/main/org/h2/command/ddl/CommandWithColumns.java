@@ -99,7 +99,7 @@ public abstract class CommandWithColumns extends SchemaCommand {
      * @return the list of sequences (may be empty)
      */
     protected ArrayList<Sequence> generateSequences(ArrayList<Column> columns, boolean temporary) {
-        ArrayList<Sequence> sequences = new ArrayList<>();
+        ArrayList<Sequence> sequences = new ArrayList<>(columns == null ? 0 : columns.size());
         if (columns != null) {
             for (Column c : columns) {
                 if (c.isAutoIncrement()) {

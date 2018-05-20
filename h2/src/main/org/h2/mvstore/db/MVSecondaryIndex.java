@@ -29,7 +29,6 @@ import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
-import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -401,7 +400,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
             }
             key = first ? map.higherKey(key) : map.lowerKey(key);
         }
-        ArrayList<Value> list = Utils.newSmallArrayList();
+        ArrayList<Value> list = new ArrayList<>(1);
         list.add(key);
         MVStoreCursor cursor = new MVStoreCursor(session, list.iterator(), null);
         cursor.next();

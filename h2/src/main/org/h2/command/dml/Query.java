@@ -317,7 +317,7 @@ public abstract class Query extends Prepared {
     public final Value[] getParameterValues() {
         ArrayList<Parameter> list = getParameters();
         if (list == null) {
-            list = Utils.newSmallArrayList();
+            return new Value[0];
         }
         int size = list.size();
         Value[] params = new Value[size];

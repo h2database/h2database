@@ -614,11 +614,11 @@ public class RegularTable extends TableBase {
                 clash = session;
                 visited = new HashSet<>();
             } else if (clash == session) {
-                // we found a circle where this session is involved
-                return Utils.newSmallArrayList();
+                // we found a cycle where this session is involved
+                return new ArrayList<>(0);
             } else if (visited.contains(session)) {
                 // we have already checked this session.
-                // there is a circle, but the sessions in the circle need to
+                // there is a cycle, but the sessions in the cycle need to
                 // find it out themselves
                 return null;
             }

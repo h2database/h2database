@@ -826,7 +826,7 @@ public class Select extends Query {
         visibleColumnCount = expressions.size();
         ArrayList<String> expressionSQL;
         if (orderList != null || group != null) {
-            expressionSQL = Utils.newSmallArrayList();
+            expressionSQL = new ArrayList<>(visibleColumnCount);
             for (int i = 0; i < visibleColumnCount; i++) {
                 Expression expr = expressions.get(i);
                 expr = expr.getNonAliasExpression();
@@ -1043,7 +1043,7 @@ public class Select extends Query {
 
     @Override
     public void prepareJoinBatch() {
-        ArrayList<TableFilter> list = Utils.newSmallArrayList();
+        ArrayList<TableFilter> list = new ArrayList<>();
         TableFilter f = getTopTableFilter();
         do {
             if (f.getNestedJoin() != null) {

@@ -160,7 +160,7 @@ public class ArchiveToolStore {
             filesTemp.put(name, posArray);
         }
         storeTemp.commit();
-        ArrayList<Cursor<int[], byte[]>> list = new ArrayList<>();
+        ArrayList<Cursor<int[], byte[]>> list = new ArrayList<>(segmentId-1);
         totalSize = 0;
         for (int i = 1; i <= segmentId; i++) {
             MVMap<int[], byte[]> data = storeTemp.openMap("data" + i);
@@ -379,7 +379,7 @@ public class ArchiveToolStore {
             storeTemp.commit();
         }
 
-        ArrayList<Cursor<int[], byte[]>> list = new ArrayList<>();
+        ArrayList<Cursor<int[], byte[]>> list = new ArrayList<>(lastSegment-1);
         totalSize = 0;
         currentSize = 0;
         for (int i = 1; i <= lastSegment; i++) {

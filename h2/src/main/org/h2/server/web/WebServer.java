@@ -469,7 +469,7 @@ public class WebServer implements Service {
     }
 
     ArrayList<HashMap<String, Object>> getSessions() {
-        ArrayList<HashMap<String, Object>> list = new ArrayList<>();
+        ArrayList<HashMap<String, Object>> list = new ArrayList<>(sessions.size());
         for (WebSession s : sessions.values()) {
             list.add(s.getInfo());
         }

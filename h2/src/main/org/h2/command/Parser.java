@@ -1530,7 +1530,7 @@ public class Parser {
 
     private ArrayList<String> readDerivedColumnNames() {
         if (readIf("(")) {
-            ArrayList<String> derivedColumnNames = Utils.newSmallArrayList();
+            ArrayList<String> derivedColumnNames = new ArrayList<>();
             do {
                 derivedColumnNames.add(readAliasIdentifier());
             } while (readIfMore(true));
@@ -1950,8 +1950,9 @@ public class Parser {
         Query command = null;
         int paramIndex = parameters.size();
         command = parseSelectUnion();
-        ArrayList<Parameter> params = Utils.newSmallArrayList();
-        for (int i = paramIndex, size = parameters.size(); i < size; i++) {
+        int size = parameters.size();
+        ArrayList<Parameter> params = new ArrayList<>(size);
+        for (int i = paramIndex; i < size; i++) {
             params.add(parameters.get(i));
         }
         command.setParameterList(params);
@@ -1962,8 +1963,9 @@ public class Parser {
     private Prepared parseWithStatementOrQuery() {
         int paramIndex = parameters.size();
         Prepared command = parseWith();
-        ArrayList<Parameter> params =Utils.newSmallArrayList();
-        for (int i = paramIndex, size = parameters.size(); i < size; i++) {
+        int size = parameters.size();
+        ArrayList<Parameter> params = new ArrayList<>(size);
+        for (int i = paramIndex; i < size; i++) {
             params.add(parameters.get(i));
         }
         command.setParameterList(params);

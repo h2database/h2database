@@ -761,7 +761,7 @@ public class Database implements DataHandler {
         objectIds.set(0);
         starting = true;
         Cursor cursor = metaIdIndex.find(systemSession, null, null);
-        ArrayList<MetaRecord> records = new ArrayList<>();
+        ArrayList<MetaRecord> records = new ArrayList<>((int) metaIdIndex.getRowCountApproximation());
         while (cursor.next()) {
             MetaRecord rec = new MetaRecord(cursor.get());
             objectIds.set(rec.getId());

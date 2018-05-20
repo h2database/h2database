@@ -1046,8 +1046,8 @@ public class MetaTable extends Table {
             add(rows, "RETENTION_TIME", Integer.toString(database.getRetentionTime()));
             add(rows, "LOG", Integer.toString(database.getLogMode()));
             // database settings
-            ArrayList<String> settingNames = Utils.newSmallArrayList();
             HashMap<String, String> s = database.getSettings().getSettings();
+            ArrayList<String> settingNames = new ArrayList<>(s.size());
             settingNames.addAll(s.keySet());
             Collections.sort(settingNames);
             for (String k : settingNames) {
@@ -2288,7 +2288,7 @@ public class MetaTable extends Table {
 
     @Override
     public ArrayList<Index> getIndexes() {
-        ArrayList<Index> list = Utils.newSmallArrayList();
+        ArrayList<Index> list = new ArrayList<>(2);
         if (metaIndex == null) {
             return list;
         }

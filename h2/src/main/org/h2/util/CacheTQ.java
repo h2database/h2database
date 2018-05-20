@@ -74,9 +74,11 @@ public class CacheTQ implements Cache {
 
     @Override
     public ArrayList<CacheObject> getAllChanged() {
-        ArrayList<CacheObject> changed = new ArrayList<>();
-        changed.addAll(lru.getAllChanged());
-        changed.addAll(fifo.getAllChanged());
+        ArrayList<CacheObject> lruChanged = lru.getAllChanged();
+        ArrayList<CacheObject> fifoChanged = fifo.getAllChanged();
+        ArrayList<CacheObject> changed = new ArrayList<>(lruChanged.size() + fifoChanged.size());
+        changed.addAll(lruChanged);
+        changed.addAll(fifoChanged);
         return changed;
     }
 

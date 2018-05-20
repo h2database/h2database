@@ -948,7 +948,7 @@ public class DataType {
             return Value.RESULT_SET;
         default:
             throw DbException.get(
-                    ErrorCode.UNKNOWN_DATA_TYPE_1, "" + sqlType);
+                    ErrorCode.UNKNOWN_DATA_TYPE_1, Integer.toString(sqlType));
         }
     }
 

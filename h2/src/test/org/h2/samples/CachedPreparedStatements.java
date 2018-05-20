@@ -10,9 +10,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This sample application shows how to cache prepared statements.
@@ -21,9 +19,7 @@ public class CachedPreparedStatements {
 
     private Connection conn;
     private Statement stat;
-    private final Map<String, PreparedStatement> prepared =
-        Collections.synchronizedMap(
-                new HashMap<String, PreparedStatement>());
+    private final ConcurrentHashMap<String, PreparedStatement> prepared = new ConcurrentHashMap<>();
 
     /**
      * This method is called when executing this sample application from the

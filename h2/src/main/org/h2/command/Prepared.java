@@ -343,7 +343,7 @@ public abstract class Prepared {
      *
      * @param rowNumber the row number
      */
-    protected void setCurrentRowNumber(int rowNumber) {
+    public void setCurrentRowNumber(int rowNumber) {
         if ((++rowScanCount & 127) == 0) {
             checkCanceled();
         }

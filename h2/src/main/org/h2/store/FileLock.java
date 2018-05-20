@@ -73,7 +73,7 @@ public class FileLock implements Runnable {
      */
     private long lastWrite;
 
-    private String method, ipAddress;
+    private String method;
     private Properties properties;
     private String uniqueId;
     private Thread watchdog;
@@ -350,7 +350,7 @@ public class FileLock implements Runnable {
         setUniqueId();
         // if this returns 127.0.0.1,
         // the computer is probably not networked
-        ipAddress = NetUtils.getLocalAddress();
+        String ipAddress = NetUtils.getLocalAddress();
         FileUtils.createDirectories(FileUtils.getParent(fileName));
         if (!FileUtils.createFile(fileName)) {
             waitUntilOld();

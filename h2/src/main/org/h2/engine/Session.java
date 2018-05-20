@@ -693,8 +693,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (undoLog.size() > 0) {
             // commit the rows when using MVCC
             if (database.isMultiVersion()) {
-                ArrayList<Row> rows = Utils.newSmallArrayList();
                 synchronized (database) {
+                    ArrayList<Row> rows = new ArrayList<>(undoLog.size());
                     while (undoLog.size() > 0) {
                         UndoLogRecord entry = undoLog.getLast();
                         entry.commit();
@@ -924,7 +924,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                     if (!locks.contains(log.getTable())
                             && TableType.TABLE_LINK != tableType
                             && TableType.EXTERNAL_TABLE_ENGINE != tableType) {
-                        DbException.throwInternalError("" + tableType);
+                        DbException.throwInternalError(String.valueOf(tableType));
                     }
                 }
             }
@@ -1462,7 +1462,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     public Table[] getLocks() {
         // copy the data without synchronizing
-        ArrayList<Table> copy = Utils.newSmallArrayList();
+        ArrayList<Table> copy = new ArrayList<>(locks.size());
         for (Table lock : locks) {
             try {
                 copy.add(lock);

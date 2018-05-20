@@ -178,7 +178,7 @@ public class TestPageStore extends TestBase {
         stat.execute("insert into test " +
                 "select x, space(1100+x) from system_range(1, 100)");
         Random r = new Random(1);
-        ArrayList<Connection> list = new ArrayList<>();
+        ArrayList<Connection> list = new ArrayList<>(10);
         for (int i = 0; i < 10; i++) {
             Connection conn2 = getConnection(url, getUser(), getPassword());
             list.add(conn2);

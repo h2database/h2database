@@ -201,7 +201,6 @@ public class TestSynth extends TestBase {
 
     private boolean process(int seed, int id, Command command) throws Exception {
         try {
-
             ArrayList<Result> results = new ArrayList<>();
             for (int i = 0; i < databases.size(); i++) {
                 DbInterface db = databases.get(i);

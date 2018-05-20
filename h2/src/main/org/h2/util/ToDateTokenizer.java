@@ -9,9 +9,7 @@ import static java.lang.String.format;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -616,10 +614,9 @@ class ToDateTokenizer {
         // where "T" and "Z" are inlined
         INLINE(PARSLET_INLINE, PATTERN_INLINE);
 
-        private static final List<FormatTokenEnum> EMPTY_LIST = Collections
-                .emptyList();
+        private static final List<FormatTokenEnum> INLINE_LIST = Collections.singletonList(INLINE);
 
-        private static final Map<Character, List<FormatTokenEnum>> CACHE = new HashMap<>(64);
+        private static List<FormatTokenEnum>[] TOKENS;
         private final ToDateParslet toDateParslet;
         private final Pattern patternToUse;
 
@@ -648,59 +645,51 @@ class ToDateTokenizer {
         /**
          * Optimization: Only return a list of {@link FormatTokenEnum} that
          * share the same 1st char using the 1st char of the 'to parse'
-         * formatStr. Or return empty list if no match.
+         * formatStr. Or return {@code null} if no match.
          *
          * @param formatStr the format string
-         * @return the list of tokens
+         * @return the list of tokens, or {@code null}
          */
         static List<FormatTokenEnum> getTokensInQuestion(String formatStr) {
-            List<FormatTokenEnum> result = EMPTY_LIST;
-            if (CACHE.size() <= 0) {
-                initCache();
-            }
             if (formatStr != null && formatStr.length() > 0) {
-                Character key = Character.toUpperCase(formatStr.charAt(0));
-                switch (key) {
-                case '"':
-                    result = new ArrayList<>();
-                    result.add(INLINE);
-                    break;
-                default:
-                    result = CACHE.get(key);
+                char key = Character.toUpperCase(formatStr.charAt(0));
+                if (key >= 'A' && key <= 'Y') {
+                    List<FormatTokenEnum>[] tokens = TOKENS;
+                    if (tokens == null) {
+                        tokens = initTokens();
+                    }
+                    return tokens[key - 'A'];
+                } else if (key == '"') {
+                    return INLINE_LIST;
                 }
             }
-            if (result == null) {
-                result = EMPTY_LIST;
-            }
-            return result;
+            return null;
         }
 
-        private static synchronized void initCache() {
-            if (CACHE.size() <= 0) {
-                for (FormatTokenEnum token : FormatTokenEnum.values()) {
-
-                    List<Character> tokenKeys = new ArrayList<>();
-
-                    if (token.name().contains("_")) {
-                        String[] tokens = token.name().split("_");
-                        for (String tokenLets : tokens) {
-                            tokenKeys.add(tokenLets.toUpperCase().charAt(0));
-                        }
-                    } else {
-                        tokenKeys.add(token.name().toUpperCase().charAt(0));
+        @SuppressWarnings("unchecked")
+        private static List<FormatTokenEnum>[] initTokens() {
+            List<FormatTokenEnum>[] tokens = new List[25];
+            for (FormatTokenEnum token : FormatTokenEnum.values()) {
+                String name = token.name();
+                if (name.indexOf('_') >= 0) {
+                    for (String tokenLets : name.split("_")) {
+                        putToCache(tokens, token, tokenLets);
                     }
-
-                    for (Character tokenKey : tokenKeys) {
-                        List<FormatTokenEnum> l = CACHE.get(tokenKey);
-                        if (l == null) {
-                            l = new ArrayList<>(1);
-                            CACHE.put(tokenKey, l);
-                        }
-                        l.add(token);
-                    }
+                } else {
+                    putToCache(tokens, token, name);
                 }
             }
+            return TOKENS = tokens;
+        }
 
+        private static void putToCache(List<FormatTokenEnum>[] cache, FormatTokenEnum token, String name) {
+            int idx = Character.toUpperCase(name.charAt(0)) - 'A';
+            List<FormatTokenEnum> l = cache[idx];
+            if (l == null) {
+                l = new ArrayList<>(1);
+                cache[idx] = l;
+            }
+            l.add(token);
         }
 
         /**

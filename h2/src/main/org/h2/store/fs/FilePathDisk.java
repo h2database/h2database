@@ -170,6 +170,7 @@ public class FilePathDisk extends FilePath {
                 if (!base.endsWith(SysProperties.FILE_SEPARATOR)) {
                     base += SysProperties.FILE_SEPARATOR;
                 }
+                list.ensureCapacity(files.length);
                 for (String file : files) {
                     list.add(getPath(base + file));
                 }

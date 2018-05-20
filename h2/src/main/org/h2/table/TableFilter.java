@@ -778,7 +778,7 @@ public class TableFilter implements ColumnResolver {
             return buff.toString();
         }
         if (table.isView() && ((TableView) table).isRecursive()) {
-            buff.append(table.getName());
+            buff.append(table.getSchema().getSQL()).append('.').append(Parser.quoteIdentifier(table.getName()));
         } else {
             buff.append(table.getSQL());
         }
@@ -808,7 +808,7 @@ public class TableFilter implements ColumnResolver {
                 IndexLookupBatch lookupBatch = joinBatch.getLookupBatch(joinFilterId);
                 if (lookupBatch == null) {
                     if (joinFilterId != 0) {
-                        throw DbException.throwInternalError("" + joinFilterId);
+                        throw DbException.throwInternalError(Integer.toString(joinFilterId));
                     }
                 } else {
                     planBuff.append("batched:");

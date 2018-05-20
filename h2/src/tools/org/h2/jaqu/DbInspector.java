@@ -58,8 +58,8 @@ public class DbInspector {
     public List<String> generateModel(String schema, String table,
             String packageName, boolean annotateSchema, boolean trimStrings) {
         try {
-            List<String> models = new ArrayList<>();
             List<TableInspector> tables = getTables(schema, table);
+            List<String> models = new ArrayList<>(tables.size());
             for (TableInspector t : tables) {
                 t.read(metaData);
                 String model = t.generateModel(packageName, annotateSchema,

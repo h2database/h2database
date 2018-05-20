@@ -280,7 +280,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         String baseName = table.getName();
         String tempName = db.getTempTableName(baseName, session);
         Column[] columns = table.getColumns();
-        ArrayList<Column> newColumns = new ArrayList<>();
+        ArrayList<Column> newColumns = new ArrayList<>(columns.length);
         Table newTable = cloneTableStructure(table, columns, db, tempName, newColumns);
         if (sequences != null) {
             for (Sequence sequence : sequences) {

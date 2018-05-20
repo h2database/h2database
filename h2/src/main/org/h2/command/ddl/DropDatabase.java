@@ -54,7 +54,7 @@ public class DropDatabase extends DefineCommand {
         boolean runLoopAgain;
         do {
             ArrayList<Table> tables = db.getAllTablesAndViews(false);
-            ArrayList<Table> toRemove = new ArrayList<>();
+            ArrayList<Table> toRemove = new ArrayList<>(tables.size());
             for (Table t : tables) {
                 if (t.getName() != null &&
                         TableType.VIEW == t.getTableType()) {

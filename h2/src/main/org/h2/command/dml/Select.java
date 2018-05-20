@@ -13,6 +13,7 @@ import java.util.Map;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
+import org.h2.command.Parser;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -826,7 +827,7 @@ public class Select extends Query {
         visibleColumnCount = expressions.size();
         ArrayList<String> expressionSQL;
         if (orderList != null || group != null) {
-            expressionSQL = Utils.newSmallArrayList();
+            expressionSQL = new ArrayList<>(visibleColumnCount);
             for (int i = 0; i < visibleColumnCount; i++) {
                 Expression expr = expressions.get(i);
                 expr = expr.getNonAliasExpression();
@@ -1043,7 +1044,7 @@ public class Select extends Query {
 
     @Override
     public void prepareJoinBatch() {
-        ArrayList<TableFilter> list = Utils.newSmallArrayList();
+        ArrayList<TableFilter> list = new ArrayList<>();
         TableFilter f = getTopTableFilter();
         do {
             if (f.getNestedJoin() != null) {
@@ -1158,13 +1159,15 @@ public class Select extends Query {
                     // since using a with statement will re-create the common table expression
                     // views.
                 } else {
-                    buff.append("WITH RECURSIVE ").append(t.getName()).append('(');
+                    buff.append("WITH RECURSIVE ")
+                            .append(t.getSchema().getSQL()).append('.').append(Parser.quoteIdentifier(t.getName()))
+                            .append('(');
                     buff.resetCount();
                     for (Column c : t.getColumns()) {
                         buff.appendExceptFirst(",");
                         buff.append(c.getName());
                     }
-                    buff.append(") AS ").append(t.getSQL()).append("\n");
+                    buff.append(") AS ").append(t.getSQL()).append('\n');
                 }
             }
         }

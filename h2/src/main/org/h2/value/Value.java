@@ -779,7 +779,7 @@ public abstract class Value {
                     double d = getDouble();
                     if (Double.isInfinite(d) || Double.isNaN(d)) {
                         throw DbException.get(
-                                ErrorCode.DATA_CONVERSION_ERROR_1, "" + d);
+                                ErrorCode.DATA_CONVERSION_ERROR_1, Double.toString(d));
                     }
                     return ValueDecimal.get(BigDecimal.valueOf(d));
                 }
@@ -787,7 +787,7 @@ public abstract class Value {
                     float f = getFloat();
                     if (Float.isInfinite(f) || Float.isNaN(f)) {
                         throw DbException.get(
-                                ErrorCode.DATA_CONVERSION_ERROR_1, "" + f);
+                                ErrorCode.DATA_CONVERSION_ERROR_1, Float.toString(f));
                     }
                     // better rounding behavior than BigDecimal.valueOf(f)
                     return ValueDecimal.get(new BigDecimal(Float.toString(f)));

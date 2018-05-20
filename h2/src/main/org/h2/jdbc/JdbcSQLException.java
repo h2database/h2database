@@ -46,7 +46,7 @@ public class JdbcSQLException extends SQLException {
         this.originalMessage = message;
         this.cause = cause;
         this.stackTrace = stackTrace;
-        // setSQL() invokes buildBessage() by itself
+        // setSQL() invokes buildMessage() by itself
         setSQL(sql);
         initCause(cause);
     }

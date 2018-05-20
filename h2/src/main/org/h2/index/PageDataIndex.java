@@ -237,7 +237,7 @@ public class PageDataIndex extends PageIndex {
             store.update(empty);
             return empty;
         } else if (!(pd instanceof PageData)) {
-            throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "" + pd);
+            throw DbException.get(ErrorCode.FILE_CORRUPTED_1, String.valueOf(pd));
         }
         PageData p = (PageData) pd;
         if (parent != -1) {
@@ -491,8 +491,7 @@ public class PageDataIndex extends PageIndex {
 
     Iterator<Row> getDelta() {
         if (delta == null) {
-            List<Row> e = Collections.emptyList();
-            return e.iterator();
+            return Collections.emptyIterator();
         }
         return delta.iterator();
     }

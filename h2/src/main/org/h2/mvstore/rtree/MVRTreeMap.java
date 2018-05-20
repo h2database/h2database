@@ -14,7 +14,6 @@ import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.Page;
 import org.h2.mvstore.type.DataType;
-import org.h2.util.Utils;
 
 /**
  * An r-tree implementation. It supports both the linear and the quadratic split
@@ -46,12 +45,6 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     @Override
     public MVRTreeMap<V> cloneIt() {
         return new MVRTreeMap<>(this);
-    }
-
-    @Override
-    public V get(Object key) {
-        V result = get(getRootPage(), key);
-        return result;
     }
 
     /**
@@ -102,6 +95,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
      * @return the value, or null if not found
      */
     @SuppressWarnings("unchecked")
+    @Override
     public V get(Page p, Object key) {
         int keyCount = p.getKeyCount();
         if (!p.isLeaf()) {
@@ -316,8 +310,8 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     }
 
     private Page splitLinear(Page p) {
-        ArrayList<Object> keys = Utils.newSmallArrayList();
         int keyCount = p.getKeyCount();
+        ArrayList<Object> keys = new ArrayList<>(keyCount);
         for (int i = 0; i < keyCount; i++) {
             keys.add(p.getKey(i));
         }

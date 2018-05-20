@@ -220,7 +220,7 @@ public class TestMVRTree extends TestMVStore {
         add(r, "Bellinzona", key(11, 46.12, 9.01, 17373));
         add(r, "Chur", key(12, 46.51, 9.32, 33756));
         // render(r, getBaseDir() + "/test.png");
-        ArrayList<String> list = new ArrayList<>();
+        ArrayList<String> list = new ArrayList<>(r.size());
         for (SpatialKey x : r.keySet()) {
             list.add(r.get(x));
         }

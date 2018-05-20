@@ -5,10 +5,7 @@
  */
 package org.h2.util;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -17,10 +14,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class SynchronizedVerifier {
 
     private static volatile boolean enabled;
-    private static final Map<Class<?>, AtomicBoolean> DETECT =
-        Collections.synchronizedMap(new HashMap<Class<?>, AtomicBoolean>());
-    private static final Map<Object, Object> CURRENT =
-        Collections.synchronizedMap(new IdentityHashMap<>());
+    private static final ConcurrentHashMap<Class<?>, AtomicBoolean> DETECT = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Object, Object> CURRENT = new ConcurrentHashMap<>();
 
     /**
      * Enable or disable detection for a given class.

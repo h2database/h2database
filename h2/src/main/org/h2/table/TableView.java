@@ -175,9 +175,10 @@ public class TableView extends Table {
             this.querySQL = compiledQuery.getPlanSQL();
             tables = new ArrayList<>(compiledQuery.getTables());
             ArrayList<Expression> expressions = compiledQuery.getExpressions();
-            ArrayList<Column> list = Utils.newSmallArrayList();
             ColumnNamer columnNamer = new ColumnNamer(session);
-            for (int i = 0, count = compiledQuery.getColumnCount(); i < count; i++) {
+            final int count = compiledQuery.getColumnCount();
+            ArrayList<Column> list = new ArrayList<>(count);
+            for (int i = 0; i < count; i++) {
                 Expression expr = expressions.get(i);
                 String name = null;
                 int type = Value.UNKNOWN;

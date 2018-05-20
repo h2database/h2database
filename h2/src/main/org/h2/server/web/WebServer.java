@@ -469,7 +469,7 @@ public class WebServer implements Service {
     }
 
     ArrayList<HashMap<String, Object>> getSessions() {
-        ArrayList<HashMap<String, Object>> list = new ArrayList<>();
+        ArrayList<HashMap<String, Object>> list = new ArrayList<>(sessions.size());
         for (WebSession s : sessions.values()) {
             list.add(s.getInfo());
         }
@@ -672,14 +672,11 @@ public class WebServer implements Service {
                 Properties old = loadProperties();
                 prop = new SortedProperties();
                 prop.setProperty("webPort",
-                        "" + SortedProperties.getIntProperty(old,
-                        "webPort", port));
+                        Integer.toString(SortedProperties.getIntProperty(old, "webPort", port)));
                 prop.setProperty("webAllowOthers",
-                        "" + SortedProperties.getBooleanProperty(old,
-                        "webAllowOthers", allowOthers));
+                        Boolean.toString(SortedProperties.getBooleanProperty(old, "webAllowOthers", allowOthers)));
                 prop.setProperty("webSSL",
-                        "" + SortedProperties.getBooleanProperty(old,
-                        "webSSL", ssl));
+                        Boolean.toString(SortedProperties.getBooleanProperty(old, "webSSL", ssl)));
                 if (commandHistoryString != null) {
                     prop.setProperty(COMMAND_HISTORY, commandHistoryString);
                 }

@@ -60,14 +60,6 @@ public class LobStorageMap implements LobStorageInterface {
      */
     private MVMap<Object[], Boolean> refMap;
 
-    /**
-     * The stream store data map.
-     *
-     * Key: stream store block id (long).
-     * Value: data (byte[]).
-     */
-    private MVMap<Long, byte[]> dataMap;
-
     private StreamStore streamStore;
 
     public LobStorageMap(Database database) {
@@ -90,7 +82,13 @@ public class LobStorageMap implements LobStorageInterface {
         }
         lobMap = mvStore.openMap("lobMap");
         refMap = mvStore.openMap("lobRef");
-        dataMap = mvStore.openMap("lobData");
+
+        /* The stream store data map.
+         *
+         * Key: stream store block id (long).
+         * Value: data (byte[]).
+         */
+        MVMap<Long, byte[]> dataMap = mvStore.openMap("lobData");
         streamStore = new StreamStore(dataMap);
         // garbage collection of the last blocks
         if (database.isReadOnly()) {
@@ -279,8 +277,7 @@ public class LobStorageMap implements LobStorageInterface {
             if (lob.getTableId() == LobStorageFrontend.TABLE_RESULT ||
                     lob.getTableId() == LobStorageFrontend.TABLE_ID_SESSION_VARIABLE) {
                 throw DbException.get(
-                        ErrorCode.LOB_CLOSED_ON_TIMEOUT_1, "" +
-                                lob.getLobId() + "/" + lob.getTableId());
+                        ErrorCode.LOB_CLOSED_ON_TIMEOUT_1, lob.getLobId() + "/" + lob.getTableId());
             }
             throw DbException.throwInternalError("Lob not found: " +
                     lob.getLobId() + "/" + lob.getTableId());

@@ -13,7 +13,6 @@ import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.util.Utils;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
 
@@ -47,7 +46,7 @@ public class ResultRemote implements ResultInterface {
             columns[i] = new ResultColumn(transfer);
         }
         rowId = -1;
-        result = Utils.newSmallArrayList();
+        result = new ArrayList<>(Math.min(fetchSize, rowCount));
         this.fetchSize = fetchSize;
         fetchRows(false);
     }

@@ -352,7 +352,7 @@ public class TestCsv extends TestBase {
         int len = getSize(1000, 10000);
         PreparedStatement prep = conn.prepareStatement(
                 "insert into test(a, b) values(?, ?)");
-        ArrayList<String[]> list = new ArrayList<>();
+        ArrayList<String[]> list = new ArrayList<>(len);
         Random random = new Random(1);
         for (int i = 0; i < len; i++) {
             String a = randomData(random), b = randomData(random);

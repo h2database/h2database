@@ -144,7 +144,7 @@ public class FunctionAlias extends SchemaObjectBase {
     private void loadClass() {
         Class<?> javaClass = JdbcUtils.loadUserClass(className);
         Method[] methods = javaClass.getMethods();
-        ArrayList<JavaMethod> list = new ArrayList<>();
+        ArrayList<JavaMethod> list = new ArrayList<>(1);
         for (int i = 0, len = methods.length; i < len; i++) {
             Method m = methods[i];
             if (!Modifier.isStatic(m.getModifiers())) {

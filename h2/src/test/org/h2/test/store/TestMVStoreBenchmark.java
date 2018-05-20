@@ -77,7 +77,7 @@ public class TestMVStoreBenchmark extends TestBase {
         ArrayList<Map<Integer, String>> mapList;
         long mem;
 
-        mapList = new ArrayList<>();
+        mapList = new ArrayList<>(count);
         mem = getMemory();
         for (int i = 0; i < count; i++) {
             mapList.add(new HashMap<Integer, String>(size));
@@ -86,7 +86,7 @@ public class TestMVStoreBenchmark extends TestBase {
         hash = getMemory() - mem;
         mapList.size();
 
-        mapList = new ArrayList<>();
+        mapList.clear();
         mem = getMemory();
         for (int i = 0; i < count; i++) {
             mapList.add(new TreeMap<Integer, String>());
@@ -95,7 +95,7 @@ public class TestMVStoreBenchmark extends TestBase {
         tree = getMemory() - mem;
         mapList.size();
 
-        mapList = new ArrayList<>();
+        mapList.clear();
         mem = getMemory();
         MVStore store = MVStore.open(null);
         for (int i = 0; i < count; i++) {

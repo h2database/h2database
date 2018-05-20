@@ -103,9 +103,9 @@ public class TestMultiThreadedKernel extends TestBase {
     }
 
     private void testConcurrentRead() throws Exception {
-        ArrayList<Task> list = new ArrayList<>();
         int size = 2;
         final int count = 1000;
+        ArrayList<Task> list = new ArrayList<>(size);
         final Connection[] connections = new Connection[count];
         String url = getURL("multiThreadedKernel;" +
                 "MULTI_THREADED=TRUE;CACHE_SIZE=16", true);
@@ -144,9 +144,9 @@ public class TestMultiThreadedKernel extends TestBase {
     }
 
     private void testCache() throws Exception {
-        ArrayList<Task> list = new ArrayList<>();
         int size = 3;
         final int count = 100;
+        ArrayList<Task> list = new ArrayList<>(size);
         final Connection[] connections = new Connection[count];
         String url = getURL("multiThreadedKernel;" +
                 "MULTI_THREADED=TRUE;CACHE_SIZE=1", true);

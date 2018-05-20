@@ -29,7 +29,6 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.ColumnNamer;
 import org.h2.util.StringUtils;
-import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
@@ -318,7 +317,7 @@ public class SelectUnion extends Query {
         ArrayList<Expression> le = left.getExpressions();
         // set the expressions to get the right column count and names,
         // but can't validate at this time
-        expressions = Utils.newSmallArrayList();
+        expressions = new ArrayList<>(len);
         for (int i = 0; i < len; i++) {
             Expression l = le.get(i);
             expressions.add(l);
@@ -339,7 +338,7 @@ public class SelectUnion extends Query {
         right.prepare();
         int len = left.getColumnCount();
         // set the correct expressions now
-        expressions = Utils.newSmallArrayList();
+        expressions = new ArrayList<>(len);
         ArrayList<Expression> le = left.getExpressions();
         ArrayList<Expression> re = right.getExpressions();
         ColumnNamer columnNamer= new ColumnNamer(session);

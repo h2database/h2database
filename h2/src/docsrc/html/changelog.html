@@ -21,6 +21,24 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>PR #1138, #1139: Fix a memory leak caused by DatabaseCloser objects
+</li>
+<li>PR #1137: Step toward making transaction commit atomic
+</li>
+<li>PR #1136: Assorted minor optimizations
+</li>
+<li>PR #1134: Detect possible overflow in integer division and optimize some code
+</li>
+<li>PR #1133: Implement Comparable&lt;Value&gt; in CompareMode and optimize ValueHashMap.keys()
+</li>
+<li>PR #1132: Reduce allocation of ExpressionVisitor instances
+</li>
+<li>PR #1130: Improve TestScript and TestCrashAPI
+</li>
+<li>PR #1128: Fix ON DUPLICATE KEY UPDATE with ENUM
+</li>
+<li>PR #1127: Update JdbcDatabaseMetaData.getSQLKeywords() and perform some minor optimizations
+</li>
 <li>PR #1126: Fix an issue with code coverage and building of documentation
 </li>
 <li>PR #1123: Fix TCP version check

@@ -153,7 +153,7 @@ public class PageDataLeaf extends PageData {
     private int findInsertionPoint(long key) {
         int x = find(key);
         if (x < entryCount && keys[x] == key) {
-            throw index.getDuplicateKeyException(""+key);
+            throw index.getDuplicateKeyException(String.valueOf(key));
         }
         return x;
     }
@@ -220,7 +220,7 @@ public class PageDataLeaf extends PageData {
         if (offset < start) {
             writtenData = false;
             if (entryCount > 1) {
-                DbException.throwInternalError("" + entryCount);
+                DbException.throwInternalError(Integer.toString(entryCount));
             }
             // need to write the overflow page id
             start += 4;
@@ -283,7 +283,7 @@ public class PageDataLeaf extends PageData {
         }
         entryCount--;
         if (entryCount < 0) {
-            DbException.throwInternalError("" + entryCount);
+            DbException.throwInternalError(Integer.toString(entryCount));
         }
         if (firstOverflowPageId != 0) {
             start -= 4;

@@ -73,7 +73,6 @@ import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
-import org.h2.value.CaseInsensitiveConcurrentMap;
 import org.h2.value.CaseInsensitiveMap;
 import org.h2.value.CompareMode;
 import org.h2.value.NullableKeyConcurrentMap;
@@ -157,7 +156,7 @@ public class Database implements DataHandler {
 
     private int powerOffCount = initialPowerOffCount;
     private int closeDelay;
-    private DatabaseCloser delayedCloser;
+    private DelayedDatabaseCloser delayedCloser;
     private volatile boolean closing;
     private boolean ignoreCase;
     private boolean deleteFilesOnDisconnect;
@@ -168,7 +167,6 @@ public class Database implements DataHandler {
     private boolean referentialIntegrity = true;
     /** ie. the MVCC setting */
     private boolean multiVersion;
-    private DatabaseCloser closeOnExit;
     private Mode mode = Mode.getRegular();
     private boolean multiThreaded;
     private int maxOperationMemory =
@@ -289,18 +287,7 @@ public class Database implements DataHandler {
         try {
             open(traceLevelFile, traceLevelSystemOut, ci);
             if (closeAtVmShutdown) {
-                try {
-                    closeOnExit = new DatabaseCloser(this, 0, true);
-                    Runtime.getRuntime().addShutdownHook(closeOnExit);
-                } catch (IllegalStateException e) {
-                    // shutdown in progress - just don't register the handler
-                    // (maybe an application wants to write something into a
-                    // database at shutdown time)
-                } catch (SecurityException  e) {
-                    // applets may not do that - ignore
-                    // Google App Engine doesn't allow
-                    // to instantiate classes that extend Thread
-                }
+                OnExitDatabaseCloser.register(this);
             }
         } catch (Throwable e) {
             if (e instanceof OutOfMemoryError) {
@@ -423,7 +410,7 @@ public class Database implements DataHandler {
                 if (now > reconnectCheckNext) {
                     if (pending) {
                         String pos = pageStore == null ?
-                                null : "" + pageStore.getWriteCountTotal();
+                                null : Long.toString(pageStore.getWriteCountTotal());
                         lock.setProperty("logPos", pos);
                         lock.save();
                     }
@@ -445,7 +432,7 @@ public class Database implements DataHandler {
                 }
             }
             String pos = pageStore == null ?
-                    null : "" + pageStore.getWriteCountTotal();
+                    null : Long.toString(pageStore.getWriteCountTotal());
             lock.setProperty("logPos", pos);
             if (pending) {
                 lock.setProperty("changePending", "true-" + Math.random());
@@ -774,7 +761,7 @@ public class Database implements DataHandler {
         objectIds.set(0);
         starting = true;
         Cursor cursor = metaIdIndex.find(systemSession, null, null);
-        ArrayList<MetaRecord> records = new ArrayList<>();
+        ArrayList<MetaRecord> records = new ArrayList<>((int) metaIdIndex.getRowCountApproximation());
         while (cursor.next()) {
             MetaRecord rec = new MetaRecord(cursor.get());
             objectIds.set(rec.getId());
@@ -1240,10 +1227,7 @@ public class Database implements DataHandler {
             } else if (closeDelay < 0) {
                 return;
             } else {
-                delayedCloser = new DatabaseCloser(this, closeDelay * 1000, false);
-                delayedCloser.setName("H2 Close Delay " + getShortName());
-                delayedCloser.setDaemon(true);
-                delayedCloser.start();
+                delayedCloser = new DelayedDatabaseCloser(this, closeDelay * 1000);
             }
         }
         if (session != systemSession &&
@@ -1361,17 +1345,7 @@ public class Database implements DataHandler {
             }
             trace.info("closed");
             traceSystem.close();
-            if (closeOnExit != null) {
-                closeOnExit.reset();
-                try {
-                    Runtime.getRuntime().removeShutdownHook(closeOnExit);
-                } catch (IllegalStateException e) {
-                    // ignore
-                } catch (SecurityException e) {
-                    // applets may not do that - ignore
-                }
-                closeOnExit = null;
-            }
+            OnExitDatabaseCloser.unregister(this);
             if (deleteFilesOnDisconnect && persistent) {
                 deleteFilesOnDisconnect = false;
                 try {
@@ -2671,7 +2645,7 @@ public class Database implements DataHandler {
         long now = System.nanoTime();
         if (now > reconnectCheckNext + reconnectCheckDelayNs) {
             if (SysProperties.CHECK && checkpointAllowed < 0) {
-                DbException.throwInternalError("" + checkpointAllowed);
+                DbException.throwInternalError(Integer.toString(checkpointAllowed));
             }
             synchronized (reconnectSync) {
                 if (checkpointAllowed > 0) {
@@ -2741,7 +2715,7 @@ public class Database implements DataHandler {
             if (reconnectModified(true)) {
                 checkpointAllowed++;
                 if (SysProperties.CHECK && checkpointAllowed > 20) {
-                    throw DbException.throwInternalError("" + checkpointAllowed);
+                    throw DbException.throwInternalError(Integer.toString(checkpointAllowed));
                 }
                 return true;
             }
@@ -2763,7 +2737,7 @@ public class Database implements DataHandler {
             checkpointAllowed--;
         }
         if (SysProperties.CHECK && checkpointAllowed < 0) {
-            throw DbException.throwInternalError("" + checkpointAllowed);
+            throw DbException.throwInternalError(Integer.toString(checkpointAllowed));
         }
     }
 
@@ -2885,9 +2859,7 @@ public class Database implements DataHandler {
      * @return the hash map
      */
     public <V> ConcurrentHashMap<String, V> newConcurrentStringMap() {
-        return dbSettings.databaseToUpper ?
-                new NullableKeyConcurrentMap<V>() :
-                new CaseInsensitiveConcurrentMap<V>();
+        return new NullableKeyConcurrentMap<>(!dbSettings.databaseToUpper);
     }
 
     /**

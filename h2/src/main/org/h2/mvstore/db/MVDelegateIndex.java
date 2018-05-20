@@ -35,7 +35,7 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
         this.initBaseIndex(table, id, name, cols, indexType);
         this.mainIndex = mainIndex;
         if (id < 0) {
-            throw DbException.throwInternalError("" + name);
+            throw DbException.throwInternalError(name);
         }
     }
 

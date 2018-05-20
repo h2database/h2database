@@ -415,7 +415,7 @@ public class Insert extends Prepared implements ResultTarget {
         for (Column column : duplicateKeyAssignmentMap.keySet()) {
             buff.appendExceptFirst(", ");
             Expression ex = duplicateKeyAssignmentMap.get(column);
-            buff.append(column.getSQL()).append("=").append(ex.getSQL());
+            buff.append(column.getSQL()).append('=').append(ex.getSQL());
         }
         buff.append(" WHERE ");
         Index foundIndex = (Index) de.getSource();

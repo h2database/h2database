@@ -1164,7 +1164,7 @@ public class Select extends Query {
                         buff.appendExceptFirst(",");
                         buff.append(c.getName());
                     }
-                    buff.append(") AS ").append(t.getSQL()).append("\n");
+                    buff.append(") AS ").append(t.getSQL()).append('\n');
                 }
             }
         }

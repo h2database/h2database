@@ -2492,7 +2492,7 @@ public class Function extends Expression implements FunctionCall {
         StatementBuilder buff = new StatementBuilder(info.name);
         if (info.type == CASE) {
             if (args[0] != null) {
-                buff.append(" ").append(args[0].getSQL());
+                buff.append(' ').append(args[0].getSQL());
             }
             for (int i = 1, len = args.length - 1; i < len; i += 2) {
                 buff.append(" WHEN ").append(args[i].getSQL());

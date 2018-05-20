@@ -98,12 +98,12 @@ public interface SQLDialect {
             buff.append(index.indexName);
             buff.append(" ON ");
             buff.append(table);
-            buff.append("(");
+            buff.append('(');
             for (String col : index.columnNames) {
                 buff.appendExceptFirst(", ");
                 buff.append(col);
             }
-            buff.append(")");
+            buff.append(')');
             return buff.toString();
         }
 

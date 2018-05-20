@@ -265,7 +265,7 @@ public class ToDateParser {
         while (p.hasToParseData()) {
             List<ToDateTokenizer.FormatTokenEnum> tokenList =
                     ToDateTokenizer.FormatTokenEnum.getTokensInQuestion(p.getFormatStr());
-            if (tokenList.isEmpty()) {
+            if (tokenList == null) {
                 p.removeFirstChar();
                 continue;
             }

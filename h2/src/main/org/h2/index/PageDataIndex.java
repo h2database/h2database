@@ -491,8 +491,7 @@ public class PageDataIndex extends PageIndex {
 
     Iterator<Row> getDelta() {
         if (delta == null) {
-            List<Row> e = Collections.emptyList();
-            return e.iterator();
+            return Collections.emptyIterator();
         }
         return delta.iterator();
     }

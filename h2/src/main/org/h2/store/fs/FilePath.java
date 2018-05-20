@@ -9,10 +9,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.FileChannel;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.h2.util.MathUtils;
 
 /**
@@ -25,7 +23,7 @@ public abstract class FilePath {
 
     private static FilePath defaultProvider;
 
-    private static Map<String, FilePath> providers;
+    private static ConcurrentHashMap<String, FilePath> providers;
 
     /**
      * The prefix for temporary files.
@@ -66,8 +64,7 @@ public abstract class FilePath {
 
     private static void registerDefaultProviders() {
         if (providers == null || defaultProvider == null) {
-            Map<String, FilePath> map = Collections.synchronizedMap(
-                    new HashMap<String, FilePath>());
+            ConcurrentHashMap<String, FilePath> map = new ConcurrentHashMap<>();
             for (String c : new String[] {
                     "org.h2.store.fs.FilePathDisk",
                     "org.h2.store.fs.FilePathMem",

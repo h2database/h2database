@@ -21,6 +21,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.h2.Driver;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
@@ -49,8 +51,7 @@ public class TcpServer implements Service {
      */
     private static final String MANAGEMENT_DB_PREFIX = "management_db_";
 
-    private static final Map<Integer, TcpServer> SERVERS =
-            Collections.synchronizedMap(new HashMap<Integer, TcpServer>());
+    private static final ConcurrentHashMap<Integer, TcpServer> SERVERS = new ConcurrentHashMap<>();
 
     private int port;
     private boolean portIsSet;

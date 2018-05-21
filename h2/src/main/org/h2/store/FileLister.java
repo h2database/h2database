@@ -9,7 +9,6 @@ import java.nio.channels.FileChannel;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
@@ -44,18 +43,18 @@ public class FileLister {
                     lock.lock(FileLockMethod.FILE);
                     lock.unlock();
                 } catch (DbException e) {
-                    throw DbException.get(
+                    throw DbException.getJdbcSQLException(
                             ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1,
-                            message).getSQLException();
+                            message);
                 }
             } else if (fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
                 try (FileChannel f = FilePath.get(fileName).open("r")) {
                     java.nio.channels.FileLock lock = f.tryLock(0, Long.MAX_VALUE, true);
                     lock.release();
                 } catch (Exception e) {
-                    throw DbException.get(
+                    throw DbException.getJdbcSQLException(
                             ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, e,
-                            message).getSQLException();
+                            message);
                 }
             }
         }

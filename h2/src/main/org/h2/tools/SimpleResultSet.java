@@ -242,7 +242,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     @Override
     public void beforeFirst() throws SQLException {
         if (autoClose) {
-            throw DbException.get(ErrorCode.RESULT_SET_NOT_SCROLLABLE).getSQLException();
+            throw DbException.getJdbcSQLException(ErrorCode.RESULT_SET_NOT_SCROLLABLE);
         }
         rowId = -1;
         if (source != null) {
@@ -278,8 +278,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
                 }
             }
         }
-        throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnLabel)
-                .getSQLException();
+        throw DbException.getJdbcSQLException(ErrorCode.COLUMN_NOT_FOUND_1, columnLabel);
     }
 
     /**
@@ -2264,13 +2263,12 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
      * INTERNAL
      */
     static SQLException getUnsupportedException() {
-        return DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1).
-                getSQLException();
+        return DbException.getJdbcSQLException(ErrorCode.FEATURE_NOT_SUPPORTED_1);
     }
 
     private void checkClosed() throws SQLException {
         if (columns == null) {
-            throw DbException.get(ErrorCode.OBJECT_CLOSED).getSQLException();
+            throw DbException.getJdbcSQLException(ErrorCode.OBJECT_CLOSED);
         }
     }
 
@@ -2283,8 +2281,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
 
     private Object get(int columnIndex) throws SQLException {
         if (currentRow == null) {
-            throw DbException.get(ErrorCode.NO_DATA_AVAILABLE).
-                    getSQLException();
+            throw DbException.getJdbcSQLException(ErrorCode.NO_DATA_AVAILABLE);
         }
         checkColumnIndex(columnIndex);
         columnIndex--;

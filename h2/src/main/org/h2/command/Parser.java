@@ -1156,11 +1156,15 @@ public class Parser {
             TableFilter sourceTableFilter = readSimpleTableFilter(0, excludeIdentifiers);
             command.setSourceTableFilter(sourceTableFilter);
 
-            StringBuilder buff = new StringBuilder("SELECT * FROM ");
-            appendTableWithSchemaAndAlias(buff, sourceTableFilter.getTable(), sourceTableFilter.getTableAlias());
-            Prepared preparedQuery = prepare(session, buff.toString(), null/*paramValues*/);
-            command.setQuery((Select) preparedQuery);
-
+            Select preparedQuery = new Select(session);
+            ArrayList<Expression> expr = new ArrayList<>(1);
+            expr.add(new Wildcard(null, null));
+            preparedQuery.setExpressions(expr);
+            TableFilter filter = new TableFilter(session, sourceTableFilter.getTable(),
+                    sourceTableFilter.getTableAlias(), rightsChecked, preparedQuery, 0, null);
+            preparedQuery.addTableFilter(filter, true);
+            preparedQuery.init();
+            command.setQuery(preparedQuery);
         }
         read("ON");
         read("(");
@@ -4789,7 +4793,7 @@ public class Parser {
         Select command = new Select(session);
         currentSelect = command;
         TableFilter filter = parseValuesTable(0);
-        ArrayList<Expression> list = Utils.newSmallArrayList();
+        ArrayList<Expression> list = new ArrayList<>(1);
         list.add(new Wildcard(null, null));
         command.setExpressions(list);
         command.addTableFilter(filter, true);

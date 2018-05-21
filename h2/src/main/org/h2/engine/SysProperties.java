@@ -95,17 +95,10 @@ public class SysProperties {
     /**
      * System property <code>h2.check</code>
      * (default: true for JDK/JRE, false for Android).<br />
-     * Assertions in the database engine.
+     * Optional additional checks in the database engine.
      */
     public static final boolean CHECK =
             Utils.getProperty("h2.check", !"0.9".equals(Utils.getProperty("java.specification.version", null)));
-
-    /**
-     * System property <code>h2.check2</code> (default: false).<br />
-     * Additional assertions in the database engine.
-     */
-    public static final boolean CHECK2 =
-            Utils.getProperty("h2.check2", false);
 
     /**
      * System property <code>h2.clientTraceDirectory</code> (default:

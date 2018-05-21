@@ -722,12 +722,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     private void removeTemporaryLobs(boolean onTimeout) {
-        if (SysProperties.CHECK2) {
-            if (this == getDatabase().getLobSession()
-                    && !Thread.holdsLock(this) && !Thread.holdsLock(getDatabase())) {
-                throw DbException.throwInternalError();
-            }
-        }
+        assert this != getDatabase().getLobSession() || Thread.holdsLock(this) || Thread.holdsLock(getDatabase());
         if (temporaryLobs != null) {
             for (Value v : temporaryLobs) {
                 if (!v.isLinkedToTable()) {

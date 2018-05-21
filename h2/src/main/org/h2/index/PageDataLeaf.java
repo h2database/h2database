@@ -491,11 +491,7 @@ public class PageDataLeaf extends PageData {
         }
         data.writeByte((byte) type);
         data.writeShortInt(0);
-        if (SysProperties.CHECK2) {
-            if (data.length() != START_PARENT) {
-                DbException.throwInternalError();
-            }
-        }
+        assert data.length() == START_PARENT;
         data.writeInt(parentPageId);
         data.writeVarInt(index.getId());
         data.writeVarInt(columnCount);

@@ -37,6 +37,7 @@ public class TestAuthentication extends TestBase {
 
     String externalUserPassword;
 
+
     String getExternalUserPassword() {
         if (externalUserPassword == null) {
             externalUserPassword = UUID.randomUUID().toString();

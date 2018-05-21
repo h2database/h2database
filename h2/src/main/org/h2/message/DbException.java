@@ -349,7 +349,7 @@ public class DbException extends RuntimeException {
      */
     public static SQLException getJdbcSQLException(int errorCode)
     {
-        return getJdbcSQLException(errorCode, null);
+        return getJdbcSQLException(errorCode, (Throwable)null);
     }
 
     /**

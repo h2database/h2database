@@ -67,13 +67,11 @@ class OnExitDatabaseCloser extends Thread {
     }
 
     private static void onShutdown() {
-        ArrayList<Database> databases;
         synchronized(OnExitDatabaseCloser.class) {
             terminated = true;
-            databases = new ArrayList<>(DATABASES.keySet());
         }
         RuntimeException root = null;
-        for (Database database : databases) {
+        for (Database database : DATABASES.keySet()) {
             try {
                 database.close(true);
             } catch (RuntimeException e) {

@@ -14,6 +14,8 @@ import org.h2.command.Parser;
 import org.h2.command.dml.SetTypes;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.security.auth.AuthenticationException;
+import org.h2.security.auth.AuthenticationInfo;
 import org.h2.store.FileLock;
 import org.h2.store.FileLockMethod;
 import org.h2.util.MathUtils;
@@ -53,6 +55,7 @@ public class Engine implements SessionFactory {
         boolean openNew = ci.getProperty("OPEN_NEW", false);
         boolean opened = false;
         User user = null;
+        AuthenticationInfo authenticationInfo=new AuthenticationInfo(ci);
         synchronized (DATABASES) {
             if (openNew || ci.isUnnamedInMemory()) {
                 database = null;
@@ -90,11 +93,12 @@ public class Engine implements SessionFactory {
         }
         if (user == null) {
             if (database.validateFilePasswordHash(cipher, ci.getFilePasswordHash())) {
-                user = database.findUser(ci.getUserName());
-                if (user != null) {
-                    if (!user.validateUserPasswordHash(ci.getUserPasswordHash())) {
-                        user = null;
-                    }
+                try {
+                    user = database.getAuthenticator().authenticate(authenticationInfo, database);
+                } catch (AuthenticationException authenticationError) {
+                    database.getTrace(Trace.DATABASE).error(authenticationError,
+                        "an error occurred during authentication; user: \"" +
+                        ci.getUserName() + "\"",ci.getUserName());
                 }
             }
             if (opened && (user == null || !user.isAdmin())) {
@@ -103,6 +107,7 @@ public class Engine implements SessionFactory {
                 database.setEventListener(null);
             }
         }
+        ci.cleanAuthenticationInfo();
         if (user == null) {
             DbException er = DbException.get(ErrorCode.WRONG_USER_OR_PASSWORD);
             database.getTrace(Trace.DATABASE).error(er, "wrong user or password; user: \"" +

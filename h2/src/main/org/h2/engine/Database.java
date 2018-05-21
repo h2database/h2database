@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import org.h2.api.Authenticator;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
@@ -43,6 +44,7 @@ import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
+import org.h2.security.auth.AuthenticatorBuilder;
 import org.h2.store.DataHandler;
 import org.h2.store.FileLock;
 import org.h2.store.FileLockMethod;
@@ -206,6 +208,9 @@ public class Database implements DataHandler {
     private int queryStatisticsMaxEntries = Constants.QUERY_STATISTICS_MAX_ENTRIES;
     private QueryStatisticsData queryStatisticsData;
     private RowFactory rowFactory = RowFactory.DEFAULT;
+
+    private Authenticator authenticator;
+    private boolean authenticatorInitialized;
 
     public Database(ConnectionInfo ci, String cipher) {
         META_LOCK_DEBUGGING.set(null);
@@ -2947,4 +2952,42 @@ public class Database implements DataHandler {
         return engine;
     }
 
+    private void initAuthenticator() {
+        if (authenticatorInitialized) {
+            return;
+        }
+        try {
+            String authenticatorString=null;
+            Setting authenticatorSetting =findSetting("AUTHENTICATOR");
+            if (authenticatorSetting!=null) {
+                authenticatorString = authenticatorSetting.getStringValue();
+            }
+            Authenticator authenticator=AuthenticatorBuilder.buildAuthenticator(authenticatorString);
+            setAuthenticator(authenticator);
+        } catch (Exception e) {
+            throw DbException.convert(e);
+        }
+    }
+
+    /**
+     * get authenticator for database users
+     * @return authenticator set for database
+     */
+    public Authenticator getAuthenticator() {
+        initAuthenticator();
+        return authenticator == null ? InternalAuthenticator.INSTANCE : authenticator;
+    }
+
+    /**
+     * Set current database authenticator
+     * 
+     * @param authenticator = authenticator to set, null to revert to the Internal authenticator
+     */
+    public void setAuthenticator(Authenticator authenticator) {
+        if (authenticator!=null) {
+            authenticator.init(this);
+        };
+        this.authenticator=authenticator;
+        authenticatorInitialized = true;
+    }
 }

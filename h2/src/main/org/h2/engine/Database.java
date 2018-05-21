@@ -93,16 +93,25 @@ public class Database implements DataHandler {
 
     private static final boolean ASSERT;
 
+    private static final ThreadLocal<Session> META_LOCK_DEBUGGING;
+    private static final ThreadLocal<Database> META_LOCK_DEBUGGING_DB;
+    private static final ThreadLocal<Throwable> META_LOCK_DEBUGGING_STACK;
+
     static {
         boolean a = false;
         // Intentional side-effect
         assert a = true;
         ASSERT = a;
+        if (a) {
+            META_LOCK_DEBUGGING = new ThreadLocal<>();
+            META_LOCK_DEBUGGING_DB = new ThreadLocal<>();
+            META_LOCK_DEBUGGING_STACK = new ThreadLocal<>();
+        } else {
+            META_LOCK_DEBUGGING = null;
+            META_LOCK_DEBUGGING_DB = null;
+            META_LOCK_DEBUGGING_STACK = null;
+        }
     }
-
-    private static final ThreadLocal<Session> META_LOCK_DEBUGGING = new ThreadLocal<>();
-    private static final ThreadLocal<Database> META_LOCK_DEBUGGING_DB = new ThreadLocal<>();
-    private static final ThreadLocal<Throwable> META_LOCK_DEBUGGING_STACK = new ThreadLocal<>();
 
     /**
      * The default name of the system user. This name is only used as long as
@@ -217,9 +226,11 @@ public class Database implements DataHandler {
     private RowFactory rowFactory = RowFactory.DEFAULT;
 
     public Database(ConnectionInfo ci, String cipher) {
-        META_LOCK_DEBUGGING.set(null);
-        META_LOCK_DEBUGGING_DB.set(null);
-        META_LOCK_DEBUGGING_STACK.set(null);
+        if (ASSERT) {
+            META_LOCK_DEBUGGING.set(null);
+            META_LOCK_DEBUGGING_DB.set(null);
+            META_LOCK_DEBUGGING_STACK.set(null);
+        }
         String name = ci.getName();
         this.dbSettings = ci.getDbSettings();
         this.reconnectCheckDelayNs = TimeUnit.MILLISECONDS.toNanos(dbSettings.reconnectCheckDelay);

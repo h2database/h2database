@@ -67,9 +67,13 @@ class OnExitDatabaseCloser extends Thread {
     }
 
     private static void onShutdown() {
-        terminated = true;
+        ArrayList<Database> databases;
+        synchronized(OnExitDatabaseCloser.class) {
+            terminated = true;
+            databases = new ArrayList<>(DATABASES.keySet());
+        }
         RuntimeException root = null;
-        for (Database database : collectDatabasesToClose()) {
+        for (Database database : databases) {
             try {
                 database.close(true);
             } catch (RuntimeException e) {
@@ -93,10 +97,6 @@ class OnExitDatabaseCloser extends Thread {
         if (root != null) {
             throw root;
         }
-    }
-
-    private static synchronized Iterable<Database> collectDatabasesToClose() {
-        return new ArrayList<>(DATABASES.keySet());
     }
 
     private OnExitDatabaseCloser() {

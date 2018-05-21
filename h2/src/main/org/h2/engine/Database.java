@@ -91,9 +91,27 @@ public class Database implements DataHandler {
 
     private static int initialPowerOffCount;
 
-    private static final ThreadLocal<Session> META_LOCK_DEBUGGING = new ThreadLocal<>();
-    private static final ThreadLocal<Database> META_LOCK_DEBUGGING_DB = new ThreadLocal<>();
-    private static final ThreadLocal<Throwable> META_LOCK_DEBUGGING_STACK = new ThreadLocal<>();
+    private static final boolean ASSERT;
+
+    private static final ThreadLocal<Session> META_LOCK_DEBUGGING;
+    private static final ThreadLocal<Database> META_LOCK_DEBUGGING_DB;
+    private static final ThreadLocal<Throwable> META_LOCK_DEBUGGING_STACK;
+
+    static {
+        boolean a = false;
+        // Intentional side-effect
+        assert a = true;
+        ASSERT = a;
+        if (a) {
+            META_LOCK_DEBUGGING = new ThreadLocal<>();
+            META_LOCK_DEBUGGING_DB = new ThreadLocal<>();
+            META_LOCK_DEBUGGING_STACK = new ThreadLocal<>();
+        } else {
+            META_LOCK_DEBUGGING = null;
+            META_LOCK_DEBUGGING_DB = null;
+            META_LOCK_DEBUGGING_STACK = null;
+        }
+    }
 
     /**
      * The default name of the system user. This name is only used as long as
@@ -208,9 +226,11 @@ public class Database implements DataHandler {
     private RowFactory rowFactory = RowFactory.DEFAULT;
 
     public Database(ConnectionInfo ci, String cipher) {
-        META_LOCK_DEBUGGING.set(null);
-        META_LOCK_DEBUGGING_DB.set(null);
-        META_LOCK_DEBUGGING_STACK.set(null);
+        if (ASSERT) {
+            META_LOCK_DEBUGGING.set(null);
+            META_LOCK_DEBUGGING_DB.set(null);
+            META_LOCK_DEBUGGING_STACK.set(null);
+        }
         String name = ci.getName();
         this.dbSettings = ci.getDbSettings();
         this.reconnectCheckDelayNs = TimeUnit.MILLISECONDS.toNanos(dbSettings.reconnectCheckDelay);
@@ -919,7 +939,7 @@ public class Database implements DataHandler {
         if (meta == null) {
             return true;
         }
-        if (SysProperties.CHECK2) {
+        if (ASSERT) {
             // If we are locking two different databases in the same stack, just ignore it.
             // This only happens in TestLinkedTable where we connect to another h2 DB in the
             // same process.
@@ -961,7 +981,7 @@ public class Database implements DataHandler {
      * @param session the session
      */
     public void unlockMetaDebug(Session session) {
-        if (SysProperties.CHECK2) {
+        if (ASSERT) {
             if (META_LOCK_DEBUGGING.get() == session) {
                 META_LOCK_DEBUGGING.set(null);
                 META_LOCK_DEBUGGING_DB.set(null);
@@ -1405,7 +1425,7 @@ public class Database implements DataHandler {
                         unlockMeta(pageStore.getPageStoreSession());
                     }
                 } catch (DbException e) {
-                    if (SysProperties.CHECK2) {
+                    if (ASSERT) {
                         int code = e.getErrorCode();
                         if (code != ErrorCode.DATABASE_IS_CLOSED &&
                                 code != ErrorCode.LOCK_TIMEOUT_1 &&
@@ -1415,7 +1435,7 @@ public class Database implements DataHandler {
                     }
                     trace.error(e, "close");
                 } catch (Throwable t) {
-                    if (SysProperties.CHECK2) {
+                    if (ASSERT) {
                         t.printStackTrace();
                     }
                     trace.error(t, "close");

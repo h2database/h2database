@@ -16,7 +16,6 @@ import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.Properties;
-
 import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.util.SortedProperties;
@@ -340,6 +339,42 @@ public class DbException extends RuntimeException {
             return get(ErrorCode.IO_EXCEPTION_1, e, e.toString());
         }
         return get(ErrorCode.IO_EXCEPTION_2, e, e.toString(), message);
+    }
+
+    /**
+     * Gets the SQL exception object for a specific error code.
+     *
+     * @param errorCode the error code
+     * @return the SQLException object
+     */
+    public static SQLException getSQLException(int errorCode)
+    {
+        return getJdbcSQLException(errorCode, null, new String[0]);
+    }
+
+    /**
+     * Gets the SQL exception object for a specific error code.
+     *
+     * @param errorCode the error code
+     * @param p1 the first parameter of the message
+     * @return the SQLException object
+     */
+    public static SQLException getSQLException(int errorCode, String p1)
+    {
+        return getJdbcSQLException(errorCode, null, new String[] { p1 });
+    }
+
+    /**
+     * Create the SQL exception object for a specific error code.
+     *
+     * @param errorCode the error code
+     * @param cause the cause of the exception
+     * @param params the list of parameters of the message
+     * @return the exception
+     */
+    public static SQLException getSQLException(int errorCode, Throwable cause, String... params)
+    {
+        return getJdbcSQLException(errorCode, cause, params);
     }
 
     /**

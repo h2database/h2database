@@ -226,7 +226,7 @@ public class LobStorageBackend implements LobStorageInterface {
                 prep.setLong(1, block);
                 ResultSet rs = prep.executeQuery();
                 if (!rs.next()) {
-                    throw DbException.getSQLException(ErrorCode.IO_EXCEPTION_1,
+                    throw DbException.getJdbcSQLException(ErrorCode.IO_EXCEPTION_1,
                             "Missing lob entry, block: " + block);
                 }
                 int compressed = rs.getInt(1);
@@ -652,7 +652,7 @@ public class LobStorageBackend implements LobStorageInterface {
                 prep.setLong(1, lobId);
                 ResultSet rs = prep.executeQuery();
                 if (!rs.next()) {
-                    throw DbException.getSQLException(ErrorCode.IO_EXCEPTION_1,
+                    throw DbException.getJdbcSQLException(ErrorCode.IO_EXCEPTION_1,
                             "Missing lob entry: " + lobId);
                 }
                 byteCount = rs.getLong(1);
@@ -667,7 +667,7 @@ public class LobStorageBackend implements LobStorageInterface {
             rs.next();
             int lobMapCount = rs.getInt(1);
             if (lobMapCount == 0) {
-                throw DbException.getSQLException(ErrorCode.IO_EXCEPTION_1,
+                throw DbException.getJdbcSQLException(ErrorCode.IO_EXCEPTION_1,
                         "Missing lob entry: " + lobId);
             }
             reuse(sql, prep);

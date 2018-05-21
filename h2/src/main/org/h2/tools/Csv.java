@@ -586,7 +586,7 @@ public class Csv implements SimpleRowSource {
     }
 
     private static SQLException convertException(String message, Exception e) {
-        return DbException.getSQLException(ErrorCode.IO_EXCEPTION_1, e, message);
+        return DbException.getJdbcSQLException(ErrorCode.IO_EXCEPTION_1, e, message);
     }
 
     /**

@@ -43,7 +43,7 @@ public class FileLister {
                     lock.lock(FileLockMethod.FILE);
                     lock.unlock();
                 } catch (DbException e) {
-                    throw DbException.getSQLException(
+                    throw DbException.getJdbcSQLException(
                             ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1,
                             message);
                 }
@@ -52,7 +52,7 @@ public class FileLister {
                     java.nio.channels.FileLock lock = f.tryLock(0, Long.MAX_VALUE, true);
                     lock.release();
                 } catch (Exception e) {
-                    throw DbException.getSQLException(
+                    throw DbException.getJdbcSQLException(
                             ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, e,
                             message);
                 }

@@ -64,7 +64,7 @@ public abstract class Tool {
      */
     protected SQLException throwUnsupportedOption(String option)
             throws SQLException {
-        throw DbException.getSQLException(
+        throw DbException.getJdbcSQLException(
                 ErrorCode.FEATURE_NOT_SUPPORTED_1, option);
     }
 

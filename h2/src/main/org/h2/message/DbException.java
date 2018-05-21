@@ -347,9 +347,9 @@ public class DbException extends RuntimeException {
      * @param errorCode the error code
      * @return the SQLException object
      */
-    public static SQLException getSQLException(int errorCode)
+    public static SQLException getJdbcSQLException(int errorCode)
     {
-        return getJdbcSQLException(errorCode, null, new String[0]);
+        return getJdbcSQLException(errorCode, null);
     }
 
     /**
@@ -359,22 +359,9 @@ public class DbException extends RuntimeException {
      * @param p1 the first parameter of the message
      * @return the SQLException object
      */
-    public static SQLException getSQLException(int errorCode, String p1)
+    public static SQLException getJdbcSQLException(int errorCode, String p1)
     {
-        return getJdbcSQLException(errorCode, null, new String[] { p1 });
-    }
-
-    /**
-     * Create the SQL exception object for a specific error code.
-     *
-     * @param errorCode the error code
-     * @param cause the cause of the exception
-     * @param params the list of parameters of the message
-     * @return the exception
-     */
-    public static SQLException getSQLException(int errorCode, Throwable cause, String... params)
-    {
-        return getJdbcSQLException(errorCode, cause, params);
+        return getJdbcSQLException(errorCode, null, p1);
     }
 
     /**
@@ -385,7 +372,7 @@ public class DbException extends RuntimeException {
      * @param params the list of parameters of the message
      * @return the SQLException object
      */
-    private static JdbcSQLException getJdbcSQLException(int errorCode,
+    public static JdbcSQLException getJdbcSQLException(int errorCode,
             Throwable cause, String... params) {
         String sqlstate = ErrorCode.getState(errorCode);
         String message = translate(sqlstate, params);

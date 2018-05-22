@@ -75,7 +75,7 @@ public class ConfigProperties {
         if (result == null) {
             return defaultValue;
         }
-        return Utils.parseBoolean(name, defaultValue, true);
+        return Utils.parseBoolean(result, defaultValue, true);
     }
 
 }

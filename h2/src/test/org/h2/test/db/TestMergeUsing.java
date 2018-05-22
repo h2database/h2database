@@ -245,7 +245,7 @@ public class TestMergeUsing extends TestBase implements Trigger {
                 GATHER_ORDERED_RESULTS_SQL,
                 "SELECT X AS ID, 'Marcy'||X||X AS NAME FROM SYSTEM_RANGE(2,2) UNION ALL " +
                 "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(3,3)",
-                3, "No references to source columns found in ON clause");
+                3, "Duplicate key updated 3 rows at once, only 1 expected");
         // Insert does not insert correct values with respect to ON condition
         // (inserts ID value above 100, instead)
         testMergeUsingException(

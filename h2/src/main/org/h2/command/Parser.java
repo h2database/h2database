@@ -1168,32 +1168,9 @@ public class Parser {
         command.setOnCondition(condition);
         read(")");
 
-        if (readIfAll("WHEN", "MATCHED", "THEN")) {
-            int startMatched = lastParseIndex;
-            if (readIf("UPDATE")) {
-                Update updateCommand = new Update(session);
-                //currentPrepared = updateCommand;
-                TableFilter filter = command.getTargetTableFilter();
-                updateCommand.setTableFilter(filter);
-                parseUpdateSetClause(updateCommand, filter, startMatched);
-                command.setUpdateCommand(updateCommand);
-            }
-            startMatched = lastParseIndex;
-            if (readIf("DELETE")) {
-                Delete deleteCommand = new Delete(session);
-                TableFilter filter = command.getTargetTableFilter();
-                deleteCommand.setTableFilter(filter);
-                parseDeleteGivenTable(deleteCommand, null, startMatched);
-                command.setDeleteCommand(deleteCommand);
-            }
-        }
-        if (readIfAll("WHEN", "NOT", "MATCHED", "THEN")) {
-            if (readIf("INSERT")) {
-                Insert insertCommand = new Insert(session);
-                insertCommand.setTable(command.getTargetTable());
-                parseInsertGivenTable(insertCommand, command.getTargetTable());
-                command.setInsertCommand(insertCommand);
-            }
+        boolean matched = parseWhenMatched(command);
+        if (parseWhenNotMatched(command) && !matched) {
+            parseWhenMatched(command);
         }
 
         setSQL(command, "MERGE", start);
@@ -1211,9 +1188,49 @@ public class Parser {
         return command;
     }
 
+    private boolean parseWhenMatched(MergeUsing command) {
+        if (!readIfAll("WHEN", "MATCHED", "THEN")) {
+            return false;
+        }
+        int startMatched = lastParseIndex;
+        if (readIf("UPDATE")) {
+            Update updateCommand = new Update(session);
+            TableFilter filter = command.getTargetTableFilter();
+            updateCommand.setTableFilter(filter);
+            parseUpdateSetClause(updateCommand, filter, startMatched);
+            command.setUpdateCommand(updateCommand);
+        }
+        startMatched = lastParseIndex;
+        if (readIf("DELETE")) {
+            Delete deleteCommand = new Delete(session);
+            TableFilter filter = command.getTargetTableFilter();
+            deleteCommand.setTableFilter(filter);
+            parseDeleteGivenTable(deleteCommand, null, startMatched);
+            command.setDeleteCommand(deleteCommand);
+        }
+        return true;
+    }
+
+    private boolean parseWhenNotMatched(MergeUsing command) {
+        if (!readIfAll("WHEN", "NOT", "MATCHED", "THEN")) {
+            return false;
+        }
+        if (readIf("INSERT")) {
+            Insert insertCommand = new Insert(session);
+            insertCommand.setTable(command.getTargetTable());
+            parseInsertGivenTable(insertCommand, command.getTargetTable());
+            command.setInsertCommand(insertCommand);
+        }
+        return true;
+    }
+
     private static void appendTableWithSchemaAndAlias(StringBuilder buff, Table table, String alias) {
-        buff.append(quoteIdentifier(table.getSchema().getName()))
-            .append('.').append(quoteIdentifier(table.getName()));
+        if (table instanceof RangeTable) {
+            buff.append(table.getSQL());
+        } else {
+            buff.append(quoteIdentifier(table.getSchema().getName()))
+                .append('.').append(quoteIdentifier(table.getName()));
+        }
         if (alias != null) {
             buff.append(" AS ").append(quoteIdentifier(alias));
         }
@@ -1460,7 +1477,7 @@ public class Parser {
                     table = new FunctionTable(mainSchema, session, expr, call);
                 }
             } else {
-                table = readTableOrView(tableName, true);
+                table = readTableOrView(tableName);
             }
         }
         ArrayList<String> derivedColumnNames = null;
@@ -5908,10 +5925,10 @@ public class Parser {
     }
 
     private Table readTableOrView() {
-        return readTableOrView(readIdentifierWithSchema(null), false);
+        return readTableOrView(readIdentifierWithSchema(null));
     }
 
-    private Table readTableOrView(String tableName, boolean allowDual) {
+    private Table readTableOrView(String tableName) {
         if (schemaName != null) {
             Table table = getSchema().resolveTableOrView(session, tableName);
             if (table != null) {
@@ -5934,7 +5951,7 @@ public class Parser {
                 }
             }
         }
-        if (allowDual && isDualTable(tableName)) {
+        if (isDualTable(tableName)) {
             return getDualTable(false);
         }
         throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);

@@ -210,7 +210,6 @@ public class Database implements DataHandler {
     private RowFactory rowFactory = RowFactory.DEFAULT;
 
     private Authenticator authenticator;
-    private boolean authenticatorInitialized;
 
     public Database(ConnectionInfo ci, String cipher) {
         META_LOCK_DEBUGGING.set(null);
@@ -2952,30 +2951,11 @@ public class Database implements DataHandler {
         return engine;
     }
 
-    private void initAuthenticator() {
-        if (authenticatorInitialized) {
-            return;
-        }
-        try {
-            String authenticatorString=null;
-            Setting authenticatorSetting =findSetting("AUTHENTICATOR");
-            if (authenticatorSetting==null) {
-                setAuthenticator(null);
-            } else {
-                authenticatorString = authenticatorSetting.getStringValue();
-                setAuthenticator(AuthenticatorBuilder.buildAuthenticator(authenticatorString));
-            }
-        } catch (Exception e) {
-            throw DbException.convert(e);
-        }
-    }
-
     /**
      * get authenticator for database users
      * @return authenticator set for database
      */
     public Authenticator getAuthenticator() {
-        initAuthenticator();
         return authenticator == null ? InternalAuthenticator.INSTANCE : authenticator;
     }
 
@@ -2989,6 +2969,5 @@ public class Database implements DataHandler {
             authenticator.init(this);
         };
         this.authenticator=authenticator;
-        authenticatorInitialized = true;
     }
 }

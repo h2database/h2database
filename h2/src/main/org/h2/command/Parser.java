@@ -1460,7 +1460,7 @@ public class Parser {
                     table = new FunctionTable(mainSchema, session, expr, call);
                 }
             } else {
-                table = readTableOrView(tableName, true);
+                table = readTableOrView(tableName);
             }
         }
         ArrayList<String> derivedColumnNames = null;
@@ -5908,10 +5908,10 @@ public class Parser {
     }
 
     private Table readTableOrView() {
-        return readTableOrView(readIdentifierWithSchema(null), false);
+        return readTableOrView(readIdentifierWithSchema(null));
     }
 
-    private Table readTableOrView(String tableName, boolean allowDual) {
+    private Table readTableOrView(String tableName) {
         if (schemaName != null) {
             Table table = getSchema().resolveTableOrView(session, tableName);
             if (table != null) {
@@ -5934,7 +5934,7 @@ public class Parser {
                 }
             }
         }
-        if (allowDual && isDualTable(tableName)) {
+        if (isDualTable(tableName)) {
             return getDualTable(false);
         }
         throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);

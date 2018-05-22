@@ -84,7 +84,7 @@ Features
 <a href="#cache_settings">
     Cache Settings</a><br />
 <a href="#external_authentication">
-    External Authentication</a><br />
+    External Authentication (Experimental)</a><br />
 
 <h2 id="feature_list">Feature List</h2>
 <h3>Main Features</h3>
@@ -1828,11 +1828,10 @@ To get information about page reads and writes, and the current caching algorith
 call <code>SELECT * FROM INFORMATION_SCHEMA.SETTINGS</code>. The number of pages read / written
 is listed.
 </p>
-<h2 id="external_authentication">External authentication</h2>
+<h2 id="external_authentication">External authentication (Experimental)</h2>
 <p>
 External authentication allows to optionally validate user credentials externally (JAAS,LDAP,custom classes).
-Is also possible to temporary assign roles to to externally authenticated users
-
+Is also possible to temporary assign roles to to externally authenticated users.  <b>This feature is experimental and subject to change</b>
 </p>
 <p>Master user cannot be externally authenticated</p>
 <p>
@@ -1896,11 +1895,11 @@ JVM argument <code>-Dh2auth.configurationFile={urlOfH2Auth.xml}</code>. Here an 
 </pre>
 <p>
 Custom credentials validators must implement the interface
-<code>org.h2.security.auth.CredentialsValidator</code>
+<code>org.h2.api.CredentialsValidator</code>
 </p>
 <p>
 Custom criteria for role assignments must implement the interface
-<code>org.h2.security.auth.UserToRoleMapper</code>
+<code>org.h2.api.UserToRoleMapper</code>
 </p>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

@@ -15,6 +15,9 @@ import org.h2.security.auth.Configurable;
 /**
  * A class that implement this interface can be used during
  * authentication to map external users to database roles.
+ * <p>
+ *  <b>This feature is experimental and subject to change</b>
+ * </p>
  */
 public interface UserToRolesMapper extends Configurable {
 

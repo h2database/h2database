@@ -11,6 +11,9 @@ import org.h2.security.auth.Configurable;
 /**
  * A class that implement this interface can be used to validate
  * credentials provided by client.
+ * <p>
+ *  <b>This feature is experimental and subject to change</b>
+ * </p>
  */
 public interface CredentialsValidator extends Configurable {
 

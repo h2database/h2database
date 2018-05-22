@@ -5,7 +5,6 @@
  */
 package org.h2.engine;
 
-import java.util.ArrayList;
 import java.util.WeakHashMap;
 
 import org.h2.message.Trace;

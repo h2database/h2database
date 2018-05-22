@@ -55,7 +55,6 @@ public class Engine implements SessionFactory {
         boolean openNew = ci.getProperty("OPEN_NEW", false);
         boolean opened = false;
         User user = null;
-        AuthenticationInfo authenticationInfo=new AuthenticationInfo(ci);
         synchronized (DATABASES) {
             if (openNew || ci.isUnnamedInMemory()) {
                 database = null;
@@ -94,6 +93,7 @@ public class Engine implements SessionFactory {
         if (user == null) {
             if (database.validateFilePasswordHash(cipher, ci.getFilePasswordHash())) {
                 try {
+                    AuthenticationInfo authenticationInfo=new AuthenticationInfo(ci);
                     user = database.getAuthenticator().authenticate(authenticationInfo, database);
                 } catch (AuthenticationException authenticationError) {
                     database.getTrace(Trace.DATABASE).error(authenticationError,

@@ -2959,11 +2959,12 @@ public class Database implements DataHandler {
         try {
             String authenticatorString=null;
             Setting authenticatorSetting =findSetting("AUTHENTICATOR");
-            if (authenticatorSetting!=null) {
+            if (authenticatorSetting==null) {
+                setAuthenticator(null);
+            } else {
                 authenticatorString = authenticatorSetting.getStringValue();
+                setAuthenticator(AuthenticatorBuilder.buildAuthenticator(authenticatorString));
             }
-            Authenticator authenticator=AuthenticatorBuilder.buildAuthenticator(authenticatorString);
-            setAuthenticator(authenticator);
         } catch (Exception e) {
             throw DbException.convert(e);
         }

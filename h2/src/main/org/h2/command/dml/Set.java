@@ -550,7 +550,7 @@ public class Set extends Prepared {
                 } else {
                     database.setAuthenticator(null);
                 }
-                addOrUpdateSetting(name,stringValue,0);
+                addOrUpdateSetting(name,expression.getValue(session).getString(),0);
             } catch (Exception e) {
                 //Errors during start are ignored to allow to open the database 
                 if (database.isStarting()) {

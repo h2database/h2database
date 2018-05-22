@@ -21,9 +21,9 @@ import org.h2.util.MathUtils;
  */
 public abstract class FilePath {
 
-    private static FilePath defaultProvider;
+    private static volatile FilePath defaultProvider;
 
-    private static ConcurrentHashMap<String, FilePath> providers;
+    private static final ConcurrentHashMap<String, FilePath> providers = new ConcurrentHashMap<>();
 
     /**
      * The prefix for temporary files.
@@ -63,32 +63,33 @@ public abstract class FilePath {
     }
 
     private static void registerDefaultProviders() {
-        if (providers == null || defaultProvider == null) {
-            ConcurrentHashMap<String, FilePath> map = new ConcurrentHashMap<>();
-            for (String c : new String[] {
-                    "org.h2.store.fs.FilePathDisk",
-                    "org.h2.store.fs.FilePathMem",
-                    "org.h2.store.fs.FilePathMemLZF",
-                    "org.h2.store.fs.FilePathNioMem",
-                    "org.h2.store.fs.FilePathNioMemLZF",
-                    "org.h2.store.fs.FilePathSplit",
-                    "org.h2.store.fs.FilePathNio",
-                    "org.h2.store.fs.FilePathNioMapped",
-                    "org.h2.store.fs.FilePathZip",
-                    "org.h2.store.fs.FilePathRetryOnInterrupt"
-            }) {
-                try {
-                    FilePath p = (FilePath) Class.forName(c).newInstance();
-                    map.put(p.getScheme(), p);
-                    if (defaultProvider == null) {
-                        defaultProvider = p;
-                    }
-                } catch (Exception e) {
-                    // ignore - the files may be excluded in purpose
-                }
-            }
-            providers = map;
+        FilePath defaultProvider = FilePath.defaultProvider;
+        if (defaultProvider != null) {
+            return;
         }
+        for (String c : new String[] {
+                "org.h2.store.fs.FilePathDisk",
+                "org.h2.store.fs.FilePathMem",
+                "org.h2.store.fs.FilePathMemLZF",
+                "org.h2.store.fs.FilePathNioMem",
+                "org.h2.store.fs.FilePathNioMemLZF",
+                "org.h2.store.fs.FilePathSplit",
+                "org.h2.store.fs.FilePathNio",
+                "org.h2.store.fs.FilePathNioMapped",
+                "org.h2.store.fs.FilePathZip",
+                "org.h2.store.fs.FilePathRetryOnInterrupt"
+        }) {
+            try {
+                FilePath p = (FilePath) Class.forName(c).newInstance();
+                providers.put(p.getScheme(), p);
+                if (defaultProvider == null) {
+                    defaultProvider = p;
+                }
+            } catch (Exception e) {
+                // ignore - the files may be excluded in purpose
+            }
+        }
+        FilePath.defaultProvider = defaultProvider;
     }
 
     /**

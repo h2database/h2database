@@ -34,17 +34,17 @@ import org.h2.util.StringUtils;
  * <p>
  * When client connectionInfo contains property AUTHREALM={realName} credentials
  *  (typically user id and password) are validated by
- *  by {@link org.h2.api.CredentialsValidator} configured for that realm.
+ *  by {@link org.h2.security.auth.CredentialsValidator} configured for that realm.
  * </p>
  * <p> 
  * When client connectionInfo doesn't contains AUTHREALM property credentials
  *  are validated internally on the database
  * </p> 
  * <p>
- * Rights assignment can be managed trough {@link org.h2.api.UserToRolesMapper}
+ * Rights assignment can be managed through {@link org.h2.security.auth.UserToRolesMapper}
  * </p>
  * <p>
- * Default configuration has a realm H2 that validate credentials trough JAAS api (appName=h2).
+ * Default configuration has a realm H2 that validate credentials through JAAS api (appName=h2).
  * To customize configuration set h2.authConfigFile system property to refer a valid h2auth.xml config file
  * </p> 
  */

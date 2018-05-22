@@ -708,7 +708,7 @@ TABLE [ IF NOT EXISTS ] name
 [ ENGINE tableEngineName ]
 [ WITH tableEngineParamName [,...] ]
 [ NOT PERSISTENT ] [ TRANSACTIONAL ]
-[ AS select ]","
+[ AS select [ WITH [ NO ] DATA ] ]","
 Creates a new table.
 
 Cached tables (the default for regular tables) are persistent,
@@ -736,6 +736,7 @@ rows are lost when the database is closed.
 
 The column definition is optional if a query is specified.
 In that case the column list of the query is used.
+If the query is specified its results are inserted into created table unless WITH NO DATA is specified.
 
 This command commits an open transaction, except when using
 TRANSACTIONAL (only supported for temporary tables).

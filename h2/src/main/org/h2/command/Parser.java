@@ -6679,6 +6679,10 @@ public class Parser {
                 command.setSortedInsertMode(true);
             }
             command.setQuery(parseSelect());
+            if (readIf("WITH")) {
+                command.setWithNoData(readIf("NO"));
+                read("DATA");
+            }
         }
         // for MySQL compatibility
         if (readIf("ROW_FORMAT")) {

@@ -1212,8 +1212,12 @@ public class Parser {
     }
 
     private static void appendTableWithSchemaAndAlias(StringBuilder buff, Table table, String alias) {
-        buff.append(quoteIdentifier(table.getSchema().getName()))
-            .append('.').append(quoteIdentifier(table.getName()));
+        if (table instanceof RangeTable) {
+            buff.append(table.getSQL());
+        } else {
+            buff.append(quoteIdentifier(table.getSchema().getName()))
+                .append('.').append(quoteIdentifier(table.getName()));
+        }
         if (alias != null) {
             buff.append(" AS ").append(quoteIdentifier(alias));
         }

@@ -113,7 +113,6 @@ public class MergeUsing extends Prepared {
     private Insert insertCommand;
     private String queryAlias;
     private int countUpdatedRows;
-    private Column[] sourceKeys;
     private Select targetMatchQuery;
     private final HashMap<Value, Integer> targetRowidsRemembered = new HashMap<>();
     private int sourceQueryRowNumber;
@@ -357,16 +356,6 @@ public class MergeUsing extends Prepared {
             throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1,
                     "No references to target columns found in ON clause:"
                             + targetTableFilter.toString());
-        }
-        if (sourceKeys == null) {
-            HashSet<Column> sourceColumns = buildColumnListFromOnCondition(
-                    sourceTableFilter);
-            sourceKeys = sourceColumns.toArray(new Column[0]);
-        }
-        if (sourceKeys.length == 0) {
-            throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1,
-                    "No references to source columns found in ON clause:"
-                            + sourceTableFilter.toString());
         }
 
         // only do the optimize now - before we have already gathered the

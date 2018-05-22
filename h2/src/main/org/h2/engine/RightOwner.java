@@ -163,7 +163,7 @@ public abstract class RightOwner extends DbObjectBase {
         }
         List<Role> rolesToRemove= new ArrayList<>();
         for (Entry<Role,Right> currentEntry : grantedRoles.entrySet()) {
-            if ( currentEntry.getValue().isTemporary() || currentEntry.getValue().isValid()==false) {
+            if ( currentEntry.getValue().isTemporary() || !currentEntry.getValue().isValid()) {
                 rolesToRemove.add(currentEntry.getKey());
             }
         }

@@ -15,6 +15,7 @@ import org.h2.Driver;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FilePathRec;
 import org.h2.store.fs.FileUtils;
+import org.h2.test.auth.TestAuthentication;
 import org.h2.test.bench.TestPerformance;
 import org.h2.test.db.TestAlter;
 import org.h2.test.db.TestAlterSchemaRename;
@@ -974,6 +975,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestSampleApps());
         addTest(new TestStringCache());
         addTest(new TestValueMemory());
+        addTest(new TestAuthentication());
 
         runAddedTests(1);
 

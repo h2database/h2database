@@ -10,6 +10,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.h2.util.Utils;
+
 /**
  * wrapper for configuration properties
  */
@@ -73,14 +75,7 @@ public class ConfigProperties {
         if (result == null) {
             return defaultValue;
         }
-        switch (result) {
-        case "true":
-        case "yes":
-        case "1":
-            return true;
-        default:
-            return false;
-        }
+        return Utils.parseBoolean(name, defaultValue, true);
     }
 
 }

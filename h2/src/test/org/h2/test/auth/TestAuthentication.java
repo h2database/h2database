@@ -104,6 +104,7 @@ public class TestAuthentication extends TestBase {
         try {
             configureJaas();
             Properties properties = new Properties();
+            properties.setProperty("USER", "dba");
             ConnectionInfo connectionInfo = new ConnectionInfo(getDatabaseURL(), properties);
             session = Engine.getInstance().createSession(connectionInfo);
             database = session.getDatabase();
@@ -126,6 +127,7 @@ public class TestAuthentication extends TestBase {
         testStaticRole();
         testStaticUserCredentials();
         testUserRegistration();
+        testSet();
     }
 
     protected void testInvalidPassword() throws Exception {
@@ -234,5 +236,21 @@ public class TestAuthentication extends TestBase {
         } finally {
             rightConnection.close();
         }
+    }
+    
+    protected void testSet() throws Exception{
+        Connection rightConnection = DriverManager.getConnection(
+                getDatabaseURL()+";AUTHENTICATOR=FALSE","DBA","");
+        try {
+            try {
+                testExternalUser();
+                throw new Exception("External user shouldnt be allowed");
+            }catch (Exception e) {
+            }
+        } finally {
+            configureAuthentication(database);
+            rightConnection.close();
+        }
+        testExternalUser();
     }
 }

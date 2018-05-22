@@ -16,6 +16,7 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.security.auth.AuthenticationException;
 import org.h2.security.auth.AuthenticationInfo;
+import org.h2.security.auth.Authenticator;
 import org.h2.store.FileLock;
 import org.h2.store.FileLockMethod;
 import org.h2.util.MathUtils;
@@ -92,13 +93,31 @@ public class Engine implements SessionFactory {
         }
         if (user == null) {
             if (database.validateFilePasswordHash(cipher, ci.getFilePasswordHash())) {
-                try {
-                    AuthenticationInfo authenticationInfo=new AuthenticationInfo(ci);
-                    user = database.getAuthenticator().authenticate(authenticationInfo, database);
-                } catch (AuthenticationException authenticationError) {
-                    database.getTrace(Trace.DATABASE).error(authenticationError,
-                        "an error occurred during authentication; user: \"" +
-                        ci.getUserName() + "\"",ci.getUserName());
+                
+                if (ci.getProperty("AUTHREALM")== null) {
+                    user = database.findUser(ci.getUserName());
+                    if (user != null) {
+                        if (!user.validateUserPasswordHash(ci.getUserPasswordHash())) {
+                            user = null;
+                        }
+                    }
+                } else {
+                    try {
+                        Authenticator authenticator = database.getAuthenticator();
+                        if (authenticator==null) {
+                            DbException er = DbException.get(ErrorCode.WRONG_USER_OR_PASSWORD);
+                            database.getTrace(Trace.DATABASE).error(er,"no authenticator for database users");
+                        }else {
+                            AuthenticationInfo authenticationInfo=new AuthenticationInfo(ci);
+                            user = database.getAuthenticator().authenticate(authenticationInfo, database);
+                        }
+                    } catch (AuthenticationException authenticationError) {
+                        database.getTrace(Trace.DATABASE).error(authenticationError,
+                            "an error occurred during authentication; user: \"" +
+                            ci.getUserName() + "\"");
+                    }finally {
+                        ci.cleanAuthenticationInfo();
+                    }
                 }
             }
             if (opened && (user == null || !user.isAdmin())) {
@@ -107,7 +126,6 @@ public class Engine implements SessionFactory {
                 database.setEventListener(null);
             }
         }
-        ci.cleanAuthenticationInfo();
         if (user == null) {
             DbException er = DbException.get(ErrorCode.WRONG_USER_OR_PASSWORD);
             database.getTrace(Trace.DATABASE).error(er, "wrong user or password; user: \"" +

@@ -16,13 +16,12 @@ import java.util.Set;
 
 import javax.xml.bind.JAXB;
 
-import org.h2.api.Authenticator;
 import org.h2.api.CredentialsValidator;
 import org.h2.api.UserToRolesMapper;
 import org.h2.engine.Database;
-import org.h2.engine.InternalAuthenticator;
 import org.h2.engine.Right;
 import org.h2.engine.Role;
+import org.h2.engine.SysProperties;
 import org.h2.engine.User;
 import org.h2.engine.UserBuilder;
 import org.h2.message.Trace;
@@ -31,10 +30,23 @@ import org.h2.security.auth.impl.JaasCredentialsValidator;
 import org.h2.util.StringUtils;
 
 /**
- * Default implementation of authenticator. Credentials (typically user id and
- * password) are validated by CredentialsValidators (one per realm). Rights on
- * the database can be managed trough UserToRolesMapper.
- *
+ * Default authenticator implementation.
+ * <p>
+ * When client connectionInfo contains property AUTHREALM={realName} credentials
+ *  (typically user id and password) are validated by
+ *  by {@link org.h2.api.CredentialsValidator} configured for that realm.
+ * </p>
+ * <p> 
+ * When client connectionInfo doesn't contains AUTHREALM property credentials
+ *  are validated internally on the database
+ * </p> 
+ * <p>
+ * Rights assignment can be managed trough {@link org.h2.api.UserToRolesMapper}
+ * </p>
+ * <p>
+ * Default configuration has a realm H2 that validate credentials trough JAAS api (appName=h2).
+ * To customize configuration set h2.authConfigFile system property to refer a valid h2auth.xml config file
+ * </p> 
  */
 public class DefaultAuthenticator implements Authenticator {
 
@@ -65,7 +77,7 @@ public class DefaultAuthenticator implements Authenticator {
      * option is useful when the authenticator is configured at code level
      * 
      * @param skipDefaultInitialization
-     *            = if true default initialization is skipped
+     *             if true default initialization is skipped
      */
     public DefaultAuthenticator(boolean skipDefaultInitialization) {
         this.skipDefaultInitialization = skipDefaultInitialization;
@@ -114,10 +126,8 @@ public class DefaultAuthenticator implements Authenticator {
     /**
      * Add an authentication realm. Realms are case insensitive
      * 
-     * @param name
-     *            = realm name
-     * @param credentialsValidator
-     *            = credentials validator for realm
+     * @param name realm name
+     * @param credentialsValidator credentials validator for realm
      */
     public void addRealm(String name, CredentialsValidator credentialsValidator) {
         realms.put(StringUtils.toUpperEnglish(name), credentialsValidator);
@@ -145,11 +155,11 @@ public class DefaultAuthenticator implements Authenticator {
      * 
      * this method is skipped if skipDefaultInitialization is set
      * Order of initialization is 
-     *    1. Check h2auth.configurationFile system property.
-     *    2. Check h2auth.xml in the classpath 
-     *    3. Use the default configuration hard coded
-     * initialization
-     * @param database
+     *    <ol>
+     *    <li>Check h2.authConfigFile system property.</li>
+     *    <li>Use the default configuration hard coded</li>
+     *    </ol>
+     * @param database where authenticator is initialized
      * @throws AuthConfigException
      */
     public void init(Database database) throws AuthConfigException {
@@ -166,21 +176,12 @@ public class DefaultAuthenticator implements Authenticator {
             Trace trace=database.getTrace(Trace.DATABASE);
             URL h2AuthenticatorConfigurationUrl = null;
             try {
-                String configFile = System.getProperty("h2auth.configurationFile", null);
+                String configFile = SysProperties.AUTH_CONFIG_FILE;
                 if (configFile != null) {
                     if (trace.isDebugEnabled()) {
                        trace.debug("DefaultAuthenticator.config: configuration read from system property h2auth.configurationfile={0}", configFile);
                     }
                     h2AuthenticatorConfigurationUrl = new URL(configFile);
-                }
-                if (h2AuthenticatorConfigurationUrl == null) {
-                    h2AuthenticatorConfigurationUrl = Thread.currentThread().getContextClassLoader()
-                            .getResource("h2auth.xml");
-                    if (h2AuthenticatorConfigurationUrl!=null) {
-                        if (trace.isDebugEnabled()) {
-                            trace.debug("DefaultAuthenticator.config: configuration read from classpath {0}", h2AuthenticatorConfigurationUrl);
-                        }
-                    }
                 }
                 if (h2AuthenticatorConfigurationUrl == null) {
                     if (trace.isDebugEnabled()) {
@@ -214,8 +215,7 @@ public class DefaultAuthenticator implements Authenticator {
     /**
      * Configure the authenticator from a configuration file
      * 
-     * @param configUrl
-     *            = URL of configuration file
+     * @param configUrl URL of configuration file
      * @throws Exception
      */
     public void configureFromUrl(URL configUrl) throws Exception {
@@ -267,7 +267,7 @@ public class DefaultAuthenticator implements Authenticator {
         Set<String> roles = new HashSet<>();
         for (UserToRolesMapper currentUserToRolesMapper : userToRolesMappers) {
             Collection<String> currentRoles = currentUserToRolesMapper.mapUserToRoles(authenticationInfo);
-            if (currentRoles != null && currentRoles.isEmpty() == false) {
+            if (currentRoles != null && !currentRoles.isEmpty()) {
                 roles.addAll(currentRoles);
             }
         }
@@ -300,13 +300,9 @@ public class DefaultAuthenticator implements Authenticator {
     @Override
     public final User authenticate(AuthenticationInfo authenticationInfo, Database database)
             throws AuthenticationException {
-        //Allows internal users authentication
-        if (authenticationInfo.getRealm()==null) {
-            return InternalAuthenticator.INSTANCE.authenticate(authenticationInfo, database);
-        }
         String userName = authenticationInfo.getFullyQualifiedName();
         User user = database.findUser(userName);
-        if (user == null && isAllowUserRegistration() == false) {
+        if (user == null && !isAllowUserRegistration()) {
             throw new AuthenticationException("User " + userName + " not found in db");
         }
         CredentialsValidator validator = realms.get(authenticationInfo.getRealm());
@@ -314,7 +310,7 @@ public class DefaultAuthenticator implements Authenticator {
             throw new AuthenticationException("realm " + authenticationInfo.getRealm() + " not configured");
         }
         try {
-            if (validator.validateCredentials(authenticationInfo) == false) {
+            if (!validator.validateCredentials(authenticationInfo)) {
                 return null;
             }
         } catch (Exception e) {

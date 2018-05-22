@@ -21,8 +21,12 @@ import org.h2.security.auth.ConfigProperties;
 /**
  * Validate credentials by using standard Java Authentication and Authorization Service 
  * 
- * configuration parameters:
- *    appName = application name inside the JAAS configuration (by default h2)
+ * <p>
+ * Configuration parameters:
+ * </p>
+ * <ul>
+ *    <li>appName inside the JAAS configuration (by default h2)</li>
+ * </ul>
  *
  */
 public class JaasCredentialsValidator implements CredentialsValidator {

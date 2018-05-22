@@ -43,7 +43,7 @@ public class StaticUserCredentialsValidator implements CredentialsValidator {
     public boolean validateCredentials(AuthenticationInfo authenticationInfo) throws AuthenticationException {
         
         if (userNamePattern!=null) {
-            if (userNamePattern.matcher(authenticationInfo.getUserName()).matches()==false) {
+            if (!userNamePattern.matcher(authenticationInfo.getUserName()).matches()) {
                 return false;
             }
         }

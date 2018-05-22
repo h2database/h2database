@@ -16,9 +16,13 @@ import org.h2.security.auth.ConfigProperties;
 
 /**
  * Assign static roles to authenticated users
+ * <p>
+ * Configuration parameters:
+ * </p>
+ * <ul>
+ *   <li>roles role list separated by comma</li>
+ * </ul>
  * 
- * parameters:
- *   roles = role list separated by comma
  */
 public class StaticRolesMapper implements UserToRolesMapper {
 

@@ -11,7 +11,12 @@ import org.h2.security.auth.ConfigProperties;
 /**
  * Assign to user a role based on realm name
  * 
- * by default role name is @{realm}
+ *  * <p>
+ * Configuration parameters:
+ * </p>
+ * <ul>
+ * <li> roleNameFormat, optional by default is @{realm}</li>
+ * </ul>
  */
 public class AssignRealmNameRole implements UserToRolesMapper{
 

@@ -3,13 +3,10 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: Alessandro Ventura
  */
-package org.h2.api;
+package org.h2.security.auth;
 
 import org.h2.engine.Database;
 import org.h2.engine.User;
-import org.h2.security.auth.AuthConfigException;
-import org.h2.security.auth.AuthenticationException;
-import org.h2.security.auth.AuthenticationInfo;
 
 /**
  * Low level interface to implement full authentication process

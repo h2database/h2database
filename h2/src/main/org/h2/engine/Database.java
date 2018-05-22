@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import org.h2.api.Authenticator;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
@@ -44,7 +44,8 @@ import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
-import org.h2.security.auth.AuthenticatorBuilder;
+import org.h2.security.auth.Authenticator;
+import org.h2.security.auth.AuthenticatorFactory;
 import org.h2.store.DataHandler;
 import org.h2.store.FileLock;
 import org.h2.store.FileLockMethod;
@@ -2956,7 +2957,7 @@ public class Database implements DataHandler {
      * @return authenticator set for database
      */
     public Authenticator getAuthenticator() {
-        return authenticator == null ? InternalAuthenticator.INSTANCE : authenticator;
+        return authenticator;
     }
 
     /**

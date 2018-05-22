@@ -16,7 +16,7 @@ public class UserBuilder {
         User user = new User(database, persistent ? database.allocateObjectId() : -1, authenticationInfo.getFullyQualifiedName(), false);
         //In case of external authentication fill the password hash with random data
         user.setUserPasswordHash( authenticationInfo.getRealm()==null ? authenticationInfo.getConnectionInfo().getUserPasswordHash(): MathUtils.secureRandomBytes(64));
-        user.setTemporary(persistent == false);
+        user.setTemporary(!persistent);
         return user;
     }
 

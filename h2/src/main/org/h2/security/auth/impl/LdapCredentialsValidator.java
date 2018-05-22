@@ -17,12 +17,15 @@ import org.h2.security.auth.ConfigProperties;
 
 /**
  * Validate credentials by performing an LDAP bind
- * 
- * configuration parameters:
- *    bindDnPattern = bind dn pattern with %u istead of username (example: uid=%u,ou=users,dc=example,dc=com)
- *    host = ldap host
- *    port (optional) = ldap port (by default 389 for unsecure, 636 for secure)
- *    secure (optional) = use ssl (default true)
+ * <p>
+ * Configuration parameters:
+ * </p>
+ * <ul>
+ *    <li>bindDnPattern bind dn pattern with %u instead of username (example: uid=%u,ou=users,dc=example,dc=com)</li>
+ *    <li>host ldap server</li>
+ *    <li>port of ldap service; optional, by default 389 for unsecure, 636 for secure</li>
+ *    <li>secure, optional by default is true (use SSL)</li>
+ * </ul>
  */
 public class LdapCredentialsValidator implements CredentialsValidator {
 

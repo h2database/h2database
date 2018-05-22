@@ -275,7 +275,7 @@ public class ConnectionInfo implements Cloneable {
     }
 
     private void preservePasswordForAuthentication(Object password) {
-        if ((isRemote() ==false || isSSL()) &&  prop.containsKey("AUTHREALM") && password!=null) {
+        if ((!isRemote() || isSSL()) &&  prop.containsKey("AUTHREALM") && password!=null) {
             prop.put("_PASSWORD",password);
         }
     }

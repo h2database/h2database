@@ -269,7 +269,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
         private final Iterator<SpatialKey> it;
         private SpatialKey current;
         private final Table table;
-        private Session session;
+        private final Session session;
 
         public SpatialCursor(Iterator<SpatialKey> it, Table table, Session session) {
             this.it = it;

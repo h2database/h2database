@@ -32,7 +32,7 @@ public class ExpressionColumn extends Expression {
     private final Database database;
     private final String schemaName;
     private final String tableAlias;
-    private String columnName;
+    private final String columnName;
     private ColumnResolver columnResolver;
     private int queryLevel;
     private Column column;

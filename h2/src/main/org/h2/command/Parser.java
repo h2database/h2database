@@ -1168,32 +1168,9 @@ public class Parser {
         command.setOnCondition(condition);
         read(")");
 
-        if (readIfAll("WHEN", "MATCHED", "THEN")) {
-            int startMatched = lastParseIndex;
-            if (readIf("UPDATE")) {
-                Update updateCommand = new Update(session);
-                //currentPrepared = updateCommand;
-                TableFilter filter = command.getTargetTableFilter();
-                updateCommand.setTableFilter(filter);
-                parseUpdateSetClause(updateCommand, filter, startMatched);
-                command.setUpdateCommand(updateCommand);
-            }
-            startMatched = lastParseIndex;
-            if (readIf("DELETE")) {
-                Delete deleteCommand = new Delete(session);
-                TableFilter filter = command.getTargetTableFilter();
-                deleteCommand.setTableFilter(filter);
-                parseDeleteGivenTable(deleteCommand, null, startMatched);
-                command.setDeleteCommand(deleteCommand);
-            }
-        }
-        if (readIfAll("WHEN", "NOT", "MATCHED", "THEN")) {
-            if (readIf("INSERT")) {
-                Insert insertCommand = new Insert(session);
-                insertCommand.setTable(command.getTargetTable());
-                parseInsertGivenTable(insertCommand, command.getTargetTable());
-                command.setInsertCommand(insertCommand);
-            }
+        boolean matched = parseWhenMatched(command);
+        if (parseWhenNotMatched(command) && !matched) {
+            parseWhenMatched(command);
         }
 
         setSQL(command, "MERGE", start);
@@ -1209,6 +1186,42 @@ public class Parser {
                 (Select) parse(targetMatchQuerySQL.toString()));
 
         return command;
+    }
+
+    private boolean parseWhenMatched(MergeUsing command) {
+        if (!readIfAll("WHEN", "MATCHED", "THEN")) {
+            return false;
+        }
+        int startMatched = lastParseIndex;
+        if (readIf("UPDATE")) {
+            Update updateCommand = new Update(session);
+            TableFilter filter = command.getTargetTableFilter();
+            updateCommand.setTableFilter(filter);
+            parseUpdateSetClause(updateCommand, filter, startMatched);
+            command.setUpdateCommand(updateCommand);
+        }
+        startMatched = lastParseIndex;
+        if (readIf("DELETE")) {
+            Delete deleteCommand = new Delete(session);
+            TableFilter filter = command.getTargetTableFilter();
+            deleteCommand.setTableFilter(filter);
+            parseDeleteGivenTable(deleteCommand, null, startMatched);
+            command.setDeleteCommand(deleteCommand);
+        }
+        return true;
+    }
+
+    private boolean parseWhenNotMatched(MergeUsing command) {
+        if (!readIfAll("WHEN", "NOT", "MATCHED", "THEN")) {
+            return false;
+        }
+        if (readIf("INSERT")) {
+            Insert insertCommand = new Insert(session);
+            insertCommand.setTable(command.getTargetTable());
+            parseInsertGivenTable(insertCommand, command.getTargetTable());
+            command.setInsertCommand(insertCommand);
+        }
+        return true;
     }
 
     private static void appendTableWithSchemaAndAlias(StringBuilder buff, Table table, String alias) {

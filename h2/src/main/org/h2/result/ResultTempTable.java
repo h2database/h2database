@@ -71,7 +71,7 @@ public class ResultTempTable implements ResultExternal {
         data.session = session;
         table = schema.createTable(data);
         if (sort != null || distinct) {
-            createIndex();
+            getIndex();
         }
         parent = null;
     }
@@ -82,14 +82,19 @@ public class ResultTempTable implements ResultExternal {
         this.distinct = parent.distinct;
         this.session = parent.session;
         this.table = parent.table;
-        this.index = parent.index;
         this.rowCount = parent.rowCount;
         this.sort = parent.sort;
         this.containsLob = parent.containsLob;
         reset();
     }
 
-    private void createIndex() {
+    private Index getIndex() {
+        if (parent != null) {
+            return parent.getIndex();
+        }
+        if (index != null) {
+            return index;
+        }
         IndexColumn[] indexCols;
         if (sort != null) {
             int[] colIndex = sort.getQueryColumnIndexes();
@@ -128,7 +133,7 @@ public class ResultTempTable implements ResultExternal {
                 table, Constants.PREFIX_INDEX);
         int indexId = session.getDatabase().allocateObjectId();
         IndexType indexType = IndexType.createNonUnique(true);
-        index = table.addIndex(session, indexName, indexId, indexCols,
+        return index = table.addIndex(session, indexName, indexId, indexCols,
                 indexType, true, null);
     }
 
@@ -274,7 +279,7 @@ public class ResultTempTable implements ResultExternal {
         if (resultCursor == null) {
             Index idx;
             if (distinct || sort != null) {
-                idx = index;
+                idx = getIndex();
             } else {
                 idx = table.getScanIndex(session);
             }
@@ -304,12 +309,7 @@ public class ResultTempTable implements ResultExternal {
     }
 
     private Cursor find(Row row) {
-        if (index == null) {
-            // for the case "in(select ...)", the query might
-            // use an optimization and not create the index
-            // up front
-            createIndex();
-        }
+        Index index = getIndex();
         Cursor cursor = index.find(session, row, row);
         while (cursor.next()) {
             SearchRow found = cursor.getSearchRow();

@@ -13,11 +13,11 @@ import org.h2.util.StringUtils;
  */
 public class AuthenticationInfo {
 
-    ConnectionInfo connectionInfo;
+    private ConnectionInfo connectionInfo;
 
-    String password;
+    private String password;
 
-    String realm;
+    private String realm;
 
     /*
      * Can be used by authenticator to hold informations

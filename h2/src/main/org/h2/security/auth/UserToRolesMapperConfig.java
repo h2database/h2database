@@ -17,10 +17,10 @@ import javax.xml.bind.annotation.XmlElement;
 public class UserToRolesMapperConfig {
 
     @XmlAttribute(required = true, name="class")
-    String className;
+    private String className;
 
     @XmlElement(name = "property")
-    List<PropertyConfig> properties;
+    private List<PropertyConfig> properties;
 
     public String getClassName() {
         return className;

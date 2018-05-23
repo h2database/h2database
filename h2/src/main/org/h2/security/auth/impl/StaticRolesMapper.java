@@ -26,7 +26,7 @@ import org.h2.security.auth.ConfigProperties;
  */
 public class StaticRolesMapper implements UserToRolesMapper {
 
-    Collection<String> roles;
+    private Collection<String> roles;
     
     public StaticRolesMapper() {
     }

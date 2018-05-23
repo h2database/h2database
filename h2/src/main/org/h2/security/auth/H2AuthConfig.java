@@ -22,7 +22,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class H2AuthConfig {
 
     @XmlAttribute
-    boolean allowUserRegistration=true;
+    private boolean allowUserRegistration=true;
 
     public boolean isAllowUserRegistration() {
         return allowUserRegistration;

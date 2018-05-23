@@ -33,7 +33,7 @@ public class JaasCredentialsValidator implements CredentialsValidator {
 
     public static final String DEFAULT_APPNAME="h2";
 
-    String appName;
+    private String appName;
 
     public JaasCredentialsValidator() {
         this(DEFAULT_APPNAME);

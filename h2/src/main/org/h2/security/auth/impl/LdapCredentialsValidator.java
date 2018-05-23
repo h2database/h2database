@@ -29,11 +29,11 @@ import org.h2.security.auth.ConfigProperties;
  */
 public class LdapCredentialsValidator implements CredentialsValidator {
 
-    String bindDnPattern;
-    String host;
-    int port;
-    boolean secure;
-    String url;
+    private String bindDnPattern;
+    private String host;
+    private int port;
+    private boolean secure;
+    private String url;
 
     @Override
     public void configure(ConfigProperties configProperties) {

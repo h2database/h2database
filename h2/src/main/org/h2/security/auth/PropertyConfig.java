@@ -16,10 +16,10 @@ import javax.xml.bind.annotation.XmlAttribute;
 public class PropertyConfig {
 
     @XmlAttribute(required = true)
-    String name;
+    private String name;
 
     @XmlAttribute
-    String value;
+    private String value;
 
     public PropertyConfig() {
     }

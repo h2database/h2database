@@ -20,7 +20,7 @@ import org.h2.security.auth.ConfigProperties;
  */
 public class AssignRealmNameRole implements UserToRolesMapper{
 
-    String roleNameFormat;
+    private String roleNameFormat;
 
     public AssignRealmNameRole() {
         this("@%s");

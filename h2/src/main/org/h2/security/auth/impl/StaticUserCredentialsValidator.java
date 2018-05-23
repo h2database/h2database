@@ -23,10 +23,10 @@ import org.h2.util.Utils;
  */
 public class StaticUserCredentialsValidator implements CredentialsValidator {
 
-    Pattern userNamePattern;
-    String password;
-    byte[] salt;
-    byte[] hashWithSalt;
+    private Pattern userNamePattern;
+    private String password;
+    private byte[] salt;
+    private byte[] hashWithSalt;
 
     public StaticUserCredentialsValidator() {
     }

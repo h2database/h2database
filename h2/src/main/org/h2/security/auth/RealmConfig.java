@@ -17,7 +17,7 @@ import javax.xml.bind.annotation.XmlElement;
 public class RealmConfig {
 
     @XmlAttribute(required = true)
-    String name;
+    private String name;
 
     public String getName() {
         return name;

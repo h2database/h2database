@@ -52,19 +52,19 @@ public class DefaultAuthenticator implements Authenticator {
 
     public static final String DEFAULT_REALMNAME = "H2";
 
-    Map<String, CredentialsValidator> realms = new HashMap<>();
+    private Map<String, CredentialsValidator> realms = new HashMap<>();
 
-    List<UserToRolesMapper> userToRolesMappers = new ArrayList<>();
+    private List<UserToRolesMapper> userToRolesMappers = new ArrayList<>();
 
-    boolean allowUserRegistration;
+    private boolean allowUserRegistration;
 
-    boolean persistUsers;
+    private boolean persistUsers;
 
-    boolean createMissingRoles;
+    private boolean createMissingRoles;
 
-    boolean skipDefaultInitialization;
+    private boolean skipDefaultInitialization;
 
-    boolean initialized;
+    private boolean initialized;
 
     private static final DefaultAuthenticator INSTANCE = new DefaultAuthenticator();
 

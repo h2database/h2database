@@ -17,7 +17,7 @@ import org.h2.util.Utils;
  */
 public class ConfigProperties {
 
-    Map<String, String> properties;
+    private Map<String, String> properties;
 
     public ConfigProperties() {
        properties = new HashMap<>();

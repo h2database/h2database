@@ -554,7 +554,7 @@ public class Set extends Prepared {
             } catch (Exception e) {
                 //Errors during start are ignored to allow to open the database 
                 if (database.isStarting()) {
-                    database.getTrace(Trace.DATABASE).error(e, "SET AUTHENTICATOR: failed to set authenticator {0} during database start",stringValue);
+                    database.getTrace(Trace.DATABASE).error(e, "{0}: failed to set authenticator during database start ",expression.toString());
                 } else {
                     throw DbException.convert(e);
                 }

@@ -66,10 +66,13 @@ public class DefaultAuthenticator implements Authenticator {
 
     private boolean initialized;
 
-    private static final DefaultAuthenticator INSTANCE = new DefaultAuthenticator();
+    private static DefaultAuthenticator instance;
 
     protected static final DefaultAuthenticator getInstance() {
-        return INSTANCE;
+        if (instance==null) {
+            instance= new DefaultAuthenticator();
+        }
+        return instance;
     }
 
     /**

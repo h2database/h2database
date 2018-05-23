@@ -93,7 +93,6 @@ public class Engine implements SessionFactory {
         }
         if (user == null) {
             if (database.validateFilePasswordHash(cipher, ci.getFilePasswordHash())) {
-                
                 if (ci.getProperty("AUTHREALM")== null) {
                     user = database.findUser(ci.getUserName());
                     if (user != null) {
@@ -102,21 +101,18 @@ public class Engine implements SessionFactory {
                         }
                     }
                 } else {
-                    try {
-                        Authenticator authenticator = database.getAuthenticator();
-                        if (authenticator==null) {
-                            DbException er = DbException.get(ErrorCode.WRONG_USER_OR_PASSWORD);
-                            database.getTrace(Trace.DATABASE).error(er,"no authenticator for database users");
-                        }else {
+                    Authenticator authenticator = database.getAuthenticator();
+                    if (authenticator==null) {
+                        throw DbException.get(ErrorCode.AUTHENTICATOR_NOT_AVAILABLE, name);
+                    } else {
+                        try {
                             AuthenticationInfo authenticationInfo=new AuthenticationInfo(ci);
                             user = database.getAuthenticator().authenticate(authenticationInfo, database);
+                        } catch (AuthenticationException authenticationError) {
+                            database.getTrace(Trace.DATABASE).error(authenticationError,
+                                "an error occurred during authentication; user: \"" +
+                                ci.getUserName() + "\"");
                         }
-                    } catch (AuthenticationException authenticationError) {
-                        database.getTrace(Trace.DATABASE).error(authenticationError,
-                            "an error occurred during authentication; user: \"" +
-                            ci.getUserName() + "\"");
-                    }finally {
-                        ci.cleanAuthenticationInfo();
                     }
                 }
             }
@@ -133,6 +129,8 @@ public class Engine implements SessionFactory {
             database.removeSession(null);
             throw er;
         }
+        //Prevent to set _PASSWORD
+        ci.cleanAuthenticationInfo();
         checkClustering(ci, database);
         Session session = database.createSession(user);
         if (session == null) {

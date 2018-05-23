@@ -18,7 +18,6 @@ import java.util.Random;
 import org.h2.test.TestBase;
 import org.h2.test.db.Db;
 import org.h2.test.db.Db.Prepared;
-import org.h2.util.Utils;
 
 /**
  * This test executes random SQL statements to test if optimizations are working
@@ -116,18 +115,6 @@ public class TestFuzzOptimizations extends TestBase {
                     params.set(j, value);
                 }
                 executeAndCompare(condition, params, message);
-            }
-            if (!config.mvStore && config.travis) {
-                /*
-                 * Travis tests have problems with automatic garbage collection, so request a GC
-                 * explicitly and print its results.
-                 */
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                println((Utils.getMemoryUsed() >> 10) + " MiB used");
             }
         }
         executeAndCompare("a >=0 and b in(?, 2) and a in(1, ?, null)", Arrays.asList("10", "2"),

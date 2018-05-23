@@ -133,7 +133,7 @@ public class ResultTempTable implements ResultExternal {
         table = schema.createTable(data);
         parent = null;
         if (containsLob) {
-            // contains BLOB or CLOB: can not truncate now,
+            // contains BLOB or CLOB: cannot truncate on close,
             // otherwise the BLOB and CLOB entries are removed
             tempFileDeleter = null;
             closeable = null;

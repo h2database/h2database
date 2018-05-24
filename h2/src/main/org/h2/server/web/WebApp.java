@@ -250,8 +250,8 @@ public class WebApp {
     private String autoCompleteList() {
         String query = (String) attributes.get("query");
         boolean lowercase = false;
-        if (query.trim().length() > 0 &&
-                Character.isLowerCase(query.trim().charAt(0))) {
+        String tQuery = query.trim();
+        if (!tQuery.isEmpty() && Character.isLowerCase(tQuery.charAt(0))) {
             lowercase = true;
         }
         try {
@@ -281,7 +281,8 @@ public class WebApp {
                 while (sql.length() > 0 && sql.charAt(0) <= ' ') {
                     sql = sql.substring(1);
                 }
-                if (sql.trim().length() > 0 && Character.isLowerCase(sql.trim().charAt(0))) {
+                String tSql = sql.trim();
+                if (!tSql.isEmpty() && Character.isLowerCase(tSql.charAt(0))) {
                     lowercase = true;
                 }
                 Bnf bnf = session.getBnf();
@@ -320,7 +321,7 @@ public class WebApp {
                     list.add(type + "#" + key + "#" + value);
                 }
                 Collections.sort(list);
-                if (query.endsWith("\n") || query.trim().endsWith(";")) {
+                if (query.endsWith("\n") || tQuery.endsWith(";")) {
                     list.add(0, "1#(Newline)#\n");
                 }
                 StatementBuilder buff = new StatementBuilder();

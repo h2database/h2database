@@ -981,6 +981,22 @@ public class StringUtils {
     }
 
     /**
+     * Check if the specified string is empty or contains only whitespace.
+     *
+     * @param s
+     *            the string
+     * @return whether the specified string is empty or contains only whitespace
+     */
+    public static boolean isWhitespaceOrEmpty(String s) {
+        for (int i = 0, l = s.length(); i < l; i++) {
+            if (s.charAt(i) > ' ') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Append a zero-padded number to a string builder.
      *
      * @param buff the string builder

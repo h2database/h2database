@@ -445,7 +445,7 @@ public class Shell extends Tool implements Runnable {
     }
 
     private void execute(String sql) {
-        if (sql.trim().length() == 0) {
+        if (StringUtils.isWhitespaceOrEmpty(sql)) {
             return;
         }
         long time = System.nanoTime();

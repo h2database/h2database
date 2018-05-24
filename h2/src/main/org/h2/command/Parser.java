@@ -288,7 +288,7 @@ public class Parser {
             Command c = new CommandContainer(this, sql, p);
             if (hasMore) {
                 String remaining = originalSQL.substring(parseIndex);
-                if (remaining.trim().length() != 0) {
+                if (!StringUtils.isWhitespaceOrEmpty(remaining)) {
                     c = new CommandList(this, sql, c, remaining);
                 }
             }

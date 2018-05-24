@@ -166,7 +166,7 @@ public class RunScript extends Tool {
             if (sql == null) {
                 break;
             }
-            if (sql.trim().length() == 0) {
+            if (StringUtils.isWhitespaceOrEmpty(sql)) {
                 continue;
             }
             boolean resultSet = stat.execute(sql);

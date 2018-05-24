@@ -310,7 +310,7 @@ class WebThread extends WebApp implements Runnable {
                         }
                     }
                 }
-            } else if (line.trim().length() == 0) {
+            } else if (StringUtils.isWhitespaceOrEmpty(line)) {
                 break;
             }
         }

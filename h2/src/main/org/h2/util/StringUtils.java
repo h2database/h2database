@@ -848,7 +848,20 @@ public class StringUtils {
     }
 
     /**
-     * Trim a character from a substring. Equivalence of {@code substring(begin, end).trim()}.
+     * Trim a character from a substring. Equivalent of
+     * {@code substring(beginIndex).trim()}.
+     *
+     * @param s the string
+     * @param beginIndex start index of substring (inclusive)
+     * @return trimmed substring
+     */
+    public static String trimSubstring(String s, int beginIndex) {
+        return trimSubstring(s, beginIndex, s.length());
+    }
+
+    /**
+     * Trim a character from a substring. Equivalent of
+     * {@code substring(beginIndex, endIndex).trim()}.
      *
      * @param s the string
      * @param beginIndex start index of substring (inclusive)

@@ -249,7 +249,7 @@ public class Profiler implements Runnable {
                 if (!line.startsWith("at ")) {
                     break;
                 }
-                line = line.substring(3).trim();
+                line = StringUtils.trimSubstring(line, 3);
                 stack.add(line);
             }
             if (!stack.isEmpty()) {

@@ -328,7 +328,7 @@ class WebThread extends WebApp implements Runnable {
     }
 
     private static String getHeaderLineValue(String line) {
-        return line.substring(line.indexOf(':') + 1).trim();
+        return StringUtils.trimSubstring(line, line.indexOf(':') + 1);
     }
 
     @Override

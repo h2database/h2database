@@ -210,8 +210,7 @@ public class RunScript extends Tool {
             }
             if (trim.startsWith("@") && StringUtils.toUpperEnglish(trim).
                     startsWith("@INCLUDE")) {
-                sql = trim;
-                sql = sql.substring("@INCLUDE".length()).trim();
+                sql = StringUtils.trimSubstring(sql, "@INCLUDE".length());
                 if (!FileUtils.isAbsolute(sql)) {
                     sql = path + SysProperties.FILE_SEPARATOR + sql;
                 }

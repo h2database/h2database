@@ -41,8 +41,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     private final AtomicReference<RootReference> root;
 
-    private int id;
-    private long createVersion;
+    private final int id;
+    private final long createVersion;
     private final DataType keyType;
     private final DataType valueType;
 

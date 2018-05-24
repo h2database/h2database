@@ -1074,8 +1074,8 @@ public final class JoinBatch {
      * Query runner for UNION.
      */
     private static class QueryRunnerUnion extends QueryRunnerBase {
-        Future<Cursor>[] topFutureCursors;
-        private ViewIndexLookupBatchUnion batchUnion;
+        final Future<Cursor>[] topFutureCursors;
+        private final ViewIndexLookupBatchUnion batchUnion;
 
         @SuppressWarnings("unchecked")
         QueryRunnerUnion(ViewIndexLookupBatchUnion batchUnion) {

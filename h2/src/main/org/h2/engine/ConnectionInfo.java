@@ -95,7 +95,7 @@ public class ConnectionInfo implements Cloneable {
                 "IFEXISTS", "INIT", "PASSWORD", "RECOVER", "RECOVER_TEST",
                 "USER", "AUTO_SERVER", "AUTO_SERVER_PORT", "NO_UPGRADE",
                 "AUTO_RECONNECT", "OPEN_NEW", "PAGE_SIZE", "PASSWORD_HASH", "JMX",
-                "SCOPE_GENERATED_KEYS", "AUTHREALM", "_PASSWORD" };
+                "SCOPE_GENERATED_KEYS", "AUTHREALM", "AUTHZPWD" };
         HashSet<String> set = new HashSet<>(128);
         set.addAll(SetTypes.getTypes());
         for (String key : connectionTime) {
@@ -276,7 +276,7 @@ public class ConnectionInfo implements Cloneable {
 
     private void preservePasswordForAuthentication(Object password) {
         if ((!isRemote() || isSSL()) &&  prop.containsKey("AUTHREALM") && password!=null) {
-            prop.put("_PASSWORD",password);
+            prop.put("AUTHZPWD",password);
         }
     }
     
@@ -666,6 +666,6 @@ public class ConnectionInfo implements Cloneable {
 
     public void cleanAuthenticationInfo() {
         removeProperty("AUTHREALM", false);
-        removeProperty("_PASSWORD", false);
+        removeProperty("AUTHZPWD", false);
     }
 }

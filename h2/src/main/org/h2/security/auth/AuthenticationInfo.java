@@ -30,7 +30,7 @@ public class AuthenticationInfo {
         if (this.realm!=null) {
             this.realm=StringUtils.toUpperEnglish(this.realm);
         }
-        this.password = connectionInfo.getProperty("_PASSWORD", null);
+        this.password = connectionInfo.getProperty("AUTHZPWD", null);
     }
 
     public String getUserName() {

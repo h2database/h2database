@@ -969,11 +969,12 @@ public class StringUtils {
      * @return true if it is
      */
     public static boolean isNumber(String s) {
-        if (s.length() == 0) {
+        int l = s.length();
+        if (l == 0) {
             return false;
         }
-        for (char c : s.toCharArray()) {
-            if (!Character.isDigit(c)) {
+        for (int i = 0; i < l; i++) {
+            if (!Character.isDigit(s.charAt(i))) {
                 return false;
             }
         }

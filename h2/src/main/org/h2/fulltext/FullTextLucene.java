@@ -405,7 +405,7 @@ public class FullTextLucene extends FullText {
             // this is just to query the result set columns
             return result;
         }
-        if (text == null || text.trim().length() == 0) {
+        if (text == null || StringUtils.isWhitespaceOrEmpty(text)) {
             return result;
         }
         try {

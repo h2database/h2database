@@ -250,8 +250,8 @@ public class WebApp {
     private String autoCompleteList() {
         String query = (String) attributes.get("query");
         boolean lowercase = false;
-        if (query.trim().length() > 0 &&
-                Character.isLowerCase(query.trim().charAt(0))) {
+        String tQuery = query.trim();
+        if (!tQuery.isEmpty() && Character.isLowerCase(tQuery.charAt(0))) {
             lowercase = true;
         }
         try {
@@ -281,7 +281,8 @@ public class WebApp {
                 while (sql.length() > 0 && sql.charAt(0) <= ' ') {
                     sql = sql.substring(1);
                 }
-                if (sql.trim().length() > 0 && Character.isLowerCase(sql.trim().charAt(0))) {
+                String tSql = sql.trim();
+                if (!tSql.isEmpty() && Character.isLowerCase(tSql.charAt(0))) {
                     lowercase = true;
                 }
                 Bnf bnf = session.getBnf();
@@ -320,7 +321,7 @@ public class WebApp {
                     list.add(type + "#" + key + "#" + value);
                 }
                 Collections.sort(list);
-                if (query.endsWith("\n") || query.trim().endsWith(";")) {
+                if (query.endsWith("\n") || tQuery.endsWith(";")) {
                     list.add(0, "1#(Newline)#\n");
                 }
                 StatementBuilder buff = new StatementBuilder();
@@ -1302,41 +1303,40 @@ public class WebApp {
                 return buff.toString();
             } else if (isBuiltIn(sql, "@edit")) {
                 edit = true;
-                sql = sql.substring("@edit".length()).trim();
+                sql = StringUtils.trimSubstring(sql, "@edit".length());
                 session.put("resultSetSQL", sql);
             }
             if (isBuiltIn(sql, "@list")) {
                 list = true;
-                sql = sql.substring("@list".length()).trim();
+                sql = StringUtils.trimSubstring(sql, "@list".length());
             }
             if (isBuiltIn(sql, "@meta")) {
                 metadata = true;
-                sql = sql.substring("@meta".length()).trim();
+                sql = StringUtils.trimSubstring(sql, "@meta".length());
             }
             if (isBuiltIn(sql, "@generated")) {
                 generatedKeys = Statement.RETURN_GENERATED_KEYS;
-                sql = sql.substring("@generated".length()).trim();
+                sql = StringUtils.trimSubstring(sql, "@generated".length());
             } else if (isBuiltIn(sql, "@history")) {
                 buff.append(getCommandHistoryString());
                 return buff.toString();
             } else if (isBuiltIn(sql, "@loop")) {
-                sql = sql.substring("@loop".length()).trim();
+                sql = StringUtils.trimSubstring(sql, "@loop".length());
                 int idx = sql.indexOf(' ');
                 int count = Integer.decode(sql.substring(0, idx));
-                sql = sql.substring(idx).trim();
+                sql = StringUtils.trimSubstring(sql, idx);
                 return executeLoop(conn, count, sql);
             } else if (isBuiltIn(sql, "@maxrows")) {
-                int maxrows = (int) Double.parseDouble(
-                        sql.substring("@maxrows".length()).trim());
+                int maxrows = (int) Double.parseDouble(StringUtils.trimSubstring(sql, "@maxrows".length()));
                 session.put("maxrows", Integer.toString(maxrows));
                 return "${text.result.maxrowsSet}";
             } else if (isBuiltIn(sql, "@parameter_meta")) {
-                sql = sql.substring("@parameter_meta".length()).trim();
+                sql = StringUtils.trimSubstring(sql, "@parameter_meta".length());
                 PreparedStatement prep = conn.prepareStatement(sql);
                 buff.append(getParameterResultSet(prep.getParameterMetaData()));
                 return buff.toString();
             } else if (isBuiltIn(sql, "@password_hash")) {
-                sql = sql.substring("@password_hash".length()).trim();
+                sql = StringUtils.trimSubstring(sql, "@password_hash".length());
                 String[] p = split(sql);
                 return StringUtils.convertBytesToHex(
                         SHA256.getKeyPasswordHash(p[0], p[1].toCharArray()));
@@ -1348,7 +1348,7 @@ public class WebApp {
                 profiler.startCollecting();
                 return "Ok";
             } else if (isBuiltIn(sql, "@sleep")) {
-                String s = sql.substring("@sleep".length()).trim();
+                String s = StringUtils.trimSubstring(sql, "@sleep".length());
                 int sleep = 1;
                 if (s.length() > 0) {
                     sleep = Integer.parseInt(s);
@@ -1356,7 +1356,7 @@ public class WebApp {
                 Thread.sleep(sleep * 1000);
                 return "Ok";
             } else if (isBuiltIn(sql, "@transaction_isolation")) {
-                String s = sql.substring("@transaction_isolation".length()).trim();
+                String s = StringUtils.trimSubstring(sql, "@transaction_isolation".length());
                 if (s.length() > 0) {
                     int level = Integer.parseInt(s);
                     conn.setTransactionIsolation(level);
@@ -1445,7 +1445,7 @@ public class WebApp {
         Random random = new Random(1);
         long time = System.currentTimeMillis();
         if (isBuiltIn(sql, "@statement")) {
-            sql = sql.substring("@statement".length()).trim();
+            sql = StringUtils.trimSubstring(sql, "@statement".length());
             prepared = false;
             Statement stat = conn.createStatement();
             for (int i = 0; !stop && i < count; i++) {

@@ -20,7 +20,6 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
-import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.Bits;

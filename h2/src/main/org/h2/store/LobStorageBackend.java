@@ -17,7 +17,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
-import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.tools.CompressTool;

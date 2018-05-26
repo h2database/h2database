@@ -74,8 +74,8 @@ public class TestAutoReconnect extends TestBase {
                             "/" + getTestName() + ";OPEN_NEW=TRUE");
             conn.close();
 
-            conn = getConnection("jdbc:h2:tcp://localhost/" + getBaseDir() +
-                    "/" + getTestName());
+            conn = getConnection("jdbc:h2:tcp://localhost:" + tcp.getPort() +
+                                        "/" + getBaseDir() + "/" + getTestName());
             assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).
                     getConnection("jdbc:h2:" + getBaseDir() +
                             "/" + getTestName() + ";AUTO_SERVER=TRUE;OPEN_NEW=TRUE");

@@ -181,7 +181,7 @@ public class TransactionMap<K, V> {
      * @throws IllegalStateException if a lock timeout occurs
      */
     public V remove(K key) {
-        return set(key, null);
+        return set(key, (V)null);
     }
 
     /**
@@ -201,6 +201,36 @@ public class TransactionMap<K, V> {
     }
 
     /**
+     * Put the value for the given key if entry for this key does not exist.
+     * It is atomic equivalent of the following expression:
+     * contains(key) ? get(k) : put(key, value);
+     *
+     * @param key the key
+     * @param value the new value (not null)
+     * @return the old value
+     */
+    public V putIfAbsent(K key, V value) {
+        DataUtils.checkArgument(value != null, "The value may not be null");
+        TxDecisionMaker decisionMaker = new TxDecisionMaker.PutIfAbsentDecisionMaker(map.getId(), key, value, transaction);
+        return set(key, decisionMaker);
+    }
+
+    /**
+     * Lock row for the given key.
+     * <p>
+     * If the row is locked, this method will retry until the row could be
+     * updated or until a lock timeout.
+     *
+     * @param key the key
+     * @return the locked value
+     * @throws IllegalStateException if a lock timeout occurs
+     */
+    public V lock(K key) {
+        TxDecisionMaker decisionMaker = new TxDecisionMaker.LockDecisionMaker(map.getId(), key, transaction);
+        return set(key, decisionMaker);
+    }
+
+    /**
      * Update the value for the given key, without adding an undo log entry.
      *
      * @param key the key
@@ -216,14 +246,39 @@ public class TransactionMap<K, V> {
     }
 
     private V set(K key, V value) {
-        transaction.checkNotClosed();
-        V old = get(key);
-        boolean ok = trySet(key, value, false);
-        if (ok) {
-            return old;
-        }
-        throw DataUtils.newIllegalStateException(
-                DataUtils.ERROR_TRANSACTION_LOCKED, "Entry is locked");
+        TxDecisionMaker decisionMaker = new TxDecisionMaker.PutDecisionMaker(map.getId(), key, value, transaction);
+        return set(key, decisionMaker);
+    }
+
+    private V set(K key, TxDecisionMaker decisionMaker) {
+        TransactionStore store = transaction.store;
+        Transaction blockingTransaction;
+        long sequenceNumWhenStarted;
+        VersionedValue result;
+        do {
+            sequenceNumWhenStarted = store.openTransactions.get().getVersion();
+            assert transaction.getBlockerId() == 0;
+
+            result = map.put(key, VersionedValue.DUMMY, decisionMaker);
+
+            MVMap.Decision decision = decisionMaker.getDecision();
+            assert decision != null;
+            assert decision != MVMap.Decision.REPEAT;
+            blockingTransaction = decisionMaker.getBlockingTransaction();
+            if (decision != MVMap.Decision.ABORT || blockingTransaction == null) {
+                transaction.blockingMap = null;
+                transaction.blockingKey = null;
+                //noinspection unchecked
+                return result == null ? null : (V) result.value;
+            }
+            decisionMaker.reset();
+            transaction.blockingMap = map;
+            transaction.blockingKey = key;
+        } while (blockingTransaction.sequenceNum > sequenceNumWhenStarted || transaction.waitFor(blockingTransaction));
+
+        throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTION_LOCKED,
+                "Map entry <{0}> with key <{1}> and value {2} is locked by tx {3} and can not be updated by tx {4} within allocated time interval {5} ms.",
+                map.getName(), key, result, blockingTransaction.transactionId, transaction.transactionId, transaction.timeoutMillis);
     }
 
     /**
@@ -302,54 +357,17 @@ public class TransactionMap<K, V> {
                     return false;
                 }
             }
-        } else {
-            current = map.get(key);
         }
-
-        VersionedValue newValue = new VersionedValue(
-                TransactionStore.getOperationId(transaction.transactionId, transaction.getLogId()),
-                value);
-        if (current == null) {
-            // a new value
-            transaction.log(mapId, key, current);
-            VersionedValue old = map.putIfAbsent(key, newValue);
-            if (old != null) {
-                transaction.logUndo();
-                return false;
-            }
+        try {
+            set(key, value);
             return true;
+        } catch (IllegalStateException e) {
+            return false;
         }
-        long id = current.operationId;
-        if (id == 0) {
-            // committed
-            transaction.log(mapId, key, current);
-            // the transaction is committed:
-            // overwrite the value
-            if (!map.replace(key, current, newValue)) {
-                // somebody else was faster
-                transaction.logUndo();
-                return false;
-            }
-            return true;
-        }
-        int tx = TransactionStore.getTransactionId(current.operationId);
-        if (tx == transaction.transactionId) {
-            // added or updated by this transaction
-            transaction.log(mapId, key, current);
-            if (!map.replace(key, current, newValue)) {
-                // strange, somebody overwrote the value
-                // even though the change was not committed
-                transaction.logUndo();
-                return false;
-            }
-            return true;
-        }
-        // the transaction is not yet committed
-        return false;
     }
 
     /**
-     * Get the value for the given key at the time when this map was opened.
+     * Get the effective value for the given key.
      *
      * @param key the key
      * @return the value or null
@@ -666,7 +684,7 @@ public class TransactionMap<K, V> {
             @Override
             public void remove() {
                 throw DataUtils.newUnsupportedOperationException(
-                        "Removing is not supported");
+                        "Removal is not supported");
             }
         };
     }
@@ -776,7 +794,7 @@ public class TransactionMap<K, V> {
         @Override
         public final void remove() {
             throw DataUtils.newUnsupportedOperationException(
-                    "Removing is not supported");
+                    "Removal is not supported");
         }
     }
 }

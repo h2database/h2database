@@ -115,12 +115,18 @@ public class MVPrimaryIndex extends BaseIndex {
         TransactionMap<Value, Value> map = getMap(session);
         Value key = ValueLong.get(row.getKey());
         try {
-            if (map.put(key, ValueArray.get(row.getValueList())) != null) {
+            Value oldValue = map.putIfAbsent(key, ValueArray.get(row.getValueList()));
+            if (oldValue != null) {
                 String sql = "PRIMARY KEY ON " + table.getSQL();
                 if (mainIndexColumn >= 0 && mainIndexColumn < indexColumns.length) {
                     sql += "(" + indexColumns[mainIndexColumn].getSQL() + ")";
                 }
-                DbException e = DbException.get(ErrorCode.DUPLICATE_KEY_1, sql);
+                int errorCode = ErrorCode.CONCURRENT_UPDATE_1;
+                if (map.get(key) != null) {
+                    // committed
+                    errorCode = ErrorCode.DUPLICATE_KEY_1;
+                }
+                DbException e = DbException.get(errorCode, sql + " " + oldValue);
                 e.setSource(this);
                 throw e;
             }
@@ -153,6 +159,19 @@ public class MVPrimaryIndex extends BaseIndex {
             }
         } catch (IllegalStateException e) {
             throw mvTable.convertException(e);
+        }
+    }
+
+    public void lockRows(Session session, Iterator<Row> rowsForUpdate) {
+        TransactionMap<Value, Value> map = getMap(session);
+        while (rowsForUpdate.hasNext()) {
+            Row row = rowsForUpdate.next();
+            long key = row.getKey();
+            try {
+                map.lock(ValueLong.get(key));
+            } catch (IllegalStateException ex) {
+                throw mvTable.convertException(ex);
+            }
         }
     }
 
@@ -410,5 +429,4 @@ public class MVPrimaryIndex extends BaseIndex {
         }
 
     }
-
 }

@@ -7,6 +7,8 @@ package org.h2.command;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -184,7 +186,7 @@ public abstract class Command implements CommandInterface {
         startTimeNanos = 0;
         long start = 0;
         Database database = session.getDatabase();
-        Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
+        Object sync = database.getMvStore() != null ? null : database.isMultiThreaded() ? session : database;
         session.waitIfExclusiveModeEnabled();
         boolean callStop = true;
         boolean writing = !isReadOnly();
@@ -193,47 +195,54 @@ public abstract class Command implements CommandInterface {
                 // wait
             }
         }
-        synchronized (sync) {
-            session.setCurrentCommand(this, false);
-            try {
-                while (true) {
-                    database.checkPowerOff();
-                    try {
-                        ResultInterface result = query(maxrows);
-                        callStop = !result.isLazy();
-                        return result;
-                    } catch (DbException e) {
-                        start = filterConcurrentUpdate(e, start);
-                    } catch (OutOfMemoryError e) {
-                        callStop = false;
-                        // there is a serious problem:
-                        // the transaction may be applied partially
-                        // in this case we need to panic:
-                        // close the database
-                        database.shutdownImmediately();
-                        throw DbException.convert(e);
-                    } catch (Throwable e) {
-                        throw DbException.convert(e);
-                    }
-                }
-            } catch (DbException e) {
-                e = e.addSQL(sql);
-                SQLException s = e.getSQLException();
-                database.exceptionThrown(s, sql);
-                if (s.getErrorCode() == ErrorCode.OUT_OF_MEMORY) {
-                    callStop = false;
-                    database.shutdownImmediately();
-                    throw e;
-                }
+        session.startStatementWithinTransaction();
+        session.setCurrentCommand(this, false);
+        try {
+            while (true) {
                 database.checkPowerOff();
+                try {
+                    ResultInterface result;
+                    if (sync != null) {
+                        //noinspection SynchronizationOnLocalVariableOrMethodParameter
+                        synchronized (sync) {
+                            result = query(maxrows);
+                        }
+                    } else {
+                        result = query(maxrows);
+                    }
+                    callStop = !result.isLazy();
+                    return result;
+                } catch (DbException e) {
+                    start = filterConcurrentUpdate(e, start);
+                } catch (OutOfMemoryError e) {
+                    callStop = false;
+                    // there is a serious problem:
+                    // the transaction may be applied partially
+                    // in this case we need to panic:
+                    // close the database
+                    database.shutdownImmediately();
+                    throw DbException.convert(e);
+                } catch (Throwable e) {
+                    throw DbException.convert(e);
+                }
+            }
+        } catch (DbException e) {
+            e = e.addSQL(sql);
+            SQLException s = e.getSQLException();
+            database.exceptionThrown(s, sql);
+            if (s.getErrorCode() == ErrorCode.OUT_OF_MEMORY) {
+                callStop = false;
+                database.shutdownImmediately();
                 throw e;
-            } finally {
-                if (callStop) {
-                    stop();
-                }
-                if (writing) {
-                    database.afterWriting();
-                }
+            }
+            database.checkPowerOff();
+            throw e;
+        } finally {
+            if (callStop) {
+                stop();
+            }
+            if (writing) {
+                database.afterWriting();
             }
         }
     }
@@ -242,7 +251,7 @@ public abstract class Command implements CommandInterface {
     public ResultWithGeneratedKeys executeUpdate(Object generatedKeysRequest) {
         long start = 0;
         Database database = session.getDatabase();
-        Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
+        Object sync = database.getMvStore() != null ? null : database.isMultiThreaded() ? session : database;
         session.waitIfExclusiveModeEnabled();
         boolean callStop = true;
         boolean writing = !isReadOnly();
@@ -251,54 +260,61 @@ public abstract class Command implements CommandInterface {
                 // wait
             }
         }
-        synchronized (sync) {
-            Session.Savepoint rollback = session.setSavepoint();
-            session.setCurrentCommand(this, generatedKeysRequest);
-            try {
-                while (true) {
-                    database.checkPowerOff();
-                    try {
-                        int updateCount = update();
-                        if (!Boolean.FALSE.equals(generatedKeysRequest)) {
-                            return new ResultWithGeneratedKeys.WithKeys(updateCount,
-                                    session.getGeneratedKeys().getKeys(session));
+        Session.Savepoint rollback = session.setSavepoint();
+        session.startStatementWithinTransaction();
+        session.setCurrentCommand(this, generatedKeysRequest);
+        try {
+            while (true) {
+                database.checkPowerOff();
+                try {
+                    int updateCount;
+                    if (sync != null) {
+                        //noinspection SynchronizationOnLocalVariableOrMethodParameter
+                        synchronized (sync) {
+                            updateCount = update();
                         }
-                        return ResultWithGeneratedKeys.of(updateCount);
-                    } catch (DbException e) {
-                        start = filterConcurrentUpdate(e, start);
-                    } catch (OutOfMemoryError e) {
-                        callStop = false;
-                        database.shutdownImmediately();
-                        throw DbException.convert(e);
-                    } catch (Throwable e) {
-                        throw DbException.convert(e);
+                    } else {
+                        updateCount = update();
                     }
-                }
-            } catch (DbException e) {
-                e = e.addSQL(sql);
-                SQLException s = e.getSQLException();
-                database.exceptionThrown(s, sql);
-                if (s.getErrorCode() == ErrorCode.OUT_OF_MEMORY) {
+                    if (!Boolean.FALSE.equals(generatedKeysRequest)) {
+                        return new ResultWithGeneratedKeys.WithKeys(updateCount,
+                                session.getGeneratedKeys().getKeys(session));
+                    }
+                    return ResultWithGeneratedKeys.of(updateCount);
+                } catch (DbException e) {
+                    start = filterConcurrentUpdate(e, start);
+                } catch (OutOfMemoryError e) {
                     callStop = false;
                     database.shutdownImmediately();
-                    throw e;
+                    throw DbException.convert(e);
+                } catch (Throwable e) {
+                    throw DbException.convert(e);
                 }
-                database.checkPowerOff();
-                if (s.getErrorCode() == ErrorCode.DEADLOCK_1) {
-                    session.rollback();
-                } else {
-                    session.rollbackTo(rollback, false);
-                }
+            }
+        } catch (DbException e) {
+            e = e.addSQL(sql);
+            SQLException s = e.getSQLException();
+            database.exceptionThrown(s, sql);
+            if (s.getErrorCode() == ErrorCode.OUT_OF_MEMORY) {
+                callStop = false;
+                database.shutdownImmediately();
                 throw e;
+            }
+            database.checkPowerOff();
+            if (s.getErrorCode() == ErrorCode.DEADLOCK_1) {
+                session.rollback();
+            } else {
+                session.rollbackTo(rollback, false);
+            }
+            throw e;
+        } finally {
+            try {
+                if (callStop) {
+                    stop();
+                }
             } finally {
-                try {
-                    if (callStop) {
-                        stop();
-                    }
-                } finally {
-                    if (writing) {
-                        database.afterWriting();
-                    }
+                if (writing) {
+                    database.afterWriting();
                 }
             }
         }
@@ -311,26 +327,9 @@ public abstract class Command implements CommandInterface {
                 errorCode != ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
             throw e;
         }
-        long now = System.nanoTime() / 1_000_000;
-        if (start != 0 && now - start > session.getLockTimeout()) {
-            throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, e.getCause(), "");
-        }
-        Database database = session.getDatabase();
-        int sleep = 1 + MathUtils.randomInt(10);
-        while (true) {
-            try {
-                if (database.isMultiThreaded()) {
-                    Thread.sleep(sleep);
-                } else {
-                    database.wait(sleep);
-                }
-            } catch (InterruptedException e1) {
-                // ignore
-            }
-            long slept = System.nanoTime() / 1_000_000 - now;
-            if (slept >= sleep) {
-                break;
-            }
+        long now = System.nanoTime();
+        if (start != 0 && now - start > TimeUnit.MILLISECONDS.toNanos(session.getLockTimeout())) {
+            throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, e);
         }
         return start == 0 ? now : start;
     }

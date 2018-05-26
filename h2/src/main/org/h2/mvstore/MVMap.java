@@ -1382,7 +1382,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
     }
 
-    public enum Decision { ABORT, REMOVE, PUT }
+    public enum Decision { ABORT, REMOVE, PUT, REPEAT }
 
     /**
      * Class DecisionMaker provides callback interface (and should become a such in Java 8)
@@ -1520,6 +1520,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             boolean needUnlock = false;
             try {
                 switch (decision) {
+                    case REPEAT:
+                        decisionMaker.reset();
+                        continue;
                     case ABORT:
                         if(rootReference != getRoot()) {
                             decisionMaker.reset();
@@ -1528,6 +1531,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                         return result;
                     case REMOVE: {
                         if (index < 0) {
+                            if(rootReference != getRoot()) {
+                                decisionMaker.reset();
+                                continue;
+                            }
                             return null;
                         }
                         if (attempt > 2 && !(needUnlock = lockRoot(decisionMaker, rootReference,

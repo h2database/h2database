@@ -16,6 +16,8 @@ import java.nio.ByteBuffer;
  */
 public class VersionedValue {
 
+    public static final VersionedValue DUMMY = new VersionedValue(0L, new Object());
+
     /**
      * The operation id.
      */

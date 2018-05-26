@@ -32,6 +32,11 @@ public class TransactionStore {
     final MVStore store;
 
     /**
+     * Default blocked transaction timeout
+     */
+    private final long timeoutMillis;
+
+    /**
      * The persisted map of prepared transactions.
      * Key: transactionId, value: [ status, name ].
      */
@@ -115,7 +120,7 @@ public class TransactionStore {
      * @param store the store
      */
     public TransactionStore(MVStore store) {
-        this(store, new ObjectDataType());
+        this(store, new ObjectDataType(), 0);
     }
 
     /**
@@ -123,10 +128,12 @@ public class TransactionStore {
      *
      * @param store the store
      * @param dataType the data type for map keys and values
+     * @param timeoutMillis lock aquisition timeout in milliseconds, 0 means no wait
      */
-    public TransactionStore(MVStore store, DataType dataType) {
+    public TransactionStore(MVStore store, DataType dataType, long timeoutMillis) {
         this.store = store;
         this.dataType = dataType;
+        this.timeoutMillis = timeoutMillis;
         preparedTransactions = store.openMap("openTransactions",
                 new MVMap.Builder<Integer, Object[]>());
         DataType oldValueType = new VersionedValue.Type(dataType);
@@ -188,7 +195,7 @@ public class TransactionStore {
                             assert lastUndoKey != null;
                             assert getTransactionId(lastUndoKey) == transactionId;
                             long logId = getLogId(lastUndoKey) + 1;
-                            registerTransaction(transactionId, status, name, logId, listener);
+                            registerTransaction(transactionId, status, name, logId, timeoutMillis, 0, listener);
                             key = undoLog.ceilingKey(nextTxUndoKey);
                         }
                     }
@@ -247,7 +254,7 @@ public class TransactionStore {
      * @param operationId the operation id
      * @return the transaction id
      */
-    static int getTransactionId(long operationId) {
+    public static int getTransactionId(long operationId) {
         return (int) (operationId >>> LOG_ID_BITS);
     }
 
@@ -302,23 +309,28 @@ public class TransactionStore {
      * @return the transaction
      */
     public Transaction begin() {
-        return begin(RollbackListener.NONE);
+        return begin(RollbackListener.NONE, timeoutMillis, 0);
     }
 
     /**
      * Begin a new transaction.
      * @param listener to be notified in case of a rollback
-     *
+     * @param timeoutMillis to wait for a blocking transaction
+     * @param ownerId of the owner (Session?) to be reported by getBlockerId
      * @return the transaction
      */
-    public Transaction begin(RollbackListener listener) {
-        Transaction transaction = registerTransaction(0, Transaction.STATUS_OPEN, null, 0, listener);
+    public Transaction begin(RollbackListener listener, long timeoutMillis, int ownerId) {
+
+        if(timeoutMillis <= 0) {
+            timeoutMillis = this.timeoutMillis;
+        }
+        Transaction transaction = registerTransaction(0, Transaction.STATUS_OPEN, null, 0,
+                                                      timeoutMillis, ownerId, listener);
         return transaction;
     }
 
     private Transaction registerTransaction(int txId, int status, String name, long logId,
-                                            RollbackListener listener) {
-
+                                            long timeoutMillis, int ownerId, RollbackListener listener) {
         int transactionId;
         long sequenceNo;
         boolean success;
@@ -343,7 +355,8 @@ public class TransactionStore {
             success = openTransactions.compareAndSet(original, clone);
         } while(!success);
 
-        Transaction transaction = new Transaction(this, transactionId, sequenceNo, status, name, logId, listener);
+        Transaction transaction = new Transaction(this, transactionId, sequenceNo, status, name, logId,
+                                                  timeoutMillis, ownerId, listener);
 
         assert transactions.get(transactionId) == null;
         transactions.set(transactionId, transaction);
@@ -441,6 +454,7 @@ public class TransactionStore {
         // made by this transaction, to be considered as "committed"
         flipCommittingTransactionsBit(transactionId, true);
 
+        CommitDecisionMaker commitDecisionMaker = new CommitDecisionMaker();
         // TODO could synchronize on blocks (100 at a time or so)
         rwLock.writeLock().lock();
         try {
@@ -461,18 +475,8 @@ public class TransactionStore {
                 MVMap<Object, VersionedValue> map = openMap(mapId);
                 if (map != null) { // might be null if map was removed later
                     Object key = op[1];
-                    VersionedValue value = map.get(key);
-                    if (value != null) {
-                        // only commit (remove/update) value if we've reached
-                        // last undoLog entry for a given key
-                        if (value.operationId == undoKey) {
-                            if (value.value == null) {
-                                map.remove(key);
-                            } else {
-                                map.put(key, new VersionedValue(0L, value.value));
-                            }
-                        }
-                    }
+                    commitDecisionMaker.setUndoKey(undoKey);
+                    map.operate(key, null, commitDecisionMaker);
                 }
                 undoLog.remove(undoKey);
             }
@@ -576,11 +580,13 @@ public class TransactionStore {
      * and amount of unsaved changes is sizable.
      *
      * @param t the transaction
-     * @param hasChanges false for R/O tx
+     * @param hasChanges true if transaction has done any updated
+     *                  (even if fully rolled back),
+     *                   false if just data access
      */
     synchronized void endTransaction(Transaction t, boolean hasChanges) {
+        t.closeIt();
         int txId = t.transactionId;
-        t.setStatus(Transaction.STATUS_CLOSED);
 
         assert transactions.get(txId) == t : transactions.get(txId) + " != " + t;
         transactions.set(txId, null);
@@ -632,35 +638,12 @@ public class TransactionStore {
         // TODO could synchronize on blocks (100 at a time or so)
         rwLock.writeLock().lock();
         try {
+            int transactionId = t.getId();
+            RollbackDecisionMaker decisionMaker = new RollbackDecisionMaker(this, transactionId, toLogId, t.listener);
             for (long logId = maxLogId - 1; logId >= toLogId; logId--) {
-                Long undoKey = getOperationId(t.getId(), logId);
-                Object[] op = undoLog.get(undoKey);
-                if (op == null) {
-                    // partially rolled back: load previous
-                    undoKey = undoLog.floorKey(undoKey);
-                    if (undoKey == null ||
-                            getTransactionId(undoKey) != t.getId()) {
-                        break;
-                    }
-                    logId = getLogId(undoKey) + 1;
-                    continue;
-                }
-                int mapId = ((Integer) op[0]).intValue();
-                MVMap<Object, VersionedValue> map = openMap(mapId);
-                if (map != null) {
-                    Object key = op[1];
-                    VersionedValue oldValue = (VersionedValue) op[2];
-                    VersionedValue currentValue;
-                    if (oldValue == null) {
-                        // this transaction added the value
-                        currentValue = map.remove(key);
-                    } else {
-                        // this transaction updated the value
-                        currentValue = map.put(key, oldValue);
-                    }
-                    t.listener.onRollback(map, key, currentValue, oldValue);
-                }
-                undoLog.remove(undoKey);
+                Long undoKey = getOperationId(transactionId, logId);
+                undoLog.operate(undoKey, null, decisionMaker);
+                decisionMaker.reset();
             }
         } finally {
             rwLock.writeLock().unlock();
@@ -886,5 +869,4 @@ public class TransactionStore {
         }
 
     }
-
 }

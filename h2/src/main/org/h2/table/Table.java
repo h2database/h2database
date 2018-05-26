@@ -511,7 +511,7 @@ public abstract class Table extends SchemaObjectBase {
             try {
                 removeRow(session, o);
             } catch (DbException e) {
-                if (e.getErrorCode() == ErrorCode.CONCURRENT_UPDATE_1) {
+                if (e.getErrorCode() == ErrorCode.CONCURRENT_UPDATE_1 || e.getErrorCode() == ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
                     session.rollbackTo(rollback, false);
                     session.startStatementWithinTransaction();
                     rollback = session.setSavepoint();

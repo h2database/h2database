@@ -106,19 +106,60 @@ public class Transaction {
      */
     private final AtomicLong statusAndLogId;
 
+    /**
+     * Reference to a counter for an earliest store version used by this transaction.
+     * Referenced version and all newer ones can not be discarded
+     * at least until this transaction ends.
+     */
     private MVStore.TxCounter txCounter;
 
+    /**
+     * Transaction name.
+     */
     private String name;
 
+    /**
+     * Indicates whether this transaction was stored in preparedTransactions map
+     */
     boolean wasStored;
 
+    /**
+     * How long to wait for blocking transaction to commit or rollback.
+     */
+    final long timeoutMillis;
+
+    /**
+     * Identification of the owner of this transaction,
+     * usually the owner is a database session.
+     */
+    private final int ownerId;
+
+    /**
+     * Blocking transaction, if any
+     */
+    private volatile Transaction blockingTransaction;
+
+    /**
+     * Map on which this transaction is blocked.
+     */
+    MVMap blockingMap;
+
+    /**
+     * Key in blockingMap on which this transaction is blocked.
+     */
+    Object blockingKey;
+
+
     Transaction(TransactionStore store, int transactionId, long sequenceNum, int status,
-                String name, long logId, TransactionStore.RollbackListener listener) {
+                String name, long logId, long timeoutMillis, int ownerId,
+                TransactionStore.RollbackListener listener) {
         this.store = store;
         this.transactionId = transactionId;
         this.sequenceNum = sequenceNum;
         this.statusAndLogId = new AtomicLong(composeState(status, logId, false));
         this.name = name;
+        this.timeoutMillis = timeoutMillis;
+        this.ownerId = ownerId;
         this.listener = listener;
     }
 
@@ -201,6 +242,10 @@ public class Transaction {
         return name;
     }
 
+    public int getBlockerId() {
+        return blockingTransaction == null ? 0 : blockingTransaction.ownerId;
+    }
+
     /**
      * Create a new savepoint.
      *
@@ -217,8 +262,8 @@ public class Transaction {
 
     public void markStatementEnd() {
         MVStore.TxCounter counter = txCounter;
-        txCounter = null;
         if(counter != null) {
+            txCounter = null;
             store.store.deregisterVersionUsage(counter);
         }
     }
@@ -322,9 +367,9 @@ public class Transaction {
         boolean hasChanges = false;
         try {
             long state = setStatus(STATUS_COMMITTING);
-            long logId = getLogId(state);
             hasChanges = hasChanges(state);
             if (hasChanges) {
+                long logId = getLogId(state);
                 store.commit(this, logId);
             }
         } catch (Throwable e) {
@@ -364,6 +409,7 @@ public class Transaction {
                                 "while rollback to savepoint was in progress",
                         transactionId);
             }
+            notifyAllWaitingTransactions();
         }
     }
 
@@ -418,6 +464,70 @@ public class Transaction {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_CLOSED, "Transaction {0} is closed", transactionId);
         }
+    }
+
+    void closeIt() {
+        long lastState = setStatus(STATUS_CLOSED);
+        store.store.deregisterVersionUsage(txCounter);
+        if(hasChanges(lastState) || hasRollback(lastState)) {
+            notifyAllWaitingTransactions();
+        }
+    }
+
+    private synchronized void notifyAllWaitingTransactions() {
+        notifyAll();
+    }
+
+    public boolean waitFor(Transaction toWaitFor) {
+        if (isDeadlocked(toWaitFor)) {
+            StringBuilder details = new StringBuilder(String.format("Transaction %d has been chosen as a deadlock victim. Details:%n", transactionId));
+            for(Transaction tx = toWaitFor, nextTx; (nextTx = tx.blockingTransaction) != null; tx = nextTx) {
+                details.append(String.format("Transaction %d attempts to update map <%s> entry with key <%s> modified by transaction %s%n",
+                        tx.transactionId, tx.blockingMap.getName(), tx.blockingKey, tx.blockingTransaction));
+                if (nextTx == this) {
+                    details.append(String.format("Transaction %d attempts to update map <%s> entry with key <%s> modified by transaction %s%n",
+                            transactionId, blockingMap.getName(), blockingKey, toWaitFor));
+                    throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTIONS_DEADLOCK, details.toString());
+                }
+            }
+        }
+
+        blockingTransaction = toWaitFor;
+        try {
+            return toWaitFor.waitForThisToEnd(timeoutMillis);
+        } finally {
+            blockingMap = null;
+            blockingKey = null;
+            blockingTransaction = null;
+        }
+    }
+
+    private boolean isDeadlocked(Transaction toWaitFor) {
+        for(Transaction tx = toWaitFor, nextTx;
+            (nextTx = tx.blockingTransaction) != null && tx.getStatus() == Transaction.STATUS_OPEN;
+            tx = nextTx) {
+            if (nextTx == this) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private synchronized boolean waitForThisToEnd(long millis) {
+        long until = System.currentTimeMillis() + millis;
+        int status;
+        while((status = getStatus()) != STATUS_CLOSED && status != STATUS_ROLLING_BACK) {
+            long dur = until - System.currentTimeMillis();
+            if(dur <= 0) {
+                return false;
+            }
+            try {
+                wait(dur);
+            } catch (InterruptedException ex) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

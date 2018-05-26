@@ -285,11 +285,11 @@ public class Parser {
                 throw getSyntaxError();
             }
             p.prepare();
-            Command c = new CommandContainer(this, sql, p);
+            Command c = new CommandContainer(session, sql, p);
             if (hasMore) {
                 String remaining = originalSQL.substring(parseIndex);
                 if (!StringUtils.isWhitespaceOrEmpty(remaining)) {
-                    c = new CommandList(this, sql, c, remaining);
+                    c = new CommandList(session, sql, c, remaining);
                 }
             }
             return c;
@@ -3875,10 +3875,6 @@ public class Parser {
         }
         currentValue = ValueDecimal.get(bd);
         currentTokenType = VALUE;
-    }
-
-    public Session getSession() {
-        return session;
     }
 
     private void initialize(String sql) {

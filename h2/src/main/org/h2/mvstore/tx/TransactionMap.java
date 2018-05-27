@@ -110,7 +110,8 @@ public class TransactionMap<K, V> {
                 committingTransactions = store.committingTransactions.get();
                 mapRootReference = map.getRoot();
                 undoLogRootReference = store.undoLog.getRoot();
-            } while(committingTransactions != store.committingTransactions.get());
+            } while(committingTransactions != store.committingTransactions.get() ||
+                    mapRootReference != map.getRoot());
 
             Page undoRootPage = undoLogRootReference.root;
             long undoLogSize = undoRootPage.getTotalCount();
@@ -332,7 +333,8 @@ public class TransactionMap<K, V> {
                 committingTransactions = store.committingTransactions.get();
                 mapRootReference = map.getRoot();
                 undoLogRootReference = store.undoLog.getRoot();
-            } while(committingTransactions != store.committingTransactions.get());
+            } while(committingTransactions != store.committingTransactions.get() ||
+                    mapRootReference != map.getRoot());
 
             Page mapRootPage = mapRootReference.root;
             current = map.get(mapRootPage, key);
@@ -427,7 +429,8 @@ public class TransactionMap<K, V> {
                 committingTransactions = store.committingTransactions.get();
                 mapRootReference = map.getRoot();
                 undoLogRootReference = store.undoLog.getRoot();
-            } while(committingTransactions != store.committingTransactions.get());
+            } while(committingTransactions != store.committingTransactions.get() ||
+                    mapRootReference != map.getRoot());
 
             Page undoRootPage = undoLogRootReference.root;
             Page mapRootPage = mapRootReference.root;

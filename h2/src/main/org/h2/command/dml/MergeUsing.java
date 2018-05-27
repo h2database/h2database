@@ -390,31 +390,21 @@ public class MergeUsing extends Prepared {
             query.prepare();
         }
 
-        int embeddedStatementsCount = 0;
-
         // Prepare each of the sub-commands ready to aid in the MERGE
         // collaboration
         if (updateCommand != null) {
             updateCommand.setSourceTableFilter(sourceTableFilter);
             updateCommand.setCondition(appendOnCondition(updateCommand));
             updateCommand.prepare();
-            embeddedStatementsCount++;
         }
         if (deleteCommand != null) {
             deleteCommand.setSourceTableFilter(sourceTableFilter);
             deleteCommand.setCondition(appendOnCondition(deleteCommand));
             deleteCommand.prepare();
-            embeddedStatementsCount++;
         }
         if (insertCommand != null) {
             insertCommand.setSourceTableFilter(sourceTableFilter);
             insertCommand.prepare();
-            embeddedStatementsCount++;
-        }
-
-        if (embeddedStatementsCount == 0) {
-            throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
-                    "At least UPDATE, DELETE or INSERT embedded statement must be supplied.");
         }
 
         // setup the targetMatchQuery - for detecting if the target row exists

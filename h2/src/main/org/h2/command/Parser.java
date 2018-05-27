@@ -1172,20 +1172,19 @@ public class Parser {
         command.setOnCondition(condition);
         read(")");
 
+        read("WHEN");
+        boolean matched = readIf("MATCHED");
+        if (matched) {
+            parseWhenMatched(command);
+        } else {
+            parseWhenNotMatched(command);
+        }
         if (readIf("WHEN")) {
-            boolean matched = readIf("MATCHED");
             if (matched) {
-                parseWhenMatched(command);
-            } else {
                 parseWhenNotMatched(command);
-            }
-            if (readIf("WHEN")) {
-                if (matched) {
-                    parseWhenNotMatched(command);
-                } else {
-                    read("MATCHED");
-                    parseWhenMatched(command);
-                }
+            } else {
+                read("MATCHED");
+                parseWhenMatched(command);
             }
         }
 

@@ -45,11 +45,7 @@ SELECT * FROM (SELECT ID, COUNT(*) FROM TEST
 "
 
 "Commands (DML)","INSERT","
-INSERT INTO tableName
-{ [ ( columnName [,...] ) ]
-    { VALUES { ( { DEFAULT | expression } [,...] ) } [,...]
-        | [ DIRECT ] [ SORTED ] select } } |
-    { SET { columnName = { DEFAULT | expression } } [,...] }
+INSERT INTO tableName insertColumnsAndSource
 ","
 Inserts a new row / new rows into a table.
 
@@ -129,7 +125,7 @@ USING { ( select ) | sourceTableName }[ [AS] sourceAlias ]
 ON ( expression )
 [ WHEN MATCHED THEN
     [ UPDATE SET setClauseList ] [ delete ] ]
-[ WHEN NOT MATCHED THEN insert ]
+[ WHEN NOT MATCHED THEN INSERT insertColumnsAndSource ]
 ","
 Updates or deletes existing rows, and insert rows that don't exist. The ON clause
 specifies the matching column expression and must be specified. If more than one row
@@ -2310,6 +2306,17 @@ to specify the order; however doing so will speed up large queries that order
 the column in the same way.
 ","
 NAME
+"
+
+"Other Grammar","Insert columns and source","
+{ [ ( columnName [,...] ) ]
+    { VALUES { ( { DEFAULT | expression } [,...] ) } [,...]
+        | [ DIRECT ] [ SORTED ] select } } |
+    { SET { columnName = { DEFAULT | expression } } [,...] }
+","
+Names of columns and their values for INSERT statement.
+","
+(ID, NAME) VALUES (1, 'Test')
 "
 
 "Other Grammar","Int","

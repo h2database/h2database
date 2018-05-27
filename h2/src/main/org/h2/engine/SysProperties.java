@@ -555,6 +555,16 @@ public class SysProperties {
     public static final String CUSTOM_DATA_TYPES_HANDLER =
             Utils.getProperty("h2.customDataTypesHandler", null);
 
+    /**
+     * System property <code>h2.authConfigFile</code>
+     * (default: null).<br />
+     * authConfigFile define the URL of configuration file
+     * of {@link org.h2.security.auth.DefaultAuthenticator}
+     *  
+     */
+    public static final String AUTH_CONFIG_FILE = 
+            Utils.getProperty("h2.authConfigFile", null);
+                    
     private static final String H2_BASE_DIR = "h2.baseDir";
 
     private SysProperties() {

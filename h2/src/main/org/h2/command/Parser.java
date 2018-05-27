@@ -3456,14 +3456,21 @@ public class Parser {
     }
 
     private boolean readBooleanSetting() {
-        if (currentTokenType == VALUE) {
+        switch (currentTokenType) {
+        case TRUE:
+            read();
+            return true;
+        case FALSE:
+            read();
+            return false;
+        case VALUE:
             boolean result = currentValue.getBoolean();
             read();
             return result;
         }
-        if (readIf("TRUE") || readIf("ON")) {
+        if (readIf("ON")) {
             return true;
-        } else if (readIf("FALSE") || readIf("OFF")) {
+        } else if (readIf("OFF")) {
             return false;
         } else {
             throw getSyntaxError();

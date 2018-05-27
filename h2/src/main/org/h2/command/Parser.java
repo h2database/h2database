@@ -1172,9 +1172,21 @@ public class Parser {
         command.setOnCondition(condition);
         read(")");
 
-        boolean matched = parseWhenMatched(command);
-        if (parseWhenNotMatched(command) && !matched) {
-            parseWhenMatched(command);
+        if (readIf("WHEN")) {
+            boolean matched = readIf("MATCHED");
+            if (matched) {
+                parseWhenMatched(command);
+            } else {
+                parseWhenNotMatched(command);
+            }
+            if (readIf("WHEN")) {
+                if (matched) {
+                    parseWhenNotMatched(command);
+                } else {
+                    read("MATCHED");
+                    parseWhenMatched(command);
+                }
+            }
         }
 
         setSQL(command, "MERGE", start);
@@ -1192,10 +1204,8 @@ public class Parser {
         return command;
     }
 
-    private boolean parseWhenMatched(MergeUsing command) {
-        if (!readIfAll("WHEN", "MATCHED", "THEN")) {
-            return false;
-        }
+    private void parseWhenMatched(MergeUsing command) {
+        read("THEN");
         int startMatched = lastParseIndex;
         if (readIf("UPDATE")) {
             Update updateCommand = new Update(session);
@@ -1212,20 +1222,18 @@ public class Parser {
             parseDeleteGivenTable(deleteCommand, null, startMatched);
             command.setDeleteCommand(deleteCommand);
         }
-        return true;
     }
 
-    private boolean parseWhenNotMatched(MergeUsing command) {
-        if (!readIfAll("WHEN", "NOT", "MATCHED", "THEN")) {
-            return false;
-        }
+    private void parseWhenNotMatched(MergeUsing command) {
+        read("NOT");
+        read("MATCHED");
+        read("THEN");
         if (readIf("INSERT")) {
             Insert insertCommand = new Insert(session);
             insertCommand.setTable(command.getTargetTable());
             parseInsertGivenTable(insertCommand, command.getTargetTable());
             command.setInsertCommand(insertCommand);
         }
-        return true;
     }
 
     private static void appendTableWithSchemaAndAlias(StringBuilder buff, Table table, String alias) {
@@ -3552,26 +3560,6 @@ public class Parser {
         }
         addExpected(token);
         return false;
-    }
-
-    /*
-     * Reads every token in list, in order - returns true if all are found.
-     * If any are not found, returns false - AND resets parsing back to state when called.
-     */
-    private boolean readIfAll(String... tokens) {
-        // save parse location in case we have to fail this test
-        int start = lastParseIndex;
-        for (String token: tokens) {
-            if (!currentTokenQuoted && equalsToken(token, currentToken)) {
-                read();
-            } else {
-                // read failed - revert parse location to before when called
-                parseIndex = start;
-                read();
-                return false;
-            }
-        }
-        return true;
     }
 
     private boolean isToken(String token) {

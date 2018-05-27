@@ -116,14 +116,14 @@ public class TransactionMap<K, V> {
             Page undoRootPage = undoLogRootReference.root;
             long undoLogSize = undoRootPage.getTotalCount();
             Page mapRootPage = mapRootReference.root;
-            long sizeRaw = mapRootPage.getTotalCount();
+            long size = mapRootPage.getTotalCount();
             if (undoLogSize == 0) {
-                return sizeRaw;
+                return size;
             }
-            if (undoLogSize > sizeRaw) {
+            if (undoLogSize > size) {
                 // the undo log is larger than the map -
                 // count the entries of the map
-                long size = 0;
+                size = 0;
                 Cursor<K, VersionedValue> cursor = map.cursor(null);
                 while (cursor.hasNext()) {
                     K key = cursor.next();
@@ -137,36 +137,36 @@ public class TransactionMap<K, V> {
             }
             // the undo log is smaller than the map -
             // scan the undo log and subtract invisible entries
-            synchronized (undo) {
-                // re-fetch in case any transaction was committed now
-                long size = map.sizeAsLong();
-                MVMap<Object, Integer> temp = transaction.store
-                        .createTempMap();
-                try {
-                    for (Map.Entry<Long, Object[]> e : undo.entrySet()) {
-                        Object[] op = e.getValue();
-                        int m = (Integer) op[0];
-                        if (m != mapId) {
-                            // a different map - ignore
-                            continue;
-                        }
-                        @SuppressWarnings("unchecked")
-                        K key = (K) op[1];
-                        if (get(key) == null) {
-                            Integer old = temp.put(key, 1);
-                            // count each key only once (there might be
-                            // multiple
-                            // changes for the same key)
-                            if (old == null) {
-                                size--;
-                            }
+            MVMap<Object, Integer> temp = transaction.store
+                    .createTempMap();
+            try {
+                Cursor cursor = new Cursor<Long, Object[]>(undoRootPage, null);
+                while (cursor.hasNext()) {
+                    cursor.next();
+                    Object[] op = (Object[]) cursor.getValue();
+                    int m = (Integer) op[0];
+                    if (m != mapId) {
+                        // a different map - ignore
+                        continue;
+                    }
+                    @SuppressWarnings("unchecked")
+                    K key = (K) op[1];
+                    VersionedValue data = map.get(mapRootPage, key);
+                    data = getValue(mapRootPage, undoRootPage, key, readLogId, data, committingTransactions);
+                    if (data == null || data.value == null) {
+                        Integer old = temp.put(key, 1);
+                        // count each key only once (there might be
+                        // multiple
+                        // changes for the same key)
+                        if (old == null) {
+                            size--;
                         }
                     }
-                } finally {
-                    transaction.store.store.removeMap(temp);
                 }
-                return size;
+            } finally {
+                transaction.store.store.removeMap(temp);
             }
+            return size;
         } finally {
             transaction.store.rwLock.readLock().unlock();
         }

@@ -8,6 +8,13 @@
  */
 package org.h2.command;
 
+import static org.h2.util.ParserUtil.FALSE;
+import static org.h2.util.ParserUtil.IDENTIFIER;
+import static org.h2.util.ParserUtil.KEYWORD;
+import static org.h2.util.ParserUtil.NULL;
+import static org.h2.util.ParserUtil.ROWNUM;
+import static org.h2.util.ParserUtil.TRUE;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
@@ -189,13 +196,7 @@ public class Parser {
     private static final int CHAR_STRING = 7, CHAR_DOT = 8,
             CHAR_DOLLAR_QUOTED_STRING = 9;
 
-    // this are token types
-    private static final int KEYWORD = ParserUtil.KEYWORD;
-    private static final int IDENTIFIER = ParserUtil.IDENTIFIER;
-    private static final int NULL = ParserUtil.NULL;
-    private static final int TRUE = ParserUtil.TRUE;
-    private static final int FALSE = ParserUtil.FALSE;
-    private static final int ROWNUM = ParserUtil.ROWNUM;
+    // this are token types, see also types in ParserUtil
     private static final int PARAMETER = 10, END = 11, VALUE = 12;
     private static final int EQUAL = 13, BIGGER_EQUAL = 14, BIGGER = 15;
     private static final int SMALLER = 16, SMALLER_EQUAL = 17, NOT_EQUAL = 18;

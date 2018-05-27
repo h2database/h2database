@@ -735,10 +735,9 @@ public class Parser {
     }
 
     private Column readTableColumn(TableFilter filter) {
-        String tableAlias = null;
         String columnName = readColumnIdentifier();
         if (readIf(".")) {
-            tableAlias = columnName;
+            String tableAlias = columnName;
             columnName = readColumnIdentifier();
             if (readIf(".")) {
                 String schema = tableAlias;
@@ -1969,9 +1968,8 @@ public class Parser {
     }
 
     private Query parseSelect() {
-        Query command = null;
         int paramIndex = parameters.size();
-        command = parseSelectUnion();
+        Query command = parseSelectUnion();
         int size = parameters.size();
         ArrayList<Parameter> params = new ArrayList<>(size);
         for (int i = paramIndex; i < size; i++) {
@@ -2047,10 +2045,7 @@ public class Parser {
             }
             ArrayList<SelectOrderBy> orderList = Utils.newSmallArrayList();
             do {
-                boolean canBeNumber = true;
-                if (readIf("=")) {
-                    canBeNumber = false;
-                }
+                boolean canBeNumber = !readIf("=");
                 SelectOrderBy order = new SelectOrderBy();
                 Expression expr = readExpression();
                 if (canBeNumber && expr instanceof ValueExpression &&
@@ -2164,7 +2159,7 @@ public class Parser {
             return command;
         }
         if (readIf("WITH")) {
-            Query query = null;
+            Query query;
             try {
                 query = (Query) parseWith();
             } catch (ClassCastException e) {
@@ -2696,7 +2691,7 @@ public class Parser {
     }
 
     private JavaFunction readJavaFunction(Schema schema, String functionName, boolean throwIfNotFound) {
-        FunctionAlias functionAlias = null;
+        FunctionAlias functionAlias;
         if (schema != null) {
             functionAlias = schema.findFunction(functionName);
         } else {
@@ -3765,12 +3760,11 @@ public class Parser {
             return;
         }
         case CHAR_DOLLAR_QUOTED_STRING: {
-            String result = null;
             int begin = i - 1;
             while (types[i] == CHAR_DOLLAR_QUOTED_STRING) {
                 i++;
             }
-            result = sqlCommand.substring(begin, i);
+            String result = sqlCommand.substring(begin, i);
             currentToken = "'";
             checkLiterals(true);
             currentValue = ValueString.get(StringUtils.cache(result),
@@ -5178,7 +5172,7 @@ public class Parser {
             viewsCreated.add(parseSingleCommonTableExpression(isPersistent));
         } while (readIf(","));
 
-        Prepared p = null;
+        Prepared p;
         // reverse the order of constructed CTE views - as the destruction order
         // (since later created view may depend on previously created views -
         //  we preserve that dependency order in the destruction sequence )
@@ -5226,7 +5220,6 @@ public class Parser {
     private TableView parseSingleCommonTableExpression(boolean isPersistent) {
         String cteViewName = readIdentifierWithSchema();
         Schema schema = getSchema();
-        Table recursiveTable = null;
         ArrayList<Column> columns = Utils.newSmallArrayList();
         String[] cols = null;
 
@@ -5241,7 +5234,7 @@ public class Parser {
             }
         }
 
-        Table oldViewFound = null;
+        Table oldViewFound;
         if (isPersistent) {
             oldViewFound = getSchema().findTableOrView(session, cteViewName);
         } else {
@@ -5273,7 +5266,7 @@ public class Parser {
          * work (its removed after creation in this method). Only create table
          * data and table if we don't have a working CTE already.
          */
-        recursiveTable = TableView.createShadowTableForRecursiveTableExpression(
+        Table recursiveTable = TableView.createShadowTableForRecursiveTableExpression(
                 isPersistent, session, cteViewName, schema, columns, database);
         List<Column> columnTemplateList;
         String[] querySQLOutput = {null};
@@ -6171,7 +6164,7 @@ public class Parser {
             // Oracle specifies (but will not require) an opening parenthesis
             boolean hasOpeningBracket = readIf("(");
             String columnName = readColumnIdentifier();
-            AlterTableAlterColumn command = null;
+            AlterTableAlterColumn command;
             NullConstraintType nullConstraint = parseNotNullConstraint();
             switch (nullConstraint) {
             case NULL_IS_ALLOWED:

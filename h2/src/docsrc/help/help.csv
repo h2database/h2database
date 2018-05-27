@@ -135,6 +135,7 @@ row matching ON clause), then an exception is thrown to prevent two updates appl
 to the same target row.
 WHEN MATCHED THEN or WHEN NOT MATCHED THEN clauses or both of them in any order should be specified.
 If WHEN MATCHED THEN is specified it should contain UPDATE or DELETE clauses of both of them.
+If statement doesn't need a source table a DUAL table can be substituted.
 ","
 MERGE INTO TARGET_TABLE AS T USING SOURCE_TABLE AS S
     ON (T.ID = S.ID)
@@ -150,6 +151,9 @@ MERGE INTO TARGET_TABLE AS T USING (SELECT * FROM SOURCE_TABLE) AS S
         DELETE WHERE T.COL2='FINAL'
     WHEN NOT MATCHED THEN
         INSERT (ID,COL1,COL2) VALUES(S.ID,S.COL1,S.COL2)
+MERGE INTO TARGET_TABLE USING DUAL ON (ID = 1)
+    WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (1, 'Test')
+    WHEN MATCHED THEN UPDATE SET NAME = 'Test'
 "
 
 "Commands (DML)","RUNSCRIPT","

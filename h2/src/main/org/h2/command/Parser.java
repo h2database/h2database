@@ -575,7 +575,7 @@ public class Parser {
             command.setTable(table);
         }
         if (readIf("SAMPLE_SIZE")) {
-            command.setTop(readPositiveInt());
+            command.setTop(readNonNegativeInt());
         }
         return command;
     }
@@ -3408,10 +3408,10 @@ public class Parser {
         return function;
     }
 
-    private int readPositiveInt() {
+    private int readNonNegativeInt() {
         int v = readInt();
         if (v < 0) {
-            throw DbException.getInvalidValueException("positive integer", v);
+            throw DbException.getInvalidValueException("non-negative integer", v);
         }
         return v;
     }
@@ -4314,7 +4314,7 @@ public class Parser {
             column.setSequence(sequence);
         }
         if (readIf("SELECTIVITY")) {
-            int value = readPositiveInt();
+            int value = readNonNegativeInt();
             column.setSelectivity(value);
         }
         String comment = readCommentIf();
@@ -4362,7 +4362,7 @@ public class Parser {
             }
         } else if (readIf("TIME")) {
             if (readIf("(")) {
-                originalScale = readPositiveInt();
+                originalScale = readNonNegativeInt();
                 if (originalScale > ValueTime.MAXIMUM_SCALE) {
                     throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(originalScale));
                 }
@@ -4375,10 +4375,10 @@ public class Parser {
             }
         } else if (readIf("TIMESTAMP")) {
             if (readIf("(")) {
-                originalScale = readPositiveInt();
+                originalScale = readNonNegativeInt();
                 // Allow non-standard TIMESTAMP(..., ...) syntax
                 if (readIf(",")) {
-                    originalScale = readPositiveInt();
+                    originalScale = readNonNegativeInt();
                 }
                 if (originalScale > ValueTimestamp.MAXIMUM_SCALE) {
                     throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(originalScale));
@@ -4466,7 +4466,7 @@ public class Parser {
                     }
                 } else if (original.equals("DATETIME") || original.equals("DATETIME2")) {
                     if (readIf("(")) {
-                        originalScale = readPositiveInt();
+                        originalScale = readNonNegativeInt();
                         if (originalScale > ValueTime.MAXIMUM_SCALE) {
                             throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION,
                                     Integer.toString(originalScale));
@@ -4514,7 +4514,7 @@ public class Parser {
             }
         } else if (dataType.type == Value.DOUBLE && original.equals("FLOAT")) {
             if (readIf("(")) {
-                int p = readPositiveInt();
+                int p = readNonNegativeInt();
                 read(")");
                 if (p > 53) {
                     throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(p));
@@ -4548,7 +4548,7 @@ public class Parser {
         } else if (readIf("(")) {
             // Support for MySQL: INT(11), MEDIUMINT(8) and so on.
             // Just ignore the precision.
-            readPositiveInt();
+            readNonNegativeInt();
             read(")");
         }
         if (readIf("FOR")) {
@@ -5095,7 +5095,7 @@ public class Parser {
             command.setRowBased(false);
         }
         if (readIf("QUEUE")) {
-            command.setQueueSize(readPositiveInt());
+            command.setQueueSize(readNonNegativeInt());
         }
         command.setNoWait(readIf("NOWAIT"));
         if (readIf("AS")) {
@@ -5661,7 +5661,7 @@ public class Parser {
             } else if (readIf("NUMBERS")) {
                 command.setInt(Constants.ALLOW_LITERALS_NUMBERS);
             } else {
-                command.setInt(readPositiveInt());
+                command.setInt(readNonNegativeInt());
             }
             return command;
         } else if (readIf("DEFAULT_TABLE_TYPE")) {
@@ -5672,7 +5672,7 @@ public class Parser {
             } else if (readIf("CACHED")) {
                 command.setInt(Table.TYPE_CACHED);
             } else {
-                command.setInt(readPositiveInt());
+                command.setInt(readNonNegativeInt());
             }
             return command;
         } else if (readIf("CREATE")) {

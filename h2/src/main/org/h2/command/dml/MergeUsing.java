@@ -240,44 +240,38 @@ public class MergeUsing extends Prepared {
     }
 
     private boolean isTargetRowFound() {
-        ResultInterface rows = targetMatchQuery.query(0);
-        int countTargetRowsFound = 0;
-        Value[] targetRowIdValue = null;
-
-        while (rows.next()) {
-            countTargetRowsFound++;
-            targetRowIdValue = rows.currentRow();
-
+        try (ResultInterface rows = targetMatchQuery.query(0)) {
+            if (!rows.next()) {
+                return false;
+            }
+            Value targetRowId = rows.currentRow()[0];
+            Integer number = targetRowidsRemembered.get(targetRowId);
             // throw and exception if we have processed this _ROWID_ before...
-            if (targetRowidsRemembered.containsKey(targetRowIdValue[0])) {
+            if (number != null) {
                 throw DbException.get(ErrorCode.DUPLICATE_KEY_1,
                         "Merge using ON column expression, " +
                         "duplicate _ROWID_ target record already updated, deleted or inserted:_ROWID_="
-                                + targetRowIdValue[0].toString() + ":in:"
+                                + targetRowId + ":in:"
                                 + targetTableFilter.getTable()
                                 + ":conflicting source row number:"
-                                + targetRowidsRemembered
-                                        .get(targetRowIdValue[0]));
-            } else {
-                // remember the source column values we have used before (they
-                // are the effective ON clause keys
-                // and should not be repeated
-                targetRowidsRemembered.put(targetRowIdValue[0],
-                        sourceQueryRowNumber);
+                                + number);
             }
+            // remember the source column values we have used before (they
+            // are the effective ON clause keys
+            // and should not be repeated
+            targetRowidsRemembered.put(targetRowId, sourceQueryRowNumber);
+            if (rows.next()) {
+                throw DbException.get(ErrorCode.DUPLICATE_KEY_1,
+                        "Duplicate key updated "
+                                + rows.getRowCount()
+                                + " rows at once, only 1 expected:_ROWID_="
+                                + targetRowId + ":in:"
+                                + targetTableFilter.getTable()
+                                + ":conflicting source row number:"
+                                + targetRowidsRemembered.get(targetRowId));
+            }
+            return true;
         }
-        rows.close();
-        if (countTargetRowsFound > 1) {
-            throw DbException.get(ErrorCode.DUPLICATE_KEY_1,
-                    "Duplicate key updated " + countTargetRowsFound
-                            + " rows at once, only 1 expected:_ROWID_="
-                            + targetRowIdValue[0].toString() + ":in:"
-                            + targetTableFilter.getTable()
-                            + ":conflicting source row number:"
-                            + targetRowidsRemembered.get(targetRowIdValue[0]));
-
-        }
-        return countTargetRowsFound > 0;
     }
 
     private int addRowByCommandInsert(Row sourceRow) {

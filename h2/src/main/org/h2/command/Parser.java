@@ -1207,12 +1207,14 @@ public class Parser {
     private void parseWhenMatched(MergeUsing command) {
         read("THEN");
         int startMatched = lastParseIndex;
+        boolean ok = false;
         if (readIf("UPDATE")) {
             Update updateCommand = new Update(session);
             TableFilter filter = command.getTargetTableFilter();
             updateCommand.setTableFilter(filter);
             parseUpdateSetClause(updateCommand, filter, startMatched);
             command.setUpdateCommand(updateCommand);
+            ok = true;
         }
         startMatched = lastParseIndex;
         if (readIf("DELETE")) {
@@ -1221,6 +1223,10 @@ public class Parser {
             deleteCommand.setTableFilter(filter);
             parseDeleteGivenTable(deleteCommand, null, startMatched);
             command.setDeleteCommand(deleteCommand);
+            ok = true;
+        }
+        if (!ok) {
+            throw getSyntaxError();
         }
     }
 
@@ -1233,6 +1239,8 @@ public class Parser {
             insertCommand.setTable(command.getTargetTable());
             parseInsertGivenTable(insertCommand, command.getTargetTable());
             command.setInsertCommand(insertCommand);
+        } else {
+            throw getSyntaxError();
         }
     }
 

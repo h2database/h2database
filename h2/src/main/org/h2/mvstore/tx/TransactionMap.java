@@ -10,9 +10,9 @@ import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.Page;
 import org.h2.mvstore.type.DataType;
-import java.util.BitSet;
 
 import java.util.AbstractMap;
+import java.util.BitSet;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -99,77 +99,72 @@ public class TransactionMap<K, V> {
      */
     public long sizeAsLong() {
         TransactionStore store = transaction.store;
-        store.rwLock.readLock().lock();
-        try {
-            MVMap<Long, Object[]> undo = transaction.store.undoLog;
+        MVMap<Long, Object[]> undo = transaction.store.undoLog;
 
-            BitSet committingTransactions;
-            MVMap.RootReference mapRootReference;
-            MVMap.RootReference undoLogRootReference;
-            do {
-                committingTransactions = store.committingTransactions.get();
-                mapRootReference = map.getRoot();
-                undoLogRootReference = store.undoLog.getRoot();
-            } while(committingTransactions != store.committingTransactions.get() ||
-                    mapRootReference != map.getRoot());
+        BitSet committingTransactions;
+        MVMap.RootReference mapRootReference;
+        MVMap.RootReference undoLogRootReference;
+        do {
+            committingTransactions = store.committingTransactions.get();
+            mapRootReference = map.getRoot();
+            undoLogRootReference = store.undoLog.getRoot();
+        } while(committingTransactions != store.committingTransactions.get() ||
+                mapRootReference != map.getRoot());
 
-            Page undoRootPage = undoLogRootReference.root;
-            long undoLogSize = undoRootPage.getTotalCount();
-            Page mapRootPage = mapRootReference.root;
-            long size = mapRootPage.getTotalCount();
-            if (undoLogSize == 0) {
-                return size;
-            }
-            if (undoLogSize > size) {
-                // the undo log is larger than the map -
-                // count the entries of the map
-                size = 0;
-                Cursor<K, VersionedValue> cursor = map.cursor(null);
-                while (cursor.hasNext()) {
-                    K key = cursor.next();
-                    VersionedValue data = cursor.getValue();
-                    data = getValue(mapRootPage, undoRootPage, key, readLogId, data, committingTransactions);
-                    if (data != null && data.value != null) {
-                        size++;
-                    }
+        Page undoRootPage = undoLogRootReference.root;
+        long undoLogSize = undoRootPage.getTotalCount();
+        Page mapRootPage = mapRootReference.root;
+        long size = mapRootPage.getTotalCount();
+        if (undoLogSize == 0) {
+            return size;
+        }
+        if (undoLogSize > size) {
+            // the undo log is larger than the map -
+            // count the entries of the map
+            size = 0;
+            Cursor<K, VersionedValue> cursor = map.cursor(null);
+            while (cursor.hasNext()) {
+                K key = cursor.next();
+                VersionedValue data = cursor.getValue();
+                data = getValue(mapRootPage, undoRootPage, key, readLogId, data, committingTransactions);
+                if (data != null && data.value != null) {
+                    size++;
                 }
-                return size;
-            }
-            // the undo log is smaller than the map -
-            // scan the undo log and subtract invisible entries
-            MVMap<Object, Integer> temp = transaction.store
-                    .createTempMap();
-            try {
-                Cursor cursor = new Cursor<Long, Object[]>(undoRootPage, null);
-                while (cursor.hasNext()) {
-                    cursor.next();
-                    Object[] op = (Object[]) cursor.getValue();
-                    int m = (Integer) op[0];
-                    if (m != mapId) {
-                        // a different map - ignore
-                        continue;
-                    }
-                    @SuppressWarnings("unchecked")
-                    K key = (K) op[1];
-                    VersionedValue data = map.get(mapRootPage, key);
-                    data = getValue(mapRootPage, undoRootPage, key, readLogId, data, committingTransactions);
-                    if (data == null || data.value == null) {
-                        Integer old = temp.put(key, 1);
-                        // count each key only once (there might be
-                        // multiple
-                        // changes for the same key)
-                        if (old == null) {
-                            size--;
-                        }
-                    }
-                }
-            } finally {
-                transaction.store.store.removeMap(temp);
             }
             return size;
-        } finally {
-            transaction.store.rwLock.readLock().unlock();
         }
+        // the undo log is smaller than the map -
+        // scan the undo log and subtract invisible entries
+        MVMap<Object, Integer> temp = transaction.store
+                .createTempMap();
+        try {
+            Cursor cursor = new Cursor<Long, Object[]>(undoRootPage, null);
+            while (cursor.hasNext()) {
+                cursor.next();
+                Object[] op = (Object[]) cursor.getValue();
+                int m = (Integer) op[0];
+                if (m != mapId) {
+                    // a different map - ignore
+                    continue;
+                }
+                @SuppressWarnings("unchecked")
+                K key = (K) op[1];
+                VersionedValue data = map.get(mapRootPage, key);
+                data = getValue(mapRootPage, undoRootPage, key, readLogId, data, committingTransactions);
+                if (data == null || data.value == null) {
+                    Integer old = temp.put(key, 1);
+                    // count each key only once (there might be
+                    // multiple
+                    // changes for the same key)
+                    if (old == null) {
+                        size--;
+                    }
+                }
+            }
+        } finally {
+            transaction.store.store.removeMap(temp);
+        }
+        return size;
     }
 
     /**
@@ -420,25 +415,20 @@ public class TransactionMap<K, V> {
 
     private VersionedValue getValue(K key, long maxLog) {
         TransactionStore store = transaction.store;
-        store.rwLock.readLock().lock();
-        try {
-            BitSet committingTransactions;
-            MVMap.RootReference mapRootReference;
-            MVMap.RootReference undoLogRootReference;
-            do {
-                committingTransactions = store.committingTransactions.get();
-                mapRootReference = map.getRoot();
-                undoLogRootReference = store.undoLog.getRoot();
-            } while(committingTransactions != store.committingTransactions.get() ||
-                    mapRootReference != map.getRoot());
+        BitSet committingTransactions;
+        MVMap.RootReference mapRootReference;
+        MVMap.RootReference undoLogRootReference;
+        do {
+            committingTransactions = store.committingTransactions.get();
+            mapRootReference = map.getRoot();
+            undoLogRootReference = store.undoLog.getRoot();
+        } while(committingTransactions != store.committingTransactions.get() ||
+                mapRootReference != map.getRoot());
 
-            Page undoRootPage = undoLogRootReference.root;
-            Page mapRootPage = mapRootReference.root;
-            VersionedValue data = map.get(mapRootPage, key);
-            return getValue(mapRootPage, undoRootPage, key, maxLog, data, store.committingTransactions.get());
-        } finally {
-            store.rwLock.readLock().unlock();
-        }
+        Page undoRootPage = undoLogRootReference.root;
+        Page mapRootPage = mapRootReference.root;
+        VersionedValue data = map.get(mapRootPage, key);
+        return getValue(mapRootPage, undoRootPage, key, maxLog, data, store.committingTransactions.get());
     }
 
     /**

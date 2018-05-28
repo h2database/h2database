@@ -13,7 +13,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicReferenceArray;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
@@ -53,12 +52,6 @@ public class TransactionStore {
      * Key: opId, value: [ mapId, key, oldValue ].
      */
     final MVMap<Long, Object[]> undoLog;
-
-    /**
-     * the reader/writer lock for the undo-log. Allows us to process multiple
-     * selects in parallel.
-     */
-    final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
 
     /**
      * The map of maps.
@@ -169,39 +162,34 @@ public class TransactionStore {
                     store.removeMap(temp);
                 }
             }
-            rwLock.writeLock().lock();
-            try {
-                if (!undoLog.isEmpty()) {
-                    Long key = undoLog.firstKey();
-                    while (key != null) {
-                        int transactionId = getTransactionId(key);
-                        if (!openTransactions.get().get(transactionId)) {
-                            Object[] data = preparedTransactions.get(transactionId);
-                            int status;
-                            String name;
-                            if (data == null) {
-                                if (undoLog.containsKey(getOperationId(transactionId, 0))) {
-                                    status = Transaction.STATUS_OPEN;
-                                } else {
-                                    status = Transaction.STATUS_COMMITTING;
-                                }
-                                name = null;
+            if (!undoLog.isEmpty()) {
+                Long key = undoLog.firstKey();
+                while (key != null) {
+                    int transactionId = getTransactionId(key);
+                    if (!openTransactions.get().get(transactionId)) {
+                        Object[] data = preparedTransactions.get(transactionId);
+                        int status;
+                        String name;
+                        if (data == null) {
+                            if (undoLog.containsKey(getOperationId(transactionId, 0))) {
+                                status = Transaction.STATUS_OPEN;
                             } else {
-                                status = (Integer) data[0];
-                                name = (String) data[1];
+                                status = Transaction.STATUS_COMMITTING;
                             }
-                            long nextTxUndoKey = getOperationId(transactionId + 1, 0);
-                            Long lastUndoKey = undoLog.lowerKey(nextTxUndoKey);
-                            assert lastUndoKey != null;
-                            assert getTransactionId(lastUndoKey) == transactionId;
-                            long logId = getLogId(lastUndoKey) + 1;
-                            registerTransaction(transactionId, status, name, logId, timeoutMillis, 0, listener);
-                            key = undoLog.ceilingKey(nextTxUndoKey);
+                            name = null;
+                        } else {
+                            status = (Integer) data[0];
+                            name = (String) data[1];
                         }
+                        long nextTxUndoKey = getOperationId(transactionId + 1, 0);
+                        Long lastUndoKey = undoLog.lowerKey(nextTxUndoKey);
+                        assert lastUndoKey != null;
+                        assert getTransactionId(lastUndoKey) == transactionId;
+                        long logId = getLogId(lastUndoKey) + 1;
+                        registerTransaction(transactionId, status, name, logId, timeoutMillis, 0, listener);
+                        key = undoLog.ceilingKey(nextTxUndoKey);
                     }
                 }
-            } finally {
-                rwLock.writeLock().unlock();
             }
             init = true;
         }
@@ -277,23 +265,18 @@ public class TransactionStore {
         if(!init) {
             init();
         }
-        rwLock.readLock().lock();
-        try {
-            ArrayList<Transaction> list = new ArrayList<>();
-            int transactionId = 0;
-            BitSet bitSet = openTransactions.get();
-            while((transactionId = bitSet.nextSetBit(transactionId + 1)) > 0) {
-                Transaction transaction = getTransaction(transactionId);
-                if(transaction != null) {
-                    if(transaction.getStatus() != Transaction.STATUS_CLOSED) {
-                        list.add(transaction);
-                    }
+        ArrayList<Transaction> list = new ArrayList<>();
+        int transactionId = 0;
+        BitSet bitSet = openTransactions.get();
+        while((transactionId = bitSet.nextSetBit(transactionId + 1)) > 0) {
+            Transaction transaction = getTransaction(transactionId);
+            if(transaction != null) {
+                if(transaction.getStatus() != Transaction.STATUS_CLOSED) {
+                    list.add(transaction);
                 }
             }
-            return list;
-        } finally {
-            rwLock.readLock().unlock();
         }
+        return list;
     }
 
     /**
@@ -387,21 +370,16 @@ public class TransactionStore {
      */
     long addUndoLogRecord(int transactionId, long logId, Object[] undoLogRecord) {
         Long undoKey = getOperationId(transactionId, logId);
-        rwLock.writeLock().lock();
-        try {
-            if (logId == 0) {
-                if (undoLog.containsKey(undoKey)) {
-                    throw DataUtils.newIllegalStateException(
-                            DataUtils.ERROR_TOO_MANY_OPEN_TRANSACTIONS,
-                            "An old transaction with the same id " +
-                            "is still open: {0}",
-                            transactionId);
-                }
+        if (logId == 0) {
+            if (undoLog.containsKey(undoKey)) {
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_TOO_MANY_OPEN_TRANSACTIONS,
+                        "An old transaction with the same id " +
+                        "is still open: {0}",
+                        transactionId);
             }
-            undoLog.put(undoKey, undoLogRecord);
-        } finally {
-            rwLock.writeLock().unlock();
         }
+        undoLog.put(undoKey, undoLogRecord);
         return undoKey;
     }
 
@@ -413,17 +391,12 @@ public class TransactionStore {
      */
     public void removeUndoLogRecord(int transactionId, long logId) {
         Long undoKey = getOperationId(transactionId, logId);
-        rwLock.writeLock().lock();
-        try {
-            Object[] old = undoLog.remove(undoKey);
-            if (old == null) {
-                throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_TRANSACTION_ILLEGAL_STATE,
-                        "Transaction {0} was concurrently rolled back",
-                        transactionId);
-            }
-        } finally {
-            rwLock.writeLock().unlock();
+        Object[] old = undoLog.remove(undoKey);
+        if (old == null) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_TRANSACTION_ILLEGAL_STATE,
+                    "Transaction {0} was concurrently rolled back",
+                    transactionId);
         }
     }
 
@@ -455,8 +428,6 @@ public class TransactionStore {
         flipCommittingTransactionsBit(transactionId, true);
 
         CommitDecisionMaker commitDecisionMaker = new CommitDecisionMaker();
-        // TODO could synchronize on blocks (100 at a time or so)
-        rwLock.writeLock().lock();
         try {
             for (long logId = 0; logId < maxLogId; logId++) {
                 Long undoKey = getOperationId(transactionId, logId);
@@ -481,7 +452,6 @@ public class TransactionStore {
                 undoLog.remove(undoKey);
             }
         } finally {
-            rwLock.writeLock().unlock();
             flipCommittingTransactionsBit(transactionId, false);
         }
     }
@@ -635,18 +605,12 @@ public class TransactionStore {
      * @param toLogId the log id to roll back to
      */
     void rollbackTo(Transaction t, long maxLogId, long toLogId) {
-        // TODO could synchronize on blocks (100 at a time or so)
-        rwLock.writeLock().lock();
-        try {
-            int transactionId = t.getId();
-            RollbackDecisionMaker decisionMaker = new RollbackDecisionMaker(this, transactionId, toLogId, t.listener);
-            for (long logId = maxLogId - 1; logId >= toLogId; logId--) {
-                Long undoKey = getOperationId(transactionId, logId);
-                undoLog.operate(undoKey, null, decisionMaker);
-                decisionMaker.reset();
-            }
-        } finally {
-            rwLock.writeLock().unlock();
+        int transactionId = t.getId();
+        RollbackDecisionMaker decisionMaker = new RollbackDecisionMaker(this, transactionId, toLogId, t.listener);
+        for (long logId = maxLogId - 1; logId >= toLogId; logId--) {
+            Long undoKey = getOperationId(transactionId, logId);
+            undoLog.operate(undoKey, null, decisionMaker);
+            decisionMaker.reset();
         }
     }
 
@@ -667,33 +631,28 @@ public class TransactionStore {
             private Change current;
 
             private void fetchNext() {
-                rwLock.writeLock().lock();
-                try {
-                    int transactionId = t.getId();
-                    while (logId >= toLogId) {
-                        Long undoKey = getOperationId(transactionId, logId);
-                        Object[] op = undoLog.get(undoKey);
-                        logId--;
-                        if (op == null) {
-                            // partially rolled back: load previous
-                            undoKey = undoLog.floorKey(undoKey);
-                            if (undoKey == null ||
-                                    getTransactionId(undoKey) != transactionId) {
-                                break;
-                            }
-                            logId = getLogId(undoKey);
-                            continue;
+                int transactionId = t.getId();
+                while (logId >= toLogId) {
+                    Long undoKey = getOperationId(transactionId, logId);
+                    Object[] op = undoLog.get(undoKey);
+                    logId--;
+                    if (op == null) {
+                        // partially rolled back: load previous
+                        undoKey = undoLog.floorKey(undoKey);
+                        if (undoKey == null ||
+                                getTransactionId(undoKey) != transactionId) {
+                            break;
                         }
-                        int mapId = ((Integer) op[0]).intValue();
-                        MVMap<Object, VersionedValue> m = openMap(mapId);
-                        if (m != null) { // could be null if map was removed later on
-                            VersionedValue oldValue = (VersionedValue) op[2];
-                            current = new Change(m.getName(), op[1], oldValue == null ? null : oldValue.value);
-                            return;
-                        }
+                        logId = getLogId(undoKey);
+                        continue;
                     }
-                } finally {
-                    rwLock.writeLock().unlock();
+                    int mapId = ((Integer) op[0]).intValue();
+                    MVMap<Object, VersionedValue> m = openMap(mapId);
+                    if (m != null) { // could be null if map was removed later on
+                        VersionedValue oldValue = (VersionedValue) op[2];
+                        current = new Change(m.getName(), op[1], oldValue == null ? null : oldValue.value);
+                        return;
+                    }
                 }
                 current = null;
             }

@@ -126,6 +126,22 @@ public class ValueGeometry extends Value {
     /**
      * Get or create a geometry value for the given geometry.
      *
+     * @param s the WKT representation of the geometry
+     * @param srid the srid of the object
+     * @return the value
+     */
+    public static ValueGeometry get(String s, int srid) {
+        // This method is not used in H2, but preserved for H2GIS
+        try {
+            return get(new WKTReader(new GeometryFactory(new PrecisionModel(), srid)).read(s));
+        } catch (ParseException ex) {
+            throw DbException.convert(ex);
+        }
+    }
+
+    /**
+     * Get or create a geometry value for the given geometry.
+     *
      * @param bytes the WKB representation of the geometry
      * @return the value
      */

@@ -239,10 +239,11 @@ public class ExpressionVisitor {
      * Create a new visitor to get all referenced columns.
      *
      * @param columns the columns map
+     * @param table table to gather columns from, or {@code null} to gather all columns
      * @return the new visitor
      */
-    public static ExpressionVisitor getColumnsVisitor(HashSet<Column> columns) {
-        return new ExpressionVisitor(GET_COLUMNS2, 0, null, null, null, null, null, columns);
+    public static ExpressionVisitor getColumnsVisitor(HashSet<Column> columns, Table table) {
+        return new ExpressionVisitor(GET_COLUMNS2, 0, null, null, table, null, null, columns);
     }
 
     public static ExpressionVisitor getMaxModificationIdVisitor() {
@@ -269,8 +270,11 @@ public class ExpressionVisitor {
     void addColumn1(Column column) {
         columns1.add(column);
     }
+
     void addColumn2(Column column) {
-        columns2.add(column);
+        if (table == null || table == column.getTable()) {
+            columns2.add(column);
+        }
     }
 
     /**

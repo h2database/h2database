@@ -261,9 +261,16 @@ public class MergeUsing extends Prepared {
             // and should not be repeated
             targetRowidsRemembered.put(targetRowId, sourceQueryRowNumber);
             if (rows.next()) {
+                int rowCount;
+                if (rows.isLazy()) {
+                    for (rowCount = 2; rows.next(); rowCount++) {
+                    }
+                } else {
+                    rowCount = rows.getRowCount();
+                }
                 throw DbException.get(ErrorCode.DUPLICATE_KEY_1,
                         "Duplicate key updated "
-                                + rows.getRowCount()
+                                + rowCount
                                 + " rows at once, only 1 expected:_ROWID_="
                                 + targetRowId + ":in:"
                                 + targetTableFilter.getTable()

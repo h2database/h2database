@@ -597,8 +597,9 @@ public class TestSpatial extends TestBase {
      * Test serialization of Z and SRID values.
      */
     private void testWKB() {
-        ValueGeometry geom3d = ValueGeometry.get(
-                "POLYGON ((67 13 6, 67 18 5, 59 18 4, 59 13 6,  67 13 6))", 27572);
+        String ewkt = "SRID=27572;POLYGON ((67 13 6, 67 18 5, 59 18 4, 59 13 6, 67 13 6))";
+        ValueGeometry geom3d = ValueGeometry.get(ewkt);
+        assertEquals(ewkt, geom3d.getString());
         ValueGeometry copy = ValueGeometry.get(geom3d.getBytes());
         assertEquals(6, copy.getGeometry().getCoordinates()[0].z);
         assertEquals(5, copy.getGeometry().getCoordinates()[1].z);
@@ -606,6 +607,7 @@ public class TestSpatial extends TestBase {
         // Test SRID
         copy = ValueGeometry.get(geom3d.getBytes());
         assertEquals(27572, copy.getGeometry().getSRID());
+
         Point point = new GeometryFactory().createPoint((new Coordinate(1.1d, 1.2d)));
         // SRID 0
         checkSRID(ValueGeometry.getFromGeometry(point).getBytes(), 0);
@@ -613,11 +615,17 @@ public class TestSpatial extends TestBase {
         checkSRID(new WKBWriter(2, ByteOrderValues.BIG_ENDIAN, true).write(point), 0);
         checkSRID(new WKBWriter(2, ByteOrderValues.LITTLE_ENDIAN, false).write(point), 0);
         checkSRID(new WKBWriter(2, ByteOrderValues.LITTLE_ENDIAN, true).write(point), 0);
+        ewkt = "POINT (1.1 1.2)";
+        assertEquals(ewkt, ValueGeometry.getFromGeometry(point).getString());
+        assertEquals(ewkt, ValueGeometry.get(ewkt).getString());
         // SRID 1,000,000,000
         point.setSRID(1_000_000_000);
         checkSRID(ValueGeometry.getFromGeometry(point).getBytes(), 1_000_000_000);
         checkSRID(new WKBWriter(2, ByteOrderValues.BIG_ENDIAN, true).write(point), 1_000_000_000);
         checkSRID(new WKBWriter(2, ByteOrderValues.LITTLE_ENDIAN, true).write(point), 1_000_000_000);
+        ewkt = "SRID=1000000000;POINT (1.1 1.2)";
+        assertEquals(ewkt, ValueGeometry.getFromGeometry(point).getString());
+        assertEquals(ewkt, ValueGeometry.get(ewkt).getString());
     }
 
     private void checkSRID(byte[] bytes, int srid) {

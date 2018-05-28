@@ -2895,9 +2895,10 @@ ENUM('clubs', 'diamonds', 'hearts', 'spades')
 GEOMETRY
 ","
 A spatial geometry type, based on the ""org.locationtech.jts"" library.
-Normally represented in textual format using the WKT (well known text) format.
+May be represented in textual format using the WKT (well-known text) or EWKT (extended well-known text) format.
+Values are stored internally in EWKB (extended well-known binary) format.
 
-Use a quoted string containing a WKT formatted string or ""PreparedStatement.setObject()"" to store values,
+Use a quoted string containing a WKT/EWKT formatted string or ""PreparedStatement.setObject()"" to store values,
 and ""ResultSet.getObject(..)"" or ""ResultSet.getString(..)"" to retrieve the values.
 ","
 GEOMETRY

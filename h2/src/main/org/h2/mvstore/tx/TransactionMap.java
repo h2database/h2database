@@ -428,7 +428,7 @@ public class TransactionMap<K, V> {
         Page undoRootPage = undoLogRootReference.root;
         Page mapRootPage = mapRootReference.root;
         VersionedValue data = map.get(mapRootPage, key);
-        return getValue(mapRootPage, undoRootPage, key, maxLog, data, store.committingTransactions.get());
+        return getValue(mapRootPage, undoRootPage, key, maxLog, data, committingTransactions);
     }
 
     /**

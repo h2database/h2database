@@ -96,7 +96,11 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
             stat.execute("update test2 set id = 3");
             task.get();
         } catch (SQLException e) {
-            assertEquals(ErrorCode.LOCK_TIMEOUT_1, e.getErrorCode());
+            int errorCode = e.getErrorCode();
+            assertTrue(String.valueOf(errorCode),
+                        ErrorCode.LOCK_TIMEOUT_1 == errorCode ||
+                        ErrorCode.DEADLOCK_1 == errorCode ||
+                        ErrorCode.COMMIT_ROLLBACK_NOT_ALLOWED == errorCode);
         }
         conn2.rollback();
         conn.rollback();

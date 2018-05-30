@@ -749,7 +749,7 @@ public class MVTable extends TableBase {
     }
 
     @Override
-    public void lockRows(Session session, Iterator<Row> rowsForUpdate) {
+    public void lockRows(Session session, Iterable<Row> rowsForUpdate) {
         primaryIndex.lockRows(session, rowsForUpdate);
     }
 

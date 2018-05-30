@@ -162,10 +162,9 @@ public class MVPrimaryIndex extends BaseIndex {
         }
     }
 
-    public void lockRows(Session session, Iterator<Row> rowsForUpdate) {
+    public void lockRows(Session session, Iterable<Row> rowsForUpdate) {
         TransactionMap<Value, Value> map = getMap(session);
-        while (rowsForUpdate.hasNext()) {
-            Row row = rowsForUpdate.next();
+        for (Row row : rowsForUpdate) {
             long key = row.getKey();
             try {
                 map.lock(ValueLong.get(key));

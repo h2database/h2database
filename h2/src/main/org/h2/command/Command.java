@@ -185,7 +185,7 @@ public abstract class Command implements CommandInterface {
         startTimeNanos = 0;
         long start = 0;
         Database database = session.getDatabase();
-        Object sync = database.getMvStore() != null ? null : database.isMultiThreaded() ? session : database;
+        Object sync = database.isMultiThreaded() || database.getMvStore() != null ? session : database;
         session.waitIfExclusiveModeEnabled();
         boolean callStop = true;
         boolean writing = !isReadOnly();
@@ -201,12 +201,8 @@ public abstract class Command implements CommandInterface {
                 database.checkPowerOff();
                 try {
                     ResultInterface result;
-                    if (sync != null) {
-                        //noinspection SynchronizationOnLocalVariableOrMethodParameter
-                        synchronized (sync) {
-                            result = query(maxrows);
-                        }
-                    } else {
+                    //noinspection SynchronizationOnLocalVariableOrMethodParameter
+                    synchronized (sync) {
                         result = query(maxrows);
                     }
                     callStop = !result.isLazy();
@@ -250,7 +246,7 @@ public abstract class Command implements CommandInterface {
     public ResultWithGeneratedKeys executeUpdate(Object generatedKeysRequest) {
         long start = 0;
         Database database = session.getDatabase();
-        Object sync = database.getMvStore() != null ? null : database.isMultiThreaded() ? session : database;
+        Object sync = database.isMultiThreaded() || database.getMvStore() != null ? session : database;
         session.waitIfExclusiveModeEnabled();
         boolean callStop = true;
         boolean writing = !isReadOnly();
@@ -267,12 +263,8 @@ public abstract class Command implements CommandInterface {
                 database.checkPowerOff();
                 try {
                     int updateCount;
-                    if (sync != null) {
-                        //noinspection SynchronizationOnLocalVariableOrMethodParameter
-                        synchronized (sync) {
-                            updateCount = update();
-                        }
-                    } else {
+                    //noinspection SynchronizationOnLocalVariableOrMethodParameter
+                    synchronized (sync) {
                         updateCount = update();
                     }
                     if (!Boolean.FALSE.equals(generatedKeysRequest)) {

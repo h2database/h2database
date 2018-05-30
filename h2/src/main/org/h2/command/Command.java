@@ -18,7 +18,6 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultWithGeneratedKeys;
-import org.h2.util.MathUtils;
 
 /**
  * Represents a SQL statement. This object is only used on the server side.

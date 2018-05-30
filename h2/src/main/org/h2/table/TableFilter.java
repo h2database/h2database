@@ -16,7 +16,6 @@ import org.h2.command.dml.Select;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
-import org.h2.engine.UndoLogRecord;
 import org.h2.expression.Comparison;
 import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;

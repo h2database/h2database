@@ -1158,7 +1158,7 @@ public class TableFilter implements ColumnResolver {
      *
      * @param forUpdateRows the rows to lock
      */
-    public void lockRows(Iterator<Row> forUpdateRows) {
+    public void lockRows(Iterable<Row> forUpdateRows) {
         table.lockRows(session, forUpdateRows);
     }
 

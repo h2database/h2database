@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -184,9 +183,8 @@ public abstract class Table extends SchemaObjectBase {
      * @param session the session
      * @param rowsForUpdate rows to lock
      */
-    public void lockRows(Session session, Iterator<Row> rowsForUpdate) {
-        while (rowsForUpdate.hasNext()) {
-            Row row = rowsForUpdate.next();
+    public void lockRows(Session session, Iterable<Row> rowsForUpdate) {
+        for (Row row : rowsForUpdate) {
             Row newRow = row.getCopy();
             removeRow(session, row);
             session.log(this, UndoLogRecord.DELETE, row);

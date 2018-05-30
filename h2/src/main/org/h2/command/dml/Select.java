@@ -615,7 +615,7 @@ public class Select extends Query {
         }
         if (isForUpdateMvcc) {
             assert forUpdateRows != null;
-            topTableFilter.lockRows(forUpdateRows.iterator());
+            topTableFilter.lockRows(forUpdateRows);
         }
         return null;
     }

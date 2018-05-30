@@ -169,7 +169,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         this.undoLog = new UndoLog(this);
         this.user = user;
         this.id = id;
-        this.lockTimeout = (int)database.getLockTimeout();
+        this.lockTimeout = database.getLockTimeout();
         this.currentSchemaName = Constants.SCHEMA_MAIN;
         this.columnNamerConfiguration = ColumnNamerConfiguration.getDefault();
     }

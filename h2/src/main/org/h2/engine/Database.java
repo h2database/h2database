@@ -335,7 +335,7 @@ public class Database implements DataHandler {
         }
     }
 
-    public long getLockTimeout() {
+    public int getLockTimeout() {
         Setting setting = findSetting(
                 SetTypes.getTypeName(SetTypes.DEFAULT_LOCK_TIMEOUT));
         return setting == null ? Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();

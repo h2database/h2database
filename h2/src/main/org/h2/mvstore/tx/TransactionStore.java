@@ -33,7 +33,7 @@ public class TransactionStore {
     /**
      * Default blocked transaction timeout
      */
-    private final long timeoutMillis;
+    private final int timeoutMillis;
 
     /**
      * The persisted map of prepared transactions.
@@ -123,7 +123,7 @@ public class TransactionStore {
      * @param dataType the data type for map keys and values
      * @param timeoutMillis lock aquisition timeout in milliseconds, 0 means no wait
      */
-    public TransactionStore(MVStore store, DataType dataType, long timeoutMillis) {
+    public TransactionStore(MVStore store, DataType dataType, int timeoutMillis) {
         this.store = store;
         this.dataType = dataType;
         this.timeoutMillis = timeoutMillis;
@@ -302,7 +302,7 @@ public class TransactionStore {
      * @param ownerId of the owner (Session?) to be reported by getBlockerId
      * @return the transaction
      */
-    public Transaction begin(RollbackListener listener, long timeoutMillis, int ownerId) {
+    public Transaction begin(RollbackListener listener, int timeoutMillis, int ownerId) {
 
         if(timeoutMillis <= 0) {
             timeoutMillis = this.timeoutMillis;
@@ -313,7 +313,7 @@ public class TransactionStore {
     }
 
     private Transaction registerTransaction(int txId, int status, String name, long logId,
-                                            long timeoutMillis, int ownerId, RollbackListener listener) {
+                                            int timeoutMillis, int ownerId, RollbackListener listener) {
         int transactionId;
         long sequenceNo;
         boolean success;

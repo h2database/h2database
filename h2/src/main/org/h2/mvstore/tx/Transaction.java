@@ -126,7 +126,7 @@ public class Transaction {
     /**
      * How long to wait for blocking transaction to commit or rollback.
      */
-    final long timeoutMillis;
+    final int timeoutMillis;
 
     /**
      * Identification of the owner of this transaction,
@@ -151,7 +151,7 @@ public class Transaction {
 
 
     Transaction(TransactionStore store, int transactionId, long sequenceNum, int status,
-                String name, long logId, long timeoutMillis, int ownerId,
+                String name, long logId, int timeoutMillis, int ownerId,
                 TransactionStore.RollbackListener listener) {
         this.store = store;
         this.transactionId = transactionId;
@@ -513,7 +513,7 @@ public class Transaction {
         return false;
     }
 
-    private synchronized boolean waitForThisToEnd(long millis) {
+    private synchronized boolean waitForThisToEnd(int millis) {
         long until = System.currentTimeMillis() + millis;
         int status;
         while((status = getStatus()) != STATUS_CLOSED && status != STATUS_ROLLING_BACK) {

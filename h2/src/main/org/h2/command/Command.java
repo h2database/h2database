@@ -18,6 +18,7 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultWithGeneratedKeys;
+import org.h2.util.MathUtils;
 
 /**
  * Represents a SQL statement. This object is only used on the server side.
@@ -317,8 +318,30 @@ public abstract class Command implements CommandInterface {
             throw e;
         }
         long now = System.nanoTime();
-        if (start != 0 && now - start > TimeUnit.MILLISECONDS.toNanos(session.getLockTimeout())) {
+        if (start != 0 && TimeUnit.NANOSECONDS.toMillis(now - start) > session.getLockTimeout()) {
             throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, e);
+        }
+        // Only in PageStore mode we need to sleep here to avoid buzy wait loop
+        Database database = session.getDatabase();
+        if (database.getMvStore() == null) {
+            int sleep = 1 + MathUtils.randomInt(10);
+            while (true) {
+                try {
+                    if (database.isMultiThreaded()) {
+                        Thread.sleep(sleep);
+                    } else {
+                        // although nobody going to notify us
+                        // it is vital to give up lock on a database
+                        database.wait(sleep);
+                    }
+                } catch (InterruptedException e1) {
+                    // ignore
+                }
+                long slept = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - now);
+                if (slept >= sleep) {
+                    break;
+                }
+            }
         }
         return start == 0 ? now : start;
     }

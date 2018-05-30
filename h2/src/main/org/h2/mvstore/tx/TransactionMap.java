@@ -246,6 +246,7 @@ public class TransactionMap<K, V> {
         return set(key, decisionMaker);
     }
 
+    @SuppressWarnings("unchecked")
     private V set(K key, TxDecisionMaker decisionMaker) {
         TransactionStore store = transaction.store;
         Transaction blockingTransaction;
@@ -264,7 +265,6 @@ public class TransactionMap<K, V> {
             if (decision != MVMap.Decision.ABORT || blockingTransaction == null) {
                 transaction.blockingMap = null;
                 transaction.blockingKey = null;
-                //noinspection unchecked
                 return result == null ? null : (V) result.value;
             }
             decisionMaker.reset();

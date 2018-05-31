@@ -6,7 +6,6 @@
 package org.h2.mvstore.tx;
 
 import org.h2.mvstore.MVMap;
-import static org.h2.mvstore.tx.TransactionStore.getTransactionId;
 
 /**
  * Class TxDecisionMaker.
@@ -39,7 +38,7 @@ public abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue
                 // or entry is a committed one
                 (id = existingValue.getOperationId()) == 0 ||
                 // or it came from the same transaction
-                isThisTransaction(blockingId = getTransactionId(id))) {
+                isThisTransaction(blockingId = TransactionStore.getTransactionId(id))) {
             logIt(existingValue);
             decision = MVMap.Decision.PUT;
         } else if (isCommitted(blockingId)) {
@@ -137,7 +136,7 @@ public abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue
                 long id = existingValue.getOperationId();
                 if (id == 0 // entry is a committed one
                             // or it came from the same transaction
-                        || isThisTransaction(blockingId = getTransactionId(id))) {
+                        || isThisTransaction(blockingId = TransactionStore.getTransactionId(id))) {
                     if(existingValue.value != null) {
                         return setDecision(MVMap.Decision.ABORT);
                     }

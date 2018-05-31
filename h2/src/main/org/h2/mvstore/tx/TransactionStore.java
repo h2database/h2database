@@ -242,7 +242,7 @@ public class TransactionStore {
      * @param operationId the operation id
      * @return the transaction id
      */
-    public static int getTransactionId(long operationId) {
+    static int getTransactionId(long operationId) {
         return (int) (operationId >>> LOG_ID_BITS);
     }
 

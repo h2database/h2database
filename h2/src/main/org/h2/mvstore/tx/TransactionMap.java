@@ -99,7 +99,6 @@ public class TransactionMap<K, V> {
      */
     public long sizeAsLong() {
         TransactionStore store = transaction.store;
-        MVMap<Long, Object[]> undo = transaction.store.undoLog;
 
         BitSet committingTransactions;
         MVMap.RootReference mapRootReference;
@@ -135,14 +134,13 @@ public class TransactionMap<K, V> {
         }
         // the undo log is smaller than the map -
         // scan the undo log and subtract invisible entries
-        MVMap<Object, Integer> temp = transaction.store
-                .createTempMap();
+        MVMap<Object, Integer> temp = store.createTempMap();
         try {
-            Cursor cursor = new Cursor<Long, Object[]>(undoRootPage, null);
+            Cursor<Long, Object[]> cursor = new Cursor<>(undoRootPage, null);
             while (cursor.hasNext()) {
                 cursor.next();
-                Object[] op = (Object[]) cursor.getValue();
-                int m = (Integer) op[0];
+                Object[] op = cursor.getValue();
+                int m = (int) op[0];
                 if (m != mapId) {
                     // a different map - ignore
                     continue;
@@ -233,12 +231,13 @@ public class TransactionMap<K, V> {
      * @param value the value
      * @return the old value
      */
-    @SuppressWarnings("unchecked")
     public V putCommitted(K key, V value) {
         DataUtils.checkArgument(value != null, "The value may not be null");
         VersionedValue newValue = new VersionedValue(0L, value);
         VersionedValue oldValue = map.put(key, newValue);
-        return (V) (oldValue == null ? null : oldValue.value);
+        @SuppressWarnings("unchecked")
+        V result = (V) (oldValue == null ? null : oldValue.value);
+        return result;
     }
 
     private V set(K key, V value) {
@@ -246,7 +245,6 @@ public class TransactionMap<K, V> {
         return set(key, decisionMaker);
     }
 
-    @SuppressWarnings("unchecked")
     private V set(K key, TxDecisionMaker decisionMaker) {
         TransactionStore store = transaction.store;
         Transaction blockingTransaction;
@@ -255,7 +253,10 @@ public class TransactionMap<K, V> {
         do {
             sequenceNumWhenStarted = store.openTransactions.get().getVersion();
             assert transaction.getBlockerId() == 0;
-
+            // although second parameter (value) is not really used,
+            // since TxDecisionMaker has it embedded,
+            // MVRTreeMap has weird traversal logic based on it,
+            // and any non-null value will do
             result = map.put(key, VersionedValue.DUMMY, decisionMaker);
 
             MVMap.Decision decision = decisionMaker.getDecision();
@@ -265,7 +266,9 @@ public class TransactionMap<K, V> {
             if (decision != MVMap.Decision.ABORT || blockingTransaction == null) {
                 transaction.blockingMap = null;
                 transaction.blockingKey = null;
-                return result == null ? null : (V) result.value;
+                @SuppressWarnings("unchecked")
+                V res = result == null ? null : (V) result.value;
+                return res;
             }
             decisionMaker.reset();
             transaction.blockingMap = map;

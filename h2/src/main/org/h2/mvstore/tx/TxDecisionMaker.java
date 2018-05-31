@@ -32,7 +32,6 @@ public abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue
     @Override
     public MVMap.Decision decide(VersionedValue existingValue, VersionedValue providedValue) {
         assert decision == null;
-        assert providedValue != null;
         long id;
         int blockingId;
         // if map does not have that entry yet
@@ -52,7 +51,7 @@ public abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue
             decision = MVMap.Decision.PUT;
         } else if(fetchTransaction(blockingId) == null) {
             // condition above means transaction has been committed/rplled back and closed by now
-            return setDecision(MVMap.Decision.REPEAT);
+            decision = MVMap.Decision.REPEAT;
         } else {
             // this entry comes from a different transaction, and this transaction is not committed yet
             // should wait on blockingTransaction that was determined earlier
@@ -129,7 +128,6 @@ public abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue
         @Override
         public MVMap.Decision decide(VersionedValue existingValue, VersionedValue providedValue) {
             assert getDecision() == null;
-            assert providedValue != null;
             int blockingId;
             // if map does not have that entry yet
             if (existingValue == null) {

@@ -131,6 +131,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     @Override
     public V put(K key, V value) {
+        DataUtils.checkArgument(value != null, "The value may not be null");
         return put(key, value, DecisionMaker.PUT);
     }
 
@@ -142,7 +143,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the old value if the key existed, or null otherwise
      */
     public final V put(K key, V value, DecisionMaker<? super V> decisionMaker) {
-        DataUtils.checkArgument(value != null, "The value may not be null");
         return operate(key, value, decisionMaker);
     }
 

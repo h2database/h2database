@@ -39,7 +39,7 @@ public class TransactionStore {
      * The persisted map of prepared transactions.
      * Key: transactionId, value: [ status, name ].
      */
-    final MVMap<Integer, Object[]> preparedTransactions;
+    private final MVMap<Integer, Object[]> preparedTransactions;
 
     /**
      * The undo log.
@@ -228,7 +228,7 @@ public class TransactionStore {
      * @param logId the log id
      * @return the operation id
      */
-    static long getOperationId(int transactionId, long logId) {
+    private static long getOperationId(int transactionId, long logId) {
         DataUtils.checkArgument(transactionId >= 0 && transactionId < (1 << (64 - LOG_ID_BITS)),
                 "Transaction id out of range: {0}", transactionId);
         DataUtils.checkArgument(logId >= 0 && logId <= LOG_ID_MASK,
@@ -362,11 +362,11 @@ public class TransactionStore {
     }
 
     /**
-     * Add an undoLog entry.
+     * Add an undo log entry.
      *
      * @param transactionId id of the transaction
      * @param logId sequential number of the log record within transaction
-     * @param undoLogRecord Object[]
+     * @param undoLogRecord Object[mapId, key, previousValue]
      */
     long addUndoLogRecord(int transactionId, long logId, Object[] undoLogRecord) {
         Long undoKey = getOperationId(transactionId, logId);
@@ -550,9 +550,9 @@ public class TransactionStore {
      * and amount of unsaved changes is sizable.
      *
      * @param t the transaction
-     * @param hasChanges true if transaction has done any updated
-     *                  (even if fully rolled back),
-     *                   false if just data access
+     * @param hasChanges true if transaction has done any updates
+     *                  (even if they are fully rolled back),
+     *                   false if it just performed a data access
      */
     synchronized void endTransaction(Transaction t, boolean hasChanges) {
         t.closeIt();
@@ -646,7 +646,7 @@ public class TransactionStore {
                         logId = getLogId(undoKey);
                         continue;
                     }
-                    int mapId = ((Integer) op[0]).intValue();
+                    int mapId = (int)op[0];
                     MVMap<Object, VersionedValue> m = openMap(mapId);
                     if (m != null) { // could be null if map was removed later on
                         VersionedValue oldValue = (VersionedValue) op[2];

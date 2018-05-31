@@ -18,7 +18,7 @@ final class CommitDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
     private long undoKey;
     private MVMap.Decision decision;
 
-    public void setUndoKey(long undoKey) {
+    void setUndoKey(long undoKey) {
         this.undoKey = undoKey;
         reset();
     }
@@ -26,25 +26,20 @@ final class CommitDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
     @Override
     public MVMap.Decision decide(VersionedValue existingValue, VersionedValue providedValue) {
         assert decision == null;
-        if (existingValue == null) {
-            // map entry was treated as committed already and
-            // removed already by another commited by now transaction
+        if (existingValue == null ||
+            // map entry was treated as already committed, and then
+            // it has been removed by another transaction (commited and closed  by now )
+            existingValue.getOperationId() != undoKey) {
+            // this is not a final undo log entry for this key,
+            // or map entry was treated as already committed and then
+            // overwritten by another transaction
+            // see TxDecisionMaker.decide()
+
             decision = MVMap.Decision.ABORT;
+        } else /* this is final undo log entry for this key */ if (existingValue.value == null) {
+            decision = MVMap.Decision.REMOVE;
         } else {
-            if (existingValue.getOperationId() == undoKey) {
-                // this is final undo log entry for this key
-                if (existingValue.value == null) {
-                    decision = MVMap.Decision.REMOVE;
-                } else {
-                    decision = MVMap.Decision.PUT;
-                }
-            } else {
-                // this is not a final undo log entry for this key,
-                // or map entry was treated as committed already and
-                // overwritten already by another transaction
-                // see TxDecisionMaker.decide()
-                decision = MVMap.Decision.ABORT;
-            }
+            decision = MVMap.Decision.PUT;
         }
         return decision;
     }

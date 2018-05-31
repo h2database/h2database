@@ -7,7 +7,6 @@ package org.h2.table;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;

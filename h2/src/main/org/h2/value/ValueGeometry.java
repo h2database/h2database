@@ -100,14 +100,25 @@ public class ValueGeometry extends Value {
     /**
      * Get or create a geometry value for the given geometry.
      *
-     * @param s the WKT representation of the geometry
+     * @param s the WKT or EWKT representation of the geometry
      * @return the value
      */
     public static ValueGeometry get(String s) {
         try {
-            Geometry g = new WKTReader().read(s);
-            return get(g);
-        } catch (ParseException ex) {
+            int srid;
+            if (s.startsWith("SRID=")) {
+                int idx = s.indexOf(';', 5);
+                srid = Integer.parseInt(s.substring(5, idx));
+                s = s.substring(idx + 1);
+            } else {
+                srid = 0;
+            }
+            /*
+             * No-arg WKTReader() constructor instantiates a new GeometryFactory and a new
+             * PrecisionModel anyway, so special case for srid == 0 is not needed.
+             */
+            return get(new WKTReader(new GeometryFactory(new PrecisionModel(), srid)).read(s));
+        } catch (ParseException | StringIndexOutOfBoundsException | NumberFormatException ex) {
             throw DbException.convert(ex);
         }
     }
@@ -120,10 +131,9 @@ public class ValueGeometry extends Value {
      * @return the value
      */
     public static ValueGeometry get(String s, int srid) {
+        // This method is not used in H2, but preserved for H2GIS
         try {
-            GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), srid);
-            Geometry g = new WKTReader(geometryFactory).read(s);
-            return get(g);
+            return get(new WKTReader(new GeometryFactory(new PrecisionModel(), srid)).read(s));
         } catch (ParseException ex) {
             throw DbException.convert(ex);
         }
@@ -154,36 +164,45 @@ public class ValueGeometry extends Value {
     public Geometry getGeometryNoCopy() {
         if (geometry == null) {
             try {
-                int srid = 0;
-                getSRID: if (bytes.length >= 9) {
-                    boolean bigEndian;
-                    switch (bytes[0]) {
-                    case 0:
-                        bigEndian = true;
-                        break;
-                    case 1:
-                        bigEndian = false;
-                        break;
-                    default:
-                        break getSRID;
-                    }
-                    if ((bytes[bigEndian ? 1 : 4] & 0x20) != 0) {
-                        srid = Bits.readInt(bytes, 5);
-                        if (!bigEndian) {
-                            srid = Integer.reverseBytes(srid);
-                        }
-                    }
-                }
                 /*
                  * No-arg WKBReader() constructor instantiates a new GeometryFactory and a new
                  * PrecisionModel anyway, so special case for srid == 0 is not needed.
                  */
-                geometry = new WKBReader(new GeometryFactory(new PrecisionModel(), srid)).read(bytes);
+                geometry = new WKBReader(new GeometryFactory(new PrecisionModel(), getSRID())).read(bytes);
             } catch (ParseException ex) {
                 throw DbException.convert(ex);
             }
         }
         return geometry;
+    }
+
+    /**
+     * Return the SRID (Spatial Reference Identifier).
+     *
+     * @return spatial reference identifier
+     */
+    public int getSRID() {
+        if (bytes.length >= 9) {
+            boolean bigEndian;
+            switch (bytes[0]) {
+            case 0:
+                bigEndian = true;
+                break;
+            case 1:
+                bigEndian = false;
+                break;
+            default:
+                return 0;
+            }
+            if ((bytes[bigEndian ? 1 : 4] & 0x20) != 0) {
+                int srid = Bits.readInt(bytes, 5);
+                if (!bigEndian) {
+                    srid = Integer.reverseBytes(srid);
+                }
+                return srid;
+            }
+        }
+        return 0;
     }
 
     /**
@@ -219,9 +238,7 @@ public class ValueGeometry extends Value {
 
     @Override
     public String getSQL() {
-        // WKT does not hold Z or SRID with JTS 1.13. As getSQL is used to
-        // export database, it should contains all object attributes. Moreover
-        // using bytes is faster than converting WKB to Geometry then to WKT.
+        // Using bytes is faster than converting EWKB to Geometry then EWKT.
         return "X'" + StringUtils.convertBytesToHex(getBytesNoCopy()) + "'::Geometry";
     }
 
@@ -233,7 +250,7 @@ public class ValueGeometry extends Value {
 
     @Override
     public String getString() {
-        return getWKT();
+        return getEWKT();
     }
 
     @Override
@@ -253,12 +270,12 @@ public class ValueGeometry extends Value {
 
     @Override
     public byte[] getBytes() {
-        return Utils.cloneByteArray(getWKB());
+        return Utils.cloneByteArray(getEWKB());
     }
 
     @Override
     public byte[] getBytesNoCopy() {
-        return getWKB();
+        return getEWKB();
     }
 
     @Override
@@ -269,12 +286,12 @@ public class ValueGeometry extends Value {
 
     @Override
     public int getDisplaySize() {
-        return getWKT().length();
+        return getEWKT().length();
     }
 
     @Override
     public int getMemory() {
-        return getWKB().length * 20 + 24;
+        return getEWKB().length * 20 + 24;
     }
 
     @Override
@@ -282,24 +299,29 @@ public class ValueGeometry extends Value {
         // The JTS library only does half-way support for 3D coordinates, so
         // their equals method only checks the first two coordinates.
         return other instanceof ValueGeometry &&
-                Arrays.equals(getWKB(), ((ValueGeometry) other).getWKB());
+                Arrays.equals(getEWKB(), ((ValueGeometry) other).getEWKB());
     }
 
     /**
-     * Get the value in Well-Known-Text format.
+     * Get the value in Extended Well-Known Text format.
      *
-     * @return the well-known-text
+     * @return the extended well-known text
      */
-    public String getWKT() {
-        return new WKTWriter(3).write(getGeometryNoCopy());
+    public String getEWKT() {
+        String wkt = new WKTWriter(3).write(getGeometryNoCopy());
+        int srid = getSRID();
+        return srid == 0
+                ? wkt
+                // "SRID=-2147483648;".length() == 17
+                : new StringBuilder(wkt.length() + 17).append("SRID=").append(srid).append(';').append(wkt).toString();
     }
 
     /**
-     * Get the value in Well-Known-Binary format.
+     * Get the value in extended Well-Known Binary format.
      *
-     * @return the well-known-binary
+     * @return the extended well-known binary
      */
-    public byte[] getWKB() {
+    public byte[] getEWKB() {
         return bytes;
     }
 

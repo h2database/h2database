@@ -371,7 +371,7 @@ java org.h2.test.TestAll timer
     /**
      * The lock timeout to use
      */
-    public int lockTimeout = 5000;
+    public int lockTimeout = 50;
 
     /**
      * If the transaction log should be kept small (that is, the log should be

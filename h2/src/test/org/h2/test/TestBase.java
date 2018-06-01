@@ -306,7 +306,7 @@ public abstract class TestBase {
         } else if (config.throttle > 0) {
             url = addOption(url, "THROTTLE", "" + config.throttle);
         }
-        url = addOption(url, "LOCK_TIMEOUT", "" + config.lockTimeout);
+        url = addOption(url, "LOCK_TIMEOUT", String.valueOf(config.lockTimeout * (config.mvStore ? 100 : 1)));
         if (config.diskUndo && admin) {
             url = addOption(url, "MAX_MEMORY_UNDO", "3");
         }

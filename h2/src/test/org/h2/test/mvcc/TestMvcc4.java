@@ -11,7 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import org.h2.test.TestBase;
 
@@ -42,7 +41,8 @@ public class TestMvcc4 extends TestBase {
     }
 
     private void testSelectForUpdateAndUpdateConcurrency() throws SQLException {
-        Connection setup = getConnection("mvcc4");
+        deleteDb("mvcc4");
+        Connection setup = getConnection("mvcc4;MULTI_THREADED=TRUE");
         setup.setAutoCommit(false);
 
         {
@@ -82,7 +82,13 @@ public class TestMvcc4 extends TestBase {
                     ps.executeQuery().next();
 
                     executedUpdate.countDown();
-                    waitForThreadToBlockOnDB(mainThread);
+                    // interrogate new "blocker_id" metatable field instead of
+                    // relying on stacktraces!? to determine when session is blocking
+                    PreparedStatement stmt = c2.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.SESSIONS WHERE BLOCKER_ID = SESSION_ID()");
+                    ResultSet resultSet;
+                    do {
+                        resultSet = stmt.executeQuery();
+                    } while(!resultSet.next());
 
                     c2.commit();
                     c2.close();
@@ -103,7 +109,7 @@ public class TestMvcc4 extends TestBase {
         // for lock case.
         PreparedStatement ps = c1.prepareStatement("UPDATE test SET lastUpdated = ?");
         ps.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
-        ps.executeUpdate();
+        assertEquals(2, ps.executeUpdate());
 
         c1.commit();
         c1.close();
@@ -114,43 +120,11 @@ public class TestMvcc4 extends TestBase {
         ps = verify.prepareStatement("SELECT COUNT(*) FROM test");
         ResultSet rs = ps.executeQuery();
         assertTrue(rs.next());
-        assertTrue(rs.getInt(1) == 2);
+        assertEquals(2,rs.getInt(1));
         verify.commit();
         verify.close();
 
         setup.close();
-    }
-
-    /**
-     * Wait for the given thread to block on synchronizing on the database
-     * object.
-     *
-     * @param t the thread
-     */
-    void waitForThreadToBlockOnDB(Thread t) {
-        while (true) {
-            // sleep the first time through the loop so we give the main thread
-            // a chance
-            try {
-                Thread.sleep(20);
-            } catch (InterruptedException e1) {
-                // ignore
-            }
-            // TODO must not use getAllStackTraces, as the method names are
-            // implementation details
-            Map<Thread, StackTraceElement[]> threadMap = Thread.getAllStackTraces();
-            StackTraceElement[] elements = threadMap.get(t);
-            if (elements != null
-                    &&
-                    elements.length > 1 &&
-                    (config.multiThreaded ? "sleep".equals(elements[0]
-                            .getMethodName()) : "wait".equals(elements[0]
-                            .getMethodName())) &&
-                    "filterConcurrentUpdate"
-                            .equals(elements[1].getMethodName())) {
-                return;
-            }
-        }
     }
 }
 

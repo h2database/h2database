@@ -51,7 +51,13 @@ public class TestIndex extends TestBase {
         testHashIndexOnMemoryTable();
         testErrorMessage();
         testDuplicateKeyException();
-        testConcurrentUpdate();
+        int to = config.lockTimeout;
+        config.lockTimeout = 50000;
+        try {
+            testConcurrentUpdate();
+        } finally {
+            config.lockTimeout = to;
+        }
         testNonUniqueHashIndex();
         testRenamePrimaryKey();
         testRandomized();

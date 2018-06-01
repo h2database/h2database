@@ -453,10 +453,10 @@ public class JdbcConnection extends TraceObject
                 debugCode("setAutoCommit(" + autoCommit + ");");
             }
             checkClosed();
-            if (autoCommit && !session.getAutoCommit()) {
-                commit();
-            }
             synchronized (session) {
+                if (autoCommit && !session.getAutoCommit()) {
+                    commit();
+                }
                 session.setAutoCommit(autoCommit);
             }
         } catch (Exception e) {

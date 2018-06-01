@@ -45,7 +45,6 @@ import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.security.auth.Authenticator;
-import org.h2.security.auth.AuthenticatorFactory;
 import org.h2.store.DataHandler;
 import org.h2.store.FileLock;
 import org.h2.store.FileLockMethod;
@@ -334,6 +333,12 @@ public class Database implements DataHandler {
             closeOpenFilesAndUnlock(false);
             throw DbException.convert(e);
         }
+    }
+
+    public int getLockTimeout() {
+        Setting setting = findSetting(
+                SetTypes.getTypeName(SetTypes.DEFAULT_LOCK_TIMEOUT));
+        return setting == null ? Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
     }
 
     /**

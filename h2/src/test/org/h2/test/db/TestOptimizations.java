@@ -296,7 +296,7 @@ public class TestOptimizations extends TestBase {
         assertEquals(11, rs.getInt(1));
         assertEquals("World", rs.getString(2));
         rs.next();
-        assertEquals(21, rs.getInt(1));
+        assertEquals(20, rs.getInt(1));
         assertEquals("Hallo", rs.getString(2));
         assertFalse(rs.next());
         stat.execute("drop table test");

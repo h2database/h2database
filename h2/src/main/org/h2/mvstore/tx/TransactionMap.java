@@ -10,9 +10,9 @@ import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.Page;
 import org.h2.mvstore.type.DataType;
-import java.util.BitSet;
 
 import java.util.AbstractMap;
+import java.util.BitSet;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -99,76 +99,70 @@ public class TransactionMap<K, V> {
      */
     public long sizeAsLong() {
         TransactionStore store = transaction.store;
-        store.rwLock.readLock().lock();
+
+        BitSet committingTransactions;
+        MVMap.RootReference mapRootReference;
+        MVMap.RootReference undoLogRootReference;
+        do {
+            committingTransactions = store.committingTransactions.get();
+            mapRootReference = map.getRoot();
+            undoLogRootReference = store.undoLog.getRoot();
+        } while(committingTransactions != store.committingTransactions.get() ||
+                mapRootReference != map.getRoot());
+
+        Page undoRootPage = undoLogRootReference.root;
+        long undoLogSize = undoRootPage.getTotalCount();
+        Page mapRootPage = mapRootReference.root;
+        long size = mapRootPage.getTotalCount();
+        if (undoLogSize == 0) {
+            return size;
+        }
+        if (undoLogSize > size) {
+            // the undo log is larger than the map -
+            // count the entries of the map
+            size = 0;
+            Cursor<K, VersionedValue> cursor = map.cursor(null);
+            while (cursor.hasNext()) {
+                K key = cursor.next();
+                VersionedValue data = cursor.getValue();
+                data = getValue(mapRootPage, undoRootPage, key, readLogId, data, committingTransactions);
+                if (data != null && data.value != null) {
+                    size++;
+                }
+            }
+            return size;
+        }
+        // the undo log is smaller than the map -
+        // scan the undo log and subtract invisible entries
+        MVMap<Object, Integer> temp = store.createTempMap();
         try {
-            MVMap<Long, Object[]> undo = transaction.store.undoLog;
-
-            BitSet committingTransactions;
-            MVMap.RootReference mapRootReference;
-            MVMap.RootReference undoLogRootReference;
-            do {
-                committingTransactions = store.committingTransactions.get();
-                mapRootReference = map.getRoot();
-                undoLogRootReference = store.undoLog.getRoot();
-            } while(committingTransactions != store.committingTransactions.get());
-
-            Page undoRootPage = undoLogRootReference.root;
-            long undoLogSize = undoRootPage.getTotalCount();
-            Page mapRootPage = mapRootReference.root;
-            long sizeRaw = mapRootPage.getTotalCount();
-            if (undoLogSize == 0) {
-                return sizeRaw;
-            }
-            if (undoLogSize > sizeRaw) {
-                // the undo log is larger than the map -
-                // count the entries of the map
-                long size = 0;
-                Cursor<K, VersionedValue> cursor = map.cursor(null);
-                while (cursor.hasNext()) {
-                    K key = cursor.next();
-                    VersionedValue data = cursor.getValue();
-                    data = getValue(mapRootPage, undoRootPage, key, readLogId, data, committingTransactions);
-                    if (data != null && data.value != null) {
-                        size++;
+            Cursor<Long, Object[]> cursor = new Cursor<>(undoRootPage, null);
+            while (cursor.hasNext()) {
+                cursor.next();
+                Object[] op = cursor.getValue();
+                int m = (int) op[0];
+                if (m != mapId) {
+                    // a different map - ignore
+                    continue;
+                }
+                @SuppressWarnings("unchecked")
+                K key = (K) op[1];
+                VersionedValue data = map.get(mapRootPage, key);
+                data = getValue(mapRootPage, undoRootPage, key, readLogId, data, committingTransactions);
+                if (data == null || data.value == null) {
+                    Integer old = temp.put(key, 1);
+                    // count each key only once (there might be
+                    // multiple
+                    // changes for the same key)
+                    if (old == null) {
+                        size--;
                     }
                 }
-                return size;
-            }
-            // the undo log is smaller than the map -
-            // scan the undo log and subtract invisible entries
-            synchronized (undo) {
-                // re-fetch in case any transaction was committed now
-                long size = map.sizeAsLong();
-                MVMap<Object, Integer> temp = transaction.store
-                        .createTempMap();
-                try {
-                    for (Map.Entry<Long, Object[]> e : undo.entrySet()) {
-                        Object[] op = e.getValue();
-                        int m = (Integer) op[0];
-                        if (m != mapId) {
-                            // a different map - ignore
-                            continue;
-                        }
-                        @SuppressWarnings("unchecked")
-                        K key = (K) op[1];
-                        if (get(key) == null) {
-                            Integer old = temp.put(key, 1);
-                            // count each key only once (there might be
-                            // multiple
-                            // changes for the same key)
-                            if (old == null) {
-                                size--;
-                            }
-                        }
-                    }
-                } finally {
-                    transaction.store.store.removeMap(temp);
-                }
-                return size;
             }
         } finally {
-            transaction.store.rwLock.readLock().unlock();
+            transaction.store.store.removeMap(temp);
         }
+        return size;
     }
 
     /**
@@ -181,7 +175,7 @@ public class TransactionMap<K, V> {
      * @throws IllegalStateException if a lock timeout occurs
      */
     public V remove(K key) {
-        return set(key, null);
+        return set(key, (V)null);
     }
 
     /**
@@ -201,29 +195,89 @@ public class TransactionMap<K, V> {
     }
 
     /**
+     * Put the value for the given key if entry for this key does not exist.
+     * It is atomic equivalent of the following expression:
+     * contains(key) ? get(k) : put(key, value);
+     *
+     * @param key the key
+     * @param value the new value (not null)
+     * @return the old value
+     */
+    public V putIfAbsent(K key, V value) {
+        DataUtils.checkArgument(value != null, "The value may not be null");
+        TxDecisionMaker decisionMaker = new TxDecisionMaker.PutIfAbsentDecisionMaker(map.getId(), key, value, transaction);
+        return set(key, decisionMaker);
+    }
+
+    /**
+     * Lock row for the given key.
+     * <p>
+     * If the row is locked, this method will retry until the row could be
+     * updated or until a lock timeout.
+     *
+     * @param key the key
+     * @return the locked value
+     * @throws IllegalStateException if a lock timeout occurs
+     */
+    public V lock(K key) {
+        TxDecisionMaker decisionMaker = new TxDecisionMaker.LockDecisionMaker(map.getId(), key, transaction);
+        return set(key, decisionMaker);
+    }
+
+    /**
      * Update the value for the given key, without adding an undo log entry.
      *
      * @param key the key
      * @param value the value
      * @return the old value
      */
-    @SuppressWarnings("unchecked")
     public V putCommitted(K key, V value) {
         DataUtils.checkArgument(value != null, "The value may not be null");
         VersionedValue newValue = new VersionedValue(0L, value);
         VersionedValue oldValue = map.put(key, newValue);
-        return (V) (oldValue == null ? null : oldValue.value);
+        @SuppressWarnings("unchecked")
+        V result = (V) (oldValue == null ? null : oldValue.value);
+        return result;
     }
 
     private V set(K key, V value) {
-        transaction.checkNotClosed();
-        V old = get(key);
-        boolean ok = trySet(key, value, false);
-        if (ok) {
-            return old;
-        }
-        throw DataUtils.newIllegalStateException(
-                DataUtils.ERROR_TRANSACTION_LOCKED, "Entry is locked");
+        TxDecisionMaker decisionMaker = new TxDecisionMaker.PutDecisionMaker(map.getId(), key, value, transaction);
+        return set(key, decisionMaker);
+    }
+
+    private V set(K key, TxDecisionMaker decisionMaker) {
+        TransactionStore store = transaction.store;
+        Transaction blockingTransaction;
+        long sequenceNumWhenStarted;
+        VersionedValue result;
+        do {
+            sequenceNumWhenStarted = store.openTransactions.get().getVersion();
+            assert transaction.getBlockerId() == 0;
+            // although second parameter (value) is not really used,
+            // since TxDecisionMaker has it embedded,
+            // MVRTreeMap has weird traversal logic based on it,
+            // and any non-null value will do
+            result = map.put(key, VersionedValue.DUMMY, decisionMaker);
+
+            MVMap.Decision decision = decisionMaker.getDecision();
+            assert decision != null;
+            assert decision != MVMap.Decision.REPEAT;
+            blockingTransaction = decisionMaker.getBlockingTransaction();
+            if (decision != MVMap.Decision.ABORT || blockingTransaction == null) {
+                transaction.blockingMap = null;
+                transaction.blockingKey = null;
+                @SuppressWarnings("unchecked")
+                V res = result == null ? null : (V) result.value;
+                return res;
+            }
+            decisionMaker.reset();
+            transaction.blockingMap = map;
+            transaction.blockingKey = key;
+        } while (blockingTransaction.sequenceNum > sequenceNumWhenStarted || transaction.waitFor(blockingTransaction));
+
+        throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTION_LOCKED,
+                "Map entry <{0}> with key <{1}> and value {2} is locked by tx {3} and can not be updated by tx {4} within allocated time interval {5} ms.",
+                map.getName(), key, result, blockingTransaction.transactionId, transaction.transactionId, transaction.timeoutMillis);
     }
 
     /**
@@ -277,7 +331,8 @@ public class TransactionMap<K, V> {
                 committingTransactions = store.committingTransactions.get();
                 mapRootReference = map.getRoot();
                 undoLogRootReference = store.undoLog.getRoot();
-            } while(committingTransactions != store.committingTransactions.get());
+            } while(committingTransactions != store.committingTransactions.get() ||
+                    mapRootReference != map.getRoot());
 
             Page mapRootPage = mapRootReference.root;
             current = map.get(mapRootPage, key);
@@ -302,54 +357,17 @@ public class TransactionMap<K, V> {
                     return false;
                 }
             }
-        } else {
-            current = map.get(key);
         }
-
-        VersionedValue newValue = new VersionedValue(
-                TransactionStore.getOperationId(transaction.transactionId, transaction.getLogId()),
-                value);
-        if (current == null) {
-            // a new value
-            transaction.log(mapId, key, current);
-            VersionedValue old = map.putIfAbsent(key, newValue);
-            if (old != null) {
-                transaction.logUndo();
-                return false;
-            }
+        try {
+            set(key, value);
             return true;
+        } catch (IllegalStateException e) {
+            return false;
         }
-        long id = current.operationId;
-        if (id == 0) {
-            // committed
-            transaction.log(mapId, key, current);
-            // the transaction is committed:
-            // overwrite the value
-            if (!map.replace(key, current, newValue)) {
-                // somebody else was faster
-                transaction.logUndo();
-                return false;
-            }
-            return true;
-        }
-        int tx = TransactionStore.getTransactionId(current.operationId);
-        if (tx == transaction.transactionId) {
-            // added or updated by this transaction
-            transaction.log(mapId, key, current);
-            if (!map.replace(key, current, newValue)) {
-                // strange, somebody overwrote the value
-                // even though the change was not committed
-                transaction.logUndo();
-                return false;
-            }
-            return true;
-        }
-        // the transaction is not yet committed
-        return false;
     }
 
     /**
-     * Get the value for the given key at the time when this map was opened.
+     * Get the effective value for the given key.
      *
      * @param key the key
      * @return the value or null
@@ -400,24 +418,20 @@ public class TransactionMap<K, V> {
 
     private VersionedValue getValue(K key, long maxLog) {
         TransactionStore store = transaction.store;
-        store.rwLock.readLock().lock();
-        try {
-            BitSet committingTransactions;
-            MVMap.RootReference mapRootReference;
-            MVMap.RootReference undoLogRootReference;
-            do {
-                committingTransactions = store.committingTransactions.get();
-                mapRootReference = map.getRoot();
-                undoLogRootReference = store.undoLog.getRoot();
-            } while(committingTransactions != store.committingTransactions.get());
+        BitSet committingTransactions;
+        MVMap.RootReference mapRootReference;
+        MVMap.RootReference undoLogRootReference;
+        do {
+            committingTransactions = store.committingTransactions.get();
+            mapRootReference = map.getRoot();
+            undoLogRootReference = store.undoLog.getRoot();
+        } while(committingTransactions != store.committingTransactions.get() ||
+                mapRootReference != map.getRoot());
 
-            Page undoRootPage = undoLogRootReference.root;
-            Page mapRootPage = mapRootReference.root;
-            VersionedValue data = map.get(mapRootPage, key);
-            return getValue(mapRootPage, undoRootPage, key, maxLog, data, store.committingTransactions.get());
-        } finally {
-            store.rwLock.readLock().unlock();
-        }
+        Page undoRootPage = undoLogRootReference.root;
+        Page mapRootPage = mapRootReference.root;
+        VersionedValue data = map.get(mapRootPage, key);
+        return getValue(mapRootPage, undoRootPage, key, maxLog, data, committingTransactions);
     }
 
     /**
@@ -666,7 +680,7 @@ public class TransactionMap<K, V> {
             @Override
             public void remove() {
                 throw DataUtils.newUnsupportedOperationException(
-                        "Removing is not supported");
+                        "Removal is not supported");
             }
         };
     }
@@ -776,7 +790,7 @@ public class TransactionMap<K, V> {
         @Override
         public final void remove() {
             throw DataUtils.newUnsupportedOperationException(
-                    "Removing is not supported");
+                    "Removal is not supported");
         }
     }
 }

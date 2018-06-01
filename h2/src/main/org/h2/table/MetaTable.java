@@ -506,7 +506,9 @@ public class MetaTable extends Table {
                     "SESSION_START",
                     "STATEMENT",
                     "STATEMENT_START",
-                    "CONTAINS_UNCOMMITTED"
+                    "CONTAINS_UNCOMMITTED",
+                    "STATE",
+                    "BLOCKER_ID INT"
             );
             break;
         }
@@ -1078,6 +1080,8 @@ public class MetaTable extends Table {
                             Long.toString(fs.getWriteCount()));
                     add(rows, "info.FILE_READ",
                             Long.toString(fs.getReadCount()));
+                    int updateFailureRatio = (int)(10000 * mvStore.getStore().getUpdateFailureRatio());
+                    add(rows, "info.UPDATE_FAILURE_PERCENT", "" + updateFailureRatio / 100 + "." + updateFailureRatio % 100 + "%");
                     long size;
                     try {
                         size = fs.getFile().size();
@@ -1822,6 +1826,7 @@ public class MetaTable extends Table {
                     if (start == 0) {
                         start = now;
                     }
+                    int blockingSessionId = s.getBlockingSessionId();
                     add(rows,
                             // ID
                             Integer.toString(s.getId()),
@@ -1834,7 +1839,11 @@ public class MetaTable extends Table {
                             // STATEMENT_START
                             new Timestamp(start).toString(),
                             // CONTAINS_UNCOMMITTED
-                            Boolean.toString(s.containsUncommitted())
+                            Boolean.toString(s.containsUncommitted()),
+                            // STATE
+                            String.valueOf(s.getState()),
+                            // BLOCKER_ID INT
+                            blockingSessionId == 0 ? null : String.valueOf(blockingSessionId)
                     );
                 }
             }

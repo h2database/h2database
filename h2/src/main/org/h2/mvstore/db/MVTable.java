@@ -26,7 +26,6 @@ import org.h2.engine.SysProperties;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
-import org.h2.index.MultiVersionIndex;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.mvstore.DataUtils;
@@ -708,7 +707,11 @@ public class MVTable extends TableBase {
                 index.remove(session, row);
             }
         } catch (Throwable e) {
-            t.rollbackToSavepoint(savepoint);
+            try {
+                t.rollbackToSavepoint(savepoint);
+            } catch (Throwable nested) {
+                e.addSuppressed(nested);
+            }
             throw DbException.convert(e);
         }
         analyzeIfRequired(session);
@@ -734,24 +737,19 @@ public class MVTable extends TableBase {
                 index.add(session, row);
             }
         } catch (Throwable e) {
-            t.rollbackToSavepoint(savepoint);
-            DbException de = DbException.convert(e);
-            if (de.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
-                for (Index index : indexes) {
-                    if (index.getIndexType().isUnique() &&
-                            index instanceof MultiVersionIndex) {
-                        MultiVersionIndex mv = (MultiVersionIndex) index;
-                        if (mv.isUncommittedFromOtherSession(session, row)) {
-                            throw DbException.get(
-                                    ErrorCode.CONCURRENT_UPDATE_1,
-                                    index.getName());
-                        }
-                    }
-                }
+            try {
+                t.rollbackToSavepoint(savepoint);
+            } catch (Throwable nested) {
+                e.addSuppressed(nested);
             }
-            throw de;
+            throw DbException.convert(e);
         }
         analyzeIfRequired(session);
+    }
+
+    @Override
+    public void lockRows(Session session, Iterable<Row> rowsForUpdate) {
+        primaryIndex.lockRows(session, rowsForUpdate);
     }
 
     private void analyzeIfRequired(Session session) {
@@ -919,12 +917,15 @@ public class MVTable extends TableBase {
      * @return the database exception
      */
     DbException convertException(IllegalStateException e) {
-        if (DataUtils.getErrorCode(e.getMessage()) ==
-                DataUtils.ERROR_TRANSACTION_LOCKED) {
+        int errorCode = DataUtils.getErrorCode(e.getMessage());
+        if (errorCode == DataUtils.ERROR_TRANSACTION_LOCKED) {
             throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1,
+                    e, getName());
+        }
+        if (errorCode == DataUtils.ERROR_TRANSACTIONS_DEADLOCK) {
+            throw DbException.get(ErrorCode.DEADLOCK_1,
                     e, getName());
         }
         return store.convertIllegalStateException(e);
     }
-
 }

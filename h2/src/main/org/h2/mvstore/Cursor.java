@@ -150,7 +150,7 @@ public class Cursor<K, V> implements Iterator<K> {
      * @param p the page to start from
      * @param key the key to search, null means search for the first key
      */
-    public static CursorPos traverseDown(Page p, Object key) {
+    private static CursorPos traverseDown(Page p, Object key) {
         CursorPos cursorPos = null;
         while (!p.isLeaf()) {
             assert p.getKeyCount() > 0;

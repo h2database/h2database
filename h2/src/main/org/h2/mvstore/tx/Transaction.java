@@ -142,7 +142,7 @@ public class Transaction {
     /**
      * Map on which this transaction is blocked.
      */
-    MVMap blockingMap;
+    MVMap<?,VersionedValue> blockingMap;
 
     /**
      * Key in blockingMap on which this transaction is blocked.

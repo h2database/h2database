@@ -15,6 +15,7 @@ import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.store.fs.FakeFileChannel;
@@ -24,7 +25,6 @@ import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FilePathDisk;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 
 /**
  * This is a read-only file system that allows to access databases stored in a
@@ -217,7 +217,7 @@ public class FilePathZip2 extends FilePath {
             ZipInputStream file = openZip();
             String dirName = getEntryName();
             String prefix = path.substring(0, path.length() - dirName.length());
-            ArrayList<FilePath> list = New.arrayList();
+            ArrayList<FilePath> list = new ArrayList<>();
             while (true) {
                 ZipEntry entry = file.getNextEntry();
                 if (entry == null) {

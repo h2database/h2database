@@ -7,11 +7,11 @@ package org.h2.value;
 
 import java.lang.reflect.Array;
 import java.sql.PreparedStatement;
-import java.util.ArrayList;
+import java.util.Arrays;
+
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 
 /**
@@ -28,10 +28,6 @@ public class ValueArray extends Value {
         this.values = list;
     }
 
-    private ValueArray(Value[] list) {
-        this(Object.class, list);
-    }
-
     /**
      * Get or create a array value for the given value array.
      * Do not clone the data.
@@ -40,7 +36,7 @@ public class ValueArray extends Value {
      * @return the value
      */
     public static ValueArray get(Value[] list) {
-        return new ValueArray(list);
+        return new ValueArray(Object.class, list);
     }
 
     /**
@@ -210,18 +206,28 @@ public class ValueArray extends Value {
         if (!force) {
             return this;
         }
-        ArrayList<Value> list = New.arrayList();
-        for (Value v : values) {
-            v = v.convertPrecision(precision, true);
+        int length = values.length;
+        Value[] newValues = new Value[length];
+        int i = 0;
+        boolean modified = false;
+        for (; i < length; i++) {
+            Value old = values[i];
+            Value v = old.convertPrecision(precision, true);
+            if (v != old) {
+                modified = true;
+            }
             // empty byte arrays or strings have precision 0
             // they count as precision 1 here
             precision -= Math.max(1, v.getPrecision());
             if (precision < 0) {
                 break;
             }
-            list.add(v);
+            newValues[i] = v;
         }
-        return get(list.toArray(new Value[0]));
+        if (i < length) {
+            return get(componentType, Arrays.copyOf(newValues, i));
+        }
+        return modified ? get(componentType, newValues) : this;
     }
 
 }

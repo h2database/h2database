@@ -27,13 +27,13 @@ import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.FileStore;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreTool;
-import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.tx.Transaction;
+import org.h2.mvstore.tx.TransactionStore;
 import org.h2.store.InDoubtTransaction;
 import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FileUtils;
 import org.h2.table.TableBase;
-import org.h2.util.New;
+import org.h2.util.Utils;
 
 /**
  * A table engine that internally uses the MVStore.
@@ -75,12 +75,7 @@ public class MVTableEngine implements TableEngine {
             }
             if (key != null) {
                 encrypted = true;
-                char[] password = new char[key.length / 2];
-                for (int i = 0; i < password.length; i++) {
-                    password[i] = (char) (((key[i + i] & 255) << 16) |
-                            ((key[i + i + 1]) & 255));
-                }
-                builder.encryptionKey(password);
+                builder.encryptionKey(decodePassword(key));
             }
             if (db.getSettings().compressData) {
                 builder.compress();
@@ -99,6 +94,15 @@ public class MVTableEngine implements TableEngine {
         store.open(db, builder, encrypted);
         db.setMvStore(store);
         return store;
+    }
+
+    static char[] decodePassword(byte[] key) {
+        char[] password = new char[key.length / 2];
+        for (int i = 0; i < password.length; i++) {
+            password[i] = (char) (((key[i + i] & 255) << 16) |
+                    ((key[i + i + 1]) & 255));
+        }
+        return password;
     }
 
     @Override
@@ -162,7 +166,7 @@ public class MVTableEngine implements TableEngine {
                 this.transactionStore = new TransactionStore(
                         store,
                         new ValueDataType(db.getCompareMode(), db, null));
-                transactionStore.init();
+//                transactionStore.init();
             } catch (IllegalStateException e) {
                 throw convertIllegalStateException(e);
             }
@@ -206,8 +210,8 @@ public class MVTableEngine implements TableEngine {
             return transactionStore;
         }
 
-        public HashMap<String, MVTable> getTables() {
-            return new HashMap<>(tableMap);
+        public MVTable getTable(String tableName) {
+            return tableMap.get(tableName);
         }
 
         /**
@@ -299,7 +303,7 @@ public class MVTableEngine implements TableEngine {
 
         public ArrayList<InDoubtTransaction> getInDoubtTransactions() {
             List<Transaction> list = transactionStore.getOpenTransactions();
-            ArrayList<InDoubtTransaction> result = New.arrayList();
+            ArrayList<InDoubtTransaction> result = Utils.newSmallArrayList();
             for (Transaction t : list) {
                 if (t.getStatus() == Transaction.STATUS_PREPARED) {
                     result.add(new MVInDoubtTransaction(store, t));

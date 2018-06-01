@@ -24,9 +24,9 @@ import org.h2.tools.SimpleResultSet;
  * that have {@code NAME} column should also define it with the same type.
  */
 public final class MergedResultSet {
-    private final ArrayList<Map<SimpleColumnInfo, Object>> data = New.arrayList();
+    private final ArrayList<Map<SimpleColumnInfo, Object>> data = Utils.newSmallArrayList();
 
-    private final ArrayList<SimpleColumnInfo> columns = New.arrayList();
+    private final ArrayList<SimpleColumnInfo> columns = Utils.newSmallArrayList();
 
     /**
      * Appends a result set.

@@ -12,7 +12,6 @@ import java.util.HashMap;
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectOrderBy;
-import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
@@ -136,7 +135,7 @@ public class Aggregate extends Expression {
         ARRAY_AGG
     }
 
-    private static final HashMap<String, AggregateType> AGGREGATES = new HashMap<>(26);
+    private static final HashMap<String, AggregateType> AGGREGATES = new HashMap<>(64);
 
     private final AggregateType type;
     private final Select select;
@@ -252,8 +251,7 @@ public class Aggregate extends Expression {
         for (int i = 0; i < size; i++) {
             SelectOrderBy o = orderByList.get(i);
             index[i] = i + 1;
-            int order = o.descending ? SortOrder.DESCENDING : SortOrder.ASCENDING;
-            sortType[i] = order;
+            sortType[i] = o.sortType;
         }
         return new SortOrder(session.getDatabase(), index, sortType, null);
     }
@@ -268,13 +266,7 @@ public class Aggregate extends Expression {
                 }
             });
         } else {
-            final Database database = select.getSession().getDatabase();
-            Arrays.sort(array, new Comparator<Value> () {
-                @Override
-                public int compare(Value v1, Value v2) {
-                    return database.compare(v1, v2);
-                }
-            });
+            Arrays.sort(array, select.getSession().getDatabase().getCompareMode());
         }
     }
 
@@ -284,8 +276,7 @@ public class Aggregate extends Expression {
         // if (on != null) {
         // on.updateAggregate();
         // }
-        HashMap<Expression, Object> group = select.getCurrentGroup();
-        if (group == null) {
+        if (!select.isCurrentGroup()) {
             // this is a different level (the enclosing query)
             return;
         }
@@ -297,10 +288,10 @@ public class Aggregate extends Expression {
         }
         lastGroupRowId = groupRowId;
 
-        AggregateData data = (AggregateData) group.get(this);
+        AggregateData data = (AggregateData) select.getCurrentGroupExprData(this);
         if (data == null) {
             data = AggregateData.create(type);
-            group.put(this, data);
+            select.setCurrentGroupExprData(this, data);
         }
         Value v = on == null ? null : on.getValue(session);
         if (type == AggregateType.GROUP_CONCAT) {
@@ -373,13 +364,13 @@ public class Aggregate extends Expression {
                 DbException.throwInternalError("type=" + type);
             }
         }
-        HashMap<Expression, Object> group = select.getCurrentGroup();
-        if (group == null) {
+        if (!select.isCurrentGroup()) {
             throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
-        AggregateData data = (AggregateData) group.get(this);
+        AggregateData data = (AggregateData)select.getCurrentGroupExprData(this);
         if (data == null) {
             data = AggregateData.create(type);
+            select.setCurrentGroupExprData(this, data);
         }
         if (type == AggregateType.GROUP_CONCAT) {
             Value[] array = ((AggregateDataCollecting) data).getArray();
@@ -590,9 +581,7 @@ public class Aggregate extends Expression {
             for (SelectOrderBy o : orderByList) {
                 buff.appendExceptFirst(", ");
                 buff.append(o.expression.getSQL());
-                if (o.descending) {
-                    buff.append(" DESC");
-                }
+                SortOrder.typeToString(buff.builder(), o.sortType);
             }
         }
         if (groupConcatSeparator != null) {
@@ -616,9 +605,7 @@ public class Aggregate extends Expression {
             for (SelectOrderBy o : orderByList) {
                 buff.appendExceptFirst(", ");
                 buff.append(o.expression.getSQL());
-                if (o.descending) {
-                    buff.append(" DESC");
-                }
+                SortOrder.typeToString(buff.builder(), o.sortType);
             }
         }
         buff.append(')');

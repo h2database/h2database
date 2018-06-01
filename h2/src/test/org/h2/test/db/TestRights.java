@@ -48,6 +48,8 @@ public class TestRights extends TestBase {
         testSchemaRenameUser();
         testAccessRights();
         testSchemaAdminRole();
+        testTableRename();
+        testSchemaRename();
         testSchemaDrop();
         deleteDb("rights");
     }
@@ -489,6 +491,43 @@ public class TestRights extends TestBase {
         execute("UPDATE SCHEMA_RIGHT_TEST_EXISTS.TEST_EXISTS Set NAME = 'Douglas'");
         assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat).
         execute("DELETE FROM SCHEMA_RIGHT_TEST_EXISTS.TEST_EXISTS");
+        conn.close();
+    }
+
+    private void testTableRename() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("rights");
+        Connection conn = getConnection("rights");
+        stat = conn.createStatement();
+        stat.execute("create user test password '' admin");
+        stat.execute("create schema b");
+        stat.execute("create table b.t1(id int)");
+        stat.execute("grant select on b.t1 to test");
+        stat.execute("alter table b.t1 rename to b.t2");
+        conn.close();
+        conn = getConnection("rights");
+        stat = conn.createStatement();
+        stat.execute("drop user test");
+        conn.close();
+    }
+
+    private void testSchemaRename() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("rights");
+        Connection conn = getConnection("rights");
+        stat = conn.createStatement();
+        stat.execute("create user test password '' admin");
+        stat.execute("create schema b");
+        stat.execute("grant select on schema b to test");
+        stat.execute("alter schema b rename to c");
+        conn.close();
+        conn = getConnection("rights");
+        stat = conn.createStatement();
+        stat.execute("drop user test");
         conn.close();
     }
 

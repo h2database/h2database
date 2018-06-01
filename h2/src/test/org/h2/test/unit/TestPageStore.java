@@ -28,7 +28,6 @@ import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
-import org.h2.util.New;
 
 /**
  * Test the page store.
@@ -46,7 +45,6 @@ public class TestPageStore extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        System.setProperty("h2.check2", "true");
         TestBase.createCaller().init().test();
     }
 
@@ -179,7 +177,7 @@ public class TestPageStore extends TestBase {
         stat.execute("insert into test " +
                 "select x, space(1100+x) from system_range(1, 100)");
         Random r = new Random(1);
-        ArrayList<Connection> list = New.arrayList();
+        ArrayList<Connection> list = new ArrayList<>(10);
         for (int i = 0; i < 10; i++) {
             Connection conn2 = getConnection(url, getUser(), getPassword());
             list.add(conn2);

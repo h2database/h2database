@@ -32,13 +32,13 @@ public class ThreadDeadlockDetector {
 
     private final ThreadMXBean threadBean;
 
-    // a daemon thread
-    private final Timer threadCheck = new Timer("ThreadDeadlockDetector", true);
-
     private ThreadDeadlockDetector() {
         this.threadBean = ManagementFactory.getThreadMXBean();
+
+        // a daemon thread
         // delay: 10 ms
         // period: 10000 ms (100 seconds)
+        Timer threadCheck = new Timer("ThreadDeadlockDetector", true);
         threadCheck.schedule(new TimerTask() {
             @Override
             public void run() {

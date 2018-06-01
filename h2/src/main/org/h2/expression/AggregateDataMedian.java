@@ -8,10 +8,10 @@ package org.h2.expression;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.engine.SysProperties;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.result.SearchRow;
@@ -42,7 +42,8 @@ class AggregateDataMedian extends AggregateDataCollecting {
         IndexColumn ic = index.getIndexColumns()[0];
         int sortType = ic.sortType;
         return (sortType & SortOrder.NULLS_LAST) != 0
-                || (sortType & SortOrder.DESCENDING) != 0 && (sortType & SortOrder.NULLS_FIRST) == 0;
+                || (sortType & SortOrder.NULLS_FIRST) == 0
+                        && ((sortType & SortOrder.DESCENDING) != 0 ^ SysProperties.SORT_NULLS_HIGH);
     }
 
     /**
@@ -171,12 +172,7 @@ class AggregateDataMedian extends AggregateDataCollecting {
             return ValueNull.INSTANCE;
         }
         final CompareMode mode = database.getCompareMode();
-        Arrays.sort(a, new Comparator<Value>() {
-            @Override
-            public int compare(Value o1, Value o2) {
-                return o1.compareTo(o2, mode);
-            }
-        });
+        Arrays.sort(a, mode);
         int len = a.length;
         int idx = len / 2;
         Value v1 = a[idx];

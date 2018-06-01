@@ -6,9 +6,10 @@
 package org.h2.engine;
 
 import java.util.ArrayList;
+
 import org.h2.command.CommandInterface;
 import org.h2.result.ResultInterface;
-import org.h2.util.New;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 
 /**
@@ -46,7 +47,7 @@ abstract class SessionWithState implements SessionInterface {
             return;
         }
         sessionStateChanged = false;
-        sessionState = New.arrayList();
+        sessionState = Utils.newSmallArrayList();
         CommandInterface ci = prepareCommand(
                 "SELECT * FROM INFORMATION_SCHEMA.SESSION_STATE",
                 Integer.MAX_VALUE);

@@ -8,7 +8,6 @@ package org.h2.test.db;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -45,7 +44,7 @@ public class TestSpaceReuse extends TestBase {
             conn.createStatement().execute("delete from t");
             conn.close();
             String fileName = getBaseDir() + "/spaceReuse";
-            if (Constants.VERSION_MINOR >= 4) {
+            if (config.mvStore) {
                 fileName += Constants.SUFFIX_MV_FILE;
             } else {
                 fileName += Constants.SUFFIX_PAGE_FILE;

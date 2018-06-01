@@ -252,7 +252,12 @@ public class SetTypes {
      */
     public static final int COLUMN_NAME_RULES = 48;
 
-    private static final int COUNT = COLUMN_NAME_RULES + 1;
+    /**
+     * The type of a SET AUTHENTICATOR statement.
+     */
+    public static final int AUTHENTICATOR= 49;
+
+    private static final int COUNT = AUTHENTICATOR + 1;
 
     private static final ArrayList<String> TYPES;
 
@@ -311,6 +316,7 @@ public class SetTypes {
         list.add(LAZY_QUERY_EXECUTION, "LAZY_QUERY_EXECUTION");
         list.add(BUILTIN_ALIAS_OVERRIDE, "BUILTIN_ALIAS_OVERRIDE");
         list.add(COLUMN_NAME_RULES, "COLUMN_NAME_RULES");
+        list.add(AUTHENTICATOR, "AUTHENTICATOR");
         TYPES = list;
     }
 

@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 import org.h2.engine.Constants;
 import org.h2.server.web.ConnectionInfo;
 import org.h2.util.JdbcUtils;
-import org.h2.util.New;
 import org.h2.util.ScriptReader;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
@@ -49,7 +48,7 @@ public class Shell extends Tool implements Runnable {
     private Statement stat;
     private boolean listMode;
     private int maxColumnSize = 100;
-    private final ArrayList<String> history = New.arrayList();
+    private final ArrayList<String> history = new ArrayList<>();
     private boolean stopHide;
     private String serverPropertiesDir = Constants.SERVER_PROPERTIES_DIR;
 
@@ -249,7 +248,7 @@ public class Shell extends Tool implements Runnable {
                         println("No history");
                     }
                 } else if (lower.startsWith("autocommit")) {
-                    lower = lower.substring("autocommit".length()).trim();
+                    lower = StringUtils.trimSubstring(lower, "autocommit".length());
                     if ("true".equals(lower)) {
                         conn.setAutoCommit(true);
                     } else if ("false".equals(lower)) {
@@ -259,7 +258,7 @@ public class Shell extends Tool implements Runnable {
                     }
                     println("Autocommit is now " + conn.getAutoCommit());
                 } else if (lower.startsWith("maxwidth")) {
-                    lower = lower.substring("maxwidth".length()).trim();
+                    lower = StringUtils.trimSubstring(lower, "maxwidth".length());
                     try {
                         maxColumnSize = Integer.parseInt(lower);
                     } catch (NumberFormatException e) {
@@ -334,7 +333,7 @@ public class Shell extends Tool implements Runnable {
             String data = null;
             boolean found = false;
             for (int i = 0;; i++) {
-                String d = prop.getProperty(String.valueOf(i));
+                String d = prop.getProperty(Integer.toString(i));
                 if (d == null) {
                     break;
                 }
@@ -446,7 +445,7 @@ public class Shell extends Tool implements Runnable {
     }
 
     private void execute(String sql) {
-        if (sql.trim().length() == 0) {
+        if (StringUtils.isWhitespaceOrEmpty(sql)) {
             return;
         }
         long time = System.nanoTime();
@@ -487,7 +486,7 @@ public class Shell extends Tool implements Runnable {
         ResultSetMetaData meta = rs.getMetaData();
         int len = meta.getColumnCount();
         boolean truncated = false;
-        ArrayList<String[]> rows = New.arrayList();
+        ArrayList<String[]> rows = new ArrayList<>();
         // buffer the header
         String[] columns = new String[len];
         for (int i = 0; i < len; i++) {

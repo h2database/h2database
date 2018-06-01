@@ -7,9 +7,10 @@ package org.h2.table;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
+import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.command.dml.Select;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -28,9 +29,9 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
@@ -80,7 +81,7 @@ public class TableFilter implements ColumnResolver {
     /**
      * The index conditions used for direct index lookup (start or end).
      */
-    private final ArrayList<IndexCondition> indexConditions = New.arrayList();
+    private final ArrayList<IndexCondition> indexConditions = Utils.newSmallArrayList();
 
     /**
      * Additional conditions that can't be used for index lookup, but for row
@@ -194,7 +195,7 @@ public class TableFilter implements ColumnResolver {
      * @return the best plan item
      */
     public PlanItem getBestPlanItem(Session s, TableFilter[] filters, int filter,
-            HashSet<Column> allColumnsSet) {
+            AllColumnsForPlan allColumnsSet) {
         PlanItem item1 = null;
         SortOrder sortOrder = null;
         if (select != null) {
@@ -777,7 +778,7 @@ public class TableFilter implements ColumnResolver {
             return buff.toString();
         }
         if (table.isView() && ((TableView) table).isRecursive()) {
-            buff.append(table.getName());
+            buff.append(table.getSchema().getSQL()).append('.').append(Parser.quoteIdentifier(table.getName()));
         } else {
             buff.append(table.getSQL());
         }
@@ -807,7 +808,7 @@ public class TableFilter implements ColumnResolver {
                 IndexLookupBatch lookupBatch = joinBatch.getLookupBatch(joinFilterId);
                 if (lookupBatch == null) {
                     if (joinFilterId != 0) {
-                        throw DbException.throwInternalError("" + joinFilterId);
+                        throw DbException.throwInternalError(Integer.toString(joinFilterId));
                     }
                 } else {
                     planBuff.append("batched:");
@@ -1076,7 +1077,7 @@ public class TableFilter implements ColumnResolver {
         if (count != derivedColumnNames.size()) {
             throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
         }
-        HashMap<Column, String> map = new HashMap<>(count);
+        HashMap<Column, String> map = new HashMap<>();
         for (int i = 0; i < count; i++) {
             String alias = derivedColumnNames.get(i);
             for (int j = 0; j < i; j++) {
@@ -1106,7 +1107,7 @@ public class TableFilter implements ColumnResolver {
      */
     public void addNaturalJoinColumn(Column c) {
         if (naturalJoinColumns == null) {
-            naturalJoinColumns = New.arrayList();
+            naturalJoinColumns = Utils.newSmallArrayList();
         }
         naturalJoinColumns.add(c);
     }

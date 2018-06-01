@@ -51,7 +51,7 @@ public class DropSchema extends DefineCommand {
             }
             if (dropAction == ConstraintActionType.RESTRICT && !schema.isEmpty()) {
                 StatementBuilder buff = new StatementBuilder();
-                for (SchemaObject object : schema.getAll()) {
+                for (SchemaObject object : schema.getAll(null)) {
                     buff.appendExceptFirst(", ");
                     buff.append(object.getName());
                 }

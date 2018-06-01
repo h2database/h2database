@@ -198,7 +198,7 @@ class WebSession {
      * @return a map containing the session meta data
      */
     HashMap<String, Object> getInfo() {
-        HashMap<String, Object> m = new HashMap<>(map.size() + 5);
+        HashMap<String, Object> m = new HashMap<>();
         m.putAll(map);
         m.put("lastAccess", new Timestamp(lastAccess).toString());
         try {

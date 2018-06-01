@@ -25,7 +25,7 @@ import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.New;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
@@ -317,7 +317,7 @@ public abstract class Query extends Prepared {
     public final Value[] getParameterValues() {
         ArrayList<Parameter> list = getParameters();
         if (list == null) {
-            list = New.arrayList();
+            return new Value[0];
         }
         int size = list.size();
         Value[] params = new Value[size];
@@ -520,19 +520,18 @@ public abstract class Query extends Prepared {
                 }
                 idx -= 1;
                 if (idx < 0 || idx >= expressionCount) {
-                    throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT, "" + (idx + 1));
+                    throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT, Integer.toString(idx + 1));
                 }
             }
             index[i] = idx;
-            boolean desc = o.descending;
+            int type = o.sortType;
             if (reverse) {
-                desc = !desc;
-            }
-            int type = desc ? SortOrder.DESCENDING : SortOrder.ASCENDING;
-            if (o.nullsFirst) {
-                type += SortOrder.NULLS_FIRST;
-            } else if (o.nullsLast) {
-                type += SortOrder.NULLS_LAST;
+                // TODO NULLS FIRST / LAST should be inverted too?
+                if ((type & SortOrder.DESCENDING) != 0) {
+                    type &= ~SortOrder.DESCENDING;
+                } else {
+                    type |= SortOrder.DESCENDING;
+                }
             }
             sortType[i] = type;
         }
@@ -562,7 +561,7 @@ public abstract class Query extends Prepared {
      */
     void addParameter(Parameter param) {
         if (parameters == null) {
-            parameters = New.arrayList();
+            parameters = Utils.newSmallArrayList();
         }
         parameters.add(param);
     }

@@ -11,6 +11,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.PrintStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,12 +20,14 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
+import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**
@@ -36,16 +40,16 @@ public class TestScript extends TestBase {
 
     /** If set to true, the test will exit at the first failure. */
     private boolean failFast;
-    private final ArrayList<String> statements = New.arrayList();
+    /** If set to a value the test will add all executed statements to this list */
+    private ArrayList<String> statements;
 
     private boolean reconnectOften;
     private Connection conn;
     private Statement stat;
     private String fileName;
     private LineNumberReader in;
-    private int outputLineNo;
     private PrintStream out;
-    private final ArrayList<String[]> result = New.arrayList();
+    private final ArrayList<String[]> result = new ArrayList<>();
     private String putBack;
     private StringBuilder errors;
 
@@ -68,10 +72,14 @@ public class TestScript extends TestBase {
      */
     public ArrayList<String> getAllStatements(TestAll conf) throws Exception {
         config = conf;
-        if (statements.isEmpty()) {
+        ArrayList<String> result = new ArrayList<>(4000);
+        try {
+            statements = result;
             test();
+        } finally {
+            this.statements = null;
         }
-        return statements;
+        return result;
     }
 
     @Override
@@ -82,11 +90,15 @@ public class TestScript extends TestBase {
         reconnectOften = !config.memory && config.big;
 
         testScript("testScript.sql");
+        testScript("comments.sql");
         testScript("derived-column-names.sql");
+        testScript("dual.sql");
+        testScript("indexes.sql");
         testScript("information_schema.sql");
         testScript("joins.sql");
         testScript("range_table.sql");
         testScript("altertable-index-reuse.sql");
+        testScript("altertable-fk.sql");
         testScript("default-and-on_update.sql");
         testScript("query-optimisations.sql");
         String decimal2;
@@ -104,11 +116,12 @@ public class TestScript extends TestBase {
             testScript("datatypes/" + s + ".sql");
         }
         for (String s : new String[] { "alterTableAdd", "alterTableDropColumn",
-                "createAlias", "createView", "createTable",
+                "createAlias", "createSynonym", "createView", "createTable", "createTrigger",
                 "dropSchema" }) {
             testScript("ddl/" + s + ".sql");
         }
-        for (String s : new String[] { "insertIgnore", "mergeUsing", "script", "with" }) {
+        for (String s : new String[] { "error_reporting", "insertIgnore",
+                "mergeUsing", "script", "with" }) {
             testScript("dml/" + s + ".sql");
         }
         for (String s : new String[] { "avg", "bit-and", "bit-or", "count",
@@ -119,7 +132,7 @@ public class TestScript extends TestBase {
         for (String s : new String[] { "abs", "acos", "asin", "atan", "atan2",
                 "bitand", "bitget", "bitor", "bitxor", "ceil", "compress",
                 "cos", "cosh", "cot", "decrypt", "degrees", "encrypt", "exp",
-                "expand", "floor", "hash", "length", "log", "mod", "pi",
+                "expand", "floor", "hash", "length", "log", "mod", "ora-hash", "pi",
                 "power", "radians", "rand", "random-uuid", "round",
                 "roundmagic", "secure-rand", "sign", "sin", "sinh", "sqrt",
                 "tan", "tanh", "truncate", "zero" }) {
@@ -168,13 +181,14 @@ public class TestScript extends TestBase {
         stat = null;
         fileName = null;
         in = null;
-        outputLineNo = 0;
         out = null;
         result.clear();
         putBack = null;
         errors = null;
 
-        println("Running commands in " + scriptFileName);
+        if (statements == null) {
+            println("Running commands in " + scriptFileName);
+        }
         final String outFile = "test.out.txt";
         conn = getConnection("script");
         stat = conn.createStatement();
@@ -198,7 +212,37 @@ public class TestScript extends TestBase {
         while (true) {
             String s = in.readLine();
             if (s == null) {
-                return s;
+                return null;
+            }
+            if (s.startsWith("#")) {
+                int end = s.indexOf('#', 1);
+                if (end < 3) {
+                    fail("Bad line \"" + s + '\"');
+                }
+                boolean val;
+                switch (s.charAt(1)) {
+                case '+':
+                    val = true;
+                    break;
+                case '-':
+                    val = false;
+                    break;
+                default:
+                    fail("Bad line \"" + s + '\"');
+                    return null;
+                }
+                String flag = s.substring(2, end);
+                s = s.substring(end + 1);
+                switch (flag) {
+                case "mvStore":
+                    if (config.mvStore == val) {
+                        break;
+                    } else {
+                        continue;
+                    }
+                default:
+                    fail("Unknown flag \"" + flag + '\"');
+                }
             }
             s = s.trim();
             if (s.length() > 0) {
@@ -223,7 +267,7 @@ public class TestScript extends TestBase {
             if (sql.startsWith("--")) {
                 write(sql);
             } else if (sql.startsWith(">")) {
-                // do nothing
+                addWriteResultError("<command>", sql);
             } else if (sql.endsWith(";")) {
                 write(sql);
                 buff.append(sql, 0, sql.length() - 1);
@@ -265,7 +309,9 @@ public class TestScript extends TestBase {
                 }
             }
         }
-        statements.add(sql);
+        if (statements != null) {
+            statements.add(sql);
+        }
         if (sql.indexOf('?') == -1) {
             processStatement(sql);
         } else {
@@ -454,16 +500,30 @@ public class TestScript extends TestBase {
         return buff.toString();
     }
 
-    private void writeException(String sql, SQLException e) throws Exception {
-        writeResult(sql, "exception", e);
+    /** Convert the error code to a symbolic name from ErrorCode. */
+    private static final Map<Integer, String> ERROR_CODE_TO_NAME = new HashMap<>(256);
+    static {
+        try {
+            for (Field field : ErrorCode.class.getDeclaredFields()) {
+                if (field.getModifiers() == (Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL)) {
+                    ERROR_CODE_TO_NAME.put(field.getInt(null), field.getName());
+                }
+            }
+        } catch (IllegalAccessException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
-    private void writeResult(String sql, String s, SQLException e) throws Exception {
-        writeResult(sql, s, e, "> ");
+    private void writeException(String sql, SQLException ex) throws Exception {
+        writeResult(sql, "exception " + ERROR_CODE_TO_NAME.get(ex.getErrorCode()), ex);
     }
 
-    private void writeResult(String sql, String s, SQLException e, String prefix) throws Exception {
-        assertKnownException(sql, e);
+    private void writeResult(String sql, String s, SQLException ex) throws Exception {
+        writeResult(sql, s, ex, "> ");
+    }
+
+    private void writeResult(String sql, String s, SQLException ex, String prefix) throws Exception {
+        assertKnownException(sql, ex);
         s = (prefix + s).trim();
         String compare = readLine();
         if (compare != null && compare.startsWith(">")) {
@@ -471,27 +531,32 @@ public class TestScript extends TestBase {
                 if (reconnectOften && sql.toUpperCase().startsWith("EXPLAIN")) {
                     return;
                 }
-                errors.append(fileName).append('\n');
-                errors.append("line: ").append(outputLineNo).append('\n');
-                errors.append("exp: ").append(compare).append('\n');
-                errors.append("got: ").append(s).append('\n');
-                if (e != null) {
-                    TestBase.logError("script", e);
+                addWriteResultError(compare, s);
+                if (ex != null) {
+                    TestBase.logError("script", ex);
                 }
-                TestBase.logErrorMessage(errors.toString());
                 if (failFast) {
                     conn.close();
                     System.exit(1);
                 }
             }
         } else {
+            addWriteResultError("<nothing>", s);
             putBack = compare;
         }
         write(s);
     }
 
+    private void addWriteResultError(String expected, String got) {
+        int idx = errors.length();
+        errors.append(fileName).append('\n');
+        errors.append("line: ").append(in.getLineNumber()).append('\n');
+        errors.append("exp: ").append(expected).append('\n');
+        errors.append("got: ").append(got).append('\n');
+        TestBase.logErrorMessage(errors.substring(idx));
+    }
+
     private void write(String s) {
-        outputLineNo++;
         out.println(s);
     }
 

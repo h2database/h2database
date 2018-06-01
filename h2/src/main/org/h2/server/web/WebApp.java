@@ -33,6 +33,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
+
 import org.h2.api.ErrorCode;
 import org.h2.bnf.Bnf;
 import org.h2.bnf.context.DbColumn;
@@ -55,7 +56,6 @@ import org.h2.tools.RunScript;
 import org.h2.tools.Script;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.JdbcUtils;
-import org.h2.util.New;
 import org.h2.util.Profiler;
 import org.h2.util.ScriptReader;
 import org.h2.util.SortedProperties;
@@ -250,8 +250,8 @@ public class WebApp {
     private String autoCompleteList() {
         String query = (String) attributes.get("query");
         boolean lowercase = false;
-        if (query.trim().length() > 0 &&
-                Character.isLowerCase(query.trim().charAt(0))) {
+        String tQuery = query.trim();
+        if (!tQuery.isEmpty() && Character.isLowerCase(tQuery.charAt(0))) {
             lowercase = true;
         }
         try {
@@ -281,7 +281,8 @@ public class WebApp {
                 while (sql.length() > 0 && sql.charAt(0) <= ' ') {
                     sql = sql.substring(1);
                 }
-                if (sql.trim().length() > 0 && Character.isLowerCase(sql.trim().charAt(0))) {
+                String tSql = sql.trim();
+                if (!tSql.isEmpty() && Character.isLowerCase(tSql.charAt(0))) {
                     lowercase = true;
                 }
                 Bnf bnf = session.getBnf();
@@ -301,7 +302,7 @@ public class WebApp {
                 for (Map.Entry<String, String> entry : map.entrySet()) {
                     String key = entry.getKey();
                     String value = entry.getValue();
-                    String type = "" + key.charAt(0);
+                    String type = String.valueOf(key.charAt(0));
                     if (Integer.parseInt(type) > 2) {
                         continue;
                     }
@@ -320,7 +321,7 @@ public class WebApp {
                     list.add(type + "#" + key + "#" + value);
                 }
                 Collections.sort(list);
-                if (query.endsWith("\n") || query.trim().endsWith(";")) {
+                if (query.endsWith("\n") || tQuery.endsWith(";")) {
                     list.add(0, "1#(Newline)#\n");
                 }
                 StatementBuilder buff = new StatementBuilder();
@@ -338,8 +339,8 @@ public class WebApp {
     }
 
     private String admin() {
-        session.put("port", "" + server.getPort());
-        session.put("allowOthers", "" + server.getAllowOthers());
+        session.put("port", Integer.toString(server.getPort()));
+        session.put("allowOthers", Boolean.toString(server.getAllowOthers()));
         session.put("ssl", String.valueOf(server.getSSL()));
         session.put("sessions", server.getSessions());
         return "admin.jsp";
@@ -349,7 +350,7 @@ public class WebApp {
         try {
             Properties prop = new SortedProperties();
             int port = Integer.decode((String) attributes.get("port"));
-            prop.setProperty("webPort", String.valueOf(port));
+            prop.setProperty("webPort", Integer.toString(port));
             server.setPort(port);
             boolean allowOthers = Utils.parseBoolean((String) attributes.get("allowOthers"), false, false);
             prop.setProperty("webAllowOthers", String.valueOf(allowOthers));
@@ -990,7 +991,7 @@ public class WebApp {
         String sql = attributes.getProperty("sql").trim();
         try {
             ScriptReader r = new ScriptReader(new StringReader(sql));
-            final ArrayList<String> list = New.arrayList();
+            final ArrayList<String> list = new ArrayList<>();
             while (true) {
                 String s = r.readStatement();
                 if (s == null) {
@@ -1172,26 +1173,26 @@ public class WebApp {
             SimpleResultSet rs = new SimpleResultSet();
             rs.addColumn("Type", Types.VARCHAR, 0, 0);
             rs.addColumn("KB", Types.VARCHAR, 0, 0);
-            rs.addRow("Used Memory", "" + Utils.getMemoryUsed());
-            rs.addRow("Free Memory", "" + Utils.getMemoryFree());
+            rs.addRow("Used Memory", Integer.toString(Utils.getMemoryUsed()));
+            rs.addRow("Free Memory", Integer.toString(Utils.getMemoryFree()));
             return rs;
         } else if (isBuiltIn(sql, "@info")) {
             SimpleResultSet rs = new SimpleResultSet();
             rs.addColumn("KEY", Types.VARCHAR, 0, 0);
             rs.addColumn("VALUE", Types.VARCHAR, 0, 0);
             rs.addRow("conn.getCatalog", conn.getCatalog());
-            rs.addRow("conn.getAutoCommit", "" + conn.getAutoCommit());
-            rs.addRow("conn.getTransactionIsolation", "" + conn.getTransactionIsolation());
-            rs.addRow("conn.getWarnings", "" + conn.getWarnings());
+            rs.addRow("conn.getAutoCommit", Boolean.toString(conn.getAutoCommit()));
+            rs.addRow("conn.getTransactionIsolation", Integer.toString(conn.getTransactionIsolation()));
+            rs.addRow("conn.getWarnings", String.valueOf(conn.getWarnings()));
             String map;
             try {
-                map = "" + conn.getTypeMap();
+                map = String.valueOf(conn.getTypeMap());
             } catch (SQLException e) {
                 map = e.toString();
             }
-            rs.addRow("conn.getTypeMap", "" + map);
-            rs.addRow("conn.isReadOnly", "" + conn.isReadOnly());
-            rs.addRow("conn.getHoldability", "" + conn.getHoldability());
+            rs.addRow("conn.getTypeMap", map);
+            rs.addRow("conn.isReadOnly", Boolean.toString(conn.isReadOnly()));
+            rs.addRow("conn.getHoldability", Integer.toString(conn.getHoldability()));
             addDatabaseMetaData(rs, meta);
             return rs;
         } else if (isBuiltIn(sql, "@attributes")) {
@@ -1229,7 +1230,7 @@ public class WebApp {
             if (m.getParameterTypes().length == 0) {
                 try {
                     Object o = m.invoke(meta);
-                    rs.addRow("meta." + m.getName(), "" + o);
+                    rs.addRow("meta." + m.getName(), String.valueOf(o));
                 } catch (InvocationTargetException e) {
                     rs.addRow("meta." + m.getName(), e.getTargetException().toString());
                 } catch (Exception e) {
@@ -1302,41 +1303,40 @@ public class WebApp {
                 return buff.toString();
             } else if (isBuiltIn(sql, "@edit")) {
                 edit = true;
-                sql = sql.substring("@edit".length()).trim();
+                sql = StringUtils.trimSubstring(sql, "@edit".length());
                 session.put("resultSetSQL", sql);
             }
             if (isBuiltIn(sql, "@list")) {
                 list = true;
-                sql = sql.substring("@list".length()).trim();
+                sql = StringUtils.trimSubstring(sql, "@list".length());
             }
             if (isBuiltIn(sql, "@meta")) {
                 metadata = true;
-                sql = sql.substring("@meta".length()).trim();
+                sql = StringUtils.trimSubstring(sql, "@meta".length());
             }
             if (isBuiltIn(sql, "@generated")) {
                 generatedKeys = Statement.RETURN_GENERATED_KEYS;
-                sql = sql.substring("@generated".length()).trim();
+                sql = StringUtils.trimSubstring(sql, "@generated".length());
             } else if (isBuiltIn(sql, "@history")) {
                 buff.append(getCommandHistoryString());
                 return buff.toString();
             } else if (isBuiltIn(sql, "@loop")) {
-                sql = sql.substring("@loop".length()).trim();
+                sql = StringUtils.trimSubstring(sql, "@loop".length());
                 int idx = sql.indexOf(' ');
                 int count = Integer.decode(sql.substring(0, idx));
-                sql = sql.substring(idx).trim();
+                sql = StringUtils.trimSubstring(sql, idx);
                 return executeLoop(conn, count, sql);
             } else if (isBuiltIn(sql, "@maxrows")) {
-                int maxrows = (int) Double.parseDouble(
-                        sql.substring("@maxrows".length()).trim());
-                session.put("maxrows", "" + maxrows);
+                int maxrows = (int) Double.parseDouble(StringUtils.trimSubstring(sql, "@maxrows".length()));
+                session.put("maxrows", Integer.toString(maxrows));
                 return "${text.result.maxrowsSet}";
             } else if (isBuiltIn(sql, "@parameter_meta")) {
-                sql = sql.substring("@parameter_meta".length()).trim();
+                sql = StringUtils.trimSubstring(sql, "@parameter_meta".length());
                 PreparedStatement prep = conn.prepareStatement(sql);
                 buff.append(getParameterResultSet(prep.getParameterMetaData()));
                 return buff.toString();
             } else if (isBuiltIn(sql, "@password_hash")) {
-                sql = sql.substring("@password_hash".length()).trim();
+                sql = StringUtils.trimSubstring(sql, "@password_hash".length());
                 String[] p = split(sql);
                 return StringUtils.convertBytesToHex(
                         SHA256.getKeyPasswordHash(p[0], p[1].toCharArray()));
@@ -1348,7 +1348,7 @@ public class WebApp {
                 profiler.startCollecting();
                 return "Ok";
             } else if (isBuiltIn(sql, "@sleep")) {
-                String s = sql.substring("@sleep".length()).trim();
+                String s = StringUtils.trimSubstring(sql, "@sleep".length());
                 int sleep = 1;
                 if (s.length() > 0) {
                     sleep = Integer.parseInt(s);
@@ -1356,7 +1356,7 @@ public class WebApp {
                 Thread.sleep(sleep * 1000);
                 return "Ok";
             } else if (isBuiltIn(sql, "@transaction_isolation")) {
-                String s = sql.substring("@transaction_isolation".length()).trim();
+                String s = StringUtils.trimSubstring(sql, "@transaction_isolation".length());
                 if (s.length() > 0) {
                     int level = Integer.parseInt(s);
                     conn.setTransactionIsolation(level);
@@ -1420,12 +1420,13 @@ public class WebApp {
     }
 
     private static boolean isBuiltIn(String sql, String builtIn) {
-        return StringUtils.startsWithIgnoreCase(sql, builtIn);
+        int len = builtIn.length();
+        return sql.length() >= len && sql.regionMatches(true, 0, builtIn, 0, len);
     }
 
     private String executeLoop(Connection conn, int count, String sql)
             throws SQLException {
-        ArrayList<Integer> params = New.arrayList();
+        ArrayList<Integer> params = new ArrayList<>();
         int idx = 0;
         while (!stop) {
             idx = sql.indexOf('?', idx);
@@ -1444,7 +1445,7 @@ public class WebApp {
         Random random = new Random(1);
         long time = System.currentTimeMillis();
         if (isBuiltIn(sql, "@statement")) {
-            sql = sql.substring("@statement".length()).trim();
+            sql = StringUtils.trimSubstring(sql, "@statement".length());
             prepared = false;
             Statement stat = conn.createStatement();
             for (int i = 0; !stop && i < count; i++) {

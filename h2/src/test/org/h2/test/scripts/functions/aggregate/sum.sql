@@ -18,6 +18,7 @@ select sum(v), sum(v) filter (where v >= 4) from test where v <= 10;
 > rows: 1
 
 create index test_idx on test(v);
+> ok
 
 select sum(v), sum(v) filter (where v >= 4) from test where v <= 10;
 > SUM(V) SUM(V) FILTER (WHERE (V >= 4))

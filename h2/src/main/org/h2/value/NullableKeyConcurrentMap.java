@@ -7,15 +7,29 @@ package org.h2.value;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.h2.util.StringUtils;
+
 /**
- * A concurrent hash map that allows null keys
+ * A concurrent hash map with string keys that allows null keys.
  *
  * @param <V> the value type
  */
 public class NullableKeyConcurrentMap<V> extends ConcurrentHashMap<String, V> {
 
     private static final long serialVersionUID = 1L;
-    private static final String NULL = new String(new byte[0]);
+    private static final String NULL = new String();
+
+    private final boolean toUpper;
+
+    /**
+     * Create new instance of map.
+     *
+     * @param toUpper
+     *                    whether keys should be converted to upper case
+     */
+    public NullableKeyConcurrentMap(boolean toUpper) {
+        this.toUpper = toUpper;
+    }
 
     @Override
     public V get(Object key) {
@@ -37,8 +51,12 @@ public class NullableKeyConcurrentMap<V> extends ConcurrentHashMap<String, V> {
         return super.remove(toUpper(key));
     }
 
-    private static String toUpper(Object key) {
-        return key == null ? NULL : key.toString();
+    private String toUpper(Object key) {
+        if (key == null) {
+            return NULL;
+        }
+        String s = key.toString();
+        return toUpper ? StringUtils.toUpperEnglish(s) : s;
     }
 
 }

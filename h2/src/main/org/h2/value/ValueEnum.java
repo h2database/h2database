@@ -54,11 +54,6 @@ public class ValueEnum extends ValueEnumBase {
         }
     }
 
-    @Override
-    protected int compareSecure(final Value v, final CompareMode mode) {
-        return Integer.compare(getInt(), v.getInt());
-    }
-
     /**
      * Create an ENUM value from the provided enumerators
      * and value.
@@ -84,6 +79,26 @@ public class ValueEnum extends ValueEnumBase {
         }
 
         throw DbException.get(ErrorCode.GENERAL_ERROR_1, "Unexpected error");
+    }
+
+    /**
+     * Returns enumerators for the two specified values for a binary operation.
+     *
+     * @param left
+     *                  left (first) operand
+     * @param right
+     *                  right (second) operand
+     * @return enumerators from the left or the right value, or an empty array if
+     *         both values do not have enumerators
+     */
+    public static String[] getEnumeratorsForBinaryOperation(Value left, Value right) {
+        if (left.getType() == Value.ENUM) {
+            return ((ValueEnum) left).getEnumerators();
+        } else if (right.getType() == Value.ENUM) {
+            return ((ValueEnum) right).getEnumerators();
+        } else {
+            return new String[0];
+        }
     }
 
     public String[] getEnumerators() {

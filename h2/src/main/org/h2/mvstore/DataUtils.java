@@ -97,6 +97,11 @@ public final class DataUtils {
     public static final int ERROR_TRANSACTION_ILLEGAL_STATE = 103;
 
     /**
+     * The transaction contains too many changes.
+     */
+    public static final int ERROR_TRANSACTION_TOO_BIG = 104;
+
+    /**
      * The type for leaf page.
      */
     public static final int PAGE_TYPE_LEAF = 0;
@@ -1019,39 +1024,6 @@ public final class DataUtils {
             throw newIllegalStateException(ERROR_FILE_CORRUPT,
                     "Error parsing the value {0}", v, e);
         }
-    }
-
-    /**
-     * An entry of a map.
-     *
-     * @param <K> the key type
-     * @param <V> the value type
-     */
-    public static final class MapEntry<K, V> implements Map.Entry<K, V> {
-
-        private final K key;
-        private final V value;
-
-        public MapEntry(K key, V value) {
-            this.key = key;
-            this.value = value;
-        }
-
-        @Override
-        public K getKey() {
-            return key;
-        }
-
-        @Override
-        public V getValue() {
-            return value;
-        }
-
-        @Override
-        public V setValue(V value) {
-            throw newUnsupportedOperationException("Updating the value is not supported");
-        }
-
     }
 
     /**

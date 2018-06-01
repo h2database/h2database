@@ -14,6 +14,9 @@ import org.h2.command.Parser;
 import org.h2.command.dml.SetTypes;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.security.auth.AuthenticationException;
+import org.h2.security.auth.AuthenticationInfo;
+import org.h2.security.auth.Authenticator;
 import org.h2.store.FileLock;
 import org.h2.store.FileLockMethod;
 import org.h2.util.MathUtils;
@@ -90,10 +93,26 @@ public class Engine implements SessionFactory {
         }
         if (user == null) {
             if (database.validateFilePasswordHash(cipher, ci.getFilePasswordHash())) {
-                user = database.findUser(ci.getUserName());
-                if (user != null) {
-                    if (!user.validateUserPasswordHash(ci.getUserPasswordHash())) {
-                        user = null;
+                if (ci.getProperty("AUTHREALM")== null) {
+                    user = database.findUser(ci.getUserName());
+                    if (user != null) {
+                        if (!user.validateUserPasswordHash(ci.getUserPasswordHash())) {
+                            user = null;
+                        }
+                    }
+                } else {
+                    Authenticator authenticator = database.getAuthenticator();
+                    if (authenticator==null) {
+                        throw DbException.get(ErrorCode.AUTHENTICATOR_NOT_AVAILABLE, name);
+                    } else {
+                        try {
+                            AuthenticationInfo authenticationInfo=new AuthenticationInfo(ci);
+                            user = database.getAuthenticator().authenticate(authenticationInfo, database);
+                        } catch (AuthenticationException authenticationError) {
+                            database.getTrace(Trace.DATABASE).error(authenticationError,
+                                "an error occurred during authentication; user: \"" +
+                                ci.getUserName() + "\"");
+                        }
                     }
                 }
             }
@@ -110,6 +129,8 @@ public class Engine implements SessionFactory {
             database.removeSession(null);
             throw er;
         }
+        //Prevent to set _PASSWORD
+        ci.cleanAuthenticationInfo();
         checkClustering(ci, database);
         Session session = database.createSession(user);
         if (session == null) {

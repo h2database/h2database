@@ -6,7 +6,6 @@
 package org.h2.engine;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -75,9 +74,9 @@ public class ConnectionInfo implements Cloneable {
         readProperties(info);
         readSettingsFromURL();
         setUserName(removeProperty("USER", ""));
-        convertPasswords();
         name = url.substring(Constants.START_URL.length());
         parseName();
+        convertPasswords();        
         String recoverTest = removeProperty("RECOVER_TEST", null);
         if (recoverTest != null) {
             FilePathRec.register();
@@ -91,15 +90,14 @@ public class ConnectionInfo implements Cloneable {
     }
 
     static {
-        ArrayList<String> list = SetTypes.getTypes();
         String[] connectionTime = { "ACCESS_MODE_DATA", "AUTOCOMMIT", "CIPHER",
                 "CREATE", "CACHE_TYPE", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS",
                 "IFEXISTS", "INIT", "PASSWORD", "RECOVER", "RECOVER_TEST",
                 "USER", "AUTO_SERVER", "AUTO_SERVER_PORT", "NO_UPGRADE",
                 "AUTO_RECONNECT", "OPEN_NEW", "PAGE_SIZE", "PASSWORD_HASH", "JMX",
-                "SCOPE_GENERATED_KEYS" };
-        HashSet<String> set = new HashSet<>(list.size() + connectionTime.length);
-        set.addAll(list);
+                "SCOPE_GENERATED_KEYS", "AUTHREALM", "AUTHZPWD" };
+        HashSet<String> set = new HashSet<>(128);
+        set.addAll(SetTypes.getTypes());
         for (String key : connectionTime) {
             if (!set.add(key) && SysProperties.CHECK) {
                 DbException.throwInternalError(key);
@@ -276,8 +274,15 @@ public class ConnectionInfo implements Cloneable {
         }
     }
 
+    private void preservePasswordForAuthentication(Object password) {
+        if ((!isRemote() || isSSL()) &&  prop.containsKey("AUTHREALM") && password!=null) {
+            prop.put("AUTHZPWD",password);
+        }
+    }
+    
     private char[] removePassword() {
         Object p = prop.remove("PASSWORD");
+        preservePasswordForAuthentication(p);
         if (p == null) {
             return new char[0];
         } else if (p instanceof char[]) {
@@ -659,4 +664,8 @@ public class ConnectionInfo implements Cloneable {
         return url;
     }
 
+    public void cleanAuthenticationInfo() {
+        removeProperty("AUTHREALM", false);
+        removeProperty("AUTHZPWD", false);
+    }
 }

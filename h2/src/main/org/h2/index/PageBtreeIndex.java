@@ -5,8 +5,8 @@
  */
 package org.h2.index;
 
-import java.util.HashSet;
 import org.h2.api.ErrorCode;
+import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
@@ -51,7 +51,7 @@ public class PageBtreeIndex extends PageIndex {
         // trace.setLevel(TraceSystem.DEBUG);
         tableData = table;
         if (!database.isPersistent() || id < 0) {
-            throw DbException.throwInternalError("" + indexName);
+            throw DbException.throwInternalError(indexName);
         }
         this.store = database.getPageStore();
         store.addIndex(this);
@@ -154,7 +154,7 @@ public class PageBtreeIndex extends PageIndex {
             store.update(empty);
             return empty;
         } else if (!(p instanceof PageBtree)) {
-            throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "" + p);
+            throw DbException.get(ErrorCode.FILE_CORRUPTED_1, String.valueOf(p));
         }
         return (PageBtree) p;
     }
@@ -220,7 +220,7 @@ public class PageBtreeIndex extends PageIndex {
     @Override
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            HashSet<Column> allColumnsSet) {
+            AllColumnsForPlan allColumnsSet) {
         return 10 * getCostRangeIndex(masks, tableData.getRowCount(session),
                 filters, filter, sortOrder, false, allColumnsSet);
     }

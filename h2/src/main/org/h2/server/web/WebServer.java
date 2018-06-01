@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
@@ -34,7 +35,6 @@ import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
-import org.h2.util.New;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
@@ -469,7 +469,7 @@ public class WebServer implements Service {
     }
 
     ArrayList<HashMap<String, Object>> getSessions() {
-        ArrayList<HashMap<String, Object>> list = New.arrayList();
+        ArrayList<HashMap<String, Object>> list = new ArrayList<>(sessions.size());
         for (WebSession s : sessions.values()) {
             list.add(s.getInfo());
         }
@@ -527,7 +527,7 @@ public class WebServer implements Service {
     }
 
     public ArrayList<String> getCommandHistoryList() {
-        ArrayList<String> result = New.arrayList();
+        ArrayList<String> result = new ArrayList<>();
         if (commandHistoryString == null) {
             return result;
         }
@@ -634,7 +634,7 @@ public class WebServer implements Service {
      * @return the list
      */
     synchronized ArrayList<ConnectionInfo> getSettings() {
-        ArrayList<ConnectionInfo> settings = New.arrayList();
+        ArrayList<ConnectionInfo> settings = new ArrayList<>();
         if (connInfoMap.size() == 0) {
             Properties prop = loadProperties();
             if (prop.size() == 0) {
@@ -645,7 +645,7 @@ public class WebServer implements Service {
                 }
             } else {
                 for (int i = 0;; i++) {
-                    String data = prop.getProperty(String.valueOf(i));
+                    String data = prop.getProperty(Integer.toString(i));
                     if (data == null) {
                         break;
                     }
@@ -672,14 +672,11 @@ public class WebServer implements Service {
                 Properties old = loadProperties();
                 prop = new SortedProperties();
                 prop.setProperty("webPort",
-                        "" + SortedProperties.getIntProperty(old,
-                        "webPort", port));
+                        Integer.toString(SortedProperties.getIntProperty(old, "webPort", port)));
                 prop.setProperty("webAllowOthers",
-                        "" + SortedProperties.getBooleanProperty(old,
-                        "webAllowOthers", allowOthers));
+                        Boolean.toString(SortedProperties.getBooleanProperty(old, "webAllowOthers", allowOthers)));
                 prop.setProperty("webSSL",
-                        "" + SortedProperties.getBooleanProperty(old,
-                        "webSSL", ssl));
+                        Boolean.toString(SortedProperties.getBooleanProperty(old, "webSSL", ssl)));
                 if (commandHistoryString != null) {
                     prop.setProperty(COMMAND_HISTORY, commandHistoryString);
                 }
@@ -689,7 +686,7 @@ public class WebServer implements Service {
             for (int i = 0; i < len; i++) {
                 ConnectionInfo info = settings.get(i);
                 if (info != null) {
-                    prop.setProperty(String.valueOf(len - i - 1), info.getString());
+                    prop.setProperty(Integer.toString(len - i - 1), info.getString());
                 }
             }
             if (!"null".equals(serverPropertiesDir)) {

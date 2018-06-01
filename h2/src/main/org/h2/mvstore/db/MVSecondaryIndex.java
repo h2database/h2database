@@ -7,12 +7,13 @@ package org.h2.mvstore.db;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
+
 import org.h2.api.ErrorCode;
+import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.BaseIndex;
@@ -28,7 +29,6 @@ import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
-import org.h2.util.New;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -120,7 +120,6 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
 
     @Override
     public void addBufferedRows(List<String> bufferNames) {
-        ArrayList<String> mapNames = new ArrayList<>(bufferNames);
         CompareMode compareMode = database.getCompareMode();
         int buffersCount = bufferNames.size();
         Queue<Source> queue = new PriorityQueue<>(buffersCount, new Source.Comparator(compareMode));
@@ -155,7 +154,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
                 }
             }
         } finally {
-            for (String tempMapName : mapNames) {
+            for (String tempMapName : bufferNames) {
                 MVMap<ValueArray, Value> map = openMap(tempMapName);
                 map.getStore().removeMap(map);
             }
@@ -209,7 +208,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         }
         if (unique != null) {
             // This code expects that mayHaveDuplicates(row) == false
-            Iterator<Value> it = map.keyIterator(unique, true);
+            Iterator<Value> it = map.keyIterator(unique, null, true);
             while (it.hasNext()) {
                 ValueArray k = (ValueArray) it.next();
                 if (compareRows(row, convertToSearchRow(k)) != 0) {
@@ -307,7 +306,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
             }
             if (min == null) {
                 return new MVStoreCursor(session,
-                        Collections.<Value>emptyList().iterator(), null);
+                        Collections.<Value>emptyIterator(), null);
             }
         }
         return new MVStoreCursor(session, map.keyIterator(min), last);
@@ -358,7 +357,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     @Override
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            HashSet<Column> allColumnsSet) {
+            AllColumnsForPlan allColumnsSet) {
         try {
             return 10 * getCostRangeIndex(masks, dataMap.sizeAsLongMax(),
                     filters, filter, sortOrder, false, allColumnsSet);
@@ -394,14 +393,14 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         while (true) {
             if (key == null) {
                 return new MVStoreCursor(session,
-                        Collections.<Value>emptyList().iterator(), null);
+                        Collections.<Value>emptyIterator(), null);
             }
             if (((ValueArray) key).getList()[0] != ValueNull.INSTANCE) {
                 break;
             }
             key = first ? map.higherKey(key) : map.lowerKey(key);
         }
-        ArrayList<Value> list = New.arrayList();
+        ArrayList<Value> list = new ArrayList<>(1);
         list.add(key);
         MVStoreCursor cursor = new MVStoreCursor(session, list.iterator(), null);
         cursor.next();

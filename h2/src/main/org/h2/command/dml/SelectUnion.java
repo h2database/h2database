@@ -7,6 +7,7 @@ package org.h2.command.dml;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Session;
@@ -27,7 +28,6 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.ColumnNamer;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
@@ -317,7 +317,7 @@ public class SelectUnion extends Query {
         ArrayList<Expression> le = left.getExpressions();
         // set the expressions to get the right column count and names,
         // but can't validate at this time
-        expressions = New.arrayList();
+        expressions = new ArrayList<>(len);
         for (int i = 0; i < len; i++) {
             Expression l = le.get(i);
             expressions.add(l);
@@ -338,7 +338,7 @@ public class SelectUnion extends Query {
         right.prepare();
         int len = left.getColumnCount();
         // set the correct expressions now
-        expressions = New.arrayList();
+        expressions = new ArrayList<>(len);
         ArrayList<Expression> le = left.getExpressions();
         ArrayList<Expression> re = right.getExpressions();
         ColumnNamer columnNamer= new ColumnNamer(session);

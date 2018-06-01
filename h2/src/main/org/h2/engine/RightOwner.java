@@ -5,7 +5,10 @@
  */
 package org.h2.engine;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map.Entry;
 
 import org.h2.table.Table;
 
@@ -150,6 +153,26 @@ public abstract class RightOwner extends DbObjectBase {
             grantedRoles = null;
         }
     }
+    
+    /**
+     * Remove all the temporary rights granted on roles 
+     */
+    public void revokeTemporaryRightsOnRoles() {
+        if (grantedRoles == null) {
+            return;
+        }
+        List<Role> rolesToRemove= new ArrayList<>();
+        for (Entry<Role,Right> currentEntry : grantedRoles.entrySet()) {
+            if ( currentEntry.getValue().isTemporary() || !currentEntry.getValue().isValid()) {
+                rolesToRemove.add(currentEntry.getKey());
+            }
+        }
+        for (Role currentRoleToRemove : rolesToRemove) {
+            revokeRole(currentRoleToRemove);
+        }
+    }
+    
+    
 
     /**
      * Get the 'grant schema' right of this object.

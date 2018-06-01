@@ -9,7 +9,6 @@ import org.h2.engine.Database;
 import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
-import org.h2.value.ValueNull;
 
 /**
  * Data stored while calculating a COUNT(*) aggregate.
@@ -30,8 +29,7 @@ class AggregateDataCountAll extends AggregateData {
         if (distinct) {
             throw DbException.throwInternalError();
         }
-        Value v = ValueLong.get(count);
-        return v == null ? ValueNull.INSTANCE : v.convertTo(dataType);
+        return ValueLong.get(count).convertTo(dataType);
     }
 
 }

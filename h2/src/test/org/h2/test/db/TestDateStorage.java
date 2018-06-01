@@ -156,6 +156,23 @@ public class TestDateStorage extends TestBase {
         if (config.mvStore) {
             return;
         }
+        /**
+         * Disabled this test for now, explanation from Evgenij Ryazanov:<br>
+         * This test is executed only in PageStore mode because there is no
+         * reason to test it with MVStore that stores date-time values in local
+         * time.<br>
+         * There is a hard-coded configuration option for PageStore,
+         * org.h2.store.Data::STORE_LOCAL_TIME. <br>
+         * This test completes normally if this constant is changed to true.
+         * Probably this test was designed for this mode. But with
+         * STORE_LOCAL_TIME = false this test is useless. On Java 10 only 57% of
+         * conversions tested by this test are successful, the remaining 43%
+         * have different offsets due to differences in DST transitions between
+         * timezones.
+         */
+        if (!config.mvStore) {
+            return;
+        }
         String db = getTestName() + ";LOG=0;FILE_LOCK=NO";
         Connection conn = getConnection(db);
         Statement stat;

@@ -5,8 +5,8 @@
  */
 package org.h2.index;
 
-import java.util.HashSet;
 import java.util.Iterator;
+import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVStore;
@@ -133,7 +133,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
         }
         Value v = row.getValue(columnIds[0]);
         if (v == ValueNull.INSTANCE) {
-            return null;
+            return new SpatialKey(row.getKey());
         }
         Geometry g = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getGeometryNoCopy();
         Envelope env = g.getEnvelopeInternal();
@@ -201,7 +201,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     @Override
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            HashSet<Column> allColumnsSet) {
+            AllColumnsForPlan allColumnsSet) {
         return getCostRangeIndex(masks, columns);
     }
 
@@ -269,7 +269,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
         private final Iterator<SpatialKey> it;
         private SpatialKey current;
         private final Table table;
-        private Session session;
+        private final Session session;
 
         public SpatialCursor(Iterator<SpatialKey> it, Table table, Session session) {
             this.it = it;

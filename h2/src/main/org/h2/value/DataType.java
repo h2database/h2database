@@ -66,8 +66,8 @@ public class DataType {
      * when clearing references.
      */
     private static final ArrayList<DataType> TYPES = new ArrayList<>(96);
-    private static final HashMap<String, DataType> TYPES_BY_NAME = new HashMap<>(96);
-    private static final HashMap<Integer, DataType> TYPES_BY_VALUE_TYPE = new HashMap<>(48);
+    private static final HashMap<String, DataType> TYPES_BY_NAME = new HashMap<>(128);
+    private static final HashMap<Integer, DataType> TYPES_BY_VALUE_TYPE = new HashMap<>(64);
 
     /**
      * The value type of this data type.
@@ -752,7 +752,6 @@ public class DataType {
             // "java.lang.Short";
             return Short.class.getName();
         case Value.INT:
-        case Value.ENUM:
             // "java.lang.Integer";
             return Integer.class.getName();
         case Value.LONG:
@@ -780,6 +779,7 @@ public class DataType {
         case Value.STRING:
         case Value.STRING_IGNORECASE:
         case Value.STRING_FIXED:
+        case Value.ENUM:
             // "java.lang.String";
             return String.class.getName();
         case Value.BLOB:
@@ -948,7 +948,7 @@ public class DataType {
             return Value.RESULT_SET;
         default:
             throw DbException.get(
-                    ErrorCode.UNKNOWN_DATA_TYPE_1, "" + sqlType);
+                    ErrorCode.UNKNOWN_DATA_TYPE_1, Integer.toString(sqlType));
         }
     }
 

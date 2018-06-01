@@ -6,7 +6,6 @@
 package org.h2.expression;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.TreeSet;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
@@ -43,12 +42,7 @@ public class ConditionInConstantSet extends Condition {
             ArrayList<Expression> valueList) {
         this.left = left;
         this.valueList = valueList;
-        this.valueSet = new TreeSet<>(new Comparator<Value>() {
-            @Override
-            public int compare(Value o1, Value o2) {
-                return session.getDatabase().compare(o1, o2);
-            }
-        });
+        this.valueSet = new TreeSet<>(session.getDatabase().getCompareMode());
         int type = left.getType();
         for (Expression expression : valueList) {
             valueSet.add(expression.getValue(session).convertTo(type));
@@ -133,7 +127,8 @@ public class ConditionInConstantSet extends Condition {
         case ExpressionVisitor.NOT_FROM_RESOLVER:
         case ExpressionVisitor.GET_DEPENDENCIES:
         case ExpressionVisitor.QUERY_COMPARABLE:
-        case ExpressionVisitor.GET_COLUMNS:
+        case ExpressionVisitor.GET_COLUMNS1:
+        case ExpressionVisitor.GET_COLUMNS2:
             return true;
         default:
             throw DbException.throwInternalError("type=" + visitor.getType());

@@ -38,6 +38,7 @@ public class CreateTable extends CommandWithColumns {
     private Query asQuery;
     private String comment;
     private boolean sortedInsertMode;
+    private boolean withNoData;
 
     public CreateTable(Session session, Schema schema) {
         super(session, schema);
@@ -120,7 +121,7 @@ public class CreateTable extends CommandWithColumns {
                 table.addSequence(sequence);
             }
             createConstraints();
-            if (asQuery != null) {
+            if (asQuery != null && !withNoData) {
                 boolean old = session.isUndoLogEnabled();
                 try {
                     session.setUndoLogEnabled(false);
@@ -137,7 +138,6 @@ public class CreateTable extends CommandWithColumns {
                 }
             }
             HashSet<DbObject> set = new HashSet<>();
-            set.clear();
             table.addDependencies(set);
             for (DbObject obj : set) {
                 if (obj == table) {
@@ -244,6 +244,10 @@ public class CreateTable extends CommandWithColumns {
 
     public void setSortedInsertMode(boolean sortedInsertMode) {
         this.sortedInsertMode = sortedInsertMode;
+    }
+
+    public void setWithNoData(boolean withNoData) {
+        this.withNoData = withNoData;
     }
 
     public void setTableEngine(String tableEngine) {

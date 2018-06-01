@@ -18,14 +18,12 @@ public class ColumnNamer {
     private static final String DEFAULT_COLUMN_NAME = "DEFAULT";
 
     private final ColumnNamerConfiguration configuration;
-    private final Session session;
     private final Set<String> existingColumnNames = new HashSet<>();
 
     public ColumnNamer(Session session) {
-        this.session = session;
-        if (this.session != null && this.session.getColumnNamerConfiguration() != null) {
+        if (session != null && session.getColumnNamerConfiguration() != null) {
             // use original from session
-            this.configuration = this.session.getColumnNamerConfiguration();
+            this.configuration = session.getColumnNamerConfiguration();
         } else {
             // detached namer, create new
             this.configuration = ColumnNamerConfiguration.getDefault();
@@ -102,7 +100,8 @@ public class ColumnNamer {
         }
         // go with a innocuous default name pattern
         if (columnName == null) {
-            columnName = configuration.getDefaultColumnNamePattern().replace("$$", "" + (indexOfColumn + 1));
+            columnName = configuration.getDefaultColumnNamePattern()
+                    .replace("$$", Integer.toString(indexOfColumn + 1));
         }
         if (existingColumnNames.contains(columnName) && configuration.isGenerateUniqueColumnNames()) {
             columnName = generateUniqueName(columnName);

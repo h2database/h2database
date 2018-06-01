@@ -32,6 +32,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Currency;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -40,6 +41,7 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.TimeZone;
 import java.util.UUID;
+
 import org.h2.api.Aggregate;
 import org.h2.api.AggregateFunction;
 import org.h2.api.ErrorCode;
@@ -52,7 +54,6 @@ import org.h2.test.ap.TestAnnotationProcessor;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.util.ToChar.Capitalization;
 import org.h2.util.ToDateParser;
@@ -111,7 +112,6 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testNvl2();
         testConcatWs();
         testTruncate();
-        testOraHash();
         testToCharFromDateTime();
         testToCharFromNumber();
         testToCharFromText();
@@ -685,7 +685,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      */
     public static class MedianString implements AggregateFunction {
 
-        private final ArrayList<String> list = New.arrayList();
+        private final ArrayList<String> list = new ArrayList<>();
 
         @Override
         public void add(Object value) {
@@ -694,6 +694,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
         @Override
         public Object getResult() {
+            Collections.sort(list);
             return list.get(list.size() / 2);
         }
 
@@ -714,7 +715,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      */
     public static class MedianStringType implements Aggregate {
 
-        private final ArrayList<String> list = New.arrayList();
+        private final ArrayList<String> list = new ArrayList<>();
 
         @Override
         public void add(Object value) {
@@ -793,6 +794,15 @@ public class TestFunctions extends TestBase implements AggregateFunction {
                 "SELECT SIMPLE_MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
         rs.next();
         assertEquals("5", rs.getString(1));
+
+        stat.execute("CREATE TABLE DATA(V INT)");
+        stat.execute("INSERT INTO DATA VALUES (1), (3), (2), (1), (1), (2), (1), (1), (1), (1), (1)");
+        rs = stat.executeQuery(
+                "SELECT SIMPLE_MEDIAN(V), SIMPLE_MEDIAN(DISTINCT V) FROM DATA");
+        rs.next();
+        assertEquals("1", rs.getString(1));
+        assertEquals("2", rs.getString(2));
+
         conn.close();
 
         if (config.memory) {
@@ -1266,20 +1276,6 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertNull(rs.getObject(1));
 
         stat.execute("drop table testTranslate");
-        conn.close();
-    }
-
-    private void testOraHash() throws SQLException {
-        deleteDb("functions");
-        Connection conn = getConnection("functions");
-        Statement stat = conn.createStatement();
-        String testStr = "foo";
-        assertResult(String.valueOf("foo".hashCode()), stat,
-                String.format("SELECT ORA_HASH('%s') FROM DUAL", testStr));
-        assertResult(String.valueOf("foo".hashCode()), stat,
-                String.format("SELECT ORA_HASH('%s', 0) FROM DUAL", testStr));
-        assertResult(String.valueOf("foo".hashCode()), stat,
-                String.format("SELECT ORA_HASH('%s', 0, 0) FROM DUAL", testStr));
         conn.close();
     }
 

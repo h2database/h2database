@@ -10,9 +10,7 @@ INSERT INTO tab_with_timezone(x) VALUES ('2017-01-01');
 > update count: 1
 
 SELECT "Query".* FROM (select * from tab_with_timezone where x > '2016-01-01') AS "Query";
-> X
-> ----------------------
-> 2017-01-01 00:00:00+00
+>> 2017-01-01 00:00:00+00
 
 DELETE FROM tab_with_timezone;
 > update count: 1
@@ -49,7 +47,7 @@ SELECT COLUMN_NAME, DATA_TYPE, TYPE_NAME, COLUMN_TYPE, NUMERIC_SCALE FROM INFORM
 > rows (ordered): 3
 
 ALTER TABLE TEST ADD T4 TIMESTAMP (10) WITH TIME ZONE;
-> exception
+> exception INVALID_VALUE_SCALE_PRECISION
 
 DROP TABLE TEST;
 > ok

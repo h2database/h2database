@@ -22,8 +22,7 @@ import org.h2.message.DbException;
  */
 public class StringUtils {
 
-    private static SoftReference<String[]> softCache =
-            new SoftReference<>(null);
+    private static SoftReference<String[]> softCache;
     private static long softCacheCreatedNs;
 
     private static final char[] HEX = "0123456789abcdef".toCharArray();
@@ -108,20 +107,6 @@ public class StringUtils {
      */
     public static String toLowerEnglish(String s) {
         return s.toLowerCase(Locale.ENGLISH);
-    }
-
-    /**
-     * Check is a string starts with another string, ignoring the case.
-     *
-     * @param s the string to check (must be longer than start)
-     * @param start the prefix of s
-     * @return true if start is a prefix of s
-     */
-    public static boolean startsWithIgnoreCase(String s, String start) {
-        if (s.length() < start.length()) {
-            return false;
-        }
-        return s.substring(0, start.length()).equalsIgnoreCase(start);
     }
 
     /**
@@ -462,7 +447,7 @@ public class StringUtils {
         if (length == 0) {
             return new String[0];
         }
-        ArrayList<String> list = New.arrayList();
+        ArrayList<String> list = Utils.newSmallArrayList();
         StringBuilder buff = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
             char c = s.charAt(i);
@@ -863,7 +848,20 @@ public class StringUtils {
     }
 
     /**
-     * Trim a character from a substring. Equivalence of {@code substring(begin, end).trim()}.
+     * Trim a character from a substring. Equivalent of
+     * {@code substring(beginIndex).trim()}.
+     *
+     * @param s the string
+     * @param beginIndex start index of substring (inclusive)
+     * @return trimmed substring
+     */
+    public static String trimSubstring(String s, int beginIndex) {
+        return trimSubstring(s, beginIndex, s.length());
+    }
+
+    /**
+     * Trim a character from a substring. Equivalent of
+     * {@code substring(beginIndex, endIndex).trim()}.
      *
      * @param s the string
      * @param beginIndex start index of substring (inclusive)
@@ -916,7 +914,7 @@ public class StringUtils {
      * Clear the cache. This method is used for testing.
      */
     public static void clearCache() {
-        softCache = new SoftReference<>(null);
+        softCache = null;
     }
 
     /**
@@ -984,11 +982,28 @@ public class StringUtils {
      * @return true if it is
      */
     public static boolean isNumber(String s) {
-        if (s.length() == 0) {
+        int l = s.length();
+        if (l == 0) {
             return false;
         }
-        for (char c : s.toCharArray()) {
-            if (!Character.isDigit(c)) {
+        for (int i = 0; i < l; i++) {
+            if (!Character.isDigit(s.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Check if the specified string is empty or contains only whitespace.
+     *
+     * @param s
+     *            the string
+     * @return whether the specified string is empty or contains only whitespace
+     */
+    public static boolean isWhitespaceOrEmpty(String s) {
+        for (int i = 0, l = s.length(); i < l; i++) {
+            if (s.charAt(i) > ' ') {
                 return false;
             }
         }

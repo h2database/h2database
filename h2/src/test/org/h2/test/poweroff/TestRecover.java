@@ -27,8 +27,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 
 /**
  * This standalone test checks if recovery of a database works after power
@@ -106,7 +106,7 @@ public class TestRecover {
         SimpleDateFormat sd = new SimpleDateFormat("yyMMdd-HHmmss");
         String date = sd.format(new Date());
         File zipFile = new File(root, "backup-" + date + "-" + node + ".zip");
-        ArrayList<File> list = New.arrayList();
+        ArrayList<File> list = new ArrayList<>();
         File base = new File(sourcePath);
         listRecursive(list, base);
         if (list.size() == 0) {

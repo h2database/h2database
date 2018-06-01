@@ -304,7 +304,7 @@ public class FtpControl extends Thread {
             } else if ("SIZE".equals(command)) {
                 param = getFileName(param);
                 if (FileUtils.exists(param) && !FileUtils.isDirectory(param)) {
-                    reply(250, String.valueOf(FileUtils.size(param)));
+                    reply(250, Long.toString(FileUtils.size(param)));
                 } else {
                     reply(500, "Failed");
                 }

@@ -26,7 +26,6 @@ import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.CompressTool;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 import org.h2.util.Task;
 
 /**
@@ -179,7 +178,7 @@ public class TestCompress extends TestBase {
         }
 
         for (int j = 0; j < 4; j++) {
-            ArrayList<byte[]> comp = New.arrayList();
+            ArrayList<byte[]> comp = new ArrayList<>();
             InputStream in = FileUtils.newInputStream("memFS:compress.h2.db");
             while (true) {
                 int len = in.read(buff2);

@@ -1629,6 +1629,17 @@ public class ErrorCode {
     public static final int VIEW_IS_INVALID_2 = 90109;
 
     /**
+     * The error with code <code>90110</code> is thrown when
+     * trying to compare an array value against a non-array value.
+     * Example:
+     * <pre>
+     * CREATE TABLE test (id INT NOT NULL, name VARCHAR);
+     * select * from test where id = (1, 2);
+     * </pre>
+     */
+    public static final int COMPARING_ARRAY_TO_SCALAR = 90110;
+
+    /**
      * The error with code <code>90111</code> is thrown when
      * an exception occurred while accessing a linked table.
      */
@@ -1979,7 +1990,20 @@ public class ErrorCode {
      */
     public static final int ROW_NOT_FOUND_IN_PRIMARY_INDEX = 90143;
 
-    // next are 90110, 90122, 90144
+    /**
+     * The error with code <code>90144</code> is thrown when
+     * user trying to login into a database with AUTHREALM set and
+     * the target database doesn't have an authenticator defined
+     * <p>Authenticator experimental feature can be enabled by 
+     * </p> 
+     * <pre>
+     * SET AUTHENTICATOR TRUE
+     * </pre>
+     */
+    public static final int AUTHENTICATOR_NOT_AVAILABLE = 90144;
+    
+    
+    // next are 90122, 90145
 
     private ErrorCode() {
         // utility class
@@ -2051,7 +2075,7 @@ public class ErrorCode {
         case FEATURE_NOT_SUPPORTED_1: return "HYC00";
         case LOCK_TIMEOUT_1: return "HYT00";
         default:
-            return "" + errorCode;
+            return Integer.toString(errorCode);
         }
     }
 

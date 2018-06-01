@@ -102,7 +102,7 @@ public class Function {
      * @return true if it is a prime number
      */
     public static boolean isPrime(int value) {
-        return new BigInteger(String.valueOf(value)).isProbablePrime(100);
+        return BigInteger.valueOf(value).isProbablePrime(100);
     }
 
     /**

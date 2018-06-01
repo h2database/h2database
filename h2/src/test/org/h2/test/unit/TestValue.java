@@ -61,6 +61,7 @@ public class TestValue extends TestBase {
         testCastTrim();
         testValueResultSet();
         testDataType();
+        testArray();
         testUUID();
         testDouble(false);
         testDouble(true);
@@ -328,6 +329,27 @@ public class TestValue extends TestBase {
         ts = ValueTimestamp.parse("2018-03-25 03:00:00.123123123+02").getTimestamp();
         assertEquals(expected, ts.getTime());
         assertEquals(123123123, ts.getNanos());
+    }
+
+    private void testArray() {
+        ValueArray src = ValueArray.get(String.class,
+                new Value[] {ValueString.get("1"), ValueString.get("22"), ValueString.get("333")});
+        assertEquals(6, src.getPrecision());
+        assertSame(src, src.convertPrecision(5, false));
+        assertSame(src, src.convertPrecision(6, true));
+        ValueArray exp = ValueArray.get(String.class,
+                new Value[] {ValueString.get("1"), ValueString.get("22"), ValueString.get("33")});
+        Value got = src.convertPrecision(5, true);
+        assertEquals(exp, got);
+        assertEquals(String.class, ((ValueArray) got).getComponentType());
+        exp = ValueArray.get(String.class, new Value[] {ValueString.get("1"), ValueString.get("22")});
+        got = src.convertPrecision(3, true);
+        assertEquals(exp, got);
+        assertEquals(String.class, ((ValueArray) got).getComponentType());
+        exp = ValueArray.get(String.class, new Value[0]);
+        got = src.convertPrecision(0, true);
+        assertEquals(exp, got);
+        assertEquals(String.class, ((ValueArray) got).getComponentType());
     }
 
     private void testUUID() {

@@ -157,7 +157,7 @@ public class BenchCRandom {
      * @return the big decimal object
      */
     BigDecimal getBigDecimal(int value, int scale) {
-        return new BigDecimal(new BigInteger(String.valueOf(value)), scale);
+        return new BigDecimal(BigInteger.valueOf(value), scale);
     }
 
     /**

@@ -7,6 +7,7 @@ package org.h2.expression;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
@@ -16,7 +17,11 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.MathUtils;
-import org.h2.value.*;
+import org.h2.value.Value;
+import org.h2.value.ValueBoolean;
+import org.h2.value.ValueEnum;
+import org.h2.value.ValueGeometry;
+import org.h2.value.ValueNull;
 
 /**
  * Example comparison expressions are ID=1, NAME=NAME, NAME IS NULL.
@@ -177,6 +182,9 @@ public class Comparison extends Condition {
         left = left.optimize(session);
         if (right != null) {
             right = right.optimize(session);
+            if (right.getType() == Value.ARRAY && left.getType() != Value.ARRAY) {
+                throw DbException.get(ErrorCode.COMPARING_ARRAY_TO_SCALAR);
+            }
             if (right instanceof ExpressionColumn) {
                 if (left.isConstant() || left instanceof Parameter) {
                     Expression temp = left;
@@ -264,7 +272,7 @@ public class Comparison extends Condition {
         }
         int dataType = Value.getHigherOrder(left.getType(), right.getType());
         if (dataType == Value.ENUM) {
-            String[] enumerators = getEnumerators(l, r);
+            String[] enumerators = ValueEnum.getEnumeratorsForBinaryOperation(l, r);
             l = l.convertToEnum(enumerators);
             r = r.convertToEnum(enumerators);
         } else {
@@ -273,16 +281,6 @@ public class Comparison extends Condition {
         }
         boolean result = compareNotNull(database, l, r, compareType);
         return ValueBoolean.get(result);
-    }
-
-    private static String[] getEnumerators(Value left, Value right) {
-        if (left.getType() == Value.ENUM) {
-            return ((ValueEnum) left).getEnumerators();
-        } else if (right.getType() == Value.ENUM) {
-            return ((ValueEnum) right).getEnumerators();
-        } else {
-            return new String[0];
-        }
     }
 
     /**

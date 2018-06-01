@@ -21,6 +21,126 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>PR #1138, #1139: Fix a memory leak caused by DatabaseCloser objects
+</li>
+<li>PR #1137: Step toward making transaction commit atomic
+</li>
+<li>PR #1136: Assorted minor optimizations
+</li>
+<li>PR #1134: Detect possible overflow in integer division and optimize some code
+</li>
+<li>PR #1133: Implement Comparable&lt;Value&gt; in CompareMode and optimize ValueHashMap.keys()
+</li>
+<li>PR #1132: Reduce allocation of ExpressionVisitor instances
+</li>
+<li>PR #1130: Improve TestScript and TestCrashAPI
+</li>
+<li>PR #1128: Fix ON DUPLICATE KEY UPDATE with ENUM
+</li>
+<li>PR #1127: Update JdbcDatabaseMetaData.getSQLKeywords() and perform some minor optimizations
+</li>
+<li>PR #1126: Fix an issue with code coverage and building of documentation
+</li>
+<li>PR #1123: Fix TCP version check
+</li>
+<li>PR #1122: Assorted changes
+</li>
+<li>PR #1121: Add some protection to ValueHashMap against hashes with the same less significant bits
+</li>
+<li>Issue #1097: H2 10x slower than HSQLDB and 6x than Apache Derby for specific query with GROUP BY and DISTINCT subquery
+</li>
+<li>Issue #1093: Use temporary files for ResultSet buffer tables in MVStore
+</li>
+<li>PR #1117: Fix sorting with distinct in ResultTempTable
+</li>
+<li>Issue #1095: Add support for INSERT IGNORE INTO &lt;table&gt; (&lt;columns&gt;) SELECT in MySQL Mode
+</li>
+<li>PR #1114: Minor cleanup and formatting fixes
+</li>
+<li>PR #1112: Improve test scripts
+</li>
+<li>PR #1111: Use a better fix for issue with SRID
+</li>
+<li>Issue #1107: Restore support of DATETIME2 with specified fractional seconds precision
+</li>
+<li>Issue #1106: Get rid of SwitchSource
+</li>
+<li>PR #1105: Assorted minor changes
+</li>
+<li>Issue #1102: CREATE SYNONYM rejects valid definition
+</li>
+<li>PR #1103: Remove redundant synchronization
+</li>
+<li>Issue #1048: 1.4.197 regression. org.h2.jdbc.JdbcSQLException: Timeout trying to lock table "SYS"
+</li>
+<li>PR #1101: Move some tests in better place and add an additional test for 2PC
+</li>
+<li>PR #1100: Fix Insert.prepareUpdateCondition() for PageStore
+</li>
+<li>PR #1098: Fix some issues with NULLS FIRST / LAST
+</li>
+<li>Issue #1089: Parser does not quote words INTERSECTS, DUAL, TOP
+</li>
+<li>Issue #230: Renaming a column does not update foreign key constraint
+</li>
+<li>Issue #1091 Get rid if the New class
+</li>
+<li>PR #1087: improve performance of planning large queries
+</li>
+<li>PR #1085: Add tests for simple one-column index sorting
+</li>
+<li>PR #1084: re-enable some pagestore testing
+</li>
+<li>PR #1083: Assorted changes
+</li>
+<li>Issue #394: Recover tool places COLLATION and BINARY_COLLATION after temporary tables
+</li>
+<li>PR #1081: Session.getTransactionId should return a more distinguishing value
+</li>
+<li>Improve the script-based unit testing to check the error code of the exception thrown.
+</li>
+<li>Issue #1041: Support OR syntax while creating trigger
+</li>
+<li>Issue #1023: MVCC and existing page store file
+</li>
+<li>Issue #1003: Decrypting database with incorrect password renders the database corrupt
+</li>
+<li>Issue #873: No error when `=` in equal condition when column is not of array type
+</li>
+<li>Issue #1069: Failed to add DATETIME(3) column since 1.4.197
+</li>
+<li>Issue #456: H2 table privileges referring to old schema after schema rename
+</li>
+<li>Issue #1062: Concurrent update in table "SYS" caused by Analyze.analyzeTable()
+</li>
+<li>Yet another fix to Page memory accounting
+</li>
+<li>Replace MVStore.ASSERT variable with assertions
+</li>
+<li>Issue #1063: Leftover comments about enhanced for loops
+</li>
+<li>PR #1059: Assorted minor changes
+</li>
+<li>PR #1058: Txcommit atomic
+</li>
+<li>Issue #1038: ora_hash function implementation off by one
+</li>
+<li>PR #1054: Introduce overflow bit in tx state
+</li>
+<li>Issue #1047: Support DISTINCT in custom aggregate functions
+</li>
+<li>PR #1051: Atomic change of transaction state
+</li>
+<li>PR #1046: Split off Transaction TransactionMap VersionedValue
+</li>
+<li>PR #1045: TransactionStore move into separate org.h2.mvstore.tx package
+</li>
+<li>PR #1044: Encapsulate TransactionStore.store field in preparation to a move
+</li>
+<li>PR #1040: generate less garbage for String substring+trim
+</li>
+<li>PR #1035: Minor free space accounting changes
+</li>
 <li>Issue #1034: MERGE USING should not require the same column count in tables
 </li>
 <li>PR #1033: Fix issues with BUILTIN_ALIAS_OVERRIDE=1
@@ -39,7 +159,7 @@ Change Log
 </li>
 <li>PR #1021: Update JdbcDatabaseMetaData to JDBC 4.1 (Java 7)
 </li>
-<li>Issue #992: 1.4.196+ client cannot use DatabaseMetaData with 1.4.195- server
+<li>Issue #992: 1.4.197 client cannot use DatabaseMetaData with 1.4.196 and older server
 </li>
 <li>Issue #1016: ResultSet.getObject() should return enum value, not ordinal
 </li>

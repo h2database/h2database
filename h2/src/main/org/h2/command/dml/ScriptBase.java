@@ -29,6 +29,7 @@ import org.h2.store.fs.FileUtils;
 import org.h2.tools.CompressTool;
 import org.h2.util.IOUtils;
 import org.h2.util.SmallLRUCache;
+import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.value.CompareMode;
 
@@ -88,7 +89,7 @@ abstract class ScriptBase extends Prepared implements DataHandler {
     protected String getFileName() {
         if (fileNameExpr != null && fileName == null) {
             fileName = fileNameExpr.optimize(session).getValue(session).getString();
-            if (fileName == null || fileName.trim().length() == 0) {
+            if (fileName == null || StringUtils.isWhitespaceOrEmpty(fileName)) {
                 fileName = "script.sql";
             }
             fileName = SysProperties.getScriptDirectory() + fileName;

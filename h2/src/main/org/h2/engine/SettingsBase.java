@@ -47,7 +47,7 @@ public class SettingsBase {
      * @return the setting
      */
     protected int get(String key, int defaultValue) {
-        String s = get(key, "" + defaultValue);
+        String s = get(key, Integer.toString(defaultValue));
         try {
             return Integer.decode(s);
         } catch (NumberFormatException e) {

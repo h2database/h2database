@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import org.h2.api.DatabaseEventListener;
 import org.h2.command.dml.Explain;
 import org.h2.command.dml.Query;
+import org.h2.engine.Session;
 import org.h2.expression.Parameter;
 import org.h2.expression.ParameterInterface;
 import org.h2.result.ResultInterface;
@@ -26,8 +27,8 @@ public class CommandContainer extends Command {
     private boolean readOnlyKnown;
     private boolean readOnly;
 
-    CommandContainer(Parser parser, String sql, Prepared prepared) {
-        super(parser, sql);
+    CommandContainer(Session session, String sql, Prepared prepared) {
+        super(session, sql);
         prepared.setCommand(this);
         this.prepared = prepared;
     }

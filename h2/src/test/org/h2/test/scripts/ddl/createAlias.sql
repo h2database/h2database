@@ -4,13 +4,13 @@
 --
 
 create alias "SYSDATE" for "java.lang.Integer.parseInt(java.lang.String)";
-> exception
+> exception FUNCTION_ALIAS_ALREADY_EXISTS_1
 
 create alias "MIN" for "java.lang.Integer.parseInt(java.lang.String)";
-> exception
+> exception FUNCTION_ALIAS_ALREADY_EXISTS_1
 
 create alias "CAST" for "java.lang.Integer.parseInt(java.lang.String)";
-> exception
+> exception FUNCTION_ALIAS_ALREADY_EXISTS_1
 
 --- function alias ---------------------------------------------------------------------------------------------
 CREATE ALIAS MY_SQRT FOR "java.lang.Math.sqrt";
@@ -54,13 +54,13 @@ CREATE SCHEMA TEST_SCHEMA;
 > ok
 
 CREATE ALIAS TRUNC FOR "java.lang.Math.floor(double)";
-> exception
+> exception FUNCTION_ALIAS_ALREADY_EXISTS_1
 
 CREATE ALIAS PUBLIC.TRUNC FOR "java.lang.Math.floor(double)";
-> exception
+> exception FUNCTION_ALIAS_ALREADY_EXISTS_1
 
 CREATE ALIAS TEST_SCHEMA.TRUNC FOR "java.lang.Math.round(double)";
-> exception
+> exception FUNCTION_ALIAS_ALREADY_EXISTS_1
 
 SET BUILTIN_ALIAS_OVERRIDE=1;
 > ok

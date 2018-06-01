@@ -11,7 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
-
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
@@ -37,8 +36,11 @@ public class TestConcurrentUpdate extends TestBase {
 
     @Override
     public void test() throws Exception {
+        if (!config.multiThreaded) {
+            return;
+        }
         deleteDb("concurrent");
-        final String url = getURL("concurrent;MULTI_THREADED=TRUE", true);
+        final String url = getURL("concurrent", true);
         Connection conn = getConnection(url);
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key, name varchar)");

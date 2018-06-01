@@ -351,11 +351,7 @@ public class PageDataNode extends PageData {
         data.reset();
         data.writeByte((byte) Page.TYPE_DATA_NODE);
         data.writeShortInt(0);
-        if (SysProperties.CHECK2) {
-            if (data.length() != START_PARENT) {
-                DbException.throwInternalError();
-            }
-        }
+        assert data.length() == START_PARENT;
         data.writeInt(parentPageId);
         data.writeVarInt(index.getId());
         data.writeInt(rowCountStored);
@@ -388,7 +384,7 @@ public class PageDataNode extends PageData {
         entryCount--;
         length -= 4 + Data.getVarLongLen(keys[removedKeyIndex]);
         if (entryCount < 0) {
-            DbException.throwInternalError("" + entryCount);
+            DbException.throwInternalError(Integer.toString(entryCount));
         }
         keys = remove(keys, entryCount + 1, removedKeyIndex);
         childPageIds = remove(childPageIds, entryCount + 2, i);

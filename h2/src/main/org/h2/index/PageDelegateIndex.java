@@ -5,7 +5,7 @@
  */
 package org.h2.index;
 
-import java.util.HashSet;
+import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.Row;
@@ -32,7 +32,7 @@ public class PageDelegateIndex extends PageIndex {
         this.initBaseIndex(table, id, name, cols, indexType);
         this.mainIndex = mainIndex;
         if (!database.isPersistent() || id < 0) {
-            throw DbException.throwInternalError("" + name);
+            throw DbException.throwInternalError(name);
         }
         PageStore store = database.getPageStore();
         store.addIndex(this);
@@ -104,7 +104,7 @@ public class PageDelegateIndex extends PageIndex {
     @Override
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            HashSet<Column> allColumnsSet) {
+            AllColumnsForPlan allColumnsSet) {
         return 10 * getCostRangeIndex(masks, mainIndex.getRowCount(session),
                 filters, filter, sortOrder, false, allColumnsSet);
     }

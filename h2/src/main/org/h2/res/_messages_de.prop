@@ -140,6 +140,7 @@
 90107=Kann {0} nicht löschen weil {1} davon abhängt
 90108=Nicht genug Hauptspeicher.
 90109=View {0} ist ungültig: {1}
+90110=#Comparing ARRAY to scalar value
 90111=Fehler beim Zugriff auf eine verknüpfte Tabelle mit SQL Befehl {0}, Grund: {1}
 90112=Zeile nicht gefunden beim Löschen von Index {0}
 90113=Datenbank-Verbindungs Option {0} nicht unterstützt

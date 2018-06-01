@@ -14,12 +14,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
+
 import org.h2.api.ErrorCode;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.utils.SelfDestructor;
 import org.h2.tools.Backup;
-import org.h2.util.New;
 
 /**
  * Standalone recovery test. A new process is started and then killed while it
@@ -38,8 +38,8 @@ public class TestKillRestartMulti extends TestBase {
     private String url;
     private String user = "sa";
     private String password = "sa";
-    private final ArrayList<Connection> connections = New.arrayList();
-    private final ArrayList<String> tables = New.arrayList();
+    private final ArrayList<Connection> connections = new ArrayList<>();
+    private final ArrayList<String> tables = new ArrayList<>();
     private int openCount;
 
 

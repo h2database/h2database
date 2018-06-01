@@ -230,7 +230,7 @@ public class FtpServer extends Tool implements Service {
         buff.append('r');
         buff.append(FileUtils.canWrite(fileName) ? 'w' : '-');
         buff.append("------- 1 owner group ");
-        String size = String.valueOf(FileUtils.size(fileName));
+        String size = Long.toString(FileUtils.size(fileName));
         for (int i = size.length(); i < 15; i++) {
             buff.append(' ');
         }

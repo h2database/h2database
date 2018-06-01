@@ -6,7 +6,6 @@
 package org.h2.constraint;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -122,12 +121,7 @@ public class ConstraintCheck extends Constraint {
     @Override
     public HashSet<Column> getReferencedColumns(Table table) {
         HashSet<Column> columns = new HashSet<>();
-        expr.isEverything(ExpressionVisitor.getColumnsVisitor(columns));
-        for (Iterator<Column> it = columns.iterator(); it.hasNext();) {
-            if (it.next().getTable() != table) {
-                it.remove();
-            }
-        }
+        expr.isEverything(ExpressionVisitor.getColumnsVisitor(columns, table));
         return columns;
     }
 

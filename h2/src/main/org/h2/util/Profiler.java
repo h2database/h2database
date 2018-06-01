@@ -207,7 +207,7 @@ public class Profiler implements Runnable {
 
     private static List<Object[]> readRunnableStackTraces(int pid) {
         try {
-            String jstack = exec("jstack", "" + pid);
+            String jstack = exec("jstack", Integer.toString(pid));
             LineNumberReader r = new LineNumberReader(
                     new StringReader(jstack));
             return readStackTrace(r);
@@ -249,7 +249,7 @@ public class Profiler implements Runnable {
                 if (!line.startsWith("at ")) {
                     break;
                 }
-                line = line.substring(3).trim();
+                line = StringUtils.trimSubstring(line, 3);
                 stack.add(line);
             }
             if (!stack.isEmpty()) {
@@ -348,7 +348,7 @@ public class Profiler implements Runnable {
                 return;
             }
             try {
-                Thread.sleep(interval);
+                Thread.sleep(interval, 0);
             } catch (Exception e) {
                 // ignore
             }

@@ -15,6 +15,7 @@ import org.h2.Driver;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FilePathRec;
 import org.h2.store.fs.FileUtils;
+import org.h2.test.auth.TestAuthentication;
 import org.h2.test.bench.TestPerformance;
 import org.h2.test.db.TestAlter;
 import org.h2.test.db.TestAlterSchemaRename;
@@ -232,7 +233,6 @@ import org.h2.test.utils.TestColumnNamer;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
 import org.h2.util.AbbaLockingDetector;
-import org.h2.util.New;
 import org.h2.util.Profiler;
 import org.h2.util.StringUtils;
 import org.h2.util.Task;
@@ -286,7 +286,7 @@ java org.h2.test.TestAll timer
     /**
      * Whether the MVStore storage is used.
      */
-    public boolean mvStore = Constants.VERSION_MINOR >= 4;
+    public boolean mvStore = true;
 
     /**
      * If the test should run with many rows.
@@ -436,7 +436,7 @@ java org.h2.test.TestAll timer
     /**
      * The list of tests.
      */
-    ArrayList<TestBase> tests = New.arrayList();
+    ArrayList<TestBase> tests = new ArrayList<>();
 
     private Server server;
 
@@ -466,7 +466,6 @@ java org.h2.test.TestAll timer
 
         System.setProperty("h2.maxMemoryRows", "100");
 
-        System.setProperty("h2.check2", "true");
         System.setProperty("h2.delayWrongPasswordMin", "0");
         System.setProperty("h2.delayWrongPasswordMax", "0");
         System.setProperty("h2.useThreadContextClassLoader", "true");
@@ -514,7 +513,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
                 test.testAll();
             } else if ("reopen".equals(args[0])) {
                 System.setProperty("h2.delayWrongPasswordMin", "0");
-                System.setProperty("h2.check2", "false");
                 System.setProperty("h2.analyzeAuto", "100");
                 System.setProperty("h2.pageSize", "64");
                 System.setProperty("h2.reopenShift", "5");
@@ -642,6 +640,16 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         test();
         testUnit();
 
+        // basic pagestore testing
+        memory = false;
+        multiThreaded = false;
+        mvStore = false;
+        mvcc = false;
+        test();
+        testUnit();
+
+        mvStore = true;
+        mvcc = true;
         memory = true;
         multiThreaded = false;
         networked = true;
@@ -965,6 +973,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestSampleApps());
         addTest(new TestStringCache());
         addTest(new TestValueMemory());
+        addTest(new TestAuthentication());
 
         runAddedTests(1);
 
@@ -1112,7 +1121,11 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
     public String toString() {
         StringBuilder buff = new StringBuilder();
         appendIf(buff, lazy, "lazy");
-        appendIf(buff, mvStore, "mvStore");
+        if (mvStore) {
+            buff.append("mvStore ");
+        } else {
+            buff.append("pageStore ");
+        }
         appendIf(buff, big, "big");
         appendIf(buff, networked, "net");
         appendIf(buff, memory, "memory");

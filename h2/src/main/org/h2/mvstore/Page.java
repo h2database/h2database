@@ -8,9 +8,11 @@ package org.h2.mvstore;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import org.h2.compress.Compressor;
-import org.h2.engine.Constants;
 import org.h2.mvstore.type.DataType;
 import org.h2.util.Utils;
+import static org.h2.engine.Constants.MEMORY_ARRAY;
+import static org.h2.engine.Constants.MEMORY_OBJECT;
+import static org.h2.engine.Constants.MEMORY_POINTER;
 import static org.h2.mvstore.DataUtils.PAGE_TYPE_LEAF;
 
 /**
@@ -66,33 +68,34 @@ public abstract class Page implements Cloneable
     private volatile boolean removedInMemory;
 
     /**
+     * The estimated number of bytes used per child entry.
+     */
+    static final int PAGE_MEMORY_CHILD = MEMORY_POINTER + 16; //  16 = two longs
+
+    /**
      * The estimated number of bytes used per base page.
      */
     private static final int PAGE_MEMORY =
-            Constants.MEMORY_OBJECT +           // this
-            2 * Constants.MEMORY_POINTER +      // map, keys
-            Constants.MEMORY_ARRAY +            // Object[] keys
-            17;                                 // pos, cachedCompare, memory, removedInMemory
+            MEMORY_OBJECT +           // this
+            2 * MEMORY_POINTER +      // map, keys
+            MEMORY_ARRAY +            // Object[] keys
+            17;                       // pos, cachedCompare, memory, removedInMemory
     /**
      * The estimated number of bytes used per empty internal page object.
      */
     static final int PAGE_NODE_MEMORY =
-            PAGE_MEMORY +                       // super
-            Constants.MEMORY_POINTER +          // children
-            Constants.MEMORY_ARRAY +            // totalCount
-            8;
+            PAGE_MEMORY +             // super
+            MEMORY_POINTER +          // children
+            MEMORY_ARRAY +            // Object[] children
+            8;                        // totalCount
+
     /**
      * The estimated number of bytes used per empty leaf page.
      */
     static final int PAGE_LEAF_MEMORY =
-            PAGE_MEMORY +                       // super
-            Constants.MEMORY_POINTER +          // values
-            Constants.MEMORY_ARRAY;             //  Object[] values
-
-    /**
-     * The estimated number of bytes used per child entry.
-     */
-    static final int PAGE_MEMORY_CHILD = Constants.MEMORY_POINTER + 16; //  16 = two longs
+            PAGE_MEMORY +             // super
+            MEMORY_POINTER +          // values
+            MEMORY_ARRAY;             // Object[] values
 
     /**
      * An empty object array.
@@ -135,7 +138,8 @@ public abstract class Page implements Cloneable
 
     public static Page createEmptyNode(MVMap<?, ?> map) {
         Page page = new NonLeaf(map, EMPTY_OBJECT_ARRAY, SINGLE_EMPTY, 0);
-        page.initMemoryAccount(PAGE_NODE_MEMORY);
+        page.initMemoryAccount(PAGE_NODE_MEMORY +
+                                MEMORY_POINTER + PAGE_MEMORY_CHILD); // there is always one child
         return page;
     }
 
@@ -179,7 +183,7 @@ public abstract class Page implements Cloneable
      * @param p the root page
      * @return the value, or null if not found
      */
-    public static Object get(Page p, Object key) {
+    static Object get(Page p, Object key) {
         while (true) {
             int index = p.binarySearch(key);
             if (p.isLeaf()) {
@@ -575,7 +579,7 @@ public abstract class Page implements Cloneable
         keys[index] = key;
 
         if (isPersistent()) {
-            addMemory(map.getKeyType().getMemory(key));
+            addMemory(MEMORY_POINTER + map.getKeyType().getMemory(key));
         }
     }
 
@@ -592,7 +596,7 @@ public abstract class Page implements Cloneable
         }
         if(isPersistent()) {
             Object old = getKey(index);
-            addMemory(-keyType.getMemory(old));
+            addMemory(-MEMORY_POINTER - keyType.getMemory(old));
         }
         Object newKeys[] = new Object[keyCount - 1];
         DataUtils.copyExcept(keys, newKeys, keyCount, index);
@@ -794,31 +798,29 @@ public abstract class Page implements Cloneable
 
     public final int getMemory() {
         if (isPersistent()) {
-            if (MVStore.ASSERT) {
-                int mem = memory;
-                recalculateMemory();
-                if (mem != memory) {
-                    throw DataUtils.newIllegalStateException(
-                            DataUtils.ERROR_INTERNAL, "Memory calculation error {0} != {1}", mem, memory);
-                }
-            }
+//            assert memory == calculateMemory() :
+//                    "Memory calculation error " + memory + " != " + calculateMemory();
             return memory;
         }
-        return 0; //getKeyCount();
+        return 0;
     }
 
     final void addMemory(int mem) {
         memory += mem;
     }
 
-    protected void recalculateMemory() {
+    protected final void recalculateMemory() {
         assert isPersistent();
-        int mem = 0;
+        memory = calculateMemory();
+    }
+
+    protected int calculateMemory() {
+        int mem = keys.length * MEMORY_POINTER;
         DataType keyType = map.getKeyType();
         for (Object key : keys) {
-            mem += Constants.MEMORY_POINTER + keyType.getMemory(key);
+            mem += keyType.getMemory(key);
         }
-        memory = mem;
+        return mem;
     }
 
     /**
@@ -990,19 +992,18 @@ public abstract class Page implements Cloneable
 
         @Override
         public long getTotalCount() {
-            if (MVStore.ASSERT) {
-                long check = 0;
-                int keyCount = getKeyCount();
-                for (int i = 0; i <= keyCount; i++) {
-                    check += children[i].count;
-                }
-                if (check != totalCount) {
-                    throw DataUtils.newIllegalStateException(
-                            DataUtils.ERROR_INTERNAL,
-                            "Expected: {0} got: {1}", check, totalCount);
-                }
-            }
+            assert totalCount == calculateTotalCount() :
+                        "Total count: " + totalCount + " != " + calculateTotalCount();
             return totalCount;
+        }
+
+        private long calculateTotalCount() {
+            long check = 0;
+            int keyCount = getKeyCount();
+            for (int i = 0; i <= keyCount; i++) {
+                check += children[i].count;
+            }
+            return check;
         }
 
         @Override
@@ -1043,7 +1044,7 @@ public abstract class Page implements Cloneable
 
             totalCount += childPage.getTotalCount();
             if (isPersistent()) {
-                addMemory(PAGE_MEMORY_CHILD);
+                addMemory(MEMORY_POINTER + PAGE_MEMORY_CHILD);
             }
         }
 
@@ -1052,7 +1053,7 @@ public abstract class Page implements Cloneable
             int childCount = getRawChildPageCount();
             super.remove(index);
             if(isPersistent()) {
-                addMemory(-PAGE_MEMORY_CHILD);
+                addMemory(-MEMORY_POINTER - PAGE_MEMORY_CHILD);
             }
             totalCount -= children[index].count;
             PageReference newChildren[] = new PageReference[childCount - 1];
@@ -1158,11 +1159,9 @@ public abstract class Page implements Cloneable
         }
 
         @Override
-        protected void recalculateMemory() {
-            super.recalculateMemory();
-            int mem = PAGE_NODE_MEMORY +
-                    getRawChildPageCount() * PAGE_MEMORY_CHILD;
-            addMemory(mem);
+        protected int calculateMemory() {
+            return super.calculateMemory() + PAGE_NODE_MEMORY +
+                        getRawChildPageCount() * (MEMORY_POINTER + PAGE_MEMORY_CHILD);
         }
 
         @Override
@@ -1294,7 +1293,7 @@ public abstract class Page implements Cloneable
                 values = newValues;
                 setValueInternal(index, value);
                 if (isPersistent()) {
-                    addMemory(map.getValueType().getMemory(value));
+                    addMemory(MEMORY_POINTER + map.getValueType().getMemory(value));
                 }
             }
         }
@@ -1310,7 +1309,7 @@ public abstract class Page implements Cloneable
             if (values != null) {
                 if(isPersistent()) {
                     Object old = getValue(index);
-                    addMemory(-map.getValueType().getMemory(old));
+                    addMemory(-MEMORY_POINTER - map.getValueType().getMemory(old));
                 }
                 Object newValues[] = createValueStorage(keyCount - 1);
                 DataUtils.copyExcept(values, newValues, keyCount, index);
@@ -1354,14 +1353,14 @@ public abstract class Page implements Cloneable
         }
 
         @Override
-        protected void recalculateMemory() {
-            super.recalculateMemory();
-            int mem = PAGE_LEAF_MEMORY;
+        protected int calculateMemory() {
+            int mem = super.calculateMemory() + PAGE_LEAF_MEMORY +
+                                        values.length * MEMORY_POINTER;
             DataType valueType = map.getValueType();
             for (Object value : values) {
                 mem += valueType.getMemory(value);
             }
-            addMemory(mem);
+            return mem;
         }
 
         @Override

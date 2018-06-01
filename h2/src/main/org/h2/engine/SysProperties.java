@@ -93,26 +93,12 @@ public class SysProperties {
             Utils.getProperty("h2.bindAddress", null);
 
     /**
-     * System property <code>h2.check</code> (default: true).<br />
-     * Assertions in the database engine.
+     * System property <code>h2.check</code>
+     * (default: true for JDK/JRE, false for Android).<br />
+     * Optional additional checks in the database engine.
      */
-    //## CHECK ##
     public static final boolean CHECK =
-            Utils.getProperty("h2.check", true);
-    /*/
-    public static final boolean CHECK = false;
-    //*/
-
-    /**
-     * System property <code>h2.check2</code> (default: false).<br />
-     * Additional assertions in the database engine.
-     */
-    //## CHECK ##
-    public static final boolean CHECK2 =
-            Utils.getProperty("h2.check2", false);
-    /*/
-    public static final boolean CHECK2 = false;
-    //*/
+            Utils.getProperty("h2.check", !"0.9".equals(Utils.getProperty("java.specification.version", null)));
 
     /**
      * System property <code>h2.clientTraceDirectory</code> (default:
@@ -332,12 +318,11 @@ public class SysProperties {
 
     /**
      * System property <code>h2.oldStyleOuterJoin</code>
-     * (default: true for version 1.3, false for version 1.4).<br />
+     * (default: false).<br />
      * Limited support for the old-style Oracle outer join with "(+)".
      */
     public static final boolean OLD_STYLE_OUTER_JOIN =
-            Utils.getProperty("h2.oldStyleOuterJoin",
-                    Constants.VERSION_MINOR < 4);
+            Utils.getProperty("h2.oldStyleOuterJoin", false);
 
     /**
      * System property {@code h2.oldResultSetGetObject}, {@code true} by default.
@@ -439,13 +424,12 @@ public class SysProperties {
 
     /**
      * System property <code>h2.sortBinaryUnsigned</code>
-     * (default: false with version 1.3, true with version 1.4).<br />
+     * (default: true).<br />
      * Whether binary data should be sorted in unsigned mode
      * (0xff is larger than 0x00).
      */
     public static final boolean SORT_BINARY_UNSIGNED =
-            Utils.getProperty("h2.sortBinaryUnsigned",
-                    Constants.VERSION_MINOR >= 4);
+            Utils.getProperty("h2.sortBinaryUnsigned", true);
 
     /**
      * System property <code>h2.sortNullsHigh</code> (default: false).<br />
@@ -493,13 +477,12 @@ public class SysProperties {
 
     /**
      * System property <code>h2.implicitRelativePath</code>
-     * (default: true for version 1.3, false for version 1.4).<br />
+     * (default: false).<br />
      * If disabled, relative paths in database URLs need to be written as
      * jdbc:h2:./test instead of jdbc:h2:test.
      */
     public static final boolean IMPLICIT_RELATIVE_PATH =
-            Utils.getProperty("h2.implicitRelativePath",
-                    Constants.VERSION_MINOR < 4);
+            Utils.getProperty("h2.implicitRelativePath", false);
 
     /**
      * System property <code>h2.urlMap</code> (default: null).<br />
@@ -572,6 +555,16 @@ public class SysProperties {
     public static final String CUSTOM_DATA_TYPES_HANDLER =
             Utils.getProperty("h2.customDataTypesHandler", null);
 
+    /**
+     * System property <code>h2.authConfigFile</code>
+     * (default: null).<br />
+     * authConfigFile define the URL of configuration file
+     * of {@link org.h2.security.auth.DefaultAuthenticator}
+     *  
+     */
+    public static final String AUTH_CONFIG_FILE = 
+            Utils.getProperty("h2.authConfigFile", null);
+                    
     private static final String H2_BASE_DIR = "h2.baseDir";
 
     private SysProperties() {

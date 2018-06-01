@@ -43,6 +43,9 @@ public class TestMvccMultiThreaded2 extends TestBase {
 
     @Override
     public void test() throws SQLException, InterruptedException {
+        if (!config.mvcc) {
+            return;
+        }
         testSelectForUpdateConcurrency();
     }
 
@@ -99,7 +102,7 @@ public class TestMvccMultiThreaded2 extends TestBase {
         }
 
         if (DISPLAY_STATS) {
-            System.out.println(String.format(
+            println(String.format(
                     "+ INFO: TestMvccMultiThreaded2 RUN STATS threads=%d, minProcessed=%d, maxProcessed=%d, "
                             + "totalProcessed=%d, averagePerThread=%d, averagePerThreadPerSecond=%d\n",
                     TEST_THREAD_COUNT, minProcessed, maxProcessed, totalProcessed, totalProcessed / TEST_THREAD_COUNT,
@@ -136,10 +139,10 @@ public class TestMvccMultiThreaded2 extends TestBase {
                 // give the other threads a chance to start up before going into our work loop
                 Thread.yield();
 
+                PreparedStatement ps = conn.prepareStatement(
+                        "SELECT * FROM test WHERE entity_id = ? FOR UPDATE");
                 while (!done) {
                     try {
-                        PreparedStatement ps = conn.prepareStatement(
-                                "SELECT * FROM test WHERE entity_id = ? FOR UPDATE");
                         String id;
                         int value;
                         if ((iterationsProcessed & 1) == 0) {

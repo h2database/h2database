@@ -107,7 +107,7 @@ public class TestMVStoreTool extends TestBase {
         assertEquals(size2, FileUtils.size(fileNameNew));
         MVStoreTool.compact(fileNameCompressed, true);
         assertEquals(size3, FileUtils.size(fileNameCompressed));
-        trace("Recompacted in " + (System.currentTimeMillis() - start) + " ms.");
+        trace("Re-compacted in " + (System.currentTimeMillis() - start) + " ms.");
 
         start = System.currentTimeMillis();
         MVStore s1 = new MVStore.Builder().

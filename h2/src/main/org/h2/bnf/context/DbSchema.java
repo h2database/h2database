@@ -11,8 +11,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import org.h2.engine.SysProperties;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * Contains meta data information about a database schema.
@@ -108,7 +108,7 @@ public class DbSchema {
     public void readTables(DatabaseMetaData meta, String[] tableTypes)
             throws SQLException {
         ResultSet rs = meta.getTables(null, name, null, tableTypes);
-        ArrayList<DbTableOrView> list = New.arrayList();
+        ArrayList<DbTableOrView> list = new ArrayList<>();
         while (rs.next()) {
             DbTableOrView table = new DbTableOrView(this, rs);
             if (contents.isOracle() && table.getName().indexOf('$') > 0) {
@@ -134,13 +134,14 @@ public class DbSchema {
     }
 
     /**
-     * Read all procedures in the dataBase.
+     * Read all procedures in the database.
+     *
      * @param meta the database meta data
      * @throws SQLException Error while fetching procedures
      */
     public void readProcedures(DatabaseMetaData meta) throws SQLException {
         ResultSet rs = meta.getProcedures(null, name, null);
-        ArrayList<DbProcedure> list = New.arrayList();
+        ArrayList<DbProcedure> list = Utils.newSmallArrayList();
         while (rs.next()) {
             list.add(new DbProcedure(this, rs));
         }

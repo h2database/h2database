@@ -20,6 +20,7 @@ select group_concat(v order by v asc separator '-'),
 > rows (ordered): 1
 
 create index test_idx on test(v);
+> ok
 
 select group_concat(v order by v asc separator '-'),
     group_concat(v order by v desc separator '-') filter (where v >= '4')

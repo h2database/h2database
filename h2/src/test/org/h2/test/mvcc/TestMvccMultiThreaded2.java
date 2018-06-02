@@ -11,7 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
@@ -39,6 +38,11 @@ public class TestMvccMultiThreaded2 extends TestBase {
         test.config.memory = true;
         test.config.multiThreaded = true;
         test.test();
+    }
+
+    private int getTestDuration() {
+        // to save some testing time
+        return config.big ? TEST_TIME_SECONDS : TEST_TIME_SECONDS / 10;
     }
 
     @Override
@@ -106,7 +110,7 @@ public class TestMvccMultiThreaded2 extends TestBase {
                     "+ INFO: TestMvccMultiThreaded2 RUN STATS threads=%d, minProcessed=%d, maxProcessed=%d, "
                             + "totalProcessed=%d, averagePerThread=%d, averagePerThreadPerSecond=%d\n",
                     TEST_THREAD_COUNT, minProcessed, maxProcessed, totalProcessed, totalProcessed / TEST_THREAD_COUNT,
-                    totalProcessed / (TEST_THREAD_COUNT * TEST_TIME_SECONDS)));
+                    totalProcessed / (TEST_THREAD_COUNT * getTestDuration())));
         }
 
         IOUtils.closeSilently(conn);
@@ -142,31 +146,27 @@ public class TestMvccMultiThreaded2 extends TestBase {
                 PreparedStatement ps = conn.prepareStatement(
                         "SELECT * FROM test WHERE entity_id = ? FOR UPDATE");
                 while (!done) {
-                    try {
-                        String id;
-                        int value;
-                        if ((iterationsProcessed & 1) == 0) {
-                            id = "1";
-                            value = 100;
-                        } else {
-                            id = "2";
-                            value = 200;
-                        }
-                        ps.setString(1, id);
-                        ResultSet rs = ps.executeQuery();
+                    String id;
+                    int value;
+                    if ((iterationsProcessed & 1) == 0) {
+                        id = "1";
+                        value = 100;
+                    } else {
+                        id = "2";
+                        value = 200;
+                    }
+                    ps.setString(1, id);
+                    ResultSet rs = ps.executeQuery();
 
-                        assertTrue(rs.next());
-                        assertTrue(rs.getInt(2) == value);
+                    assertTrue(rs.next());
+                    assertTrue(rs.getInt(2) == value);
 
-                        conn.commit();
-                        iterationsProcessed++;
+                    conn.commit();
+                    iterationsProcessed++;
 
-                        long now = System.currentTimeMillis();
-                        if (now - start > 1000 * TEST_TIME_SECONDS) {
-                            done = true;
-                        }
-                    } catch (JdbcSQLException e1) {
-                        throw e1;
+                    long now = System.currentTimeMillis();
+                    if (now - start > 1000 * getTestDuration()) {
+                        done = true;
                     }
                 }
             } catch (SQLException e) {

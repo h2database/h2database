@@ -327,6 +327,9 @@ public class TestTempTables extends TestBase {
      * transaction table in the MVStore
      */
     private void testLotsOfTables() throws SQLException {
+        if (config.networked || config.throttle > 0) {
+            return; // just to save some testing time
+        }
         deleteDb("tempTables");
         Connection conn = getConnection("tempTables");
         Statement stat = conn.createStatement();

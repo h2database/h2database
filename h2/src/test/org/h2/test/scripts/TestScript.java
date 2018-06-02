@@ -117,7 +117,7 @@ public class TestScript extends TestBase {
         }
         for (String s : new String[] { "alterTableAdd", "alterTableDropColumn",
                 "createAlias", "createSynonym", "createView", "createTable", "createTrigger",
-                "dropSchema" }) {
+                "dropSchema", "truncateTable" }) {
             testScript("ddl/" + s + ".sql");
         }
         for (String s : new String[] { "error_reporting", "insertIgnore",

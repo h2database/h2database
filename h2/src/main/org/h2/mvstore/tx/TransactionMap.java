@@ -25,11 +25,6 @@ import java.util.Map;
 public class TransactionMap<K, V> {
 
     /**
-     * The map id.
-     */
-    final int mapId;
-
-    /**
      * If a record was read that was updated by this transaction, and the
      * update occurred before this log id, the older version is read. This
      * is so that changes are not immediately visible, to support statement
@@ -50,11 +45,9 @@ public class TransactionMap<K, V> {
      */
     final Transaction transaction;
 
-    TransactionMap(Transaction transaction, MVMap<K, VersionedValue> map,
-                    int mapId) {
+    TransactionMap(Transaction transaction, MVMap<K, VersionedValue> map) {
         this.transaction = transaction;
         this.map = map;
-        this.mapId = mapId;
     }
 
     /**
@@ -77,7 +70,7 @@ public class TransactionMap<K, V> {
     public TransactionMap<K, V> getInstance(Transaction transaction,
                                             long savepoint) {
         TransactionMap<K, V> m =
-                new TransactionMap<>(transaction, map, mapId);
+                new TransactionMap<>(transaction, map);
         m.setSavepoint(savepoint);
         return m;
     }
@@ -141,7 +134,7 @@ public class TransactionMap<K, V> {
                 cursor.next();
                 Object[] op = cursor.getValue();
                 int m = (int) op[0];
-                if (m != mapId) {
+                if (m != map.getId()) {
                     // a different map - ignore
                     continue;
                 }

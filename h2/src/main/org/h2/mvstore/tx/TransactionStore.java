@@ -8,7 +8,6 @@ package org.h2.mvstore.tx;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -52,12 +51,6 @@ public class TransactionStore {
      * Key: opId, value: [ mapId, key, oldValue ].
      */
     final MVMap<Long, Object[]> undoLog;
-
-    /**
-     * The map of maps.
-     */
-    private final HashMap<Integer, MVMap<Object, VersionedValue>> maps =
-            new HashMap<>();
 
     private final DataType dataType;
 
@@ -408,7 +401,6 @@ public class TransactionStore {
      * @param map the map
      */
     synchronized <K, V> void removeMap(TransactionMap<K, V> map) {
-        maps.remove(map.mapId);
         store.removeMap(map.map);
     }
 
@@ -476,7 +468,7 @@ public class TransactionStore {
      * @param valueType the value type
      * @return the map
      */
-    synchronized <K> MVMap<K, VersionedValue> openMap(String name,
+    <K> MVMap<K, VersionedValue> openMap(String name,
             DataType keyType, DataType valueType) {
         if (keyType == null) {
             keyType = new ObjectDataType();
@@ -490,9 +482,6 @@ public class TransactionStore {
                 new MVMap.Builder<K, VersionedValue>().
                 keyType(keyType).valueType(vt);
         map = store.openMap(name, builder);
-        @SuppressWarnings("unchecked")
-        MVMap<Object, VersionedValue> m = (MVMap<Object, VersionedValue>) map;
-        maps.put(map.getId(), m);
         return map;
     }
 
@@ -502,22 +491,20 @@ public class TransactionStore {
      * @param mapId the id
      * @return the map
      */
-    synchronized MVMap<Object, VersionedValue> openMap(int mapId) {
-        MVMap<Object, VersionedValue> map = maps.get(mapId);
-        if (map != null) {
-            return map;
+    MVMap<Object, VersionedValue> openMap(int mapId) {
+        MVMap<Object, VersionedValue> map = store.getMap(mapId);
+        if (map == null) {
+            String mapName = store.getMapName(mapId);
+            if (mapName == null) {
+                // the map was removed later on
+                return null;
+            }
+            DataType vt = new VersionedValue.Type(dataType);
+            MVMap.Builder<Object, VersionedValue> mapBuilder =
+                    new MVMap.Builder<Object, VersionedValue>().
+                    keyType(dataType).valueType(vt);
+            map = store.openMap(mapName, mapBuilder);
         }
-        String mapName = store.getMapName(mapId);
-        if (mapName == null) {
-            // the map was removed later on
-            return null;
-        }
-        DataType vt = new VersionedValue.Type(dataType);
-        MVMap.Builder<Object, VersionedValue> mapBuilder =
-                new MVMap.Builder<Object, VersionedValue>().
-                keyType(dataType).valueType(vt);
-        map = store.openMap(mapName, mapBuilder);
-        maps.put(mapId, map);
         return map;
     }
 

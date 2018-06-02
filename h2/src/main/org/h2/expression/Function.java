@@ -1054,7 +1054,7 @@ public class Function extends Expression implements FunctionCall {
                 Value v1 = getNullOrValue(session, args, values, 1);
                 Value[] list = ((ValueArray) v0).getList();
                 for (Value v : list) {
-                    if (v.equals(v1)) {
+                    if (database.areEqual(v, v1)) {
                         result = ValueBoolean.TRUE;
                         break;
                     }

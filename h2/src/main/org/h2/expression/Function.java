@@ -414,7 +414,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("CURRVAL", CURRVAL,
                 VAR_ARGS, Value.LONG);
         addFunction("ARRAY_GET", ARRAY_GET,
-                2, Value.STRING);
+                2, Value.NULL);
         addFunction("ARRAY_CONTAINS", ARRAY_CONTAINS,
                 2, Value.BOOLEAN, false, true, true);
         addFunction("CSVREAD", CSVREAD,
@@ -1054,11 +1054,13 @@ public class Function extends Expression implements FunctionCall {
                 Value v1 = getNullOrValue(session, args, values, 1);
                 Value[] list = ((ValueArray) v0).getList();
                 for (Value v : list) {
-                    if (v.equals(v1)) {
+                    if (database.areEqual(v, v1)) {
                         result = ValueBoolean.TRUE;
                         break;
                     }
                 }
+            } else {
+                result = ValueNull.INSTANCE;
             }
             break;
         }

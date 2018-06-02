@@ -55,3 +55,71 @@ DROP TABLE CHILD;
 
 DROP TABLE PARENT;
 > ok
+
+CREATE SEQUENCE SEQ2;
+> ok
+
+CREATE SEQUENCE SEQ3;
+> ok
+
+CREATE TABLE TEST(
+    ID1 BIGINT AUTO_INCREMENT NOT NULL,
+    ID2 BIGINT NOT NULL DEFAULT NEXT VALUE FOR SEQ2 NULL_TO_DEFAULT SEQUENCE SEQ2,
+    ID3 BIGINT NOT NULL DEFAULT NEXT VALUE FOR SEQ3 NULL_TO_DEFAULT,
+    VALUE INT NOT NULL);
+> ok
+
+INSERT INTO TEST(VALUE) VALUES (1), (2);
+> update count: 2
+
+SELECT * FROM TEST ORDER BY VALUE;
+> ID1 ID2 ID3 VALUE
+> --- --- --- -----
+> 1   1   1   1
+> 2   2   2   2
+> rows (ordered): 2
+
+TRUNCATE TABLE TEST;
+> ok
+
+INSERT INTO TEST(VALUE) VALUES (1), (2);
+> update count: 2
+
+SELECT * FROM TEST ORDER BY VALUE;
+> ID1 ID2 ID3 VALUE
+> --- --- --- -----
+> 3   3   3   1
+> 4   4   4   2
+> rows (ordered): 2
+
+TRUNCATE TABLE TEST CONTINUE IDENTITY;
+> ok
+
+INSERT INTO TEST(VALUE) VALUES (1), (2);
+> update count: 2
+
+SELECT * FROM TEST ORDER BY VALUE;
+> ID1 ID2 ID3 VALUE
+> --- --- --- -----
+> 5   5   5   1
+> 6   6   6   2
+> rows (ordered): 2
+
+TRUNCATE TABLE TEST RESTART IDENTITY;
+> ok
+
+INSERT INTO TEST(VALUE) VALUES (1), (2);
+> update count: 2
+
+SELECT * FROM TEST ORDER BY VALUE;
+> ID1 ID2 ID3 VALUE
+> --- --- --- -----
+> 1   1   7   1
+> 2   2   8   2
+> rows (ordered): 2
+
+DROP TABLE TEST;
+> ok
+
+DROP SEQUENCE SEQ3;
+> ok

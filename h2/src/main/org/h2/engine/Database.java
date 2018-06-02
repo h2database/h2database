@@ -218,7 +218,7 @@ public class Database implements DataHandler {
     private MVTableEngine.Store mvStore;
     private int retentionTime;
     private boolean allowBuiltinAliasOverride;
-    private DbException backgroundException;
+    private final AtomicReference<DbException> backgroundException = new AtomicReference<>();
     private JavaObjectSerializer javaObjectSerializer;
     private String javaObjectSerializerName;
     private volatile boolean javaObjectSerializerInitialized;
@@ -314,23 +314,27 @@ public class Database implements DataHandler {
                 OnExitDatabaseCloser.register(this);
             }
         } catch (Throwable e) {
-            if (e instanceof OutOfMemoryError) {
-                e.fillInStackTrace();
-            }
-            boolean alreadyOpen = e instanceof DbException
-                    && ((DbException) e).getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1;
-            if (alreadyOpen) {
-                stopServer();
-            }
-
-            if (traceSystem != null) {
-                if (e instanceof DbException && !alreadyOpen) {
-                    // only write if the database is not already in use
-                    trace.error(e, "opening {0}", databaseName);
+            try {
+                if (e instanceof OutOfMemoryError) {
+                    e.fillInStackTrace();
                 }
-                traceSystem.close();
+                boolean alreadyOpen = e instanceof DbException
+                        && ((DbException) e).getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1;
+                if (alreadyOpen) {
+                    stopServer();
+                }
+
+                if (traceSystem != null) {
+                    if (e instanceof DbException && !alreadyOpen) {
+                        // only write if the database is not already in use
+                        trace.error(e, "opening {0}", databaseName);
+                    }
+                    traceSystem.close();
+                }
+                closeOpenFilesAndUnlock(false);
+            } catch(Throwable ex) {
+                e.addSuppressed(ex);
             }
-            closeOpenFilesAndUnlock(false);
             throw DbException.convert(e);
         }
     }
@@ -675,8 +679,7 @@ public class Database implements DataHandler {
                 if (readOnly ||
                         fileLockMethod == FileLockMethod.NO ||
                         fileLockMethod == FileLockMethod.SERIALIZED ||
-                        fileLockMethod == FileLockMethod.FS ||
-                        !persistent) {
+                        fileLockMethod == FileLockMethod.FS) {
                     throw DbException.getUnsupportedException(
                             "autoServerMode && (readOnly || " +
                             "fileLockMethod == NO || " +
@@ -2116,28 +2119,30 @@ public class Database implements DataHandler {
     }
 
     private void throwLastBackgroundException() {
-        if (backgroundException != null) {
-            // we don't care too much about concurrency here,
-            // we just want to make sure the exception is _normally_
-            // not just logged to the .trace.db file
-            DbException b = backgroundException;
-            backgroundException = null;
-            if (b != null) {
-                // wrap the exception, so we see it was thrown here
-                throw DbException.get(b.getErrorCode(), b, b.getMessage());
-            }
+        DbException b = backgroundException.getAndSet(null);
+        if (b != null) {
+            // wrap the exception, so we see it was thrown here
+            throw DbException.get(b.getErrorCode(), b, b.getMessage());
         }
     }
 
     public void setBackgroundException(DbException e) {
-        if (backgroundException == null) {
-            backgroundException = e;
+        if (backgroundException.compareAndSet(null, e)) {
             TraceSystem t = getTraceSystem();
             if (t != null) {
                 t.getTrace(Trace.DATABASE).error(e, "flush");
             }
         }
     }
+
+    public Throwable getBackgroundException() {
+        IllegalStateException exception = mvStore.getStore().getPanicException();
+        if(exception != null) {
+            return exception;
+        }
+        return backgroundException.getAndSet(null);
+    }
+
 
     /**
      * Flush all pending changes to the transaction log.
@@ -2153,7 +2158,7 @@ public class Database implements DataHandler {
             try {
                 mvStore.flush();
             } catch (RuntimeException e) {
-                backgroundException = DbException.convert(e);
+                backgroundException.compareAndSet(null, DbException.convert(e));
                 throw e;
             }
         }

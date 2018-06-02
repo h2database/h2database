@@ -1676,8 +1676,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             MVTableEngine.Store store = database.getMvStore();
             if (store != null) {
                 if (store.getStore().isClosed()) {
+                    Throwable backgroundException = database.getBackgroundException();
                     database.shutdownImmediately();
-                    throw DbException.get(ErrorCode.DATABASE_IS_CLOSED);
+                    throw DbException.get(ErrorCode.DATABASE_IS_CLOSED, backgroundException);
                 }
                 transaction = store.getTransactionStore().begin(this, this.lockTimeout, id);
             }

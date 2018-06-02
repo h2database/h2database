@@ -292,7 +292,7 @@ public class MVStore {
 
     private final Object compactSync = new Object();
 
-    private IllegalStateException panicException;
+    private volatile IllegalStateException panicException;
 
     private long lastTimeAbsolute;
 

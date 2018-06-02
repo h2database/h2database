@@ -974,7 +974,7 @@ DROP VIEW TEST_VIEW
 "
 
 "Commands (DDL)","TRUNCATE TABLE","
-TRUNCATE TABLE tableName
+TRUNCATE TABLE tableName [ [ CONTINUE | RESTART ] IDENTITY ]
 ","
 Removes all rows from a table.
 Unlike DELETE FROM without where clause, this command can not be rolled back.
@@ -982,6 +982,7 @@ This command is faster than DELETE without where clause.
 Only regular data tables without foreign key constraints can be truncated
 (except if referential integrity is disabled for this database or for this table).
 Linked tables can't be truncated.
+If RESTART IDENTITY is specified next values for auto-incremented columns are restarted.
 
 This command commits an open transaction in this connection.
 ","

@@ -1578,8 +1578,19 @@ public class Parser {
     private Prepared parseTruncate() {
         read("TABLE");
         Table table = readTableOrView();
+        boolean restart;
+        if (readIf("CONTINUE")) {
+            read("IDENTITY");
+            restart = false;
+        } else if (readIf("RESTART")) {
+            read("IDENTITY");
+            restart = true;
+        } else {
+            restart = false;
+        }
         TruncateTable command = new TruncateTable(session);
         command.setTable(table);
+        command.setRestart(restart);
         return command;
     }
 

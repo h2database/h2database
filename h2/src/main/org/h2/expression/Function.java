@@ -414,7 +414,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("CURRVAL", CURRVAL,
                 VAR_ARGS, Value.LONG);
         addFunction("ARRAY_GET", ARRAY_GET,
-                2, Value.STRING);
+                2, Value.NULL);
         addFunction("ARRAY_CONTAINS", ARRAY_CONTAINS,
                 2, Value.BOOLEAN, false, true, true);
         addFunction("CSVREAD", CSVREAD,
@@ -1059,6 +1059,8 @@ public class Function extends Expression implements FunctionCall {
                         break;
                     }
                 }
+            } else {
+                result = ValueNull.INSTANCE;
             }
             break;
         }

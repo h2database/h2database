@@ -22,7 +22,7 @@ select array_contains((null, 'two'), null);
 >> TRUE
 
 select array_contains(null, 'one');
->> FALSE
+>> null
 
 select array_contains(((1, 2), (3, 4)), (1, 2));
 >> TRUE

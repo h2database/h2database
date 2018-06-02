@@ -402,7 +402,7 @@ java org.h2.test.TestAll timer
     /**
      * The THROTTLE value to use.
      */
-    int throttle;
+    public int throttle;
 
     /**
      * The THROTTLE value to use by default.

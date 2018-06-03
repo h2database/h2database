@@ -69,7 +69,7 @@ public class TestConcurrentUpdate extends TestBase {
                             while (!stop) {
                                 int x = r.nextInt(ROW_COUNT);
                                 String data = "x" + r.nextInt(ROW_COUNT);
-                                switch (r.nextInt(3)) {
+                                switch (r.nextInt(4)) {
                                     case 0:
                                         insert.setInt(1, x);
                                         insert.setString(2, data);
@@ -84,7 +84,7 @@ public class TestConcurrentUpdate extends TestBase {
                                         delete.setInt(1, x);
                                         delete.execute();
                                         break;
-                                    case 4:
+                                    case 3:
                                         select.setInt(1, x);
                                         ResultSet rs = select.executeQuery();
                                         while (rs.next()) {

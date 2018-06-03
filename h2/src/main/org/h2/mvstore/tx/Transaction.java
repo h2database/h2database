@@ -345,8 +345,7 @@ public class Transaction {
      */
     public <K, V> TransactionMap<K, V> openMap(MVMap<K, VersionedValue> map) {
         checkNotClosed();
-        int mapId = map.getId();
-        return new TransactionMap<>(this, map, mapId);
+        return new TransactionMap<>(this, map);
     }
 
     /**

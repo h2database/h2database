@@ -13,6 +13,8 @@ import org.h2.value.Value;
  */
 public interface SearchRow {
 
+    int ROWID_INDEX = -1;
+
     /**
      * An empty array of SearchRow objects.
      */

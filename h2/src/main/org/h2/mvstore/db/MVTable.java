@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
@@ -118,7 +119,7 @@ public class MVTable extends TableBase {
      */
     private final ArrayDeque<Session> waitingSessions = new ArrayDeque<>();
     private final Trace traceLock;
-    private int changesSinceAnalyze;
+    private final AtomicInteger changesUnitilAnalyze;
     private int nextAnalyze;
     private final boolean containsLargeObject;
     private Column rowIdColumn;
@@ -129,9 +130,7 @@ public class MVTable extends TableBase {
     public MVTable(CreateTableData data, MVTableEngine.Store store) {
         super(data);
         nextAnalyze = database.getSettings().analyzeAuto;
-        if(nextAnalyze <= 0) {
-            nextAnalyze = Integer.MAX_VALUE;
-        }
+        changesUnitilAnalyze = nextAnalyze <= 0 ? null : new AtomicInteger(nextAnalyze);
         this.store = store;
         this.transactionStore = store.getTransactionStore();
         this.isHidden = data.isHidden;
@@ -729,7 +728,9 @@ public class MVTable extends TableBase {
             Index index = indexes.get(i);
             index.truncate(session);
         }
-        changesSinceAnalyze = 0;
+        if (changesUnitilAnalyze != null) {
+            changesUnitilAnalyze.set(nextAnalyze);
+        }
     }
 
     @Override
@@ -758,16 +759,15 @@ public class MVTable extends TableBase {
     }
 
     private void analyzeIfRequired(Session session) {
-        synchronized (this) {
-            if (++changesSinceAnalyze <= nextAnalyze) {
-                return;
-            }
-            changesSinceAnalyze = 0;
-            if (nextAnalyze <= Integer.MAX_VALUE / 2) {
-                nextAnalyze *= 2;
+        if (changesUnitilAnalyze != null) {
+            if (changesUnitilAnalyze.decrementAndGet() == 0) {
+                if (nextAnalyze <= Integer.MAX_VALUE / 2) {
+                    nextAnalyze *= 2;
+                }
+                changesUnitilAnalyze.set(nextAnalyze);
+                session.markTableForAnalyze(this);
             }
         }
-        session.markTableForAnalyze(this);
     }
 
     @Override

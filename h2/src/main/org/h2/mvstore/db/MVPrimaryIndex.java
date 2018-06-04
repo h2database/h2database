@@ -41,7 +41,7 @@ public class MVPrimaryIndex extends BaseIndex {
     private final String mapName;
     private final TransactionMap<Value, Value> dataMap;
     private final AtomicLong lastKey = new AtomicLong(0);
-    private int mainIndexColumn = -1;
+    private int mainIndexColumn = SearchRow.ROWID_INDEX;
 
     public MVPrimaryIndex(Database db, MVTable table, int id,
             IndexColumn[] columns, IndexType indexType) {
@@ -90,7 +90,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     @Override
     public void add(Session session, Row row) {
-        if (mainIndexColumn == -1) {
+        if (mainIndexColumn == SearchRow.ROWID_INDEX) {
             if (row.getKey() == 0) {
                 row.setKey(lastKey.incrementAndGet());
             }
@@ -239,7 +239,7 @@ public class MVPrimaryIndex extends BaseIndex {
     @Override
     public int getColumnIndex(Column col) {
         // can not use this index - use the delegate index instead
-        return -1;
+        return SearchRow.ROWID_INDEX;
     }
 
     @Override

@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
@@ -33,6 +34,7 @@ import org.h2.mvstore.db.MVTableEngine.Store;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.result.Row;
+import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObject;
 import org.h2.table.Column;
@@ -117,7 +119,7 @@ public class MVTable extends TableBase {
      */
     private final ArrayDeque<Session> waitingSessions = new ArrayDeque<>();
     private final Trace traceLock;
-    private int changesSinceAnalyze;
+    private final AtomicInteger changesUnitlAnalyze;
     private int nextAnalyze;
     private final boolean containsLargeObject;
     private Column rowIdColumn;
@@ -128,6 +130,7 @@ public class MVTable extends TableBase {
     public MVTable(CreateTableData data, MVTableEngine.Store store) {
         super(data);
         nextAnalyze = database.getSettings().analyzeAuto;
+        changesUnitlAnalyze = nextAnalyze <= 0 ? null : new AtomicInteger(nextAnalyze);
         this.store = store;
         this.transactionStore = store.getTransactionStore();
         this.isHidden = data.isHidden;
@@ -317,15 +320,16 @@ public class MVTable extends TableBase {
                         return true;
                     }
                 }
-                if (!lockSharedSessions.containsKey(session)) {
+                if (lockSharedSessions.putIfAbsent(session, session) == null) {
                     traceLock(session, exclusive, TraceLockEvent.TRACE_LOCK_OK, NO_EXTRA_INFO);
                     session.addLock(this);
-                    lockSharedSessions.put(session, session);
                     if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
-                        if (SHARED_LOCKS.get() == null) {
-                            SHARED_LOCKS.set(new ArrayList<String>());
+                        ArrayList<String> list = SHARED_LOCKS.get();
+                        if (list == null) {
+                            list = new ArrayList<>();
+                            SHARED_LOCKS.set(list);
                         }
-                        SHARED_LOCKS.get().add(getName());
+                        list.add(getName());
                     }
                 }
                 return true;
@@ -353,7 +357,7 @@ public class MVTable extends TableBase {
                 }
                 buff.append(t.toString());
                 if (t instanceof MVTable) {
-                    if (((MVTable) t).lockExclusiveSession == s) {
+                    if (t.isLockedExclusivelyBy(s)) {
                         buff.append(" (exclusive)");
                     } else {
                         buff.append(" (shared)");
@@ -517,12 +521,12 @@ public class MVTable extends TableBase {
         mainIndexColumn = getMainIndexColumn(indexType, cols);
         if (database.isStarting()) {
             if (transactionStore.hasMap("index." + indexId)) {
-                mainIndexColumn = -1;
+                mainIndexColumn = SearchRow.ROWID_INDEX;
             }
         } else if (primaryIndex.getRowCountMax() != 0) {
-            mainIndexColumn = -1;
+            mainIndexColumn = SearchRow.ROWID_INDEX;
         }
-        if (mainIndexColumn != -1) {
+        if (mainIndexColumn != SearchRow.ROWID_INDEX) {
             primaryIndex.setMainIndexColumn(mainIndexColumn);
             index = new MVDelegateIndex(this, indexId, indexName, primaryIndex,
                     indexType);
@@ -656,15 +660,15 @@ public class MVTable extends TableBase {
     }
 
     private int getMainIndexColumn(IndexType indexType, IndexColumn[] cols) {
-        if (primaryIndex.getMainIndexColumn() != -1) {
-            return -1;
+        if (primaryIndex.getMainIndexColumn() != SearchRow.ROWID_INDEX) {
+            return SearchRow.ROWID_INDEX;
         }
         if (!indexType.isPrimaryKey() || cols.length != 1) {
-            return -1;
+            return SearchRow.ROWID_INDEX;
         }
         IndexColumn first = cols[0];
         if (first.sortType != SortOrder.ASCENDING) {
-            return -1;
+            return SearchRow.ROWID_INDEX;
         }
         switch (first.column.getType()) {
         case Value.BYTE:
@@ -673,7 +677,7 @@ public class MVTable extends TableBase {
         case Value.LONG:
             break;
         default:
-            return -1;
+            return SearchRow.ROWID_INDEX;
         }
         return first.column.getColumnId();
     }
@@ -687,10 +691,10 @@ public class MVTable extends TableBase {
         list.clear();
     }
 
-    private static void sortRows(ArrayList<Row> list, final Index index) {
-        Collections.sort(list, new Comparator<Row>() {
+    private static void sortRows(ArrayList<? extends SearchRow> list, final Index index) {
+        Collections.sort(list, new Comparator<SearchRow>() {
             @Override
-            public int compare(Row r1, Row r2) {
+            public int compare(SearchRow r1, SearchRow r2) {
                 return index.compareRows(r1, r2);
             }
         });
@@ -724,7 +728,9 @@ public class MVTable extends TableBase {
             Index index = indexes.get(i);
             index.truncate(session);
         }
-        changesSinceAnalyze = 0;
+        if (changesUnitlAnalyze != null) {
+            changesUnitlAnalyze.set(nextAnalyze);
+        }
     }
 
     @Override
@@ -753,17 +759,15 @@ public class MVTable extends TableBase {
     }
 
     private void analyzeIfRequired(Session session) {
-        synchronized (this) {
-            if (nextAnalyze == 0 || nextAnalyze > changesSinceAnalyze++) {
-                return;
-            }
-            changesSinceAnalyze = 0;
-            int n = 2 * nextAnalyze;
-            if (n > 0) {
-                nextAnalyze = n;
+        if (changesUnitlAnalyze != null) {
+            if (changesUnitlAnalyze.decrementAndGet() == 0) {
+                if (nextAnalyze <= Integer.MAX_VALUE / 2) {
+                    nextAnalyze *= 2;
+                }
+                changesUnitlAnalyze.set(nextAnalyze);
+                session.markTableForAnalyze(this);
             }
         }
-        session.markTableForAnalyze(this);
     }
 
     @Override
@@ -885,7 +889,7 @@ public class MVTable extends TableBase {
     public Column getRowIdColumn() {
         if (rowIdColumn == null) {
             rowIdColumn = new Column(Column.ROWID, Value.LONG);
-            rowIdColumn.setTable(this, -1);
+            rowIdColumn.setTable(this, SearchRow.ROWID_INDEX);
         }
         return rowIdColumn;
     }

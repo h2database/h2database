@@ -114,7 +114,7 @@ public class IndexCursor implements Cursor {
                 boolean isEnd = condition.isEnd();
                 boolean isIntersects = condition.isSpatialIntersects();
                 int columnId = column.getColumnId();
-                if (columnId >= 0) {
+                if (columnId != SearchRow.ROWID_INDEX) {
                     IndexColumn idxCol = indexColumns[columnId];
                     if (idxCol != null && (idxCol.sortType & SortOrder.DESCENDING) != 0) {
                         // if the index column is sorted the other way, we swap
@@ -210,7 +210,7 @@ public class IndexCursor implements Cursor {
             v = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).
                     getEnvelopeUnion(vg);
         }
-        if (columnId < 0) {
+        if (columnId == SearchRow.ROWID_INDEX) {
             row.setKey(v.getLong());
         } else {
             row.setValue(columnId, v);
@@ -218,14 +218,13 @@ public class IndexCursor implements Cursor {
         return row;
     }
 
-    private SearchRow getSearchRow(SearchRow row, int columnId, Value v,
-            boolean max) {
+    private SearchRow getSearchRow(SearchRow row, int columnId, Value v, boolean max) {
         if (row == null) {
             row = table.getTemplateRow();
         } else {
             v = getMax(row.getValue(columnId), v, max);
         }
-        if (columnId < 0) {
+        if (columnId == SearchRow.ROWID_INDEX) {
             row.setKey(v.getLong());
         } else {
             row.setValue(columnId, v);
@@ -257,10 +256,7 @@ public class IndexCursor implements Cursor {
                 return null;
             }
         }
-        if (!bigger) {
-            comp = -comp;
-        }
-        return comp > 0 ? a : b;
+        return (comp > 0) == bigger ? a : b;
     }
 
     /**

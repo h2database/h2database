@@ -226,7 +226,7 @@ public class TransactionMap<K, V> {
      */
     public V putCommitted(K key, V value) {
         DataUtils.checkArgument(value != null, "The value may not be null");
-        VersionedValue newValue = new VersionedValue(0L, value);
+        VersionedValue newValue = VersionedValue.getInstance(value);
         VersionedValue oldValue = map.put(key, newValue);
         @SuppressWarnings("unchecked")
         V result = (V) (oldValue == null ? null : oldValue.value);
@@ -441,42 +441,43 @@ public class TransactionMap<K, V> {
      * @return the value
      */
     VersionedValue getValue(Page root, Page undoRoot, K key, long maxLog,
-                                    VersionedValue data, BitSet committingTransactions) {
+                            VersionedValue data, BitSet committingTransactions) {
+        // TODO: This method is overly complicated and has a bunch of extra parameters
+        // TODO: to support maxLog feature, which is not really used by H2
+        long id;
+        int tx;
         while (true) {
-            if (data == null) {
-                // doesn't exist or deleted by a committed transaction
-                return null;
-            }
-            long id = data.operationId;
-            if (id == 0) {
-                // it is committed
-                return data;
-            }
-            int tx = TransactionStore.getTransactionId(id);
-            if (tx == transaction.transactionId) {
-                // added by this transaction
-                if (TransactionStore.getLogId(id) < maxLog) {
-                    return data;
+            // If value doesn't exist or it was deleted by a committed transaction,
+            // or if value is a committed one, just return it.
+            if (data != null &&
+                    (id = data.getOperationId()) != 0) {
+                if ((tx = TransactionStore.getTransactionId(id)) == transaction.transactionId) {
+                    // current value comes from our transaction
+                    if (TransactionStore.getLogId(id) >= maxLog) {
+                        Object d[] = transaction.store.undoLog.get(undoRoot, id);
+                        if (d == null) {
+                            if (transaction.store.store.isReadOnly()) {
+                                // uncommitted transaction for a read-only store
+                                return null;
+                            }
+                            // this entry should be committed or rolled back
+                            // in the meantime (the transaction might still be open)
+                            // or it might be changed again in a different
+                            // transaction (possibly one with the same id)
+                            data = map.get(root, key);
+                        } else {
+                            data = (VersionedValue) d[2];
+                        }
+                        continue;
+                    }
+                } else if (!committingTransactions.get(tx)) {
+                    // current value comes from another uncommitted transaction
+                    // take committed value instead
+                    Object committedValue = data.getCommittedValue();
+                    data = committedValue == null ? null : VersionedValue.getInstance(committedValue);
                 }
-            } else if (committingTransactions.get(tx)) {
-                // transaction which made a change is committed by now
-                return data;
             }
-            // get the value before the uncommitted transaction
-            Object d[] = transaction.store.undoLog.get(undoRoot, id);
-            if (d == null) {
-                if (transaction.store.store.isReadOnly()) {
-                    // uncommitted transaction for a read-only store
-                    return null;
-                }
-                // this entry should be committed or rolled back
-                // in the meantime (the transaction might still be open)
-                // or it might be changed again in a different
-                // transaction (possibly one with the same id)
-                data = map.get(root, key);
-            } else {
-                data = (VersionedValue) d[2];
-            }
+            return data;
         }
     }
 

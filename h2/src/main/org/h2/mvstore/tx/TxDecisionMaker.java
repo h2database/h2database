@@ -46,7 +46,7 @@ public abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue
             // We assume that we are looking at the final value for this transaction,
             // and if it's not the case, then it will fail later,
             // because a tree root has definitely been changed.
-            logIt(existingValue.value == null ? null : new VersionedValue(0L, existingValue.value));
+            logIt(existingValue.value == null ? null : VersionedValue.getInstance(existingValue.value));
             decision = MVMap.Decision.PUT;
         } else if(fetchTransaction(blockingId) == null) {
             // condition above means transaction has been committed/rplled back and closed by now
@@ -113,7 +113,8 @@ public abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue
         @SuppressWarnings("unchecked")
         @Override
         public final VersionedValue selectValue(VersionedValue existingValue, VersionedValue providedValue) {
-            return new VersionedValue(undoKey, value);
+            return VersionedValue.getInstance(undoKey, value,
+                                                existingValue == null ? null : existingValue.getCommittedValue());
         }
     }
 
@@ -171,7 +172,8 @@ public abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue
         @SuppressWarnings("unchecked")
         @Override
         public VersionedValue selectValue(VersionedValue existingValue, VersionedValue providedValue) {
-            return new VersionedValue(undoKey, existingValue == null ? null : existingValue.value);
+            assert existingValue != null;   // otherwise, what's there to lock?
+            return VersionedValue.getInstance(undoKey, existingValue.value, existingValue.getCommittedValue());
         }
     }
 }

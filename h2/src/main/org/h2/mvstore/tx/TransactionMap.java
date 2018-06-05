@@ -622,16 +622,25 @@ public class TransactionMap<K, V> {
             this.transactionMap = transactionMap;
             TransactionStore store = transactionMap.transaction.store;
             MVMap<K, VersionedValue> map = transactionMap.map;
+            // The purpose of the following loop is to get a coherent picture
+            // of a state of two independent volatile / atomic variables
+            // which they had at some recent moment in time.
+            // In order to get such a "snapshot", we wait for a moment of silence
+            // when neither of the variables concurrently chenges it's value.
             BitSet committingTransactions;
             MVMap.RootReference mapRootReference;
             do {
                 committingTransactions = store.committingTransactions.get();
                 mapRootReference = map.getRoot();
             } while (committingTransactions != store.committingTransactions.get());
-
+            // Now we have a snapshot, where mapRootReference points to state of the map
+            // and committingTransactions mask tells us which of seemingly uncommitted changes
+            // should be considered as committed.
+            // Subsequent map traversal uses this snapshot info only.
             this.cursor = new Cursor<>(mapRootReference.root, from, to);
-            this.includeAllUncommitted = includeAllUncommitted;
             this.committingTransactions = committingTransactions;
+
+            this.includeAllUncommitted = includeAllUncommitted;
         }
 
         protected abstract X registerCurrent(K key, VersionedValue data);

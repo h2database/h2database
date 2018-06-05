@@ -25,14 +25,6 @@ import java.util.Map;
 public class TransactionMap<K, V> {
 
     /**
-     * If a record was read that was updated by this transaction, and the
-     * update occurred before this log id, the older version is read. This
-     * is so that changes are not immediately visible, to support statement
-     * processing (for example "update test set id = id + 1").
-     */
-    long readLogId = Long.MAX_VALUE;
-
-    /**
      * The map used for writing (the latest version).
      * <p>
      * Key: key the key of the data.
@@ -51,28 +43,13 @@ public class TransactionMap<K, V> {
     }
 
     /**
-     * Set the savepoint. Afterwards, reads are based on the specified
-     * savepoint.
-     *
-     * @param savepoint the savepoint
-     */
-    public void setSavepoint(long savepoint) {
-        this.readLogId = savepoint;
-    }
-
-    /**
      * Get a clone of this map for the given transaction.
      *
      * @param transaction the transaction
-     * @param savepoint the savepoint
      * @return the map
      */
-    public TransactionMap<K, V> getInstance(Transaction transaction,
-                                            long savepoint) {
-        TransactionMap<K, V> m =
-                new TransactionMap<>(transaction, map);
-        m.setSavepoint(savepoint);
-        return m;
+    public TransactionMap<K, V> getInstance(Transaction transaction) {
+        return new TransactionMap<>(transaction, map);
     }
 
     /**
@@ -114,11 +91,11 @@ public class TransactionMap<K, V> {
             // the undo log is larger than the map -
             // count the entries of the map
             size = 0;
-            Cursor<K, VersionedValue> cursor = map.cursor(null);
+            Cursor<K, VersionedValue> cursor = new Cursor<>(mapRootPage, null);
             while (cursor.hasNext()) {
                 K key = cursor.next();
                 VersionedValue data = cursor.getValue();
-                data = getValue(mapRootPage, undoRootPage, key, readLogId, data, committingTransactions);
+                data = getValue(data, committingTransactions);
                 if (data != null && data.value != null) {
                     size++;
                 }
@@ -141,7 +118,7 @@ public class TransactionMap<K, V> {
                 @SuppressWarnings("unchecked")
                 K key = (K) op[1];
                 VersionedValue data = map.get(mapRootPage, key);
-                data = getValue(mapRootPage, undoRootPage, key, readLogId, data, committingTransactions);
+                data = getValue(data, committingTransactions);
                 if (data == null || data.value == null) {
                     Integer old = temp.put(key, 1);
                     // count each key only once (there might be
@@ -283,7 +260,7 @@ public class TransactionMap<K, V> {
      * @return whether the entry could be removed
      */
     public boolean tryRemove(K key) {
-        return trySet(key, null, false);
+        return trySet(key, null);
     }
 
     /**
@@ -298,7 +275,7 @@ public class TransactionMap<K, V> {
      */
     public boolean tryPut(K key, V value) {
         DataUtils.checkArgument(value != null, "The value may not be null");
-        return trySet(key, value, false);
+        return trySet(key, value);
     }
 
     /**
@@ -308,50 +285,13 @@ public class TransactionMap<K, V> {
      *
      * @param key the key
      * @param value the new value (null to remove the value)
-     * @param onlyIfUnchanged only set the value if it was not changed (by
-     *            this or another transaction) since the map was opened
      * @return true if the value was set, false if there was a concurrent
      *         update
      */
-    public boolean trySet(K key, V value, boolean onlyIfUnchanged) {
-        VersionedValue current;
-        if (onlyIfUnchanged) {
-            TransactionStore store = transaction.store;
-            BitSet committingTransactions;
-            MVMap.RootReference mapRootReference;
-            MVMap.RootReference undoLogRootReference;
-            do {
-                committingTransactions = store.committingTransactions.get();
-                mapRootReference = map.getRoot();
-                undoLogRootReference = store.undoLog.getRoot();
-            } while(committingTransactions != store.committingTransactions.get() ||
-                    mapRootReference != map.getRoot());
-
-            Page mapRootPage = mapRootReference.root;
-            current = map.get(mapRootPage, key);
-            VersionedValue old = getValue(mapRootPage, undoLogRootReference.root, key, readLogId, current,
-                    committingTransactions);
-            if (!map.areValuesEqual(old, current)) {
-                assert current != null;
-                long tx = TransactionStore.getTransactionId(current.getOperationId());
-                if (tx == transaction.transactionId) {
-                    if (value == null) {
-                        // ignore removing an entry
-                        // if it was added or changed
-                        // in the same statement
-                        return true;
-                    } else if (current.value == null) {
-                        // add an entry that was removed
-                        // in the same statement
-                    } else {
-                        return false;
-                    }
-                } else {
-                    return false;
-                }
-            }
-        }
+    public boolean trySet(K key, V value) {
         try {
+            // TODO: effective transaction.timeoutMillis should be set to 0 here and restored before return
+            // TODO: eliminate exception usage as part of normal control flaw
             set(key, value);
             return true;
         } catch (IllegalStateException e) {
@@ -365,8 +305,25 @@ public class TransactionMap<K, V> {
      * @param key the key
      * @return the value or null
      */
+    @SuppressWarnings("unchecked")
     public V get(K key) {
-        return get(key, readLogId);
+        VersionedValue data = map.get(key);
+        if (data == null) {
+            // doesn't exist or deleted by a committed transaction
+            return null;
+        }
+        long id = data.getOperationId();
+        if (id == 0) {
+            // it is committed
+            return (V)data.value;
+        }
+        int tx = TransactionStore.getTransactionId(id);
+        if (tx == transaction.transactionId || transaction.store.committingTransactions.get().get(tx)) {
+            // added by this transaction or another transaction which is committed by now
+            return (V)data.value;
+        } else {
+            return (V) data.getCommittedValue();
+        }
     }
 
     /**
@@ -377,19 +334,6 @@ public class TransactionMap<K, V> {
      */
     public boolean containsKey(K key) {
         return get(key) != null;
-    }
-
-    /**
-     * Get the effective value for the given key.
-     *
-     * @param key the key
-     * @param maxLogId the maximum log id
-     * @return the value or null
-     */
-    @SuppressWarnings("unchecked")
-    public V get(K key, long maxLogId) {
-        VersionedValue data = getValue(key, maxLogId);
-        return data == null ? null : (V) data.value;
     }
 
     /**
@@ -409,76 +353,30 @@ public class TransactionMap<K, V> {
         return tx == transaction.transactionId;
     }
 
-    private VersionedValue getValue(K key, long maxLog) {
-        TransactionStore store = transaction.store;
-        BitSet committingTransactions;
-        MVMap.RootReference mapRootReference;
-        MVMap.RootReference undoLogRootReference;
-        do {
-            committingTransactions = store.committingTransactions.get();
-            mapRootReference = map.getRoot();
-            undoLogRootReference = store.undoLog.getRoot();
-        } while(committingTransactions != store.committingTransactions.get() ||
-                mapRootReference != map.getRoot());
-
-        Page undoRootPage = undoLogRootReference.root;
-        Page mapRootPage = mapRootReference.root;
-        VersionedValue data = map.get(mapRootPage, key);
-        return getValue(mapRootPage, undoRootPage, key, maxLog, data, committingTransactions);
-    }
-
     /**
      * Get the versioned value from the raw versioned value (possibly uncommitted),
      * as visible by the current transaction.
      *
-     * @param root Page of the map to get value from at the time when snapshot was taken
-     * @param undoRoot Page of the undoLog map at the time when snapshot was taken
-     * @param key the key
-     * @param maxLog the maximum log id of the entry
      * @param data the value stored in the main map
      * @param committingTransactions set of transactions being committed
      *                               at the time when snapshot was taken
      * @return the value
      */
-    VersionedValue getValue(Page root, Page undoRoot, K key, long maxLog,
-                            VersionedValue data, BitSet committingTransactions) {
-        // TODO: This method is overly complicated and has a bunch of extra parameters
-        // TODO: to support maxLog feature, which is not really used by H2
+    VersionedValue getValue(VersionedValue data, BitSet committingTransactions) {
         long id;
         int tx;
-        while (true) {
-            // If value doesn't exist or it was deleted by a committed transaction,
-            // or if value is a committed one, just return it.
-            if (data != null &&
-                    (id = data.getOperationId()) != 0) {
-                if ((tx = TransactionStore.getTransactionId(id)) == transaction.transactionId) {
-                    // current value comes from our transaction
-                    if (TransactionStore.getLogId(id) >= maxLog) {
-                        Object d[] = transaction.store.undoLog.get(undoRoot, id);
-                        if (d == null) {
-                            if (transaction.store.store.isReadOnly()) {
-                                // uncommitted transaction for a read-only store
-                                return null;
-                            }
-                            // this entry should be committed or rolled back
-                            // in the meantime (the transaction might still be open)
-                            // or it might be changed again in a different
-                            // transaction (possibly one with the same id)
-                            data = map.get(root, key);
-                        } else {
-                            data = (VersionedValue) d[2];
-                        }
-                        continue;
-                    }
-                } else if (!committingTransactions.get(tx)) {
-                    // current value comes from another uncommitted transaction
-                    // take committed value instead
-                    Object committedValue = data.getCommittedValue();
-                    data = committedValue == null ? null : VersionedValue.getInstance(committedValue);
-                }
-            }
-            return data;
+        // If value doesn't exist or it was deleted by a committed transaction,
+        // or if value is a committed one, just return it.
+        if (data != null &&
+                (id = data.getOperationId()) != 0 &&
+                ((tx = TransactionStore.getTransactionId(id)) != transaction.transactionId &&
+                    !committingTransactions.get(tx))) {
+            // current value comes from another uncommitted transaction
+            // take committed value instead
+            Object committedValue = data.getCommittedValue();
+            data = committedValue == null ? null : VersionedValue.getInstance(committedValue);
         }
+        return data;
     }
 
     /**
@@ -717,8 +615,6 @@ public class TransactionMap<K, V> {
         private final TransactionMap<K,?> transactionMap;
         private final BitSet committingTransactions;
         private final Cursor<K,VersionedValue> cursor;
-        private final Page root;
-        private final Page undoRoot;
         private final boolean includeAllUncommitted;
         private X current;
 
@@ -726,21 +622,25 @@ public class TransactionMap<K, V> {
             this.transactionMap = transactionMap;
             TransactionStore store = transactionMap.transaction.store;
             MVMap<K, VersionedValue> map = transactionMap.map;
+            // The purpose of the following loop is to get a coherent picture
+            // of a state of two independent volatile / atomic variables
+            // which they had at some recent moment in time.
+            // In order to get such a "snapshot", we wait for a moment of silence
+            // when neither of the variables concurrently chenges it's value.
             BitSet committingTransactions;
             MVMap.RootReference mapRootReference;
-            Page undoRoot;
             do {
                 committingTransactions = store.committingTransactions.get();
-                undoRoot = store.undoLog.getRootPage();
                 mapRootReference = map.getRoot();
-            } while (committingTransactions != store.committingTransactions.get()
-                    || undoRoot != store.undoLog.getRootPage());
-
-            this.root = mapRootReference.root;
-            this.undoRoot = undoRoot;
+            } while (committingTransactions != store.committingTransactions.get());
+            // Now we have a snapshot, where mapRootReference points to state of the map
+            // and committingTransactions mask tells us which of seemingly uncommitted changes
+            // should be considered as committed.
+            // Subsequent map traversal uses this snapshot info only.
             this.cursor = new Cursor<>(mapRootReference.root, from, to);
-            this.includeAllUncommitted = includeAllUncommitted;
             this.committingTransactions = committingTransactions;
+
+            this.includeAllUncommitted = includeAllUncommitted;
         }
 
         protected abstract X registerCurrent(K key, VersionedValue data);
@@ -750,8 +650,7 @@ public class TransactionMap<K, V> {
                 K key = cursor.next();
                 VersionedValue data = cursor.getValue();
                 if (!includeAllUncommitted) {
-                    data = transactionMap.getValue(root, undoRoot, key, transactionMap.readLogId,
-                                                    data, committingTransactions);
+                    data = transactionMap.getValue(data, committingTransactions);
                 }
                 if (data != null && (data.value != null ||
                         includeAllUncommitted && transactionMap.transaction.transactionId !=

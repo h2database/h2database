@@ -63,7 +63,6 @@ import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 import org.h2.value.ValueString;
-import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueUuid;
@@ -300,11 +299,11 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("CURTIME", CURTIME,
                 0, Value.TIME);
         addFunctionNotDeterministic("CURRENT_TIMESTAMP", CURRENT_TIMESTAMP,
-                VAR_ARGS, Value.TIMESTAMP);
+                VAR_ARGS, Value.TIMESTAMP_TZ);
         addFunctionNotDeterministic("SYSDATE", CURRENT_TIMESTAMP,
-                VAR_ARGS, Value.TIMESTAMP);
+                VAR_ARGS, Value.TIMESTAMP_TZ);
         addFunctionNotDeterministic("SYSTIMESTAMP", CURRENT_TIMESTAMP,
-                VAR_ARGS, Value.TIMESTAMP);
+                VAR_ARGS, Value.TIMESTAMP_TZ);
         addFunctionNotDeterministic("NOW", NOW,
                 VAR_ARGS, Value.TIMESTAMP);
         addFunction("DATEADD", DATE_ADD,
@@ -823,28 +822,22 @@ public class Function extends Expression implements FunctionCall {
         }
         case CURDATE:
         case CURRENT_DATE: {
-            long now = session.getTransactionStart();
-            // need to normalize
-            result = ValueDate.fromMillis(now);
+            result = session.getTransactionStart().convertTo(Value.DATE);
             break;
         }
         case CURTIME:
         case CURRENT_TIME: {
-            long now = session.getTransactionStart();
-            // need to normalize
-            result = ValueTime.fromMillis(now);
+            result = session.getTransactionStart().convertTo(Value.TIME);
             break;
         }
-        case NOW:
+        case NOW: {
+            Value vt = session.getTransactionStart().convertTo(Value.TIMESTAMP);
+            result = v0 == null ? vt : vt.convertScale(false, v0.getInt());
+            break;
+        }
         case CURRENT_TIMESTAMP: {
-            long now = session.getTransactionStart();
-            ValueTimestamp vt = ValueTimestamp.fromMillis(now);
-            if (v0 != null) {
-                Mode mode = database.getMode();
-                vt = (ValueTimestamp) vt.convertScale(
-                        mode.convertOnlyToSmallerScale, v0.getInt());
-            }
-            result = vt;
+            ValueTimestampTimeZone vt = session.getTransactionStart();
+            result = v0 == null ? vt : vt.convertScale(false, v0.getInt());
             break;
         }
         case DATABASE:

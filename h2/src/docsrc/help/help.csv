@@ -3956,8 +3956,13 @@ CURRENT_TIME()
 { CURRENT_TIMESTAMP [ ( [ int ] ) ] | NOW( [ int ] ) }
 ","
 Returns the current timestamp.
-The precision parameter for nanoseconds precision is optional.
-This method always returns the same value within a transaction.
+If fractional seconds precision is specified it should be from 0 to 9, 9 is default.
+The specified value can be used only to limit precision of a result.
+The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.
+Higher precision is not available before Java 9.
+CURRENT_TIMESTAMP returns timestamp with time zone, its time zone offset is set to a current time zone offset.
+NOW() returns the local timestamp without time zone information.
+These methods always return the same value within a transaction.
 ","
 CURRENT_TIMESTAMP()
 "

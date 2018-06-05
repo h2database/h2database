@@ -463,7 +463,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
             return dataMap;
         }
         Transaction t = session.getTransaction();
-        return dataMap.getInstance(t, Long.MAX_VALUE);
+        return dataMap.getInstance(t);
     }
 
     /**

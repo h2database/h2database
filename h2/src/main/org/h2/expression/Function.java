@@ -98,7 +98,7 @@ public class Function extends Expression implements FunctionCall {
     public static final int CURDATE = 100, CURTIME = 101, DATE_ADD = 102,
             DATE_DIFF = 103, DAY_NAME = 104, DAY_OF_MONTH = 105,
             DAY_OF_WEEK = 106, DAY_OF_YEAR = 107, HOUR = 108, MINUTE = 109,
-            MONTH = 110, MONTH_NAME = 111, NOW = 112, QUARTER = 113,
+            MONTH = 110, MONTH_NAME = 111, LOCALTIMESTAMP = 112, QUARTER = 113,
             SECOND = 114, WEEK = 115, YEAR = 116, CURRENT_DATE = 117,
             CURRENT_TIME = 118, CURRENT_TIMESTAMP = 119, EXTRACT = 120,
             FORMATDATETIME = 121, PARSEDATETIME = 122, ISO_YEAR = 123,
@@ -294,18 +294,22 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("GETDATE", CURDATE,
                 0, Value.DATE);
         addFunctionNotDeterministic("CURRENT_TIME", CURRENT_TIME,
-                0, Value.TIME);
+                VAR_ARGS, Value.TIME);
+        addFunctionNotDeterministic("LOCALTIME", CURRENT_TIME,
+                VAR_ARGS, Value.TIME);
         addFunctionNotDeterministic("SYSTIME", CURRENT_TIME,
                 0, Value.TIME);
         addFunctionNotDeterministic("CURTIME", CURTIME,
                 0, Value.TIME);
         addFunctionNotDeterministic("CURRENT_TIMESTAMP", CURRENT_TIMESTAMP,
-                VAR_ARGS, Value.TIMESTAMP);
+                VAR_ARGS, Value.TIMESTAMP_TZ);
         addFunctionNotDeterministic("SYSDATE", CURRENT_TIMESTAMP,
-                VAR_ARGS, Value.TIMESTAMP);
+                VAR_ARGS, Value.TIMESTAMP_TZ);
         addFunctionNotDeterministic("SYSTIMESTAMP", CURRENT_TIMESTAMP,
+                VAR_ARGS, Value.TIMESTAMP_TZ);
+        addFunctionNotDeterministic("LOCALTIMESTAMP", LOCALTIMESTAMP,
                 VAR_ARGS, Value.TIMESTAMP);
-        addFunctionNotDeterministic("NOW", NOW,
+        addFunctionNotDeterministic("NOW", LOCALTIMESTAMP,
                 VAR_ARGS, Value.TIMESTAMP);
         addFunction("DATEADD", DATE_ADD,
                 3, Value.TIMESTAMP);
@@ -823,28 +827,23 @@ public class Function extends Expression implements FunctionCall {
         }
         case CURDATE:
         case CURRENT_DATE: {
-            long now = session.getTransactionStart();
-            // need to normalize
-            result = ValueDate.fromMillis(now);
+            result = session.getTransactionStart().convertTo(Value.DATE);
             break;
         }
         case CURTIME:
         case CURRENT_TIME: {
-            long now = session.getTransactionStart();
-            // need to normalize
-            result = ValueTime.fromMillis(now);
+            ValueTime vt = (ValueTime) session.getTransactionStart().convertTo(Value.TIME);
+            result = vt.convertScale(false, v0 == null ? 0 : v0.getInt());
             break;
         }
-        case NOW:
+        case LOCALTIMESTAMP: {
+            Value vt = session.getTransactionStart().convertTo(Value.TIMESTAMP);
+            result = vt.convertScale(false, v0 == null ? 6 : v0.getInt());
+            break;
+        }
         case CURRENT_TIMESTAMP: {
-            long now = session.getTransactionStart();
-            ValueTimestamp vt = ValueTimestamp.fromMillis(now);
-            if (v0 != null) {
-                Mode mode = database.getMode();
-                vt = (ValueTimestamp) vt.convertScale(
-                        mode.convertOnlyToSmallerScale, v0.getInt());
-            }
-            result = vt;
+            ValueTimestampTimeZone vt = session.getTransactionStart();
+            result = vt.convertScale(false, v0 == null ? 6 : v0.getInt());
             break;
         }
         case DATABASE:
@@ -2067,7 +2066,8 @@ public class Function extends Expression implements FunctionCall {
         case GREATEST:
             min = 1;
             break;
-        case NOW:
+        case LOCALTIMESTAMP:
+        case CURRENT_TIME:
         case CURRENT_TIMESTAMP:
         case RAND:
             max = 1;

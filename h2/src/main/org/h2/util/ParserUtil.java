@@ -147,10 +147,15 @@ public class ParserUtil {
         case 'J':
             return getKeywordOrIdentifier(s, "JOIN", KEYWORD);
         case 'L':
-            if ("LIMIT".equals(s)) {
+            if ("LIMIT".equals(s) || "LIKE".equals(s)) {
                 return KEYWORD;
             }
-            return getKeywordOrIdentifier(s, "LIKE", KEYWORD);
+            if (additionalKeywords) {
+                if ("LOCALTIME".equals(s) || "LOCALTIMESTAMP".equals(s)) {
+                    return KEYWORD;
+                }
+            }
+            return IDENTIFIER;
         case 'M':
             return getKeywordOrIdentifier(s, "MINUS", KEYWORD);
         case 'N':

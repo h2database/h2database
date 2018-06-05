@@ -3944,22 +3944,43 @@ CURRENT_DATE()
 "
 
 "Functions (Time and Date)","CURRENT_TIME","
-{ CURRENT_TIME [ () ] | CURTIME() }
+{ CURRENT_TIME [ ( [ int ] ) ] | LOCALTIME [ ( [ int ] ) ] | CURTIME() }
 ","
 Returns the current time.
-This method always returns the same value within a transaction.
+If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
+The specified value can be used only to limit precision of a result.
+The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.
+Higher precision is not available before Java 9.
+These methods always return the same value within a transaction.
 ","
 CURRENT_TIME()
 "
 
 "Functions (Time and Date)","CURRENT_TIMESTAMP","
-{ CURRENT_TIMESTAMP [ ( [ int ] ) ] | NOW( [ int ] ) }
+CURRENT_TIMESTAMP [ ( [ int ] ) ]
 ","
-Returns the current timestamp.
-The precision parameter for nanoseconds precision is optional.
+Returns the current timestamp with time zone.
+Time zone offset is set to a current time zone offset
+If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
+The specified value can be used only to limit precision of a result.
+The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.
+Higher precision is not available before Java 9.
 This method always returns the same value within a transaction.
 ","
 CURRENT_TIMESTAMP()
+"
+
+"Functions (Time and Date)","LOCALTIMESTAMP","
+{ LOCALTIMESTAMP [ ( [ int ] ) ] | NOW( [ int ] ) }
+","
+Returns the current timestamp.
+If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
+The specified value can be used only to limit precision of a result.
+The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.
+Higher precision is not available before Java 9.
+These methods always return the same value within a transaction.
+","
+LOCALTIMESTAMP()
 "
 
 "Functions (Time and Date)","DATEADD","

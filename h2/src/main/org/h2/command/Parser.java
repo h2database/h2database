@@ -3148,6 +3148,8 @@ public class Parser {
                     r = readFunctionWithoutParameters("USER");
                 } else if (equalsToken("CURRENT_TIMESTAMP", name)) {
                     r = readFunctionWithoutParameters("CURRENT_TIMESTAMP");
+                } else if (equalsToken("LOCALTIMESTAMP", name)) {
+                    r = readFunctionWithoutParameters("LOCALTIMESTAMP");
                 } else if (equalsToken("SYSDATE", name)) {
                     r = readFunctionWithoutParameters("CURRENT_TIMESTAMP");
                 } else if (equalsToken("SYSTIMESTAMP", name)) {
@@ -3158,6 +3160,8 @@ public class Parser {
                     r = readFunctionWithoutParameters("CURRENT_DATE");
                 } else if (equalsToken("CURRENT_TIME", name)) {
                     r = readFunctionWithoutParameters("CURRENT_TIME");
+                } else if (equalsToken("LOCALTIME", name)) {
+                    r = readFunctionWithoutParameters("LOCALTIME");
                 } else if (equalsToken("SYSTIME", name)) {
                     r = readFunctionWithoutParameters("CURRENT_TIME");
                 } else if (equalsToken("CURRENT", name)) {

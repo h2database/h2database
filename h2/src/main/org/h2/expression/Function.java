@@ -838,7 +838,7 @@ public class Function extends Expression implements FunctionCall {
         }
         case LOCALTIMESTAMP: {
             Value vt = session.getTransactionStart().convertTo(Value.TIMESTAMP);
-            result = v0 == null ? vt : vt.convertScale(false, v0.getInt());
+            result = vt.convertScale(false, v0 == null ? 6 : v0.getInt());
             break;
         }
         case CURRENT_TIMESTAMP: {

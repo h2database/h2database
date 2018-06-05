@@ -97,7 +97,7 @@ public class Function extends Expression implements FunctionCall {
     public static final int CURDATE = 100, CURTIME = 101, DATE_ADD = 102,
             DATE_DIFF = 103, DAY_NAME = 104, DAY_OF_MONTH = 105,
             DAY_OF_WEEK = 106, DAY_OF_YEAR = 107, HOUR = 108, MINUTE = 109,
-            MONTH = 110, MONTH_NAME = 111, NOW = 112, QUARTER = 113,
+            MONTH = 110, MONTH_NAME = 111, LOCALTIMESTAMP = 112, QUARTER = 113,
             SECOND = 114, WEEK = 115, YEAR = 116, CURRENT_DATE = 117,
             CURRENT_TIME = 118, CURRENT_TIMESTAMP = 119, EXTRACT = 120,
             FORMATDATETIME = 121, PARSEDATETIME = 122, ISO_YEAR = 123,
@@ -304,7 +304,9 @@ public class Function extends Expression implements FunctionCall {
                 VAR_ARGS, Value.TIMESTAMP_TZ);
         addFunctionNotDeterministic("SYSTIMESTAMP", CURRENT_TIMESTAMP,
                 VAR_ARGS, Value.TIMESTAMP_TZ);
-        addFunctionNotDeterministic("NOW", NOW,
+        addFunctionNotDeterministic("LOCALTIMESTAMP", LOCALTIMESTAMP,
+                VAR_ARGS, Value.TIMESTAMP);
+        addFunctionNotDeterministic("NOW", LOCALTIMESTAMP,
                 VAR_ARGS, Value.TIMESTAMP);
         addFunction("DATEADD", DATE_ADD,
                 3, Value.TIMESTAMP);
@@ -830,7 +832,7 @@ public class Function extends Expression implements FunctionCall {
             result = session.getTransactionStart().convertTo(Value.TIME);
             break;
         }
-        case NOW: {
+        case LOCALTIMESTAMP: {
             Value vt = session.getTransactionStart().convertTo(Value.TIMESTAMP);
             result = v0 == null ? vt : vt.convertScale(false, v0.getInt());
             break;
@@ -2060,7 +2062,7 @@ public class Function extends Expression implements FunctionCall {
         case GREATEST:
             min = 1;
             break;
-        case NOW:
+        case LOCALTIMESTAMP:
         case CURRENT_TIMESTAMP:
         case RAND:
             max = 1;

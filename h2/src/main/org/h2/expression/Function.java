@@ -63,6 +63,7 @@ import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 import org.h2.value.ValueString;
+import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueUuid;
@@ -293,7 +294,9 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("GETDATE", CURDATE,
                 0, Value.DATE);
         addFunctionNotDeterministic("CURRENT_TIME", CURRENT_TIME,
-                0, Value.TIME);
+                VAR_ARGS, Value.TIME);
+        addFunctionNotDeterministic("LOCALTIME", CURRENT_TIME,
+                VAR_ARGS, Value.TIME);
         addFunctionNotDeterministic("SYSTIME", CURRENT_TIME,
                 0, Value.TIME);
         addFunctionNotDeterministic("CURTIME", CURTIME,
@@ -829,7 +832,8 @@ public class Function extends Expression implements FunctionCall {
         }
         case CURTIME:
         case CURRENT_TIME: {
-            result = session.getTransactionStart().convertTo(Value.TIME);
+            ValueTime vt = (ValueTime) session.getTransactionStart().convertTo(Value.TIME);
+            result = vt.convertScale(false, v0 == null ? 0 : v0.getInt());
             break;
         }
         case LOCALTIMESTAMP: {
@@ -839,7 +843,7 @@ public class Function extends Expression implements FunctionCall {
         }
         case CURRENT_TIMESTAMP: {
             ValueTimestampTimeZone vt = session.getTransactionStart();
-            result = v0 == null ? vt : vt.convertScale(false, v0.getInt());
+            result = vt.convertScale(false, v0 == null ? 6 : v0.getInt());
             break;
         }
         case DATABASE:
@@ -2063,6 +2067,7 @@ public class Function extends Expression implements FunctionCall {
             min = 1;
             break;
         case LOCALTIMESTAMP:
+        case CURRENT_TIME:
         case CURRENT_TIMESTAMP:
         case RAND:
             max = 1;

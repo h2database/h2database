@@ -3160,6 +3160,8 @@ public class Parser {
                     r = readFunctionWithoutParameters("CURRENT_DATE");
                 } else if (equalsToken("CURRENT_TIME", name)) {
                     r = readFunctionWithoutParameters("CURRENT_TIME");
+                } else if (equalsToken("LOCALTIME", name)) {
+                    r = readFunctionWithoutParameters("LOCALTIME");
                 } else if (equalsToken("SYSTIME", name)) {
                     r = readFunctionWithoutParameters("CURRENT_TIME");
                 } else if (equalsToken("CURRENT", name)) {

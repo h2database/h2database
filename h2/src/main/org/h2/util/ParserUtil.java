@@ -151,7 +151,7 @@ public class ParserUtil {
                 return KEYWORD;
             }
             if (additionalKeywords) {
-                if ("LOCALTIMESTAMP".equals(s)) {
+                if ("LOCALTIME".equals(s) || "LOCALTIMESTAMP".equals(s)) {
                     return KEYWORD;
                 }
             }

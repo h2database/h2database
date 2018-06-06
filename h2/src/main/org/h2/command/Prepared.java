@@ -59,7 +59,7 @@ public abstract class Prepared {
      * object is not stored, {@code -1} if object is stored and its ID is
      * already read, {@code >0} if object is stored and its id is not yet read.
      */
-    private int objectId;
+    private int persistedObjectId;
     private int currentRowNumber;
     private int rowScanCount;
     /**
@@ -244,13 +244,13 @@ public abstract class Prepared {
 
     /**
      * Get the object id to use for the database object that is created in this
-     * statement. This id is only set when the object is persistent.
+     * statement. This id is only set when the object is already persisted.
      * If not set, this method returns 0.
      *
      * @return the object id or 0 if not set
      */
-    protected int getCurrentObjectId() {
-        int id = objectId;
+    protected int getPersistedObjectId() {
+        int id = persistedObjectId;
         return id >= 0 ? id : 0;
     }
 
@@ -262,13 +262,13 @@ public abstract class Prepared {
      * @return the object id
      */
     protected int getObjectId() {
-        int id = objectId;
+        int id = persistedObjectId;
         if (id == 0) {
             id = session.getDatabase().allocateObjectId();
         } else if (id < 0) {
             throw DbException.throwInternalError("Prepared.getObjectId() was called before");
         }
-        objectId = -1;
+        persistedObjectId = -1;
         return id;
     }
 
@@ -295,12 +295,12 @@ public abstract class Prepared {
     }
 
     /**
-     * Set the object id for this statement.
+     * Set the persisted object id for this statement.
      *
      * @param i the object id
      */
-    public void setObjectId(int i) {
-        this.objectId = i;
+    public void setPersistedObjectId(int i) {
+        this.persistedObjectId = i;
         this.create = false;
     }
 

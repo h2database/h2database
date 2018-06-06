@@ -54,7 +54,10 @@ public abstract class Prepared {
 
     private long modificationMetaId;
     private Command command;
-    private int objectId;
+    /**
+     * Used when we restore metadata at startup, this is the metadata object ID as persisted in the database.
+     */
+    private int persistedObjectId;
     private int currentRowNumber;
     private int rowScanCount;
     /**
@@ -239,27 +242,25 @@ public abstract class Prepared {
 
     /**
      * Get the object id to use for the database object that is created in this
-     * statement. This id is only set when the object is persistent.
+     * statement. This id is only set when the object is already persisted.
      * If not set, this method returns 0.
      *
      * @return the object id or 0 if not set
      */
-    protected int getCurrentObjectId() {
-        return objectId;
+    protected int getPersistedObjectId() {
+        return persistedObjectId;
     }
 
     /**
-     * Get the current object id, or get a new id from the database. The object
+     * Get the current object id (ie. if it is already persisted), or get a new id from the database. The object
      * id is used when creating new database object (CREATE statement).
      *
      * @return the object id
      */
     protected int getObjectId() {
-        int id = objectId;
+        int id = persistedObjectId;
         if (id == 0) {
             id = session.getDatabase().allocateObjectId();
-        } else {
-            objectId = 0;
         }
         return id;
     }
@@ -287,12 +288,12 @@ public abstract class Prepared {
     }
 
     /**
-     * Set the object id for this statement.
+     * Set the persisted object id for this statement.
      *
      * @param i the object id
      */
-    public void setObjectId(int i) {
-        this.objectId = i;
+    public void setPersistedObjectId(int i) {
+        this.persistedObjectId = i;
         this.create = false;
     }
 

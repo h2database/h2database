@@ -54,6 +54,11 @@ public abstract class Prepared {
 
     private long modificationMetaId;
     private Command command;
+    /**
+     * Used to preserve object identities on database startup. {@code 0} if
+     * object is not stored, {@code -1} if object is stored and its ID is
+     * already read, {@code >0} if object is stored and its id is not yet read.
+     */
     private int objectId;
     private int currentRowNumber;
     private int rowScanCount;
@@ -245,12 +250,14 @@ public abstract class Prepared {
      * @return the object id or 0 if not set
      */
     protected int getCurrentObjectId() {
-        return objectId;
+        int id = objectId;
+        return id >= 0 ? id : 0;
     }
 
     /**
      * Get the current object id, or get a new id from the database. The object
-     * id is used when creating new database object (CREATE statement).
+     * id is used when creating new database object (CREATE statement). This
+     * method may be called only once.
      *
      * @return the object id
      */
@@ -258,9 +265,10 @@ public abstract class Prepared {
         int id = objectId;
         if (id == 0) {
             id = session.getDatabase().allocateObjectId();
-        } else {
-            objectId = 0;
+        } else if (id < 0) {
+            throw DbException.throwInternalError("Prepared.getObjectId() was called before");
         }
+        objectId = -1;
         return id;
     }
 

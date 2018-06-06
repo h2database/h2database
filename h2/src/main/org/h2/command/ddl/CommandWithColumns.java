@@ -103,7 +103,7 @@ public abstract class CommandWithColumns extends SchemaCommand {
         if (columns != null) {
             for (Column c : columns) {
                 if (c.isAutoIncrement()) {
-                    int objId = getObjectId();
+                    int objId = session.getDatabase().allocateObjectId();
                     c.convertAutoIncrementToSequence(session, getSchema(), objId, temporary);
                     if (!Constants.CLUSTERING_DISABLED.equals(session.getDatabase().getCluster())) {
                         throw DbException.getUnsupportedException("CLUSTERING && auto-increment columns");

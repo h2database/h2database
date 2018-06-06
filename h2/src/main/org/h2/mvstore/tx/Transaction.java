@@ -50,7 +50,7 @@ public class Transaction {
      * This transaction's id can not be re-used until all the above is completed
      * and transaction is closed.
      */
-    private static final int STATUS_COMMITTED = 4;
+    public static final int STATUS_COMMITTED = 4;
 
     /**
      * The status of a transaction that currently in a process of rolling back
@@ -368,8 +368,7 @@ public class Transaction {
             long state = setStatus(STATUS_COMMITTING);
             hasChanges = hasChanges(state);
             if (hasChanges) {
-                long logId = getLogId(state);
-                store.commit(this, logId);
+                store.commit(this);
             }
         } catch (Throwable e) {
             ex = e;

@@ -340,14 +340,13 @@ public class Recover extends Tool implements DataHandler {
             } else if (fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
                 String f = fileName.substring(0, fileName.length() -
                         Constants.SUFFIX_PAGE_FILE.length());
-                PrintWriter writer;
-                writer = getWriter(fileName, ".txt");
-                MVStoreTool.dump(fileName, writer, true);
-                MVStoreTool.info(fileName, writer);
-                writer.close();
-                writer = getWriter(f + ".h2.db", ".sql");
-                dumpMVStoreFile(writer, fileName);
-                writer.close();
+                try (PrintWriter writer = getWriter(fileName, ".txt")) {
+                    MVStoreTool.dump(fileName, writer, true);
+                    MVStoreTool.info(fileName, writer);
+                }
+                try (PrintWriter writer = getWriter(f + ".h2.db", ".sql")) {
+                    dumpMVStoreFile(writer, fileName);
+                }
             }
         }
     }

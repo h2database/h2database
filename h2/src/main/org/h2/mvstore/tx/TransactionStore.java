@@ -52,7 +52,7 @@ public class TransactionStore {
      * Key: opId, value: [ mapId, key, oldValue ].
      */
     @SuppressWarnings("unchecked")
-    final MVMap<Long,Object[]> undoLogs[] = (MVMap<Long,Object[]>[])new MVMap[MAX_OPEN_TRANSACTIONS];
+    final MVMap<Long,Object[]> undoLogs[] = new MVMap[MAX_OPEN_TRANSACTIONS];
     private final MVMap.Builder<Long,Object[]> undoLogBuilder;
 
     private final DataType dataType;
@@ -94,7 +94,9 @@ public class TransactionStore {
      */
     private int nextTempMapId;
 
-    private static final String UNDO_LOG_NAME_PEFIX = "undoLog-";
+    private static final String UNDO_LOG_NAME_PEFIX = "undoLog";
+    private static final char UNDO_LOG_OPEN = '-';
+    private static final char UNDO_LOG_COMMITTED = '.';
 
     /**
      * Hard limit on the number of concurrently opened transactions
@@ -155,12 +157,13 @@ public class TransactionStore {
             for (String mapName : store.getMapNames()) {
                 if (mapName.startsWith(UNDO_LOG_NAME_PEFIX)) {
                     if (store.hasData(mapName)) {
-                        int transactionId = Integer.parseInt(mapName.substring(UNDO_LOG_NAME_PEFIX.length()));
+                        int transactionId = Integer.parseInt(mapName.substring(UNDO_LOG_NAME_PEFIX.length() + 1));
                         Object[] data = preparedTransactions.get(transactionId);
                         int status;
                         String name;
                         if (data == null) {
-                            status = Transaction.STATUS_OPEN;
+                            status = mapName.charAt(UNDO_LOG_NAME_PEFIX.length()) == UNDO_LOG_OPEN ?
+                                                        Transaction.STATUS_OPEN : Transaction.STATUS_COMMITTING;
                             name = null;
                         } else {
                             status = (Integer) data[0];
@@ -330,7 +333,7 @@ public class TransactionStore {
         transactions.set(transactionId, transaction);
 
         if (undoLogs[transactionId] == null) {
-            String undoName = UNDO_LOG_NAME_PEFIX + transactionId;
+            String undoName = UNDO_LOG_NAME_PEFIX + UNDO_LOG_OPEN + transactionId;
             undoLogs[transactionId] = store.openMap(undoName, undoLogBuilder);
         }
         return transaction;
@@ -413,19 +416,24 @@ public class TransactionStore {
             try {
                 t.setStatus(Transaction.STATUS_COMMITTED);
                 MVMap<Long, Object[]> undoLog = undoLogs[transactionId];
-                Cursor<Long, Object[]> cursor = undoLog.cursor(null);
-                while (cursor.hasNext()) {
-                    Long undoKey = cursor.next();
-                    Object[] op = cursor.getValue();
-                    int mapId = (Integer) op[0];
-                    MVMap<Object, VersionedValue> map = openMap(mapId);
-                    if (map != null) { // might be null if map was removed later
-                        Object key = op[1];
-                        commitDecisionMaker.setUndoKey(undoKey);
-                        map.operate(key, null, commitDecisionMaker);
+                store.renameMap(undoLog, UNDO_LOG_NAME_PEFIX + UNDO_LOG_COMMITTED + transactionId);
+                try {
+                    Cursor<Long, Object[]> cursor = undoLog.cursor(null);
+                    while (cursor.hasNext()) {
+                        Long undoKey = cursor.next();
+                        Object[] op = cursor.getValue();
+                        int mapId = (Integer) op[0];
+                        MVMap<Object, VersionedValue> map = openMap(mapId);
+                        if (map != null) { // might be null if map was removed later
+                            Object key = op[1];
+                            commitDecisionMaker.setUndoKey(undoKey);
+                            map.operate(key, null, commitDecisionMaker);
+                        }
                     }
+                    undoLog.clear();
+                } finally {
+                    store.renameMap(undoLog, UNDO_LOG_NAME_PEFIX + UNDO_LOG_OPEN + transactionId);
                 }
-                undoLog.clear();
             } finally {
                 flipCommittingTransactionsBit(transactionId, false);
             }
@@ -548,15 +556,7 @@ public class TransactionStore {
             if (wasStored || store.getAutoCommitDelay() == 0) {
                 store.tryCommit();
             } else {
-                boolean empty = true;
-                BitSet openTrans = openTransactions.get();
-                for (int i = openTrans.nextSetBit(0); empty && i >= 0; i = openTrans.nextSetBit(i + 1)) {
-                    MVMap<Long, Object[]> undoLog = undoLogs[i];
-                    if (undoLog != null) {
-                        empty = undoLog.isEmpty();
-                    }
-                }
-                if (empty) {
+                if (isUndoEmpty()) {
                     // to avoid having to store the transaction log,
                     // if there is no open transaction,
                     // and if there have been many changes, store them now
@@ -569,6 +569,17 @@ public class TransactionStore {
                 }
             }
         }
+    }
+
+    private boolean isUndoEmpty() {
+        BitSet openTrans = openTransactions.get();
+        for (int i = openTrans.nextSetBit(0); i >= 0; i = openTrans.nextSetBit(i + 1)) {
+            MVMap<Long, Object[]> undoLog = undoLogs[i];
+            if (undoLog != null && !undoLog.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     Transaction getTransaction(int transactionId) {

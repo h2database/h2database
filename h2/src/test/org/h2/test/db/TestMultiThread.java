@@ -133,7 +133,7 @@ public class TestMultiThread extends TestBase implements Runnable {
                 tasks[i] = t;
                 t.execute();
             }
-            Thread.sleep(500);
+            Thread.sleep(10000);
             for (Task t : tasks) {
                 t.get();
             }

@@ -77,7 +77,7 @@ public class TransactionMap<K, V> {
         // when none of the variables concurrently changes it's value.
         BitSet committingTransactions;
         MVMap.RootReference mapRootReference;
-        MVMap.RootReference undoLogRootReferences[];
+        MVMap.RootReference[] undoLogRootReferences;
         long undoLogSize;
         do {
             committingTransactions = store.committingTransactions.get();

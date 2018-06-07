@@ -21,6 +21,66 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Issue #1177: Resource leak in Recover tool 
+</li>
+<li>PR #1183: Improve concurrency of connection pool with wait-free implement 
+</li>
+<li>Issue #1073: H2 v1.4.197 fails to open an existing database with the error [Unique index or primary key violation: "PRIMARY KEY ON """".PAGE_INDEX"]
+</li>
+<li>PR #1179: Drop TransactionMap.readLogId  
+</li>
+<li>PR #1181: Improve CURRENT_TIMESTAMP and add LOCALTIME and LOCALTIMESTAMP
+</li>
+<li>PR #1176: Magic value replacement with constant
+</li>
+<li>PR #1171: Introduce last commited value into a VersionedValue
+</li>
+<li>PR #1175: tighten test conditions - do not ignore any exceptions
+</li>
+<li>PR #1174: Remove mapid
+</li>
+<li>PR #1173: protect first background exception encountered and relate it to clients
+</li>
+<li>PR #1172: Yet another attempt to tighten that testing loop
+</li>
+<li>PR #1170: Add support of CONTINUE | RESTART IDENTITY to TRUNCATE TABLE
+</li>
+<li>Issue #1168: ARRAY_CONTAINS() returning incorrect results when inside subquery with Long elements.
+</li>
+<li>PR #1167: MVStore: Undo log synchronization removal
+</li>
+<li>PR #1166: Add SRID support to EWKT format
+</li>
+<li>PR #1165: Optimize isTargetRowFound() and buildColumnListFromOnCondition() in MergeUsing
+</li>
+<li>PR #1164: More fixes for parsing of MERGE USING and other changes in Parser
+</li>
+<li>PR #1154: Support for external authentication
+</li>
+<li>PR #1162: Reduce allocation of temporary strings
+</li>
+<li>PR #1158: make fields final
+</li>
+<li>Issue #1129: TestCrashAPI / TestFuzzOptimizations throw OOME on Travis in PageStore mode
+</li>
+<li>PR #1156: Add support for SQL:2003 WITH [NO] DATA to CREATE TABLE AS
+</li>
+<li>PR #1149: fix deadlock between OnExitDatabaseCloser.DATABASES and Engine.DATABASES
+</li>
+<li>PR #1152: skip intermediate DbException object when creating SQLException
+</li>
+<li>PR #1144: Add missing schema name with recursive view
+</li>
+<li>Issue #1091: get rid of the "New" class
+</li>
+<li>PR #1147: Assorted minor optimizations
+</li>
+<li>PR #1145: Reduce code duplication
+</li>
+<li>PR #1142: Misc small fixes
+</li>
+<li>PR #1141: Assorted optimizations and fixes                        
+</li>
 <li>PR #1138, #1139: Fix a memory leak caused by DatabaseCloser objects
 </li>
 <li>PR #1137: Step toward making transaction commit atomic

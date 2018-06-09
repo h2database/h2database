@@ -1924,15 +1924,17 @@ public class MVStore {
         // We can't wait fo lock here, because if called from the background thread,
         // it might go into deadlock with concurrent database closure
         // and attempt to stop this thread.
-        if (storeLock.tryLock() && !compactInProgress) {
+        if (storeLock.tryLock()) {
             try {
-                compactInProgress = true;
-                ArrayList<Chunk> old = findOldChunks(targetFillRate, write);
-                if (old == null || old.isEmpty()) {
-                    return false;
+                if (!compactInProgress) {
+                    compactInProgress = true;
+                    ArrayList<Chunk> old = findOldChunks(targetFillRate, write);
+                    if (old == null || old.isEmpty()) {
+                        return false;
+                    }
+                    compactRewrite(old);
+                    return true;
                 }
-                compactRewrite(old);
-                return true;
             } finally {
                 compactInProgress = false;
                 storeLock.unlock();

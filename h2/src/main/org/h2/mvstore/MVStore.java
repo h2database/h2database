@@ -2518,11 +2518,14 @@ public class MVStore {
         int id = map.getId();
         String oldName = getMapName(id);
         if (oldName != null && !oldName.equals(newName)) {
+            String idHexStr = Integer.toHexString(id);
+            // we need to cope whith the case of previously unfinished rename
+            String existingIdHexStr = meta.get("name." + newName);
             DataUtils.checkArgument(
-                    !meta.containsKey("name." + newName),
+                    existingIdHexStr == null || existingIdHexStr.equals(idHexStr),
                     "A map named {0} already exists", newName);
             // at first create a new name as an "alias"
-            meta.put("name." + newName, Integer.toHexString(id));
+            meta.put("name." + newName, idHexStr);
             // switch roles of a new and old names - old one is an alias now
             meta.put(MVMap.getMapKey(id), map.asString(newName));
             // get rid of the old name completely

@@ -95,8 +95,8 @@ public class TransactionStore {
     private int nextTempMapId;
 
     private static final String UNDO_LOG_NAME_PEFIX = "undoLog";
-    private static final char UNDO_LOG_OPEN = '-';
-    private static final char UNDO_LOG_COMMITTED = '.';
+    private static final char UNDO_LOG_COMMITTED = '-'; // must come before open in lexicographical order
+    private static final char UNDO_LOG_OPEN = '.';
 
     /**
      * Hard limit on the number of concurrently opened transactions
@@ -105,6 +105,11 @@ public class TransactionStore {
     private static final int MAX_OPEN_TRANSACTIONS = 65535;
 
 
+    public static String getUndoLogName(boolean committed, int transactionId) {
+        return UNDO_LOG_NAME_PEFIX +
+                (committed ? UNDO_LOG_COMMITTED : UNDO_LOG_OPEN) +
+                (transactionId > 0 ? String.valueOf(transactionId) : "");
+    }
 
     /**
      * Create a new transaction store.
@@ -158,24 +163,27 @@ public class TransactionStore {
                 if (mapName.startsWith(UNDO_LOG_NAME_PEFIX)) {
                     if (store.hasData(mapName)) {
                         int transactionId = Integer.parseInt(mapName.substring(UNDO_LOG_NAME_PEFIX.length() + 1));
-                        Object[] data = preparedTransactions.get(transactionId);
-                        int status;
-                        String name;
-                        if (data == null) {
-                            status = mapName.charAt(UNDO_LOG_NAME_PEFIX.length()) == UNDO_LOG_OPEN ?
-                                                        Transaction.STATUS_OPEN : Transaction.STATUS_COMMITTING;
-                            name = null;
-                        } else {
-                            status = (Integer) data[0];
-                            name = (String) data[1];
+                        VersionedBitSet openTxBitSet = openTransactions.get();
+                        if (!openTxBitSet.get(transactionId)) {
+                            Object[] data = preparedTransactions.get(transactionId);
+                            int status;
+                            String name;
+                            if (data == null) {
+                                status = mapName.charAt(UNDO_LOG_NAME_PEFIX.length()) == UNDO_LOG_OPEN ?
+                                        Transaction.STATUS_OPEN : Transaction.STATUS_COMMITTING;
+                                name = null;
+                            } else {
+                                status = (Integer) data[0];
+                                name = (String) data[1];
+                            }
+                            MVMap<Long, Object[]> undoLog = store.openMap(mapName, undoLogBuilder);
+                            undoLogs[transactionId] = undoLog;
+                            Long lastUndoKey = undoLog.lastKey();
+                            assert lastUndoKey != null;
+                            assert getTransactionId(lastUndoKey) == transactionId;
+                            long logId = getLogId(lastUndoKey) + 1;
+                            registerTransaction(transactionId, status, name, logId, timeoutMillis, 0, listener);
                         }
-                        MVMap<Long,Object[]> undoLog = store.openMap(mapName, undoLogBuilder);
-                        undoLogs[transactionId] = undoLog;
-                        Long lastUndoKey = undoLog.lastKey();
-                        assert lastUndoKey != null;
-                        assert getTransactionId(lastUndoKey) == transactionId;
-                        long logId = getLogId(lastUndoKey) + 1;
-                        registerTransaction(transactionId, status, name, logId, timeoutMillis, 0, listener);
                     }
                 }
             }
@@ -333,7 +341,7 @@ public class TransactionStore {
         transactions.set(transactionId, transaction);
 
         if (undoLogs[transactionId] == null) {
-            String undoName = UNDO_LOG_NAME_PEFIX + UNDO_LOG_OPEN + transactionId;
+            String undoName = getUndoLogName(false, transactionId);
             undoLogs[transactionId] = store.openMap(undoName, undoLogBuilder);
         }
         return transaction;
@@ -416,7 +424,7 @@ public class TransactionStore {
             try {
                 t.setStatus(Transaction.STATUS_COMMITTED);
                 MVMap<Long, Object[]> undoLog = undoLogs[transactionId];
-                store.renameMap(undoLog, UNDO_LOG_NAME_PEFIX + UNDO_LOG_COMMITTED + transactionId);
+                store.renameMap(undoLog, getUndoLogName(true, transactionId));
                 try {
                     Cursor<Long, Object[]> cursor = undoLog.cursor(null);
                     while (cursor.hasNext()) {
@@ -432,7 +440,7 @@ public class TransactionStore {
                     }
                     undoLog.clear();
                 } finally {
-                    store.renameMap(undoLog, UNDO_LOG_NAME_PEFIX + UNDO_LOG_OPEN + transactionId);
+                    store.renameMap(undoLog, getUndoLogName(false, transactionId));
                 }
             } finally {
                 flipCommittingTransactionsBit(transactionId, false);

@@ -128,17 +128,15 @@ public class FileStore {
         if (file != null) {
             return;
         }
-        if (fileName != null) {
-            // ensure the Cache file system is registered
-            FilePathCache.INSTANCE.getScheme();
-            FilePath p = FilePath.get(fileName);
-            // if no explicit scheme was specified, NIO is used
-            if (p instanceof FilePathDisk &&
-                    !fileName.startsWith(p.getScheme() + ":")) {
-                // ensure the NIO file system is registered
-                FilePathNio.class.getName();
-                fileName = "nio:" + fileName;
-            }
+        // ensure the Cache file system is registered
+        FilePathCache.INSTANCE.getScheme();
+        FilePath p = FilePath.get(fileName);
+        // if no explicit scheme was specified, NIO is used
+        if (p instanceof FilePathDisk &&
+                !fileName.startsWith(p.getScheme() + ":")) {
+            // ensure the NIO file system is registered
+            FilePathNio.class.getName();
+            fileName = "nio:" + fileName;
         }
         this.fileName = fileName;
         FilePath f = FilePath.get(fileName);

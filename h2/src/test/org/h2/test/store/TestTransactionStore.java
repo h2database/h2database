@@ -396,7 +396,8 @@ public class TestTransactionStore extends TestBase {
             store.close();
             s = MVStore.open(fileName);
             // roll back a bit, until we have some undo log entries
-            assertTrue(s.hasMap("undoLog-1") || s.hasMap("undoLog.1"));
+            assertTrue(s.hasMap(TransactionStore.getUndoLogName(false, 1)) ||
+                        s.hasMap(TransactionStore.getUndoLogName(true, 1)));
             for (int back = 0; back < 100; back++) {
                 int minus = r.nextInt(10);
                 s.rollbackTo(Math.max(0, s.getCurrentVersion() - minus));
@@ -424,7 +425,7 @@ public class TestTransactionStore extends TestBase {
 
     private boolean hasDataUndoLog(MVStore s) {
         for (int i = 0; i < 255; i++) {
-            if(s.hasData("undoLog."+i)) {
+            if(s.hasData(TransactionStore.getUndoLogName(true, 1))) {
                 return true;
             }
         }

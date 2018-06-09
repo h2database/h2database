@@ -354,6 +354,8 @@ public class MVStore {
             retentionTime = this.fileStore.getDefaultRetentionTime();
             int kb = DataUtils.getConfigParam(config, "autoCommitBufferSize", 1024);
             // 19 KB memory is about 1 KB storage
+            // TODO: maybe keep 19 MB as an upper bound,
+            // TODO: but derive actual value from the amount of RAM available
             autoCommitMemory = kb * 1024 * 19;
             autoCompactFillRate = DataUtils.getConfigParam(config, "autoCompactFillRate", 40);
             char[] encryptionKey = (char[]) config.get("encryptionKey");
@@ -1068,8 +1070,16 @@ public class MVStore {
      * @return the new version (incremented if there were changes)
      */
     public synchronized long commit() {
-        currentStoreThread.set(Thread.currentThread());
-        store();
+        Thread currentThread = Thread.currentThread();
+        Thread storeThread = currentStoreThread.get();
+        if (currentThread != storeThread) { // to avoid re-entrance
+            currentStoreThread.set(currentThread);
+            try {
+                store();
+            } finally {
+                currentStoreThread.set(storeThread);
+            }
+        }
         return currentVersion;
     }
 
@@ -1652,7 +1662,6 @@ public class MVStore {
      * @return if there are any changes
      */
     public boolean hasUnsavedChanges() {
-        assert !metaChanged || meta.hasChangesSince(lastStoredVersion) : metaChanged;
         if (metaChanged) {
             return true;
         }
@@ -2293,11 +2302,18 @@ public class MVStore {
      * @param map the map
      */
     void beforeWrite(MVMap<?, ?> map) {
-        if (saveNeeded && fileStore != null && !closed && autoCommitDelay > 0) {
+        if (saveNeeded && fileStore != null && !closed) {
             saveNeeded = false;
             // check again, because it could have been written by now
             if (unsavedMemory > autoCommitMemory && autoCommitMemory > 0) {
-                tryCommit();
+                // if unsaved memory creation rate is to high,
+                // some back pressure need to be applied
+                // to slow things down and avoid OOME
+                if (3 * unsavedMemory > 4 * autoCommitMemory) {
+                    commit();
+                } else {
+                    tryCommit();
+                }
             }
         }
     }
@@ -2495,7 +2511,7 @@ public class MVStore {
      * @param map the map
      * @param newName the new name
      */
-    public synchronized void renameMap(MVMap<?, ?> map, String newName) {
+    public void renameMap(MVMap<?, ?> map, String newName) {
         checkOpen();
         DataUtils.checkArgument(map != meta,
                 "Renaming the meta map is not allowed");
@@ -2505,9 +2521,12 @@ public class MVStore {
             DataUtils.checkArgument(
                     !meta.containsKey("name." + newName),
                     "A map named {0} already exists", newName);
-            meta.remove("name." + oldName);
-            meta.put(MVMap.getMapKey(id), map.asString(newName));
+            // at first create a new name as an "alias"
             meta.put("name." + newName, Integer.toHexString(id));
+            // switch roles of a new and old names - old one is an alias now
+            meta.put(MVMap.getMapKey(id), map.asString(newName));
+            // get rid of the old name completely
+            meta.remove("name." + oldName);
             markMetaChanged();
         }
     }

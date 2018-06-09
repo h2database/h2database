@@ -293,7 +293,7 @@ public class MVStore {
     /**
      * Simple lock to ensure that no more than one compaction runs at any given time
      */
-    private final Object compactSync = new Object();
+    private boolean compactInProgress;
 
     private volatile IllegalStateException panicException;
 
@@ -1920,23 +1920,22 @@ public class MVStore {
         if (!reuseSpace) {
             return false;
         }
-        synchronized (compactSync) {
-            checkOpen();
-            ArrayList<Chunk> old;
-            // We can't wait fo lock here, because if called from the background thread,
-            // it might go into deadlock with concurrent database closure
-            // and attempt to stop this thread.
-            if (storeLock.tryLock()) {
-                try {
-                    old = findOldChunks(targetFillRate, write);
-                    if (old == null || old.isEmpty()) {
-                        return false;
-                    }
-                    compactRewrite(old);
-                    return true;
-                } finally {
-                    storeLock.unlock();
+        checkOpen();
+        // We can't wait fo lock here, because if called from the background thread,
+        // it might go into deadlock with concurrent database closure
+        // and attempt to stop this thread.
+        if (storeLock.tryLock() && !compactInProgress) {
+            try {
+                compactInProgress = true;
+                ArrayList<Chunk> old = findOldChunks(targetFillRate, write);
+                if (old == null || old.isEmpty()) {
+                    return false;
                 }
+                compactRewrite(old);
+                return true;
+            } finally {
+                compactInProgress = false;
+                storeLock.unlock();
             }
         }
         return false;

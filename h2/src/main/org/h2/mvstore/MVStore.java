@@ -23,6 +23,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
@@ -33,6 +34,7 @@ import org.h2.engine.Constants;
 import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.util.MathUtils;
 import static org.h2.mvstore.MVMap.INITIAL_VERSION;
+import org.h2.util.Utils;
 
 /*
 
@@ -150,7 +152,7 @@ public class MVStore {
      * It serves as a replacement for synchronized(this), except it allows for
      * non-blocking lock attempts.
      */
-    private final ReentrantLock storeLock = new ReentrantLock();
+    private final ReentrantLock storeLock = new ReentrantLock(true);
 
     /**
      * The background thread, if any.
@@ -214,7 +216,7 @@ public class MVStore {
 
     private WriteBuffer writeBuffer;
 
-    private int lastMapId;
+    private final AtomicInteger lastMapId = new AtomicInteger();
 
     private int versionsToKeep = 5;
 
@@ -355,11 +357,10 @@ public class MVStore {
         meta.init();
         if (this.fileStore != null) {
             retentionTime = this.fileStore.getDefaultRetentionTime();
-            int kb = DataUtils.getConfigParam(config, "autoCommitBufferSize", 1024);
             // 19 KB memory is about 1 KB storage
-            // TODO: maybe keep 19 MB as an upper bound,
-            // TODO: but derive actual value from the amount of RAM available
-            autoCommitMemory = kb * 1024 * 19;
+            int kb = Math.max(1, Math.min(19, Utils.scaleForAvailableMemory(64))) * 1024;
+            kb = DataUtils.getConfigParam(config, "autoCommitBufferSize", kb);
+            autoCommitMemory = kb * 1024;
             autoCompactFillRate = DataUtils.getConfigParam(config, "autoCompactFillRate", 40);
             char[] encryptionKey = (char[]) config.get("encryptionKey");
             try {
@@ -478,34 +479,29 @@ public class MVStore {
      * @return the map
      */
     public <M extends MVMap<K, V>, K, V> M openMap(String name, MVMap.MapBuilder<M, K, V> builder) {
-        storeLock.lock();
-        try {
-            int id = getMapId(name);
-            M map;
-            if (id >= 0) {
-                map = openMap(id, builder);
-            } else {
-                HashMap<String, Object> c = new HashMap<>();
-                id = ++lastMapId;
-                c.put("id", id);
-                c.put("createVersion", currentVersion);
-                map = builder.create(this, c);
-                map.init();
-                String x = Integer.toHexString(id);
-                meta.put(MVMap.getMapKey(id), map.asString(name));
-                meta.put("name." + name, x);
-                map.setRootPos(0, lastStoredVersion);
-                markMetaChanged();
-                @SuppressWarnings("unchecked")
-                M existingMap = (M) maps.putIfAbsent(id, map);
-                if (existingMap != null) {
-                    map = existingMap;
-                }
+        int id = getMapId(name);
+        M map;
+        if (id >= 0) {
+            map = openMap(id, builder);
+        } else {
+            HashMap<String, Object> c = new HashMap<>();
+            id = lastMapId.incrementAndGet();
+            c.put("id", id);
+            c.put("createVersion", currentVersion);
+            map = builder.create(this, c);
+            map.init();
+            String x = Integer.toHexString(id);
+            meta.put(MVMap.getMapKey(id), map.asString(name));
+            meta.put("name." + name, x);
+            map.setRootPos(0, lastStoredVersion);
+            markMetaChanged();
+            @SuppressWarnings("unchecked")
+            M existingMap = (M) maps.putIfAbsent(id, map);
+            if (existingMap != null) {
+                map = existingMap;
             }
-            return map;
-        } finally {
-            storeLock.unlock();
         }
+        return map;
     }
 
     public <M extends MVMap<K, V>, K, V> M openMap(int id, MVMap.MapBuilder<M, K, V> builder) {
@@ -777,12 +773,12 @@ public class MVStore {
         lastChunk = last;
         if (last == null) {
             // no valid chunk
-            lastMapId = 0;
+            lastMapId.set(0);
             currentVersion = 0;
             lastStoredVersion = INITIAL_VERSION;
             meta.setRootPos(0, INITIAL_VERSION);
         } else {
-            lastMapId = last.mapId;
+            lastMapId.set(last.mapId);
             currentVersion = last.version;
             chunks.put(last.id, last);
             lastStoredVersion = currentVersion - 1;
@@ -1176,7 +1172,7 @@ public class MVStore {
         c.len = Integer.MAX_VALUE;
         c.time = time;
         c.version = version;
-        c.mapId = lastMapId;
+        c.mapId = lastMapId.get();
         c.next = Long.MAX_VALUE;
         chunks.put(c.id, c);
         // force a metadata update
@@ -1921,26 +1917,31 @@ public class MVStore {
             return false;
         }
         checkOpen();
-        // We can't wait fo lock here, because if called from the background thread,
+        // We can't wait forever for the lock here,
+        // because if called from the background thread,
         // it might go into deadlock with concurrent database closure
         // and attempt to stop this thread.
-        if (storeLock.tryLock()) {
-            try {
-                if (!compactInProgress) {
-                    compactInProgress = true;
-                    ArrayList<Chunk> old = findOldChunks(targetFillRate, write);
-                    if (old == null || old.isEmpty()) {
-                        return false;
+        try {
+            if (storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
+                try {
+                    if (!compactInProgress) {
+                        compactInProgress = true;
+                        ArrayList<Chunk> old = findOldChunks(targetFillRate, write);
+                        if (old == null || old.isEmpty()) {
+                            return false;
+                        }
+                        compactRewrite(old);
+                        return true;
                     }
-                    compactRewrite(old);
-                    return true;
+                } finally {
+                    compactInProgress = false;
+                    storeLock.unlock();
                 }
-            } finally {
-                compactInProgress = false;
-                storeLock.unlock();
             }
+            return false;
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
-        return false;
     }
 
     /**

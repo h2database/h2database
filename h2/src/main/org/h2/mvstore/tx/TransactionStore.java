@@ -146,10 +146,6 @@ public class TransactionStore {
      * in which case the store can only be used for reading.
      */
     public void init() {
-        init(RollbackListener.NONE);
-    }
-
-    public synchronized void init(RollbackListener listener) {
         if (!init) {
             // remove all temporary maps
             for (String mapName : store.getMapNames()) {
@@ -182,7 +178,7 @@ public class TransactionStore {
                             assert lastUndoKey != null;
                             assert getTransactionId(lastUndoKey) == transactionId;
                             long logId = getLogId(lastUndoKey) + 1;
-                            registerTransaction(transactionId, status, name, logId, timeoutMillis, 0, listener);
+                            registerTransaction(transactionId, status, name, logId, timeoutMillis, 0, RollbackListener.NONE);
                         }
                     }
                 }
@@ -341,8 +337,9 @@ public class TransactionStore {
         transactions.set(transactionId, transaction);
 
         if (undoLogs[transactionId] == null) {
-            String undoName = getUndoLogName(false, transactionId);
-            undoLogs[transactionId] = store.openMap(undoName, undoLogBuilder);
+            String undoName = getUndoLogName(status == Transaction.STATUS_COMMITTING, transactionId);
+            MVMap<Long, Object[]> undoLog = store.openMap(undoName, undoLogBuilder);
+            undoLogs[transactionId] = undoLog;
         }
         return transaction;
     }
@@ -412,8 +409,10 @@ public class TransactionStore {
     /**
      * Commit a transaction.
      *  @param t transaction to commit
+     *  @param recovery if called during initial transaction recovery procedure
+     *                  therefore undo log is stored under "committed" name already
      */
-    void commit(Transaction t) {
+    void commit(Transaction t, boolean recovery) {
         if (!store.isClosed()) {
             int transactionId = t.transactionId;
             // this is an atomic action that causes all changes
@@ -422,9 +421,10 @@ public class TransactionStore {
 
             CommitDecisionMaker commitDecisionMaker = new CommitDecisionMaker();
             try {
-                t.setStatus(Transaction.STATUS_COMMITTED);
                 MVMap<Long, Object[]> undoLog = undoLogs[transactionId];
-                store.renameMap(undoLog, getUndoLogName(true, transactionId));
+                if(!recovery) {
+                    store.renameMap(undoLog, getUndoLogName(true, transactionId));
+                }
                 try {
                     Cursor<Long, Object[]> cursor = undoLog.cursor(null);
                     while (cursor.hasNext()) {

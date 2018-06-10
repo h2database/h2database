@@ -46,7 +46,7 @@ public class Transaction {
      * When opening a store, such transactions will automatically
      * be processed and closed as committed.
      */
-    public static final int STATUS_COMMITTING = 3;
+    public static final int STATUS_COMMITTED = 3;
 
     /**
      * The status of a transaction that currently in a process of rolling back
@@ -192,19 +192,19 @@ public class Transaction {
                 case STATUS_PREPARED:
                     valid = currentStatus == STATUS_OPEN;
                     break;
-                case STATUS_COMMITTING:
+                case STATUS_COMMITTED:
                     valid = currentStatus == STATUS_OPEN ||
                             currentStatus == STATUS_PREPARED ||
                             // this case is only possible if called
                             // from endLeftoverTransactions()
-                            currentStatus == STATUS_COMMITTING;
+                            currentStatus == STATUS_COMMITTED;
                     break;
                 case STATUS_ROLLED_BACK:
                     valid = currentStatus == STATUS_OPEN ||
                             currentStatus == STATUS_PREPARED;
                     break;
                 case STATUS_CLOSED:
-                    valid = currentStatus == STATUS_COMMITTING ||
+                    valid = currentStatus == STATUS_COMMITTED ||
                             currentStatus == STATUS_ROLLED_BACK;
                     break;
                 default:
@@ -361,11 +361,11 @@ public class Transaction {
         Throwable ex = null;
         boolean hasChanges = false;
         try {
-            long state = setStatus(STATUS_COMMITTING);
+            long state = setStatus(STATUS_COMMITTED);
             hasChanges = hasChanges(state);
             int previousStatus = getStatus(state);
             if (hasChanges) {
-                store.commit(this, previousStatus == STATUS_COMMITTING);
+                store.commit(this, previousStatus == STATUS_COMMITTED);
             }
         } catch (Throwable e) {
             ex = e;

@@ -253,7 +253,7 @@ public class MVTableEngine implements TableEngine {
         public void initTransactions() {
             List<Transaction> list = transactionStore.getOpenTransactions();
             for (Transaction t : list) {
-                if (t.getStatus() == Transaction.STATUS_COMMITTING) {
+                if (t.getStatus() == Transaction.STATUS_COMMITTED) {
                     t.commit();
                 } else if (t.getStatus() != Transaction.STATUS_PREPARED) {
                     t.rollback();

@@ -166,7 +166,7 @@ public class TransactionStore {
                             String name;
                             if (data == null) {
                                 status = mapName.charAt(UNDO_LOG_NAME_PEFIX.length()) == UNDO_LOG_OPEN ?
-                                        Transaction.STATUS_OPEN : Transaction.STATUS_COMMITTING;
+                                        Transaction.STATUS_OPEN : Transaction.STATUS_COMMITTED;
                                 name = null;
                             } else {
                                 status = (Integer) data[0];
@@ -337,7 +337,7 @@ public class TransactionStore {
         transactions.set(transactionId, transaction);
 
         if (undoLogs[transactionId] == null) {
-            String undoName = getUndoLogName(status == Transaction.STATUS_COMMITTING, transactionId);
+            String undoName = getUndoLogName(status == Transaction.STATUS_COMMITTED, transactionId);
             MVMap<Long, Object[]> undoLog = store.openMap(undoName, undoLogBuilder);
             undoLogs[transactionId] = undoLog;
         }

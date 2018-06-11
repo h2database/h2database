@@ -15,7 +15,6 @@ import org.h2.command.dml.Select;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
-import org.h2.engine.UndoLogRecord;
 import org.h2.expression.Comparison;
 import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
@@ -1158,14 +1157,8 @@ public class TableFilter implements ColumnResolver {
      *
      * @param forUpdateRows the rows to lock
      */
-    public void lockRows(ArrayList<Row> forUpdateRows) {
-        for (Row row : forUpdateRows) {
-            Row newRow = row.getCopy();
-            table.removeRow(session, row);
-            session.log(table, UndoLogRecord.DELETE, row);
-            table.addRow(session, newRow);
-            session.log(table, UndoLogRecord.INSERT, newRow);
-        }
+    public void lockRows(Iterable<Row> forUpdateRows) {
+        table.lockRows(session, forUpdateRows);
     }
 
     public TableFilter getNestedJoin() {

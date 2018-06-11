@@ -41,8 +41,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     private final AtomicReference<RootReference> root;
 
-    private int id;
-    private long createVersion;
+    private final int id;
+    private final long createVersion;
     private final DataType keyType;
     private final DataType valueType;
 
@@ -131,6 +131,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     @Override
     public V put(K key, V value) {
+        DataUtils.checkArgument(value != null, "The value may not be null");
         return put(key, value, DecisionMaker.PUT);
     }
 
@@ -142,7 +143,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the old value if the key existed, or null otherwise
      */
     public final V put(K key, V value, DecisionMaker<? super V> decisionMaker) {
-        DataUtils.checkArgument(value != null, "The value may not be null");
         return operate(key, value, decisionMaker);
     }
 
@@ -1382,7 +1382,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
     }
 
-    public enum Decision { ABORT, REMOVE, PUT }
+    public enum Decision { ABORT, REMOVE, PUT, REPEAT }
 
     /**
      * Class DecisionMaker provides callback interface (and should become a such in Java 8)
@@ -1520,6 +1520,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             boolean needUnlock = false;
             try {
                 switch (decision) {
+                    case REPEAT:
+                        decisionMaker.reset();
+                        continue;
                     case ABORT:
                         if(rootReference != getRoot()) {
                             decisionMaker.reset();
@@ -1528,6 +1531,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                         return result;
                     case REMOVE: {
                         if (index < 0) {
+                            if(rootReference != getRoot()) {
+                                decisionMaker.reset();
+                                continue;
+                            }
                             return null;
                         }
                         if (attempt > 2 && !(needUnlock = lockRoot(decisionMaker, rootReference,

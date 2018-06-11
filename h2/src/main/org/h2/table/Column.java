@@ -21,20 +21,16 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
-import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
-import org.h2.value.ValueDate;
 import org.h2.value.ValueEnum;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
-import org.h2.value.ValueTimestamp;
-import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueUuid;
 
 /**
@@ -361,16 +357,13 @@ public class Column {
                     if (dt.decimal) {
                         value = ValueInt.get(0).convertTo(type);
                     } else if (dt.type == Value.TIMESTAMP) {
-                        value = ValueTimestamp.fromMillis(session.getTransactionStart());
+                        value = session.getTransactionStart().convertTo(Value.TIMESTAMP);
                     } else if (dt.type == Value.TIMESTAMP_TZ) {
-                        long ms = session.getTransactionStart();
-                        value = ValueTimestampTimeZone.fromDateValueAndNanos(
-                                DateTimeUtils.dateValueFromDate(ms),
-                                DateTimeUtils.nanosFromDate(ms), (short) 0);
+                        value = session.getTransactionStart();
                     } else if (dt.type == Value.TIME) {
                         value = ValueTime.fromNanos(0);
                     } else if (dt.type == Value.DATE) {
-                        value = ValueDate.fromMillis(session.getTransactionStart());
+                        value = session.getTransactionStart().convertTo(Value.DATE);
                     } else {
                         value = ValueString.get("").convertTo(type);
                     }

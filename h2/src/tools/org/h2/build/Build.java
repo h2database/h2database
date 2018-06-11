@@ -501,9 +501,14 @@ public class Build extends BuildBase {
 
     /**
      * Add META-INF/versions for Java 9+.
+     *
+     * @param includeCurrentTimestamp include CurrentTimestamp implementation
      */
-    private void addVersions() {
+    private void addVersions(boolean includeCurrentTimestamp) {
         copy("temp/META-INF/versions/9", files("src/java9/precompiled"), "src/java9/precompiled");
+        if (!includeCurrentTimestamp) {
+            delete(files("temp/META-INF/versions/9/org/h2/util/CurrentTimestamp.class"));
+        }
     }
 
     /**
@@ -512,7 +517,7 @@ public class Build extends BuildBase {
     @Description(summary = "Create the regular h2.jar file.")
     public void jar() {
         compile();
-        addVersions();
+        addVersions(true);
         manifest("H2 Database Engine", "org.h2.tools.Console");
         FileList files = files("temp").
             exclude("temp/android/*").
@@ -577,7 +582,7 @@ public class Build extends BuildBase {
     @Description(summary = "Create h2client.jar with only the remote JDBC implementation.")
     public void jarClient() {
         compile(true, true, false);
-        addVersions();
+        addVersions(false);
         FileList files = files("temp").
             exclude("temp/org/h2/build/*").
             exclude("temp/org/h2/dev/*").
@@ -604,7 +609,7 @@ public class Build extends BuildBase {
     @Description(summary = "Create h2mvstore.jar containing only the MVStore.")
     public void jarMVStore() {
         compileMVStore(true);
-        addVersions();
+        addVersions(false);
         manifestMVStore();
         FileList files = files("temp");
         files.exclude("*.DS_Store");
@@ -619,7 +624,7 @@ public class Build extends BuildBase {
     @Description(summary = "Create h2small.jar containing only the embedded database.")
     public void jarSmall() {
         compile(false, false, true);
-        addVersions();
+        addVersions(true);
         FileList files = files("temp").
             exclude("temp/android/*").
             exclude("temp/org/h2/android/*").

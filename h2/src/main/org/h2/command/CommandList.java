@@ -6,6 +6,8 @@
 package org.h2.command;
 
 import java.util.ArrayList;
+
+import org.h2.engine.Session;
 import org.h2.expression.ParameterInterface;
 import org.h2.result.ResultInterface;
 
@@ -17,8 +19,8 @@ class CommandList extends Command {
     private final Command command;
     private final String remaining;
 
-    CommandList(Parser parser, String sql, Command c, String remaining) {
-        super(parser, sql);
+    CommandList(Session session, String sql, Command c, String remaining) {
+        super(session, sql);
         this.command = c;
         this.remaining = remaining;
     }

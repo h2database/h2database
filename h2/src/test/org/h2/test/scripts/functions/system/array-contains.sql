@@ -22,10 +22,35 @@ select array_contains((null, 'two'), null);
 >> TRUE
 
 select array_contains(null, 'one');
->> FALSE
+>> null
 
 select array_contains(((1, 2), (3, 4)), (1, 2));
 >> TRUE
 
 select array_contains(((1, 2), (3, 4)), (5, 6));
 >> FALSE
+
+CREATE TABLE TEST (ID INT PRIMARY KEY AUTO_INCREMENT, A ARRAY);
+> ok
+
+INSERT INTO TEST (A) VALUES ((1L, 2L)), ((3L, 4L));
+> update count: 2
+
+SELECT ID, ARRAY_CONTAINS(A, 1L), ARRAY_CONTAINS(A, 2L), ARRAY_CONTAINS(A, 3L), ARRAY_CONTAINS(A, 4L) FROM TEST;
+> ID ARRAY_CONTAINS(A, 1) ARRAY_CONTAINS(A, 2) ARRAY_CONTAINS(A, 3) ARRAY_CONTAINS(A, 4)
+> -- -------------------- -------------------- -------------------- --------------------
+> 1  TRUE                 TRUE                 FALSE                FALSE
+> 2  FALSE                FALSE                TRUE                 TRUE
+> rows: 2
+
+SELECT * FROM (
+    SELECT ID, ARRAY_CONTAINS(A, 1L), ARRAY_CONTAINS(A, 2L), ARRAY_CONTAINS(A, 3L), ARRAY_CONTAINS(A, 4L) FROM TEST
+);
+> ID ARRAY_CONTAINS(A, 1) ARRAY_CONTAINS(A, 2) ARRAY_CONTAINS(A, 3) ARRAY_CONTAINS(A, 4)
+> -- -------------------- -------------------- -------------------- --------------------
+> 1  TRUE                 TRUE                 FALSE                FALSE
+> 2  FALSE                FALSE                TRUE                 TRUE
+> rows: 2
+
+DROP TABLE TEST;
+> ok

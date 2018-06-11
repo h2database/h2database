@@ -1990,7 +1990,20 @@ public class ErrorCode {
      */
     public static final int ROW_NOT_FOUND_IN_PRIMARY_INDEX = 90143;
 
-    // next are 90122, 90144
+    /**
+     * The error with code <code>90144</code> is thrown when
+     * user trying to login into a database with AUTHREALM set and
+     * the target database doesn't have an authenticator defined
+     * <p>Authenticator experimental feature can be enabled by 
+     * </p> 
+     * <pre>
+     * SET AUTHENTICATOR TRUE
+     * </pre>
+     */
+    public static final int AUTHENTICATOR_NOT_AVAILABLE = 90144;
+    
+    
+    // next are 90122, 90145
 
     private ErrorCode() {
         // utility class

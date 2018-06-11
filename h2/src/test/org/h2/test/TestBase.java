@@ -151,7 +151,7 @@ public abstract class TestBase {
             }
         } catch (Throwable e) {
             println("FAIL " + e.toString());
-            logError("FAIL " + e.toString(), e);
+            logError("FAIL ("+conf+") " + e.toString(), e);
             if (config.stopOnError) {
                 throw new AssertionError("ERROR");
             }

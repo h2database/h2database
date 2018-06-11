@@ -23,7 +23,6 @@ import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.command.ddl.Analyze;
 import org.h2.command.dml.Query;
-import org.h2.command.dml.SetTypes;
 import org.h2.constraint.Constraint;
 import org.h2.index.Index;
 import org.h2.index.ViewIndex;
@@ -49,6 +48,7 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableType;
 import org.h2.util.ColumnNamerConfiguration;
+import org.h2.util.CurrentTimestamp;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.Utils;
 import org.h2.value.Value;
@@ -56,6 +56,7 @@ import org.h2.value.ValueArray;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
+import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * A session represents an embedded database connection. When using the server
@@ -63,6 +64,8 @@ import org.h2.value.ValueString;
  * SessionRemote object on the client side.
  */
 public class Session extends SessionWithState implements TransactionStore.RollbackListener {
+
+    public enum State { INIT, RUNNING, BLOCKED, SLEEP, CLOSED }
 
     /**
      * This special log position means that the log entry has been written.
@@ -113,7 +116,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private volatile long cancelAtNs;
     private boolean closed;
     private final long sessionStart = System.currentTimeMillis();
-    private long transactionStart;
+    private ValueTimestampTimeZone transactionStart;
     private long currentCommandStart;
     private HashMap<String, Value> variables;
     private HashSet<ResultInterface> temporaryResults;
@@ -158,6 +161,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private ArrayList<Value> temporaryLobs;
 
     private Transaction transaction;
+    private State state = State.INIT;
     private long startStatement = -1;
 
     public Session(Database database, User user, int id) {
@@ -167,10 +171,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         this.undoLog = new UndoLog(this);
         this.user = user;
         this.id = id;
-        Setting setting = database.findSetting(
-                SetTypes.getTypeName(SetTypes.DEFAULT_LOCK_TIMEOUT));
-        this.lockTimeout = setting == null ?
-                Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
+        this.lockTimeout = database.getLockTimeout();
         this.currentSchemaName = Constants.SCHEMA_MAIN;
         this.columnNamerConfiguration = ColumnNamerConfiguration.getDefault();
     }
@@ -667,7 +668,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         tablesToAnalyze = null;
 
         currentTransactionName = null;
-        transactionStart = 0;
+        transactionStart = null;
         if (transaction != null) {
             try {
                 // increment the data mod count, so that other sessions
@@ -722,12 +723,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     private void removeTemporaryLobs(boolean onTimeout) {
-        if (SysProperties.CHECK2) {
-            if (this == getDatabase().getLobSession()
-                    && !Thread.holdsLock(this) && !Thread.holdsLock(getDatabase())) {
-                throw DbException.throwInternalError();
-            }
-        }
+        assert this != getDatabase().getLobSession() || Thread.holdsLock(this) || Thread.holdsLock(getDatabase());
         if (temporaryLobs != null) {
             for (Value v : temporaryLobs) {
                 if (!v.isLinkedToTable()) {
@@ -779,7 +775,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     public void rollback() {
         checkCommitRollback();
         currentTransactionName = null;
-        transactionStart = 0;
+        transactionStart = null;
         boolean needCommit = undoLog.size() > 0 || transaction != null;
         if(needCommit) {
             rollbackTo(null, false);
@@ -866,6 +862,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     @Override
     public void close() {
         if (!closed) {
+            state = State.CLOSED;
             try {
                 database.checkPowerOff();
 
@@ -879,9 +876,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                 // and we need to unlock before we call removeSession(), which might
                 // want to take the meta lock using the system session.
                 database.unlockMeta(this);
-                database.removeSession(this);
             } finally {
                 closed = true;
+                database.removeSession(this);
             }
         }
     }
@@ -1133,7 +1130,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     public void rollbackToSavepoint(String name) {
         checkCommitRollback();
         currentTransactionName = null;
-        transactionStart = 0;
+        transactionStart = null;
         if (savepoints == null) {
             throw DbException.get(ErrorCode.SAVEPOINT_IS_INVALID_1, name);
         }
@@ -1217,11 +1214,15 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (lastThrottle + TimeUnit.MILLISECONDS.toNanos(Constants.THROTTLE_DELAY) > time) {
             return;
         }
+        State prevState = this.state;
         lastThrottle = time + throttleNs;
         try {
+            this.state = State.SLEEP;
             Thread.sleep(TimeUnit.NANOSECONDS.toMillis(throttleNs));
         } catch (Exception e) {
             // ignore InterruptedException
+        } finally {
+            this.state = prevState;
         }
     }
 
@@ -1249,6 +1250,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             long now = System.nanoTime();
             cancelAtNs = now + TimeUnit.MILLISECONDS.toNanos(queryTimeout);
         }
+        state = command == null ? State.SLEEP : State.RUNNING;
     }
 
     /**
@@ -1453,9 +1455,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         return sessionStart;
     }
 
-    public long getTransactionStart() {
-        if (transactionStart == 0) {
-            transactionStart = System.currentTimeMillis();
+    public ValueTimestampTimeZone getTransactionStart() {
+        if (transactionStart == null) {
+            transactionStart = CurrentTimestamp.get();
         }
         return transactionStart;
     }
@@ -1638,7 +1640,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     public Value getTransactionId() {
         if (database.getMvStore() != null) {
-            if (transaction == null) {
+            if (transaction == null || !transaction.hasChanges()) {
                 return ValueNull.INSTANCE;
             }
             return ValueString.get(Long.toString(getTransaction().getSequenceNum()));
@@ -1676,17 +1678,18 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             MVTableEngine.Store store = database.getMvStore();
             if (store != null) {
                 if (store.getStore().isClosed()) {
+                    Throwable backgroundException = database.getBackgroundException();
                     database.shutdownImmediately();
-                    throw DbException.get(ErrorCode.DATABASE_IS_CLOSED);
+                    throw DbException.get(ErrorCode.DATABASE_IS_CLOSED, backgroundException);
                 }
-                transaction = store.getTransactionStore().begin(this);
+                transaction = store.getTransactionStore().begin(this, this.lockTimeout, id);
             }
             startStatement = -1;
         }
         return transaction;
     }
 
-    public long getStatementSavepoint() {
+    private long getStatementSavepoint() {
         if (startStatement == -1) {
             startStatement = getTransaction().setSavepoint();
         }
@@ -1757,6 +1760,18 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             tablesToAnalyze = new HashSet<>();
         }
         tablesToAnalyze.add(table);
+    }
+
+    public State getState() {
+        return getBlockingSessionId() != 0 ? State.BLOCKED : state;
+    }
+
+    public void setState(State state) {
+        this.state = state;
+    }
+
+    public int getBlockingSessionId() {
+        return transaction == null ? 0 : transaction.getBlockerId();
     }
 
     @Override

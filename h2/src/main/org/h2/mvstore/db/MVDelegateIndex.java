@@ -111,7 +111,7 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
 
     @Override
     public void remove(Session session) {
-        mainIndex.setMainIndexColumn(-1);
+        mainIndex.setMainIndexColumn(SearchRow.ROWID_INDEX);
     }
 
     @Override

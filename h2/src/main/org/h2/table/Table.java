@@ -178,6 +178,22 @@ public abstract class Table extends SchemaObjectBase {
     public abstract void removeRow(Session session, Row row);
 
     /**
+     * Locks rows, preventing any updated to them, except from the session specified.
+     *
+     * @param session the session
+     * @param rowsForUpdate rows to lock
+     */
+    public void lockRows(Session session, Iterable<Row> rowsForUpdate) {
+        for (Row row : rowsForUpdate) {
+            Row newRow = row.getCopy();
+            removeRow(session, row);
+            session.log(this, UndoLogRecord.DELETE, row);
+            addRow(session, newRow);
+            session.log(this, UndoLogRecord.INSERT, newRow);
+        }
+    }
+
+    /**
      * Remove all rows from the table and indexes.
      *
      * @param session the session
@@ -493,7 +509,7 @@ public abstract class Table extends SchemaObjectBase {
             try {
                 removeRow(session, o);
             } catch (DbException e) {
-                if (e.getErrorCode() == ErrorCode.CONCURRENT_UPDATE_1) {
+                if (e.getErrorCode() == ErrorCode.CONCURRENT_UPDATE_1 || e.getErrorCode() == ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
                     session.rollbackTo(rollback, false);
                     session.startStatementWithinTransaction();
                     rollback = session.setSavepoint();

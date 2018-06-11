@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
@@ -43,6 +44,7 @@ import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
+import org.h2.security.auth.Authenticator;
 import org.h2.store.DataHandler;
 import org.h2.store.FileLock;
 import org.h2.store.FileLockMethod;
@@ -91,9 +93,27 @@ public class Database implements DataHandler {
 
     private static int initialPowerOffCount;
 
-    private static final ThreadLocal<Session> META_LOCK_DEBUGGING = new ThreadLocal<>();
-    private static final ThreadLocal<Database> META_LOCK_DEBUGGING_DB = new ThreadLocal<>();
-    private static final ThreadLocal<Throwable> META_LOCK_DEBUGGING_STACK = new ThreadLocal<>();
+    private static final boolean ASSERT;
+
+    private static final ThreadLocal<Session> META_LOCK_DEBUGGING;
+    private static final ThreadLocal<Database> META_LOCK_DEBUGGING_DB;
+    private static final ThreadLocal<Throwable> META_LOCK_DEBUGGING_STACK;
+
+    static {
+        boolean a = false;
+        // Intentional side-effect
+        assert a = true;
+        ASSERT = a;
+        if (a) {
+            META_LOCK_DEBUGGING = new ThreadLocal<>();
+            META_LOCK_DEBUGGING_DB = new ThreadLocal<>();
+            META_LOCK_DEBUGGING_STACK = new ThreadLocal<>();
+        } else {
+            META_LOCK_DEBUGGING = null;
+            META_LOCK_DEBUGGING_DB = null;
+            META_LOCK_DEBUGGING_STACK = null;
+        }
+    }
 
     /**
      * The default name of the system user. This name is only used as long as
@@ -198,7 +218,7 @@ public class Database implements DataHandler {
     private MVTableEngine.Store mvStore;
     private int retentionTime;
     private boolean allowBuiltinAliasOverride;
-    private DbException backgroundException;
+    private final AtomicReference<DbException> backgroundException = new AtomicReference<>();
     private JavaObjectSerializer javaObjectSerializer;
     private String javaObjectSerializerName;
     private volatile boolean javaObjectSerializerInitialized;
@@ -207,10 +227,14 @@ public class Database implements DataHandler {
     private QueryStatisticsData queryStatisticsData;
     private RowFactory rowFactory = RowFactory.DEFAULT;
 
+    private Authenticator authenticator;
+
     public Database(ConnectionInfo ci, String cipher) {
-        META_LOCK_DEBUGGING.set(null);
-        META_LOCK_DEBUGGING_DB.set(null);
-        META_LOCK_DEBUGGING_STACK.set(null);
+        if (ASSERT) {
+            META_LOCK_DEBUGGING.set(null);
+            META_LOCK_DEBUGGING_DB.set(null);
+            META_LOCK_DEBUGGING_STACK.set(null);
+        }
         String name = ci.getName();
         this.dbSettings = ci.getDbSettings();
         this.reconnectCheckDelayNs = TimeUnit.MILLISECONDS.toNanos(dbSettings.reconnectCheckDelay);
@@ -290,25 +314,35 @@ public class Database implements DataHandler {
                 OnExitDatabaseCloser.register(this);
             }
         } catch (Throwable e) {
-            if (e instanceof OutOfMemoryError) {
-                e.fillInStackTrace();
-            }
-            boolean alreadyOpen = e instanceof DbException
-                    && ((DbException) e).getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1;
-            if (alreadyOpen) {
-                stopServer();
-            }
-
-            if (traceSystem != null) {
-                if (e instanceof DbException && !alreadyOpen) {
-                    // only write if the database is not already in use
-                    trace.error(e, "opening {0}", databaseName);
+            try {
+                if (e instanceof OutOfMemoryError) {
+                    e.fillInStackTrace();
                 }
-                traceSystem.close();
+                boolean alreadyOpen = e instanceof DbException
+                        && ((DbException) e).getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1;
+                if (alreadyOpen) {
+                    stopServer();
+                }
+
+                if (traceSystem != null) {
+                    if (e instanceof DbException && !alreadyOpen) {
+                        // only write if the database is not already in use
+                        trace.error(e, "opening {0}", databaseName);
+                    }
+                    traceSystem.close();
+                }
+                closeOpenFilesAndUnlock(false);
+            } catch(Throwable ex) {
+                e.addSuppressed(ex);
             }
-            closeOpenFilesAndUnlock(false);
             throw DbException.convert(e);
         }
+    }
+
+    public int getLockTimeout() {
+        Setting setting = findSetting(
+                SetTypes.getTypeName(SetTypes.DEFAULT_LOCK_TIMEOUT));
+        return setting == null ? Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
     }
 
     /**
@@ -645,8 +679,7 @@ public class Database implements DataHandler {
                 if (readOnly ||
                         fileLockMethod == FileLockMethod.NO ||
                         fileLockMethod == FileLockMethod.SERIALIZED ||
-                        fileLockMethod == FileLockMethod.FS ||
-                        !persistent) {
+                        fileLockMethod == FileLockMethod.FS) {
                     throw DbException.getUnsupportedException(
                             "autoServerMode && (readOnly || " +
                             "fileLockMethod == NO || " +
@@ -919,7 +952,7 @@ public class Database implements DataHandler {
         if (meta == null) {
             return true;
         }
-        if (SysProperties.CHECK2) {
+        if (ASSERT) {
             // If we are locking two different databases in the same stack, just ignore it.
             // This only happens in TestLinkedTable where we connect to another h2 DB in the
             // same process.
@@ -961,7 +994,7 @@ public class Database implements DataHandler {
      * @param session the session
      */
     public void unlockMetaDebug(Session session) {
-        if (SysProperties.CHECK2) {
+        if (ASSERT) {
             if (META_LOCK_DEBUGGING.get() == session) {
                 META_LOCK_DEBUGGING.set(null);
                 META_LOCK_DEBUGGING_DB.set(null);
@@ -1405,7 +1438,7 @@ public class Database implements DataHandler {
                         unlockMeta(pageStore.getPageStoreSession());
                     }
                 } catch (DbException e) {
-                    if (SysProperties.CHECK2) {
+                    if (ASSERT) {
                         int code = e.getErrorCode();
                         if (code != ErrorCode.DATABASE_IS_CLOSED &&
                                 code != ErrorCode.LOCK_TIMEOUT_1 &&
@@ -1415,7 +1448,7 @@ public class Database implements DataHandler {
                     }
                     trace.error(e, "close");
                 } catch (Throwable t) {
-                    if (SysProperties.CHECK2) {
+                    if (ASSERT) {
                         t.printStackTrace();
                     }
                     trace.error(t, "close");
@@ -2086,28 +2119,30 @@ public class Database implements DataHandler {
     }
 
     private void throwLastBackgroundException() {
-        if (backgroundException != null) {
-            // we don't care too much about concurrency here,
-            // we just want to make sure the exception is _normally_
-            // not just logged to the .trace.db file
-            DbException b = backgroundException;
-            backgroundException = null;
-            if (b != null) {
-                // wrap the exception, so we see it was thrown here
-                throw DbException.get(b.getErrorCode(), b, b.getMessage());
-            }
+        DbException b = backgroundException.getAndSet(null);
+        if (b != null) {
+            // wrap the exception, so we see it was thrown here
+            throw DbException.get(b.getErrorCode(), b, b.getMessage());
         }
     }
 
     public void setBackgroundException(DbException e) {
-        if (backgroundException == null) {
-            backgroundException = e;
+        if (backgroundException.compareAndSet(null, e)) {
             TraceSystem t = getTraceSystem();
             if (t != null) {
                 t.getTrace(Trace.DATABASE).error(e, "flush");
             }
         }
     }
+
+    public Throwable getBackgroundException() {
+        IllegalStateException exception = mvStore.getStore().getPanicException();
+        if(exception != null) {
+            return exception;
+        }
+        return backgroundException.getAndSet(null);
+    }
+
 
     /**
      * Flush all pending changes to the transaction log.
@@ -2123,7 +2158,7 @@ public class Database implements DataHandler {
             try {
                 mvStore.flush();
             } catch (RuntimeException e) {
-                backgroundException = DbException.convert(e);
+                backgroundException.compareAndSet(null, DbException.convert(e));
                 throw e;
             }
         }
@@ -2947,4 +2982,23 @@ public class Database implements DataHandler {
         return engine;
     }
 
+    /**
+     * get authenticator for database users
+     * @return authenticator set for database
+     */
+    public Authenticator getAuthenticator() {
+        return authenticator;
+    }
+
+    /**
+     * Set current database authenticator
+     * 
+     * @param authenticator = authenticator to set, null to revert to the Internal authenticator
+     */
+    public void setAuthenticator(Authenticator authenticator) {
+        if (authenticator!=null) {
+            authenticator.init(this);
+        };
+        this.authenticator=authenticator;
+    }
 }

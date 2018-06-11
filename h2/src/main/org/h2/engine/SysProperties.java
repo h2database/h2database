@@ -95,17 +95,10 @@ public class SysProperties {
     /**
      * System property <code>h2.check</code>
      * (default: true for JDK/JRE, false for Android).<br />
-     * Assertions in the database engine.
+     * Optional additional checks in the database engine.
      */
     public static final boolean CHECK =
             Utils.getProperty("h2.check", !"0.9".equals(Utils.getProperty("java.specification.version", null)));
-
-    /**
-     * System property <code>h2.check2</code> (default: false).<br />
-     * Additional assertions in the database engine.
-     */
-    public static final boolean CHECK2 =
-            Utils.getProperty("h2.check2", false);
 
     /**
      * System property <code>h2.clientTraceDirectory</code> (default:
@@ -562,6 +555,16 @@ public class SysProperties {
     public static final String CUSTOM_DATA_TYPES_HANDLER =
             Utils.getProperty("h2.customDataTypesHandler", null);
 
+    /**
+     * System property <code>h2.authConfigFile</code>
+     * (default: null).<br />
+     * authConfigFile define the URL of configuration file
+     * of {@link org.h2.security.auth.DefaultAuthenticator}
+     *  
+     */
+    public static final String AUTH_CONFIG_FILE = 
+            Utils.getProperty("h2.authConfigFile", null);
+                    
     private static final String H2_BASE_DIR = "h2.baseDir";
 
     private SysProperties() {

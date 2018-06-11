@@ -23,7 +23,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
@@ -587,7 +586,7 @@ public class Csv implements SimpleRowSource {
     }
 
     private static SQLException convertException(String message, Exception e) {
-        return DbException.get(ErrorCode.IO_EXCEPTION_1, e, message).getSQLException();
+        return DbException.getJdbcSQLException(ErrorCode.IO_EXCEPTION_1, e, message);
     }
 
     /**

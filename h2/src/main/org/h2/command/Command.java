@@ -7,6 +7,8 @@ package org.h2.command;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -46,8 +48,8 @@ public abstract class Command implements CommandInterface {
 
     private boolean canReuse;
 
-    Command(Parser parser, String sql) {
-        this.session = parser.getSession();
+    Command(Session session, String sql) {
+        this.session = session;
         this.sql = sql;
         trace = session.getDatabase().getTrace(Trace.COMMAND);
     }
@@ -184,7 +186,7 @@ public abstract class Command implements CommandInterface {
         startTimeNanos = 0;
         long start = 0;
         Database database = session.getDatabase();
-        Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
+        Object sync = database.isMultiThreaded() || database.getMvStore() != null ? session : database;
         session.waitIfExclusiveModeEnabled();
         boolean callStop = true;
         boolean writing = !isReadOnly();
@@ -193,7 +195,9 @@ public abstract class Command implements CommandInterface {
                 // wait
             }
         }
+        //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (sync) {
+            session.startStatementWithinTransaction();
             session.setCurrentCommand(this, false);
             try {
                 while (true) {
@@ -242,7 +246,7 @@ public abstract class Command implements CommandInterface {
     public ResultWithGeneratedKeys executeUpdate(Object generatedKeysRequest) {
         long start = 0;
         Database database = session.getDatabase();
-        Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
+        Object sync = database.isMultiThreaded() || database.getMvStore() != null ? session : database;
         session.waitIfExclusiveModeEnabled();
         boolean callStop = true;
         boolean writing = !isReadOnly();
@@ -251,8 +255,10 @@ public abstract class Command implements CommandInterface {
                 // wait
             }
         }
+        //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (sync) {
             Session.Savepoint rollback = session.setSavepoint();
+            session.startStatementWithinTransaction();
             session.setCurrentCommand(this, generatedKeysRequest);
             try {
                 while (true) {
@@ -311,25 +317,30 @@ public abstract class Command implements CommandInterface {
                 errorCode != ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
             throw e;
         }
-        long now = System.nanoTime() / 1_000_000;
-        if (start != 0 && now - start > session.getLockTimeout()) {
-            throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, e.getCause(), "");
+        long now = System.nanoTime();
+        if (start != 0 && TimeUnit.NANOSECONDS.toMillis(now - start) > session.getLockTimeout()) {
+            throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, e);
         }
+        // Only in PageStore mode we need to sleep here to avoid buzy wait loop
         Database database = session.getDatabase();
-        int sleep = 1 + MathUtils.randomInt(10);
-        while (true) {
-            try {
-                if (database.isMultiThreaded()) {
-                    Thread.sleep(sleep);
-                } else {
-                    database.wait(sleep);
+        if (database.getMvStore() == null) {
+            int sleep = 1 + MathUtils.randomInt(10);
+            while (true) {
+                try {
+                    if (database.isMultiThreaded()) {
+                        Thread.sleep(sleep);
+                    } else {
+                        // although nobody going to notify us
+                        // it is vital to give up lock on a database
+                        database.wait(sleep);
+                    }
+                } catch (InterruptedException e1) {
+                    // ignore
                 }
-            } catch (InterruptedException e1) {
-                // ignore
-            }
-            long slept = System.nanoTime() / 1_000_000 - now;
-            if (slept >= sleep) {
-                break;
+                long slept = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - now);
+                if (slept >= sleep) {
+                    break;
+                }
             }
         }
         return start == 0 ? now : start;

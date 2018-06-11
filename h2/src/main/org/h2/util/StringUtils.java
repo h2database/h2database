@@ -848,7 +848,20 @@ public class StringUtils {
     }
 
     /**
-     * Trim a character from a substring. Equivalence of {@code substring(begin, end).trim()}.
+     * Trim a character from a substring. Equivalent of
+     * {@code substring(beginIndex).trim()}.
+     *
+     * @param s the string
+     * @param beginIndex start index of substring (inclusive)
+     * @return trimmed substring
+     */
+    public static String trimSubstring(String s, int beginIndex) {
+        return trimSubstring(s, beginIndex, s.length());
+    }
+
+    /**
+     * Trim a character from a substring. Equivalent of
+     * {@code substring(beginIndex, endIndex).trim()}.
      *
      * @param s the string
      * @param beginIndex start index of substring (inclusive)
@@ -969,11 +982,28 @@ public class StringUtils {
      * @return true if it is
      */
     public static boolean isNumber(String s) {
-        if (s.length() == 0) {
+        int l = s.length();
+        if (l == 0) {
             return false;
         }
-        for (char c : s.toCharArray()) {
-            if (!Character.isDigit(c)) {
+        for (int i = 0; i < l; i++) {
+            if (!Character.isDigit(s.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Check if the specified string is empty or contains only whitespace.
+     *
+     * @param s
+     *            the string
+     * @return whether the specified string is empty or contains only whitespace
+     */
+    public static boolean isWhitespaceOrEmpty(String s) {
+        for (int i = 0, l = s.length(); i < l; i++) {
+            if (s.charAt(i) > ' ') {
                 return false;
             }
         }

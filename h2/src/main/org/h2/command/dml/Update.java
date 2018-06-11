@@ -135,6 +135,7 @@ public class Update extends Prepared {
                         }
                         newRow.setValue(i, newValue);
                     }
+                    newRow.setKey(oldRow.getKey());
                     if (setOnUpdate || updateToCurrentValuesReturnsZero) {
                         setOnUpdate = false;
                         for (int i = 0; i < columnCount; i++) {

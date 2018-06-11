@@ -7,10 +7,9 @@ package org.h2.test.mvcc;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
@@ -36,11 +35,8 @@ public class TestMvccMultiThreaded extends TestBase {
         }
         testConcurrentSelectForUpdate();
         testMergeWithUniqueKeyViolation();
-        // not supported currently
-        if (!config.multiThreaded) {
-            testConcurrentMerge();
-            testConcurrentUpdate();
-        }
+        testConcurrentMerge();
+        testConcurrentUpdate();
     }
 
     private void testConcurrentSelectForUpdate() throws Exception {
@@ -55,21 +51,11 @@ public class TestMvccMultiThreaded extends TestBase {
             Task task = new Task() {
                 @Override
                 public void call() throws Exception {
-                    Connection conn = getConnection(getTestName());
-                    Statement stat = conn.createStatement();
-                    try {
+                    try (Connection conn = getConnection(getTestName())) {
+                        Statement stat = conn.createStatement();
                         while (!stop) {
-                            try {
-                                stat.execute("select * from test where id=1 for update");
-                            } catch (SQLException e) {
-                                int errorCode = e.getErrorCode();
-                                assertTrue(e.getMessage(),
-                                        errorCode == ErrorCode.DEADLOCK_1 ||
-                                        errorCode == ErrorCode.LOCK_TIMEOUT_1);
-                            }
+                            stat.execute("select * from test where id=1 for update");
                         }
-                    } finally {
-                        conn.close();
                     }
                 }
             }.execute();
@@ -113,7 +99,6 @@ public class TestMvccMultiThreaded extends TestBase {
         conn.createStatement().execute(
                 "create table test(id int primary key, name varchar)");
         Task[] tasks = new Task[len];
-        final boolean[] stop = { false };
         for (int i = 0; i < len; i++) {
             final Connection c = connList[i];
             c.setAutoCommit(false);
@@ -124,14 +109,12 @@ public class TestMvccMultiThreaded extends TestBase {
                         c.createStatement().execute(
                                 "merge into test values(1, 'x')");
                         c.commit();
-                        Thread.sleep(1);
                     }
                 }
             };
             tasks[i].execute();
         }
         Thread.sleep(1000);
-        stop[0] = true;
         for (int i = 0; i < len; i++) {
             tasks[i].get();
         }
@@ -157,18 +140,24 @@ public class TestMvccMultiThreaded extends TestBase {
         final int count = 1000;
         Task[] tasks = new Task[len];
 
-        final CountDownLatch latch = new CountDownLatch(len);
+        final CyclicBarrier barrier = new CyclicBarrier(len);
 
         for (int i = 0; i < len; i++) {
             final int x = i;
+            // Recent changes exposed a race condition in this test itself.
+            // Without preliminary record locking, counter will be off.
+            connList[x].setAutoCommit(false);
             tasks[i] = new Task() {
                 @Override
                 public void call() throws Exception {
                     for (int a = 0; a < count; a++) {
+                        ResultSet rs = connList[x].createStatement().executeQuery(
+                                "select value from test for update");
+                        assertTrue(rs.next());
                         connList[x].createStatement().execute(
                                 "update test set value=value+1");
-                        latch.countDown();
-                        latch.await();
+                        connList[x].commit();
+                        barrier.await();
                     }
                 }
             };

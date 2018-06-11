@@ -12,6 +12,10 @@ import org.h2.value.Value;
  * index.
  */
 public interface SearchRow {
+    /**
+     * Index of a virtual "_ROWID_" column within a row or a table
+     */
+    int ROWID_INDEX = -1;
 
     /**
      * An empty array of SearchRow objects.

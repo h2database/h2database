@@ -20,7 +20,6 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
-import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.Bits;
@@ -705,13 +704,8 @@ public class Data {
             }
             DbException.throwInternalError("type=" + v.getType());
         }
-        if (SysProperties.CHECK2) {
-            if (pos - start != getValueLen(v, handler)) {
-                throw DbException.throwInternalError(
-                            "value size error: got " + (pos - start) +
-                            " expected " + getValueLen(v, handler));
-            }
-        }
+        assert pos - start == getValueLen(v, handler)
+                : "value size error: got " + (pos - start) + " expected " + getValueLen(v, handler);
     }
 
     /**

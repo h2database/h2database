@@ -63,6 +63,7 @@ public class TableLink extends Table {
     private boolean supportsMixedCaseIdentifiers;
     private boolean globalTemporary;
     private boolean readOnly;
+    private boolean targetsMySql;
 
     public TableLink(Schema schema, int id, String name, String driver,
             String url, String user, String password, String originalSchema,
@@ -75,6 +76,7 @@ public class TableLink extends Table {
         this.originalSchema = originalSchema;
         this.originalTable = originalTable;
         this.emitUpdates = emitUpdates;
+        this.targetsMySql = isMySqlUrl(this.url);
         try {
             connect();
         } catch (DbException e) {
@@ -319,7 +321,10 @@ public class TableLink extends Table {
     }
 
     private String convertColumnName(String columnName) {
-        if ((storesMixedCase || storesLowerCase) &&
+        if(targetsMySql) {
+            // MySQL column names are not case-sensitive on any platform
+            columnName = StringUtils.toUpperEnglish(columnName);
+        } else if ((storesMixedCase || storesLowerCase) &&
                 columnName.equals(StringUtils.toLowerEnglish(columnName))) {
             columnName = StringUtils.toUpperEnglish(columnName);
         } else if (storesMixedCase && !supportsMixedCaseIdentifiers) {
@@ -584,6 +589,11 @@ public class TableLink extends Table {
 
     public boolean isOracle() {
         return url.startsWith("jdbc:oracle:");
+    }
+
+    private static boolean isMySqlUrl(String url) {
+        return url.startsWith("jdbc:mysql:")
+                || url.startsWith("jdbc:mariadb:");
     }
 
     @Override

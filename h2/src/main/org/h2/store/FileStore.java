@@ -36,6 +36,15 @@ public class FileStore {
     private static final String HEADER =
             "-- H2 0.5/B --      ".substring(0, Constants.FILE_BLOCK_SIZE - 1) + "\n";
 
+    private static final boolean ASSERT;
+
+    static {
+        boolean a = false;
+        // Intentional side-effect
+        assert a = true;
+        ASSERT = a;
+    }
+
     /**
      * The file name.
      */
@@ -371,20 +380,20 @@ public class FileStore {
     public long length() {
         try {
             long len = fileLength;
-            if (SysProperties.CHECK2) {
+            if (ASSERT) {
                 len = file.size();
                 if (len != fileLength) {
                     DbException.throwInternalError(
                             "file " + name + " length " + len + " expected " + fileLength);
                 }
-            }
-            if (SysProperties.CHECK2 && len % Constants.FILE_BLOCK_SIZE != 0) {
-                long newLength = len + Constants.FILE_BLOCK_SIZE -
-                        (len % Constants.FILE_BLOCK_SIZE);
-                file.truncate(newLength);
-                fileLength = newLength;
-                DbException.throwInternalError(
-                        "unaligned file length " + name + " len " + len);
+                if (len % Constants.FILE_BLOCK_SIZE != 0) {
+                    long newLength = len + Constants.FILE_BLOCK_SIZE -
+                            (len % Constants.FILE_BLOCK_SIZE);
+                    file.truncate(newLength);
+                    fileLength = newLength;
+                    DbException.throwInternalError(
+                            "unaligned file length " + name + " len " + len);
+                }
             }
             return len;
         } catch (IOException e) {
@@ -398,7 +407,7 @@ public class FileStore {
      * @return the location
      */
     public long getFilePointer() {
-        if (SysProperties.CHECK2) {
+        if (ASSERT) {
             try {
                 if (file.position() != filePos) {
                     DbException.throwInternalError(file.position() + " " + filePos);

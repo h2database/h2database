@@ -112,7 +112,7 @@ public class DateTimeUtils {
      *
      * @return local time zone
      */
-    private static TimeZone getTimeZone() {
+    static TimeZone getTimeZone() {
         TimeZone tz = timeZone;
         if (tz == null) {
             timeZone = tz = TimeZone.getDefault();
@@ -506,7 +506,7 @@ public class DateTimeUtils {
                 if (withTimeZone) {
                     if (tz != UTC) {
                         long millis = convertDateTimeValueToMillis(tz, dateValue, nanos / 1_000_000);
-                        tzMinutes = (short) (tz.getOffset(millis) / 1000 / 60);
+                        tzMinutes = (short) (tz.getOffset(millis) / 60_000);
                     }
                 } else {
                     long millis = convertDateTimeValueToMillis(tz, dateValue, nanos / 1_000_000);

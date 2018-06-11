@@ -248,7 +248,7 @@ public class Shell extends Tool implements Runnable {
                         println("No history");
                     }
                 } else if (lower.startsWith("autocommit")) {
-                    lower = lower.substring("autocommit".length()).trim();
+                    lower = StringUtils.trimSubstring(lower, "autocommit".length());
                     if ("true".equals(lower)) {
                         conn.setAutoCommit(true);
                     } else if ("false".equals(lower)) {
@@ -258,7 +258,7 @@ public class Shell extends Tool implements Runnable {
                     }
                     println("Autocommit is now " + conn.getAutoCommit());
                 } else if (lower.startsWith("maxwidth")) {
-                    lower = lower.substring("maxwidth".length()).trim();
+                    lower = StringUtils.trimSubstring(lower, "maxwidth".length());
                     try {
                         maxColumnSize = Integer.parseInt(lower);
                     } catch (NumberFormatException e) {
@@ -445,7 +445,7 @@ public class Shell extends Tool implements Runnable {
     }
 
     private void execute(String sql) {
-        if (sql.trim().length() == 0) {
+        if (StringUtils.isWhitespaceOrEmpty(sql)) {
             return;
         }
         long time = System.nanoTime();

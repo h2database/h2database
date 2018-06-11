@@ -21,3 +21,12 @@ select length(now())>18 c1, length(current_timestamp())>18 c2, length(now(0))>18
 > ---- ---- ---- ----
 > TRUE TRUE TRUE TRUE
 > rows: 1
+
+SELECT CAST(CURRENT_TIME AS TIME(9)) = LOCALTIME;
+>> TRUE
+
+SELECT CAST(CURRENT_TIME(0) AS TIME(9)) = LOCALTIME(0);
+>> TRUE
+
+SELECT CAST(CURRENT_TIME(9) AS TIME(9)) = LOCALTIME(9);
+>> TRUE

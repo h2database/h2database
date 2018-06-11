@@ -15,6 +15,7 @@ import org.h2.Driver;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FilePathRec;
 import org.h2.store.fs.FileUtils;
+import org.h2.test.auth.TestAuthentication;
 import org.h2.test.bench.TestPerformance;
 import org.h2.test.db.TestAlter;
 import org.h2.test.db.TestAlterSchemaRename;
@@ -401,7 +402,7 @@ java org.h2.test.TestAll timer
     /**
      * The THROTTLE value to use.
      */
-    int throttle;
+    public int throttle;
 
     /**
      * The THROTTLE value to use by default.
@@ -465,7 +466,6 @@ java org.h2.test.TestAll timer
 
         System.setProperty("h2.maxMemoryRows", "100");
 
-        System.setProperty("h2.check2", "true");
         System.setProperty("h2.delayWrongPasswordMin", "0");
         System.setProperty("h2.delayWrongPasswordMax", "0");
         System.setProperty("h2.useThreadContextClassLoader", "true");
@@ -513,7 +513,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
                 test.testAll();
             } else if ("reopen".equals(args[0])) {
                 System.setProperty("h2.delayWrongPasswordMin", "0");
-                System.setProperty("h2.check2", "false");
                 System.setProperty("h2.analyzeAuto", "100");
                 System.setProperty("h2.pageSize", "64");
                 System.setProperty("h2.reopenShift", "5");
@@ -974,6 +973,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestSampleApps());
         addTest(new TestStringCache());
         addTest(new TestValueMemory());
+        addTest(new TestAuthentication());
 
         runAddedTests(1);
 

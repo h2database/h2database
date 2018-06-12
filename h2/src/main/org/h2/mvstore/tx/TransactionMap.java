@@ -77,11 +77,22 @@ public class TransactionMap<K, V> {
         // when none of the variables concurrently changes it's value.
         BitSet committingTransactions;
         MVMap.RootReference mapRootReference;
-        MVMap.RootReference undoLogRootReference;
+        MVMap.RootReference[] undoLogRootReferences;
+        long undoLogSize;
         do {
             committingTransactions = store.committingTransactions.get();
             mapRootReference = map.getRoot();
-            undoLogRootReference = store.undoLog.getRoot();
+            BitSet opentransactions = store.openTransactions.get();
+            undoLogRootReferences = new MVMap.RootReference[opentransactions.length()];
+            undoLogSize = 0;
+            for (int i = opentransactions.nextSetBit(0); i >= 0; i = opentransactions.nextSetBit(i+1)) {
+                MVMap<Long, Object[]> undoLog = store.undoLogs[i];
+                if (undoLog != null) {
+                    MVMap.RootReference rootReference = undoLog.getRoot();
+                    undoLogRootReferences[i] = rootReference;
+                    undoLogSize += rootReference.root.getTotalCount();
+                }
+            }
         } while(committingTransactions != store.committingTransactions.get() ||
                 mapRootReference != map.getRoot());
         // Now we have a snapshot, where mapRootReference points to state of the map,
@@ -89,8 +100,6 @@ public class TransactionMap<K, V> {
         // and committingTransactions mask tells us which of seemingly uncommitted changes
         // should be considered as committed.
         // Subsequent processing uses this snapshot info only.
-        Page undoRootPage = undoLogRootReference.root;
-        long undoLogSize = undoRootPage.getTotalCount();
         Page mapRootPage = mapRootReference.root;
         long size = mapRootPage.getTotalCount();
         // if we are looking at the map without any uncommitted values
@@ -112,7 +121,8 @@ public class TransactionMap<K, V> {
                 long operationId = currentValue.getOperationId();
                 if (operationId != 0) {  // skip committed entries
                     int txId = TransactionStore.getTransactionId(operationId);
-                    boolean isVisible = txId == transaction.transactionId || committingTransactions.get(txId);
+                    boolean isVisible = txId == transaction.transactionId ||
+                                            committingTransactions.get(txId);
                     Object v = isVisible ? currentValue.value : currentValue.getCommittedValue();
                     if (v == null) {
                         --size;
@@ -120,26 +130,31 @@ public class TransactionMap<K, V> {
                 }
             }
         } else {
-            // The undo log is much smaller than the map - scan the undo log, and then lookup relevant map entry.
-            Cursor<Long, Object[]> cursor = new Cursor<>(undoRootPage, null);
-            while(cursor.hasNext()) {
-                cursor.next();
-                Object op[] = cursor.getValue();
-                if ((int)op[0] == map.getId()) {
-                    VersionedValue currentValue = map.get(mapRootPage, op[1]);
-                    // If map entry is not there, then we never counted it, in the first place, so skip it.
-                    // This is possible when undo entry exists because it belongs
-                    // to a committed but not yet closed transaction,
-                    // and it was later deleted by some other already committed and closed transaction.
-                    if (currentValue != null) {
-                        // only the last undo entry for any given map key should be considered
-                        long operationId = cursor.getKey();
-                        if (currentValue.getOperationId() == operationId) {
-                            int txId = TransactionStore.getTransactionId(operationId);
-                            boolean isVisible = txId == transaction.transactionId || committingTransactions.get(txId);
-                            Object v = isVisible ? currentValue.value : currentValue.getCommittedValue();
-                            if (v == null) {
-                                --size;
+            // The undo logs are much smaller than the map - scan all undo logs, and then lookup relevant map entry.
+            for (MVMap.RootReference undoLogRootReference : undoLogRootReferences) {
+                if (undoLogRootReference != null) {
+                    Cursor<Long, Object[]> cursor = new Cursor<>(undoLogRootReference.root, null);
+                    while (cursor.hasNext()) {
+                        cursor.next();
+                        Object op[] = cursor.getValue();
+                        if ((int) op[0] == map.getId()) {
+                            VersionedValue currentValue = map.get(mapRootPage, op[1]);
+                            // If map entry is not there, then we never counted it, in the first place, so skip it.
+                            // This is possible when undo entry exists because it belongs
+                            // to a committed but not yet closed transaction,
+                            // and it was later deleted by some other already committed and closed transaction.
+                            if (currentValue != null) {
+                                // only the last undo entry for any given map key should be considered
+                                long operationId = cursor.getKey();
+                                if (currentValue.getOperationId() == operationId) {
+                                    int txId = TransactionStore.getTransactionId(operationId);
+                                    boolean isVisible = txId == transaction.transactionId ||
+                                            committingTransactions.get(txId);
+                                    Object v = isVisible ? currentValue.value : currentValue.getCommittedValue();
+                                    if (v == null) {
+                                        --size;
+                                    }
+                                }
                             }
                         }
                     }

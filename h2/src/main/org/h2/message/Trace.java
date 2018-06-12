@@ -300,10 +300,10 @@ public class Trace {
         if (!space) {
             buff.append(' ');
         }
-        buff.append("*/").
-            append(StringUtils.javaEncode(sql)).
-            append(StringUtils.javaEncode(params)).
-            append(';');
+        buff.append("*/");
+        StringUtils.javaEncode(sql, buff);
+        StringUtils.javaEncode(params, buff);
+        buff.append(';');
         sql = buff.toString();
         traceWriter.write(TraceSystem.INFO, module, sql, null);
     }

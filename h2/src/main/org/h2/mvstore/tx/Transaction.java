@@ -33,40 +33,35 @@ public class Transaction {
     public static final int STATUS_PREPARED = 2;
 
     /**
-     * The status of a transaction that is being committed, but possibly not
-     * yet finished. A transactions can go into this state when the store is
-     * closed while the transaction is committing. When opening a store,
-     * such transactions should be committed.
-     */
-    public static final int STATUS_COMMITTING = 3;
-
-    /**
      * The status of a transaction that has been logically committed or rather
      * marked as committed, because it might be still listed among prepared,
-     * if it was prepared for commit, undo log entries might still exists for it
+     * if it was prepared for commit. Undo log entries might still exists for it
      * and not all of it's changes within map's are re-written as committed yet.
      * Nevertheless, those changes should be already viewed by other
      * transactions as committed.
-     * This transaction's id can not be re-used until all the above is completed
+     * This transaction's id can not be re-used until all of the above is completed
      * and transaction is closed.
+     * A transactions can be observed in this state when the store was
+     * closed while the transaction was not closed yet.
+     * When opening a store, such transactions will automatically
+     * be processed and closed as committed.
      */
-    private static final int STATUS_COMMITTED = 4;
+    public static final int STATUS_COMMITTED = 3;
 
     /**
      * The status of a transaction that currently in a process of rolling back
      * to a savepoint.
      */
-    private static final int STATUS_ROLLING_BACK = 5;
+    private static final int STATUS_ROLLING_BACK = 4;
 
     /**
      * The status of a transaction that has been rolled back completely,
      * but undo operations are not finished yet.
      */
-    private static final int STATUS_ROLLED_BACK  = 6;
+    private static final int STATUS_ROLLED_BACK  = 5;
 
     private static final String STATUS_NAMES[] = {
-            "CLOSED", "OPEN", "PREPARED", "COMMITTING",
-            "COMMITTED", "ROLLING_BACK", "ROLLED_BACK"
+            "CLOSED", "OPEN", "PREPARED", "COMMITTED", "ROLLING_BACK", "ROLLED_BACK"
     };
     static final int LOG_ID_BITS = 40;
     private static final int LOG_ID_BITS1 = LOG_ID_BITS + 1;
@@ -175,6 +170,11 @@ public class Transaction {
         return getStatus(statusAndLogId.get());
     }
 
+    /**
+     * Changes transaction status to a specified value
+     * @param status to be set
+     * @return transaction state as it was before status change
+     */
     long setStatus(int status) {
         while (true) {
             long currentState = statusAndLogId.get();
@@ -192,23 +192,19 @@ public class Transaction {
                 case STATUS_PREPARED:
                     valid = currentStatus == STATUS_OPEN;
                     break;
-                case STATUS_COMMITTING:
+                case STATUS_COMMITTED:
                     valid = currentStatus == STATUS_OPEN ||
                             currentStatus == STATUS_PREPARED ||
                             // this case is only possible if called
                             // from endLeftoverTransactions()
-                            currentStatus == STATUS_COMMITTING;
-                    break;
-                case STATUS_COMMITTED:
-                    valid = currentStatus == STATUS_COMMITTING;
+                            currentStatus == STATUS_COMMITTED;
                     break;
                 case STATUS_ROLLED_BACK:
                     valid = currentStatus == STATUS_OPEN ||
                             currentStatus == STATUS_PREPARED;
                     break;
                 case STATUS_CLOSED:
-                    valid = currentStatus == STATUS_COMMITTING ||
-                            currentStatus == STATUS_COMMITTED ||
+                    valid = currentStatus == STATUS_COMMITTED ||
                             currentStatus == STATUS_ROLLED_BACK;
                     break;
                 default:
@@ -365,11 +361,11 @@ public class Transaction {
         Throwable ex = null;
         boolean hasChanges = false;
         try {
-            long state = setStatus(STATUS_COMMITTING);
+            long state = setStatus(STATUS_COMMITTED);
             hasChanges = hasChanges(state);
+            int previousStatus = getStatus(state);
             if (hasChanges) {
-                long logId = getLogId(state);
-                store.commit(this, logId);
+                store.commit(this, previousStatus == STATUS_COMMITTED);
             }
         } catch (Throwable e) {
             ex = e;

@@ -752,6 +752,9 @@ public class Database implements DataHandler {
                 getPageStore();
             }
         }
+        if(mvStore != null) {
+            mvStore.getTransactionStore().init();
+        }
         systemUser = new User(this, 0, SYSTEM_USER_NAME, true);
         mainSchema = new Schema(this, 0, Constants.SCHEMA_MAIN, systemUser, true);
         infoSchema = new Schema(this, -1, "INFORMATION_SCHEMA", systemUser, true);
@@ -762,9 +765,6 @@ public class Database implements DataHandler {
         systemUser.setAdmin(true);
         systemSession = new Session(this, systemUser, ++nextSessionId);
         lobSession = new Session(this, systemUser, ++nextSessionId);
-        if(mvStore != null) {
-            mvStore.getTransactionStore().init(systemSession);
-        }
         CreateTableData data = new CreateTableData();
         ArrayList<Column> cols = data.columns;
         Column columnId = new Column("ID", Value.INT);

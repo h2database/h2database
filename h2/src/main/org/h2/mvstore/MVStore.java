@@ -511,16 +511,18 @@ public class MVStore {
             M map = (M) getMap(id);
             if (map == null) {
                 String configAsString = meta.get(MVMap.getMapKey(id));
-                if(configAsString != null) {
-                    HashMap<String, Object> config =
-                            new HashMap<String, Object>(DataUtils.parseMap(configAsString));
-                    config.put("id", id);
-                    map = builder.create(this, config);
-                    map.init();
-                    long root = getRootPos(meta, id);
-                    map.setRootPos(root, lastStoredVersion);
-                    maps.put(id, map);
+                HashMap<String, Object> config;
+                if (configAsString != null) {
+                    config = new HashMap<String, Object>(DataUtils.parseMap(configAsString));
+                } else {
+                    config = new HashMap<>();
                 }
+                config.put("id", id);
+                map = builder.create(this, config);
+                map.init();
+                long root = getRootPos(meta, id);
+                map.setRootPos(root, lastStoredVersion);
+                maps.put(id, map);
             }
             return map;
         } finally {

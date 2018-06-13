@@ -147,14 +147,6 @@ public class TransactionStore {
      */
     public void init() {
         if (!init) {
-            // remove all temporary maps
-            for (String mapName : store.getMapNames()) {
-                if (mapName.startsWith("temp.")) {
-                    MVMap<Object, Integer> temp = openTempMap(mapName);
-                    store.removeMap(temp);
-                }
-            }
-
             for (String mapName : store.getMapNames()) {
                 if (mapName.startsWith(UNDO_LOG_NAME_PEFIX)) {
                     if (store.hasData(mapName)) {
@@ -165,12 +157,14 @@ public class TransactionStore {
                             int status;
                             String name;
                             if (data == null) {
-                                status = mapName.charAt(UNDO_LOG_NAME_PEFIX.length()) == UNDO_LOG_OPEN ?
-                                        Transaction.STATUS_OPEN : Transaction.STATUS_COMMITTED;
+                                status = Transaction.STATUS_OPEN;
                                 name = null;
                             } else {
                                 status = (Integer) data[0];
                                 name = (String) data[1];
+                            }
+                            if (mapName.charAt(UNDO_LOG_NAME_PEFIX.length()) == UNDO_LOG_COMMITTED) {
+                                status = Transaction.STATUS_COMMITTED;
                             }
                             MVMap<Long, Object[]> undoLog = store.openMap(mapName, undoLogBuilder);
                             undoLogs[transactionId] = undoLog;
@@ -184,6 +178,21 @@ public class TransactionStore {
                 }
             }
             init = true;
+        }
+    }
+
+    /**
+     * Commit all transactions that are in the committed state, and
+     * rollback all open transactions.
+     */
+    public void endLeftoverTransactions() {
+        List<Transaction> list = getOpenTransactions();
+        for (Transaction t : list) {
+            if (t.getStatus() == Transaction.STATUS_COMMITTED) {
+                t.commit();
+            } else if (t.getStatus() != Transaction.STATUS_PREPARED) {
+                t.rollback();
+            }
         }
     }
 

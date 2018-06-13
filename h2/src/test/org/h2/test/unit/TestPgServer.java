@@ -25,7 +25,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
@@ -41,15 +40,16 @@ public class TestPgServer extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestBase test = TestBase.createCaller().init();
+        test.config.memory = true;
+        test.test();
     }
 
     @Override
     public void test() throws Exception {
-        config.multiThreaded = true;
-        config.memory = true;
-        config.mvStore = true;
-        config.mvcc = true;
+        if (!config.memory) {
+            return;
+        }
         // testPgAdapter() starts server by itself without a wait so run it first
         testPgAdapter();
         testLowerCaseIdentifiers();

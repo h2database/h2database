@@ -5,13 +5,12 @@
  */
 package org.h2.test.synth;
 
-import org.h2.test.TestBase;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.concurrent.CountDownLatch;
+import org.h2.test.TestBase;
 
 /**
  * Tests lock releasing for concurrent select statements
@@ -26,15 +25,15 @@ public class TestReleaseSelectLock extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestBase test = TestBase.createCaller().init();
+        test.config.mvStore = false;
+        test.config.mvcc = false;
+        test.config.multiThreaded = true;
+        test.test();
     }
 
     @Override
     public void test() throws Exception {
-        config.mvStore = false;
-        config.mvcc = false;
-        config.multiThreaded = true;
-
         deleteDb(TEST_DB_NAME);
 
         Connection conn = getConnection(TEST_DB_NAME);

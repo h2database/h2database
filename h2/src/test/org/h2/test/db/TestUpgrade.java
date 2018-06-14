@@ -11,7 +11,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.api.ErrorCode;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -29,7 +28,10 @@ public class TestUpgrade extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestBase base = TestBase.createCaller().init();
+        base.config.mvcc = false;
+        base.config.mvStore = false;
+        base.test();
     }
 
     @Override
@@ -106,15 +108,16 @@ public class TestUpgrade extends TestBase {
     private void testNoUpgradeOldAndNew() throws Exception {
         deleteDb("upgrade");
         deleteDb("upgradeOld");
-        String additionalParameters = ";AUTO_SERVER=TRUE;OPEN_NEW=TRUE";
+        final String additionalParametersOld = ";AUTO_SERVER=TRUE;OPEN_NEW=TRUE";
+        final String additionalParametersNew = ";AUTO_SERVER=TRUE;OPEN_NEW=TRUE;MV_STORE=FALSE";
 
         // Create old db
         Utils.callStaticMethod("org.h2.upgrade.v1_1.Driver.load");
         Connection connOld = DriverManager.getConnection("jdbc:h2v1_1:" +
-                getBaseDir() + "/upgradeOld;PAGE_STORE=FALSE" + additionalParameters);
+                getBaseDir() + "/upgradeOld;PAGE_STORE=FALSE" + additionalParametersOld);
         // Test auto server, too
         Connection connOld2 = DriverManager.getConnection("jdbc:h2v1_1:" +
-                getBaseDir() + "/upgradeOld;PAGE_STORE=FALSE" + additionalParameters);
+                getBaseDir() + "/upgradeOld;PAGE_STORE=FALSE" + additionalParametersOld);
         Statement statOld = connOld.createStatement();
         statOld.execute("create table testOld(id int)");
         connOld.close();
@@ -123,16 +126,16 @@ public class TestUpgrade extends TestBase {
 
         // Create new DB
         Connection connNew = DriverManager.getConnection("jdbc:h2:" +
-                getBaseDir() + "/upgrade" + additionalParameters);
+                getBaseDir() + "/upgrade" + additionalParametersNew);
         Connection connNew2 = DriverManager.getConnection("jdbc:h2:" +
-                getBaseDir() + "/upgrade" + additionalParameters);
+                getBaseDir() + "/upgrade" + additionalParametersNew);
         Statement statNew = connNew.createStatement();
         statNew.execute("create table test(id int)");
 
         // Link to old DB without upgrade
         statNew.executeUpdate("CREATE LOCAL TEMPORARY LINKED TABLE " +
-                "linkedTestOld('org.h2.Driver', 'jdbc:h2v1_1:" +
-                getBaseDir() + "/upgradeOld" + additionalParameters + "', '', '', 'TestOld')");
+                "linkedTestOld('org.h2.upgrade.v1_1.Driver', 'jdbc:h2v1_1:" +
+                getBaseDir() + "/upgradeOld" + additionalParametersOld + "', '', '', 'TestOld')");
         statNew.executeQuery("select * from linkedTestOld");
         connNew.close();
         connNew2.close();
@@ -140,17 +143,14 @@ public class TestUpgrade extends TestBase {
         assertTrue(FileUtils.exists(getBaseDir() + "/upgrade.h2.db"));
 
         connNew = DriverManager.getConnection("jdbc:h2:" +
-                getBaseDir() + "/upgrade" + additionalParameters);
-        connNew2 = DriverManager.getConnection("jdbc:h2:" +
-                getBaseDir() + "/upgrade" + additionalParameters);
+                getBaseDir() + "/upgrade" + additionalParametersNew);
         statNew = connNew.createStatement();
         // Link to old DB with upgrade
         statNew.executeUpdate("CREATE LOCAL TEMPORARY LINKED TABLE " +
                 "linkedTestOld('org.h2.Driver', 'jdbc:h2:" +
-                getBaseDir() + "/upgradeOld" + additionalParameters + "', '', '', 'TestOld')");
+                getBaseDir() + "/upgradeOld" + additionalParametersNew + "', '', '', 'TestOld')");
         statNew.executeQuery("select * from linkedTestOld");
         connNew.close();
-        connNew2.close();
         assertTrue(FileUtils.exists(getBaseDir() + "/upgradeOld.h2.db"));
         assertTrue(FileUtils.exists(getBaseDir() + "/upgrade.h2.db"));
 
@@ -176,7 +176,7 @@ public class TestUpgrade extends TestBase {
 
         // Upgrade
         Connection connOldViaNew = DriverManager.getConnection(
-                "jdbc:h2:" + getBaseDir() + "/upgrade;ifexists=true");
+                "jdbc:h2:" + getBaseDir() + "/upgrade;ifexists=true;MV_STORE=FALSE");
         Statement statOldViaNew = connOldViaNew.createStatement();
         statOldViaNew.executeQuery("select * from test");
         connOldViaNew.close();
@@ -200,7 +200,7 @@ public class TestUpgrade extends TestBase {
 
         // Connect to old DB with upgrade
         conn = DriverManager.getConnection("jdbc:h2:" +
-                getBaseDir() + "/upgrade;CIPHER=AES", "abc", "abc abc");
+                getBaseDir() + "/upgrade;CIPHER=AES;MV_STORE=false", "abc", "abc abc");
         stat = conn.createStatement();
         stat.executeQuery("select * from test");
         conn.close();

@@ -16,7 +16,9 @@ import javax.management.MBeanInfo;
 import javax.management.MBeanOperationInfo;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import org.h2.engine.Constants;
 import org.h2.test.TestBase;
+import org.h2.util.Utils;
 
 /**
  * Tests the JMX feature.
@@ -29,7 +31,10 @@ public class TestJmx extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestBase base = TestBase.createCaller().init();
+        base.config.mvStore = false;
+        base.config.mvcc = false;
+        base.test();
     }
 
     @Override
@@ -144,7 +149,9 @@ public class TestJmx extends TestBase {
             assertEquals("0", mbeanServer.
                     getAttribute(name, "CacheSizeMax").toString());
         } else {
-            assertEquals("16384", mbeanServer.
+            int cacheSize = Utils.scaleForAvailableMemory(
+                    Constants.CACHE_SIZE_DEFAULT);
+            assertEquals("" + cacheSize, mbeanServer.
                     getAttribute(name, "CacheSizeMax").toString());
         }
         mbeanServer.setAttribute(name, new Attribute("CacheSizeMax", 1));

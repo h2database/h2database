@@ -19,7 +19,6 @@ import javax.sql.DataSource;
 import javax.sql.XAConnection;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
-
 import org.h2.api.ErrorCode;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.jdbcx.JdbcDataSourceFactory;
@@ -76,6 +75,8 @@ public class TestDataSource extends TestBase {
         testDataSource();
         testUnwrap();
         testXAConnection();
+        // otherwise we sometimes can't delete the trace file when the TestAll cleanup code runs
+        JdbcDataSourceFactory.getTraceSystem().close();
         deleteDb("dataSource");
     }
 

@@ -89,11 +89,6 @@ public class TransactionStore {
     private final AtomicReferenceArray<Transaction> transactions =
                                                         new AtomicReferenceArray<>(MAX_OPEN_TRANSACTIONS + 1);
 
-    /**
-     * The next id of a temporary map.
-     */
-    private int nextTempMapId;
-
     private static final String UNDO_LOG_NAME_PEFIX = "undoLog";
     private static final char UNDO_LOG_COMMITTED = '-'; // must come before open in lexicographical order
     private static final char UNDO_LOG_OPEN = '.';
@@ -515,29 +510,6 @@ public class TransactionStore {
             map = store.openMap(mapName, mapBuilder);
         }
         return map;
-    }
-
-    /**
-     * Create a temporary map. Such maps are removed when opening the store.
-     *
-     * @return the map
-     */
-    synchronized MVMap<Object, Integer> createTempMap() {
-        String mapName = "temp." + nextTempMapId++;
-        return openTempMap(mapName);
-    }
-
-    /**
-     * Open a temporary map.
-     *
-     * @param mapName the map name
-     * @return the map
-     */
-    private MVMap<Object, Integer> openTempMap(String mapName) {
-        MVMap.Builder<Object, Integer> mapBuilder =
-                new MVMap.Builder<Object, Integer>().
-                keyType(dataType);
-        return store.openMap(mapName, mapBuilder);
     }
 
     /**

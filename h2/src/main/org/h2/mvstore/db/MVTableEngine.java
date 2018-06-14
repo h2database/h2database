@@ -109,10 +109,7 @@ public class MVTableEngine implements TableEngine {
     public TableBase createTable(CreateTableData data) {
         Database db = data.session.getDatabase();
         Store store = init(db);
-        MVTable table = new MVTable(data, store);
-        table.init(data.session);
-        store.tableMap.put(table.getMapName(), table);
-        return table;
+        return store.createTable(data);
     }
 
     /**
@@ -124,8 +121,8 @@ public class MVTableEngine implements TableEngine {
          * The map of open tables.
          * Key: the map name, value: the table.
          */
-        final ConcurrentHashMap<String, MVTable> tableMap =
-                new ConcurrentHashMap<>();
+        private final ConcurrentHashMap<String, MVTable> tableMap =
+                                                    new ConcurrentHashMap<>();
 
         /**
          * The store.
@@ -152,7 +149,7 @@ public class MVTableEngine implements TableEngine {
          * @param builder the builder
          * @param encrypted whether the store is encrypted
          */
-        void open(Database db, MVStore.Builder builder, boolean encrypted) {
+        private void open(Database db, MVStore.Builder builder, boolean encrypted) {
             this.encrypted = encrypted;
             try {
                 this.store = builder.open();
@@ -166,7 +163,6 @@ public class MVTableEngine implements TableEngine {
                 this.transactionStore = new TransactionStore(
                         store,
                         new ValueDataType(db.getCompareMode(), db, null), db.getLockTimeout());
-//                transactionStore.init();
             } catch (IllegalStateException e) {
                 throw convertIllegalStateException(e);
             }
@@ -195,6 +191,10 @@ public class MVTableEngine implements TableEngine {
                 throw DbException.get(
                         ErrorCode.IO_EXCEPTION_1,
                         e, fileName);
+            } else if (errorCode == DataUtils.ERROR_INTERNAL) {
+                throw DbException.get(
+                        ErrorCode.GENERAL_ERROR_1,
+                        e, fileName);
             }
             throw DbException.get(
                     ErrorCode.FILE_CORRUPTED_1,
@@ -212,6 +212,19 @@ public class MVTableEngine implements TableEngine {
 
         public MVTable getTable(String tableName) {
             return tableMap.get(tableName);
+        }
+
+        /**
+         * Create a table.
+         *
+         * @param data CreateTableData
+         * @return table created
+         */
+        public MVTable createTable(CreateTableData data) {
+            MVTable table = new MVTable(data, this);
+            table.init(data.session);
+            tableMap.put(table.getMapName(), table);
+            return table;
         }
 
         /**

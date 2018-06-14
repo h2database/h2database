@@ -436,7 +436,7 @@ public class Transaction {
         return store.getChanges(this, getLogId(), savepointId);
     }
 
-    long getLogId() {
+    private long getLogId() {
         return getLogId(statusAndLogId.get());
     }
 
@@ -454,7 +454,7 @@ public class Transaction {
     /**
      * Check whether this transaction is open or prepared.
      */
-    void checkNotClosed() {
+    private void checkNotClosed() {
         if (getStatus() == STATUS_CLOSED) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_CLOSED, "Transaction {0} is closed", transactionId);

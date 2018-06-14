@@ -808,7 +808,7 @@ public class Database implements DataHandler {
         }
         systemSession.commit(true);
         if (mvStore != null) {
-            mvStore.initTransactions();
+            mvStore.getTransactionStore().endLeftoverTransactions();
             mvStore.removeTemporaryMaps(objectIds);
         }
         recompileInvalidViews(systemSession);
@@ -1014,29 +1014,31 @@ public class Database implements DataHandler {
             SearchRow r = meta.getTemplateSimpleRow(false);
             r.setValue(0, ValueInt.get(id));
             boolean wasLocked = lockMeta(session);
-            Cursor cursor = metaIdIndex.find(session, r, r);
-            if (cursor.next()) {
-                if (SysProperties.CHECK) {
-                    if (lockMode != Constants.LOCK_MODE_OFF && !wasLocked) {
-                        throw DbException.throwInternalError();
+            try {
+                Cursor cursor = metaIdIndex.find(session, r, r);
+                if (cursor.next()) {
+                    if (SysProperties.CHECK) {
+                        if (lockMode != Constants.LOCK_MODE_OFF && !wasLocked) {
+                            throw DbException.throwInternalError();
+                        }
+                    }
+                    Row found = cursor.get();
+                    meta.removeRow(session, found);
+                    if (isMultiVersion()) {
+                        // TODO this should work without MVCC, but avoid risks at
+                        // the moment
+                        session.log(meta, UndoLogRecord.DELETE, found);
+                    }
+                    if (SysProperties.CHECK) {
+                        checkMetaFree(session, id);
                     }
                 }
-                Row found = cursor.get();
-                meta.removeRow(session, found);
-                if (isMultiVersion()) {
-                    // TODO this should work without MVCC, but avoid risks at
-                    // the moment
-                    session.log(meta, UndoLogRecord.DELETE, found);
+            } finally {
+                if (!wasLocked) {
+                    // must not keep the lock if it was not locked
+                    // otherwise updating sequences may cause a deadlock
+                    unlockMeta(session);
                 }
-                if (SysProperties.CHECK) {
-                    checkMetaFree(session, id);
-                }
-            } else if (!wasLocked) {
-                unlockMetaDebug(session);
-                // must not keep the lock if it was not locked
-                // otherwise updating sequences may cause a deadlock
-                meta.unlock(session);
-                session.unlock(meta);
             }
             objectIds.clear(id);
         }
@@ -1333,9 +1335,9 @@ public class Database implements DataHandler {
                     }
                     closing = true;
                 }
-            }
-            if(!this.isReadOnly()) {
-                removeOrphanedLobs();
+                if (!this.isReadOnly()) {
+                    removeOrphanedLobs();
+                }
             }
             try {
                 if (systemSession != null) {
@@ -1427,81 +1429,84 @@ public class Database implements DataHandler {
      * @param flush whether writing is allowed
      */
     private synchronized void closeOpenFilesAndUnlock(boolean flush) {
-        stopWriter();
-        if (pageStore != null) {
-            if (flush) {
-                try {
-                    pageStore.checkpoint();
-                    if (!readOnly) {
-                        lockMeta(pageStore.getPageStoreSession());
-                        pageStore.compact(compactMode);
-                        unlockMeta(pageStore.getPageStoreSession());
+        try {
+            stopWriter();
+            if (pageStore != null) {
+                if (flush) {
+                    try {
+                        pageStore.checkpoint();
+                        if (!readOnly) {
+                            lockMeta(pageStore.getPageStoreSession());
+                            pageStore.compact(compactMode);
+                            unlockMeta(pageStore.getPageStoreSession());
+                        }
+                    } catch (DbException e) {
+                        if (ASSERT) {
+                            int code = e.getErrorCode();
+                            if (code != ErrorCode.DATABASE_IS_CLOSED &&
+                                    code != ErrorCode.LOCK_TIMEOUT_1 &&
+                                    code != ErrorCode.IO_EXCEPTION_2) {
+                                e.printStackTrace();
+                            }
+                        }
+                        trace.error(e, "close");
+                    } catch (Throwable t) {
+                        if (ASSERT) {
+                            t.printStackTrace();
+                        }
+                        trace.error(t, "close");
                     }
-                } catch (DbException e) {
-                    if (ASSERT) {
-                        int code = e.getErrorCode();
-                        if (code != ErrorCode.DATABASE_IS_CLOSED &&
-                                code != ErrorCode.LOCK_TIMEOUT_1 &&
-                                code != ErrorCode.IO_EXCEPTION_2) {
-                            e.printStackTrace();
+                }
+            }
+            reconnectModified(false);
+            if (mvStore != null && mvStore.getStore() != null && !mvStore.getStore().isClosed()) {
+                long maxCompactTime = dbSettings.maxCompactTime;
+                if (compactMode == CommandInterface.SHUTDOWN_COMPACT) {
+                    mvStore.compactFile(dbSettings.maxCompactTime);
+                } else if (compactMode == CommandInterface.SHUTDOWN_DEFRAG) {
+                    maxCompactTime = Long.MAX_VALUE;
+                } else if (getSettings().defragAlways) {
+                    maxCompactTime = Long.MAX_VALUE;
+                }
+                mvStore.close(maxCompactTime);
+            }
+            if (systemSession != null) {
+                systemSession.close();
+                systemSession = null;
+            }
+            if (lobSession != null) {
+                lobSession.close();
+                lobSession = null;
+            }
+            closeFiles();
+            if (persistent && lock == null &&
+                    fileLockMethod != FileLockMethod.NO &&
+                    fileLockMethod != FileLockMethod.FS) {
+                // everything already closed (maybe in checkPowerOff)
+                // don't delete temp files in this case because
+                // the database could be open now (even from within another process)
+                return;
+            }
+            if (persistent) {
+                deleteOldTempFiles();
+            }
+        } finally {
+            if (lock != null) {
+                if (fileLockMethod == FileLockMethod.SERIALIZED) {
+                    // wait before deleting the .lock file,
+                    // otherwise other connections can not detect that
+                    if (lock.load().containsKey("changePending")) {
+                        try {
+                            Thread.sleep(TimeUnit.NANOSECONDS
+                                    .toMillis((long) (reconnectCheckDelayNs * 1.1)));
+                        } catch (InterruptedException e) {
+                            trace.error(e, "close");
                         }
                     }
-                    trace.error(e, "close");
-                } catch (Throwable t) {
-                    if (ASSERT) {
-                        t.printStackTrace();
-                    }
-                    trace.error(t, "close");
                 }
+                lock.unlock();
+                lock = null;
             }
-        }
-        reconnectModified(false);
-        if (mvStore != null && !mvStore.getStore().isClosed()) {
-            long maxCompactTime = dbSettings.maxCompactTime;
-            if (compactMode == CommandInterface.SHUTDOWN_COMPACT) {
-                mvStore.compactFile(dbSettings.maxCompactTime);
-            } else if (compactMode == CommandInterface.SHUTDOWN_DEFRAG) {
-                maxCompactTime = Long.MAX_VALUE;
-            } else if (getSettings().defragAlways) {
-                maxCompactTime = Long.MAX_VALUE;
-            }
-            mvStore.close(maxCompactTime);
-        }
-        closeFiles();
-        if (persistent && lock == null &&
-                fileLockMethod != FileLockMethod.NO &&
-                fileLockMethod != FileLockMethod.FS) {
-            // everything already closed (maybe in checkPowerOff)
-            // don't delete temp files in this case because
-            // the database could be open now (even from within another process)
-            return;
-        }
-        if (persistent) {
-            deleteOldTempFiles();
-        }
-        if (systemSession != null) {
-            systemSession.close();
-            systemSession = null;
-        }
-        if (lobSession != null) {
-            lobSession.close();
-            lobSession = null;
-        }
-        if (lock != null) {
-            if (fileLockMethod == FileLockMethod.SERIALIZED) {
-                // wait before deleting the .lock file,
-                // otherwise other connections can not detect that
-                if (lock.load().containsKey("changePending")) {
-                    try {
-                        Thread.sleep(TimeUnit.NANOSECONDS
-                                .toMillis((long) (reconnectCheckDelayNs * 1.1)));
-                    } catch (InterruptedException e) {
-                        trace.error(e, "close");
-                    }
-                }
-            }
-            lock.unlock();
-            lock = null;
         }
     }
 
@@ -1946,7 +1951,6 @@ public class Database implements DataHandler {
                             t.getSQL());
                 }
                 obj.removeChildrenAndResources(session);
-
             }
             removeMeta(session, id);
         }
@@ -2550,6 +2554,7 @@ public class Database implements DataHandler {
      * Immediately close the database.
      */
     public void shutdownImmediately() {
+        closing = true;
         setPowerOffCount(1);
         try {
             checkPowerOff();

@@ -89,11 +89,6 @@ public class TransactionStore {
     private final AtomicReferenceArray<Transaction> transactions =
                                                         new AtomicReferenceArray<>(MAX_OPEN_TRANSACTIONS + 1);
 
-    /**
-     * The next id of a temporary map.
-     */
-    private int nextTempMapId;
-
     private static final String UNDO_LOG_NAME_PEFIX = "undoLog";
     private static final char UNDO_LOG_COMMITTED = '-'; // must come before open in lexicographical order
     private static final char UNDO_LOG_OPEN = '.';
@@ -147,14 +142,6 @@ public class TransactionStore {
      */
     public void init() {
         if (!init) {
-            // remove all temporary maps
-            for (String mapName : store.getMapNames()) {
-                if (mapName.startsWith("temp.")) {
-                    MVMap<Object, Integer> temp = openTempMap(mapName);
-                    store.removeMap(temp);
-                }
-            }
-
             for (String mapName : store.getMapNames()) {
                 if (mapName.startsWith(UNDO_LOG_NAME_PEFIX)) {
                     if (store.hasData(mapName)) {
@@ -165,12 +152,14 @@ public class TransactionStore {
                             int status;
                             String name;
                             if (data == null) {
-                                status = mapName.charAt(UNDO_LOG_NAME_PEFIX.length()) == UNDO_LOG_OPEN ?
-                                        Transaction.STATUS_OPEN : Transaction.STATUS_COMMITTED;
+                                status = Transaction.STATUS_OPEN;
                                 name = null;
                             } else {
                                 status = (Integer) data[0];
                                 name = (String) data[1];
+                            }
+                            if (mapName.charAt(UNDO_LOG_NAME_PEFIX.length()) == UNDO_LOG_COMMITTED) {
+                                status = Transaction.STATUS_COMMITTED;
                             }
                             MVMap<Long, Object[]> undoLog = store.openMap(mapName, undoLogBuilder);
                             undoLogs[transactionId] = undoLog;
@@ -184,6 +173,21 @@ public class TransactionStore {
                 }
             }
             init = true;
+        }
+    }
+
+    /**
+     * Commit all transactions that are in the committed state, and
+     * rollback all open transactions.
+     */
+    public void endLeftoverTransactions() {
+        List<Transaction> list = getOpenTransactions();
+        for (Transaction t : list) {
+            if (t.getStatus() == Transaction.STATUS_COMMITTED) {
+                t.commit();
+            } else if (t.getStatus() != Transaction.STATUS_PREPARED) {
+                t.rollback();
+            }
         }
     }
 
@@ -506,29 +510,6 @@ public class TransactionStore {
             map = store.openMap(mapName, mapBuilder);
         }
         return map;
-    }
-
-    /**
-     * Create a temporary map. Such maps are removed when opening the store.
-     *
-     * @return the map
-     */
-    synchronized MVMap<Object, Integer> createTempMap() {
-        String mapName = "temp." + nextTempMapId++;
-        return openTempMap(mapName);
-    }
-
-    /**
-     * Open a temporary map.
-     *
-     * @param mapName the map name
-     * @return the map
-     */
-    private MVMap<Object, Integer> openTempMap(String mapName) {
-        MVMap.Builder<Object, Integer> mapBuilder =
-                new MVMap.Builder<Object, Integer>().
-                keyType(dataType);
-        return store.openMap(mapName, mapBuilder);
     }
 
     /**

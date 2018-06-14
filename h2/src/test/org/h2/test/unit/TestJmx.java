@@ -148,6 +148,9 @@ public class TestJmx extends TestBase {
         if (config.memory) {
             assertEquals("0", mbeanServer.
                     getAttribute(name, "CacheSizeMax").toString());
+        } else if (config.mvStore) {
+            assertEquals("16384", mbeanServer.
+                    getAttribute(name, "CacheSizeMax").toString());
         } else {
             int cacheSize = Utils.scaleForAvailableMemory(
                     Constants.CACHE_SIZE_DEFAULT);

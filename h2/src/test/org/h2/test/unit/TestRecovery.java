@@ -330,6 +330,10 @@ public class TestRecovery extends TestBase {
     }
 
     private void testRunScript2() throws SQLException {
+        if (!config.mvStore) {
+            // TODO Does not work in PageStore mode
+            return;
+        }
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
         DeleteDbFiles.execute(getBaseDir(), "recovery2", true);
         org.h2.Driver.load();

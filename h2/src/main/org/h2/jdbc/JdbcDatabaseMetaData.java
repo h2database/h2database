@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Properties;
 
 import org.h2.engine.Constants;
+import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
@@ -2562,8 +2563,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean supportsMixedCaseQuotedIdentifiers() throws SQLException {
         debugCodeCall("supportsMixedCaseQuotedIdentifiers");
-        String m = conn.getMode();
-        return !m.equals("MySQL");
+        return conn.getMode().getEnum() != ModeEnum.MySQL;
     }
 
     /**
@@ -2575,8 +2575,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean storesUpperCaseIdentifiers() throws SQLException {
         debugCodeCall("storesUpperCaseIdentifiers");
-        String m = conn.getMode();
-        return !m.equals("MySQL");
+        return conn.getMode().getEnum() != ModeEnum.MySQL;
     }
 
     /**
@@ -2588,8 +2587,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean storesLowerCaseIdentifiers() throws SQLException {
         debugCodeCall("storesLowerCaseIdentifiers");
-        String m = conn.getMode();
-        return m.equals("MySQL");
+        return conn.getMode().getEnum() == ModeEnum.MySQL;
     }
 
     /**
@@ -2613,8 +2611,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean storesUpperCaseQuotedIdentifiers() throws SQLException {
         debugCodeCall("storesUpperCaseQuotedIdentifiers");
-        String m = conn.getMode();
-        return m.equals("MySQL");
+        return conn.getMode().getEnum() == ModeEnum.MySQL;
     }
 
     /**
@@ -2626,8 +2623,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean storesLowerCaseQuotedIdentifiers() throws SQLException {
         debugCodeCall("storesLowerCaseQuotedIdentifiers");
-        String m = conn.getMode();
-        return m.equals("MySQL");
+        return conn.getMode().getEnum() == ModeEnum.MySQL;
     }
 
     /**
@@ -2639,8 +2635,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean storesMixedCaseQuotedIdentifiers() throws SQLException {
         debugCodeCall("storesMixedCaseQuotedIdentifiers");
-        String m = conn.getMode();
-        return !m.equals("MySQL");
+        return conn.getMode().getEnum() != ModeEnum.MySQL;
     }
 
     /**

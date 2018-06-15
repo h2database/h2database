@@ -93,7 +93,7 @@ public class JdbcConnection extends TraceObject
     private int queryTimeoutCache = -1;
 
     private Map<String, String> clientInfo;
-    private String mode;
+    private volatile Mode mode;
     private final boolean scopeGeneratedKeys;
 
     /**
@@ -1783,8 +1783,7 @@ public class JdbcConnection extends TraceObject
                         Collections.<String, ClientInfoStatus> emptyMap());
             }
 
-            Pattern clientInfoNameRegEx = Mode
-                    .getInstance(getMode()).supportedClientInfoPropertiesRegEx;
+            Pattern clientInfoNameRegEx = getMode().supportedClientInfoPropertiesRegEx;
 
             if (clientInfoNameRegEx != null
                     && clientInfoNameRegEx.matcher(name).matches()) {
@@ -2102,15 +2101,22 @@ public class JdbcConnection extends TraceObject
         trace.setLevel(level);
     }
 
-    String getMode() throws SQLException {
+    Mode getMode() throws SQLException {
+        Mode mode = this.mode;
         if (mode == null) {
-            PreparedStatement prep = prepareStatement(
-                    "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?");
-            prep.setString(1, "MODE");
-            ResultSet rs = prep.executeQuery();
-            rs.next();
-            mode = rs.getString(1);
-            prep.close();
+            String name;
+            try (PreparedStatement prep = prepareStatement(
+                    "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?")) {
+                prep.setString(1, "MODE");
+                ResultSet rs = prep.executeQuery();
+                rs.next();
+                name = rs.getString(1);
+            }
+            mode = Mode.getInstance(name);
+            if (mode == null) {
+                mode = Mode.getRegular();
+            }
+            this.mode = mode;
         }
         return mode;
     }

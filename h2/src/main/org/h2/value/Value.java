@@ -957,6 +957,33 @@ public abstract class Value {
                 }
                 break;
             }
+            case STRING: {
+                String s;
+                if (getType() == BYTES && mode != null && mode.charToBinaryInUtf8) {
+                    s = new String(getBytesNoCopy());
+                } else {
+                    s = getString();
+                }
+                return ValueString.get(s);
+            }
+            case STRING_IGNORECASE: {
+                String s;
+                if (getType() == BYTES && mode != null && mode.charToBinaryInUtf8) {
+                    s = new String(getBytesNoCopy());
+                } else {
+                    s = getString();
+                }
+                return ValueStringIgnoreCase.get(s);
+            }
+            case STRING_FIXED: {
+                String s;
+                if (getType() == BYTES && mode != null && mode.charToBinaryInUtf8) {
+                    s = new String(getBytesNoCopy());
+                } else {
+                    s = getString();
+                }
+                return ValueStringFixed.get(s, precision, mode);
+            }
             case JAVA_OBJECT: {
                 switch (getType()) {
                 case BYTES:
@@ -1081,17 +1108,11 @@ public abstract class Value {
             case TIMESTAMP_TZ:
                 return ValueTimestampTimeZone.parse(s.trim());
             case BYTES:
-                return ValueBytes.getNoCopy(
-                        StringUtils.convertHexToBytes(s.trim()));
+                return ValueBytes.getNoCopy(mode != null && mode.charToBinaryInUtf8 ?
+                        s.getBytes(StandardCharsets.UTF_8): StringUtils.convertHexToBytes(s.trim()));
             case JAVA_OBJECT:
                 return ValueJavaObject.getNoCopy(null,
                         StringUtils.convertHexToBytes(s.trim()), getDataHandler());
-            case STRING:
-                return ValueString.get(s);
-            case STRING_IGNORECASE:
-                return ValueStringIgnoreCase.get(s);
-            case STRING_FIXED:
-                return ValueStringFixed.get(s, precision, mode);
             case DOUBLE:
                 return ValueDouble.get(Double.parseDouble(s.trim()));
             case FLOAT:

@@ -1215,6 +1215,11 @@ public class TestTableEngines extends TestBase {
                 }
 
                 @Override
+                public boolean canScan() {
+                    return false;
+                }
+
+                @Override
                 public void add(Session session, Row r) {
                     // do nothing
                 }

@@ -88,7 +88,7 @@ public class TestCache extends TestBase implements CacheWriter {
 
     private void testTQ(String cacheType, boolean scanResistant) throws Exception {
         Connection conn = getConnection(
-                "cache;CACHE_TYPE=" + cacheType + ";CACHE_SIZE=4096");
+                "cache;CACHE_TYPE=" + cacheType + ";CACHE_SIZE=5120");
         Statement stat = conn.createStatement();
         PreparedStatement prep;
         for (int k = 0; k < 10; k++) {

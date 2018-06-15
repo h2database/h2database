@@ -153,7 +153,7 @@ public class TestPageStore extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("set max_log_size 1");
         stat.execute("create table test(x varchar)");
-        for (int i = 0; i < 1000; ++i) {
+        for (int i = 0; i < 300; ++i) {
             stat.execute("insert into test values (space(2000))");
         }
         stat.execute("checkpoint");

@@ -882,8 +882,8 @@ public class Function extends Expression implements FunctionCall {
             break;
         case CAST:
         case CONVERT: {
-            v0 = v0.convertTo(dataType);
             Mode mode = database.getMode();
+            v0 = v0.convertTo(dataType, -1, mode);
             v0 = v0.convertScale(mode.convertOnlyToSmallerScale, scale);
             v0 = v0.convertPrecision(getPrecision(), false);
             result = v0;
@@ -1078,7 +1078,7 @@ public class Function extends Expression implements FunctionCall {
     }
 
     private Value convertResult(Value v) {
-        return v.convertTo(dataType);
+        return v.convertTo(dataType, -1, database.getMode());
     }
 
     private static boolean cancelStatement(Session session, int targetSessionId) {

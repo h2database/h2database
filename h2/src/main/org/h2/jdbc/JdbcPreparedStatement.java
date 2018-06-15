@@ -562,7 +562,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                 setParameter(parameterIndex, ValueNull.INSTANCE);
             } else {
                 Value v = DataType.convertToValue(conn.getSession(), x, type);
-                setParameter(parameterIndex, v.convertTo(type));
+                setParameter(parameterIndex, v.convertTo(type, -1, conn.getMode()));
             }
         } catch (Exception e) {
             throw logAndConvert(e);

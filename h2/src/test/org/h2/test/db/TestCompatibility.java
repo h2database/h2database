@@ -5,6 +5,7 @@
  */
 package org.h2.test.db;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -304,6 +305,28 @@ public class TestCompatibility extends TestBase {
         // check the weird MySQL variant of DELETE
         stat.execute("DELETE TEST FROM TEST WHERE 1=2");
 
+        // Check conversion between VARCHAR and VARBINARY
+        String string = "ABCD\u1234";
+        byte[] bytes = string.getBytes(StandardCharsets.UTF_8);
+        stat.execute("CREATE TABLE TEST2(C VARCHAR, B VARBINARY)");
+        stat.execute("INSERT INTO TEST2(C) VALUES ('" + string + "')");
+        assertEquals(1, stat.executeUpdate("UPDATE TEST2 SET B = C"));
+        ResultSet rs = stat.executeQuery("SELECT B FROM TEST2");
+        assertTrue(rs.next());
+        assertEquals(bytes, rs.getBytes(1));
+        assertEquals(1, stat.executeUpdate("UPDATE TEST2 SET C = B"));
+        testMySQLBytesCheck(stat, string, bytes);
+        PreparedStatement prep = conn.prepareStatement("UPDATE TEST2 SET C = ?");
+        prep.setBytes(1, bytes);
+        assertEquals(1, prep.executeUpdate());
+        testMySQLBytesCheck(stat, string, bytes);
+        stat.execute("DELETE FROM TEST2");
+        prep = conn.prepareStatement("INSERT INTO TEST2(C) VALUES (?)");
+        prep.setBytes(1, bytes);
+        assertEquals(1, prep.executeUpdate());
+        testMySQLBytesCheck(stat, string, bytes);
+        stat.execute("DROP TABLE TEST2");
+
         if (config.memory) {
             return;
         }
@@ -324,7 +347,7 @@ public class TestCompatibility extends TestBase {
         stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
                 ResultSet.CONCUR_UPDATABLE);
         assertResult("test", stat, "SHOW TABLES");
-        ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
+        rs = stat.executeQuery("SELECT * FROM TEST");
         rs.next();
         rs.updateString(2, "Hallo");
         rs.updateRow();
@@ -389,6 +412,14 @@ public class TestCompatibility extends TestBase {
 
         conn.close();
         conn = getConnection("compatibility");
+    }
+
+    private void testMySQLBytesCheck(Statement stat, String string, byte[] bytes) throws SQLException {
+        ResultSet rs;
+        rs = stat.executeQuery("SELECT C FROM TEST2");
+        assertTrue(rs.next());
+        assertEquals(string, rs.getString(1));
+        assertEquals(bytes, rs.getBytes(1));
     }
 
     private void testSybaseAndMSSQLServer() throws SQLException {

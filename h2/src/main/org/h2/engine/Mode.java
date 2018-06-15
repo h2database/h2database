@@ -187,6 +187,11 @@ public class Mode {
     public boolean allowDB2TimestampFormat;
 
     /**
+     * Convert (VAR)CHAR to VAR(BINARY) and vice versa with UTF-8 encoding instead of HEX.
+     */
+    public boolean charToBinaryInUtf8;
+
+    /**
      * An optional Set of hidden/disallowed column types.
      * Certain DBMSs don't support all column types provided by H2, such as
      * "NUMBER" when using PostgreSQL mode.
@@ -269,6 +274,7 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx =
                 Pattern.compile(".*");
         mode.prohibitEmptyInPredicate = true;
+        mode.charToBinaryInUtf8 = true;
         add(mode);
 
         mode = new Mode(ModeEnum.Oracle);

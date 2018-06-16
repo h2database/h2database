@@ -10,6 +10,7 @@ import java.util.HashSet;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
+import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
 import org.h2.expression.Expression;
@@ -140,9 +141,10 @@ public class SelectUnion extends Query {
             // for the value hash set
             newValues = new Value[columnCount];
         }
+        Mode mode = session.getDatabase().getMode();
         for (int i = 0; i < columnCount; i++) {
             Expression e = expressions.get(i);
-            newValues[i] = values[i].convertTo(e.getType());
+            newValues[i] = values[i].convertTo(e.getType(), -1, mode);
         }
         return newValues;
     }

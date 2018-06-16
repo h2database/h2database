@@ -109,21 +109,21 @@ public class Operation extends Expression {
 
     @Override
     public Value getValue(Session session) {
-        Value l = left.getValue(session).convertTo(dataType);
+        Mode mode = session.getDatabase().getMode();
+        Value l = left.getValue(session).convertTo(dataType, -1, mode);
         Value r;
         if (right == null) {
             r = null;
         } else {
             r = right.getValue(session);
             if (convertRight) {
-                r = r.convertTo(dataType);
+                r = r.convertTo(dataType, -1, mode);
             }
         }
         switch (opType) {
         case NEGATE:
             return l == ValueNull.INSTANCE ? l : l.negate();
         case CONCAT: {
-            Mode mode = session.getDatabase().getMode();
             if (l == ValueNull.INSTANCE) {
                 if (mode.nullConcatIsNull) {
                     return ValueNull.INSTANCE;

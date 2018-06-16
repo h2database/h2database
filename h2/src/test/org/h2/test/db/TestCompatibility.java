@@ -325,6 +325,13 @@ public class TestCompatibility extends TestBase {
         prep.setBytes(1, bytes);
         assertEquals(1, prep.executeUpdate());
         testMySQLBytesCheck(stat, string, bytes);
+        prep = conn.prepareStatement("SELECT C FROM TEST2 WHERE C = ?");
+        prep.setBytes(1, bytes);
+        testMySQLBytesCheck(prep.executeQuery(), string, bytes);
+        stat.execute("CREATE INDEX TEST2_C ON TEST2(C)");
+        prep = conn.prepareStatement("SELECT C FROM TEST2 WHERE C = ?");
+        prep.setBytes(1, bytes);
+        testMySQLBytesCheck(prep.executeQuery(), string, bytes);
         stat.execute("DROP TABLE TEST2");
 
         if (config.memory) {
@@ -415,8 +422,10 @@ public class TestCompatibility extends TestBase {
     }
 
     private void testMySQLBytesCheck(Statement stat, String string, byte[] bytes) throws SQLException {
-        ResultSet rs;
-        rs = stat.executeQuery("SELECT C FROM TEST2");
+        testMySQLBytesCheck(stat.executeQuery("SELECT C FROM TEST2"), string, bytes);
+    }
+
+    private void testMySQLBytesCheck(ResultSet rs, String string, byte[] bytes) throws SQLException {
         assertTrue(rs.next());
         assertEquals(string, rs.getString(1));
         assertEquals(bytes, rs.getBytes(1));

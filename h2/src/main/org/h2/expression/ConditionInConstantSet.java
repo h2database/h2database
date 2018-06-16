@@ -7,6 +7,9 @@ package org.h2.expression;
 
 import java.util.ArrayList;
 import java.util.TreeSet;
+
+import org.h2.engine.Database;
+import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
@@ -42,10 +45,12 @@ public class ConditionInConstantSet extends Condition {
             ArrayList<Expression> valueList) {
         this.left = left;
         this.valueList = valueList;
-        this.valueSet = new TreeSet<>(session.getDatabase().getCompareMode());
+        Database database = session.getDatabase();
+        this.valueSet = new TreeSet<>(database.getCompareMode());
         int type = left.getType();
+        Mode mode = database.getMode();
         for (Expression expression : valueList) {
-            valueSet.add(expression.getValue(session).convertTo(type));
+            valueSet.add(expression.getValue(session).convertTo(type, -1, mode));
         }
     }
 
@@ -153,7 +158,7 @@ public class ConditionInConstantSet extends Condition {
         if (add != null) {
             if (add.isConstant()) {
                 valueList.add(add);
-                valueSet.add(add.getValue(session).convertTo(left.getType()));
+                valueSet.add(add.getValue(session).convertTo(left.getType(), -1, session.getDatabase().getMode()));
                 return this;
             }
         }

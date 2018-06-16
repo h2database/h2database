@@ -111,7 +111,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
     }
 
     private void testDeleteInTrigger() throws SQLException {
-        if (config.mvcc || config.mvStore) {
+        if (config.mvStore) {
             return;
         }
         Connection conn;

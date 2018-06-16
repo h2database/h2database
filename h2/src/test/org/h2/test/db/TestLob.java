@@ -510,7 +510,7 @@ public class TestLob extends TestBase {
     }
 
     private void testDeadlock2() throws Exception {
-        if (config.mvcc || config.memory) {
+        if (config.mvStore || config.memory) {
             return;
         }
         deleteDb("lob");

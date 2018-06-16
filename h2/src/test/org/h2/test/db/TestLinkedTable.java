@@ -693,10 +693,7 @@ public class TestLinkedTable extends TestBase {
     }
 
     private void testGeometry() throws SQLException {
-        if (!config.mvStore && config.mvcc) {
-            return;
-        }
-        if (config.memory && config.mvcc) {
+        if (config.memory && config.mvStore) {
             return;
         }
         if (DataType.GEOMETRY_CLASS == null) {

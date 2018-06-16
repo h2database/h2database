@@ -28,7 +28,7 @@ public class TestTransactionIsolation extends TestBase {
 
     @Override
     public void test() throws SQLException {
-        if (config.mvcc || config.mvStore) {
+        if (config.mvStore) {
             // no tests yet
         } else {
             testTableLevelLocking();

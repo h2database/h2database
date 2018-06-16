@@ -33,7 +33,6 @@ public class TestJmx extends TestBase {
     public static void main(String... a) throws Exception {
         TestBase base = TestBase.createCaller().init();
         base.config.mvStore = false;
-        base.config.mvcc = false;
         base.test();
     }
 
@@ -114,7 +113,7 @@ public class TestJmx extends TestBase {
 
         result = mbeanServer.invoke(name, "listSessions", null, null).toString();
         assertContains(result, "session id");
-        if (config.mvcc || config.mvStore) {
+        if (config.mvStore) {
             assertContains(result, "read lock");
         } else {
             assertContains(result, "write lock");

@@ -53,10 +53,7 @@ public class TestSpatial extends TestBase {
 
     @Override
     public void test() throws SQLException {
-        if (!config.mvStore && config.mvcc) {
-            return;
-        }
-        if (config.memory && config.mvcc) {
+        if (config.memory && config.mvStore) {
             return;
         }
         if (DataType.GEOMETRY_CLASS != null) {

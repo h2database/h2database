@@ -142,7 +142,7 @@ public class TestMultiThread extends TestBase implements Runnable {
     }
 
     private void testConcurrentView() throws Exception {
-        if (config.mvcc || config.mvStore) {
+        if (config.mvStore) {
             return;
         }
         String db = getTestName();
@@ -206,7 +206,7 @@ public class TestMultiThread extends TestBase implements Runnable {
     }
 
     private void testConcurrentAnalyze() throws Exception {
-        if (config.mvcc) {
+        if (config.mvStore) {
             return;
         }
         deleteDb(getTestName());

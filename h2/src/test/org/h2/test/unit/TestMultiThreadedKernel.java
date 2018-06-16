@@ -33,7 +33,7 @@ public class TestMultiThreadedKernel extends TestBase implements Runnable {
 
     @Override
     public void test() throws Exception {
-        if (config.networked || config.mvcc) {
+        if (config.networked || config.mvStore) {
             return;
         }
         deleteDb("multiThreadedKernel");

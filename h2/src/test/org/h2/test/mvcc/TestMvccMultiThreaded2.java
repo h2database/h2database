@@ -33,7 +33,6 @@ public class TestMvccMultiThreaded2 extends TestBase {
      */
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
-        test.config.mvcc = true;
         test.config.lockTimeout = 120000;
         test.config.memory = true;
         test.config.multiThreaded = true;
@@ -47,7 +46,7 @@ public class TestMvccMultiThreaded2 extends TestBase {
 
     @Override
     public void test() throws SQLException, InterruptedException {
-        if (!config.mvcc) {
+        if (!config.mvStore) {
             return;
         }
         testSelectForUpdateConcurrency();

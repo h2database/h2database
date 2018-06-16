@@ -235,7 +235,7 @@ public class TestDeadlock extends TestBase {
     }
 
     private void testThreePhilosophers() throws Exception {
-        if (config.mvcc || config.mvStore) {
+        if (config.mvStore) {
             return;
         }
         initTest();
@@ -281,7 +281,7 @@ public class TestDeadlock extends TestBase {
     // test case for issue # 61
     // http://code.google.com/p/h2database/issues/detail?id=61)
     private void testThreeSome() throws Exception {
-        if (config.mvcc || config.mvStore) {
+        if (config.mvStore) {
             return;
         }
         initTest();
@@ -326,7 +326,7 @@ public class TestDeadlock extends TestBase {
     }
 
     private void testLockUpgrade() throws Exception {
-        if (config.mvcc || config.mvStore) {
+        if (config.mvStore) {
             return;
         }
         initTest();
@@ -360,7 +360,7 @@ public class TestDeadlock extends TestBase {
     }
 
     private void testDiningPhilosophers() throws Exception {
-        if (config.mvcc || config.mvStore) {
+        if (config.mvStore) {
             return;
         }
         initTest();

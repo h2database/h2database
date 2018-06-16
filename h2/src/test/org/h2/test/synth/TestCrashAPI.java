@@ -154,7 +154,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
             recoverAll();
             return;
         }
-        if (config.mvcc || config.networked) {
+        if (config.mvStore || config.networked) {
             return;
         }
         int len = getSize(2, 6);
@@ -531,7 +531,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
     @Override
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);
-        if (config.mvcc || config.networked) {
+        if (config.mvStore || config.networked) {
             return this;
         }
         startServerIfRequired();

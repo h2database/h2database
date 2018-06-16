@@ -534,7 +534,6 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
             config.lazy = true;
             config.mvStore = true;
             config.memory = true;
-            config.mvcc = true;
             config.multiThreaded = true;
 
             String setupSQL = "--no config set";

@@ -123,7 +123,7 @@ public class TestMultiThreaded extends TestBase {
 
     @Override
     public void test() throws Exception {
-        if (config.mvcc) {
+        if (config.mvStore) {
             return;
         }
         deleteDb("multiThreaded");

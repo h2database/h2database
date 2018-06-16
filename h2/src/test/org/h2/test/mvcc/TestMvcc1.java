@@ -30,7 +30,6 @@ public class TestMvcc1 extends TestBase {
      */
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
-        test.config.mvcc = true;
         test.test();
     }
 
@@ -59,7 +58,7 @@ public class TestMvcc1 extends TestBase {
     }
 
     private void testCases() throws SQLException {
-        if (!config.mvcc) {
+        if (!config.mvStore) {
             return;
         }
         ResultSet rs;

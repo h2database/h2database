@@ -299,7 +299,7 @@ public class TestScript extends TestBase {
 
     private void process(String sql) throws Exception {
         if (reconnectOften) {
-            if (!containsTempTables() && ((JdbcConnection) conn).isRegularMode()) {
+            if (!containsTempTables() && ((JdbcConnection) conn).isRegularMode() && conn.getSchema().equals("PUBLIC")) {
                 boolean autocommit = conn.getAutoCommit();
                 if (autocommit && random.nextInt(10) < 1) {
                     // reconnect 10% of the time

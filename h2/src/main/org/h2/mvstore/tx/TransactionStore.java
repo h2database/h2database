@@ -165,9 +165,9 @@ public class TransactionStore {
                             MVMap<Long, Object[]> undoLog = store.openMap(mapName, undoLogBuilder);
                             undoLogs[transactionId] = undoLog;
                             Long lastUndoKey = undoLog.lastKey();
-                            assert lastUndoKey != null;
-                            assert getTransactionId(lastUndoKey) == transactionId;
-                            long logId = getLogId(lastUndoKey) + 1;
+                            assert committed || lastUndoKey != null;
+                            assert committed || getTransactionId(lastUndoKey) == transactionId;
+                            long logId = lastUndoKey == null ? 0 : getLogId(lastUndoKey) + 1;
                             registerTransaction(transactionId, status, name, logId, timeoutMillis, 0, RollbackListener.NONE);
                         }
                     }

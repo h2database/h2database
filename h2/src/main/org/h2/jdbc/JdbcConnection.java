@@ -43,6 +43,8 @@ import org.h2.engine.Mode;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
+import org.h2.engine.Mode.ModeEnum;
+import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
@@ -2121,4 +2123,12 @@ public class JdbcConnection extends TraceObject
         return mode;
     }
 
+    /**
+     * INTERNAL
+     */
+    public boolean isRegularMode() throws SQLException {
+        // Clear cached mode if any (required by tests)
+        mode = null;
+        return getMode().getEnum() == ModeEnum.REGULAR;
+    }
 }

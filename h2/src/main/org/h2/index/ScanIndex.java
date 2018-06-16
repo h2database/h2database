@@ -44,7 +44,7 @@ public class ScanIndex extends BaseIndex {
     public ScanIndex(RegularTable table, int id, IndexColumn[] columns,
             IndexType indexType) {
         initBaseIndex(table, id, table.getName() + "_DATA", columns, indexType);
-        if (database.isMultiVersion()) {
+        if (database.isMVStore()) {
             sessionRowCount = new HashMap<>();
         } else {
             sessionRowCount = null;
@@ -67,7 +67,7 @@ public class ScanIndex extends BaseIndex {
         tableData.setRowCount(0);
         rowCount = 0;
         rowCountDiff = 0;
-        if (database.isMultiVersion()) {
+        if (database.isMVStore()) {
             sessionRowCount.clear();
         }
     }
@@ -102,7 +102,7 @@ public class ScanIndex extends BaseIndex {
             rows.set((int) key, row);
         }
         row.setDeleted(false);
-        if (database.isMultiVersion()) {
+        if (database.isMVStore()) {
             if (delta == null) {
                 delta = new HashSet<>();
             }
@@ -117,7 +117,7 @@ public class ScanIndex extends BaseIndex {
 
     @Override
     public void commit(int operation, Row row) {
-        if (database.isMultiVersion()) {
+        if (database.isMVStore()) {
             if (delta != null) {
                 delta.remove(row);
             }
@@ -127,7 +127,7 @@ public class ScanIndex extends BaseIndex {
     }
 
     private void incrementRowCount(int sessionId, int count) {
-        if (database.isMultiVersion()) {
+        if (database.isMVStore()) {
             Integer id = sessionId;
             Integer c = sessionRowCount.get(id);
             int current = c == null ? 0 : c.intValue();
@@ -139,7 +139,7 @@ public class ScanIndex extends BaseIndex {
     @Override
     public void remove(Session session, Row row) {
         // in-memory
-        if (!database.isMultiVersion() && rowCount == 1) {
+        if (!database.isMVStore() && rowCount == 1) {
             rows = Utils.newSmallArrayList();
             firstFree = -1;
         } else {
@@ -153,7 +153,7 @@ public class ScanIndex extends BaseIndex {
             rows.set((int) key, free);
             firstFree = key;
         }
-        if (database.isMultiVersion()) {
+        if (database.isMVStore()) {
             // if storage is null, the delete flag is not yet set
             row.setDeleted(true);
             if (delta == null) {
@@ -170,7 +170,7 @@ public class ScanIndex extends BaseIndex {
 
     @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        return new ScanCursor(session, this, database.isMultiVersion());
+        return new ScanCursor(session, this, database.isMVStore());
     }
 
     @Override
@@ -182,7 +182,7 @@ public class ScanIndex extends BaseIndex {
 
     @Override
     public long getRowCount(Session session) {
-        if (database.isMultiVersion()) {
+        if (database.isMVStore()) {
             Integer i = sessionRowCount.get(session.getId());
             long count = i == null ? 0 : i.intValue();
             count += rowCount;

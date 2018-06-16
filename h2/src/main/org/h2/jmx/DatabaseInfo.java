@@ -116,7 +116,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
 
     @Override
     public boolean isMvcc() {
-        return database.isMultiVersion();
+        return database.isMVStore();
     }
 
     @Override

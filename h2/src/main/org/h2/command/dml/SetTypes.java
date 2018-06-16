@@ -163,99 +163,94 @@ public class SetTypes {
     public static final int REFERENTIAL_INTEGRITY = 30;
 
     /**
-     * The type of a SET MVCC statement.
-     */
-    public static final int MVCC = 31;
-
-    /**
      * The type of a SET MAX_OPERATION_MEMORY statement.
      */
-    public static final int MAX_OPERATION_MEMORY = 32;
+    public static final int MAX_OPERATION_MEMORY = 31;
 
     /**
      * The type of a SET EXCLUSIVE statement.
      */
-    public static final int EXCLUSIVE = 33;
+    public static final int EXCLUSIVE = 32;
 
     /**
      * The type of a SET CREATE_BUILD statement.
      */
-    public static final int CREATE_BUILD = 34;
+    public static final int CREATE_BUILD = 33;
 
     /**
      * The type of a SET \@VARIABLE statement.
      */
-    public static final int VARIABLE = 35;
+    public static final int VARIABLE = 34;
 
     /**
      * The type of a SET QUERY_TIMEOUT statement.
      */
-    public static final int QUERY_TIMEOUT = 36;
+    public static final int QUERY_TIMEOUT = 35;
 
     /**
      * The type of a SET REDO_LOG_BINARY statement.
      */
-    public static final int REDO_LOG_BINARY = 37;
+    public static final int REDO_LOG_BINARY = 36;
 
     /**
      * The type of a SET BINARY_COLLATION statement.
      */
-    public static final int BINARY_COLLATION = 38;
+    public static final int BINARY_COLLATION = 37;
 
     /**
      * The type of a SET JAVA_OBJECT_SERIALIZER statement.
      */
-    public static final int JAVA_OBJECT_SERIALIZER = 39;
+    public static final int JAVA_OBJECT_SERIALIZER = 38;
 
     /**
      * The type of a SET RETENTION_TIME statement.
      */
-    public static final int RETENTION_TIME = 40;
+    public static final int RETENTION_TIME = 39;
 
     /**
      * The type of a SET QUERY_STATISTICS statement.
      */
-    public static final int QUERY_STATISTICS = 41;
+    public static final int QUERY_STATISTICS = 40;
 
     /**
      * The type of a SET QUERY_STATISTICS_MAX_ENTRIES statement.
      */
-    public static final int QUERY_STATISTICS_MAX_ENTRIES = 42;
+    public static final int QUERY_STATISTICS_MAX_ENTRIES = 41;
 
     /**
      * The type of a SET ROW_FACTORY statement.
      */
-    public static final int ROW_FACTORY = 43;
+    public static final int ROW_FACTORY = 42;
 
     /**
      * The type of SET BATCH_JOINS statement.
      */
-    public static final int BATCH_JOINS = 44;
+    public static final int BATCH_JOINS = 43;
 
     /**
      * The type of SET FORCE_JOIN_ORDER statement.
      */
-    public static final int FORCE_JOIN_ORDER = 45;
+    public static final int FORCE_JOIN_ORDER = 44;
 
     /**
      * The type of SET LAZY_QUERY_EXECUTION statement.
      */
-    public static final int LAZY_QUERY_EXECUTION = 46;
+    public static final int LAZY_QUERY_EXECUTION = 45;
 
     /**
      * The type of SET BUILTIN_ALIAS_OVERRIDE statement.
      */
-    public static final int BUILTIN_ALIAS_OVERRIDE = 47;
+    public static final int BUILTIN_ALIAS_OVERRIDE = 46;
 
     /**
      * The type of a SET COLUMN_NAME_RULES statement.
      */
-    public static final int COLUMN_NAME_RULES = 48;
+    public static final int COLUMN_NAME_RULES = 47;
 
     /**
      * The type of a SET AUTHENTICATOR statement.
      */
-    public static final int AUTHENTICATOR= 49;
+    public static final int AUTHENTICATOR = 48;
 
     private static final int COUNT = AUTHENTICATOR + 1;
 
@@ -298,7 +293,6 @@ public class SetTypes {
         list.add(SCHEMA_SEARCH_PATH, "SCHEMA_SEARCH_PATH");
         list.add(UNDO_LOG, "UNDO_LOG");
         list.add(REFERENTIAL_INTEGRITY, "REFERENTIAL_INTEGRITY");
-        list.add(MVCC, "MVCC");
         list.add(MAX_OPERATION_MEMORY, "MAX_OPERATION_MEMORY");
         list.add(EXCLUSIVE, "EXCLUSIVE");
         list.add(CREATE_BUILD, "CREATE_BUILD");

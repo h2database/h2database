@@ -116,7 +116,7 @@ public class RegularTable extends TableBase {
     @Override
     public void addRow(Session session, Row row) {
         lastModificationId = database.getNextModificationDataId();
-        if (database.isMultiVersion()) {
+        if (database.isMVStore()) {
             row.setSessionId(session.getId());
         }
         int i = 0;
@@ -167,7 +167,7 @@ public class RegularTable extends TableBase {
     }
 
     private void checkRowCount(Session session, Index index, int offset) {
-        if (SysProperties.CHECK && !database.isMultiVersion()) {
+        if (SysProperties.CHECK && !database.isMVStore()) {
             if (!(index instanceof PageDelegateIndex)) {
                 long rc = index.getRowCount(session);
                 if (rc != rowCount + offset) {
@@ -259,7 +259,7 @@ public class RegularTable extends TableBase {
                 index = new TreeIndex(this, indexId, indexName, cols, indexType);
             }
         }
-        if (database.isMultiVersion()) {
+        if (database.isMVStore()) {
             index = new MultiVersionIndex(index, this);
         }
         if (index.needRebuild() && rowCount > 0) {
@@ -366,7 +366,7 @@ public class RegularTable extends TableBase {
 
     @Override
     public long getRowCount(Session session) {
-        if (database.isMultiVersion()) {
+        if (database.isMVStore()) {
             return getScanIndex(session).getRowCount(session);
         }
         return rowCount;
@@ -374,7 +374,7 @@ public class RegularTable extends TableBase {
 
     @Override
     public void removeRow(Session session, Row row) {
-        if (database.isMultiVersion()) {
+        if (database.isMVStore()) {
             if (row.isDeleted()) {
                 throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, getName());
             }
@@ -444,7 +444,7 @@ public class RegularTable extends TableBase {
         if (lockMode == Constants.LOCK_MODE_OFF) {
             return lockExclusiveSession != null;
         }
-        if (!forceLockEvenInMvcc && database.isMultiVersion()) {
+        if (!forceLockEvenInMvcc && database.isMVStore()) {
             // MVCC: update, delete, and insert use a shared lock.
             // Select doesn't lock except when using FOR UPDATE
             if (exclusive) {
@@ -550,7 +550,7 @@ public class RegularTable extends TableBase {
         } else {
             if (lockExclusiveSession == null) {
                 if (lockMode == Constants.LOCK_MODE_READ_COMMITTED) {
-                    if (!database.isMultiThreaded() && !database.isMultiVersion()) {
+                    if (!database.isMultiThreaded() && !database.isMVStore()) {
                         // READ_COMMITTED: a read lock is acquired,
                         // but released immediately after the operation
                         // is complete.

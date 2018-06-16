@@ -1043,7 +1043,7 @@ public class MetaTable extends Table {
                     "FALSE" : "TRUE");
             add(rows, "MODE", database.getMode().getName());
             add(rows, "MULTI_THREADED", database.isMultiThreaded() ? "1" : "0");
-            add(rows, "MVCC", database.isMultiVersion() ? "TRUE" : "FALSE");
+            add(rows, "MVCC", database.isMVStore() ? "TRUE" : "FALSE");
             add(rows, "QUERY_TIMEOUT", Integer.toString(session.getQueryTimeout()));
             add(rows, "RETENTION_TIME", Integer.toString(database.getRetentionTime()));
             add(rows, "LOG", Integer.toString(database.getLogMode()));

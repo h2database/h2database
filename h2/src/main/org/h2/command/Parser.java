@@ -5589,10 +5589,8 @@ public class Parser {
             return new TransactionCommand(session, setting);
         } else if (readIf("MVCC")) {
             readIfEqualOrTo();
-            boolean value = readBooleanSetting();
-            Set command = new Set(session, SetTypes.MVCC);
-            command.setInt(value ? 1 : 0);
-            return command;
+            readBooleanSetting();
+            return new NoOperation(session);
         } else if (readIf("EXCLUSIVE")) {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.EXCLUSIVE);

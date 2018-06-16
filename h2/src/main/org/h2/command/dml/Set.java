@@ -354,13 +354,6 @@ public class Set extends Prepared {
             }
             break;
         }
-        case SetTypes.MVCC: {
-            if (database.isMultiVersion() != (getIntValue() == 1)) {
-                throw DbException.get(
-                        ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, "MVCC");
-            }
-            break;
-        }
         case SetTypes.OPTIMIZE_REUSE_RESULTS: {
             session.getUser().checkAdmin();
             database.setOptimizeReuseResults(getIntValue() != 0);

@@ -317,9 +317,7 @@ public abstract class TestBase {
         if (config.mvcc) {
             url = addOption(url, "MVCC", "TRUE");
         }
-        if (config.multiThreaded) {
-            url = addOption(url, "MULTI_THREADED", "TRUE");
-        }
+        url = addOption(url, "MULTI_THREADED", config.multiThreaded ? "TRUE" : "FALSE");
         if (config.lazy) {
             url = addOption(url, "LAZY_QUERY_EXECUTION", "1");
         }

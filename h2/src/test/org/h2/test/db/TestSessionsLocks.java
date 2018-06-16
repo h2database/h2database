@@ -27,6 +27,9 @@ public class TestSessionsLocks extends TestBase {
 
     @Override
     public void test() throws Exception {
+        if (!config.multiThreaded) {
+            return;
+        }
         testCancelStatement();
         if (!config.mvcc) {
             testLocks();
@@ -36,7 +39,7 @@ public class TestSessionsLocks extends TestBase {
 
     private void testLocks() throws SQLException {
         deleteDb("sessionsLocks");
-        Connection conn = getConnection("sessionsLocks;MULTI_THREADED=1");
+        Connection conn = getConnection("sessionsLocks");
         Statement stat = conn.createStatement();
         ResultSet rs;
         rs = stat.executeQuery("select * from information_schema.locks " +
@@ -82,7 +85,7 @@ public class TestSessionsLocks extends TestBase {
 
     private void testCancelStatement() throws Exception {
         deleteDb("sessionsLocks");
-        Connection conn = getConnection("sessionsLocks;MULTI_THREADED=1");
+        Connection conn = getConnection("sessionsLocks");
         Statement stat = conn.createStatement();
         ResultSet rs;
         rs = stat.executeQuery("select * from information_schema.sessions " +

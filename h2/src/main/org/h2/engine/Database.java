@@ -188,6 +188,7 @@ public class Database implements DataHandler {
     /** ie. the MVCC setting */
     private boolean multiVersion;
     private Mode mode = Mode.getRegular();
+    /** ie. the MULTI_THREADED setting */
     private boolean multiThreaded;
     private int maxOperationMemory =
             Constants.DEFAULT_MAX_OPERATION_MEMORY;
@@ -290,7 +291,7 @@ public class Database implements DataHandler {
         this.javaObjectSerializerName =
                 ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
         this.multiThreaded =
-                ci.getProperty("MULTI_THREADED", false);
+                ci.getProperty("MULTI_THREADED", dbSettings.mvStore);
         this.allowBuiltinAliasOverride =
                 ci.getProperty("BUILTIN_ALIAS_OVERRIDE", false);
         boolean closeAtVmShutdown =
@@ -657,6 +658,7 @@ public class Database implements DataHandler {
                 // Need to re-init this because the first time we do it we don't
                 // know if we have an mvstore or a pagestore.
                 multiVersion = ci.getProperty("MVCC", false);
+                multiThreaded = ci.getProperty("MULTI_THREADED", false);
             }
             if (readOnly) {
                 if (traceLevelFile >= TraceSystem.DEBUG) {
@@ -2461,7 +2463,7 @@ public class Database implements DataHandler {
                 // supported
                 throw DbException.get(
                         ErrorCode.UNSUPPORTED_SETTING_COMBINATION,
-                        "MVCC & MULTI_THREADED");
+                        "MVCC & MULTI_THREADED & !MV_STORE");
             }
             if (lockMode == 0) {
                 // currently the combination of LOCK_MODE=0 and MULTI_THREADED

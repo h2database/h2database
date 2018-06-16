@@ -195,7 +195,7 @@ public class TestScript extends TestBase {
         stat = conn.createStatement();
         out = new PrintStream(new FileOutputStream(outFile));
         errors = new StringBuilder();
-        testFile(BASE_DIR + scriptFileName);
+        testFile(BASE_DIR + scriptFileName, !scriptFileName.equals("functions/system/set.sql"));
         conn.close();
         out.close();
         if (errors.length() > 0) {
@@ -252,7 +252,7 @@ public class TestScript extends TestBase {
         }
     }
 
-    private void testFile(String inFile) throws Exception {
+    private void testFile(String inFile, boolean allowReconnect) throws Exception {
         InputStream is = getClass().getClassLoader().getResourceAsStream(inFile);
         if (is == null) {
             throw new IOException("could not find " + inFile);
@@ -274,7 +274,7 @@ public class TestScript extends TestBase {
                 buff.append(sql, 0, sql.length() - 1);
                 sql = buff.toString();
                 buff = new StringBuilder();
-                process(sql);
+                process(sql, allowReconnect);
             } else {
                 write(sql);
                 buff.append(sql);
@@ -297,8 +297,8 @@ public class TestScript extends TestBase {
         return false;
     }
 
-    private void process(String sql) throws Exception {
-        if (reconnectOften) {
+    private void process(String sql, boolean allowReconnect) throws Exception {
+        if (allowReconnect && reconnectOften) {
             if (!containsTempTables() && ((JdbcConnection) conn).isRegularMode() && conn.getSchema().equals("PUBLIC")) {
                 boolean autocommit = conn.getAutoCommit();
                 if (autocommit && random.nextInt(10) < 1) {

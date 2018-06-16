@@ -89,7 +89,7 @@ public class ConditionInParameter extends Condition {
                 if (r == ValueNull.INSTANCE) {
                     hasNull = true;
                 } else {
-                    r = r.convertTo(l.getType());
+                    r = r.convertTo(l.getType(), -1, database.getMode());
                     result = Comparison.compareNotNull(database, l, r, Comparison.EQUAL);
                     if (result) {
                         break;
@@ -100,7 +100,7 @@ public class ConditionInParameter extends Condition {
             if (value == ValueNull.INSTANCE) {
                 hasNull = true;
             } else {
-                value = value.convertTo(l.getType());
+                value = value.convertTo(l.getType(), -1, database.getMode());
                 result = Comparison.compareNotNull(database, l, value, Comparison.EQUAL);
             }
         }

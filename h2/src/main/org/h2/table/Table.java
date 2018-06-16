@@ -18,6 +18,7 @@ import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
+import org.h2.engine.Mode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
@@ -1214,8 +1215,9 @@ public abstract class Table extends SchemaObjectBase {
             a = a.convertToEnum(enumerators);
             b = b.convertToEnum(enumerators);
         } else {
-            a = a.convertTo(dataType);
-            b = b.convertTo(dataType);
+            Mode mode = database.getMode();
+            a = a.convertTo(dataType, -1, mode);
+            b = b.convertTo(dataType, -1, mode);
         }
         return a.compareTypeSafe(b, compareMode);
     }

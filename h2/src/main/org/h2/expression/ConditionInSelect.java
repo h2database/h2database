@@ -53,7 +53,7 @@ public class ConditionInSelect extends Condition {
         } else if (l == ValueNull.INSTANCE) {
             return l;
         }
-        if (!session.getDatabase().getSettings().optimizeInSelect) {
+        if (!database.getSettings().optimizeInSelect) {
             return getValueSlow(rows, l);
         }
         if (all || (compareType != Comparison.EQUAL &&
@@ -64,7 +64,7 @@ public class ConditionInSelect extends Condition {
         if (dataType == Value.NULL) {
             return ValueBoolean.FALSE;
         }
-        l = l.convertTo(dataType);
+        l = l.convertTo(dataType, -1, database.getMode());
         if (rows.containsDistinct(new Value[] { l })) {
             return ValueBoolean.TRUE;
         }

@@ -410,8 +410,9 @@ public class FunctionAlias extends SchemaObjectBase {
                             paramClass.getComponentType(), array.length);
                     int componentType = DataType.getTypeFromClass(
                             paramClass.getComponentType());
+                    Mode mode = session.getDatabase().getMode();
                     for (int i = 0; i < objArray.length; i++) {
-                        objArray[i] = array[i].convertTo(componentType).getObject();
+                        objArray[i] = array[i].convertTo(componentType, -1, mode).getObject();
                     }
                     o = objArray;
                 } else {

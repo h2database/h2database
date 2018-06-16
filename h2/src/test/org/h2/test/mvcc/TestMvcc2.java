@@ -34,13 +34,12 @@ public class TestMvcc2 extends TestBase {
      */
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
-        test.config.mvcc = true;
         test.test();
     }
 
     @Override
     public void test() throws Exception {
-        if (!config.mvcc) {
+        if (!config.mvStore) {
             return;
         }
         deleteDb("mvcc2");

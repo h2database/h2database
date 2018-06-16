@@ -43,9 +43,6 @@ public class TestMultiThreadedKernel extends TestBase {
 
     @Override
     public void test() throws Exception {
-        if (config.mvcc) {
-            return;
-        }
         if (config.mvStore) { // FIXME can't see why test should not work in MVStore mode
             return;
         }

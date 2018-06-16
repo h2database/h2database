@@ -29,7 +29,6 @@ public class TestUpgrade extends TestBase {
      */
     public static void main(String... a) throws Exception {
         TestBase base = TestBase.createCaller().init();
-        base.config.mvcc = false;
         base.config.mvStore = false;
         base.test();
     }

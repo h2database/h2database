@@ -27,7 +27,6 @@ public class TestReleaseSelectLock extends TestBase {
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
         test.config.mvStore = false;
-        test.config.mvcc = false;
         test.config.multiThreaded = true;
         test.test();
     }

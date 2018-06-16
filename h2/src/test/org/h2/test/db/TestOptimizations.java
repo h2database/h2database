@@ -659,7 +659,7 @@ public class TestOptimizations extends TestBase {
             ResultSet rs = stat.executeQuery(
                     "explain select min(x), max(x) from test");
             rs.next();
-            if (!config.mvcc) {
+            if (!config.mvStore) {
                 String plan = rs.getString(1);
                 assertContains(plan, "direct");
             }

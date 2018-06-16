@@ -26,7 +26,6 @@ public class TestMvcc4 extends TestBase {
      */
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
-        test.config.mvcc = true;
         test.config.lockTimeout = 20000;
         test.config.memory = true;
         test.test();
@@ -34,7 +33,7 @@ public class TestMvcc4 extends TestBase {
 
     @Override
     public void test() throws SQLException {
-        if (config.networked || !config.mvcc) {
+        if (config.networked || !config.mvStore) {
             return;
         }
         testSelectForUpdateAndUpdateConcurrency();

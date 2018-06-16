@@ -345,7 +345,6 @@ public class Set extends Prepared {
                 database.setMode(mode);
                 session.getColumnNamerConfiguration().configure(mode.getEnum());
             }
-            addOrUpdateSetting(name, stringValue, 0);
             break;
         case SetTypes.MULTI_THREADED: {
             session.getUser().checkAdmin();

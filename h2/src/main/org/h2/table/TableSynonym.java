@@ -67,12 +67,12 @@ public class TableSynonym extends SchemaObjectBase {
 
     @Override
     public String getCreateSQL() {
-        return "CREATE SYNONYM " + getName() + " FOR " + data.synonymForSchema.getName() + "." + data.synonymFor;
+        return "CREATE SYNONYM " + getSQL() + " FOR " + data.synonymForSchema.getName() + "." + data.synonymFor;
     }
 
     @Override
     public String getDropSQL() {
-        return "DROP SYNONYM " + getName();
+        return "DROP SYNONYM " + getSQL();
     }
 
     @Override

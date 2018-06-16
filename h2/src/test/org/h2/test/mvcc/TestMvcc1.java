@@ -76,9 +76,9 @@ public class TestMvcc1 extends TestBase {
         //     selects new data (select * from test where id > ?) and deletes
 
         deleteDb("mvcc1");
-        c1 = getConnection("mvcc1;MVCC=TRUE;LOCK_TIMEOUT=10");
+        c1 = getConnection("mvcc1;LOCK_TIMEOUT=10");
         s1 = c1.createStatement();
-        c2 = getConnection("mvcc1;MVCC=TRUE;LOCK_TIMEOUT=10");
+        c2 = getConnection("mvcc1;LOCK_TIMEOUT=10");
         s2 = c2.createStatement();
         c1.setAutoCommit(false);
         c2.setAutoCommit(false);

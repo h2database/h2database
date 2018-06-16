@@ -529,7 +529,7 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
         try {
             // Test with settings: lazy mvStore memory mvcc multiThreaded
             // connection url is
-            // mem:script;MV_STORE=true;LOG=1;LOCK_TIMEOUT=50;MVCC=TRUE;
+            // mem:script;MV_STORE=true;LOG=1;LOCK_TIMEOUT=50;
             // MULTI_THREADED=TRUE;LAZY_QUERY_EXECUTION=1
             config.lazy = true;
             config.mvStore = true;

@@ -24,7 +24,7 @@ public class TestMvccMultiThreaded2 extends TestBase {
     private static final int TEST_TIME_SECONDS = 60;
     private static final boolean DISPLAY_STATS = false;
 
-    private static final String URL = ";MVCC=TRUE;LOCK_TIMEOUT=120000;MULTI_THREADED=TRUE";
+    private static final String URL = ";LOCK_TIMEOUT=120000;MULTI_THREADED=TRUE";
 
     /**
      * Run just this test.

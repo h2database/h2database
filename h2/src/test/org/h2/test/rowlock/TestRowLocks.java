@@ -38,7 +38,9 @@ public class TestRowLocks extends TestBase {
     @Override
     public void test() throws Exception {
         testSetMode();
-        testCases();
+        if (config.mvStore) {
+            testCases();
+        }
         deleteDb(getTestName());
     }
 
@@ -55,7 +57,7 @@ public class TestRowLocks extends TestBase {
 
     private void testCases() throws Exception {
         deleteDb(getTestName());
-        c1 = getConnection(getTestName() + ";MVCC=TRUE");
+        c1 = getConnection(getTestName());
         s1 = c1.createStatement();
         s1.execute("SET LOCK_TIMEOUT 10000");
         s1.execute("CREATE TABLE TEST AS " +

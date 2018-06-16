@@ -267,7 +267,7 @@ public class PageDataIndex extends PageIndex {
         }
         Value v = row.getValue(mainIndexColumn);
         if (v == null) {
-            throw DbException.throwInternalError(row.toString());
+            return row.getKey();
         } else if (v == ValueNull.INSTANCE) {
             return ifNull;
         }

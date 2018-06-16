@@ -144,7 +144,8 @@ public class TransactionStore {
         if (!init) {
             for (String mapName : store.getMapNames()) {
                 if (mapName.startsWith(UNDO_LOG_NAME_PEFIX)) {
-                    if (store.hasData(mapName)) {
+                    boolean committed = mapName.charAt(UNDO_LOG_NAME_PEFIX.length()) == UNDO_LOG_COMMITTED;
+                    if (store.hasData(mapName) || committed) {
                         int transactionId = Integer.parseInt(mapName.substring(UNDO_LOG_NAME_PEFIX.length() + 1));
                         VersionedBitSet openTxBitSet = openTransactions.get();
                         if (!openTxBitSet.get(transactionId)) {
@@ -158,7 +159,7 @@ public class TransactionStore {
                                 status = (Integer) data[0];
                                 name = (String) data[1];
                             }
-                            if (mapName.charAt(UNDO_LOG_NAME_PEFIX.length()) == UNDO_LOG_COMMITTED) {
+                            if (committed) {
                                 status = Transaction.STATUS_COMMITTED;
                             }
                             MVMap<Long, Object[]> undoLog = store.openMap(mapName, undoLogBuilder);

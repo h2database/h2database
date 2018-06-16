@@ -88,7 +88,7 @@ public class TestScript extends TestBase {
         if (config.networked && config.big) {
             return;
         }
-//        reconnectOften = !config.memory && config.big;
+        reconnectOften = !config.memory && config.big;
 
         testScript("testScript.sql");
         testScript("comments.sql");

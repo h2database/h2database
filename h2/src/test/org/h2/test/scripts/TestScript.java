@@ -26,6 +26,7 @@ import java.util.Random;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.StringUtils;
@@ -298,7 +299,7 @@ public class TestScript extends TestBase {
 
     private void process(String sql) throws Exception {
         if (reconnectOften) {
-            if (!containsTempTables()) {
+            if (!containsTempTables() && ((JdbcConnection) conn).isRegularMode()) {
                 boolean autocommit = conn.getAutoCommit();
                 if (autocommit && random.nextInt(10) < 1) {
                     // reconnect 10% of the time

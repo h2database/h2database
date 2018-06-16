@@ -28,7 +28,7 @@ public class TestLargeBlob extends TestBase {
 
     @Override
     public void test() throws Exception {
-        if (!config.big || config.memory || config.mvcc || config.networked) {
+        if (!config.big || config.memory || config.mvStore || config.networked) {
             return;
         }
 

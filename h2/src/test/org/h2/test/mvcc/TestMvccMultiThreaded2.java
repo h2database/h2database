@@ -24,7 +24,7 @@ public class TestMvccMultiThreaded2 extends TestBase {
     private static final int TEST_TIME_SECONDS = 60;
     private static final boolean DISPLAY_STATS = false;
 
-    private static final String URL = ";MVCC=TRUE;LOCK_TIMEOUT=120000;MULTI_THREADED=TRUE";
+    private static final String URL = ";LOCK_TIMEOUT=120000;MULTI_THREADED=TRUE";
 
     /**
      * Run just this test.
@@ -33,7 +33,6 @@ public class TestMvccMultiThreaded2 extends TestBase {
      */
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
-        test.config.mvcc = true;
         test.config.lockTimeout = 120000;
         test.config.memory = true;
         test.config.multiThreaded = true;
@@ -47,7 +46,7 @@ public class TestMvccMultiThreaded2 extends TestBase {
 
     @Override
     public void test() throws SQLException, InterruptedException {
-        if (!config.mvcc) {
+        if (!config.mvStore) {
             return;
         }
         testSelectForUpdateConcurrency();

@@ -111,10 +111,7 @@ public class TestUsingIndex extends TestBase {
     }
 
     private void testSpatialIndex() throws SQLException {
-        if (!config.mvStore && config.mvcc) {
-            return;
-        }
-        if (config.memory && config.mvcc) {
+        if (config.memory && config.mvStore) {
             return;
         }
         if (DataType.GEOMETRY_CLASS == null) {
@@ -147,10 +144,7 @@ public class TestUsingIndex extends TestBase {
     }
 
     private void testBadSpatialSyntax() throws SQLException {
-        if (!config.mvStore && config.mvcc) {
-            return;
-        }
-        if (config.memory && config.mvcc) {
+        if (config.memory && config.mvStore) {
             return;
         }
         if (DataType.GEOMETRY_CLASS == null) {

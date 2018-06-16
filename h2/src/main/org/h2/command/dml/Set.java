@@ -347,8 +347,11 @@ public class Set extends Prepared {
             }
             break;
         case SetTypes.MULTI_THREADED: {
-            session.getUser().checkAdmin();
-            database.setMultiThreaded(getIntValue() == 1);
+            boolean v = getIntValue() == 1;
+            if (database.isMultiThreaded() != v) {
+                session.getUser().checkAdmin();
+                database.setMultiThreaded(v);
+            }
             break;
         }
         case SetTypes.MVCC: {

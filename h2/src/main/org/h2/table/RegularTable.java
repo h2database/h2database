@@ -505,13 +505,15 @@ public class RegularTable extends TableBase {
         } else {
             if (lockExclusiveSession == null) {
                 if (lockMode == Constants.LOCK_MODE_READ_COMMITTED) {
-                    // READ_COMMITTED: a read lock is acquired,
-                    // but released immediately after the operation
-                    // is complete.
-                    // When allowing only one thread, no lock is
-                    // required.
-                    // Row level locks work like read committed.
-                    return true;
+                    if (!database.isMultiThreaded()) {
+                        // READ_COMMITTED: a read lock is acquired,
+                        // but released immediately after the operation
+                        // is complete.
+                        // When allowing only one thread, no lock is
+                        // required.
+                        // Row level locks work like read committed.
+                        return true;
+                    }
                 }
                 if (!lockSharedSessions.containsKey(session)) {
                     traceLock(session, exclusive, "ok");

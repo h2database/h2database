@@ -130,7 +130,8 @@ public class TransactionMap<K, V> {
                 }
             }
         } else {
-            // The undo logs are much smaller than the map - scan all undo logs, and then lookup relevant map entry.
+            // The undo logs are much smaller than the map - scan all undo logs,
+            // and then lookup relevant map entry.
             for (MVMap.RootReference undoLogRootReference : undoLogRootReferences) {
                 if (undoLogRootReference != null) {
                     Cursor<Long, Object[]> cursor = new Cursor<>(undoLogRootReference.root, null);
@@ -139,12 +140,15 @@ public class TransactionMap<K, V> {
                         Object op[] = cursor.getValue();
                         if ((int) op[0] == map.getId()) {
                             VersionedValue currentValue = map.get(mapRootPage, op[1]);
-                            // If map entry is not there, then we never counted it, in the first place, so skip it.
-                            // This is possible when undo entry exists because it belongs
-                            // to a committed but not yet closed transaction,
-                            // and it was later deleted by some other already committed and closed transaction.
+                            // If map entry is not there, then we never counted
+                            // it, in the first place, so skip it.
+                            // This is possible when undo entry exists because
+                            // it belongs to a committed but not yet closed
+                            // transaction, and it was later deleted by some
+                            // other already committed and closed transaction.
                             if (currentValue != null) {
-                                // only the last undo entry for any given map key should be considered
+                                // only the last undo entry for any given map
+                                // key should be considered
                                 long operationId = cursor.getKey();
                                 if (currentValue.getOperationId() == operationId) {
                                     int txId = TransactionStore.getTransactionId(operationId);
@@ -204,7 +208,8 @@ public class TransactionMap<K, V> {
      */
     public V putIfAbsent(K key, V value) {
         DataUtils.checkArgument(value != null, "The value may not be null");
-        TxDecisionMaker decisionMaker = new TxDecisionMaker.PutIfAbsentDecisionMaker(map.getId(), key, value, transaction);
+        TxDecisionMaker decisionMaker = new TxDecisionMaker.PutIfAbsentDecisionMaker(map.getId(), key, value,
+                transaction);
         return set(key, decisionMaker);
     }
 
@@ -275,8 +280,10 @@ public class TransactionMap<K, V> {
         } while (blockingTransaction.sequenceNum > sequenceNumWhenStarted || transaction.waitFor(blockingTransaction));
 
         throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTION_LOCKED,
-                "Map entry <{0}> with key <{1}> and value {2} is locked by tx {3} and can not be updated by tx {4} within allocated time interval {5} ms.",
-                map.getName(), key, result, blockingTransaction.transactionId, transaction.transactionId, transaction.timeoutMillis);
+                "Map entry <{0}> with key <{1}> and value {2} is locked by tx {3} and can not be updated by tx {4}"
+                        + " within allocated time interval {5} ms.",
+                map.getName(), key, result, blockingTransaction.transactionId, transaction.transactionId,
+                transaction.timeoutMillis);
     }
 
     /**
@@ -319,7 +326,8 @@ public class TransactionMap<K, V> {
      */
     public boolean trySet(K key, V value) {
         try {
-            // TODO: effective transaction.timeoutMillis should be set to 0 here and restored before return
+            // TODO: effective transaction.timeoutMillis should be set to 0 here
+            // and restored before return
             // TODO: eliminate exception usage as part of normal control flaw
             set(key, value);
             return true;

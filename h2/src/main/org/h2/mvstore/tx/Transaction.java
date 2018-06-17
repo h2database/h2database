@@ -475,14 +475,19 @@ public class Transaction {
 
     public boolean waitFor(Transaction toWaitFor) {
         if (isDeadlocked(toWaitFor)) {
-            StringBuilder details = new StringBuilder(String.format("Transaction %d has been chosen as a deadlock victim. Details:%n", transactionId));
-            for(Transaction tx = toWaitFor, nextTx; (nextTx = tx.blockingTransaction) != null; tx = nextTx) {
-                details.append(String.format("Transaction %d attempts to update map <%s> entry with key <%s> modified by transaction %s%n",
+            StringBuilder details = new StringBuilder(
+                    String.format("Transaction %d has been chosen as a deadlock victim. Details:%n", transactionId));
+            for (Transaction tx = toWaitFor, nextTx; (nextTx = tx.blockingTransaction) != null; tx = nextTx) {
+                details.append(String.format(
+                        "Transaction %d attempts to update map <%s> entry with key <%s> modified by transaction %s%n",
                         tx.transactionId, tx.blockingMap.getName(), tx.blockingKey, tx.blockingTransaction));
                 if (nextTx == this) {
-                    details.append(String.format("Transaction %d attempts to update map <%s> entry with key <%s> modified by transaction %s%n",
+                    details.append(String.format(
+                            "Transaction %d attempts to update map <%s> entry with key <%s>"
+                                    + " modified by transaction %s%n",
                             transactionId, blockingMap.getName(), blockingKey, toWaitFor));
-                    throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTIONS_DEADLOCK, details.toString());
+                    throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTIONS_DEADLOCK,
+                            details.toString());
                 }
             }
         }

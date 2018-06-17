@@ -15,7 +15,7 @@ import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
 
 /**
- * Dummy login module used for test cases 
+ * Dummy login module used for test cases
  */
 public class MyLoginModule implements LoginModule{
 

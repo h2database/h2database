@@ -168,7 +168,8 @@ public class TransactionStore {
                             assert committed || lastUndoKey != null;
                             assert committed || getTransactionId(lastUndoKey) == transactionId;
                             long logId = lastUndoKey == null ? 0 : getLogId(lastUndoKey) + 1;
-                            registerTransaction(transactionId, status, name, logId, timeoutMillis, 0, RollbackListener.NONE);
+                            registerTransaction(transactionId, status, name, logId, timeoutMillis, 0,
+                                    RollbackListener.NONE);
                         }
                     }
                 }
@@ -305,7 +306,7 @@ public class TransactionStore {
             timeoutMillis = this.timeoutMillis;
         }
         Transaction transaction = registerTransaction(0, Transaction.STATUS_OPEN, null, 0,
-                                                      timeoutMillis, ownerId, listener);
+                timeoutMillis, ownerId, listener);
         return transaction;
     }
 
@@ -336,7 +337,7 @@ public class TransactionStore {
         } while(!success);
 
         Transaction transaction = new Transaction(this, transactionId, sequenceNo, status, name, logId,
-                                                  timeoutMillis, ownerId, listener);
+                timeoutMillis, ownerId, listener);
 
         assert transactions.get(transactionId) == null;
         transactions.set(transactionId, transaction);

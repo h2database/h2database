@@ -20,19 +20,19 @@ public class ConfigProperties {
     private Map<String, String> properties;
 
     public ConfigProperties() {
-       properties = new HashMap<>();
+        properties = new HashMap<>();
     }
-    
-    public ConfigProperties(PropertyConfig...configProperties) {
-        this(configProperties==null?null:Arrays.asList(configProperties));
+
+    public ConfigProperties(PropertyConfig... configProperties) {
+        this(configProperties == null ? null : Arrays.asList(configProperties));
     }
-    
+
     public ConfigProperties(Collection<PropertyConfig> configProperties) {
         properties = new HashMap<>();
         if (properties != null) {
             for (PropertyConfig currentProperty : configProperties) {
-                if (properties.put(currentProperty.getName(), currentProperty.getValue())!=null) {
-                    throw new AuthConfigException("duplicate property "+currentProperty.getName());
+                if (properties.put(currentProperty.getName(), currentProperty.getValue()) != null) {
+                    throw new AuthConfigException("duplicate property " + currentProperty.getName());
                 }
             }
         }
@@ -49,7 +49,7 @@ public class ConfigProperties {
     public String getStringValue(String name) {
         String result = properties.get(name);
         if (result == null) {
-            throw new AuthConfigException("missing config property "+name);
+            throw new AuthConfigException("missing config property " + name);
         }
         return result;
     }
@@ -65,7 +65,7 @@ public class ConfigProperties {
     public int getIntValue(String name) {
         String result = properties.get(name);
         if (result == null) {
-            throw new AuthConfigException("missing config property "+name);
+            throw new AuthConfigException("missing config property " + name);
         }
         return Integer.parseInt(result);
     }

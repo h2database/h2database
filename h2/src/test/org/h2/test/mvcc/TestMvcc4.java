@@ -66,7 +66,6 @@ public class TestMvcc4 extends TestBase {
         c1.setAutoCommit(false);
 
         //Fire off a concurrent update.
-        final Thread mainThread = Thread.currentThread();
         final CountDownLatch executedUpdate = new CountDownLatch(1);
         new Thread() {
             @Override
@@ -83,7 +82,8 @@ public class TestMvcc4 extends TestBase {
                     executedUpdate.countDown();
                     // interrogate new "blocker_id" metatable field instead of
                     // relying on stacktraces!? to determine when session is blocking
-                    PreparedStatement stmt = c2.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.SESSIONS WHERE BLOCKER_ID = SESSION_ID()");
+                    PreparedStatement stmt = c2.prepareStatement(
+                            "SELECT * FROM INFORMATION_SCHEMA.SESSIONS WHERE BLOCKER_ID = SESSION_ID()");
                     ResultSet resultSet;
                     do {
                         resultSet = stmt.executeQuery();

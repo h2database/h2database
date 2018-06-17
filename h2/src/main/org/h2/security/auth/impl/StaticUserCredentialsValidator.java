@@ -17,7 +17,7 @@ import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
- * This credentials validator matches the user and password with the configured 
+ * This credentials validator matches the user and password with the configured
  * Usage should be limited to test purposes
  *
  */
@@ -30,7 +30,7 @@ public class StaticUserCredentialsValidator implements CredentialsValidator {
 
     public StaticUserCredentialsValidator() {
     }
-    
+
     public StaticUserCredentialsValidator(String userNamePattern,String password) {
         if (userNamePattern!=null) {
             this.userNamePattern=Pattern.compile(userNamePattern.toUpperCase());
@@ -38,10 +38,9 @@ public class StaticUserCredentialsValidator implements CredentialsValidator {
         salt=MathUtils.secureRandomBytes(256);
         hashWithSalt=SHA256.getHashWithSalt(password.getBytes(), salt);
     }
-    
+
     @Override
     public boolean validateCredentials(AuthenticationInfo authenticationInfo) throws AuthenticationException {
-        
         if (userNamePattern!=null) {
             if (!userNamePattern.matcher(authenticationInfo.getUserName()).matches()) {
                 return false;
@@ -50,7 +49,8 @@ public class StaticUserCredentialsValidator implements CredentialsValidator {
         if (password!=null) {
             return password.equals(authenticationInfo.getPassword());
         }
-        return Utils.compareSecure(hashWithSalt,SHA256.getHashWithSalt(authenticationInfo.getPassword().getBytes(), salt));
+        return Utils.compareSecure(hashWithSalt,
+                SHA256.getHashWithSalt(authenticationInfo.getPassword().getBytes(), salt));
     }
 
     @Override
@@ -66,7 +66,7 @@ public class StaticUserCredentialsValidator implements CredentialsValidator {
         }
         String hashString=configProperties.getStringValue("hash", null);
         if (hashString!=null) {
-           hashWithSalt = SHA256.getHashWithSalt(StringUtils.convertHexToBytes(hashString), salt);
+            hashWithSalt = SHA256.getHashWithSalt(StringUtils.convertHexToBytes(hashString), salt);
         }
     }
 

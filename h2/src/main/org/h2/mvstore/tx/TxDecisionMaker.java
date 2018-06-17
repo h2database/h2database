@@ -15,9 +15,9 @@ import org.h2.mvstore.MVMap;
 public abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
     private final int            mapId;
     private final Object         key;
-            final Object         value;
+    final Object                 value;
     private final Transaction    transaction;
-                  long           undoKey;
+    long                         undoKey;
     private       Transaction    blockingTransaction;
     private       MVMap.Decision decision;
 
@@ -52,7 +52,8 @@ public abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue
             // condition above means transaction has been committed/rplled back and closed by now
             decision = MVMap.Decision.REPEAT;
         } else {
-            // this entry comes from a different transaction, and this transaction is not committed yet
+            // this entry comes from a different transaction, and this
+            // transaction is not committed yet
             // should wait on blockingTransaction that was determined earlier
             decision = MVMap.Decision.ABORT;
         }

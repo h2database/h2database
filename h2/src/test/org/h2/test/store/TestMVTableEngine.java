@@ -82,12 +82,10 @@ public class TestMVTableEngine extends TestBase {
         testAutoCommit();
         testReopen();
         testBlob();
-        testExclusiveLock();
         testEncryption();
         testReadOnly();
         testReuseDiskSpace();
         testDataTypes();
-        testLocking();
         testSimple();
         if (!config.travis) {
             testReverseDeletePerformance();
@@ -1112,29 +1110,6 @@ public class TestMVTableEngine extends TestBase {
         conn.close();
     }
 
-    private void testExclusiveLock() throws Exception {
-        deleteDb(getTestName());
-        String dbName = getTestName() + ";MV_STORE=TRUE;MVCC=FALSE";
-        Connection conn, conn2;
-        Statement stat, stat2;
-        conn = getConnection(dbName);
-        stat = conn.createStatement();
-        stat.execute("create table test(id int)");
-        stat.execute("insert into test values(1)");
-        conn.setAutoCommit(false);
-        // stat.execute("update test set id = 2");
-        stat.executeQuery("select * from test for update");
-        conn2 = getConnection(dbName);
-        stat2 = conn2.createStatement();
-        ResultSet rs2 = stat2.executeQuery(
-                "select * from information_schema.locks");
-        assertTrue(rs2.next());
-        assertEquals("TEST", rs2.getString("table_name"));
-        assertEquals("WRITE", rs2.getString("lock_type"));
-        conn2.close();
-        conn.close();
-    }
-
     private void testReadOnly() throws Exception {
         if (config.memory) {
             return;
@@ -1340,42 +1315,6 @@ public class TestMVTableEngine extends TestBase {
         assertTrue(count < 10);
 
         stat.execute("drop table test");
-        conn.close();
-    }
-
-    private void testLocking() throws Exception {
-        deleteDb(getTestName());
-        String dbName = getTestName() + ";MV_STORE=TRUE;MVCC=FALSE";
-        Connection conn = getConnection(dbName);
-        Statement stat = conn.createStatement();
-        stat.execute("set lock_timeout 1000");
-
-        stat.execute("create table a(id int primary key, name varchar)");
-        stat.execute("create table b(id int primary key, name varchar)");
-
-        Connection conn1 = getConnection(dbName);
-        final Statement stat1 = conn1.createStatement();
-        stat1.execute("set lock_timeout 1000");
-
-        conn.setAutoCommit(false);
-        conn1.setAutoCommit(false);
-        stat.execute("insert into a values(1, 'Hello')");
-        stat1.execute("insert into b values(1, 'Hello')");
-        Task t = new Task() {
-            @Override
-            public void call() throws Exception {
-                stat1.execute("insert into a values(2, 'World')");
-            }
-        };
-        t.execute();
-        try {
-            stat.execute("insert into b values(2, 'World')");
-            throw t.getException();
-        } catch (SQLException e) {
-            assertEquals(e.toString(), ErrorCode.DEADLOCK_1, e.getErrorCode());
-        }
-
-        conn1.close();
         conn.close();
     }
 

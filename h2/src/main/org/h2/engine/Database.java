@@ -185,8 +185,6 @@ public class Database implements DataHandler {
     private final String cacheType;
     private final String accessModeData;
     private boolean referentialIntegrity = true;
-    /** ie. the MVCC setting */
-    private boolean multiVersion;
     private Mode mode = Mode.getRegular();
     /** ie. the MULTI_THREADED setting */
     private boolean multiThreaded;
@@ -284,8 +282,6 @@ public class Database implements DataHandler {
         if (modeName != null) {
             this.mode = Mode.getInstance(modeName);
         }
-        this.multiVersion =
-                ci.getProperty("MVCC", dbSettings.mvStore);
         this.logMode =
                 ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);
         this.javaObjectSerializerName =
@@ -657,7 +653,6 @@ public class Database implements DataHandler {
                 dbSettings.mvStore = false;
                 // Need to re-init this because the first time we do it we don't
                 // know if we have an mvstore or a pagestore.
-                multiVersion = ci.getProperty("MVCC", false);
                 multiThreaded = ci.getProperty("MULTI_THREADED", false);
             }
             if (readOnly) {
@@ -920,7 +915,7 @@ public class Database implements DataHandler {
                 verifyMetaLocked(session);
             }
             meta.addRow(session, r);
-            if (isMultiVersion()) {
+            if (isMVStore()) {
                 // TODO this should work without MVCC, but avoid risks at the
                 // moment
                 session.log(meta, UndoLogRecord.INSERT, r);
@@ -1026,7 +1021,7 @@ public class Database implements DataHandler {
                     }
                     Row found = cursor.get();
                     meta.removeRow(session, found);
-                    if (isMultiVersion()) {
+                    if (isMVStore()) {
                         // TODO this should work without MVCC, but avoid risks at
                         // the moment
                         session.log(meta, UndoLogRecord.DELETE, found);
@@ -2423,12 +2418,12 @@ public class Database implements DataHandler {
     }
 
     /**
-     * Check if multi version concurrency is enabled for this database.
+     * Check if MVStore backend is used for this database.
      *
-     * @return true if it is enabled
+     * @return {@code true} for MVStore, {@code false} for PageStore
      */
-    public boolean isMultiVersion() {
-        return multiVersion;
+    public boolean isMVStore() {
+        return dbSettings.mvStore;
     }
 
     /**
@@ -2458,13 +2453,6 @@ public class Database implements DataHandler {
 
     public void setMultiThreaded(boolean multiThreaded) {
         if (multiThreaded && this.multiThreaded != multiThreaded) {
-            if (multiVersion && mvStore == null) {
-                // currently the combination of MVCC and MULTI_THREADED is not
-                // supported
-                throw DbException.get(
-                        ErrorCode.UNSUPPORTED_SETTING_COMBINATION,
-                        "MVCC & MULTI_THREADED & !MV_STORE");
-            }
             if (lockMode == 0) {
                 // currently the combination of LOCK_MODE=0 and MULTI_THREADED
                 // is not supported
@@ -2870,10 +2858,6 @@ public class Database implements DataHandler {
 
     public void setDefaultTableType(int defaultTableType) {
         this.defaultTableType = defaultTableType;
-    }
-
-    public void setMultiVersion(boolean multiVersion) {
-        this.multiVersion = multiVersion;
     }
 
     public DbSettings getSettings() {

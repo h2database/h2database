@@ -167,7 +167,7 @@ public class TestPageStore extends TestBase {
     private void testRecoverLobInDatabase() throws SQLException {
         deleteDb("pageStoreRecoverLobInDatabase");
         String url = getURL("pageStoreRecoverLobInDatabase;" +
-                "MVCC=TRUE;CACHE_SIZE=1", true);
+                "CACHE_SIZE=1", true);
         Connection conn;
         Statement stat;
         conn = getConnection(url, getUser(), getPassword());
@@ -182,7 +182,7 @@ public class TestPageStore extends TestBase {
             Connection conn2 = getConnection(url, getUser(), getPassword());
             list.add(conn2);
             Statement stat2 = conn2.createStatement();
-            conn2.setAutoCommit(false);
+            // conn2.setAutoCommit(false);
             if (r.nextBoolean()) {
                 stat2.execute("update test set id = id where id = " + r.nextInt(100));
             } else {

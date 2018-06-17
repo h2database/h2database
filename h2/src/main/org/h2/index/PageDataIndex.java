@@ -58,7 +58,7 @@ public class PageDataIndex extends PageIndex {
     public PageDataIndex(RegularTable table, int id, IndexColumn[] columns,
             IndexType indexType, boolean create, Session session) {
         initBaseIndex(table, id, table.getName() + "_DATA", columns, indexType);
-        this.multiVersion = database.isMultiVersion();
+        this.multiVersion = database.isMVStore();
 
         // trace = database.getTrace(Trace.PAGE_STORE + "_di");
         // trace.setLevel(TraceSystem.DEBUG);

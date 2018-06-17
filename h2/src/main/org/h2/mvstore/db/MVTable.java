@@ -167,7 +167,7 @@ public class MVTable extends TableBase {
         if (lockMode == Constants.LOCK_MODE_OFF) {
             return false;
         }
-        if (!forceLockEvenInMvcc && database.isMultiVersion()) {
+        if (!forceLockEvenInMvcc && database.isMVStore()) {
             // MVCC: update, delete, and insert use a shared lock.
             // Select doesn't lock except when using FOR UPDATE and
             // the system property h2.selectForUpdateMvcc
@@ -310,7 +310,7 @@ public class MVTable extends TableBase {
             if (lockExclusiveSession == null) {
                 if (lockMode == Constants.LOCK_MODE_READ_COMMITTED) {
                     if (!database.isMultiThreaded() &&
-                            !database.isMultiVersion()) {
+                            !database.isMVStore()) {
                         // READ_COMMITTED: a read lock is acquired,
                         // but released immediately after the operation
                         // is complete.

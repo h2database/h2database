@@ -251,7 +251,6 @@ public abstract class TestBase {
         if (name.startsWith("jdbc:")) {
             if (config.mvStore) {
                 name = addOption(name, "MV_STORE", "true");
-                // name = addOption(name, "MVCC", "true");
             } else {
                 name = addOption(name, "MV_STORE", "false");
             }

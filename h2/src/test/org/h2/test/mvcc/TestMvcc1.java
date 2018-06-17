@@ -36,25 +36,7 @@ public class TestMvcc1 extends TestBase {
     @Override
     public void test() throws SQLException {
         testCases();
-        testSetMode();
         deleteDb("mvcc1");
-    }
-
-    private void testSetMode() throws SQLException {
-        deleteDb("mvcc1");
-        c1 = getConnection("mvcc1;MVCC=FALSE");
-        Statement stat = c1.createStatement();
-        ResultSet rs = stat.executeQuery(
-                "select * from information_schema.settings where name='MVCC'");
-        rs.next();
-        assertEquals("FALSE", rs.getString("VALUE"));
-        assertThrows(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, stat).
-                execute("SET MVCC TRUE");
-        rs = stat.executeQuery("select * from information_schema.settings " +
-                "where name='MVCC'");
-        rs.next();
-        assertEquals("FALSE", rs.getString("VALUE"));
-        c1.close();
     }
 
     private void testCases() throws SQLException {

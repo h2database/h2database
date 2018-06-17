@@ -693,7 +693,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         removeTemporaryLobs(true);
         if (undoLog.size() > 0) {
             // commit the rows when using MVCC
-            if (database.isMultiVersion()) {
+            if (database.isMVStore()) {
                 synchronized (database) {
                     ArrayList<Row> rows = new ArrayList<>(undoLog.size());
                     while (undoLog.size() > 0) {
@@ -916,7 +916,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             if (SysProperties.CHECK) {
                 int lockMode = database.getLockMode();
                 if (lockMode != Constants.LOCK_MODE_OFF &&
-                        !database.isMultiVersion()) {
+                        !database.isMVStore()) {
                     TableType tableType = log.getTable().getTableType();
                     if (!locks.contains(log.getTable())
                             && TableType.TABLE_LINK != tableType
@@ -927,7 +927,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             }
             undoLog.add(log);
         } else {
-            if (database.isMultiVersion()) {
+            if (database.isMVStore()) {
                 // see also UndoLogRecord.commit
                 ArrayList<Index> indexes = table.getIndexes();
                 for (Index index : indexes) {
@@ -943,7 +943,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      * READ_COMMITTED.
      */
     public void unlockReadLocks() {
-        if (database.isMultiVersion()) {
+        if (database.isMVStore()) {
             // MVCC: keep shared locks (insert / update / delete)
             return;
         }

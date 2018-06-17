@@ -360,13 +360,7 @@ public class PageStore implements CacheWriter {
         readVariableHeader();
         log = new PageLog(this);
         log.openForReading(logKey, logFirstTrunkPage, logFirstDataPage);
-        boolean old = database.isMultiVersion();
-        // temporarily disabling multi-version concurrency, because
-        // the multi-version index sometimes compares rows
-        // and the LOB storage is not yet available.
-        database.setMultiVersion(false);
         boolean isEmpty = recover();
-        database.setMultiVersion(old);
         if (!database.isReadOnly()) {
             readMode = true;
             if (!isEmpty || !SysProperties.MODIFY_ON_WRITE || tempObjects != null) {

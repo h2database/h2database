@@ -31,7 +31,6 @@ public class TestConcurrentUpdate extends TestBase {
         config.memory = true;
         config.multiThreaded = true;
 //        config.mvStore = false;
-//        config.mvcc = false;
         System.out.println(config);
         TestBase test = createCaller().init(config);
         for (int i = 0; i < 10; i++) {

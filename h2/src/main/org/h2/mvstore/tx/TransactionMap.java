@@ -109,7 +109,7 @@ public class TransactionMap<K, V> {
 
         // Entries describing removals from the map by this transaction and all transactions,
         // which are committed but not closed yet,
-        // and antries about additions to the map by other uncommitted transactions were counted,
+        // and entries about additions to the map by other uncommitted transactions were counted,
         // but they should not contribute into total count.
         if (2 * undoLogSize > size) {
             // the undo log is larger than half of the map - scan the entries of the map directly

@@ -2568,7 +2568,7 @@ public class MVStore {
         String oldName = getMapName(id);
         if (oldName != null && !oldName.equals(newName)) {
             String idHexStr = Integer.toHexString(id);
-            // we need to cope whith the case of previously unfinished rename
+            // we need to cope with the case of previously unfinished rename
             String existingIdHexStr = meta.get("name." + newName);
             DataUtils.checkArgument(
                     existingIdHexStr == null || existingIdHexStr.equals(idHexStr),

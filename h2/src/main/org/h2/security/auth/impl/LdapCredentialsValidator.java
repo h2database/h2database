@@ -24,7 +24,7 @@ import org.h2.security.auth.ConfigProperties;
  *    <li>bindDnPattern bind dn pattern with %u instead of username
  *    (example: uid=%u,ou=users,dc=example,dc=com)</li>
  *    <li>host ldap server</li>
- *    <li>port of ldap service; optional, by default 389 for unsecure, 636 for secure</li>
+ *    <li>port of ldap service; optional, by default 389 for insecure, 636 for secure</li>
  *    <li>secure, optional by default is true (use SSL)</li>
  * </ul>
  */

@@ -163,7 +163,7 @@ public class DefaultAuthenticator implements Authenticator {
     }
 
     /**
-     * Initializes the authenticator (it is called by AuthententicationManager)
+     * Initializes the authenticator.
      *
      * this method is skipped if skipDefaultInitialization is set Order of
      * initialization is

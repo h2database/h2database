@@ -119,7 +119,7 @@ public class MVTable extends TableBase {
      */
     private final ArrayDeque<Session> waitingSessions = new ArrayDeque<>();
     private final Trace traceLock;
-    private final AtomicInteger changesUnitlAnalyze;
+    private final AtomicInteger changesUntilAnalyze;
     private int nextAnalyze;
     private final boolean containsLargeObject;
     private Column rowIdColumn;
@@ -130,7 +130,7 @@ public class MVTable extends TableBase {
     public MVTable(CreateTableData data, MVTableEngine.Store store) {
         super(data);
         nextAnalyze = database.getSettings().analyzeAuto;
-        changesUnitlAnalyze = nextAnalyze <= 0 ? null : new AtomicInteger(nextAnalyze);
+        changesUntilAnalyze = nextAnalyze <= 0 ? null : new AtomicInteger(nextAnalyze);
         this.store = store;
         this.transactionStore = store.getTransactionStore();
         this.isHidden = data.isHidden;
@@ -714,8 +714,8 @@ public class MVTable extends TableBase {
             Index index = indexes.get(i);
             index.truncate(session);
         }
-        if (changesUnitlAnalyze != null) {
-            changesUnitlAnalyze.set(nextAnalyze);
+        if (changesUntilAnalyze != null) {
+            changesUntilAnalyze.set(nextAnalyze);
         }
     }
 
@@ -745,12 +745,12 @@ public class MVTable extends TableBase {
     }
 
     private void analyzeIfRequired(Session session) {
-        if (changesUnitlAnalyze != null) {
-            if (changesUnitlAnalyze.decrementAndGet() == 0) {
+        if (changesUntilAnalyze != null) {
+            if (changesUntilAnalyze.decrementAndGet() == 0) {
                 if (nextAnalyze <= Integer.MAX_VALUE / 2) {
                     nextAnalyze *= 2;
                 }
-                changesUnitlAnalyze.set(nextAnalyze);
+                changesUntilAnalyze.set(nextAnalyze);
                 session.markTableForAnalyze(this);
             }
         }

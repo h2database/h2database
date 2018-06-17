@@ -49,7 +49,7 @@ public abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue
             logIt(existingValue.value == null ? null : VersionedValue.getInstance(existingValue.value));
             decision = MVMap.Decision.PUT;
         } else if(fetchTransaction(blockingId) == null) {
-            // condition above means transaction has been committed/rplled back and closed by now
+            // condition above means transaction has been committed/rolled back and closed by now
             decision = MVMap.Decision.REPEAT;
         } else {
             // this entry comes from a different transaction, and this

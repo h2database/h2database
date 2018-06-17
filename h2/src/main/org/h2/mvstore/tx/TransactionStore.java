@@ -89,7 +89,7 @@ public class TransactionStore {
     private final AtomicReferenceArray<Transaction> transactions =
                                                         new AtomicReferenceArray<>(MAX_OPEN_TRANSACTIONS + 1);
 
-    private static final String UNDO_LOG_NAME_PEFIX = "undoLog";
+    private static final String UNDO_LOG_NAME_PREFIX = "undoLog";
     private static final char UNDO_LOG_COMMITTED = '-'; // must come before open in lexicographical order
     private static final char UNDO_LOG_OPEN = '.';
 
@@ -101,7 +101,7 @@ public class TransactionStore {
 
 
     public static String getUndoLogName(boolean committed, int transactionId) {
-        return UNDO_LOG_NAME_PEFIX +
+        return UNDO_LOG_NAME_PREFIX +
                 (committed ? UNDO_LOG_COMMITTED : UNDO_LOG_OPEN) +
                 (transactionId > 0 ? String.valueOf(transactionId) : "");
     }
@@ -120,7 +120,7 @@ public class TransactionStore {
      *
      * @param store the store
      * @param dataType the data type for map keys and values
-     * @param timeoutMillis lock aquisition timeout in milliseconds, 0 means no wait
+     * @param timeoutMillis lock acquisition timeout in milliseconds, 0 means no wait
      */
     public TransactionStore(MVStore store, DataType dataType, int timeoutMillis) {
         this.store = store;
@@ -143,10 +143,10 @@ public class TransactionStore {
     public void init() {
         if (!init) {
             for (String mapName : store.getMapNames()) {
-                if (mapName.startsWith(UNDO_LOG_NAME_PEFIX)) {
-                    boolean committed = mapName.charAt(UNDO_LOG_NAME_PEFIX.length()) == UNDO_LOG_COMMITTED;
+                if (mapName.startsWith(UNDO_LOG_NAME_PREFIX)) {
+                    boolean committed = mapName.charAt(UNDO_LOG_NAME_PREFIX.length()) == UNDO_LOG_COMMITTED;
                     if (store.hasData(mapName) || committed) {
-                        int transactionId = Integer.parseInt(mapName.substring(UNDO_LOG_NAME_PEFIX.length() + 1));
+                        int transactionId = Integer.parseInt(mapName.substring(UNDO_LOG_NAME_PREFIX.length() + 1));
                         VersionedBitSet openTxBitSet = openTransactions.get();
                         if (!openTxBitSet.get(transactionId)) {
                             Object[] data = preparedTransactions.get(transactionId);

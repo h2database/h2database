@@ -404,7 +404,7 @@ public class TestTransactionStore extends TestBase {
                 }
             }
             // re-open TransactionStore, because we rolled back
-            // underlying MVStore without rolling back TranactionStore
+            // underlying MVStore without rolling back TransactionStore
             s.close();
             s = MVStore.open(fileName);
             ts = new TransactionStore(s);

@@ -126,7 +126,7 @@ public class TestAuthentication extends TestBase {
 
     protected void allTests() throws Exception {
         testInvalidPassword();
-        testExternalUserWihoutRealm();
+        testExternalUserWithoutRealm();
         testExternalUser();
         testAssignRealNameRole();
         testStaticRole();
@@ -146,7 +146,7 @@ public class TestAuthentication extends TestBase {
         }
     }
 
-    protected void testExternalUserWihoutRealm() throws Exception {
+    protected void testExternalUserWithoutRealm() throws Exception {
         try {
             Connection wrongLoginConnection = DriverManager.getConnection(getDatabaseURL(), getExternalUser(),
                     getExternalUserPassword());
@@ -265,8 +265,8 @@ public class TestAuthentication extends TestBase {
         try {
             try {
                 testExternalUser();
-                throw new Exception("External user shouldnt be allowed");
-            }catch (Exception e) {
+                throw new Exception("External user shouldn't be allowed");
+            } catch (Exception e) {
             }
         } finally {
             configureAuthentication(database);

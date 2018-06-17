@@ -57,7 +57,7 @@ public class StaticUserCredentialsValidator implements CredentialsValidator {
     public void configure(ConfigProperties configProperties) {
         String userNamePatternString=configProperties.getStringValue("userNamePattern",null);
         if (userNamePatternString!=null) {
-            userNamePattern=userNamePattern.compile(userNamePatternString);
+            userNamePattern = Pattern.compile(userNamePatternString);
         }
         password=configProperties.getStringValue("password",password);
         String saltString =configProperties.getStringValue("salt",null);

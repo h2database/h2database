@@ -2989,7 +2989,7 @@ public class Database implements DataHandler {
     public void setAuthenticator(Authenticator authenticator) {
         if (authenticator!=null) {
             authenticator.init(this);
-        };
+        }
         this.authenticator=authenticator;
     }
 }

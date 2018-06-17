@@ -280,8 +280,8 @@ public class MVTable extends TableBase {
     }
 
     private boolean doLock2(Session session, int lockMode, boolean exclusive) {
-        if (exclusive) {
-            if (lockExclusiveSession == null) {
+        if (lockExclusiveSession == null) {
+            if (exclusive) {
                 if (lockSharedSessions.isEmpty()) {
                     traceLock(session, exclusive, TraceLockEvent.TRACE_LOCK_ADDED_FOR, NO_EXTRA_INFO);
                     session.addLock(this);
@@ -305,9 +305,7 @@ public class MVTable extends TableBase {
                     }
                     return true;
                 }
-            }
-        } else {
-            if (lockExclusiveSession == null) {
+            } else {
                 if (lockSharedSessions.putIfAbsent(session, session) == null) {
                     traceLock(session, exclusive, TraceLockEvent.TRACE_LOCK_OK, NO_EXTRA_INFO);
                     session.addLock(this);

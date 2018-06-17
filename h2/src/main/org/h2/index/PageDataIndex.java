@@ -5,16 +5,11 @@
  */
 package org.h2.index;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
-import org.h2.engine.UndoLogRecord;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -40,9 +35,6 @@ public class PageDataIndex extends PageIndex {
     private final RegularTable tableData;
     private long lastKey;
     private long rowCount;
-    private HashSet<Row> delta;
-    private int rowCountDiff;
-    private final HashMap<Integer, Integer> sessionRowCount;
     private int mainIndexColumn = -1;
     private DbException fastDuplicateKeyException;
 
@@ -53,21 +45,12 @@ public class PageDataIndex extends PageIndex {
     private int memoryPerPage;
     private int memoryCount;
 
-    private final boolean multiVersion;
-
     public PageDataIndex(RegularTable table, int id, IndexColumn[] columns,
             IndexType indexType, boolean create, Session session) {
         initBaseIndex(table, id, table.getName() + "_DATA", columns, indexType);
-        this.multiVersion = database.isMVStore();
 
         // trace = database.getTrace(Trace.PAGE_STORE + "_di");
         // trace.setLevel(TraceSystem.DEBUG);
-        if (multiVersion) {
-            sessionRowCount = new HashMap<>();
-            isMultiVersion = true;
-        } else {
-            sessionRowCount = null;
-        }
         tableData = table;
         this.store = database.getPageStore();
         store.addIndex(this);
@@ -190,16 +173,6 @@ public class PageDataIndex extends PageIndex {
             root = newRoot;
         }
         row.setDeleted(false);
-        if (multiVersion) {
-            if (delta == null) {
-                delta = new HashSet<>();
-            }
-            boolean wasDeleted = delta.remove(row);
-            if (!wasDeleted) {
-                delta.add(row);
-            }
-            incrementRowCount(session.getId(), 1);
-        }
         invalidateRowCount();
         rowCount++;
         store.logAddOrRemoveRow(session, tableData.getId(), row, true);
@@ -279,7 +252,7 @@ public class PageDataIndex extends PageIndex {
         long from = first == null ? Long.MIN_VALUE : first.getKey();
         long to = last == null ? Long.MAX_VALUE : last.getKey();
         PageData root = getPage(rootPageId, 0);
-        return root.find(session, from, to, isMultiVersion);
+        return root.find(session, from, to);
 
     }
 
@@ -289,12 +262,11 @@ public class PageDataIndex extends PageIndex {
      * @param session the session
      * @param first the key of the first row
      * @param last the key of the last row
-     * @param multiVersion if mvcc should be used
      * @return the cursor
      */
-    Cursor find(Session session, long first, long last, boolean multiVersion) {
+    Cursor find(Session session, long first, long last) {
         PageData root = getPage(rootPageId, 0);
-        return root.find(session, first, last, multiVersion);
+        return root.find(session, first, last);
     }
 
     @Override
@@ -350,18 +322,6 @@ public class PageDataIndex extends PageIndex {
                 store.incrementChangeCount();
             }
         }
-        if (multiVersion) {
-            // if storage is null, the delete flag is not yet set
-            row.setDeleted(true);
-            if (delta == null) {
-                delta = new HashSet<>();
-            }
-            boolean wasAdded = delta.remove(row);
-            if (!wasAdded) {
-                delta.add(row);
-            }
-            incrementRowCount(session.getId(), -1);
-        }
         store.logAddOrRemoveRow(session, tableData.getId(), row, false);
     }
 
@@ -386,9 +346,6 @@ public class PageDataIndex extends PageIndex {
             // unfortunately, the data is gone on rollback
             session.commit(false);
             database.getLobStorage().removeAllForTable(table.getId());
-        }
-        if (multiVersion) {
-            sessionRowCount.clear();
         }
         tableData.setRowCount(0);
     }
@@ -439,13 +396,6 @@ public class PageDataIndex extends PageIndex {
 
     @Override
     public long getRowCount(Session session) {
-        if (multiVersion) {
-            Integer i = sessionRowCount.get(session.getId());
-            long count = i == null ? 0 : i.intValue();
-            count += rowCount;
-            count -= rowCountDiff;
-            return count;
-        }
         return rowCount;
     }
 
@@ -476,44 +426,9 @@ public class PageDataIndex extends PageIndex {
         if (trace.isDebugEnabled()) {
             trace.debug("{0} close", this);
         }
-        if (delta != null) {
-            delta.clear();
-        }
-        rowCountDiff = 0;
-        if (sessionRowCount != null) {
-            sessionRowCount.clear();
-        }
         // can not close the index because it might get used afterwards,
         // for example after running recovery
         writeRowCount();
-    }
-
-    Iterator<Row> getDelta() {
-        if (delta == null) {
-            return Collections.emptyIterator();
-        }
-        return delta.iterator();
-    }
-
-    private void incrementRowCount(int sessionId, int count) {
-        if (multiVersion) {
-            Integer id = sessionId;
-            Integer c = sessionRowCount.get(id);
-            int current = c == null ? 0 : c.intValue();
-            sessionRowCount.put(id, current + count);
-            rowCountDiff += count;
-        }
-    }
-
-    @Override
-    public void commit(int operation, Row row) {
-        if (multiVersion) {
-            if (delta != null) {
-                delta.remove(row);
-            }
-            incrementRowCount(row.getSessionId(),
-                    operation == UndoLogRecord.DELETE ? 1 : -1);
-        }
     }
 
     /**

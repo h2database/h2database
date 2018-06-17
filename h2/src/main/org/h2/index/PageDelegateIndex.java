@@ -67,17 +67,17 @@ public class PageDelegateIndex extends PageIndex {
         // ifNull is MIN_VALUE as well, because the column is never NULL
         // so avoid returning all rows (returning one row is OK)
         long max = mainIndex.getKey(last, Long.MAX_VALUE, Long.MIN_VALUE);
-        return mainIndex.find(session, min, max, false);
+        return mainIndex.find(session, min, max);
     }
 
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
         Cursor cursor;
         if (first) {
-            cursor = mainIndex.find(session, Long.MIN_VALUE, Long.MAX_VALUE, false);
+            cursor = mainIndex.find(session, Long.MIN_VALUE, Long.MAX_VALUE);
         } else  {
             long x = mainIndex.getLastKey();
-            cursor = mainIndex.find(session, x, x, false);
+            cursor = mainIndex.find(session, x, x);
         }
         cursor.next();
         return cursor;

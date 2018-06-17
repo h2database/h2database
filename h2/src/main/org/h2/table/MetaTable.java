@@ -42,7 +42,6 @@ import org.h2.expression.ValueExpression;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.MetaIndex;
-import org.h2.index.MultiVersionIndex;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.DbException;
 import org.h2.mvstore.FileStore;
@@ -935,13 +934,7 @@ public class MetaTable extends Table {
                         }
                     }
                     IndexColumn[] cols = index.getIndexColumns();
-                    String indexClass;
-                    if (index instanceof MultiVersionIndex) {
-                        indexClass = ((MultiVersionIndex) index).
-                                getBaseIndex().getClass().getName();
-                    } else {
-                        indexClass = index.getClass().getName();
-                    }
+                    String indexClass = index.getClass().getName();
                     for (int k = 0; k < cols.length; k++) {
                         IndexColumn idxCol = cols[k];
                         Column column = idxCol.column;

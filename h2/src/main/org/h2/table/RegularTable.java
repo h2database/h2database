@@ -26,7 +26,6 @@ import org.h2.index.Cursor;
 import org.h2.index.HashIndex;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
-import org.h2.index.MultiVersionIndex;
 import org.h2.index.NonUniqueHashIndex;
 import org.h2.index.PageBtreeIndex;
 import org.h2.index.PageDataIndex;
@@ -141,19 +140,7 @@ public class RegularTable extends TableBase {
                 trace.error(e2, "could not undo operation");
                 throw e2;
             }
-            DbException de = DbException.convert(e);
-            if (de.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
-                for (Index index : indexes) {
-                    if (index.getIndexType().isUnique() && index instanceof MultiVersionIndex) {
-                        MultiVersionIndex mv = (MultiVersionIndex) index;
-                        if (mv.isUncommittedFromOtherSession(session, row)) {
-                            throw DbException.get(
-                                    ErrorCode.CONCURRENT_UPDATE_1, index.getName());
-                        }
-                    }
-                }
-            }
-            throw de;
+            throw DbException.convert(e);
         }
         analyzeIfRequired(session);
     }
@@ -258,9 +245,6 @@ public class RegularTable extends TableBase {
             } else {
                 index = new TreeIndex(this, indexId, indexName, cols, indexType);
             }
-        }
-        if (database.isMVStore()) {
-            index = new MultiVersionIndex(index, this);
         }
         if (index.needRebuild() && rowCount > 0) {
             try {

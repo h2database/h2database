@@ -176,6 +176,7 @@ public class DefaultAuthenticator implements Authenticator {
      *            where authenticator is initialized
      * @throws AuthConfigException
      */
+    @Override
     public void init(Database database) throws AuthConfigException {
         if (skipDefaultInitialization) {
             return;

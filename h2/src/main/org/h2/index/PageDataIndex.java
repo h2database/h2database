@@ -252,7 +252,7 @@ public class PageDataIndex extends PageIndex {
         long from = first == null ? Long.MIN_VALUE : first.getKey();
         long to = last == null ? Long.MAX_VALUE : last.getKey();
         PageData root = getPage(rootPageId, 0);
-        return root.find(session, from, to, isMultiVersion);
+        return root.find(session, from, to);
 
     }
 
@@ -262,12 +262,11 @@ public class PageDataIndex extends PageIndex {
      * @param session the session
      * @param first the key of the first row
      * @param last the key of the last row
-     * @param multiVersion if mvcc should be used
      * @return the cursor
      */
-    Cursor find(Session session, long first, long last, boolean multiVersion) {
+    Cursor find(Session session, long first, long last) {
         PageData root = getPage(rootPageId, 0);
-        return root.find(session, first, last, multiVersion);
+        return root.find(session, first, last);
     }
 
     @Override

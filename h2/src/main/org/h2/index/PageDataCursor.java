@@ -5,7 +5,6 @@
  */
 package org.h2.index;
 
-import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -19,16 +18,11 @@ class PageDataCursor implements Cursor {
     private int idx;
     private final long maxKey;
     private Row row;
-    private final boolean multiVersion;
-    private final Session session;
 
-    PageDataCursor(Session session, PageDataLeaf current, int idx, long maxKey,
-            boolean multiVersion) {
+    PageDataCursor(PageDataLeaf current, int idx, long maxKey) {
         this.current = current;
         this.idx = idx;
         this.maxKey = maxKey;
-        this.multiVersion = multiVersion;
-        this.session = session;
     }
 
     @Override
@@ -43,18 +37,7 @@ class PageDataCursor implements Cursor {
 
     @Override
     public boolean next() {
-        if (!multiVersion) {
-            nextRow();
-            return checkMax();
-        }
-        while (true) {
-            nextRow();
-            if (row != null && row.getSessionId() != 0 &&
-                    row.getSessionId() != session.getId()) {
-                continue;
-            }
-            break;
-        }
+        nextRow();
         return checkMax();
     }
 

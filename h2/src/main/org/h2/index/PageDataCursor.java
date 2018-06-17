@@ -5,7 +5,6 @@
  */
 package org.h2.index;
 
-import java.util.Iterator;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.Row;
@@ -22,7 +21,6 @@ class PageDataCursor implements Cursor {
     private Row row;
     private final boolean multiVersion;
     private final Session session;
-    private Iterator<Row> delta;
 
     PageDataCursor(Session session, PageDataLeaf current, int idx, long maxKey,
             boolean multiVersion) {
@@ -31,9 +29,6 @@ class PageDataCursor implements Cursor {
         this.maxKey = maxKey;
         this.multiVersion = multiVersion;
         this.session = session;
-        if (multiVersion) {
-            delta = current.index.getDelta();
-        }
     }
 
     @Override
@@ -53,22 +48,10 @@ class PageDataCursor implements Cursor {
             return checkMax();
         }
         while (true) {
-            if (delta != null) {
-                if (!delta.hasNext()) {
-                    delta = null;
-                    row = null;
-                    continue;
-                }
-                row = delta.next();
-                if (!row.isDeleted() || row.getSessionId() == session.getId()) {
-                    continue;
-                }
-            } else {
-                nextRow();
-                if (row != null && row.getSessionId() != 0 &&
-                        row.getSessionId() != session.getId()) {
-                    continue;
-                }
+            nextRow();
+            if (row != null && row.getSessionId() != 0 &&
+                    row.getSessionId() != session.getId()) {
+                continue;
             }
             break;
         }

@@ -9,6 +9,7 @@ package org.h2.security.auth;
  * Exception thrown in case of errors during authentication
  */
 public class AuthenticationException extends Exception {
+    private static final long serialVersionUID = 1L;
 
     public AuthenticationException() {
         super();

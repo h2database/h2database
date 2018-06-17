@@ -76,7 +76,7 @@ public class ConnectionInfo implements Cloneable {
         setUserName(removeProperty("USER", ""));
         name = url.substring(Constants.START_URL.length());
         parseName();
-        convertPasswords();        
+        convertPasswords();
         String recoverTest = removeProperty("RECOVER_TEST", null);
         if (recoverTest != null) {
             FilePathRec.register();
@@ -279,7 +279,7 @@ public class ConnectionInfo implements Cloneable {
             prop.put("AUTHZPWD",password instanceof char[] ? new String((char[])password) : password);
         }
     }
-    
+
     private char[] removePassword() {
         Object p = prop.remove("PASSWORD");
         preservePasswordForAuthentication(p);
@@ -664,6 +664,9 @@ public class ConnectionInfo implements Cloneable {
         return url;
     }
 
+    /**
+     * Clear authentication properties.
+     */
     public void cleanAuthenticationInfo() {
         removeProperty("AUTHREALM", false);
         removeProperty("AUTHZPWD", false);

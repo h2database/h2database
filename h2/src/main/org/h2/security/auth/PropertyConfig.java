@@ -23,11 +23,12 @@ public class PropertyConfig {
 
     public PropertyConfig() {
     }
-    
+
     public PropertyConfig(String name, String value) {
-       this.name=name;
-       this.value=value;
+        this.name = name;
+        this.value = value;
     }
+
     public String getName() {
         return name;
     }

@@ -27,8 +27,8 @@ public class AuthenticationInfo {
     public AuthenticationInfo(ConnectionInfo connectionInfo) {
         this.connectionInfo = connectionInfo;
         this.realm = connectionInfo.getProperty("AUTHREALM", null);
-        if (this.realm!=null) {
-            this.realm=StringUtils.toUpperEnglish(this.realm);
+        if (this.realm != null) {
+            this.realm = StringUtils.toUpperEnglish(this.realm);
         }
         this.password = connectionInfo.getProperty("AUTHZPWD", null);
     }
@@ -50,15 +50,16 @@ public class AuthenticationInfo {
     }
 
     public String getFullyQualifiedName() {
-        if (realm==null) {
-           return connectionInfo.getUserName();
+        if (realm == null) {
+            return connectionInfo.getUserName();
         } else {
-           return connectionInfo.getUserName()+"@"+realm;
+            return connectionInfo.getUserName() + "@" + realm;
         }
     }
 
     /**
      * get nested identity
+     *
      * @return
      */
     public Object getNestedIdentity() {
@@ -66,8 +67,11 @@ public class AuthenticationInfo {
     }
 
     /**
-     * Method used by authenticators to hold informations about authenticated user
-     * @param nestedIdentity = nested identity object
+     * Method used by authenticators to hold informations about authenticated
+     * user
+     *
+     * @param nestedIdentity
+     *            = nested identity object
      */
     public void setNestedIdentity(Object nestedIdentity) {
         this.nestedIdentity = nestedIdentity;

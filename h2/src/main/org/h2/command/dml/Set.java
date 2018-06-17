@@ -548,9 +548,10 @@ public class Set extends Prepared {
                 }
                 addOrUpdateSetting(name,expression.getValue(session).getString(),0);
             } catch (Exception e) {
-                //Errors during start are ignored to allow to open the database
+                // Errors during start are ignored to allow to open the database
                 if (database.isStarting()) {
-                    database.getTrace(Trace.DATABASE).error(e, "{0}: failed to set authenticator during database start ",expression.toString());
+                    database.getTrace(Trace.DATABASE).error(e,
+                            "{0}: failed to set authenticator during database start ", expression.toString());
                 } else {
                     throw DbException.convert(e);
                 }

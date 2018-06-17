@@ -321,7 +321,7 @@ public abstract class Command implements CommandInterface {
         if (start != 0 && TimeUnit.NANOSECONDS.toMillis(now - start) > session.getLockTimeout()) {
             throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, e);
         }
-        // Only in PageStore mode we need to sleep here to avoid buzy wait loop
+        // Only in PageStore mode we need to sleep here to avoid busy wait loop
         Database database = session.getDatabase();
         if (database.getMvStore() == null) {
             int sleep = 1 + MathUtils.randomInt(10);

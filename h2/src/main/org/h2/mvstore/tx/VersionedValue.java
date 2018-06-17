@@ -35,7 +35,7 @@ public class VersionedValue {
         return new Uncommitted(operationId, value, committedValue);
     }
 
-    private VersionedValue(Object value) {
+    VersionedValue(Object value) {
         this.value = value;
     }
 
@@ -107,7 +107,7 @@ public class VersionedValue {
             if(obj == null) return 0;
             VersionedValue v = (VersionedValue) obj;
             int res = Constants.MEMORY_OBJECT + 8 + 2 * Constants.MEMORY_POINTER +
-                      getValMemory(v.value);
+                    getValMemory(v.value);
             if (v.getOperationId() != 0) {
                 res += getValMemory(v.getCommittedValue());
             }

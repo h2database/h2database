@@ -174,6 +174,7 @@
 90141=#Serializer cannot be changed because there is a data table: {0}
 90142=#Step size must not be zero
 90143=#Row {1} not found in primary index {0}
+90144=#Authenticator not enabled on database {0}
 HY000=Erro geral: {0}
 HY004=Tipo de dados desconhecido: {0}
 HYC00=Recurso não suportado: {0}

@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 
+import org.h2.message.TraceSystem;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
 
@@ -297,6 +298,11 @@ public class TestBigResult extends TestBase {
     }
 
     private void testLOB() throws SQLException {
+        if (config.traceLevelFile == TraceSystem.DEBUG) {
+            // Trace system on this level can throw OOME with such large
+            // arguments as used in this test.
+            return;
+        }
         deleteDb("bigResult");
         Connection conn = getConnection("bigResult");
         Statement stat = conn.createStatement();

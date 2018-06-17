@@ -39,7 +39,7 @@ public class TestMvccMultiThreaded2 extends TestBase {
         test.test();
     }
 
-    private int getTestDuration() {
+    int getTestDuration() {
         // to save some testing time
         return config.big ? TEST_TIME_SECONDS : TEST_TIME_SECONDS / 10;
     }

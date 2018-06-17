@@ -31,7 +31,7 @@ public class H2AuthConfig {
     public void setAllowUserRegistration(boolean allowUserRegistration) {
         this.allowUserRegistration = allowUserRegistration;
     }
-    
+
     @XmlAttribute
     boolean createMissingRoles=true;
 

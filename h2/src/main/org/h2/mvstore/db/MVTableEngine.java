@@ -149,7 +149,7 @@ public class MVTableEngine implements TableEngine {
          * @param builder the builder
          * @param encrypted whether the store is encrypted
          */
-        private void open(Database db, MVStore.Builder builder, boolean encrypted) {
+        void open(Database db, MVStore.Builder builder, boolean encrypted) {
             this.encrypted = encrypted;
             try {
                 this.store = builder.open();

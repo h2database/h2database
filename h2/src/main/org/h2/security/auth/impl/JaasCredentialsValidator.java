@@ -19,8 +19,8 @@ import org.h2.security.auth.AuthenticationInfo;
 import org.h2.security.auth.ConfigProperties;
 
 /**
- * Validate credentials by using standard Java Authentication and Authorization Service 
- * 
+ * Validate credentials by using standard Java Authentication and Authorization Service
+ *
  * <p>
  * Configuration parameters:
  * </p>
@@ -49,17 +49,17 @@ public class JaasCredentialsValidator implements CredentialsValidator {
 
     @Override
     public void configure(ConfigProperties configProperties) {
-    	appName=configProperties.getStringValue("appName",appName);
+        appName=configProperties.getStringValue("appName",appName);
     }
 
     class AuthenticationInfoCallbackHandler implements CallbackHandler {
-        
+
         AuthenticationInfo authenticationInfo;
-        
+
         AuthenticationInfoCallbackHandler(AuthenticationInfo authenticationInfo) {
             this.authenticationInfo = authenticationInfo;
         }
-        
+
         @Override
         public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
             for (int i = 0; i < callbacks.length; i++) {
@@ -70,12 +70,13 @@ public class JaasCredentialsValidator implements CredentialsValidator {
                 }
             }
         }
-        
+
     }
 
     @Override
     public boolean validateCredentials(AuthenticationInfo authenticationInfo) throws Exception {
-        LoginContext loginContext = new LoginContext(appName,new AuthenticationInfoCallbackHandler(authenticationInfo));
+        LoginContext loginContext = new LoginContext(appName,
+                new AuthenticationInfoCallbackHandler(authenticationInfo));
         loginContext.login();
         authenticationInfo.setNestedIdentity(loginContext.getSubject());
         return true;

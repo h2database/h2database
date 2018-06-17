@@ -2983,13 +2983,13 @@ public class Database implements DataHandler {
 
     /**
      * Set current database authenticator
-     * 
+     *
      * @param authenticator = authenticator to set, null to revert to the Internal authenticator
      */
     public void setAuthenticator(Authenticator authenticator) {
         if (authenticator!=null) {
             authenticator.init(this);
-        };
+        }
         this.authenticator=authenticator;
     }
 }

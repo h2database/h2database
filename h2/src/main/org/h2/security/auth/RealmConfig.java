@@ -13,6 +13,9 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 
+/**
+ * Configuration for authentication realm.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 public class RealmConfig {
 

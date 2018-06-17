@@ -35,7 +35,7 @@ public class VersionedValue {
         return new Uncommitted(operationId, value, committedValue);
     }
 
-    private VersionedValue(Object value) {
+    VersionedValue(Object value) {
         this.value = value;
     }
 

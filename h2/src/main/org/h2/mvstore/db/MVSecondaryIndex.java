@@ -253,6 +253,13 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     }
 
     @Override
+    public void update(Session session, Row oldRow, Row newRow) {
+        if (compareRows(oldRow, newRow ) != 0) {
+            super.update(session, oldRow, newRow);
+        }
+    }
+
+    @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         return find(session, first, false, last);
     }

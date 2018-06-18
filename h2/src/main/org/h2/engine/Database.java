@@ -784,12 +784,12 @@ public class Database implements DataHandler {
         data.session = systemSession;
         meta = mainSchema.createTable(data);
         IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { columnId });
+        starting = true;
         metaIdIndex = meta.addIndex(systemSession, "SYS_ID",
                 0, pkCols, IndexType.createPrimaryKey(
                 false, false), true, null);
         systemSession.commit(true);
         objectIds.set(0);
-        starting = true;
         Cursor cursor = metaIdIndex.find(systemSession, null, null);
         ArrayList<MetaRecord> records = new ArrayList<>((int) metaIdIndex.getRowCountApproximation());
         while (cursor.next()) {
@@ -1727,10 +1727,18 @@ public class Database implements DataHandler {
         lockMeta(session);
         synchronized (this) {
             int id = obj.getId();
-            removeMeta(session, id);
-            addMeta(session, obj);
-            // for temporary objects
-            if (id > 0) {
+            if(id > 0) {
+                if(!starting && !obj.isTemporary()) {
+                    Row newRow = meta.getTemplateRow();
+                    MetaRecord.populateRowFromDBObject(obj, newRow);
+                    Row oldRow = metaIdIndex.getRow(session, id);
+                    if (oldRow != null) {
+                        meta.updateRow(session, oldRow, newRow);
+                    }
+//                    removeMeta(session, id);
+//                    addMeta(session, obj);
+                }
+                // for temporary objects
                 objectIds.set(id);
             }
         }

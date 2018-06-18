@@ -1715,7 +1715,7 @@ public class Database implements DataHandler {
      */
     public void updateMeta(Session session, DbObject obj) {
         if (isMVStore()) {
-            synchronizes (this) {
+            synchronized (this) {
                 int id = obj.getId();
                 if (id > 0) {
                     if (!starting && !obj.isTemporary()) {

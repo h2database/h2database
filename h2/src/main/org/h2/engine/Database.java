@@ -908,8 +908,7 @@ public class Database implements DataHandler {
         int id = obj.getId();
         if (id > 0 && !starting && !obj.isTemporary()) {
             Row r = meta.getTemplateRow();
-            MetaRecord rec = new MetaRecord(obj);
-            rec.setRecord(r);
+            MetaRecord.populateRowFromDBObject(obj, r);
             objectIds.set(id);
             if (SysProperties.CHECK) {
                 verifyMetaLocked(session);

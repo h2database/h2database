@@ -943,19 +943,14 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      * READ_COMMITTED.
      */
     public void unlockReadLocks() {
-        if (database.isMVStore()) {
-            // MVCC: keep shared locks (insert / update / delete)
-            return;
-        }
-        // locks is modified in the loop
-        for (int i = 0; i < locks.size(); i++) {
-            Table t = locks.get(i);
-            if (!t.isLockedExclusively()) {
-                synchronized (database) {
+        if (!database.isMVStore() && database.isMultiThreaded() &&
+                database.getLockMode() == Constants.LOCK_MODE_READ_COMMITTED) {
+            for (Iterator<Table> iter = locks.iterator(); iter.hasNext(); ) {
+                Table t = iter.next();
+                if (!t.isLockedExclusively()) {
                     t.unlock(this);
-                    locks.remove(i);
+                    iter.remove();
                 }
-                i--;
             }
         }
     }

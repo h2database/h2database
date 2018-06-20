@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
+import org.h2.api.ErrorCode;
 import org.h2.util.StringUtils;
 
 /**
@@ -367,7 +368,11 @@ public class TraceObject {
             }
         } catch(Throwable ignore) {
             if (e == null) {
-                e = new SQLException("", "HY000", ex);
+                try {
+                    e = new SQLException("GeneralError", "HY000", ErrorCode.GENERAL_ERROR_1, ex);
+                } catch (OutOfMemoryError ignored) {
+                    return DbException.SQL_OOME;
+                }
             }
             e.addSuppressed(ignore);
         }

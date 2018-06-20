@@ -740,6 +740,27 @@ public class MVTable extends TableBase {
     }
 
     @Override
+    public void updateRow(Session session, Row oldRow, Row newRow) {
+        newRow.setKey(oldRow.getKey());
+        lastModificationId = database.getNextModificationDataId();
+        Transaction t = session.getTransaction();
+        long savepoint = t.setSavepoint();
+        try {
+            for (Index index : indexes) {
+                index.update(session, oldRow, newRow);
+            }
+        } catch (Throwable e) {
+            try {
+                t.rollbackToSavepoint(savepoint);
+            } catch (Throwable nested) {
+                e.addSuppressed(nested);
+            }
+            throw DbException.convert(e);
+        }
+        analyzeIfRequired(session);
+    }
+
+    @Override
     public void lockRows(Session session, Iterable<Row> rowsForUpdate) {
         primaryIndex.lockRows(session, rowsForUpdate);
     }

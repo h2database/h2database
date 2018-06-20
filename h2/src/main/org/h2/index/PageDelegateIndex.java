@@ -120,6 +120,11 @@ public class PageDelegateIndex extends PageIndex {
     }
 
     @Override
+    public void update(Session session, Row oldRow, Row newRow) {
+        // nothing to do
+    }
+
+    @Override
     public void remove(Session session) {
         mainIndex.setMainIndexColumn(-1);
         session.getDatabase().getPageStore().removeMeta(this, session);

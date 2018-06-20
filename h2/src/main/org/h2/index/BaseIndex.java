@@ -481,4 +481,10 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         // Lookup batching is not supported.
         return null;
     }
+
+    @Override
+    public void update(Session session, Row oldRow, Row newRow) {
+        remove(session, oldRow);
+        add(session, newRow);
+    }
 }

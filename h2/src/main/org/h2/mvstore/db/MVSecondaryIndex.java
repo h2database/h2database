@@ -253,6 +253,27 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     }
 
     @Override
+    public void update(Session session, Row oldRow, Row newRow) {
+        if (!rowsAreEqual(oldRow, newRow)) {
+            super.update(session, oldRow, newRow);
+        }
+    }
+
+    private boolean rowsAreEqual(SearchRow rowOne, SearchRow rowTwo) {
+        if (rowOne == rowTwo) {
+            return true;
+        }
+        for (int index : columnIds) {
+            Value v1 = rowOne.getValue(index);
+            Value v2 = rowTwo.getValue(index);
+            if (v1 == null ? v2 != null : !v1.equals(v2)) {
+                return false;
+            }
+        }
+        return rowOne.getKey() == rowTwo.getKey();
+    }
+
+    @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         return find(session, first, false, last);
     }

@@ -162,6 +162,53 @@ public class MVPrimaryIndex extends BaseIndex {
         }
     }
 
+    @Override
+    public void update(Session session, Row oldRow, Row newRow) {
+        if (mainIndexColumn != SearchRow.ROWID_INDEX) {
+            long c = newRow.getValue(mainIndexColumn).getLong();
+            newRow.setKey(c);
+        }
+        long key = oldRow.getKey();
+        assert mainIndexColumn != SearchRow.ROWID_INDEX || key != 0;
+        assert key == newRow.getKey() : key + " != " + newRow.getKey();
+        if (mvTable.getContainsLargeObject()) {
+            for (int i = 0, len = oldRow.getColumnCount(); i < len; i++) {
+                Value oldValue = oldRow.getValue(i);
+                Value newValue = newRow.getValue(i);
+                if(oldValue != newValue) {
+                    if (oldValue.isLinkedToTable()) {
+                        session.removeAtCommit(oldValue);
+                    }
+                    Value v2 = newValue.copy(database, getId());
+                    if (v2.isLinkedToTable()) {
+                        session.removeAtCommitStop(v2);
+                    }
+                    if (newValue != v2) {
+                        newRow.setValue(i, v2);
+                    }
+                }
+            }
+        }
+
+        TransactionMap<Value,Value> map = getMap(session);
+        try {
+            Value existing = map.put(ValueLong.get(key), ValueArray.get(newRow.getValueList()));
+            if (existing == null) {
+                throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1,
+                        getSQL() + ": " + key);
+            }
+        } catch (IllegalStateException e) {
+            throw mvTable.convertException(e);
+        }
+
+
+        // because it's possible to directly update the key using the _rowid_
+        // syntax
+        if (newRow.getKey() > lastKey.get()) {
+            lastKey.set(newRow.getKey());
+        }
+    }
+
     public void lockRows(Session session, Iterable<Row> rowsForUpdate) {
         TransactionMap<Value, Value> map = getMap(session);
         for (Row row : rowsForUpdate) {
@@ -216,7 +263,7 @@ public class MVPrimaryIndex extends BaseIndex {
         Value v = map.get(ValueLong.get(key));
         if (v == null) {
             throw DbException.get(ErrorCode.ROW_NOT_FOUND_IN_PRIMARY_INDEX,
-                    getSQL() + ": " + key);
+                    getSQL(), String.valueOf(key));
         }
         ValueArray array = (ValueArray) v;
         Row row = session.createRow(array.getList(), 0);

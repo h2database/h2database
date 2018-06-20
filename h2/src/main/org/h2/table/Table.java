@@ -211,6 +211,20 @@ public abstract class Table extends SchemaObjectBase {
     public abstract void addRow(Session session, Row row);
 
     /**
+     * Update a row to the table and all indexes.
+     *
+     * @param session the session
+     * @param oldRow the row to update
+     * @param newRow the row with updated values (_rowid_ suppose to be the same)
+     * @throws DbException if a constraint was violated
+     */
+    public void updateRow(Session session, Row oldRow, Row newRow) {
+        newRow.setKey(oldRow.getKey());
+        removeRow(session, oldRow);
+        addRow(session, newRow);
+    }
+
+    /**
      * Commit an operation (when using multi-version concurrency).
      *
      * @param operation the operation

@@ -764,7 +764,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestOpenClose());
         addTest(new TestOptimizations());
         addTest(new TestOptimizerHints());
-        addTest(new TestOutOfMemory());
         addTest(new TestReadOnly());
         addTest(new TestRecursiveQueries());
         addTest(new TestGeneralCommonTableQueries());
@@ -876,6 +875,9 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestQueryCache());
         addTest(new TestUrlJavaObjectSerializer());
         addTest(new TestWeb());
+
+        // other unsafe
+        addTest(new TestOutOfMemory());
 
         runAddedTests(1);
 

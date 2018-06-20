@@ -13,11 +13,12 @@ import java.sql.Statement;
 import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests for table synonyms.
  */
-public class TestSynonymForTable extends TestBase {
+public class TestSynonymForTable extends TestDb {
 
     /**
      * Run just this test.

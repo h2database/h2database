@@ -26,6 +26,7 @@ import java.util.Collections;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -35,7 +36,7 @@ import org.h2.util.Utils;
 /**
  * Tests for the CallableStatement class.
  */
-public class TestCallableStatement extends TestBase {
+public class TestCallableStatement extends TestDb {
 
     /**
      * Run just this test.

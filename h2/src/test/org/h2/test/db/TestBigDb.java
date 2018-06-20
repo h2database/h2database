@@ -13,12 +13,13 @@ import java.sql.Statement;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.Utils;
 
 /**
  * Test for big databases.
  */
-public class TestBigDb extends TestBase {
+public class TestBigDb extends TestDb {
 
     /**
      * Run just this test.

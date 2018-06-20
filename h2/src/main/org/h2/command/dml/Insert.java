@@ -14,6 +14,7 @@ import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.GeneratedKeys;
+import org.h2.engine.Mode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
@@ -151,6 +152,7 @@ public class Insert extends Prepared implements ResultTarget {
         generatedKeys.initialize(table);
         int listSize = list.size();
         if (listSize > 0) {
+            Mode mode = session.getDatabase().getMode();
             int columnLen = columns.length;
             for (int x = 0; x < listSize; x++) {
                 session.startStatementWithinTransaction();
@@ -166,7 +168,7 @@ public class Insert extends Prepared implements ResultTarget {
                         // e can be null (DEFAULT)
                         e = e.optimize(session);
                         try {
-                            Value v = c.convert(e.getValue(session), session.getDatabase().getMode());
+                            Value v = c.convert(e.getValue(session), mode);
                             newRow.setValue(index, v);
                             if (e instanceof SequenceValue) {
                                 generatedKeys.add(c);
@@ -239,11 +241,12 @@ public class Insert extends Prepared implements ResultTarget {
     private Row addRowImpl(Value[] values) {
         Row newRow = table.getTemplateRow();
         setCurrentRowNumber(++rowNumber);
+        Mode mode = session.getDatabase().getMode();
         for (int j = 0, len = columns.length; j < len; j++) {
             Column c = columns[j];
             int index = c.getColumnId();
             try {
-                Value v = c.convert(values[j], session.getDatabase().getMode());
+                Value v = c.convert(values[j], mode);
                 newRow.setValue(index, v);
             } catch (DbException ex) {
                 throw setRow(ex, rowNumber, getSQL(values));

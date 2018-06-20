@@ -42,7 +42,6 @@ import org.h2.expression.ValueExpression;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.MetaIndex;
-import org.h2.index.MultiVersionIndex;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.DbException;
 import org.h2.mvstore.FileStore;
@@ -935,13 +934,7 @@ public class MetaTable extends Table {
                         }
                     }
                     IndexColumn[] cols = index.getIndexColumns();
-                    String indexClass;
-                    if (index instanceof MultiVersionIndex) {
-                        indexClass = ((MultiVersionIndex) index).
-                                getBaseIndex().getClass().getName();
-                    } else {
-                        indexClass = index.getClass().getName();
-                    }
+                    String indexClass = index.getClass().getName();
                     for (int k = 0; k < cols.length; k++) {
                         IndexColumn idxCol = cols[k];
                         Column column = idxCol.column;
@@ -1043,7 +1036,6 @@ public class MetaTable extends Table {
                     "FALSE" : "TRUE");
             add(rows, "MODE", database.getMode().getName());
             add(rows, "MULTI_THREADED", database.isMultiThreaded() ? "1" : "0");
-            add(rows, "MVCC", database.isMultiVersion() ? "TRUE" : "FALSE");
             add(rows, "QUERY_TIMEOUT", Integer.toString(session.getQueryTimeout()));
             add(rows, "RETENTION_TIME", Integer.toString(database.getRetentionTime()));
             add(rows, "LOG", Integer.toString(database.getLogMode()));
@@ -1080,8 +1072,8 @@ public class MetaTable extends Table {
                             Long.toString(fs.getWriteCount()));
                     add(rows, "info.FILE_READ",
                             Long.toString(fs.getReadCount()));
-                    int updateFailureRatio = (int)(10000 * mvStore.getStore().getUpdateFailureRatio());
-                    add(rows, "info.UPDATE_FAILURE_PERCENT", "" + updateFailureRatio / 100 + "." + updateFailureRatio % 100 + "%");
+                    add(rows, "info.UPDATE_FAILURE_PERCENT",
+                            String.format(Locale.ENGLISH, "%.2f%%", 100 * mvStore.getStore().getUpdateFailureRatio()));
                     long size;
                     try {
                         size = fs.getFile().size();

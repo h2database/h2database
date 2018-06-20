@@ -12,11 +12,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Test ALTER statements.
  */
-public class TestAlter extends TestBase {
+public class TestAlter extends TestDb {
 
     private Connection conn;
     private Statement stat;

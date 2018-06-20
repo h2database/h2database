@@ -24,6 +24,7 @@ import org.h2.compress.Compressor;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.CompressTool;
 import org.h2.util.IOUtils;
 import org.h2.util.Task;
@@ -31,7 +32,7 @@ import org.h2.util.Task;
 /**
  * Data compression tests.
  */
-public class TestCompress extends TestBase {
+public class TestCompress extends TestDb {
 
     private boolean testPerformance;
     private final byte[] buff = new byte[10];

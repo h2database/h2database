@@ -13,13 +13,14 @@ import java.sql.Statement;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests for overloaded user defined functions.
  *
  * @author Gary Tong
  */
-public class TestFunctionOverload extends TestBase {
+public class TestFunctionOverload extends TestDb {
 
     private static final String ME = TestFunctionOverload.class.getName();
     private Connection conn;

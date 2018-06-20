@@ -17,13 +17,14 @@ import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.test.utils.SelfDestructor;
 
 /**
  * Standalone recovery test. A new process is started and then killed while it
  * executes random statements.
  */
-public class TestKillRestart extends TestBase {
+public class TestKillRestart extends TestDb {
 
     @Override
     public void test() throws Exception {

@@ -9,11 +9,12 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Test DROP statement
  */
-public class TestDrop extends TestBase {
+public class TestDrop extends TestDb {
 
     private Connection conn;
     private Statement stat;

@@ -13,12 +13,13 @@ import java.sql.SQLException;
 
 import org.h2.api.DatabaseEventListener;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.test.utils.SelfDestructor;
 
 /**
  * Tests the flag db_close_on_exit. A new process is started.
  */
-public class TestExit extends TestBase {
+public class TestExit extends TestDb {
 
     private static Connection conn;
 

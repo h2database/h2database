@@ -153,9 +153,9 @@ public abstract class RightOwner extends DbObjectBase {
             grantedRoles = null;
         }
     }
-    
+
     /**
-     * Remove all the temporary rights granted on roles 
+     * Remove all the temporary rights granted on roles
      */
     public void revokeTemporaryRightsOnRoles() {
         if (grantedRoles == null) {
@@ -171,8 +171,8 @@ public abstract class RightOwner extends DbObjectBase {
             revokeRole(currentRoleToRemove);
         }
     }
-    
-    
+
+
 
     /**
      * Get the 'grant schema' right of this object.

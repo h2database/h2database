@@ -315,9 +315,9 @@ public class PageDataLeaf extends PageData {
     }
 
     @Override
-    Cursor find(Session session, long minKey, long maxKey, boolean multiVersion) {
+    Cursor find(Session session, long minKey, long maxKey) {
         int x = find(minKey);
-        return new PageDataCursor(session, this, x, maxKey, multiVersion);
+        return new PageDataCursor(this, x, maxKey);
     }
 
     /**

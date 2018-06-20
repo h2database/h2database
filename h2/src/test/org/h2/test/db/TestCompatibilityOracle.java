@@ -16,12 +16,13 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Locale;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.SimpleResultSet;
 
 /**
  * Test Oracle compatibility mode.
  */
-public class TestCompatibilityOracle extends TestBase {
+public class TestCompatibilityOracle extends TestDb {
 
     /**
      * Run just this test.

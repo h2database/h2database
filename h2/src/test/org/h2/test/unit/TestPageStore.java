@@ -26,13 +26,14 @@ import org.h2.result.RowImpl;
 import org.h2.store.Page;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 
 /**
  * Test the page store.
  */
-public class TestPageStore extends TestBase {
+public class TestPageStore extends TestDb {
 
     /**
      * The events log.
@@ -153,7 +154,7 @@ public class TestPageStore extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("set max_log_size 1");
         stat.execute("create table test(x varchar)");
-        for (int i = 0; i < 1000; ++i) {
+        for (int i = 0; i < 300; ++i) {
             stat.execute("insert into test values (space(2000))");
         }
         stat.execute("checkpoint");
@@ -167,7 +168,7 @@ public class TestPageStore extends TestBase {
     private void testRecoverLobInDatabase() throws SQLException {
         deleteDb("pageStoreRecoverLobInDatabase");
         String url = getURL("pageStoreRecoverLobInDatabase;" +
-                "MVCC=TRUE;CACHE_SIZE=1", true);
+                "CACHE_SIZE=1", true);
         Connection conn;
         Statement stat;
         conn = getConnection(url, getUser(), getPassword());
@@ -182,7 +183,7 @@ public class TestPageStore extends TestBase {
             Connection conn2 = getConnection(url, getUser(), getPassword());
             list.add(conn2);
             Statement stat2 = conn2.createStatement();
-            conn2.setAutoCommit(false);
+            // conn2.setAutoCommit(false);
             if (r.nextBoolean()) {
                 stat2.execute("update test set id = id where id = " + r.nextInt(100));
             } else {

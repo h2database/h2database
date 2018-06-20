@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
+import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
 import org.h2.index.IndexCondition;
@@ -276,8 +277,9 @@ public class Comparison extends Condition {
             l = l.convertToEnum(enumerators);
             r = r.convertToEnum(enumerators);
         } else {
-            l = l.convertTo(dataType);
-            r = r.convertTo(dataType);
+            Mode mode = database.getMode();
+            l = l.convertTo(dataType, -1, mode);
+            r = r.convertTo(dataType, -1, mode);
         }
         boolean result = compareNotNull(database, l, r, compareType);
         return ValueBoolean.get(result);

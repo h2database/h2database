@@ -55,6 +55,11 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
     }
 
     @Override
+    public Row getRow(Session session, long key) {
+        return mainIndex.getRow(session, key);
+    }
+
+    @Override
     public boolean canGetFirstOrLast() {
         return true;
     }
@@ -106,6 +111,11 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
 
     @Override
     public void remove(Session session, Row row) {
+        // nothing to do
+    }
+
+    @Override
+    public void update(Session session, Row oldRow, Row newRow) {
         // nothing to do
     }
 

@@ -16,6 +16,7 @@ import java.util.Random;
 
 import org.h2.message.Trace;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.Cache;
 import org.h2.util.CacheLRU;
 import org.h2.util.CacheObject;
@@ -27,7 +28,7 @@ import org.h2.value.Value;
 /**
  * Tests the cache.
  */
-public class TestCache extends TestBase implements CacheWriter {
+public class TestCache extends TestDb implements CacheWriter {
 
     private String out;
 
@@ -88,7 +89,7 @@ public class TestCache extends TestBase implements CacheWriter {
 
     private void testTQ(String cacheType, boolean scanResistant) throws Exception {
         Connection conn = getConnection(
-                "cache;CACHE_TYPE=" + cacheType + ";CACHE_SIZE=4096");
+                "cache;CACHE_TYPE=" + cacheType + ";CACHE_SIZE=5120");
         Statement stat = conn.createStatement();
         PreparedStatement prep;
         for (int k = 0; k < 10; k++) {

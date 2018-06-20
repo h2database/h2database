@@ -39,6 +39,7 @@ import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.test.scripts.TestScript;
 import org.h2.test.synth.sql.RandomGen;
 import org.h2.tools.Backup;
@@ -51,7 +52,7 @@ import org.h2.util.MathUtils;
  * A test that calls random methods with random parameters from JDBC objects.
  * This is sometimes called 'Fuzz Testing'.
  */
-public class TestCrashAPI extends TestBase implements Runnable {
+public class TestCrashAPI extends TestDb implements Runnable {
 
     private static final boolean RECOVER_ALL = false;
 
@@ -86,7 +87,6 @@ public class TestCrashAPI extends TestBase implements Runnable {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public void run() {
         while (--maxWait > 0) {
             try {
@@ -103,11 +103,11 @@ public class TestCrashAPI extends TestBase implements Runnable {
         if (maxWait == 0 && running) {
             objects.clear();
             if (running) {
-                println("stopping (force)...");
+                println("stopping (trying to interrupt)...");
                 for (StackTraceElement e : mainThread.getStackTrace()) {
                     System.out.println(e.toString());
                 }
-                mainThread.stop(new SQLException("stop"));
+                mainThread.interrupt();
             }
         }
     }
@@ -154,7 +154,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
             recoverAll();
             return;
         }
-        if (config.mvcc || config.networked) {
+        if (config.mvStore || config.networked) {
             return;
         }
         int len = getSize(2, 6);
@@ -531,7 +531,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
     @Override
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);
-        if (config.mvcc || config.networked) {
+        if (config.mvStore || config.networked) {
             return this;
         }
         startServerIfRequired();

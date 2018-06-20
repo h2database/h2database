@@ -33,20 +33,21 @@ import org.h2.util.StringUtils;
  * Default authenticator implementation.
  * <p>
  * When client connectionInfo contains property AUTHREALM={realName} credentials
- *  (typically user id and password) are validated by
- *  by {@link org.h2.api.CredentialsValidator} configured for that realm.
+ * (typically user id and password) are validated by by
+ * {@link org.h2.api.CredentialsValidator} configured for that realm.
  * </p>
- * <p> 
+ * <p>
  * When client connectionInfo doesn't contains AUTHREALM property credentials
- *  are validated internally on the database
- * </p> 
+ * are validated internally on the database
+ * </p>
  * <p>
  * Rights assignment can be managed through {@link org.h2.api.UserToRolesMapper}
  * </p>
  * <p>
- * Default configuration has a realm H2 that validate credentials through JAAS api (appName=h2).
- * To customize configuration set h2.authConfigFile system property to refer a valid h2auth.xml config file
- * </p> 
+ * Default configuration has a realm H2 that validate credentials through JAAS
+ * api (appName=h2). To customize configuration set h2.authConfigFile system
+ * property to refer a valid h2auth.xml config file
+ * </p>
  */
 public class DefaultAuthenticator implements Authenticator {
 
@@ -69,8 +70,8 @@ public class DefaultAuthenticator implements Authenticator {
     private static DefaultAuthenticator instance;
 
     protected static final DefaultAuthenticator getInstance() {
-        if (instance==null) {
-            instance= new DefaultAuthenticator();
+        if (instance == null) {
+            instance = new DefaultAuthenticator();
         }
         return instance;
     }
@@ -84,9 +85,9 @@ public class DefaultAuthenticator implements Authenticator {
     /**
      * Create authenticator and optionally skip the default configuration. This
      * option is useful when the authenticator is configured at code level
-     * 
+     *
      * @param skipDefaultInitialization
-     *             if true default initialization is skipped
+     *            if true default initialization is skipped
      */
     public DefaultAuthenticator(boolean skipDefaultInitialization) {
         this.skipDefaultInitialization = skipDefaultInitialization;
@@ -94,7 +95,7 @@ public class DefaultAuthenticator implements Authenticator {
 
     /**
      * If set save users externals defined during the authentication.
-     * 
+     *
      * @return
      */
     public boolean isPersistUsers() {
@@ -107,7 +108,7 @@ public class DefaultAuthenticator implements Authenticator {
 
     /**
      * If set create external users in the database if not present.
-     * 
+     *
      * @return
      */
     public boolean isAllowUserRegistration() {
@@ -119,9 +120,9 @@ public class DefaultAuthenticator implements Authenticator {
     }
 
     /**
-     * When set create roles not found in the database. If not set roles not found
-     * in the database are silently skipped
-     * 
+     * When set create roles not found in the database. If not set roles not
+     * found in the database are silently skipped
+     *
      * @return
      */
     public boolean isCreateMissingRoles() {
@@ -134,9 +135,11 @@ public class DefaultAuthenticator implements Authenticator {
 
     /**
      * Add an authentication realm. Realms are case insensitive
-     * 
-     * @param name realm name
-     * @param credentialsValidator credentials validator for realm
+     *
+     * @param name
+     *            realm name
+     * @param credentialsValidator
+     *            credentials validator for realm
      */
     public void addRealm(String name, CredentialsValidator credentialsValidator) {
         realms.put(StringUtils.toUpperEnglish(name), credentialsValidator);
@@ -144,7 +147,7 @@ public class DefaultAuthenticator implements Authenticator {
 
     /**
      * UserToRoleMappers assign roles to authenticated users
-     * 
+     *
      * @return current UserToRoleMappers active
      */
     public List<UserToRolesMapper> getUserToRolesMappers() {
@@ -160,17 +163,20 @@ public class DefaultAuthenticator implements Authenticator {
     }
 
     /**
-     * Initializes the authenticator (it is called by AuthententicationManager)
-     * 
-     * this method is skipped if skipDefaultInitialization is set
-     * Order of initialization is 
-     *    <ol>
-     *    <li>Check h2.authConfigFile system property.</li>
-     *    <li>Use the default configuration hard coded</li>
-     *    </ol>
-     * @param database where authenticator is initialized
+     * Initializes the authenticator.
+     *
+     * this method is skipped if skipDefaultInitialization is set Order of
+     * initialization is
+     * <ol>
+     * <li>Check h2.authConfigFile system property.</li>
+     * <li>Use the default configuration hard coded</li>
+     * </ol>
+     *
+     * @param database
+     *            where authenticator is initialized
      * @throws AuthConfigException
      */
+    @Override
     public void init(Database database) throws AuthConfigException {
         if (skipDefaultInitialization) {
             return;
@@ -182,13 +188,14 @@ public class DefaultAuthenticator implements Authenticator {
             if (initialized) {
                 return;
             }
-            Trace trace=database.getTrace(Trace.DATABASE);
+            Trace trace = database.getTrace(Trace.DATABASE);
             URL h2AuthenticatorConfigurationUrl = null;
             try {
                 String configFile = SysProperties.AUTH_CONFIG_FILE;
                 if (configFile != null) {
                     if (trace.isDebugEnabled()) {
-                       trace.debug("DefaultAuthenticator.config: configuration read from system property h2auth.configurationfile={0}", configFile);
+                        trace.debug("DefaultAuthenticator.config: configuration read from system property"
+                                + " h2auth.configurationfile={0}", configFile);
                     }
                     h2AuthenticatorConfigurationUrl = new URL(configFile);
                 }
@@ -201,11 +208,12 @@ public class DefaultAuthenticator implements Authenticator {
                     configureFromUrl(h2AuthenticatorConfigurationUrl);
                 }
             } catch (Exception e) {
-                trace.error(e, "DefaultAuthenticator.config: an error occurred during configuration from {0} ", h2AuthenticatorConfigurationUrl);
-                throw new AuthConfigException("Failed to configure authentication from " + h2AuthenticatorConfigurationUrl,
-                        e);
+                trace.error(e, "DefaultAuthenticator.config: an error occurred during configuration from {0} ",
+                        h2AuthenticatorConfigurationUrl);
+                throw new AuthConfigException(
+                        "Failed to configure authentication from " + h2AuthenticatorConfigurationUrl, e);
             }
-            initialized=true;
+            initialized = true;
         }
     }
 
@@ -223,8 +231,9 @@ public class DefaultAuthenticator implements Authenticator {
 
     /**
      * Configure the authenticator from a configuration file
-     * 
-     * @param configUrl URL of configuration file
+     *
+     * @param configUrl
+     *            URL of configuration file
      * @throws Exception
      */
     public void configureFromUrl(URL configUrl) throws Exception {

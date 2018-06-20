@@ -9,25 +9,27 @@ import org.h2.engine.Database;
 import org.h2.engine.User;
 
 /**
- * Low level interface to implement full authentication process
+ * Low level interface to implement full authentication process.
  */
 public interface Authenticator {
 
     /**
-     * perform user authentication
-     * 
+     * Perform user authentication.
+     *
      * @param authenticationInfo
      * @param database
-     * @return valid database user or null if user doesn't exists in the database
+     * @return valid database user or null if user doesn't exists in the
+     *         database
      * @throws AuthenticationException
      */
     User authenticate(AuthenticationInfo authenticationInfo, Database database) throws AuthenticationException;
-    
 
     /**
-     * Initialize the authenticator. This method is invoked by databases when the authenticator is set
-     * when the authenticator is set.
-     * @param database = target database
+     * Initialize the authenticator. This method is invoked by databases when
+     * the authenticator is set when the authenticator is set.
+     *
+     * @param database
+     *            target database
      * @throws AuthConfigException
      */
     void init(Database database) throws AuthConfigException;

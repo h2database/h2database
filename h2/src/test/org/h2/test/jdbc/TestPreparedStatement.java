@@ -33,13 +33,14 @@ import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.LocalDateTimeUtils;
 import org.h2.util.Task;
 
 /**
  * Tests for the PreparedStatement implementation.
  */
-public class TestPreparedStatement extends TestBase {
+public class TestPreparedStatement extends TestDb {
 
     private static final int LOB_SIZE = 4000, LOB_SIZE_BIG = 512 * 1024;
 

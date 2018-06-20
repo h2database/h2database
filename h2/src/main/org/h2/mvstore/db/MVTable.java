@@ -119,7 +119,7 @@ public class MVTable extends TableBase {
      */
     private final ArrayDeque<Session> waitingSessions = new ArrayDeque<>();
     private final Trace traceLock;
-    private final AtomicInteger changesUnitlAnalyze;
+    private final AtomicInteger changesUntilAnalyze;
     private int nextAnalyze;
     private final boolean containsLargeObject;
     private Column rowIdColumn;
@@ -130,7 +130,7 @@ public class MVTable extends TableBase {
     public MVTable(CreateTableData data, MVTableEngine.Store store) {
         super(data);
         nextAnalyze = database.getSettings().analyzeAuto;
-        changesUnitlAnalyze = nextAnalyze <= 0 ? null : new AtomicInteger(nextAnalyze);
+        changesUntilAnalyze = nextAnalyze <= 0 ? null : new AtomicInteger(nextAnalyze);
         this.store = store;
         this.transactionStore = store.getTransactionStore();
         this.isHidden = data.isHidden;
@@ -167,7 +167,7 @@ public class MVTable extends TableBase {
         if (lockMode == Constants.LOCK_MODE_OFF) {
             return false;
         }
-        if (!forceLockEvenInMvcc && database.isMultiVersion()) {
+        if (!forceLockEvenInMvcc) {
             // MVCC: update, delete, and insert use a shared lock.
             // Select doesn't lock except when using FOR UPDATE and
             // the system property h2.selectForUpdateMvcc
@@ -280,8 +280,8 @@ public class MVTable extends TableBase {
     }
 
     private boolean doLock2(Session session, int lockMode, boolean exclusive) {
-        if (exclusive) {
-            if (lockExclusiveSession == null) {
+        if (lockExclusiveSession == null) {
+            if (exclusive) {
                 if (lockSharedSessions.isEmpty()) {
                     traceLock(session, exclusive, TraceLockEvent.TRACE_LOCK_ADDED_FOR, NO_EXTRA_INFO);
                     session.addLock(this);
@@ -305,21 +305,7 @@ public class MVTable extends TableBase {
                     }
                     return true;
                 }
-            }
-        } else {
-            if (lockExclusiveSession == null) {
-                if (lockMode == Constants.LOCK_MODE_READ_COMMITTED) {
-                    if (!database.isMultiThreaded() &&
-                            !database.isMultiVersion()) {
-                        // READ_COMMITTED: a read lock is acquired,
-                        // but released immediately after the operation
-                        // is complete.
-                        // When allowing only one thread, no lock is
-                        // required.
-                        // Row level locks work like read committed.
-                        return true;
-                    }
-                }
+            } else {
                 if (lockSharedSessions.putIfAbsent(session, session) == null) {
                     traceLock(session, exclusive, TraceLockEvent.TRACE_LOCK_OK, NO_EXTRA_INFO);
                     session.addLock(this);
@@ -441,8 +427,9 @@ public class MVTable extends TableBase {
     @Override
     public void unlock(Session s) {
         if (database != null) {
-            traceLock(s, lockExclusiveSession == s, TraceLockEvent.TRACE_LOCK_UNLOCK, NO_EXTRA_INFO);
-            if (lockExclusiveSession == s) {
+            boolean wasLocked = lockExclusiveSession == s;
+            traceLock(s, wasLocked, TraceLockEvent.TRACE_LOCK_UNLOCK, NO_EXTRA_INFO);
+            if (wasLocked) {
                 lockSharedSessions.remove(s);
                 lockExclusiveSession = null;
                 if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
@@ -450,18 +437,18 @@ public class MVTable extends TableBase {
                         EXCLUSIVE_LOCKS.get().remove(getName());
                     }
                 }
-            }
-            synchronized (getLockSyncObject()) {
-                if (!lockSharedSessions.isEmpty()) {
-                    lockSharedSessions.remove(s);
-                    if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
-                        if (SHARED_LOCKS.get() != null) {
-                            SHARED_LOCKS.get().remove(getName());
-                        }
+            } else {
+                wasLocked = lockSharedSessions.remove(s) != null;
+                if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
+                    if (SHARED_LOCKS.get() != null) {
+                        SHARED_LOCKS.get().remove(getName());
                     }
                 }
-                if (!waitingSessions.isEmpty()) {
-                    getLockSyncObject().notifyAll();
+            }
+            if (wasLocked && !waitingSessions.isEmpty()) {
+                Object lockSyncObject = getLockSyncObject();
+                synchronized (lockSyncObject) {
+                    lockSyncObject.notifyAll();
                 }
             }
         }
@@ -728,8 +715,8 @@ public class MVTable extends TableBase {
             Index index = indexes.get(i);
             index.truncate(session);
         }
-        if (changesUnitlAnalyze != null) {
-            changesUnitlAnalyze.set(nextAnalyze);
+        if (changesUntilAnalyze != null) {
+            changesUntilAnalyze.set(nextAnalyze);
         }
     }
 
@@ -754,17 +741,38 @@ public class MVTable extends TableBase {
     }
 
     @Override
+    public void updateRow(Session session, Row oldRow, Row newRow) {
+        newRow.setKey(oldRow.getKey());
+        lastModificationId = database.getNextModificationDataId();
+        Transaction t = session.getTransaction();
+        long savepoint = t.setSavepoint();
+        try {
+            for (Index index : indexes) {
+                index.update(session, oldRow, newRow);
+            }
+        } catch (Throwable e) {
+            try {
+                t.rollbackToSavepoint(savepoint);
+            } catch (Throwable nested) {
+                e.addSuppressed(nested);
+            }
+            throw DbException.convert(e);
+        }
+        analyzeIfRequired(session);
+    }
+
+    @Override
     public void lockRows(Session session, Iterable<Row> rowsForUpdate) {
         primaryIndex.lockRows(session, rowsForUpdate);
     }
 
     private void analyzeIfRequired(Session session) {
-        if (changesUnitlAnalyze != null) {
-            if (changesUnitlAnalyze.decrementAndGet() == 0) {
+        if (changesUntilAnalyze != null) {
+            if (changesUntilAnalyze.decrementAndGet() == 0) {
                 if (nextAnalyze <= Integer.MAX_VALUE / 2) {
                     nextAnalyze *= 2;
                 }
-                changesUnitlAnalyze.set(nextAnalyze);
+                changesUntilAnalyze.set(nextAnalyze);
                 session.markTableForAnalyze(this);
             }
         }

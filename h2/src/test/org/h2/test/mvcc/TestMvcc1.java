@@ -14,11 +14,12 @@ import java.util.Random;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Basic MVCC (multi version concurrency) test cases.
  */
-public class TestMvcc1 extends TestBase {
+public class TestMvcc1 extends TestDb {
 
     private Connection c1, c2;
     private Statement s1, s2;
@@ -30,36 +31,17 @@ public class TestMvcc1 extends TestBase {
      */
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
-        test.config.mvcc = true;
         test.test();
     }
 
     @Override
     public void test() throws SQLException {
         testCases();
-        testSetMode();
         deleteDb("mvcc1");
-    }
-
-    private void testSetMode() throws SQLException {
-        deleteDb("mvcc1");
-        c1 = getConnection("mvcc1;MVCC=FALSE");
-        Statement stat = c1.createStatement();
-        ResultSet rs = stat.executeQuery(
-                "select * from information_schema.settings where name='MVCC'");
-        rs.next();
-        assertEquals("FALSE", rs.getString("VALUE"));
-        assertThrows(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, stat).
-                execute("SET MVCC TRUE");
-        rs = stat.executeQuery("select * from information_schema.settings " +
-                "where name='MVCC'");
-        rs.next();
-        assertEquals("FALSE", rs.getString("VALUE"));
-        c1.close();
     }
 
     private void testCases() throws SQLException {
-        if (!config.mvcc) {
+        if (!config.mvStore) {
             return;
         }
         ResultSet rs;
@@ -77,9 +59,9 @@ public class TestMvcc1 extends TestBase {
         //     selects new data (select * from test where id > ?) and deletes
 
         deleteDb("mvcc1");
-        c1 = getConnection("mvcc1;MVCC=TRUE;LOCK_TIMEOUT=10");
+        c1 = getConnection("mvcc1;LOCK_TIMEOUT=10");
         s1 = c1.createStatement();
-        c2 = getConnection("mvcc1;MVCC=TRUE;LOCK_TIMEOUT=10");
+        c2 = getConnection("mvcc1;LOCK_TIMEOUT=10");
         s2 = c2.createStatement();
         c1.setAutoCommit(false);
         c2.setAutoCommit(false);

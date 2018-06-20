@@ -1835,7 +1835,7 @@ Is also possible to temporary assign roles to to externally authenticated users.
 </p>
 <p>Master user cannot be externally authenticated</p>
 <p>
-To enable external authentication on a database execute statement <code>SET AUTHENTICATOR TRUE</code>. This setting in persisted on the database. 
+To enable external authentication on a database execute statement <code>SET AUTHENTICATOR TRUE</code>. This setting in persisted on the database.
 </p>
 <p>
 To connect on a database by using external credentials client must append <code>AUTHREALM=H2</code> to the database URL. <code>H2</code>
@@ -1850,9 +1850,9 @@ JAAS login configuration file</a> content:
 </p>
 <pre>
 h2 {
- com.sun.security.auth.module.LdapLoginModule REQUIRED \
-   userProvider="ldap://127.0.0.1:10389" authIdentity="uid={USERNAME},ou=people,dc=example,dc=com" \
-   debug=true useSSL=false ;
+    com.sun.security.auth.module.LdapLoginModule REQUIRED \
+    userProvider="ldap://127.0.0.1:10389" authIdentity="uid={USERNAME},ou=people,dc=example,dc=com" \
+    debug=true useSSL=false ;
 };
 </pre>
 <p>
@@ -1863,14 +1863,14 @@ JVM argument <code>-Dh2auth.configurationFile={urlOfH2Auth.xml}</code>. Here an 
 &lt;h2Auth allowUserRegistration="false" createMissingRoles="true"&gt;
 
     &lt;!-- realm: DUMMY authenticate users named DUMMY[0-9] with a static password --&gt;
-    &lt;realm name="DUMMY" 
+    &lt;realm name="DUMMY"
     validatorClass="org.h2.security.auth.impl.FixedPasswordCredentialsValidator"&gt;
-    	&lt;property name="userNamePattern" value="DUMMY[0-9]" /&gt;
+        &lt;property name="userNamePattern" value="DUMMY[0-9]" /&gt;
         &lt;property name="password" value="mock" /&gt;
     &lt;/realm&gt;
-    
+
     &lt;!-- realm LDAPEXAMPLE:perform credentials validation on LDAP --&gt;
-    &lt;realm name="LDAPEXAMPLE" 
+    &lt;realm name="LDAPEXAMPLE"
     validatorClass="org.h2.security.auth.impl.LdapCredentialsValidator"&gt;
         &lt;property name="bindDnPattern" value="uid=%u,ou=people,dc=example,dc=com" /&gt;
         &lt;property name="host" value="127.0.0.1" /&gt;
@@ -1879,7 +1879,7 @@ JVM argument <code>-Dh2auth.configurationFile={urlOfH2Auth.xml}</code>. Here an 
     &lt;/realm&gt;
 
     &lt;!-- realm JAAS: perform credentials validation by using JAAS api --&gt;
-    &lt;realm name="JAAS" 
+    &lt;realm name="JAAS"
     validatorClass="org.h2.security.auth.impl.JaasCredentialsValidator"&gt;
         &lt;property name="appName" value="H2" /&gt;
     &lt;/realm&gt;

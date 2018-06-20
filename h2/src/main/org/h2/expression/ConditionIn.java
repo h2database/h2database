@@ -53,7 +53,7 @@ public class ConditionIn extends Condition {
             if (r == ValueNull.INSTANCE) {
                 hasNull = true;
             } else {
-                r = r.convertTo(l.getType());
+                r = r.convertTo(l.getType(), -1, database.getMode());
                 result = Comparison.compareNotNull(database, l, r, Comparison.EQUAL);
                 if (result) {
                     break;

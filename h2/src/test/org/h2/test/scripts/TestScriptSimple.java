@@ -12,13 +12,14 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.ScriptReader;
 
 /**
  * This test runs a simple SQL script file and compares the output with the
  * expected output.
  */
-public class TestScriptSimple extends TestBase {
+public class TestScriptSimple extends TestDb {
 
     private Connection conn;
 

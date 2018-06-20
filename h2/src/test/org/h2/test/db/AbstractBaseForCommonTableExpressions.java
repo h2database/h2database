@@ -14,12 +14,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
-import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Base class for common table expression tests
  */
-public abstract class AbstractBaseForCommonTableExpressions extends TestBase {
+public abstract class AbstractBaseForCommonTableExpressions extends TestDb {
 
     /**
      * Test a query.

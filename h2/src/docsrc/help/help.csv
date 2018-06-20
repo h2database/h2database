@@ -1583,9 +1583,9 @@ SET MODE HSQLDB
 "Commands (Other)","SET MULTI_THREADED","
 SET MULTI_THREADED { 0 | 1 }
 ","
-Enabled (1) or disabled (0) multi-threading inside the database engine. By
-default, this setting is disabled. Currently, enabling this is experimental
-only.
+Enabled (1) or disabled (0) multi-threading inside the database engine.
+MULTI_THREADED is enabled by default with default MVStore storage engine.
+MULTI_THREADED is disabled by default when using PageStore storage engine, enabling this with PageStore is experimental only.
 
 This is a global setting, which means it is not possible to open multiple databases with different modes at the same time in the same virtual machine.
 This setting is not persistent, however the value is kept until the virtual machine exits or it is changed.

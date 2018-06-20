@@ -342,12 +342,6 @@ public class DbSettings extends SettingsBase {
     public final boolean compressData = get("COMPRESS", false);
 
     /**
-     * Database setting <code>MULTI_THREADED</code>
-     * (default: false).<br />
-     */
-    public final boolean multiThreaded = get("MULTI_THREADED", false);
-
-    /**
      * Database setting <code>STANDARD_DROP_TABLE_RESTRICT</code> (default:
      * false).<br />
      * <code>true</code> if DROP TABLE RESTRICT should fail if there's any

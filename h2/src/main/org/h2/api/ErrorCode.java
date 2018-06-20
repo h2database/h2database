@@ -1861,7 +1861,7 @@ public class ErrorCode {
      * connections at the same time, or trying to insert two rows with the same
      * key from two connections. Example:
      * <pre>
-     * jdbc:h2:~/test;MVCC=TRUE
+     * jdbc:h2:~/test
      * Session 1:
      * CREATE TABLE TEST(ID INT);
      * INSERT INTO TEST VALUES(1);
@@ -1887,8 +1887,7 @@ public class ErrorCode {
     /**
      * The error with code <code>90133</code> is thrown when
      * trying to change a specific database property while the database is
-     * already open. The MVCC property needs to be set in the first connection
-     * (in the connection opening the database) and can not be changed later on.
+     * already open.
      */
     public static final int CANNOT_CHANGE_SETTING_WHEN_OPEN_1 = 90133;
 
@@ -1994,15 +1993,15 @@ public class ErrorCode {
      * The error with code <code>90144</code> is thrown when
      * user trying to login into a database with AUTHREALM set and
      * the target database doesn't have an authenticator defined
-     * <p>Authenticator experimental feature can be enabled by 
-     * </p> 
+     * <p>Authenticator experimental feature can be enabled by
+     * </p>
      * <pre>
      * SET AUTHENTICATOR TRUE
      * </pre>
      */
     public static final int AUTHENTICATOR_NOT_AVAILABLE = 90144;
-    
-    
+
+
     // next are 90122, 90145
 
     private ErrorCode() {

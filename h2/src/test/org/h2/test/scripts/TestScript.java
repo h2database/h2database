@@ -26,15 +26,17 @@ import java.util.Random;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.StringUtils;
 
 /**
  * This test runs a SQL script file and compares the output with the expected
  * output.
  */
-public class TestScript extends TestBase {
+public class TestScript extends TestDb {
 
     private static final String BASE_DIR = "org/h2/test/scripts/";
 
@@ -194,7 +196,7 @@ public class TestScript extends TestBase {
         stat = conn.createStatement();
         out = new PrintStream(new FileOutputStream(outFile));
         errors = new StringBuilder();
-        testFile(BASE_DIR + scriptFileName);
+        testFile(BASE_DIR + scriptFileName, !scriptFileName.equals("functions/system/set.sql"));
         conn.close();
         out.close();
         if (errors.length() > 0) {
@@ -251,7 +253,7 @@ public class TestScript extends TestBase {
         }
     }
 
-    private void testFile(String inFile) throws Exception {
+    private void testFile(String inFile, boolean allowReconnect) throws Exception {
         InputStream is = getClass().getClassLoader().getResourceAsStream(inFile);
         if (is == null) {
             throw new IOException("could not find " + inFile);
@@ -273,7 +275,7 @@ public class TestScript extends TestBase {
                 buff.append(sql, 0, sql.length() - 1);
                 sql = buff.toString();
                 buff = new StringBuilder();
-                process(sql);
+                process(sql, allowReconnect);
             } else {
                 write(sql);
                 buff.append(sql);
@@ -296,9 +298,10 @@ public class TestScript extends TestBase {
         return false;
     }
 
-    private void process(String sql) throws Exception {
-        if (reconnectOften) {
-            if (!containsTempTables()) {
+    private void process(String sql, boolean allowReconnect) throws Exception {
+        if (allowReconnect && reconnectOften) {
+            if (!containsTempTables() && ((JdbcConnection) conn).isRegularMode()
+                    && conn.getSchema().equals("PUBLIC")) {
                 boolean autocommit = conn.getAutoCommit();
                 if (autocommit && random.nextInt(10) < 1) {
                     // reconnect 10% of the time

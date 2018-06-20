@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.value.DataType;
 
 /**
@@ -17,7 +18,7 @@ import org.h2.value.DataType;
  *
  * @author Erwan Bocher Atelier SIG, IRSTV FR CNRS 2488
  */
-public class TestUsingIndex extends TestBase {
+public class TestUsingIndex extends TestDb {
 
     private Connection conn;
     private Statement stat;
@@ -111,10 +112,7 @@ public class TestUsingIndex extends TestBase {
     }
 
     private void testSpatialIndex() throws SQLException {
-        if (!config.mvStore && config.mvcc) {
-            return;
-        }
-        if (config.memory && config.mvcc) {
+        if (config.memory && config.mvStore) {
             return;
         }
         if (DataType.GEOMETRY_CLASS == null) {
@@ -147,10 +145,7 @@ public class TestUsingIndex extends TestBase {
     }
 
     private void testBadSpatialSyntax() throws SQLException {
-        if (!config.mvStore && config.mvcc) {
-            return;
-        }
-        if (config.memory && config.mvcc) {
+        if (config.memory && config.mvStore) {
             return;
         }
         if (DataType.GEOMETRY_CLASS == null) {

@@ -12,12 +12,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.Task;
 
 /**
  * Test for the exclusive mode.
  */
-public class TestExclusive extends TestBase {
+public class TestExclusive extends TestDb {
 
     /**
      * Run just this test.

@@ -151,20 +151,15 @@ public abstract class Command implements CommandInterface {
 
     @Override
     public void stop() {
-        session.endStatement();
         session.setCurrentCommand(null, false);
         if (!isTransactional()) {
             session.commit(true);
         } else if (session.getAutoCommit()) {
             session.commit(false);
-        } else if (session.getDatabase().isMultiThreaded()) {
-            Database db = session.getDatabase();
-            if (db != null) {
-                if (db.getLockMode() == Constants.LOCK_MODE_READ_COMMITTED) {
-                    session.unlockReadLocks();
-                }
-            }
+        } else {
+            session.unlockReadLocks();
         }
+        session.endStatement();
         if (trace.isInfoEnabled() && startTimeNanos > 0) {
             long timeMillis = (System.nanoTime() - startTimeNanos) / 1000 / 1000;
             if (timeMillis > Constants.SLOW_QUERY_LIMIT_MS) {
@@ -260,6 +255,7 @@ public abstract class Command implements CommandInterface {
             Session.Savepoint rollback = session.setSavepoint();
             session.startStatementWithinTransaction();
             session.setCurrentCommand(this, generatedKeysRequest);
+            DbException ex = null;
             try {
                 while (true) {
                     database.checkPowerOff();
@@ -289,17 +285,28 @@ public abstract class Command implements CommandInterface {
                     database.shutdownImmediately();
                     throw e;
                 }
-                database.checkPowerOff();
-                if (s.getErrorCode() == ErrorCode.DEADLOCK_1) {
-                    session.rollback();
-                } else {
-                    session.rollbackTo(rollback, false);
+                try {
+                    database.checkPowerOff();
+                    if (s.getErrorCode() == ErrorCode.DEADLOCK_1) {
+                        session.rollback();
+                    } else {
+                        session.rollbackTo(rollback, false);
+                    }
+                } catch (Throwable nested) {
+                    e.addSuppressed(nested);
                 }
+                ex = e;
                 throw e;
             } finally {
                 try {
                     if (callStop) {
                         stop();
+                    }
+                } catch (Throwable nested) {
+                    if (ex == null) {
+                        throw nested;
+                    } else {
+                        ex.addSuppressed(nested);
                     }
                 } finally {
                     if (writing) {
@@ -321,7 +328,7 @@ public abstract class Command implements CommandInterface {
         if (start != 0 && TimeUnit.NANOSECONDS.toMillis(now - start) > session.getLockTimeout()) {
             throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, e);
         }
-        // Only in PageStore mode we need to sleep here to avoid buzy wait loop
+        // Only in PageStore mode we need to sleep here to avoid busy wait loop
         Database database = session.getDatabase();
         if (database.getMvStore() == null) {
             int sleep = 1 + MathUtils.randomInt(10);

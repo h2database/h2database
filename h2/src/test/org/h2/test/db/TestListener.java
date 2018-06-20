@@ -14,11 +14,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.h2.api.DatabaseEventListener;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests the DatabaseEventListener.
  */
-public class TestListener extends TestBase implements DatabaseEventListener {
+public class TestListener extends TestDb implements DatabaseEventListener {
 
     private long last;
     private int lastState = -1;

@@ -13,11 +13,12 @@ import java.util.Random;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests the Connection.nativeSQL method.
  */
-public class TestNativeSQL extends TestBase {
+public class TestNativeSQL extends TestDb {
 
     private static final String[] PAIRS = {
             "CREATE TABLE TEST(ID INT PRIMARY KEY)",

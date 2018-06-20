@@ -36,7 +36,6 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     protected int[] columnIds;
     protected Table table;
     protected IndexType indexType;
-    protected boolean isMultiVersion;
 
     /**
      * Initialize the base index.
@@ -350,11 +349,6 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         long k1 = rowData.getKey();
         long k2 = compare.getKey();
         if (k1 == k2) {
-            if (isMultiVersion) {
-                int v1 = rowData.getVersion();
-                int v2 = compare.getVersion();
-                return Integer.compare(v2, v1);
-            }
             return 0;
         }
         return k1 > k2 ? 1 : -1;
@@ -457,10 +451,6 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         // nothing to do
     }
 
-    void setMultiVersion(boolean multiVersion) {
-        this.isMultiVersion = multiVersion;
-    }
-
     @Override
     public Row getRow(Session session, long key) {
         throw DbException.getUnsupportedException(toString());
@@ -490,5 +480,11 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     public IndexLookupBatch createLookupBatch(TableFilter[] filters, int filter) {
         // Lookup batching is not supported.
         return null;
+    }
+
+    @Override
+    public void update(Session session, Row oldRow, Row newRow) {
+        remove(session, oldRow);
+        add(session, newRow);
     }
 }

@@ -23,13 +23,14 @@ import java.util.concurrent.TimeUnit;
 import org.h2.fulltext.FullText;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.IOUtils;
 import org.h2.util.Task;
 
 /**
  * Fulltext search tests.
  */
-public class TestFullText extends TestBase {
+public class TestFullText extends TestDb {
 
     /**
      * The words used in this test.

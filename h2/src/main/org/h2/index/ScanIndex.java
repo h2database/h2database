@@ -6,16 +6,11 @@
 package org.h2.index;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
-import org.h2.engine.UndoLogRecord;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -36,19 +31,11 @@ public class ScanIndex extends BaseIndex {
     private long firstFree = -1;
     private ArrayList<Row> rows = Utils.newSmallArrayList();
     private final RegularTable tableData;
-    private int rowCountDiff;
-    private final HashMap<Integer, Integer> sessionRowCount;
-    private HashSet<Row> delta;
     private long rowCount;
 
     public ScanIndex(RegularTable table, int id, IndexColumn[] columns,
             IndexType indexType) {
         initBaseIndex(table, id, table.getName() + "_DATA", columns, indexType);
-        if (database.isMultiVersion()) {
-            sessionRowCount = new HashMap<>();
-        } else {
-            sessionRowCount = null;
-        }
         tableData = table;
     }
 
@@ -66,10 +53,6 @@ public class ScanIndex extends BaseIndex {
         }
         tableData.setRowCount(0);
         rowCount = 0;
-        rowCountDiff = 0;
-        if (database.isMultiVersion()) {
-            sessionRowCount.clear();
-        }
     }
 
     @Override
@@ -102,44 +85,13 @@ public class ScanIndex extends BaseIndex {
             rows.set((int) key, row);
         }
         row.setDeleted(false);
-        if (database.isMultiVersion()) {
-            if (delta == null) {
-                delta = new HashSet<>();
-            }
-            boolean wasDeleted = delta.remove(row);
-            if (!wasDeleted) {
-                delta.add(row);
-            }
-            incrementRowCount(session.getId(), 1);
-        }
         rowCount++;
-    }
-
-    @Override
-    public void commit(int operation, Row row) {
-        if (database.isMultiVersion()) {
-            if (delta != null) {
-                delta.remove(row);
-            }
-            incrementRowCount(row.getSessionId(),
-                    operation == UndoLogRecord.DELETE ? 1 : -1);
-        }
-    }
-
-    private void incrementRowCount(int sessionId, int count) {
-        if (database.isMultiVersion()) {
-            Integer id = sessionId;
-            Integer c = sessionRowCount.get(id);
-            int current = c == null ? 0 : c.intValue();
-            sessionRowCount.put(id, current + count);
-            rowCountDiff += count;
-        }
     }
 
     @Override
     public void remove(Session session, Row row) {
         // in-memory
-        if (!database.isMultiVersion() && rowCount == 1) {
+        if (rowCount == 1) {
             rows = Utils.newSmallArrayList();
             firstFree = -1;
         } else {
@@ -153,24 +105,12 @@ public class ScanIndex extends BaseIndex {
             rows.set((int) key, free);
             firstFree = key;
         }
-        if (database.isMultiVersion()) {
-            // if storage is null, the delete flag is not yet set
-            row.setDeleted(true);
-            if (delta == null) {
-                delta = new HashSet<>();
-            }
-            boolean wasAdded = delta.remove(row);
-            if (!wasAdded) {
-                delta.add(row);
-            }
-            incrementRowCount(session.getId(), -1);
-        }
         rowCount--;
     }
 
     @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        return new ScanCursor(session, this, database.isMultiVersion());
+        return new ScanCursor(this);
     }
 
     @Override
@@ -182,13 +122,6 @@ public class ScanIndex extends BaseIndex {
 
     @Override
     public long getRowCount(Session session) {
-        if (database.isMultiVersion()) {
-            Integer i = sessionRowCount.get(session.getId());
-            long count = i == null ? 0 : i.intValue();
-            count += rowCount;
-            count -= rowCountDiff;
-            return count;
-        }
         return rowCount;
     }
 
@@ -246,13 +179,6 @@ public class ScanIndex extends BaseIndex {
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
         throw DbException.getUnsupportedException("SCAN");
-    }
-
-    Iterator<Row> getDelta() {
-        if (delta == null) {
-            return Collections.emptyIterator();
-        }
-        return delta.iterator();
     }
 
     @Override

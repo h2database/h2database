@@ -5,7 +5,6 @@
  */
 package org.h2.mvstore.db;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -253,6 +252,27 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     }
 
     @Override
+    public void update(Session session, Row oldRow, Row newRow) {
+        if (!rowsAreEqual(oldRow, newRow)) {
+            super.update(session, oldRow, newRow);
+        }
+    }
+
+    private boolean rowsAreEqual(SearchRow rowOne, SearchRow rowTwo) {
+        if (rowOne == rowTwo) {
+            return true;
+        }
+        for (int index : columnIds) {
+            Value v1 = rowOne.getValue(index);
+            Value v2 = rowTwo.getValue(index);
+            if (v1 == null ? v2 != null : !v1.equals(v2)) {
+                return false;
+            }
+        }
+        return rowOne.getKey() == rowTwo.getKey();
+    }
+
+    @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         return find(session, first, false, last);
     }
@@ -322,7 +342,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
             int idx = c.getColumnId();
             Value v = r.getValue(idx);
             if (v != null) {
-                array[i] = v.convertTo(c.getType(), -1, null, null, c.getEnumerators());
+                array[i] = v.convertTo(c.getType(), -1, null, database.getMode(), c.getEnumerators());
             }
         }
         array[keyColumns - 1] = ValueLong.get(r.getKey());
@@ -400,9 +420,8 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
             }
             key = first ? map.higherKey(key) : map.lowerKey(key);
         }
-        ArrayList<Value> list = new ArrayList<>(1);
-        list.add(key);
-        MVStoreCursor cursor = new MVStoreCursor(session, list.iterator(), null);
+        MVStoreCursor cursor = new MVStoreCursor(session,
+                                Collections.singletonList(key).iterator(), null);
         cursor.next();
         return cursor;
     }
@@ -523,7 +542,6 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         public boolean previous() {
             throw DbException.getUnsupportedException("previous");
         }
-
     }
 
 }

@@ -15,12 +15,13 @@ import org.h2.bnf.context.DbContextRule;
 import org.h2.bnf.context.DbProcedure;
 import org.h2.bnf.context.DbSchema;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Test Bnf Sql parser
  * @author Nicolas Fortin
  */
-public class TestBnf extends TestBase {
+public class TestBnf extends TestDb {
 
     /**
      * Run just this test.

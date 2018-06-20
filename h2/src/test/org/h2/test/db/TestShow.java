@@ -6,6 +6,7 @@
 package org.h2.test.db;
 
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -15,7 +16,7 @@ import java.sql.Statement;
 /**
  * Test of compatibility for the SHOW statement.
  */
-public class TestShow extends TestBase {
+public class TestShow extends TestDb {
 
     /**
      * Run just this test.

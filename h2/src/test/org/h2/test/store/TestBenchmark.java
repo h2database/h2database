@@ -18,12 +18,13 @@ import org.h2.mvstore.MVStore;
 import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.Task;
 
 /**
  * Tests performance and helps analyze bottlenecks.
  */
-public class TestBenchmark extends TestBase {
+public class TestBenchmark extends TestDb {
 
     /**
      * Run just this test.

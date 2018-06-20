@@ -33,6 +33,10 @@ public class DbException extends RuntimeException {
 
     private static final Properties MESSAGES = new Properties();
 
+    public static final SQLException SQL_OOME =
+            new SQLException("OutOfMemoryError", "HY000", ErrorCode.OUT_OF_MEMORY, new OutOfMemoryError());
+    private static final DbException OOME = new DbException(SQL_OOME);
+
     private Object source;
 
     static {
@@ -288,22 +292,32 @@ public class DbException extends RuntimeException {
      * @return the exception object
      */
     public static DbException convert(Throwable e) {
-        if (e instanceof DbException) {
-            return (DbException) e;
-        } else if (e instanceof SQLException) {
-            return new DbException((SQLException) e);
-        } else if (e instanceof InvocationTargetException) {
-            return convertInvocation((InvocationTargetException) e, null);
-        } else if (e instanceof IOException) {
-            return get(ErrorCode.IO_EXCEPTION_1, e, e.toString());
-        } else if (e instanceof OutOfMemoryError) {
-            return get(ErrorCode.OUT_OF_MEMORY, e);
-        } else if (e instanceof StackOverflowError || e instanceof LinkageError) {
+        try {
+            if (e instanceof DbException) {
+                return (DbException) e;
+            } else if (e instanceof SQLException) {
+                return new DbException((SQLException) e);
+            } else if (e instanceof InvocationTargetException) {
+                return convertInvocation((InvocationTargetException) e, null);
+            } else if (e instanceof IOException) {
+                return get(ErrorCode.IO_EXCEPTION_1, e, e.toString());
+            } else if (e instanceof OutOfMemoryError) {
+                return get(ErrorCode.OUT_OF_MEMORY, e);
+            } else if (e instanceof StackOverflowError || e instanceof LinkageError) {
+                return get(ErrorCode.GENERAL_ERROR_1, e, e.toString());
+            } else if (e instanceof Error) {
+                throw (Error) e;
+            }
             return get(ErrorCode.GENERAL_ERROR_1, e, e.toString());
-        } else if (e instanceof Error) {
-            throw (Error) e;
+        } catch (Throwable ex) {
+            try {
+                DbException dbException = new DbException(new SQLException("GeneralError", "HY000", ErrorCode.GENERAL_ERROR_1, e));
+                dbException.addSuppressed(ex);
+                return dbException;
+            } catch (OutOfMemoryError ignore) {
+                return OOME;
+            }
         }
-        return get(ErrorCode.GENERAL_ERROR_1, e, e.toString());
     }
 
     /**

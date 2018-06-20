@@ -19,13 +19,14 @@ import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.SortedProperties;
 import org.h2.util.Task;
 
 /**
  * Test the serialized (server-less) mode.
  */
-public class TestFileLockSerialized extends TestBase {
+public class TestFileLockSerialized extends TestDb {
 
     /**
      * Run just this test.

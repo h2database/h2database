@@ -148,8 +148,13 @@ public class StringUtils {
      * @return the Java representation
      */
     public static String javaEncode(String s) {
+        StringBuilder buff = new StringBuilder(s.length());
+        javaEncode(s, buff);
+        return buff.toString();
+    }
+
+    public static void javaEncode(String s, StringBuilder buff) {
         int length = s.length();
-        StringBuilder buff = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
             char c = s.charAt(i);
             switch (c) {
@@ -202,7 +207,6 @@ public class StringUtils {
                 }
             }
         }
-        return buff.toString();
     }
 
     /**

@@ -9,13 +9,14 @@ import java.util.ArrayList;
 
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.MathUtils;
 
 /**
  * A test that generates random SQL statements against a number of databases
  * and compares the results.
  */
-public class TestSynth extends TestBase {
+public class TestSynth extends TestDb {
 
     //  TODO hsqldb: call 1||null should return 1 but returns null
     //  TODO hsqldb: call mod(1) should return invalid parameter count

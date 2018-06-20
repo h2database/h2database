@@ -13,11 +13,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests the server by creating many JDBC objects (result sets and so on).
  */
-public class TestManyJdbcObjects extends TestBase {
+public class TestManyJdbcObjects extends TestDb {
 
     /**
      * Run just this test.

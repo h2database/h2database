@@ -12,6 +12,7 @@ import org.h2.api.Trigger;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
+import org.h2.engine.Mode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
@@ -82,6 +83,7 @@ public class Replace extends Prepared {
         session.getUser().checkRight(table, Right.INSERT);
         session.getUser().checkRight(table, Right.UPDATE);
         setCurrentRowNumber(0);
+        Mode mode = session.getDatabase().getMode();
         if (!list.isEmpty()) {
             count = 0;
             for (int x = 0, size = list.size(); x < size; x++) {
@@ -95,7 +97,7 @@ public class Replace extends Prepared {
                     if (e != null) {
                         // e can be null (DEFAULT)
                         try {
-                            Value v = c.convert(e.getValue(session));
+                            Value v = c.convert(e.getValue(session), mode);
                             newRow.setValue(index, v);
                         } catch (DbException ex) {
                             throw setRow(ex, count, getSQL(expr));
@@ -119,7 +121,7 @@ public class Replace extends Prepared {
                     Column c = columns[j];
                     int index = c.getColumnId();
                     try {
-                        Value v = c.convert(r[j]);
+                        Value v = c.convert(r[j], mode);
                         newRow.setValue(index, v);
                     } catch (DbException ex) {
                         throw setRow(ex, count, getSQL(r));

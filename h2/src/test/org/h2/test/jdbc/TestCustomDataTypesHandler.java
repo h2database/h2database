@@ -19,6 +19,7 @@ import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
@@ -32,7 +33,7 @@ import org.h2.value.ValueString;
 /**
  * Tests {@link CustomDataTypesHandler}.
  */
-public class TestCustomDataTypesHandler extends TestBase {
+public class TestCustomDataTypesHandler extends TestDb {
 
     /**
      * The database name.

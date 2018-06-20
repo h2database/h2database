@@ -11,11 +11,12 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Types;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Test recursive queries using WITH.
  */
-public class TestRecursiveQueries extends TestBase {
+public class TestRecursiveQueries extends TestDb {
 
     /**
      * Run just this test.

@@ -22,19 +22,19 @@ import org.h2.security.auth.ConfigProperties;
  * <ul>
  *   <li>roles role list separated by comma</li>
  * </ul>
- * 
+ *
  */
 public class StaticRolesMapper implements UserToRolesMapper {
 
     private Collection<String> roles;
-    
+
     public StaticRolesMapper() {
     }
-    
+
     public StaticRolesMapper(String... roles) {
         this.roles=Arrays.asList(roles);
     }
-    
+
     @Override
     public void configure(ConfigProperties configProperties) {
         String rolesString=configProperties.getStringValue("roles", "");

@@ -10,13 +10,14 @@ import java.sql.DriverManager;
 import java.util.ArrayList;
 
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.test.utils.SelfDestructor;
 
 /**
  * Tests database file locking.
  * A new process is started.
  */
-public class TestFileLockProcess extends TestBase {
+public class TestFileLockProcess extends TestDb {
 
     /**
      * This method is called when executing this application from the command

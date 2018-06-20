@@ -53,6 +53,7 @@ public interface DatabaseInfoMBean {
      *
      * @return true if MVCC is enabled, false otherwise
      */
+    @Deprecated
     boolean isMvcc();
 
     /**

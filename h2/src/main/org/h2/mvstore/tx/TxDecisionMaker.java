@@ -15,9 +15,10 @@ import org.h2.mvstore.MVMap;
 public abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
     private final int            mapId;
     private final Object         key;
-            final Object         value;
+    final Object                 value;
     private final Transaction    transaction;
-                  long           undoKey;
+    long                         undoKey;
+    private       long           lastOperationId;
     private       Transaction    blockingTransaction;
     private       MVMap.Decision decision;
 
@@ -48,23 +49,36 @@ public abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue
             // because a tree root has definitely been changed.
             logIt(existingValue.value == null ? null : VersionedValue.getInstance(existingValue.value));
             decision = MVMap.Decision.PUT;
-        } else if(fetchTransaction(blockingId) == null) {
-            // condition above means transaction has been committed/rplled back and closed by now
-            decision = MVMap.Decision.REPEAT;
-        } else {
+        } else if(fetchTransaction(blockingId) != null) {
             // this entry comes from a different transaction, and this transaction is not committed yet
             // should wait on blockingTransaction that was determined earlier
             decision = MVMap.Decision.ABORT;
+        } else if(id == lastOperationId) {
+            // There is no transaction with that id, so we've retried it just before,
+            // but map root has not changed (which must be the case if we just missed a closed transaction),
+            // therefore we came back here again.
+            // Now we assume it's a leftover after unclean shutdown (map update was written but not undo log),
+            // and will effectively roll it back (just overwrite).
+            Object committedValue = existingValue.getCommittedValue();
+            logIt(committedValue == null ? null : VersionedValue.getInstance(committedValue));
+            decision = MVMap.Decision.PUT;
+        } else {
+            // condition above means transaction has been committed/rolled back and closed by now
+            decision = MVMap.Decision.REPEAT;
+            lastOperationId = id;
         }
         return decision;
     }
 
     @Override
     public final void reset() {
-        if (decision != null && decision != MVMap.Decision.ABORT && decision != MVMap.Decision.REPEAT) {
-            // positive decision has been made already and undo record created,
-            // but map was updated afterwards and undo record deletion required
-            transaction.logUndo();
+        if (decision != MVMap.Decision.REPEAT) {
+            lastOperationId = 0;
+            if (decision == MVMap.Decision.PUT) {
+                // positive decision has been made already and undo record created,
+                // but map was updated afterwards and undo record deletion required
+                transaction.logUndo();
+            }
         }
         blockingTransaction = null;
         decision = null;

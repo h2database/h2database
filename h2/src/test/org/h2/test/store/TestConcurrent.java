@@ -513,8 +513,10 @@ public class TestConcurrent extends TestMVStore {
                         Thread.sleep(1);
                     }
                     Exception e = task.getException();
-                    assertEquals(DataUtils.ERROR_CLOSED,
-                            DataUtils.getErrorCode(e.getMessage()));
+                    if (e != null) {
+                        assertEquals(DataUtils.ERROR_CLOSED,
+                                        DataUtils.getErrorCode(e.getMessage()));
+                    }
                 } catch (IllegalStateException e) {
                     // sometimes storing works, in which case
                     // closing must fail

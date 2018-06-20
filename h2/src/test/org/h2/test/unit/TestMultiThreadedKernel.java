@@ -11,11 +11,12 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests the multi-threaded kernel feature.
  */
-public class TestMultiThreadedKernel extends TestBase implements Runnable {
+public class TestMultiThreadedKernel extends TestDb implements Runnable {
 
     private String url, user, password;
     private int id;
@@ -33,7 +34,7 @@ public class TestMultiThreadedKernel extends TestBase implements Runnable {
 
     @Override
     public void test() throws Exception {
-        if (config.networked || config.mvcc) {
+        if (config.networked || config.mvStore) {
             return;
         }
         deleteDb("multiThreadedKernel");

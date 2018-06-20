@@ -76,7 +76,7 @@ public class ConnectionInfo implements Cloneable {
         setUserName(removeProperty("USER", ""));
         name = url.substring(Constants.START_URL.length());
         parseName();
-        convertPasswords();        
+        convertPasswords();
         String recoverTest = removeProperty("RECOVER_TEST", null);
         if (recoverTest != null) {
             FilePathRec.register();
@@ -92,7 +92,7 @@ public class ConnectionInfo implements Cloneable {
     static {
         String[] connectionTime = { "ACCESS_MODE_DATA", "AUTOCOMMIT", "CIPHER",
                 "CREATE", "CACHE_TYPE", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS",
-                "IFEXISTS", "INIT", "PASSWORD", "RECOVER", "RECOVER_TEST",
+                "IFEXISTS", "INIT", "MVCC", "PASSWORD", "RECOVER", "RECOVER_TEST",
                 "USER", "AUTO_SERVER", "AUTO_SERVER_PORT", "NO_UPGRADE",
                 "AUTO_RECONNECT", "OPEN_NEW", "PAGE_SIZE", "PASSWORD_HASH", "JMX",
                 "SCOPE_GENERATED_KEYS", "AUTHREALM", "AUTHZPWD" };
@@ -276,10 +276,10 @@ public class ConnectionInfo implements Cloneable {
 
     private void preservePasswordForAuthentication(Object password) {
         if ((!isRemote() || isSSL()) &&  prop.containsKey("AUTHREALM") && password!=null) {
-            prop.put("AUTHZPWD",password);
+            prop.put("AUTHZPWD",password instanceof char[] ? new String((char[])password) : password);
         }
     }
-    
+
     private char[] removePassword() {
         Object p = prop.remove("PASSWORD");
         preservePasswordForAuthentication(p);
@@ -664,6 +664,9 @@ public class ConnectionInfo implements Cloneable {
         return url;
     }
 
+    /**
+     * Clear authentication properties.
+     */
     public void cleanAuthenticationInfo() {
         removeProperty("AUTHREALM", false);
         removeProperty("AUTHZPWD", false);

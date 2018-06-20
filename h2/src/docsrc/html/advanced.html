@@ -227,8 +227,7 @@ See the <a href="grammar.html">Grammar</a> for details.
 Transaction isolation is provided for all data manipulation language (DML) statements.
 </p>
 <p>
-Please note MVCC is enabled in version 1.4.x by default, when using the MVStore.
-In this case, table level locking is not used.
+Please note that with default MVStore storage engine table level locking is not used.
 Instead, rows are locked for update, and read committed is used in all cases
 (changing the isolation level has no effect).
 </p>
@@ -302,8 +301,8 @@ for each connection.
 <h2 id="mvcc">Multi-Version Concurrency Control (MVCC)</h2>
 <p>
 The MVCC feature allows higher concurrency than using (table level or row level) locks.
-When using MVCC in this database, delete, insert and update operations will only issue a
-shared lock on the table. An exclusive lock is still used when adding or removing columns,
+Delete, insert and update operations will only issue a shared lock on the table.
+An exclusive lock is still used when adding or removing columns,
 when dropping the table, and when using <code>SELECT ... FOR UPDATE</code>.
 Connections only 'see' committed data, and own changes. That means, if connection A updates
 a row but doesn't commit this change yet, connection B will see the old value.
@@ -312,30 +311,11 @@ Only when the change is committed, the new value is visible by other connections
 database waits until it can apply the change, but at most until the lock timeout expires.
 </p>
 <p>
-To use the MVCC feature, append <code>;MVCC=TRUE</code> to the database URL:
-</p>
-<pre>
-jdbc:h2:~/test;MVCC=TRUE
-</pre>
-<p>
-The setting must be specified in the first connection (the one that opens the database).
-It is not possible to enable or disable this setting while the database is already open.
+This feature is only available with the default MVStore storage engine.
+Changing the lock mode with it (<code>LOCK_MODE</code>) has no effect.
 </p>
 <p>
-If MVCC is enabled, changing the lock mode (<code>LOCK_MODE</code>) has no effect.
-</p>
-<p>
-The MVCC mode is enabled by default in version 1.4.x,
-with the default MVStore storage engine.
-MVCC is disabled by default when using the PageStore storage engine
-(which is the default in version 1.3.x).
-The following applies when using the PageStore storage engine:
-The MVCC feature is not fully tested yet.
-The limitations of the MVCC mode are:
-with the PageStore storage engine, it can not be used at the same time as
-<code>MULTI_THREADED=TRUE</code>;
-the complete undo log (the list of uncommitted changes) must fit in memory when using multi-version concurrency.
-The setting <code>MAX_MEMORY_UNDO</code> has no effect.
+MVCC is not used when using the PageStore storage engine.
 </p>
 
 <h2 id="clustering">Clustering / High Availability</h2>
@@ -1645,16 +1625,20 @@ If this file is in the classpath, every connect to an older database will result
 <p>
 The conversion itself is done internally via <code>'script to'</code> and <code>'runscript from'</code>. After the conversion process, the files will be
 renamed from
+</p>
 <ul>
 <li><code>dbName.data.db</code> to <code>dbName.data.db.backup</code>
 </li><li><code>dbName.index.db</code> to <code>dbName.index.db.backup</code>
 </li></ul>
+<p>
 by default. Also, the temporary script will be written to the database directory instead of a temporary directory.
 Both defaults can be customized via
+</p>
 <ul>
 <li><code>org.h2.upgrade.DbUpgrade.setDeleteOldDb(boolean)</code>
 </li><li><code>org.h2.upgrade.DbUpgrade.setScriptInTmpDir(boolean)</code>
 </li></ul>
+<p>
 prior opening a database connection.
 </p>
 <p>
@@ -1678,6 +1662,7 @@ To disable this feature set the system property <code>h2.serializeJavaObject=fal
 <p>
 Serialization and deserialization of java objects is customizable both at system level and at database level providing a
 <a href="http://www.h2database.com/javadoc/org/h2/api/JavaObjectSerializer.html">JavaObjectSerializer</a> implementation:
+</p>
 <ul>
 <li>
 At system level set the system property <code>h2.javaObjectSerializer</code> with the
@@ -1693,7 +1678,6 @@ Please note that this SQL statement can only be executed before any tables are d
 </p>
 </li>
 </ul>
-</p>
 
 <h2 id="custom_data_types_handler_api">Custom Data Types Handler API</h2>
 <p>
@@ -1704,6 +1688,7 @@ of minimal required API basically consisting of type identification and conversi
 In order to enable this feature, set the system property <code>h2.customDataTypesHandler</code> (default: null) to the fully qualified name of the class providing
 <a href="http://www.h2database.com/javadoc/org/h2/api/CustomDataTypesHandler.html">CustomDataTypesHandler</a> interface implementation. <br />
 The instance of that class will be created by H2 and used to:
+</p>
 <ul>
 <li>resolve the names and identifiers of extrinsic data types.
 </li>
@@ -1712,7 +1697,6 @@ The instance of that class will be created by H2 and used to:
 <li>provide order of the data types.
 </li>
 </ul>
-</p>
 <p>This is a system-level setting, i.e. affects all the databases.</p>
 
 <p><b>Note: </b>Please keep in mind that this feature may not possibly provide the same ABI stability level as other features as it exposes many of the H2 internals. You may be required to update your code occasionally due to internal changes in H2 if you are going to use this feature.

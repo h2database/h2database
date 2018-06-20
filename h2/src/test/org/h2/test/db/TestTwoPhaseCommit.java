@@ -11,11 +11,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests for the two-phase-commit feature.
  */
-public class TestTwoPhaseCommit extends TestBase {
+public class TestTwoPhaseCommit extends TestDb {
 
     /**
      * Run just this test.

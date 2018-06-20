@@ -347,14 +347,10 @@ public class Set extends Prepared {
             }
             break;
         case SetTypes.MULTI_THREADED: {
-            session.getUser().checkAdmin();
-            database.setMultiThreaded(getIntValue() == 1);
-            break;
-        }
-        case SetTypes.MVCC: {
-            if (database.isMultiVersion() != (getIntValue() == 1)) {
-                throw DbException.get(
-                        ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, "MVCC");
+            boolean v = getIntValue() == 1;
+            if (database.isMultiThreaded() != v) {
+                session.getUser().checkAdmin();
+                database.setMultiThreaded(v);
             }
             break;
         }
@@ -552,9 +548,10 @@ public class Set extends Prepared {
                 }
                 addOrUpdateSetting(name,expression.getValue(session).getString(),0);
             } catch (Exception e) {
-                //Errors during start are ignored to allow to open the database
+                // Errors during start are ignored to allow to open the database
                 if (database.isStarting()) {
-                    database.getTrace(Trace.DATABASE).error(e, "{0}: failed to set authenticator during database start ",expression.toString());
+                    database.getTrace(Trace.DATABASE).error(e,
+                            "{0}: failed to set authenticator during database start ", expression.toString());
                 } else {
                     throw DbException.convert(e);
                 }

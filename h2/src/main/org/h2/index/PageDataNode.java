@@ -160,11 +160,10 @@ public class PageDataNode extends PageData {
     }
 
     @Override
-    Cursor find(Session session, long minKey, long maxKey, boolean multiVersion) {
+    Cursor find(Session session, long minKey, long maxKey) {
         int x = find(minKey);
         int child = childPageIds[x];
-        return index.getPage(child, getPos()).find(session, minKey, maxKey,
-                multiVersion);
+        return index.getPage(child, getPos()).find(session, minKey, maxKey);
     }
 
     @Override

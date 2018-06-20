@@ -15,13 +15,14 @@ import java.util.Random;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.test.utils.FilePathDebug;
 
 /**
  * Tests that use the debug file system to simulate power failure.
  * This test runs many random operations and stops after some time.
  */
-public class TestPowerOffFs2 extends TestBase {
+public class TestPowerOffFs2 extends TestDb {
 
     private static final String USER = "sa";
     private static final String PASSWORD = "sa";

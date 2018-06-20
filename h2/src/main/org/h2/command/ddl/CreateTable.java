@@ -159,10 +159,14 @@ public class CreateTable extends CommandWithColumns {
                 }
             }
         } catch (DbException e) {
-            db.checkPowerOff();
-            db.removeSchemaObject(session, table);
-            if (!transactional) {
-                session.commit(true);
+            try {
+                db.checkPowerOff();
+                db.removeSchemaObject(session, table);
+                if (!transactional) {
+                    session.commit(true);
+                }
+            } catch (Throwable ex) {
+                e.addSuppressed(ex);
             }
             throw e;
         }

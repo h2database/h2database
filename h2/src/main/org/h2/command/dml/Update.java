@@ -131,7 +131,7 @@ public class Update extends Prepared {
                         } else if (newExpr == ValueExpression.getDefault()) {
                             newValue = table.getDefaultValue(session, column);
                         } else {
-                            newValue = column.convert(newExpr.getValue(session));
+                            newValue = column.convert(newExpr.getValue(session), session.getDatabase().getMode());
                         }
                         newRow.setValue(i, newValue);
                     }

@@ -18,6 +18,7 @@ import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
+import org.h2.engine.Mode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
@@ -208,6 +209,20 @@ public abstract class Table extends SchemaObjectBase {
      * @throws DbException if a constraint was violated
      */
     public abstract void addRow(Session session, Row row);
+
+    /**
+     * Update a row to the table and all indexes.
+     *
+     * @param session the session
+     * @param oldRow the row to update
+     * @param newRow the row with updated values (_rowid_ suppose to be the same)
+     * @throws DbException if a constraint was violated
+     */
+    public void updateRow(Session session, Row oldRow, Row newRow) {
+        newRow.setKey(oldRow.getKey());
+        removeRow(session, oldRow);
+        addRow(session, newRow);
+    }
 
     /**
      * Commit an operation (when using multi-version concurrency).
@@ -509,7 +524,8 @@ public abstract class Table extends SchemaObjectBase {
             try {
                 removeRow(session, o);
             } catch (DbException e) {
-                if (e.getErrorCode() == ErrorCode.CONCURRENT_UPDATE_1 || e.getErrorCode() == ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
+                if (e.getErrorCode() == ErrorCode.CONCURRENT_UPDATE_1
+                        || e.getErrorCode() == ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
                     session.rollbackTo(rollback, false);
                     session.startStatementWithinTransaction();
                     rollback = session.setSavepoint();
@@ -1214,8 +1230,9 @@ public abstract class Table extends SchemaObjectBase {
             a = a.convertToEnum(enumerators);
             b = b.convertToEnum(enumerators);
         } else {
-            a = a.convertTo(dataType);
-            b = b.convertTo(dataType);
+            Mode mode = database.getMode();
+            a = a.convertTo(dataType, -1, mode);
+            b = b.convertTo(dataType, -1, mode);
         }
         return a.compareTypeSafe(b, compareMode);
     }

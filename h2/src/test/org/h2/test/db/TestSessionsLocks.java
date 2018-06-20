@@ -10,11 +10,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests the meta data tables information_schema.locks and sessions.
  */
-public class TestSessionsLocks extends TestBase {
+public class TestSessionsLocks extends TestDb {
 
     /**
      * Run just this test.
@@ -27,8 +28,11 @@ public class TestSessionsLocks extends TestBase {
 
     @Override
     public void test() throws Exception {
+        if (!config.multiThreaded) {
+            return;
+        }
         testCancelStatement();
-        if (!config.mvcc) {
+        if (!config.mvStore) {
             testLocks();
         }
         deleteDb("sessionsLocks");
@@ -36,7 +40,7 @@ public class TestSessionsLocks extends TestBase {
 
     private void testLocks() throws SQLException {
         deleteDb("sessionsLocks");
-        Connection conn = getConnection("sessionsLocks;MULTI_THREADED=1");
+        Connection conn = getConnection("sessionsLocks");
         Statement stat = conn.createStatement();
         ResultSet rs;
         rs = stat.executeQuery("select * from information_schema.locks " +
@@ -53,7 +57,7 @@ public class TestSessionsLocks extends TestBase {
         assertEquals("PUBLIC", rs.getString("TABLE_SCHEMA"));
         assertEquals("TEST", rs.getString("TABLE_NAME"));
         rs.getString("SESSION_ID");
-        if (config.mvcc || config.mvStore) {
+        if (config.mvStore) {
             assertEquals("READ", rs.getString("LOCK_TYPE"));
         } else {
             assertEquals("WRITE", rs.getString("LOCK_TYPE"));
@@ -64,7 +68,7 @@ public class TestSessionsLocks extends TestBase {
         stat2.execute("SELECT * FROM TEST");
         rs = stat.executeQuery("select * from information_schema.locks " +
                 "order by session_id");
-        if (!config.mvcc && !config.mvStore) {
+        if (!config.mvStore) {
             rs.next();
             assertEquals("PUBLIC", rs.getString("TABLE_SCHEMA"));
             assertEquals("TEST", rs.getString("TABLE_NAME"));
@@ -82,7 +86,7 @@ public class TestSessionsLocks extends TestBase {
 
     private void testCancelStatement() throws Exception {
         deleteDb("sessionsLocks");
-        Connection conn = getConnection("sessionsLocks;MULTI_THREADED=1");
+        Connection conn = getConnection("sessionsLocks");
         Statement stat = conn.createStatement();
         ResultSet rs;
         rs = stat.executeQuery("select * from information_schema.sessions " +

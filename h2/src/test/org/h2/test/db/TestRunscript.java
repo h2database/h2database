@@ -14,6 +14,7 @@ import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.ChangeFileEncryption;
 import org.h2.tools.Recover;
 import org.h2.util.Task;
@@ -21,7 +22,7 @@ import org.h2.util.Task;
 /**
  * Tests the RUNSCRIPT SQL statement.
  */
-public class TestRunscript extends TestBase implements Trigger {
+public class TestRunscript extends TestDb implements Trigger {
 
     /**
      * Run just this test.

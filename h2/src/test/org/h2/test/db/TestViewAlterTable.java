@@ -10,12 +10,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.api.ErrorCode;
 
 /**
  * Test the impact of ALTER TABLE statements on views.
  */
-public class TestViewAlterTable extends TestBase {
+public class TestViewAlterTable extends TestDb {
 
     private Connection conn;
     private Statement stat;

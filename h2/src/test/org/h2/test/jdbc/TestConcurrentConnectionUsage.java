@@ -11,12 +11,13 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.Task;
 
 /**
  * Test concurrent usage of the same connection.
  */
-public class TestConcurrentConnectionUsage extends TestBase {
+public class TestConcurrentConnectionUsage extends TestDb {
 
     /**
      * Run just this test.

@@ -40,6 +40,7 @@ import org.h2.command.CommandInterface;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Mode;
+import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
@@ -93,7 +94,7 @@ public class JdbcConnection extends TraceObject
     private int queryTimeoutCache = -1;
 
     private Map<String, String> clientInfo;
-    private String mode;
+    private volatile Mode mode;
     private final boolean scopeGeneratedKeys;
 
     /**
@@ -1783,8 +1784,7 @@ public class JdbcConnection extends TraceObject
                         Collections.<String, ClientInfoStatus> emptyMap());
             }
 
-            Pattern clientInfoNameRegEx = Mode
-                    .getInstance(getMode()).supportedClientInfoPropertiesRegEx;
+            Pattern clientInfoNameRegEx = getMode().supportedClientInfoPropertiesRegEx;
 
             if (clientInfoNameRegEx != null
                     && clientInfoNameRegEx.matcher(name).matches()) {
@@ -2102,17 +2102,32 @@ public class JdbcConnection extends TraceObject
         trace.setLevel(level);
     }
 
-    String getMode() throws SQLException {
+    Mode getMode() throws SQLException {
+        Mode mode = this.mode;
         if (mode == null) {
-            PreparedStatement prep = prepareStatement(
-                    "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?");
-            prep.setString(1, "MODE");
-            ResultSet rs = prep.executeQuery();
-            rs.next();
-            mode = rs.getString(1);
-            prep.close();
+            String name;
+            try (PreparedStatement prep = prepareStatement(
+                    "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?")) {
+                prep.setString(1, "MODE");
+                ResultSet rs = prep.executeQuery();
+                rs.next();
+                name = rs.getString(1);
+            }
+            mode = Mode.getInstance(name);
+            if (mode == null) {
+                mode = Mode.getRegular();
+            }
+            this.mode = mode;
         }
         return mode;
     }
 
+    /**
+     * INTERNAL
+     */
+    public boolean isRegularMode() throws SQLException {
+        // Clear cached mode if any (required by tests)
+        mode = null;
+        return getMode().getEnum() == ModeEnum.REGULAR;
+    }
 }

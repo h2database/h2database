@@ -13,11 +13,12 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.concurrent.CountDownLatch;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Additional MVCC (multi version concurrency) test cases.
  */
-public class TestMvcc4 extends TestBase {
+public class TestMvcc4 extends TestDb {
 
     /**
      * Run just this test.
@@ -26,7 +27,6 @@ public class TestMvcc4 extends TestBase {
      */
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
-        test.config.mvcc = true;
         test.config.lockTimeout = 20000;
         test.config.memory = true;
         test.test();
@@ -34,7 +34,7 @@ public class TestMvcc4 extends TestBase {
 
     @Override
     public void test() throws SQLException {
-        if (config.networked || !config.mvcc) {
+        if (config.networked || !config.mvStore) {
             return;
         }
         testSelectForUpdateAndUpdateConcurrency();
@@ -67,7 +67,6 @@ public class TestMvcc4 extends TestBase {
         c1.setAutoCommit(false);
 
         //Fire off a concurrent update.
-        final Thread mainThread = Thread.currentThread();
         final CountDownLatch executedUpdate = new CountDownLatch(1);
         new Thread() {
             @Override
@@ -84,7 +83,8 @@ public class TestMvcc4 extends TestBase {
                     executedUpdate.countDown();
                     // interrogate new "blocker_id" metatable field instead of
                     // relying on stacktraces!? to determine when session is blocking
-                    PreparedStatement stmt = c2.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.SESSIONS WHERE BLOCKER_ID = SESSION_ID()");
+                    PreparedStatement stmt = c2.prepareStatement(
+                            "SELECT * FROM INFORMATION_SCHEMA.SESSIONS WHERE BLOCKER_ID = SESSION_ID()");
                     ResultSet resultSet;
                     do {
                         resultSet = stmt.executeQuery();

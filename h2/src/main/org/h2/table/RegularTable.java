@@ -26,7 +26,6 @@ import org.h2.index.Cursor;
 import org.h2.index.HashIndex;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
-import org.h2.index.MultiVersionIndex;
 import org.h2.index.NonUniqueHashIndex;
 import org.h2.index.PageBtreeIndex;
 import org.h2.index.PageDataIndex;
@@ -116,9 +115,6 @@ public class RegularTable extends TableBase {
     @Override
     public void addRow(Session session, Row row) {
         lastModificationId = database.getNextModificationDataId();
-        if (database.isMultiVersion()) {
-            row.setSessionId(session.getId());
-        }
         int i = 0;
         try {
             for (int size = indexes.size(); i < size; i++) {
@@ -141,19 +137,7 @@ public class RegularTable extends TableBase {
                 trace.error(e2, "could not undo operation");
                 throw e2;
             }
-            DbException de = DbException.convert(e);
-            if (de.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
-                for (Index index : indexes) {
-                    if (index.getIndexType().isUnique() && index instanceof MultiVersionIndex) {
-                        MultiVersionIndex mv = (MultiVersionIndex) index;
-                        if (mv.isUncommittedFromOtherSession(session, row)) {
-                            throw DbException.get(
-                                    ErrorCode.CONCURRENT_UPDATE_1, index.getName());
-                        }
-                    }
-                }
-            }
-            throw de;
+            throw DbException.convert(e);
         }
         analyzeIfRequired(session);
     }
@@ -167,7 +151,7 @@ public class RegularTable extends TableBase {
     }
 
     private void checkRowCount(Session session, Index index, int offset) {
-        if (SysProperties.CHECK && !database.isMultiVersion()) {
+        if (SysProperties.CHECK) {
             if (!(index instanceof PageDelegateIndex)) {
                 long rc = index.getRowCount(session);
                 if (rc != rowCount + offset) {
@@ -258,9 +242,6 @@ public class RegularTable extends TableBase {
             } else {
                 index = new TreeIndex(this, indexId, indexName, cols, indexType);
             }
-        }
-        if (database.isMultiVersion()) {
-            index = new MultiVersionIndex(index, this);
         }
         if (index.needRebuild() && rowCount > 0) {
             try {
@@ -366,26 +347,11 @@ public class RegularTable extends TableBase {
 
     @Override
     public long getRowCount(Session session) {
-        if (database.isMultiVersion()) {
-            return getScanIndex(session).getRowCount(session);
-        }
         return rowCount;
     }
 
     @Override
     public void removeRow(Session session, Row row) {
-        if (database.isMultiVersion()) {
-            if (row.isDeleted()) {
-                throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, getName());
-            }
-            int old = row.getSessionId();
-            int newId = session.getId();
-            if (old == 0) {
-                row.setSessionId(newId);
-            } else if (old != newId) {
-                throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, getName());
-            }
-        }
         lastModificationId = database.getNextModificationDataId();
         int i = indexes.size() - 1;
         try {
@@ -443,17 +409,6 @@ public class RegularTable extends TableBase {
         int lockMode = database.getLockMode();
         if (lockMode == Constants.LOCK_MODE_OFF) {
             return lockExclusiveSession != null;
-        }
-        if (!forceLockEvenInMvcc && database.isMultiVersion()) {
-            // MVCC: update, delete, and insert use a shared lock.
-            // Select doesn't lock except when using FOR UPDATE
-            if (exclusive) {
-                exclusive = false;
-            } else {
-                if (lockExclusiveSession == null) {
-                    return false;
-                }
-            }
         }
         if (lockExclusiveSession == session) {
             return true;
@@ -550,7 +505,7 @@ public class RegularTable extends TableBase {
         } else {
             if (lockExclusiveSession == null) {
                 if (lockMode == Constants.LOCK_MODE_READ_COMMITTED) {
-                    if (!database.isMultiThreaded() && !database.isMultiVersion()) {
+                    if (!database.isMultiThreaded()) {
                         // READ_COMMITTED: a read lock is acquired,
                         // but released immediately after the operation
                         // is complete.

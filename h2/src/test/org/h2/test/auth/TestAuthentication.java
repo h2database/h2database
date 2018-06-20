@@ -15,6 +15,7 @@ import java.util.UUID;
 import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag;
 import javax.security.auth.login.Configuration;
+import javax.sql.DataSource;
 
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Database;
@@ -22,6 +23,7 @@ import org.h2.engine.Engine;
 import org.h2.engine.Role;
 import org.h2.engine.Session;
 import org.h2.engine.User;
+import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.security.auth.DefaultAuthenticator;
 import org.h2.security.auth.impl.AssignRealmNameRole;
 import org.h2.security.auth.impl.JaasCredentialsValidator;
@@ -29,6 +31,9 @@ import org.h2.security.auth.impl.StaticRolesMapper;
 import org.h2.security.auth.impl.StaticUserCredentialsValidator;
 import org.h2.test.TestBase;
 
+/**
+ * Test for custom authentication.
+ */
 public class TestAuthentication extends TestBase {
 
     public static void main(String... a) throws Exception {
@@ -121,13 +126,14 @@ public class TestAuthentication extends TestBase {
 
     protected void allTests() throws Exception {
         testInvalidPassword();
-        testExternalUserWihoutRealm();
+        testExternalUserWithoutRealm();
         testExternalUser();
         testAssignRealNameRole();
         testStaticRole();
         testStaticUserCredentials();
         testUserRegistration();
         testSet();
+        testDatasource();
     }
 
     protected void testInvalidPassword() throws Exception {
@@ -140,7 +146,7 @@ public class TestAuthentication extends TestBase {
         }
     }
 
-    protected void testExternalUserWihoutRealm() throws Exception {
+    protected void testExternalUserWithoutRealm() throws Exception {
         try {
             Connection wrongLoginConnection = DriverManager.getConnection(getDatabaseURL(), getExternalUser(),
                     getExternalUserPassword());
@@ -154,6 +160,20 @@ public class TestAuthentication extends TestBase {
         Connection rightConnection = DriverManager.getConnection(
                 getDatabaseURL() + ";AUTHREALM=" + getRealmName().toUpperCase(), getExternalUser(),
                 getExternalUserPassword());
+        try {
+            User user = session.getDatabase().findUser((getExternalUser() + "@" + getRealmName()).toUpperCase());
+            assertNotNull(user);
+        } finally {
+            rightConnection.close();
+        }
+    }
+
+    protected void testDatasource() throws Exception {
+
+        DataSource dataSource = JdbcConnectionPool.create(
+                getDatabaseURL() + ";AUTHREALM=" + getRealmName().toUpperCase(), getExternalUser(),
+                getExternalUserPassword());
+        Connection rightConnection = dataSource.getConnection();
         try {
             User user = session.getDatabase().findUser((getExternalUser() + "@" + getRealmName()).toUpperCase());
             assertNotNull(user);
@@ -204,7 +224,8 @@ public class TestAuthentication extends TestBase {
         try {
             try {
                 Connection wrongLoginConnection = DriverManager.getConnection(
-                        getDatabaseURL() + ";AUTHREALM=" + getRealmName().toUpperCase(), "___" + getExternalUser(), "");
+                        getDatabaseURL() + ";AUTHREALM=" + getRealmName().toUpperCase(), "___" + getExternalUser(),
+                        "");
                 wrongLoginConnection.close();
                 throw new Exception(
                         "unregistered external users should not be able to login when allowUserRegistration=false");
@@ -224,7 +245,7 @@ public class TestAuthentication extends TestBase {
             defaultAuthenticator.setAllowUserRegistration(initialValueAllow);
         }
     }
-    
+
     public void testStaticUserCredentials() throws Exception {
         String userName="STATICUSER3";
         Connection rightConnection = DriverManager.getConnection(
@@ -237,15 +258,15 @@ public class TestAuthentication extends TestBase {
             rightConnection.close();
         }
     }
-    
+
     protected void testSet() throws Exception{
         Connection rightConnection = DriverManager.getConnection(
                 getDatabaseURL()+";AUTHENTICATOR=FALSE","DBA","");
         try {
             try {
                 testExternalUser();
-                throw new Exception("External user shouldnt be allowed");
-            }catch (Exception e) {
+                throw new Exception("External user shouldn't be allowed");
+            } catch (Exception e) {
             }
         } finally {
             configureAuthentication(database);

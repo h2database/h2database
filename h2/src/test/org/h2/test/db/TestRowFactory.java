@@ -12,6 +12,7 @@ import org.h2.result.Row;
 import org.h2.result.RowFactory;
 import org.h2.result.RowImpl;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.value.Value;
 
 /**
@@ -19,7 +20,7 @@ import org.h2.value.Value;
  *
  * @author Sergi Vladykin
  */
-public class TestRowFactory extends TestBase {
+public class TestRowFactory extends TestDb {
 
     /**
      * Run just this test.

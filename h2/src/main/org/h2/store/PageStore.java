@@ -24,7 +24,6 @@ import org.h2.engine.SysProperties;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
-import org.h2.index.MultiVersionIndex;
 import org.h2.index.PageBtreeIndex;
 import org.h2.index.PageBtreeLeaf;
 import org.h2.index.PageBtreeNode;
@@ -360,13 +359,7 @@ public class PageStore implements CacheWriter {
         readVariableHeader();
         log = new PageLog(this);
         log.openForReading(logKey, logFirstTrunkPage, logFirstDataPage);
-        boolean old = database.isMultiVersion();
-        // temporarily disabling multi-version concurrency, because
-        // the multi-version index sometimes compares rows
-        // and the LOB storage is not yet available.
-        database.setMultiVersion(false);
         boolean isEmpty = recover();
-        database.setMultiVersion(old);
         if (!database.isReadOnly()) {
             readMode = true;
             if (!isEmpty || !SysProperties.MODIFY_ON_WRITE || tempObjects != null) {
@@ -1737,13 +1730,7 @@ public class PageStore implements CacheWriter {
             }
             meta = table.addIndex(session, "I" + id, id, cols, indexType, false, null);
         }
-        PageIndex index;
-        if (meta instanceof MultiVersionIndex) {
-            index = (PageIndex) ((MultiVersionIndex) meta).getBaseIndex();
-        } else {
-            index = (PageIndex) meta;
-        }
-        metaObjects.put(id, index);
+        metaObjects.put(id, (PageIndex) meta);
     }
 
     /**

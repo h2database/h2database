@@ -12,12 +12,13 @@ import java.util.ArrayList;
 import java.util.concurrent.CyclicBarrier;
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.Task;
 
 /**
  * Multi-threaded MVCC (multi version concurrency) test cases.
  */
-public class TestMvccMultiThreaded extends TestBase {
+public class TestMvccMultiThreaded extends TestDb {
 
     /**
      * Run just this test.
@@ -30,7 +31,7 @@ public class TestMvccMultiThreaded extends TestBase {
 
     @Override
     public void test() throws Exception {
-        if (!config.mvcc) {
+        if (!config.mvStore) {
             return;
         }
         testConcurrentSelectForUpdate();
@@ -92,7 +93,7 @@ public class TestMvccMultiThreaded extends TestBase {
         final Connection[] connList = new Connection[len];
         for (int i = 0; i < len; i++) {
             Connection conn = getConnection(
-                    getTestName() + ";MVCC=TRUE;LOCK_TIMEOUT=500");
+                    getTestName() + ";LOCK_TIMEOUT=500");
             connList[i] = conn;
         }
         Connection conn = connList[0];
@@ -129,8 +130,7 @@ public class TestMvccMultiThreaded extends TestBase {
         int len = 2;
         final Connection[] connList = new Connection[len];
         for (int i = 0; i < len; i++) {
-            connList[i] = getConnection(
-                    getTestName() + ";MVCC=TRUE");
+            connList[i] = getConnection(getTestName());
         }
         Connection conn = connList[0];
         conn.createStatement().execute(

@@ -25,6 +25,7 @@ import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.IOUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.SynchronizedVerifier;
@@ -33,7 +34,7 @@ import org.h2.util.Task;
 /**
  * Multi-threaded tests.
  */
-public class TestMultiThread extends TestBase implements Runnable {
+public class TestMultiThread extends TestDb implements Runnable {
 
     private boolean stop;
     private TestMultiThread parent;

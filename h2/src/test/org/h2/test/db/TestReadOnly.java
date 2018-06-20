@@ -18,13 +18,14 @@ import org.h2.dev.fs.FilePathZip2;
 import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.Backup;
 import org.h2.tools.Server;
 
 /**
  * Test for the read-only database feature.
  */
-public class TestReadOnly extends TestBase {
+public class TestReadOnly extends TestDb {
 
     /**
      * Run just this test.

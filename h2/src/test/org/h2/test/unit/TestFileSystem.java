@@ -32,6 +32,7 @@ import org.h2.store.fs.FilePathEncrypt;
 import org.h2.store.fs.FilePathRec;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.test.utils.AssertThrows;
 import org.h2.test.utils.FilePathDebug;
 import org.h2.tools.Backup;
@@ -42,7 +43,7 @@ import org.h2.util.Task;
 /**
  * Tests various file system.
  */
-public class TestFileSystem extends TestBase {
+public class TestFileSystem extends TestDb {
 
     /**
      * Run just this test.

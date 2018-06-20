@@ -15,6 +15,7 @@ import java.util.TimeZone;
 
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.LocalDateTimeUtils;
 import org.h2.value.Value;
@@ -25,7 +26,7 @@ import org.h2.value.ValueTimestampTimeZone;
 
 /**
  */
-public class TestTimeStampWithTimeZone extends TestBase {
+public class TestTimeStampWithTimeZone extends TestDb {
 
     /**
      * Run just this test.

@@ -20,13 +20,14 @@ import org.h2.api.ErrorCode;
 import org.h2.command.dml.Select;
 import org.h2.result.SortOrder;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.SimpleResultSet;
 import org.h2.value.ValueInt;
 
 /**
  * Index tests.
  */
-public class TestIndex extends TestBase {
+public class TestIndex extends TestDb {
 
     private static int testFunctionIndexCounter;
 

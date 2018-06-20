@@ -18,6 +18,7 @@ import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.StringUtils;
 import org.h2.util.Task;
@@ -26,7 +27,7 @@ import org.h2.util.Task;
  * Test various optimizations (query cache, optimization for MIN(..), and
  * MAX(..)).
  */
-public class TestOptimizations extends TestBase {
+public class TestOptimizations extends TestDb {
 
     /**
      * Run just this test.

@@ -20,13 +20,14 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.Restore;
 import org.h2.util.Task;
 
 /**
  * Tests opening and closing a database.
  */
-public class TestOpenClose extends TestBase {
+public class TestOpenClose extends TestDb {
 
     private int nextId = 10;
 

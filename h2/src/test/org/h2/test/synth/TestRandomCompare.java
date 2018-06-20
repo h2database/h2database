@@ -15,11 +15,12 @@ import java.util.Collections;
 import java.util.Random;
 
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests random compare operations.
  */
-public class TestRandomCompare extends TestBase {
+public class TestRandomCompare extends TestDb {
 
     private final ArrayList<Statement> dbs = new ArrayList<>();
     private int aliasId;

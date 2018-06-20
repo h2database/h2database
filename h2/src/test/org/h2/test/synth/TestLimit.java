@@ -9,11 +9,12 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * The LIMIT, OFFSET, maxRows.
  */
-public class TestLimit extends TestBase {
+public class TestLimit extends TestDb {
 
     private Statement stat;
 

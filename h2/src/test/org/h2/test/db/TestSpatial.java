@@ -14,6 +14,7 @@ import java.sql.Types;
 import java.util.Random;
 import org.h2.api.Aggregate;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.SimpleResultSet;
 import org.h2.tools.SimpleRowSource;
 import org.h2.value.DataType;
@@ -38,7 +39,7 @@ import org.locationtech.jts.io.WKTReader;
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
-public class TestSpatial extends TestBase {
+public class TestSpatial extends TestDb {
 
     private static final String URL = "spatial";
 

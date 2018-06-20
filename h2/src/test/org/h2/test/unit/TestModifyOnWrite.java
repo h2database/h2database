@@ -12,13 +12,14 @@ import java.sql.Statement;
 import org.h2.engine.SysProperties;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.IOUtils;
 import org.h2.util.Utils;
 
 /**
  * Test that the database file is only modified when writing to the database.
  */
-public class TestModifyOnWrite extends TestBase {
+public class TestModifyOnWrite extends TestDb {
 
     /**
      * Run just this test.

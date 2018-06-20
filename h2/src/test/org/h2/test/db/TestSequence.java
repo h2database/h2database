@@ -15,12 +15,13 @@ import java.util.Collections;
 import java.util.List;
 import org.h2.api.Trigger;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.Task;
 
 /**
  * Tests the sequence feature of this database.
  */
-public class TestSequence extends TestBase {
+public class TestSequence extends TestDb {
 
     /**
      * Run just this test.

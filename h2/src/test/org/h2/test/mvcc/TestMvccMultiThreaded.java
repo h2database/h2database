@@ -12,12 +12,13 @@ import java.util.ArrayList;
 import java.util.concurrent.CyclicBarrier;
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.Task;
 
 /**
  * Multi-threaded MVCC (multi version concurrency) test cases.
  */
-public class TestMvccMultiThreaded extends TestBase {
+public class TestMvccMultiThreaded extends TestDb {
 
     /**
      * Run just this test.

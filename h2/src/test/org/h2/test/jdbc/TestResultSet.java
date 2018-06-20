@@ -40,6 +40,7 @@ import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.LocalDateTimeUtils;
@@ -49,7 +50,7 @@ import org.h2.util.StringUtils;
 /**
  * Tests for the ResultSet implementation.
  */
-public class TestResultSet extends TestBase {
+public class TestResultSet extends TestDb {
 
     private Connection conn;
     private Statement stat;

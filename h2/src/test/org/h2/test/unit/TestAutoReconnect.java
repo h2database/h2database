@@ -13,12 +13,13 @@ import java.sql.Statement;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.Server;
 
 /**
  * Tests automatic embedded/server mode.
  */
-public class TestAutoReconnect extends TestBase {
+public class TestAutoReconnect extends TestDb {
 
     private String url;
     private boolean autoServer;

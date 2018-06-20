@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.StatementBuilder;
 
 /**
@@ -18,7 +19,7 @@ import org.h2.util.StatementBuilder;
  *
  * @author Sergi Vladykin
  */
-public class TestOptimizerHints extends TestBase {
+public class TestOptimizerHints extends TestDb {
 
     /**
      * Run just this test.

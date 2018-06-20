@@ -10,12 +10,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Test that count(column) is converted to count(*) if the column is not
  * nullable.
  */
-public class TestSelectCountNonNullColumn extends TestBase {
+public class TestSelectCountNonNullColumn extends TestDb {
 
     private static final String DBNAME = "selectCountNonNullColumn";
     private Statement stat;

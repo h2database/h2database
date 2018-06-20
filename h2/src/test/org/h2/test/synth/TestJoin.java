@@ -18,13 +18,14 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.StringUtils;
 
 /**
  * A test that runs random join statements against two databases and compares
  * the results.
  */
-public class TestJoin extends TestBase {
+public class TestJoin extends TestDb {
 
     private final ArrayList<Connection> connections = new ArrayList<>();
     private Random random;

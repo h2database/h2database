@@ -14,11 +14,12 @@ import java.sql.Statement;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests Statement.cancel
  */
-public class TestCancel extends TestBase {
+public class TestCancel extends TestDb {
 
     private static int lastVisited;
 

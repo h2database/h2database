@@ -21,11 +21,12 @@ import org.h2.jdbc.JdbcStatement;
 import org.h2.jdbc.JdbcStatementBackwardsCompat;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests for the Statement implementation.
  */
-public class TestStatement extends TestBase {
+public class TestStatement extends TestDb {
 
     private Connection conn;
 

@@ -10,11 +10,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Test for check compatibility with PostgreSQL function string_agg()
  */
-public class TestStringAggCompatibility extends TestBase {
+public class TestStringAggCompatibility extends TestDb {
 
     private Connection conn;
 

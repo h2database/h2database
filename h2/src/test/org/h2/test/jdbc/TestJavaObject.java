@@ -17,6 +17,7 @@ import java.util.UUID;
 
 import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests java object values when SysProperties.SERIALIZE_JAVA_OBJECT property is
@@ -24,7 +25,7 @@ import org.h2.test.TestBase;
  *
  * @author Sergi Vladykin
  */
-public class TestJavaObject extends TestBase {
+public class TestJavaObject extends TestDb {
 
     /**
      * Run just this test.

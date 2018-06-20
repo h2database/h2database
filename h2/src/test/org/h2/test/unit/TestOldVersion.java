@@ -19,12 +19,13 @@ import java.sql.Types;
 import java.util.Properties;
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.Server;
 
 /**
  * Tests the compatibility with older versions
  */
-public class TestOldVersion extends TestBase {
+public class TestOldVersion extends TestDb {
 
     private ClassLoader cl;
     private Driver driver;

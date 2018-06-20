@@ -14,11 +14,12 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Test for views.
  */
-public class TestView extends TestBase {
+public class TestView extends TestDb {
 
     private static int x;
 

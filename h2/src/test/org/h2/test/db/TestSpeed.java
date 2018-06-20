@@ -12,11 +12,12 @@ import java.sql.Statement;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Various small performance tests.
  */
-public class TestSpeed extends TestBase {
+public class TestSpeed extends TestDb {
 
     /**
      * Run just this test.

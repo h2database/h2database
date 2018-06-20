@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.h2.api.DatabaseEventListener;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.Backup;
 import org.h2.tools.Restore;
 import org.h2.util.Task;
@@ -22,7 +23,7 @@ import org.h2.util.Task;
 /**
  * Test for the BACKUP SQL statement.
  */
-public class TestBackup extends TestBase {
+public class TestBackup extends TestDb {
 
     /**
      * Run just this test.

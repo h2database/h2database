@@ -11,12 +11,13 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Random;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.Task;
 
 /**
  * A concurrent test.
  */
-public class TestConcurrentUpdate extends TestBase {
+public class TestConcurrentUpdate extends TestDb {
 
     private static final int THREADS = 3;
     private static final int ROW_COUNT = 10;

@@ -19,6 +19,7 @@ import java.util.GregorianCalendar;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.test.unit.TestDate;
 import org.h2.util.DateTimeUtils;
 import org.h2.value.ValueTimestamp;
@@ -26,7 +27,7 @@ import org.h2.value.ValueTimestamp;
 /**
  * Tests the date transfer and storage.
  */
-public class TestDateStorage extends TestBase {
+public class TestDateStorage extends TestDb {
 
     /**
      * Run just this test.

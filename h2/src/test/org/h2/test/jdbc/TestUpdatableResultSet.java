@@ -23,11 +23,12 @@ import java.sql.Types;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Updatable result set tests.
  */
-public class TestUpdatableResultSet extends TestBase {
+public class TestUpdatableResultSet extends TestDb {
 
     /**
      * Run just this test.

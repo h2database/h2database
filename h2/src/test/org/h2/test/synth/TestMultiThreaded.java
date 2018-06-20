@@ -12,11 +12,12 @@ import java.sql.Statement;
 import java.util.Random;
 
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests the multi-threaded mode.
  */
-public class TestMultiThreaded extends TestBase {
+public class TestMultiThreaded extends TestDb {
 
     /**
      * Run just this test.

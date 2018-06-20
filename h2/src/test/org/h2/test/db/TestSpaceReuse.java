@@ -11,11 +11,12 @@ import java.sql.Statement;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests if disk space is reused after deleting many rows.
  */
-public class TestSpaceReuse extends TestBase {
+public class TestSpaceReuse extends TestDb {
 
     /**
      * Run just this test.

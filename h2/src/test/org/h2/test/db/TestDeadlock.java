@@ -14,12 +14,13 @@ import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.Task;
 
 /**
  * Test for deadlocks in the code, and test the deadlock detection mechanism.
  */
-public class TestDeadlock extends TestBase {
+public class TestDeadlock extends TestDb {
 
     /**
      * The first connection.

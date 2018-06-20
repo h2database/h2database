@@ -18,12 +18,13 @@ import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import org.h2.engine.Constants;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.Utils;
 
 /**
  * Tests the JMX feature.
  */
-public class TestJmx extends TestBase {
+public class TestJmx extends TestDb {
 
     /**
      * Run just this test.

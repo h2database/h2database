@@ -31,6 +31,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.Recover;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -40,7 +41,7 @@ import org.h2.util.Task;
 /**
  * Tests LOB and CLOB data types.
  */
-public class TestLob extends TestBase {
+public class TestLob extends TestDb {
 
     private static final String MORE_THAN_128_CHARS =
             "12345678901234567890123456789012345678901234567890" +

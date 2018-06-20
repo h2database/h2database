@@ -15,6 +15,7 @@ import java.util.Properties;
 import org.h2.api.ErrorCode;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.CreateCluster;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
@@ -23,7 +24,7 @@ import org.h2.util.JdbcUtils;
 /**
  * Test the cluster feature.
  */
-public class TestCluster extends TestBase {
+public class TestCluster extends TestDb {
 
     /**
      * Run just this test.

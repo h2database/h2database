@@ -11,11 +11,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Locale;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests that change the default locale.
  */
-public class TestLocale extends TestBase {
+public class TestLocale extends TestDb {
 
     /**
      * Run just this test.

@@ -11,11 +11,12 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.concurrent.CountDownLatch;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests lock releasing for concurrent select statements
  */
-public class TestReleaseSelectLock extends TestBase {
+public class TestReleaseSelectLock extends TestDb {
 
     private static final String TEST_DB_NAME = "releaseSelectLock";
 

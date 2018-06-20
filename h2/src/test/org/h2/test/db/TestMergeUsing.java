@@ -12,11 +12,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.api.Trigger;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Test merge using syntax.
  */
-public class TestMergeUsing extends TestBase implements Trigger {
+public class TestMergeUsing extends TestDb implements Trigger {
 
     private static final String GATHER_ORDERED_RESULTS_SQL = "SELECT ID, NAME FROM PARENT ORDER BY ID ASC";
     private static int triggerTestingUpdateCount;

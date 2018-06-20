@@ -15,11 +15,12 @@ import org.h2.Driver;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests the DatabaseEventListener interface.
  */
-public class TestDatabaseEventListener extends TestBase {
+public class TestDatabaseEventListener extends TestDb {
 
     /**
      * A flag to mark that the given method was called.

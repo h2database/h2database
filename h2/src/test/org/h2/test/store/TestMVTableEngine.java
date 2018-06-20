@@ -29,6 +29,7 @@ import org.h2.mvstore.MVStore;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.Recover;
 import org.h2.tools.Restore;
 import org.h2.util.JdbcUtils;
@@ -37,7 +38,7 @@ import org.h2.util.Task;
 /**
  * Tests the MVStore in a database.
  */
-public class TestMVTableEngine extends TestBase {
+public class TestMVTableEngine extends TestDb {
 
     /**
      * Run just this test.

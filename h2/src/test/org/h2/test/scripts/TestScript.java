@@ -29,13 +29,14 @@ import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.StringUtils;
 
 /**
  * This test runs a SQL script file and compares the output with the expected
  * output.
  */
-public class TestScript extends TestBase {
+public class TestScript extends TestDb {
 
     private static final String BASE_DIR = "org/h2/test/scripts/";
 

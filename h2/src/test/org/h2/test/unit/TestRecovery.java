@@ -17,6 +17,7 @@ import java.sql.Statement;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Recover;
 import org.h2.util.IOUtils;
@@ -24,7 +25,7 @@ import org.h2.util.IOUtils;
 /**
  * Tests database recovery.
  */
-public class TestRecovery extends TestBase {
+public class TestRecovery extends TestDb {
 
     /**
      * Run just this test.

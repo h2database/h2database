@@ -17,12 +17,13 @@ import java.sql.Timestamp;
 import org.h2.api.ErrorCode;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.value.DataType;
 
 /**
  * Tests the linked table feature (CREATE LINKED TABLE).
  */
-public class TestLinkedTable extends TestBase {
+public class TestLinkedTable extends TestDb {
 
     /**
      * Run just this test.

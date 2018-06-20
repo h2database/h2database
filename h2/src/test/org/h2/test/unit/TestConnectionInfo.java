@@ -12,6 +12,7 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.DeleteDbFiles;
 
 /**
@@ -20,7 +21,7 @@ import org.h2.tools.DeleteDbFiles;
  * @author Kerry Sainsbury
  * @author Thomas Mueller Graf
  */
-public class TestConnectionInfo extends TestBase {
+public class TestConnectionInfo extends TestDb {
 
     /**
      * Run just this test.

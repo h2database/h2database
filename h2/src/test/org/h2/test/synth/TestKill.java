@@ -13,6 +13,7 @@ import java.sql.Statement;
 import java.util.Random;
 
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.test.utils.SelfDestructor;
 
 /**
@@ -20,7 +21,7 @@ import org.h2.test.utils.SelfDestructor;
  * operations against a database, then kills this process. Afterwards recovery
  * is tested.
  */
-public class TestKill extends TestBase {
+public class TestKill extends TestDb {
 
     private static final String DIR = TestBase.getTestDir("kill");
 

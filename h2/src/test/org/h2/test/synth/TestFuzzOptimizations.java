@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Random;
 
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.test.db.Db;
 import org.h2.test.db.Db.Prepared;
 
@@ -23,7 +24,7 @@ import org.h2.test.db.Db.Prepared;
  * This test executes random SQL statements to test if optimizations are working
  * correctly.
  */
-public class TestFuzzOptimizations extends TestBase {
+public class TestFuzzOptimizations extends TestDb {
 
     private Connection conn;
 

@@ -25,11 +25,12 @@ import org.h2.jdbcx.JdbcDataSourceFactory;
 import org.h2.jdbcx.JdbcXAConnection;
 import org.h2.message.TraceSystem;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests DataSource and XAConnection.
  */
-public class TestDataSource extends TestBase {
+public class TestDataSource extends TestDb {
 
     /**
      * Run just this test.

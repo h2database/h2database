@@ -13,11 +13,12 @@ import java.sql.Statement;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Additional MVCC (multi version concurrency) test cases.
  */
-public class TestMvcc3 extends TestBase {
+public class TestMvcc3 extends TestDb {
 
     /**
      * Run just this test.

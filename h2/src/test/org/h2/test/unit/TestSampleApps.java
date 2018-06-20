@@ -15,6 +15,7 @@ import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
@@ -22,7 +23,7 @@ import org.h2.util.StringUtils;
 /**
  * Tests the sample apps.
  */
-public class TestSampleApps extends TestBase {
+public class TestSampleApps extends TestDb {
 
     /**
      * Run just this test.

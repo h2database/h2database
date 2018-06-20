@@ -12,11 +12,12 @@ import java.sql.Statement;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Test using an encrypted database.
  */
-public class TestEncryptedDb extends TestBase {
+public class TestEncryptedDb extends TestDb {
 
     /**
      * Run just this test.

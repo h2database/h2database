@@ -16,11 +16,12 @@ import java.sql.Statement;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Test for batch updates.
  */
-public class TestBatchUpdates extends TestBase {
+public class TestBatchUpdates extends TestDb {
 
     private static final String COFFEE_UPDATE =
             "UPDATE TEST SET PRICE=PRICE*20 WHERE TYPE_ID=?";

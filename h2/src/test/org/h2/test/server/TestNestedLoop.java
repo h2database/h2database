@@ -12,12 +12,13 @@ import java.sql.Statement;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests remote JDBC access with nested loops.
  * This is not allowed in some databases.
  */
-public class TestNestedLoop extends TestBase {
+public class TestNestedLoop extends TestDb {
 
     /**
      * Run just this test.

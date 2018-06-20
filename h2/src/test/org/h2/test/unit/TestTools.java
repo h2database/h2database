@@ -43,6 +43,7 @@ import org.h2.engine.SysProperties;
 import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.test.trace.Player;
 import org.h2.test.utils.AssertThrows;
 import org.h2.tools.Backup;
@@ -65,7 +66,7 @@ import org.h2.value.ValueUuid;
 /**
  * Tests the database tools.
  */
-public class TestTools extends TestBase {
+public class TestTools extends TestDb {
 
     private static String lastUrl;
     private Server server;

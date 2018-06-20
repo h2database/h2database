@@ -50,6 +50,7 @@ import org.h2.table.TableBase;
 import org.h2.table.TableFilter;
 import org.h2.table.TableType;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.DoneFuture;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
@@ -61,7 +62,7 @@ import org.h2.value.ValueString;
  *
  * @author Sergi Vladykin
  */
-public class TestTableEngines extends TestBase {
+public class TestTableEngines extends TestDb {
 
     /**
      * Run just this test.

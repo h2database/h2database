@@ -17,12 +17,13 @@ import java.util.Random;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Transactional tests, including transaction isolation tests, and tests related
  * to savepoints.
  */
-public class TestTransaction extends TestBase {
+public class TestTransaction extends TestDb {
 
     /**
      * Run just this test.

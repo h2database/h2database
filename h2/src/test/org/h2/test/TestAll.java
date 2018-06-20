@@ -614,7 +614,12 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         if (vmlens) {
             return;
         }
-        testUnit();
+        testAdditional();
+
+        // test utilities
+        big = !travis;
+        testUtils();
+        big = false;
 
         // lazy
         lazy = true;
@@ -627,20 +632,20 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         memory = false;
         multiThreaded = true;
         test();
-        testUnit();
+        testAdditional();
 
         // a more normal setup
         memory = false;
         multiThreaded = false;
         test();
-        testUnit();
+        testAdditional();
 
         // basic pagestore testing
         memory = false;
         multiThreaded = false;
         mvStore = false;
         test();
-        testUnit();
+        testAdditional();
 
         mvStore = true;
         memory = true;
@@ -681,7 +686,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             ssl = false;
             traceLevelFile = 0;
             test();
-            testUnit();
+            testAdditional();
 
             big = false;
             cipher = "AES";
@@ -702,7 +707,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         memory = true;
         multiThreaded = true;
         test();
-        testUnit();
+        testAdditional();
+        testUtils();
 
         multiThreaded = false;
         mvStore = false;
@@ -876,7 +882,58 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         afterTest();
     }
 
-    private void testUnit() {
+    /**
+     * Run additional tests.
+     */
+    private void testAdditional() {
+        if (networked) {
+            throw new RuntimeException("testAditional() is not allowed in networked mode");
+        }
+
+        addTest(new TestMVTableEngine());
+        addTest(new TestAutoReconnect());
+        addTest(new TestBnf());
+        addTest(new TestCache());
+        addTest(new TestCollation());
+        addTest(new TestCompress());
+        addTest(new TestConnectionInfo());
+        addTest(new TestExit());
+        addTest(new TestFileLock());
+        addTest(new TestJmx());
+        addTest(new TestModifyOnWrite());
+        addTest(new TestOldVersion());
+        addTest(new TestMultiThreadedKernel());
+        addTest(new TestPageStore());
+        addTest(new TestPageStoreCoverage());
+        addTest(new TestPgServer());
+        addTest(new TestRecovery());
+        addTest(new RecoverLobTest());
+        addTest(createTest("org.h2.test.unit.TestServlet"));
+        addTest(new TestTimeStampWithTimeZone());
+        addTest(new TestUpgrade());
+        addTest(new TestUsingIndex());
+        addTest(new TestValue());
+        addTest(new TestWeb());
+
+        runAddedTests();
+
+        addTest(new TestCluster());
+        addTest(new TestFileLockSerialized());
+        addTest(new TestFileLockProcess());
+        addTest(new TestFileSystem());
+        addTest(new TestTools());
+        addTest(new TestSampleApps());
+
+        runAddedTests(1);
+    }
+
+    /**
+     * Run tests for utilities.
+     */
+    private void testUtils() {
+        System.out.println();
+        System.out.println("Test utilities (" + Utils.getMemoryUsed() + " KB used)");
+
         // mv store
         addTest(new TestCacheConcurrentLIRS());
         addTest(new TestCacheLIRS());
@@ -889,7 +946,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestMVStoreBenchmark());
         addTest(new TestMVStoreStopCompact());
         addTest(new TestMVStoreTool());
-        addTest(new TestMVTableEngine());
         addTest(new TestObjectDataType());
         addTest(new TestRandomMapOps());
         addTest(new TestSpinLock());
@@ -898,77 +954,46 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
         // unit
         addTest(new TestAnsCompression());
-        addTest(new TestAutoReconnect());
         addTest(new TestBinaryArithmeticStream());
         addTest(new TestBitStream());
-        addTest(new TestBnf());
-        addTest(new TestCache());
         addTest(new TestCharsetCollator());
         addTest(new TestClearReferences());
-        addTest(new TestCollation());
-        addTest(new TestCompress());
-        addTest(new TestConnectionInfo());
         addTest(new TestDataPage());
         addTest(new TestDateIso8601());
-        addTest(new TestExit());
         addTest(new TestFile());
-        addTest(new TestFileLock());
         addTest(new TestFtp());
         addTest(new TestIntArray());
         addTest(new TestIntIntHashMap());
         addTest(new TestIntPerfectHash());
-        addTest(new TestJmx());
         addTest(new TestMathUtils());
         addTest(new TestMode());
-        addTest(new TestModifyOnWrite());
-        addTest(new TestOldVersion());
         addTest(new TestObjectDeserialization());
-        addTest(new TestMultiThreadedKernel());
         addTest(new TestOverflow());
-        addTest(new TestPageStore());
-        addTest(new TestPageStoreCoverage());
         addTest(new TestPerfectHash());
-        addTest(new TestPgServer());
         addTest(new TestReader());
-        addTest(new TestRecovery());
         addTest(new TestScriptReader());
-        addTest(new RecoverLobTest());
-        addTest(createTest("org.h2.test.unit.TestServlet"));
         addTest(new TestSecurity());
         addTest(new TestShell());
         addTest(new TestSort());
         addTest(new TestStreams());
         addTest(new TestStringUtils());
-        addTest(new TestTimeStampWithTimeZone());
         addTest(new TestTraceSystem());
-        addTest(new TestUpgrade());
-        addTest(new TestUsingIndex());
         addTest(new TestUtils());
-        addTest(new TestValue());
         addTest(new TestValueHashMap());
-        addTest(new TestWeb());
-
 
         runAddedTests();
 
         // serial
         addTest(new TestDate());
         addTest(new TestDateTimeUtils());
-        addTest(new TestCluster());
         addTest(new TestConcurrent());
-        addTest(new TestFileLockSerialized());
-        addTest(new TestFileLockProcess());
-        addTest(new TestFileSystem());
         addTest(new TestNetUtils());
         addTest(new TestPattern());
-        addTest(new TestTools());
-        addTest(new TestSampleApps());
         addTest(new TestStringCache());
         addTest(new TestValueMemory());
         addTest(new TestAuthentication());
 
         runAddedTests(1);
-
     }
 
     private void addTest(TestBase test) {

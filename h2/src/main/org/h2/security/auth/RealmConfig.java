@@ -8,18 +8,8 @@ package org.h2.security.auth;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
+public class RealmConfig implements HasConfigProperties{
 
-/**
- * Configuration for authentication realm.
- */
-@XmlAccessorType(XmlAccessType.FIELD)
-public class RealmConfig {
-
-    @XmlAttribute(required = true)
     private String name;
 
     public String getName() {
@@ -30,7 +20,6 @@ public class RealmConfig {
         this.name = name;
     }
 
-    @XmlAttribute(required = true)
     String validatorClass;
 
     public String getValidatorClass() {
@@ -41,7 +30,6 @@ public class RealmConfig {
         this.validatorClass = validatorClass;
     }
 
-    @XmlElement(name = "property")
     List<PropertyConfig> properties;
 
     public List<PropertyConfig> getProperties() {

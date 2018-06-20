@@ -8,20 +8,11 @@ package org.h2.security.auth;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 /**
  * Describe configuration of H2 DefaultAuthenticator
  */
-@XmlRootElement(name = "h2Auth")
-@XmlAccessorType(XmlAccessType.FIELD)
 public class H2AuthConfig {
 
-    @XmlAttribute
     private boolean allowUserRegistration=true;
 
     public boolean isAllowUserRegistration() {
@@ -31,8 +22,7 @@ public class H2AuthConfig {
     public void setAllowUserRegistration(boolean allowUserRegistration) {
         this.allowUserRegistration = allowUserRegistration;
     }
-
-    @XmlAttribute
+    
     boolean createMissingRoles=true;
 
     public boolean isCreateMissingRoles() {
@@ -43,7 +33,6 @@ public class H2AuthConfig {
         this.createMissingRoles = createMissingRoles;
     }
 
-    @XmlElement(name = "realm")
     List<RealmConfig> realms;
 
     public List<RealmConfig> getRealms() {
@@ -57,7 +46,6 @@ public class H2AuthConfig {
         this.realms = realms;
     }
 
-    @XmlElement(name = "userToRolesMapper")
     List<UserToRolesMapperConfig> userToRolesMappers;
 
     public List<UserToRolesMapperConfig> getUserToRolesMappers() {

@@ -14,8 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.xml.bind.JAXB;
-
 import org.h2.api.CredentialsValidator;
 import org.h2.api.UserToRolesMapper;
 import org.h2.engine.Database;
@@ -237,7 +235,7 @@ public class DefaultAuthenticator implements Authenticator {
      * @throws Exception
      */
     public void configureFromUrl(URL configUrl) throws Exception {
-        H2AuthConfig config = JAXB.unmarshal(configUrl, H2AuthConfig.class);
+        H2AuthConfig config = H2AuthConfigXml.parseFrom(configUrl);
         configureFrom(config);
     }
 

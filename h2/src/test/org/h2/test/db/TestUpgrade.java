@@ -14,13 +14,14 @@ import java.sql.Statement;
 import org.h2.api.ErrorCode;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.upgrade.DbUpgrade;
 import org.h2.util.Utils;
 
 /**
  * Automatic upgrade test cases.
  */
-public class TestUpgrade extends TestBase {
+public class TestUpgrade extends TestDb {
 
     /**
      * Run just this test.

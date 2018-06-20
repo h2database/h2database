@@ -14,6 +14,7 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;
 
@@ -22,7 +23,7 @@ import org.h2.tools.DeleteDbFiles;
  * then deletes everything and runs in an endless loop executing random
  * operations. This loop is usually stopped by switching off the computer.
  */
-public class TestTimer extends TestBase {
+public class TestTimer extends TestDb {
 
     /**
      * Run just this test.

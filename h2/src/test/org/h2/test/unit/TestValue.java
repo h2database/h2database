@@ -22,6 +22,7 @@ import java.util.UUID;
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.test.utils.AssertThrows;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.Bits;
@@ -43,7 +44,7 @@ import org.h2.value.ValueUuid;
 /**
  * Tests features of values.
  */
-public class TestValue extends TestBase {
+public class TestValue extends TestDb {
 
     /**
      * Run just this test.

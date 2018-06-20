@@ -13,11 +13,12 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.concurrent.CountDownLatch;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Additional MVCC (multi version concurrency) test cases.
  */
-public class TestMvcc4 extends TestBase {
+public class TestMvcc4 extends TestDb {
 
     /**
      * Run just this test.

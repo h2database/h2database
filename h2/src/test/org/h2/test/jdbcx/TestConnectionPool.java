@@ -18,12 +18,13 @@ import javax.sql.DataSource;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.Task;
 
 /**
  * This class tests the JdbcConnectionPool.
  */
-public class TestConnectionPool extends TestBase {
+public class TestConnectionPool extends TestDb {
 
     /**
      * Run just this test.

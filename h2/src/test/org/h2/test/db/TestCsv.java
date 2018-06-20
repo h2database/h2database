@@ -28,6 +28,7 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.Csv;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
@@ -38,7 +39,7 @@ import org.h2.util.StringUtils;
  * @author Thomas Mueller
  * @author Sylvain Cuaz (testNull)
  */
-public class TestCsv extends TestBase {
+public class TestCsv extends TestDb {
 
     /**
      * Run just this test.

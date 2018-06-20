@@ -16,6 +16,7 @@ import java.util.Random;
 
 import org.h2.message.Trace;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.Cache;
 import org.h2.util.CacheLRU;
 import org.h2.util.CacheObject;
@@ -27,7 +28,7 @@ import org.h2.value.Value;
 /**
  * Tests the cache.
  */
-public class TestCache extends TestBase implements CacheWriter {
+public class TestCache extends TestDb implements CacheWriter {
 
     private String out;
 

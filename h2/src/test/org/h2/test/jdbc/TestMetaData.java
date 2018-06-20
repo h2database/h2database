@@ -20,12 +20,13 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.value.DataType;
 
 /**
  * Test for the DatabaseMetaData implementation.
  */
-public class TestMetaData extends TestBase {
+public class TestMetaData extends TestDb {
 
     private static final String CATALOG = "METADATA";
 

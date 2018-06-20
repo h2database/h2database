@@ -10,11 +10,12 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Starts multiple threads and performs random operations on each thread.
  */
-public class TestMulti extends TestBase {
+public class TestMulti extends TestDb {
 
     /**
      * If set, the test should stop.

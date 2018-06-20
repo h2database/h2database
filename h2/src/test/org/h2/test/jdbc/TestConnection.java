@@ -7,6 +7,8 @@ package org.h2.test.jdbc;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
+
 import java.sql.Connection;
 import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
@@ -18,7 +20,7 @@ import java.util.Properties;
 /**
  * Tests the client info
  */
-public class TestConnection extends TestBase {
+public class TestConnection extends TestDb {
 
     /**
      * Run just this test.

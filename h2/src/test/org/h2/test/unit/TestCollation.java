@@ -10,11 +10,12 @@ import java.sql.Statement;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Test the ICU4J collator.
  */
-public class TestCollation extends TestBase {
+public class TestCollation extends TestDb {
 
     /**
      * Run just this test.

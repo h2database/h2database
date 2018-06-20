@@ -12,12 +12,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.DeleteDbFiles;
 
 /**
  * A b-tree index test.
  */
-public class TestBtreeIndex extends TestBase {
+public class TestBtreeIndex extends TestDb {
 
     /**
      * Run just this test.

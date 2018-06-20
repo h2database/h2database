@@ -9,13 +9,14 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Recover;
 
 /**
  * Tests BLOB/CLOB recovery.
  */
-public class RecoverLobTest extends TestBase {
+public class RecoverLobTest extends TestDb {
 
     /**
      * Run just this test.

@@ -16,12 +16,13 @@ import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.JdbcUtils;
 
 /**
  * Basic XA tests.
  */
-public class TestXA extends TestBase {
+public class TestXA extends TestDb {
 
     private static final String DB_NAME1 = "xadb1";
     private static final String DB_NAME2 = "xadb2";

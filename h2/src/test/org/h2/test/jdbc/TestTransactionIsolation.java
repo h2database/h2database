@@ -9,11 +9,12 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Transaction isolation level tests.
  */
-public class TestTransactionIsolation extends TestBase {
+public class TestTransactionIsolation extends TestDb {
 
     private Connection conn1, conn2;
 

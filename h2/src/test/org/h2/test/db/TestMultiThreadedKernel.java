@@ -14,13 +14,14 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Task;
 
 /**
  * A multi-threaded test case.
  */
-public class TestMultiThreadedKernel extends TestBase {
+public class TestMultiThreadedKernel extends TestDb {
 
     /**
      * Stop the current thread.

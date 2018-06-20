@@ -11,12 +11,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.api.DatabaseEventListener;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.Task;
 
 /**
  * Multi-connection tests.
  */
-public class TestMultiConn extends TestBase {
+public class TestMultiConn extends TestDb {
 
     /**
      * How long to wait in milliseconds.

@@ -26,13 +26,14 @@ import org.h2.result.RowImpl;
 import org.h2.store.Page;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 
 /**
  * Test the page store.
  */
-public class TestPageStore extends TestBase {
+public class TestPageStore extends TestDb {
 
     /**
      * The events log.

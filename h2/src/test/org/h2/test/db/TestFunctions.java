@@ -50,6 +50,7 @@ import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.test.ap.TestAnnotationProcessor;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.DateTimeUtils;
@@ -64,7 +65,7 @@ import org.h2.value.ValueTimestampTimeZone;
 /**
  * Tests for user defined functions and aggregates.
  */
-public class TestFunctions extends TestBase implements AggregateFunction {
+public class TestFunctions extends TestDb implements AggregateFunction {
 
     static int count;
 

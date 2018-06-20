@@ -46,6 +46,7 @@ import org.h2.engine.SysProperties;
 import org.h2.server.web.WebServlet;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.test.utils.AssertThrows;
 import org.h2.tools.Server;
 import org.h2.util.StringUtils;
@@ -54,7 +55,7 @@ import org.h2.util.Task;
 /**
  * Tests the H2 Console application.
  */
-public class TestWeb extends TestBase {
+public class TestWeb extends TestDb {
 
     private static volatile String lastUrl;
 

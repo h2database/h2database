@@ -15,11 +15,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests the compatibility with other databases.
  */
-public class TestCompatibility extends TestBase {
+public class TestCompatibility extends TestDb {
 
     private Connection conn;
 

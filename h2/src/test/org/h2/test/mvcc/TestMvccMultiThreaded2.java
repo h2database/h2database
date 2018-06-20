@@ -13,12 +13,13 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import org.h2.message.DbException;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.IOUtils;
 
 /**
  * Additional MVCC (multi version concurrency) test cases.
  */
-public class TestMvccMultiThreaded2 extends TestBase {
+public class TestMvccMultiThreaded2 extends TestDb {
 
     private static final int TEST_THREAD_COUNT = 100;
     private static final int TEST_TIME_SECONDS = 60;

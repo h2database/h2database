@@ -14,12 +14,13 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.MultiDimension;
 
 /**
  * Tests the multi-dimension index tool.
  */
-public class TestMultiDimension extends TestBase {
+public class TestMultiDimension extends TestDb {
 
     /**
      * Run just this test.

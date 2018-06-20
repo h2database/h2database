@@ -18,6 +18,7 @@ import java.util.Random;
 import org.h2.api.ErrorCode;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.test.utils.SelfDestructor;
 import org.h2.tools.Backup;
 
@@ -25,7 +26,7 @@ import org.h2.tools.Backup;
  * Standalone recovery test. A new process is started and then killed while it
  * executes random statements using multiple connection.
  */
-public class TestKillRestartMulti extends TestBase {
+public class TestKillRestartMulti extends TestDb {
 
     /**
      * We want self-destruct to occur before the read times out and we kill the

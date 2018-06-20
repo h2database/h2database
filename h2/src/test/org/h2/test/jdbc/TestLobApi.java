@@ -25,12 +25,13 @@ import java.util.Random;
 import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.IOUtils;
 
 /**
  * Test the Blob, Clob, and NClob implementations.
  */
-public class TestLobApi extends TestBase {
+public class TestLobApi extends TestDb {
 
     private JdbcConnection conn;
     private Statement stat;

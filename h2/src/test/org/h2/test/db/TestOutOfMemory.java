@@ -20,12 +20,13 @@ import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FilePathMem;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests out of memory situations. The database must not get corrupted, and
  * transactions must stay atomic.
  */
-public class TestOutOfMemory extends TestBase {
+public class TestOutOfMemory extends TestDb {
 
     private static final String DB_NAME = "outOfMemory";
 
@@ -203,7 +204,7 @@ public class TestOutOfMemory extends TestBase {
         }
     }
 
-    public static final class MyChild extends TestBase.Child
+    public static final class MyChild extends TestDb.Child
     {
 
         /**

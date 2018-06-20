@@ -10,11 +10,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests the meta data tables information_schema.locks and sessions.
  */
-public class TestSessionsLocks extends TestBase {
+public class TestSessionsLocks extends TestDb {
 
     /**
      * Run just this test.

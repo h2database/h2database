@@ -23,11 +23,12 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Various test cases.
  */
-public class TestCases extends TestBase {
+public class TestCases extends TestDb {
 
     /**
      * Run just this test.

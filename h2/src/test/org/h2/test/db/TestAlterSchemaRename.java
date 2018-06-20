@@ -7,6 +7,7 @@ package org.h2.test.db;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -16,7 +17,7 @@ import java.sql.Statement;
 /**
  * Test ALTER SCHEMA RENAME statements.
  */
-public class TestAlterSchemaRename extends TestBase {
+public class TestAlterSchemaRename extends TestDb {
 
     private Connection conn;
     private Statement stat;

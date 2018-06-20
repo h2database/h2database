@@ -11,12 +11,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.Task;
 
 /**
  * Additional MVCC (multi version concurrency) test cases.
  */
-public class TestMvcc2 extends TestBase {
+public class TestMvcc2 extends TestDb {
 
     private static final String DROP_TABLE =
             "DROP TABLE IF EXISTS EMPLOYEE";

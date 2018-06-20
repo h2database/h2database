@@ -13,11 +13,12 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests INIT command within embedded/server mode.
  */
-public class TestInit extends TestBase {
+public class TestInit extends TestDb {
 
     /**
      * Run just this test.

@@ -10,12 +10,13 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.SortedProperties;
 
 /**
  * Tests automatic embedded/server mode.
  */
-public class TestAutoServer extends TestBase {
+public class TestAutoServer extends TestDb {
 
     /**
      * The number of iterations.

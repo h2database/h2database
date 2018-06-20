@@ -10,11 +10,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Test for limit updates.
  */
-public class TestLimitUpdates extends TestBase {
+public class TestLimitUpdates extends TestDb {
 
     private static final String DATABASE_NAME = "limitUpdates";
 

@@ -18,6 +18,7 @@ import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.StringUtils;
 import org.h2.util.Task;
@@ -26,7 +27,7 @@ import org.h2.util.Task;
  * Test various optimizations (query cache, optimization for MIN(..), and
  * MAX(..)).
  */
-public class TestOptimizations extends TestBase {
+public class TestOptimizations extends TestDb {
 
     /**
      * Run just this test.
@@ -1156,11 +1157,12 @@ public class TestOptimizations extends TestBase {
                 "FOREIGN KEY (table_a_id) REFERENCES TABLE_A(id) )");
         stat.execute("INSERT INTO TABLE_A (name)  SELECT 'package_' || CAST(X as VARCHAR) " +
                 "FROM SYSTEM_RANGE(1, 100)  WHERE X <= 100");
+        int count = config.memory ? 30_000 : 50_000;
         stat.execute("INSERT INTO TABLE_B (table_a_id, createDate)  SELECT " +
                 "CASE WHEN table_a_id = 0 THEN 1 ELSE table_a_id END, createDate " +
                 "FROM ( SELECT ROUND((RAND() * 100)) AS table_a_id, " +
-                "DATEADD('SECOND', X, NOW()) as createDate FROM SYSTEM_RANGE(1, 50000) " +
-                "WHERE X < 50000  )");
+                "DATEADD('SECOND', X, NOW()) as createDate FROM SYSTEM_RANGE(1, " + count + ") " +
+                "WHERE X < " + count + "  )");
         stat.execute("CREATE INDEX table_b_idx ON table_b(table_a_id, id)");
         stat.execute("ANALYZE");
 

@@ -12,11 +12,12 @@ import java.sql.Statement;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Test the impact of DROP VIEW statements on dependent views.
  */
-public class TestViewDropView extends TestBase {
+public class TestViewDropView extends TestDb {
 
     private Connection conn;
     private Statement stat;

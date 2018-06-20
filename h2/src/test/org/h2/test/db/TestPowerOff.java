@@ -16,12 +16,13 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.JdbcUtils;
 
 /**
  * Tests simulated power off conditions.
  */
-public class TestPowerOff extends TestBase {
+public class TestPowerOff extends TestDb {
 
     private static final String DB_NAME = "powerOff";
     private String dir, url;

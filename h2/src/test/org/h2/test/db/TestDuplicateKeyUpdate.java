@@ -13,11 +13,12 @@ import java.sql.Statement;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests for the ON DUPLICATE KEY UPDATE in the Insert class.
  */
-public class TestDuplicateKeyUpdate extends TestBase {
+public class TestDuplicateKeyUpdate extends TestDb {
 
     /**
      * Run just this test.

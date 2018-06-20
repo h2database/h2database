@@ -20,11 +20,12 @@ import java.util.BitSet;
 import org.h2.message.TraceSystem;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Test for big result sets.
  */
-public class TestBigResult extends TestBase {
+public class TestBigResult extends TestDb {
 
     /**
      * Run just this test.

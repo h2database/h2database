@@ -32,12 +32,13 @@ import javax.servlet.descriptor.JspConfigDescriptor;
 import org.h2.api.ErrorCode;
 import org.h2.server.web.DbStarter;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests the DbStarter servlet.
  * This test simulates a minimum servlet container environment.
  */
-public class TestServlet extends TestBase {
+public class TestServlet extends TestDb {
 
     /**
      * Run just this test.

@@ -18,12 +18,13 @@ import java.util.Random;
 
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.ScriptReader;
 
 /**
  * Tests nested joins and right outer joins.
  */
-public class TestOuterJoins extends TestBase {
+public class TestOuterJoins extends TestDb {
 
     private final ArrayList<Statement> dbs = new ArrayList<>();
 

@@ -17,11 +17,12 @@ import org.h2.api.Trigger;
 import org.h2.jdbc.JdbcPreparedStatement;
 import org.h2.jdbc.JdbcStatement;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests for the {@link Statement#getGeneratedKeys()}.
  */
-public class TestGetGeneratedKeys extends TestBase {
+public class TestGetGeneratedKeys extends TestDb {
 
     public static class TestGetGeneratedKeysTrigger implements Trigger {
 

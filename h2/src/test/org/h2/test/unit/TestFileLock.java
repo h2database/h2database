@@ -13,12 +13,13 @@ import org.h2.message.TraceSystem;
 import org.h2.store.FileLock;
 import org.h2.store.FileLockMethod;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests the database file locking facility. Both lock files and sockets locking
  * is tested.
  */
-public class TestFileLock extends TestBase implements Runnable {
+public class TestFileLock extends TestDb implements Runnable {
 
     private static volatile int locks;
     private static volatile boolean stop;

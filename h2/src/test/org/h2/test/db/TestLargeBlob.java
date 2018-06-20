@@ -11,11 +11,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Test a BLOB larger than Integer.MAX_VALUE
  */
-public class TestLargeBlob extends TestBase {
+public class TestLargeBlob extends TestDb {
 
     /**
      * Run just this test.

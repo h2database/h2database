@@ -13,12 +13,13 @@ import java.sql.SQLException;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests a custom BigDecimal implementation, as well
  * as direct modification of a byte in a byte array.
  */
-public class TestZloty extends TestBase {
+public class TestZloty extends TestDb {
 
     /**
      * Run just this test.

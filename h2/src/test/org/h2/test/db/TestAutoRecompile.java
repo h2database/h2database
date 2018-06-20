@@ -12,11 +12,12 @@ import java.sql.Statement;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests if prepared statements are re-compiled when required.
  */
-public class TestAutoRecompile extends TestBase {
+public class TestAutoRecompile extends TestDb {
 
     /**
      * Run just this test.

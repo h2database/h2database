@@ -14,11 +14,12 @@ import java.util.Random;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Basic MVCC (multi version concurrency) test cases.
  */
-public class TestMvcc1 extends TestBase {
+public class TestMvcc1 extends TestDb {
 
     private Connection c1, c2;
     private Statement s1, s2;

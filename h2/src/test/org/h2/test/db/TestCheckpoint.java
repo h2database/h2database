@@ -10,11 +10,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests the CHECKPOINT SQL statement.
  */
-public class TestCheckpoint extends TestBase {
+public class TestCheckpoint extends TestDb {
 
     /**
      * Run just this test.

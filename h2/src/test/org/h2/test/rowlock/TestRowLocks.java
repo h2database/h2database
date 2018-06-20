@@ -12,12 +12,13 @@ import java.sql.Statement;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.Task;
 
 /**
  * Row level locking tests.
  */
-public class TestRowLocks extends TestBase {
+public class TestRowLocks extends TestDb {
 
     /**
      * The statements used in this test.

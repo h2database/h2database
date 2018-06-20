@@ -14,12 +14,13 @@ import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.JdbcUtils;
 
 /**
  * A simple XA test.
  */
-public class TestXASimple extends TestBase {
+public class TestXASimple extends TestDb {
 
     /**
      * Run just this test.

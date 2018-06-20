@@ -17,6 +17,7 @@ import org.h2.api.Trigger;
 import org.h2.engine.Session;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.TriggerAdapter;
 import org.h2.util.Task;
 import org.h2.value.ValueLong;
@@ -24,7 +25,7 @@ import org.h2.value.ValueLong;
 /**
  * Tests for trigger and constraints.
  */
-public class TestTriggersConstraints extends TestBase implements Trigger {
+public class TestTriggersConstraints extends TestDb implements Trigger {
 
     private static boolean mustNotCallTrigger;
     private String triggerName;

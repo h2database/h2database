@@ -15,12 +15,13 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.Restore;
 
 /**
  * Test the page store.
  */
-public class TestPageStoreCoverage extends TestBase {
+public class TestPageStoreCoverage extends TestDb {
 
     private static final String URL = "pageStoreCoverage;" +
             "PAGE_SIZE=64;CACHE_SIZE=16;MAX_LOG_SIZE=1";

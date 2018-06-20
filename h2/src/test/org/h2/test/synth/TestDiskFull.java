@@ -12,12 +12,13 @@ import java.sql.Statement;
 import org.h2.api.ErrorCode;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.test.utils.FilePathUnstable;
 
 /**
  * Test simulated disk full problems.
  */
-public class TestDiskFull extends TestBase {
+public class TestDiskFull extends TestDb {
 
     private FilePathUnstable fs;
 

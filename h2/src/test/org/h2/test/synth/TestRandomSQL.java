@@ -11,12 +11,13 @@ import java.sql.Statement;
 import org.h2.engine.SysProperties;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.MathUtils;
 
 /**
  * This test executes random SQL statements generated using the BNF tool.
  */
-public class TestRandomSQL extends TestBase {
+public class TestRandomSQL extends TestDb {
 
     private int success, total;
 

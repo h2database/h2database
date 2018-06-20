@@ -14,11 +14,12 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Temporary table tests.
  */
-public class TestTempTables extends TestBase {
+public class TestTempTables extends TestDb {
 
     /**
      * Run just this test.

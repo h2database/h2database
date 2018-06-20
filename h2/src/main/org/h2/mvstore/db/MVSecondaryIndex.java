@@ -267,7 +267,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
             Value v1 = rowOne.getValue(index);
             Value v2 = rowTwo.getValue(index);
             if (v1 == null ? v2 != null : !v1.equals(v2)) {
-                break;
+                return false;
             }
         }
         return rowOne.getKey() == rowTwo.getKey();

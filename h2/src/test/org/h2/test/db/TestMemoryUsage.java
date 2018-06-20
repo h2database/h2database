@@ -62,14 +62,17 @@ public class TestMemoryUsage extends TestBase {
         }
         deleteDb("memoryUsage");
         conn = getConnection("memoryUsage");
-        eatMemory(4000);
-        for (int i = 0; i < 4000; i++) {
-            Connection c2 = getConnection("memoryUsage");
-            c2.createStatement();
-            c2.close();
+        try {
+            eatMemory(4000);
+            for (int i = 0; i < 4000; i++) {
+                Connection c2 = getConnection("memoryUsage");
+                c2.createStatement();
+                c2.close();
+            }
+        } finally {
+            freeMemory();
+            conn.close();
         }
-        freeMemory();
-        conn.close();
     }
 
     private void testCreateDropLoop() throws SQLException {
@@ -140,8 +143,8 @@ public class TestMemoryUsage extends TestBase {
                 }
             }
         } finally {
-            conn.close();
             freeMemory();
+            conn.close();
         }
     }
 

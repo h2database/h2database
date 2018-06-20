@@ -58,7 +58,7 @@ public class MVPrimaryIndex extends BaseIndex {
         Transaction t = mvTable.getTransactionBegin();
         dataMap = t.openMap(mapName, keyType, valueType);
         t.commit();
-        if (!table.isPersistData()) {
+        if (!table.isPersistData() || !indexType.isPersistent()) {
             dataMap.map.setVolatile(true);
         }
         Value k = dataMap.map.lastKey();    // include uncommitted keys as well
@@ -113,7 +113,8 @@ public class MVPrimaryIndex extends BaseIndex {
         }
 
         TransactionMap<Value, Value> map = getMap(session);
-        Value key = ValueLong.get(row.getKey());
+        long rowKey = row.getKey();
+        Value key = ValueLong.get(rowKey);
         try {
             Value oldValue = map.putIfAbsent(key, ValueArray.get(row.getValueList()));
             if (oldValue != null) {
@@ -135,8 +136,9 @@ public class MVPrimaryIndex extends BaseIndex {
         }
         // because it's possible to directly update the key using the _rowid_
         // syntax
-        if (row.getKey() > lastKey.get()) {
-            lastKey.set(row.getKey());
+        long last;
+        while (rowKey > (last = lastKey.get())) {
+            if(lastKey.compareAndSet(last, rowKey)) break;
         }
     }
 
@@ -223,33 +225,27 @@ public class MVPrimaryIndex extends BaseIndex {
 
     @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        ValueLong min, max;
-        if (first == null) {
-            min = ValueLong.MIN;
-        } else if (mainIndexColumn < 0) {
-            min = ValueLong.get(first.getKey());
-        } else {
-            ValueLong v = (ValueLong) first.getValue(mainIndexColumn);
-            if (v == null) {
-                min = ValueLong.get(first.getKey());
-            } else {
-                min = v;
-            }
-        }
-        if (last == null) {
-            max = ValueLong.MAX;
-        } else if (mainIndexColumn < 0) {
-            max = ValueLong.get(last.getKey());
-        } else {
-            ValueLong v = (ValueLong) last.getValue(mainIndexColumn);
-            if (v == null) {
-                max = ValueLong.get(last.getKey());
-            } else {
-                max = v;
-            }
-        }
+        ValueLong min = extractPKFromRow(first, ValueLong.MIN);
+        ValueLong max = extractPKFromRow(last, ValueLong.MAX);
         TransactionMap<Value, Value> map = getMap(session);
         return new MVStoreCursor(session, map.entryIterator(min, max));
+    }
+
+    private ValueLong extractPKFromRow(SearchRow row, ValueLong defaultValue) {
+        ValueLong result;
+        if (row == null) {
+            result = defaultValue;
+        } else if (mainIndexColumn == SearchRow.ROWID_INDEX) {
+            result = ValueLong.get(row.getKey());
+        } else {
+            ValueLong v = (ValueLong) row.getValue(mainIndexColumn);
+            if (v == null) {
+                result = ValueLong.get(row.getKey());
+            } else {
+                result = v;
+            }
+        }
+        return result;
     }
 
     @Override

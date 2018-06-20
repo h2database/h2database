@@ -421,9 +421,8 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
             }
             key = first ? map.higherKey(key) : map.lowerKey(key);
         }
-        ArrayList<Value> list = new ArrayList<>(1);
-        list.add(key);
-        MVStoreCursor cursor = new MVStoreCursor(session, list.iterator(), null);
+        MVStoreCursor cursor = new MVStoreCursor(session,
+                                Collections.singletonList(key).iterator(), null);
         cursor.next();
         return cursor;
     }
@@ -544,7 +543,6 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         public boolean previous() {
             throw DbException.getUnsupportedException("previous");
         }
-
     }
 
 }

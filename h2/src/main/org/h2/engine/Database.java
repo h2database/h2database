@@ -2265,12 +2265,12 @@ public class Database implements DataHandler {
         switch (lockMode) {
         case Constants.LOCK_MODE_OFF:
             if (multiThreaded && !isMVStore()) {
-                // currently the combination of MVCC=FALSE, LOCK_MODE=0 and MULTI_THREADED
-                // is not supported. also see code in
+                // Currently the combination of MV_STORE=FALSE, LOCK_MODE=0 and
+                // MULTI_THREADED=TRUE is not supported. Also see code in
                 // JdbcDatabaseMetaData#supportsTransactionIsolationLevel(int)
                 throw DbException.get(
                         ErrorCode.UNSUPPORTED_SETTING_COMBINATION,
-                        "MVCC=FALSE & LOCK_MODE=0 & MULTI_THREADED");
+                        "MV_STORE=FALSE & LOCK_MODE=0 & MULTI_THREADED=TRUE");
             }
             break;
         case Constants.LOCK_MODE_READ_COMMITTED:
@@ -2457,12 +2457,12 @@ public class Database implements DataHandler {
 
     public void setMultiThreaded(boolean multiThreaded) {
         if (multiThreaded && this.multiThreaded != multiThreaded) {
-            if (lockMode == 0) {
-                // currently the combination of LOCK_MODE=0 and MULTI_THREADED
-                // is not supported
+            if (lockMode == Constants.LOCK_MODE_OFF && !isMVStore()) {
+                // Currently the combination of MV_STORE=FALSE, LOCK_MODE=0 and
+                // MULTI_THREADED=TRUE is not supported.
                 throw DbException.get(
                         ErrorCode.UNSUPPORTED_SETTING_COMBINATION,
-                        "LOCK_MODE=0 & MULTI_THREADED");
+                        "MV_STORE=FALSE & LOCK_MODE=0 & MULTI_THREADED=TRUE");
             }
         }
         this.multiThreaded = multiThreaded;

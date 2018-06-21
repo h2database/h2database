@@ -288,13 +288,12 @@ public class TestMultiThread extends TestDb implements Runnable {
     }
 
     private void testLockModeWithMultiThreaded() throws Exception {
-        // currently the combination of LOCK_MODE=0 and MULTI_THREADED
-        // is not supported
         deleteDb("lockMode");
         final String url = getURL("lockMode;MULTI_THREADED=1", true);
         try (Connection conn = getConnection(url)) {
             DatabaseMetaData meta = conn.getMetaData();
-            assertFalse(meta.supportsTransactionIsolationLevel(
+            // LOCK_MODE=0 with MULTI_THREADED=TRUE is supported only by MVStore
+            assertEquals(config.mvStore, meta.supportsTransactionIsolationLevel(
                     Connection.TRANSACTION_READ_UNCOMMITTED));
         }
         deleteDb("lockMode");

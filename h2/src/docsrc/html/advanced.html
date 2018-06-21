@@ -229,7 +229,7 @@ Transaction isolation is provided for all data manipulation language (DML) state
 <p>
 Please note that with default MVStore storage engine table level locking is not used.
 Instead, rows are locked for update, and read committed is used in all cases
-(changing the isolation level has no effect).
+except for explicitly selected read uncommitted transaction isolation level.
 </p>
 <p>
 This database supports the following transaction isolation levels:
@@ -247,7 +247,9 @@ This database supports the following transaction isolation levels:
     To enable, execute the SQL statement <code>SET LOCK_MODE 1</code><br />
     or append <code>;LOCK_MODE=1</code> to the database URL: <code>jdbc:h2:~/test;LOCK_MODE=1</code>
 </li><li><b>Read Uncommitted</b><br />
-    This level means that transaction isolation is disabled.<br />
+    This level means that transaction isolation is disabled.
+    This level is not supported by PageStore engine if multi-threaded mode is enabled.
+    <br />
     To enable, execute the SQL statement <code>SET LOCK_MODE 0</code><br />
     or append <code>;LOCK_MODE=0</code> to the database URL: <code>jdbc:h2:~/test;LOCK_MODE=0</code>
 </li>

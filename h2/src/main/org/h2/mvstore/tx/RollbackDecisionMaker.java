@@ -30,9 +30,11 @@ final class RollbackDecisionMaker extends MVMap.DecisionMaker<Object[]> {
     @Override
     public MVMap.Decision decide(Object[] existingValue, Object[] providedValue) {
         assert decision == null;
-        // normally existingValue will always be there except of db initialization
-        // where some undo log entry was captured on disk but actual map entry was not
-        if (existingValue != null ) {
+        if (existingValue == null) {
+            // normally existingValue will always be there except of db initialization
+            // where some undo log entry was captured on disk but actual map entry was not
+            decision = MVMap.Decision.ABORT;
+        } else {
             VersionedValue valueToRestore = (VersionedValue) existingValue[2];
             long operationId;
             if (valueToRestore == null ||
@@ -47,8 +49,8 @@ final class RollbackDecisionMaker extends MVMap.DecisionMaker<Object[]> {
                     listener.onRollback(map, key, previousValue, valueToRestore);
                 }
             }
+            decision = MVMap.Decision.REMOVE;
         }
-        decision = MVMap.Decision.REMOVE;
         return decision;
     }
 

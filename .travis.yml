@@ -20,10 +20,6 @@ matrix:
       dist: trusty
       group: edge
       sudo: required
-      addons:
-        apt:
-          packages:
-            - oracle-java8-installer
       before_script:
         - "cd h2"
         - "echo $JAVA_OPTS"
@@ -32,9 +28,5 @@ matrix:
       dist: trusty
       group: edge
       sudo: required
-      addons:
-        apt:
-          packages:
-            - openjdk-7-jdk
       before_script:
         - "cd h2"

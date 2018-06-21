@@ -1013,6 +1013,10 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
                 File.pathSeparator + javaToolsJar;
+        int version = getJavaVersion();
+        if (version >= 9) {
+            cp = "src/java9/precompiled" + File.pathSeparator + cp;
+        }
         int ret;
         if (travis) {
             ret = execJava(args(

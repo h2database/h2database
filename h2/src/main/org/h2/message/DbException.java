@@ -311,7 +311,8 @@ public class DbException extends RuntimeException {
             return get(ErrorCode.GENERAL_ERROR_1, e, e.toString());
         } catch (Throwable ex) {
             try {
-                DbException dbException = new DbException(new SQLException("GeneralError", "HY000", ErrorCode.GENERAL_ERROR_1, e));
+                DbException dbException = new DbException(
+                        new SQLException("GeneralError", "HY000", ErrorCode.GENERAL_ERROR_1, e));
                 dbException.addSuppressed(ex);
                 return dbException;
             } catch (OutOfMemoryError ignore) {

@@ -8,7 +8,10 @@ package org.h2.security.auth;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UserToRolesMapperConfig implements HasConfigProperties{
+/**
+ * Configuration for class that maps users to their roles.
+ */
+public class UserToRolesMapperConfig implements HasConfigProperties {
 
     private String className;
 
@@ -22,6 +25,7 @@ public class UserToRolesMapperConfig implements HasConfigProperties{
         this.className = className;
     }
 
+    @Override
     public List<PropertyConfig> getProperties() {
         if (properties == null) {
             properties = new ArrayList<>();

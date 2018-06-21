@@ -49,16 +49,19 @@ public abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue
             // because a tree root has definitely been changed.
             logIt(existingValue.value == null ? null : VersionedValue.getInstance(existingValue.value));
             decision = MVMap.Decision.PUT;
-        } else if(fetchTransaction(blockingId) != null) {
-            // this entry comes from a different transaction, and this transaction is not committed yet
+        } else if (fetchTransaction(blockingId) != null) {
+            // this entry comes from a different transaction, and this
+            // transaction is not committed yet
             // should wait on blockingTransaction that was determined earlier
             decision = MVMap.Decision.ABORT;
-        } else if(id == lastOperationId) {
-            // There is no transaction with that id, so we've retried it just before,
-            // but map root has not changed (which must be the case if we just missed a closed transaction),
-            // therefore we came back here again.
-            // Now we assume it's a leftover after unclean shutdown (map update was written but not undo log),
-            // and will effectively roll it back (just overwrite).
+        } else if (id == lastOperationId) {
+            // There is no transaction with that id, so we've retried it just
+            // before, but map root has not changed (which must be the case if
+            // we just missed a closed transaction), therefore we came back here
+            // again.
+            // Now we assume it's a leftover after unclean shutdown (map update
+            // was written but not undo log), and will effectively roll it back
+            // (just overwrite).
             Object committedValue = existingValue.getCommittedValue();
             logIt(committedValue == null ? null : VersionedValue.getInstance(committedValue));
             decision = MVMap.Decision.PUT;

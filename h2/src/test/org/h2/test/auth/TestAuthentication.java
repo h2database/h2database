@@ -278,7 +278,7 @@ public class TestAuthentication extends TestBase {
         }
         testExternalUser();
     }
-    
+
     static final String TESTXML="<h2Auth allowUserRegistration=\"true\" createMissingRoles=\"false\">"
             + "<realm name=\"ciao\" validatorClass=\"myclass\"/>"
             + "<realm name=\"miao\" validatorClass=\"myclass1\">"
@@ -288,7 +288,7 @@ public class TestAuthentication extends TestBase {
             + "</userToRolesMapper>"
             + "</realm>"
             + "</h2Auth>";
-    
+
     protected void testXmlConfig() throws Exception {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(TESTXML.getBytes());
         H2AuthConfig config = H2AuthConfigXml.parseFrom(inputStream);

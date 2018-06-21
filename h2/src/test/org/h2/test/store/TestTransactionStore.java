@@ -421,9 +421,9 @@ public class TestTransactionStore extends TestBase {
         }
     }
 
-    private boolean hasDataUndoLog(MVStore s) {
+    private static boolean hasDataUndoLog(MVStore s) {
         for (int i = 0; i < 255; i++) {
-            if(s.hasData(TransactionStore.getUndoLogName(true, 1))) {
+            if (s.hasData(TransactionStore.getUndoLogName(true, 1))) {
                 return true;
             }
         }

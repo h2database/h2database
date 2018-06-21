@@ -24,6 +24,14 @@ public class MetaRecord implements Comparable<MetaRecord> {
     private final int objectType;
     private final String sql;
 
+    /**
+     * Copy metadata from the specified object into specified search row.
+     *
+     * @param obj
+     *            database object
+     * @param r
+     *            search row
+     */
     public static void populateRowFromDBObject(DbObject obj, SearchRow r) {
         r.setValue(0, ValueInt.get(obj.getId()));
         r.setValue(1, ValueInt.get(0));

@@ -58,7 +58,7 @@ public class H2AuthConfigXml extends DefaultHandler{
         default:
             throw new SAXException("unexpected element "+qName);
         }
-        
+
     }
 
     @Override
@@ -74,7 +74,7 @@ public class H2AuthConfigXml extends DefaultHandler{
             throw new SAXException("missing attribute "+attributeName);
         }
         return attributeValue;
-        
+
     }
 
     static String getAttributeValueOr(String attributeName, Attributes attributes, String defaultValue) {
@@ -90,7 +90,7 @@ public class H2AuthConfigXml extends DefaultHandler{
     }
 
     /**
-     * Parse the xml 
+     * Parse the xml
      * @param url
      * @return
      * @throws Exception
@@ -102,7 +102,7 @@ public class H2AuthConfigXml extends DefaultHandler{
     }
 
     public static H2AuthConfig parseFrom(InputStream inputStream) throws Exception{
-        SAXParser saxParser = SAXParserFactory.newInstance().newSAXParser();        
+        SAXParser saxParser = SAXParserFactory.newInstance().newSAXParser();
         H2AuthConfigXml xmlHandler = new H2AuthConfigXml();
         saxParser.parse(inputStream,xmlHandler);
         return xmlHandler.getResult();

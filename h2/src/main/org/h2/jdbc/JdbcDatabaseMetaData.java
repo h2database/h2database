@@ -2315,16 +2315,31 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean supportsTransactionIsolationLevel(int level) throws SQLException {
         debugCodeCall("supportsTransactionIsolationLevel");
-        if (level == Connection.TRANSACTION_READ_UNCOMMITTED) {
-            // currently the combination of LOCK_MODE=0 and MULTI_THREADED
-            // is not supported, also see code in Database#setLockMode(int)
-            PreparedStatement prep = conn.prepareAutoCloseStatement(
-                    "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?");
-            prep.setString(1, "MULTI_THREADED");
-            ResultSet rs = prep.executeQuery();
-            return !rs.next() || !rs.getString(1).equals("1");
+        switch (level) {
+        case Connection.TRANSACTION_READ_UNCOMMITTED: {
+            // Currently the combination of MV_STORE=FALSE, LOCK_MODE=0 and
+            // MULTI_THREADED=TRUE is not supported. Also see code in
+            // Database#setLockMode(int)
+            try (PreparedStatement prep = conn.prepareStatement(
+                    "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?")) {
+                // TODO skip MV_STORE check for H2 <= 1.4.197
+                prep.setString(1, "MV_STORE");
+                ResultSet rs = prep.executeQuery();
+                if (rs.next() && Boolean.parseBoolean(rs.getString(1))) {
+                    return true;
+                }
+                prep.setString(1, "MULTI_THREADED");
+                rs = prep.executeQuery();
+                return !rs.next() || !rs.getString(1).equals("1");
+            }
         }
-        return true;
+        case Connection.TRANSACTION_READ_COMMITTED:
+        case Connection.TRANSACTION_REPEATABLE_READ:
+        case Connection.TRANSACTION_SERIALIZABLE:
+            return true;
+        default:
+            return false;
+        }
     }
 
     /**

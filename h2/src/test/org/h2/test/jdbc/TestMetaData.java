@@ -611,14 +611,13 @@ public class TestMetaData extends TestDb {
         assertTrue(meta.supportsSubqueriesInQuantifieds());
         assertTrue(meta.supportsTableCorrelationNames());
         assertTrue(meta.supportsTransactions());
-        assertTrue(meta.supportsTransactionIsolationLevel(
+        assertFalse(meta.supportsTransactionIsolationLevel(
                 Connection.TRANSACTION_NONE));
         assertTrue(meta.supportsTransactionIsolationLevel(
                 Connection.TRANSACTION_READ_COMMITTED));
-        if (!config.multiThreaded) {
-            assertTrue(meta.supportsTransactionIsolationLevel(
-                    Connection.TRANSACTION_READ_UNCOMMITTED));
-        }
+        assertEquals(config.mvStore || !config.multiThreaded,
+                meta.supportsTransactionIsolationLevel(
+                        Connection.TRANSACTION_READ_UNCOMMITTED));
         assertTrue(meta.supportsTransactionIsolationLevel(
                 Connection.TRANSACTION_REPEATABLE_READ));
         assertTrue(meta.supportsTransactionIsolationLevel(

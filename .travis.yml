@@ -8,7 +8,19 @@ cache:
 
 matrix:
   include:
-    - jdk: oraclejdk8 
+    - jdk: oraclejdk10
+      dist: trusty
+      group: edge
+      sudo: required
+      addons:
+        apt:
+          packages:
+            - oracle-java10-installer
+      before_script:
+        - "cd h2"
+        - "echo $JAVA_OPTS"
+        - "export JAVA_OPTS=-Xmx512m"
+    - jdk: oraclejdk8
       dist: trusty
       group: edge
       sudo: required
@@ -16,11 +28,11 @@ matrix:
         apt:
           packages:
             - oracle-java8-installer
-      before_script: 
+      before_script:
         - "cd h2"
         - "echo $JAVA_OPTS"
         - "export JAVA_OPTS=-Xmx512m"
-    - jdk: openjdk7 
+    - jdk: openjdk7
       dist: trusty
       group: edge
       sudo: required
@@ -28,5 +40,5 @@ matrix:
         apt:
           packages:
             - openjdk-7-jdk
-      before_script: 
+      before_script:
         - "cd h2"

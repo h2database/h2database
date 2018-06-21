@@ -37,7 +37,7 @@ public class TestExit extends TestDb {
         deleteDb("exit");
         String url = getURL(OPEN_WITH_CLOSE_ON_EXIT);
         String selfDestruct = SelfDestructor.getPropertyString(60);
-        String[] procDef = { "java", selfDestruct, "-cp", getClassPath(),
+        String[] procDef = { getJVM(), selfDestruct, "-cp", getClassPath(),
                 getClass().getName(), url };
         Process proc = Runtime.getRuntime().exec(procDef);
         while (true) {
@@ -60,7 +60,7 @@ public class TestExit extends TestDb {
             fail("did not close database");
         }
         url = getURL(OPEN_WITHOUT_CLOSE_ON_EXIT);
-        procDef = new String[] { "java", "-cp", getClassPath(),
+        procDef = new String[] { getJVM(), "-cp", getClassPath(),
                 getClass().getName(), url };
         proc = Runtime.getRuntime().exec(procDef);
         proc.waitFor();

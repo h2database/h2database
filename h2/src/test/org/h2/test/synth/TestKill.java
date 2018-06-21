@@ -50,7 +50,7 @@ public class TestKill extends TestDb {
         String password = getPassword();
         String selfDestruct = SelfDestructor.getPropertyString(60);
         String[] procDef = {
-                "java", selfDestruct,
+                getJVM(), selfDestruct,
                 "-cp", getClassPath(),
                 "org.h2.test.synth.TestKillProcess", url, user,
                 password, getBaseDir(), "" + ACCOUNTS };

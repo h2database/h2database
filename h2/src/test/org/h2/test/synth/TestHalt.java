@@ -226,7 +226,7 @@ public abstract class TestHalt extends TestBase {
             // String classPath = "-cp
             // .;D:/data/java/hsqldb.jar;D:/data/java/derby.jar";
             String selfDestruct = SelfDestructor.getPropertyString(60);
-            String[] procDef = { "java", selfDestruct,
+            String[] procDef = { getJVM(), selfDestruct,
                     "-cp", getClassPath(),
                     getClass().getName(), "" + operations, "" + flags, "" + testValue};
             traceOperation("start: " + StringUtils.arrayCombine(procDef, ' '));

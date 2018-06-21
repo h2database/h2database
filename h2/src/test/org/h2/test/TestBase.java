@@ -6,6 +6,7 @@
 package org.h2.test;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -1315,6 +1316,16 @@ public abstract class TestBase {
      */
     protected String getClassPath() {
         return System.getProperty("java.class.path");
+    }
+
+    /**
+     * Get the path to a java executable of the current process
+     *
+     * @return the path to java
+     */
+    public static String getJVM() {
+        return System.getProperty("java.home") + File.separatorChar + "bin"
+                + File.separator + "java";
     }
 
     /**

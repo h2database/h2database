@@ -37,7 +37,7 @@ public class TestRecoverKillLoop extends TestBase {
         Random random = new Random(1);
         for (int i = 0; i < count; i++) {
             String[] procDef = {
-                    "java", "-cp", getClassPath(),
+                    getJVM(), "-cp", getClassPath(),
                     "-Dtest.dir=data/db",
                     TestRecover.class.getName()
             };

@@ -2315,7 +2315,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean supportsTransactionIsolationLevel(int level) throws SQLException {
         debugCodeCall("supportsTransactionIsolationLevel");
-        if (level == Connection.TRANSACTION_READ_UNCOMMITTED) {
+        switch (level) {
+        case Connection.TRANSACTION_READ_UNCOMMITTED: {
             // Currently the combination of MV_STORE=FALSE, LOCK_MODE=0 and
             // MULTI_THREADED=TRUE is not supported. Also see code in
             // Database#setLockMode(int)
@@ -2332,7 +2333,13 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                 return !rs.next() || !rs.getString(1).equals("1");
             }
         }
-        return true;
+        case Connection.TRANSACTION_READ_COMMITTED:
+        case Connection.TRANSACTION_REPEATABLE_READ:
+        case Connection.TRANSACTION_SERIALIZABLE:
+            return true;
+        default:
+            return false;
+        }
     }
 
     /**

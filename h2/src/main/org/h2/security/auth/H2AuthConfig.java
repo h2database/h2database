@@ -22,7 +22,7 @@ public class H2AuthConfig {
     public void setAllowUserRegistration(boolean allowUserRegistration) {
         this.allowUserRegistration = allowUserRegistration;
     }
-    
+
     boolean createMissingRoles=true;
 
     public boolean isCreateMissingRoles() {

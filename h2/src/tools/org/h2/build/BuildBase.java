@@ -925,6 +925,25 @@ public class BuildBase {
         return System.getProperty("java.specification.version");
     }
 
+    /**
+     * Get the current Java version as integer value.
+     *
+     * @return the Java version (7, 8, 9, 10, 11, etc)
+     */
+    protected static int getJavaVersion() {
+        int version = 7;
+        String v = getJavaSpecVersion();
+        if (v != null) {
+            int idx = v.indexOf('.');
+            if (idx >= 0) {
+                // 1.7, 1.8
+                v = v.substring(idx + 1);
+            }
+            version = Integer.parseInt(v);
+        }
+        return version;
+    }
+
     private static List<String> getPaths(FileList files) {
         StringList list = new StringList();
         for (File f : files) {

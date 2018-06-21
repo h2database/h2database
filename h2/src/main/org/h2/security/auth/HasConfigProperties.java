@@ -7,6 +7,9 @@ package org.h2.security.auth;
 
 import java.util.List;
 
+/**
+ * Interface for objects with configuration properties.
+ */
 public interface HasConfigProperties {
     List<PropertyConfig> getProperties();
 }

@@ -5,7 +5,6 @@
  */
 package org.h2.test;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -189,16 +188,6 @@ public abstract class TestDb extends TestBase {
         // if (list.size() >  0) {
         //    System.out.println("Not deleted: " + list);
         // }
-    }
-
-    /**
-     * Get the path to a java executable of the current process
-     *
-     * @return the path to java
-     */
-    private static String getJVM() {
-        return System.getProperty("java.home") + File.separatorChar + "bin"
-                + File.separator + "java";
     }
 
     /**

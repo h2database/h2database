@@ -8,7 +8,10 @@ package org.h2.security.auth;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RealmConfig implements HasConfigProperties{
+/**
+ * Configuration for authentication realm.
+ */
+public class RealmConfig implements HasConfigProperties {
 
     private String name;
 
@@ -32,6 +35,7 @@ public class RealmConfig implements HasConfigProperties{
 
     List<PropertyConfig> properties;
 
+    @Override
     public List<PropertyConfig> getProperties() {
         if (properties == null) {
             properties = new ArrayList<>();

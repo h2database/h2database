@@ -16,7 +16,6 @@ import java.sql.Statement;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.test.utils.SelfDestructor;
 
@@ -40,7 +39,7 @@ public class TestKillRestart extends TestDb {
         //        "killRestart;CACHE_SIZE=2048;WRITE_DELAY=0", true);
         String user = getUser(), password = getPassword();
         String selfDestruct = SelfDestructor.getPropertyString(60);
-        String[] procDef = { "java", selfDestruct,
+        String[] procDef = { getJVM(), selfDestruct,
                 "-cp", getClassPath(),
                 getClass().getName(), "-url", url, "-user", user,
                 "-password", password };

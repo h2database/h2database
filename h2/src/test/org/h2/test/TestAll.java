@@ -889,7 +889,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
      */
     private void testAdditional() {
         if (networked) {
-            throw new RuntimeException("testAditional() is not allowed in networked mode");
+            throw new RuntimeException("testAdditional() is not allowed in networked mode");
         }
 
         addTest(new TestMVTableEngine());

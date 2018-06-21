@@ -12,10 +12,6 @@ matrix:
       dist: trusty
       group: edge
       sudo: required
-      addons:
-        apt:
-          packages:
-            - oracle-java10-installer
       before_script:
         - "cd h2"
         - "echo $JAVA_OPTS"

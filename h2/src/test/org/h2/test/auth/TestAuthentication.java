@@ -5,6 +5,7 @@
  */
 package org.h2.test.auth;
 
+import java.io.ByteArrayInputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -25,6 +26,8 @@ import org.h2.engine.Session;
 import org.h2.engine.User;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.security.auth.DefaultAuthenticator;
+import org.h2.security.auth.H2AuthConfig;
+import org.h2.security.auth.H2AuthConfigXml;
 import org.h2.security.auth.impl.AssignRealmNameRole;
 import org.h2.security.auth.impl.JaasCredentialsValidator;
 import org.h2.security.auth.impl.StaticRolesMapper;
@@ -134,6 +137,7 @@ public class TestAuthentication extends TestBase {
         testUserRegistration();
         testSet();
         testDatasource();
+        testXmlConfig();
     }
 
     protected void testInvalidPassword() throws Exception {
@@ -273,5 +277,29 @@ public class TestAuthentication extends TestBase {
             rightConnection.close();
         }
         testExternalUser();
+    }
+    
+    static final String TESTXML="<h2Auth allowUserRegistration=\"true\" createMissingRoles=\"false\">"
+            + "<realm name=\"ciao\" validatorClass=\"myclass\"/>"
+            + "<realm name=\"miao\" validatorClass=\"myclass1\">"
+            + "<property name=\"prop1\" value=\"value1\"/>"
+            + "<userToRolesMapper className=\"class1\">"
+            + "<property name=\"prop2\" value=\"value2\"/>"
+            + "</userToRolesMapper>"
+            + "</realm>"
+            + "</h2Auth>";
+    
+    protected void testXmlConfig() throws Exception {
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(TESTXML.getBytes());
+        H2AuthConfig config = H2AuthConfigXml.parseFrom(inputStream);
+        assertTrue(config.isAllowUserRegistration());
+        assertFalse(config.isCreateMissingRoles());
+        assertEquals("ciao",config.getRealms().get(0).getName());
+        assertEquals("myclass",config.getRealms().get(0).getValidatorClass());
+        assertEquals("prop1",config.getRealms().get(1).getProperties().get(0).getName());
+        assertEquals("value1",config.getRealms().get(1).getProperties().get(0).getValue());
+        assertEquals("class1",config.getUserToRolesMappers().get(0).getClassName());
+        assertEquals("prop2",config.getUserToRolesMappers().get(0).getProperties().get(0).getName());
+        assertEquals("value2",config.getUserToRolesMappers().get(0).getProperties().get(0).getValue());
     }
 }

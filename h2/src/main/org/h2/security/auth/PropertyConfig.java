@@ -5,20 +5,13 @@
  */
 package org.h2.security.auth;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-
 /**
  * Configuration property
  */
-@XmlAccessorType(XmlAccessType.FIELD)
 public class PropertyConfig {
 
-    @XmlAttribute(required = true)
     private String name;
 
-    @XmlAttribute
     private String value;
 
     public PropertyConfig() {

@@ -8,21 +8,10 @@ package org.h2.security.auth;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
+public class UserToRolesMapperConfig implements HasConfigProperties{
 
-/**
- * Configuration for class that maps users to roles.
- */
-@XmlAccessorType(XmlAccessType.FIELD)
-public class UserToRolesMapperConfig {
-
-    @XmlAttribute(required = true, name="class")
     private String className;
 
-    @XmlElement(name = "property")
     private List<PropertyConfig> properties;
 
     public String getClassName() {

@@ -7,10 +7,8 @@ package org.h2.security.auth;
 
 import java.io.InputStream;
 import java.net.URL;
-
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -91,9 +89,6 @@ public class H2AuthConfigXml extends DefaultHandler{
 
     /**
      * Parse the xml
-     * @param url
-     * @return
-     * @throws Exception
      */
     public static H2AuthConfig parseFrom(URL url) throws Exception{
         try (InputStream inputStream= url.openStream()) {

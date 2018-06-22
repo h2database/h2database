@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.h2.api.CredentialsValidator;
 import org.h2.api.UserToRolesMapper;
 import org.h2.engine.Database;
@@ -93,8 +92,6 @@ public class DefaultAuthenticator implements Authenticator {
 
     /**
      * If set save users externals defined during the authentication.
-     *
-     * @return
      */
     public boolean isPersistUsers() {
         return persistUsers;
@@ -106,8 +103,6 @@ public class DefaultAuthenticator implements Authenticator {
 
     /**
      * If set create external users in the database if not present.
-     *
-     * @return
      */
     public boolean isAllowUserRegistration() {
         return allowUserRegistration;
@@ -120,8 +115,6 @@ public class DefaultAuthenticator implements Authenticator {
     /**
      * When set create roles not found in the database. If not set roles not
      * found in the database are silently skipped
-     *
-     * @return
      */
     public boolean isCreateMissingRoles() {
         return createMissingRoles;
@@ -170,9 +163,7 @@ public class DefaultAuthenticator implements Authenticator {
      * <li>Use the default configuration hard coded</li>
      * </ol>
      *
-     * @param database
-     *            where authenticator is initialized
-     * @throws AuthConfigException
+     * @param database where authenticator is initialized
      */
     @Override
     public void init(Database database) throws AuthConfigException {
@@ -230,9 +221,7 @@ public class DefaultAuthenticator implements Authenticator {
     /**
      * Configure the authenticator from a configuration file
      *
-     * @param configUrl
-     *            URL of configuration file
-     * @throws Exception
+     * @param configUrl URL of configuration file
      */
     public void configureFromUrl(URL configUrl) throws Exception {
         H2AuthConfig config = H2AuthConfigXml.parseFrom(configUrl);

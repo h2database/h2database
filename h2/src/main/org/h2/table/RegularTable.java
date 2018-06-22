@@ -142,11 +142,6 @@ public class RegularTable extends TableBase {
         analyzeIfRequired(session);
     }
 
-    @Override
-    public void commit(short operation, Row row) {
-        lastModificationId = database.getNextModificationDataId();
-    }
-
     private void checkRowCount(Session session, Index index, int offset) {
         if (SysProperties.CHECK) {
             if (!(index instanceof PageDelegateIndex)) {

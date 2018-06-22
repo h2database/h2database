@@ -244,14 +244,6 @@ public class UndoLogRecord {
     }
 
     /**
-     * This method is called after the operation was committed.
-     * It commits the change to the indexes.
-     */
-    void commit() {
-        table.commit(operation, row);
-    }
-
-    /**
      * Get the row that was deleted or inserted.
      *
      * @return the row

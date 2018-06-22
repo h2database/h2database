@@ -698,7 +698,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                     ArrayList<Row> rows = new ArrayList<>(undoLog.size());
                     while (undoLog.size() > 0) {
                         UndoLogRecord entry = undoLog.getLast();
-                        entry.commit();
                         rows.add(entry.getRow());
                         undoLog.removeLast(false);
                     }

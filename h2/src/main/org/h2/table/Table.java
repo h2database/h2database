@@ -515,7 +515,7 @@ public abstract class Table extends SchemaObjectBase {
             } catch (DbException e) {
                 if (e.getErrorCode() == ErrorCode.CONCURRENT_UPDATE_1
                         || e.getErrorCode() == ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
-                    session.rollbackTo(rollback, false);
+                    session.rollbackTo(rollback);
                     session.startStatementWithinTransaction();
                     rollback = session.setSavepoint();
                 }
@@ -534,7 +534,7 @@ public abstract class Table extends SchemaObjectBase {
                 addRow(session, n);
             } catch (DbException e) {
                 if (e.getErrorCode() == ErrorCode.CONCURRENT_UPDATE_1) {
-                    session.rollbackTo(rollback, false);
+                    session.rollbackTo(rollback);
                     session.startStatementWithinTransaction();
                     rollback = session.setSavepoint();
                 }

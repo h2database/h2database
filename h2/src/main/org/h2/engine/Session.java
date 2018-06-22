@@ -916,7 +916,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                 }
             }
             if (undoLog == null) {
-                undoLog = new UndoLog(this);
+                undoLog = new UndoLog(database);
             }
             undoLog.add(log);
         }

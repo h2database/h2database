@@ -30,10 +30,10 @@ public class UndoLog {
     /**
      * Create a new undo log for the given session.
      *
-     * @param session the session
+     * @param database the database
      */
-    UndoLog(Session session) {
-        this.database = session.getDatabase();
+    UndoLog(Database database) {
+        this.database = database;
     }
 
     /**

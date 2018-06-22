@@ -120,17 +120,12 @@ public class UndoLog {
 
     /**
      * Remove the last record from the list of operations.
-     *
-     * @param trimToSize if the undo array should shrink to conserve memory
      */
-    void removeLast(boolean trimToSize) {
+    void removeLast() {
         int i = records.size() - 1;
         UndoLogRecord r = records.remove(i);
         if (!r.isStored()) {
             memoryUndo--;
-        }
-        if (trimToSize && i > 1024 && (i & 1023) == 0) {
-            records.trimToSize();
         }
     }
 

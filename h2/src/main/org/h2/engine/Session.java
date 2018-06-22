@@ -761,8 +761,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         currentTransactionName = null;
         transactionStart = null;
         boolean needCommit = undoLog != null && undoLog.size() > 0 || transaction != null;
-        if(needCommit) {
-            rollbackTo(null, false);
+        if (needCommit) {
+            rollbackTo(null);
         }
         if (!locks.isEmpty() || needCommit) {
             database.commit(this);
@@ -779,15 +779,14 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      * Partially roll back the current transaction.
      *
      * @param savepoint the savepoint to which should be rolled back
-     * @param trimToSize if the list should be trimmed
      */
-    public void rollbackTo(Savepoint savepoint, boolean trimToSize) {
+    public void rollbackTo(Savepoint savepoint) {
         int index = savepoint == null ? 0 : savepoint.logIndex;
         if (undoLog != null) {
             while (undoLog.size() > index) {
                 UndoLogRecord entry = undoLog.getLast();
                 entry.undo(this);
-                undoLog.removeLast(trimToSize);
+                undoLog.removeLast();
             }
         }
         if (transaction != null) {
@@ -1112,7 +1111,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (savepoint == null) {
             throw DbException.get(ErrorCode.SAVEPOINT_IS_INVALID_1, name);
         }
-        rollbackTo(savepoint, false);
+        rollbackTo(savepoint);
     }
 
     /**

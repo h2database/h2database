@@ -692,20 +692,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         }
         removeTemporaryLobs(true);
         if (undoLog.size() > 0) {
-            // commit the rows when using MVCC
-            if (database.isMVStore()) {
-                synchronized (database) {
-                    ArrayList<Row> rows = new ArrayList<>(undoLog.size());
-                    while (undoLog.size() > 0) {
-                        UndoLogRecord entry = undoLog.getLast();
-                        rows.add(entry.getRow());
-                        undoLog.removeLast(false);
-                    }
-                    for (Row r : rows) {
-                        r.commit();
-                    }
-                }
-            }
             undoLog.clear();
         }
         if (!ddl) {
@@ -925,10 +911,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                 }
             }
             undoLog.add(log);
-        } else {
-            if (database.isMVStore()) {
-                row.commit();
-            }
         }
     }
 

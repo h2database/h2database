@@ -54,25 +54,6 @@ public interface Row extends SearchRow {
     void setDeleted(boolean deleted);
 
     /**
-     * Set session id.
-     *
-     * @param sessionId the session id
-     */
-    void setSessionId(int sessionId);
-
-    /**
-     * Get session id.
-     *
-     * @return the session id
-     */
-    int getSessionId();
-
-    /**
-     * This record has been committed. The session id is reset.
-     */
-    void commit();
-
-    /**
      * Check if the row is deleted.
      *
      * @return {@code true} if the row is deleted

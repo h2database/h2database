@@ -928,11 +928,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             undoLog.add(log);
         } else {
             if (database.isMVStore()) {
-                // see also UndoLogRecord.commit
-                ArrayList<Index> indexes = table.getIndexes();
-                for (Index index : indexes) {
-                    index.commit(operation, row);
-                }
                 row.commit();
             }
         }

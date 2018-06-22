@@ -245,15 +245,6 @@ public interface Index extends SchemaObject {
     Table getTable();
 
     /**
-     * Commit the operation for a row. This is only important for multi-version
-     * indexes. The method is only called if multi-version is enabled.
-     *
-     * @param operation the operation type
-     * @param row the row
-     */
-    void commit(int operation, Row row);
-
-    /**
      * Get the row with the given key.
      *
      * @param session the session

@@ -5,12 +5,12 @@
  */
 package org.h2.security.auth;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -91,20 +91,19 @@ public class H2AuthConfigXml extends DefaultHandler{
 
     /**
      * Parse the xml
-     * @param url
-     * @return
-     * @throws Exception
      */
-    public static H2AuthConfig parseFrom(URL url) throws Exception{
-        try (InputStream inputStream= url.openStream()) {
+    public static H2AuthConfig parseFrom(URL url)
+            throws SAXException, IOException, ParserConfigurationException {
+        try (InputStream inputStream = url.openStream()) {
             return parseFrom(inputStream);
         }
     }
 
-    public static H2AuthConfig parseFrom(InputStream inputStream) throws Exception{
+    public static H2AuthConfig parseFrom(InputStream inputStream)
+            throws SAXException, IOException, ParserConfigurationException {
         SAXParser saxParser = SAXParserFactory.newInstance().newSAXParser();
         H2AuthConfigXml xmlHandler = new H2AuthConfigXml();
-        saxParser.parse(inputStream,xmlHandler);
+        saxParser.parse(inputStream, xmlHandler);
         return xmlHandler.getResult();
     }
 }

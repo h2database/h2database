@@ -59,8 +59,6 @@ public class AuthenticationInfo {
 
     /**
      * get nested identity
-     *
-     * @return
      */
     public Object getNestedIdentity() {
         return nestedIdentity;

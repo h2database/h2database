@@ -85,7 +85,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private final User user;
     private final int id;
     private final ArrayList<Table> locks = Utils.newSmallArrayList();
-    private final UndoLog undoLog;
+    private UndoLog undoLog;
     private boolean autoCommit = true;
     private Random random;
     private int lockTimeout;
@@ -168,7 +168,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         this.database = database;
         this.queryTimeout = database.getSettings().maxQueryTimeout;
         this.queryCacheSize = database.getSettings().queryCacheSize;
-        this.undoLog = new UndoLog(this);
         this.user = user;
         this.id = id;
         this.lockTimeout = database.getLockTimeout();
@@ -691,7 +690,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             database.commit(this);
         }
         removeTemporaryLobs(true);
-        if (undoLog.size() > 0) {
+        if (undoLog != null && undoLog.size() > 0) {
             undoLog.clear();
         }
         if (!ddl) {
@@ -761,7 +760,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         checkCommitRollback();
         currentTransactionName = null;
         transactionStart = null;
-        boolean needCommit = undoLog.size() > 0 || transaction != null;
+        boolean needCommit = undoLog != null && undoLog.size() > 0 || transaction != null;
         if(needCommit) {
             rollbackTo(null, false);
         }
@@ -784,10 +783,12 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      */
     public void rollbackTo(Savepoint savepoint, boolean trimToSize) {
         int index = savepoint == null ? 0 : savepoint.logIndex;
-        while (undoLog.size() > index) {
-            UndoLogRecord entry = undoLog.getLast();
-            entry.undo(this);
-            undoLog.removeLast(trimToSize);
+        if (undoLog != null) {
+            while (undoLog.size() > index) {
+                UndoLogRecord entry = undoLog.getLast();
+                entry.undo(this);
+                undoLog.removeLast(trimToSize);
+            }
         }
         if (transaction != null) {
             if (savepoint == null) {
@@ -818,7 +819,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     @Override
     public boolean hasPendingTransaction() {
-        return undoLog.size() > 0;
+        return undoLog != null && undoLog.size() > 0;
     }
 
     /**
@@ -828,7 +829,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      */
     public Savepoint setSavepoint() {
         Savepoint sp = new Savepoint();
-        sp.logIndex = undoLog.size();
+        if (undoLog != null) {
+            sp.logIndex = undoLog.size();
+        }
         if (database.getMvStore() != null) {
             sp.transactionSavepoint = getStatementSavepoint();
         }
@@ -856,7 +859,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
                 removeTemporaryLobs(false);
                 cleanTempTables(true);
-                undoLog.clear();
+                if (undoLog != null) {
+                    undoLog.clear();
+                }
                 // Table#removeChildrenAndResources can take the meta lock,
                 // and we need to unlock before we call removeSession(), which might
                 // want to take the meta lock using the system session.
@@ -910,6 +915,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                     }
                 }
             }
+            if (undoLog == null) {
+                undoLog = new UndoLog(this);
+            }
             undoLog.add(log);
         }
     }
@@ -942,7 +950,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     private void unlockAll() {
         if (SysProperties.CHECK) {
-            if (undoLog.size() > 0) {
+            if (undoLog != null && undoLog.size() > 0) {
                 DbException.throwInternalError();
             }
         }
@@ -1086,7 +1094,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             savepoints = database.newStringMap();
         }
         Savepoint sp = new Savepoint();
-        sp.logIndex = undoLog.size();
+        if (undoLog != null) {
+            sp.logIndex = undoLog.size();
+        }
         if (database.getMvStore() != null) {
             sp.transactionSavepoint = getStatementSavepoint();
         }
@@ -1619,7 +1629,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (!database.isPersistent()) {
             return ValueNull.INSTANCE;
         }
-        if (undoLog.size() == 0) {
+        if (undoLog == null || undoLog.size() == 0) {
             return ValueNull.INSTANCE;
         }
         return ValueString.get(firstUncommittedLog + "-" + firstUncommittedPos +

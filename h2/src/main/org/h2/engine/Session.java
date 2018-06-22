@@ -1093,14 +1093,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (savepoints == null) {
             savepoints = database.newStringMap();
         }
-        Savepoint sp = new Savepoint();
-        if (undoLog != null) {
-            sp.logIndex = undoLog.size();
-        }
-        if (database.getMvStore() != null) {
-            sp.transactionSavepoint = getStatementSavepoint();
-        }
-        savepoints.put(name, sp);
+        savepoints.put(name, setSavepoint());
     }
 
     /**

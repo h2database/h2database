@@ -302,7 +302,7 @@ public class PageDataIndex extends PageIndex {
             for (int i = 0, len = row.getColumnCount(); i < len; i++) {
                 Value v = row.getValue(i);
                 if (v.isLinkedToTable()) {
-                    session.removeAtCommitStop(v);
+                    session.removeAtCommit(v);
                 }
             }
         }

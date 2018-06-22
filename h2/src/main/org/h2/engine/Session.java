@@ -15,7 +15,6 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
@@ -1311,13 +1310,14 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      * @param v the value
      */
     public void removeAtCommit(Value v) {
+        final String key = v.toString();
         if (SysProperties.CHECK && !v.isLinkedToTable()) {
-            DbException.throwInternalError(v.toString());
+            DbException.throwInternalError(key);
         }
         if (removeLobMap == null) {
             removeLobMap = new HashMap<>();
         }
-        removeLobMap.put(v.toString(), v);
+        removeLobMap.put(key, v);
     }
 
     /**
@@ -1702,13 +1702,15 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (v.getType() != Value.CLOB && v.getType() != Value.BLOB) {
             return;
         }
-        if (v.getTableId() == LobStorageFrontend.TABLE_RESULT ||
-                v.getTableId() == LobStorageFrontend.TABLE_TEMP) {
+        if (v.getTableId() == LobStorageFrontend.TABLE_RESULT) {
             if (temporaryResultLobs == null) {
                 temporaryResultLobs = new LinkedList<>();
             }
             temporaryResultLobs.add(new TimeoutValue(v));
         } else {
+            // Things with tableId == LobStorageFrontend.TABLE_TEMP
+            // end up here because we don't need to keep them alive to cater
+            // for dodgy clients.
             if (temporaryLobs == null) {
                 temporaryLobs = new ArrayList<>();
             }

@@ -447,11 +447,6 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     @Override
-    public void commit(int operation, Row row) {
-        // nothing to do
-    }
-
-    @Override
     public Row getRow(Session session, long key) {
         throw DbException.getUnsupportedException(toString());
     }

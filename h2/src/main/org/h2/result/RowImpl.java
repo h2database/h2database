@@ -22,7 +22,6 @@ public class RowImpl implements Row {
     private int memory;
     private int version;
     private boolean deleted;
-    private int sessionId;
 
     public RowImpl(Value[] data, int memory) {
         this.data = data;
@@ -41,7 +40,6 @@ public class RowImpl implements Row {
         RowImpl r2 = new RowImpl(d2, memory);
         r2.key = key;
         r2.version = version + 1;
-        r2.sessionId = sessionId;
         return r2;
     }
 
@@ -152,24 +150,6 @@ public class RowImpl implements Row {
     @Override
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
-    }
-
-    @Override
-    public void setSessionId(int sessionId) {
-        this.sessionId = sessionId;
-    }
-
-    @Override
-    public int getSessionId() {
-        return sessionId;
-    }
-
-    /**
-     * This record has been committed. The session id is reset.
-     */
-    @Override
-    public void commit() {
-        this.sessionId = 0;
     }
 
     @Override

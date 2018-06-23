@@ -42,7 +42,10 @@ import org.h2.util.Utils;
 public class ValueLobDb extends Value implements Value.ValueClob,
         Value.ValueBlob {
 
-    private final int type;
+    /**
+     * the value type (Value.BLOB or CLOB)
+     */
+    private final int valueType;
     private final long lobId;
     private final byte[] hmac;
     private final byte[] small;
@@ -66,7 +69,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
 
     private ValueLobDb(int type, DataHandler handler, int tableId, long lobId,
             byte[] hmac, long precision) {
-        this.type = type;
+        this.valueType = type;
         this.handler = handler;
         this.tableId = tableId;
         this.lobId = lobId;
@@ -78,7 +81,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     }
 
     private ValueLobDb(int type, byte[] small, long precision) {
-        this.type = type;
+        this.valueType = type;
         this.small = small;
         this.precision = precision;
         this.lobId = 0;
@@ -94,7 +97,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
      */
     private ValueLobDb(DataHandler handler, Reader in, long remaining)
             throws IOException {
-        this.type = Value.CLOB;
+        this.valueType = Value.CLOB;
         this.handler = handler;
         this.small = null;
         this.lobId = 0;
@@ -126,7 +129,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
      */
     private ValueLobDb(DataHandler handler, byte[] buff, int len, InputStream in,
             long remaining) throws IOException {
-        this.type = Value.BLOB;
+        this.valueType = Value.BLOB;
         this.handler = handler;
         this.small = null;
         this.lobId = 0;
@@ -167,7 +170,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     /**
      * Create a LOB value.
      *
-     * @param type the type
+     * @param type the type (Value.BLOB or CLOB)
      * @param handler the data handler
      * @param tableId the table id
      * @param id the lob id
@@ -194,7 +197,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
      */
     @Override
     public Value convertTo(int t, int precision, Mode mode, Object column, String[] enumerators) {
-        if (t == type) {
+        if (t == valueType) {
             return this;
         } else if (t == Value.CLOB) {
             if (handler != null) {
@@ -248,7 +251,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         } else if (small.length > database.getMaxLengthInplaceLob()) {
             LobStorageInterface s = database.getLobStorage();
             Value v;
-            if (type == Value.BLOB) {
+            if (valueType == Value.BLOB) {
                 v = s.createBlob(getInputStream(), getPrecision());
             } else {
                 v = s.createClob(getReader(), getPrecision());
@@ -272,7 +275,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
 
     @Override
     public int getType() {
-        return type;
+        return valueType;
     }
 
     @Override
@@ -285,7 +288,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         int len = precision > Integer.MAX_VALUE || precision == 0 ?
                 Integer.MAX_VALUE : (int) precision;
         try {
-            if (type == Value.CLOB) {
+            if (valueType == Value.CLOB) {
                 if (small != null) {
                     return new String(small, StandardCharsets.UTF_8);
                 }
@@ -305,7 +308,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
 
     @Override
     public byte[] getBytes() {
-        if (type == CLOB) {
+        if (valueType == CLOB) {
             // convert hex to string
             return super.getBytes();
         }
@@ -315,7 +318,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
 
     @Override
     public byte[] getBytesNoCopy() {
-        if (type == CLOB) {
+        if (valueType == CLOB) {
             // convert hex to string
             return super.getBytesNoCopy();
         }
@@ -337,7 +340,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                 // it in the database file
                 return (int) (precision ^ (precision >>> 32));
             }
-            if (type == CLOB) {
+            if (valueType == CLOB) {
                 hash = getString().hashCode();
             } else {
                 hash = Utils.getByteArrayHash(getBytes());
@@ -357,7 +360,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                 return 0;
             }
         }
-        if (type == Value.CLOB) {
+        if (valueType == Value.CLOB) {
             return Integer.signum(getString().compareTo(v.getString()));
         }
         byte[] v2 = v.getBytesNoCopy();
@@ -366,7 +369,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
 
     @Override
     public Object getObject() {
-        if (type == Value.CLOB) {
+        if (valueType == Value.CLOB) {
             return getReader();
         }
         return getInputStream();
@@ -379,7 +382,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
 
     @Override
     public Reader getReader(long oneBasedOffset, long length) {
-        return ValueLob.rangeReader(getReader(), oneBasedOffset, length, type == Value.CLOB ? precision : -1);
+        return ValueLob.rangeReader(getReader(), oneBasedOffset, length, valueType == Value.CLOB ? precision : -1);
     }
 
     @Override
@@ -392,7 +395,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             return new BufferedInputStream(new FileStoreInputStream(store,
                     handler, false, alwaysClose), Constants.IO_BUFFER_SIZE);
         }
-        long byteCount = (type == Value.BLOB) ? precision : -1;
+        long byteCount = (valueType == Value.BLOB) ? precision : -1;
         try {
             return handler.getLobStorage().getInputStream(this, hmac, byteCount);
         } catch (IOException e) {
@@ -413,7 +416,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             inputStream = new BufferedInputStream(new FileStoreInputStream(store,
                     handler, false, alwaysClose), Constants.IO_BUFFER_SIZE);
         } else {
-            byteCount = (type == Value.BLOB) ? precision : -1;
+            byteCount = (valueType == Value.BLOB) ? precision : -1;
             try {
                 inputStream = handler.getLobStorage().getInputStream(this, hmac, byteCount);
             } catch (IOException e) {
@@ -430,7 +433,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         if (p > Integer.MAX_VALUE || p <= 0) {
             p = -1;
         }
-        if (type == Value.BLOB) {
+        if (valueType == Value.BLOB) {
             prep.setBinaryStream(parameterIndex, getInputStream(), (int) p);
         } else {
             prep.setCharacterStream(parameterIndex, getReader(), (int) p);
@@ -440,7 +443,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     @Override
     public String getSQL() {
         String s;
-        if (type == Value.CLOB) {
+        if (valueType == Value.CLOB) {
             s = getString();
             return StringUtils.quoteStringSQL(s);
         }
@@ -455,7 +458,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             return getSQL();
         }
         StringBuilder buff = new StringBuilder();
-        if (type == Value.CLOB) {
+        if (valueType == Value.CLOB) {
             buff.append("SPACE(").append(getPrecision());
         } else {
             buff.append("CAST(REPEAT('00', ").append(getPrecision()).append(") AS BINARY");
@@ -650,13 +653,13 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             return this;
         }
         ValueLobDb lob;
-        if (type == CLOB) {
+        if (valueType == CLOB) {
             if (handler == null) {
                 try {
                     int p = MathUtils.convertLongToInt(precision);
                     String s = IOUtils.readStringAndClose(getReader(), p);
                     byte[] data = s.getBytes(StandardCharsets.UTF_8);
-                    lob = ValueLobDb.createSmallLob(type, data, s.length());
+                    lob = ValueLobDb.createSmallLob(valueType, data, s.length());
                 } catch (IOException e) {
                     throw DbException.convertIOException(e, null);
                 }
@@ -668,7 +671,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                 try {
                     int p = MathUtils.convertLongToInt(precision);
                     byte[] data = IOUtils.readBytesAndClose(getInputStream(), p);
-                    lob = ValueLobDb.createSmallLob(type, data, data.length);
+                    lob = ValueLobDb.createSmallLob(valueType, data, data.length);
                 } catch (IOException e) {
                     throw DbException.convertIOException(e, null);
                 }

@@ -39,8 +39,7 @@ import org.h2.util.Utils;
  * Small objects are kept in memory and stored in the record.
  * Large objects are either stored in the database, or in temporary files.
  */
-public class ValueLobDb extends Value implements Value.ValueClob,
-        Value.ValueBlob {
+public class ValueLobDb extends Value {
 
     /**
      * the value type (Value.BLOB or CLOB)

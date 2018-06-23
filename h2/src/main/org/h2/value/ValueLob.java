@@ -117,7 +117,6 @@ public class ValueLob extends Value {
     private boolean linked;
     private int hash;
     private final boolean compressed;
-    private FileStore tempFile;
 
     private ValueLob(int type, DataHandler handler, String fileName,
             int tableId, int objectId, boolean linked, long precision,
@@ -330,10 +329,6 @@ public class ValueLob extends Value {
     @Override
     public void remove() {
         if (fileName != null) {
-            if (tempFile != null) {
-                tempFile.stopAutoDelete();
-                tempFile = null;
-            }
             deleteFile(handler, fileName);
         }
     }
@@ -358,10 +353,6 @@ public class ValueLob extends Value {
         if (!linked) {
             this.tableId = tabId;
             String live = getFileName(h, tableId, objectId);
-            if (tempFile != null) {
-                tempFile.stopAutoDelete();
-                tempFile = null;
-            }
             renameFile(h, fileName, live);
             fileName = live;
             linked = true;

@@ -6,15 +6,12 @@
 package org.h2.value;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-
 import org.h2.engine.Constants;
 import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
@@ -22,7 +19,6 @@ import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
-import org.h2.store.FileStoreOutputStream;
 import org.h2.store.RangeInputStream;
 import org.h2.store.RangeReader;
 import org.h2.store.fs.FileUtils;
@@ -113,15 +109,14 @@ public class ValueLob extends Value {
      * either Value.BLOB or Value.CLOB
      */
     private final int valueType;
-    private long precision;
-    private DataHandler handler;
+    private final long precision;
+    private final DataHandler handler;
     private int tableId;
-    private int objectId;
+    private final int objectId;
     private String fileName;
     private boolean linked;
-    private byte[] small;
     private int hash;
-    private boolean compressed;
+    private final boolean compressed;
     private FileStore tempFile;
 
     private ValueLob(int type, DataHandler handler, String fileName,
@@ -135,37 +130,6 @@ public class ValueLob extends Value {
         this.linked = linked;
         this.precision = precision;
         this.compressed = compressed;
-    }
-
-    private ValueLob(int type, byte[] small) {
-        this.valueType = type;
-        this.small = small;
-        if (small != null) {
-            if (type == Value.BLOB) {
-                this.precision = small.length;
-            } else {
-                this.precision = getString().length();
-            }
-        }
-    }
-
-    private static ValueLob copy(ValueLob lob) {
-        ValueLob copy = new ValueLob(lob.valueType, lob.handler, lob.fileName,
-                lob.tableId, lob.objectId, lob.linked, lob.precision, lob.compressed);
-        copy.small = lob.small;
-        copy.hash = lob.hash;
-        return copy;
-    }
-
-    /**
-     * Create a small lob using the given byte array.
-     *
-     * @param type the type (Value.BLOB or CLOB)
-     * @param small the byte array
-     * @return the lob value
-     */
-    private static ValueLob createSmallLob(int type, byte[] small) {
-        return new ValueLob(type, small);
     }
 
     private static String getFileName(DataHandler handler, int tableId,
@@ -213,92 +177,6 @@ public class ValueLob extends Value {
             String fileName) {
         return new ValueLob(type, handler, fileName, tableId, objectId,
                 false/* linked */, precision, compression);
-    }
-
-    /**
-     * Create a CLOB value from a stream.
-     *
-     * @param in the reader
-     * @param length the number of characters to read, or -1 for no limit
-     * @param handler the data handler
-     * @return the lob value
-     */
-    private static ValueLob createClob(Reader in, long length,
-            DataHandler handler) {
-        try {
-            if (handler == null) {
-                String s = IOUtils.readStringAndClose(in, (int) length);
-                return createSmallLob(Value.CLOB, s.getBytes(StandardCharsets.UTF_8));
-            }
-            boolean compress = handler.getLobCompressionAlgorithm(Value.CLOB) != null;
-            long remaining = Long.MAX_VALUE;
-            if (length >= 0 && length < remaining) {
-                remaining = length;
-            }
-            int len = getBufferSize(handler, compress, remaining);
-            char[] buff;
-            if (len >= Integer.MAX_VALUE) {
-                String data = IOUtils.readStringAndClose(in, -1);
-                buff = data.toCharArray();
-                len = buff.length;
-            } else {
-                buff = new char[len];
-                len = IOUtils.readFully(in, buff, len);
-            }
-            if (len <= handler.getMaxLengthInplaceLob()) {
-                byte[] small = new String(buff, 0, len).getBytes(StandardCharsets.UTF_8);
-                return ValueLob.createSmallLob(Value.CLOB, small);
-            }
-            ValueLob lob = new ValueLob(Value.CLOB, null);
-            lob.createFromReader(buff, len, in, remaining, handler);
-            return lob;
-        } catch (IOException e) {
-            throw DbException.convertIOException(e, null);
-        }
-    }
-
-    private static int getBufferSize(DataHandler handler, boolean compress,
-            long remaining) {
-        if (remaining < 0 || remaining > Integer.MAX_VALUE) {
-            remaining = Integer.MAX_VALUE;
-        }
-        int inplace = handler.getMaxLengthInplaceLob();
-        long m = compress ?
-                Constants.IO_BUFFER_SIZE_COMPRESS : Constants.IO_BUFFER_SIZE;
-        if (m < remaining && m <= inplace) {
-            // using "1L" to force long arithmetic
-            m = Math.min(remaining, inplace + 1L);
-            // the buffer size must be bigger than the inplace lob, otherwise we
-            // can't know if it must be stored in-place or not
-            m = MathUtils.roundUpLong(m, Constants.IO_BUFFER_SIZE);
-        }
-        m = Math.min(remaining, m);
-        m = MathUtils.convertLongToInt(m);
-        if (m < 0) {
-            m = Integer.MAX_VALUE;
-        }
-        return (int) m;
-    }
-
-    private void createFromReader(char[] buff, int len, Reader in,
-            long remaining, DataHandler h) throws IOException {
-        try (FileStoreOutputStream out = initLarge(h)) {
-            boolean compress = h.getLobCompressionAlgorithm(Value.CLOB) != null;
-            while (true) {
-                precision += len;
-                byte[] b = new String(buff, 0, len).getBytes(StandardCharsets.UTF_8);
-                out.write(b, 0, b.length);
-                remaining -= len;
-                if (remaining <= 0) {
-                    break;
-                }
-                len = getBufferSize(h, compress, remaining);
-                len = IOUtils.readFully(in, buff, len);
-                if (len == 0) {
-                    break;
-                }
-            }
-        }
     }
 
     private static String getFileNamePrefix(String path, int objectId) {
@@ -410,91 +288,6 @@ public class ValueLob extends Value {
     }
 
     /**
-     * Create a BLOB value from a stream.
-     *
-     * @param in the input stream
-     * @param length the number of characters to read, or -1 for no limit
-     * @param handler the data handler
-     * @return the lob value
-     */
-    private static ValueLob createBlob(InputStream in, long length,
-            DataHandler handler) {
-        try {
-            if (handler == null) {
-                byte[] data = IOUtils.readBytesAndClose(in, (int) length);
-                return createSmallLob(Value.BLOB, data);
-            }
-            long remaining = Long.MAX_VALUE;
-            boolean compress = handler.getLobCompressionAlgorithm(Value.BLOB) != null;
-            if (length >= 0 && length < remaining) {
-                remaining = length;
-            }
-            int len = getBufferSize(handler, compress, remaining);
-            byte[] buff;
-            if (len >= Integer.MAX_VALUE) {
-                buff = IOUtils.readBytesAndClose(in, -1);
-                len = buff.length;
-            } else {
-                buff = Utils.newBytes(len);
-                len = IOUtils.readFully(in, buff, len);
-            }
-            if (len <= handler.getMaxLengthInplaceLob()) {
-                byte[] small = Utils.copyBytes(buff, len);
-                return ValueLob.createSmallLob(Value.BLOB, small);
-            }
-            ValueLob lob = new ValueLob(Value.BLOB, null);
-            lob.createFromStream(buff, len, in, remaining, handler);
-            return lob;
-        } catch (IOException e) {
-            throw DbException.convertIOException(e, null);
-        }
-    }
-
-    private FileStoreOutputStream initLarge(DataHandler h) {
-        this.handler = h;
-        this.tableId = 0;
-        this.linked = false;
-        this.precision = 0;
-        this.small = null;
-        this.hash = 0;
-        String compressionAlgorithm = h.getLobCompressionAlgorithm(valueType);
-        this.compressed = compressionAlgorithm != null;
-        synchronized (h) {
-            String path = h.getDatabasePath();
-            if ((path != null) && (path.length() == 0)) {
-                path = new File(Utils.getProperty("java.io.tmpdir", "."),
-                        SysProperties.PREFIX_TEMP_FILE).getAbsolutePath();
-            }
-            objectId = getNewObjectId(h);
-            fileName = getFileNamePrefix(path, objectId) + Constants.SUFFIX_TEMP_FILE;
-            tempFile = h.openFile(fileName, "rw", false);
-            tempFile.autoDelete();
-        }
-        return new FileStoreOutputStream(tempFile, h,
-                compressionAlgorithm);
-    }
-
-    private void createFromStream(byte[] buff, int len, InputStream in,
-            long remaining, DataHandler h) throws IOException {
-        try (FileStoreOutputStream out = initLarge(h)) {
-            boolean compress = h.getLobCompressionAlgorithm(Value.BLOB) != null;
-            while (true) {
-                precision += len;
-                out.write(buff, 0, len);
-                remaining -= len;
-                if (remaining <= 0) {
-                    break;
-                }
-                len = getBufferSize(h, compress, remaining);
-                len = IOUtils.readFully(in, buff, len);
-                if (len <= 0) {
-                    break;
-                }
-            }
-        }
-    }
-
-    /**
      * Convert a lob to another data type. The data is fully read in memory
      * except when converting to BLOB or CLOB.
      *
@@ -513,9 +306,9 @@ public class ValueLob extends Value {
         if (t == valueType) {
             return this;
         } else if (t == Value.CLOB) {
-            return ValueLob.createClob(getReader(), -1, handler);
+            return ValueLobDb.createTempClob(getReader(), -1, handler);
         } else if (t == Value.BLOB) {
-            return ValueLob.createBlob(getInputStream(), -1, handler);
+            return ValueLobDb.createTempBlob(getInputStream(), -1, handler);
         }
         return super.convertTo(t, precision, mode, column, null);
     }
@@ -552,8 +345,9 @@ public class ValueLob extends Value {
             return this;
         }
         if (linked) {
-            ValueLob copy = ValueLob.copy(this);
-            copy.objectId = getNewObjectId(h);
+            ValueLob copy = new ValueLob(this.valueType, this.handler, this.fileName,
+                    this.tableId, getNewObjectId(h), this.linked, this.precision, this.compressed);
+            copy.hash = this.hash;
             copy.tableId = tabId;
             String live = getFileName(h, copy.tableId, copy.objectId);
             copyFileTo(h, fileName, live);
@@ -610,17 +404,9 @@ public class ValueLob extends Value {
                 Integer.MAX_VALUE : (int) precision;
         try {
             if (valueType == Value.CLOB) {
-                if (small != null) {
-                    return new String(small, StandardCharsets.UTF_8);
-                }
                 return IOUtils.readStringAndClose(getReader(), len);
             }
-            byte[] buff;
-            if (small != null) {
-                buff = small;
-            } else {
-                buff = IOUtils.readBytesAndClose(getInputStream(), len);
-            }
+            byte[] buff = IOUtils.readBytesAndClose(getInputStream(), len);
             return StringUtils.convertBytesToHex(buff);
         } catch (IOException e) {
             throw DbException.convertIOException(e, fileName);
@@ -642,9 +428,6 @@ public class ValueLob extends Value {
         if (valueType == CLOB) {
             // convert hex to string
             return super.getBytesNoCopy();
-        }
-        if (small != null) {
-            return small;
         }
         try {
             return IOUtils.readBytesAndClose(
@@ -700,9 +483,6 @@ public class ValueLob extends Value {
 
     @Override
     public InputStream getInputStream() {
-        if (fileName == null) {
-            return new ByteArrayInputStream(small);
-        }
         FileStore store = handler.openFile(fileName, "r", true);
         boolean alwaysClose = SysProperties.lobCloseBetweenReads;
         return new BufferedInputStream(
@@ -751,9 +531,6 @@ public class ValueLob extends Value {
 
     @Override
     public String getTraceSQL() {
-        if (small != null && getPrecision() <= SysProperties.MAX_TRACE_DATA_LENGTH) {
-            return getSQL();
-        }
         StringBuilder buff = new StringBuilder();
         if (valueType == Value.CLOB) {
             buff.append("SPACE(").append(getPrecision());
@@ -771,7 +548,7 @@ public class ValueLob extends Value {
      */
     @Override
     public byte[] getSmall() {
-        return small;
+        return null;
     }
 
     @Override
@@ -782,35 +559,6 @@ public class ValueLob extends Value {
     @Override
     public boolean equals(Object other) {
         return other instanceof ValueLob && compareSecure((Value) other, null) == 0;
-    }
-
-    /**
-     * Store the lob data to a file if the size of the buffer is larger than the
-     * maximum size for an in-place lob.
-     *
-     * @param h the data handler
-     */
-    public void convertToFileIfRequired(DataHandler h) {
-        try {
-            if (small != null && small.length > h.getMaxLengthInplaceLob()) {
-                boolean compress = h.getLobCompressionAlgorithm(valueType) != null;
-                int len = getBufferSize(h, compress, Long.MAX_VALUE);
-                int tabId = tableId;
-                if (valueType == Value.BLOB) {
-                    createFromStream(
-                            Utils.newBytes(len), 0, getInputStream(), Long.MAX_VALUE, h);
-                } else {
-                    createFromReader(
-                            new char[len], 0, getReader(), Long.MAX_VALUE, h);
-                }
-                Value v2 = copy(h, tabId);
-                if (SysProperties.CHECK && v2 != this) {
-                    DbException.throwInternalError(v2.toString());
-                }
-            }
-        } catch (IOException e) {
-            throw DbException.convertIOException(e, null);
-        }
     }
 
     /**
@@ -851,9 +599,6 @@ public class ValueLob extends Value {
 
     @Override
     public int getMemory() {
-        if (small != null) {
-            return small.length + 104;
-        }
         return 140;
     }
 
@@ -864,12 +609,12 @@ public class ValueLob extends Value {
      * @return the value
      */
     @Override
-    public ValueLob copyToTemp() {
-        ValueLob lob;
+    public ValueLobDb copyToTemp() {
+        ValueLobDb lob;
         if (valueType == CLOB) {
-            lob = ValueLob.createClob(getReader(), precision, handler);
+            lob = ValueLobDb.createTempClob(getReader(), precision, handler);
         } else {
-            lob = ValueLob.createBlob(getInputStream(), precision, handler);
+            lob = ValueLobDb.createTempBlob(getInputStream(), precision, handler);
         }
         return lob;
     }
@@ -879,11 +624,11 @@ public class ValueLob extends Value {
         if (this.precision <= precision) {
             return this;
         }
-        ValueLob lob;
+        ValueLobDb lob;
         if (valueType == CLOB) {
-            lob = ValueLob.createClob(getReader(), precision, handler);
+            lob = ValueLobDb.createTempClob(getReader(), precision, handler);
         } else {
-            lob = ValueLob.createBlob(getInputStream(), precision, handler);
+            lob = ValueLobDb.createTempBlob(getInputStream(), precision, handler);
         }
         return lob;
     }

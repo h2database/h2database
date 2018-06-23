@@ -109,7 +109,10 @@ public class ValueLob extends Value {
      */
     private static int dirCounter;
 
-    private final int type;
+    /**
+     * either Value.BLOB or Value.CLOB
+     */
+    private final int valueType;
     private long precision;
     private DataHandler handler;
     private int tableId;
@@ -124,7 +127,7 @@ public class ValueLob extends Value {
     private ValueLob(int type, DataHandler handler, String fileName,
             int tableId, int objectId, boolean linked, long precision,
             boolean compressed) {
-        this.type = type;
+        this.valueType = type;
         this.handler = handler;
         this.fileName = fileName;
         this.tableId = tableId;
@@ -135,7 +138,7 @@ public class ValueLob extends Value {
     }
 
     private ValueLob(int type, byte[] small) {
-        this.type = type;
+        this.valueType = type;
         this.small = small;
         if (small != null) {
             if (type == Value.BLOB) {
@@ -147,7 +150,7 @@ public class ValueLob extends Value {
     }
 
     private static ValueLob copy(ValueLob lob) {
-        ValueLob copy = new ValueLob(lob.type, lob.handler, lob.fileName,
+        ValueLob copy = new ValueLob(lob.valueType, lob.handler, lob.fileName,
                 lob.tableId, lob.objectId, lob.linked, lob.precision, lob.compressed);
         copy.small = lob.small;
         copy.hash = lob.hash;
@@ -178,7 +181,7 @@ public class ValueLob extends Value {
     /**
      * Create a LOB value with the given parameters.
      *
-     * @param type the data type
+     * @param type the data type, either Value.BLOB or Value.CLOB
      * @param handler the file handler
      * @param tableId the table object id
      * @param objectId the object id
@@ -196,7 +199,7 @@ public class ValueLob extends Value {
     /**
      * Create a LOB value with the given parameters.
      *
-     * @param type the data type
+     * @param type the data type, either Value.BLOB or Value.CLOB
      * @param handler the file handler
      * @param tableId the table object id
      * @param objectId the object id
@@ -454,7 +457,7 @@ public class ValueLob extends Value {
         this.precision = 0;
         this.small = null;
         this.hash = 0;
-        String compressionAlgorithm = h.getLobCompressionAlgorithm(type);
+        String compressionAlgorithm = h.getLobCompressionAlgorithm(valueType);
         this.compressed = compressionAlgorithm != null;
         synchronized (h) {
             String path = h.getDatabasePath();
@@ -507,7 +510,7 @@ public class ValueLob extends Value {
      */
     @Override
     public Value convertTo(int t, int precision, Mode mode, Object column, String[] enumerators) {
-        if (t == type) {
+        if (t == valueType) {
             return this;
         } else if (t == Value.CLOB) {
             return ValueLob.createClob(getReader(), -1, handler);
@@ -593,7 +596,7 @@ public class ValueLob extends Value {
 
     @Override
     public int getType() {
-        return type;
+        return valueType;
     }
 
     @Override
@@ -606,7 +609,7 @@ public class ValueLob extends Value {
         int len = precision > Integer.MAX_VALUE || precision == 0 ?
                 Integer.MAX_VALUE : (int) precision;
         try {
-            if (type == Value.CLOB) {
+            if (valueType == Value.CLOB) {
                 if (small != null) {
                     return new String(small, StandardCharsets.UTF_8);
                 }
@@ -626,7 +629,7 @@ public class ValueLob extends Value {
 
     @Override
     public byte[] getBytes() {
-        if (type == CLOB) {
+        if (valueType == CLOB) {
             // convert hex to string
             return super.getBytes();
         }
@@ -636,7 +639,7 @@ public class ValueLob extends Value {
 
     @Override
     public byte[] getBytesNoCopy() {
-        if (type == CLOB) {
+        if (valueType == CLOB) {
             // convert hex to string
             return super.getBytesNoCopy();
         }
@@ -659,7 +662,7 @@ public class ValueLob extends Value {
                 // it in the database file
                 return (int) (precision ^ (precision >>> 32));
             }
-            if (type == CLOB) {
+            if (valueType == CLOB) {
                 hash = getString().hashCode();
             } else {
                 hash = Utils.getByteArrayHash(getBytes());
@@ -670,7 +673,7 @@ public class ValueLob extends Value {
 
     @Override
     protected int compareSecure(Value v, CompareMode mode) {
-        if (type == Value.CLOB) {
+        if (valueType == Value.CLOB) {
             return Integer.signum(getString().compareTo(v.getString()));
         }
         byte[] v2 = v.getBytesNoCopy();
@@ -679,7 +682,7 @@ public class ValueLob extends Value {
 
     @Override
     public Object getObject() {
-        if (type == Value.CLOB) {
+        if (valueType == Value.CLOB) {
             return getReader();
         }
         return getInputStream();
@@ -692,7 +695,7 @@ public class ValueLob extends Value {
 
     @Override
     public Reader getReader(long oneBasedOffset, long length) {
-        return rangeReader(getReader(), oneBasedOffset, length, type == Value.CLOB ? precision : -1);
+        return rangeReader(getReader(), oneBasedOffset, length, valueType == Value.CLOB ? precision : -1);
     }
 
     @Override
@@ -727,7 +730,7 @@ public class ValueLob extends Value {
         if (p > Integer.MAX_VALUE || p <= 0) {
             p = -1;
         }
-        if (type == Value.BLOB) {
+        if (valueType == Value.BLOB) {
             prep.setBinaryStream(parameterIndex, getInputStream(), (int) p);
         } else {
             prep.setCharacterStream(parameterIndex, getReader(), (int) p);
@@ -737,7 +740,7 @@ public class ValueLob extends Value {
     @Override
     public String getSQL() {
         String s;
-        if (type == Value.CLOB) {
+        if (valueType == Value.CLOB) {
             s = getString();
             return StringUtils.quoteStringSQL(s);
         }
@@ -752,7 +755,7 @@ public class ValueLob extends Value {
             return getSQL();
         }
         StringBuilder buff = new StringBuilder();
-        if (type == Value.CLOB) {
+        if (valueType == Value.CLOB) {
             buff.append("SPACE(").append(getPrecision());
         } else {
             buff.append("CAST(REPEAT('00', ").append(getPrecision()).append(") AS BINARY");
@@ -790,10 +793,10 @@ public class ValueLob extends Value {
     public void convertToFileIfRequired(DataHandler h) {
         try {
             if (small != null && small.length > h.getMaxLengthInplaceLob()) {
-                boolean compress = h.getLobCompressionAlgorithm(type) != null;
+                boolean compress = h.getLobCompressionAlgorithm(valueType) != null;
                 int len = getBufferSize(h, compress, Long.MAX_VALUE);
                 int tabId = tableId;
-                if (type == Value.BLOB) {
+                if (valueType == Value.BLOB) {
                     createFromStream(
                             Utils.newBytes(len), 0, getInputStream(), Long.MAX_VALUE, h);
                 } else {
@@ -863,7 +866,7 @@ public class ValueLob extends Value {
     @Override
     public ValueLob copyToTemp() {
         ValueLob lob;
-        if (type == CLOB) {
+        if (valueType == CLOB) {
             lob = ValueLob.createClob(getReader(), precision, handler);
         } else {
             lob = ValueLob.createBlob(getInputStream(), precision, handler);
@@ -877,7 +880,7 @@ public class ValueLob extends Value {
             return this;
         }
         ValueLob lob;
-        if (type == CLOB) {
+        if (valueType == CLOB) {
             lob = ValueLob.createClob(getReader(), precision, handler);
         } else {
             lob = ValueLob.createBlob(getInputStream(), precision, handler);

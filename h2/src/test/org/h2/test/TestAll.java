@@ -84,12 +84,6 @@ import org.h2.test.db.TestUsingIndex;
 import org.h2.test.db.TestView;
 import org.h2.test.db.TestViewAlterTable;
 import org.h2.test.db.TestViewDropView;
-import org.h2.test.jaqu.AliasMapTest;
-import org.h2.test.jaqu.AnnotationsTest;
-import org.h2.test.jaqu.ClobTest;
-import org.h2.test.jaqu.ModelsTest;
-import org.h2.test.jaqu.SamplesTest;
-import org.h2.test.jaqu.UpdateTest;
 import org.h2.test.jdbc.TestBatchUpdates;
 import org.h2.test.jdbc.TestCallableStatement;
 import org.h2.test.jdbc.TestCancel;
@@ -792,15 +786,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestReplace());
         addTest(new TestSynonymForTable());
         addTest(new TestColumnNamer());
-
-
-        // jaqu
-        addTest(new AliasMapTest());
-        addTest(new AnnotationsTest());
-        addTest(new ClobTest());
-        addTest(new ModelsTest());
-        addTest(new SamplesTest());
-        addTest(new UpdateTest());
 
         // jdbc
         addTest(new TestBatchUpdates());

@@ -311,8 +311,14 @@ public class ValueLobDb extends Value {
             // convert hex to string
             return super.getBytes();
         }
-        byte[] data = getBytesNoCopy();
-        return Utils.cloneByteArray(data);
+        if (small != null) {
+            return Utils.cloneByteArray(small);
+        }
+        try {
+            return IOUtils.readBytesAndClose(getInputStream(), Integer.MAX_VALUE);
+        } catch (IOException e) {
+            throw DbException.convertIOException(e, toString());
+        }
     }
 
     @Override
@@ -342,7 +348,11 @@ public class ValueLobDb extends Value {
             if (valueType == CLOB) {
                 hash = getString().hashCode();
             } else {
-                hash = Utils.getByteArrayHash(getBytes());
+                if (small != null) {
+                    hash = Utils.getByteArrayHash(small);
+                } else {
+                    hash = Utils.getByteArrayHash(getBytes());
+                }
             }
         }
         return hash;
@@ -484,7 +494,12 @@ public class ValueLobDb extends Value {
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof ValueLobDb && compareSecure((Value) other, null) == 0;
+        if (!(other instanceof ValueLobDb))
+            return false;
+        ValueLobDb otherLob = (ValueLobDb) other;
+        if (hashCode() != otherLob.hashCode())
+            return false;
+        return compareSecure((Value) other, null) == 0;
     }
 
     @Override

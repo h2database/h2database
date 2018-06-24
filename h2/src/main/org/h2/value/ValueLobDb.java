@@ -482,7 +482,12 @@ public class ValueLobDb extends Value implements Value.ValueClob,
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof ValueLobDb && compareSecure((Value) other, null) == 0;
+        if (!(other instanceof ValueLobDb))
+            return false;
+        ValueLobDb otherLob = (ValueLobDb) other;
+        if (hashCode() != otherLob.hashCode())
+            return false;
+        return compareSecure((Value) other, null) == 0;
     }
 
     @Override

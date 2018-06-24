@@ -205,7 +205,7 @@ public class TestRecover {
                 // ignore
             }
             try {
-                Driver driver = (Driver) Class.forName(DRIVER).newInstance();
+                Driver driver = (Driver) Class.forName(DRIVER).getDeclaredConstructor().newInstance();
                 DriverManager.registerDriver(driver);
             } catch (Exception e) {
                 e.printStackTrace();

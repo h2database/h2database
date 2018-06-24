@@ -107,7 +107,7 @@ class Database {
             Thread.sleep(100);
         } else if (url.startsWith("jdbc:derby://")) {
             serverDerby = Class.forName(
-                    "org.apache.derby.drda.NetworkServerControl").newInstance();
+                    "org.apache.derby.drda.NetworkServerControl").getDeclaredConstructor().newInstance();
             Method m = serverDerby.getClass().getMethod("start", PrintWriter.class);
             m.invoke(serverDerby, new Object[] { null });
             // serverDerby = new NetworkServerControl();

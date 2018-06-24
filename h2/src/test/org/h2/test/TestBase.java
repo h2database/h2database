@@ -1303,7 +1303,7 @@ public abstract class TestBase {
         try {
             return (TestBase) new SecurityManager() {
                 Class<?> clazz = getClassContext()[2];
-            }.clazz.newInstance();
+            }.clazz.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

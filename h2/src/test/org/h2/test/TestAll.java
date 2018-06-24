@@ -1039,11 +1039,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
     private static TestBase createTest(String className) {
         try {
             Class<?> clazz = Class.forName(className);
-            return (TestBase) clazz.newInstance();
-        } catch (Exception e) {
-            // ignore
-            TestBase.printlnWithTime(0, className + " class not found");
-        } catch (NoClassDefFoundError e) {
+            return (TestBase) clazz.getDeclaredConstructor().newInstance();
+        } catch (Exception | NoClassDefFoundError e) {
             // ignore
             TestBase.printlnWithTime(0, className + " class not found");
         }

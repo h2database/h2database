@@ -522,7 +522,6 @@ public class Build extends BuildBase {
             exclude("temp/org/h2/build/*").
             exclude("temp/org/h2/dev/*").
             exclude("temp/org/h2/jcr/*").
-            exclude("temp/org/h2/jaqu/*").
             exclude("temp/org/h2/java/*").
             exclude("temp/org/h2/jcr/*").
             exclude("temp/org/h2/mode/*").
@@ -551,7 +550,6 @@ public class Build extends BuildBase {
         FileList files = files("temp").
             exclude("temp/org/h2/build/*").
             exclude("temp/org/h2/dev/*").
-            exclude("temp/org/h2/jaqu/*").
             exclude("temp/org/h2/java/*").
             exclude("temp/org/h2/jcr/*").
             exclude("temp/org/h2/mode/*").
@@ -594,7 +592,6 @@ public class Build extends BuildBase {
             exclude("temp/org/h2/build/*").
             exclude("temp/org/h2/dev/*").
             exclude("temp/org/h2/jcr/*").
-            exclude("temp/org/h2/jaqu/*").
             exclude("temp/org/h2/java/*").
             exclude("temp/org/h2/jcr/*").
             exclude("temp/org/h2/mode/*").
@@ -615,21 +612,6 @@ public class Build extends BuildBase {
         files.add(new File("temp/org/h2/tools/DeleteDbFiles.class"));
         files.add(new File("temp/org/h2/tools/CompressTool.class"));
         jar("bin/h2small" + getJarSuffix(), files, "temp");
-    }
-
-    /**
-     * Create the file h2jaqu.jar. This only contains the JaQu (Java Query)
-     * implementation. All other jar files do not include JaQu.
-     */
-    @Description(summary = "Create jaqu.jar with only the Java Query implementation.")
-    public void jarJaqu() {
-        compile(true, false, true);
-        manifest("H2 JaQu", "");
-        FileList files = files("temp/org/h2/jaqu");
-        files.addAll(files("temp/META-INF/MANIFEST.MF"));
-        files.exclude("*.DS_Store");
-        files = excludeTestMetaInfFiles(files);
-        jar("bin/h2jaqu" + getJarSuffix(), files, "temp");
     }
 
     /**
@@ -671,8 +653,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
                 File.pathSeparator + "ext/jts-core-1.15.0.jar",
-                "-subpackages", "org.h2",
-                "-exclude", "org.h2.test.jaqu:org.h2.jaqu");
+                "-subpackages", "org.h2");
 
         mkdir("docs/javadocImpl3");
         javadoc("-sourcepath", "src/main",
@@ -702,7 +683,6 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
                 File.pathSeparator + "ext/jts-core-1.15.0.jar",
                 "-subpackages", "org.h2",
-                "-exclude", "org.h2.test.jaqu:org.h2.jaqu",
                 "-package",
                 "-docletpath", "bin" + File.pathSeparator + "temp",
                 "-doclet", "org.h2.build.doclet.Doclet");

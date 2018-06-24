@@ -78,7 +78,7 @@ public abstract class FilePath {
                     "org.h2.store.fs.FilePathRetryOnInterrupt"
             }) {
                 try {
-                    FilePath p = (FilePath) Class.forName(c).newInstance();
+                    FilePath p = (FilePath) Class.forName(c).getDeclaredConstructor().newInstance();
                     map.put(p.getScheme(), p);
                     if (defaultProvider == null) {
                         defaultProvider = p;

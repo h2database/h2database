@@ -245,7 +245,7 @@ public class DefaultAuthenticator implements Authenticator {
             CredentialsValidator currentValidator = null;
             try {
                 currentValidator = (CredentialsValidator) Class.forName(currentRealmConfig.getValidatorClass())
-                        .newInstance();
+                        .getDeclaredConstructor().newInstance();
             } catch (Exception e) {
                 throw new AuthenticationException("invalid validator class fo realm " + currentRealmName, e);
             }
@@ -260,7 +260,7 @@ public class DefaultAuthenticator implements Authenticator {
             UserToRolesMapper currentUserToRolesMapper = null;
             try {
                 currentUserToRolesMapper = (UserToRolesMapper) Class
-                        .forName(currentUserToRolesMapperConfig.getClassName()).newInstance();
+                        .forName(currentUserToRolesMapperConfig.getClassName()).getDeclaredConstructor().newInstance();
             } catch (Exception e) {
                 throw new AuthenticationException("Invalid class in UserToRolesMapperConfig", e);
             }

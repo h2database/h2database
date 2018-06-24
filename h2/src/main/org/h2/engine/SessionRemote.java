@@ -409,7 +409,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                 className = StringUtils.trim(className, true, true, "'");
                 try {
                     eventListener = (DatabaseEventListener) JdbcUtils
-                            .loadUserClass(className).newInstance();
+                            .loadUserClass(className).getDeclaredConstructor().newInstance();
                 } catch (Throwable e) {
                     throw DbException.convert(e);
                 }
@@ -794,7 +794,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                 if (!serializerFQN.isEmpty() && !serializerFQN.equals("null")) {
                     try {
                         javaObjectSerializer = (JavaObjectSerializer) JdbcUtils
-                                .loadUserClass(serializerFQN).newInstance();
+                                .loadUserClass(serializerFQN).getDeclaredConstructor().newInstance();
                     } catch (Exception e) {
                         throw DbException.convert(e);
                     }

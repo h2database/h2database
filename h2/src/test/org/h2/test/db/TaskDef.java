@@ -28,7 +28,7 @@ public abstract class TaskDef {
         TaskDef task;
         try {
             String className = args[0];
-            task = (TaskDef) Class.forName(className).newInstance();
+            task = (TaskDef) Class.forName(className).getDeclaredConstructor().newInstance();
             System.out.println("running");
         } catch (Throwable t) {
             System.out.println("init error: " + t);

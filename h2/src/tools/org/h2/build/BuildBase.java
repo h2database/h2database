@@ -974,7 +974,7 @@ public class BuildBase {
                 }));
             }
             Method compile = clazz.getMethod("compile", new Class<?>[] { String[].class });
-            Object instance = clazz.newInstance();
+            Object instance = clazz.getDeclaredConstructor().newInstance();
             result = (Integer) invoke(compile, instance, new Object[] { array });
         } catch (Exception e) {
             e.printStackTrace();

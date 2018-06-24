@@ -111,7 +111,7 @@ public class TestPerformance implements Database.DatabaseTest {
         for (int i = 0; i < 100; i++) {
             String testString = prop.getProperty("test" + i);
             if (testString != null) {
-                Bench bench = (Bench) Class.forName(testString).newInstance();
+                Bench bench = (Bench) Class.forName(testString).getDeclaredConstructor().newInstance();
                 tests.add(bench);
             }
         }

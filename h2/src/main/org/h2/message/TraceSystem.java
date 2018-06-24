@@ -189,7 +189,7 @@ public class TraceSystem implements TraceWriter {
         if (level == ADAPTER) {
             String adapterClass = "org.h2.message.TraceWriterAdapter";
             try {
-                writer = (TraceWriter) Class.forName(adapterClass).newInstance();
+                writer = (TraceWriter) Class.forName(adapterClass).getDeclaredConstructor().newInstance();
             } catch (Throwable e) {
                 e = DbException.get(ErrorCode.CLASS_NOT_FOUND_1, e, adapterClass);
                 write(ERROR, Trace.DATABASE, adapterClass, e);

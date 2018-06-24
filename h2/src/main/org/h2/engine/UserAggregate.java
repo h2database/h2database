@@ -39,7 +39,7 @@ public class UserAggregate extends DbObjectBase {
         }
         Object obj;
         try {
-            obj = javaClass.newInstance();
+            obj = javaClass.getDeclaredConstructor().newInstance();
             Aggregate agg;
             if (obj instanceof Aggregate) {
                 agg = (Aggregate) obj;

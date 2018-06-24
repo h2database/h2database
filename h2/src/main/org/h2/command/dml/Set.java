@@ -489,7 +489,7 @@ public class Set extends Prepared {
             Class<RowFactory> rowFactoryClass = JdbcUtils.loadUserClass(rowFactoryName);
             RowFactory rowFactory;
             try {
-                rowFactory = rowFactoryClass.newInstance();
+                rowFactory = rowFactoryClass.getDeclaredConstructor().newInstance();
             } catch (Exception e) {
                 throw DbException.convert(e);
             }

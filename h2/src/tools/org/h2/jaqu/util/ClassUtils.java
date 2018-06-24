@@ -65,7 +65,7 @@ public class ClassUtils {
             return (T) new ArrayList<>();
         }
         try {
-            return clazz.newInstance();
+            return clazz.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
             if (MAKE_ACCESSIBLE) {
                 Constructor<?>[] constructors = clazz.getDeclaredConstructors();
@@ -74,7 +74,7 @@ public class ClassUtils {
                     if (c.getParameterTypes().length == 0) {
                         c.setAccessible(true);
                         try {
-                            return clazz.newInstance();
+                            return clazz.getDeclaredConstructor().newInstance();
                         } catch (Exception e2) {
                             // ignore
                         }

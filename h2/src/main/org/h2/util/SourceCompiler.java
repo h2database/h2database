@@ -399,7 +399,7 @@ public class SourceCompiler {
             System.setErr(temp);
             Method compile;
             compile = JAVAC_SUN.getMethod("compile", String[].class);
-            Object javac = JAVAC_SUN.newInstance();
+            Object javac = JAVAC_SUN.getDeclaredConstructor().newInstance();
             compile.invoke(javac, (Object) new String[] {
                     "-sourcepath", COMPILE_DIR,
                     // "-Xlint:unchecked",

@@ -114,7 +114,7 @@ public class JdbcUtils {
         String clazz = SysProperties.JAVA_OBJECT_SERIALIZER;
         if (clazz != null) {
             try {
-                serializer = (JavaObjectSerializer) loadUserClass(clazz).newInstance();
+                serializer = (JavaObjectSerializer) loadUserClass(clazz).getDeclaredConstructor().newInstance();
             } catch (Exception e) {
                 throw DbException.convert(e);
             }
@@ -124,7 +124,7 @@ public class JdbcUtils {
         if (customTypeHandlerClass != null) {
             try {
                 customDataTypesHandler = (CustomDataTypesHandler)
-                        loadUserClass(customTypeHandlerClass).newInstance();
+                        loadUserClass(customTypeHandlerClass).getDeclaredConstructor().newInstance();
             } catch (Exception e) {
                 throw DbException.convert(e);
             }
@@ -290,7 +290,7 @@ public class JdbcUtils {
             Class<?> d = loadUserClass(driver);
             if (java.sql.Driver.class.isAssignableFrom(d)) {
                 try {
-                    Driver driverInstance = (Driver) d.newInstance();
+                    Driver driverInstance = (Driver) d.getDeclaredConstructor().newInstance();
                     return driverInstance.connect(url, prop); /*fix issue #695 with drivers with the same
                     jdbc subprotocol in classpath of jdbc drivers (as example redshift and postgresql drivers)*/
                 } catch (Exception e) {
@@ -299,7 +299,7 @@ public class JdbcUtils {
             } else if (javax.naming.Context.class.isAssignableFrom(d)) {
                 // JNDI context
                 try {
-                    Context context = (Context) d.newInstance();
+                    Context context = (Context) d.getDeclaredConstructor().newInstance();
                     DataSource ds = (DataSource) context.lookup(url);
                     String user = prop.getProperty("user");
                     String password = prop.getProperty("password");

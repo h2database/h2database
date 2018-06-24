@@ -1135,19 +1135,23 @@ public class Parser {
                 command.setQuery(parseSelect());
                 read(")");
             }
-            command.setQueryAlias(readFromAlias(null, Collections.singletonList("ON")));
+            String queryAlias = readFromAlias(null, Collections.singletonList("ON"));
+            if (queryAlias == null) {
+                queryAlias = Constants.PREFIX_QUERY_ALIAS + parseIndex;
+            }
+            command.setQueryAlias(queryAlias);
 
             String[] querySQLOutput = {null};
             List<Column> columnTemplateList = TableView.createQueryColumnTemplateList(null, command.getQuery(),
                     querySQLOutput);
             TableView temporarySourceTableView = createCTEView(
-                    command.getQueryAlias(), querySQLOutput[0],
+                    queryAlias, querySQLOutput[0],
                     columnTemplateList, false/* no recursion */,
                     false/* do not add to session */,
                     false /* isPersistent */,
                     session);
             TableFilter sourceTableFilter = new TableFilter(session,
-                    temporarySourceTableView, command.getQueryAlias(),
+                    temporarySourceTableView, queryAlias,
                     rightsChecked, (Select) command.getQuery(), 0, null);
             command.setSourceTableFilter(sourceTableFilter);
         } else {
@@ -1552,7 +1556,7 @@ public class Parser {
         if (readIf("AS")) {
             alias = readAliasIdentifier();
         } else if (currentTokenType == IDENTIFIER && !isTokenInList(excludeIdentifiers)) {
-                alias = readAliasIdentifier();
+            alias = readAliasIdentifier();
         }
         return alias;
     }

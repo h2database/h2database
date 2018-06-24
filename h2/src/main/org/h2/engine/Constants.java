@@ -387,6 +387,11 @@ public class Constants {
     public static final String PREFIX_PRIMARY_KEY = "PRIMARY_KEY_";
 
     /**
+     * The name prefix used for query aliases that are not explicitly named.
+     */
+    public static final String PREFIX_QUERY_ALIAS = "QUERY_ALIAS_";
+
+    /**
      * Every user belongs to this role.
      */
     public static final String PUBLIC_ROLE_NAME = "PUBLIC";

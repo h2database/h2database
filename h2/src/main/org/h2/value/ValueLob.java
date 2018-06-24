@@ -30,19 +30,8 @@ import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
- * Implementation of the BLOB and CLOB data types. Small objects are kept in
- * memory and stored in the record.
- *
- * Large objects are stored in their own files. When large objects are set in a
- * prepared statement, they are first stored as 'temporary' files. Later, when
- * they are used in a record, and when the record is stored, the lob files are
- * linked: the file is renamed using the file format (tableId).(objectId). There
- * is one exception: large variables are stored in the file (-1).(objectId).
- *
- * When lobs are deleted, they are first renamed to a temp file, and if the
- * delete operation is committed the file is deleted.
- *
- * Data compression is supported.
+ * This is the legacy implementation of LOBs for PageStore databases where the
+ * LOB was stored in an external file.
  */
 public class ValueLob extends Value {
 
@@ -328,17 +317,11 @@ public class ValueLob extends Value {
 
     @Override
     public void remove() {
-        if (fileName != null) {
-            deleteFile(handler, fileName);
-        }
+        deleteFile(handler, fileName);
     }
 
     @Override
     public Value copy(DataHandler h, int tabId) {
-        if (fileName == null) {
-            this.tableId = tabId;
-            return this;
-        }
         if (linked) {
             ValueLob copy = new ValueLob(this.valueType, this.handler, this.fileName,
                     this.tableId, getNewObjectId(h), this.linked, this.precision, this.compressed);
@@ -483,9 +466,6 @@ public class ValueLob extends Value {
 
     @Override
     public InputStream getInputStream(long oneBasedOffset, long length) {
-        if (fileName == null) {
-            return super.getInputStream(oneBasedOffset, length);
-        }
         FileStore store = handler.openFile(fileName, "r", true);
         boolean alwaysClose = SysProperties.lobCloseBetweenReads;
         InputStream inputStream = new BufferedInputStream(

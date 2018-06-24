@@ -30,9 +30,18 @@ import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
- * This is the legacy implementation of LOBs for PageStore databases where the
- * LOB was stored in an external file.
- * 
+ * Implementation of the BLOB and CLOB data types. Small objects are kept in
+ * memory and stored in the record.
+ *
+ * Large objects are stored in their own files. When large objects are set in a
+ * prepared statement, they are first stored as 'temporary' files. Later, when
+ * they are used in a record, and when the record is stored, the lob files are
+ * linked: the file is renamed using the file format (tableId).(objectId). There
+ * is one exception: large variables are stored in the file (-1).(objectId).
+ *
+ * When lobs are deleted, they are first renamed to a temp file, and if the
+ * delete operation is committed the file is deleted.
+ *
  * Data compression is supported.
  */
 public class ValueLob extends Value {
@@ -130,6 +139,24 @@ public class ValueLob extends Value {
         String table = tableId < 0 ? ".temp" : ".t" + tableId;
         return getFileNamePrefix(handler.getDatabasePath(), objectId) +
                 table + Constants.SUFFIX_LOB_FILE;
+    }
+
+    /**
+     * Create a LOB value with the given parameters.
+     *
+     * @param type the data type, either Value.BLOB or Value.CLOB
+     * @param handler the file handler
+     * @param tableId the table object id
+     * @param objectId the object id
+     * @param precision the precision (length in elements)
+     * @param compression if compression is used
+     * @return the value object
+     */
+    public static ValueLob openLinked(int type, DataHandler handler,
+            int tableId, int objectId, long precision, boolean compression) {
+        String fileName = getFileName(handler, tableId, objectId);
+        return new ValueLob(type, handler, fileName, tableId, objectId,
+                true/* linked */, precision, compression);
     }
 
     /**
@@ -301,11 +328,17 @@ public class ValueLob extends Value {
 
     @Override
     public void remove() {
-        deleteFile(handler, fileName);
+        if (fileName != null) {
+            deleteFile(handler, fileName);
+        }
     }
 
     @Override
     public Value copy(DataHandler h, int tabId) {
+        if (fileName == null) {
+            this.tableId = tabId;
+            return this;
+        }
         if (linked) {
             ValueLob copy = new ValueLob(this.valueType, this.handler, this.fileName,
                     this.tableId, getNewObjectId(h), this.linked, this.precision, this.compressed);

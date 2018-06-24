@@ -309,8 +309,14 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             // convert hex to string
             return super.getBytes();
         }
-        byte[] data = getBytesNoCopy();
-        return Utils.cloneByteArray(data);
+        if (small != null) {
+            return Utils.cloneByteArray(small);
+        }
+        try {
+            return IOUtils.readBytesAndClose(getInputStream(), Integer.MAX_VALUE);
+        } catch (IOException e) {
+            throw DbException.convertIOException(e, toString());
+        }
     }
 
     @Override
@@ -340,7 +346,11 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             if (type == CLOB) {
                 hash = getString().hashCode();
             } else {
-                hash = Utils.getByteArrayHash(getBytes());
+                if (small != null) {
+                    hash = Utils.getByteArrayHash(small);
+                } else {
+                    hash = Utils.getByteArrayHash(getBytes());
+                }
             }
         }
         return hash;

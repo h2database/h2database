@@ -852,8 +852,8 @@ public class Data {
                     return ValueLob.openUnlinked(type, handler, tableId,
                             objectId, precision, compression, filename);
                 }
-                return ValueLob.openLinked(type, handler, tableId,
-                        objectId, precision, compression);
+                return ValueLobDb.create(type, handler, tableId,
+                        objectId, null, precision);
             }
         }
         case Value.ARRAY: {

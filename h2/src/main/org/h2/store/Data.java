@@ -584,7 +584,6 @@ public class Data {
             writeByte((byte) type);
             if (v instanceof ValueLob) {
                 ValueLob lob = (ValueLob) v;
-                lob.convertToFileIfRequired(handler);
                 byte[] small = lob.getSmall();
                 if (small == null) {
                     int t = -1;
@@ -1013,7 +1012,6 @@ public class Data {
             int len = 1;
             if (v instanceof ValueLob) {
                 ValueLob lob = (ValueLob) v;
-                lob.convertToFileIfRequired(handler);
                 byte[] small = lob.getSmall();
                 if (small == null) {
                     int t = -1;

@@ -276,7 +276,7 @@ class FileNioMem extends FileBase {
     /**
      * The file data.
      */
-    final FileNioMemData data;
+    FileNioMemData data;
 
     private final boolean readOnly;
     private long pos;
@@ -364,6 +364,7 @@ class FileNioMem extends FileBase {
     @Override
     public void implCloseChannel() throws IOException {
         pos = 0;
+        data = null;
     }
 
     @Override

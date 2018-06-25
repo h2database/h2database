@@ -267,7 +267,7 @@ class FileMem extends FileBase {
     /**
      * The file data.
      */
-    final FileMemData data;
+    FileMemData data;
 
     private final boolean readOnly;
     private long pos;
@@ -369,6 +369,7 @@ class FileMem extends FileBase {
     @Override
     public void implCloseChannel() throws IOException {
         pos = 0;
+        data = null;
     }
 
     @Override

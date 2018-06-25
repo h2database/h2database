@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
 import org.h2.message.DbException;
 import org.h2.util.IOUtils;
 
@@ -354,7 +353,7 @@ class FileZip extends FileBase {
     public synchronized FileLock tryLock(long position, long size,
             boolean shared) throws IOException {
         if (shared) {
-            return new FileLock(new FakeFileChannel(), position, size, shared) {
+            return new FileLock(FakeFileChannel.INSTANCE, position, size, shared) {
 
                 @Override
                 public boolean isValid() {

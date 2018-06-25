@@ -14,7 +14,6 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-
 import org.h2.engine.Constants;
 import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
@@ -45,20 +44,38 @@ public class ValueLobDb extends Value {
      * the value type (Value.BLOB or CLOB)
      */
     private final int valueType;
+    /**
+     * If the LOB is managed by the one the LobStorageBackend classes, these are the
+     * unique key inside that storage.
+     */
+    private final int tableId;
     private final long lobId;
+    /**
+     * If this is a client-side ValueLobDb object returned by a ResultSet, the
+     * hmac acts a security cookie that the client can send back to the server
+     * to ask for data related to this LOB.
+     */
     private final byte[] hmac;
+    /**
+     * If the LOB is below the inline size, we just store/load it directly
+     * here.
+     */
     private final byte[] small;
     private final DataHandler handler;
-
     /**
      * For a BLOB, precision is length in bytes.
      * For a CLOB, precision is length in chars.
      */
     private final long precision;
-
+    /**
+     * If the LOB is a temporary LOB being managed by a temporary ResultSet,
+     * it is stored in a temporary file.
+     */
     private final String fileName;
     private final FileStore tempFile;
-    private final int tableId;
+    /**
+     * Cache the hashCode because it can be expensive to compute.
+     */
     private int hash;
 
     //Arbonaut: 13.07.2016

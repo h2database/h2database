@@ -1704,15 +1704,13 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (v.getType() != Value.CLOB && v.getType() != Value.BLOB) {
             return;
         }
-        if (v.getTableId() == LobStorageFrontend.TABLE_RESULT) {
+        if (v.getTableId() == LobStorageFrontend.TABLE_RESULT
+                || v.getTableId() == LobStorageFrontend.TABLE_TEMP) {
             if (temporaryResultLobs == null) {
                 temporaryResultLobs = new LinkedList<>();
             }
             temporaryResultLobs.add(new TimeoutValue(v));
         } else {
-            // Things with tableId == LobStorageFrontend.TABLE_TEMP
-            // end up here because we don't need to keep them alive to cater
-            // for dodgy clients.
             if (temporaryLobs == null) {
                 temporaryLobs = new ArrayList<>();
             }

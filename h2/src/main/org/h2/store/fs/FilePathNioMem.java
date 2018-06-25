@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import org.h2.api.ErrorCode;
 import org.h2.compress.CompressLZF;
 import org.h2.message.DbException;
@@ -385,7 +384,7 @@ class FileNioMem extends FileBase {
             }
         }
 
-        return new FileLock(new FakeFileChannel(), position, size, shared) {
+        return new FileLock(FakeFileChannel.INSTANCE, position, size, shared) {
 
             @Override
             public boolean isValid() {

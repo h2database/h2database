@@ -15,7 +15,6 @@ import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.store.fs.FakeFileChannel;
@@ -427,7 +426,7 @@ class FileZip2 extends FileBase {
     public synchronized FileLock tryLock(long position, long size,
             boolean shared) throws IOException {
         if (shared) {
-            return new FileLock(new FakeFileChannel(), position, size, shared) {
+            return new FileLock(FakeFileChannel.INSTANCE, position, size, shared) {
 
                 @Override
                 public boolean isValid() {

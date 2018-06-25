@@ -17,6 +17,14 @@ import java.nio.channels.WritableByteChannel;
  * Fake file channel to use by in-memory and ZIP file systems.
  */
 public class FakeFileChannel extends FileChannel {
+
+    /**
+     * No need to allocate these, they have no state
+     */
+    public static final FakeFileChannel INSTANCE = new FakeFileChannel();
+
+    private FakeFileChannel() {}
+
     @Override
     protected void implCloseChannel() throws IOException {
         throw new IOException();

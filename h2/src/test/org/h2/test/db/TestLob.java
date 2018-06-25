@@ -56,6 +56,7 @@ public class TestLob extends TestDb {
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
         test.config.big = true;
+        test.config.mvStore = false;
         test.test();
     }
 
@@ -112,6 +113,7 @@ public class TestLob extends TestDb {
         testLob(false);
         testLob(true);
         testJavaObject();
+        testLobGrowth();
         deleteDb("lob");
     }
 
@@ -1684,5 +1686,38 @@ public class TestLob extends TestDb {
             }
         }
         return new String(buffer);
+    }
+
+    private void testLobGrowth() throws SQLException {
+        if (config.mvStore) {
+            return;
+        }
+        final File dbFile = new File(getBaseDir(), "lob.h2.db");
+        final byte[] data = new byte[2560];
+        deleteDb("lob");
+        JdbcConnection conn = (JdbcConnection) getConnection("lob;LOB_TIMEOUT=0");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID IDENTITY PRIMARY KEY, DATA BLOB)");
+        PreparedStatement prep = conn
+                .prepareStatement("INSERT INTO TEST(DATA) VALUES(?)");
+        for (int i = 0; i < 100; i++) {
+            prep.setBinaryStream(1, new ByteArrayInputStream(data));
+            prep.executeUpdate();
+        }
+        final long initialSize = dbFile.length();
+        prep = conn.prepareStatement("UPDATE test SET data=? WHERE id=?");
+        for (int i = 0; i < 20; i++) {
+            for (int j = 0; j < 100; j++) {
+                data[0] = (byte)(i);
+                data[1] = (byte)(j);
+                prep.setBinaryStream(1, new ByteArrayInputStream(data));
+                prep.setInt(2, j);
+                prep.executeUpdate();
+            }
+        }
+        assertTrue("dbFile size " + dbFile.length() + " is > initialSize "
+                + initialSize, dbFile.length() <= (initialSize * 1.5));
+        conn.createStatement().execute("drop table test");
+        conn.close();
     }
 }

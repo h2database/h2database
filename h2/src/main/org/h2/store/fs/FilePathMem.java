@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.NonWritableChannelException;
@@ -288,6 +289,9 @@ class FileMem extends FileBase {
         if (readOnly) {
             throw new NonWritableChannelException();
         }
+        if (data == null) {
+            throw new ClosedChannelException();
+        }
         if (newLength < size()) {
             data.touch(readOnly);
             pos = Math.min(pos, newLength);
@@ -304,6 +308,9 @@ class FileMem extends FileBase {
 
     @Override
     public int write(ByteBuffer src, long position) throws IOException {
+        if (data == null) {
+            throw new ClosedChannelException();
+        }
         int len = src.remaining();
         if (len == 0) {
             return 0;
@@ -317,6 +324,9 @@ class FileMem extends FileBase {
 
     @Override
     public int write(ByteBuffer src) throws IOException {
+        if (data == null) {
+            throw new ClosedChannelException();
+        }
         int len = src.remaining();
         if (len == 0) {
             return 0;
@@ -330,6 +340,9 @@ class FileMem extends FileBase {
 
     @Override
     public int read(ByteBuffer dst, long position) throws IOException {
+        if (data == null) {
+            throw new ClosedChannelException();
+        }
         int len = dst.remaining();
         if (len == 0) {
             return 0;
@@ -346,6 +359,9 @@ class FileMem extends FileBase {
 
     @Override
     public int read(ByteBuffer dst) throws IOException {
+        if (data == null) {
+            throw new ClosedChannelException();
+        }
         int len = dst.remaining();
         if (len == 0) {
             return 0;
@@ -380,6 +396,9 @@ class FileMem extends FileBase {
     @Override
     public synchronized FileLock tryLock(long position, long size,
             boolean shared) throws IOException {
+        if (data == null) {
+            throw new ClosedChannelException();
+        }
         if (shared) {
             if (!data.lockShared()) {
                 return null;
@@ -406,7 +425,7 @@ class FileMem extends FileBase {
 
     @Override
     public String toString() {
-        return data.getName();
+        return data == null ? "<closed>" : data.getName();
     }
 
 }

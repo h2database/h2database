@@ -520,11 +520,13 @@ class FileMemData {
     /**
      * Unlock the file.
      */
-    synchronized void unlock() {
+    synchronized void unlock() throws IOException {
         if (isLockedExclusive) {
             isLockedExclusive = false;
+        } else if (sharedLockCount > 0) {
+            sharedLockCount--;
         } else {
-            sharedLockCount = Math.max(0, sharedLockCount - 1);
+            throw new IOException("not locked");
         }
     }
 

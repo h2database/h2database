@@ -94,15 +94,6 @@ public class Data {
     private static final long MILLIS_PER_MINUTE = 1000 * 60;
 
     /**
-     * Can not store the local time, because doing so with old database files
-     * that didn't do it could result in an ArrayIndexOutOfBoundsException. The
-     * reason is that adding a row to a page only allocated space for the new
-     * row, but didn't take into account that existing rows now can use more
-     * space, due to the changed format.
-     */
-    private static final boolean STORE_LOCAL_TIME = false;
-
-    /**
      * The data itself.
      */
     private byte[] data;
@@ -487,48 +478,20 @@ public class Data {
             break;
         }
         case Value.TIME:
-            if (STORE_LOCAL_TIME) {
-                writeByte((byte) LOCAL_TIME);
-                ValueTime t = (ValueTime) v;
-                long nanos = t.getNanos();
-                long millis = nanos / 1_000_000;
-                nanos -= millis * 1_000_000;
-                writeVarLong(millis);
-                writeVarLong(nanos);
-            } else {
-                writeByte((byte) type);
-                writeVarLong(DateTimeUtils.getTimeLocalWithoutDst(v.getTime()));
-            }
+            writeByte((byte) type);
+            writeVarLong(DateTimeUtils.getTimeLocalWithoutDst(v.getTime()));
             break;
         case Value.DATE: {
-            if (STORE_LOCAL_TIME) {
-                writeByte((byte) LOCAL_DATE);
-                long x = ((ValueDate) v).getDateValue();
-                writeVarLong(x);
-            } else {
-                writeByte((byte) type);
-                long x = DateTimeUtils.getTimeLocalWithoutDst(v.getDate());
-                writeVarLong(x / MILLIS_PER_MINUTE);
-            }
+            writeByte((byte) type);
+            long x = DateTimeUtils.getTimeLocalWithoutDst(v.getDate());
+            writeVarLong(x / MILLIS_PER_MINUTE);
             break;
         }
         case Value.TIMESTAMP: {
-            if (STORE_LOCAL_TIME) {
-                writeByte((byte) LOCAL_TIMESTAMP);
-                ValueTimestamp ts = (ValueTimestamp) v;
-                long dateValue = ts.getDateValue();
-                writeVarLong(dateValue);
-                long nanos = ts.getTimeNanos();
-                long millis = nanos / 1_000_000;
-                nanos -= millis * 1_000_000;
-                writeVarLong(millis);
-                writeVarLong(nanos);
-            } else {
-                Timestamp ts = v.getTimestamp();
-                writeByte((byte) type);
-                writeVarLong(DateTimeUtils.getTimeLocalWithoutDst(ts));
-                writeVarInt(ts.getNanos() % 1_000_000);
-            }
+            Timestamp ts = v.getTimestamp();
+            writeByte((byte) type);
+            writeVarLong(DateTimeUtils.getTimeLocalWithoutDst(ts));
+            writeVarInt(ts.getNanos() % 1_000_000);
             break;
         }
         case Value.TIMESTAMP_TZ: {
@@ -621,7 +584,6 @@ public class Data {
             writeByte((byte) type);
             if (v instanceof ValueLob) {
                 ValueLob lob = (ValueLob) v;
-                lob.convertToFileIfRequired(handler);
                 byte[] small = lob.getSmall();
                 if (small == null) {
                     int t = -1;
@@ -1012,31 +974,12 @@ public class Data {
             return 1 + getVarIntLen(scale) + getVarIntLen(bytes.length) + bytes.length;
         }
         case Value.TIME:
-            if (STORE_LOCAL_TIME) {
-                long nanos = ((ValueTime) v).getNanos();
-                long millis = nanos / 1_000_000;
-                nanos -= millis * 1_000_000;
-                return 1 + getVarLongLen(millis) + getVarLongLen(nanos);
-            }
             return 1 + getVarLongLen(DateTimeUtils.getTimeLocalWithoutDst(v.getTime()));
         case Value.DATE: {
-            if (STORE_LOCAL_TIME) {
-                long dateValue = ((ValueDate) v).getDateValue();
-                return 1 + getVarLongLen(dateValue);
-            }
             long x = DateTimeUtils.getTimeLocalWithoutDst(v.getDate());
             return 1 + getVarLongLen(x / MILLIS_PER_MINUTE);
         }
         case Value.TIMESTAMP: {
-            if (STORE_LOCAL_TIME) {
-                ValueTimestamp ts = (ValueTimestamp) v;
-                long dateValue = ts.getDateValue();
-                long nanos = ts.getTimeNanos();
-                long millis = nanos / 1_000_000;
-                nanos -= millis * 1_000_000;
-                return 1 + getVarLongLen(dateValue) + getVarLongLen(millis) +
-                        getVarLongLen(nanos);
-            }
             Timestamp ts = v.getTimestamp();
             return 1 + getVarLongLen(DateTimeUtils.getTimeLocalWithoutDst(ts)) +
                     getVarIntLen(ts.getNanos() % 1_000_000);
@@ -1069,7 +1012,6 @@ public class Data {
             int len = 1;
             if (v instanceof ValueLob) {
                 ValueLob lob = (ValueLob) v;
-                lob.convertToFileIfRequired(handler);
                 byte[] small = lob.getSmall();
                 if (small == null) {
                     int t = -1;

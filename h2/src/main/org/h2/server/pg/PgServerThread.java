@@ -30,7 +30,6 @@ import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
-
 import org.h2.command.CommandInterface;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
@@ -508,7 +507,7 @@ public class PgServerThread implements Runnable {
         sendMessage();
     }
 
-    private void sendDataRow(ResultSet rs, int[] formatCodes) throws Exception {
+    private void sendDataRow(ResultSet rs, int[] formatCodes) throws IOException, SQLException {
         ResultSetMetaData metaData = rs.getMetaData();
         int columns = metaData.getColumnCount();
         startMessage('D');
@@ -535,7 +534,7 @@ public class PgServerThread implements Runnable {
     }
 
     private void writeDataColumn(ResultSet rs, int column, int pgType, boolean text)
-            throws Exception {
+            throws IOException {
         Value v = ((JdbcResultSet) rs).get(column);
         if (v == ValueNull.INSTANCE) {
             writeInt(-1);
@@ -758,7 +757,7 @@ public class PgServerThread implements Runnable {
         sendMessage();
     }
 
-    private void sendRowDescription(ResultSetMetaData meta) throws Exception {
+    private void sendRowDescription(ResultSetMetaData meta) throws IOException, SQLException {
         if (meta == null) {
             sendNoData();
         } else {

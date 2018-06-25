@@ -131,12 +131,6 @@ public class DbSettings extends SettingsBase {
     public final boolean functionsInSchema = get("FUNCTIONS_IN_SCHEMA", true);
 
     /**
-     * Database setting <code>LARGE_TRANSACTIONS</code> (default: true).<br />
-     * Support very large transactions
-     */
-    public final boolean largeTransactions = get("LARGE_TRANSACTIONS", true);
-
-    /**
      * Database setting <code>LOB_TIMEOUT</code> (default: 300000,
      * which means 5 minutes).<br />
      * The number of milliseconds a temporary LOB reference is kept until it

@@ -16,11 +16,8 @@ public interface Authenticator {
     /**
      * Perform user authentication.
      *
-     * @param authenticationInfo
-     * @param database
      * @return valid database user or null if user doesn't exists in the
      *         database
-     * @throws AuthenticationException
      */
     User authenticate(AuthenticationInfo authenticationInfo, Database database) throws AuthenticationException;
 
@@ -28,9 +25,7 @@ public interface Authenticator {
      * Initialize the authenticator. This method is invoked by databases when
      * the authenticator is set when the authenticator is set.
      *
-     * @param database
-     *            target database
-     * @throws AuthConfigException
+     * @param database target database
      */
     void init(Database database) throws AuthConfigException;
 }

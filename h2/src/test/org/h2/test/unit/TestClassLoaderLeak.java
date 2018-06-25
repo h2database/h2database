@@ -63,9 +63,9 @@ public class TestClassLoaderLeak extends TestBase {
             }
         }
         DriverManager.registerDriver((Driver)
-                Class.forName("org.h2.Driver").newInstance());
+                Class.forName("org.h2.Driver").getDeclaredConstructor().newInstance());
         DriverManager.registerDriver((Driver)
-                Class.forName("org.h2.upgrade.v1_1.Driver").newInstance());
+                Class.forName("org.h2.upgrade.v1_1.Driver").getDeclaredConstructor().newInstance());
     }
 
     private static WeakReference<ClassLoader> createClassLoader() throws Exception {

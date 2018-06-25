@@ -1395,18 +1395,4 @@ public abstract class Value {
         return null;
     }
 
-    /**
-     * A "binary large object".
-     */
-    public interface ValueClob {
-        // this is a marker interface
-    }
-
-    /**
-     * A "character large object".
-     */
-    public interface ValueBlob {
-        // this is a marker interface
-    }
-
 }

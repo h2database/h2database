@@ -74,7 +74,7 @@ public class TriggerObject extends SchemaObjectBase {
             Connection c2 = sysSession.createConnection(false);
             Object obj;
             if (triggerClassName != null) {
-                obj = JdbcUtils.loadUserClass(triggerClassName).newInstance();
+                obj = JdbcUtils.loadUserClass(triggerClassName).getDeclaredConstructor().newInstance();
             } else {
                 obj = loadFromSource();
             }

@@ -195,11 +195,10 @@ public class Build extends BuildBase {
         execJava(args(
                 "-Xmx128m",
                 "-javaagent:ext/jacocoagent.jar=destfile=coverage/jacoco.exec,"
-                        + "excludes=org.h2.test.*:org.h2.tools.*:org.h2.sample.*:android.*",
+                        + "excludes=org.h2.test.*:org.h2.tools.*:org.h2.sample.*",
                 "-cp", cp,
                 "org.h2.test.TestAll", "codeCoverage"));
         // Remove classes that we don't want to include in report
-        delete(files("coverage/bin/android"));
         delete(files("coverage/bin/org/h2/test"));
         delete(files("coverage/bin/org/h2/tools"));
         delete(files("coverage/bin/org/h2/sample"));
@@ -520,12 +519,9 @@ public class Build extends BuildBase {
         addVersions(true);
         manifest("H2 Database Engine", "org.h2.tools.Console");
         FileList files = files("temp").
-            exclude("temp/android/*").
-            exclude("temp/org/h2/android/*").
             exclude("temp/org/h2/build/*").
             exclude("temp/org/h2/dev/*").
             exclude("temp/org/h2/jcr/*").
-            exclude("temp/org/h2/jaqu/*").
             exclude("temp/org/h2/java/*").
             exclude("temp/org/h2/jcr/*").
             exclude("temp/org/h2/mode/*").
@@ -544,38 +540,6 @@ public class Build extends BuildBase {
     }
 
     /**
-     * Create the file h2android.jar. This only contains the embedded database,
-     * plus the H2 Android API. Debug information is disabled.
-     */
-    @Description(summary = "Create h2android.jar with only the embedded DB and H2 Android API.")
-    public void jarAndroid() {
-        compile(false, false, true);
-        FileList files = files("temp").
-            exclude("temp/org/h2/bnf/*").
-            exclude("temp/org/h2/build/*").
-            exclude("temp/org/h2/dev/*").
-            exclude("temp/org/h2/fulltext/*").
-            exclude("temp/org/h2/jaqu/*").
-            exclude("temp/org/h2/java/*").
-            exclude("temp/org/h2/jdbcx/*").
-            exclude("temp/org/h2/jcr/*").
-            exclude("temp/org/h2/jmx/*").
-            exclude("temp/org/h2/mode/*").
-            exclude("temp/org/h2/samples/*").
-            exclude("temp/org/h2/server/*").
-            exclude("temp/org/h2/test/*").
-            exclude("temp/org/h2/tools/*").
-            exclude("*.bat").
-            exclude("*.sh").
-            exclude("*.txt").
-            exclude("*.DS_Store");
-        files = excludeTestMetaInfFiles(files);
-        files.add(new File("temp/org/h2/tools/DeleteDbFiles.class"));
-        files.add(new File("temp/org/h2/tools/CompressTool.class"));
-        jar("bin/h2android" + getJarSuffix(), files, "temp");
-    }
-
-    /**
      * Create the h2client.jar. This only contains the remote JDBC
      * implementation.
      */
@@ -586,7 +550,6 @@ public class Build extends BuildBase {
         FileList files = files("temp").
             exclude("temp/org/h2/build/*").
             exclude("temp/org/h2/dev/*").
-            exclude("temp/org/h2/jaqu/*").
             exclude("temp/org/h2/java/*").
             exclude("temp/org/h2/jcr/*").
             exclude("temp/org/h2/mode/*").
@@ -626,12 +589,9 @@ public class Build extends BuildBase {
         compile(false, false, true);
         addVersions(true);
         FileList files = files("temp").
-            exclude("temp/android/*").
-            exclude("temp/org/h2/android/*").
             exclude("temp/org/h2/build/*").
             exclude("temp/org/h2/dev/*").
             exclude("temp/org/h2/jcr/*").
-            exclude("temp/org/h2/jaqu/*").
             exclude("temp/org/h2/java/*").
             exclude("temp/org/h2/jcr/*").
             exclude("temp/org/h2/mode/*").
@@ -652,21 +612,6 @@ public class Build extends BuildBase {
         files.add(new File("temp/org/h2/tools/DeleteDbFiles.class"));
         files.add(new File("temp/org/h2/tools/CompressTool.class"));
         jar("bin/h2small" + getJarSuffix(), files, "temp");
-    }
-
-    /**
-     * Create the file h2jaqu.jar. This only contains the JaQu (Java Query)
-     * implementation. All other jar files do not include JaQu.
-     */
-    @Description(summary = "Create jaqu.jar with only the Java Query implementation.")
-    public void jarJaqu() {
-        compile(true, false, true);
-        manifest("H2 JaQu", "");
-        FileList files = files("temp/org/h2/jaqu");
-        files.addAll(files("temp/META-INF/MANIFEST.MF"));
-        files.exclude("*.DS_Store");
-        files = excludeTestMetaInfFiles(files);
-        jar("bin/h2jaqu" + getJarSuffix(), files, "temp");
     }
 
     /**
@@ -708,8 +653,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
                 File.pathSeparator + "ext/jts-core-1.15.0.jar",
-                "-subpackages", "org.h2",
-                "-exclude", "org.h2.test.jaqu:org.h2.jaqu");
+                "-subpackages", "org.h2");
 
         mkdir("docs/javadocImpl3");
         javadoc("-sourcepath", "src/main",
@@ -739,7 +683,6 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
                 File.pathSeparator + "ext/jts-core-1.15.0.jar",
                 "-subpackages", "org.h2",
-                "-exclude", "org.h2.test.jaqu:org.h2.jaqu",
                 "-package",
                 "-docletpath", "bin" + File.pathSeparator + "temp",
                 "-doclet", "org.h2.build.doclet.Doclet");

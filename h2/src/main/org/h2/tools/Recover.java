@@ -214,7 +214,7 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
-    public static Value.ValueBlob readBlobDb(Connection conn, long lobId,
+    public static ValueLobDb readBlobDb(Connection conn, long lobId,
             long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
         verifyPageStore(h);
@@ -235,7 +235,7 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
-    public static Value.ValueClob readClobDb(Connection conn, long lobId,
+    public static ValueLobDb readClobDb(Connection conn, long lobId,
             long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
         verifyPageStore(h);

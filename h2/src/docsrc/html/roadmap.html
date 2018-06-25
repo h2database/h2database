@@ -288,7 +288,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Server mode: improve performance for batch updates.
 </li><li>Applets: support read-only databases in a zip file (accessed as a resource).
 </li><li>Long running queries / errors / trace system table.
-</li><li>H2 Console should support JaQu directly.
 </li><li>Better document FTL_SEARCH, FTL_SEARCH_DATA.
 </li><li>Sequences: CURRVAL should be session specific. Compatibility with PostgreSQL.
 </li><li>Index creation using deterministic functions.
@@ -481,7 +480,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     select * from test a inner join test b on a.id=b.id inner join o on o.id=a.id where b.x=1
     (the optimizer should swap a and b here).
     See also TestNestedJoins, tag "swapInnerJoinTables".
-</li><li>JaQu should support a DataSource and a way to create a Db object using a Connection (for multi-threaded usage with a connection pool).
 </li><li>Move table to a different schema (rename table to a different schema), possibly using ALTER TABLE ... SET SCHEMA ...;
 </li><li>nioMapped file system: automatically fall back to regular (non mapped) IO if there is a problem (out of memory exception for example).
 </li><li>Column as parameter of function table. Issue 228.

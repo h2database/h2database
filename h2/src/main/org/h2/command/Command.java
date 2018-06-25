@@ -290,7 +290,7 @@ public abstract class Command implements CommandInterface {
                     if (s.getErrorCode() == ErrorCode.DEADLOCK_1) {
                         session.rollback();
                     } else {
-                        session.rollbackTo(rollback, false);
+                        session.rollbackTo(rollback);
                     }
                 } catch (Throwable nested) {
                     e.addSuppressed(nested);

@@ -85,10 +85,15 @@ public class TestScript extends TestDb {
     }
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (config.networked && config.big) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws Exception {
         reconnectOften = !config.memory && config.big;
 
         testScript("testScript.sql");

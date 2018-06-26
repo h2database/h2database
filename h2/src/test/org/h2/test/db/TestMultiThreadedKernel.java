@@ -43,10 +43,15 @@ public class TestMultiThreadedKernel extends TestDb {
     }
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (config.mvStore) { // FIXME can't see why test should not work in MVStore mode
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws Exception {
         deleteDb("multiThreadedKernel");
         testConcurrentRead();
         testCache();

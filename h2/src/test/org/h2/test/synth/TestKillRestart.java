@@ -26,13 +26,18 @@ import org.h2.test.utils.SelfDestructor;
 public class TestKillRestart extends TestDb {
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (config.networked) {
-            return;
+            return false;
         }
         if (getBaseDir().indexOf(':') > 0) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws Exception {
         deleteDb("killRestart");
         String url = getURL("killRestart", true);
         // String url = getURL(

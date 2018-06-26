@@ -35,10 +35,15 @@ public class TestBackup extends TestDb {
     }
 
     @Override
-    public void test() throws SQLException {
+    public boolean isEnabled() {
         if (config.memory) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws SQLException {
         testConcurrentBackup();
         testBackupRestoreLobStatement();
         testBackupRestoreLob();

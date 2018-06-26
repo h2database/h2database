@@ -68,13 +68,18 @@ public class TestKillRestartMulti extends TestDb {
     }
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (config.networked) {
-            return;
+            return false;
         }
         if (getBaseDir().indexOf(':') > 0) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws Exception {
         deleteDb("killRestartMulti");
         url = getURL("killRestartMulti", true);
         user = getUser();

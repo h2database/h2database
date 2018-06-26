@@ -40,11 +40,16 @@ public class TestOutOfMemory extends TestDb {
     }
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (config.vmlens) {
             // running out of memory will cause the vmlens agent to stop working
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws Exception {
         try {
             if (!config.travis) {
                 System.gc();

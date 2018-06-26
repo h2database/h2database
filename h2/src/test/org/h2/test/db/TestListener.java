@@ -39,10 +39,15 @@ public class TestListener extends TestDb implements DatabaseEventListener {
     }
 
     @Override
-    public void test() throws SQLException {
+    public boolean isEnabled() {
         if (config.networked || config.cipher != null) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws SQLException {
         deleteDb("listener");
         Connection conn;
         conn = getConnection("listener");

@@ -35,10 +35,15 @@ public class TestSampleApps extends TestDb {
     }
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (!getBaseDir().startsWith(TestBase.BASE_TEST_DIR)) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws Exception {
         deleteDb(getTestName());
         InputStream in = getClass().getClassLoader().getResourceAsStream(
                 "org/h2/samples/optimizations.sql");

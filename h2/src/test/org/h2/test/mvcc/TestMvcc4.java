@@ -33,10 +33,15 @@ public class TestMvcc4 extends TestDb {
     }
 
     @Override
-    public void test() throws SQLException {
+    public boolean isEnabled() {
         if (config.networked || !config.mvStore) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws SQLException {
         testSelectForUpdateAndUpdateConcurrency();
     }
 

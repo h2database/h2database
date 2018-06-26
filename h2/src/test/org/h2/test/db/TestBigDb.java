@@ -31,13 +31,18 @@ public class TestBigDb extends TestDb {
     }
 
     @Override
-    public void test() throws SQLException {
+    public boolean isEnabled() {
         if (config.memory) {
-            return;
+            return false;
         }
         if (config.networked && config.big) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws SQLException {
         testLargeTable();
         testInsert();
         testLeftSummary();

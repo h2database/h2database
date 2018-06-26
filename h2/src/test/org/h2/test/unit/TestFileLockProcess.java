@@ -48,13 +48,18 @@ public class TestFileLockProcess extends TestDb {
     }
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (config.codeCoverage || config.networked) {
-            return;
+            return false;
         }
         if (getBaseDir().indexOf(':') > 0) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws Exception {
         deleteDb("lock");
         String url = "jdbc:h2:"+getBaseDir()+"/lock";
 

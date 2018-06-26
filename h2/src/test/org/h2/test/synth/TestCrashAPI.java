@@ -149,6 +149,14 @@ public class TestCrashAPI extends TestDb implements Runnable {
     }
 
     @Override
+    public boolean isEnabled() {
+        if (config.networked) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public void test() throws Exception {
         if (RECOVER_ALL) {
             recoverAll();

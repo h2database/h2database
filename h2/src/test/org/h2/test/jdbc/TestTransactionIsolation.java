@@ -28,12 +28,17 @@ public class TestTransactionIsolation extends TestDb {
     }
 
     @Override
-    public void test() throws SQLException {
+    public boolean isEnabled() {
         if (config.mvStore) {
             // no tests yet
-        } else {
-            testTableLevelLocking();
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws SQLException {
+        testTableLevelLocking();
     }
 
     private void testTableLevelLocking() throws SQLException {

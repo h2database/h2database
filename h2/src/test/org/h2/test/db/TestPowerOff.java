@@ -39,10 +39,15 @@ public class TestPowerOff extends TestDb {
     }
 
     @Override
-    public void test() throws SQLException {
+    public boolean isEnabled() {
         if (config.memory) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws SQLException {
         if (config.big || config.googleAppEngine) {
             dir = getBaseDir();
             url = DB_NAME;

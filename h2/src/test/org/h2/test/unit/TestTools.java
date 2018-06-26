@@ -82,10 +82,15 @@ public class TestTools extends TestDb {
     }
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (config.networked) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws Exception {
         DeleteDbFiles.execute(getBaseDir(), null, true);
         org.h2.Driver.load();
         testSimpleResultSet();

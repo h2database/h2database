@@ -34,14 +34,19 @@ public class TestMVStoreTool extends TestBase {
     }
 
     @Override
+    public boolean isEnabled() {
+        if (config.memory) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public void test() throws Exception {
         testCompact();
     }
 
     private void testCompact() {
-        if (config.memory) {
-            return;
-        }
         String fileName = getBaseDir() + "/testCompact.h3";
         String fileNameNew = fileName + ".new";
         String fileNameCompressed = fileNameNew + ".compress";

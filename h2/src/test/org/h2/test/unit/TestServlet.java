@@ -345,10 +345,15 @@ public class TestServlet extends TestDb {
     }
 
     @Override
-    public void test() throws SQLException {
+    public boolean isEnabled() {
         if (config.networked || config.memory) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws SQLException {
         DbStarter listener = new DbStarter();
 
         TestServletContext context = new TestServletContext();

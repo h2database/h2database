@@ -33,10 +33,15 @@ public class TestScriptSimple extends TestDb {
     }
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (config.memory || config.big || config.networked) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws Exception {
         deleteDb("scriptSimple");
         reconnect();
         String inFile = "org/h2/test/scripts/testSimple.in.txt";

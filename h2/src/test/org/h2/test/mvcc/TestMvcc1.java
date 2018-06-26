@@ -35,15 +35,20 @@ public class TestMvcc1 extends TestDb {
     }
 
     @Override
+    public boolean isEnabled() {
+        if (!config.mvStore) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public void test() throws SQLException {
         testCases();
         deleteDb("mvcc1");
     }
 
     private void testCases() throws SQLException {
-        if (!config.mvStore) {
-            return;
-        }
         ResultSet rs;
 
         // TODO Prio 1: document: exclusive table lock still used when altering

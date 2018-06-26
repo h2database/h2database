@@ -32,10 +32,15 @@ public class TestModifyOnWrite extends TestDb {
     }
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (!SysProperties.MODIFY_ON_WRITE) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws Exception {
         deleteDb("modifyOnWrite");
         String dbFile = getBaseDir() + "/modifyOnWrite.h2.db";
         assertFalse(FileUtils.exists(dbFile));

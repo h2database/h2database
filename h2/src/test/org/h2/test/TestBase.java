@@ -127,6 +127,9 @@ public abstract class TestBase {
         }
         try {
             init(conf);
+            if (!isEnabled()) {
+                return;
+            }
             start = System.nanoTime();
             test();
             println("");
@@ -428,6 +431,13 @@ public abstract class TestBase {
             s = s.substring(3);
         }
         return s;
+    }
+
+    /**
+     * @return whether this test is enabled in the current configuration
+     */
+    public boolean isEnabled() {
+        return true;
     }
 
     /**

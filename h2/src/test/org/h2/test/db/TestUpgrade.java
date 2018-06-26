@@ -35,13 +35,18 @@ public class TestUpgrade extends TestDb {
     }
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (config.mvStore) {
-            return;
+            return false;
         }
         if (!Utils.isClassPresent("org.h2.upgrade.v1_1.Driver")) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws Exception {
         testLobs();
         testErrorUpgrading();
         testNoDb();

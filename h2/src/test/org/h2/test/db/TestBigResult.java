@@ -38,10 +38,15 @@ public class TestBigResult extends TestDb {
     }
 
     @Override
-    public void test() throws SQLException {
+    public boolean isEnabled() {
         if (config.memory) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws SQLException {
         testLargeSubquery();
         testSortingAndDistinct();
         testLOB();

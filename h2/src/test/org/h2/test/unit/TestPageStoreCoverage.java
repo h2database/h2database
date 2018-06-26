@@ -36,11 +36,16 @@ public class TestPageStoreCoverage extends TestDb {
     }
 
     @Override
+    public boolean isEnabled() {
+        if (config.memory) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public void test() throws Exception {
         // TODO mvcc, 2-phase commit
-        if (config.memory) {
-            return;
-        }
         deleteDb("pageStoreCoverage");
         testMoveRoot();
         testBasic();

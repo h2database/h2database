@@ -29,10 +29,15 @@ public class TestEncryptedDb extends TestDb {
     }
 
     @Override
-    public void test() throws SQLException {
+    public boolean isEnabled() {
         if (config.memory || config.cipher != null) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws SQLException {
         deleteDb("encrypted");
         Connection conn = getConnection("encrypted;CIPHER=AES", "sa", "123 123");
         Statement stat = conn.createStatement();

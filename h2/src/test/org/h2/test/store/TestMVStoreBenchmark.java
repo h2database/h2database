@@ -34,17 +34,21 @@ public class TestMVStoreBenchmark extends TestBase {
     }
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (!config.big) {
-            return;
+            return false;
         }
         if (config.codeCoverage) {
             // run only when _not_ using a code coverage tool,
             // because the tool might instrument our code but not
             // java.util.*
-            return;
+            return false;
         }
+        return true;
+    }
 
+    @Override
+    public void test() throws Exception {
         testPerformanceComparison();
         testMemoryUsageComparison();
     }

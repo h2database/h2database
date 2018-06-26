@@ -37,10 +37,15 @@ public class TestRecovery extends TestDb {
     }
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (config.memory) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws Exception {
         if (!config.mvStore) {
             testRecoverTestMode();
         }

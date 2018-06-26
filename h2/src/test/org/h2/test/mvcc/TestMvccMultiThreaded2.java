@@ -46,10 +46,15 @@ public class TestMvccMultiThreaded2 extends TestDb {
     }
 
     @Override
-    public void test() throws SQLException, InterruptedException {
+    public boolean isEnabled() {
         if (!config.mvStore) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws SQLException, InterruptedException {
         testSelectForUpdateConcurrency();
     }
 

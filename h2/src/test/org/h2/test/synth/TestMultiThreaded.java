@@ -123,10 +123,15 @@ public class TestMultiThreaded extends TestDb {
     }
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (config.mvStore) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws Exception {
         deleteDb("multiThreaded");
         int size = getSize(2, 4);
         Connection[] connList = new Connection[size];

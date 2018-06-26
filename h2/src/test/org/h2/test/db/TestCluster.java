@@ -36,6 +36,14 @@ public class TestCluster extends TestDb {
     }
 
     @Override
+    public boolean isEnabled() {
+        if (config.memory || config.networked || config.cipher != null) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public void test() throws Exception {
         testClob();
         testRecover();
@@ -47,9 +55,6 @@ public class TestCluster extends TestDb {
     }
 
     private void testClob() throws SQLException {
-        if (config.memory || config.networked || config.cipher != null) {
-            return;
-        }
         deleteFiles();
 
         org.h2.Driver.load();
@@ -86,9 +91,6 @@ public class TestCluster extends TestDb {
     }
 
     private void testRecover() throws SQLException {
-        if (config.memory || config.networked || config.cipher != null) {
-            return;
-        }
         deleteFiles();
 
         org.h2.Driver.load();
@@ -149,9 +151,6 @@ public class TestCluster extends TestDb {
     }
 
     private void testRollback() throws SQLException {
-        if (config.memory || config.networked || config.cipher != null) {
-            return;
-        }
         deleteFiles();
 
         org.h2.Driver.load();
@@ -196,9 +195,6 @@ public class TestCluster extends TestDb {
     }
 
     private void testCase() throws SQLException {
-        if (config.memory || config.networked || config.cipher != null) {
-            return;
-        }
         deleteFiles();
 
         org.h2.Driver.load();
@@ -252,9 +248,6 @@ public class TestCluster extends TestDb {
     }
 
     private void testClientInfo() throws SQLException {
-        if (config.memory || config.networked || config.cipher != null) {
-            return;
-        }
         deleteFiles();
 
         org.h2.Driver.load();
@@ -304,9 +297,6 @@ public class TestCluster extends TestDb {
     }
 
     private void testCreateClusterAtRuntime() throws SQLException {
-        if (config.memory || config.networked || config.cipher != null) {
-            return;
-        }
         deleteFiles();
 
         org.h2.Driver.load();
@@ -396,9 +386,6 @@ public class TestCluster extends TestDb {
     }
 
     private void testStartStopCluster() throws SQLException {
-        if (config.memory || config.networked || config.cipher != null) {
-            return;
-        }
         int port1 = 9193, port2 = 9194;
         String serverList = "localhost:" + port1 + ",localhost:" + port2;
         deleteFiles();

@@ -50,10 +50,15 @@ public class TestFileLock extends TestDb implements Runnable {
     }
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (!getFile().startsWith(TestBase.BASE_TEST_DIR)) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws Exception {
         testFsFileLock();
         testFutureModificationDate();
         testSimple();

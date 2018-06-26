@@ -28,11 +28,15 @@ public class TestTwoPhaseCommit extends TestDb {
     }
 
     @Override
-    public void test() throws SQLException {
+    public boolean isEnabled() {
         if (config.memory || config.networked) {
-            return;
+            return false;
         }
+        return true;
+    }
 
+    @Override
+    public void test() throws SQLException {
         deleteDb("twoPhaseCommit");
 
         prepare();

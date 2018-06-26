@@ -29,10 +29,15 @@ public class TestMVStoreStopCompact extends TestBase {
     }
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (!config.big) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws Exception {
         for(int retentionTime = 10; retentionTime < 1000; retentionTime *= 10) {
             for(int timeout = 100; timeout <= 1000; timeout *= 10) {
                 testStopCompact(retentionTime, timeout);

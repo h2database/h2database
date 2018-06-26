@@ -28,10 +28,15 @@ public class TestSpaceReuse extends TestDb {
     }
 
     @Override
-    public void test() throws SQLException {
+    public boolean isEnabled() {
         if (config.memory) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws SQLException {
         deleteDb("spaceReuse");
         long max = 0, now = 0, min = Long.MAX_VALUE;
         for (int i = 0; i < 20; i++) {

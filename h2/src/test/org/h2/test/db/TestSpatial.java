@@ -53,15 +53,21 @@ public class TestSpatial extends TestDb {
     }
 
     @Override
-    public void test() throws SQLException {
+    public boolean isEnabled() {
         if (config.memory && config.mvStore) {
-            return;
+            return false;
         }
-        if (DataType.GEOMETRY_CLASS != null) {
-            deleteDb("spatial");
-            testSpatial();
-            deleteDb("spatial");
+        if (DataType.GEOMETRY_CLASS == null) {
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws SQLException {
+        deleteDb("spatial");
+        testSpatial();
+        deleteDb("spatial");
     }
 
     private void testSpatial() throws SQLException {

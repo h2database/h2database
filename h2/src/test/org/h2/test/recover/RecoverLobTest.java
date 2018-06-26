@@ -28,10 +28,15 @@ public class RecoverLobTest extends TestDb {
     }
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (config.mvStore || config.memory) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws Exception {
         testRecoverClob();
     }
 

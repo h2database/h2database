@@ -50,10 +50,15 @@ public class TestPageStore extends TestDb {
     }
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (config.memory) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws Exception {
         deleteDb(null);
         testDropTempTable();
         testLogLimitFalsePositive();

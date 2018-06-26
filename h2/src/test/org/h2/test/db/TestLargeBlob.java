@@ -28,11 +28,15 @@ public class TestLargeBlob extends TestDb {
     }
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (!config.big || config.memory || config.mvStore || config.networked) {
-            return;
+            return false;
         }
+        return true;
+    }
 
+    @Override
+    public void test() throws Exception {
         deleteDb("largeBlob");
         String url = getURL("largeBlob;TRACE_LEVEL_FILE=0", true);
         Connection conn = getConnection(url);

@@ -33,10 +33,15 @@ public class TestSQLInjection extends TestDb {
     }
 
     @Override
-    public void test() throws SQLException {
+    public boolean isEnabled() {
         if (config.reopen) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws SQLException {
         deleteDb("sqlInjection");
         reconnect("sqlInjection");
         stat.execute("DROP TABLE IF EXISTS USERS");

@@ -27,13 +27,18 @@ public class TestExit extends TestDb {
             OPEN_WITHOUT_CLOSE_ON_EXIT = 2;
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (config.codeCoverage || config.networked) {
-            return;
+            return false;
         }
         if (getBaseDir().indexOf(':') > 0) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws Exception {
         deleteDb("exit");
         String url = getURL(OPEN_WITH_CLOSE_ON_EXIT);
         String selfDestruct = SelfDestructor.getPropertyString(60);

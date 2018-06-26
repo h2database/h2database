@@ -33,10 +33,15 @@ public class TestMultiThreadedKernel extends TestDb implements Runnable {
     }
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (config.networked || config.mvStore) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws Exception {
         deleteDb("multiThreadedKernel");
         int count = getSize(2, 5);
         Thread[] list = new Thread[count];

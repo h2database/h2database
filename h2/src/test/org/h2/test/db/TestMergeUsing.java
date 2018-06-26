@@ -34,12 +34,16 @@ public class TestMergeUsing extends TestDb implements Trigger {
     }
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         // TODO breaks in pagestore case
         if (!config.mvStore) {
-            return;
+            return false;
         }
+        return true;
+    }
 
+    @Override
+    public void test() throws Exception {
         // Simple ID,NAME inserts, target table with PK initially empty
         testMergeUsing(
                 "CREATE TABLE PARENT(ID INT, NAME VARCHAR, PRIMARY KEY(ID) );",

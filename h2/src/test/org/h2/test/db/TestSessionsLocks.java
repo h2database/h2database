@@ -27,10 +27,15 @@ public class TestSessionsLocks extends TestDb {
     }
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (!config.multiThreaded) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws Exception {
         testCancelStatement();
         if (!config.mvStore) {
             testLocks();

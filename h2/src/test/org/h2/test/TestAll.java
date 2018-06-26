@@ -8,6 +8,8 @@ package org.h2.test;
 import java.lang.management.ManagementFactory;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
@@ -430,6 +432,7 @@ java org.h2.test.TestAll timer
 
     private Server server;
 
+    HashMap<Class<? extends TestBase>, Boolean> executedTests = new HashMap<>();
 
     /**
      * Run all tests.
@@ -688,6 +691,12 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             test();
             cipher = null;
             test();
+        }
+
+        for (Entry<Class<? extends TestBase>, Boolean> entry : executedTests.entrySet()) {
+            if (!entry.getValue()) {
+                System.out.println("Warning: test " + entry.getKey().getName() + " was not executed.");
+            }
         }
     }
 

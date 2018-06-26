@@ -39,7 +39,6 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.IOUtils;
-import org.junit.Assert;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -165,12 +164,12 @@ public class TestSQLXML extends TestDb {
         // something illegal
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, sqlxml).setResult(Result.class);
     }
-    
-    private static void assertXML(String actual) {
+
+    private void assertXML(String actual) {
         if (actual.startsWith("<?")) {
             actual = actual.substring(actual.indexOf("?>") + 2);
         }
-        Assert.assertEquals(XML, actual);
+        assertEquals(XML, actual);
     }
 
     void testSettersImpl(SQLXML sqlxml) throws SQLException {

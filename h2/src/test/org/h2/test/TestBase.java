@@ -128,8 +128,12 @@ public abstract class TestBase {
         try {
             init(conf);
             if (!isEnabled()) {
+                if (!conf.executedTests.containsKey(getClass())) {
+                    conf.executedTests.put(getClass(), false);
+                }
                 return;
             }
+            conf.executedTests.put(getClass(), true);
             start = System.nanoTime();
             test();
             println("");

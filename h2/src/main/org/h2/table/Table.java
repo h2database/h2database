@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.command.dml.AllColumnsForPlan;
@@ -572,7 +571,9 @@ public abstract class Table extends SchemaObjectBase {
                 database.removeDatabaseObject(session, right);
             }
         }
-        database.removeMeta(session, getId());
+        if (!isTemporary()) {
+            database.removeMeta(session, getId());
+        }
         // must delete sequences later (in case there is a power failure
         // before removing the table object)
         while (sequences != null && !sequences.isEmpty()) {

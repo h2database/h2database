@@ -445,7 +445,6 @@ public class TableView extends Table {
     public void removeChildrenAndResources(Session session) {
         removeCurrentViewFromOtherTables();
         super.removeChildrenAndResources(session);
-        database.removeMeta(session, getId());
         querySQL = null;
         index = null;
         clearIndexCaches(database);

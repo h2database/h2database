@@ -41,7 +41,6 @@ import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.utils.ProxyCodeGenerator;
 import org.h2.test.utils.ResultVerifier;
-import org.h2.util.Utils;
 
 /**
  * The base class for all tests.
@@ -130,14 +129,7 @@ public abstract class TestBase {
             init(conf);
             start = System.nanoTime();
             test();
-            if (!config.mvStore) {
-                /*
-                 * This code is here to debug memory issues with PageStore testing on Travis.
-                 */
-                println("(" + (Utils.getMemoryUsed() >> 10) + " MiB used after)");
-            } else {
-                println("");
-            }
+            println("");
         } catch (Throwable e) {
             println("FAIL " + e.toString());
             logError("FAIL ("+conf+") " + e.toString(), e);

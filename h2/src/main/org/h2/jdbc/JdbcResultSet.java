@@ -1024,7 +1024,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
                                 id, "getBlob(" + columnIndex + ")");
             }
             Value v = get(columnIndex);
-            return v == ValueNull.INSTANCE ? null : new JdbcBlob(conn, v, id);
+            return v == ValueNull.INSTANCE ? null : new JdbcBlob(conn, v, JdbcLob.State.WITH_VALUE, id);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1047,7 +1047,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
                                 id, "getBlob(" + quote(columnLabel) + ")");
             }
             Value v = get(columnLabel);
-            return v == ValueNull.INSTANCE ? null : new JdbcBlob(conn, v, id);
+            return v == ValueNull.INSTANCE ? null : new JdbcBlob(conn, v, JdbcLob.State.WITH_VALUE, id);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1142,7 +1142,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
                 debugCodeAssign("Clob", TraceObject.CLOB, id, "getClob(" + columnIndex + ")");
             }
             Value v = get(columnIndex);
-            return v == ValueNull.INSTANCE ? null : new JdbcClob(conn, v, id);
+            return v == ValueNull.INSTANCE ? null : new JdbcClob(conn, v, JdbcLob.State.WITH_VALUE, id);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1165,7 +1165,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
                                 quote(columnLabel) + ")");
             }
             Value v = get(columnLabel);
-            return v == ValueNull.INSTANCE ? null : new JdbcClob(conn, v, id);
+            return v == ValueNull.INSTANCE ? null : new JdbcClob(conn, v, JdbcLob.State.WITH_VALUE, id);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -3399,11 +3399,15 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     }
 
     /**
-     * [Not supported]
+     * Updates a column in the current or insert row.
+     *
+     * @param columnIndex (1,2,...)
+     * @param x the value
+     * @throws SQLException if the result set is closed or not updatable
      */
     @Override
     public void updateNClob(int columnIndex, NClob x) throws SQLException {
-        throw unsupported("NClob");
+        updateClob(columnIndex, x);
     }
 
     /**
@@ -3459,11 +3463,15 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     }
 
     /**
-     * [Not supported]
+     * Updates a column in the current or insert row.
+     *
+     * @param columnLabel the column label
+     * @param x the value
+     * @throws SQLException if the result set is closed or not updatable
      */
     @Override
     public void updateNClob(String columnLabel, NClob x) throws SQLException {
-        throw unsupported("NClob");
+        updateClob(columnLabel, x);
     }
 
     /**
@@ -3482,7 +3490,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
                 debugCodeAssign("NClob", TraceObject.CLOB, id, "getNClob(" + columnIndex + ")");
             }
             Value v = get(columnIndex);
-            return v == ValueNull.INSTANCE ? null : new JdbcClob(conn, v, id);
+            return v == ValueNull.INSTANCE ? null : new JdbcClob(conn, v, JdbcLob.State.WITH_VALUE, id);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -3504,7 +3512,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
                 debugCodeAssign("NClob", TraceObject.CLOB, id, "getNClob(" + columnLabel + ")");
             }
             Value v = get(columnLabel);
-            return v == ValueNull.INSTANCE ? null : new JdbcClob(conn, v, id);
+            return v == ValueNull.INSTANCE ? null : new JdbcClob(conn, v, JdbcLob.State.WITH_VALUE, id);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -3811,10 +3819,12 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             return type.cast(value == ValueNull.INSTANCE ? null : new JdbcArray(conn, value, id));
         } else if (type == Blob.class) {
             int id = getNextId(TraceObject.BLOB);
-            return type.cast(value == ValueNull.INSTANCE ? null : new JdbcBlob(conn, value, id));
+            return type.cast(value == ValueNull.INSTANCE
+                    ? null : new JdbcBlob(conn, value, JdbcLob.State.WITH_VALUE, id));
         } else if (type == Clob.class) {
             int id = getNextId(TraceObject.CLOB);
-            return type.cast(value == ValueNull.INSTANCE ? null : new JdbcClob(conn, value, id));
+            return type.cast(value == ValueNull.INSTANCE
+                    ? null : new JdbcClob(conn, value, JdbcLob.State.WITH_VALUE, id));
         } else if (type == TimestampWithTimeZone.class) {
             return type.cast(value.getObject());
         } else if (DataType.isGeometryClass(type)) {

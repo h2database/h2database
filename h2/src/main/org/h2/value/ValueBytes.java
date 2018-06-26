@@ -21,7 +21,10 @@ import org.h2.util.Utils;
  */
 public class ValueBytes extends Value {
 
-    private static final ValueBytes EMPTY = new ValueBytes(Utils.EMPTY_BYTES);
+    /**
+     * Empty value.
+     */
+    public static final ValueBytes EMPTY = new ValueBytes(Utils.EMPTY_BYTES);
 
     /**
      * The value.

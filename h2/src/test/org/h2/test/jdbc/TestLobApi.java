@@ -81,7 +81,7 @@ public class TestLobApi extends TestDb {
         assertEquals("x", new String(data, StandardCharsets.UTF_8));
         assertTrue(clob.toString().endsWith("'x'"));
         clob.free();
-        assertTrue(clob.toString().endsWith("null"));
+        assertTrue(clob.toString().endsWith("<closed>"));
 
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).
                 truncate(0);
@@ -101,7 +101,7 @@ public class TestLobApi extends TestDb {
                 position((Blob) null, 0);
         assertTrue(blob.toString().endsWith("X'00'"));
         blob.free();
-        assertTrue(blob.toString().endsWith("null"));
+        assertTrue(blob.toString().endsWith("<closed>"));
 
         stat.execute("drop table test");
         conn.close();

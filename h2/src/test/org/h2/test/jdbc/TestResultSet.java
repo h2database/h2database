@@ -20,7 +20,6 @@ import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Date;
-import java.sql.NClob;
 import java.sql.PreparedStatement;
 import java.sql.Ref;
 import java.sql.ResultSet;
@@ -178,10 +177,6 @@ public class TestResultSet extends TestDb {
                 updateRowId(1, (RowId) null);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
                 updateRowId("x", (RowId) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
-                updateNClob(1, (NClob) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
-                updateNClob("x", (NClob) null);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
                 updateSQLXML(1, (SQLXML) null);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).

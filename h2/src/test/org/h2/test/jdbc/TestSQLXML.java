@@ -163,6 +163,8 @@ public class TestSQLXML extends TestDb {
         testSettersImpl(sqlxml);
         // something illegal
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, sqlxml).setResult(Result.class);
+        // null
+        testSettersImpl(null);
     }
 
     private void assertXML(String actual) {
@@ -172,36 +174,44 @@ public class TestSQLXML extends TestDb {
         assertEquals(XML, actual);
     }
 
+    private void testSettersImplAssert(SQLXML sqlxml) throws SQLException {
+        ResultSet rs = stat.executeQuery("SELECT X FROM TEST");
+        assertTrue(rs.next());
+        SQLXML v = rs.getSQLXML(1);
+        if (sqlxml != null) {
+            assertXML(v.getString());
+        } else {
+            assertNull(v);
+        }
+    }
+
     void testSettersImpl(SQLXML sqlxml) throws SQLException {
         PreparedStatement prep = conn.prepareStatement("UPDATE TEST SET X = ?");
         prep.setSQLXML(1, sqlxml);
         assertEquals(1, prep.executeUpdate());
-        ResultSet rs = stat.executeQuery("SELECT X FROM TEST");
-        assertTrue(rs.next());
-        assertXML(rs.getSQLXML(1).getString());
+        testSettersImplAssert(sqlxml);
 
         prep.setObject(1, sqlxml);
         assertEquals(1, prep.executeUpdate());
-        rs = stat.executeQuery("SELECT X FROM TEST");
-        assertTrue(rs.next());
-        assertXML(rs.getSQLXML(1).getString());
+        testSettersImplAssert(sqlxml);
 
         Statement st = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
-        rs = st.executeQuery("SELECT * FROM TEST FOR UPDATE");
+        ResultSet rs = st.executeQuery("SELECT * FROM TEST FOR UPDATE");
         assertTrue(rs.next());
         rs.updateSQLXML(2, sqlxml);
         rs.updateRow();
-        rs = stat.executeQuery("SELECT X FROM TEST");
+        testSettersImplAssert(sqlxml);
+        rs = st.executeQuery("SELECT * FROM TEST FOR UPDATE");
         assertTrue(rs.next());
-        assertXML(rs.getSQLXML(1).getString());
+        rs.updateSQLXML("X", sqlxml);
+        rs.updateRow();
+        testSettersImplAssert(sqlxml);
 
         rs = st.executeQuery("SELECT * FROM TEST FOR UPDATE");
         assertTrue(rs.next());
         rs.updateObject(2, sqlxml);
         rs.updateRow();
-        rs = stat.executeQuery("SELECT X FROM TEST");
-        assertTrue(rs.next());
-        assertXML(rs.getSQLXML(1).getString());
+        testSettersImplAssert(sqlxml);
     }
 
 }

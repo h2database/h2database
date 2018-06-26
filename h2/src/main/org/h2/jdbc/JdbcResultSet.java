@@ -3577,7 +3577,12 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
                 debugCode("updateSQLXML("+columnIndex+", x);");
             }
             checkClosed();
-            Value v = conn.createClob(xmlObject.getCharacterStream(), -1);
+            Value v;
+            if (xmlObject == null) {
+                v = ValueNull.INSTANCE;
+            } else {
+                v = conn.createClob(xmlObject.getCharacterStream(), -1);
+            }
             update(columnIndex, v);
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -3599,7 +3604,12 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
                 debugCode("updateSQLXML("+quote(columnLabel)+", x);");
             }
             checkClosed();
-            Value v = conn.createClob(xmlObject.getCharacterStream(), -1);
+            Value v;
+            if (xmlObject == null) {
+                v = ValueNull.INSTANCE;
+            } else {
+                v = conn.createClob(xmlObject.getCharacterStream(), -1);
+            }
             update(columnLabel, v);
         } catch (Exception e) {
             throw logAndConvert(e);

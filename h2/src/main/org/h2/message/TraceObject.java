@@ -93,12 +93,17 @@ public class TraceObject {
      */
     protected static final int ARRAY = 16;
 
-    private static final int LAST = ARRAY + 1;
+    /**
+     * The trace type id  for SQLXML objects.
+     */
+    protected static final int SQLXML = 17;
+
+    private static final int LAST = SQLXML + 1;
     private static final AtomicIntegerArray ID = new AtomicIntegerArray(LAST);
 
     private static final String[] PREFIX = { "call", "conn", "dbMeta", "prep",
             "rs", "rsMeta", "sp", "ex", "stat", "blob", "clob", "pMeta", "ds",
-            "xads", "xares", "xid", "ar" };
+            "xads", "xares", "xid", "ar", "sqlxml" };
 
     /**
      * The trace module used by this object.

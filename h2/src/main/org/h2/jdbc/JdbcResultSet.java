@@ -3519,39 +3519,91 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     }
 
     /**
-     * [Not supported] Returns the value of the specified column as a SQLXML
-     * object.
+     * Returns the value of the specified column as a SQLXML.
+     *
+     * @param columnIndex (1,2,...)
+     * @return the value
+     * @throws SQLException if the column is not found or if the result set is
+     *             closed
      */
     @Override
     public SQLXML getSQLXML(int columnIndex) throws SQLException {
-        throw unsupported("SQLXML");
+        try {
+            int id = getNextId(TraceObject.SQLXML);
+            if (isDebugEnabled()) {
+                debugCodeAssign("SQLXML", TraceObject.SQLXML, id, "getSQLXML(" + columnIndex + ")");
+            }
+            Value v = get(columnIndex);
+            return v == ValueNull.INSTANCE ? null : new JdbcSQLXML(conn, v, JdbcLob.State.WITH_VALUE, id);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**
-     * [Not supported] Returns the value of the specified column as a SQLXML
-     * object.
+     * Returns the value of the specified column as a SQLXML.
+     *
+     * @param columnLabel the column label
+     * @return the value
+     * @throws SQLException if the column is not found or if the result set is
+     *             closed
      */
     @Override
     public SQLXML getSQLXML(String columnLabel) throws SQLException {
-        throw unsupported("SQLXML");
+        try {
+            int id = getNextId(TraceObject.SQLXML);
+            if (isDebugEnabled()) {
+                debugCodeAssign("SQLXML", TraceObject.SQLXML, id, "getSQLXML(" + columnLabel + ")");
+            }
+            Value v = get(columnLabel);
+            return v == ValueNull.INSTANCE ? null : new JdbcSQLXML(conn, v, JdbcLob.State.WITH_VALUE, id);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**
-     * [Not supported] Updates a column in the current or insert row.
+     * Updates a column in the current or insert row.
+     *
+     * @param columnIndex (1,2,...)
+     * @param x the value
+     * @throws SQLException if the result set is closed or not updatable
      */
     @Override
     public void updateSQLXML(int columnIndex, SQLXML xmlObject)
             throws SQLException {
-        throw unsupported("SQLXML");
+        try {
+            if (isDebugEnabled()) {
+                debugCode("updateSQLXML("+columnIndex+", x);");
+            }
+            checkClosed();
+            Value v = conn.createClob(xmlObject.getCharacterStream(), -1);
+            update(columnIndex, v);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**
-     * [Not supported] Updates a column in the current or insert row.
+     * Updates a column in the current or insert row.
+     *
+     * @param columnLabel the column label
+     * @param x the value
+     * @throws SQLException if the result set is closed or not updatable
      */
     @Override
     public void updateSQLXML(String columnLabel, SQLXML xmlObject)
             throws SQLException {
-        throw unsupported("SQLXML");
+        try {
+            if (isDebugEnabled()) {
+                debugCode("updateSQLXML("+quote(columnLabel)+", x);");
+            }
+            checkClosed();
+            Value v = conn.createClob(xmlObject.getCharacterStream(), -1);
+            update(columnLabel, v);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**

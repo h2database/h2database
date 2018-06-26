@@ -154,8 +154,6 @@ public class TestPreparedStatement extends TestDb {
         ParameterMetaData meta = prep.getParameterMetaData();
         assertTrue(meta.toString(), meta.toString().endsWith("parameterCount=1"));
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).
-                createSQLXML();
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).
                 createStruct("Integer", new Object[0]);
     }
 

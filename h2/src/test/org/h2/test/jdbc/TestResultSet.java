@@ -26,7 +26,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.RowId;
 import java.sql.SQLException;
-import java.sql.SQLXML;
 import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -162,10 +161,6 @@ public class TestResultSet extends TestDb {
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
                 getRowId("x");
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
-                getSQLXML(1);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
-                getSQLXML("x");
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
                 updateRef(1, (Ref) null);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
                 updateRef("x", (Ref) null);
@@ -177,10 +172,6 @@ public class TestResultSet extends TestDb {
                 updateRowId(1, (RowId) null);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
                 updateRowId("x", (RowId) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
-                updateSQLXML(1, (SQLXML) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
-                updateSQLXML("x", (SQLXML) null);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
                 getCursorName();
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).

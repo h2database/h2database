@@ -1653,11 +1653,20 @@ public class JdbcConnection extends TraceObject
     }
 
     /**
-     * [Not supported] Create a new empty SQLXML object.
+     * Create a new SQLXML object with no data.
+     *
+     * @return the object
      */
     @Override
     public SQLXML createSQLXML() throws SQLException {
-        throw unsupported("SQLXML");
+        try {
+            int id = getNextId(TraceObject.SQLXML);
+            debugCodeAssign("SQLXML", TraceObject.SQLXML, id, "createSQLXML()");
+            checkClosedForWrite();
+            return new JdbcSQLXML(this, ValueString.EMPTY, JdbcLob.State.NEW, id);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**

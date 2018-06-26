@@ -1777,11 +1777,29 @@ public class JdbcPreparedStatement extends JdbcStatement implements
     }
 
     /**
-     * [Not supported] Sets the value of a parameter as a SQLXML object.
+     * Sets the value of a parameter as a SQLXML.
+     *
+     * @param parameterIndex the parameter index (1, 2, ...)
+     * @param x the value
+     * @throws SQLException if this object is closed
      */
     @Override
     public void setSQLXML(int parameterIndex, SQLXML x) throws SQLException {
-        throw unsupported("SQLXML");
+        try {
+            if (isDebugEnabled()) {
+                debugCode("setSQLXML("+parameterIndex+", x);");
+            }
+            checkClosedForWrite();
+            Value v;
+            if (x == null) {
+                v = ValueNull.INSTANCE;
+            } else {
+                v = conn.createClob(x.getCharacterStream(), -1);
+            }
+            setParameter(parameterIndex, v);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**

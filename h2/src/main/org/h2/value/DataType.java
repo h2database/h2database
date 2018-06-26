@@ -24,6 +24,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.engine.Mode;
@@ -33,6 +34,7 @@ import org.h2.jdbc.JdbcArray;
 import org.h2.jdbc.JdbcBlob;
 import org.h2.jdbc.JdbcClob;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.jdbc.JdbcLob;
 import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.JdbcUtils;
@@ -1118,6 +1120,15 @@ public class DataType {
             } catch (SQLException e) {
                 throw DbException.convert(e);
             }
+        } else if (x instanceof java.sql.SQLXML) {
+            try {
+                java.sql.SQLXML clob = (java.sql.SQLXML) x;
+                Reader r = new BufferedReader(clob.getCharacterStream());
+                return session.getDataHandler().getLobStorage().
+                        createClob(r, -1);
+            } catch (SQLException e) {
+                throw DbException.convert(e);
+            }
         } else if (x instanceof java.sql.Array) {
             java.sql.Array array = (java.sql.Array) x;
             try {
@@ -1365,9 +1376,9 @@ public class DataType {
     public static Object convertTo(JdbcConnection conn, Value v,
             Class<?> paramClass) {
         if (paramClass == Blob.class) {
-            return new JdbcBlob(conn, v, 0);
+            return new JdbcBlob(conn, v, JdbcLob.State.WITH_VALUE, 0);
         } else if (paramClass == Clob.class) {
-            return new JdbcClob(conn, v, 0);
+            return new JdbcClob(conn, v, JdbcLob.State.WITH_VALUE, 0);
         } else if (paramClass == Array.class) {
             return new JdbcArray(conn, v, 0);
         }

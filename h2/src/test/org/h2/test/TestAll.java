@@ -102,6 +102,7 @@ import org.h2.test.jdbc.TestMetaData;
 import org.h2.test.jdbc.TestNativeSQL;
 import org.h2.test.jdbc.TestPreparedStatement;
 import org.h2.test.jdbc.TestResultSet;
+import org.h2.test.jdbc.TestSQLXML;
 import org.h2.test.jdbc.TestStatement;
 import org.h2.test.jdbc.TestTransactionIsolation;
 import org.h2.test.jdbc.TestUpdatableResultSet;
@@ -797,6 +798,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestJavaObject());
         addTest(new TestLimitUpdates());
         addTest(new TestLobApi());
+        addTest(new TestSQLXML());
         addTest(new TestManyJdbcObjects());
         addTest(new TestMetaData());
         addTest(new TestNativeSQL());

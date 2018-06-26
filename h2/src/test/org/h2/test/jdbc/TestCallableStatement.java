@@ -111,8 +111,6 @@ public class TestCallableStatement extends TestDb {
                 setRef(1, (Ref) null);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
                 setRowId(1, (RowId) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
-                setSQLXML(1, (SQLXML) null);
 
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
                 setURL("a", (URL) null);

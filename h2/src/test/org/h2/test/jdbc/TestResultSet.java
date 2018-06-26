@@ -27,7 +27,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.RowId;
 import java.sql.SQLException;
-import java.sql.SQLXML;
 import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -163,10 +162,6 @@ public class TestResultSet extends TestDb {
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
                 getRowId("x");
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
-                getSQLXML(1);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
-                getSQLXML("x");
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
                 updateRef(1, (Ref) null);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
                 updateRef("x", (Ref) null);
@@ -178,14 +173,6 @@ public class TestResultSet extends TestDb {
                 updateRowId(1, (RowId) null);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
                 updateRowId("x", (RowId) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
-                updateNClob(1, (NClob) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
-                updateNClob("x", (NClob) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
-                updateSQLXML(1, (SQLXML) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
-                updateSQLXML("x", (SQLXML) null);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
                 getCursorName();
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
@@ -208,8 +195,9 @@ public class TestResultSet extends TestDb {
         PreparedStatement prep = conn.prepareStatement("select * from test",
                 ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
         ResultSet rs = prep.executeQuery();
+        int idx = 1;
         rs.moveToInsertRow();
-        rs.updateInt(1, 1);
+        rs.updateInt(1, idx++);
         rs.insertRow();
         rs.close();
         rs = stat.executeQuery("select * from test");
@@ -230,12 +218,12 @@ public class TestResultSet extends TestDb {
         rs = prep.executeQuery();
 
         rs.moveToInsertRow();
-        rs.updateInt(1, 2);
+        rs.updateInt(1, idx++);
         rs.updateNString(2, "Hello");
         rs.insertRow();
 
         rs.moveToInsertRow();
-        rs.updateInt(1, 3);
+        rs.updateInt(1, idx++);
         rs.updateNString("data", "Hello");
         rs.insertRow();
 
@@ -243,7 +231,7 @@ public class TestResultSet extends TestDb {
         Writer w;
 
         rs.moveToInsertRow();
-        rs.updateInt(1, 4);
+        rs.updateInt(1, idx++);
         c = conn.createClob();
         w = c.setCharacterStream(1);
         w.write("Hello");
@@ -252,7 +240,7 @@ public class TestResultSet extends TestDb {
         rs.insertRow();
 
         rs.moveToInsertRow();
-        rs.updateInt(1, 5);
+        rs.updateInt(1, idx++);
         c = conn.createClob();
         w = c.setCharacterStream(1);
         w.write("Hello");
@@ -260,48 +248,70 @@ public class TestResultSet extends TestDb {
         rs.updateClob("data", c);
         rs.insertRow();
 
+        NClob nc;
+
+        rs.moveToInsertRow();
+        rs.updateInt(1, idx++);
+        nc = conn.createNClob();
+        w = nc.setCharacterStream(1);
+        w.write("Hello");
+        w.close();
+        rs.updateNClob(2, nc);
+        rs.insertRow();
+
+        rs.moveToInsertRow();
+        rs.updateInt(1, idx++);
+        nc = conn.createNClob();
+        w = nc.setCharacterStream(1);
+        w.write("Hello");
+        w.close();
+        rs.updateNClob("data", nc);
+        rs.insertRow();
+
         InputStream in;
 
         rs.moveToInsertRow();
-        rs.updateInt(1, 6);
+        rs.updateInt(1, idx++);
         in = new ByteArrayInputStream("Hello".getBytes(StandardCharsets.UTF_8));
         rs.updateAsciiStream(2, in);
         rs.insertRow();
 
         rs.moveToInsertRow();
-        rs.updateInt(1, 7);
+        rs.updateInt(1, idx++);
         in = new ByteArrayInputStream("Hello".getBytes(StandardCharsets.UTF_8));
         rs.updateAsciiStream("data", in);
         rs.insertRow();
 
         rs.moveToInsertRow();
-        rs.updateInt(1, 8);
+        rs.updateInt(1, idx++);
         in = new ByteArrayInputStream("Hello-".getBytes(StandardCharsets.UTF_8));
         rs.updateAsciiStream(2, in, 5);
         rs.insertRow();
 
         rs.moveToInsertRow();
-        rs.updateInt(1, 9);
+        rs.updateInt(1, idx++);
         in = new ByteArrayInputStream("Hello-".getBytes(StandardCharsets.UTF_8));
         rs.updateAsciiStream("data", in, 5);
         rs.insertRow();
 
         rs.moveToInsertRow();
-        rs.updateInt(1, 10);
+        rs.updateInt(1, idx++);
         in = new ByteArrayInputStream("Hello-".getBytes(StandardCharsets.UTF_8));
         rs.updateAsciiStream(2, in, 5L);
         rs.insertRow();
 
         rs.moveToInsertRow();
-        rs.updateInt(1, 11);
+        rs.updateInt(1, idx++);
         in = new ByteArrayInputStream("Hello-".getBytes(StandardCharsets.UTF_8));
         rs.updateAsciiStream("data", in, 5L);
         rs.insertRow();
 
         rs = stat.executeQuery("select * from test");
-        while (rs.next()) {
+        for (int i = 1; i < idx; i++) {
+            assertTrue(rs.next());
             assertEquals("Hello", rs.getString(2));
         }
+        assertFalse(rs.next());
 
         stat.execute("drop table test");
     }

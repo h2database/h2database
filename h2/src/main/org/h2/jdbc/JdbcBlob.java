@@ -9,14 +9,12 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.sql.Blob;
 import java.sql.SQLException;
-import org.h2.api.ErrorCode;
+
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
@@ -27,18 +25,13 @@ import org.h2.value.Value;
 /**
  * Represents a BLOB value.
  */
-public class JdbcBlob extends TraceObject implements Blob {
-
-    Value value;
-    private final JdbcConnection conn;
+public class JdbcBlob extends JdbcLob implements Blob {
 
     /**
      * INTERNAL
      */
-    public JdbcBlob(JdbcConnection conn, Value value, int id) {
-        setTrace(conn.getSession().getTrace(), TraceObject.BLOB, id);
-        this.conn = conn;
-        this.value = value;
+    public JdbcBlob(JdbcConnection conn, Value value, State state, int id) {
+        super(conn, value, state, TraceObject.BLOB, id);
     }
 
     /**
@@ -50,7 +43,7 @@ public class JdbcBlob extends TraceObject implements Blob {
     public long length() throws SQLException {
         try {
             debugCodeCall("length");
-            checkClosed();
+            checkReadable();
             if (value.getType() == Value.BLOB) {
                 long precision = value.getPrecision();
                 if (precision > 0) {
@@ -86,7 +79,7 @@ public class JdbcBlob extends TraceObject implements Blob {
             if (isDebugEnabled()) {
                 debugCode("getBytes("+pos+", "+length+");");
             }
-            checkClosed();
+            checkReadable();
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             try (InputStream in = value.getInputStream()) {
                 IOUtils.skipFully(in, pos - 1);
@@ -113,11 +106,11 @@ public class JdbcBlob extends TraceObject implements Blob {
             if (isDebugEnabled()) {
                 debugCode("setBytes("+pos+", "+quoteBytes(bytes)+");");
             }
-            checkClosed();
+            checkEditable();
             if (pos != 1) {
                 throw DbException.getInvalidValueException("pos", pos);
             }
-            value = conn.createBlob(new ByteArrayInputStream(bytes), -1);
+            completeWrite(conn.createBlob(new ByteArrayInputStream(bytes), -1));
             return bytes.length;
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -140,31 +133,20 @@ public class JdbcBlob extends TraceObject implements Blob {
             if (isDebugEnabled()) {
                 debugCode("setBytes(" + pos + ", " + quoteBytes(bytes) + ", " + offset + ", " + len + ");");
             }
-            checkClosed();
+            checkEditable();
             if (pos != 1) {
                 throw DbException.getInvalidValueException("pos", pos);
             }
-            value = conn.createBlob(new ByteArrayInputStream(bytes, offset, len), -1);
+            completeWrite(conn.createBlob(new ByteArrayInputStream(bytes, offset, len), -1));
             return (int) value.getPrecision();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
 
-    /**
-     * Returns the input stream.
-     *
-     * @return the input stream
-     */
     @Override
     public InputStream getBinaryStream() throws SQLException {
-        try {
-            debugCodeCall("getBinaryStream");
-            checkClosed();
-            return value.getInputStream();
-        } catch (Exception e) {
-            throw logAndConvert(e);
-        }
+        return super.getBinaryStream();
     }
 
     /**
@@ -183,33 +165,20 @@ public class JdbcBlob extends TraceObject implements Blob {
             if (isDebugEnabled()) {
                 debugCode("setBinaryStream("+pos+");");
             }
-            checkClosed();
+            checkEditable();
             if (pos != 1) {
                 throw DbException.getInvalidValueException("pos", pos);
             }
-            if (value.getPrecision() != 0) {
-                throw DbException.getInvalidValueException("length", value.getPrecision());
-            }
-            final JdbcConnection c = conn; // local variable avoids generating synthetic accessor method
             final PipedInputStream in = new PipedInputStream();
             final Task task = new Task() {
                 @Override
                 public void call() {
-                    value = c.createBlob(in, -1);
+                    completeWrite(conn.createBlob(in, -1));
                 }
             };
-            PipedOutputStream out = new PipedOutputStream(in) {
-                @Override
-                public void close() throws IOException {
-                    super.close();
-                    try {
-                        task.get();
-                    } catch (Exception e) {
-                        throw DbException.convertToIOException(e);
-                    }
-                }
-            };
+            LobPipedOutputStream out = new LobPipedOutputStream(in, task);
             task.execute();
+            state = State.SET_CALLED;
             return new BufferedOutputStream(out);
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -230,7 +199,7 @@ public class JdbcBlob extends TraceObject implements Blob {
         }
         if (Constants.BLOB_SEARCH) {
             try {
-                checkClosed();
+                checkReadable();
                 if (pattern == null) {
                     return -1;
                 }
@@ -285,7 +254,7 @@ public class JdbcBlob extends TraceObject implements Blob {
         }
         if (Constants.BLOB_SEARCH) {
             try {
-                checkClosed();
+                checkReadable();
                 if (blobPattern == null) {
                     return -1;
                 }
@@ -307,15 +276,6 @@ public class JdbcBlob extends TraceObject implements Blob {
     }
 
     /**
-     * Release all resources of this object.
-     */
-    @Override
-    public void free() {
-        debugCodeCall("free");
-        value = null;
-    }
-
-    /**
      * Returns the input stream, starting from an offset.
      *
      * @param pos where to start reading
@@ -325,28 +285,22 @@ public class JdbcBlob extends TraceObject implements Blob {
     @Override
     public InputStream getBinaryStream(long pos, long length) throws SQLException {
         try {
-            debugCodeCall("getBinaryStream(pos, length)");
-            checkClosed();
+            if (isDebugEnabled()) {
+                debugCode("getBinaryStream(" + pos + ", " + length + ");");
+            }
+            checkReadable();
+            if (state == State.NEW) {
+                if (pos != 1) {
+                    throw DbException.getInvalidValueException("pos", pos);
+                }
+                if (length != 0) {
+                    throw DbException.getInvalidValueException("length", pos);
+                }
+            }
             return value.getInputStream(pos, length);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
-    }
-
-    private void checkClosed() {
-        conn.checkClosed();
-        if (value == null) {
-            throw DbException.get(ErrorCode.OBJECT_CLOSED);
-        }
-    }
-
-    /**
-     * INTERNAL
-     */
-    @Override
-    public String toString() {
-        return getTraceObjectName() + ": " +
-                (value == null ? "null" : value.getTraceSQL());
     }
 
 }

@@ -5,9 +5,7 @@
  */
 package org.h2.jdbc;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.sql.Array;
 import java.sql.Blob;
@@ -49,10 +47,10 @@ import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.util.CloseWatcher;
 import org.h2.util.JdbcUtils;
-import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.Value;
+import org.h2.value.ValueBytes;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
@@ -1614,16 +1612,7 @@ public class JdbcConnection extends TraceObject
             int id = getNextId(TraceObject.CLOB);
             debugCodeAssign("Clob", TraceObject.CLOB, id, "createClob()");
             checkClosedForWrite();
-            try {
-                Value v = session.getDataHandler().getLobStorage()
-                        .createClob(new InputStreamReader(
-                                new ByteArrayInputStream(Utils.EMPTY_BYTES)),
-                                0);
-                session.addTemporaryLob(v);
-                return new JdbcClob(this, v, id);
-            } finally {
-                afterWriting();
-            }
+            return new JdbcClob(this, ValueString.EMPTY, JdbcLob.State.NEW, id);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1640,16 +1629,7 @@ public class JdbcConnection extends TraceObject
             int id = getNextId(TraceObject.BLOB);
             debugCodeAssign("Blob", TraceObject.BLOB, id, "createClob()");
             checkClosedForWrite();
-            try {
-                Value v = session.getDataHandler().getLobStorage().createBlob(
-                        new ByteArrayInputStream(Utils.EMPTY_BYTES), 0);
-                synchronized (session) {
-                    session.addTemporaryLob(v);
-                }
-                return new JdbcBlob(this, v, id);
-            } finally {
-                afterWriting();
-            }
+            return new JdbcBlob(this, ValueBytes.EMPTY, JdbcLob.State.NEW, id);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1666,27 +1646,27 @@ public class JdbcConnection extends TraceObject
             int id = getNextId(TraceObject.CLOB);
             debugCodeAssign("NClob", TraceObject.CLOB, id, "createNClob()");
             checkClosedForWrite();
-            try {
-                Value v = session.getDataHandler().getLobStorage()
-                        .createClob(new InputStreamReader(
-                                new ByteArrayInputStream(Utils.EMPTY_BYTES)),
-                                0);
-                session.addTemporaryLob(v);
-                return new JdbcClob(this, v, id);
-            } finally {
-                afterWriting();
-            }
+            return new JdbcClob(this, ValueString.EMPTY, JdbcLob.State.NEW, id);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
 
     /**
-     * [Not supported] Create a new empty SQLXML object.
+     * Create a new SQLXML object with no data.
+     *
+     * @return the object
      */
     @Override
     public SQLXML createSQLXML() throws SQLException {
-        throw unsupported("SQLXML");
+        try {
+            int id = getNextId(TraceObject.SQLXML);
+            debugCodeAssign("SQLXML", TraceObject.SQLXML, id, "createSQLXML()");
+            checkClosedForWrite();
+            return new JdbcSQLXML(this, ValueString.EMPTY, JdbcLob.State.NEW, id);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**
@@ -2069,11 +2049,11 @@ public class JdbcConnection extends TraceObject
         switch (v.getType()) {
         case Value.CLOB: {
             int id = getNextId(TraceObject.CLOB);
-            return new JdbcClob(this, v, id);
+            return new JdbcClob(this, v, JdbcLob.State.WITH_VALUE, id);
         }
         case Value.BLOB: {
             int id = getNextId(TraceObject.BLOB);
-            return new JdbcBlob(this, v, id);
+            return new JdbcBlob(this, v, JdbcLob.State.WITH_VALUE, id);
         }
         case Value.JAVA_OBJECT:
             if (SysProperties.serializeJavaObject) {

@@ -18,7 +18,11 @@ import org.h2.util.StringUtils;
  */
 public class ValueString extends Value {
 
-    private static final ValueString EMPTY = new ValueString("");
+    /**
+     * Empty string. Should not be used in places where empty string can be
+     * treated as {@code NULL} depending on database mode.
+     */
+    public static final ValueString EMPTY = new ValueString("");
 
     /**
      * The string data.

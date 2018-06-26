@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.command.ddl.CreateTableData;
@@ -741,7 +740,7 @@ public class TableView extends Table {
             boolean literalsChecked, boolean isTableExpression, boolean isPersistent, Database db) {
 
 
-        Table recursiveTable = TableView.createShadowTableForRecursiveTableExpression(isPersistent, session, name,
+        Table recursiveTable = TableView.createShadowTableForRecursiveTableExpression(session, name,
                 schema, Arrays.asList(columnTemplates), db);
 
         List<Column> columnTemplateList;
@@ -829,7 +828,6 @@ public class TableView extends Table {
     /**
      * Create a table for a recursive query.
      *
-     * @param isPersistent whether the table is persisted
      * @param targetSession the session
      * @param cteViewName the name
      * @param schema the schema
@@ -837,7 +835,7 @@ public class TableView extends Table {
      * @param db the database
      * @return the table
      */
-    public static Table createShadowTableForRecursiveTableExpression(boolean isPersistent, Session targetSession,
+    public static Table createShadowTableForRecursiveTableExpression(Session targetSession,
             String cteViewName, Schema schema, List<Column> columns, Database db) {
 
         // create table data object
@@ -845,24 +843,17 @@ public class TableView extends Table {
         recursiveTableData.id = db.allocateObjectId();
         recursiveTableData.columns = new ArrayList<>(columns);
         recursiveTableData.tableName = cteViewName;
-        recursiveTableData.temporary = !isPersistent;
-        recursiveTableData.persistData = true;
-        recursiveTableData.persistIndexes = isPersistent;
+        recursiveTableData.temporary = true;
+        recursiveTableData.persistData = false;
+        recursiveTableData.persistIndexes = false;
         recursiveTableData.create = true;
         recursiveTableData.session = targetSession;
 
         // this gets a meta table lock that is not released
         Table recursiveTable = schema.createTable(recursiveTableData);
 
-        if (isPersistent) {
-            // this unlock is to prevent lock leak from schema.createTable()
-            db.unlockMeta(targetSession);
-            synchronized (targetSession) {
-                db.addSchemaObject(targetSession, recursiveTable);
-            }
-        } else {
-            targetSession.addLocalTempTable(recursiveTable);
-        }
+        targetSession.addLocalTempTable(recursiveTable);
+
         return recursiveTable;
     }
 

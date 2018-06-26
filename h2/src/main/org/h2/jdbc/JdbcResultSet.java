@@ -3877,6 +3877,10 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             int id = getNextId(TraceObject.CLOB);
             return type.cast(value == ValueNull.INSTANCE
                     ? null : new JdbcClob(conn, value, JdbcLob.State.WITH_VALUE, id));
+        } else if (type == SQLXML.class) {
+            int id = getNextId(TraceObject.SQLXML);
+            return type.cast(value == ValueNull.INSTANCE
+                    ? null : new JdbcSQLXML(conn, value, JdbcLob.State.WITH_VALUE, id));
         } else if (type == TimestampWithTimeZone.class) {
             return type.cast(value.getObject());
         } else if (DataType.isGeometryClass(type)) {

@@ -1120,6 +1120,15 @@ public class DataType {
             } catch (SQLException e) {
                 throw DbException.convert(e);
             }
+        } else if (x instanceof java.sql.SQLXML) {
+            try {
+                java.sql.SQLXML clob = (java.sql.SQLXML) x;
+                Reader r = new BufferedReader(clob.getCharacterStream());
+                return session.getDataHandler().getLobStorage().
+                        createClob(r, -1);
+            } catch (SQLException e) {
+                throw DbException.convert(e);
+            }
         } else if (x instanceof java.sql.Array) {
             java.sql.Array array = (java.sql.Array) x;
             try {

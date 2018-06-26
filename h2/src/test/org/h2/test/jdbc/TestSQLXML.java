@@ -84,7 +84,11 @@ public class TestSQLXML extends TestDb {
         assertEquals(1, stat.executeUpdate("UPDATE TEST SET X = '" + XML + '\''));
         rs = stat.executeQuery("SELECT * FROM TEST");
         assertTrue(rs.next());
-        SQLXML sqlxml = rs.getSQLXML(2);
+        // ResultSet.getObject()
+        SQLXML sqlxml = rs.getObject(2, SQLXML.class);
+        assertEquals(XML, sqlxml.getString());
+
+        sqlxml = rs.getSQLXML(2);
         // getBinaryStream()
         assertEquals(XML, IOUtils.readStringAndClose(IOUtils.getReader(sqlxml.getBinaryStream()), -1));
         // getCharacterStream()
@@ -176,10 +180,25 @@ public class TestSQLXML extends TestDb {
         ResultSet rs = stat.executeQuery("SELECT X FROM TEST");
         assertTrue(rs.next());
         assertXML(rs.getSQLXML(1).getString());
+
+        prep.setObject(1, sqlxml);
+        assertEquals(1, prep.executeUpdate());
+        rs = stat.executeQuery("SELECT X FROM TEST");
+        assertTrue(rs.next());
+        assertXML(rs.getSQLXML(1).getString());
+
         Statement st = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
         rs = st.executeQuery("SELECT * FROM TEST FOR UPDATE");
         assertTrue(rs.next());
         rs.updateSQLXML(2, sqlxml);
+        rs.updateRow();
+        rs = stat.executeQuery("SELECT X FROM TEST");
+        assertTrue(rs.next());
+        assertXML(rs.getSQLXML(1).getString());
+
+        rs = st.executeQuery("SELECT * FROM TEST FOR UPDATE");
+        assertTrue(rs.next());
+        rs.updateObject(2, sqlxml);
         rs.updateRow();
         rs = stat.executeQuery("SELECT X FROM TEST");
         assertTrue(rs.next());

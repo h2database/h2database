@@ -176,7 +176,7 @@ public class JdbcBlob extends JdbcLob implements Blob {
                     completeWrite(conn.createBlob(in, -1));
                 }
             };
-            Output out = new Output(in, task);
+            LobPipedOutputStream out = new LobPipedOutputStream(in, task);
             task.execute();
             state = State.SET_CALLED;
             return new BufferedOutputStream(out);

@@ -25,10 +25,10 @@ import org.h2.value.Value;
  */
 public abstract class JdbcLob extends TraceObject {
 
-    final class Output extends PipedOutputStream {
+    final class LobPipedOutputStream extends PipedOutputStream {
         private final Task task;
 
-        Output(PipedInputStream snk, Task task) throws IOException {
+        LobPipedOutputStream(PipedInputStream snk, Task task) throws IOException {
             super(snk);
             this.task = task;
         }
@@ -150,7 +150,7 @@ public abstract class JdbcLob extends TraceObject {
         return IOUtils.getBufferedWriter(setClobOutputStreamImpl());
     }
 
-    Output setClobOutputStreamImpl() throws IOException {
+    LobPipedOutputStream setClobOutputStreamImpl() throws IOException {
         // PipedReader / PipedWriter are a lot slower
         // than PipedInputStream / PipedOutputStream
         // (Sun/Oracle Java 1.6.0_20)
@@ -161,7 +161,7 @@ public abstract class JdbcLob extends TraceObject {
                 completeWrite(conn.createClob(IOUtils.getReader(in), -1));
             }
         };
-        Output out = new Output(in, task);
+        LobPipedOutputStream out = new LobPipedOutputStream(in, task);
         task.execute();
         return out;
     }

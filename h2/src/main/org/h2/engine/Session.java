@@ -50,6 +50,7 @@ import org.h2.util.ColumnNamerConfiguration;
 import org.h2.util.CurrentTimestamp;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.Utils;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueLong;
@@ -1701,7 +1702,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     @Override
     public void addTemporaryLob(Value v) {
-        if (v.getType() != Value.CLOB && v.getType() != Value.BLOB) {
+        if (!DataType.isLargeObject(v.getType())) {
             return;
         }
         if (v.getTableId() == LobStorageFrontend.TABLE_RESULT

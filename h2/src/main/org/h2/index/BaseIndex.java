@@ -23,6 +23,7 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -72,8 +73,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      */
     protected static void checkIndexColumnTypes(IndexColumn[] columns) {
         for (IndexColumn c : columns) {
-            int type = c.column.getType();
-            if (type == Value.CLOB || type == Value.BLOB) {
+            if (DataType.isLargeObject(c.column.getType())) {
                 throw DbException.getUnsupportedException(
                         "Index on BLOB or CLOB column: " + c.column.getCreateSQL());
             }

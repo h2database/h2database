@@ -144,6 +144,12 @@ public class TransactionStore {
         if (!init) {
             for (String mapName : store.getMapNames()) {
                 if (mapName.startsWith(UNDO_LOG_NAME_PREFIX)) {
+                    if (mapName.equals(UNDO_LOG_NAME_PREFIX)) {
+                        if (!store.hasData(mapName) || store.isReadOnly()) {
+                            store.removeMap(mapName);
+                        }
+                        continue;
+                    }
                     boolean committed = mapName.charAt(UNDO_LOG_NAME_PREFIX.length()) == UNDO_LOG_COMMITTED;
                     if (store.hasData(mapName) || committed) {
                         int transactionId = Integer.parseInt(mapName.substring(UNDO_LOG_NAME_PREFIX.length() + 1));

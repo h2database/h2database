@@ -19,6 +19,7 @@ import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVMap;
+import org.h2.mvstore.MVStore;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionMap;
 import org.h2.result.Row;
@@ -79,8 +80,9 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         MVMap<ValueArray, Value> map = openMap(bufferName);
         for (Row row : rows) {
             ValueArray key = convertToKey(row);
-            map.put(key, ValueNull.INSTANCE);
+            map.append(key, ValueNull.INSTANCE);
         }
+        map.flushAppendBuffer();
     }
 
     private static final class Source {
@@ -154,9 +156,9 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
                 }
             }
         } finally {
+            MVStore store = database.getMvStore().getStore();
             for (String tempMapName : bufferNames) {
-                MVMap<ValueArray, Value> map = openMap(tempMapName);
-                map.getStore().removeMap(map);
+                store.removeMap(tempMapName);
             }
         }
     }
@@ -171,7 +173,9 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
                 database.getCompareMode(), database, sortTypes);
         ValueDataType valueType = new ValueDataType(null, null, null);
         MVMap.Builder<ValueArray, Value> builder =
-                new MVMap.Builder<ValueArray, Value>().keyType(keyType).valueType(valueType);
+                new MVMap.Builder<ValueArray, Value>()
+                        .singleWriter()
+                        .keyType(keyType).valueType(valueType);
         MVMap<ValueArray, Value> map = database.getMvStore().
                 getStore().openMap(mapName, builder);
         if (!keyType.equals(map.getKeyType())) {

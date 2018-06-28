@@ -7,7 +7,6 @@ package org.h2.engine;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -130,8 +129,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private SmallLRUCache<String, Command> queryCache;
     private long modificationMetaID = -1;
     private SubQueryInfo subQueryInfo;
-    private int parsingView;
-    private final Deque<String> viewNameStack = new ArrayDeque<>();
+    private ArrayDeque<String> viewNameStack;
     private int preparingQueryExpression;
     private volatile SmallLRUCache<Object, ViewIndex> viewIndexCache;
     private HashMap<Object, ViewIndex> subQueryIndexCache;
@@ -245,26 +243,23 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      *            name of the view
      */
     public void setParsingCreateView(boolean parsingView, String viewName) {
-        // It can be recursive, thus implemented as counter.
-        this.parsingView += parsingView ? 1 : -1;
-        assert this.parsingView >= 0;
+        if (viewNameStack == null) {
+            viewNameStack = new ArrayDeque<>(3);
+        }
         if (parsingView) {
             viewNameStack.push(viewName);
         } else {
-            assert viewName.equals(viewNameStack.peek());
-            viewNameStack.pop();
+            String name = viewNameStack.pop();
+            assert viewName.equals(name);
         }
     }
+
     public String getParsingCreateViewName() {
-        if (viewNameStack.isEmpty()) {
-            return null;
-        }
-        return viewNameStack.peek();
+        return viewNameStack != null ? viewNameStack.peek() : null;
     }
 
     public boolean isParsingCreateView() {
-        assert parsingView >= 0;
-        return parsingView != 0;
+        return viewNameStack != null && !viewNameStack.isEmpty();
     }
 
     /**

@@ -8,6 +8,7 @@ package org.h2.mvstore;
 import java.util.AbstractList;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -960,13 +961,15 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the number of entries
      */
     public final long sizeAsLong() {
-        return getRootPage().getTotalCount();
+        RootReference rootReference = getRoot();
+        return rootReference.root.getTotalCount() + rootReference.appendCounter;
     }
 
     @Override
     public boolean isEmpty() {
-        Page rootPage = getRootPage();
-        return rootPage.isLeaf() && rootPage.getKeyCount() == 0;
+        RootReference rootReference = getRoot();
+        Page rootPage = rootReference.root;
+        return rootPage.isLeaf() && rootPage.getKeyCount() == 0 && rootReference.appendCounter == 0;
     }
 
     public final long getCreateVersion() {
@@ -1181,8 +1184,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 break;
             }
             Page page = Page.create(this,
-                    createAndFillStorage(keyCount, keysBuffer),
-                    createAndFillStorage(keyCount, valuesBuffer),
+                    Arrays.copyOf(keysBuffer, keyCount),
+                    Arrays.copyOf(valuesBuffer, keyCount),
                     null, keyCount, 0);
             rootReference = appendLeafPage(rootReference, page, ++attempt);
             if (rootReference != null) {
@@ -1258,6 +1261,14 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return null;
     }
 
+    /**
+     * Appends entry to this map. this method is NOT thread safe and can not be used
+     * neither concurrently, nor in combination with any method that updates this map.
+     * Non-updating method may be used concurrently, but latest appended values
+     * are not guaranteed to be visible.
+     * @param key should be higher in map's order than any existing key
+     * @param value to be appended
+     */
     public void append(K key, V value) {
         int attempt = 0;
         boolean success = false;
@@ -1275,6 +1286,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
     }
 
+    /**
+     * Removes last entry from this map. this method is NOT thread safe and can not be used
+     * neither concurrently, nor in combination with any method that updates this map.
+     * Non-updating method may be used concurrently, but latest removal may not be visible.
+     */
     public void trimLast() {
         int attempt = 0;
         boolean success;
@@ -1850,12 +1866,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             p = p.getChildPage(index);
         }
         return new CursorPos(p, p.binarySearch(key), pos);
-    }
-
-    private static Object[] createAndFillStorage(int count, Object dataBuffer[]) {
-        Object storage[] = new Object[count];
-        System.arraycopy(dataBuffer, 0, storage, 0, count);
-        return storage;
     }
 
     private static final class EqualsDecisionMaker<V> extends DecisionMaker<V> {

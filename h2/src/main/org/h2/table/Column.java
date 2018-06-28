@@ -502,7 +502,12 @@ public class Column {
         if (originalSQL != null) {
             buff.append(originalSQL);
         } else {
-            buff.append(DataType.getDataType(type).name);
+            DataType dataType = DataType.getDataType(type);
+            if (type == Value.TIMESTAMP_TZ) {
+                buff.append("TIMESTAMP");
+            } else {
+                buff.append(dataType.name);
+            }
             switch (type) {
             case Value.DECIMAL:
                 buff.append('(').append(precision).append(", ").append(scale).append(')');
@@ -523,6 +528,16 @@ public class Column {
             case Value.STRING_FIXED:
                 if (precision < Integer.MAX_VALUE) {
                     buff.append('(').append(precision).append(')');
+                }
+                break;
+            case Value.TIME:
+            case Value.TIMESTAMP:
+            case Value.TIMESTAMP_TZ:
+                if (scale != dataType.defaultScale) {
+                    buff.append('(').append(scale).append(')');
+                }
+                if (type == Value.TIMESTAMP_TZ) {
+                    buff.append(" WITH TIME ZONE");
                 }
                 break;
             default:

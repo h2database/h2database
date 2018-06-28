@@ -1563,6 +1563,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             return this;
         }
 
+        /**
+         * Set up this Builder to produce MVMap, which can be used in append mode
+         * by a single thread.
+         * @see MVMap#append(Object, Object)
+         * @return this Builder for chained execution
+         */
         public Builder<K,V> singleWriter() {
             singleWriter = true;
             return this;

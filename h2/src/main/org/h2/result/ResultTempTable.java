@@ -23,6 +23,7 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.util.TempFileDeleter;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -118,7 +119,7 @@ public class ResultTempTable implements ResultExternal {
         for (int i = 0; i < expressions.length; i++) {
             int type = expressions[i].getType();
             Column col = new Column(COLUMN_NAME + i, type);
-            if (type == Value.CLOB || type == Value.BLOB) {
+            if (DataType.isLargeObject(type)) {
                 containsLob = true;
             }
             data.columns.add(col);

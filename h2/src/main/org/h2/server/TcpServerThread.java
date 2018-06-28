@@ -37,6 +37,7 @@ import org.h2.store.LobStorageInterface;
 import org.h2.util.IOUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.SmallMap;
+import org.h2.value.DataType;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
 import org.h2.value.ValueLobDb;
@@ -572,7 +573,7 @@ public class TcpServerThread implements Runnable {
     }
 
     private void writeValue(Value v) throws IOException {
-        if (v.getType() == Value.CLOB || v.getType() == Value.BLOB) {
+        if (DataType.isLargeObject(v.getType())) {
             if (v instanceof ValueLobDb) {
                 ValueLobDb lob = (ValueLobDb) v;
                 if (lob.isStored()) {

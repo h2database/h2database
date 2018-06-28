@@ -17,6 +17,7 @@ import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableType;
 import org.h2.util.StatementBuilder;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
@@ -104,8 +105,7 @@ public class Analyze extends DefineCommand {
         StatementBuilder buff = new StatementBuilder("SELECT ");
         for (Column col : columns) {
             buff.appendExceptFirst(", ");
-            int type = col.getType();
-            if (type == Value.BLOB || type == Value.CLOB) {
+            if (DataType.isLargeObject(col.getType())) {
                 // can not index LOB columns, so calculating
                 // the selectivity is not required
                 buff.append("MAX(NULL)");

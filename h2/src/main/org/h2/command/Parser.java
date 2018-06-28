@@ -651,10 +651,9 @@ public class Parser {
             for (int i = 0;; i++) {
                 Column column = parseColumnForTable("C" + i, true);
                 list.add(column);
-                if (readIf(")")) {
+                if (!readIfMore(true)) {
                     break;
                 }
-                read(",");
             }
         }
         read("AS");
@@ -3302,20 +3301,17 @@ public class Parser {
                 r = new ExpressionList(new Expression[0]);
             } else {
                 r = readExpression();
-                if (readIf(",")) {
+                if (readIfMore(true)) {
                     ArrayList<Expression> list = Utils.newSmallArrayList();
                     list.add(r);
                     while (!readIf(")")) {
                         r = readExpression();
                         list.add(r);
-                        if (!readIf(",")) {
-                            read(")");
+                        if (!readIfMore(true)) {
                             break;
                         }
                     }
                     r = new ExpressionList(list.toArray(new Expression[0]));
-                } else {
-                    read(")");
                 }
             }
             break;
@@ -5770,10 +5766,9 @@ public class Parser {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.SCHEMA_SEARCH_PATH);
             ArrayList<String> list = Utils.newSmallArrayList();
-            list.add(readAliasIdentifier());
-            while (readIf(",")) {
+            do {
                 list.add(readAliasIdentifier());
-            }
+            } while (readIf(","));
             command.setStringArray(list.toArray(new String[0]));
             return command;
         } else if (readIf("JAVA_OBJECT_SERIALIZER")) {
@@ -5836,11 +5831,10 @@ public class Parser {
     }
 
     private Set parseSetBinaryCollation() {
-        Set command = new Set(session, SetTypes.BINARY_COLLATION);
         String name = readAliasIdentifier();
-        command.setString(name);
-        if (equalsToken(name, CompareMode.UNSIGNED) ||
-                equalsToken(name, CompareMode.SIGNED)) {
+        if (equalsToken(name, CompareMode.UNSIGNED) || equalsToken(name, CompareMode.SIGNED)) {
+            Set command = new Set(session, SetTypes.BINARY_COLLATION);
+            command.setString(name);
             return command;
         }
         throw DbException.getInvalidValueException("BINARY_COLLATION", name);

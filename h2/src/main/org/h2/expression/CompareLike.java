@@ -15,6 +15,7 @@ import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.CompareMode;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
@@ -198,9 +199,7 @@ public class CompareLike extends Condition {
             // can't use an index
             return;
         }
-        int dataType = l.getColumn().getType();
-        if (dataType != Value.STRING && dataType != Value.STRING_IGNORECASE &&
-                dataType != Value.STRING_FIXED) {
+        if (!DataType.isStringType(l.getColumn().getType())) {
             // column is not a varchar - can't use the index
             return;
         }

@@ -13,6 +13,7 @@ import org.h2.engine.Session;
 import org.h2.store.Data;
 import org.h2.store.FileStore;
 import org.h2.util.Utils;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 
 /**
@@ -63,7 +64,7 @@ public class RowList {
                 buff.writeByte((byte) 0);
             } else {
                 buff.writeByte((byte) 1);
-                if (v.getType() == Value.CLOB || v.getType() == Value.BLOB) {
+                if (DataType.isLargeObject(v.getType())) {
                     // need to keep a reference to temporary lobs,
                     // otherwise the temp file is deleted
                     if (v.getSmall() == null && v.getTableId() == 0) {

@@ -90,7 +90,7 @@ public class TransactionMap<K, V> {
                 if (undoLog != null) {
                     MVMap.RootReference rootReference = undoLog.flushAppendBuffer();
                     undoLogRootReferences[i] = rootReference;
-                    undoLogSize += rootReference.root.getTotalCount() + rootReference.appendCounter;
+                    undoLogSize += rootReference.root.getTotalCount() + rootReference.getAppendCounter();
                 }
             }
         } while(committingTransactions != store.committingTransactions.get() ||

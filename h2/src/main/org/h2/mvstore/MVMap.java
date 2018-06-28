@@ -962,14 +962,14 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     public final long sizeAsLong() {
         RootReference rootReference = getRoot();
-        return rootReference.root.getTotalCount() + rootReference.appendCounter;
+        return rootReference.root.getTotalCount() + rootReference.getAppendCounter();
     }
 
     @Override
     public boolean isEmpty() {
         RootReference rootReference = getRoot();
         Page rootPage = rootReference.root;
-        return rootPage.isLeaf() && rootPage.getKeyCount() == 0 && rootReference.appendCounter == 0;
+        return rootPage.isLeaf() && rootPage.getKeyCount() == 0 && rootReference.getAppendCounter() == 0;
     }
 
     public final long getCreateVersion() {
@@ -1179,7 +1179,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             if (rootReference == null) {
                 rootReference = getRoot();
             }
-            byte keyCount = rootReference.appendCounter;
+            int keyCount = rootReference.getAppendCounter();
             if (keyCount == 0) {
                 break;
             }
@@ -1192,7 +1192,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 break;
             }
         }
-        assert rootReference.appendCounter == 0;
+        assert rootReference.getAppendCounter() == 0;
         return rootReference;
     }
 
@@ -1274,14 +1274,16 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         boolean success = false;
         while(!success) {
             RootReference rootReference = getRoot();
-            if (rootReference.appendCounter >= keysPerPage) {
+            int appendCounter = rootReference.getAppendCounter();
+            if (appendCounter >= keysPerPage) {
                 rootReference = flushAppendBuffer(rootReference);
-                assert rootReference.appendCounter < keysPerPage;
+                appendCounter = rootReference.getAppendCounter();
+                assert appendCounter < keysPerPage;
             }
-            keysBuffer[rootReference.appendCounter] = key;
-            valuesBuffer[rootReference.appendCounter] = value;
+            keysBuffer[appendCounter] = key;
+            valuesBuffer[appendCounter] = value;
 
-            RootReference updatedRootReference = new RootReference(rootReference, (byte) (rootReference.appendCounter + 1), ++attempt);
+            RootReference updatedRootReference = new RootReference(rootReference, appendCounter + 1, ++attempt);
             success = root.compareAndSet(rootReference, updatedRootReference);
         }
     }
@@ -1296,8 +1298,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         boolean success;
         do {
             RootReference rootReference = getRoot();
-            if (rootReference.appendCounter > 0) {
-                RootReference updatedRootReference = new RootReference(rootReference, (byte) (rootReference.appendCounter - 1), ++attempt);
+            int appendCounter = rootReference.getAppendCounter();
+            if (appendCounter > 0) {
+                RootReference updatedRootReference = new RootReference(rootReference, appendCounter - 1, ++attempt);
                 success = root.compareAndSet(rootReference, updatedRootReference);
             } else {
                 assert rootReference.root.getKeyCount() > 0;
@@ -1409,14 +1412,18 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
 
         // This one is used for append buffer maintance
-        RootReference(RootReference r, byte appendCounter, int attempt) {
+        RootReference(RootReference r, int appendCounter, int attempt) {
             this.root = r.root;
             this.version = r.version;
             this.previous = r.previous;
             this.updateCounter = r.updateCounter + 1;
             this.updateAttemptCounter = r.updateAttemptCounter + attempt;
             this.lockedForUpdate = r.lockedForUpdate;
-            this.appendCounter = appendCounter;
+            this.appendCounter = (byte)appendCounter;
+        }
+
+        public int getAppendCounter() {
+            return appendCounter & 0xff;
         }
 
         @Override

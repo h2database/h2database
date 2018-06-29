@@ -300,7 +300,7 @@ public class Transaction {
         }
         int currentStatus = getStatus(currentState);
         checkOpen(currentStatus);
-        store.removeUndoLogRecord(transactionId, logId);
+        store.removeUndoLogRecord(transactionId);
     }
 
     /**

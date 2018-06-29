@@ -76,7 +76,7 @@ public class TestMVTableEngine extends TestDb {
         testMinMaxWithNull();
         testTimeout();
         testExplainAnalyze();
-        testTransactionLogUsuallyNotStored();
+        testTransactionLogEmptyAfterCommit();
         testShrinkDatabaseFile();
         testTwoPhaseCommit();
         testRecover();
@@ -642,42 +642,39 @@ public class TestMVTableEngine extends TestDb {
         conn.close();
     }
 
-    private void testTransactionLogUsuallyNotStored() throws Exception {
+    private void testTransactionLogEmptyAfterCommit() throws Exception {
         Connection conn;
         Statement stat;
-        // we expect the transaction log is empty in at least some of the cases
-        for (int test = 0; test < 5; test++) {
-            deleteDb(getTestName());
-            String url = getTestName() + ";MV_STORE=TRUE";
-            url = getURL(url, true);
-            conn = getConnection(url);
-            stat = conn.createStatement();
-            stat.execute("create table test(id identity, name varchar)");
-            conn.setAutoCommit(false);
-            PreparedStatement prep = conn.prepareStatement(
-                    "insert into test(name) values(space(10000))");
-            for (int j = 0; j < 100; j++) {
-                for (int i = 0; i < 100; i++) {
-                    prep.execute();
-                }
-                conn.commit();
+        deleteDb(getTestName());
+        String url = getTestName() + ";MV_STORE=TRUE";
+        url = getURL(url, true);
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        stat.execute("create table test(id identity, name varchar)");
+        stat.execute("set write_delay 0");
+        conn.setAutoCommit(false);
+        PreparedStatement prep = conn.prepareStatement(
+                "insert into test(name) values(space(10000))");
+        for (int j = 0; j < 100; j++) {
+            for (int i = 0; i < 100; i++) {
+                prep.execute();
             }
-            stat.execute("shutdown immediately");
-            JdbcUtils.closeSilently(conn);
-
-            String file = getBaseDir() + "/" + getTestName() +
-                    Constants.SUFFIX_MV_FILE;
-
-            MVStore store = MVStore.open(file);
-            TransactionStore t = new TransactionStore(store);
-            t.init();
-            int openTransactions = t.getOpenTransactions().size();
-            store.close();
-            if (openTransactions == 0) {
-                return;
-            }
+            conn.commit();
         }
-        fail("transaction log was never empty");
+        stat.execute("shutdown immediately");
+        JdbcUtils.closeSilently(conn);
+
+        String file = getBaseDir() + "/" + getTestName() +
+                Constants.SUFFIX_MV_FILE;
+
+        MVStore store = MVStore.open(file);
+        TransactionStore t = new TransactionStore(store);
+        t.init();
+        int openTransactions = t.getOpenTransactions().size();
+        store.close();
+        if (openTransactions != 0) {
+            fail("transaction log was not empty");
+        }
     }
 
     private void testShrinkDatabaseFile() throws Exception {

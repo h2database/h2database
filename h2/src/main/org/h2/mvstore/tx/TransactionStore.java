@@ -16,6 +16,7 @@ import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.Page;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
@@ -132,7 +133,9 @@ public class TransactionStore {
         ArrayType undoLogValueType = new ArrayType(new DataType[]{
                 new ObjectDataType(), dataType, oldValueType
         });
-        undoLogBuilder = new MVMap.Builder<Long, Object[]>().valueType(undoLogValueType);
+        undoLogBuilder = new MVMap.Builder<Long, Object[]>()
+                .singleWriter()
+                .valueType(undoLogValueType);
     }
 
     /**
@@ -391,24 +394,16 @@ public class TransactionStore {
                     "is still open: {0}",
                     transactionId);
         }
-        undoLog.put(undoKey, undoLogRecord);
+        undoLog.append(undoKey, undoLogRecord);
         return undoKey;
     }
 
     /**
      * Remove an undo log entry.
      * @param transactionId id of the transaction
-     * @param logId sequential number of the log record within transaction
      */
-    public void removeUndoLogRecord(int transactionId, long logId) {
-        Long undoKey = getOperationId(transactionId, logId);
-        Object[] old = undoLogs[transactionId].remove(undoKey);
-        if (old == null) {
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_TRANSACTION_ILLEGAL_STATE,
-                    "Transaction {0} was concurrently rolled back",
-                    transactionId);
-        }
+    void removeUndoLogRecord(int transactionId) {
+        undoLogs[transactionId].trimLast();
     }
 
     /**
@@ -442,7 +437,9 @@ public class TransactionStore {
                     store.renameMap(undoLog, getUndoLogName(true, transactionId));
                 }
                 try {
-                    Cursor<Long, Object[]> cursor = undoLog.cursor(null);
+                    MVMap.RootReference rootReference = undoLog.flushAppendBuffer();
+                    Page rootPage = rootReference.root;
+                    Cursor<Long, Object[]> cursor = new Cursor<>(rootPage, null);
                     while (cursor.hasNext()) {
                         Long undoKey = cursor.next();
                         Object[] op = cursor.getValue();
@@ -597,6 +594,7 @@ public class TransactionStore {
     void rollbackTo(Transaction t, long maxLogId, long toLogId) {
         int transactionId = t.getId();
         MVMap<Long, Object[]> undoLog = undoLogs[transactionId];
+        undoLog.flushAppendBuffer();
         RollbackDecisionMaker decisionMaker = new RollbackDecisionMaker(this, transactionId, toLogId, t.listener);
         for (long logId = maxLogId - 1; logId >= toLogId; logId--) {
             Long undoKey = getOperationId(transactionId, logId);
@@ -618,6 +616,7 @@ public class TransactionStore {
             final long toLogId) {
 
         final MVMap<Long, Object[]> undoLog = undoLogs[t.getId()];
+        undoLog.flushAppendBuffer();
         return new Iterator<Change>() {
 
             private long logId = maxLogId - 1;

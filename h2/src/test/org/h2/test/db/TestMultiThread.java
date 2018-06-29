@@ -509,7 +509,7 @@ public class TestMultiThread extends TestDb implements Runnable {
         @Override
         public void run() {
             try {
-                Connection c = getConnection("concurrentUpdate2");
+                Connection c = getConnection("concurrentUpdate2;LOCK_TIMEOUT=10000");
                 PreparedStatement ps = c.prepareStatement("UPDATE TEST SET V = ? WHERE " + column + " = ?");
                 for (int test = 0; test < 1000; test++) {
                     for (int i = 0; i < 16; i++) {

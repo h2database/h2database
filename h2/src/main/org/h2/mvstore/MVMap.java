@@ -8,6 +8,7 @@ package org.h2.mvstore;
 import java.util.AbstractList;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     private final long createVersion;
     private final DataType keyType;
     private final DataType valueType;
+    private final int keysPerPage;
+    private final boolean singleWriter;
+    private final K keysBuffer[];
+    private final V valuesBuffer[];
+
 
     /**
      * Whether the map is closed. Volatile so we don't accidentally write to a
@@ -66,7 +72,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 (DataType) config.get("val"),
                 DataUtils.readHexInt(config, "id", 0),
                 DataUtils.readHexLong(config, "createVersion", 0),
-                new AtomicReference<RootReference>()
+                new AtomicReference<RootReference>(),
+                ((MVStore) config.get("store")).getKeysPerPage(),
+                config.containsKey("singleWriter") && (Boolean) config.get("singleWriter")
         );
         setInitialRoot(createEmptyLeaf(), store.getCurrentVersion());
     }
@@ -74,23 +82,29 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     // constructor for cloneIt()
     protected MVMap(MVMap<K, V> source) {
         this(source.store, source.keyType, source.valueType, source.id, source.createVersion,
-                new AtomicReference<>(source.root.get()));
+                new AtomicReference<>(source.root.get()), source.keysPerPage, source.singleWriter);
     }
 
     // meta map constructor
     MVMap(MVStore store) {
-        this(store, StringDataType.INSTANCE,StringDataType.INSTANCE, 0, 0, new AtomicReference<RootReference>());
+        this(store, StringDataType.INSTANCE,StringDataType.INSTANCE, 0, 0, new AtomicReference<RootReference>(),
+                store.getKeysPerPage(), false);
         setInitialRoot(createEmptyLeaf(), store.getCurrentVersion());
     }
 
+    @SuppressWarnings("unchecked")
     private MVMap(MVStore store, DataType keyType, DataType valueType, int id, long createVersion,
-                    AtomicReference<RootReference> root) {
+                  AtomicReference<RootReference> root, int keysPerPage, boolean singleWriter) {
         this.store = store;
         this.id = id;
         this.createVersion = createVersion;
         this.keyType = keyType;
         this.valueType = valueType;
         this.root = root;
+        this.keysPerPage = keysPerPage;
+        this.keysBuffer = singleWriter ? (K[]) new Object[keysPerPage] : null;
+        this.valuesBuffer = singleWriter ? (V[]) new Object[keysPerPage] : null;
+        this.singleWriter = singleWriter;
     }
 
     protected MVMap<K, V> cloneIt() {
@@ -947,13 +961,15 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the number of entries
      */
     public final long sizeAsLong() {
-        return getRootPage().getTotalCount();
+        RootReference rootReference = getRoot();
+        return rootReference.root.getTotalCount() + rootReference.getAppendCounter();
     }
 
     @Override
     public boolean isEmpty() {
-        Page rootPage = getRootPage();
-        return rootPage.isLeaf() && rootPage.getKeyCount() == 0;
+        RootReference rootReference = getRoot();
+        Page rootPage = rootReference.root;
+        return rootPage.isLeaf() && rootPage.getKeyCount() == 0 && rootReference.getAppendCounter() == 0;
     }
 
     public final long getCreateVersion() {
@@ -1037,6 +1053,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return getVersion() > version;
     }
 
+    public boolean isSingleWriter() {
+        return singleWriter;
+    }
+
     /**
      * Get the child page count for this page. This is to allow another map
      * implementation to override the default, in case the last child is not to
@@ -1091,6 +1111,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 }
                 return rootReference;
             }
+            rootReference = flushAppendBuffer(rootReference);
             RootReference updatedRootReference = new RootReference(rootReference, writeVersion, ++attempt);
             if(root.compareAndSet(rootReference, updatedRootReference)) {
                 removeUnusedOldVersions(updatedRootReference);
@@ -1148,6 +1169,151 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return target;
     }
 
+    public RootReference flushAppendBuffer() {
+        return flushAppendBuffer(null);
+    }
+
+    private RootReference flushAppendBuffer(RootReference rootReference) {
+        int attempt = 0;
+        while(true) {
+            if (rootReference == null) {
+                rootReference = getRoot();
+            }
+            int keyCount = rootReference.getAppendCounter();
+            if (keyCount == 0) {
+                break;
+            }
+            Page page = Page.create(this,
+                    Arrays.copyOf(keysBuffer, keyCount),
+                    Arrays.copyOf(valuesBuffer, keyCount),
+                    null, keyCount, 0);
+            rootReference = appendLeafPage(rootReference, page, ++attempt);
+            if (rootReference != null) {
+                break;
+            }
+        }
+        assert rootReference.getAppendCounter() == 0;
+        return rootReference;
+    }
+
+    private RootReference appendLeafPage(RootReference rootReference, Page split, int attempt) {
+        CursorPos pos = rootReference.root.getAppendCursorPos(null);
+        assert split.map == this;
+        assert pos != null;
+        assert split.getKeyCount() > 0;
+        Object key = split.getKey(0);
+        assert pos.index < 0 : pos.index;
+        int index = -pos.index - 1;
+        assert index == pos.page.getKeyCount() : index + " != " + pos.page.getKeyCount();
+        Page p = pos.page;
+        pos = pos.parent;
+        CursorPos tip = pos;
+        int unsavedMemory = 0;
+        while (true) {
+            if (pos == null) {
+                if (p.getKeyCount() == 0) {
+                    p = split;
+                } else {
+                    Object keys[] = new Object[] { key };
+                    Page.PageReference children[] = new Page.PageReference[store.getKeysPerPage() + 1];
+                    children[0] = new Page.PageReference(p);
+                    children[1] = new Page.PageReference(split);
+                    p = Page.create(this, keys, null, children, p.getTotalCount() + split.getTotalCount(), 0);
+                }
+                break;
+            }
+            Page c = p;
+            p = pos.page;
+            index = pos.index;
+            pos = pos.parent;
+            p = p.copy();
+            p.setChild(index, split);
+            p.insertNode(index, key, c);
+            int keyCount;
+            if ((keyCount = p.getKeyCount()) <= store.getKeysPerPage() && (p.getMemory() < store.getMaxPageSize() || keyCount <= (p.isLeaf() ? 1 : 2))) {
+                break;
+            }
+            int at = keyCount - 2;
+            key = p.getKey(at);
+            split = p.split(at);
+            unsavedMemory += p.getMemory() + split.getMemory();
+        }
+        unsavedMemory += p.getMemory();
+        while (pos != null) {
+            Page c = p;
+            p = pos.page;
+            p = p.copy();
+            p.setChild(pos.index, c);
+            unsavedMemory += p.getMemory();
+            pos = pos.parent;
+        }
+        RootReference updatedRootReference = new RootReference(rootReference, p, ++attempt);
+        if(root.compareAndSet(rootReference, updatedRootReference)) {
+            while (tip != null) {
+                tip.page.removePage();
+                tip = tip.parent;
+            }
+            if (store.getFileStore() != null) {
+                store.registerUnsavedPage(unsavedMemory);
+            }
+            return updatedRootReference;
+        }
+        return null;
+    }
+
+    /**
+     * Appends entry to this map. this method is NOT thread safe and can not be used
+     * neither concurrently, nor in combination with any method that updates this map.
+     * Non-updating method may be used concurrently, but latest appended values
+     * are not guaranteed to be visible.
+     * @param key should be higher in map's order than any existing key
+     * @param value to be appended
+     */
+    public void append(K key, V value) {
+        int attempt = 0;
+        boolean success = false;
+        while(!success) {
+            RootReference rootReference = getRoot();
+            int appendCounter = rootReference.getAppendCounter();
+            if (appendCounter >= keysPerPage) {
+                rootReference = flushAppendBuffer(rootReference);
+                appendCounter = rootReference.getAppendCounter();
+                assert appendCounter < keysPerPage;
+            }
+            keysBuffer[appendCounter] = key;
+            valuesBuffer[appendCounter] = value;
+
+            RootReference updatedRootReference = new RootReference(rootReference, appendCounter + 1, ++attempt);
+            success = root.compareAndSet(rootReference, updatedRootReference);
+        }
+    }
+
+    /**
+     * Removes last entry from this map. this method is NOT thread safe and can not be used
+     * neither concurrently, nor in combination with any method that updates this map.
+     * Non-updating method may be used concurrently, but latest removal may not be visible.
+     */
+    public void trimLast() {
+        int attempt = 0;
+        boolean success;
+        do {
+            RootReference rootReference = getRoot();
+            int appendCounter = rootReference.getAppendCounter();
+            if (appendCounter > 0) {
+                RootReference updatedRootReference = new RootReference(rootReference, appendCounter - 1, ++attempt);
+                success = root.compareAndSet(rootReference, updatedRootReference);
+            } else {
+                assert rootReference.root.getKeyCount() > 0;
+                Page lastLeaf = rootReference.root.getAppendCursorPos(null).page;
+                assert lastLeaf.isLeaf();
+                assert lastLeaf.getKeyCount() > 0;
+                Object key = lastLeaf.getKey(lastLeaf.getKeyCount() - 1);
+                success = remove(key) != null;
+                assert success;
+            }
+        } while(!success);
+    }
+
     @Override
     public final String toString() {
         return asString(null);
@@ -1179,6 +1345,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
          * Counter for attempted root updates.
          */
         public  final    long          updateAttemptCounter;
+        /**
+         * Size of the occupied part of the append buffer.
+         */
+        public  final    byte          appendCounter;
 
         RootReference(Page root, long version, RootReference previous,
                         long updateCounter, long updateAttemptCounter,
@@ -1189,6 +1359,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             this.updateCounter = updateCounter;
             this.updateAttemptCounter = updateAttemptCounter;
             this.lockedForUpdate = lockedForUpdate;
+            this.appendCounter = 0;
         }
 
         // This one is used for locking
@@ -1199,6 +1370,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             this.updateCounter = r.updateCounter;
             this.updateAttemptCounter = r.updateAttemptCounter;
             this.lockedForUpdate = true;
+            this.appendCounter = 0;
         }
 
         // This one is used for unlocking
@@ -1209,6 +1381,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             this.updateCounter = r.updateCounter + 1;
             this.updateAttemptCounter = r.updateAttemptCounter + attempt;
             this.lockedForUpdate = false;
+            this.appendCounter = 0;
         }
 
         // This one is used for version change
@@ -1224,6 +1397,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             this.updateCounter = r.updateCounter + 1;
             this.updateAttemptCounter = r.updateAttemptCounter + attempt;
             this.lockedForUpdate = r.lockedForUpdate;
+            this.appendCounter = r.appendCounter;
         }
 
         // This one is used for r/o snapshots
@@ -1234,6 +1408,22 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             this.updateCounter = 1;
             this.updateAttemptCounter = 1;
             this.lockedForUpdate = false;
+            this.appendCounter = 0;
+        }
+
+        // This one is used for append buffer maintance
+        RootReference(RootReference r, int appendCounter, int attempt) {
+            this.root = r.root;
+            this.version = r.version;
+            this.previous = r.previous;
+            this.updateCounter = r.updateCounter + 1;
+            this.updateAttemptCounter = r.updateAttemptCounter + attempt;
+            this.lockedForUpdate = r.lockedForUpdate;
+            this.appendCounter = (byte)appendCounter;
+        }
+
+        public int getAppendCounter() {
+            return appendCounter & 0xff;
         }
 
         @Override
@@ -1357,6 +1547,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param <V> the value type
      */
     public static class Builder<K, V> extends BasicBuilder<MVMap<K, V>, K, V> {
+        private boolean singleWriter;
 
         public Builder() {}
 
@@ -1372,8 +1563,20 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             return this;
         }
 
+        /**
+         * Set up this Builder to produce MVMap, which can be used in append mode
+         * by a single thread.
+         * @see MVMap#append(Object, Object)
+         * @return this Builder for chained execution
+         */
+        public Builder<K,V> singleWriter() {
+            singleWriter = true;
+            return this;
+        }
+
         @Override
         protected MVMap<K, V> create(Map<String, Object> config) {
+            config.put("singleWriter", singleWriter);
             Object type = config.get("type");
             if(type == null || type.equals("rtree")) {
                 return new MVMap<>(config);

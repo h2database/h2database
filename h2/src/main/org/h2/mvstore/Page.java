@@ -836,6 +836,8 @@ public abstract class Page implements Cloneable
         }
     }
 
+    public abstract CursorPos getAppendCursorPos(CursorPos cursorPos);
+
     public abstract void removeAllRecursive();
 
     private Object[] createKeyStorage(int size)
@@ -1084,6 +1086,13 @@ public abstract class Page implements Cloneable
         }
 
         @Override
+        public CursorPos getAppendCursorPos(CursorPos cursorPos) {
+            int keyCount = getKeyCount();
+            Page childPage = getChildPage(keyCount);
+            return childPage.getAppendCursorPos(new CursorPos(this, keyCount, cursorPos));
+        }
+
+        @Override
         protected void readPayLoad(ByteBuffer buff) {
             int keyCount = getKeyCount();
             children = new PageReference[keyCount + 1];
@@ -1320,6 +1329,12 @@ public abstract class Page implements Cloneable
         @Override
         public void removeAllRecursive() {
             removePage();
+        }
+
+        @Override
+        public CursorPos getAppendCursorPos(CursorPos cursorPos) {
+            int keyCount = getKeyCount();
+            return new CursorPos(this, -keyCount - 1, cursorPos);
         }
 
         @Override

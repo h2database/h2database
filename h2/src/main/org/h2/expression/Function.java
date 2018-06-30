@@ -2197,6 +2197,20 @@ public class Function extends Expression implements FunctionCall {
         long p;
         Expression p0 = args.length < 1 ? null : args[0];
         switch (info.type) {
+        case EXTRACT: {
+            if (p0.isConstant() && DateTimeFunctions.getDatePart(p0.getValue(session).getString()) == Function.EPOCH) {
+                t = Value.DECIMAL;
+                p = ValueLong.PRECISION + ValueTimestamp.MAXIMUM_SCALE;
+                s = ValueTimestamp.MAXIMUM_SCALE;
+                d = ValueLong.PRECISION + ValueTimestamp.MAXIMUM_SCALE + 1;
+            } else {
+                t = Value.INT;
+                p = ValueInt.PRECISION;
+                s = 0;
+                d = ValueInt.DISPLAY_SIZE;
+            }
+            break;
+        }
         case DATE_TRUNC: {
             Expression p1 = args[1];
             t = p1.getType();

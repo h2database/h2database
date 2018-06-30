@@ -576,7 +576,14 @@ public final class DateTimeFunctions {
         }
     }
 
-    private static int getDatePart(String part) {
+    /**
+     * Get date part function number from part name.
+     *
+     * @param part
+     *            name of the part
+     * @return function number
+     */
+    public static int getDatePart(String part) {
         Integer p = DATE_PART.get(StringUtils.toUpperEnglish(part));
         if (p == null) {
             throw DbException.getInvalidValueException("date part", part);

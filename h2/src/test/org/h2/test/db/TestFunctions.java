@@ -114,6 +114,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         testConcatWs();
         testTruncate();
         testDateTrunc();
+        testExtract();
         testToCharFromDateTime();
         testToCharFromNumber();
         testToCharFromText();
@@ -1254,6 +1255,19 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertEquals(Types.TIMESTAMP, md.getColumnType(3));
         assertEquals(Types.TIMESTAMP, md.getColumnType(4));
         assertEquals(Types.TIMESTAMP_WITH_TIMEZONE, md.getColumnType(5));
+        conn.close();
+    }
+
+    private void testExtract() throws SQLException {
+        deleteDb("functions");
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(TS TIMESTAMP)");
+        stat.execute("INSERT INTO TEST VALUES ('2010-01-01 10:11:12')");
+        assertEquals(Types.INTEGER, stat.executeQuery("SELECT EXTRACT(DAY FROM TS) FROM TEST")
+                .getMetaData().getColumnType(1));
+        assertEquals(Types.DECIMAL, stat.executeQuery("SELECT EXTRACT(EPOCH FROM TS) FROM TEST")
+                .getMetaData().getColumnType(1));
         conn.close();
     }
 

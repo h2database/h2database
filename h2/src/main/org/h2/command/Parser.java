@@ -1170,10 +1170,8 @@ public class Parser {
             command.setQuery(preparedQuery);
         }
         read("ON");
-        read("(");
         Expression condition = readExpression();
         command.setOnCondition(condition);
-        read(")");
 
         read("WHEN");
         boolean matched = readIf("MATCHED");

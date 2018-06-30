@@ -122,7 +122,7 @@ MERGE INTO TEST KEY(ID) VALUES(2, 'World')
 "Commands (DML)","MERGE USING","
 MERGE INTO targetTableName [ [AS] targetAlias]
 USING { ( select ) | sourceTableName }[ [AS] sourceAlias ]
-ON ( expression )
+ON expression
 [ WHEN MATCHED THEN
     [ UPDATE SET setClauseList ] [ DELETE deleteSearchCondition ] ]
 [ WHEN NOT MATCHED THEN INSERT insertColumnsAndSource ]
@@ -138,20 +138,20 @@ If WHEN MATCHED THEN is specified it should contain UPDATE or DELETE clauses of 
 If statement doesn't need a source table a DUAL table can be substituted.
 ","
 MERGE INTO TARGET_TABLE AS T USING SOURCE_TABLE AS S
-    ON (T.ID = S.ID)
+    ON T.ID = S.ID
     WHEN MATCHED THEN
         UPDATE SET T.COL1 = S.COL1 WHERE T.COL2<>'FINAL'
         DELETE WHERE T.COL2='FINAL'
     WHEN NOT MATCHED THEN
         INSERT (ID,COL1,COL2) VALUES(S.ID,S.COL1,S.COL2)
 MERGE INTO TARGET_TABLE AS T USING (SELECT * FROM SOURCE_TABLE) AS S
-    ON (T.ID = S.ID)
+    ON T.ID = S.ID
     WHEN MATCHED THEN
         UPDATE SET T.COL1 = S.COL1 WHERE T.COL2<>'FINAL'
         DELETE WHERE T.COL2='FINAL'
     WHEN NOT MATCHED THEN
         INSERT (ID,COL1,COL2) VALUES(S.ID,S.COL1,S.COL2)
-MERGE INTO TARGET_TABLE USING DUAL ON (ID = 1)
+MERGE INTO TARGET_TABLE USING DUAL ON ID = 1
     WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (1, 'Test')
     WHEN MATCHED THEN UPDATE SET NAME = 'Test'
 "

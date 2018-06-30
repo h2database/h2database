@@ -166,7 +166,7 @@ public class TestMergeUsing extends TestDb implements Trigger {
                 GATHER_ORDERED_RESULTS_SQL,
                 "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3) WHERE X<0",
                 0,
-                "expected \"WHEN\"");
+                "WHEN\"");
         // Two updates to same row - update and delete together - emptying the
         // parent table
         testMergeUsing(

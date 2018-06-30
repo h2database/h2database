@@ -113,6 +113,8 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         testNvl2();
         testConcatWs();
         testTruncate();
+        testDateTrunc();
+        testExtract();
         testToCharFromDateTime();
         testToCharFromNumber();
         testToCharFromText();
@@ -1236,6 +1238,36 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         // check for too many parameters
         rs = assertThrows(SQLException.class, stat).executeQuery("SELECT TRUNCATE(1,2,3) FROM dual");
 
+        conn.close();
+    }
+
+    private void testDateTrunc() throws SQLException {
+        deleteDb("functions");
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(S VARCHAR, TS TIMESTAMP, D DATE, T TIME, TZ TIMESTAMP WITH TIME ZONE)");
+        stat.execute("INSERT INTO TEST VALUES ('2010-01-01 10:11:12', '2010-01-01 10:11:12', '2010-01-01', '10:11:12', '2010-01-01 10:11:12Z')");
+        ResultSetMetaData md = stat.executeQuery("SELECT DATE_TRUNC('HOUR', S), DATE_TRUNC('HOUR', TS),"
+                + " DATE_TRUNC('HOUR', D), DATE_TRUNC('HOUR', T), DATE_TRUNC('HOUR', TZ) FROM TEST")
+                .getMetaData();
+        assertEquals(Types.TIMESTAMP, md.getColumnType(1));
+        assertEquals(Types.TIMESTAMP, md.getColumnType(2));
+        assertEquals(Types.TIMESTAMP, md.getColumnType(3));
+        assertEquals(Types.TIMESTAMP, md.getColumnType(4));
+        assertEquals(/* TODO use Types.TIMESTAMP_WITH_TIMEZONE on Java 8 */ 2014, md.getColumnType(5));
+        conn.close();
+    }
+
+    private void testExtract() throws SQLException {
+        deleteDb("functions");
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(TS TIMESTAMP)");
+        stat.execute("INSERT INTO TEST VALUES ('2010-01-01 10:11:12')");
+        assertEquals(Types.INTEGER, stat.executeQuery("SELECT EXTRACT(DAY FROM TS) FROM TEST")
+                .getMetaData().getColumnType(1));
+        assertEquals(Types.DECIMAL, stat.executeQuery("SELECT EXTRACT(EPOCH FROM TS) FROM TEST")
+                .getMetaData().getColumnType(1));
         conn.close();
     }
 

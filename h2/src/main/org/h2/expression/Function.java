@@ -2197,6 +2197,18 @@ public class Function extends Expression implements FunctionCall {
         long p;
         Expression p0 = args.length < 1 ? null : args[0];
         switch (info.type) {
+        case DATE_TRUNC: {
+            Expression p1 = args[1];
+            t = p1.getType();
+            if (t == Value.TIMESTAMP_TZ) {
+                p = d = ValueTimestampTimeZone.DEFAULT_PRECISION;
+            } else {
+                t = Value.TIMESTAMP;
+                p = d = ValueTimestamp.DEFAULT_PRECISION;
+            }
+            s = ValueTimestamp.MAXIMUM_SCALE;
+            break;
+        }
         case IFNULL:
         case NULLIF:
         case COALESCE:

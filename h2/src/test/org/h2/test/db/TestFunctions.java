@@ -1254,7 +1254,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertEquals(Types.TIMESTAMP, md.getColumnType(2));
         assertEquals(Types.TIMESTAMP, md.getColumnType(3));
         assertEquals(Types.TIMESTAMP, md.getColumnType(4));
-        assertEquals(Types.TIMESTAMP_WITH_TIMEZONE, md.getColumnType(5));
+        assertEquals(/* TODO use Types.TIMESTAMP_WITH_TIMEZONE on Java 8 */ 2014, md.getColumnType(5));
         conn.close();
     }
 

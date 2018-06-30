@@ -56,7 +56,7 @@ public class TransactionStore {
     final MVMap<Long,Object[]> undoLogs[] = new MVMap[MAX_OPEN_TRANSACTIONS];
     private final MVMap.Builder<Long,Object[]> undoLogBuilder;
 
-    private final DataType dataType;
+    private final MVMap.Builder<Object, VersionedValue> mapBuilder;
 
     /**
      * This BitSet is used as vacancy indicator for transaction slots in transactions[].
@@ -125,7 +125,6 @@ public class TransactionStore {
      */
     public TransactionStore(MVStore store, DataType dataType, int timeoutMillis) {
         this.store = store;
-        this.dataType = dataType;
         this.timeoutMillis = timeoutMillis;
         preparedTransactions = store.openMap("openTransactions",
                 new MVMap.Builder<Integer, Object[]>());
@@ -136,6 +135,9 @@ public class TransactionStore {
         undoLogBuilder = new MVMap.Builder<Long, Object[]>()
                 .singleWriter()
                 .valueType(undoLogValueType);
+        DataType vt = new VersionedValue.Type(dataType);
+        mapBuilder = new MVMap.Builder<Object, VersionedValue>()
+                            .keyType(dataType).valueType(vt);
     }
 
     /**
@@ -198,9 +200,10 @@ public class TransactionStore {
     public void endLeftoverTransactions() {
         List<Transaction> list = getOpenTransactions();
         for (Transaction t : list) {
-            if (t.getStatus() == Transaction.STATUS_COMMITTED) {
+            int status = t.getStatus();
+            if (status == Transaction.STATUS_COMMITTED) {
                 t.commit();
-            } else if (t.getStatus() != Transaction.STATUS_PREPARED) {
+            } else if (status != Transaction.STATUS_PREPARED) {
                 t.rollback();
             }
         }
@@ -512,10 +515,6 @@ public class TransactionStore {
                 // the map was removed later on
                 return null;
             }
-            DataType vt = new VersionedValue.Type(dataType);
-            MVMap.Builder<Object, VersionedValue> mapBuilder =
-                    new MVMap.Builder<Object, VersionedValue>().
-                    keyType(dataType).valueType(vt);
             map = store.openMap(mapName, mapBuilder);
         }
         return map;

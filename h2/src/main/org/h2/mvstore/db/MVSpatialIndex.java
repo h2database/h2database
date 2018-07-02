@@ -101,6 +101,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         spatialMap = db.getMvStore().getStore().openMap(mapName, mapBuilder);
         Transaction t = mvTable.getTransactionBegin();
         dataMap = t.openMap(spatialMap);
+        dataMap.map.setVolatile(!indexType.isPersistent());
         t.commit();
     }
 

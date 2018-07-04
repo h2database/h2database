@@ -6093,7 +6093,7 @@ public class Parser {
                 return commandIfTableExists(schema, tableName, ifTableExists, command);
             } else if (readIf("INDEX")) {
                 // MySQL compatibility
-                String indexOrConstraintName = readIdentifierWithSchema();
+                String indexOrConstraintName = readIdentifierWithSchema(schema.getName());
                 final SchemaCommand command;
                 if (schema.findIndex(session, indexOrConstraintName) != null) {
                     DropIndex dropIndexCommand = new DropIndex(session, getSchema());

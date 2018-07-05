@@ -884,9 +884,11 @@ DROP CONSTANT ONE
 "
 
 "Commands (DDL)","DROP DOMAIN","
-DROP DOMAIN [ IF EXISTS ] domainName
+DROP DOMAIN [ IF EXISTS ] domainName [ RESTRICT | CASCADE ]
 ","
 Drops a data type (domain).
+The command will fail if it is referenced by a column (the default).
+Column descriptors are replaced with original definition of specified domain if the CASCADE clause is used.
 This command commits an open transaction in this connection.
 ","
 DROP DOMAIN EMAIL

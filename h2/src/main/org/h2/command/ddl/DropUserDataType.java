@@ -7,10 +7,13 @@ package org.h2.command.ddl;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
+import org.h2.constraint.ConstraintActionType;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.UserDataType;
 import org.h2.message.DbException;
+import org.h2.table.Column;
+import org.h2.table.Table;
 
 /**
  * This class represents the statement
@@ -20,13 +23,20 @@ public class DropUserDataType extends DefineCommand {
 
     private String typeName;
     private boolean ifExists;
+    private ConstraintActionType dropAction;
 
     public DropUserDataType(Session session) {
         super(session);
+        dropAction = session.getDatabase().getSettings().dropRestrict ?
+                ConstraintActionType.RESTRICT : ConstraintActionType.CASCADE;
     }
 
     public void setIfExists(boolean ifExists) {
         this.ifExists = ifExists;
+    }
+
+    public void setDropAction(ConstraintActionType dropAction) {
+        this.dropAction = dropAction;
     }
 
     @Override
@@ -40,6 +50,23 @@ public class DropUserDataType extends DefineCommand {
                 throw DbException.get(ErrorCode.USER_DATA_TYPE_NOT_FOUND_1, typeName);
             }
         } else {
+            for (Table t : db.getAllTablesAndViews(false)) {
+                boolean modified = false;
+                for (Column c : t.getColumns()) {
+                    UserDataType udt = c.getUserDataType();
+                    if (udt != null && udt.getName().equals(typeName)) {
+                        if (dropAction == ConstraintActionType.RESTRICT) {
+                            throw DbException.get(ErrorCode.CANNOT_DROP_2, typeName, t.getCreateSQL());
+                        }
+                        c.setOriginalSQL(type.getColumn().getOriginalSQL());
+                        c.setUserDataType(null);
+                        modified = true;
+                    }
+                }
+                if (modified) {
+                    db.updateMeta(session, t);
+                }
+            }
             db.removeDatabaseObject(session, type);
         }
         return 0;

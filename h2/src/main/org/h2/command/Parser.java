@@ -649,7 +649,7 @@ public class Parser {
         if (readIf("(")) {
             ArrayList<Column> list = Utils.newSmallArrayList();
             for (int i = 0;; i++) {
-                Column column = parseColumnForTable("C" + i, true);
+                Column column = parseColumnForTable("C" + i, true, false);
                 list.add(column);
                 if (!readIfMore(true)) {
                     break;
@@ -1789,11 +1789,7 @@ public class Parser {
                 command.setDeleteFiles(true);
             }
             return command;
-        } else if (readIf("DOMAIN")) {
-            return parseDropUserDataType();
-        } else if (readIf("TYPE")) {
-            return parseDropUserDataType();
-        } else if (readIf("DATATYPE")) {
+        } else if (readIf("DOMAIN") || readIf("TYPE") || readIf("DATATYPE")) {
             return parseDropUserDataType();
         } else if (readIf("AGGREGATE")) {
             return parseDropAggregate();
@@ -1815,6 +1811,11 @@ public class Parser {
         command.setTypeName(readUniqueIdentifier());
         ifExists = readIfExists(ifExists);
         command.setIfExists(ifExists);
+        if (readIf("CASCADE")) {
+            command.setDropAction(ConstraintActionType.CASCADE);
+        } else if (readIf("RESTRICT")) {
+            command.setDropAction(ConstraintActionType.RESTRICT);
+        }
         return command;
     }
 
@@ -2804,14 +2805,14 @@ public class Parser {
         case Function.CAST: {
             function.setParameter(0, readExpression());
             read("AS");
-            Column type = parseColumnWithType(null);
+            Column type = parseColumnWithType(null, false);
             function.setDataType(type);
             read(")");
             break;
         }
         case Function.CONVERT: {
             if (database.getMode().swapConvertFunctionParameters) {
-                Column type = parseColumnWithType(null);
+                Column type = parseColumnWithType(null, false);
                 function.setDataType(type);
                 read(",");
                 function.setParameter(0, readExpression());
@@ -2819,7 +2820,7 @@ public class Parser {
             } else {
                 function.setParameter(0, readExpression());
                 read(",");
-                Column type = parseColumnWithType(null);
+                Column type = parseColumnWithType(null, false);
                 function.setDataType(type);
                 read(")");
             }
@@ -2926,7 +2927,7 @@ public class Parser {
             ArrayList<Column> columns = Utils.newSmallArrayList();
             do {
                 String columnName = readAliasIdentifier();
-                Column column = parseColumnWithType(columnName);
+                Column column = parseColumnWithType(columnName, false);
                 columns.add(column);
                 read("=");
                 function.setParameter(i, readExpression());
@@ -3368,7 +3369,7 @@ public class Parser {
                 Expression[] args = { r };
                 r = new JavaFunction(f, args);
             } else {
-                Column col = parseColumnWithType(null);
+                Column col = parseColumnWithType(null, false);
                 Function function = Function.getFunction(database, "CAST");
                 function.setDataType(col);
                 function.setParameter(0, r);
@@ -4212,7 +4213,7 @@ public class Parser {
     }
 
     private Column parseColumnForTable(String columnName,
-            boolean defaultNullable) {
+            boolean defaultNullable, boolean forTable) {
         Column column;
         boolean isIdentity = readIf("IDENTITY");
         if (isIdentity || readIf("BIGSERIAL")) {
@@ -4238,7 +4239,7 @@ public class Parser {
                 column.setPrimaryKey(true);
             }
         } else {
-            column = parseColumnWithType(columnName);
+            column = parseColumnWithType(columnName, forTable);
         }
         if (readIf("INVISIBLE")) {
             column.setVisible(false);
@@ -4346,7 +4347,7 @@ public class Parser {
         return null;
     }
 
-    private Column parseColumnWithType(String columnName) {
+    private Column parseColumnWithType(String columnName, boolean forTable) {
         String original = currentToken;
         boolean regular = false;
         int originalScale = -1;
@@ -4414,7 +4415,7 @@ public class Parser {
             templateColumn = userDataType.getColumn();
             dataType = DataType.getDataType(templateColumn.getType());
             comment = templateColumn.getComment();
-            original = templateColumn.getOriginalSQL();
+            original = forTable ? userDataType.getSQL() : templateColumn.getOriginalSQL();
             precision = templateColumn.getPrecision();
             displaySize = templateColumn.getDisplaySize();
             scale = templateColumn.getScale();
@@ -4584,6 +4585,9 @@ public class Parser {
         }
         column.setComment(comment);
         column.setOriginalSQL(original);
+        if (forTable) {
+            column.setUserDataType(userDataType);
+        }
         return column;
     }
 
@@ -4610,11 +4614,7 @@ public class Parser {
             return parseCreateSchema();
         } else if (readIf("CONSTANT")) {
             return parseCreateConstant();
-        } else if (readIf("DOMAIN")) {
-            return parseCreateUserDataType();
-        } else if (readIf("TYPE")) {
-            return parseCreateUserDataType();
-        } else if (readIf("DATATYPE")) {
+        } else if (readIf("DOMAIN") || readIf("TYPE") || readIf("DATATYPE")) {
             return parseCreateUserDataType();
         } else if (readIf("AGGREGATE")) {
             return parseCreateAggregate(force);
@@ -5030,7 +5030,7 @@ public class Parser {
         CreateUserDataType command = new CreateUserDataType(session);
         command.setTypeName(readUniqueIdentifier());
         read("AS");
-        Column col = parseColumnForTable("VALUE", true);
+        Column col = parseColumnForTable("VALUE", true, false);
         if (readIf("CHECK")) {
             Expression expr = readExpression();
             col.addCheckConstraint(session, expr);
@@ -6155,7 +6155,7 @@ public class Parser {
             boolean nullable = column == null ? true : column.isNullable();
             // new column type ignored. RENAME and MODIFY are
             // a single command in MySQL but two different commands in H2.
-            parseColumnForTable(newColumnName, nullable);
+            parseColumnForTable(newColumnName, nullable, true);
             AlterTableRenameColumn command = new AlterTableRenameColumn(session, schema);
             command.setTableName(tableName);
             command.setIfTableExists(ifTableExists);
@@ -6336,7 +6336,7 @@ public class Parser {
             String tableName, String columnName, boolean ifTableExists) {
         Column oldColumn = columnIfTableExists(schema, tableName, columnName, ifTableExists);
         Column newColumn = parseColumnForTable(columnName,
-                oldColumn == null ? true : oldColumn.isNullable());
+                oldColumn == null ? true : oldColumn.isNullable(), true);
         AlterTableAlterColumn command = new AlterTableAlterColumn(session,
                 schema);
         command.setTableName(tableName);
@@ -6705,7 +6705,7 @@ public class Parser {
             command.addConstraintCommand(c);
         } else {
             String columnName = readColumnIdentifier();
-            Column column = parseColumnForTable(columnName, true);
+            Column column = parseColumnForTable(columnName, true, true);
             if (column.isAutoIncrement() && column.isPrimaryKey()) {
                 column.setPrimaryKey(false);
                 IndexColumn[] cols = { new IndexColumn() };

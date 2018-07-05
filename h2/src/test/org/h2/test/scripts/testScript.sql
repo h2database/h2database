@@ -840,9 +840,12 @@ script nodata nopasswords nosettings;
 > -----------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > CREATE DOMAIN INT AS VARCHAR;
-> CREATE MEMORY TABLE PUBLIC.TEST( ID VARCHAR );
+> CREATE MEMORY TABLE PUBLIC.TEST( ID INT );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > rows: 4
+
+SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST';
+>> 12
 
 drop table test;
 > ok
@@ -2674,7 +2677,7 @@ select DOMAIN_NAME, COLUMN_DEFAULT, IS_NULLABLE, DATA_TYPE, PRECISION, SCALE, TY
 
 script nodata nopasswords nosettings;
 > SCRIPT
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.ADDRESS;
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER TABLE PUBLIC.ADDRESS ADD CONSTRAINT PUBLIC.CONSTRAINT_E PRIMARY KEY(ID);
@@ -2685,8 +2688,8 @@ script nodata nopasswords nosettings;
 > CREATE DOMAIN STRING2 AS VARCHAR NOT NULL;
 > CREATE DOMAIN STRING3 AS VARCHAR DEFAULT '<empty>';
 > CREATE DOMAIN STRING_X AS VARCHAR DEFAULT '<empty>';
-> CREATE MEMORY TABLE PUBLIC.ADDRESS( ID INT NOT NULL, NAME VARCHAR(200) CHECK (POSITION('@', NAME) > 1), NAME2 VARCHAR(200) DEFAULT '@gmail.com' CHECK ((POSITION('@', NAME2) > 1) AND (POSITION('gmail', NAME2) > 1)) );
-> CREATE MEMORY TABLE PUBLIC.TEST( A VARCHAR(255) DEFAULT '' NOT NULL, B VARCHAR, C VARCHAR NOT NULL, D VARCHAR DEFAULT '<empty>' );
+> CREATE MEMORY TABLE PUBLIC.ADDRESS( ID INT NOT NULL, NAME EMAIL CHECK (POSITION('@', NAME) > 1), NAME2 GMAIL DEFAULT '@gmail.com' CHECK ((POSITION('@', NAME2) > 1) AND (POSITION('gmail', NAME2) > 1)) );
+> CREATE MEMORY TABLE PUBLIC.TEST( A STRING DEFAULT '' NOT NULL, B STRING1, C STRING2 NOT NULL, D STRING3 DEFAULT '<empty>' );
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > rows: 13
 

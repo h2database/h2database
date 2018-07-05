@@ -5,6 +5,7 @@
  */
 package org.h2.command.ddl;
 
+import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
@@ -12,8 +13,7 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
-
-import java.util.ArrayList;
+import org.h2.table.MetaTable;
 
 /**
  * This class represents the statement
@@ -53,7 +53,10 @@ public class AlterSchemaRename extends DefineCommand {
         db.renameDatabaseObject(session, oldSchema, newSchemaName);
         ArrayList<SchemaObject> all = db.getAllSchemaObjects();
         for (SchemaObject schemaObject : all) {
-            db.updateMeta(session, schemaObject);
+            // id == 0 is the table that contains the metadata
+            if (!(schemaObject instanceof MetaTable) && schemaObject.getId() != 0) {
+                db.updateMeta(session, schemaObject);
+            }
         }
         return 0;
     }

@@ -32,7 +32,6 @@ import java.util.Calendar;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.store.FileLister;
@@ -83,7 +82,19 @@ public class TestCrashAPI extends TestDb implements Runnable {
     public static void main(String... a) throws Exception {
         System.setProperty("h2.delayWrongPasswordMin", "0");
         System.setProperty("h2.delayWrongPasswordMax", "0");
-        TestBase.createCaller().init().test();
+
+        org.h2.test.TestAll config = new org.h2.test.TestAll();
+        config.memory = false;
+        config.multiThreaded = false;
+        config.mvStore = true;
+        config.networked = false;
+        config.big = true;
+        TestBase test = createCaller().init(config);
+        int i = 0;
+        while (true) {
+            System.out.println("Pass #" + i++);
+            test.test();
+        }
     }
 
     @Override
@@ -162,7 +173,7 @@ public class TestCrashAPI extends TestDb implements Runnable {
             recoverAll();
             return;
         }
-        if (config.mvStore || config.networked) {
+        if (config.networked) {
             return;
         }
         int len = getSize(2, 6);
@@ -539,7 +550,7 @@ public class TestCrashAPI extends TestDb implements Runnable {
     @Override
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);
-        if (config.mvStore || config.networked) {
+        if (config.networked) {
             return this;
         }
         startServerIfRequired();

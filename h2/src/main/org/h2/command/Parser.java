@@ -14,7 +14,6 @@ import static org.h2.util.ParserUtil.KEYWORD;
 import static org.h2.util.ParserUtil.NULL;
 import static org.h2.util.ParserUtil.ROWNUM;
 import static org.h2.util.ParserUtil.TRUE;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
@@ -27,7 +26,6 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.ddl.AlterIndexRename;
@@ -5275,7 +5273,7 @@ public class Parser {
          * data and table if we don't have a working CTE already.
          */
         Table recursiveTable = TableView.createShadowTableForRecursiveTableExpression(
-                isPersistent, session, cteViewName, schema, columns, database);
+                session, cteViewName, schema, columns, database);
         List<Column> columnTemplateList;
         String[] querySQLOutput = {null};
         try {

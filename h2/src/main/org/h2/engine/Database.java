@@ -20,7 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
@@ -794,7 +793,9 @@ public class Database implements DataHandler {
         ArrayList<MetaRecord> records = new ArrayList<>((int) metaIdIndex.getRowCountApproximation());
         while (cursor.next()) {
             MetaRecord rec = new MetaRecord(cursor.get());
-            objectIds.set(rec.getId());
+            int id = rec.getId();
+            assert !objectIds.get(id);
+            objectIds.set(id);
             records.add(rec);
         }
         Collections.sort(records);
@@ -905,16 +906,19 @@ public class Database implements DataHandler {
     }
 
     private synchronized void addMeta(Session session, DbObject obj) {
-        int id = obj.getId();
-        if (id > 0 && !starting && !obj.isTemporary()) {
-            Row r = meta.getTemplateRow();
-            MetaRecord.populateRowFromDBObject(obj, r);
-            objectIds.set(id);
-            if (SysProperties.CHECK) {
-                verifyMetaLocked(session);
-            }
-            meta.addRow(session, r);
+        if (starting || obj.isTemporary()) {
+            return;
         }
+        int id = obj.getId();
+        assert id > 0; // meta tables are negative
+        Row r = meta.getTemplateRow();
+        MetaRecord.populateRowFromDBObject(obj, r);
+        // check that the bit was set in allocateObjectId
+        assert objectIds.get(id);
+        if (SysProperties.CHECK) {
+            verifyMetaLocked(session);
+        }
+        meta.addRow(session, r);
     }
 
     /**
@@ -1001,33 +1005,34 @@ public class Database implements DataHandler {
      * @param id the id of the object to remove
      */
     public synchronized void removeMeta(Session session, int id) {
-        if (id > 0 && !starting) {
-            SearchRow r = meta.getTemplateSimpleRow(false);
-            r.setValue(0, ValueInt.get(id));
-            boolean wasLocked = lockMeta(session);
-            try {
-                Cursor cursor = metaIdIndex.find(session, r, r);
-                if (cursor.next()) {
-                    if (SysProperties.CHECK) {
-                        if (lockMode != Constants.LOCK_MODE_OFF && !wasLocked) {
-                            throw DbException.throwInternalError();
-                        }
-                    }
-                    Row found = cursor.get();
-                    meta.removeRow(session, found);
-                    if (SysProperties.CHECK) {
-                        checkMetaFree(session, id);
+        assert !starting;
+        assert id > 0; // meta tables are negative
+        assert objectIds.get(id);
+        SearchRow r = meta.getTemplateSimpleRow(false);
+        r.setValue(0, ValueInt.get(id));
+        boolean wasLocked = lockMeta(session);
+        try {
+            Cursor cursor = metaIdIndex.find(session, r, r);
+            if (cursor.next()) {
+                if (SysProperties.CHECK) {
+                    if (lockMode != Constants.LOCK_MODE_OFF && !wasLocked) {
+                        throw DbException.throwInternalError();
                     }
                 }
-            } finally {
-                if (!wasLocked) {
-                    // must not keep the lock if it was not locked
-                    // otherwise updating sequences may cause a deadlock
-                    unlockMeta(session);
+                Row found = cursor.get();
+                meta.removeRow(session, found);
+                if (SysProperties.CHECK) {
+                    checkMetaFree(session, id);
                 }
             }
-            objectIds.clear(id);
+        } finally {
+            if (!wasLocked) {
+                // must not keep the lock if it was not locked
+                // otherwise updating sequences may cause a deadlock
+                unlockMeta(session);
+            }
         }
+        objectIds.clear(id);
     }
 
     @SuppressWarnings("unchecked")
@@ -1713,32 +1718,25 @@ public class Database implements DataHandler {
      * @param obj the database object
      */
     public void updateMeta(Session session, DbObject obj) {
+        final int id = obj.getId();
+        assert id > 0; // meta tables are negative
+        assert objectIds.get(id);
+        assert !starting;
+        if (obj.isTemporary()) {
+            return;
+        }
         if (isMVStore()) {
             synchronized (this) {
-                int id = obj.getId();
-                if (id > 0) {
-                    if (!starting && !obj.isTemporary()) {
-                        Row newRow = meta.getTemplateRow();
-                        MetaRecord.populateRowFromDBObject(obj, newRow);
-                        Row oldRow = metaIdIndex.getRow(session, id);
-                        if (oldRow != null) {
-                            meta.updateRow(session, oldRow, newRow);
-                        }
-                    }
-                    // for temporary objects
-                    objectIds.set(id);
-                }
+                Row newRow = meta.getTemplateRow();
+                MetaRecord.populateRowFromDBObject(obj, newRow);
+                Row oldRow = metaIdIndex.getRow(session, id);
+                meta.updateRow(session, oldRow, newRow);
             }
         } else {
             lockMeta(session);
             synchronized (this) {
-                int id = obj.getId();
                 removeMeta(session, id);
                 addMeta(session, obj);
-                // for temporary objects
-                if(id > 0) {
-                    objectIds.set(id);
-                }
             }
         }
     }
@@ -1868,7 +1866,6 @@ public class Database implements DataHandler {
         int id = obj.getId();
         obj.removeChildrenAndResources(session);
         map.remove(objName);
-        removeMeta(session, id);
     }
 
     /**
@@ -1952,8 +1949,9 @@ public class Database implements DataHandler {
                             t.getSQL());
                 }
                 obj.removeChildrenAndResources(session);
+            } else {
+                removeMeta(session, id);
             }
-            removeMeta(session, id);
         }
     }
 

@@ -14,7 +14,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.CreateTableData;
@@ -858,7 +857,6 @@ public class MVTable extends TableBase {
             }
         }
         primaryIndex.remove(session);
-        database.removeMeta(session, getId());
         close(session);
         invalidate();
     }

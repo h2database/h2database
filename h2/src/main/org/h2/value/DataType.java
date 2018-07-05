@@ -1226,6 +1226,25 @@ public class DataType {
     }
 
     /**
+     * Check if the given value type is a date-time type (TIME, DATE, TIMESTAMP,
+     * TIMESTAMP_TZ).
+     *
+     * @param type the value type
+     * @return true if the value type is a date-time type
+     */
+    public static boolean isDateTimeType(int type) {
+        switch (type) {
+        case Value.TIME:
+        case Value.DATE:
+        case Value.TIMESTAMP:
+        case Value.TIMESTAMP_TZ:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    /**
      * Check if the given value type is a large object (BLOB or CLOB).
      *
      * @param type the value type

@@ -26,14 +26,14 @@ SELECT COLUMN_NAME, DATA_TYPE, TYPE_NAME, COLUMN_TYPE FROM INFORMATION_SCHEMA.CO
 ALTER TABLE TEST ADD (T3 TIME(0), T4 TIME(9) WITHOUT TIME ZONE);
 > ok
 
-SELECT COLUMN_NAME, DATA_TYPE, TYPE_NAME, COLUMN_TYPE, NUMERIC_SCALE FROM INFORMATION_SCHEMA.COLUMNS
+SELECT COLUMN_NAME, DATA_TYPE, TYPE_NAME, COLUMN_TYPE, NUMERIC_SCALE, DATETIME_PRECISION FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
-> COLUMN_NAME DATA_TYPE TYPE_NAME COLUMN_TYPE               NUMERIC_SCALE
-> ----------- --------- --------- ------------------------- -------------
-> T1          92        TIME      TIME                      0
-> T2          92        TIME      TIME WITHOUT TIME ZONE    0
-> T3          92        TIME      TIME(0)                   0
-> T4          92        TIME      TIME(9) WITHOUT TIME ZONE 9
+> COLUMN_NAME DATA_TYPE TYPE_NAME COLUMN_TYPE               NUMERIC_SCALE DATETIME_PRECISION
+> ----------- --------- --------- ------------------------- ------------- ------------------
+> T1          92        TIME      TIME                      0             0
+> T2          92        TIME      TIME WITHOUT TIME ZONE    0             0
+> T3          92        TIME      TIME(0)                   0             0
+> T4          92        TIME      TIME(9) WITHOUT TIME ZONE 9             9
 > rows (ordered): 4
 
 ALTER TABLE TEST ADD T5 TIME(10);

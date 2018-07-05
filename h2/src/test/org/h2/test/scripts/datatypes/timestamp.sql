@@ -21,21 +21,21 @@ ALTER TABLE TEST ADD (T3 TIMESTAMP(0), T4 TIMESTAMP(9) WITHOUT TIME ZONE,
     SDT1 SMALLDATETIME);
 > ok
 
-SELECT COLUMN_NAME, DATA_TYPE, TYPE_NAME, COLUMN_TYPE, NUMERIC_SCALE FROM INFORMATION_SCHEMA.COLUMNS
+SELECT COLUMN_NAME, DATA_TYPE, TYPE_NAME, COLUMN_TYPE, NUMERIC_SCALE, DATETIME_PRECISION FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
-> COLUMN_NAME DATA_TYPE TYPE_NAME COLUMN_TYPE                    NUMERIC_SCALE
-> ----------- --------- --------- ------------------------------ -------------
-> T1          93        TIMESTAMP TIMESTAMP                      6
-> T2          93        TIMESTAMP TIMESTAMP WITHOUT TIME ZONE    6
-> T3          93        TIMESTAMP TIMESTAMP(0)                   0
-> T4          93        TIMESTAMP TIMESTAMP(9) WITHOUT TIME ZONE 9
-> DT1         93        TIMESTAMP DATETIME                       6
-> DT2         93        TIMESTAMP DATETIME(0)                    0
-> DT3         93        TIMESTAMP DATETIME(9)                    9
-> DT2_1       93        TIMESTAMP DATETIME2                      6
-> DT2_2       93        TIMESTAMP DATETIME2(0)                   0
-> DT2_3       93        TIMESTAMP DATETIME2(7)                   7
-> SDT1        93        TIMESTAMP SMALLDATETIME                  0
+> COLUMN_NAME DATA_TYPE TYPE_NAME COLUMN_TYPE                    NUMERIC_SCALE DATETIME_PRECISION
+> ----------- --------- --------- ------------------------------ ------------- ------------------
+> T1          93        TIMESTAMP TIMESTAMP                      6             6
+> T2          93        TIMESTAMP TIMESTAMP WITHOUT TIME ZONE    6             6
+> T3          93        TIMESTAMP TIMESTAMP(0)                   0             0
+> T4          93        TIMESTAMP TIMESTAMP(9) WITHOUT TIME ZONE 9             9
+> DT1         93        TIMESTAMP DATETIME                       6             6
+> DT2         93        TIMESTAMP DATETIME(0)                    0             0
+> DT3         93        TIMESTAMP DATETIME(9)                    9             9
+> DT2_1       93        TIMESTAMP DATETIME2                      6             6
+> DT2_2       93        TIMESTAMP DATETIME2(0)                   0             0
+> DT2_3       93        TIMESTAMP DATETIME2(7)                   7             7
+> SDT1        93        TIMESTAMP SMALLDATETIME                  0             0
 > rows (ordered): 11
 
 ALTER TABLE TEST ADD T5 TIMESTAMP(10);

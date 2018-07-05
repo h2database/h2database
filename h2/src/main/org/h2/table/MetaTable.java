@@ -168,6 +168,7 @@ public class MetaTable extends Table {
                     "NUMERIC_PRECISION INT",
                     "NUMERIC_PRECISION_RADIX INT",
                     "NUMERIC_SCALE INT",
+                    "DATETIME_PRECISION INT",
                     "CHARACTER_SET_NAME",
                     "COLLATION_NAME",
                     // extensions
@@ -864,6 +865,8 @@ public class MetaTable extends Table {
                             "10",
                             // NUMERIC_SCALE
                             Integer.toString(c.getScale()),
+                            // DATETIME_PRECISION
+                            DataType.isDateTimeType(dataType.type) ? Integer.toString(c.getScale()) : null,
                             // CHARACTER_SET_NAME
                             CHARACTER_SET_NAME,
                             // COLLATION_NAME

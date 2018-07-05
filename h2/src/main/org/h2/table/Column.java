@@ -576,6 +576,8 @@ public class Column {
         }
         if (!nullable) {
             buff.append(" NOT NULL");
+        } else if (userDataType != null && !userDataType.getColumn().isNullable()) {
+            buff.append(" NULL");
         }
         if (convertNullToDefault) {
             buff.append(" NULL_TO_DEFAULT");

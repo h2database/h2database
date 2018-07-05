@@ -12,6 +12,7 @@ import org.h2.command.Parser;
 import org.h2.engine.Constants;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
+import org.h2.engine.UserDataType;
 import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
@@ -87,6 +88,7 @@ public class Column {
     private String comment;
     private boolean primaryKey;
     private boolean visible = true;
+    private UserDataType userDataType;
 
     public Column(String name, int type) {
         this(name, type, -1, -1, -1, null);
@@ -312,6 +314,14 @@ public class Column {
 
     public void setVisible(boolean b) {
         visible = b;
+    }
+
+    public UserDataType getUserDataType() {
+        return userDataType;
+    }
+
+    public void setUserDataType(UserDataType userDataType) {
+        this.userDataType = userDataType;
     }
 
     /**
@@ -566,6 +576,8 @@ public class Column {
         }
         if (!nullable) {
             buff.append(" NOT NULL");
+        } else if (userDataType != null && !userDataType.getColumn().isNullable()) {
+            buff.append(" NULL");
         }
         if (convertNullToDefault) {
             buff.append(" NULL_TO_DEFAULT");

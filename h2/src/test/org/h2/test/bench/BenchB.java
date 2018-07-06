@@ -97,7 +97,7 @@ public class BenchB implements Bench, Runnable {
         for (int i = 0; i < BRANCHES * SCALE; i++) {
             prep.setInt(1, i);
             db.update(prep, "insertBranches");
-            if (i % commitEvery == 0) {
+            if ((i+1) % commitEvery == 0) {
                 db.commit();
             }
         }
@@ -108,7 +108,7 @@ public class BenchB implements Bench, Runnable {
             prep.setInt(1, i);
             prep.setInt(2, i / TELLERS);
             db.update(prep, "insertTellers");
-            if (i % commitEvery == 0) {
+            if ((i+1) % commitEvery == 0) {
                 db.commit();
             }
         }
@@ -120,7 +120,7 @@ public class BenchB implements Bench, Runnable {
             prep.setInt(1, i);
             prep.setInt(2, i / ACCOUNTS);
             db.update(prep, "insertAccounts");
-            if (i % commitEvery == 0) {
+            if ((i+1) % commitEvery == 0) {
                 db.commit();
             }
         }
@@ -171,7 +171,6 @@ public class BenchB implements Bench, Runnable {
             updateAccount.setInt(1, delta);
             updateAccount.setInt(2, account);
             master.database.update(updateAccount, "UpdateAccounts");
-            updateAccount.executeUpdate();
 
             // SELECT ABALANCE FROM ACCOUNTS WHERE AID=?
             selectAccount.setInt(1, account);

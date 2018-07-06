@@ -71,7 +71,7 @@ public class BenchA implements Bench {
         for (int i = 0; i < branches * scale; i++) {
             prep.setInt(1, i);
             db.update(prep, "insertBranches");
-            if (i % commitEvery == 0) {
+            if ((i+1) % commitEvery == 0) {
                 db.commit();
             }
         }
@@ -83,7 +83,7 @@ public class BenchA implements Bench {
             prep.setInt(1, i);
             prep.setInt(2, i / tellers);
             db.update(prep, "insertTellers");
-            if (i % commitEvery == 0) {
+            if ((i+1) % commitEvery == 0) {
                 db.commit();
             }
         }
@@ -96,7 +96,7 @@ public class BenchA implements Bench {
             prep.setInt(1, i);
             prep.setInt(2, i / accounts);
             db.update(prep, "insertAccounts");
-            if (i % commitEvery == 0) {
+            if ((i+1) % commitEvery == 0) {
                 db.commit();
             }
         }

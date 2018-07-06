@@ -119,10 +119,10 @@ public class CreateView extends SchemaCommand {
             if (isTableExpression) {
                 view = TableView.createTableViewMaybeRecursive(getSchema(), id, viewName, querySQL, null,
                         columnTemplatesAsStrings, session, false /* literalsChecked */, isTableExpression,
-                        true /* isPersistent */, db);
+                        false/*isTemporary*/, db);
             } else {
                 view = new TableView(getSchema(), id, viewName, querySQL, null, columnTemplatesAsUnknowns, session,
-                        false/* allow recursive */, false/* literalsChecked */, isTableExpression, true);
+                        false/* allow recursive */, false/* literalsChecked */, isTableExpression, false/*temporary*/);
             }
         } else {
             // TODO support isTableExpression in replace function...

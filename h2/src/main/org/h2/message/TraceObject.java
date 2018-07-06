@@ -371,15 +371,15 @@ public class TraceObject {
                     trace.error(e, "exception");
                 }
             }
-        } catch(Throwable ignore) {
+        } catch(Throwable another) {
             if (e == null) {
                 try {
                     e = new SQLException("GeneralError", "HY000", ErrorCode.GENERAL_ERROR_1, ex);
-                } catch (OutOfMemoryError ignored) {
+                } catch (OutOfMemoryError | NoClassDefFoundError ignored) {
                     return DbException.SQL_OOME;
                 }
             }
-            e.addSuppressed(ignore);
+            e.addSuppressed(another);
         }
         return e;
     }

@@ -1150,7 +1150,7 @@ public class Select extends Query {
             TableView tableView = t.isView() ? (TableView) t : null;
             if (tableView != null && tableView.isRecursive() && tableView.isTableExpression()) {
 
-                if (tableView.isPersistent()) {
+                if (!tableView.isTemporary()) {
                     // skip the generation of plan SQL for this already recursive persistent CTEs,
                     // since using a with statement will re-create the common table expression
                     // views.

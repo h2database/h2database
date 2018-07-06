@@ -63,14 +63,13 @@ public class TableView extends Table {
     private ResultInterface recursiveResult;
     private boolean isRecursiveQueryDetected;
     private boolean isTableExpression;
-    private boolean isPersistent;
 
     public TableView(Schema schema, int id, String name, String querySQL,
             ArrayList<Parameter> params, Column[] columnTemplates, Session session,
             boolean allowRecursive, boolean literalsChecked, boolean isTableExpression, boolean isPersistent) {
         super(schema, id, name, false, true);
-        init(querySQL, params, columnTemplates, session, allowRecursive, literalsChecked, isTableExpression,
-                isPersistent);
+        setTemporary(!isPersistent);
+        init(querySQL, params, columnTemplates, session, allowRecursive, literalsChecked, isTableExpression);
     }
 
     /**
@@ -92,11 +91,11 @@ public class TableView extends Table {
         init(querySQL, null,
                 newColumnTemplates == null ? this.columnTemplates
                         : newColumnTemplates,
-                session, recursive, literalsChecked, isTableExpression, isPersistent);
+                session, recursive, literalsChecked, isTableExpression);
         DbException e = recompile(session, force, true);
         if (e != null) {
             init(oldQuerySQL, null, oldColumnTemplates, session, oldRecursive,
-                    literalsChecked, isTableExpression, isPersistent);
+                    literalsChecked, isTableExpression);
             recompile(session, true, false);
             throw e;
         }
@@ -104,13 +103,12 @@ public class TableView extends Table {
 
     private synchronized void init(String querySQL, ArrayList<Parameter> params,
             Column[] columnTemplates, Session session, boolean allowRecursive, boolean literalsChecked,
-            boolean isTableExpression, boolean isPersistent) {
+            boolean isTableExpression) {
         this.querySQL = querySQL;
         this.columnTemplates = columnTemplates;
         this.allowRecursive = allowRecursive;
         this.isRecursiveQueryDetected = false;
         this.isTableExpression = isTableExpression;
-        this.isPersistent = isPersistent;
         index = new ViewIndex(this, querySQL, params, allowRecursive);
         initColumnsAndTables(session, literalsChecked);
     }
@@ -714,10 +712,6 @@ public class TableView extends Table {
 
     public List<Table> getTables() {
         return tables;
-    }
-
-    public boolean isPersistent() {
-        return isPersistent;
     }
 
     /**

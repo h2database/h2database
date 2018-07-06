@@ -376,7 +376,7 @@ public class TraceObject {
                 try {
                     e = new SQLException("GeneralError", "HY000", ErrorCode.GENERAL_ERROR_1, ex);
                 } catch (OutOfMemoryError | NoClassDefFoundError ignored) {
-                    e = DbException.SQL_OOME;
+                    return DbException.SQL_OOME;
                 }
             }
             e.addSuppressed(another);

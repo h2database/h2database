@@ -5166,25 +5166,19 @@ public class Parser {
         List<TableView> viewsCreated = new ArrayList<>();
         readIf("RECURSIVE");
 
-        // this WITH statement might not be a temporary view - allow optional keyword to
-        // tell us that this keyword. This feature will not be documented - H2 internal use only.
-        boolean isTemporary = !readIf("PERSISTENT");
-
-        // this WITH statement is not a temporary view - it is part of a persistent view
-        // as in CREATE VIEW abc AS WITH my_cte - this auto detects that condition
-        if (session.isParsingCreateView()) {
-        	isTemporary = false;
-        }
+        // This WITH statement is not a temporary view - it is part of a persistent view
+        // as in CREATE VIEW abc AS WITH my_cte - this auto detects that condition.
+        final boolean isTemporary = !session.isParsingCreateView();
 
         do {
             viewsCreated.add(parseSingleCommonTableExpression(isTemporary));
         } while (readIf(","));
 
         Prepared p;
-        // reverse the order of constructed CTE views - as the destruction order
+        // Reverse the order of constructed CTE views - as the destruction order
         // (since later created view may depend on previously created views -
         //  we preserve that dependency order in the destruction sequence )
-        // used in setCteCleanups
+        // used in setCteCleanups.
         Collections.reverse(viewsCreated);
 
         if (isToken("SELECT")) {
@@ -5217,8 +5211,8 @@ public class Parser {
                     WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS);
         }
 
-        // clean up temporary views starting with last to first (in case of
-        // dependencies) - but only if they are not persistent
+        // Clean up temporary views starting with last to first (in case of
+        // dependencies) - but only if they are not persistent.
         if (isTemporary) {
             p.setCteCleanups(viewsCreated);
         }

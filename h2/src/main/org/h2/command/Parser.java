@@ -1774,10 +1774,9 @@ public class Parser {
             command.setSchemaName(readUniqueIdentifier());
             ifExists = readIfExists(ifExists);
             command.setIfExists(ifExists);
-            if (readIf("CASCADE")) {
-                command.setDropAction(ConstraintActionType.CASCADE);
-            } else if (readIf("RESTRICT")) {
-                command.setDropAction(ConstraintActionType.RESTRICT);
+            ConstraintActionType dropAction = parseCascadeOrRestrict();
+            if (dropAction != null) {
+                command.setDropAction(dropAction);
             }
             return command;
         } else if (readIf("ALL")) {
@@ -1811,10 +1810,9 @@ public class Parser {
         command.setTypeName(readUniqueIdentifier());
         ifExists = readIfExists(ifExists);
         command.setIfExists(ifExists);
-        if (readIf("CASCADE")) {
-            command.setDropAction(ConstraintActionType.CASCADE);
-        } else if (readIf("RESTRICT")) {
-            command.setDropAction(ConstraintActionType.RESTRICT);
+        ConstraintActionType dropAction = parseCascadeOrRestrict();
+        if (dropAction != null) {
+            command.setDropAction(dropAction);
         }
         return command;
     }

@@ -3581,9 +3581,7 @@ public class Parser {
     }
 
     private boolean isToken(String token) {
-        boolean result = equalsToken(token, currentToken) &&
-                !currentTokenQuoted;
-        if (result) {
+        if (!currentTokenQuoted && equalsToken(token, currentToken)) {
             return true;
         }
         addExpected(token);

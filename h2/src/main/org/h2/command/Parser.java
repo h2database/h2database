@@ -2631,6 +2631,17 @@ public class Parser {
         }
     }
 
+    private Expression readFilterCondition() {
+        if (readIf("FILTER")) {
+            read("(");
+            read("WHERE");
+            Expression filterCondition = readExpression();
+            read(")");
+            return filterCondition;
+        }
+        return null;
+    }
+
     private Expression readAggregate(AggregateType aggregateType, String aggregateName) {
         if (currentSelect == null) {
             throw getSyntaxError();
@@ -2695,12 +2706,8 @@ public class Parser {
                     distinct);
         }
         read(")");
-        if (r != null && readIf("FILTER")) {
-            read("(");
-            read("WHERE");
-            Expression condition = readExpression();
-            read(")");
-            r.setFilterCondition(condition);
+        if (r != null) {
+            r.setFilterCondition(readFilterCondition());
         }
         return r;
     }
@@ -2750,15 +2757,7 @@ public class Parser {
         do {
             params.add(readExpression());
         } while (readIfMore(true));
-        Expression filterCondition;
-        if (readIf("FILTER")) {
-            read("(");
-            read("WHERE");
-            filterCondition = readExpression();
-            read(")");
-        } else {
-            filterCondition = null;
-        }
+        Expression filterCondition = readFilterCondition();
         Expression[] list = params.toArray(new Expression[0]);
         JavaAggregate agg = new JavaAggregate(aggregate, list, currentSelect, distinct, filterCondition);
         currentSelect.setGroupQuery();

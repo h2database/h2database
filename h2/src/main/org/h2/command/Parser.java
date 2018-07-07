@@ -1949,10 +1949,9 @@ public class Parser {
         if (readIf("(")) {
             for (int i = 0;; i++) {
                 command.setExpression(i, readExpression());
-                if (readIf(")")) {
+                if (!readIfMore(true)) {
                     break;
                 }
-                read(",");
             }
         }
         return command;
@@ -2740,12 +2739,10 @@ public class Parser {
         }
         Expression[] args;
         ArrayList<Expression> argList = Utils.newSmallArrayList();
-        int numArgs = 0;
-        while (!readIf(")")) {
-            if (numArgs++ > 0) {
-                read(",");
-            }
-            argList.add(readExpression());
+        if (!readIf(")")) {
+            do {
+                argList.add(readExpression());
+            } while (readIfMore(true));
         }
         args = argList.toArray(new Expression[0]);
         return new JavaFunction(functionAlias, args);
@@ -3300,12 +3297,10 @@ public class Parser {
                 if (readIfMore(true)) {
                     ArrayList<Expression> list = Utils.newSmallArrayList();
                     list.add(r);
-                    while (!readIf(")")) {
-                        r = readExpression();
-                        list.add(r);
-                        if (!readIfMore(true)) {
-                            break;
-                        }
+                    if (!readIf(")")) {
+                        do {
+                            list.add(readExpression());
+                        } while (readIfMore(false));
                     }
                     r = new ExpressionList(list.toArray(new Expression[0]));
                 }

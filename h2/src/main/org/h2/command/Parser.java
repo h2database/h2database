@@ -306,7 +306,7 @@ public class Parser {
     private static final int CLOSE_PAREN = OPEN_PAREN + 1;
 
     /**
-     * The token "&&".
+     * The token "&amp;&amp;".
      */
     private static final int SPATIAL_INTERSECTS = CLOSE_PAREN + 1;
 

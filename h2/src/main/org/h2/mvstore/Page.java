@@ -860,12 +860,12 @@ public abstract class Page implements Cloneable
         /**
          * The position, if known, or 0.
          */
-        final long pos;
+        private long pos;
 
         /**
          * The page, if in memory, or null.
          */
-        final Page page;
+        private Page page;
 
         /**
          * The descendant count for this child page.
@@ -878,13 +878,42 @@ public abstract class Page implements Cloneable
 
         PageReference(long pos, long count) {
             this(null, pos, count);
-            assert pos != 0;
+            assert DataUtils.isPageSaved(pos);
         }
 
         private PageReference(Page page, long pos, long count) {
             this.page = page;
             this.pos = pos;
             this.count = count;
+        }
+
+        public Page getPage() {
+            return page;
+        }
+
+        void clearPageReference() {
+            if (page != null) {
+                if (!page.isSaved()) {
+                    throw DataUtils.newIllegalStateException(
+                            DataUtils.ERROR_INTERNAL, "Page not written");
+                }
+                page.writeEnd();
+                assert pos == page.getPos();
+                assert count == page.getTotalCount();
+                page = null;
+            }
+        }
+
+        long getPos() {
+            return pos;
+        }
+
+        void resetPos() {
+            Page p = page;
+            if (p != null) {
+                pos = p.getPos();
+                assert count == p.getTotalCount();
+            }
         }
 
         @Override
@@ -940,10 +969,10 @@ public abstract class Page implements Cloneable
         @Override
         public Page getChildPage(int index) {
             PageReference ref = children[index];
-            Page page = ref.page;
+            Page page = ref.getPage();
             if(page == null) {
-                page = map.readPage(ref.pos);
-                assert ref.pos == page.getPos();
+                page = map.readPage(ref.getPos());
+                assert ref.getPos() == page.getPos();
                 assert ref.count == page.getTotalCount();
             }
             return page;
@@ -951,12 +980,12 @@ public abstract class Page implements Cloneable
 
         @Override
         public Page getChildPageIfLoaded(int index) {
-            return children[index].page;
+            return children[index].getPage();
         }
 
         @Override
         public long getChildPagePos(int index) {
-            return children[index].pos;
+            return children[index].getPos();
         }
 
         @Override
@@ -1017,7 +1046,7 @@ public abstract class Page implements Cloneable
         public void setChild(int index, Page c) {
             assert c != null;
             PageReference child = children[index];
-            if (c != child.page || c.getPos() != child.pos) {
+            if (c != child.getPage() || c.getPos() != child.getPos()) {
                 totalCount += c.getTotalCount() - child.count;
                 children = children.clone();
                 children[index] = new PageReference(c);
@@ -1068,10 +1097,11 @@ public abstract class Page implements Cloneable
             if (isPersistent()) {
                 for (int i = 0, size = map.getChildPageCount(this); i < size; i++) {
                     PageReference ref = children[i];
-                    if (ref.page != null) {
-                        ref.page.removeAllRecursive();
+                    Page page = ref.getPage();
+                    if (page != null) {
+                        page.removeAllRecursive();
                     } else {
-                        long c = children[i].pos;
+                        long c = ref.getPos();
                         int type = DataUtils.getPageType(c);
                         if (type == PAGE_TYPE_LEAF) {
                             int mem = DataUtils.getPageMaxLength(c);
@@ -1118,7 +1148,7 @@ public abstract class Page implements Cloneable
         protected void writeChildren(WriteBuffer buff, boolean withCounts) {
             int keyCount = getKeyCount();
             for (int i = 0; i <= keyCount; i++) {
-                buff.putLong(children[i].pos);
+                buff.putLong(children[i].getPos());
             }
             if(withCounts) {
                 for (int i = 0; i <= keyCount; i++) {
@@ -1133,10 +1163,11 @@ public abstract class Page implements Cloneable
                 int patch = write(chunk, buff);
                 int len = getRawChildPageCount();
                 for (int i = 0; i < len; i++) {
-                    Page p = children[i].page;
+                    PageReference ref = children[i];
+                    Page p = ref.getPage();
                     if (p != null) {
                         p.writeUnsavedRecursive(chunk, buff);
-                        children[i] = new PageReference(p);
+                        ref.resetPos();
                     }
                 }
                 int old = buff.position();
@@ -1150,15 +1181,7 @@ public abstract class Page implements Cloneable
         void writeEnd() {
             int len = getRawChildPageCount();
             for (int i = 0; i < len; i++) {
-                PageReference ref = children[i];
-                if (ref.page != null) {
-                    if (!ref.page.isSaved()) {
-                        throw DataUtils.newIllegalStateException(
-                                DataUtils.ERROR_INTERNAL, "Page not written");
-                    }
-                    ref.page.writeEnd();
-                    children[i] = new PageReference(ref.pos, ref.count);
-                }
+                children[i].clearPageReference();
             }
         }
 
@@ -1181,7 +1204,7 @@ public abstract class Page implements Cloneable
                 if (i > 0) {
                     buff.append(" ");
                 }
-                buff.append("[").append(Long.toHexString(children[i].pos)).append("]");
+                buff.append("[").append(Long.toHexString(children[i].getPos())).append("]");
                 if(i < keyCount) {
                     buff.append(" ").append(getKey(i));
                 }

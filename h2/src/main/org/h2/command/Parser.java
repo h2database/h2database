@@ -950,20 +950,6 @@ public class Parser {
         return false;
     }
 
-    private Expression[] parseValuesForInsert() {
-        ArrayList<Expression> values = Utils.newSmallArrayList();
-        if (!readIf(")")) {
-            do {
-                if (readIf("DEFAULT")) {
-                    values.add(null);
-                } else {
-                    values.add(readExpression());
-                }
-            } while (readIfMore(false));
-        }
-        return values.toArray(new Expression[0]);
-    }
-
     private Prepared parseHelp() {
         StringBuilder buff = new StringBuilder(
                 "SELECT * FROM INFORMATION_SCHEMA.HELP");
@@ -1375,6 +1361,20 @@ public class Parser {
             command.setQuery(parseSelect());
         }
         return command;
+    }
+
+    private Expression[] parseValuesForInsert() {
+        ArrayList<Expression> values = Utils.newSmallArrayList();
+        if (!readIf(")")) {
+            do {
+                if (readIf("DEFAULT")) {
+                    values.add(null);
+                } else {
+                    values.add(readExpression());
+                }
+            } while (readIfMore(false));
+        }
+        return values.toArray(new Expression[0]);
     }
 
     private TableFilter readTableFilter() {
@@ -2603,17 +2603,6 @@ public class Parser {
         }
     }
 
-    private Expression readFilterCondition() {
-        if (readIf("FILTER")) {
-            read("(");
-            read("WHERE");
-            Expression filterCondition = readExpression();
-            read(")");
-            return filterCondition;
-        }
-        return null;
-    }
-
     private Expression readAggregate(AggregateType aggregateType, String aggregateName) {
         if (currentSelect == null) {
             throw getSyntaxError();
@@ -2732,6 +2721,17 @@ public class Parser {
         JavaAggregate agg = new JavaAggregate(aggregate, list, currentSelect, distinct, filterCondition);
         currentSelect.setGroupQuery();
         return agg;
+    }
+
+    private Expression readFilterCondition() {
+        if (readIf("FILTER")) {
+            read("(");
+            read("WHERE");
+            Expression filterCondition = readExpression();
+            read(")");
+            return filterCondition;
+        }
+        return null;
     }
 
     private AggregateType getAggregateType(String name) {

@@ -807,13 +807,7 @@ public class Parser {
             do {
                 Column column = readTableColumn(filter);
                 read("=");
-                Expression expression;
-                if (readIf("DEFAULT")) {
-                    expression = ValueExpression.getDefault();
-                } else {
-                    expression = readExpression();
-                }
-                command.setAssignment(column, expression);
+                command.setAssignment(column, readExpressionOrDefault());
             } while (readIf(","));
         }
         if (readIf("WHERE")) {
@@ -1298,13 +1292,7 @@ public class Parser {
                     }
                     Column column = table.getColumn(columnName);
                     read("=");
-                    Expression expression;
-                    if (readIf("DEFAULT")) {
-                        expression = ValueExpression.getDefault();
-                    } else {
-                        expression = readExpression();
-                    }
-                    command.addAssignmentForDuplicate(column, expression);
+                    command.addAssignmentForDuplicate(column, readExpressionOrDefault());
                 } while (readIf(","));
             }
         }
@@ -1350,13 +1338,7 @@ public class Parser {
             do {
                 columnList.add(parseColumn(table));
                 read("=");
-                Expression expression;
-                if (readIf("DEFAULT")) {
-                    expression = ValueExpression.getDefault();
-                } else {
-                    expression = readExpression();
-                }
-                values.add(expression);
+                values.add(readExpressionOrDefault());
             } while (readIf(","));
             command.setColumns(columnList.toArray(new Column[0]));
             command.addRow(values.toArray(new Expression[0]));
@@ -2344,6 +2326,13 @@ public class Parser {
             sql = start + " " + sql;
         }
         command.setSQL(sql);
+    }
+
+    private Expression readExpressionOrDefault() {
+        if (readIf("DEFAULT")) {
+            return ValueExpression.getDefault();
+        }
+        return readExpression();
     }
 
     private Expression readExpression() {

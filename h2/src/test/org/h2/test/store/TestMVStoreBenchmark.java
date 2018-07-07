@@ -7,10 +7,10 @@ package org.h2.test.store;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.mvstore.MVStore;
@@ -84,7 +84,7 @@ public class TestMVStoreBenchmark extends TestBase {
         mapList = new ArrayList<>(count);
         mem = getMemory();
         for (int i = 0; i < count; i++) {
-            mapList.add(new HashMap<Integer, String>(size));
+            mapList.add(new ConcurrentHashMap<Integer, String>(size));
         }
         addEntries(mapList, size);
         hash = getMemory() - mem;
@@ -93,7 +93,7 @@ public class TestMVStoreBenchmark extends TestBase {
         mapList.clear();
         mem = getMemory();
         for (int i = 0; i < count; i++) {
-            mapList.add(new TreeMap<Integer, String>());
+            mapList.add(new ConcurrentSkipListMap<Integer, String>());
         }
         addEntries(mapList, size);
         tree = getMemory() - mem;
@@ -150,11 +150,10 @@ public class TestMVStoreBenchmark extends TestBase {
             MVStore store = MVStore.open(null);
             map = store.openMap("test");
             mv = testPerformance(map, size);
-            map = new HashMap<>(size);
-            // map = new ConcurrentHashMap<Integer, String>(size);
+            store.close();
+            map = new ConcurrentHashMap<>(size);
             hash = testPerformance(map, size);
-            map = new TreeMap<>();
-            // map = new ConcurrentSkipListMap<Integer, String>();
+            map = new ConcurrentSkipListMap<>();
             tree = testPerformance(map, size);
             if (hash < tree && mv < tree * 1.5) {
                 break;

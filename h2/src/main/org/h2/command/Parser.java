@@ -3915,14 +3915,17 @@ public class Parser {
         case CHAR_SPECIAL_2:
             if (types[i] == CHAR_SPECIAL_2) {
                 i++;
+                currentToken = sqlCommand.substring(start, i);
+                currentTokenType = getSpecialType2(currentToken);
+            } else {
+                currentToken = sqlCommand.substring(start, i);
+                currentTokenType = getSpecialType1(currentToken);
             }
-            currentToken = sqlCommand.substring(start, i);
-            currentTokenType = getSpecialType(currentToken);
             parseIndex = i;
             return;
         case CHAR_SPECIAL_1:
             currentToken = sqlCommand.substring(start, i);
-            currentTokenType = getSpecialType(currentToken);
+            currentTokenType = getSpecialType1(currentToken);
             parseIndex = i;
             return;
         case CHAR_VALUE:
@@ -4352,84 +4355,83 @@ public class Parser {
         }
     }
 
-    private int getSpecialType(String s) {
-        char c0 = s.charAt(0);
-        if (s.length() == 1) {
-            switch (c0) {
-            case '?':
-            case '$':
-                return PARAMETER;
-            case '@':
-                return AT;
-            case '+':
-                return PLUS_SIGN;
-            case '-':
-                return MINUS_SIGN;
-            case '*':
-                return ASTERISK;
-            case ',':
-                return COMMA;
-            case '{':
-            case '}':
-            case '/':
-            case '%':
-            case ';':
-            case ':':
-            case '[':
-            case ']':
-            case '~':
+    private int getSpecialType1(String s) {
+        switch (s.charAt(0)) {
+        case '?':
+        case '$':
+            return PARAMETER;
+        case '@':
+            return AT;
+        case '+':
+            return PLUS_SIGN;
+        case '-':
+            return MINUS_SIGN;
+        case '*':
+            return ASTERISK;
+        case ',':
+            return COMMA;
+        case '{':
+        case '}':
+        case '/':
+        case '%':
+        case ';':
+        case ':':
+        case '[':
+        case ']':
+        case '~':
+            return KEYWORD;
+        case '(':
+            return OPEN_PAREN;
+        case ')':
+            return CLOSE_PAREN;
+        case '<':
+            return SMALLER;
+        case '>':
+            return BIGGER;
+        case '=':
+            return EQUAL;
+        default:
+            throw getSyntaxError();
+        }
+    }
+
+    private int getSpecialType2(String s) {
+        char c1 = s.charAt(1);
+        switch (s.charAt(0)) {
+        case ':':
+            if (c1 == ':' || c1 == '=') {
                 return KEYWORD;
-            case '(':
-                return OPEN_PAREN;
-            case ')':
-                return CLOSE_PAREN;
-            case '<':
-                return SMALLER;
-            case '>':
-                return BIGGER;
-            case '=':
-                return EQUAL;
-            default:
-                break;
             }
-        } else if (s.length() == 2) {
-            char c1 = s.charAt(1);
-            switch (c0) {
-            case ':':
-                if (c1 == ':' || c1 == '=') {
-                    return KEYWORD;
-                }
-                break;
-            case '>':
-                if (c1 == '=') {
-                    return BIGGER_EQUAL;
-                }
-                break;
-            case '<':
-                if (c1 == '=') {
-                    return SMALLER_EQUAL;
-                } else if (c1 == '>') {
-                    return NOT_EQUAL;
-                }
-                break;
-            case '!':
-                if (c1 == '=') {
-                    return NOT_EQUAL;
-                } else if (c1 == '~') {
-                    return KEYWORD;
-                }
-                break;
-            case '|':
-                if (c1 == '|') {
-                    return STRING_CONCAT;
-                }
-                break;
-            case '&':
-                if (c1 == '&') {
-                    return SPATIAL_INTERSECTS;
-                }
-                break;
+            break;
+        case '>':
+            if (c1 == '=') {
+                return BIGGER_EQUAL;
             }
+            break;
+        case '<':
+            if (c1 == '=') {
+                return SMALLER_EQUAL;
+            } else if (c1 == '>') {
+                return NOT_EQUAL;
+            }
+            break;
+        case '!':
+            if (c1 == '=') {
+                return NOT_EQUAL;
+            } else if (c1 == '~') {
+                return KEYWORD;
+            }
+            break;
+        case '|':
+            if (c1 == '|') {
+                return STRING_CONCAT;
+            }
+            break;
+        case '&':
+            if (c1 == '&') {
+                return SPATIAL_INTERSECTS;
+            }
+            break;
         }
         throw getSyntaxError();
     }

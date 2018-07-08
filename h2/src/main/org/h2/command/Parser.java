@@ -3691,6 +3691,7 @@ public class Parser {
 
     private boolean readBooleanSetting() {
         switch (currentTokenType) {
+        case ON:
         case TRUE:
             read();
             return true;
@@ -3702,9 +3703,7 @@ public class Parser {
             read();
             return result;
         }
-        if (readIf(ON)) {
-            return true;
-        } else if (readIf("OFF")) {
+        if (readIf("OFF")) {
             return false;
         } else {
             throw getSyntaxError();
@@ -3740,7 +3739,7 @@ public class Parser {
         }
         if (currentTokenType == DOT) {
             if (equalsToken(schemaName, database.getShortName())) {
-                read(DOT);
+                read();
                 schemaName = s;
                 if (currentTokenType != IDENTIFIER) {
                     throw DbException.getSyntaxError(sqlCommand, parseIndex,

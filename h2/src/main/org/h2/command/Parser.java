@@ -1364,7 +1364,7 @@ public class Parser {
                 command.setQuery(parseSelect());
                 read(CLOSE_PAREN);
             }
-            String queryAlias = readFromAlias(null, Collections.singletonList("ON"));
+            String queryAlias = readFromAlias(null, null);
             if (queryAlias == null) {
                 queryAlias = Constants.PREFIX_QUERY_ALIAS + parseIndex;
             }
@@ -1385,8 +1385,7 @@ public class Parser {
             command.setSourceTableFilter(sourceTableFilter);
         } else {
             /* Its a table name, simulate a query by building a select query for the table */
-            List<String> excludeIdentifiers = Collections.singletonList("ON");
-            TableFilter sourceTableFilter = readSimpleTableFilter(0, excludeIdentifiers);
+            TableFilter sourceTableFilter = readSimpleTableFilter(0, null);
             command.setSourceTableFilter(sourceTableFilter);
 
             Select preparedQuery = new Select(session);
@@ -1764,7 +1763,8 @@ public class Parser {
     private String readFromAlias(String alias, List<String> excludeIdentifiers) {
         if (readIf("AS")) {
             alias = readAliasIdentifier();
-        } else if (currentTokenType == IDENTIFIER && !isTokenInList(excludeIdentifiers)) {
+        } else if (currentTokenType == IDENTIFIER
+                && (excludeIdentifiers == null || !isTokenInList(excludeIdentifiers))) {
             alias = readAliasIdentifier();
         }
         return alias;
@@ -1773,7 +1773,7 @@ public class Parser {
     private String readFromAlias(String alias) {
         // left and right are not keywords (because they are functions as
         // well)
-        List<String> excludeIdentifiers = Arrays.asList("LEFT", "RIGHT", "FULL");
+        List<String> excludeIdentifiers = Arrays.asList("LEFT", "RIGHT");
         return readFromAlias(alias, excludeIdentifiers);
     }
 

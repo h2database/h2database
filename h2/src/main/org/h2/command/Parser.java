@@ -3335,8 +3335,6 @@ public class Parser {
         case WITH:
             r = new Subquery(parseSelect());
             break;
-        case KEYWORD:
-            throw getSyntaxError();
         case IDENTIFIER:
             String name = currentToken;
             if (currentTokenQuoted) {

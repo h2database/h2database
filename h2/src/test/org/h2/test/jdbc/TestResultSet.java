@@ -166,10 +166,6 @@ public class TestResultSet extends TestDb {
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
                 updateRef("x", (Ref) null);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
-                updateArray(1, (Array) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
-                updateArray("x", (Array) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
                 updateRowId(1, (RowId) null);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
                 updateRowId("x", (RowId) null);
@@ -1807,6 +1803,35 @@ public class TestResultSet extends TestDb {
         assertThrows(ErrorCode.OBJECT_CLOSED, array).getResultSet();
 
         assertFalse(rs.next());
+
+        try (Statement s = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE)) {
+            rs = s.executeQuery("SELECT * FROM TEST ORDER BY ID");
+            assertTrue(rs.next());
+            assertEquals(1, rs.getInt(1));
+            rs.updateArray(2, conn.createArrayOf("INT", new Object[] {10, 20}));
+            rs.updateRow();
+            assertTrue(rs.next());
+            rs.updateArray("VALUE", conn.createArrayOf("INT", new Object[] {11, 22}));
+            rs.updateRow();
+            assertFalse(rs.next());
+            rs.moveToInsertRow();
+            rs.updateInt(1, 3);
+            rs.updateArray(2, null);
+            rs.insertRow();
+        }
+
+        rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertEquals(new Object[] {10, 20}, (Object[]) rs.getObject(2));
+        assertTrue(rs.next());
+        assertEquals(2, rs.getInt(1));
+        assertEquals(new Object[] {11, 22}, (Object[]) rs.getObject(2));
+        assertTrue(rs.next());
+        assertEquals(3, rs.getInt(1));
+        assertNull(rs.getObject(2));
+        assertFalse(rs.next());
+
         stat.execute("DROP TABLE TEST");
     }
 

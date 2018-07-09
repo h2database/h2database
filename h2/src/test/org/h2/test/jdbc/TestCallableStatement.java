@@ -91,8 +91,6 @@ public class TestCallableStatement extends TestDb {
                 getRef(1);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
                 getRowId(1);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
-                getSQLXML(1);
 
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
                 getURL("a");
@@ -102,8 +100,6 @@ public class TestCallableStatement extends TestDb {
                 getRef("a");
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
                 getRowId("a");
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
-                getSQLXML("a");
 
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
                 setURL(1, (URL) null);
@@ -116,9 +112,6 @@ public class TestCallableStatement extends TestDb {
                 setURL("a", (URL) null);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
                 setRowId("a", (RowId) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
-                setSQLXML("a", (SQLXML) null);
-
     }
 
     private void testCallWithResultSet(Connection conn) throws SQLException {
@@ -332,6 +325,8 @@ public class TestCallableStatement extends TestDb {
         assertEquals("ABC", call.getClob("B").getSubString(1, 3));
         assertEquals("ABC", call.getNClob(2).getSubString(1, 3));
         assertEquals("ABC", call.getNClob("B").getSubString(1, 3));
+        assertEquals("ABC", call.getSQLXML(2).getString());
+        assertEquals("ABC", call.getSQLXML("B").getString());
 
         try {
             call.getString(100);
@@ -397,6 +392,11 @@ public class TestCallableStatement extends TestDb {
         call.setNString("B", "xyz");
         call.executeUpdate();
         assertEquals("XYZ", call.getString("B"));
+        SQLXML xml = conn.createSQLXML();
+        xml.setString("<x>xyz</x>");
+        call.setSQLXML("B", xml);
+        call.executeUpdate();
+        assertEquals("<X>XYZ</X>", call.getString("B"));
 
         // test for exceptions after closing
         call.close();

@@ -3911,18 +3911,18 @@ public class Parser {
         }
         case CHAR_SPECIAL_2:
             if (types[i] == CHAR_SPECIAL_2) {
-                i++;
+                char c1 = chars[i++];
                 currentToken = sqlCommand.substring(start, i);
-                currentTokenType = getSpecialType2(currentToken);
+                currentTokenType = getSpecialType2(c, c1);
             } else {
                 currentToken = sqlCommand.substring(start, i);
-                currentTokenType = getSpecialType1(currentToken);
+                currentTokenType = getSpecialType1(c);
             }
             parseIndex = i;
             return;
         case CHAR_SPECIAL_1:
             currentToken = sqlCommand.substring(start, i);
-            currentTokenType = getSpecialType1(currentToken);
+            currentTokenType = getSpecialType1(c);
             parseIndex = i;
             return;
         case CHAR_VALUE:
@@ -4352,8 +4352,8 @@ public class Parser {
         }
     }
 
-    private int getSpecialType1(String s) {
-        switch (s.charAt(0)) {
+    private int getSpecialType1(char c0) {
+        switch (c0) {
         case '?':
         case '$':
             return PARAMETER;
@@ -4392,9 +4392,8 @@ public class Parser {
         }
     }
 
-    private int getSpecialType2(String s) {
-        char c1 = s.charAt(1);
-        switch (s.charAt(0)) {
+    private int getSpecialType2(char c0, char c1) {
+        switch (c0) {
         case ':':
             if (c1 == ':' || c1 == '=') {
                 return KEYWORD;

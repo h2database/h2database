@@ -212,6 +212,16 @@ public class ParserUtil {
      */
     public static final int WITH = WHERE + 1;
 
+    private static final int UPPER_OR_OTHER_LETTER =
+            1 << Character.UPPERCASE_LETTER
+            | 1 << Character.TITLECASE_LETTER
+            | 1 << Character.MODIFIER_LETTER
+            | 1 << Character.OTHER_LETTER;
+
+    private static final int UPPER_OR_OTHER_LETTER_OR_DIGIT =
+            UPPER_OR_OTHER_LETTER
+            | 1 << Character.DECIMAL_DIGIT_NUMBER;
+
     private ParserUtil() {
         // utility class
     }
@@ -223,7 +233,7 @@ public class ParserUtil {
      * @return true if it is a keyword
      */
     public static boolean isKeyword(String s) {
-        if (s == null || s.length() == 0) {
+        if (s.length() == 0) {
             return false;
         }
         return getSaveTokenType(s, false) != IDENTIFIER;
@@ -242,13 +252,12 @@ public class ParserUtil {
         }
         char c = s.charAt(0);
         // lowercase a-z is quoted as well
-        if ((!Character.isLetter(c) && c != '_') || Character.isLowerCase(c)) {
+        if ((UPPER_OR_OTHER_LETTER >>> Character.getType(c) & 1) == 0 && c != '_') {
             return false;
         }
         for (int i = 1, length = s.length(); i < length; i++) {
             c = s.charAt(i);
-            if ((!Character.isLetterOrDigit(c) && c != '_') ||
-                    Character.isLowerCase(c)) {
+            if ((UPPER_OR_OTHER_LETTER_OR_DIGIT >>> Character.getType(c) & 1) == 0 && c != '_') {
                 return false;
             }
         }
@@ -270,7 +279,10 @@ public class ParserUtil {
          */
         switch (s.charAt(0)) {
         case 'A':
-            return getKeywordOrIdentifier(s, "ALL", ALL);
+            if ("ALL".equals(s)) {
+                return ALL;
+            }
+            return IDENTIFIER;
         case 'C':
             if ("CHECK".equals(s)) {
                 return CHECK;
@@ -286,12 +298,17 @@ public class ParserUtil {
             }
             return IDENTIFIER;
         case 'D':
-            return getKeywordOrIdentifier(s, "DISTINCT", DISTINCT);
+            if ("DISTINCT".equals(s)) {
+                return DISTINCT;
+            }
+            return IDENTIFIER;
         case 'E':
             if ("EXCEPT".equals(s)) {
                 return EXCEPT;
+            } else if ("EXISTS".equals(s)) {
+                return EXISTS;
             }
-            return getKeywordOrIdentifier(s, "EXISTS", EXISTS);
+            return IDENTIFIER;
         case 'F':
             if ("FETCH".equals(s)) {
                 return FETCH;
@@ -303,12 +320,20 @@ public class ParserUtil {
                 return FOREIGN;
             } else if ("FULL".equals(s)) {
                 return FULL;
+            } else if ("FALSE".equals(s)) {
+                return FALSE;
             }
-            return getKeywordOrIdentifier(s, "FALSE", FALSE);
+            return IDENTIFIER;
         case 'G':
-            return getKeywordOrIdentifier(s, "GROUP", GROUP);
+            if ("GROUP".equals(s)) {
+                return GROUP;
+            }
+            return IDENTIFIER;
         case 'H':
-            return getKeywordOrIdentifier(s, "HAVING", HAVING);
+            if ("HAVING".equals(s)) {
+                return HAVING;
+            }
+            return IDENTIFIER;
         case 'I':
             if ("INNER".equals(s)) {
                 return INNER;
@@ -324,7 +349,10 @@ public class ParserUtil {
             }
             return IDENTIFIER;
         case 'J':
-            return getKeywordOrIdentifier(s, "JOIN", JOIN);
+            if ("JOIN".equals(s)) {
+                return JOIN;
+            }
+            return IDENTIFIER;
         case 'L':
             if ("LIMIT".equals(s)) {
                 return LIMIT;
@@ -338,25 +366,38 @@ public class ParserUtil {
             }
             return IDENTIFIER;
         case 'M':
-            return getKeywordOrIdentifier(s, "MINUS", MINUS);
+            if ("MINUS".equals(s)) {
+                return MINUS;
+            }
+            return IDENTIFIER;
         case 'N':
             if ("NOT".equals(s)) {
                 return NOT;
             } else if ("NATURAL".equals(s)) {
                 return NATURAL;
+            } else if ("NULL".equals(s)) {
+                return NULL;
             }
-            return getKeywordOrIdentifier(s, "NULL", NULL);
+            return IDENTIFIER;
         case 'O':
             if ("OFFSET".equals(s)) {
                 return OFFSET;
             } else if ("ON".equals(s)) {
                 return ON;
+            } else if ("ORDER".equals(s)) {
+                return ORDER;
             }
-            return getKeywordOrIdentifier(s, "ORDER", ORDER);
+            return IDENTIFIER;
         case 'P':
-            return getKeywordOrIdentifier(s, "PRIMARY", PRIMARY);
+            if ("PRIMARY".equals(s)) {
+                return PRIMARY;
+            }
+            return IDENTIFIER;
         case 'R':
-            return getKeywordOrIdentifier(s, "ROWNUM", ROWNUM);
+            if ("ROWNUM".equals(s)) {
+                return ROWNUM;
+            }
+            return IDENTIFIER;
         case 'S':
             if ("SELECT".equals(s)) {
                 return SELECT;
@@ -380,24 +421,20 @@ public class ParserUtil {
         case 'U':
             if ("UNIQUE".equals(s)) {
                 return UNIQUE;
+            } else if ("UNION".equals(s)) {
+                return UNION;
             }
-            return getKeywordOrIdentifier(s, "UNION", UNION);
+            return IDENTIFIER;
         case 'W':
             if ("WITH".equals(s)) {
                 return WITH;
+            } else if ("WHERE".equals(s)) {
+                return WHERE;
             }
-            return getKeywordOrIdentifier(s, "WHERE", WHERE);
+            return IDENTIFIER;
         default:
             return IDENTIFIER;
         }
-    }
-
-    private static int getKeywordOrIdentifier(String s1, String s2,
-            int keywordType) {
-        if (s1.equals(s2)) {
-            return keywordType;
-        }
-        return IDENTIFIER;
     }
 
 }

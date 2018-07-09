@@ -233,7 +233,7 @@ public class ParserUtil {
      * @return true if it is a keyword
      */
     public static boolean isKeyword(String s) {
-        if (s == null || s.length() == 0) {
+        if (s.length() == 0) {
             return false;
         }
         return getSaveTokenType(s, false) != IDENTIFIER;

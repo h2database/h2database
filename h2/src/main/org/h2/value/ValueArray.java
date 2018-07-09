@@ -7,6 +7,7 @@ package org.h2.value;
 
 import java.lang.reflect.Array;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Arrays;
 
 import org.h2.engine.Constants;
@@ -135,8 +136,8 @@ public class ValueArray extends Value {
     }
 
     @Override
-    public void set(PreparedStatement prep, int parameterIndex) {
-        throw throwUnsupportedExceptionForType("PreparedStatement.set");
+    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+        prep.setArray(parameterIndex, prep.getConnection().createArrayOf("NULL", (Object[]) getObject()));
     }
 
     @Override

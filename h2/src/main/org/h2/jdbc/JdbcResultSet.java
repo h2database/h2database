@@ -2489,19 +2489,57 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     }
 
     /**
-     * [Not supported]
+     * Updates a column in the current or insert row.
+     *
+     * @param columnIndex (1,2,...)
+     * @param x the value
+     * @param length the length
+     * @throws SQLException if the result set is closed or not updatable
      */
     @Override
     public void updateArray(int columnIndex, Array x) throws SQLException {
-        throw unsupported("setArray");
+        try {
+            if (isDebugEnabled()) {
+                debugCode("updateArray(" + columnIndex + ", x);");
+            }
+            checkClosed();
+            Value v;
+            if (x == null) {
+                v = ValueNull.INSTANCE;
+            } else {
+                v = DataType.convertToValue(stat.session, x.getArray(), Value.ARRAY);
+            }
+            update(columnIndex, v);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**
-     * [Not supported]
+     * Updates a column in the current or insert row.
+     *
+     * @param columnLabel the column label
+     * @param x the value
+     * @param length the length
+     * @throws SQLException if the result set is closed or not updatable
      */
     @Override
     public void updateArray(String columnLabel, Array x) throws SQLException {
-        throw unsupported("setArray");
+        try {
+            if (isDebugEnabled()) {
+                debugCode("updateArray(" + quote(columnLabel) + ", x);");
+            }
+            checkClosed();
+            Value v;
+            if (x == null) {
+                v = ValueNull.INSTANCE;
+            } else {
+                v = DataType.convertToValue(stat.session, x.getArray(), Value.ARRAY);
+            }
+            update(columnLabel, v);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**

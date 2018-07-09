@@ -212,6 +212,16 @@ public class ParserUtil {
      */
     public static final int WITH = WHERE + 1;
 
+    private static final int UPPER_OR_OTHER_LETTER =
+            1 << Character.UPPERCASE_LETTER
+            | 1 << Character.TITLECASE_LETTER
+            | 1 << Character.MODIFIER_LETTER
+            | 1 << Character.OTHER_LETTER;
+
+    private static final int UPPER_OR_OTHER_LETTER_OR_DIGIT =
+            UPPER_OR_OTHER_LETTER
+            | 1 << Character.DECIMAL_DIGIT_NUMBER;
+
     private ParserUtil() {
         // utility class
     }
@@ -242,13 +252,12 @@ public class ParserUtil {
         }
         char c = s.charAt(0);
         // lowercase a-z is quoted as well
-        if ((!Character.isLetter(c) && c != '_') || Character.isLowerCase(c)) {
+        if ((UPPER_OR_OTHER_LETTER >>> Character.getType(c) & 1) == 0 && c != '_') {
             return false;
         }
         for (int i = 1, length = s.length(); i < length; i++) {
             c = s.charAt(i);
-            if ((!Character.isLetterOrDigit(c) && c != '_') ||
-                    Character.isLowerCase(c)) {
+            if ((UPPER_OR_OTHER_LETTER_OR_DIGIT >>> Character.getType(c) & 1) == 0 && c != '_') {
                 return false;
             }
         }

@@ -336,12 +336,16 @@ public class TestStatement extends TestDb {
         assertEquals("\"FROM\"", statBC.enquoteIdentifier("FROM", false));
         assertEquals("\"Test\"", statBC.enquoteIdentifier("Test", false));
         assertEquals("\"TODAY\"", statBC.enquoteIdentifier("TODAY", false));
+        // Other lower case characters don't have upper case mappings
+        assertEquals("\u00AA", statBC.enquoteIdentifier("\u00AA", false));
 
         assertTrue(statBC.isSimpleIdentifier("SOME_ID"));
         assertFalse(statBC.isSimpleIdentifier("SOME ID"));
         assertFalse(statBC.isSimpleIdentifier("FROM"));
         assertFalse(statBC.isSimpleIdentifier("Test"));
         assertFalse(statBC.isSimpleIdentifier("TODAY"));
+        // Other lower case characters don't have upper case mappings
+        assertTrue(statBC.isSimpleIdentifier("\u00AA"));
 
         stat.close();
     }

@@ -337,7 +337,7 @@ public class TestStatement extends TestDb {
         assertEquals("\"Test\"", statBC.enquoteIdentifier("Test", false));
         assertEquals("\"TODAY\"", statBC.enquoteIdentifier("TODAY", false));
         // Other lower case characters don't have upper case mappings
-        assertEquals("\u00AA", statBC.enquoteIdentifier("\u00AA", false));
+        assertEquals("\u02B0", statBC.enquoteIdentifier("\u02B0", false));
 
         assertTrue(statBC.isSimpleIdentifier("SOME_ID"));
         assertFalse(statBC.isSimpleIdentifier("SOME ID"));
@@ -345,7 +345,7 @@ public class TestStatement extends TestDb {
         assertFalse(statBC.isSimpleIdentifier("Test"));
         assertFalse(statBC.isSimpleIdentifier("TODAY"));
         // Other lower case characters don't have upper case mappings
-        assertTrue(statBC.isSimpleIdentifier("\u00AA"));
+        assertTrue(statBC.isSimpleIdentifier("\u02B0"));
 
         stat.close();
     }

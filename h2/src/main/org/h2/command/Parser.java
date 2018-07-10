@@ -3174,9 +3174,6 @@ public class Parser {
     }
 
     private Expression readFunctionWithoutParameters(String name) {
-        if (readIf(OPEN_PAREN)) {
-            read(CLOSE_PAREN);
-        }
         if (database.isAllowBuiltinAliasOverride()) {
             FunctionAlias functionAlias = database.getSchema(session.getCurrentSchemaName()).findFunction(name);
             if (functionAlias != null) {

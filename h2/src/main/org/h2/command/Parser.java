@@ -28,7 +28,6 @@ import static org.h2.util.ParserUtil.INNER;
 import static org.h2.util.ParserUtil.INTERSECT;
 import static org.h2.util.ParserUtil.IS;
 import static org.h2.util.ParserUtil.JOIN;
-import static org.h2.util.ParserUtil.KEYWORD;
 import static org.h2.util.ParserUtil.LIKE;
 import static org.h2.util.ParserUtil.LIMIT;
 import static org.h2.util.ParserUtil.MINUS;
@@ -325,6 +324,66 @@ public class Parser {
      */
     private static final int DOT = COMMA + 1;
 
+    /**
+     * The token "{".
+     */
+    private static final int OPEN_BRACE = DOT + 1;
+
+    /**
+     * The token "}".
+     */
+    private static final int CLOSE_BRACE = OPEN_BRACE + 1;
+
+    /**
+     * The token "/".
+     */
+    private static final int SLASH = CLOSE_BRACE + 1;
+
+    /**
+     * The token "%".
+     */
+    private static final int PERCENT = SLASH + 1;
+
+    /**
+     * The token ";".
+     */
+    private static final int SEMICOLON = PERCENT + 1;
+
+    /**
+     * The token ":".
+     */
+    private static final int COLON = SEMICOLON + 1;
+
+    /**
+     * The token "[".
+     */
+    private static final int OPEN_BRACKET = COLON + 1;
+
+    /**
+     * The token "]".
+     */
+    private static final int CLOSE_BRACKET = OPEN_BRACKET + 1;
+
+    /**
+     * The token "~".
+     */
+    private static final int TILDE = CLOSE_BRACKET + 1;
+
+    /**
+     * The token "::".
+     */
+    private static final int COLON_COLON = TILDE + 1;
+
+    /**
+     * The token ":=".
+     */
+    private static final int COLON_EQ = COLON_COLON + 1;
+
+    /**
+     * The token "!~".
+     */
+    private static final int NOT_TILDE = COLON_EQ + 1;
+
     private static final String[] TOKENS = {
             // Unused
             null,
@@ -448,6 +507,30 @@ public class Parser {
             ",",
             // DOT
             ".",
+            // OPEN_BRACE
+            "{",
+            // CLOSE_BRACE
+            "}",
+            // SLASH
+            "/",
+            // PERCENT
+            "%",
+            // SEMICOLON
+            ";",
+            // COLON
+            ":",
+            // OPEN_BRACKET
+            "[",
+            // CLOSE_BRACKET
+            "]",
+            // TILDE
+            "~",
+            // COLON_COLON
+            "::",
+            // COLON_EQ
+            ":=",
+            // NOT_TILDE
+            "!~",
             // End
     };
 
@@ -527,7 +610,7 @@ public class Parser {
     public Command prepareCommand(String sql) {
         try {
             Prepared p = parse(sql);
-            boolean hasMore = isToken(";");
+            boolean hasMore = isToken(SEMICOLON);
             if (!hasMore && currentTokenType != END) {
                 throw getSyntaxError();
             }
@@ -765,7 +848,7 @@ public class Parser {
                 }
                 parameters = indexedParameterList;
             }
-            if (readIf("{")) {
+            if (readIf(OPEN_BRACE)) {
                 do {
                     int index = (int) readLong() - 1;
                     if (index < 0 || index >= parameters.size()) {
@@ -775,12 +858,12 @@ public class Parser {
                     if (p == null) {
                         throw getSyntaxError();
                     }
-                    read(":");
+                    read(COLON);
                     Expression expr = readExpression();
                     expr = expr.optimize(session);
                     p.setValue(expr.getValue(session));
                 } while (readIf(COMMA));
-                read("}");
+                read(CLOSE_BRACE);
                 for (Parameter p : parameters) {
                     p.checkSet();
                 }
@@ -2797,7 +2880,7 @@ public class Parser {
         while (true) {
             if (readIf(STRING_CONCAT)) {
                 r = new Operation(OpType.CONCAT, r, readSum());
-            } else if (readIf("~")) {
+            } else if (readIf(TILDE)) {
                 if (readIf(ASTERISK)) {
                     Function function = Function.getFunction(database, "CAST");
                     function.setDataType(new Column("X",
@@ -2806,7 +2889,7 @@ public class Parser {
                     r = function;
                 }
                 r = new CompareLike(database, r, readSum(), null, true);
-            } else if (readIf("!~")) {
+            } else if (readIf(NOT_TILDE)) {
                 if (readIf(ASTERISK)) {
                     Function function = Function.getFunction(database, "CAST");
                     function.setDataType(new Column("X",
@@ -2840,9 +2923,9 @@ public class Parser {
         while (true) {
             if (readIf(ASTERISK)) {
                 r = new Operation(OpType.MULTIPLY, r, readTerm());
-            } else if (readIf("/")) {
+            } else if (readIf(SLASH)) {
                 r = new Operation(OpType.DIVIDE, r, readTerm());
-            } else if (readIf("%")) {
+            } else if (readIf(PERCENT)) {
                 r = new Operation(OpType.MODULUS, r, readTerm());
             } else {
                 return r;
@@ -3316,7 +3399,7 @@ public class Parser {
         case AT:
             read();
             r = new Variable(session, readAliasIdentifier());
-            if (readIf(":=")) {
+            if (readIf(COLON_EQ)) {
                 Expression value = readExpression();
                 Function function = Function.getFunction(database, "SET");
                 function.setParameter(0, r);
@@ -3542,7 +3625,7 @@ public class Parser {
         default:
             throw getSyntaxError();
         }
-        if (readIf("[")) {
+        if (readIf(OPEN_BRACKET)) {
             Function function = Function.getFunction(database, "ARRAY_GET");
             function.setParameter(0, r);
             r = readExpression();
@@ -3550,9 +3633,9 @@ public class Parser {
                     .get(1)));
             function.setParameter(1, r);
             r = function;
-            read("]");
+            read(CLOSE_BRACKET);
         }
-        if (readIf("::")) {
+        if (readIf(COLON_COLON)) {
             // PostgreSQL compatibility
             if (isToken("PG_CATALOG")) {
                 read("PG_CATALOG");
@@ -4375,15 +4458,23 @@ public class Parser {
         case ',':
             return COMMA;
         case '{':
+            return OPEN_BRACE;
         case '}':
+            return CLOSE_BRACE;
         case '/':
+            return SLASH;
         case '%':
+            return PERCENT;
         case ';':
+            return SEMICOLON;
         case ':':
+            return COLON;
         case '[':
+            return OPEN_BRACKET;
         case ']':
+            return CLOSE_BRACKET;
         case '~':
-            return KEYWORD;
+            return TILDE;
         case '(':
             return OPEN_PAREN;
         case ')':
@@ -4402,8 +4493,10 @@ public class Parser {
     private int getSpecialType2(char c0, char c1) {
         switch (c0) {
         case ':':
-            if (c1 == ':' || c1 == '=') {
-                return KEYWORD;
+            if (c1 == ':') {
+                return COLON_COLON;
+            } else if (c1 == '=') {
+                return COLON_EQ;
             }
             break;
         case '>':
@@ -4422,7 +4515,7 @@ public class Parser {
             if (c1 == '=') {
                 return NOT_EQUAL;
             } else if (c1 == '~') {
-                return KEYWORD;
+                return NOT_TILDE;
             }
             break;
         case '|':

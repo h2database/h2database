@@ -28,7 +28,6 @@ import static org.h2.util.ParserUtil.INNER;
 import static org.h2.util.ParserUtil.INTERSECT;
 import static org.h2.util.ParserUtil.IS;
 import static org.h2.util.ParserUtil.JOIN;
-import static org.h2.util.ParserUtil.KEYWORD;
 import static org.h2.util.ParserUtil.LIKE;
 import static org.h2.util.ParserUtil.LIMIT;
 import static org.h2.util.ParserUtil.MINUS;
@@ -325,6 +324,66 @@ public class Parser {
      */
     private static final int DOT = COMMA + 1;
 
+    /**
+     * The token "{".
+     */
+    private static final int OPEN_BRACE = DOT + 1;
+
+    /**
+     * The token "}".
+     */
+    private static final int CLOSE_BRACE = OPEN_BRACE + 1;
+
+    /**
+     * The token "/".
+     */
+    private static final int SLASH = CLOSE_BRACE + 1;
+
+    /**
+     * The token "%".
+     */
+    private static final int PERCENT = SLASH + 1;
+
+    /**
+     * The token ";".
+     */
+    private static final int SEMICOLON = PERCENT + 1;
+
+    /**
+     * The token ":".
+     */
+    private static final int COLON = SEMICOLON + 1;
+
+    /**
+     * The token "[".
+     */
+    private static final int OPEN_BRACKET = COLON + 1;
+
+    /**
+     * The token "]".
+     */
+    private static final int CLOSE_BRACKET = OPEN_BRACKET + 1;
+
+    /**
+     * The token "~".
+     */
+    private static final int TILDE = CLOSE_BRACKET + 1;
+
+    /**
+     * The token "::".
+     */
+    private static final int COLON_COLON = TILDE + 1;
+
+    /**
+     * The token ":=".
+     */
+    private static final int COLON_EQ = COLON_COLON + 1;
+
+    /**
+     * The token "!~".
+     */
+    private static final int NOT_TILDE = COLON_EQ + 1;
+
     private static final String[] TOKENS = {
             // Unused
             null,
@@ -448,6 +507,30 @@ public class Parser {
             ",",
             // DOT
             ".",
+            // OPEN_BRACE
+            "{",
+            // CLOSE_BRACE
+            "}",
+            // SLASH
+            "/",
+            // PERCENT
+            "%",
+            // SEMICOLON
+            ";",
+            // COLON
+            ":",
+            // OPEN_BRACKET
+            "[",
+            // CLOSE_BRACKET
+            "]",
+            // TILDE
+            "~",
+            // COLON_COLON
+            "::",
+            // COLON_EQ
+            ":=",
+            // NOT_TILDE
+            "!~",
             // End
     };
 
@@ -527,7 +610,7 @@ public class Parser {
     public Command prepareCommand(String sql) {
         try {
             Prepared p = parse(sql);
-            boolean hasMore = isToken(";");
+            boolean hasMore = isToken(SEMICOLON);
             if (!hasMore && currentTokenType != END) {
                 throw getSyntaxError();
             }
@@ -589,24 +672,35 @@ public class Parser {
     private Prepared parsePrepared() {
         int start = lastParseIndex;
         Prepared c = null;
-        String token = currentToken;
-        if (token.length() == 0) {
+        switch (currentTokenType) {
+        case END:
+        case SEMICOLON:
             c = new NoOperation(session);
-        } else {
-            char first = token.charAt(0);
-            switch (first) {
-            case '?':
-                // read the ? as a parameter
-                readTerm();
-                // this is an 'out' parameter - set a dummy value
-                parameters.get(0).setValue(ValueNull.INSTANCE);
-                read(EQUAL);
-                read("CALL");
-                c = parseCall();
+            setSQL(c, null, start);
+            return c;
+        case PARAMETER:
+            // read the ? as a parameter
+            readTerm();
+            // this is an 'out' parameter - set a dummy value
+            parameters.get(0).setValue(ValueNull.INSTANCE);
+            read(EQUAL);
+            read("CALL");
+            c = parseCall();
+            break;
+        case OPEN_PAREN:
+        case FROM:
+        case SELECT:
+            c = parseSelect();
+            break;
+        case WITH:
+            read();
+            c = parseWithStatementOrQuery();
+            break;
+        case IDENTIFIER:
+            if (currentTokenQuoted) {
                 break;
-            case '(':
-                c = parseSelect();
-                break;
+            }
+            switch (currentToken.charAt(0)) {
             case 'a':
             case 'A':
                 if (readIf("ALTER")) {
@@ -658,12 +752,6 @@ public class Parser {
                     c = parseExecute();
                 }
                 break;
-            case 'f':
-            case 'F':
-                if (isToken(FROM)) {
-                    c = parseSelect();
-                }
-                break;
             case 'g':
             case 'G':
                 if (readIf("GRANT")) {
@@ -710,9 +798,7 @@ public class Parser {
                 break;
             case 's':
             case 'S':
-                if (isToken(SELECT)) {
-                    c = parseSelect();
-                } else if (readIf("SET")) {
+                if (readIf("SET")) {
                     c = parseSet();
                 } else if (readIf("SAVEPOINT")) {
                     c = parseSavepoint();
@@ -743,52 +829,40 @@ public class Parser {
                 if (readIf("VALUES")) {
                     c = parseValues();
                 }
-                break;
-            case 'w':
-            case 'W':
-                if (readIf(WITH)) {
-                    c = parseWithStatementOrQuery();
-                }
-                break;
-            case ';':
-                c = new NoOperation(session);
-                break;
-            default:
-                throw getSyntaxError();
-            }
-            if (indexedParameterList != null) {
-                for (int i = 0, size = indexedParameterList.size();
-                        i < size; i++) {
-                    if (indexedParameterList.get(i) == null) {
-                        indexedParameterList.set(i, new Parameter(i));
-                    }
-                }
-                parameters = indexedParameterList;
-            }
-            if (readIf("{")) {
-                do {
-                    int index = (int) readLong() - 1;
-                    if (index < 0 || index >= parameters.size()) {
-                        throw getSyntaxError();
-                    }
-                    Parameter p = parameters.get(index);
-                    if (p == null) {
-                        throw getSyntaxError();
-                    }
-                    read(":");
-                    Expression expr = readExpression();
-                    expr = expr.optimize(session);
-                    p.setValue(expr.getValue(session));
-                } while (readIf(COMMA));
-                read("}");
-                for (Parameter p : parameters) {
-                    p.checkSet();
-                }
-                parameters.clear();
             }
         }
         if (c == null) {
             throw getSyntaxError();
+        }
+        if (indexedParameterList != null) {
+            for (int i = 0, size = indexedParameterList.size();
+                    i < size; i++) {
+                if (indexedParameterList.get(i) == null) {
+                    indexedParameterList.set(i, new Parameter(i));
+                }
+            }
+            parameters = indexedParameterList;
+        }
+        if (readIf(OPEN_BRACE)) {
+            do {
+                int index = (int) readLong() - 1;
+                if (index < 0 || index >= parameters.size()) {
+                    throw getSyntaxError();
+                }
+                Parameter p = parameters.get(index);
+                if (p == null) {
+                    throw getSyntaxError();
+                }
+                read(COLON);
+                Expression expr = readExpression();
+                expr = expr.optimize(session);
+                p.setValue(expr.getValue(session));
+            } while (readIf(COMMA));
+            read(CLOSE_BRACE);
+            for (Parameter p : parameters) {
+                p.checkSet();
+            }
+            parameters.clear();
         }
         setSQL(c, null, start);
         return c;
@@ -2797,7 +2871,7 @@ public class Parser {
         while (true) {
             if (readIf(STRING_CONCAT)) {
                 r = new Operation(OpType.CONCAT, r, readSum());
-            } else if (readIf("~")) {
+            } else if (readIf(TILDE)) {
                 if (readIf(ASTERISK)) {
                     Function function = Function.getFunction(database, "CAST");
                     function.setDataType(new Column("X",
@@ -2806,7 +2880,7 @@ public class Parser {
                     r = function;
                 }
                 r = new CompareLike(database, r, readSum(), null, true);
-            } else if (readIf("!~")) {
+            } else if (readIf(NOT_TILDE)) {
                 if (readIf(ASTERISK)) {
                     Function function = Function.getFunction(database, "CAST");
                     function.setDataType(new Column("X",
@@ -2840,9 +2914,9 @@ public class Parser {
         while (true) {
             if (readIf(ASTERISK)) {
                 r = new Operation(OpType.MULTIPLY, r, readTerm());
-            } else if (readIf("/")) {
+            } else if (readIf(SLASH)) {
                 r = new Operation(OpType.DIVIDE, r, readTerm());
-            } else if (readIf("%")) {
+            } else if (readIf(PERCENT)) {
                 r = new Operation(OpType.MODULUS, r, readTerm());
             } else {
                 return r;
@@ -3174,9 +3248,6 @@ public class Parser {
     }
 
     private Expression readFunctionWithoutParameters(String name) {
-        if (readIf(OPEN_PAREN)) {
-            read(CLOSE_PAREN);
-        }
         if (database.isAllowBuiltinAliasOverride()) {
             FunctionAlias functionAlias = database.getSchema(session.getCurrentSchemaName()).findFunction(name);
             if (functionAlias != null) {
@@ -3319,7 +3390,7 @@ public class Parser {
         case AT:
             read();
             r = new Variable(session, readAliasIdentifier());
-            if (readIf(":=")) {
+            if (readIf(COLON_EQ)) {
                 Expression value = readExpression();
                 Function function = Function.getFunction(database, "SET");
                 function.setParameter(0, r);
@@ -3377,16 +3448,8 @@ public class Parser {
                     r = readFunctionWithoutParameters("LOCALTIME");
                 } else if (equalsToken("SYSTIME", name)) {
                     r = readFunctionWithoutParameters("CURRENT_TIME");
-                } else if (equalsToken("CURRENT", name)) {
-                    if (readIf("TIMESTAMP")) {
-                        r = readFunctionWithoutParameters("CURRENT_TIMESTAMP");
-                    } else if (readIf("TIME")) {
-                        r = readFunctionWithoutParameters("CURRENT_TIME");
-                    } else if (readIf("DATE")) {
-                        r = readFunctionWithoutParameters("CURRENT_DATE");
-                    } else {
-                        r = new ExpressionColumn(database, null, null, name);
-                    }
+                } else if (database.getMode().getEnum() == ModeEnum.DB2 && equalsToken("CURRENT", name)) {
+                    r = parseDB2SpecialRegisters(name);
                 } else if (equalsToken("NEXT", name) && readIf("VALUE")) {
                     read(FOR);
                     Sequence sequence = readSequence();
@@ -3553,7 +3616,7 @@ public class Parser {
         default:
             throw getSyntaxError();
         }
-        if (readIf("[")) {
+        if (readIf(OPEN_BRACKET)) {
             Function function = Function.getFunction(database, "ARRAY_GET");
             function.setParameter(0, r);
             r = readExpression();
@@ -3561,9 +3624,9 @@ public class Parser {
                     .get(1)));
             function.setParameter(1, r);
             r = function;
-            read("]");
+            read(CLOSE_BRACKET);
         }
-        if (readIf("::")) {
+        if (readIf(COLON_COLON)) {
             // PostgreSQL compatibility
             if (isToken("PG_CATALOG")) {
                 read("PG_CATALOG");
@@ -3586,6 +3649,24 @@ public class Parser {
             }
         }
         return r;
+    }
+
+    private Expression parseDB2SpecialRegisters(String name) {
+        // Only "CURRENT" name is supported
+        if (readIf("TIMESTAMP")) {
+            if (readIf(WITH)) {
+                read("TIME");
+                read("ZONE");
+                return readFunctionWithoutParameters("CURRENT_TIMESTAMP");
+            }
+            return readFunctionWithoutParameters("LOCALTIMESTAMP");
+        } else if (readIf("TIME")) {
+            return readFunctionWithoutParameters("CURRENT_TIME");
+        } else if (readIf("DATE")) {
+            return readFunctionWithoutParameters("CURRENT_DATE");
+        }
+        // No match, parse CURRENT as a column
+        return new ExpressionColumn(database, null, null, name);
     }
 
     private Expression readCase() {
@@ -3912,16 +3993,13 @@ public class Parser {
         case CHAR_SPECIAL_2:
             if (types[i] == CHAR_SPECIAL_2) {
                 char c1 = chars[i++];
-                currentToken = sqlCommand.substring(start, i);
                 currentTokenType = getSpecialType2(c, c1);
             } else {
-                currentToken = sqlCommand.substring(start, i);
                 currentTokenType = getSpecialType1(c);
             }
             parseIndex = i;
             return;
         case CHAR_SPECIAL_1:
-            currentToken = sqlCommand.substring(start, i);
             currentTokenType = getSpecialType1(c);
             parseIndex = i;
             return;
@@ -4023,7 +4101,6 @@ public class Parser {
             return;
         }
         case CHAR_END:
-            currentToken = "";
             currentTokenType = END;
             parseIndex = i;
             return;
@@ -4368,15 +4445,23 @@ public class Parser {
         case ',':
             return COMMA;
         case '{':
+            return OPEN_BRACE;
         case '}':
+            return CLOSE_BRACE;
         case '/':
+            return SLASH;
         case '%':
+            return PERCENT;
         case ';':
+            return SEMICOLON;
         case ':':
+            return COLON;
         case '[':
+            return OPEN_BRACKET;
         case ']':
+            return CLOSE_BRACKET;
         case '~':
-            return KEYWORD;
+            return TILDE;
         case '(':
             return OPEN_PAREN;
         case ')':
@@ -4395,8 +4480,10 @@ public class Parser {
     private int getSpecialType2(char c0, char c1) {
         switch (c0) {
         case ':':
-            if (c1 == ':' || c1 == '=') {
-                return KEYWORD;
+            if (c1 == ':') {
+                return COLON_COLON;
+            } else if (c1 == '=') {
+                return COLON_EQ;
             }
             break;
         case '>':
@@ -4415,7 +4502,7 @@ public class Parser {
             if (c1 == '=') {
                 return NOT_EQUAL;
             } else if (c1 == '~') {
-                return KEYWORD;
+                return NOT_TILDE;
             }
             break;
         case '|':

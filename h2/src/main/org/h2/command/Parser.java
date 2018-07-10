@@ -3377,16 +3377,8 @@ public class Parser {
                     r = readFunctionWithoutParameters("LOCALTIME");
                 } else if (equalsToken("SYSTIME", name)) {
                     r = readFunctionWithoutParameters("CURRENT_TIME");
-                } else if (equalsToken("CURRENT", name)) {
-                    if (readIf("TIMESTAMP")) {
-                        r = readFunctionWithoutParameters("CURRENT_TIMESTAMP");
-                    } else if (readIf("TIME")) {
-                        r = readFunctionWithoutParameters("CURRENT_TIME");
-                    } else if (readIf("DATE")) {
-                        r = readFunctionWithoutParameters("CURRENT_DATE");
-                    } else {
-                        r = new ExpressionColumn(database, null, null, name);
-                    }
+                } else if (database.getMode().getEnum() == ModeEnum.DB2 && equalsToken("CURRENT", name)) {
+                    r = parseDB2SpecialRegisters(name);
                 } else if (equalsToken("NEXT", name) && readIf("VALUE")) {
                     read(FOR);
                     Sequence sequence = readSequence();
@@ -3586,6 +3578,24 @@ public class Parser {
             }
         }
         return r;
+    }
+
+    private Expression parseDB2SpecialRegisters(String name) {
+        // Only "CURRENT" name is supported
+        if (readIf("TIMESTAMP")) {
+            if (readIf(WITH)) {
+                read("TIME");
+                read("ZONE");
+                return readFunctionWithoutParameters("CURRENT_TIMESTAMP");
+            }
+            return readFunctionWithoutParameters("LOCALTIMESTAMP");
+        } else if (readIf("TIME")) {
+            return readFunctionWithoutParameters("CURRENT_TIME");
+        } else if (readIf("DATE")) {
+            return readFunctionWithoutParameters("CURRENT_DATE");
+        }
+        // No match, parse CURRENT as a column
+        return new ExpressionColumn(database, null, null, name);
     }
 
     private Expression readCase() {

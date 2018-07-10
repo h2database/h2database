@@ -561,6 +561,19 @@ public class TestCompatibility extends TestDb {
                 "select date from test where date = '2014-04-05-09.48.28.020005'");
         assertResult("2014-04-05 09:48:28.020005", stat,
                 "select date from test where date = '2014-04-05 09:48:28.020005'");
+
+        // Test limited support for DB2's special registers
+
+        // Standard SQL functions like LOCALTIMESTAMP, CURRENT_TIMESTAMP and
+        // others are used to compare values, their implementation in H2 is
+        // compatible with standard, but may be not really compatible with DB2.
+        assertResult("TRUE", stat, "SELECT LOCALTIMESTAMP = CURRENT TIMESTAMP");
+        assertResult("TRUE", stat, "SELECT CAST(LOCALTIMESTAMP AS VARCHAR) = CAST(CURRENT TIMESTAMP AS VARCHAR)");
+        assertResult("TRUE", stat, "SELECT CURRENT_TIMESTAMP = CURRENT TIMESTAMP WITH TIME ZONE");
+        assertResult("TRUE", stat,
+                "SELECT CAST(CURRENT_TIMESTAMP AS VARCHAR) = CAST(CURRENT TIMESTAMP WITH TIME ZONE AS VARCHAR)");
+        assertResult("TRUE", stat, "SELECT CURRENT_TIME = CURRENT TIME");
+        assertResult("TRUE", stat, "SELECT CURRENT_DATE = CURRENT DATE");
     }
 
     private void testDerby() throws SQLException {

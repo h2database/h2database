@@ -3990,16 +3990,13 @@ public class Parser {
         case CHAR_SPECIAL_2:
             if (types[i] == CHAR_SPECIAL_2) {
                 char c1 = chars[i++];
-                currentToken = sqlCommand.substring(start, i);
                 currentTokenType = getSpecialType2(c, c1);
             } else {
-                currentToken = sqlCommand.substring(start, i);
                 currentTokenType = getSpecialType1(c);
             }
             parseIndex = i;
             return;
         case CHAR_SPECIAL_1:
-            currentToken = sqlCommand.substring(start, i);
             currentTokenType = getSpecialType1(c);
             parseIndex = i;
             return;
@@ -4101,7 +4098,6 @@ public class Parser {
             return;
         }
         case CHAR_END:
-            currentToken = "";
             currentTokenType = END;
             parseIndex = i;
             return;

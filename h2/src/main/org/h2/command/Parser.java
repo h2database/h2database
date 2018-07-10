@@ -697,6 +697,9 @@ public class Parser {
             c = parseWithStatementOrQuery();
             break;
         case IDENTIFIER:
+            if (currentTokenQuoted) {
+                break;
+            }
             switch (currentToken.charAt(0)) {
             case 'a':
             case 'A':

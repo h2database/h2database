@@ -5508,6 +5508,10 @@ public class Parser {
         // used in setCteCleanups.
         Collections.reverse(viewsCreated);
 
+        int parentheses = 0;
+        while (readIf(OPEN_PAREN)) {
+            parentheses++;
+        }
         if (isToken(SELECT)) {
             Query query = parseSelectUnion();
             query.setPrepareAlways(true);
@@ -5536,6 +5540,9 @@ public class Parser {
         } else {
             throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
                     WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS);
+        }
+        for (; parentheses > 0; parentheses--) {
+            read(CLOSE_PAREN);
         }
 
         // Clean up temporary views starting with last to first (in case of

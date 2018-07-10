@@ -672,24 +672,32 @@ public class Parser {
     private Prepared parsePrepared() {
         int start = lastParseIndex;
         Prepared c = null;
-        String token = currentToken;
-        if (token.length() == 0) {
+        switch (currentTokenType) {
+        case END:
+        case SEMICOLON:
             c = new NoOperation(session);
-        } else {
-            char first = token.charAt(0);
-            switch (first) {
-            case '?':
-                // read the ? as a parameter
-                readTerm();
-                // this is an 'out' parameter - set a dummy value
-                parameters.get(0).setValue(ValueNull.INSTANCE);
-                read(EQUAL);
-                read("CALL");
-                c = parseCall();
-                break;
-            case '(':
-                c = parseSelect();
-                break;
+            setSQL(c, null, start);
+            return c;
+        case PARAMETER:
+            // read the ? as a parameter
+            readTerm();
+            // this is an 'out' parameter - set a dummy value
+            parameters.get(0).setValue(ValueNull.INSTANCE);
+            read(EQUAL);
+            read("CALL");
+            c = parseCall();
+            break;
+        case OPEN_PAREN:
+        case FROM:
+        case SELECT:
+            c = parseSelect();
+            break;
+        case WITH:
+            read();
+            c = parseWithStatementOrQuery();
+            break;
+        case IDENTIFIER:
+            switch (currentToken.charAt(0)) {
             case 'a':
             case 'A':
                 if (readIf("ALTER")) {
@@ -741,12 +749,6 @@ public class Parser {
                     c = parseExecute();
                 }
                 break;
-            case 'f':
-            case 'F':
-                if (isToken(FROM)) {
-                    c = parseSelect();
-                }
-                break;
             case 'g':
             case 'G':
                 if (readIf("GRANT")) {
@@ -793,9 +795,7 @@ public class Parser {
                 break;
             case 's':
             case 'S':
-                if (isToken(SELECT)) {
-                    c = parseSelect();
-                } else if (readIf("SET")) {
+                if (readIf("SET")) {
                     c = parseSet();
                 } else if (readIf("SAVEPOINT")) {
                     c = parseSavepoint();
@@ -826,52 +826,40 @@ public class Parser {
                 if (readIf("VALUES")) {
                     c = parseValues();
                 }
-                break;
-            case 'w':
-            case 'W':
-                if (readIf(WITH)) {
-                    c = parseWithStatementOrQuery();
-                }
-                break;
-            case ';':
-                c = new NoOperation(session);
-                break;
-            default:
-                throw getSyntaxError();
-            }
-            if (indexedParameterList != null) {
-                for (int i = 0, size = indexedParameterList.size();
-                        i < size; i++) {
-                    if (indexedParameterList.get(i) == null) {
-                        indexedParameterList.set(i, new Parameter(i));
-                    }
-                }
-                parameters = indexedParameterList;
-            }
-            if (readIf(OPEN_BRACE)) {
-                do {
-                    int index = (int) readLong() - 1;
-                    if (index < 0 || index >= parameters.size()) {
-                        throw getSyntaxError();
-                    }
-                    Parameter p = parameters.get(index);
-                    if (p == null) {
-                        throw getSyntaxError();
-                    }
-                    read(COLON);
-                    Expression expr = readExpression();
-                    expr = expr.optimize(session);
-                    p.setValue(expr.getValue(session));
-                } while (readIf(COMMA));
-                read(CLOSE_BRACE);
-                for (Parameter p : parameters) {
-                    p.checkSet();
-                }
-                parameters.clear();
             }
         }
         if (c == null) {
             throw getSyntaxError();
+        }
+        if (indexedParameterList != null) {
+            for (int i = 0, size = indexedParameterList.size();
+                    i < size; i++) {
+                if (indexedParameterList.get(i) == null) {
+                    indexedParameterList.set(i, new Parameter(i));
+                }
+            }
+            parameters = indexedParameterList;
+        }
+        if (readIf(OPEN_BRACE)) {
+            do {
+                int index = (int) readLong() - 1;
+                if (index < 0 || index >= parameters.size()) {
+                    throw getSyntaxError();
+                }
+                Parameter p = parameters.get(index);
+                if (p == null) {
+                    throw getSyntaxError();
+                }
+                read(COLON);
+                Expression expr = readExpression();
+                expr = expr.optimize(session);
+                p.setValue(expr.getValue(session));
+            } while (readIf(COMMA));
+            read(CLOSE_BRACE);
+            for (Parameter p : parameters) {
+                p.checkSet();
+            }
+            parameters.clear();
         }
         setSQL(c, null, start);
         return c;

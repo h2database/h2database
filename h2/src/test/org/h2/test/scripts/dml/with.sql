@@ -82,3 +82,21 @@ SELECT * FROM SCH.R2;
 > 2
 > 3
 > rows: 3
+
+WITH CTE_TEST AS (SELECT 1, 2) SELECT * FROM CTE_TEST;
+> 1 2
+> - -
+> 1 2
+> rows: 1
+
+WITH CTE_TEST AS (SELECT 1, 2) (SELECT * FROM CTE_TEST);
+> 1 2
+> - -
+> 1 2
+> rows: 1
+
+WITH CTE_TEST AS (SELECT 1, 2) ((SELECT * FROM CTE_TEST));
+> 1 2
+> - -
+> 1 2
+> rows: 1

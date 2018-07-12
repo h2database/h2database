@@ -42,7 +42,6 @@ public class LocalResult implements ResultInterface, ResultTarget {
     private int offset;
     private int limit = -1;
     private ResultExternal external;
-    private int diskOffset;
     private boolean distinct;
     private boolean randomAccess;
     private boolean closed;
@@ -157,7 +156,6 @@ public class LocalResult implements ResultInterface, ResultTarget {
         copy.offset = 0;
         copy.limit = -1;
         copy.external = e2;
-        copy.diskOffset = this.diskOffset;
         return copy;
     }
 
@@ -231,11 +229,6 @@ public class LocalResult implements ResultInterface, ResultTarget {
         currentRow = null;
         if (external != null) {
             external.reset();
-            if (diskOffset > 0) {
-                for (int i = 0; i < diskOffset; i++) {
-                    external.next();
-                }
-            }
         }
     }
 
@@ -318,15 +311,15 @@ public class LocalResult implements ResultInterface, ResultTarget {
             } else {
                 rowCount = external.addRow(values);
             }
-            return;
-        }
-        rows.add(values);
-        rowCount++;
-        if (rows.size() > maxMemoryRows) {
-            if (external == null) {
-                createExternalResult();
+        } else {
+            rows.add(values);
+            rowCount++;
+            if (rows.size() > maxMemoryRows) {
+                if (external == null) {
+                    createExternalResult();
+                }
+                addRowsToDisk();
             }
-            addRowsToDisk();
         }
     }
 
@@ -344,40 +337,12 @@ public class LocalResult implements ResultInterface, ResultTarget {
      * This method is called after all rows have been added.
      */
     public void done() {
-        if (distinct) {
-            if (distinctRows != null) {
-                rows = distinctRows.values();
-            } else {
-                if (external != null && sort != null) {
-                    // external sort
-                    ResultExternal temp = external;
-                    external = null;
-                    temp.reset();
-                    rows = Utils.newSmallArrayList();
-                    // TODO use offset directly if possible
-                    while (true) {
-                        Value[] list = temp.next();
-                        if (list == null) {
-                            break;
-                        }
-                        if (external == null) {
-                            createExternalResult();
-                        }
-                        rows.add(list);
-                        if (rows.size() > maxMemoryRows) {
-                            rowCount = external.addRows(rows);
-                            rows.clear();
-                        }
-                    }
-                    temp.close();
-                    // the remaining data in rows is written in the following
-                    // lines
-                }
-            }
-        }
         if (external != null) {
             addRowsToDisk();
         } else {
+            if (distinct) {
+                rows = distinctRows.values();
+            }
             if (sort != null) {
                 if (offset > 0 || limit > 0) {
                     sort.sort(rows, offset, limit < 0 ? rows.size() : limit);
@@ -417,10 +382,34 @@ public class LocalResult implements ResultInterface, ResultTarget {
             rows = new ArrayList<>(rows.subList(offset, offset + limit));
         } else {
             if (clearAll) {
+                external.close();
+                external = null;
                 return;
             }
-            diskOffset = offset;
+            trimExternal(offset, limit);
         }
+    }
+
+    private void trimExternal(int offset, int limit) {
+        ResultExternal temp = external;
+        external = null;
+        temp.reset();
+        while (--offset >= 0) {
+            temp.next();
+        }
+        while (--limit >= 0) {
+            rows.add(temp.next());
+            if (rows.size() > maxMemoryRows) {
+                if (external == null) {
+                    createExternalResult();
+                }
+                addRowsToDisk();
+            }
+        }
+        if (external != null) {
+            addRowsToDisk();
+        }
+        temp.close();
     }
 
     @Override

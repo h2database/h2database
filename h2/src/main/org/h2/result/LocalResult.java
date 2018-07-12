@@ -386,9 +386,41 @@ public class LocalResult implements ResultInterface, ResultTarget {
                 }
             }
         }
-        applyOffset();
-        applyLimit();
+        applyOffsetAndLimit();
         reset();
+    }
+
+    private void applyOffsetAndLimit() {
+        int offset = Math.max(this.offset, 0);
+        int limit = this.limit;
+        if (offset == 0 && limit < 0 || rowCount == 0) {
+            return;
+        }
+        boolean clearAll = offset >= rowCount || limit == 0;
+        if (!clearAll) {
+            int remaining = rowCount - offset;
+            limit = limit < 0 ? remaining : Math.min(remaining, limit);
+            if (offset == 0 && remaining <= limit) {
+                return;
+            }
+        } else {
+            limit = 0;
+        }
+        distinctRows = null;
+        rowCount = limit;
+        if (external == null) {
+            if (clearAll) {
+                rows.clear();
+                return;
+            }
+            // avoid copying the whole array for each row
+            rows = new ArrayList<>(rows.subList(offset, offset + limit));
+        } else {
+            if (clearAll) {
+                return;
+            }
+            diskOffset = offset;
+        }
     }
 
     @Override
@@ -408,24 +440,6 @@ public class LocalResult implements ResultInterface, ResultTarget {
      */
     public void setLimit(int limit) {
         this.limit = limit;
-    }
-
-    private void applyLimit() {
-        if (limit < 0) {
-            return;
-        }
-        if (external == null) {
-            if (rows.size() > limit) {
-                rows = new ArrayList<>(rows.subList(0, limit));
-                rowCount = limit;
-                distinctRows = null;
-            }
-        } else {
-            if (limit < rowCount) {
-                rowCount = limit;
-                distinctRows = null;
-            }
-        }
     }
 
     @Override
@@ -499,31 +513,6 @@ public class LocalResult implements ResultInterface, ResultTarget {
      */
     public void setOffset(int offset) {
         this.offset = offset;
-    }
-
-    private void applyOffset() {
-        if (offset <= 0) {
-            return;
-        }
-        if (external == null) {
-            if (offset >= rows.size()) {
-                rows.clear();
-                rowCount = 0;
-            } else {
-                // avoid copying the whole array for each row
-                int remove = Math.min(offset, rows.size());
-                rows = new ArrayList<>(rows.subList(remove, rows.size()));
-                rowCount -= remove;
-            }
-        } else {
-            if (offset >= rowCount) {
-                rowCount = 0;
-            } else {
-                diskOffset = offset;
-                rowCount -= offset;
-            }
-        }
-        distinctRows = null;
     }
 
     @Override

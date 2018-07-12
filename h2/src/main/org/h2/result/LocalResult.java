@@ -377,7 +377,6 @@ public class LocalResult implements ResultInterface, ResultTarget {
         }
         if (external != null) {
             addRowsToDisk();
-            external.done();
         } else {
             if (sort != null) {
                 if (offset > 0 || limit > 0) {

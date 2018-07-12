@@ -186,9 +186,4 @@ public abstract class MVTempResult implements ResultExternal {
         tempFileDeleter.deleteFile(fileRef, closeable);
     }
 
-    @Override
-    public void done() {
-        // Do nothing
-    }
-
 }

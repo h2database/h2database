@@ -43,11 +43,6 @@ public interface ResultExternal {
     int addRows(ArrayList<Value[]> rows);
 
     /**
-     * This method is called after all rows have been added.
-     */
-    void done();
-
-    /**
      * Close this object and delete the temporary file.
      */
     void close();

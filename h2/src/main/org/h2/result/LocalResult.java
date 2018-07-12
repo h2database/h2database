@@ -315,15 +315,15 @@ public class LocalResult implements ResultInterface, ResultTarget {
             rows.add(values);
             rowCount++;
             if (rows.size() > maxMemoryRows) {
-                if (external == null) {
-                    createExternalResult();
-                }
                 addRowsToDisk();
             }
         }
     }
 
     private void addRowsToDisk() {
+        if (external == null) {
+            createExternalResult();
+        }
         rowCount = external.addRows(rows);
         rows.clear();
     }
@@ -400,9 +400,6 @@ public class LocalResult implements ResultInterface, ResultTarget {
         while (--limit >= 0) {
             rows.add(temp.next());
             if (rows.size() > maxMemoryRows) {
-                if (external == null) {
-                    createExternalResult();
-                }
                 addRowsToDisk();
             }
         }

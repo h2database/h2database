@@ -738,7 +738,7 @@ public class Data {
         case Value.TIMESTAMP: {
             return ValueTimestamp.fromMillisNanos(
                     DateTimeUtils.getTimeUTCWithoutDst(readVarLong()),
-                    readVarInt());
+                    readVarInt() % 1_000_000);
         }
         case Value.TIMESTAMP_TZ: {
             long dateValue = readVarLong();

@@ -255,26 +255,10 @@ class MVSortedTempResult extends MVTempResult {
 
     @Override
     public int removeRow(Value[] values) {
-        assert parent == null;
-        ValueArray key = getKey(values);
-        if (distinct) {
-            // If an entry was removed decrement the counter
-            if (map.remove(key) != null) {
-                rowCount--;
-            }
-        } else {
-            Long old = map.remove(key);
-            if (old != null) {
-                long l = old;
-                if (l > 1) {
-                    /*
-                     * We have more than one such row. Decrement its counter by 1 and put this row
-                     * back into map.
-                     */
-                    map.put(key, l - 1);
-                }
-                rowCount--;
-            }
+        assert parent == null && distinct;
+        // If an entry was removed decrement the counter
+        if (map.remove(getKey(values)) != null) {
+            rowCount--;
         }
         return rowCount;
     }

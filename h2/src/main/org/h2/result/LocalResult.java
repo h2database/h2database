@@ -42,7 +42,6 @@ public class LocalResult implements ResultInterface, ResultTarget {
     private int offset;
     private int limit = -1;
     private ResultExternal external;
-    private int diskOffset;
     private boolean distinct;
     private boolean randomAccess;
     private boolean closed;
@@ -157,7 +156,6 @@ public class LocalResult implements ResultInterface, ResultTarget {
         copy.offset = 0;
         copy.limit = -1;
         copy.external = e2;
-        copy.diskOffset = this.diskOffset;
         return copy;
     }
 
@@ -231,11 +229,6 @@ public class LocalResult implements ResultInterface, ResultTarget {
         currentRow = null;
         if (external != null) {
             external.reset();
-            if (diskOffset > 0) {
-                for (int i = 0; i < diskOffset; i++) {
-                    external.next();
-                }
-            }
         }
     }
 
@@ -318,19 +311,19 @@ public class LocalResult implements ResultInterface, ResultTarget {
             } else {
                 rowCount = external.addRow(values);
             }
-            return;
-        }
-        rows.add(values);
-        rowCount++;
-        if (rows.size() > maxMemoryRows) {
-            if (external == null) {
-                createExternalResult();
+        } else {
+            rows.add(values);
+            rowCount++;
+            if (rows.size() > maxMemoryRows) {
+                addRowsToDisk();
             }
-            addRowsToDisk();
         }
     }
 
     private void addRowsToDisk() {
+        if (external == null) {
+            createExternalResult();
+        }
         rowCount = external.addRows(rows);
         rows.clear();
     }
@@ -344,41 +337,12 @@ public class LocalResult implements ResultInterface, ResultTarget {
      * This method is called after all rows have been added.
      */
     public void done() {
-        if (distinct) {
-            if (distinctRows != null) {
-                rows = distinctRows.values();
-            } else {
-                if (external != null && sort != null) {
-                    // external sort
-                    ResultExternal temp = external;
-                    external = null;
-                    temp.reset();
-                    rows = Utils.newSmallArrayList();
-                    // TODO use offset directly if possible
-                    while (true) {
-                        Value[] list = temp.next();
-                        if (list == null) {
-                            break;
-                        }
-                        if (external == null) {
-                            createExternalResult();
-                        }
-                        rows.add(list);
-                        if (rows.size() > maxMemoryRows) {
-                            rowCount = external.addRows(rows);
-                            rows.clear();
-                        }
-                    }
-                    temp.close();
-                    // the remaining data in rows is written in the following
-                    // lines
-                }
-            }
-        }
         if (external != null) {
             addRowsToDisk();
-            external.done();
         } else {
+            if (distinct) {
+                rows = distinctRows.values();
+            }
             if (sort != null) {
                 if (offset > 0 || limit > 0) {
                     sort.sort(rows, offset, limit < 0 ? rows.size() : limit);
@@ -387,9 +351,62 @@ public class LocalResult implements ResultInterface, ResultTarget {
                 }
             }
         }
-        applyOffset();
-        applyLimit();
+        applyOffsetAndLimit();
         reset();
+    }
+
+    private void applyOffsetAndLimit() {
+        int offset = Math.max(this.offset, 0);
+        int limit = this.limit;
+        if (offset == 0 && limit < 0 || rowCount == 0) {
+            return;
+        }
+        boolean clearAll = offset >= rowCount || limit == 0;
+        if (!clearAll) {
+            int remaining = rowCount - offset;
+            limit = limit < 0 ? remaining : Math.min(remaining, limit);
+            if (offset == 0 && remaining <= limit) {
+                return;
+            }
+        } else {
+            limit = 0;
+        }
+        distinctRows = null;
+        rowCount = limit;
+        if (external == null) {
+            if (clearAll) {
+                rows.clear();
+                return;
+            }
+            // avoid copying the whole array for each row
+            rows = new ArrayList<>(rows.subList(offset, offset + limit));
+        } else {
+            if (clearAll) {
+                external.close();
+                external = null;
+                return;
+            }
+            trimExternal(offset, limit);
+        }
+    }
+
+    private void trimExternal(int offset, int limit) {
+        ResultExternal temp = external;
+        external = null;
+        temp.reset();
+        while (--offset >= 0) {
+            temp.next();
+        }
+        while (--limit >= 0) {
+            rows.add(temp.next());
+            if (rows.size() > maxMemoryRows) {
+                addRowsToDisk();
+            }
+        }
+        if (external != null) {
+            addRowsToDisk();
+        }
+        temp.close();
     }
 
     @Override
@@ -409,24 +426,6 @@ public class LocalResult implements ResultInterface, ResultTarget {
      */
     public void setLimit(int limit) {
         this.limit = limit;
-    }
-
-    private void applyLimit() {
-        if (limit < 0) {
-            return;
-        }
-        if (external == null) {
-            if (rows.size() > limit) {
-                rows = new ArrayList<>(rows.subList(0, limit));
-                rowCount = limit;
-                distinctRows = null;
-            }
-        } else {
-            if (limit < rowCount) {
-                rowCount = limit;
-                distinctRows = null;
-            }
-        }
     }
 
     @Override
@@ -500,31 +499,6 @@ public class LocalResult implements ResultInterface, ResultTarget {
      */
     public void setOffset(int offset) {
         this.offset = offset;
-    }
-
-    private void applyOffset() {
-        if (offset <= 0) {
-            return;
-        }
-        if (external == null) {
-            if (offset >= rows.size()) {
-                rows.clear();
-                rowCount = 0;
-            } else {
-                // avoid copying the whole array for each row
-                int remove = Math.min(offset, rows.size());
-                rows = new ArrayList<>(rows.subList(remove, rows.size()));
-                rowCount -= remove;
-            }
-        } else {
-            if (offset >= rowCount) {
-                rowCount = 0;
-            } else {
-                diskOffset = offset;
-                rowCount -= offset;
-            }
-        }
-        distinctRows = null;
     }
 
     @Override

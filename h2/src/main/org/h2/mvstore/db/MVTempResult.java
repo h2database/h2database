@@ -61,24 +61,38 @@ public abstract class MVTempResult implements ResultExternal {
      * Creates MVStore-based temporary result.
      *
      * @param database
-     *                        database
+     *            database
      * @param expressions
-     *                        expressions
+     *            expressions
      * @param distinct
-     *                        is output distinct
+     *            is output distinct
+     * @param visibleColumnCount
+     *            count of visible columns
      * @param sort
-     *                        sort order, or {@code null}
+     *            sort order, or {@code null}
      * @return temporary result
      */
-    public static ResultExternal of(Database database, Expression[] expressions, boolean distinct, SortOrder sort) {
-        return distinct || sort != null ? new MVSortedTempResult(database, expressions, distinct, sort)
-                : new MVPlainTempResult(database, expressions);
+    public static ResultExternal of(Database database, Expression[] expressions, boolean distinct,
+            int visibleColumnCount, SortOrder sort) {
+        return distinct || sort != null
+                ? new MVSortedTempResult(database, expressions, distinct, visibleColumnCount, sort)
+                : new MVPlainTempResult(database, expressions, visibleColumnCount);
     }
 
     /**
      * MVStore.
      */
     final MVStore store;
+
+    /**
+     * Count of columns.
+     */
+    final int columnCount;
+
+    /**
+     * Count of visible columns.
+     */
+    final int visibleColumnCount;
 
     /**
      * Count of rows. Used only in a root results, copies always have 0 value.
@@ -124,6 +138,8 @@ public abstract class MVTempResult implements ResultExternal {
     MVTempResult(MVTempResult parent) {
         this.parent = parent;
         this.store = parent.store;
+        this.columnCount = parent.columnCount;
+        this.visibleColumnCount = parent.visibleColumnCount;
         this.tempFileDeleter = null;
         this.closeable = null;
         this.fileRef = null;
@@ -133,9 +149,13 @@ public abstract class MVTempResult implements ResultExternal {
      * Creates a new temporary result.
      *
      * @param database
-     *                     database
+     *            database
+     * @param columnCount
+     *            count of columns
+     * @param visibleColumnCount
+     *            count of visible columns
      */
-    MVTempResult(Database database) {
+    MVTempResult(Database database, int columnCount, int visibleColumnCount) {
         try {
             String fileName = FileUtils.createTempFile("h2tmp", Constants.SUFFIX_TEMP_FILE, false, true);
             Builder builder = new MVStore.Builder().fileName(fileName);
@@ -144,6 +164,8 @@ public abstract class MVTempResult implements ResultExternal {
                 builder.encryptionKey(MVTableEngine.decodePassword(key));
             }
             store = builder.open();
+            this.columnCount = columnCount;
+            this.visibleColumnCount = visibleColumnCount;
             tempFileDeleter = database.getTempFileDeleter();
             closeable = new CloseImpl(store, fileName);
             fileRef = tempFileDeleter.addFile(closeable, this);

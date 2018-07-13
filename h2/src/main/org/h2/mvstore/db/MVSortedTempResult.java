@@ -5,10 +5,12 @@
  */
 package org.h2.mvstore.db;
 
+import java.util.Arrays;
 import java.util.BitSet;
 
 import org.h2.engine.Database;
 import org.h2.expression.Expression;
+import org.h2.message.DbException;
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVMap.Builder;
@@ -44,6 +46,19 @@ class MVSortedTempResult extends MVTempResult {
     private final MVMap<ValueArray, Long> map;
 
     /**
+     * The type of the distinct values.
+     */
+    private final ValueDataType distinctType;
+
+    /**
+     * Optional index. This index is created only if result is distinct and
+     * {@code columnCount != distinctColumnCount} or if
+     * {@link #contains(Value[])} method is invoked. Only the root result should
+     * have an index if required.
+     */
+    private MVMap<ValueArray, Boolean> index;
+
+    /**
      * Cursor for the {@link #next()} method.
      */
     private Cursor<ValueArray, Long> cursor;
@@ -71,6 +86,7 @@ class MVSortedTempResult extends MVTempResult {
         this.distinct = parent.distinct;
         this.indexes = parent.indexes;
         this.map = parent.map;
+        this.distinctType = null;
         this.rowCount = parent.rowCount;
     }
 
@@ -78,19 +94,22 @@ class MVSortedTempResult extends MVTempResult {
      * Creates a new sorted temporary result.
      *
      * @param database
-     *                        database
+     *            database
      * @param expressions
-     *                        column expressions
+     *            column expressions
      * @param distinct
-     *                        whether this result should be distinct
+     *            whether this result should be distinct
+     * @param visibleColumnCount
+     *            count of visible columns
      * @param sort
-     *                        sort order, or {@code null} if this result does not
-     *                        need any sorting
+     *            sort order, or {@code null} if this result does not need any
+     *            sorting
      */
-    MVSortedTempResult(Database database, Expression[] expressions, boolean distinct, SortOrder sort) {
-        super(database);
+    MVSortedTempResult(Database database, Expression[] expressions, boolean distinct, int visibleColumnCount,
+            SortOrder sort) {
+        super(database, expressions.length, visibleColumnCount);
         this.distinct = distinct;
-        int length = expressions.length;
+        int length = columnCount;
         int[] sortTypes = new int[length];
         int[] indexes;
         if (sort != null) {
@@ -147,6 +166,14 @@ class MVSortedTempResult extends MVTempResult {
         ValueDataType keyType = new ValueDataType(database.getCompareMode(), database, sortTypes);
         Builder<ValueArray, Long> builder = new MVMap.Builder<ValueArray, Long>().keyType(keyType);
         map = store.openMap("tmp", builder);
+        if (length == visibleColumnCount) {
+            distinctType = null;
+        } else {
+            distinctType = new ValueDataType(database.getCompareMode(), database, new int[visibleColumnCount]);
+            if (distinct) {
+                createIndex(false);
+            }
+        }
     }
 
     @Override
@@ -154,6 +181,12 @@ class MVSortedTempResult extends MVTempResult {
         assert parent == null;
         ValueArray key = getKey(values);
         if (distinct) {
+            if (columnCount != visibleColumnCount) {
+                ValueArray distinctRow = ValueArray.get(Arrays.copyOf(values, visibleColumnCount));
+                if (index.putIfAbsent(distinctRow, true) != null) {
+                    return rowCount;
+                }
+            }
             // Add a row and increment the counter only if row does not exist
             if (map.putIfAbsent(key, 1L) == null) {
                 rowCount++;
@@ -172,7 +205,31 @@ class MVSortedTempResult extends MVTempResult {
 
     @Override
     public boolean contains(Value[] values) {
+        // Only parent result maintains the index
+        if (parent != null) {
+            return parent.contains(values);
+        }
+        if (columnCount != visibleColumnCount) {
+            if (index == null) {
+                createIndex(true);
+            }
+            return index.containsKey(ValueArray.get(values));
+        }
         return map.containsKey(getKey(values));
+    }
+
+    private void createIndex(boolean fill) {
+        Builder<ValueArray, Boolean> indexBuilder = new MVMap.Builder<ValueArray, Boolean>()
+                .keyType(distinctType);
+        index = store.openMap("idx", indexBuilder);
+        if (fill) {
+            Cursor<ValueArray, Long> c = map.cursor(null);
+            while (c.hasNext()) {
+                Value[] v = getValue(c.next().getList());
+                ValueArray distinctRow = ValueArray.get(Arrays.copyOf(v, visibleColumnCount));
+                index.putIfAbsent(distinctRow, true);
+            }
+        }
     }
 
     @Override
@@ -198,7 +255,7 @@ class MVSortedTempResult extends MVTempResult {
         if (indexes != null) {
             Value[] r = new Value[indexes.length];
             for (int i = 0; i < indexes.length; i++) {
-                r[indexes[i]] = values[i];
+                r[i] = values[indexes[i]];
             }
             values = r;
         }
@@ -216,7 +273,7 @@ class MVSortedTempResult extends MVTempResult {
         if (indexes != null) {
             Value[] r = new Value[indexes.length];
             for (int i = 0; i < indexes.length; i++) {
-                r[i] = key[indexes[i]];
+                r[indexes[i]] = key[i];
             }
             key = r;
         }
@@ -255,26 +312,13 @@ class MVSortedTempResult extends MVTempResult {
 
     @Override
     public int removeRow(Value[] values) {
-        assert parent == null;
-        ValueArray key = getKey(values);
-        if (distinct) {
-            // If an entry was removed decrement the counter
-            if (map.remove(key) != null) {
-                rowCount--;
-            }
-        } else {
-            Long old = map.remove(key);
-            if (old != null) {
-                long l = old;
-                if (l > 1) {
-                    /*
-                     * We have more than one such row. Decrement its counter by 1 and put this row
-                     * back into map.
-                     */
-                    map.put(key, l - 1);
-                }
-                rowCount--;
-            }
+        assert parent == null && distinct;
+        if (columnCount != visibleColumnCount) {
+            throw DbException.getUnsupportedException("removeRow()");
+        }
+        // If an entry was removed decrement the counter
+        if (map.remove(getKey(values)) != null) {
+            rowCount--;
         }
         return rowCount;
     }

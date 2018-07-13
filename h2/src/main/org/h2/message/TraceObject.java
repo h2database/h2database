@@ -105,6 +105,8 @@ public class TraceObject {
             "rs", "rsMeta", "sp", "ex", "stat", "blob", "clob", "pMeta", "ds",
             "xads", "xares", "xid", "ar", "sqlxml" };
 
+    private static final SQLException SQL_OOME = DbException.SQL_OOME;
+
     /**
      * The trace module used by this object.
      */
@@ -376,7 +378,7 @@ public class TraceObject {
                 try {
                     e = new SQLException("GeneralError", "HY000", ErrorCode.GENERAL_ERROR_1, ex);
                 } catch (OutOfMemoryError | NoClassDefFoundError ignored) {
-                    return DbException.SQL_OOME;
+                    return SQL_OOME;
                 }
             }
             e.addSuppressed(another);

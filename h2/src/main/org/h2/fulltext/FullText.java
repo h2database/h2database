@@ -669,14 +669,14 @@ public class FullText {
             ArrayList<String> data, Expression expr) {
         if (expr instanceof ConditionAndOr) {
             ConditionAndOr and = (ConditionAndOr) expr;
-            Expression left = and.getExpression(true);
-            Expression right = and.getExpression(false);
+            Expression left = and.getLeftSubExpression();
+            Expression right = and.getRightSubExpression();
             addColumnData(columns, data, left);
             addColumnData(columns, data, right);
         } else {
             Comparison comp = (Comparison) expr;
-            ExpressionColumn ec = (ExpressionColumn) comp.getExpression(true);
-            ValueExpression ev = (ValueExpression) comp.getExpression(false);
+            ExpressionColumn ec = (ExpressionColumn) comp.getLeftSubExpression();
+            ValueExpression ev = (ValueExpression) comp.getRightSubExpression();
             String columnName = ec.getColumnName();
             columns.add(columnName);
             if (ev == null) {

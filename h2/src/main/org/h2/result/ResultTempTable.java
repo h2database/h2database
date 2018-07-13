@@ -310,11 +310,6 @@ public class ResultTempTable implements ResultExternal {
     }
 
     @Override
-    public void done() {
-        // nothing to do
-    }
-
-    @Override
     public Value[] next() {
         if (resultCursor == null) {
             Index idx;

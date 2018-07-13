@@ -835,7 +835,7 @@ public class Select extends Query {
         }
         if (orderList != null) {
             initOrder(session, expressions, expressionSQL, orderList,
-                    visibleColumnCount, distinct, filters);
+                    visibleColumnCount, false, filters);
         }
         distinctColumnCount = expressions.size();
         if (having != null) {

@@ -12,6 +12,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.engine.Mode.ModeEnum;
 import org.h2.expression.Alias;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -478,8 +479,9 @@ public abstract class Query extends Prepared {
             }
             if (!isAlias) {
                 if (mustBeInResult) {
-                    throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT,
-                            e.getSQL());
+                    if (session.getDatabase().getMode().getEnum() != ModeEnum.MySQL) {
+                        throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT, e.getSQL());
+                    }
                 }
                 expressions.add(e);
                 String sql = e.getSQL();

@@ -98,4 +98,13 @@ public class ConditionNot extends Condition {
         return condition.getCost();
     }
 
+    /**
+     * Get the sub-expression of this condition.
+     *
+     * @return the sub-expression
+     */
+    public Expression getSubCondition() {
+        return condition;
+    }
+
 }

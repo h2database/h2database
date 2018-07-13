@@ -99,6 +99,7 @@ public class TestScript extends TestDb {
         testScript("testScript.sql");
         testScript("comments.sql");
         testScript("derived-column-names.sql");
+        testScript("distinct.sql");
         testScript("dual.sql");
         testScript("indexes.sql");
         testScript("information_schema.sql");

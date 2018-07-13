@@ -284,14 +284,21 @@ public class ConditionAndOr extends Condition {
     }
 
     /**
-     * Get the left or the right sub-expression of this condition.
+     * Get the left sub-expression of this condition.
      *
-     * @param getLeft true to get the left sub-expression, false to get the
-     *            right sub-expression.
-     * @return the sub-expression
+     * @return the left sub-expression
      */
-    public Expression getExpression(boolean getLeft) {
-        return getLeft ? this.left : right;
+    public Expression getLeftSubExpression() {
+        return left;
+    }
+
+    /**
+     * Get the right sub-expression of this condition.
+     *
+     * @return the right sub-expression
+     */
+    public Expression getRightSubExpression() {
+        return right;
     }
 
 }

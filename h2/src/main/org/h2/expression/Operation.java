@@ -407,4 +407,22 @@ public class Operation extends Expression {
         return left.getCost() + 1 + (right == null ? 0 : right.getCost());
     }
 
+    /**
+     * Get the left sub-expression of this operation.
+     *
+     * @return the left sub-expression
+     */
+    public Expression getLeftSubExpression() {
+        return left;
+    }
+
+    /**
+     * Get the right sub-expression of this operation.
+     *
+     * @return the right sub-expression
+     */
+    public Expression getRightSubExpression() {
+        return right;
+    }
+
 }

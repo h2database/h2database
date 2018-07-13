@@ -5,6 +5,8 @@
  */
 package org.h2.mvstore.db;
 
+import java.util.Arrays;
+
 import org.h2.engine.Database;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
@@ -14,7 +16,6 @@ import org.h2.mvstore.MVMap.Builder;
 import org.h2.result.ResultExternal;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
-import org.h2.value.ValueLong;
 
 /**
  * Plain temporary result.
@@ -22,14 +23,14 @@ import org.h2.value.ValueLong;
 class MVPlainTempResult extends MVTempResult {
 
     /**
-     * The type of the values in the main map and keys in the index.
+     * The type of the distinct values.
      */
-    private final ValueDataType valueType;
+    private final ValueDataType distinctType;
 
     /**
      * Map with identities of rows as keys rows as values.
      */
-    private final MVMap<ValueLong, ValueArray> map;
+    private final MVMap<Long, ValueArray> map;
 
     /**
      * Counter for the identities of rows. A separate counter is used instead of
@@ -47,7 +48,7 @@ class MVPlainTempResult extends MVTempResult {
     /**
      * Cursor for the {@link #next()} method.
      */
-    private Cursor<ValueLong, ValueArray> cursor;
+    private Cursor<Long, ValueArray> cursor;
 
     /**
      * Creates a shallow copy of the result.
@@ -57,7 +58,7 @@ class MVPlainTempResult extends MVTempResult {
      */
     private MVPlainTempResult(MVPlainTempResult parent) {
         super(parent);
-        this.valueType = null;
+        this.distinctType = null;
         this.map = parent.map;
     }
 
@@ -65,23 +66,28 @@ class MVPlainTempResult extends MVTempResult {
      * Creates a new plain temporary result.
      *
      * @param database
-     *                        database
+     *            database
      * @param expressions
-     *                        column expressions
+     *            column expressions
+     * @param visibleColumnCount
+     *            count of visible columns
      */
-    MVPlainTempResult(Database database, Expression[] expressions) {
-        super(database);
-        ValueDataType keyType = new ValueDataType(null, null, null);
-        valueType = new ValueDataType(database.getCompareMode(), database, new int[expressions.length]);
-        Builder<ValueLong, ValueArray> builder = new MVMap.Builder<ValueLong, ValueArray>().keyType(keyType)
-                .valueType(valueType);
+    MVPlainTempResult(Database database, Expression[] expressions, int visibleColumnCount) {
+        super(database, expressions.length, visibleColumnCount);
+        ValueDataType valueType = new ValueDataType(database.getCompareMode(), database, new int[columnCount]);
+        if (columnCount == visibleColumnCount) {
+            distinctType = valueType;
+        } else {
+            distinctType = new ValueDataType(database.getCompareMode(), database, new int[visibleColumnCount]);
+        }
+        Builder<Long, ValueArray> builder = new MVMap.Builder<Long, ValueArray>().valueType(valueType);
         map = store.openMap("tmp", builder);
     }
 
     @Override
     public int addRow(Value[] values) {
         assert parent == null && index == null;
-        map.put(ValueLong.get(counter++), ValueArray.get(values));
+        map.put(counter++, ValueArray.get(values));
         return ++rowCount;
     }
 
@@ -98,12 +104,16 @@ class MVPlainTempResult extends MVTempResult {
     }
 
     private void createIndex() {
-        Builder<ValueArray, Boolean> builder = new MVMap.Builder<ValueArray, Boolean>().keyType(valueType);
+        Builder<ValueArray, Boolean> builder = new MVMap.Builder<ValueArray, Boolean>().keyType(distinctType);
         index = store.openMap("idx", builder);
-        Cursor<ValueLong, ValueArray> c = map.cursor(null);
+        Cursor<Long, ValueArray> c = map.cursor(null);
         while (c.hasNext()) {
             c.next();
-            index.putIfAbsent(c.getValue(), true);
+            ValueArray row = c.getValue();
+            if (columnCount != visibleColumnCount) {
+                row = ValueArray.get(Arrays.copyOf(row.getList(), visibleColumnCount));
+            }
+            index.putIfAbsent(row, true);
         }
     }
 

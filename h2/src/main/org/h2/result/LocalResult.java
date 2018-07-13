@@ -192,6 +192,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
         if (!distinct) {
             DbException.throwInternalError();
         }
+        assert values.length == visibleColumnCount;
         if (distinctRows != null) {
             ValueArray array = ValueArray.get(values);
             distinctRows.remove(array);
@@ -209,6 +210,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
      */
     @Override
     public boolean containsDistinct(Value[] values) {
+        assert values.length == visibleColumnCount;
         if (external != null) {
             return external.contains(values);
         }
@@ -286,7 +288,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
     private void createExternalResult() {
         Database database = session.getDatabase();
         external = database.isMVStore()
-                ? MVTempResult.of(database, expressions, distinct, sort)
+                ? MVTempResult.of(database, expressions, distinct, visibleColumnCount, sort)
                         : new ResultTempTable(session, expressions, distinct, sort);
     }
 

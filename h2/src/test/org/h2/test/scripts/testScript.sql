@@ -3077,17 +3077,17 @@ SELECT t.f1, t.f2 FROM test t ORDER BY t.f2;
 > abc 333
 > rows (ordered): 3
 
-SELECT t1.f1, t1.f2, t2.f1, t2.f2 FROM test t1, test t2 ORDER BY t2.f2;
+SELECT t1.f1, t1.f2, t2.f1, t2.f2 FROM test t1, test t2 ORDER BY t2.f2, t1.f2;
 > F1  F2  F1  F2
 > --- --- --- ---
-> abc 222 abc 111
 > abc 111 abc 111
+> abc 222 abc 111
 > abc 333 abc 111
-> abc 222 abc 222
 > abc 111 abc 222
+> abc 222 abc 222
 > abc 333 abc 222
-> abc 222 abc 333
 > abc 111 abc 333
+> abc 222 abc 333
 > abc 333 abc 333
 > rows (ordered): 9
 

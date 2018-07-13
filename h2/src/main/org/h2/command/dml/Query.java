@@ -499,6 +499,18 @@ public abstract class Query extends Prepared {
         }
     }
 
+    /**
+     * An additional check for expression in ORDER BY list for DISTINCT selects
+     * that was not matched with selected expressions in regular way. This
+     * method allows expressions based only on selected expressions in different
+     * complicated ways with functions, comparisons, or operators.
+     *
+     * @param session session
+     * @param expr expression to check
+     * @param expressionSQL SQL of allowed expressions
+     * @return whether the specified expression should be allowed in ORDER BY
+     *         list of DISTINCT select
+     */
     private static boolean checkOrderOther(Session session, Expression expr, ArrayList<String> expressionSQL) {
         if (expr.isConstant()) {
             return true;

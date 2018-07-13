@@ -525,22 +525,22 @@ public abstract class Query extends Prepared {
         }
         if (expr instanceof Operation) {
             Operation operation = (Operation) expr;
-            Expression right = operation.getExpression(false);
-            return checkOrderOther(session, operation.getExpression(true), expressionSQL)
+            Expression right = operation.getRightSubExpression();
+            return checkOrderOther(session, operation.getLeftSubExpression(), expressionSQL)
                     && (right == null || checkOrderOther(session, right, expressionSQL));
         }
         if (expr instanceof ConditionAndOr) {
             ConditionAndOr condition = (ConditionAndOr) expr;
-            return checkOrderOther(session, condition.getExpression(true), expressionSQL)
-                    && checkOrderOther(session, condition.getExpression(false), expressionSQL);
+            return checkOrderOther(session, condition.getLeftSubExpression(), expressionSQL)
+                    && checkOrderOther(session, condition.getRightSubExpression(), expressionSQL);
         }
         if (expr instanceof ConditionNot) {
-            return checkOrderOther(session, ((ConditionNot) expr).getCondition(), expressionSQL);
+            return checkOrderOther(session, ((ConditionNot) expr).getSubCondition(), expressionSQL);
         }
         if (expr instanceof Comparison) {
             Comparison condition = (Comparison) expr;
-            return checkOrderOther(session, condition.getExpression(true), expressionSQL)
-                    && checkOrderOther(session, condition.getExpression(false), expressionSQL);
+            return checkOrderOther(session, condition.getLeftSubExpression(), expressionSQL)
+                    && checkOrderOther(session, condition.getRightSubExpression(), expressionSQL);
         }
         return false;
     }

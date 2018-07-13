@@ -408,14 +408,21 @@ public class Operation extends Expression {
     }
 
     /**
-     * Get the left or the right sub-expression of this condition.
+     * Get the left sub-expression of this operation.
      *
-     * @param getLeft true to get the left sub-expression, false to get the
-     *            right sub-expression.
-     * @return the sub-expression
+     * @return the left sub-expression
      */
-    public Expression getExpression(boolean getLeft) {
-        return getLeft ? this.left : right;
+    public Expression getLeftSubExpression() {
+        return left;
+    }
+
+    /**
+     * Get the right sub-expression of this operation.
+     *
+     * @return the right sub-expression
+     */
+    public Expression getRightSubExpression() {
+        return right;
     }
 
 }

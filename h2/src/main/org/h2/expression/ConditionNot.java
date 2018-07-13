@@ -103,7 +103,7 @@ public class ConditionNot extends Condition {
      *
      * @return the sub-expression
      */
-    public Expression getCondition() {
+    public Expression getSubCondition() {
         return condition;
     }
 

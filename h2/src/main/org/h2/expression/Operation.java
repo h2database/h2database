@@ -407,4 +407,15 @@ public class Operation extends Expression {
         return left.getCost() + 1 + (right == null ? 0 : right.getCost());
     }
 
+    /**
+     * Get the left or the right sub-expression of this condition.
+     *
+     * @param getLeft true to get the left sub-expression, false to get the
+     *            right sub-expression.
+     * @return the sub-expression
+     */
+    public Expression getExpression(boolean getLeft) {
+        return getLeft ? this.left : right;
+    }
+
 }

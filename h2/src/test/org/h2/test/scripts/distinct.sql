@@ -15,6 +15,60 @@ CREATE TABLE TEST2(ID2 BIGINT);
 INSERT INTO TEST2 VALUES (1), (2);
 > update count: 2
 
+SELECT DISTINCT NAME FROM TEST ORDER BY NAME;
+> NAME
+> ----
+> B
+> a
+> c
+> rows (ordered): 3
+
+SELECT DISTINCT NAME FROM TEST ORDER BY LOWER(NAME);
+> NAME
+> ----
+> a
+> B
+> c
+> rows (ordered): 3
+
+SELECT DISTINCT ID FROM TEST ORDER BY ID;
+> ID
+> --
+> 1
+> 2
+> 3
+> rows (ordered): 3
+
+SELECT DISTINCT ID FROM TEST ORDER BY -ID - 1;
+> ID
+> --
+> 3
+> 2
+> 1
+> rows (ordered): 3
+
+SELECT DISTINCT ID FROM TEST ORDER BY (-ID + 10) > 0 AND NOT (ID = 0), ID;
+> ID
+> --
+> 1
+> 2
+> 3
+> rows (ordered): 3
+
+SELECT DISTINCT NAME, ID + 1 FROM TEST ORDER BY UPPER(NAME) || (ID + 1);
+> NAME ID + 1
+> ---- ------
+> a    2
+> B    3
+> c    4
+> rows (ordered): 3
+
+SELECT DISTINCT ID FROM TEST ORDER BY NAME;
+> exception ORDER_BY_NOT_IN_RESULT
+
+SELECT DISTINCT ID FROM TEST ORDER BY CURRENT_TIMESTAMP;
+> exception ORDER_BY_NOT_IN_RESULT
+
 SET MODE MySQL;
 > ok
 

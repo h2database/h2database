@@ -14,9 +14,14 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.Mode.ModeEnum;
 import org.h2.expression.Alias;
+import org.h2.expression.Comparison;
+import org.h2.expression.ConditionAndOr;
+import org.h2.expression.ConditionNot;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.Function;
+import org.h2.expression.Operation;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
@@ -480,7 +485,9 @@ public abstract class Query extends Prepared {
             if (!isAlias) {
                 if (mustBeInResult) {
                     if (session.getDatabase().getMode().getEnum() != ModeEnum.MySQL) {
-                        throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT, e.getSQL());
+                        if (!checkOrderOther(session, e, expressionSQL)) {
+                            throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT, e.getSQL());
+                        }
                     }
                 }
                 expressions.add(e);
@@ -490,6 +497,52 @@ public abstract class Query extends Prepared {
             o.columnIndexExpr = ValueExpression.get(ValueInt.get(idx + 1));
             o.expression = expressions.get(idx).getNonAliasExpression();
         }
+    }
+
+    private static boolean checkOrderOther(Session session, Expression expr, ArrayList<String> expressionSQL) {
+        if (expr.isConstant()) {
+            return true;
+        }
+        if (expressionSQL != null) {
+            String exprSQL = expr.getSQL();
+            for (String sql: expressionSQL) {
+                if (session.getDatabase().equalsIdentifiers(exprSQL, sql)) {
+                    return true;
+                }
+            }
+        }
+        if (expr instanceof Function) {
+            Function function = (Function) expr;
+            if (!function.isDeterministic()) {
+                return false;
+            }
+            for (Expression e : function.getArgs()) {
+                if (!checkOrderOther(session, e, expressionSQL)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        if (expr instanceof Operation) {
+            Operation operation = (Operation) expr;
+            Expression right = operation.getExpression(false);
+            return checkOrderOther(session, operation.getExpression(true), expressionSQL)
+                    && (right == null || checkOrderOther(session, right, expressionSQL));
+        }
+        if (expr instanceof ConditionAndOr) {
+            ConditionAndOr condition = (ConditionAndOr) expr;
+            return checkOrderOther(session, condition.getExpression(true), expressionSQL)
+                    && checkOrderOther(session, condition.getExpression(false), expressionSQL);
+        }
+        if (expr instanceof ConditionNot) {
+            return checkOrderOther(session, ((ConditionNot) expr).getCondition(), expressionSQL);
+        }
+        if (expr instanceof Comparison) {
+            Comparison condition = (Comparison) expr;
+            return checkOrderOther(session, condition.getExpression(true), expressionSQL)
+                    && checkOrderOther(session, condition.getExpression(false), expressionSQL);
+        }
+        return false;
     }
 
     /**

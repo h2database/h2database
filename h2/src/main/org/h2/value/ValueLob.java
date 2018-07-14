@@ -35,6 +35,8 @@ import org.h2.util.Utils;
  */
 public class ValueLob extends Value {
 
+    private static final int BLOCK_COMPARISON_SIZE = 512;
+
     private static void rangeCheckUnknown(long zeroBasedOffset, long length) {
         if (zeroBasedOffset < 0) {
             throw DbException.getInvalidValueException("offset", zeroBasedOffset + 1);
@@ -85,6 +87,90 @@ public class ValueLob extends Value {
             return new RangeReader(reader, oneBasedOffset - 1, length);
         } catch (IOException e) {
             throw DbException.getInvalidValueException("offset", oneBasedOffset);
+        }
+    }
+
+    /**
+     * Compares LOBs of the same type.
+     *
+     * @param v1 first LOB value
+     * @param v2 second LOB value
+     * @return result of comparison
+     */
+    static int compare(Value v1, Value v2) {
+        int valueType = v1.getType();
+        assert valueType == v2.getType();
+        if (v1 instanceof ValueLobDb && v2 instanceof ValueLobDb) {
+            byte[] small1 = v1.getSmall(), small2 = v2.getSmall();
+            if (small1 != null && small2 != null) {
+                if (valueType == Value.BLOB) {
+                    return Bits.compareNotNullSigned(small1, small2);
+                } else {
+                    return Integer.signum(v1.getString().compareTo(v2.getString()));
+                }
+            }
+        }
+        long minPrec = Math.min(v1.getPrecision(), v2.getPrecision());
+        if (valueType == Value.BLOB) {
+            try (InputStream is1 = v1.getInputStream();
+                    InputStream is2 = v2.getInputStream()) {
+                byte[] buf1 = new byte[BLOCK_COMPARISON_SIZE];
+                byte[] buf2 = new byte[BLOCK_COMPARISON_SIZE];
+                for (; minPrec >= BLOCK_COMPARISON_SIZE; minPrec -= BLOCK_COMPARISON_SIZE) {
+                    if (IOUtils.readFully(is1, buf1, BLOCK_COMPARISON_SIZE) != BLOCK_COMPARISON_SIZE
+                            || IOUtils.readFully(is2, buf2, BLOCK_COMPARISON_SIZE) != BLOCK_COMPARISON_SIZE) {
+                        throw DbException.getUnsupportedException("Invalid LOB");
+                    }
+                    int cmp = Bits.compareNotNullSigned(buf1, buf2);
+                    if (cmp != 0) {
+                        return cmp;
+                    }
+                }
+                for (;;) {
+                    int c1 = is1.read(), c2 = is2.read();
+                    if (c1 < 0) {
+                        return c2 < 0 ? 0 : -1;
+                    }
+                    if (c2 < 0) {
+                        return 1;
+                    }
+                    if (c1 != c2) {
+                        return Integer.compare(c1, c2);
+                    }
+                }
+            } catch (IOException ex) {
+                throw DbException.convert(ex);
+            }
+        } else {
+            try (Reader reader1 = v1.getReader();
+                    Reader reader2 = v2.getReader()) {
+                char[] buf1 = new char[BLOCK_COMPARISON_SIZE];
+                char[] buf2 = new char[BLOCK_COMPARISON_SIZE];
+                for (; minPrec >= BLOCK_COMPARISON_SIZE; minPrec -= BLOCK_COMPARISON_SIZE) {
+                    if (IOUtils.readFully(reader1, buf1, BLOCK_COMPARISON_SIZE) != BLOCK_COMPARISON_SIZE
+                            || IOUtils.readFully(reader2, buf2, BLOCK_COMPARISON_SIZE) != BLOCK_COMPARISON_SIZE) {
+                        throw DbException.getUnsupportedException("Invalid LOB");
+                    }
+                    int cmp = Bits.compareNotNull(buf1, buf2);
+                    if (cmp != 0) {
+                        return cmp;
+                    }
+                }
+                for (;;) {
+                    int c1 = reader1.read(), c2 = reader2.read();
+                    if (c1 < 0) {
+                        return c2 < 0 ? 0 : -1;
+                    }
+                    if (c2 < 0) {
+                        return 1;
+                    }
+                    if (c1 != c2) {
+                        return Integer.compare(c1, c2);
+                    }
+                }
+            } catch (IOException ex) {
+                throw DbException.convert(ex);
+            }
         }
     }
 
@@ -430,11 +516,7 @@ public class ValueLob extends Value {
 
     @Override
     protected int compareSecure(Value v, CompareMode mode) {
-        if (valueType == Value.CLOB) {
-            return Integer.signum(getString().compareTo(v.getString()));
-        }
-        byte[] v2 = v.getBytesNoCopy();
-        return Bits.compareNotNullSigned(getBytesNoCopy(), v2);
+        return compare(this, v);
     }
 
     @Override
@@ -529,7 +611,11 @@ public class ValueLob extends Value {
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof ValueLob && compareSecure((Value) other, null) == 0;
+        if (other instanceof ValueLob) {
+            ValueLob o = (ValueLob) other;
+            return valueType == o.valueType && compareSecure(o, null) == 0;
+        }
+        return false;
     }
 
     /**

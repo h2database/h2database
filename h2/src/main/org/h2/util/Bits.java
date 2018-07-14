@@ -21,6 +21,33 @@ public final class Bits {
      */
 
     /**
+     * Compare the contents of two char arrays. If the content or length of the
+     * first array is smaller than the second array, -1 is returned. If the content
+     * or length of the second array is smaller than the first array, 1 is returned.
+     * If the contents and lengths are the same, 0 is returned.
+     *
+     * @param data1
+     *            the first char array (must not be null)
+     * @param data2
+     *            the second char array (must not be null)
+     * @return the result of the comparison (-1, 1 or 0)
+     */
+    public static int compareNotNull(char[] data1, char[] data2) {
+        if (data1 == data2) {
+            return 0;
+        }
+        int len = Math.min(data1.length, data2.length);
+        for (int i = 0; i < len; i++) {
+            char b = data1[i];
+            char b2 = data2[i];
+            if (b != b2) {
+                return b > b2 ? 1 : -1;
+            }
+        }
+        return Integer.signum(data1.length - data2.length);
+    }
+
+    /**
      * Compare the contents of two byte arrays. If the content or length of the
      * first array is smaller than the second array, -1 is returned. If the content
      * or length of the second array is smaller than the first array, 1 is returned.

@@ -70,6 +70,7 @@ public class TestValue extends TestDb {
         testModulusDouble();
         testModulusDecimal();
         testModulusOperator();
+        testLobComparison();
     }
 
     private void testResultSetOperations() throws SQLException {
@@ -413,6 +414,39 @@ public class TestValue extends TestDb {
         } finally {
             deleteDb("modulus");
         }
+    }
+
+    private void testLobComparison() {
+        assertEquals(0, testLobComparisonImpl(Value.BLOB, 0, 0, 0, 0));
+        assertEquals(0, testLobComparisonImpl(Value.CLOB, 0, 0, 0, 0));
+        assertEquals(-1, testLobComparisonImpl(Value.BLOB, 1, 1, 200, 210));
+        assertEquals(-1, testLobComparisonImpl(Value.CLOB, 1, 1, 'a', 'b'));
+        assertEquals(1, testLobComparisonImpl(Value.BLOB, 512, 512, 210, 200));
+        assertEquals(1, testLobComparisonImpl(Value.CLOB, 512, 512, 'B', 'A'));
+        assertEquals(1, testLobComparisonImpl(Value.BLOB, 1_024, 1_024, 210, 200));
+        assertEquals(1, testLobComparisonImpl(Value.CLOB, 1_024, 1_024, 'B', 'A'));
+        assertEquals(-1, testLobComparisonImpl(Value.BLOB, 10_000, 10_000, 200, 210));
+        assertEquals(-1, testLobComparisonImpl(Value.CLOB, 10_000, 10_000, 'a', 'b'));
+        assertEquals(0, testLobComparisonImpl(Value.BLOB, 10_000, 10_000, 0, 0));
+        assertEquals(0, testLobComparisonImpl(Value.CLOB, 10_000, 10_000, 0, 0));
+        assertEquals(-1, testLobComparisonImpl(Value.BLOB, 1_000, 10_000, 0, 0));
+        assertEquals(-1, testLobComparisonImpl(Value.CLOB, 1_000, 10_000, 0, 0));
+        assertEquals(1, testLobComparisonImpl(Value.BLOB, 10_000, 1_000, 0, 0));
+        assertEquals(1, testLobComparisonImpl(Value.CLOB, 10_000, 1_000, 0, 0));
+    }
+
+    private static int testLobComparisonImpl(int type, int size1, int size2, int suffix1, int suffix2) {
+        byte[] bytes1 = new byte[size1];
+        byte[] bytes2 = new byte[size2];
+        if (size1 > 0) {
+            bytes1[size1 - 1] = (byte) suffix1;
+        }
+        if (size2 > 0) {
+            bytes2[size2 - 1] = (byte) suffix2;
+        }
+        ValueLobDb lob1 = ValueLobDb.createSmallLob(type, bytes1);
+        ValueLobDb lob2 = ValueLobDb.createSmallLob(type, bytes2);
+        return lob1.compareTypeSafe(lob2, null);
     }
 
 }

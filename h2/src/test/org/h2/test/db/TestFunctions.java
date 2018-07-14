@@ -127,7 +127,6 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         testAnnotationProcessorsOutput();
         testRound();
         testSignal();
-        testLength();
 
         deleteDb("functions");
     }
@@ -2078,24 +2077,6 @@ public class TestFunctions extends TestDb implements AggregateFunction {
             assertContains(e.getMessage(), "some custom error");
         }
 
-        conn.close();
-    }
-
-    private void testLength() throws SQLException {
-        deleteDb("functions");
-
-        Connection conn = getConnection("functions");
-        Statement stat = conn.createStatement();
-
-        final ResultSet rs = stat.executeQuery(
-                "select LENGTH('This has 17 chars'), LEN('MSSQLServer uses the len keyword') from dual");
-
-        rs.next();
-        assertEquals(17, rs.getInt(1));
-        assertEquals(32, rs.getInt(2));
-
-
-        rs.close();
         conn.close();
     }
 

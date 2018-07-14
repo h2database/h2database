@@ -239,6 +239,8 @@ public class Function extends Expression implements FunctionCall {
         addFunction("LCASE", LCASE, 1, Value.STRING);
         addFunction("LEFT", LEFT, 2, Value.STRING);
         addFunction("LENGTH", LENGTH, 1, Value.LONG);
+        // alias for MSSQLServer
+        addFunction("LEN", LENGTH, 1, Value.LONG);
         // 2 or 3 arguments
         addFunction("LOCATE", LOCATE, VAR_ARGS, Value.INT);
         // alias for MSSQLServer

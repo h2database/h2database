@@ -5,9 +5,13 @@
  */
 package org.h2.test.unit;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.Date;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,7 +24,11 @@ import java.util.TimeZone;
 import java.util.UUID;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.Database;
+import org.h2.engine.Session;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
+import org.h2.store.DataHandler;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.test.utils.AssertThrows;
@@ -416,26 +424,29 @@ public class TestValue extends TestDb {
         }
     }
 
-    private void testLobComparison() {
-        assertEquals(0, testLobComparisonImpl(Value.BLOB, 0, 0, 0, 0));
-        assertEquals(0, testLobComparisonImpl(Value.CLOB, 0, 0, 0, 0));
-        assertEquals(-1, testLobComparisonImpl(Value.BLOB, 1, 1, 200, 210));
-        assertEquals(-1, testLobComparisonImpl(Value.CLOB, 1, 1, 'a', 'b'));
-        assertEquals(1, testLobComparisonImpl(Value.BLOB, 512, 512, 210, 200));
-        assertEquals(1, testLobComparisonImpl(Value.CLOB, 512, 512, 'B', 'A'));
-        assertEquals(1, testLobComparisonImpl(Value.BLOB, 1_024, 1_024, 210, 200));
-        assertEquals(1, testLobComparisonImpl(Value.CLOB, 1_024, 1_024, 'B', 'A'));
-        assertEquals(-1, testLobComparisonImpl(Value.BLOB, 10_000, 10_000, 200, 210));
-        assertEquals(-1, testLobComparisonImpl(Value.CLOB, 10_000, 10_000, 'a', 'b'));
-        assertEquals(0, testLobComparisonImpl(Value.BLOB, 10_000, 10_000, 0, 0));
-        assertEquals(0, testLobComparisonImpl(Value.CLOB, 10_000, 10_000, 0, 0));
-        assertEquals(-1, testLobComparisonImpl(Value.BLOB, 1_000, 10_000, 0, 0));
-        assertEquals(-1, testLobComparisonImpl(Value.CLOB, 1_000, 10_000, 0, 0));
-        assertEquals(1, testLobComparisonImpl(Value.BLOB, 10_000, 1_000, 0, 0));
-        assertEquals(1, testLobComparisonImpl(Value.CLOB, 10_000, 1_000, 0, 0));
+    private void testLobComparison() throws SQLException {
+        assertEquals(0, testLobComparisonImpl(null, Value.BLOB, 0, 0, 0, 0));
+        assertEquals(0, testLobComparisonImpl(null, Value.CLOB, 0, 0, 0, 0));
+        assertEquals(-1, testLobComparisonImpl(null, Value.BLOB, 1, 1, 200, 210));
+        assertEquals(-1, testLobComparisonImpl(null, Value.CLOB, 1, 1, 'a', 'b'));
+        assertEquals(1, testLobComparisonImpl(null, Value.BLOB, 512, 512, 210, 200));
+        assertEquals(1, testLobComparisonImpl(null, Value.CLOB, 512, 512, 'B', 'A'));
+        try (Connection c = DriverManager.getConnection("jdbc:h2:mem:testValue")) {
+            Database dh = ((Session) ((JdbcConnection) c).getSession()).getDatabase();
+            assertEquals(1, testLobComparisonImpl(dh, Value.BLOB, 1_024, 1_024, 210, 200));
+            assertEquals(1, testLobComparisonImpl(dh, Value.CLOB, 1_024, 1_024, 'B', 'A'));
+            assertEquals(-1, testLobComparisonImpl(dh, Value.BLOB, 10_000, 10_000, 200, 210));
+            assertEquals(-1, testLobComparisonImpl(dh, Value.CLOB, 10_000, 10_000, 'a', 'b'));
+            assertEquals(0, testLobComparisonImpl(dh, Value.BLOB, 10_000, 10_000, 0, 0));
+            assertEquals(0, testLobComparisonImpl(dh, Value.CLOB, 10_000, 10_000, 0, 0));
+            assertEquals(-1, testLobComparisonImpl(dh, Value.BLOB, 1_000, 10_000, 0, 0));
+            assertEquals(-1, testLobComparisonImpl(dh, Value.CLOB, 1_000, 10_000, 0, 0));
+            assertEquals(1, testLobComparisonImpl(dh, Value.BLOB, 10_000, 1_000, 0, 0));
+            assertEquals(1, testLobComparisonImpl(dh, Value.CLOB, 10_000, 1_000, 0, 0));
+        }
     }
 
-    private static int testLobComparisonImpl(int type, int size1, int size2, int suffix1, int suffix2) {
+    private static int testLobComparisonImpl(DataHandler dh, int type, int size1, int size2, int suffix1, int suffix2) {
         byte[] bytes1 = new byte[size1];
         byte[] bytes2 = new byte[size2];
         if (size1 > 0) {
@@ -444,9 +455,21 @@ public class TestValue extends TestDb {
         if (size2 > 0) {
             bytes2[size2 - 1] = (byte) suffix2;
         }
-        ValueLobDb lob1 = ValueLobDb.createSmallLob(type, bytes1);
-        ValueLobDb lob2 = ValueLobDb.createSmallLob(type, bytes2);
+        Value lob1 = createLob(dh, type, bytes1);
+        Value lob2 = createLob(dh, type, bytes2);
         return lob1.compareTypeSafe(lob2, null);
+    }
+
+    static Value createLob(DataHandler dh, int type, byte[] bytes) {
+        if (dh == null) {
+            return ValueLobDb.createSmallLob(type, bytes);
+        }
+        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+        if (type == Value.BLOB) {
+            return dh.getLobStorage().createBlob(in, -1);
+        } else {
+            return dh.getLobStorage().createClob(new InputStreamReader(in, StandardCharsets.UTF_8), -1);
+        }
     }
 
 }

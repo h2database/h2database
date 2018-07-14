@@ -78,15 +78,17 @@ public class ValueLob extends Value {
     static int compare(Value v1, Value v2) {
         int valueType = v1.getType();
         assert valueType == v2.getType();
-        long prec1 = v1.getPrecision(), prec2 = v2.getPrecision();
-        if (Math.max(prec1, prec2) <= BLOCK_COMPARISON_SIZE) {
-            if (valueType == Value.BLOB) {
-                return Bits.compareNotNullSigned(v1.getBytesNoCopy(), v2.getBytesNoCopy());
-            } else {
-                return Integer.signum(v1.getString().compareTo(v2.getString()));
+        if (v1 instanceof ValueLobDb && v2 instanceof ValueLobDb) {
+            byte[] small1 = v1.getSmall(), small2 = v2.getSmall();
+            if (small1 != null && small2 != null) {
+                if (valueType == Value.BLOB) {
+                    return Bits.compareNotNullSigned(small1, small2);
+                } else {
+                    return Integer.signum(v1.getString().compareTo(v2.getString()));
+                }
             }
         }
-        long minPrec = Math.min(prec1, prec2);
+        long minPrec = Math.min(v1.getPrecision(), v2.getPrecision());
         if (valueType == Value.BLOB) {
             try (InputStream is1 = v1.getInputStream();
                     InputStream is2 = v2.getInputStream()) {

@@ -69,6 +69,28 @@ public class ValueLob extends Value {
     }
 
     /**
+     * Create a reader that is s subset of the given reader.
+     *
+     * @param reader the input reader
+     * @param oneBasedOffset the offset (1 means no offset)
+     * @param length the length of the result, in bytes
+     * @param dataSize the length of the input, in bytes
+     * @return the smaller input stream
+     */
+    static Reader rangeReader(Reader reader, long oneBasedOffset, long length, long dataSize) {
+        if (dataSize > 0) {
+            rangeCheck(oneBasedOffset - 1, length, dataSize);
+        } else {
+            rangeCheckUnknown(oneBasedOffset - 1, length);
+        }
+        try {
+            return new RangeReader(reader, oneBasedOffset - 1, length);
+        } catch (IOException e) {
+            throw DbException.getInvalidValueException("offset", oneBasedOffset);
+        }
+    }
+
+    /**
      * Compares LOBs of the same type.
      *
      * @param v1 first LOB value
@@ -149,28 +171,6 @@ public class ValueLob extends Value {
             } catch (IOException ex) {
                 throw DbException.convert(ex);
             }
-        }
-    }
-
-    /**
-     * Create a reader that is s subset of the given reader.
-     *
-     * @param reader the input reader
-     * @param oneBasedOffset the offset (1 means no offset)
-     * @param length the length of the result, in bytes
-     * @param dataSize the length of the input, in bytes
-     * @return the smaller input stream
-     */
-    static Reader rangeReader(Reader reader, long oneBasedOffset, long length, long dataSize) {
-        if (dataSize > 0) {
-            rangeCheck(oneBasedOffset - 1, length, dataSize);
-        } else {
-            rangeCheckUnknown(oneBasedOffset - 1, length);
-        }
-        try {
-            return new RangeReader(reader, oneBasedOffset - 1, length);
-        } catch (IOException e) {
-            throw DbException.getInvalidValueException("offset", oneBasedOffset);
         }
     }
 

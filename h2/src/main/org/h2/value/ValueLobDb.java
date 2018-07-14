@@ -385,7 +385,7 @@ public class ValueLobDb extends Value {
                 return 0;
             }
         }
-        return ValueLob.compare(valueType, this, v);
+        return ValueLob.compare(this, v);
     }
 
     @Override

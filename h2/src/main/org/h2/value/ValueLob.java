@@ -71,12 +71,13 @@ public class ValueLob extends Value {
     /**
      * Compares LOBs of the same type.
      *
-     * @param valueType type
      * @param v1 first LOB value
      * @param v2 second LOB value
      * @return result of comparison
      */
-    static int compare(int valueType, Value v1, Value v2) {
+    static int compare(Value v1, Value v2) {
+        int valueType = v1.getType();
+        assert valueType == v2.getType();
         long prec1 = v1.getPrecision(), prec2 = v2.getPrecision();
         if (Math.max(prec1, prec2) <= BLOCK_COMPARISON_SIZE) {
             if (valueType == Value.BLOB) {
@@ -513,7 +514,7 @@ public class ValueLob extends Value {
 
     @Override
     protected int compareSecure(Value v, CompareMode mode) {
-        return compare(valueType, this, v);
+        return compare(this, v);
     }
 
     @Override
@@ -608,7 +609,11 @@ public class ValueLob extends Value {
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof ValueLob && compareSecure((Value) other, null) == 0;
+        if (other instanceof ValueLob) {
+            ValueLob o = (ValueLob) other;
+            return valueType == o.valueType && compareSecure(o, null) == 0;
+        }
+        return false;
     }
 
     /**

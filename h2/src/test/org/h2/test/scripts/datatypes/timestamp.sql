@@ -105,3 +105,27 @@ SELECT T0 FROM TEST;
 
 DROP TABLE TEST;
 > ok
+
+create table test(id int, d timestamp);
+> ok
+
+insert into test values(1, '2006-01-01 12:00:00.000');
+> update count: 1
+
+insert into test values(1, '1999-12-01 23:59:00.000');
+> update count: 1
+
+select * from test where d= '1999-12-01 23:59:00.000';
+> ID D
+> -- -------------------
+> 1  1999-12-01 23:59:00
+> rows: 1
+
+select * from test where d= timestamp '2006-01-01 12:00:00.000';
+> ID D
+> -- -------------------
+> 1  2006-01-01 12:00:00
+> rows: 1
+
+drop table test;
+> ok

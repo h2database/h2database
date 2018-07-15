@@ -2,6 +2,36 @@
 -- and the EPL 1.0 (http://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
+
+create table folder(id int primary key, name varchar(255), parent int);
+> ok
+
+insert into folder values(1, null, null), (2, 'bin', 1), (3, 'docs', 1), (4, 'html', 3), (5, 'javadoc', 3), (6, 'ext', 1), (7, 'service', 1), (8, 'src', 1), (9, 'docsrc', 8), (10, 'installer', 8), (11, 'main', 8), (12, 'META-INF', 11), (13, 'org', 11), (14, 'h2', 13), (15, 'test', 8), (16, 'tools', 8);
+> update count: 16
+
+with link(id, name, level) as (select id, name, 0 from folder where parent is null union all select folder.id, ifnull(link.name || '/', '') || folder.name, level + 1 from link inner join folder on link.id = folder.parent) select name from link where name is not null order by cast(id as int);
+> NAME
+> -----------------
+> bin
+> docs
+> docs/html
+> docs/javadoc
+> ext
+> service
+> src
+> src/docsrc
+> src/installer
+> src/main
+> src/main/META-INF
+> src/main/org
+> src/main/org/h2
+> src/test
+> src/tools
+> rows (ordered): 15
+
+drop table folder;
+> ok
+
 explain with recursive r(n) as (
     (select 1) union all (select n+1 from r where n < 3)
 )

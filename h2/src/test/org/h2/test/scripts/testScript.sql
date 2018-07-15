@@ -505,35 +505,6 @@ drop table test;
 explain analyze select 1;
 >> SELECT 1 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */ /* scanCount: 2 */
 
-create table folder(id int primary key, name varchar(255), parent int);
-> ok
-
-insert into folder values(1, null, null), (2, 'bin', 1), (3, 'docs', 1), (4, 'html', 3), (5, 'javadoc', 3), (6, 'ext', 1), (7, 'service', 1), (8, 'src', 1), (9, 'docsrc', 8), (10, 'installer', 8), (11, 'main', 8), (12, 'META-INF', 11), (13, 'org', 11), (14, 'h2', 13), (15, 'test', 8), (16, 'tools', 8);
-> update count: 16
-
-with link(id, name, level) as (select id, name, 0 from folder where parent is null union all select folder.id, ifnull(link.name || '/', '') || folder.name, level + 1 from link inner join folder on link.id = folder.parent) select name from link where name is not null order by cast(id as int);
-> NAME
-> -----------------
-> bin
-> docs
-> docs/html
-> docs/javadoc
-> ext
-> service
-> src
-> src/docsrc
-> src/installer
-> src/main
-> src/main/META-INF
-> src/main/org
-> src/main/org/h2
-> src/test
-> src/tools
-> rows (ordered): 15
-
-drop table folder;
-> ok
-
 create table test(id int);
 > ok
 
@@ -597,15 +568,6 @@ select * from (select null as x) where x=1;
 > X
 > -
 > rows: 0
-
-create table test(a int primary key, b int references(a));
-> ok
-
-merge into test values(1, 2);
-> exception REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1
-
-drop table test;
-> ok
 
 create table test(id int primary key, d int);
 > ok
@@ -870,12 +832,6 @@ delete from test where id = 1;
 
 drop table test;
 > ok
-
-select iso_week('2006-12-31') w, iso_year('2007-12-31') y, iso_day_of_week('2007-12-31') w;
-> W  Y    W
-> -- ---- -
-> 52 2008 1
-> rows: 1
 
 create schema a;
 > ok
@@ -2257,30 +2213,6 @@ select * from Foo where A like 'abc%' escape '\' AND B=1;
 > rows: 1
 
 drop table Foo;
-> ok
-
-create table test(id int, d timestamp);
-> ok
-
-insert into test values(1, '2006-01-01 12:00:00.000');
-> update count: 1
-
-insert into test values(1, '1999-12-01 23:59:00.000');
-> update count: 1
-
-select * from test where d= '1999-12-01 23:59:00.000';
-> ID D
-> -- -------------------
-> 1  1999-12-01 23:59:00
-> rows: 1
-
-select * from test where d= timestamp '2006-01-01 12:00:00.000';
-> ID D
-> -- -------------------
-> 1  2006-01-01 12:00:00
-> rows: 1
-
-drop table test;
 > ok
 
 create table test(id int, b binary);
@@ -4283,90 +4215,6 @@ SELECT * FROM test WHERE three LIKE '2%';
 > ONE TWO THREE
 > --- --- -----
 > rows: 0
-
-DROP TABLE TEST;
-> ok
-
---- merge (upsert) ---------------------------------------------------------------------------------------------
-CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255));
-> ok
-
-EXPLAIN SELECT * FROM TEST WHERE ID=1;
->> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ WHERE ID = 1
-
-EXPLAIN MERGE INTO TEST VALUES(1, 'Hello');
->> MERGE INTO PUBLIC.TEST(ID, NAME) KEY(ID) VALUES (1, 'Hello')
-
-MERGE INTO TEST VALUES(1, 'Hello');
-> update count: 1
-
-MERGE INTO TEST VALUES(1, 'Hi');
-> update count: 1
-
-MERGE INTO TEST VALUES(2, 'World');
-> update count: 1
-
-MERGE INTO TEST VALUES(2, 'World!');
-> update count: 1
-
-MERGE INTO TEST(ID, NAME) VALUES(3, 'How are you');
-> update count: 1
-
-EXPLAIN MERGE INTO TEST(ID, NAME) VALUES(3, 'How are you');
->> MERGE INTO PUBLIC.TEST(ID, NAME) KEY(ID) VALUES (3, 'How are you')
-
-MERGE INTO TEST(ID, NAME) KEY(ID) VALUES(3, 'How do you do');
-> update count: 1
-
-EXPLAIN MERGE INTO TEST(ID, NAME) KEY(ID) VALUES(3, 'How do you do');
->> MERGE INTO PUBLIC.TEST(ID, NAME) KEY(ID) VALUES (3, 'How do you do')
-
-MERGE INTO TEST(ID, NAME) KEY(NAME) VALUES(3, 'Fine');
-> exception LOCK_TIMEOUT_1
-
-MERGE INTO TEST(ID, NAME) KEY(NAME) VALUES(4, 'Fine!');
-> update count: 1
-
-MERGE INTO TEST(ID, NAME) KEY(NAME) VALUES(4, 'Fine! And you');
-> exception LOCK_TIMEOUT_1
-
-MERGE INTO TEST(ID, NAME) KEY(NAME, ID) VALUES(5, 'I''m ok');
-> update count: 1
-
-MERGE INTO TEST(ID, NAME) KEY(NAME, ID) VALUES(5, 'Oh, fine');
-> exception DUPLICATE_KEY_1
-
-MERGE INTO TEST(ID, NAME) VALUES(6, 'Oh, fine.');
-> update count: 1
-
-SELECT * FROM TEST;
-> ID NAME
-> -- -------------
-> 1  Hi
-> 2  World!
-> 3  How do you do
-> 4  Fine!
-> 5  I'm ok
-> 6  Oh, fine.
-> rows: 6
-
-MERGE INTO TEST SELECT ID+4, NAME FROM TEST;
-> update count: 6
-
-SELECT * FROM TEST;
-> ID NAME
-> -- -------------
-> 1  Hi
-> 10 Oh, fine.
-> 2  World!
-> 3  How do you do
-> 4  Fine!
-> 5  Hi
-> 6  World!
-> 7  How do you do
-> 8  Fine!
-> 9  I'm ok
-> rows: 10
 
 DROP TABLE TEST;
 > ok

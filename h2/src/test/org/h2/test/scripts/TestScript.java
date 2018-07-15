@@ -128,8 +128,8 @@ public class TestScript extends TestDb {
                 "dropDomain", "dropIndex", "dropSchema", "truncateTable" }) {
             testScript("ddl/" + s + ".sql");
         }
-        for (String s : new String[] { "error_reporting", "insertIgnore",
-                "mergeUsing", "script", "with" }) {
+        for (String s : new String[] { "error_reporting", "insertIgnore", "merge", "mergeUsing", "replace",
+                "script", "with" }) {
             testScript("dml/" + s + ".sql");
         }
         for (String s : new String[] { "avg", "bit-and", "bit-or", "count",
@@ -280,7 +280,7 @@ public class TestScript extends TestDb {
                 write(sql);
                 buff.append(sql, 0, sql.length() - 1);
                 sql = buff.toString();
-                buff = new StringBuilder();
+                buff.setLength(0);
                 process(sql, allowReconnect);
             } else {
                 write(sql);
@@ -365,7 +365,7 @@ public class TestScript extends TestDb {
                 char c = param.charAt(i);
                 if (c == ',') {
                     setParameter(prep, ++index, buff.toString());
-                    buff = new StringBuilder();
+                    buff.setLength(0);
                 } else if (c == '"') {
                     while (true) {
                         c = param.charAt(++i);

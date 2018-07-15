@@ -280,7 +280,7 @@ public class TestScript extends TestDb {
                 write(sql);
                 buff.append(sql, 0, sql.length() - 1);
                 sql = buff.toString();
-                buff = new StringBuilder();
+                buff.setLength(0);
                 process(sql, allowReconnect);
             } else {
                 write(sql);
@@ -365,7 +365,7 @@ public class TestScript extends TestDb {
                 char c = param.charAt(i);
                 if (c == ',') {
                     setParameter(prep, ++index, buff.toString());
-                    buff = new StringBuilder();
+                    buff.setLength(0);
                 } else if (c == '"') {
                     while (true) {
                         c = param.charAt(++i);

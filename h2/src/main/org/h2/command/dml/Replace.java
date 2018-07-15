@@ -79,13 +79,12 @@ public class Replace extends Prepared {
 
     @Override
     public int update() {
-        int count;
+        int count = 0;
         session.getUser().checkRight(table, Right.INSERT);
         session.getUser().checkRight(table, Right.UPDATE);
         setCurrentRowNumber(0);
         Mode mode = session.getDatabase().getMode();
         if (!list.isEmpty()) {
-            count = 0;
             for (int x = 0, size = list.size(); x < size; x++) {
                 setCurrentRowNumber(x + 1);
                 Expression[] expr = list.get(x);
@@ -104,16 +103,13 @@ public class Replace extends Prepared {
                         }
                     }
                 }
-                replace(newRow);
-                count++;
+                count += replace(newRow);
             }
         } else {
             ResultInterface rows = query.query(0);
-            count = 0;
             table.fire(session, Trigger.UPDATE | Trigger.INSERT, true);
             table.lock(session, true, false);
             while (rows.next()) {
-                count++;
                 Value[] r = rows.currentRow();
                 Row newRow = table.getTemplateRow();
                 setCurrentRowNumber(count);
@@ -127,7 +123,7 @@ public class Replace extends Prepared {
                         throw setRow(ex, count, getSQL(r));
                     }
                 }
-                replace(newRow);
+                count += replace(newRow);
             }
             rows.close();
             table.fire(session, Trigger.UPDATE | Trigger.INSERT, false);
@@ -135,7 +131,13 @@ public class Replace extends Prepared {
         return count;
     }
 
-    private void replace(Row row) {
+    /**
+     * Updates an existing row or inserts a new one.
+     *
+     * @param row row to replace
+     * @return 1 if row was inserted, 2 if row was updated
+     */
+    private int replace(Row row) {
         int count = update(row);
         if (count == 0) {
             try {
@@ -147,6 +149,7 @@ public class Replace extends Prepared {
                     session.log(table, UndoLogRecord.INSERT, row);
                     table.fireAfterRow(session, null, row, false);
                 }
+                return 1;
             } catch (DbException e) {
                 if (e.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
                     // possibly a concurrent replace or insert
@@ -170,9 +173,10 @@ public class Replace extends Prepared {
                 }
                 throw e;
             }
-        } else if (count != 1) {
-            throw DbException.get(ErrorCode.DUPLICATE_KEY_1, table.getSQL());
+        } else if (count == 1) {
+            return 2;
         }
+        throw DbException.get(ErrorCode.DUPLICATE_KEY_1, table.getSQL());
     }
 
     private int update(Row row) {

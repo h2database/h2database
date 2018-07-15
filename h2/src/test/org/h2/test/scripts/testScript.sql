@@ -833,12 +833,6 @@ delete from test where id = 1;
 drop table test;
 > ok
 
-select iso_week('2006-12-31') w, iso_year('2007-12-31') y, iso_day_of_week('2007-12-31') w;
-> W  Y    W
-> -- ---- -
-> 52 2008 1
-> rows: 1
-
 create schema a;
 > ok
 
@@ -2219,30 +2213,6 @@ select * from Foo where A like 'abc%' escape '\' AND B=1;
 > rows: 1
 
 drop table Foo;
-> ok
-
-create table test(id int, d timestamp);
-> ok
-
-insert into test values(1, '2006-01-01 12:00:00.000');
-> update count: 1
-
-insert into test values(1, '1999-12-01 23:59:00.000');
-> update count: 1
-
-select * from test where d= '1999-12-01 23:59:00.000';
-> ID D
-> -- -------------------
-> 1  1999-12-01 23:59:00
-> rows: 1
-
-select * from test where d= timestamp '2006-01-01 12:00:00.000';
-> ID D
-> -- -------------------
-> 1  2006-01-01 12:00:00
-> rows: 1
-
-drop table test;
 > ok
 
 create table test(id int, b binary);

@@ -1271,23 +1271,23 @@ public class Parser {
     }
 
     private Prepared parseHelp() {
-        StringBuilder buff = new StringBuilder(
-                "SELECT * FROM INFORMATION_SCHEMA.HELP");
-        int i = 0;
-        ArrayList<Value> paramValues = Utils.newSmallArrayList();
+        Select select = new Select(session);
+        select.setWildcard();
+        Table table = database.getSchema("INFORMATION_SCHEMA").resolveTableOrView(session, "HELP");
+        Function function = Function.getFunction(database, "UPPER");
+        function.setParameter(0, new ExpressionColumn(database, "INFORMATION_SCHEMA", "HELP", "TOPIC"));
+        function.doneWithParameters();
+        TableFilter filter = new TableFilter(session, table, null, rightsChecked, select, 0, null);
+        select.addTableFilter(filter, true);
         while (currentTokenType != END) {
             String s = currentToken;
             read();
-            if (i == 0) {
-                buff.append(" WHERE ");
-            } else {
-                buff.append(" AND ");
-            }
-            i++;
-            buff.append("UPPER(TOPIC) LIKE ?");
-            paramValues.add(ValueString.get("%" + s + "%"));
+            CompareLike like = new CompareLike(database, function,
+                    ValueExpression.get(ValueString.get('%' + s + '%')), null, false);
+            select.addCondition(like);
         }
-        return prepare(session, buff.toString(), paramValues);
+        select.init();
+        return select;
     }
 
     private Prepared parseShow() {

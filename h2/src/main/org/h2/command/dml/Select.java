@@ -25,6 +25,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
+import org.h2.expression.Wildcard;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -169,6 +170,11 @@ public class Select extends Query {
 
     public void setExpressions(ArrayList<Expression> expressions) {
         this.expressions = expressions;
+    }
+
+    public void setWildcard() {
+        expressions = new ArrayList<>(1);
+        expressions.add(new Wildcard(null, null));
     }
 
     /**

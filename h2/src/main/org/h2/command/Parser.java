@@ -1463,9 +1463,7 @@ public class Parser {
             command.setSourceTableFilter(sourceTableFilter);
 
             Select preparedQuery = new Select(session);
-            ArrayList<Expression> expr = new ArrayList<>(1);
-            expr.add(new Wildcard(null, null));
-            preparedQuery.setExpressions(expr);
+            preparedQuery.setWildcard();
             TableFilter filter = new TableFilter(session, sourceTableFilter.getTable(),
                     sourceTableFilter.getTableAlias(), rightsChecked, preparedQuery, 0, null);
             preparedQuery.addTableFilter(filter, true);
@@ -5130,9 +5128,7 @@ public class Parser {
         Select command = new Select(session);
         currentSelect = command;
         TableFilter filter = parseValuesTable(0);
-        ArrayList<Expression> list = new ArrayList<>(1);
-        list.add(new Wildcard(null, null));
-        command.setExpressions(list);
+        command.setWildcard();
         command.addTableFilter(filter, true);
         command.init();
         return command;

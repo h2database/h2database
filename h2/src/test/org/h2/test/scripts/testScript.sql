@@ -630,38 +630,6 @@ select count(*) from test where id = 'X1';
 drop table test;
 > ok
 
-create table test(id int primary key, name varchar(255), x int);
-> ok
-
-create unique index idx_name1 on test(name);
-> ok
-
-create unique index idx_name2 on test(name);
-> ok
-
-show columns from test;
-> FIELD TYPE         NULL KEY DEFAULT
-> ----- ------------ ---- --- -------
-> ID    INTEGER(10)  NO   PRI NULL
-> NAME  VARCHAR(255) YES  UNI NULL
-> X     INTEGER(10)  YES      NULL
-> rows: 3
-
-show columns from catalogs from information_schema;
-> FIELD        TYPE                NULL KEY DEFAULT
-> ------------ ------------------- ---- --- -------
-> CATALOG_NAME VARCHAR(2147483647) YES      NULL
-> rows: 1
-
-show columns from information_schema.catalogs;
-> FIELD        TYPE                NULL KEY DEFAULT
-> ------------ ------------------- ---- --- -------
-> CATALOG_NAME VARCHAR(2147483647) YES      NULL
-> rows: 1
-
-drop table test;
-> ok
-
 create table test(id int, constraint pk primary key(id), constraint x unique(id));
 > ok
 
@@ -1108,11 +1076,6 @@ drop table test;
 
 alter table information_schema.help rename to information_schema.help2;
 > exception FEATURE_NOT_SUPPORTED_1
-
-help abc;
-> ID SECTION TOPIC SYNTAX TEXT
-> -- ------- ----- ------ ----
-> rows: 0
 
 CREATE TABLE test (id int(25) NOT NULL auto_increment, name varchar NOT NULL, PRIMARY KEY  (id,name));
 > ok
@@ -6879,12 +6842,6 @@ DROP INDEX IF EXISTS IDXNAME;
 
 DROP TABLE TEST;
 > ok
-
---- help ----------------------------------------------------------------------------------------------
-HELP ABCDE EF_GH;
-> ID SECTION TOPIC SYNTAX TEXT
-> -- ------- ----- ------ ----
-> rows: 0
 
 --- sequence ----------------------------------------------------------------------------------------------
 CREATE CACHED TABLE TEST(ID INT PRIMARY KEY);

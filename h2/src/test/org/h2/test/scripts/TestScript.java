@@ -129,8 +129,11 @@ public class TestScript extends TestDb {
             testScript("ddl/" + s + ".sql");
         }
         for (String s : new String[] { "error_reporting", "insertIgnore", "merge", "mergeUsing", "replace",
-                "script", "with" }) {
+                "script", "show", "with" }) {
             testScript("dml/" + s + ".sql");
+        }
+        for (String s : new String[] { "help" }) {
+            testScript("other/" + s + ".sql");
         }
         for (String s : new String[] { "avg", "bit-and", "bit-or", "count",
                 "group-concat", "max", "median", "min", "selectivity", "stddev-pop",

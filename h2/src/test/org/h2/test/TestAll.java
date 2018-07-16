@@ -70,7 +70,6 @@ import org.h2.test.db.TestSelectCountNonNullColumn;
 import org.h2.test.db.TestSequence;
 import org.h2.test.db.TestSessionsLocks;
 import org.h2.test.db.TestSetCollation;
-import org.h2.test.db.TestShow;
 import org.h2.test.db.TestSpaceReuse;
 import org.h2.test.db.TestSpatial;
 import org.h2.test.db.TestSpeed;
@@ -779,7 +778,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestSessionsLocks());
         addTest(new TestSelectCountNonNullColumn());
         addTest(new TestSequence());
-        addTest(new TestShow());
         addTest(new TestSpaceReuse());
         addTest(new TestSpatial());
         addTest(new TestSpeed());

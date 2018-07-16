@@ -1109,11 +1109,6 @@ drop table test;
 alter table information_schema.help rename to information_schema.help2;
 > exception FEATURE_NOT_SUPPORTED_1
 
-help abc;
-> ID SECTION TOPIC SYNTAX TEXT
-> -- ------- ----- ------ ----
-> rows: 0
-
 CREATE TABLE test (id int(25) NOT NULL auto_increment, name varchar NOT NULL, PRIMARY KEY  (id,name));
 > ok
 
@@ -6879,12 +6874,6 @@ DROP INDEX IF EXISTS IDXNAME;
 
 DROP TABLE TEST;
 > ok
-
---- help ----------------------------------------------------------------------------------------------
-HELP ABCDE EF_GH;
-> ID SECTION TOPIC SYNTAX TEXT
-> -- ------- ----- ------ ----
-> rows: 0
 
 --- sequence ----------------------------------------------------------------------------------------------
 CREATE CACHED TABLE TEST(ID INT PRIMARY KEY);

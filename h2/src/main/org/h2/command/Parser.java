@@ -2535,7 +2535,16 @@ public class Parser {
         }
         currentSelect = temp;
         if (readIf(DISTINCT)) {
-            command.setDistinct();
+            if (readIf(ON)) {
+                read(OPEN_PAREN);
+                ArrayList<Expression> distinctExpressions = Utils.newSmallArrayList();
+                do {
+                    distinctExpressions.add(readExpression());
+                } while (readIfMore(true));
+                command.setDistinct(distinctExpressions.toArray(new Expression[0]));
+            } else {
+                command.setDistinct();
+            }
         } else {
             readIf(ALL);
         }

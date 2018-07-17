@@ -80,10 +80,6 @@ public class LocalDateTimeUtils {
      */
     private static final Method LOCAL_DATE_OF_YEAR_MONTH_DAY;
     /**
-     * {@code java.time.LocalDate#parse(CharSequence)} or {@code null}.
-     */
-    private static final Method LOCAL_DATE_PARSE;
-    /**
      * {@code java.time.LocalDate#getYear()} or {@code null}.
      */
     private static final Method LOCAL_DATE_GET_YEAR;
@@ -114,11 +110,6 @@ public class LocalDateTimeUtils {
     private static final Method TIMESTAMP_TO_INSTANT;
 
     /**
-     * {@code java.time.LocalTime#parse(CharSequence)} or {@code null}.
-     */
-    private static final Method LOCAL_TIME_PARSE;
-
-    /**
      * {@code java.time.LocalDateTime#plusNanos(long)} or {@code null}.
      */
     private static final Method LOCAL_DATE_TIME_PLUS_NANOS;
@@ -130,10 +121,6 @@ public class LocalDateTimeUtils {
      * {@code java.time.LocalDateTime#toLocalTime()} or {@code null}.
      */
     private static final Method LOCAL_DATE_TIME_TO_LOCAL_TIME;
-    /**
-     * {@code java.time.LocalDateTime#parse(CharSequence)} or {@code null}.
-     */
-    private static final Method LOCAL_DATE_TIME_PARSE;
 
     /**
      * {@code java.time.ZoneOffset#ofTotalSeconds(int)} or {@code null}.
@@ -145,10 +132,6 @@ public class LocalDateTimeUtils {
      * {@code null}.
      */
     private static final Method OFFSET_DATE_TIME_OF_LOCAL_DATE_TIME_ZONE_OFFSET;
-    /**
-     * {@code java.time.OffsetDateTime#parse(CharSequence)} or {@code null}.
-     */
-    private static final Method OFFSET_DATE_TIME_PARSE;
     /**
      * {@code java.time.OffsetDateTime#toLocalDateTime()} or {@code null}.
      */
@@ -183,8 +166,6 @@ public class LocalDateTimeUtils {
 
             LOCAL_DATE_OF_YEAR_MONTH_DAY = getMethod(LOCAL_DATE, "of",
                     int.class, int.class, int.class);
-            LOCAL_DATE_PARSE = getMethod(LOCAL_DATE, "parse",
-                    CharSequence.class);
             LOCAL_DATE_GET_YEAR = getMethod(LOCAL_DATE, "getYear");
             LOCAL_DATE_GET_MONTH_VALUE = getMethod(LOCAL_DATE, "getMonthValue");
             LOCAL_DATE_GET_DAY_OF_MONTH = getMethod(LOCAL_DATE, "getDayOfMonth");
@@ -194,12 +175,9 @@ public class LocalDateTimeUtils {
             INSTANT_GET_NANO = getMethod(INSTANT, "getNano");
             TIMESTAMP_TO_INSTANT = getMethod(Timestamp.class, "toInstant");
 
-            LOCAL_TIME_PARSE = getMethod(LOCAL_TIME, "parse", CharSequence.class);
-
             LOCAL_DATE_TIME_PLUS_NANOS = getMethod(LOCAL_DATE_TIME, "plusNanos", long.class);
             LOCAL_DATE_TIME_TO_LOCAL_DATE = getMethod(LOCAL_DATE_TIME, "toLocalDate");
             LOCAL_DATE_TIME_TO_LOCAL_TIME = getMethod(LOCAL_DATE_TIME, "toLocalTime");
-            LOCAL_DATE_TIME_PARSE = getMethod(LOCAL_DATE_TIME, "parse", CharSequence.class);
 
             ZONE_OFFSET_OF_TOTAL_SECONDS = getMethod(ZONE_OFFSET, "ofTotalSeconds", int.class);
 
@@ -207,14 +185,12 @@ public class LocalDateTimeUtils {
             OFFSET_DATE_TIME_GET_OFFSET = getMethod(OFFSET_DATE_TIME, "getOffset");
             OFFSET_DATE_TIME_OF_LOCAL_DATE_TIME_ZONE_OFFSET = getMethod(
                     OFFSET_DATE_TIME, "of", LOCAL_DATE_TIME, ZONE_OFFSET);
-            OFFSET_DATE_TIME_PARSE = getMethod(OFFSET_DATE_TIME, "parse", CharSequence.class);
 
             ZONE_OFFSET_GET_TOTAL_SECONDS = getMethod(ZONE_OFFSET, "getTotalSeconds");
         } else {
             LOCAL_TIME_OF_NANO = null;
             LOCAL_TIME_TO_NANO = null;
             LOCAL_DATE_OF_YEAR_MONTH_DAY = null;
-            LOCAL_DATE_PARSE = null;
             LOCAL_DATE_GET_YEAR = null;
             LOCAL_DATE_GET_MONTH_VALUE = null;
             LOCAL_DATE_GET_DAY_OF_MONTH = null;
@@ -222,16 +198,13 @@ public class LocalDateTimeUtils {
             INSTANT_GET_EPOCH_SECOND = null;
             INSTANT_GET_NANO = null;
             TIMESTAMP_TO_INSTANT = null;
-            LOCAL_TIME_PARSE = null;
             LOCAL_DATE_TIME_PLUS_NANOS = null;
             LOCAL_DATE_TIME_TO_LOCAL_DATE = null;
             LOCAL_DATE_TIME_TO_LOCAL_TIME = null;
-            LOCAL_DATE_TIME_PARSE = null;
             ZONE_OFFSET_OF_TOTAL_SECONDS = null;
             OFFSET_DATE_TIME_TO_LOCAL_DATE_TIME = null;
             OFFSET_DATE_TIME_GET_OFFSET = null;
             OFFSET_DATE_TIME_OF_LOCAL_DATE_TIME_ZONE_OFFSET = null;
-            OFFSET_DATE_TIME_PARSE = null;
             ZONE_OFFSET_GET_TOTAL_SECONDS = null;
         }
     }
@@ -250,62 +223,6 @@ public class LocalDateTimeUtils {
      */
     public static boolean isJava8DateApiPresent() {
         return IS_JAVA8_DATE_API_PRESENT;
-    }
-
-    /**
-     * Parses an ISO date string into a java.time.LocalDate.
-     *
-     * @param text the ISO date string
-     * @return the java.time.LocalDate instance
-     */
-    public static Object parseLocalDate(CharSequence text) {
-        try {
-            return LOCAL_DATE_PARSE.invoke(null, text);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalArgumentException("error when parsing text '" + text + "'", e);
-        }
-    }
-
-    /**
-     * Parses an ISO time string into a java.time.LocalTime.
-     *
-     * @param text the ISO time string
-     * @return the java.time.LocalTime instance
-     */
-    public static Object parseLocalTime(CharSequence text) {
-        try {
-            return LOCAL_TIME_PARSE.invoke(null, text);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalArgumentException("error when parsing text '" + text + "'", e);
-        }
-    }
-
-    /**
-     * Parses an ISO date string into a java.time.LocalDateTime.
-     *
-     * @param text the ISO date string
-     * @return the java.time.LocalDateTime instance
-     */
-    public static Object parseLocalDateTime(CharSequence text) {
-        try {
-            return LOCAL_DATE_TIME_PARSE.invoke(null, text);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalArgumentException("error when parsing text '" + text + "'", e);
-        }
-    }
-
-    /**
-     * Parses an ISO date string into a java.time.OffsetDateTime.
-     *
-     * @param text the ISO date string
-     * @return the java.time.OffsetDateTime instance
-     */
-    public static Object parseOffsetDateTime(CharSequence text) {
-        try {
-            return OFFSET_DATE_TIME_PARSE.invoke(null, text);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalArgumentException("error when parsing text '" + text + "'", e);
-        }
     }
 
     private static Class<?> tryGetClass(String className) {

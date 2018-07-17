@@ -32,6 +32,7 @@ import java.util.UUID;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.engine.SysProperties;
+import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.LocalDateTimeUtils;
@@ -45,12 +46,106 @@ public class TestPreparedStatement extends TestDb {
     private static final int LOB_SIZE = 4000, LOB_SIZE_BIG = 512 * 1024;
 
     /**
+     * {@code java.time.LocalDate#parse(CharSequence)} or {@code null}.
+     */
+    private static final Method LOCAL_DATE_PARSE;
+
+    /**
+     * {@code java.time.LocalTime#parse(CharSequence)} or {@code null}.
+     */
+    private static final Method LOCAL_TIME_PARSE;
+
+    /**
+     * {@code java.time.LocalDateTime#parse(CharSequence)} or {@code null}.
+     */
+    private static final Method LOCAL_DATE_TIME_PARSE;
+
+    /**
+     * {@code java.time.OffsetDateTime#parse(CharSequence)} or {@code null}.
+     */
+    private static final Method OFFSET_DATE_TIME_PARSE;
+
+    static {
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            try {
+                LOCAL_DATE_PARSE = LocalDateTimeUtils.LOCAL_DATE.getMethod("parse", CharSequence.class);
+                LOCAL_TIME_PARSE = LocalDateTimeUtils.LOCAL_TIME.getMethod("parse", CharSequence.class);
+                LOCAL_DATE_TIME_PARSE = LocalDateTimeUtils.LOCAL_DATE_TIME.getMethod("parse", CharSequence.class);
+                OFFSET_DATE_TIME_PARSE = LocalDateTimeUtils.OFFSET_DATE_TIME.getMethod("parse", CharSequence.class);
+            } catch (NoSuchMethodException e) {
+                throw DbException.convert(e);
+            }
+        } else {
+            LOCAL_DATE_PARSE = null;
+            LOCAL_TIME_PARSE = null;
+            LOCAL_DATE_TIME_PARSE = null;
+            OFFSET_DATE_TIME_PARSE = null;
+        }
+    }
+
+    /**
      * Run just this test.
      *
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
+    }
+
+    /**
+     * Parses an ISO date string into a java.time.LocalDate.
+     *
+     * @param text the ISO date string
+     * @return the java.time.LocalDate instance
+     */
+    public static Object parseLocalDate(CharSequence text) {
+        try {
+            return LOCAL_DATE_PARSE.invoke(null, text);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new IllegalArgumentException("error when parsing text '" + text + "'", e);
+        }
+    }
+
+    /**
+     * Parses an ISO time string into a java.time.LocalTime.
+     *
+     * @param text the ISO time string
+     * @return the java.time.LocalTime instance
+     */
+    public static Object parseLocalTime(CharSequence text) {
+        try {
+            return LOCAL_TIME_PARSE.invoke(null, text);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new IllegalArgumentException("error when parsing text '" + text + "'", e);
+        }
+    }
+
+    /**
+     * Parses an ISO date string into a java.time.LocalDateTime.
+     *
+     * @param text the ISO date string
+     * @return the java.time.LocalDateTime instance
+     */
+    public static Object parseLocalDateTime(CharSequence text) {
+        try {
+            return LOCAL_DATE_TIME_PARSE.invoke(null, text);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new IllegalArgumentException("error when parsing text '" + text + "'", e);
+        }
+    }
+
+    /**
+     * Parses an ISO date string into a java.time.OffsetDateTime.
+     *
+     * @param text the ISO date string
+     * @return the java.time.OffsetDateTime instance
+     */
+    public static Object parseOffsetDateTime(CharSequence text) {
+        try {
+            return OFFSET_DATE_TIME_PARSE.invoke(null, text);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new IllegalArgumentException("error when parsing text '" + text + "'", e);
+        }
     }
 
     @Override
@@ -643,14 +738,14 @@ public class TestPreparedStatement extends TestDb {
             return;
         }
         PreparedStatement prep = conn.prepareStatement("SELECT ?");
-        Object localDate = LocalDateTimeUtils.parseLocalDate("2001-02-03");
+        Object localDate = parseLocalDate("2001-02-03");
         prep.setObject(1, localDate);
         ResultSet rs = prep.executeQuery();
         rs.next();
         Object localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
         assertEquals(localDate, localDate2);
         rs.close();
-        localDate = LocalDateTimeUtils.parseLocalDate("-0509-01-01");
+        localDate = parseLocalDate("-0509-01-01");
         prep.setObject(1, localDate);
         rs = prep.executeQuery();
         rs.next();
@@ -665,31 +760,31 @@ public class TestPreparedStatement extends TestDb {
         rs = prep.executeQuery();
         rs.next();
         localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
-        assertEquals(LocalDateTimeUtils.parseLocalDate("1500-03-01"), localDate2);
+        assertEquals(parseLocalDate("1500-03-01"), localDate2);
         rs.close();
         prep.setString(1, "1400-02-29");
         rs = prep.executeQuery();
         rs.next();
         localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
-        assertEquals(LocalDateTimeUtils.parseLocalDate("1400-03-01"), localDate2);
+        assertEquals(parseLocalDate("1400-03-01"), localDate2);
         rs.close();
         prep.setString(1, "1300-02-29");
         rs = prep.executeQuery();
         rs.next();
         localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
-        assertEquals(LocalDateTimeUtils.parseLocalDate("1300-03-01"), localDate2);
+        assertEquals(parseLocalDate("1300-03-01"), localDate2);
         rs.close();
         prep.setString(1, "-0100-02-29");
         rs = prep.executeQuery();
         rs.next();
         localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
-        assertEquals(LocalDateTimeUtils.parseLocalDate("-0100-03-01"), localDate2);
+        assertEquals(parseLocalDate("-0100-03-01"), localDate2);
         rs.close();
         /*
          * Check that date that doesn't exist in traditional calendar can be set and
          * read with LocalDate and can be read with getDate() as a next date.
          */
-        localDate = LocalDateTimeUtils.parseLocalDate("1582-10-05");
+        localDate = parseLocalDate("1582-10-05");
         prep.setObject(1, localDate);
         rs = prep.executeQuery();
         rs.next();
@@ -718,14 +813,14 @@ public class TestPreparedStatement extends TestDb {
             return;
         }
         PreparedStatement prep = conn.prepareStatement("SELECT ?");
-        Object localTime = LocalDateTimeUtils.parseLocalTime("04:05:06");
+        Object localTime = parseLocalTime("04:05:06");
         prep.setObject(1, localTime);
         ResultSet rs = prep.executeQuery();
         rs.next();
         Object localTime2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_TIME);
         assertEquals(localTime, localTime2);
         rs.close();
-        localTime = LocalDateTimeUtils.parseLocalTime("04:05:06.123456789");
+        localTime = parseLocalTime("04:05:06.123456789");
         prep.setObject(1, localTime);
         rs = prep.executeQuery();
         rs.next();
@@ -739,7 +834,7 @@ public class TestPreparedStatement extends TestDb {
             return;
         }
         PreparedStatement prep = conn.prepareStatement("SELECT ?");
-        Object localDateTime = LocalDateTimeUtils.parseLocalDateTime("2001-02-03T04:05:06");
+        Object localDateTime = parseLocalDateTime("2001-02-03T04:05:06");
         prep.setObject(1, localDateTime);
         ResultSet rs = prep.executeQuery();
         rs.next();
@@ -753,8 +848,7 @@ public class TestPreparedStatement extends TestDb {
             return;
         }
         PreparedStatement prep = conn.prepareStatement("SELECT ?");
-        Object offsetDateTime = LocalDateTimeUtils
-                .parseOffsetDateTime("2001-02-03T04:05:06+02:30");
+        Object offsetDateTime = parseOffsetDateTime("2001-02-03T04:05:06+02:30");
         prep.setObject(1, offsetDateTime);
         ResultSet rs = prep.executeQuery();
         rs.next();

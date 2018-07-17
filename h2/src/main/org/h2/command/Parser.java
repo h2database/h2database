@@ -2535,7 +2535,7 @@ public class Parser {
         }
         currentSelect = temp;
         if (readIf(DISTINCT)) {
-            command.setDistinct(true);
+            command.setDistinct();
         } else {
             readIf(ALL);
         }

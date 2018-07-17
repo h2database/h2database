@@ -43,9 +43,7 @@ public class ConditionInSelect extends Condition {
     @Override
     public Value getValue(Session session) {
         query.setSession(session);
-        if (!query.hasOrder()) {
-            query.setDistinct(true);
-        }
+        query.setDistinctIfPossible();
         ResultInterface rows = query.query(0);
         Value l = left.getValue(session);
         if (!rows.hasNext()) {

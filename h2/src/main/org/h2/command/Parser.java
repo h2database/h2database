@@ -2535,7 +2535,7 @@ public class Parser {
         }
         currentSelect = temp;
         if (readIf(DISTINCT)) {
-            command.setDistinct(true);
+            command.setDistinct();
         } else {
             readIf(ALL);
         }
@@ -2749,9 +2749,7 @@ public class Parser {
                 } else {
                     if (isSelect()) {
                         Query query = parseSelect();
-                        // can not be lazy because we have to call
-                        // method ResultInterface.containsDistinct
-                        // which is not supported for lazy execution
+                        // TODO lazy result causes timeout in TestFuzzOptimizations
                         query.setNeverLazy(true);
                         r = new ConditionInSelect(database, r, query, false,
                                 Comparison.EQUAL);

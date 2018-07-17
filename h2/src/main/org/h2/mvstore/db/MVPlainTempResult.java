@@ -5,8 +5,6 @@
  */
 package org.h2.mvstore.db;
 
-import java.util.Arrays;
-
 import org.h2.engine.Database;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
@@ -23,11 +21,6 @@ import org.h2.value.ValueArray;
 class MVPlainTempResult extends MVTempResult {
 
     /**
-     * The type of the distinct values.
-     */
-    private final ValueDataType distinctType;
-
-    /**
      * Map with identities of rows as keys rows as values.
      */
     private final MVMap<Long, ValueArray> map;
@@ -38,12 +31,6 @@ class MVPlainTempResult extends MVTempResult {
      * method to ensure that each row will have an own identity.
      */
     private long counter;
-
-    /**
-     * Optional index. This index is created only if {@link #contains(Value[])}
-     * method is invoked. Only the root result should have an index if required.
-     */
-    private MVMap<ValueArray, Boolean> index;
 
     /**
      * Cursor for the {@link #next()} method.
@@ -58,7 +45,6 @@ class MVPlainTempResult extends MVTempResult {
      */
     private MVPlainTempResult(MVPlainTempResult parent) {
         super(parent);
-        this.distinctType = null;
         this.map = parent.map;
     }
 
@@ -75,46 +61,20 @@ class MVPlainTempResult extends MVTempResult {
     MVPlainTempResult(Database database, Expression[] expressions, int visibleColumnCount) {
         super(database, expressions.length, visibleColumnCount);
         ValueDataType valueType = new ValueDataType(database.getCompareMode(), database, new int[columnCount]);
-        if (columnCount == visibleColumnCount) {
-            distinctType = valueType;
-        } else {
-            distinctType = new ValueDataType(database.getCompareMode(), database, new int[visibleColumnCount]);
-        }
         Builder<Long, ValueArray> builder = new MVMap.Builder<Long, ValueArray>().valueType(valueType);
         map = store.openMap("tmp", builder);
     }
 
     @Override
     public int addRow(Value[] values) {
-        assert parent == null && index == null;
+        assert parent == null;
         map.put(counter++, ValueArray.get(values));
         return ++rowCount;
     }
 
     @Override
     public boolean contains(Value[] values) {
-        // Only parent result maintains the index
-        if (parent != null) {
-            return parent.contains(values);
-        }
-        if (index == null) {
-            createIndex();
-        }
-        return index.containsKey(ValueArray.get(values));
-    }
-
-    private void createIndex() {
-        Builder<ValueArray, Boolean> builder = new MVMap.Builder<ValueArray, Boolean>().keyType(distinctType);
-        index = store.openMap("idx", builder);
-        Cursor<Long, ValueArray> c = map.cursor(null);
-        while (c.hasNext()) {
-            c.next();
-            ValueArray row = c.getValue();
-            if (columnCount != visibleColumnCount) {
-                row = ValueArray.get(Arrays.copyOf(row.getList(), visibleColumnCount));
-            }
-            index.putIfAbsent(row, true);
-        }
+        throw DbException.getUnsupportedException("contains()");
     }
 
     @Override

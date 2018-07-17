@@ -125,6 +125,11 @@ public class SelectUnion extends Query {
         return orderList != null || sort != null;
     }
 
+    @Override
+    public void setDistinctIfPossible() {
+        setDistinct();
+    }
+
     private Value[] convert(Value[] values, int columnCount) {
         Value[] newValues;
         if (columnCount == values.length) {
@@ -210,25 +215,22 @@ public class SelectUnion extends Query {
             result.setSortOrder(sort);
         }
         if (distinct) {
-            left.setDistinct(true);
-            right.setDistinct(true);
+            left.setDistinctIfPossible();
+            right.setDistinctIfPossible();
             result.setDistinct();
-        }
-        if (randomAccessResult) {
-            result.setRandomAccess();
         }
         switch (unionType) {
         case UNION:
         case EXCEPT:
-            left.setDistinct(true);
-            right.setDistinct(true);
+            left.setDistinctIfPossible();
+            right.setDistinctIfPossible();
             result.setDistinct();
             break;
         case UNION_ALL:
             break;
         case INTERSECT:
-            left.setDistinct(true);
-            right.setDistinct(true);
+            left.setDistinctIfPossible();
+            right.setDistinctIfPossible();
             break;
         default:
             DbException.throwInternalError("type=" + unionType);
@@ -260,7 +262,6 @@ public class SelectUnion extends Query {
         case INTERSECT: {
             LocalResult temp = new LocalResult(session, expressionArray, columnCount);
             temp.setDistinct();
-            temp.setRandomAccess();
             while (l.next()) {
                 temp.addRow(convert(l.currentRow(), columnCount));
             }

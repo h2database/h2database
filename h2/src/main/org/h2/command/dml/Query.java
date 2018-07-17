@@ -255,12 +255,16 @@ public abstract class Query extends Prepared {
 
     /**
      * Set the distinct flag.
-     *
-     * @param b the new value
      */
-    public void setDistinct(boolean b) {
-        distinct = b;
+    public void setDistinct() {
+        distinct = true;
     }
+
+    /**
+     * Set the distinct flag only if it is possible, may be used as a possible
+     * optimization only.
+     */
+    public abstract void setDistinctIfPossible();
 
     public boolean isDistinct() {
         return distinct;

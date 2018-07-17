@@ -247,6 +247,13 @@ public class Select extends Query {
         return orderList != null || sort != null;
     }
 
+    @Override
+    public void setDistinctIfPossible() {
+        if (!distinct && offsetExpr == null && limitExpr == null) {
+            setDistinct();
+        }
+    }
+
     /**
      * Add a condition to the list of conditions.
      *
@@ -667,9 +674,6 @@ public class Select extends Query {
             result = createLocalResult(result);
             result.setDistinct();
         }
-        if (randomAccessResult) {
-            result = createLocalResult(result);
-        }
         if (isGroupQuery && !isGroupSortedQuery) {
             result = createLocalResult(result);
         }
@@ -724,7 +728,11 @@ public class Select extends Query {
             if (limitRows > 0) {
                 lazyResult.setLimit(limitRows);
             }
-            return lazyResult;
+            if (randomAccessResult) {
+                return convertToDistinct(lazyResult);
+            } else {
+                return lazyResult;
+            }
         }
         if (offsetExpr != null) {
             result.setOffset(offsetExpr.getValue(session).getInt());
@@ -734,6 +742,9 @@ public class Select extends Query {
         }
         if (result != null) {
             result.done();
+            if (randomAccessResult && !distinct) {
+                result = convertToDistinct(result);
+            }
             if (target != null) {
                 while (result.next()) {
                     target.addRow(result.currentRow());
@@ -759,6 +770,18 @@ public class Select extends Query {
     private LocalResult createLocalResult(LocalResult old) {
         return old != null ? old : new LocalResult(session, expressionArray,
                 visibleColumnCount);
+    }
+
+    private LocalResult convertToDistinct(ResultInterface result) {
+        LocalResult distinctResult = new LocalResult(session, expressionArray, visibleColumnCount);
+        distinctResult.setDistinct();
+        result.reset();
+        while (result.next()) {
+            distinctResult.addRow(result.currentRow());
+        }
+        result.close();
+        distinctResult.done();
+        return distinctResult;
     }
 
     private void expandColumnList() {

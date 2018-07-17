@@ -171,7 +171,9 @@ class MVSortedTempResult extends MVTempResult {
         } else {
             distinctType = new ValueDataType(database.getCompareMode(), database, new int[visibleColumnCount]);
             if (distinct) {
-                createIndex(false);
+                Builder<ValueArray, Boolean> indexBuilder = new MVMap.Builder<ValueArray, Boolean>()
+                        .keyType(distinctType);
+                index = store.openMap("idx", indexBuilder);
             }
         }
     }
@@ -209,27 +211,11 @@ class MVSortedTempResult extends MVTempResult {
         if (parent != null) {
             return parent.contains(values);
         }
+        assert distinct;
         if (columnCount != visibleColumnCount) {
-            if (index == null) {
-                createIndex(true);
-            }
             return index.containsKey(ValueArray.get(values));
         }
         return map.containsKey(getKey(values));
-    }
-
-    private void createIndex(boolean fill) {
-        Builder<ValueArray, Boolean> indexBuilder = new MVMap.Builder<ValueArray, Boolean>()
-                .keyType(distinctType);
-        index = store.openMap("idx", indexBuilder);
-        if (fill) {
-            Cursor<ValueArray, Long> c = map.cursor(null);
-            while (c.hasNext()) {
-                Value[] v = getValue(c.next().getList());
-                ValueArray distinctRow = ValueArray.get(Arrays.copyOf(v, visibleColumnCount));
-                index.putIfAbsent(distinctRow, true);
-            }
-        }
     }
 
     @Override

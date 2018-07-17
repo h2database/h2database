@@ -61,7 +61,7 @@ public class SelectUnion extends Query {
         INTERSECT
     }
 
-    private UnionType unionType;
+    private final UnionType unionType;
 
     /**
      * The left hand side of the union (the first subquery).
@@ -71,7 +71,7 @@ public class SelectUnion extends Query {
     /**
      * The right hand side of the union (the second subquery).
      */
-    Query right;
+    final Query right;
 
     private ArrayList<Expression> expressions;
     private Expression[] expressionArray;
@@ -80,9 +80,11 @@ public class SelectUnion extends Query {
     private boolean isPrepared, checkInit;
     private boolean isForUpdate;
 
-    public SelectUnion(Session session, Query query) {
+    public SelectUnion(Session session, UnionType unionType, Query query, Query right) {
         super(session);
+        this.unionType = unionType;
         this.left = query;
+        this.right = right;
     }
 
     @Override
@@ -96,16 +98,8 @@ public class SelectUnion extends Query {
         right.prepareJoinBatch();
     }
 
-    public void setUnionType(UnionType type) {
-        this.unionType = type;
-    }
-
     public UnionType getUnionType() {
         return unionType;
-    }
-
-    public void setRight(Query select) {
-        right = select;
     }
 
     public Query getLeft() {

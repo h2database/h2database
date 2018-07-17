@@ -2308,39 +2308,25 @@ public class Parser {
     private Query parseSelectUnion() {
         int start = lastParseIndex;
         Query command = parseSelectSub();
-        return parseSelectUnionExtension(command, start, false);
-    }
-
-    private Query parseSelectUnionExtension(Query command, int start,
-            boolean unionOnly) {
-        while (true) {
+        for (;;) {
+            SelectUnion.UnionType type;
             if (readIf(UNION)) {
-                SelectUnion union = new SelectUnion(session, command);
                 if (readIf(ALL)) {
-                    union.setUnionType(SelectUnion.UnionType.UNION_ALL);
+                    type = SelectUnion.UnionType.UNION_ALL;
                 } else {
                     readIf(DISTINCT);
-                    union.setUnionType(SelectUnion.UnionType.UNION);
+                    type = SelectUnion.UnionType.UNION;
                 }
-                union.setRight(parseSelectSub());
-                command = union;
-            } else if (readIf(MINUS) || readIf(EXCEPT)) {
-                SelectUnion union = new SelectUnion(session, command);
-                union.setUnionType(SelectUnion.UnionType.EXCEPT);
-                union.setRight(parseSelectSub());
-                command = union;
+            } else if (readIf(EXCEPT) || readIf(MINUS)) {
+                type = SelectUnion.UnionType.EXCEPT;
             } else if (readIf(INTERSECT)) {
-                SelectUnion union = new SelectUnion(session, command);
-                union.setUnionType(SelectUnion.UnionType.INTERSECT);
-                union.setRight(parseSelectSub());
-                command = union;
+                type = SelectUnion.UnionType.INTERSECT;
             } else {
                 break;
             }
+            command = new SelectUnion(session, type, command, parseSelectSub());
         }
-        if (!unionOnly) {
-            parseEndOfQuery(command);
-        }
+        parseEndOfQuery(command);
         setSQL(command, null, start);
         return command;
     }

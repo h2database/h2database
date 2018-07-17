@@ -252,7 +252,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("OCTET_LENGTH", OCTET_LENGTH, 1, Value.LONG);
         addFunction("RAWTOHEX", RAWTOHEX, 1, Value.STRING);
         addFunction("REPEAT", REPEAT, 2, Value.STRING);
-        addFunction("REPLACE", REPLACE, VAR_ARGS, Value.STRING, false, true,true);
+        addFunctionWithNull("REPLACE", REPLACE, VAR_ARGS, Value.STRING);
         addFunction("RIGHT", RIGHT, 2, Value.STRING);
         addFunction("RTRIM", RTRIM, VAR_ARGS, Value.STRING);
         addFunction("SOUNDEX", SOUNDEX, 1, Value.STRING);
@@ -421,8 +421,7 @@ public class Function extends Expression implements FunctionCall {
                 VAR_ARGS, Value.LONG);
         addFunction("ARRAY_GET", ARRAY_GET,
                 2, Value.NULL);
-        addFunction("ARRAY_CONTAINS", ARRAY_CONTAINS,
-                2, Value.BOOLEAN, false, true, true);
+        addFunctionWithNull("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN);
         addFunction("CSVREAD", CSVREAD,
                 VAR_ARGS, Value.RESULT_SET, false, false, false);
         addFunction("CSVWRITE", CSVWRITE,
@@ -515,17 +514,6 @@ public class Function extends Expression implements FunctionCall {
     }
 
     /**
-     * Get the function info object for this function, or null if there is no
-     * such function.
-     *
-     * @param name the function name
-     * @return the function info
-     */
-    private static FunctionInfo getFunctionInfo(String name) {
-        return FUNCTIONS.get(name);
-    }
-
-    /**
      * Get an instance of the given function for this database.
      * If no function with this name is found, null is returned.
      *
@@ -538,7 +526,7 @@ public class Function extends Expression implements FunctionCall {
             // if not yet converted to uppercase, do it now
             name = StringUtils.toUpperEnglish(name);
         }
-        FunctionInfo info = getFunctionInfo(name);
+        FunctionInfo info = FUNCTIONS.get(name);
         if (info == null) {
             return null;
         }
@@ -914,7 +902,7 @@ public class Function extends Expression implements FunctionCall {
             if (v0 == ValueNull.INSTANCE) {
                 result = getNullOrValue(session, args, values, 1);
             }
-            result = convertResult(result);
+            result = result.convertTo(dataType, -1, database.getMode());
             break;
         }
         case CASEWHEN: {
@@ -1077,10 +1065,6 @@ public class Function extends Expression implements FunctionCall {
             result = null;
         }
         return result;
-    }
-
-    private Value convertResult(Value v) {
-        return v.convertTo(dataType, -1, database.getMode());
     }
 
     private static boolean cancelStatement(Session session, int targetSessionId) {

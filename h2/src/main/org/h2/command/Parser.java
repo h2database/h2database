@@ -2749,10 +2749,6 @@ public class Parser {
                 } else {
                     if (isSelect()) {
                         Query query = parseSelect();
-                        // can not be lazy because we have to call
-                        // method ResultInterface.containsDistinct
-                        // which is not supported for lazy execution
-                        query.setNeverLazy(true);
                         r = new ConditionInSelect(database, r, query, false,
                                 Comparison.EQUAL);
                     } else {

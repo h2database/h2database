@@ -66,7 +66,7 @@ public class ValueHashMap<V> extends HashBase {
             if (k != null && k != ValueNull.DELETED) {
                 // skip the checkSizePut so we don't end up
                 // accidentally recursing
-                internalPut(k, oldValues[i]);
+                internalPut(k, oldValues[i], false);
             }
         }
     }
@@ -88,10 +88,21 @@ public class ValueHashMap<V> extends HashBase {
      */
     public void put(Value key, V value) {
         checkSizePut();
-        internalPut(key, value);
+        internalPut(key, value, false);
     }
 
-    private void internalPut(Value key, V value) {
+    /**
+     * Add a key value pair, values for existing keys are not replaced.
+     *
+     * @param key the key
+     * @param value the new value
+     */
+    public void putIfAbsent(Value key, V value) {
+        checkSizePut();
+        internalPut(key, value, true);
+    }
+
+    private void internalPut(Value key, V value, boolean ifAbsent) {
         int index = getIndex(key);
         int plus = 1;
         int deleted = -1;
@@ -113,6 +124,9 @@ public class ValueHashMap<V> extends HashBase {
                     deleted = index;
                 }
             } else if (k.equals(key)) {
+                if (ifAbsent) {
+                    return;
+                }
                 // update existing
                 values[index] = value;
                 return;

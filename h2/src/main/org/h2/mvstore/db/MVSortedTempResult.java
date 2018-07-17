@@ -29,9 +29,14 @@ import org.h2.value.ValueArray;
 class MVSortedTempResult extends MVTempResult {
 
     /**
-     * Whether this result is distinct.
+     * Whether this result is a standard distinct result.
      */
     private final boolean distinct;
+
+    /**
+     * Distinct indexes for DISTINCT ON results.
+     */
+    private final int[] distinctIndexes;
 
     /**
      * Mapping of indexes of columns to its positions in the store, or {@code null}
@@ -44,11 +49,6 @@ class MVSortedTempResult extends MVTempResult {
      * distinct all values are 1.
      */
     private final MVMap<ValueArray, Long> map;
-
-    /**
-     * The type of the distinct values.
-     */
-    private final ValueDataType distinctType;
 
     /**
      * Optional index. This index is created only if result is distinct and
@@ -84,9 +84,9 @@ class MVSortedTempResult extends MVTempResult {
     private MVSortedTempResult(MVSortedTempResult parent) {
         super(parent);
         this.distinct = parent.distinct;
+        this.distinctIndexes = parent.distinctIndexes;
         this.indexes = parent.indexes;
         this.map = parent.map;
-        this.distinctType = null;
         this.rowCount = parent.rowCount;
     }
 
@@ -99,16 +99,19 @@ class MVSortedTempResult extends MVTempResult {
      *            column expressions
      * @param distinct
      *            whether this result should be distinct
+     * @param distinctIndexes
+     *            indexes of distinct columns for DISINCT ON results
      * @param visibleColumnCount
      *            count of visible columns
      * @param sort
      *            sort order, or {@code null} if this result does not need any
      *            sorting
      */
-    MVSortedTempResult(Database database, Expression[] expressions, boolean distinct, int visibleColumnCount,
+    MVSortedTempResult(Database database, Expression[] expressions, boolean distinct, int[] distinctIndexes, int visibleColumnCount,
             SortOrder sort) {
         super(database, expressions.length, visibleColumnCount);
         this.distinct = distinct;
+        this.distinctIndexes = distinctIndexes;
         int length = columnCount;
         int[] sortTypes = new int[length];
         int[] indexes;
@@ -166,15 +169,11 @@ class MVSortedTempResult extends MVTempResult {
         ValueDataType keyType = new ValueDataType(database.getCompareMode(), database, sortTypes);
         Builder<ValueArray, Long> builder = new MVMap.Builder<ValueArray, Long>().keyType(keyType);
         map = store.openMap("tmp", builder);
-        if (length == visibleColumnCount) {
-            distinctType = null;
-        } else {
-            distinctType = new ValueDataType(database.getCompareMode(), database, new int[visibleColumnCount]);
-            if (distinct) {
-                Builder<ValueArray, Boolean> indexBuilder = new MVMap.Builder<ValueArray, Boolean>()
-                        .keyType(distinctType);
-                index = store.openMap("idx", indexBuilder);
-            }
+        if (distinct && length != visibleColumnCount || distinctIndexes != null) {
+            int count = distinctIndexes != null ? distinctIndexes.length : visibleColumnCount;
+            ValueDataType distinctType = new ValueDataType(database.getCompareMode(), database, new int[count]);
+            Builder<ValueArray, Boolean> indexBuilder = new MVMap.Builder<ValueArray, Boolean>().keyType(distinctType);
+            index = store.openMap("idx", indexBuilder);
         }
     }
 
@@ -182,8 +181,18 @@ class MVSortedTempResult extends MVTempResult {
     public int addRow(Value[] values) {
         assert parent == null;
         ValueArray key = getKey(values);
-        if (distinct) {
-            if (columnCount != visibleColumnCount) {
+        if (distinct || distinctIndexes != null) {
+            if (distinctIndexes != null) {
+                int cnt = distinctIndexes.length;
+                Value[] newValues = new Value[cnt];
+                for (int i = 0; i < cnt; i++) {
+                    newValues[i] = values[distinctIndexes[i]];
+                }
+                ValueArray distinctRow = ValueArray.get(newValues);
+                if (index.putIfAbsent(distinctRow, true) != null) {
+                    return rowCount;
+                }
+            } else if (columnCount != visibleColumnCount) {
                 ValueArray distinctRow = ValueArray.get(Arrays.copyOf(values, visibleColumnCount));
                 if (index.putIfAbsent(distinctRow, true) != null) {
                     return rowCount;

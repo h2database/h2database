@@ -7,6 +7,7 @@ package org.h2.command.dml;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -88,6 +89,13 @@ public class Select extends Query {
      * The visible columns (the ones required in the result).
      */
     int visibleColumnCount;
+
+    /**
+     * {@code DISTINCT ON(...)} expressions.
+     */
+    private Expression[] distinctExpressions;
+
+    private int[] distinctIndexes;
 
     private int distinctColumnCount;
     private ArrayList<SelectOrderBy> orderList;
@@ -248,10 +256,33 @@ public class Select extends Query {
     }
 
     @Override
-    public void setDistinctIfPossible() {
-        if (!distinct && offsetExpr == null && limitExpr == null) {
-            setDistinct();
+    public void setDistinct() {
+        if (distinctExpressions != null) {
+            throw DbException.getUnsupportedException("DISTINCT ON together with DISTINCT");
         }
+        distinct = true;
+    }
+
+    /**
+     * Set the distinct expressions.
+     */
+    public void setDistinct(Expression[] distinctExpressions) {
+        if (distinct) {
+            throw DbException.getUnsupportedException("DISTINCT ON together with DISTINCT");
+        }
+        this.distinctExpressions = distinctExpressions;
+    }
+
+    @Override
+    public void setDistinctIfPossible() {
+        if (!isAnyDistinct() && offsetExpr == null && limitExpr == null) {
+            distinct = true;
+        }
+    }
+
+    @Override
+    public boolean isAnyDistinct() {
+        return distinct || distinctExpressions != null;
     }
 
     /**
@@ -666,13 +697,18 @@ public class Select extends Query {
                 !session.getDatabase().getSettings().optimizeInsertFromSelect)) {
             result = createLocalResult(result);
         }
-        if (sort != null && (!sortUsingIndex || distinct)) {
+        if (sort != null && (!sortUsingIndex || isAnyDistinct())) {
             result = createLocalResult(result);
             result.setSortOrder(sort);
         }
-        if (distinct && !isDistinctQuery) {
+        if (distinct) {
+            if (!isDistinctQuery) {
+                result = createLocalResult(result);
+                result.setDistinct();
+            }
+        } else if (distinctExpressions != null) {
             result = createLocalResult(result);
-            result.setDistinct();
+            result.setDistinct(distinctIndexes);
         }
         if (isGroupQuery && !isGroupSortedQuery) {
             result = createLocalResult(result);
@@ -687,7 +723,7 @@ public class Select extends Query {
             if (isGroupQuery) {
                 throw DbException.getUnsupportedException(
                         "MVCC=TRUE && FOR UPDATE && GROUP");
-            } else if (distinct) {
+            } else if (isAnyDistinct()) {
                 throw DbException.getUnsupportedException(
                         "MVCC=TRUE && FOR UPDATE && DISTINCT");
             } else if (isQuickAggregateQuery) {
@@ -851,7 +887,7 @@ public class Select extends Query {
         expandColumnList();
         visibleColumnCount = expressions.size();
         ArrayList<String> expressionSQL;
-        if (orderList != null || group != null) {
+        if (distinctExpressions != null || orderList != null || group != null) {
             expressionSQL = new ArrayList<>(visibleColumnCount);
             for (int i = 0; i < visibleColumnCount; i++) {
                 Expression expr = expressions.get(i);
@@ -862,9 +898,23 @@ public class Select extends Query {
         } else {
             expressionSQL = null;
         }
+        if (distinctExpressions != null) {
+            BitSet set = new BitSet();
+            for (Expression e : distinctExpressions) {
+                set.set(initExpression(session, expressions, expressionSQL, e, visibleColumnCount, false,
+                        filters));
+            }
+            int idx = 0, cnt = set.cardinality();
+            distinctIndexes = new int[cnt];
+            for (int i = 0; i < cnt; i++) {
+                idx = set.nextSetBit(idx);
+                distinctIndexes[i] = idx;
+                idx++;
+            }
+        }
         if (orderList != null) {
             initOrder(session, expressions, expressionSQL, orderList,
-                    visibleColumnCount, distinct, filters);
+                    visibleColumnCount, isAnyDistinct(), filters);
         }
         distinctColumnCount = expressions.size();
         if (having != null) {
@@ -1198,8 +1248,17 @@ public class Select extends Query {
         }
         buff.resetCount();
         buff.append("SELECT");
-        if (distinct) {
+        if (isAnyDistinct()) {
             buff.append(" DISTINCT");
+            if (distinctExpressions != null) {
+                buff.append(" ON(");
+                for (Expression distinctExpression: distinctExpressions) {
+                    buff.appendExceptFirst(", ");
+                    buff.append(distinctExpression.getSQL());
+                }
+                buff.append(')');
+                buff.resetCount();
+            }
         }
         for (int i = 0; i < visibleColumnCount; i++) {
             buff.appendExceptFirst(",");

@@ -103,3 +103,49 @@ DROP TABLE TEST;
 
 DROP TABLE TEST2;
 > ok
+
+CREATE TABLE TEST(C1 INT, C2 INT, C3 INT, C4 INT, C5 INT);
+> ok
+
+INSERT INTO TEST VALUES(1, 2, 3, 4, 5), (1, 2, 3, 6, 7), (2, 1, 4, 8, 9), (3, 4, 5, 1, 1);
+> update count: 4
+
+SELECT DISTINCT ON(C1, C2) C1, C2, C3, C4, C5 FROM TEST;
+> C1 C2 C3 C4 C5
+> -- -- -- -- --
+> 1  2  3  4  5
+> 2  1  4  8  9
+> 3  4  5  1  1
+> rows: 3
+
+SELECT DISTINCT ON(C1 + C2) C1, C2, C3, C4, C5 FROM TEST;
+> C1 C2 C3 C4 C5
+> -- -- -- -- --
+> 1  2  3  4  5
+> 3  4  5  1  1
+> rows: 2
+
+SELECT DISTINCT ON(C1 + C2, C3) C1, C2, C3, C4, C5 FROM TEST;
+> C1 C2 C3 C4 C5
+> -- -- -- -- --
+> 1  2  3  4  5
+> 2  1  4  8  9
+> 3  4  5  1  1
+> rows: 3
+
+SELECT DISTINCT ON(C1) C2 FROM TEST ORDER BY C1;
+> C2
+> --
+> 2
+> 1
+> 4
+> rows (ordered): 3
+
+EXPLAIN SELECT DISTINCT ON(C1) C2 FROM TEST ORDER BY C1;
+>> SELECT DISTINCT ON(C1) C2 FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ ORDER BY =C1
+
+SELECT DISTINCT ON(C1) C2 FROM TEST ORDER BY C3;
+> exception ORDER_BY_NOT_IN_RESULT
+
+DROP TABLE TEST;
+> ok

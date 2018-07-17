@@ -144,13 +144,48 @@ public class ResultTempTable implements ResultExternal {
             closeable = new CloseImpl(session, table);
             fileRef = tempFileDeleter.addFile(closeable, this);
         }
-        /*
-         * If ORDER BY or DISTINCT is specified create the index immediately. If
-         * they are not specified index still may be created later if required
-         * for IN (SELECT ...) etc.
-         */
         if (sort != null || distinct) {
-            getIndex();
+            IndexColumn[] indexCols;
+            if (sort != null) {
+                int[] colIndex = sort.getQueryColumnIndexes();
+                int len = colIndex.length;
+                if (distinct) {
+                    BitSet used = new BitSet();
+                    indexCols = new IndexColumn[columnCount];
+                    for (int i = 0; i < len; i++) {
+                        int idx = colIndex[i];
+                        used.set(idx);
+                        IndexColumn indexColumn = createIndexColumn(idx);
+                        indexColumn.sortType = sort.getSortTypes()[i];
+                        indexCols[i] = indexColumn;
+                    }
+                    int idx = 0;
+                    for (int i = len; i < columnCount; i++) {
+                        idx = used.nextClearBit(idx);
+                        indexCols[i] = createIndexColumn(idx);
+                        idx++;
+                    }
+                } else {
+                    indexCols = new IndexColumn[len];
+                    for (int i = 0; i < len; i++) {
+                        IndexColumn indexColumn = createIndexColumn(colIndex[i]);
+                        indexColumn.sortType = sort.getSortTypes()[i];
+                        indexCols[i] = indexColumn;
+                    }
+                }
+            } else {
+                indexCols = new IndexColumn[columnCount];
+                for (int i = 0; i < columnCount; i++) {
+                    indexCols[i] = createIndexColumn(i);
+                }
+            }
+            String indexName = table.getSchema().getUniqueIndexName(session, table, Constants.PREFIX_INDEX);
+            int indexId = session.getDatabase().allocateObjectId();
+            IndexType indexType = IndexType.createNonUnique(true);
+            index = table.addIndex(session, indexName, indexId, indexCols, indexType, true, null);
+            if (closeable != null) {
+                closeable.index = index;
+            }
         }
     }
 
@@ -170,50 +205,6 @@ public class ResultTempTable implements ResultExternal {
     private Index getIndex() {
         if (parent != null) {
             return parent.getIndex();
-        }
-        if (index != null) {
-            return index;
-        }
-        IndexColumn[] indexCols;
-        if (sort != null) {
-            int[] colIndex = sort.getQueryColumnIndexes();
-            int len = colIndex.length;
-            if (distinct) {
-                BitSet used = new BitSet();
-                indexCols = new IndexColumn[columnCount];
-                for (int i = 0; i < len; i++) {
-                    int idx = colIndex[i];
-                    used.set(idx);
-                    IndexColumn indexColumn = createIndexColumn(idx);
-                    indexColumn.sortType = sort.getSortTypes()[i];
-                    indexCols[i] = indexColumn;
-                }
-                int idx = 0;
-                for (int i = len; i < columnCount; i++) {
-                    idx = used.nextClearBit(idx);
-                    indexCols[i] = createIndexColumn(idx);
-                    idx++;
-                }
-            } else {
-                indexCols = new IndexColumn[len];
-                for (int i = 0; i < len; i++) {
-                    IndexColumn indexColumn = createIndexColumn(colIndex[i]);
-                    indexColumn.sortType = sort.getSortTypes()[i];
-                    indexCols[i] = indexColumn;
-                }
-            }
-        } else {
-            indexCols = new IndexColumn[columnCount];
-            for (int i = 0; i < columnCount; i++) {
-                indexCols[i] = createIndexColumn(i);
-            }
-        }
-        String indexName = table.getSchema().getUniqueIndexName(session, table, Constants.PREFIX_INDEX);
-        int indexId = session.getDatabase().allocateObjectId();
-        IndexType indexType = IndexType.createNonUnique(true);
-        index = table.addIndex(session, indexName, indexId, indexCols, indexType, true, null);
-        if (closeable != null) {
-            closeable.index = index;
         }
         return index;
     }

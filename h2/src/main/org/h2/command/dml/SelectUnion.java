@@ -219,9 +219,6 @@ public class SelectUnion extends Query {
             right.setDistinctIfPossible();
             result.setDistinct();
         }
-        if (randomAccessResult) {
-            result.setRandomAccess();
-        }
         switch (unionType) {
         case UNION:
         case EXCEPT:
@@ -265,7 +262,6 @@ public class SelectUnion extends Query {
         case INTERSECT: {
             LocalResult temp = new LocalResult(session, expressionArray, columnCount);
             temp.setDistinct();
-            temp.setRandomAccess();
             while (l.next()) {
                 temp.addRow(convert(l.currentRow(), columnCount));
             }

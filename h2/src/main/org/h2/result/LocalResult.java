@@ -279,6 +279,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
     private void createExternalResult() {
         Database database = session.getDatabase();
         external = database.isMVStore()
+                || /* not supported by ResultTempTable */ distinct && expressions.length != visibleColumnCount
                 ? MVTempResult.of(database, expressions, distinct, visibleColumnCount, sort)
                         : new ResultTempTable(session, expressions, distinct, sort);
     }

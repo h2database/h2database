@@ -2749,6 +2749,8 @@ public class Parser {
                 } else {
                     if (isSelect()) {
                         Query query = parseSelect();
+                        // TODO lazy result causes timeout in TestFuzzOptimizations
+                        query.setNeverLazy(true);
                         r = new ConditionInSelect(database, r, query, false,
                                 Comparison.EQUAL);
                     } else {

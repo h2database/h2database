@@ -149,43 +149,42 @@ public class TransactionStore {
         if (!init) {
             for (String mapName : store.getMapNames()) {
                 if (mapName.startsWith(UNDO_LOG_NAME_PREFIX)) {
-                    // The following block will be executed only once
-                    // upon upgrade from older version where
-                    // undo log was persisted as a single map
-                    if (mapName.equals(UNDO_LOG_NAME_PREFIX)) {
-                        if (!store.hasData(mapName) && !store.isReadOnly()) {
-                            store.removeMap(mapName);
+                    // Unexpectedly short name may be encountered upon upgrade from older version
+                    // where undo log was persisted as a single map, remove it.
+                    if (mapName.length() > UNDO_LOG_NAME_PREFIX.length()) {
+                        boolean committed = mapName.charAt(UNDO_LOG_NAME_PREFIX.length()) == UNDO_LOG_COMMITTED;
+                        if (store.hasData(mapName) || committed) {
+                            int transactionId = Integer.parseInt(mapName.substring(UNDO_LOG_NAME_PREFIX.length() + 1));
+                            VersionedBitSet openTxBitSet = openTransactions.get();
+                            if (!openTxBitSet.get(transactionId)) {
+                                Object[] data = preparedTransactions.get(transactionId);
+                                int status;
+                                String name;
+                                if (data == null) {
+                                    status = Transaction.STATUS_OPEN;
+                                    name = null;
+                                } else {
+                                    status = (Integer) data[0];
+                                    name = (String) data[1];
+                                }
+                                if (committed) {
+                                    status = Transaction.STATUS_COMMITTED;
+                                }
+                                MVMap<Long, Object[]> undoLog = store.openMap(mapName, undoLogBuilder);
+                                undoLogs[transactionId] = undoLog;
+                                Long lastUndoKey = undoLog.lastKey();
+                                assert committed || lastUndoKey != null;
+                                assert committed || getTransactionId(lastUndoKey) == transactionId;
+                                long logId = lastUndoKey == null ? 0 : getLogId(lastUndoKey) + 1;
+                                registerTransaction(transactionId, status, name, logId, timeoutMillis, 0,
+                                        RollbackListener.NONE);
+                                continue;
+                            }
                         }
-                        continue;
                     }
 
-                    boolean committed = mapName.charAt(UNDO_LOG_NAME_PREFIX.length()) == UNDO_LOG_COMMITTED;
-                    if (store.hasData(mapName) || committed) {
-                        int transactionId = Integer.parseInt(mapName.substring(UNDO_LOG_NAME_PREFIX.length() + 1));
-                        VersionedBitSet openTxBitSet = openTransactions.get();
-                        if (!openTxBitSet.get(transactionId)) {
-                            Object[] data = preparedTransactions.get(transactionId);
-                            int status;
-                            String name;
-                            if (data == null) {
-                                status = Transaction.STATUS_OPEN;
-                                name = null;
-                            } else {
-                                status = (Integer) data[0];
-                                name = (String) data[1];
-                            }
-                            if (committed) {
-                                status = Transaction.STATUS_COMMITTED;
-                            }
-                            MVMap<Long, Object[]> undoLog = store.openMap(mapName, undoLogBuilder);
-                            undoLogs[transactionId] = undoLog;
-                            Long lastUndoKey = undoLog.lastKey();
-                            assert committed || lastUndoKey != null;
-                            assert committed || getTransactionId(lastUndoKey) == transactionId;
-                            long logId = lastUndoKey == null ? 0 : getLogId(lastUndoKey) + 1;
-                            registerTransaction(transactionId, status, name, logId, timeoutMillis, 0,
-                                    RollbackListener.NONE);
-                        }
+                    if (!store.hasData(mapName) && !store.isReadOnly()) {
+                        store.removeMap(mapName);
                     }
                 }
             }

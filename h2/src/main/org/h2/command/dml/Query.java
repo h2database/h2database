@@ -270,7 +270,7 @@ public abstract class Query extends Prepared {
     /**
      * @return whether this query is a plain {@code DISTINCT} query
      */
-    public boolean isStardardDistinct() {
+    public boolean isStandardDistinct() {
         return distinct;
     }
 

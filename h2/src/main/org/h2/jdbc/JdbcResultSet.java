@@ -2493,7 +2493,6 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
      *
      * @param columnIndex (1,2,...)
      * @param x the value
-     * @param length the length
      * @throws SQLException if the result set is closed or not updatable
      */
     @Override
@@ -2520,7 +2519,6 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
      *
      * @param columnLabel the column label
      * @param x the value
-     * @param length the length
      * @throws SQLException if the result set is closed or not updatable
      */
     @Override

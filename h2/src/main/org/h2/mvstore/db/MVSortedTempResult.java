@@ -100,15 +100,15 @@ class MVSortedTempResult extends MVTempResult {
      * @param distinct
      *            whether this result should be distinct
      * @param distinctIndexes
-     *            indexes of distinct columns for DISINCT ON results
+     *            indexes of distinct columns for DISTINCT ON results
      * @param visibleColumnCount
      *            count of visible columns
      * @param sort
      *            sort order, or {@code null} if this result does not need any
      *            sorting
      */
-    MVSortedTempResult(Database database, Expression[] expressions, boolean distinct, int[] distinctIndexes, int visibleColumnCount,
-            SortOrder sort) {
+    MVSortedTempResult(Database database, Expression[] expressions, boolean distinct, int[] distinctIndexes,
+            int visibleColumnCount, SortOrder sort) {
         super(database, expressions.length, visibleColumnCount);
         this.distinct = distinct;
         this.distinctIndexes = distinctIndexes;

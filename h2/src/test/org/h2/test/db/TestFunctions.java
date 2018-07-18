@@ -1246,7 +1246,8 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(S VARCHAR, TS TIMESTAMP, D DATE, T TIME, TZ TIMESTAMP WITH TIME ZONE)");
-        stat.execute("INSERT INTO TEST VALUES ('2010-01-01 10:11:12', '2010-01-01 10:11:12', '2010-01-01', '10:11:12', '2010-01-01 10:11:12Z')");
+        stat.execute("INSERT INTO TEST VALUES ('2010-01-01 10:11:12', '2010-01-01 10:11:12',"
+                + " '2010-01-01', '10:11:12', '2010-01-01 10:11:12Z')");
         ResultSetMetaData md = stat.executeQuery("SELECT DATE_TRUNC('HOUR', S), DATE_TRUNC('HOUR', TS),"
                 + " DATE_TRUNC('HOUR', D), DATE_TRUNC('HOUR', T), DATE_TRUNC('HOUR', TZ) FROM TEST")
                 .getMetaData();

@@ -21,6 +21,140 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>PR #1302: Use OpenJDK instead of OracleJDK 10 in Travis builds due to Travis problem
+</li>
+<li>Issue #1032: Error when executing "SELECT DISTINCT ON"
+</li>
+<li>Issue #1295: ConditionInSelect violates requirements of LocalResult
+</li>
+<li>PR #1296: Assorted minor changes
+</li>
+<li>PR #1293: Move HELP and SHOW tests into own files
+</li>
+<li>PR #1291: Fix update count for REPLACE and move some SQL tests into separate files
+</li>
+<li>PR #1290: Do not load the whole LOBs into memory for comparison operation
+</li>
+<li>Issue #408: DISTINCT does not properly work with ORDER BY on function like LOWER
+</li>
+<li>PR #1286: Fix MVTempResult implementations for results with invisible columns
+</li>
+<li>Issue #1284: Nanoseconds of timestamps from old H2 versions are not read properly
+</li>
+<li>PR #1283: Clean up interaction between LocalResult and ResultExternal
+</li>
+<li>Issue #1265: OOME is not handled properly in TraceObject.logAndConvert()
+</li>
+<li>Issue #1061: Regression: Braces after WITH clause not allowed anymore
+</li>
+<li>PR #1277: Assorted changes in Parser
+</li>
+<li>PR #1276: Improve support of ARRAY and SQLXML in JDBC layer
+</li>
+<li>PR #1275: Do not quote other lower case characters
+</li>
+<li>PR #1274: Use token type in Parser instead of string comparisons
+</li>
+<li>PR #1272: Reduce code duplication in Parser
+</li>
+<li>PR #1271: Minor memory leak
+</li>
+<li>PR #1270: drop TableView isPersistent field
+</li>
+<li>PR #1269: Eliminate commit of empty batch in some tests
+</li>
+<li>Issue #1266: Add INFORMATION_SCHEMA.COLUMNS.DATETIME_PRECISION
+</li>
+<li>Issue #1261: How to discover stored enum types through INFORMATION_SCHEMA
+</li>
+<li>Issue #1258: Failing to remove index when using schema.table
+</li>
+<li>PR #1256: misc tiny refactorings
+</li>
+<li>PR #1255: Minor changes in MERGE USING, DATE_TRUNC, and EXTRACT
+</li>
+<li>Issue #1214: Internal compiler believes that "3 warnings" is an error
+</li>
+<li>PR #1252: Assorted minor changes
+</li>
+<li>PR #1251: Fix SQL representation of CAST for types with fractional seconds precision
+</li>
+<li>PR #1250: Batch append mode for MVMap
+</li>
+<li>PR #1248: StringIndexOutOfBoundsException due to undoLog map
+</li>
+<li>PR #1246: Detect disabled tests
+</li>
+<li>PR #1242: Add implementation of SQLXML interface
+</li>
+<li>PR #1241: Various tweaks in attempting to fix TestDiskFull test
+</li>
+<li>PR #1240: Optimise ValueLobDB comparison methods
+</li>
+<li>PR #1239: Don't try to find tools.jar on Java 9+
+</li>
+<li>PR #1238: remove unfinished android API
+</li>
+<li>PR #1237: remove JaQu
+</li>
+<li>PR #1236: remove STORE_LOCAL_TIME code
+</li>
+<li>PR #1235: Do not use deprecated Class.newInstance()
+</li>
+<li>PR #1234: Fix NPE in Parser.parseMergeUsing()
+</li>
+<li>PR #1233: Simplify old lob ValueLob class
+</li>
+<li>Issue 1227: lob growth in pagestore mode
+</li>
+<li>PR #1230: clean up some javadoc and some throws clauses
+</li>
+<li>PR #1229: Create UndoLog only when necessary and remove outdated code
+</li>
+<li>PR #1228: Remove some PageStore+MVCC leftovers
+</li>
+<li>PR #1226: Fix inconsistencies in checks for transaction isolation level
+</li>
+<li>PR #1224: Enable Java 10 testing on Travis
+</li>
+<li>PR #1223: Fix issues with testing on latest Java versions
+</li>
+<li>PR #1222: Leftovers handling
+</li>
+<li>Issue #1220: JDK-9 build fails due to usage of java.xml.bind in external authentication
+</li>
+<li>PR #1218: Test utilities only once during TestAll
+</li>
+<li>PR #1217: Postpone session.endStatement() until after commit
+</li>
+<li>PR #1213: KillRestart fix
+</li>
+<li>PR #1211: Assorted minor changes
+</li>
+<li>Issue #1204: Always use MVCC with MVStore and never use it with PageStore
+</li>
+<li>PR #1206: Forbid reconnects in non-regular modes in TestScript
+</li>
+<li>PR #1205: Misc test fixes
+</li>
+<li>Issue 1198: Enable MULTI_THREADED by default for MVStore mode
+</li>
+<li>Issue #1195: Calling setBytes to set VARCHAR field fails
+</li>
+<li>PR #1197: Fix or suppress errors in tests
+</li>
+<li>PR #1194: TestKillRestartMulti: A map named undoLog-1 already exists
+</li>
+<li>PR #1193: enable TestRandomSQL on non-memory databases
+</li>
+<li>PR #1191: External authentication with datasource issue
+</li>
+<li>PR #1188: Undo log split to reduce contention
+</li>
+<li>PR #1186: TransactionMap::sizeAsLong() optimized - temp map eliminated
+</li>
+<li>PR #1185: Improve naming of the object id field in Prepared
+</li>
 <li>Issue #1196: Feature request for MS SQL Server Compatibility Mode
 </li>
 <li>Issue #1177: Resource leak in Recover tool

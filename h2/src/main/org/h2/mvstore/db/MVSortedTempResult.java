@@ -100,7 +100,7 @@ class MVSortedTempResult extends MVTempResult {
      * @param distinct
      *            whether this result should be distinct
      * @param distinctIndexes
-     *            indexes of distinct columns for DISINCT ON results
+     *            indexes of distinct columns for DISTINCT ON results
      * @param visibleColumnCount
      *            count of visible columns
      * @param sort

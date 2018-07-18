@@ -1418,7 +1418,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             this.appendCounter = 0;
         }
 
-        // This one is used for append buffer maintance
+        // This one is used for append buffer maintenance
         RootReference(RootReference r, int appendCounter, int attempt) {
             this.root = r.root;
             this.version = r.version;

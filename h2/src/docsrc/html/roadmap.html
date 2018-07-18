@@ -103,7 +103,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Linked schema using CSV files: one schema for a directory of files; support indexes for CSV files.
 </li><li>iReport to support H2.
 </li><li>Include SMTP (mail) client (alert on cluster failure, low disk space,...).
-</li><li>Option for SCRIPT to only process one or a set of schemas or tables, and append to a file.
+</li><li>Option for SCRIPT to append to a file.
 </li><li>JSON parser and functions.
 </li><li>Copy database: tool with config GUI and batch mode, extensible (example: compare).
 </li><li>Document, implement tool for long running transactions using user-defined compensation statements.
@@ -124,7 +124,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>SQL Server 2005, Oracle: support COUNT(*) OVER(). See http://www.orafusion.com/art_anlytc.htm
 </li><li>SQL 2003: http://www.wiscorp.com/sql_2003_standard.zip
 </li><li>Version column (number/sequence and timestamp based).
-</li><li>Optimize getGeneratedKey: send last identity after each execute (server).
 </li><li>Test and document UPDATE TEST SET (ID, NAME) = (SELECT ID*10, NAME || '!' FROM TEST T WHERE T.ID=TEST.ID).
 </li><li>Max memory rows / max undo log size: use block count / row size not row count.
 </li><li>Implement point-in-time recovery.
@@ -149,8 +148,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Backup tool should work with other databases as well.
 </li><li>Console: -ifExists doesn't work for the console. Add a flag to disable other dbs.
 </li><li>Check if 'FSUTIL behavior set disablelastaccess 1' improves the performance (fsutil behavior query disablelastaccess).
-</li><li>Java static code analysis: http://pmd.sourceforge.net/
-</li><li>Java static code analysis: http://www.eclipse.org/tptp/
+</li><li>Java static code analysis: https://pmd.github.io/
 </li><li>Compatibility for CREATE SCHEMA AUTHORIZATION.
 </li><li>Implement Clob / Blob truncate and the remaining functionality.
 </li><li>File locking: writing a system property to detect concurrent access from the same VM (different classloaders).
@@ -167,7 +165,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support updatable views with join on primary keys (to extend a table).
 </li><li>Public interface for functions (not public static).
 </li><li>Support reading the transaction log.
-</li><li>Feature matrix as in <a href="http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp">i-net software</a>.
+</li><li>Feature matrix.
 </li><li>Updatable result set on table without primary key or unique index.
 </li><li>Allow execution time prepare for SELECT * FROM CSVREAD(?, 'columnNameString')
 </li><li>Support data type INTERVAL
@@ -213,7 +211,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Server: use one listener (detect if the request comes from an PG or TCP client)
 </li><li>Optimize SELECT MIN(ID), MAX(ID), COUNT(*) FROM TEST WHERE ID BETWEEN 100 AND 200
 </li><li>Sequence: PostgreSQL compatibility (rename, create) http://www.postgresql.org/docs/8.2/static/sql-altersequence.html
-</li><li>DISTINCT: support large result sets by sorting on all columns (additionally) and then removing duplicates.
 </li><li>Support a special trigger on all tables to allow building a transaction log reader.
 </li><li>File system with a background writer thread; test if this is faster
 </li><li>Better document the source code (high level documentation).
@@ -228,7 +225,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Improve documentation of access rights.
 </li><li>Support opening a database that is in the classpath, maybe using a new file system. Workaround: detect jar file using getClass().getProtectionDomain().getCodeSource().getLocation().
 </li><li>Remember the user defined data type (domain) of a column.
-</li><li>MVCC: support multi-threaded kernel with multi-version concurrency.
 </li><li>Auto-server: add option to define the port range or list.
 </li><li>Support Jackcess (MS Access databases)
 </li><li>Built-in methods to write large objects (BLOB and CLOB): FILE_WRITE('test.txt', 'Hello World')
@@ -254,7 +250,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Access rights: add missing features (users should be 'owner' of objects; missing rights for sequences; dropping objects)
 </li><li>Support NOCACHE table option (Oracle).
 </li><li>Support table partitioning.
-</li><li>Add regular javadocs (using the default doclet, but another css) to the homepage.
 </li><li>The database should be kept open for a longer time when using the server mode.
 </li><li>Javadocs: for each tool, add a copy &amp; paste sample in the class level.
 </li><li>Javadocs: add @author tags.
@@ -264,7 +259,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Write (log) to system table before adding to internal data structures.
 </li><li>Support direct lookup for MIN and MAX when using WHERE (see todo.txt / Direct Lookup).
 </li><li>Support other array types (String[], double[]) in PreparedStatement.setObject(int, Object) (with test case).
-</li><li>MVCC should not be memory bound (uncommitted data is kept in memory in the delta index; maybe using a regular b-tree index solves the problem).
 </li><li>Oracle compatibility: support NLS_DATE_FORMAT.
 </li><li>Support for Thread.interrupt to cancel running statements.
 </li><li>Cluster: add feature to make sure cluster nodes can not get out of sync (for example by stopping one process).
@@ -298,7 +292,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support TRUNCATE .. CASCADE like PostgreSQL.
 </li><li>Fulltext search: lazy result generation using SimpleRowSource.
 </li><li>Fulltext search: support alternative syntax: WHERE FTL_CONTAINS(name, 'hello').
-</li><li>MySQL compatibility: support REPLACE, see http://dev.mysql.com/doc/refman/6.0/en/replace.html and issue 73.
 </li><li>MySQL compatibility: support INSERT INTO table SET column1 = value1, column2 = value2
 </li><li>Docs: add a one line description for each functions and SQL statements at the top (in the link section).
 </li><li>Javadoc search: weight for titles should be higher ('random' should list Functions as the best match).
@@ -319,7 +312,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>MySQL compatibility: for auto_increment columns, convert 0 to next value (as when inserting NULL).
 </li><li>Optimization for multi-column IN: use an index if possible. Example: (A, B) IN((1, 2), (2, 3)).
 </li><li>Optimization for EXISTS: convert to inner join or IN(..) if possible.
-</li><li>Functions: support hashcode(value); cryptographic and fast
 </li><li>Serialized file lock: support long running queries.
 </li><li>Network: use 127.0.0.1 if other addresses don't work.
 </li><li>Pluggable network protocol (currently  Socket/ServerSocket over TCP/IP) - see also TransportServer with master slave replication.
@@ -352,7 +344,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Compatibility: Java functions with SQLJ Part1 http://www.acm.org/sigmod/record/issues/9912/standards.pdf.gz
 </li><li>Compatibility: Java functions with SQL/PSM (Persistent Stored Modules) - need to find the documentation.
 </li><li>CACHE_SIZE: automatically use a fraction of Runtime.maxMemory - maybe automatically the second level cache.
-</li><li>Support date/time/timestamp as documented in http://en.wikipedia.org/wiki/ISO_8601
 </li><li>PostgreSQL compatibility: when in PG mode, treat BYTEA data like PG.
 </li><li>Support =ANY(array) as in PostgreSQL. See also http://www.postgresql.org/docs/8.0/interactive/arrays.html
 </li><li>IBM DB2 compatibility: support PREVIOUS VALUE FOR sequence.
@@ -380,7 +371,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Issue 126: The index name should be "IDX_" plus the constraint name unless there is a conflict, in which case append a number.
 </li><li>Issue 127: Support activation/deactivation of triggers
 </li><li>Issue 130: Custom log event listeners
-</li><li>Issue 131: IBM DB2 compatibility: sysibm.sysdummy1
 </li><li>Issue 132: Use Java enum trigger type.
 </li><li>Issue 134: IBM DB2 compatibility: session global variables.
 </li><li>Cluster: support load balance with values for each server / auto detect.
@@ -430,7 +420,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Maybe use PhantomReference instead of finalize.
 </li><li>Database file name suffix: should only have one dot by default. Example: .h2db
 </li><li>Issue 196: Function based indexes
-</li><li>ALTER TABLE ... ADD COLUMN IF NOT EXISTS columnName.
 </li><li>Fix the disk space leak (killing the process at the exact right moment will increase
     the disk space usage; this space is not re-used). See TestDiskSpaceLeak.java
 </li><li>ROWNUM: Oracle compatibility when used within a subquery. Issue 198.
@@ -464,7 +453,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     or to prevent to login with the same username and password from different IPs.
     Possibly using the DatabaseEventListener API, or a new API.
 </li><li>Compatibility for data type CHAR (Derby, HSQLDB). Issue 212.
-</li><li>Compatibility with MySQL TIMESTAMPDIFF. Issue 209.
 </li><li>Optimizer: use a histogram of the data, specially for non-normal distributions.
 </li><li>Trigger: allow declaring as source code (like functions).
 </li><li>User defined aggregate: allow declaring as source code (like functions).
@@ -510,8 +498,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Single-column primary key values are always stored explicitly. This is not required.
 </li><li>Compatibility with MySQL: support CREATE TABLE TEST(NAME VARCHAR(255) CHARACTER SET UTF8).
 </li><li>CALL is incompatible with other databases because it returns a result set, so that CallableStatement.execute() returns true.
-</li><li>Optimization for large lists for column IN(1, 2, 3, 4,...) - currently an list is used, could potentially use a hash set
-    (maybe only for a part of the values - the ones that can be evaluated).
 </li><li>Compatibility for ARRAY data type (Oracle: VARRAY(n) of VARCHAR(m); HSQLDB: VARCHAR(n) ARRAY; Postgres: VARCHAR(n)[]).
 </li><li>PostgreSQL compatible array literal syntax: ARRAY[['a', 'b'], ['c', 'd']]
 </li><li>PostgreSQL compatibility: UPDATE with FROM.
@@ -550,7 +536,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>MySQL compatibility: index names only need to be unique for the given table.
 </li><li>Issue 352: constraints: distinguish between 'no action' and 'restrict'. Currently, only restrict is supported,
     and 'no action' is internally mapped to 'restrict'. The database meta data returns 'restrict' in all cases.
-</li><li>Oracle compatibility: support MEDIAN aggregate function.
 </li><li>Issue 348: Oracle compatibility: division should return a decimal result.
 </li><li>Read rows on demand: instead of reading the whole row, only read up to that column that is requested.
     Keep an pointer to the data area and the column id that is already read.

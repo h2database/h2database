@@ -152,7 +152,7 @@
 90119=User data type {0} already exists
 90120=User data type {0} not found
 90121=Database is already closed (to disable automatic closing at VM shutdown, add ";DB_CLOSE_ON_EXIT=FALSE" to the db URL)
-90122=Operation not supported for table {0} when there are views on the table: {1}
+90122=The WITH TIES clause is not allowed without a corresponding ORDER BY clause.
 90123=Cannot mix indexed and non-indexed parameters
 90124=File not found: {0}
 90125=Invalid class, expected {0} but got {1}

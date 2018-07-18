@@ -152,7 +152,7 @@
 90119=Používateľský dátový typ {0} už existuje
 90120=Používateľský dátový typ {0} nenájdený
 90121=Databáza už je zatvorená (na zamedzenie automatického zatvárania pri ukončení VM, pridajte ";DB_CLOSE_ON_EXIT=FALSE" do DB URL)
-90122=Operácia pre tabuľku {0} nie je podporovaná, kedže existujú na tabuľku pohľady (views): {1}
+90122=#The WITH TIES clause is not allowed without a corresponding ORDER BY clause.
 90123=Nemožno miešať indexované a neindexované parametre
 90124=Súbor nenájdený: {0}
 90125=Nesprávna trieda {1}, očakávana je {0}

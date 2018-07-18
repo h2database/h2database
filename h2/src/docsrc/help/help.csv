@@ -3,7 +3,8 @@
 # Initial Developer: H2 Group
 "SECTION","TOPIC","SYNTAX","TEXT","EXAMPLE"
 "Commands (DML)","SELECT","
-SELECT [ TOP term ] [ DISTINCT [ ON ( expression [,...] ) ] | ALL ]
+SELECT [ TOP term [ WITH TIES ] ]
+[ DISTINCT [ ON ( expression [,...] ) ] | ALL ]
 selectExpression [,...]
 FROM tableExpression [,...] [ WHERE expression ]
 [ GROUP BY expression [,...] ] [ HAVING expression ]
@@ -11,7 +12,8 @@ FROM tableExpression [,...] [ WHERE expression ]
 [ ORDER BY order [,...] ]
 [ { LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] }
     | { [ OFFSET expression { ROW | ROWS } ]
-    [ { FETCH { FIRST | NEXT } expression { ROW | ROWS } ONLY } ] } ]
+    [ FETCH { FIRST | NEXT } expression { ROW | ROWS }
+        { ONLY | WITH TIES } ] } ]
 [ FOR UPDATE ]
 ","
 Selects data from a table or multiple tables.

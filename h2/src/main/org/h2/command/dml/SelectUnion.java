@@ -284,6 +284,7 @@ public class SelectUnion extends Query {
             Value v = limitExpr.getValue(session);
             if (v != ValueNull.INSTANCE) {
                 result.setLimit(v.getInt());
+                result.setWithTies(withTies);
             }
         }
         l.close();
@@ -318,6 +319,9 @@ public class SelectUnion extends Query {
         for (int i = 0; i < len; i++) {
             Expression l = le.get(i);
             expressions.add(l);
+        }
+        if (withTies && !hasOrder()) {
+            throw DbException.get(ErrorCode.WITH_TIES_WITHOUT_ORDER_BY);
         }
     }
 
@@ -446,14 +450,7 @@ public class SelectUnion extends Query {
         if (sort != null) {
             buff.append("\nORDER BY ").append(sort.getSQL(exprList, exprList.length));
         }
-        if (limitExpr != null) {
-            buff.append("\nLIMIT ").append(
-                    StringUtils.unEnclose(limitExpr.getSQL()));
-            if (offsetExpr != null) {
-                buff.append("\nOFFSET ").append(
-                        StringUtils.unEnclose(offsetExpr.getSQL()));
-            }
-        }
+        appendLimitToSQL(buff);
         if (sampleSizeExpr != null) {
             buff.append("\nSAMPLE_SIZE ").append(
                     StringUtils.unEnclose(sampleSizeExpr.getSQL()));

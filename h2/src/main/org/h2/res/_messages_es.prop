@@ -152,7 +152,7 @@
 90119=Tipo de dato de usuario {0} ya existe
 90120=Tipo de dato de usuario {0} no encontrado
 90121=La base de datos ya esta cerrada (para des-habilitar el cerrado automatico durante el shutdown de la VM, agregue ";DB_CLOSE_ON_EXIT=FALSE" a la URL de conexión)
-90122=Operación no soportada para la tabla {0} cuando existen vistas sobre la tabla: {1}
+90122=#The WITH TIES clause is not allowed without a corresponding ORDER BY clause.
 90123=No se puede mezclar parametros indexados y no-indexados
 90124=Archivo no encontrado: {0}
 90125=Clase Invalida, se esperaba {0} pero se obtuvo {1}

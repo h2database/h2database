@@ -13,7 +13,6 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 import org.h2.engine.Mode;
-import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueNull;
@@ -278,9 +277,6 @@ public class DateTimeUtils {
      * @return the date
      */
     public static ValueDate convertDate(Date x, Calendar calendar) {
-        if (calendar == null) {
-            throw DbException.getInvalidValueException("calendar", null);
-        }
         Calendar cal = (Calendar) calendar.clone();
         cal.setTimeInMillis(x.getTime());
         long dateValue = dateValueFromCalendar(cal);
@@ -295,9 +291,6 @@ public class DateTimeUtils {
      * @return the time
      */
     public static ValueTime convertTime(Time x, Calendar calendar) {
-        if (calendar == null) {
-            throw DbException.getInvalidValueException("calendar", null);
-        }
         Calendar cal = (Calendar) calendar.clone();
         cal.setTimeInMillis(x.getTime());
         long nanos = nanosFromCalendar(cal);
@@ -313,9 +306,6 @@ public class DateTimeUtils {
      */
     public static ValueTimestamp convertTimestamp(Timestamp x,
             Calendar calendar) {
-        if (calendar == null) {
-            throw DbException.getInvalidValueException("calendar", null);
-        }
         Calendar cal = (Calendar) calendar.clone();
         cal.setTimeInMillis(x.getTime());
         long dateValue = dateValueFromCalendar(cal);

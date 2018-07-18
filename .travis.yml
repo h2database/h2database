@@ -8,7 +8,7 @@ cache:
 
 matrix:
   include:
-    - jdk: openjdk11
+    - jdk: openjdk10
       dist: trusty
       group: edge
       sudo: required

@@ -1497,6 +1497,12 @@ public class TestResultSet extends TestDb {
                 java.sql.Timestamp.valueOf("2107-08-09 10:11:12.131415"));
         prep.execute();
 
+        prep.setInt(1, 5);
+        prep.setDate(2, java.sql.Date.valueOf("2101-02-03"), null);
+        prep.setTime(3, java.sql.Time.valueOf("14:05:06"), null);
+        prep.setTimestamp(4, java.sql.Timestamp.valueOf("2107-08-09 10:11:12.131415"), null);
+        prep.execute();
+
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         assertResultSetMeta(rs, 4,
                 new String[] { "ID", "D", "T", "TS" },
@@ -1540,6 +1546,13 @@ public class TestResultSet extends TestDb {
 
         rs.next();
         assertEquals(4, rs.getInt("ID"));
+        assertEquals("2107-08-09 10:11:12.131415",
+                rs.getTimestamp("TS").toString());
+        assertEquals("14:05:06", rs.getTime("T").toString());
+        assertEquals("2101-02-03", rs.getDate("D").toString());
+
+        rs.next();
+        assertEquals(5, rs.getInt("ID"));
         assertEquals("2107-08-09 10:11:12.131415",
                 rs.getTimestamp("TS").toString());
         assertEquals("14:05:06", rs.getTime("T").toString());

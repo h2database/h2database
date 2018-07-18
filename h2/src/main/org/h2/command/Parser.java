@@ -2381,7 +2381,12 @@ public class Parser {
                     read("ROWS");
                 }
             }
-            read("ONLY");
+            if (readIf(WITH)) {
+                read("TIES");
+                command.setWithTies(true);
+            } else {
+                read("ONLY");
+            }
         }
         currentSelect = temp;
         if (readIf(LIMIT)) {
@@ -2527,6 +2532,10 @@ public class Parser {
             // SELECT TOP 1 (+?) AS A FROM TEST
             Expression limit = readTerm().optimize(session);
             command.setLimit(limit);
+            if (readIf(WITH)) {
+                read("TIES");
+                command.setWithTies(true);
+            }
         } else if (readIf(LIMIT)) {
             Expression offset = readTerm().optimize(session);
             command.setOffset(offset);

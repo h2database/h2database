@@ -41,6 +41,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
     private Value[] currentRow;
     private int offset;
     private int limit = -1;
+    private boolean withTies;
     private ResultExternal external;
     private boolean distinct;
     private int[] distinctIndexes;
@@ -368,7 +369,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
             }
             if (sort != null) {
                 if (offset > 0 || limit > 0) {
-                    sort.sort(rows, offset, limit < 0 ? rows.size() : limit);
+                    sort.sort(rows, offset, limit < 0 || withTies ? rows.size() : limit);
                 } else {
                     sort.sort(rows);
                 }
@@ -401,8 +402,23 @@ public class LocalResult implements ResultInterface, ResultTarget {
                 rows.clear();
                 return;
             }
+            int to = offset + limit;
+            if (withTies && sort != null) {
+                int[] indexes = sort.getQueryColumnIndexes();
+                Value[] expected = rows.get(to - 1);
+                loop: while (to < rows.size()) {
+                    Value[] current = rows.get(to);
+                    for (int idx : indexes) {
+                        if (!expected[idx].equals(current[idx])) {
+                            break loop;
+                        }
+                    }
+                    to++;
+                    rowCount++;
+                }
+            }
             // avoid copying the whole array for each row
-            rows = new ArrayList<>(rows.subList(offset, offset + limit));
+            rows = new ArrayList<>(rows.subList(offset, to));
         } else {
             if (clearAll) {
                 external.close();
@@ -420,10 +436,28 @@ public class LocalResult implements ResultInterface, ResultTarget {
         while (--offset >= 0) {
             temp.next();
         }
+        Value[] row = null;
         while (--limit >= 0) {
-            rows.add(temp.next());
+            row = temp.next();
+            rows.add(row);
             if (rows.size() > maxMemoryRows) {
                 addRowsToDisk();
+            }
+        }
+        if (withTies && sort != null && row != null) {
+            int[] indexes = sort.getQueryColumnIndexes();
+            Value[] expected = row;
+            loop: while ((row = temp.next()) != null) {
+                for (int idx : indexes) {
+                    if (!expected[idx].equals(row[idx])) {
+                        break loop;
+                    }
+                }
+                rows.add(row);
+                rowCount++;
+                if (rows.size() > maxMemoryRows) {
+                    addRowsToDisk();
+                }
             }
         }
         if (external != null) {
@@ -449,6 +483,13 @@ public class LocalResult implements ResultInterface, ResultTarget {
      */
     public void setLimit(int limit) {
         this.limit = limit;
+    }
+
+    /**
+     * @param withTies whether tied rows should be included in result too
+     */
+    public void setWithTies(boolean withTies) {
+        this.withTies = withTies;
     }
 
     @Override

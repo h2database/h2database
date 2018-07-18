@@ -1757,6 +1757,12 @@ public class ErrorCode {
     public static final int DATABASE_CALLED_AT_SHUTDOWN = 90121;
 
     /**
+     * The error with code <code>90122</code> is thrown when
+     * WITH TIES clause is used without ORDER BY clause.
+     */
+    public static final int WITH_TIES_WITHOUT_ORDER_BY = 90122;
+
+    /**
      * The error with code <code>90123</code> is thrown when
      * trying mix regular parameters and indexed parameters in the same
      * statement. Example:
@@ -2002,7 +2008,7 @@ public class ErrorCode {
     public static final int AUTHENTICATOR_NOT_AVAILABLE = 90144;
 
 
-    // next are 90122, 90145
+    // next is 90145
 
     private ErrorCode() {
         // utility class

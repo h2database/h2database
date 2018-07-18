@@ -32,6 +32,7 @@ import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
@@ -46,6 +47,11 @@ public abstract class Query extends Prepared {
      * The limit expression as specified in the LIMIT or TOP clause.
      */
     protected Expression limitExpr;
+
+    /**
+     * Whether tied rows should be included in result too.
+     */
+    protected boolean withTies;
 
     /**
      * The offset expression as specified in the LIMIT .. OFFSET clause.
@@ -644,6 +650,14 @@ public abstract class Query extends Prepared {
         return limitExpr;
     }
 
+    public void setWithTies(boolean withTies) {
+        this.withTies = true;
+    }
+
+    public boolean isWithTies() {
+        return withTies;
+    }
+
     /**
      * Add a parameter to the parameter list.
      *
@@ -682,4 +696,21 @@ public abstract class Query extends Prepared {
         isEverything(visitor);
         return visitor.getMaxDataModificationId();
     }
+
+    void appendLimitToSQL(StringBuilder buff) {
+        if (limitExpr != null) {
+            if (withTies) {
+                if (offsetExpr != null) {
+                    buff.append("\nOFFSET ").append(StringUtils.unEnclose(offsetExpr.getSQL())).append(" ROWS");
+                }
+                buff.append("\nFETCH NEXT ").append(StringUtils.unEnclose(limitExpr.getSQL())).append(" ROWS WITH TIES");
+            } else {
+                buff.append("\nLIMIT ").append(StringUtils.unEnclose(limitExpr.getSQL()));
+                if (offsetExpr != null) {
+                    buff.append("\nOFFSET ").append(StringUtils.unEnclose(offsetExpr.getSQL()));
+                }
+            }
+        }
+    }
+
 }

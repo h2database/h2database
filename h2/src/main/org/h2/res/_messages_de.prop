@@ -152,7 +152,7 @@
 90119=Benutzer-Datentyp {0} besteht bereits
 90120=Benutzer-Datentyp {0} nicht gefunden
 90121=Die Datenbank wurde bereits geschlossen (um das automatische Schliessen beim Stopp der VM zu deaktivieren, die Datenbank URL mit ";DB_CLOSE_ON_EXIT=FALSE" ergänzen)
-90122=Funktion nicht unterstützt für Tabelle {0} wenn Views auf die Tabelle vorhanden sind: {1}
+90122=#The WITH TIES clause is not allowed without a corresponding ORDER BY clause.
 90123=Kann nicht indizierte und nicht indizierte Parameter mischen
 90124=Datei nicht gefunden: {0}
 90125=Ungültig Klasse, erwartet {0} erhalten {1}

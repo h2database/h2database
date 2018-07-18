@@ -586,7 +586,7 @@ public class Select extends Query {
         return null;
     }
 
-    private void queryDistinct(ResultTarget result, long limitRows) {
+    private void queryDistinct(ResultTarget result, long limitRows, boolean withTies) {
         // limitRows must be long, otherwise we get an int overflow
         // if limitRows is at or near Integer.MAX_VALUE
         // limitRows is never 0 here
@@ -618,7 +618,7 @@ public class Select extends Query {
             result.addRow(row);
             rowNumber++;
             if ((sort == null || sortUsingIndex) && limitRows > 0 &&
-                    rowNumber >= limitRows) {
+                    rowNumber >= limitRows && !withTies) {
                 break;
             }
             if (sampleSize > 0 && rowNumber >= sampleSize) {
@@ -627,7 +627,7 @@ public class Select extends Query {
         }
     }
 
-    private LazyResult queryFlat(int columnCount, ResultTarget result, long limitRows) {
+    private LazyResult queryFlat(int columnCount, ResultTarget result, long limitRows, boolean withTies) {
         // limitRows must be long, otherwise we get an int overflow
         // if limitRows is at or near Integer.MAX_VALUE
         // limitRows is never 0 here
@@ -644,7 +644,7 @@ public class Select extends Query {
         if (result == null) {
             return lazyResult;
         }
-        if (sort != null && !sortUsingIndex || limitRows <= 0) {
+        if (sort != null && !sortUsingIndex || limitRows <= 0 || withTies) {
             limitRows = Long.MAX_VALUE;
         }
         while (result.getRowCount() < limitRows && lazyResult.next()) {
@@ -690,14 +690,14 @@ public class Select extends Query {
         }
         boolean lazy = session.isLazyQueryExecution() &&
                 target == null && !isForUpdate && !isQuickAggregateQuery &&
-                limitRows != 0 && offsetExpr == null && isReadOnly();
+                limitRows != 0 && !withTies && offsetExpr == null && isReadOnly();
         int columnCount = expressions.size();
         LocalResult result = null;
         if (!lazy && (target == null ||
                 !session.getDatabase().getSettings().optimizeInsertFromSelect)) {
             result = createLocalResult(result);
         }
-        if (sort != null && (!sortUsingIndex || isAnyDistinct())) {
+        if (sort != null && (!sortUsingIndex || isAnyDistinct() || withTies)) {
             result = createLocalResult(result);
             result.setSortOrder(sort);
         }
@@ -749,9 +749,9 @@ public class Select extends Query {
                         queryGroup(columnCount, result);
                     }
                 } else if (isDistinctQuery) {
-                    queryDistinct(to, limitRows);
+                    queryDistinct(to, limitRows, withTies);
                 } else {
-                    lazyResult = queryFlat(columnCount, to, limitRows);
+                    lazyResult = queryFlat(columnCount, to, limitRows, withTies);
                 }
             } finally {
                 if (!lazy) {
@@ -775,6 +775,7 @@ public class Select extends Query {
         }
         if (limitRows >= 0) {
             result.setLimit(limitRows);
+            result.setWithTies(withTies);
         }
         if (result != null) {
             result.done();
@@ -923,6 +924,10 @@ public class Select extends Query {
             having = null;
         } else {
             havingIndex = -1;
+        }
+
+        if (withTies && !hasOrder()) {
+            throw DbException.get(ErrorCode.WITH_TIES_WITHOUT_ORDER_BY);
         }
 
         Database db = session.getDatabase();
@@ -1332,14 +1337,7 @@ public class Select extends Query {
                 buff.append(StringUtils.unEnclose(o.getSQL()));
             }
         }
-        if (limitExpr != null) {
-            buff.append("\nLIMIT ").append(
-                    StringUtils.unEnclose(limitExpr.getSQL()));
-            if (offsetExpr != null) {
-                buff.append(" OFFSET ").append(
-                        StringUtils.unEnclose(offsetExpr.getSQL()));
-            }
-        }
+        appendLimitToSQL(buff.builder());
         if (sampleSizeExpr != null) {
             buff.append("\nSAMPLE_SIZE ").append(
                     StringUtils.unEnclose(sampleSizeExpr.getSQL()));

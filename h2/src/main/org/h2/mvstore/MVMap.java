@@ -94,7 +94,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     @SuppressWarnings("unchecked")
     private MVMap(MVStore store, DataType keyType, DataType valueType, int id, long createVersion,
-                  AtomicReference<RootReference> root, int keysPerPage, boolean singleWriter) {
+            AtomicReference<RootReference> root, int keysPerPage, boolean singleWriter) {
         this.store = store;
         this.id = id;
         this.createVersion = createVersion;

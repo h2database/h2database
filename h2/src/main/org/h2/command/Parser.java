@@ -5592,7 +5592,7 @@ public class Parser {
          * data and table if we don't have a working CTE already.
          */
         Table recursiveTable = TableView.createShadowTableForRecursiveTableExpression(
-        		isTemporary, session, cteViewName, schema, columns, database);
+                isTemporary, session, cteViewName, schema, columns, database);
         List<Column> columnTemplateList;
         String[] querySQLOutput = {null};
         try {

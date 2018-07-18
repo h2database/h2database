@@ -107,8 +107,8 @@ class MVSortedTempResult extends MVTempResult {
      *            sort order, or {@code null} if this result does not need any
      *            sorting
      */
-    MVSortedTempResult(Database database, Expression[] expressions, boolean distinct, int[] distinctIndexes, int visibleColumnCount,
-            SortOrder sort) {
+    MVSortedTempResult(Database database, Expression[] expressions, boolean distinct, int[] distinctIndexes,
+            int visibleColumnCount, SortOrder sort) {
         super(database, expressions.length, visibleColumnCount);
         this.distinct = distinct;
         this.distinctIndexes = distinctIndexes;

@@ -367,9 +367,10 @@ public class LocalResult implements ResultInterface, ResultTarget {
             if (isAnyDistinct()) {
                 rows = distinctRows.values();
             }
-            if (sort != null) {
-                if (offset > 0 || limit > 0) {
-                    sort.sort(rows, offset, limit < 0 || withTies ? rows.size() : limit);
+            if (sort != null && limit != 0) {
+                boolean withLimit = limit > 0 && !withTies;
+                if (offset > 0 || withLimit) {
+                    sort.sort(rows, offset, withLimit ? limit : rows.size());
                 } else {
                     sort.sort(rows);
                 }

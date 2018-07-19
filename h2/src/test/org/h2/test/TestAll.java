@@ -193,6 +193,7 @@ import org.h2.test.unit.TestIntPerfectHash;
 import org.h2.test.unit.TestJmx;
 import org.h2.test.unit.TestLocale;
 import org.h2.test.unit.TestMathUtils;
+import org.h2.test.unit.TestMemoryUnmapper;
 import org.h2.test.unit.TestMode;
 import org.h2.test.unit.TestModifyOnWrite;
 import org.h2.test.unit.TestNetUtils;
@@ -960,6 +961,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestIntIntHashMap());
         addTest(new TestIntPerfectHash());
         addTest(new TestMathUtils());
+        addTest(new TestMemoryUnmapper());
         addTest(new TestMode());
         addTest(new TestObjectDeserialization());
         addTest(new TestOverflow());

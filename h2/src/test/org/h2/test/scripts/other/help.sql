@@ -16,11 +16,11 @@ HELP ABCDE EF_GH;
 HELP HELP;
 > ID SECTION          TOPIC SYNTAX                  TEXT
 > -- ---------------- ----- ----------------------- ----------------------------------------------------
-> 64 Commands (Other) HELP  HELP [ anything [...] ] Displays the help pages of SQL commands or keywords.
+> 65 Commands (Other) HELP  HELP [ anything [...] ] Displays the help pages of SQL commands or keywords.
 > rows: 1
 
 HELP he lp;
 > ID SECTION          TOPIC SYNTAX                  TEXT
 > -- ---------------- ----- ----------------------- ----------------------------------------------------
-> 64 Commands (Other) HELP  HELP [ anything [...] ] Displays the help pages of SQL commands or keywords.
+> 65 Commands (Other) HELP  HELP [ anything [...] ] Displays the help pages of SQL commands or keywords.
 > rows: 1

@@ -405,15 +405,8 @@ public class LocalResult implements ResultInterface, ResultTarget {
             }
             int to = offset + limit;
             if (withTies && sort != null) {
-                int[] indexes = sort.getQueryColumnIndexes();
                 Value[] expected = rows.get(to - 1);
-                loop: while (to < rows.size()) {
-                    Value[] current = rows.get(to);
-                    for (int idx : indexes) {
-                        if (!expected[idx].equals(current[idx])) {
-                            break loop;
-                        }
-                    }
+                while (to < rows.size() && sort.compare(expected, rows.get(to)) == 0) {
                     to++;
                     rowCount++;
                 }
@@ -446,14 +439,8 @@ public class LocalResult implements ResultInterface, ResultTarget {
             }
         }
         if (withTies && sort != null && row != null) {
-            int[] indexes = sort.getQueryColumnIndexes();
             Value[] expected = row;
-            loop: while ((row = temp.next()) != null) {
-                for (int idx : indexes) {
-                    if (!expected[idx].equals(row[idx])) {
-                        break loop;
-                    }
-                }
+            while ((row = temp.next()) != null && sort.compare(expected, row) == 0) {
                 rows.add(row);
                 rowCount++;
                 if (rows.size() > maxMemoryRows) {

@@ -703,7 +703,8 @@ public abstract class Query extends Prepared {
                 if (offsetExpr != null) {
                     buff.append("\nOFFSET ").append(StringUtils.unEnclose(offsetExpr.getSQL())).append(" ROWS");
                 }
-                buff.append("\nFETCH NEXT ").append(StringUtils.unEnclose(limitExpr.getSQL())).append(" ROWS WITH TIES");
+                buff.append("\nFETCH NEXT ").append(StringUtils.unEnclose(limitExpr.getSQL()))
+                        .append(" ROWS WITH TIES");
             } else {
                 buff.append("\nLIMIT ").append(StringUtils.unEnclose(limitExpr.getSQL()));
                 if (offsetExpr != null) {

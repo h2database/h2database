@@ -149,6 +149,13 @@ public class TestSpatial extends TestDb {
                 new Coordinate(2, 2),
                 new Coordinate(1, 1) });
         assertTrue(polygon.equals(rs.getObject(2)));
+        rs.close();
+        rs = stat.executeQuery("select id, cast(polygon as varchar) from test");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertEquals("POLYGON ((1 1, 1 2, 2 2, 1 1))", rs.getObject(2));
+        assertTrue(polygon.equals(rs.getObject(2, Geometry.class)));
+        rs.close();
 
         rs = stat.executeQuery("select * from test where polygon = " +
                 "'POLYGON ((1 1, 1 2, 2 2, 1 1))'");

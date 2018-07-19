@@ -123,8 +123,8 @@ public class TestScript extends TestDb {
                 "uuid", "varchar", "varchar-ignorecase" }) {
             testScript("datatypes/" + s + ".sql");
         }
-        for (String s : new String[] { "alterTableAdd", "alterTableDropColumn",
-                "createAlias", "createSynonym", "createView", "createTable", "createTrigger",
+        for (String s : new String[] { "alterTableAdd", "alterTableDropColumn", "alterTableRename",
+                "createAlias", "createSynonym", "createTable", "createTrigger", "createView",
                 "dropDomain", "dropIndex", "dropSchema", "truncateTable" }) {
             testScript("ddl/" + s + ".sql");
         }

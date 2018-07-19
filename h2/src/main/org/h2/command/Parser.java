@@ -5767,19 +5767,31 @@ public class Parser {
         return command;
     }
 
-    private AlterView parseAlterView() {
-        AlterView command = new AlterView(session);
+    private DefineCommand parseAlterView() {
         boolean ifExists = readIfExists(false);
-        command.setIfExists(ifExists);
         String viewName = readIdentifierWithSchema();
-        Table tableView = getSchema().findTableOrView(session, viewName);
+        Schema schema = getSchema();
+        Table tableView = schema.findTableOrView(session, viewName);
         if (!(tableView instanceof TableView) && !ifExists) {
             throw DbException.get(ErrorCode.VIEW_NOT_FOUND_1, viewName);
         }
-        TableView view = (TableView) tableView;
-        command.setView(view);
-        read("RECOMPILE");
-        return command;
+        if (readIf("RENAME")) {
+            read("TO");
+            String newName = readIdentifierWithSchema(schema.getName());
+            checkSchema(schema);
+            AlterTableRename command = new AlterTableRename(session, getSchema());
+            command.setOldTableName(viewName);
+            command.setNewTableName(newName);
+            command.setIfTableExists(ifExists);
+            return command;
+        } else {
+            read("RECOMPILE");
+            TableView view = (TableView) tableView;
+            AlterView command = new AlterView(session);
+            command.setIfExists(ifExists);
+            command.setView(view);
+            return command;
+        }
     }
 
     private Prepared parseAlterSchema() {

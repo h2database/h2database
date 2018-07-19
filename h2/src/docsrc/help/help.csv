@@ -468,7 +468,7 @@ This command commits an open transaction in this connection.
 ALTER USER SA SET PASSWORD 'rioyxlgt'
 "
 
-"Commands (DDL)","ALTER VIEW","
+"Commands (DDL)","ALTER VIEW RECOMPILE","
 ALTER VIEW [ IF EXISTS ] viewName RECOMPILE
 ","
 Recompiles a view after the underlying tables have been changed or created.
@@ -476,6 +476,15 @@ This command is used for views created using CREATE FORCE VIEW.
 This command commits an open transaction in this connection.
 ","
 ALTER VIEW ADDRESS_VIEW RECOMPILE
+"
+
+"Commands (DDL)","ALTER VIEW RENAME","
+ALTER VIEW [ IF EXISTS ] viewName RENAME TO newName
+","
+Renames a view.
+This command commits an open transaction in this connection.
+","
+ALTER VIEW TEST RENAME TO MY_VIEW
 "
 
 "Commands (DDL)","ANALYZE","

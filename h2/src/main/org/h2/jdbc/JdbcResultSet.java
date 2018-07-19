@@ -2493,7 +2493,6 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
      *
      * @param columnIndex (1,2,...)
      * @param x the value
-     * @param length the length
      * @throws SQLException if the result set is closed or not updatable
      */
     @Override
@@ -2520,7 +2519,6 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
      *
      * @param columnLabel the column label
      * @param x the value
-     * @param length the length
      * @throws SQLException if the result set is closed or not updatable
      */
     @Override
@@ -3930,9 +3928,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             return type.cast(value == ValueNull.INSTANCE
                     ? null : new JdbcSQLXML(conn, value, JdbcLob.State.WITH_VALUE, id));
         } else if (type == TimestampWithTimeZone.class) {
-            return type.cast(value.getObject());
+            return type.cast(value.convertTo(Value.TIMESTAMP_TZ).getObject());
         } else if (DataType.isGeometryClass(type)) {
-            return type.cast(value.getObject());
+            return type.cast(value.convertTo(Value.GEOMETRY).getObject());
         } else if (type == LocalDateTimeUtils.LOCAL_DATE) {
             return type.cast(LocalDateTimeUtils.valueToLocalDate(value));
         } else if (type == LocalDateTimeUtils.LOCAL_TIME) {

@@ -2381,7 +2381,12 @@ public class Parser {
                     read("ROWS");
                 }
             }
-            read("ONLY");
+            if (readIf(WITH)) {
+                read("TIES");
+                command.setWithTies(true);
+            } else {
+                read("ONLY");
+            }
         }
         currentSelect = temp;
         if (readIf(LIMIT)) {
@@ -2527,6 +2532,10 @@ public class Parser {
             // SELECT TOP 1 (+?) AS A FROM TEST
             Expression limit = readTerm().optimize(session);
             command.setLimit(limit);
+            if (readIf(WITH)) {
+                read("TIES");
+                command.setWithTies(true);
+            }
         } else if (readIf(LIMIT)) {
             Expression offset = readTerm().optimize(session);
             command.setOffset(offset);
@@ -2535,7 +2544,16 @@ public class Parser {
         }
         currentSelect = temp;
         if (readIf(DISTINCT)) {
-            command.setDistinct(true);
+            if (readIf(ON)) {
+                read(OPEN_PAREN);
+                ArrayList<Expression> distinctExpressions = Utils.newSmallArrayList();
+                do {
+                    distinctExpressions.add(readExpression());
+                } while (readIfMore(true));
+                command.setDistinct(distinctExpressions.toArray(new Expression[0]));
+            } else {
+                command.setDistinct();
+            }
         } else {
             readIf(ALL);
         }
@@ -2749,9 +2767,7 @@ public class Parser {
                 } else {
                     if (isSelect()) {
                         Query query = parseSelect();
-                        // can not be lazy because we have to call
-                        // method ResultInterface.containsDistinct
-                        // which is not supported for lazy execution
+                        // TODO lazy result causes timeout in TestFuzzOptimizations
                         query.setNeverLazy(true);
                         r = new ConditionInSelect(database, r, query, false,
                                 Comparison.EQUAL);
@@ -5585,7 +5601,7 @@ public class Parser {
          * data and table if we don't have a working CTE already.
          */
         Table recursiveTable = TableView.createShadowTableForRecursiveTableExpression(
-        		isTemporary, session, cteViewName, schema, columns, database);
+                isTemporary, session, cteViewName, schema, columns, database);
         List<Column> columnTemplateList;
         String[] querySQLOutput = {null};
         try {

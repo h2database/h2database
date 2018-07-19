@@ -69,7 +69,8 @@ public class TestTimeStampWithTimeZone extends TestDb {
         assertEquals(1, ts.getMonth());
         assertEquals(1, ts.getDay());
         assertEquals(15, ts.getTimeZoneOffsetMins());
-        assertEquals(new TimestampWithTimeZone(1008673L, 43200000000000L, (short) 15), ts);
+        TimestampWithTimeZone firstExpected = new TimestampWithTimeZone(1008673L, 43200000000000L, (short) 15);
+        assertEquals(firstExpected, ts);
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("1970-01-01T12:00+00:15", rs.getObject(1,
                             LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
@@ -125,6 +126,11 @@ public class TestTimeStampWithTimeZone extends TestDb {
         assertEquals(2014, columnType);
 
         rs.close();
+
+        rs = stat.executeQuery("select cast(t1 as varchar) from test");
+        assertTrue(rs.next());
+        assertEquals(firstExpected, rs.getObject(1, TimestampWithTimeZone.class));
+
         stat.close();
         conn.close();
     }

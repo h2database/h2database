@@ -7,6 +7,7 @@ package org.h2.command.dml;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
@@ -31,6 +32,7 @@ import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
@@ -45,6 +47,11 @@ public abstract class Query extends Prepared {
      * The limit expression as specified in the LIMIT or TOP clause.
      */
     protected Expression limitExpr;
+
+    /**
+     * Whether tied rows should be included in result too.
+     */
+    protected boolean withTies;
 
     /**
      * The offset expression as specified in the LIMIT .. OFFSET clause.
@@ -255,14 +262,29 @@ public abstract class Query extends Prepared {
 
     /**
      * Set the distinct flag.
-     *
-     * @param b the new value
      */
-    public void setDistinct(boolean b) {
-        distinct = b;
+    public void setDistinct() {
+        distinct = true;
     }
 
-    public boolean isDistinct() {
+    /**
+     * Set the distinct flag only if it is possible, may be used as a possible
+     * optimization only.
+     */
+    public abstract void setDistinctIfPossible();
+
+    /**
+     * @return whether this query is a plain {@code DISTINCT} query
+     */
+    public boolean isStandardDistinct() {
+        return distinct;
+    }
+
+    /**
+     * @return whether this query is a {@code DISTINCT} or
+     *         {@code DISTINCT ON (...)} query
+     */
+    public boolean isAnyDistinct() {
         return distinct;
     }
 
@@ -401,102 +423,109 @@ public abstract class Query extends Prepared {
     static void initOrder(Session session,
             ArrayList<Expression> expressions,
             ArrayList<String> expressionSQL,
-            ArrayList<SelectOrderBy> orderList,
+            List<SelectOrderBy> orderList,
             int visible,
             boolean mustBeInResult,
             ArrayList<TableFilter> filters) {
-        Database db = session.getDatabase();
         for (SelectOrderBy o : orderList) {
             Expression e = o.expression;
             if (e == null) {
                 continue;
             }
-            // special case: SELECT 1 AS A FROM DUAL ORDER BY A
-            // (oracle supports it, but only in order by, not in group by and
-            // not in having):
-            // SELECT 1 AS A FROM DUAL ORDER BY -A
-            boolean isAlias = false;
-            int idx = expressions.size();
-            if (e instanceof ExpressionColumn) {
-                // order by expression
-                ExpressionColumn exprCol = (ExpressionColumn) e;
-                String tableAlias = exprCol.getOriginalTableAliasName();
-                String col = exprCol.getOriginalColumnName();
-                for (int j = 0; j < visible; j++) {
-                    boolean found = false;
-                    Expression ec = expressions.get(j);
-                    if (ec instanceof ExpressionColumn) {
-                        // select expression
-                        ExpressionColumn c = (ExpressionColumn) ec;
-                        found = db.equalsIdentifiers(col, c.getColumnName());
-                        if (found && tableAlias != null) {
-                            String ca = c.getOriginalTableAliasName();
-                            if (ca == null) {
-                                found = false;
-                                if (filters != null) {
-                                    // select id from test order by test.id
-                                    for (TableFilter f : filters) {
-                                        if (db.equalsIdentifiers(f.getTableAlias(), tableAlias)) {
-                                            found = true;
-                                            break;
-                                        }
+            int idx = initExpression(session, expressions, expressionSQL, e, visible, mustBeInResult, filters);
+            o.columnIndexExpr = ValueExpression.get(ValueInt.get(idx + 1));
+            o.expression = expressions.get(idx).getNonAliasExpression();
+        }
+    }
+
+    static int initExpression(Session session, ArrayList<Expression> expressions,
+            ArrayList<String> expressionSQL, Expression e, int visible, boolean mustBeInResult,
+            ArrayList<TableFilter> filters) {
+        Database db = session.getDatabase();
+        // special case: SELECT 1 AS A FROM DUAL ORDER BY A
+        // (oracle supports it, but only in order by, not in group by and
+        // not in having):
+        // SELECT 1 AS A FROM DUAL ORDER BY -A
+        boolean isAlias = false;
+        int idx = expressions.size();
+        if (e instanceof ExpressionColumn) {
+            // order by expression
+            ExpressionColumn exprCol = (ExpressionColumn) e;
+            String tableAlias = exprCol.getOriginalTableAliasName();
+            String col = exprCol.getOriginalColumnName();
+            for (int j = 0; j < visible; j++) {
+                boolean found = false;
+                Expression ec = expressions.get(j);
+                if (ec instanceof ExpressionColumn) {
+                    // select expression
+                    ExpressionColumn c = (ExpressionColumn) ec;
+                    found = db.equalsIdentifiers(col, c.getColumnName());
+                    if (found && tableAlias != null) {
+                        String ca = c.getOriginalTableAliasName();
+                        if (ca == null) {
+                            found = false;
+                            if (filters != null) {
+                                // select id from test order by test.id
+                                for (TableFilter f : filters) {
+                                    if (db.equalsIdentifiers(f.getTableAlias(), tableAlias)) {
+                                        found = true;
+                                        break;
                                     }
                                 }
-                            } else {
-                                found = db.equalsIdentifiers(ca, tableAlias);
                             }
-                        }
-                    } else if (!(ec instanceof Alias)) {
-                        continue;
-                    } else if (tableAlias == null && db.equalsIdentifiers(col, ec.getAlias())) {
-                        found = true;
-                    } else {
-                        Expression ec2 = ec.getNonAliasExpression();
-                        if (ec2 instanceof ExpressionColumn) {
-                            ExpressionColumn c2 = (ExpressionColumn) ec2;
-                            String ta = exprCol.getSQL();
-                            String tb = c2.getSQL();
-                            String s2 = c2.getColumnName();
-                            found = db.equalsIdentifiers(col, s2);
-                            if (!db.equalsIdentifiers(ta, tb)) {
-                                found = false;
-                            }
+                        } else {
+                            found = db.equalsIdentifiers(ca, tableAlias);
                         }
                     }
-                    if (found) {
+                } else if (!(ec instanceof Alias)) {
+                    continue;
+                } else if (tableAlias == null && db.equalsIdentifiers(col, ec.getAlias())) {
+                    found = true;
+                } else {
+                    Expression ec2 = ec.getNonAliasExpression();
+                    if (ec2 instanceof ExpressionColumn) {
+                        ExpressionColumn c2 = (ExpressionColumn) ec2;
+                        String ta = exprCol.getSQL();
+                        String tb = c2.getSQL();
+                        String s2 = c2.getColumnName();
+                        found = db.equalsIdentifiers(col, s2);
+                        if (!db.equalsIdentifiers(ta, tb)) {
+                            found = false;
+                        }
+                    }
+                }
+                if (found) {
+                    idx = j;
+                    isAlias = true;
+                    break;
+                }
+            }
+        } else {
+            String s = e.getSQL();
+            if (expressionSQL != null) {
+                for (int j = 0, size = expressionSQL.size(); j < size; j++) {
+                    String s2 = expressionSQL.get(j);
+                    if (db.equalsIdentifiers(s2, s)) {
                         idx = j;
                         isAlias = true;
                         break;
                     }
                 }
-            } else {
-                String s = e.getSQL();
-                if (expressionSQL != null) {
-                    for (int j = 0, size = expressionSQL.size(); j < size; j++) {
-                        String s2 = expressionSQL.get(j);
-                        if (db.equalsIdentifiers(s2, s)) {
-                            idx = j;
-                            isAlias = true;
-                            break;
-                        }
-                    }
-                }
             }
-            if (!isAlias) {
-                if (mustBeInResult) {
-                    if (session.getDatabase().getMode().getEnum() != ModeEnum.MySQL) {
-                        if (!checkOrderOther(session, e, expressionSQL)) {
-                            throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT, e.getSQL());
-                        }
-                    }
-                }
-                expressions.add(e);
-                String sql = e.getSQL();
-                expressionSQL.add(sql);
-            }
-            o.columnIndexExpr = ValueExpression.get(ValueInt.get(idx + 1));
-            o.expression = expressions.get(idx).getNonAliasExpression();
         }
+        if (!isAlias) {
+            if (mustBeInResult) {
+                if (session.getDatabase().getMode().getEnum() != ModeEnum.MySQL) {
+                    if (!checkOrderOther(session, e, expressionSQL)) {
+                        throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT, e.getSQL());
+                    }
+                }
+            }
+            expressions.add(e);
+            String sql = e.getSQL();
+            expressionSQL.add(sql);
+        }
+        return idx;
     }
 
     /**
@@ -621,6 +650,14 @@ public abstract class Query extends Prepared {
         return limitExpr;
     }
 
+    public void setWithTies(boolean withTies) {
+        this.withTies = true;
+    }
+
+    public boolean isWithTies() {
+        return withTies;
+    }
+
     /**
      * Add a parameter to the parameter list.
      *
@@ -659,4 +696,22 @@ public abstract class Query extends Prepared {
         isEverything(visitor);
         return visitor.getMaxDataModificationId();
     }
+
+    void appendLimitToSQL(StringBuilder buff) {
+        if (limitExpr != null) {
+            if (withTies) {
+                if (offsetExpr != null) {
+                    buff.append("\nOFFSET ").append(StringUtils.unEnclose(offsetExpr.getSQL())).append(" ROWS");
+                }
+                buff.append("\nFETCH NEXT ").append(StringUtils.unEnclose(limitExpr.getSQL()))
+                        .append(" ROWS WITH TIES");
+            } else {
+                buff.append("\nLIMIT ").append(StringUtils.unEnclose(limitExpr.getSQL()));
+                if (offsetExpr != null) {
+                    buff.append("\nOFFSET ").append(StringUtils.unEnclose(offsetExpr.getSQL()));
+                }
+            }
+        }
+    }
+
 }

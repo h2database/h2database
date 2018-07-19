@@ -41,9 +41,10 @@ public class LocalResult implements ResultInterface, ResultTarget {
     private Value[] currentRow;
     private int offset;
     private int limit = -1;
+    private boolean withTies;
     private ResultExternal external;
     private boolean distinct;
-    private boolean randomAccess;
+    private int[] distinctIndexes;
     private boolean closed;
     private boolean containsLobs;
 
@@ -151,7 +152,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
         copy.sort = this.sort;
         copy.distinctRows = this.distinctRows;
         copy.distinct = distinct;
-        copy.randomAccess = randomAccess;
+        copy.distinctIndexes = distinctIndexes;
         copy.currentRow = null;
         copy.offset = 0;
         copy.limit = -1;
@@ -172,15 +173,27 @@ public class LocalResult implements ResultInterface, ResultTarget {
      * Remove duplicate rows.
      */
     public void setDistinct() {
+        assert distinctIndexes == null;
         distinct = true;
         distinctRows = ValueHashMap.newInstance();
     }
 
     /**
-     * Random access is required (containsDistinct).
+     * Remove rows with duplicates in columns with specified indexes.
+     *
+     * @param distinctIndexes distinct indexes
      */
-    public void setRandomAccess() {
-        this.randomAccess = true;
+    public void setDistinct(int[] distinctIndexes) {
+        assert !distinct;
+        this.distinctIndexes = distinctIndexes;
+        distinctRows = ValueHashMap.newInstance();
+    }
+
+    /**
+     * @return whether this result is a distinct result
+     */
+    public boolean isAnyDistinct() {
+        return distinct || distinctIndexes != null;
     }
 
     /**
@@ -217,7 +230,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
         if (distinctRows == null) {
             distinctRows = ValueHashMap.newInstance();
             for (Value[] row : rows) {
-                ValueArray array = getArrayOfVisible(row);
+                ValueArray array = getArrayOfDistinct(row);
                 distinctRows.put(array, array.getList());
             }
         }
@@ -278,8 +291,15 @@ public class LocalResult implements ResultInterface, ResultTarget {
         }
     }
 
-    private ValueArray getArrayOfVisible(Value[] values) {
-        if (values.length > visibleColumnCount) {
+    private ValueArray getArrayOfDistinct(Value[] values) {
+        if (distinctIndexes != null) {
+            int cnt = distinctIndexes.length;
+            Value[] newValues = new Value[cnt];
+            for (int i = 0; i < cnt; i++) {
+                newValues[i] = values[distinctIndexes[i]];
+            }
+            values = newValues;
+        } else if (values.length > visibleColumnCount) {
             values = Arrays.copyOf(values, visibleColumnCount);
         }
         return ValueArray.get(values);
@@ -288,7 +308,9 @@ public class LocalResult implements ResultInterface, ResultTarget {
     private void createExternalResult() {
         Database database = session.getDatabase();
         external = database.isMVStore()
-                ? MVTempResult.of(database, expressions, distinct, visibleColumnCount, sort)
+                || /* not supported by ResultTempTable */ distinct && expressions.length != visibleColumnCount
+                || distinctIndexes != null
+                ? MVTempResult.of(database, expressions, distinct, distinctIndexes, visibleColumnCount, sort)
                         : new ResultTempTable(session, expressions, distinct, sort);
     }
 
@@ -300,10 +322,10 @@ public class LocalResult implements ResultInterface, ResultTarget {
     @Override
     public void addRow(Value[] values) {
         cloneLobs(values);
-        if (distinct) {
+        if (isAnyDistinct()) {
             if (distinctRows != null) {
-                ValueArray array = getArrayOfVisible(values);
-                distinctRows.put(array, values);
+                ValueArray array = getArrayOfDistinct(values);
+                distinctRows.putIfAbsent(array, values);
                 rowCount = distinctRows.size();
                 if (rowCount > maxMemoryRows) {
                     createExternalResult();
@@ -342,12 +364,13 @@ public class LocalResult implements ResultInterface, ResultTarget {
         if (external != null) {
             addRowsToDisk();
         } else {
-            if (distinct) {
+            if (isAnyDistinct()) {
                 rows = distinctRows.values();
             }
-            if (sort != null) {
-                if (offset > 0 || limit > 0) {
-                    sort.sort(rows, offset, limit < 0 ? rows.size() : limit);
+            if (sort != null && limit != 0) {
+                boolean withLimit = limit > 0 && !withTies;
+                if (offset > 0 || withLimit) {
+                    sort.sort(rows, offset, withLimit ? limit : rows.size());
                 } else {
                     sort.sort(rows);
                 }
@@ -380,8 +403,16 @@ public class LocalResult implements ResultInterface, ResultTarget {
                 rows.clear();
                 return;
             }
+            int to = offset + limit;
+            if (withTies && sort != null) {
+                Value[] expected = rows.get(to - 1);
+                while (to < rows.size() && sort.compare(expected, rows.get(to)) == 0) {
+                    to++;
+                    rowCount++;
+                }
+            }
             // avoid copying the whole array for each row
-            rows = new ArrayList<>(rows.subList(offset, offset + limit));
+            rows = new ArrayList<>(rows.subList(offset, to));
         } else {
             if (clearAll) {
                 external.close();
@@ -399,10 +430,22 @@ public class LocalResult implements ResultInterface, ResultTarget {
         while (--offset >= 0) {
             temp.next();
         }
+        Value[] row = null;
         while (--limit >= 0) {
-            rows.add(temp.next());
+            row = temp.next();
+            rows.add(row);
             if (rows.size() > maxMemoryRows) {
                 addRowsToDisk();
+            }
+        }
+        if (withTies && sort != null && row != null) {
+            Value[] expected = row;
+            while ((row = temp.next()) != null && sort.compare(expected, row) == 0) {
+                rows.add(row);
+                rowCount++;
+                if (rows.size() > maxMemoryRows) {
+                    addRowsToDisk();
+                }
             }
         }
         if (external != null) {
@@ -428,6 +471,13 @@ public class LocalResult implements ResultInterface, ResultTarget {
      */
     public void setLimit(int limit) {
         this.limit = limit;
+    }
+
+    /**
+     * @param withTies whether tied rows should be included in result too
+     */
+    public void setWithTies(boolean withTies) {
+        this.withTies = withTies;
     }
 
     @Override

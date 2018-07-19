@@ -784,3 +784,6 @@ ewkt ewkb informations authzpwd realms mappers jaxb realmname configurationfile 
 authenticators appname interrogate metatable barrier preliminary staticuser staticpassword unregistered inquiry
 ldapexample remoteuser assignments djava validators mock relate mapid tighten
 retried helpers unclean missed parsers sax myclass suppose mandatory testxml miao ciao
+emptied titlecase ask snk dom xif transformer dbf stx stax xof descriptors
+inconsistencies discover eliminated violates tweaks postpone leftovers
+tied ties

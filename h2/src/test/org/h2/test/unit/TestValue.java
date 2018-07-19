@@ -446,7 +446,8 @@ public class TestValue extends TestDb {
         }
     }
 
-    private static int testLobComparisonImpl(DataHandler dh, int type, int size1, int size2, int suffix1, int suffix2) {
+    private static int testLobComparisonImpl(DataHandler dh, int type, int size1, int size2, int suffix1,
+            int suffix2) {
         byte[] bytes1 = new byte[size1];
         byte[] bytes2 = new byte[size2];
         if (size1 > 0) {

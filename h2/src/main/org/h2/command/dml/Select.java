@@ -7,6 +7,7 @@ package org.h2.command.dml;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -88,6 +89,13 @@ public class Select extends Query {
      * The visible columns (the ones required in the result).
      */
     int visibleColumnCount;
+
+    /**
+     * {@code DISTINCT ON(...)} expressions.
+     */
+    private Expression[] distinctExpressions;
+
+    private int[] distinctIndexes;
 
     private int distinctColumnCount;
     private ArrayList<SelectOrderBy> orderList;
@@ -245,6 +253,36 @@ public class Select extends Query {
     @Override
     public boolean hasOrder() {
         return orderList != null || sort != null;
+    }
+
+    @Override
+    public void setDistinct() {
+        if (distinctExpressions != null) {
+            throw DbException.getUnsupportedException("DISTINCT ON together with DISTINCT");
+        }
+        distinct = true;
+    }
+
+    /**
+     * Set the distinct expressions.
+     */
+    public void setDistinct(Expression[] distinctExpressions) {
+        if (distinct) {
+            throw DbException.getUnsupportedException("DISTINCT ON together with DISTINCT");
+        }
+        this.distinctExpressions = distinctExpressions;
+    }
+
+    @Override
+    public void setDistinctIfPossible() {
+        if (!isAnyDistinct() && offsetExpr == null && limitExpr == null) {
+            distinct = true;
+        }
+    }
+
+    @Override
+    public boolean isAnyDistinct() {
+        return distinct || distinctExpressions != null;
     }
 
     /**
@@ -548,7 +586,7 @@ public class Select extends Query {
         return null;
     }
 
-    private void queryDistinct(ResultTarget result, long limitRows) {
+    private void queryDistinct(ResultTarget result, long limitRows, boolean withTies) {
         // limitRows must be long, otherwise we get an int overflow
         // if limitRows is at or near Integer.MAX_VALUE
         // limitRows is never 0 here
@@ -580,7 +618,7 @@ public class Select extends Query {
             result.addRow(row);
             rowNumber++;
             if ((sort == null || sortUsingIndex) && limitRows > 0 &&
-                    rowNumber >= limitRows) {
+                    rowNumber >= limitRows && !withTies) {
                 break;
             }
             if (sampleSize > 0 && rowNumber >= sampleSize) {
@@ -589,7 +627,7 @@ public class Select extends Query {
         }
     }
 
-    private LazyResult queryFlat(int columnCount, ResultTarget result, long limitRows) {
+    private LazyResult queryFlat(int columnCount, ResultTarget result, long limitRows, boolean withTies) {
         // limitRows must be long, otherwise we get an int overflow
         // if limitRows is at or near Integer.MAX_VALUE
         // limitRows is never 0 here
@@ -606,7 +644,7 @@ public class Select extends Query {
         if (result == null) {
             return lazyResult;
         }
-        if (sort != null && !sortUsingIndex || limitRows <= 0) {
+        if (sort != null && !sortUsingIndex || limitRows <= 0 || withTies) {
             limitRows = Long.MAX_VALUE;
         }
         while (result.getRowCount() < limitRows && lazyResult.next()) {
@@ -652,23 +690,25 @@ public class Select extends Query {
         }
         boolean lazy = session.isLazyQueryExecution() &&
                 target == null && !isForUpdate && !isQuickAggregateQuery &&
-                limitRows != 0 && offsetExpr == null && isReadOnly();
+                limitRows != 0 && !withTies && offsetExpr == null && isReadOnly();
         int columnCount = expressions.size();
         LocalResult result = null;
         if (!lazy && (target == null ||
                 !session.getDatabase().getSettings().optimizeInsertFromSelect)) {
             result = createLocalResult(result);
         }
-        if (sort != null && (!sortUsingIndex || distinct)) {
+        if (sort != null && (!sortUsingIndex || isAnyDistinct() || withTies)) {
             result = createLocalResult(result);
             result.setSortOrder(sort);
         }
-        if (distinct && !isDistinctQuery) {
+        if (distinct) {
+            if (!isDistinctQuery) {
+                result = createLocalResult(result);
+                result.setDistinct();
+            }
+        } else if (distinctExpressions != null) {
             result = createLocalResult(result);
-            result.setDistinct();
-        }
-        if (randomAccessResult) {
-            result = createLocalResult(result);
+            result.setDistinct(distinctIndexes);
         }
         if (isGroupQuery && !isGroupSortedQuery) {
             result = createLocalResult(result);
@@ -683,7 +723,7 @@ public class Select extends Query {
             if (isGroupQuery) {
                 throw DbException.getUnsupportedException(
                         "MVCC=TRUE && FOR UPDATE && GROUP");
-            } else if (distinct) {
+            } else if (isAnyDistinct()) {
                 throw DbException.getUnsupportedException(
                         "MVCC=TRUE && FOR UPDATE && DISTINCT");
             } else if (isQuickAggregateQuery) {
@@ -709,9 +749,9 @@ public class Select extends Query {
                         queryGroup(columnCount, result);
                     }
                 } else if (isDistinctQuery) {
-                    queryDistinct(to, limitRows);
+                    queryDistinct(to, limitRows, withTies);
                 } else {
-                    lazyResult = queryFlat(columnCount, to, limitRows);
+                    lazyResult = queryFlat(columnCount, to, limitRows, withTies);
                 }
             } finally {
                 if (!lazy) {
@@ -724,16 +764,24 @@ public class Select extends Query {
             if (limitRows > 0) {
                 lazyResult.setLimit(limitRows);
             }
-            return lazyResult;
+            if (randomAccessResult) {
+                return convertToDistinct(lazyResult);
+            } else {
+                return lazyResult;
+            }
         }
         if (offsetExpr != null) {
             result.setOffset(offsetExpr.getValue(session).getInt());
         }
         if (limitRows >= 0) {
             result.setLimit(limitRows);
+            result.setWithTies(withTies);
         }
         if (result != null) {
             result.done();
+            if (randomAccessResult && !distinct) {
+                result = convertToDistinct(result);
+            }
             if (target != null) {
                 while (result.next()) {
                     target.addRow(result.currentRow());
@@ -759,6 +807,18 @@ public class Select extends Query {
     private LocalResult createLocalResult(LocalResult old) {
         return old != null ? old : new LocalResult(session, expressionArray,
                 visibleColumnCount);
+    }
+
+    private LocalResult convertToDistinct(ResultInterface result) {
+        LocalResult distinctResult = new LocalResult(session, expressionArray, visibleColumnCount);
+        distinctResult.setDistinct();
+        result.reset();
+        while (result.next()) {
+            distinctResult.addRow(result.currentRow());
+        }
+        result.close();
+        distinctResult.done();
+        return distinctResult;
     }
 
     private void expandColumnList() {
@@ -828,7 +888,7 @@ public class Select extends Query {
         expandColumnList();
         visibleColumnCount = expressions.size();
         ArrayList<String> expressionSQL;
-        if (orderList != null || group != null) {
+        if (distinctExpressions != null || orderList != null || group != null) {
             expressionSQL = new ArrayList<>(visibleColumnCount);
             for (int i = 0; i < visibleColumnCount; i++) {
                 Expression expr = expressions.get(i);
@@ -839,9 +899,23 @@ public class Select extends Query {
         } else {
             expressionSQL = null;
         }
+        if (distinctExpressions != null) {
+            BitSet set = new BitSet();
+            for (Expression e : distinctExpressions) {
+                set.set(initExpression(session, expressions, expressionSQL, e, visibleColumnCount, false,
+                        filters));
+            }
+            int idx = 0, cnt = set.cardinality();
+            distinctIndexes = new int[cnt];
+            for (int i = 0; i < cnt; i++) {
+                idx = set.nextSetBit(idx);
+                distinctIndexes[i] = idx;
+                idx++;
+            }
+        }
         if (orderList != null) {
             initOrder(session, expressions, expressionSQL, orderList,
-                    visibleColumnCount, distinct, filters);
+                    visibleColumnCount, isAnyDistinct(), filters);
         }
         distinctColumnCount = expressions.size();
         if (having != null) {
@@ -850,6 +924,10 @@ public class Select extends Query {
             having = null;
         } else {
             havingIndex = -1;
+        }
+
+        if (withTies && !hasOrder()) {
+            throw DbException.get(ErrorCode.WITH_TIES_WITHOUT_ORDER_BY);
         }
 
         Database db = session.getDatabase();
@@ -1175,8 +1253,17 @@ public class Select extends Query {
         }
         buff.resetCount();
         buff.append("SELECT");
-        if (distinct) {
+        if (isAnyDistinct()) {
             buff.append(" DISTINCT");
+            if (distinctExpressions != null) {
+                buff.append(" ON(");
+                for (Expression distinctExpression: distinctExpressions) {
+                    buff.appendExceptFirst(", ");
+                    buff.append(distinctExpression.getSQL());
+                }
+                buff.append(')');
+                buff.resetCount();
+            }
         }
         for (int i = 0; i < visibleColumnCount; i++) {
             buff.appendExceptFirst(",");
@@ -1250,14 +1337,7 @@ public class Select extends Query {
                 buff.append(StringUtils.unEnclose(o.getSQL()));
             }
         }
-        if (limitExpr != null) {
-            buff.append("\nLIMIT ").append(
-                    StringUtils.unEnclose(limitExpr.getSQL()));
-            if (offsetExpr != null) {
-                buff.append(" OFFSET ").append(
-                        StringUtils.unEnclose(offsetExpr.getSQL()));
-            }
-        }
+        appendLimitToSQL(buff.builder());
         if (sampleSizeExpr != null) {
             buff.append("\nSAMPLE_SIZE ").append(
                     StringUtils.unEnclose(sampleSizeExpr.getSQL()));

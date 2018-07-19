@@ -734,7 +734,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (x == null) {
                 setParameter(parameterIndex, ValueNull.INSTANCE);
             } else {
-                setParameter(parameterIndex, DateTimeUtils.convertDate(x, calendar));
+                setParameter(parameterIndex,
+                        calendar != null ? DateTimeUtils.convertDate(x, calendar) : ValueDate.get(x));
             }
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -760,7 +761,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (x == null) {
                 setParameter(parameterIndex, ValueNull.INSTANCE);
             } else {
-                setParameter(parameterIndex, DateTimeUtils.convertTime(x, calendar));
+                setParameter(parameterIndex,
+                        calendar != null ? DateTimeUtils.convertTime(x, calendar) : ValueTime.get(x));
             }
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -787,7 +789,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (x == null) {
                 setParameter(parameterIndex, ValueNull.INSTANCE);
             } else {
-                setParameter(parameterIndex, DateTimeUtils.convertTimestamp(x, calendar));
+                setParameter(parameterIndex,
+                        calendar != null ? DateTimeUtils.convertTimestamp(x, calendar) : ValueTimestamp.get(x));
             }
         } catch (Exception e) {
             throw logAndConvert(e);

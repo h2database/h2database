@@ -183,7 +183,7 @@ public class TransactionStore {
                         }
                     }
 
-                    if (!store.hasData(mapName) && !store.isReadOnly()) {
+                    if (!store.isReadOnly()) {
                         store.removeMap(mapName);
                     }
                 }

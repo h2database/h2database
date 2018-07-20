@@ -960,9 +960,9 @@ public abstract class Value {
             case STRING: {
                 String s;
                 if (getType() == BYTES && mode != null && mode.charToBinaryInUtf8) {
-                	// Bugfix - Can't use the locale encoding when enabling charToBinaryInUtf8 in mode.
-                	// The following two target types also are the same issue.
-                	// @since 2018-07-19 little-pan
+                    // Bugfix - Can't use the locale encoding when enabling charToBinaryInUtf8 in mode.
+                    // The following two target types also are the same issue.
+                    // @since 2018-07-19 little-pan
                     s = new String(getBytesNoCopy(), StandardCharsets.UTF_8);
                 } else {
                     s = getString();

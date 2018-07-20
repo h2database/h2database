@@ -420,9 +420,9 @@ public class SourceCompiler {
     }
 
     private static void handleSyntaxError(String output, int exitStatus) {
-    	if(0 == exitStatus){
-    		return;
-    	}
+        if(0 == exitStatus){
+            return;
+        }
         boolean syntaxError = false;
         final BufferedReader reader = new BufferedReader(new StringReader(output));
         try {

@@ -962,24 +962,6 @@ public class BuildBase {
         println("Compiling " + files.size() + " classes");
         StringList params = new StringList();
         params.addAll(args);
-        
-        // Bugfix - Use UTF-8 instead of the default locale encoding when compiling,
-        //because of H2 source file encoding is UTF-8.
-        // @since 2018-07-19 little-pan
-        String encoding = null;
-        for(int i = 0, size = params.size(); i < size; ++i){
-        	if("-encoding".equals(params.get(i))){
-        		encoding = params.get(i + 1);
-        		break;
-        	}
-        }
-        if(encoding == null){
-        	encoding = StandardCharsets.UTF_8.name();
-        	params.add("-encoding");
-        	params.add(encoding);
-        }
-        println("Using encoding " + encoding);
-        
         params.addAll(getPaths(files.keep(".java")));
         String[] array = params.array();
         int result;

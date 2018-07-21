@@ -780,7 +780,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     public final RootReference getRoot() {
         RootReference rootReference = getRootInternal();
-        return singleWriter ? flushAppendBuffer(rootReference) : rootReference;
+        return singleWriter && rootReference.getAppendCounter() > 0 ?
+                flushAppendBuffer(rootReference) : rootReference;
     }
 
     private RootReference getRootInternal() {
@@ -1181,6 +1182,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return potentially updated RootReference
      */
     private RootReference flushAppendBuffer(RootReference rootReference) {
+        beforeWrite();
         int attempt = 0;
         int keyCount;
         while((keyCount = rootReference.getAppendCounter()) > 0) {

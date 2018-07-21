@@ -439,9 +439,7 @@ public class TransactionStore {
                     store.renameMap(undoLog, getUndoLogName(true, transactionId));
                 }
                 try {
-                    MVMap.RootReference rootReference = undoLog.flushAppendBuffer();
-                    Page rootPage = rootReference.root;
-                    Cursor<Long, Object[]> cursor = new Cursor<>(rootPage, null);
+                    Cursor<Long, Object[]> cursor = undoLog.cursor(null);
                     while (cursor.hasNext()) {
                         Long undoKey = cursor.next();
                         Object[] op = cursor.getValue();
@@ -592,7 +590,6 @@ public class TransactionStore {
     void rollbackTo(Transaction t, long maxLogId, long toLogId) {
         int transactionId = t.getId();
         MVMap<Long, Object[]> undoLog = undoLogs[transactionId];
-        undoLog.flushAppendBuffer();
         RollbackDecisionMaker decisionMaker = new RollbackDecisionMaker(this, transactionId, toLogId, t.listener);
         for (long logId = maxLogId - 1; logId >= toLogId; logId--) {
             Long undoKey = getOperationId(transactionId, logId);
@@ -614,7 +611,6 @@ public class TransactionStore {
             final long toLogId) {
 
         final MVMap<Long, Object[]> undoLog = undoLogs[t.getId()];
-        undoLog.flushAppendBuffer();
         return new Iterator<Change>() {
 
             private long logId = maxLogId - 1;

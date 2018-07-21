@@ -61,14 +61,15 @@ class MVPlainTempResult extends MVTempResult {
     MVPlainTempResult(Database database, Expression[] expressions, int visibleColumnCount) {
         super(database, expressions.length, visibleColumnCount);
         ValueDataType valueType = new ValueDataType(database.getCompareMode(), database, new int[columnCount]);
-        Builder<Long, ValueArray> builder = new MVMap.Builder<Long, ValueArray>().valueType(valueType);
+        Builder<Long, ValueArray> builder = new MVMap.Builder<Long, ValueArray>()
+                                                .valueType(valueType).singleWriter();
         map = store.openMap("tmp", builder);
     }
 
     @Override
     public int addRow(Value[] values) {
         assert parent == null;
-        map.put(counter++, ValueArray.get(values));
+        map.append(counter++, ValueArray.get(values));
         return ++rowCount;
     }
 

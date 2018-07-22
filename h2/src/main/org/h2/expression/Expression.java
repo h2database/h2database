@@ -167,6 +167,16 @@ public abstract class Expression {
     }
 
     /**
+     * Check if this expression is an auto-generated key expression such as next
+     * value from a sequence.
+     *
+     * @return whether this expression is an auto-generated key expression
+     */
+    public boolean isGeneratedKey() {
+        return false;
+    }
+
+    /**
      * Get the value in form of a boolean expression.
      * Returns true or false.
      * In this database, everything can be a condition.

@@ -23,7 +23,6 @@ import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.Parameter;
-import org.h2.expression.SequenceValue;
 import org.h2.expression.ValueExpression;
 import org.h2.index.Index;
 import org.h2.index.PageDataIndex;
@@ -170,7 +169,7 @@ public class Insert extends Prepared implements ResultTarget {
                         try {
                             Value v = c.convert(e.getValue(session), mode);
                             newRow.setValue(index, v);
-                            if (e instanceof SequenceValue) {
+                            if (e.isGeneratedKey()) {
                                 generatedKeys.add(c);
                             }
                         } catch (DbException ex) {

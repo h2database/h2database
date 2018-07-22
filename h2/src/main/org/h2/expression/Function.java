@@ -2692,4 +2692,9 @@ public class Function extends Expression implements FunctionCall {
         return info.bufferResultSetToLocalTemp;
     }
 
+    @Override
+    public boolean isGeneratedKey() {
+        return info.type == NEXTVAL;
+    }
+
 }

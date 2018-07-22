@@ -106,4 +106,9 @@ public class SequenceValue extends Expression {
         return 1;
     }
 
+    @Override
+    public boolean isGeneratedKey() {
+        return true;
+    }
+
 }

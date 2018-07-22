@@ -590,8 +590,8 @@ public class MetaTable extends Table {
                     "TABLE_SCHEMA",
                     "TABLE_NAME",
                     "COLUMN_NAME",
-                    "ORDINAL_POSITION",
-                    "POSITION_IN_UNIQUE_CONSTRAINT"
+                    "ORDINAL_POSITION INT",
+                    "POSITION_IN_UNIQUE_CONSTRAINT INT"
             );
             indexColumnName = "TABLE_NAME";
             break;

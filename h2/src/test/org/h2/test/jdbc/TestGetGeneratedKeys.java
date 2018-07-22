@@ -182,48 +182,21 @@ public class TestGetGeneratedKeys extends TestDb {
         stat.execute("CREATE SEQUENCE SEQ");
         stat.execute("CREATE TABLE TEST(ID INT)");
         PreparedStatement prep;
-        prep = conn.prepareStatement("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", Statement.RETURN_GENERATED_KEYS);
-        prep.execute();
-        ResultSet rs = prep.getGeneratedKeys();
-        rs.next();
-        assertEquals(1, rs.getInt(1));
-        assertFalse(rs.next());
 
-        prep = conn.prepareStatement("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", Statement.RETURN_GENERATED_KEYS);
-        prep.execute();
-        rs = prep.getGeneratedKeys();
-        rs.next();
-        assertEquals(2, rs.getInt(1));
-        assertFalse(rs.next());
-
-        prep = conn.prepareStatement("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", new int[] { 1 });
-        prep.execute();
-        rs = prep.getGeneratedKeys();
-        rs.next();
-        assertEquals(3, rs.getInt(1));
-        assertFalse(rs.next());
-
-        prep = conn.prepareStatement("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", new String[] { "ID" });
-        prep.execute();
-        rs = prep.getGeneratedKeys();
-        rs.next();
-        assertEquals(4, rs.getInt(1));
-        assertFalse(rs.next());
-
-        prep = conn.prepareStatement("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", ResultSet.TYPE_FORWARD_ONLY,
-                ResultSet.CONCUR_READ_ONLY, ResultSet.HOLD_CURSORS_OVER_COMMIT);
-        prep.execute();
-        rs = prep.getGeneratedKeys();
-        rs.next();
-        assertFalse(rs.next());
+        int expected = 1;
+        expected = testCalledSequencesImpl(conn, "INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", expected);
+        expected = testCalledSequencesImpl(conn, "MERGE INTO TEST KEY(ID) VALUES(NEXT VALUE FOR SEQ)", expected);
+        expected = testCalledSequencesImpl(conn, "INSERT INTO TEST VALUES(NEXTVAL('SEQ'))", expected);
+        testCalledSequencesImpl(conn, "MERGE INTO TEST KEY(ID) VALUES(NEXTVAL('SEQ'))", expected);
 
         stat.execute("DROP TABLE TEST");
         stat.execute("DROP SEQUENCE SEQ");
 
+        ResultSet rs;
         stat.execute("CREATE TABLE TEST(ID BIGINT)");
         stat.execute("CREATE SEQUENCE SEQ");
         prep = conn.prepareStatement("INSERT INTO TEST VALUES (30), (NEXT VALUE FOR SEQ),"
-                + " (NEXT VALUE FOR SEQ), (NEXT VALUE FOR SEQ), (20)", Statement.RETURN_GENERATED_KEYS);
+                + " (NEXTVAL('SEQ')), (NEXT VALUE FOR SEQ), (20)", Statement.RETURN_GENERATED_KEYS);
         prep.executeUpdate();
         rs = prep.getGeneratedKeys();
         rs.next();
@@ -235,6 +208,47 @@ public class TestGetGeneratedKeys extends TestDb {
         assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
         stat.execute("DROP SEQUENCE SEQ");
+    }
+
+    private int testCalledSequencesImpl(Connection conn, String sql, int expected) throws SQLException {
+        PreparedStatement prep;
+        prep = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        prep.execute();
+        ResultSet rs = prep.getGeneratedKeys();
+        rs.next();
+        assertEquals(expected++, rs.getInt(1));
+        assertFalse(rs.next());
+
+        prep = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        prep.execute();
+        rs = prep.getGeneratedKeys();
+        rs.next();
+        assertEquals(expected++, rs.getInt(1));
+        assertFalse(rs.next());
+
+        prep = conn.prepareStatement(sql, new int[] { 1 });
+        prep.execute();
+        rs = prep.getGeneratedKeys();
+        rs.next();
+        assertEquals(expected++, rs.getInt(1));
+        assertFalse(rs.next());
+
+        prep = conn.prepareStatement(sql, new String[] { "ID" });
+        prep.execute();
+        rs = prep.getGeneratedKeys();
+        rs.next();
+        assertEquals(expected++, rs.getInt(1));
+        assertFalse(rs.next());
+
+        prep = conn.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY,
+                ResultSet.CONCUR_READ_ONLY, ResultSet.HOLD_CURSORS_OVER_COMMIT);
+        prep.execute();
+        rs = prep.getGeneratedKeys();
+        rs.next();
+        expected++;
+        assertFalse(rs.next());
+
+        return expected;
     }
 
     /**

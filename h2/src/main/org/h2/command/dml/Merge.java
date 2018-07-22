@@ -19,7 +19,6 @@ import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
-import org.h2.expression.SequenceValue;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
@@ -108,7 +107,7 @@ public class Merge extends Prepared {
                         try {
                             Value v = c.convert(e.getValue(session), mode);
                             newRow.setValue(index, v);
-                            if (e instanceof SequenceValue) {
+                            if (e.isGeneratedKey()) {
                                 generatedKeys.add(c);
                             }
                         } catch (DbException ex) {

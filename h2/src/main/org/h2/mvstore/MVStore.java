@@ -3018,7 +3018,7 @@ public class MVStore {
             // no thread is started if the write delay is 0
             // (if we only had a setter in the MVStore,
             // the thread would need to be started in any case)
-            set("autoCommitBufferSize", 0);
+            //set("autoCommitBufferSize", 0);
             return set("autoCommitDelay", 0);
         }
 

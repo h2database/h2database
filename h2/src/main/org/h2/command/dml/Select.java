@@ -586,14 +586,12 @@ public class Select extends Query {
         return null;
     }
 
-    private void queryDistinct(ResultTarget result, long limitRows, boolean withTies) {
-        // limitRows must be long, otherwise we get an int overflow
-        // if limitRows is at or near Integer.MAX_VALUE
-        // limitRows is never 0 here
-        if (limitRows > 0 && offsetExpr != null) {
-            int offset = offsetExpr.getValue(session).getInt();
-            if (offset > 0) {
-                limitRows += offset;
+    private void queryDistinct(ResultTarget result, long offset, long limitRows, boolean withTies) {
+        if (limitRows > 0 && offset > 0) {
+            limitRows += offset;
+            if (limitRows < 0) {
+                // Overflow
+                limitRows = Long.MAX_VALUE;
             }
         }
         int rowNumber = 0;
@@ -627,14 +625,12 @@ public class Select extends Query {
         }
     }
 
-    private LazyResult queryFlat(int columnCount, ResultTarget result, long limitRows, boolean withTies) {
-        // limitRows must be long, otherwise we get an int overflow
-        // if limitRows is at or near Integer.MAX_VALUE
-        // limitRows is never 0 here
-        if (limitRows > 0 && offsetExpr != null) {
-            int offset = offsetExpr.getValue(session).getInt();
-            if (offset > 0) {
-                limitRows += offset;
+    private LazyResult queryFlat(int columnCount, ResultTarget result, long offset, long limitRows, boolean withTies) {
+        if (limitRows > 0 && offset > 0) {
+            limitRows += offset;
+            if (limitRows < 0) {
+                // Overflow
+                limitRows = Long.MAX_VALUE;
             }
         }
         ArrayList<Row> forUpdateRows = this.isForUpdateMvcc ? Utils.<Row>newSmallArrayList() : null;
@@ -688,9 +684,18 @@ public class Select extends Query {
                 limitRows = Math.min(l, limitRows);
             }
         }
+        long offset;
+        if (offsetExpr != null) {
+            offset = offsetExpr.getValue(session).getLong();
+            if (offset < 0) {
+                offset = 0;
+            }
+        } else {
+            offset = 0;
+        }
         boolean lazy = session.isLazyQueryExecution() &&
                 target == null && !isForUpdate && !isQuickAggregateQuery &&
-                limitRows != 0 && !withTies && offsetExpr == null && isReadOnly();
+                limitRows != 0 && !withTies && offset == 0 && isReadOnly();
         int columnCount = expressions.size();
         LocalResult result = null;
         if (!lazy && (target == null ||
@@ -713,7 +718,7 @@ public class Select extends Query {
         if (isGroupQuery && !isGroupSortedQuery) {
             result = createLocalResult(result);
         }
-        if (!lazy && (limitRows >= 0 || offsetExpr != null)) {
+        if (!lazy && (limitRows >= 0 || offset > 0)) {
             result = createLocalResult(result);
         }
         topTableFilter.startQuery(session);
@@ -749,9 +754,9 @@ public class Select extends Query {
                         queryGroup(columnCount, result);
                     }
                 } else if (isDistinctQuery) {
-                    queryDistinct(to, limitRows, withTies);
+                    queryDistinct(to, offset, limitRows, withTies);
                 } else {
-                    lazyResult = queryFlat(columnCount, to, limitRows, withTies);
+                    lazyResult = queryFlat(columnCount, to, offset, limitRows, withTies);
                 }
             } finally {
                 if (!lazy) {
@@ -770,8 +775,11 @@ public class Select extends Query {
                 return lazyResult;
             }
         }
-        if (offsetExpr != null) {
-            result.setOffset(offsetExpr.getValue(session).getInt());
+        if (offset != 0) {
+            if (offset > Integer.MAX_VALUE) {
+                throw DbException.getInvalidValueException("OFFSET", offset);
+            }
+            result.setOffset((int) offset);
         }
         if (limitRows >= 0) {
             result.setLimit(limitRows);

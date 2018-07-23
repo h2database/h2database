@@ -148,3 +148,18 @@ SELECT A, B FROM TEST ORDER  BY A FETCH FIRST 1 ROW WITH TIES;
 
 DROP TABLE TEST;
 > ok
+
+CREATE TABLE TEST(A INT, B INT);
+> ok
+
+INSERT INTO TEST VALUES (1, 1), (1, 2), (2, 1), (2, 2), (2, 3);
+> update count: 5
+
+SELECT A, COUNT(B) FROM TEST GROUP BY A OFFSET 1;
+> A COUNT(B)
+> - --------
+> 2 3
+> rows: 1
+
+DROP TABLE TEST;
+> ok

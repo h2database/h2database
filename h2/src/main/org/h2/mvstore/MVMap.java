@@ -1201,7 +1201,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             Page p = pos.page;
             pos = pos.parent;
             CursorPos tip = pos;
-            int unsavedMemory = 0;
+            int unsavedMemory = page.getMemory();
             while (true) {
                 if (pos == null) {
                     if (p.getKeyCount() == 0) {

@@ -302,8 +302,9 @@ public class Select extends Query {
         return condition;
     }
 
-    private LazyResult queryGroupSorted(int columnCount, ResultTarget result) {
+    private LazyResult queryGroupSorted(int columnCount, ResultTarget result, long offset, boolean quickOffset) {
         LazyResultGroupSorted lazyResult = new LazyResultGroupSorted(expressionArray, columnCount);
+        skipOffset(lazyResult, offset, quickOffset);
         if (result == null) {
             return lazyResult;
         }
@@ -428,7 +429,7 @@ public class Select extends Query {
         return condition == null || condition.getBooleanValue(session);
     }
 
-    private void queryGroup(int columnCount, LocalResult result) {
+    private void queryGroup(int columnCount, LocalResult result, long offset, boolean quickOffset) {
         groupByData = new HashMap<>();
         currentGroupByExprData = null;
         currentGroupsKey = null;
@@ -492,6 +493,10 @@ public class Select extends Query {
                     row[j] = expr.getValue(session);
                 }
                 if (isHavingNullOrFalse(row)) {
+                    continue;
+                }
+                if (quickOffset && offset > 0) {
+                    offset--;
                     continue;
                 }
                 row = keepOnlyDistinct(row, columnCount);
@@ -586,14 +591,13 @@ public class Select extends Query {
         return null;
     }
 
-    private void queryDistinct(ResultTarget result, long limitRows, boolean withTies) {
-        // limitRows must be long, otherwise we get an int overflow
-        // if limitRows is at or near Integer.MAX_VALUE
-        // limitRows is never 0 here
-        if (limitRows > 0 && offsetExpr != null) {
-            int offset = offsetExpr.getValue(session).getInt();
-            if (offset > 0) {
-                limitRows += offset;
+    private void queryDistinct(ResultTarget result, long offset, long limitRows, boolean withTies,
+            boolean quickOffset) {
+        if (limitRows > 0 && offset > 0) {
+            limitRows += offset;
+            if (limitRows < 0) {
+                // Overflow
+                limitRows = Long.MAX_VALUE;
             }
         }
         int rowNumber = 0;
@@ -602,8 +606,11 @@ public class Select extends Query {
         SearchRow first = null;
         int columnIndex = index.getColumns()[0].getColumnId();
         int sampleSize = getSampleSizeValue(session);
+        if (!quickOffset) {
+            offset = 0;
+        }
         while (true) {
-            setCurrentRowNumber(rowNumber + 1);
+            setCurrentRowNumber(++rowNumber);
             Cursor cursor = index.findNext(session, first, null);
             if (!cursor.next()) {
                 break;
@@ -614,9 +621,12 @@ public class Select extends Query {
                 first = topTableFilter.getTable().getTemplateSimpleRow(true);
             }
             first.setValue(columnIndex, value);
+            if (offset > 0) {
+                offset--;
+                continue;
+            }
             Value[] row = { value };
             result.addRow(row);
-            rowNumber++;
             if ((sort == null || sortUsingIndex) && limitRows > 0 &&
                     rowNumber >= limitRows && !withTies) {
                 break;
@@ -627,24 +637,24 @@ public class Select extends Query {
         }
     }
 
-    private LazyResult queryFlat(int columnCount, ResultTarget result, long limitRows, boolean withTies) {
-        // limitRows must be long, otherwise we get an int overflow
-        // if limitRows is at or near Integer.MAX_VALUE
-        // limitRows is never 0 here
-        if (limitRows > 0 && offsetExpr != null) {
-            int offset = offsetExpr.getValue(session).getInt();
-            if (offset > 0) {
-                limitRows += offset;
+    private LazyResult queryFlat(int columnCount, ResultTarget result, long offset, long limitRows, boolean withTies,
+            boolean quickOffset) {
+        if (limitRows > 0 && offset > 0 && !quickOffset) {
+            limitRows += offset;
+            if (limitRows < 0) {
+                // Overflow
+                limitRows = Long.MAX_VALUE;
             }
         }
         ArrayList<Row> forUpdateRows = this.isForUpdateMvcc ? Utils.<Row>newSmallArrayList() : null;
         int sampleSize = getSampleSizeValue(session);
         LazyResultQueryFlat lazyResult = new LazyResultQueryFlat(expressionArray,
                 sampleSize, columnCount);
+        skipOffset(lazyResult, offset, quickOffset);
         if (result == null) {
             return lazyResult;
         }
-        if (sort != null && !sortUsingIndex || limitRows <= 0 || withTies) {
+        if (sort != null && !sortUsingIndex || limitRows < 0 || withTies) {
             limitRows = Long.MAX_VALUE;
         }
         while (result.getRowCount() < limitRows && lazyResult.next()) {
@@ -659,13 +669,23 @@ public class Select extends Query {
         return null;
     }
 
-    private void queryQuick(int columnCount, ResultTarget result) {
+    private static void skipOffset(LazyResultSelect lazyResult, long offset, boolean quickOffset) {
+        if (quickOffset) {
+            while (offset > 0 && lazyResult.next()) {
+                offset--;
+            }
+        }
+    }
+
+    private void queryQuick(int columnCount, ResultTarget result, boolean skipResult) {
         Value[] row = new Value[columnCount];
         for (int i = 0; i < columnCount; i++) {
             Expression expr = expressions.get(i);
             row[i] = expr.getValue(session);
         }
-        result.addRow(row);
+        if (!skipResult) {
+            result.addRow(row);
+        }
     }
 
     @Override
@@ -688,32 +708,48 @@ public class Select extends Query {
                 limitRows = Math.min(l, limitRows);
             }
         }
+        long offset;
+        if (offsetExpr != null) {
+            offset = offsetExpr.getValue(session).getLong();
+            if (offset < 0) {
+                offset = 0;
+            }
+        } else {
+            offset = 0;
+        }
         boolean lazy = session.isLazyQueryExecution() &&
                 target == null && !isForUpdate && !isQuickAggregateQuery &&
-                limitRows != 0 && !withTies && offsetExpr == null && isReadOnly();
+                limitRows != 0 && !withTies && offset == 0 && isReadOnly();
         int columnCount = expressions.size();
         LocalResult result = null;
         if (!lazy && (target == null ||
                 !session.getDatabase().getSettings().optimizeInsertFromSelect)) {
             result = createLocalResult(result);
         }
+        // Do not add rows before OFFSET to result if possible
+        boolean quickOffset = true;
         if (sort != null && (!sortUsingIndex || isAnyDistinct() || withTies)) {
             result = createLocalResult(result);
             result.setSortOrder(sort);
+            if (!sortUsingIndex) {
+                quickOffset = false;
+            }
         }
         if (distinct) {
             if (!isDistinctQuery) {
+                quickOffset = false;
                 result = createLocalResult(result);
                 result.setDistinct();
             }
         } else if (distinctExpressions != null) {
+            quickOffset = false;
             result = createLocalResult(result);
             result.setDistinct(distinctIndexes);
         }
         if (isGroupQuery && !isGroupSortedQuery) {
             result = createLocalResult(result);
         }
-        if (!lazy && (limitRows >= 0 || offsetExpr != null)) {
+        if (!lazy && (limitRows >= 0 || offset > 0)) {
             result = createLocalResult(result);
         }
         topTableFilter.startQuery(session);
@@ -741,17 +777,20 @@ public class Select extends Query {
         if (limitRows != 0) {
             try {
                 if (isQuickAggregateQuery) {
-                    queryQuick(columnCount, to);
+                    queryQuick(columnCount, to, quickOffset && offset > 0);
                 } else if (isGroupQuery) {
                     if (isGroupSortedQuery) {
-                        lazyResult = queryGroupSorted(columnCount, to);
+                        lazyResult = queryGroupSorted(columnCount, to, offset, quickOffset);
                     } else {
-                        queryGroup(columnCount, result);
+                        queryGroup(columnCount, result, offset, quickOffset);
                     }
                 } else if (isDistinctQuery) {
-                    queryDistinct(to, limitRows, withTies);
+                    queryDistinct(to, offset, limitRows, withTies, quickOffset);
                 } else {
-                    lazyResult = queryFlat(columnCount, to, limitRows, withTies);
+                    lazyResult = queryFlat(columnCount, to, offset, limitRows, withTies, quickOffset);
+                }
+                if (quickOffset) {
+                    offset = 0;
                 }
             } finally {
                 if (!lazy) {
@@ -770,8 +809,11 @@ public class Select extends Query {
                 return lazyResult;
             }
         }
-        if (offsetExpr != null) {
-            result.setOffset(offsetExpr.getValue(session).getInt());
+        if (offset != 0) {
+            if (offset > Integer.MAX_VALUE) {
+                throw DbException.getInvalidValueException("OFFSET", offset);
+            }
+            result.setOffset((int) offset);
         }
         if (limitRows >= 0) {
             result.setLimit(limitRows);

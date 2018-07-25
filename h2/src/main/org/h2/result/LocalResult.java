@@ -411,8 +411,10 @@ public class LocalResult implements ResultInterface, ResultTarget {
                     rowCount++;
                 }
             }
-            // avoid copying the whole array for each row
-            rows = new ArrayList<>(rows.subList(offset, to));
+            if (offset != 0 || to != rows.size()) {
+                // avoid copying the whole array for each row
+                rows = new ArrayList<>(rows.subList(offset, to));
+            }
         } else {
             if (clearAll) {
                 external.close();

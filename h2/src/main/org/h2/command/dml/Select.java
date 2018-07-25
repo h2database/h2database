@@ -654,14 +654,29 @@ public class Select extends Query {
         if (result == null) {
             return lazyResult;
         }
-        if (sort != null && !sortUsingIndex || limitRows < 0 || withTies) {
+        if (limitRows < 0 || sort != null && !sortUsingIndex || withTies && !quickOffset) {
             limitRows = Long.MAX_VALUE;
         }
+        Value[] row = null;
         while (result.getRowCount() < limitRows && lazyResult.next()) {
             if (forUpdateRows != null) {
                 topTableFilter.lockRowAdd(forUpdateRows);
             }
-            result.addRow(lazyResult.currentRow());
+            row = lazyResult.currentRow();
+            result.addRow(row);
+        }
+        if (limitRows != Long.MAX_VALUE && withTies && sort != null && row != null) {
+            Value[] expected = row;
+            while (lazyResult.next()) {
+                row = lazyResult.currentRow();
+                if (sort.compare(expected, row) != 0) {
+                    break;
+                }
+                if (forUpdateRows != null) {
+                    topTableFilter.lockRowAdd(forUpdateRows);
+                }
+                result.addRow(row);
+            }
         }
         if (forUpdateRows != null) {
             topTableFilter.lockRows(forUpdateRows);

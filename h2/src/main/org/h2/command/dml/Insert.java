@@ -268,6 +268,11 @@ public class Insert extends Prepared implements ResultTarget {
     }
 
     @Override
+    public void limitsWereApplied() {
+        // Nothing to do
+    }
+
+    @Override
     public String getPlanSQL() {
         StatementBuilder buff = new StatementBuilder("INSERT INTO ");
         buff.append(table.getSQL()).append('(');

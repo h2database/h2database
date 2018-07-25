@@ -93,7 +93,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
             checkIndexColumnTypes(columns);
         }
         String mapName = "index." + getId();
-        ValueDataType vt = new ValueDataType(null, null, null);
+        ValueDataType vt = new ValueDataType(db, null);
         VersionedValue.Type valueType = new VersionedValue.Type(vt);
         MVRTreeMap.Builder<VersionedValue> mapBuilder =
                 new MVRTreeMap.Builder<VersionedValue>().

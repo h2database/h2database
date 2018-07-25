@@ -62,9 +62,8 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
             sortTypes[i] = columns[i].sortType;
         }
         sortTypes[keyColumns - 1] = SortOrder.ASCENDING;
-        ValueDataType keyType = new ValueDataType(
-                db.getCompareMode(), db, sortTypes);
-        ValueDataType valueType = new ValueDataType(null, null, null);
+        ValueDataType keyType = new ValueDataType(db, sortTypes);
+        ValueDataType valueType = ValueDataType.INSTANCE;
         Transaction t = mvTable.getTransactionBegin();
         dataMap = t.openMap(mapName, keyType, valueType);
         dataMap.map.setVolatile(!indexType.isPersistent());
@@ -128,25 +127,18 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         for (String bufferName : bufferNames) {
             Iterator<ValueArray> iter = openMap(bufferName).keyIterator(null);
             if (iter.hasNext()) {
-                queue.add(new Source(iter));
+                queue.offer(new Source(iter));
             }
         }
 
         try {
             while (!queue.isEmpty()) {
-                Source s = queue.remove();
+                Source s = queue.poll();
                 ValueArray rowData = s.next();
+                SearchRow row = convertToSearchRow(rowData);
 
-                if (indexType.isUnique()) {
-                    Value[] array = rowData.getList();
-                    // don't change the original value
-                    array = array.clone();
-                    array[keyColumns - 1] = ValueLong.MIN;
-                    ValueArray unique = ValueArray.get(array);
-                    SearchRow row = convertToSearchRow(rowData);
-                    if (!mayHaveNullDuplicates(row)) {
-                        requireUnique(row, dataMap, unique);
-                    }
+                if (indexType.isUnique() && !mayHaveNullDuplicates(row)) {
+                    checkUnique(dataMap, rowData, Long.MIN_VALUE);
                 }
 
                 dataMap.putCommitted(rowData, ValueNull.INSTANCE);
@@ -169,9 +161,8 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
             sortTypes[i] = indexColumns[i].sortType;
         }
         sortTypes[keyColumns - 1] = SortOrder.ASCENDING;
-        ValueDataType keyType = new ValueDataType(
-                database.getCompareMode(), database, sortTypes);
-        ValueDataType valueType = new ValueDataType(null, null, null);
+        ValueDataType keyType = new ValueDataType(database, sortTypes);
+        ValueDataType valueType = ValueDataType.INSTANCE;
         MVMap.Builder<ValueArray, Value> builder =
                 new MVMap.Builder<ValueArray, Value>()
                         .singleWriter()
@@ -195,50 +186,35 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     public void add(Session session, Row row) {
         TransactionMap<Value, Value> map = getMap(session);
         ValueArray array = convertToKey(row);
-        ValueArray unique = null;
-        if (indexType.isUnique()) {
-            // this will detect committed entries only
-            unique = convertToKey(row);
-            unique.getList()[keyColumns - 1] = ValueLong.MIN;
-            if (mayHaveNullDuplicates(row)) {
-                // No further unique checks required
-                unique = null;
-            } else {
-                requireUnique(row, map, unique);
-            }
+        boolean checkRequired = indexType.isUnique() && !mayHaveNullDuplicates(row);
+        if (checkRequired) {
+            checkUnique(map, array, Long.MIN_VALUE);
         }
+
         try {
             map.put(array, ValueNull.INSTANCE);
         } catch (IllegalStateException e) {
             throw mvTable.convertException(e);
         }
-        if (unique != null) {
-            // This code expects that mayHaveDuplicates(row) == false
-            Iterator<Value> it = map.keyIterator(unique, null, true);
-            while (it.hasNext()) {
-                ValueArray k = (ValueArray) it.next();
-                if (compareRows(row, convertToSearchRow(k)) != 0) {
-                    break;
-                }
-                if (map.isSameTransaction(k)) {
-                    continue;
-                }
-                if (map.get(k) != null) {
-                    // committed
-                    throw getDuplicateKeyException(k.toString());
-                }
-                throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, table.getName());
-            }
+
+        if (checkRequired) {
+            checkUnique(map, array, row.getKey());
         }
     }
 
-    private void requireUnique(SearchRow row, TransactionMap<Value, Value> map, ValueArray unique) {
-        Value key = map.ceilingKey(unique);
-        if (key != null) {
-            ValueArray k = (ValueArray) key;
-            if (compareRows(row, convertToSearchRow(k)) == 0) {
-                // committed
-                throw getDuplicateKeyException(k.toString());
+    private void checkUnique(TransactionMap<Value, Value> map, ValueArray row, long newKey) {
+        Iterator<Value> it = map.keyIterator(convertToKey(row, Boolean.FALSE), convertToKey(row, Boolean.TRUE), true);
+        while (it.hasNext()) {
+            ValueArray rowData = (ValueArray)it.next();
+            Value[] array = rowData.getList();
+            Value rowKey = array[array.length - 1];
+            long rowId = rowKey.getLong();
+            if (newKey != rowId) {
+                if (map.get(rowData) != null) {
+                    // committed
+                    throw getDuplicateKeyException(rowKey.toString());
+                }
+                throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, table.getName());
             }
         }
     }
@@ -285,58 +261,23 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     }
 
     private Cursor find(Session session, SearchRow first, boolean bigger, SearchRow last) {
-        ValueArray min = convertToKey(first);
-        if (min != null) {
-            min.getList()[keyColumns - 1] = ValueLong.MIN;
+        ValueArray min = convertToKey(convertToKey(first), bigger);
+        ValueArray max = convertToKey(convertToKey(last), Boolean.TRUE);
+        TransactionMap<Value,Value> map = getMap(session);
+        return new MVStoreCursor(session, map.keyIterator(min, max, false));
+    }
+
+    private ValueArray convertToKey(ValueArray r, Boolean minmax) {
+        if (r == null) {
+            return null;
         }
-        TransactionMap<Value, Value> map = getMap(session);
-        if (bigger && min != null) {
-            // search for the next: first skip 1, then 2, 4, 8, until
-            // we have a higher key; then skip 4, 2,...
-            // (binary search), until 1
-            int offset = 1;
-            while (true) {
-                ValueArray v = (ValueArray) map.relativeKey(min, offset);
-                if (v != null) {
-                    boolean foundHigher = false;
-                    for (int i = 0; i < keyColumns - 1; i++) {
-                        int idx = columnIds[i];
-                        Value b = first.getValue(idx);
-                        if (b == null) {
-                            break;
-                        }
-                        Value a = v.getList()[i];
-                        if (database.compare(a, b) > 0) {
-                            foundHigher = true;
-                            break;
-                        }
-                    }
-                    if (!foundHigher) {
-                        offset += offset;
-                        min = v;
-                        continue;
-                    }
-                }
-                if (offset > 1) {
-                    offset /= 2;
-                    continue;
-                }
-                if (map.get(v) == null) {
-                    min = (ValueArray) map.higherKey(min);
-                    if (min == null) {
-                        break;
-                    }
-                    continue;
-                }
-                min = v;
-                break;
-            }
-            if (min == null) {
-                return new MVStoreCursor(session,
-                        Collections.<Value>emptyIterator(), null);
-            }
+
+        Value[] values = r.getList().clone();
+        ValueArray row = ValueArray.get(values);
+        if (minmax != null) {
+            values[values.length - 1] = ValueLong.get(minmax ? Long.MAX_VALUE : Long.MIN_VALUE);
         }
-        return new MVStoreCursor(session, map.keyIterator(min), last);
+        return row;
     }
 
     private ValueArray convertToKey(SearchRow r) {
@@ -349,7 +290,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
             int idx = c.getColumnId();
             Value v = r.getValue(idx);
             if (v != null) {
-                array[i] = v.convertTo(c.getType(), -1, null, database.getMode(), c.getEnumerators());
+                array[i] = v.convertTo(c.getType(), -1, database.getMode(), null, c.getEnumerators());
             }
         }
         array[keyColumns - 1] = ValueLong.get(r.getKey());
@@ -420,7 +361,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         while (true) {
             if (key == null) {
                 return new MVStoreCursor(session,
-                        Collections.<Value>emptyIterator(), null);
+                        Collections.<Value>emptyIterator());
             }
             if (((ValueArray) key).getList()[0] != ValueNull.INSTANCE) {
                 break;
@@ -428,7 +369,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
             key = first ? map.higherKey(key) : map.lowerKey(key);
         }
         MVStoreCursor cursor = new MVStoreCursor(session,
-                                Collections.singletonList(key).iterator(), null);
+                                Collections.singletonList(key).iterator());
         cursor.next();
         return cursor;
     }
@@ -499,23 +440,20 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
 
         private final Session session;
         private final Iterator<Value> it;
-        private final SearchRow last;
-        private Value current;
-        private SearchRow searchRow;
+        private ValueArray current;
         private Row row;
 
-        MVStoreCursor(Session session, Iterator<Value> it, SearchRow last) {
+        MVStoreCursor(Session session, Iterator<Value> it) {
             this.session = session;
             this.it = it;
-            this.last = last;
         }
 
         @Override
         public Row get() {
             if (row == null) {
-                SearchRow r = getSearchRow();
-                if (r != null) {
-                    row = mvTable.getRow(session, r.getKey());
+                if (current != null) {
+                    Value[] values = current.getList();
+                    row = mvTable.getRow(session, values[values.length - 1].getLong());
                 }
             }
             return row;
@@ -523,24 +461,12 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
 
         @Override
         public SearchRow getSearchRow() {
-            if (searchRow == null) {
-                if (current != null) {
-                    searchRow = convertToSearchRow((ValueArray) current);
-                }
-            }
-            return searchRow;
+            return current == null ? null : convertToSearchRow(current);
         }
 
         @Override
         public boolean next() {
-            current = it.hasNext() ? it.next() : null;
-            searchRow = null;
-            if (current != null) {
-                if (last != null && compareRows(getSearchRow(), last) > 0) {
-                    searchRow = null;
-                    current = null;
-                }
-            }
+            current = it.hasNext() ? (ValueArray)it.next() : null;
             row = null;
             return current != null;
         }

@@ -166,12 +166,12 @@ class MVSortedTempResult extends MVTempResult {
             indexes = null;
         }
         this.indexes = indexes;
-        ValueDataType keyType = new ValueDataType(database.getCompareMode(), database, sortTypes);
+        ValueDataType keyType = new ValueDataType(database, sortTypes);
         Builder<ValueArray, Long> builder = new MVMap.Builder<ValueArray, Long>().keyType(keyType);
         map = store.openMap("tmp", builder);
         if (distinct && length != visibleColumnCount || distinctIndexes != null) {
             int count = distinctIndexes != null ? distinctIndexes.length : visibleColumnCount;
-            ValueDataType distinctType = new ValueDataType(database.getCompareMode(), database, new int[count]);
+            ValueDataType distinctType = new ValueDataType(database, new int[count]);
             Builder<ValueArray, Boolean> indexBuilder = new MVMap.Builder<ValueArray, Boolean>().keyType(distinctType);
             index = store.openMap("idx", indexBuilder);
         }

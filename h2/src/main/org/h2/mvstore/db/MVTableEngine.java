@@ -160,9 +160,8 @@ public class MVTableEngine implements TableEngine {
                 if (!db.getSettings().reuseSpace) {
                     store.setReuseSpace(false);
                 }
-                this.transactionStore = new TransactionStore(
-                        store,
-                        new ValueDataType(db.getCompareMode(), db, null), db.getLockTimeout());
+                this.transactionStore = new TransactionStore(store,
+                        new ValueDataType(db, null), db.getLockTimeout());
             } catch (IllegalStateException e) {
                 throw convertIllegalStateException(e);
             }

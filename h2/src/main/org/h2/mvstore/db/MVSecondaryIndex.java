@@ -83,7 +83,6 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
             ValueArray key = convertToKey(row);
             map.append(key, ValueNull.INSTANCE);
         }
-        map.flushAppendBuffer();
     }
 
     private static final class Source {

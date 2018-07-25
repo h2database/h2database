@@ -779,6 +779,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     public final RootReference getRoot() {
+        RootReference rootReference = getRootInternal();
+        return singleWriter && rootReference.getAppendCounter() > 0 ?
+                flushAppendBuffer(rootReference) : rootReference;
+    }
+
+    private RootReference getRootInternal() {
         return root.get();
     }
 
@@ -1112,7 +1118,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 }
                 return rootReference;
             }
-            rootReference = flushAppendBuffer(rootReference);
             RootReference updatedRootReference = new RootReference(rootReference, writeVersion, ++attempt);
             if(root.compareAndSet(rootReference, updatedRootReference)) {
                 removeUnusedOldVersions(updatedRootReference);
@@ -1173,99 +1178,83 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     /**
      * If map was used in append mode, this method will ensure that append buffer
      * is flushed - emptied with all entries inserted into map as a new leaf.
+     * @param rootReference current RootReference
      * @return potentially updated RootReference
      */
-    public RootReference flushAppendBuffer() {
-        return flushAppendBuffer(null);
-    }
-
     private RootReference flushAppendBuffer(RootReference rootReference) {
+        beforeWrite();
         int attempt = 0;
-        while(true) {
-            if (rootReference == null) {
-                rootReference = getRoot();
-            }
-            int keyCount = rootReference.getAppendCounter();
-            if (keyCount == 0) {
-                break;
-            }
+        int keyCount;
+        while((keyCount = rootReference.getAppendCounter()) > 0) {
             Page page = Page.create(this,
                     Arrays.copyOf(keysBuffer, keyCount),
                     Arrays.copyOf(valuesBuffer, keyCount),
                     null, keyCount, 0);
-            rootReference = appendLeafPage(rootReference, page, ++attempt);
-            if (rootReference != null) {
-                break;
-            }
-        }
-        assert rootReference.getAppendCounter() == 0;
-        return rootReference;
-    }
-
-    private RootReference appendLeafPage(RootReference rootReference, Page split, int attempt) {
-        CursorPos pos = rootReference.root.getAppendCursorPos(null);
-        assert split.map == this;
-        assert pos != null;
-        assert split.getKeyCount() > 0;
-        Object key = split.getKey(0);
-        assert pos.index < 0 : pos.index;
-        int index = -pos.index - 1;
-        assert index == pos.page.getKeyCount() : index + " != " + pos.page.getKeyCount();
-        Page p = pos.page;
-        pos = pos.parent;
-        CursorPos tip = pos;
-        int unsavedMemory = 0;
-        while (true) {
-            if (pos == null) {
-                if (p.getKeyCount() == 0) {
-                    p = split;
-                } else {
-                    Object keys[] = new Object[] { key };
-                    Page.PageReference children[] = new Page.PageReference[] {
-                                                        new Page.PageReference(p),
-                                                        new Page.PageReference(split)};
-                    p = Page.create(this, keys, null, children, p.getTotalCount() + split.getTotalCount(), 0);
+            CursorPos pos = rootReference.root.getAppendCursorPos(null);
+            assert page.map == this;
+            assert pos != null;
+            assert page.getKeyCount() > 0;
+            Object key = page.getKey(0);
+            assert pos.index < 0 : pos.index;
+            int index = -pos.index - 1;
+            assert index == pos.page.getKeyCount() : index + " != " + pos.page.getKeyCount();
+            Page p = pos.page;
+            pos = pos.parent;
+            CursorPos tip = pos;
+            int unsavedMemory = page.getMemory();
+            while (true) {
+                if (pos == null) {
+                    if (p.getKeyCount() == 0) {
+                        p = page;
+                    } else {
+                        Object keys[] = new Object[] { key };
+                        Page.PageReference children[] = new Page.PageReference[] {
+                                                            new Page.PageReference(p),
+                                                            new Page.PageReference(page)};
+                        p = Page.create(this, keys, null, children, p.getTotalCount() + page.getTotalCount(), 0);
+                    }
+                    break;
                 }
-                break;
+                Page c = p;
+                p = pos.page;
+                index = pos.index;
+                pos = pos.parent;
+                p = p.copy();
+                p.setChild(index, page);
+                p.insertNode(index, key, c);
+                if ((keyCount = p.getKeyCount()) <= store.getKeysPerPage() &&
+                        (p.getMemory() < store.getMaxPageSize() || keyCount <= (p.isLeaf() ? 1 : 2))) {
+                    break;
+                }
+                int at = keyCount - 2;
+                key = p.getKey(at);
+                page = p.split(at);
+                unsavedMemory += p.getMemory() + page.getMemory();
             }
-            Page c = p;
-            p = pos.page;
-            index = pos.index;
-            pos = pos.parent;
-            p = p.copy();
-            p.setChild(index, split);
-            p.insertNode(index, key, c);
-            int keyCount;
-            if ((keyCount = p.getKeyCount()) <= store.getKeysPerPage() &&
-                    (p.getMemory() < store.getMaxPageSize() || keyCount <= (p.isLeaf() ? 1 : 2))) {
-                break;
-            }
-            int at = keyCount - 2;
-            key = p.getKey(at);
-            split = p.split(at);
-            unsavedMemory += p.getMemory() + split.getMemory();
-        }
-        unsavedMemory += p.getMemory();
-        while (pos != null) {
-            Page c = p;
-            p = pos.page;
-            p = p.copy();
-            p.setChild(pos.index, c);
             unsavedMemory += p.getMemory();
-            pos = pos.parent;
-        }
-        RootReference updatedRootReference = new RootReference(rootReference, p, ++attempt);
-        if(root.compareAndSet(rootReference, updatedRootReference)) {
-            while (tip != null) {
-                tip.page.removePage();
-                tip = tip.parent;
+            while (pos != null) {
+                Page c = p;
+                p = pos.page;
+                p = p.copy();
+                p.setChild(pos.index, c);
+                unsavedMemory += p.getMemory();
+                pos = pos.parent;
             }
-            if (store.getFileStore() != null) {
-                store.registerUnsavedPage(unsavedMemory);
+            RootReference updatedRootReference = new RootReference(rootReference, p, ++attempt);
+            if(root.compareAndSet(rootReference, updatedRootReference)) {
+                while (tip != null) {
+                    tip.page.removePage();
+                    tip = tip.parent;
+                }
+                if (store.getFileStore() != null) {
+                    store.registerUnsavedPage(unsavedMemory);
+                }
+                assert updatedRootReference.getAppendCounter() == 0;
+                return updatedRootReference;
             }
-            return updatedRootReference;
+            rootReference = getRootInternal();
         }
-        return null;
+        return rootReference;
     }
 
     /**
@@ -1280,7 +1269,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         int attempt = 0;
         boolean success = false;
         while(!success) {
-            RootReference rootReference = getRoot();
+            RootReference rootReference = getRootInternal();
             int appendCounter = rootReference.getAppendCounter();
             if (appendCounter >= keysPerPage) {
                 rootReference = flushAppendBuffer(rootReference);

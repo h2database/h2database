@@ -88,7 +88,7 @@ public class TransactionMap<K, V> {
             for (int i = opentransactions.nextSetBit(0); i >= 0; i = opentransactions.nextSetBit(i+1)) {
                 MVMap<Long, Object[]> undoLog = store.undoLogs[i];
                 if (undoLog != null) {
-                    MVMap.RootReference rootReference = undoLog.flushAppendBuffer();
+                    MVMap.RootReference rootReference = undoLog.getRoot();
                     undoLogRootReferences[i] = rootReference;
                     undoLogSize += rootReference.root.getTotalCount() + rootReference.getAppendCounter();
                 }

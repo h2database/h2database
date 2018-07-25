@@ -160,7 +160,7 @@ public abstract class MVTempResult implements ResultExternal {
     MVTempResult(Database database, int columnCount, int visibleColumnCount) {
         try {
             String fileName = FileUtils.createTempFile("h2tmp", Constants.SUFFIX_TEMP_FILE, false, true);
-            Builder builder = new MVStore.Builder().fileName(fileName);
+            Builder builder = new MVStore.Builder().fileName(fileName).cacheSize(0).autoCommitDisabled();
             byte[] key = database.getFileEncryptionKey();
             if (key != null) {
                 builder.encryptionKey(MVTableEngine.decodePassword(key));

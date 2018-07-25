@@ -396,7 +396,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
                 throw DbException.getInvalidValueException("FETCH PERCENT", limit);
             }
             // Oracle rounds percent up, do the same for now
-            limit = (limit * rowCount + 99) / 100;
+            limit = (int) (((long) limit * rowCount + 99) / 100);
         }
         boolean clearAll = offset >= rowCount || limit == 0;
         if (!clearAll) {

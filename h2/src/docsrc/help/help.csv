@@ -3,7 +3,7 @@
 # Initial Developer: H2 Group
 "SECTION","TOPIC","SYNTAX","TEXT","EXAMPLE"
 "Commands (DML)","SELECT","
-SELECT [ TOP term [ WITH TIES ] ]
+SELECT [ TOP term [ PERCENT ] [ WITH TIES ] ]
 [ DISTINCT [ ON ( expression [,...] ) ] | ALL ]
 selectExpression [,...]
 FROM tableExpression [,...] [ WHERE expression ]
@@ -12,7 +12,7 @@ FROM tableExpression [,...] [ WHERE expression ]
 [ ORDER BY order [,...] ]
 [ { LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] }
     | { [ OFFSET expression { ROW | ROWS } ]
-    [ FETCH { FIRST | NEXT } expression { ROW | ROWS }
+    [ FETCH { FIRST | NEXT } [ [ expression ] PERCENT ] { ROW | ROWS }
         { ONLY | WITH TIES } ] } ]
 [ FOR UPDATE ]
 ","
@@ -22,7 +22,7 @@ HAVING filter rows after grouping.
 ORDER BY sorts the result by the given column(s) or expression(s).
 UNION combines the result of this query with the results of another query.
 
-LIMIT and FETCH FIRST/NEXT ROW(S) ONLY limits the number of rows returned by the query (no limit if null or smaller than zero).
+FETCH FIRST/NEXT, LIMIT or TOP limits the number of rows returned by the query (no limit if null or smaller than zero).
 OFFSET specified how many rows to skip.
 Please note using high offset values should be avoided because it can cause performance problems.
 SAMPLE_SIZE limits the number of rows read for aggregate queries.

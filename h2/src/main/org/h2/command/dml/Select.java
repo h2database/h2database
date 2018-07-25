@@ -724,6 +724,17 @@ public class Select extends Query {
                 limitRows = Math.min(l, limitRows);
             }
         }
+        boolean fetchPercent = this.fetchPercent;
+        if (fetchPercent) {
+            // Need to check it row, because negative limit has special treatment later
+            if (limitRows < 0 || limitRows > 100) {
+                throw DbException.getInvalidValueException("FETCH PERCENT", limitRows);
+            }
+            // 0 PERCENT means 0
+            if (limitRows == 0) {
+                fetchPercent = false;
+            }
+        }
         long offset;
         if (offsetExpr != null) {
             offset = offsetExpr.getValue(session).getLong();
@@ -735,7 +746,7 @@ public class Select extends Query {
         }
         boolean lazy = session.isLazyQueryExecution() &&
                 target == null && !isForUpdate && !isQuickAggregateQuery &&
-                limitRows != 0 && !withTies && offset == 0 && isReadOnly();
+                limitRows != 0 && !fetchPercent && !withTies && offset == 0 && isReadOnly();
         int columnCount = expressions.size();
         LocalResult result = null;
         if (!lazy && (target == null ||
@@ -743,7 +754,7 @@ public class Select extends Query {
             result = createLocalResult(result);
         }
         // Do not add rows before OFFSET to result if possible
-        boolean quickOffset = true;
+        boolean quickOffset = !fetchPercent;
         if (sort != null && (!sortUsingIndex || isAnyDistinct() || withTies)) {
             result = createLocalResult(result);
             result.setSortOrder(sort);
@@ -791,6 +802,8 @@ public class Select extends Query {
         lazy &= to == null;
         LazyResult lazyResult = null;
         if (limitRows != 0) {
+            // Cannot apply limit now if percent is specified
+            int limit = fetchPercent ? -1 : limitRows;
             try {
                 if (isQuickAggregateQuery) {
                     queryQuick(columnCount, to, quickOffset && offset > 0);
@@ -801,9 +814,9 @@ public class Select extends Query {
                         queryGroup(columnCount, result, offset, quickOffset);
                     }
                 } else if (isDistinctQuery) {
-                    queryDistinct(to, offset, limitRows, withTies, quickOffset);
+                    queryDistinct(to, offset, limit, withTies, quickOffset);
                 } else {
-                    lazyResult = queryFlat(columnCount, to, offset, limitRows, withTies, quickOffset);
+                    lazyResult = queryFlat(columnCount, to, offset, limit, withTies, quickOffset);
                 }
                 if (quickOffset) {
                     offset = 0;
@@ -833,6 +846,7 @@ public class Select extends Query {
         }
         if (limitRows >= 0) {
             result.setLimit(limitRows);
+            result.setFetchPercent(fetchPercent);
             result.setWithTies(withTies);
         }
         if (result != null) {

@@ -49,6 +49,11 @@ public abstract class Query extends Prepared {
     protected Expression limitExpr;
 
     /**
+     * Whether limit expression specifies percentage of rows.
+     */
+    protected boolean fetchPercent;
+
+    /**
      * Whether tied rows should be included in result too.
      */
     protected boolean withTies;
@@ -650,8 +655,16 @@ public abstract class Query extends Prepared {
         return limitExpr;
     }
 
+    public void setFetchPercent(boolean fetchPercent) {
+        this.fetchPercent = fetchPercent;
+    }
+
+    public boolean isFetchPercent() {
+        return fetchPercent;
+    }
+
     public void setWithTies(boolean withTies) {
-        this.withTies = true;
+        this.withTies = withTies;
     }
 
     public boolean isWithTies() {
@@ -699,12 +712,18 @@ public abstract class Query extends Prepared {
 
     void appendLimitToSQL(StringBuilder buff) {
         if (limitExpr != null) {
-            if (withTies) {
+            if (fetchPercent || withTies) {
                 if (offsetExpr != null) {
                     buff.append("\nOFFSET ").append(StringUtils.unEnclose(offsetExpr.getSQL())).append(" ROWS");
                 }
-                buff.append("\nFETCH NEXT ").append(StringUtils.unEnclose(limitExpr.getSQL()))
-                        .append(" ROWS WITH TIES");
+                buff.append("\nFETCH NEXT ").append(StringUtils.unEnclose(limitExpr.getSQL()));
+                if (fetchPercent) {
+                    buff.append(" PERCENT");
+                }
+                buff.append(" ROWS");
+                if (withTies) {
+                    buff.append(" WITH TIES");
+                }
             } else {
                 buff.append("\nLIMIT ").append(StringUtils.unEnclose(limitExpr.getSQL()));
                 if (offsetExpr != null) {

@@ -193,7 +193,7 @@ public class SelectUnion extends Query {
         int columnCount = left.getColumnCount();
         if (session.isLazyQueryExecution() && unionType == UnionType.UNION_ALL && !distinct &&
                 sort == null && !randomAccessResult && !isForUpdate &&
-                offsetExpr == null && isReadOnly()) {
+                offsetExpr == null && !fetchPercent && !withTies && isReadOnly()) {
             int limit = -1;
             if (limitExpr != null) {
                 Value v = limitExpr.getValue(session);
@@ -284,6 +284,7 @@ public class SelectUnion extends Query {
             Value v = limitExpr.getValue(session);
             if (v != ValueNull.INSTANCE) {
                 result.setLimit(v.getInt());
+                result.setFetchPercent(fetchPercent);
                 result.setWithTies(withTies);
             }
         }

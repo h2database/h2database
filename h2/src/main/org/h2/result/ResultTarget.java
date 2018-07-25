@@ -26,4 +26,11 @@ public interface ResultTarget {
      */
     int getRowCount();
 
+    /**
+     * A hint that offset and limit may be ignored by this result because they
+     * were applied during the query. This is useful for WITH TIES clause
+     * because result may contain tied rows above limit.
+     */
+    void limitsWereApplied();
+
 }

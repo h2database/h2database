@@ -42,6 +42,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
     private int offset;
     private int limit = -1;
     private boolean withTies;
+    private boolean limitsWereApplied;
     private ResultExternal external;
     private boolean distinct;
     private int[] distinctIndexes;
@@ -381,6 +382,9 @@ public class LocalResult implements ResultInterface, ResultTarget {
     }
 
     private void applyOffsetAndLimit() {
+        if (limitsWereApplied) {
+            return;
+        }
         int offset = Math.max(this.offset, 0);
         int limit = this.limit;
         if (offset == 0 && limit < 0 || rowCount == 0) {
@@ -459,6 +463,11 @@ public class LocalResult implements ResultInterface, ResultTarget {
     @Override
     public int getRowCount() {
         return rowCount;
+    }
+
+    @Override
+    public void limitsWereApplied() {
+        this.limitsWereApplied = true;
     }
 
     @Override

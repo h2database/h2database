@@ -677,6 +677,7 @@ public class Select extends Query {
                 }
                 result.addRow(row);
             }
+            result.limitsWereApplied();
         }
         if (forUpdateRows != null) {
             topTableFilter.lockRows(forUpdateRows);

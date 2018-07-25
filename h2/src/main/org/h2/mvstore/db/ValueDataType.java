@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Objects;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
@@ -80,7 +81,8 @@ public class ValueDataType implements DataType {
     final int[] sortTypes;
     SpatialDataType spatialType;
 
-    public static ValueDataType INSTANCE = new ValueDataType(null, Mode.getRegular(), null, null);
+    public static ValueDataType INSTANCE =
+                new ValueDataType(CompareMode.getInstance(null, 0), Mode.getRegular(), null, null);
 
     public ValueDataType(Database database, int[] sortTypes) {
         this(database.getCompareMode(), database.getMode(), database, sortTypes);

@@ -63,7 +63,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         }
         sortTypes[keyColumns - 1] = SortOrder.ASCENDING;
         ValueDataType keyType = new ValueDataType(db, sortTypes);
-        ValueDataType valueType = ValueDataType.INSTANCE;
+        ValueDataType valueType = new ValueDataType();
         Transaction t = mvTable.getTransactionBegin();
         dataMap = t.openMap(mapName, keyType, valueType);
         dataMap.map.setVolatile(!indexType.isPersistent());
@@ -162,7 +162,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         }
         sortTypes[keyColumns - 1] = SortOrder.ASCENDING;
         ValueDataType keyType = new ValueDataType(database, sortTypes);
-        ValueDataType valueType = ValueDataType.INSTANCE;
+        ValueDataType valueType = new ValueDataType();
         MVMap.Builder<ValueArray, Value> builder =
                 new MVMap.Builder<ValueArray, Value>()
                         .singleWriter()

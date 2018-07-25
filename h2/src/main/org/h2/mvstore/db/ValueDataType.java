@@ -81,8 +81,9 @@ public class ValueDataType implements DataType {
     final int[] sortTypes;
     SpatialDataType spatialType;
 
-    public static ValueDataType INSTANCE =
-                new ValueDataType(CompareMode.getInstance(null, 0), Mode.getRegular(), null, null);
+    public ValueDataType() {
+        this(CompareMode.getInstance(null, 0), Mode.getRegular(), null, null);
+    }
 
     public ValueDataType(Database database, int[] sortTypes) {
         this(database.getCompareMode(), database.getMode(), database, sortTypes);

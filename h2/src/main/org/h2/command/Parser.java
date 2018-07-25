@@ -2372,11 +2372,14 @@ public class Parser {
             if (!readIf("FIRST")) {
                 read("NEXT");
             }
-            if (readIf("ROW")) {
+            if (readIf("ROW") || readIf("ROWS")) {
                 command.setLimit(ValueExpression.get(ValueInt.get(1)));
             } else {
                 Expression limit = readExpression().optimize(session);
                 command.setLimit(limit);
+                if (readIf("PERCENT")) {
+                    command.setFetchPercent(true);
+                }
                 if (!readIf("ROW")) {
                     read("ROWS");
                 }
@@ -2532,6 +2535,9 @@ public class Parser {
             // SELECT TOP 1 (+?) AS A FROM TEST
             Expression limit = readTerm().optimize(session);
             command.setLimit(limit);
+            if (readIf("PERCENT")) {
+                command.setFetchPercent(true);
+            }
             if (readIf(WITH)) {
                 read("TIES");
                 command.setWithTies(true);

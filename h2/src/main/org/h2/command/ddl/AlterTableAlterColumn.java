@@ -14,6 +14,7 @@ import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintReferential;
+import org.h2.constraint.ConstraintUnique;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
@@ -25,13 +26,16 @@ import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
+import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.table.Column;
 import org.h2.table.Table;
+import org.h2.table.TableBase;
 import org.h2.table.TableView;
+import org.h2.util.Utils;
 
 /**
  * This class represents the statements
@@ -392,8 +396,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         data.session = session;
         Table newTable = getSchema().createTable(data);
         newTable.setComment(table.getComment());
-        StringBuilder buff = new StringBuilder();
-        buff.append(newTable.getCreateSQL());
+        String newTableSQL = newTable.getCreateSQL();
         StringBuilder columnList = new StringBuilder();
         for (Column nc : newColumns) {
             if (columnList.length() > 0) {
@@ -407,22 +410,15 @@ public class AlterTableAlterColumn extends CommandWithColumns {
                 columnList.append(nc.getSQL());
             }
         }
-        buff.append(" AS SELECT ");
-        if (columnList.length() == 0) {
-            // special case: insert into test select * from
-            buff.append('*');
-        } else {
-            buff.append(columnList);
-        }
-        buff.append(" FROM ").append(table.getSQL());
-        String newTableSQL = buff.toString();
         String newTableName = newTable.getName();
         Schema newTableSchema = newTable.getSchema();
         newTable.removeChildrenAndResources(session);
 
         execute(newTableSQL, true);
         newTable = newTableSchema.getTableOrView(session, newTableName);
-        ArrayList<String> triggers = new ArrayList<>();
+        ArrayList<String> children = Utils.newSmallArrayList();
+        ArrayList<String> triggers = Utils.newSmallArrayList();
+        boolean hasDelegateIndex = false;
         for (DbObject child : table.getChildren()) {
             if (child instanceof Sequence) {
                 continue;
@@ -456,9 +452,48 @@ public class AlterTableAlterColumn extends CommandWithColumns {
                 if (child instanceof TriggerObject) {
                     triggers.add(sql);
                 } else {
-                    execute(sql, true);
+                    if (!hasDelegateIndex) {
+                        Index index = null;
+                        if (child instanceof ConstraintUnique) {
+                            ConstraintUnique constraint = (ConstraintUnique) child;
+                            if (constraint.getConstraintType() == Constraint.Type.PRIMARY_KEY) {
+                                index = constraint.getUniqueIndex();
+                            }
+                        } else if (child instanceof Index) {
+                            index = (Index) child;
+                        }
+                        if (index != null
+                                && TableBase.getMainIndexColumn(index.getIndexType(), index.getIndexColumns())
+                                        != SearchRow.ROWID_INDEX) {
+                            execute(sql, true);
+                            hasDelegateIndex = true;
+                            continue;
+                        }
+                    }
+                    children.add(sql);
                 }
             }
+        }
+        StringBuilder buff = new StringBuilder();
+        buff.append("INSERT INTO ").append(newTable.getSQL());
+        buff.append(" SELECT ");
+        if (columnList.length() == 0) {
+            // special case: insert into test select * from
+            buff.append('*');
+        } else {
+            buff.append(columnList);
+        }
+        buff.append(" FROM ").append(table.getSQL());
+        try {
+            execute(buff.toString(), true);
+        } catch (Throwable t) {
+            // data was not inserted due to data conversion error or some
+            // unexpected reason
+            execute("DROP TABLE " + newTable.getSQL(), true);
+            throw t;
+        }
+        for (String sql : children) {
+            execute(sql, true);
         }
         table.setModified();
         // remove the sequences from the columns (except dropped columns)

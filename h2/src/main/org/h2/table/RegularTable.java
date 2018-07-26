@@ -36,7 +36,6 @@ import org.h2.index.TreeIndex;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
-import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObject;
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
@@ -199,7 +198,8 @@ public class RegularTable extends TableBase {
             if (database.isStarting() &&
                     database.getPageStore().getRootPageId(indexId) != 0) {
                 mainIndexColumn = -1;
-            } else if (!database.isStarting() && mainIndex.getRowCount(session) != 0) {
+            } else if (!database.isStarting() && mainIndex.getRowCount(session) != 0
+                    || mainIndex.getMainIndexColumn() != -1) {
                 mainIndexColumn = -1;
             } else {
                 mainIndexColumn = getMainIndexColumn(indexType, cols);
@@ -287,29 +287,6 @@ public class RegularTable extends TableBase {
         indexes.add(index);
         setModified();
         return index;
-    }
-
-    private int getMainIndexColumn(IndexType indexType, IndexColumn[] cols) {
-        if (mainIndex.getMainIndexColumn() != -1) {
-            return -1;
-        }
-        if (!indexType.isPrimaryKey() || cols.length != 1) {
-            return -1;
-        }
-        IndexColumn first = cols[0];
-        if (first.sortType != SortOrder.ASCENDING) {
-            return -1;
-        }
-        switch (first.column.getType()) {
-        case Value.BYTE:
-        case Value.SHORT:
-        case Value.INT:
-        case Value.LONG:
-            break;
-        default:
-            return -1;
-        }
-        return first.column.getColumnId();
     }
 
     @Override

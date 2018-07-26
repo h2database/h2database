@@ -35,7 +35,6 @@ import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
-import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObject;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
@@ -504,8 +503,8 @@ public class MVTable extends TableBase {
             database.lockMeta(session);
         }
         MVIndex index;
-        int mainIndexColumn;
-        mainIndexColumn = getMainIndexColumn(indexType, cols);
+        int mainIndexColumn = primaryIndex.getMainIndexColumn() != SearchRow.ROWID_INDEX
+                ? SearchRow.ROWID_INDEX : getMainIndexColumn(indexType, cols);
         if (database.isStarting()) {
             if (transactionStore.hasMap("index." + indexId)) {
                 mainIndexColumn = SearchRow.ROWID_INDEX;
@@ -644,29 +643,6 @@ public class MVTable extends TableBase {
             DbException.throwInternalError("rowcount remaining=" + remaining +
                     " " + getName());
         }
-    }
-
-    private int getMainIndexColumn(IndexType indexType, IndexColumn[] cols) {
-        if (primaryIndex.getMainIndexColumn() != SearchRow.ROWID_INDEX) {
-            return SearchRow.ROWID_INDEX;
-        }
-        if (!indexType.isPrimaryKey() || cols.length != 1) {
-            return SearchRow.ROWID_INDEX;
-        }
-        IndexColumn first = cols[0];
-        if (first.sortType != SortOrder.ASCENDING) {
-            return SearchRow.ROWID_INDEX;
-        }
-        switch (first.column.getType()) {
-        case Value.BYTE:
-        case Value.SHORT:
-        case Value.INT:
-        case Value.LONG:
-            break;
-        default:
-            return SearchRow.ROWID_INDEX;
-        }
-        return first.column.getColumnId();
     }
 
     private static void addRowsToIndex(Session session, ArrayList<Row> list,

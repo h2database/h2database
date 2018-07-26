@@ -60,7 +60,7 @@ class MVPlainTempResult extends MVTempResult {
      */
     MVPlainTempResult(Database database, Expression[] expressions, int visibleColumnCount) {
         super(database, expressions.length, visibleColumnCount);
-        ValueDataType valueType = new ValueDataType(database.getCompareMode(), database, new int[columnCount]);
+        ValueDataType valueType = new ValueDataType(database, new int[columnCount]);
         Builder<Long, ValueArray> builder = new MVMap.Builder<Long, ValueArray>()
                                                 .valueType(valueType).singleWriter();
         map = store.openMap("tmp", builder);

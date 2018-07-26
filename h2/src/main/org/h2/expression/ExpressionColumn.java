@@ -199,7 +199,7 @@ public class ExpressionColumn extends Expression {
 
     @Override
     public int getType() {
-        return column.getType();
+        return column == null ? Value.UNKNOWN : column.getType();
     }
 
     @Override

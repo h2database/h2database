@@ -51,9 +51,8 @@ public class MVPrimaryIndex extends BaseIndex {
         for (int i = 0; i < columns.length; i++) {
             sortTypes[i] = SortOrder.ASCENDING;
         }
-        ValueDataType keyType = new ValueDataType(null, null, null);
-        ValueDataType valueType = new ValueDataType(db.getCompareMode(), db,
-                sortTypes);
+        ValueDataType keyType = new ValueDataType();
+        ValueDataType valueType = new ValueDataType(db, sortTypes);
         mapName = "table." + getId();
         Transaction t = mvTable.getTransactionBegin();
         dataMap = t.openMap(mapName, keyType, valueType);

@@ -2866,7 +2866,7 @@ CREATE TABLE TEST2(ID INT PRIMARY KEY, NAME VARCHAR(255));
 create unique index idx_test2_name on test2(name);
 > ok
 
-INSERT INTO TEST2 VALUES(1, 'HElLo');
+INSERT INTO TEST2 VALUES(1, 'hElLo');
 > update count: 1
 
 INSERT INTO TEST2 VALUES(2, 'World');
@@ -2886,7 +2886,7 @@ select * from test where name='HELLO';
 select * from test2 where name='HELLO';
 > ID NAME
 > -- -----
-> 1  HElLo
+> 1  hElLo
 > rows: 1
 
 select * from test where name like 'HELLO';
@@ -2897,26 +2897,26 @@ select * from test where name like 'HELLO';
 select * from test2 where name like 'HELLO';
 > ID NAME
 > -- -----
-> 1  HElLo
+> 1  hElLo
 > rows: 1
 
 explain plan for select * from test2, test where test2.name = test.name;
->> SELECT TEST2.ID, TEST2.NAME, TEST.ID, TEST.NAME FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ INNER JOIN PUBLIC.TEST /* PUBLIC.IDX_TEST_NAME: NAME = TEST2.NAME */ ON 1=1 WHERE TEST2.NAME = TEST.NAME
+>> SELECT TEST2.ID, TEST2.NAME, TEST.ID, TEST.NAME FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ INNER JOIN PUBLIC.TEST /* PUBLIC.TEST.tableScan */ ON 1=1 WHERE TEST2.NAME = TEST.NAME
 
 select * from test2, test where test2.name = test.name;
 > ID NAME  ID NAME
 > -- ----- -- -----
-> 1  HElLo 1  Hello
+> 1  hElLo 1  Hello
 > 2  World 2  World
 > rows: 2
 
 explain plan for select * from test, test2 where test2.name = test.name;
->> SELECT TEST.ID, TEST.NAME, TEST2.ID, TEST2.NAME FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ INNER JOIN PUBLIC.TEST /* PUBLIC.IDX_TEST_NAME: NAME = TEST2.NAME */ ON 1=1 WHERE TEST2.NAME = TEST.NAME
+>> SELECT TEST.ID, TEST.NAME, TEST2.ID, TEST2.NAME FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ INNER JOIN PUBLIC.TEST /* PUBLIC.TEST.tableScan */ ON 1=1 WHERE TEST2.NAME = TEST.NAME
 
 select * from test, test2 where test2.name = test.name;
 > ID NAME  ID NAME
 > -- ----- -- -----
-> 1  Hello 1  HElLo
+> 1  Hello 1  hElLo
 > 2  World 2  World
 > rows: 2
 
@@ -2924,12 +2924,12 @@ create index idx_test2_name on test2(name);
 > ok
 
 explain plan for select * from test2, test where test2.name = test.name;
->> SELECT TEST2.ID, TEST2.NAME, TEST.ID, TEST.NAME FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ INNER JOIN PUBLIC.TEST /* PUBLIC.IDX_TEST_NAME: NAME = TEST2.NAME */ ON 1=1 WHERE TEST2.NAME = TEST.NAME
+>> SELECT TEST2.ID, TEST2.NAME, TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ INNER JOIN PUBLIC.TEST2 /* PUBLIC.IDX_TEST2_NAME: NAME = TEST.NAME */ ON 1=1 WHERE TEST2.NAME = TEST.NAME
 
 select * from test2, test where test2.name = test.name;
 > ID NAME  ID NAME
 > -- ----- -- -----
-> 1  HElLo 1  Hello
+> 1  hElLo 1  Hello
 > 2  World 2  World
 > rows: 2
 
@@ -2939,7 +2939,7 @@ explain plan for select * from test, test2 where test2.name = test.name;
 select * from test, test2 where test2.name = test.name;
 > ID NAME  ID NAME
 > -- ----- -- -----
-> 1  Hello 1  HElLo
+> 1  Hello 1  hElLo
 > 2  World 2  World
 > rows: 2
 

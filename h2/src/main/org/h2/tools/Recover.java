@@ -616,18 +616,14 @@ public class Recover extends Tool implements DataHandler {
         }
         try {
             // extract the metadata so we can dump the settings
+            ValueDataType type = new ValueDataType();
             for (String mapName : mv.getMapNames()) {
                 if (!mapName.startsWith("table.")) {
                     continue;
                 }
                 String tableId = mapName.substring("table.".length());
                 if (Integer.parseInt(tableId) == 0) {
-                    ValueDataType keyType = new ValueDataType(
-                            null, this, null);
-                    ValueDataType valueType = new ValueDataType(
-                            null, this, null);
-                    TransactionMap<Value, Value> dataMap = store.begin().openMap(
-                            mapName, keyType, valueType);
+                    TransactionMap<Value, Value> dataMap = store.begin().openMap(mapName, type, type);
                     Iterator<Value> dataIt = dataMap.keyIterator(null);
                     while (dataIt.hasNext()) {
                         Value rowId = dataIt.next();
@@ -660,12 +656,7 @@ public class Recover extends Tool implements DataHandler {
                 if (Integer.parseInt(tableId) == 0) {
                     continue;
                 }
-                ValueDataType keyType = new ValueDataType(
-                        null, this, null);
-                ValueDataType valueType = new ValueDataType(
-                        null, this, null);
-                TransactionMap<Value, Value> dataMap = store.begin().openMap(
-                        mapName, keyType, valueType);
+                TransactionMap<Value, Value> dataMap = store.begin().openMap(mapName, type, type);
                 Iterator<Value> dataIt = dataMap.keyIterator(null);
                 boolean init = false;
                 while (dataIt.hasNext()) {

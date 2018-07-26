@@ -10,9 +10,13 @@ import java.util.List;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.engine.Database;
 import org.h2.engine.DbSettings;
+import org.h2.index.IndexType;
 import org.h2.mvstore.db.MVTableEngine;
+import org.h2.result.SearchRow;
+import org.h2.result.SortOrder;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.value.Value;
 
 /**
  * The base class of a regular table, or a user defined table.
@@ -30,6 +34,33 @@ public abstract class TableBase extends Table {
     private final List<String> tableEngineParams;
 
     private final boolean globalTemporary;
+
+    /**
+     * Returns main index column if index is an primary key index and has only
+     * one column with _ROWID_ compatible data type.
+     *
+     * @param indexType type of an index
+     * @param cols columns of the index
+     * @return main index column or {@link SearchRow#ROWID_INDEX}
+     */
+    public static int getMainIndexColumn(IndexType indexType, IndexColumn[] cols) {
+        if (!indexType.isPrimaryKey() || cols.length != 1) {
+            return SearchRow.ROWID_INDEX;
+        }
+        IndexColumn first = cols[0];
+        if (first.sortType != SortOrder.ASCENDING) {
+            return SearchRow.ROWID_INDEX;
+        }
+        switch (first.column.getType()) {
+        case Value.BYTE:
+        case Value.SHORT:
+        case Value.INT:
+        case Value.LONG:
+            return first.column.getColumnId();
+        default:
+            return SearchRow.ROWID_INDEX;
+        }
+    }
 
     public TableBase(CreateTableData data) {
         super(data.schema, data.id, data.tableName,

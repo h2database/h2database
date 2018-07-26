@@ -158,9 +158,15 @@ public class ValueDataType implements DataType {
         }
 
         int t2 = Value.getHigherOrder(a.getType(), b.getType());
-        String[] enumerators = ValueEnum.getEnumeratorsForBinaryOperation(a, b);
-        int comp = a.convertTo(t2, -1, mode, null, enumerators)
-                .compareTypeSafe(b.convertTo(t2, -1, mode, null, enumerators), compareMode);
+        if (t2 == Value.ENUM) {
+            String[] enumerators = ValueEnum.getEnumeratorsForBinaryOperation(a, b);
+            a = a.convertToEnum(enumerators);
+            b = b.convertToEnum(enumerators);
+        } else {
+            a = a.convertTo(t2, -1, mode);
+            b = b.convertTo(t2, -1, mode);
+        }
+        int comp = a.compareTypeSafe(b, compareMode);
 
         if ((sortType & SortOrder.DESCENDING) != 0) {
             comp = -comp;

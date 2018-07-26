@@ -267,7 +267,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         return new MVStoreCursor(session, map.keyIterator(min, max, false));
     }
 
-    private ValueArray convertToKey(ValueArray r, Boolean minmax) {
+    private static ValueArray convertToKey(ValueArray r, Boolean minmax) {
         if (r == null) {
             return null;
         }

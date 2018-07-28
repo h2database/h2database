@@ -21,7 +21,7 @@ public abstract class CommandWithColumns extends SchemaCommand {
 
     private ArrayList<DefineCommand> constraintCommands;
 
-    private IndexColumn[] pkColumns;
+    private AlterTableAddConstraint primaryKey;
 
     protected CommandWithColumns(Session session, Schema schema) {
         super(session, schema);
@@ -49,7 +49,7 @@ public abstract class CommandWithColumns extends SchemaCommand {
             AlterTableAddConstraint con = (AlterTableAddConstraint) command;
             boolean alreadySet;
             if (con.getType() == CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY) {
-                alreadySet = setPrimaryKeyColumns(con.getIndexColumns());
+                alreadySet = setPrimaryKey(con);
             } else {
                 alreadySet = false;
             }
@@ -66,7 +66,8 @@ public abstract class CommandWithColumns extends SchemaCommand {
      * @param columns the list of columns
      */
     protected void changePrimaryKeysToNotNull(ArrayList<Column> columns) {
-        if (pkColumns != null) {
+        if (primaryKey != null) {
+            IndexColumn[] pkColumns = primaryKey.getIndexColumns();
             for (Column c : columns) {
                 for (IndexColumn idxCol : pkColumns) {
                     if (c.getName().equals(idxCol.columnName)) {
@@ -126,27 +127,39 @@ public abstract class CommandWithColumns extends SchemaCommand {
     }
 
     /**
-     * Sets the primary key columns, but also check if a primary key with different
+     * Set the primary key, but also check if a primary key with different
      * columns is already defined.
+     * <p>
+     * If an unnamed primary key with the same columns is already defined it is
+     * removed from the list of constraints and this method returns
+     * {@code false}.
+     * </p>
      *
-     * @param columns
-     *            the primary key columns
-     * @return true if the same primary key columns where already set
+     * @param primaryKey
+     *            the primary key
+     * @return whether another primary key with the same columns was already set
+     *         and the specified primary key should be ignored
      */
-    private boolean setPrimaryKeyColumns(IndexColumn[] columns) {
-        if (pkColumns != null) {
-            int len = columns.length;
-            if (len != pkColumns.length) {
+    private boolean setPrimaryKey(AlterTableAddConstraint primaryKey) {
+        if (this.primaryKey != null) {
+            IndexColumn[] oldColumns = this.primaryKey.getIndexColumns();
+            IndexColumn[] newColumns = primaryKey.getIndexColumns();
+            int len = newColumns.length;
+            if (len != oldColumns.length) {
                 throw DbException.get(ErrorCode.SECOND_PRIMARY_KEY);
             }
             for (int i = 0; i < len; i++) {
-                if (!columns[i].columnName.equals(pkColumns[i].columnName)) {
+                if (!newColumns[i].columnName.equals(oldColumns[i].columnName)) {
                     throw DbException.get(ErrorCode.SECOND_PRIMARY_KEY);
                 }
             }
-            return true;
+            if (this.primaryKey.getConstraintName() != null) {
+                return true;
+            }
+            // Remove unnamed primary key
+            constraintCommands.remove(this.primaryKey);
         }
-        this.pkColumns = columns;
+        this.primaryKey = primaryKey;
         return false;
     }
 

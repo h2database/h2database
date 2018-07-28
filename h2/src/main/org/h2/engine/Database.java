@@ -36,6 +36,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
+import org.h2.mvstore.db.MVDelegateIndex;
 import org.h2.mvstore.db.MVTableEngine;
 import org.h2.result.Row;
 import org.h2.result.RowFactory;
@@ -1713,7 +1714,10 @@ public class Database implements DataHandler {
      * @param obj the database object
      */
     public void updateMeta(Session session, DbObject obj) {
-        if (isMVStore()) {
+        if (isMVStore()
+                // 1.4.197 and older versions can create an unexpected secondary
+                // index that does not work here, so check index type too
+                && metaIdIndex instanceof MVDelegateIndex) {
             synchronized (this) {
                 int id = obj.getId();
                 if (id > 0) {

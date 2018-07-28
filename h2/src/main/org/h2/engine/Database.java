@@ -8,10 +8,13 @@ package org.h2.engine;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
@@ -36,6 +39,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
+import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.MVTableEngine;
 import org.h2.result.Row;
 import org.h2.result.RowFactory;
@@ -783,6 +787,7 @@ public class Database implements DataHandler {
         data.isHidden = true;
         data.session = systemSession;
         meta = mainSchema.createTable(data);
+        handleUpgradeIssues();
         IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { columnId });
         starting = true;
         metaIdIndex = meta.addIndex(systemSession, "SYS_ID",
@@ -836,6 +841,47 @@ public class Database implements DataHandler {
         trace.info("opened {0}", databaseName);
         if (checkpointAllowed > 0) {
             afterWriting();
+        }
+    }
+
+    private void handleUpgradeIssues() {
+        if (mvStore != null) {
+            MVStore store = mvStore.getStore();
+            if (store.hasMap("index.0")) {
+                if (isReadOnly()) {
+                    throw DbException.get(ErrorCode.GENERAL_ERROR_1, "Upgrade can not be performed while database is in R/O mode");
+                }
+                Index scanIndex = meta.getScanIndex(systemSession);
+                Cursor curs = scanIndex.find(systemSession, null, null);
+                List<Row> allMetaRows = new ArrayList<>();
+                boolean needRepair = false;
+                while (curs.next()) {
+                    Row row = curs.get();
+                    allMetaRows.add(row);
+                    long rowId = row.getKey();
+                    int id = row.getValue(0).getInt();
+                    if (id != rowId) {
+                        needRepair = true;
+                        row.setKey(id);
+                    }
+                }
+                if (needRepair) {
+                    Row[] array = allMetaRows.toArray(new Row[0]);
+                    Arrays.sort(array, new Comparator<Row>() {
+                        @Override
+                        public int compare(Row o1, Row o2) {
+                            return Integer.compare(o1.getValue(0).getInt(), o2.getValue(0).getInt());
+                        }
+                    });
+                    meta.truncate(systemSession);
+                    for (Row row : array) {
+                        meta.addRow(systemSession, row);
+                    }
+                    systemSession.commit(true);
+                }
+                store.removeMap("index.0");
+                store.commit();
+            }
         }
     }
 

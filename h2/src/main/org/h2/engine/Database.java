@@ -845,12 +845,9 @@ public class Database implements DataHandler {
     }
 
     private void handleUpgradeIssues() {
-        if (mvStore != null) {
+        if (mvStore != null && !isReadOnly()) {
             MVStore store = mvStore.getStore();
             if (store.hasMap("index.0")) {
-                if (isReadOnly()) {
-                    throw DbException.get(ErrorCode.GENERAL_ERROR_1, "Upgrade can not be performed while database is in R/O mode");
-                }
                 Index scanIndex = meta.getScanIndex(systemSession);
                 Cursor curs = scanIndex.find(systemSession, null, null);
                 List<Row> allMetaRows = new ArrayList<>();

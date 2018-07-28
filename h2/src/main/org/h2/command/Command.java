@@ -181,7 +181,7 @@ public abstract class Command implements CommandInterface {
         startTimeNanos = 0;
         long start = 0;
         Database database = session.getDatabase();
-        Object sync = database.isMultiThreaded() || database.getMvStore() != null ? session : database;
+        Object sync = database.isMultiThreaded() || database.getStore() != null ? session : database;
         session.waitIfExclusiveModeEnabled();
         boolean callStop = true;
         boolean writing = !isReadOnly();
@@ -241,7 +241,7 @@ public abstract class Command implements CommandInterface {
     public ResultWithGeneratedKeys executeUpdate(Object generatedKeysRequest) {
         long start = 0;
         Database database = session.getDatabase();
-        Object sync = database.isMultiThreaded() || database.getMvStore() != null ? session : database;
+        Object sync = database.isMultiThreaded() || database.getStore() != null ? session : database;
         session.waitIfExclusiveModeEnabled();
         boolean callStop = true;
         boolean writing = !isReadOnly();
@@ -330,7 +330,7 @@ public abstract class Command implements CommandInterface {
         }
         // Only in PageStore mode we need to sleep here to avoid busy wait loop
         Database database = session.getDatabase();
-        if (database.getMvStore() == null) {
+        if (database.getStore() == null) {
             int sleep = 1 + MathUtils.randomInt(10);
             while (true) {
                 try {

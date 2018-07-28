@@ -98,7 +98,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         MVRTreeMap.Builder<VersionedValue> mapBuilder =
                 new MVRTreeMap.Builder<VersionedValue>().
                 valueType(valueType);
-        spatialMap = db.getMvStore().getStore().openMap(mapName, mapBuilder);
+        spatialMap = db.getStore().getMvStore().openMap(mapName, mapBuilder);
         Transaction t = mvTable.getTransactionBegin();
         dataMap = t.openMap(spatialMap);
         dataMap.map.setVolatile(!table.isPersistData() || !indexType.isPersistent());

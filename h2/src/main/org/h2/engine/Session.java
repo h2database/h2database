@@ -735,7 +735,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     private void endTransaction() {
         if (removeLobMap != null && removeLobMap.size() > 0) {
-            if (database.getMvStore() == null) {
+            if (database.getStore() == null) {
                 // need to flush the transaction log, because we can't unlink
                 // lobs if the commit record is not written
                 database.flush();
@@ -826,7 +826,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (undoLog != null) {
             sp.logIndex = undoLog.size();
         }
-        if (database.getMvStore() != null) {
+        if (database.getStore() != null) {
             sp.transactionSavepoint = getStatementSavepoint();
         }
         return sp;
@@ -1072,7 +1072,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      * @return true if yes
      */
     public boolean containsUncommitted() {
-        if (database.getMvStore() != null) {
+        if (database.getStore() != null) {
             return transaction != null && transaction.hasChanges();
         }
         return firstUncommittedLog != Session.LOG_WRITTEN;
@@ -1608,7 +1608,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     public Value getTransactionId() {
-        if (database.getMvStore() != null) {
+        if (database.getStore() != null) {
             if (transaction == null || !transaction.hasChanges()) {
                 return ValueNull.INSTANCE;
             }
@@ -1644,9 +1644,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      */
     public Transaction getTransaction() {
         if (transaction == null) {
-            MVTableEngine.Store store = database.getMvStore();
+            MVTableEngine.Store store = database.getStore();
             if (store != null) {
-                if (store.getStore().isClosed()) {
+                if (store.getMvStore().isClosed()) {
                     Throwable backgroundException = database.getBackgroundException();
                     database.shutdownImmediately();
                     throw DbException.get(ErrorCode.DATABASE_IS_CLOSED, backgroundException);
@@ -1749,7 +1749,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                             VersionedValue restoredValue) {
         // Here we are relying on the fact that map which backs table's primary index
         // has the same name as the table itself
-        MVTableEngine.Store store = database.getMvStore();
+        MVTableEngine.Store store = database.getStore();
         if(store != null) {
             MVTable table = store.getTable(map.getName());
             if (table != null) {

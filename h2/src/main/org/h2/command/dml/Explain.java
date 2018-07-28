@@ -83,7 +83,7 @@ public class Explain extends Prepared {
                     if (store != null) {
                         store.statisticsStart();
                     }
-                    mvStore = db.getMvStore();
+                    mvStore = db.getStore();
                     if (mvStore != null) {
                         mvStore.statisticsStart();
                     }

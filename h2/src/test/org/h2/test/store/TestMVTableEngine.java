@@ -1130,7 +1130,7 @@ public class TestMVTableEngine extends TestDb {
         conn = getConnection(dbName);
         Database db = (Database) ((JdbcConnection) conn).getSession()
                 .getDataHandler();
-        assertTrue(db.getMvStore().getStore().getFileStore().isReadOnly());
+        assertTrue(db.getStore().getMvStore().getFileStore().isReadOnly());
         conn.close();
     }
 
@@ -1144,7 +1144,7 @@ public class TestMVTableEngine extends TestDb {
             conn = getConnection(dbName);
             Database db = (Database) ((JdbcConnection) conn).
                     getSession().getDataHandler();
-            db.getMvStore().getStore().setRetentionTime(0);
+            db.getStore().getMvStore().setRetentionTime(0);
             stat = conn.createStatement();
             stat.execute("create table test(id int primary key, data varchar)");
             stat.execute("insert into test select x, space(1000) " +

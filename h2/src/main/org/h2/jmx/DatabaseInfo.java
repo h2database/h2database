@@ -163,7 +163,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
         if (p != null) {
             return p.getWriteCount();
         }
-        return database.getMvStore().getStore().getFileStore().getReadCount();
+        return database.getStore().getMvStore().getFileStore().getReadCount();
     }
 
     @Override
@@ -175,7 +175,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
         if (p != null) {
             return p.getReadCount();
         }
-        return database.getMvStore().getStore().getFileStore().getReadCount();
+        return database.getStore().getMvStore().getFileStore().getReadCount();
     }
 
     @Override
@@ -187,7 +187,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
         if (p != null) {
             return p.getPageCount() * p.getPageSize() / 1024;
         }
-        return database.getMvStore().getStore().getFileStore().size();
+        return database.getStore().getMvStore().getFileStore().size();
     }
 
     @Override
@@ -199,7 +199,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
         if (p != null) {
             return p.getCache().getMaxMemory();
         }
-        return database.getMvStore().getStore().getCacheSize() * 1024;
+        return database.getStore().getMvStore().getCacheSize() * 1024;
     }
 
     @Override
@@ -218,7 +218,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
         if (p != null) {
             return p.getCache().getMemory();
         }
-        return database.getMvStore().getStore().getCacheSizeUsed() * 1024;
+        return database.getStore().getMvStore().getCacheSizeUsed() * 1024;
     }
 
     @Override

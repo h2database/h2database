@@ -538,7 +538,7 @@ public class MVTable extends TableBase {
 
     private void rebuildIndex(Session session, MVIndex index, String indexName) {
         try {
-            if (session.getDatabase().getMvStore() == null ||
+            if (session.getDatabase().getStore() == null ||
                     index instanceof MVSpatialIndex) {
                 // in-memory
                 rebuildIndexBuffered(session, index);
@@ -577,7 +577,7 @@ public class MVTable extends TableBase {
         long total = remaining;
         Cursor cursor = scan.find(session, null, null);
         long i = 0;
-        Store store = session.getDatabase().getMvStore();
+        Store store = session.getDatabase().getStore();
 
         int bufferSize = database.getMaxMemoryRows() / 2;
         ArrayList<Row> buffer = new ArrayList<>(bufferSize);
@@ -807,7 +807,7 @@ public class MVTable extends TableBase {
             database.getLobStorage().removeAllForTable(getId());
             database.lockMeta(session);
         }
-        database.getMvStore().removeTable(this);
+        database.getStore().removeTable(this);
         super.removeChildrenAndResources(session);
         // go backwards because database.removeIndex will
         // call table.removeIndex

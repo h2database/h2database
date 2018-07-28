@@ -47,7 +47,7 @@ public class MVTableEngine implements TableEngine {
      * @return the store
      */
     public static Store init(final Database db) {
-        Store store = db.getMvStore();
+        Store store = db.getStore();
         if (store != null) {
             return store;
         }
@@ -92,7 +92,7 @@ public class MVTableEngine implements TableEngine {
             });
         }
         store.open(db, builder, encrypted);
-        db.setMvStore(store);
+        db.setStore(store);
         return store;
     }
 
@@ -127,7 +127,7 @@ public class MVTableEngine implements TableEngine {
         /**
          * The store.
          */
-        private MVStore store;
+        private MVStore mvStore;
 
         /**
          * The transaction store.
@@ -152,15 +152,15 @@ public class MVTableEngine implements TableEngine {
         void open(Database db, MVStore.Builder builder, boolean encrypted) {
             this.encrypted = encrypted;
             try {
-                this.store = builder.open();
-                FileStore fs = store.getFileStore();
+                this.mvStore = builder.open();
+                FileStore fs = mvStore.getFileStore();
                 if (fs != null) {
                     this.fileName = fs.getFileName();
                 }
                 if (!db.getSettings().reuseSpace) {
-                    store.setReuseSpace(false);
+                    mvStore.setReuseSpace(false);
                 }
-                this.transactionStore = new TransactionStore(store,
+                this.transactionStore = new TransactionStore(mvStore,
                         new ValueDataType(db, null), db.getLockTimeout());
             } catch (IllegalStateException e) {
                 throw convertIllegalStateException(e);
@@ -201,8 +201,8 @@ public class MVTableEngine implements TableEngine {
 
         }
 
-        public MVStore getStore() {
-            return store;
+        public MVStore getMvStore() {
+            return mvStore;
         }
 
         public TransactionStore getTransactionStore() {
@@ -238,12 +238,12 @@ public class MVTableEngine implements TableEngine {
          * Store all pending changes.
          */
         public void flush() {
-            FileStore s = store.getFileStore();
+            FileStore s = mvStore.getFileStore();
             if (s == null || s.isReadOnly()) {
                 return;
             }
-            if (!store.compact(50, 4 * 1024 * 1024)) {
-                store.commit();
+            if (!mvStore.compact(50, 4 * 1024 * 1024)) {
+                mvStore.commit();
             }
         }
 
@@ -251,10 +251,10 @@ public class MVTableEngine implements TableEngine {
          * Close the store, without persisting changes.
          */
         public void closeImmediately() {
-            if (store.isClosed()) {
+            if (mvStore.isClosed()) {
                 return;
             }
-            store.closeImmediately();
+            mvStore.closeImmediately();
         }
 
         /**
@@ -263,13 +263,13 @@ public class MVTableEngine implements TableEngine {
          * @param objectIds the ids of the objects to keep
          */
         public void removeTemporaryMaps(BitSet objectIds) {
-            for (String mapName : store.getMapNames()) {
+            for (String mapName : mvStore.getMapNames()) {
                 if (mapName.startsWith("temp.")) {
-                    store.removeMap(mapName);
+                    mvStore.removeMap(mapName);
                 } else if (mapName.startsWith("table.") || mapName.startsWith("index.")) {
                     int id = Integer.parseInt(mapName.substring(1 + mapName.indexOf('.')));
                     if (!objectIds.get(id)) {
-                        store.removeMap(mapName);
+                        mvStore.removeMap(mapName);
                     }
                 }
             }
@@ -294,7 +294,7 @@ public class MVTableEngine implements TableEngine {
             Transaction t = session.getTransaction();
             t.setName(transactionName);
             t.prepare();
-            store.commit();
+            mvStore.commit();
         }
 
         public ArrayList<InDoubtTransaction> getInDoubtTransactions() {
@@ -302,7 +302,7 @@ public class MVTableEngine implements TableEngine {
             ArrayList<InDoubtTransaction> result = Utils.newSmallArrayList();
             for (Transaction t : list) {
                 if (t.getStatus() == Transaction.STATUS_PREPARED) {
-                    result.add(new MVInDoubtTransaction(store, t));
+                    result.add(new MVInDoubtTransaction(mvStore, t));
                 }
             }
             return result;
@@ -314,13 +314,13 @@ public class MVTableEngine implements TableEngine {
          * @param kb the maximum size in KB
          */
         public void setCacheSize(int kb) {
-            store.setCacheSize(Math.max(1, kb / 1024));
+            mvStore.setCacheSize(Math.max(1, kb / 1024));
         }
 
         public InputStream getInputStream() {
-            FileChannel fc = store.getFileStore().getEncryptedFile();
+            FileChannel fc = mvStore.getFileStore().getEncryptedFile();
             if (fc == null) {
-                fc = store.getFileStore().getFile();
+                fc = mvStore.getFileStore().getFile();
             }
             return new FileChannelInputStream(fc, false);
         }
@@ -330,7 +330,7 @@ public class MVTableEngine implements TableEngine {
          */
         public void sync() {
             flush();
-            store.sync();
+            mvStore.sync();
         }
 
         /**
@@ -342,11 +342,11 @@ public class MVTableEngine implements TableEngine {
          * @param maxCompactTime the maximum time in milliseconds to compact
          */
         public void compactFile(long maxCompactTime) {
-            store.setRetentionTime(0);
+            mvStore.setRetentionTime(0);
             long start = System.nanoTime();
-            while (store.compact(95, 16 * 1024 * 1024)) {
-                store.sync();
-                store.compactMoveChunks(95, 16 * 1024 * 1024);
+            while (mvStore.compact(95, 16 * 1024 * 1024)) {
+                mvStore.sync();
+                mvStore.compactMoveChunks(95, 16 * 1024 * 1024);
                 long time = System.nanoTime() - start;
                 if (time > TimeUnit.MILLISECONDS.toNanos(maxCompactTime)) {
                     break;
@@ -363,16 +363,16 @@ public class MVTableEngine implements TableEngine {
          */
         public void close(long maxCompactTime) {
             try {
-                if (!store.isClosed() && store.getFileStore() != null) {
+                if (!mvStore.isClosed() && mvStore.getFileStore() != null) {
                     boolean compactFully = false;
-                    if (!store.getFileStore().isReadOnly()) {
+                    if (!mvStore.getFileStore().isReadOnly()) {
                         transactionStore.close();
                         if (maxCompactTime == Long.MAX_VALUE) {
                             compactFully = true;
                         }
                     }
-                    String fileName = store.getFileStore().getFileName();
-                    store.close();
+                    String fileName = mvStore.getFileStore().getFileName();
+                    mvStore.close();
                     if (compactFully && FileUtils.exists(fileName)) {
                         // the file could have been deleted concurrently,
                         // so only compact if the file still exists
@@ -386,7 +386,7 @@ public class MVTableEngine implements TableEngine {
                 } else if (errorCode == DataUtils.ERROR_FILE_CORRUPT) {
                     // wrong encryption key - ok
                 }
-                store.closeImmediately();
+                mvStore.closeImmediately();
                 throw DbException.get(ErrorCode.IO_EXCEPTION_1, e, "Closing");
             }
         }
@@ -395,7 +395,7 @@ public class MVTableEngine implements TableEngine {
          * Start collecting statistics.
          */
         public void statisticsStart() {
-            FileStore fs = store.getFileStore();
+            FileStore fs = mvStore.getFileStore();
             statisticsStart = fs == null ? 0 : fs.getReadCount();
         }
 
@@ -406,7 +406,7 @@ public class MVTableEngine implements TableEngine {
          */
         public Map<String, Integer> statisticsEnd() {
             HashMap<String, Integer> map = new HashMap<>();
-            FileStore fs = store.getFileStore();
+            FileStore fs = mvStore.getFileStore();
             int reads = fs == null ? 0 : (int) (fs.getReadCount() - statisticsStart);
             map.put("reads", reads);
             return map;

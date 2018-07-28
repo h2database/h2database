@@ -148,9 +148,9 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
                 }
             }
         } finally {
-            MVStore store = database.getMvStore().getStore();
+            MVStore mvStore = database.getStore().getMvStore();
             for (String tempMapName : bufferNames) {
-                store.removeMap(tempMapName);
+                mvStore.removeMap(tempMapName);
             }
         }
     }
@@ -167,8 +167,8 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
                 new MVMap.Builder<ValueArray, Value>()
                         .singleWriter()
                         .keyType(keyType).valueType(valueType);
-        MVMap<ValueArray, Value> map = database.getMvStore().
-                getStore().openMap(mapName, builder);
+        MVMap<ValueArray, Value> map = database.getStore().
+                getMvStore().openMap(mapName, builder);
         if (!keyType.equals(map.getKeyType())) {
             throw DbException.throwInternalError(
                     "Incompatible key type, expected " + keyType + " but got "

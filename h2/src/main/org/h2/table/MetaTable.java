@@ -45,6 +45,7 @@ import org.h2.index.MetaIndex;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.DbException;
 import org.h2.mvstore.FileStore;
+import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.MVTableEngine.Store;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -1051,32 +1052,33 @@ public class MetaTable extends Table {
                 add(rows, k, s.get(k));
             }
             if (database.isPersistent()) {
-                PageStore store = database.getPageStore();
-                if (store != null) {
+                PageStore pageStore = database.getPageStore();
+                if (pageStore != null) {
                     add(rows, "info.FILE_WRITE_TOTAL",
-                            Long.toString(store.getWriteCountTotal()));
+                            Long.toString(pageStore.getWriteCountTotal()));
                     add(rows, "info.FILE_WRITE",
-                            Long.toString(store.getWriteCount()));
+                            Long.toString(pageStore.getWriteCount()));
                     add(rows, "info.FILE_READ",
-                            Long.toString(store.getReadCount()));
+                            Long.toString(pageStore.getReadCount()));
                     add(rows, "info.PAGE_COUNT",
-                            Integer.toString(store.getPageCount()));
+                            Integer.toString(pageStore.getPageCount()));
                     add(rows, "info.PAGE_SIZE",
-                            Integer.toString(store.getPageSize()));
+                            Integer.toString(pageStore.getPageSize()));
                     add(rows, "info.CACHE_MAX_SIZE",
-                            Integer.toString(store.getCache().getMaxMemory()));
+                            Integer.toString(pageStore.getCache().getMaxMemory()));
                     add(rows, "info.CACHE_SIZE",
-                            Integer.toString(store.getCache().getMemory()));
+                            Integer.toString(pageStore.getCache().getMemory()));
                 }
-                Store mvStore = database.getMvStore();
-                if (mvStore != null) {
-                    FileStore fs = mvStore.getStore().getFileStore();
+                Store store = database.getStore();
+                if (store != null) {
+                    MVStore mvStore = store.getMvStore();
+                    FileStore fs = mvStore.getFileStore();
                     add(rows, "info.FILE_WRITE",
                             Long.toString(fs.getWriteCount()));
                     add(rows, "info.FILE_READ",
                             Long.toString(fs.getReadCount()));
                     add(rows, "info.UPDATE_FAILURE_PERCENT",
-                            String.format(Locale.ENGLISH, "%.2f%%", 100 * mvStore.getStore().getUpdateFailureRatio()));
+                            String.format(Locale.ENGLISH, "%.2f%%", 100 * mvStore.getUpdateFailureRatio()));
                     long size;
                     try {
                         size = fs.getFile().size();
@@ -1090,9 +1092,9 @@ public class MetaTable extends Table {
                     add(rows, "info.PAGE_SIZE",
                             Integer.toString(pageSize));
                     add(rows, "info.CACHE_MAX_SIZE",
-                            Integer.toString(mvStore.getStore().getCacheSize()));
+                            Integer.toString(mvStore.getCacheSize()));
                     add(rows, "info.CACHE_SIZE",
-                            Integer.toString(mvStore.getStore().getCacheSizeUsed()));
+                            Integer.toString(mvStore.getCacheSizeUsed()));
                 }
             }
             break;

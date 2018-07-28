@@ -102,7 +102,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
                         "Persistent index with id<0");
             }
             MVTableEngine.init(session.getDatabase());
-            store = session.getDatabase().getMvStore().getStore();
+            store = session.getDatabase().getStore().getMvStore();
             // Called after CREATE SPATIAL INDEX or
             // by PageStore.addMeta
             treeMap =  store.openMap(MAP_PREFIX + getId(),

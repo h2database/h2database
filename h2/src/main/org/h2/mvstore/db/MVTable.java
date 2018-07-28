@@ -506,12 +506,15 @@ public class MVTable extends TableBase {
         int mainIndexColumn = primaryIndex.getMainIndexColumn() != SearchRow.ROWID_INDEX
                 ? SearchRow.ROWID_INDEX : getMainIndexColumn(indexType, cols);
         if (database.isStarting()) {
-            if (transactionStore.hasMap("index." + indexId)) {
+            // if this is not "SYS_ID" table and index does exists as a separate map
+            if (indexId != 0 && transactionStore.hasMap("index." + indexId)) {
+                // we can not reuse primary index
                 mainIndexColumn = SearchRow.ROWID_INDEX;
             }
         } else if (primaryIndex.getRowCountMax() != 0) {
             mainIndexColumn = SearchRow.ROWID_INDEX;
         }
+
         if (mainIndexColumn != SearchRow.ROWID_INDEX) {
             primaryIndex.setMainIndexColumn(mainIndexColumn);
             index = new MVDelegateIndex(this, indexId, indexName, primaryIndex,

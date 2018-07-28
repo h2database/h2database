@@ -221,7 +221,6 @@ public class MVTableEngine implements TableEngine {
          */
         public MVTable createTable(CreateTableData data) {
             MVTable table = new MVTable(data, this);
-            table.init(data.session);
             tableMap.put(table.getMapName(), table);
             return table;
         }

@@ -101,7 +101,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         spatialMap = db.getMvStore().getStore().openMap(mapName, mapBuilder);
         Transaction t = mvTable.getTransactionBegin();
         dataMap = t.openMap(spatialMap);
-        dataMap.map.setVolatile(!indexType.isPersistent());
+        dataMap.map.setVolatile(!table.isPersistData() || !indexType.isPersistent());
         t.commit();
     }
 
@@ -201,7 +201,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         Iterator<SpatialKey> cursor = spatialMap.keyIterator(null);
         TransactionMap<SpatialKey, Value> map = getMap(session);
         Iterator<SpatialKey> it = map.wrapIterator(cursor, false);
-        return new MVStoreCursor(session, it);
+        return new MVStoreCursor(session, it, mvTable);
     }
 
     @Override
@@ -215,7 +215,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
                 spatialMap.findIntersectingKeys(getKey(intersection));
         TransactionMap<SpatialKey, Value> map = getMap(session);
         Iterator<SpatialKey> it = map.wrapIterator(cursor, false);
-        return new MVStoreCursor(session, it);
+        return new MVStoreCursor(session, it, mvTable);
     }
 
     private SpatialKey getKey(SearchRow row) {
@@ -228,18 +228,6 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         return new SpatialKey(row.getKey(),
                 (float) env.getMinX(), (float) env.getMaxX(),
                 (float) env.getMinY(), (float) env.getMaxY());
-    }
-
-    /**
-     * Get the row with the given index key.
-     *
-     * @param key the index key
-     * @return the row
-     */
-    SearchRow getRow(SpatialKey key) {
-        SearchRow searchRow = mvTable.getTemplateRow();
-        searchRow.setKey(key.getId());
-        return searchRow;
     }
 
     @Override
@@ -324,7 +312,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
      * @param session the session
      * @return the map
      */
-    TransactionMap<SpatialKey, Value> getMap(Session session) {
+    private TransactionMap<SpatialKey, Value> getMap(Session session) {
         if (session == null) {
             return dataMap;
         }
@@ -335,17 +323,19 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     /**
      * A cursor.
      */
-    class MVStoreCursor implements Cursor {
+    private static class MVStoreCursor implements Cursor {
 
         private final Session session;
         private final Iterator<SpatialKey> it;
+        private final MVTable mvTable;
         private SpatialKey current;
         private SearchRow searchRow;
         private Row row;
 
-        public MVStoreCursor(Session session, Iterator<SpatialKey> it) {
+        public MVStoreCursor(Session session, Iterator<SpatialKey> it, MVTable mvTable) {
             this.session = session;
             this.it = it;
+            this.mvTable = mvTable;
         }
 
         @Override
@@ -363,7 +353,8 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         public SearchRow getSearchRow() {
             if (searchRow == null) {
                 if (current != null) {
-                    searchRow = getRow(current);
+                    searchRow = mvTable.getTemplateRow();
+                    searchRow.setKey(current.getId());
                 }
             }
             return searchRow;

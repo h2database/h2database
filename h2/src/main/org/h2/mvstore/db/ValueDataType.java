@@ -142,29 +142,23 @@ public class ValueDataType implements DataType {
         if (a == b) {
             return 0;
         }
-        // null is never stored;
-        // comparison with null is used to retrieve all entries
-        // in which case null is always lower than all entries
-        // (even for descending ordered indexes)
-        if (a == null) {
-            return -1;
-        } else if (b == null) {
-            return 1;
-        }
         boolean aNull = a == ValueNull.INSTANCE;
-        boolean bNull = b == ValueNull.INSTANCE;
-        if (aNull || bNull) {
+        if (aNull || b == ValueNull.INSTANCE) {
             return SortOrder.compareNull(aNull, sortType);
         }
 
-        int t2 = Value.getHigherOrder(a.getType(), b.getType());
-        if (t2 == Value.ENUM) {
-            String[] enumerators = ValueEnum.getEnumeratorsForBinaryOperation(a, b);
-            a = a.convertToEnum(enumerators);
-            b = b.convertToEnum(enumerators);
-        } else {
-            a = a.convertTo(t2, -1, mode);
-            b = b.convertTo(t2, -1, mode);
+        int aType = a.getType();
+        int bType = b.getType();
+        if (aType != bType || aType == Value.ENUM) {
+            int t2 = Value.getHigherOrder(aType, bType);
+            if (t2 == Value.ENUM) {
+                String[] enumerators = ValueEnum.getEnumeratorsForBinaryOperation(a, b);
+                a = a.convertToEnum(enumerators);
+                b = b.convertToEnum(enumerators);
+            } else {
+                a = a.convertTo(t2, -1, mode);
+                b = b.convertTo(t2, -1, mode);
+            }
         }
         int comp = a.compareTypeSafe(b, compareMode);
 

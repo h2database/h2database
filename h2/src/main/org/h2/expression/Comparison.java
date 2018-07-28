@@ -271,15 +271,19 @@ public class Comparison extends Condition {
                 return ValueNull.INSTANCE;
             }
         }
-        int dataType = Value.getHigherOrder(left.getType(), right.getType());
-        if (dataType == Value.ENUM) {
-            String[] enumerators = ValueEnum.getEnumeratorsForBinaryOperation(l, r);
-            l = l.convertToEnum(enumerators);
-            r = r.convertToEnum(enumerators);
-        } else {
-            Mode mode = database.getMode();
-            l = l.convertTo(dataType, -1, mode);
-            r = r.convertTo(dataType, -1, mode);
+        int leftType = left.getType();
+        int rightType = right.getType();
+        if (leftType != rightType || leftType == Value.ENUM) {
+            int dataType = Value.getHigherOrder(leftType, rightType);
+            if (dataType == Value.ENUM) {
+                String[] enumerators = ValueEnum.getEnumeratorsForBinaryOperation(l, r);
+                l = l.convertToEnum(enumerators);
+                r = r.convertToEnum(enumerators);
+            } else {
+                Mode mode = database.getMode();
+                l = l.convertTo(dataType, -1, mode);
+                r = r.convertTo(dataType, -1, mode);
+            }
         }
         boolean result = compareNotNull(database, l, r, compareType);
         return ValueBoolean.get(result);

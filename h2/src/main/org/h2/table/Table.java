@@ -1213,15 +1213,19 @@ public abstract class Table extends SchemaObjectBase {
         if (a == b) {
             return 0;
         }
-        int dataType = Value.getHigherOrder(a.getType(), b.getType());
-        if (dataType == Value.ENUM) {
-            String[] enumerators = ValueEnum.getEnumeratorsForBinaryOperation(a, b);
-            a = a.convertToEnum(enumerators);
-            b = b.convertToEnum(enumerators);
-        } else {
-            Mode mode = database.getMode();
-            a = a.convertTo(dataType, -1, mode);
-            b = b.convertTo(dataType, -1, mode);
+        int aType = a.getType();
+        int bType = b.getType();
+        if (aType != bType || aType == Value.ENUM) {
+            int dataType = Value.getHigherOrder(aType, bType);
+            if (dataType == Value.ENUM) {
+                String[] enumerators = ValueEnum.getEnumeratorsForBinaryOperation(a, b);
+                a = a.convertToEnum(enumerators);
+                b = b.convertToEnum(enumerators);
+            } else {
+                Mode mode = database.getMode();
+                a = a.convertTo(dataType, -1, mode);
+                b = b.convertTo(dataType, -1, mode);
+            }
         }
         return a.compareTypeSafe(b, compareMode);
     }

@@ -1714,7 +1714,10 @@ public class Database implements DataHandler {
      * @param obj the database object
      */
     public void updateMeta(Session session, DbObject obj) {
-        if (isMVStore() && metaIdIndex instanceof MVDelegateIndex) {
+        if (isMVStore()
+                // 1.4.197 and older versions can create an unexpected secondary
+                // index that does not work here, so check index type too
+                && metaIdIndex instanceof MVDelegateIndex) {
             synchronized (this) {
                 int id = obj.getId();
                 if (id > 0) {

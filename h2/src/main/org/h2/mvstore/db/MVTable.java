@@ -506,8 +506,8 @@ public class MVTable extends TableBase {
         int mainIndexColumn = primaryIndex.getMainIndexColumn() != SearchRow.ROWID_INDEX
                 ? SearchRow.ROWID_INDEX : getMainIndexColumn(indexType, cols);
         if (database.isStarting()) {
-            // if this is not "SYS_ID" table and index does exists as a separate map
-            if (indexId != 0 && transactionStore.hasMap("index." + indexId)) {
+            // if index does exists as a separate map it can't be a delegate
+            if (transactionStore.hasMap("index." + indexId)) {
                 // we can not reuse primary index
                 mainIndexColumn = SearchRow.ROWID_INDEX;
             }

@@ -846,14 +846,14 @@ public class Database implements DataHandler {
 
 
     private void handleUpgradeIssues() {
-        if (mvStore != null && !isReadOnly()) {
-            MVStore store = mvStore.getStore();
+        if (store != null && !isReadOnly()) {
+            MVStore mvStore = store.getMvStore();
             // Version 1.4.197 erroneously handles index on SYS_ID.ID as secondary
             // and does not delegate to scan index as it should.
             // This code will try to fix that by converging ROW_ID and ID,
             // since they may have got out of sync, and by removing map "index.0",
             // which corresponds to a secondary index.
-            if (store.hasMap("index.0")) {
+            if (mvStore.hasMap("index.0")) {
                 Index scanIndex = meta.getScanIndex(systemSession);
                 Cursor curs = scanIndex.find(systemSession, null, null);
                 List<Row> allMetaRows = new ArrayList<>();
@@ -882,8 +882,8 @@ public class Database implements DataHandler {
                     }
                     systemSession.commit(true);
                 }
-                store.removeMap("index.0");
-                store.commit();
+                mvStore.removeMap("index.0");
+                mvStore.commit();
             }
         }
     }

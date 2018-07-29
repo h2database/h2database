@@ -56,11 +56,8 @@ public class MVPrimaryIndex extends BaseIndex {
         mapName = "table." + getId();
         Transaction t = mvTable.getTransactionBegin();
         dataMap = t.openMap(mapName, keyType, valueType);
-        dataMap.map.setVolatile(!indexType.isPersistent());
+        dataMap.map.setVolatile(!table.isPersistData() || !indexType.isPersistent());
         t.commit();
-        if (!table.isPersistData() || !indexType.isPersistent()) {
-            dataMap.map.setVolatile(true);
-        }
         Value k = dataMap.map.lastKey();    // include uncommitted keys as well
         lastKey.set(k == null ? 0 : k.getLong());
     }

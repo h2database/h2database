@@ -66,7 +66,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         ValueDataType valueType = new ValueDataType();
         Transaction t = mvTable.getTransactionBegin();
         dataMap = t.openMap(mapName, keyType, valueType);
-        dataMap.map.setVolatile(!indexType.isPersistent());
+        dataMap.map.setVolatile(!table.isPersistData() || !indexType.isPersistent());
         t.commit();
         if (!keyType.equals(dataMap.getKeyType())) {
             throw DbException.throwInternalError(

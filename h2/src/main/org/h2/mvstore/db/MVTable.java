@@ -142,15 +142,8 @@ public class MVTable extends TableBase {
         }
         containsLargeObject = b;
         traceLock = database.getTrace(Trace.LOCK);
-    }
 
-    /**
-     * Initialize the table.
-     *
-     * @param session the session
-     */
-    void init(Session session) {
-        primaryIndex = new MVPrimaryIndex(session.getDatabase(), this, getId(),
+        primaryIndex = new MVPrimaryIndex(database, this, getId(),
                 IndexColumn.wrap(getColumns()), IndexType.createScan(true));
         indexes.add(primaryIndex);
     }

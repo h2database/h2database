@@ -216,105 +216,8 @@ public class Operation extends Expression {
                 } else {
                     dataType = Value.DECIMAL;
                 }
-            } else if (l == Value.DATE || l == Value.TIMESTAMP ||
-                    l == Value.TIME || r == Value.DATE ||
-                    r == Value.TIMESTAMP || r == Value.TIME) {
-                if (opType == OpType.PLUS) {
-                    if (r != Value.getHigherOrder(l, r)) {
-                        // order left and right: INT < TIME < DATE < TIMESTAMP
-                        swap();
-                        int t = l;
-                        l = r;
-                        r = t;
-                    }
-                    if (l == Value.INT) {
-                        // Oracle date add
-                        Function f = Function.getFunction(session.getDatabase(), "DATEADD");
-                        f.setParameter(0, ValueExpression.get(ValueString.get("DAY")));
-                        f.setParameter(1, left);
-                        f.setParameter(2, right);
-                        f.doneWithParameters();
-                        return f.optimize(session);
-                    } else if (l == Value.DECIMAL || l == Value.FLOAT || l == Value.DOUBLE) {
-                        // Oracle date add
-                        Function f = Function.getFunction(session.getDatabase(), "DATEADD");
-                        f.setParameter(0, ValueExpression.get(ValueString.get("SECOND")));
-                        left = new Operation(OpType.MULTIPLY, ValueExpression.get(ValueInt
-                                .get(60 * 60 * 24)), left);
-                        f.setParameter(1, left);
-                        f.setParameter(2, right);
-                        f.doneWithParameters();
-                        return f.optimize(session);
-                    } else if (l == Value.TIME && r == Value.TIME) {
-                        dataType = Value.TIME;
-                        return this;
-                    } else if (l == Value.TIME) {
-                        dataType = Value.TIMESTAMP;
-                        return this;
-                    }
-                } else if (opType == OpType.MINUS) {
-                    if ((l == Value.DATE || l == Value.TIMESTAMP) && r == Value.INT) {
-                        // Oracle date subtract
-                        Function f = Function.getFunction(session.getDatabase(), "DATEADD");
-                        f.setParameter(0, ValueExpression.get(ValueString.get("DAY")));
-                        right = new Operation(OpType.NEGATE, right, null);
-                        right = right.optimize(session);
-                        f.setParameter(1, right);
-                        f.setParameter(2, left);
-                        f.doneWithParameters();
-                        return f.optimize(session);
-                    } else if ((l == Value.DATE || l == Value.TIMESTAMP) &&
-                            (r == Value.DECIMAL || r == Value.FLOAT || r == Value.DOUBLE)) {
-                        // Oracle date subtract
-                        Function f = Function.getFunction(session.getDatabase(), "DATEADD");
-                        f.setParameter(0, ValueExpression.get(ValueString.get("SECOND")));
-                        right = new Operation(OpType.MULTIPLY, ValueExpression.get(ValueInt
-                                .get(60 * 60 * 24)), right);
-                        right = new Operation(OpType.NEGATE, right, null);
-                        right = right.optimize(session);
-                        f.setParameter(1, right);
-                        f.setParameter(2, left);
-                        f.doneWithParameters();
-                        return f.optimize(session);
-                    } else if (l == Value.DATE || l == Value.TIMESTAMP) {
-                        if (r == Value.TIME) {
-                            dataType = Value.TIMESTAMP;
-                            return this;
-                        } else if (r == Value.DATE || r == Value.TIMESTAMP) {
-                            // Oracle date subtract
-                            Function f = Function.getFunction(session.getDatabase(), "DATEDIFF");
-                            f.setParameter(0, ValueExpression.get(ValueString.get("DAY")));
-                            f.setParameter(1, right);
-                            f.setParameter(2, left);
-                            f.doneWithParameters();
-                            return f.optimize(session);
-                        }
-                    } else if (l == Value.TIME && r == Value.TIME) {
-                        dataType = Value.TIME;
-                        return this;
-                    }
-                } else if (opType == OpType.MULTIPLY) {
-                    if (l == Value.TIME) {
-                        dataType = Value.TIME;
-                        convertRight = false;
-                        return this;
-                    } else if (r == Value.TIME) {
-                        swap();
-                        dataType = Value.TIME;
-                        convertRight = false;
-                        return this;
-                    }
-                } else if (opType == OpType.DIVIDE) {
-                    if (l == Value.TIME) {
-                        dataType = Value.TIME;
-                        convertRight = false;
-                        return this;
-                    }
-                }
-                throw DbException.getUnsupportedException(
-                        DataType.getDataType(l).name + " " +
-                        getOperationToken() + " " +
-                        DataType.getDataType(r).name);
+            } else if (DataType.isDateTimeType(l) || DataType.isDateTimeType(r)) {
+                return optimizeDateTime(session, l, r);
             } else {
                 dataType = Value.getHigherOrder(l, r);
                 if (dataType == Value.ENUM) {
@@ -332,6 +235,132 @@ public class Operation extends Expression {
             return ValueExpression.get(getValue(session));
         }
         return this;
+    }
+
+    private Expression optimizeDateTime(Session session, int l, int r) {
+        switch (opType) {
+        case PLUS:
+            if (r != Value.getHigherOrder(l, r)) {
+                // order left and right: INT < TIME < DATE < TIMESTAMP
+                swap();
+                int t = l;
+                l = r;
+                r = t;
+            }
+            switch (l) {
+            case Value.INT: {
+                // Oracle date add
+                Function f = Function.getFunction(session.getDatabase(), "DATEADD");
+                f.setParameter(0, ValueExpression.get(ValueString.get("DAY")));
+                f.setParameter(1, left);
+                f.setParameter(2, right);
+                f.doneWithParameters();
+                return f.optimize(session);
+            }
+            case Value.DECIMAL:
+            case Value.FLOAT:
+            case Value.DOUBLE: {
+                // Oracle date add
+                Function f = Function.getFunction(session.getDatabase(), "DATEADD");
+                f.setParameter(0, ValueExpression.get(ValueString.get("SECOND")));
+                left = new Operation(OpType.MULTIPLY, ValueExpression.get(ValueInt
+                        .get(60 * 60 * 24)), left);
+                f.setParameter(1, left);
+                f.setParameter(2, right);
+                f.doneWithParameters();
+                return f.optimize(session);
+            }
+            case Value.TIME:
+                if (r == Value.TIME || r == Value.TIMESTAMP_TZ) {
+                    dataType = r;
+                    return this;
+                } else { // DATE, TIMESTAMP
+                    dataType = Value.TIMESTAMP;
+                    return this;
+                }
+            }
+            break;
+        case MINUS:
+            switch (l) {
+            case Value.DATE:
+            case Value.TIMESTAMP:
+            case Value.TIMESTAMP_TZ:
+                switch (r) {
+                case Value.INT: {
+                    // Oracle date subtract
+                    Function f = Function.getFunction(session.getDatabase(), "DATEADD");
+                    f.setParameter(0, ValueExpression.get(ValueString.get("DAY")));
+                    right = new Operation(OpType.NEGATE, right, null);
+                    right = right.optimize(session);
+                    f.setParameter(1, right);
+                    f.setParameter(2, left);
+                    f.doneWithParameters();
+                    return f.optimize(session);
+                }
+                case Value.DECIMAL:
+                case Value.FLOAT:
+                case Value.DOUBLE: {
+                    // Oracle date subtract
+                    Function f = Function.getFunction(session.getDatabase(), "DATEADD");
+                    f.setParameter(0, ValueExpression.get(ValueString.get("SECOND")));
+                    right = new Operation(OpType.MULTIPLY, ValueExpression.get(ValueInt
+                            .get(60 * 60 * 24)), right);
+                    right = new Operation(OpType.NEGATE, right, null);
+                    right = right.optimize(session);
+                    f.setParameter(1, right);
+                    f.setParameter(2, left);
+                    f.doneWithParameters();
+                    return f.optimize(session);
+                }
+                case Value.TIME:
+                    dataType = Value.TIMESTAMP;
+                    return this;
+                case Value.DATE:
+                case Value.TIMESTAMP:
+                case Value.TIMESTAMP_TZ: {
+                    // Oracle date subtract
+                    Function f = Function.getFunction(session.getDatabase(), "DATEDIFF");
+                    f.setParameter(0, ValueExpression.get(ValueString.get("DAY")));
+                    f.setParameter(1, right);
+                    f.setParameter(2, left);
+                    f.doneWithParameters();
+                    return f.optimize(session);
+                }
+                }
+                break;
+            case Value.TIME:
+                if (r == Value.TIME) {
+                    dataType = Value.TIME;
+                    return this;
+                }
+                break;
+            }
+            break;
+        case MULTIPLY:
+            if (l == Value.TIME) {
+                dataType = Value.TIME;
+                convertRight = false;
+                return this;
+            } else if (r == Value.TIME) {
+                swap();
+                dataType = Value.TIME;
+                convertRight = false;
+                return this;
+            }
+            break;
+        case DIVIDE:
+            if (l == Value.TIME) {
+                dataType = Value.TIME;
+                convertRight = false;
+                return this;
+            }
+            break;
+        default:
+        }
+        throw DbException.getUnsupportedException(
+                DataType.getDataType(l).name + " " +
+                getOperationToken() + " " +
+                DataType.getDataType(r).name);
     }
 
     private void swap() {

@@ -216,9 +216,7 @@ public class Operation extends Expression {
                 } else {
                     dataType = Value.DECIMAL;
                 }
-            } else if (l == Value.DATE || l == Value.TIMESTAMP ||
-                    l == Value.TIME || r == Value.DATE ||
-                    r == Value.TIMESTAMP || r == Value.TIME) {
+            } else if (DataType.isDateTimeType(l) || DataType.isDateTimeType(r)) {
                 switch (opType) {
                 case PLUS:
                     if (r != Value.getHigherOrder(l, r)) {
@@ -252,10 +250,10 @@ public class Operation extends Expression {
                         return f.optimize(session);
                     }
                     case Value.TIME:
-                        if (r == Value.TIME) {
-                            dataType = Value.TIME;
+                        if (r == Value.TIME || r == Value.TIMESTAMP_TZ) {
+                            dataType = r;
                             return this;
-                        } else {
+                        } else { // DATE, TIMESTAMP
                             dataType = Value.TIMESTAMP;
                             return this;
                         }
@@ -265,6 +263,7 @@ public class Operation extends Expression {
                     switch (l) {
                     case Value.DATE:
                     case Value.TIMESTAMP:
+                    case Value.TIMESTAMP_TZ:
                         switch (r) {
                         case Value.INT: {
                             // Oracle date subtract
@@ -296,7 +295,8 @@ public class Operation extends Expression {
                             dataType = Value.TIMESTAMP;
                             return this;
                         case Value.DATE:
-                        case Value.TIMESTAMP: {
+                        case Value.TIMESTAMP:
+                        case Value.TIMESTAMP_TZ: {
                             // Oracle date subtract
                             Function f = Function.getFunction(session.getDatabase(), "DATEDIFF");
                             f.setParameter(0, ValueExpression.get(ValueString.get("DAY")));

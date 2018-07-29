@@ -93,3 +93,22 @@ SELECT T0 FROM TEST;
 
 DROP TABLE TEST;
 > ok
+
+SELECT (LOCALTIMESTAMP + 1) = (CURRENT_TIMESTAMP + 1);
+>> TRUE
+
+SELECT (TIMESTAMP WITH TIME ZONE '2010-01-01 10:00:00+01' + 1) A,
+    (1 + TIMESTAMP WITH TIME ZONE '2010-01-01 10:00:00+01') B;
+> A                      B
+> ---------------------- ----------------------
+> 2010-01-02 10:00:00+01 2010-01-02 10:00:00+01
+> rows: 1
+
+SELECT (LOCALTIMESTAMP - 1) = (CURRENT_TIMESTAMP - 1);
+>> TRUE
+
+SELECT (TIMESTAMP WITH TIME ZONE '2010-01-01 10:00:00+01' - 1) A;
+> A
+> ----------------------
+> 2009-12-31 10:00:00+01
+> rows: 1

@@ -79,7 +79,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     public void addRowsToBuffer(List<Row> rows, String bufferName) {
         MVMap<ValueArray, Value> map = openMap(bufferName);
         for (Row row : rows) {
-            ValueArray key = convertToKey(row);
+            ValueArray key = convertToKey(row, null);
             map.append(key, ValueNull.INSTANCE);
         }
     }
@@ -185,7 +185,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     @Override
     public void add(Session session, Row row) {
         TransactionMap<Value, Value> map = getMap(session);
-        ValueArray array = convertToKey(row);
+        ValueArray array = convertToKey(row, null);
         boolean checkRequired = indexType.isUnique() && !mayHaveNullDuplicates(row);
         if (checkRequired) {
             checkUnique(map, array, Long.MIN_VALUE);
@@ -203,7 +203,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     }
 
     private void checkUnique(TransactionMap<Value, Value> map, ValueArray row, long newKey) {
-        Iterator<Value> it = map.keyIterator(convertToKey(row, false), convertToKey(row, true), true);
+        Iterator<Value> it = map.keyIterator(convertToKey(row, ValueLong.MIN), convertToKey(row, ValueLong.MAX), true);
         while (it.hasNext()) {
             ValueArray rowData = (ValueArray)it.next();
             Value[] array = rowData.getList();
@@ -221,7 +221,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
 
     @Override
     public void remove(Session session, Row row) {
-        ValueArray array = convertToKey(row);
+        ValueArray array = convertToKey(row, null);
         TransactionMap<Value, Value> map = getMap(session);
         try {
             Value old = map.remove(array);
@@ -261,23 +261,19 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     }
 
     private Cursor find(Session session, SearchRow first, boolean bigger, SearchRow last) {
-        ValueArray min = convertToKey(convertToKey(first), bigger);
-        ValueArray max = convertToKey(convertToKey(last), true);
+        ValueArray min = convertToKey(first, bigger ? ValueLong.MAX : ValueLong.MIN);
+        ValueArray max = convertToKey(last, ValueLong.MAX);
         TransactionMap<Value,Value> map = getMap(session);
         return new MVStoreCursor(session, map.keyIterator(min, max, false));
     }
 
-    private static ValueArray convertToKey(ValueArray r, boolean minmax) {
-        if (r == null) {
-            return null;
-        }
+    private static ValueArray convertToKey(ValueArray r, ValueLong key) {
         Value[] values = r.getList().clone();
-        ValueArray row = ValueArray.get(values);
-        values[values.length - 1] = minmax ? ValueLong.MAX : ValueLong.MIN;
-        return row;
+        values[values.length - 1] = key;
+        return ValueArray.get(values);
     }
 
-    private ValueArray convertToKey(SearchRow r) {
+    private ValueArray convertToKey(SearchRow r, ValueLong key) {
         if (r == null) {
             return null;
         }
@@ -290,7 +286,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
                 array[i] = v.convertTo(c.getType(), -1, database.getMode(), null, c.getEnumerators());
             }
         }
-        array[keyColumns - 1] = ValueLong.get(r.getKey());
+        array[keyColumns - 1] = key != null ? key : ValueLong.get(r.getKey());
         return ValueArray.get(array);
     }
 

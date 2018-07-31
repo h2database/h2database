@@ -6,6 +6,7 @@
 package org.h2.mvstore;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * A cursor to iterate over elements in ascending order.
@@ -79,7 +80,7 @@ public class Cursor<K, V> implements Iterator<K> {
     @Override
     public K next() {
         if(!hasNext()) {
-            return null;
+            throw new NoSuchElementException();
         }
         current = null;
         return last;

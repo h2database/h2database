@@ -362,7 +362,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
 
         @Override
         public boolean next() {
-            current = it.next();
+            current = it.hasNext() ? it.next() : null;
             searchRow = null;
             row = null;
             return current != null;
@@ -374,6 +374,5 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         }
 
     }
-
 }
 

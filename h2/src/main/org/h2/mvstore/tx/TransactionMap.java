@@ -15,6 +15,7 @@ import java.util.AbstractMap;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * A map that supports transactions.
@@ -636,6 +637,7 @@ public class TransactionMap<K, V> {
             this.committingTransactions = committingTransactions;
 
             this.includeAllUncommitted = includeAllUncommitted;
+            fetchNext();
         }
 
         protected abstract X registerCurrent(K key, VersionedValue data);
@@ -672,19 +674,16 @@ public class TransactionMap<K, V> {
 
         @Override
         public final boolean hasNext() {
-            if(current == null) {
-                fetchNext();
-            }
             return current != null;
         }
 
         @Override
         public final X next() {
-            if(!hasNext()) {
-                return null;
+            if(current == null) {
+                throw new NoSuchElementException();
             }
             X result = current;
-            current = null;
+            fetchNext();
             return result;
         }
 

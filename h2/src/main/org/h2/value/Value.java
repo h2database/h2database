@@ -1161,13 +1161,6 @@ public abstract class Value {
      *         1 otherwise
      */
     public final int compareTypeSafe(Value v, CompareMode mode) {
-        if (this == v) {
-            return 0;
-        } else if (this == ValueNull.INSTANCE) {
-            return -1;
-        } else if (v == ValueNull.INSTANCE) {
-            return 1;
-        }
         return compareSecure(v, mode);
     }
 

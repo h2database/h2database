@@ -751,13 +751,9 @@ public class MVStore {
     private void loadChunkMeta() {
         // load the chunk metadata: we can load in any order,
         // because loading chunk metadata might recursively load another chunk
-        for (Iterator<String> it = meta.keyIterator("chunk."); it.hasNext();) {
-            String s = it.next();
-            if (!s.startsWith("chunk.")) {
-                break;
-            }
-            s = meta.get(s);
-            Chunk c = Chunk.fromString(s);
+        Cursor<String, String> cursor = meta.cursor("chunk.");
+        while (cursor.hasNext() && cursor.next().startsWith("chunk.")) {
+            Chunk c = Chunk.fromString(cursor.getValue());
             if (c.version < lastChunk.version) {
                 if (chunks.putIfAbsent(c.id, c) == null) {
                     if (c.block == Long.MAX_VALUE) {
@@ -808,15 +804,11 @@ public class MVStore {
             validIds.set(c.id);
 
             try {
-                MVMap<String, String> oldMeta = meta.openReadOnly(c.metaRootPos, c.version);
+                Cursor<String, Object> cursor = new Cursor<>(readPage(meta, c.metaRootPos), "chunk.");
                 boolean valid = true;
-                for(Iterator<String> iter = oldMeta.keyIterator("chunk."); valid && iter.hasNext(); ) {
-                    String s = iter.next();
-                    if (!s.startsWith("chunk.")) {
-                        break;
-                    }
-                    s = oldMeta.get(s);
-                    valid = validIds.get(Chunk.fromString(s).id);
+                String key;
+                while (valid && cursor.hasNext() && (key = cursor.next()).startsWith("chunk.")) {
+                    valid = validIds.get((int) Long.parseLong(key.substring("chunk.".length()), 16));
                 }
                 if (valid) {
                     newestValidChunk = c.id;

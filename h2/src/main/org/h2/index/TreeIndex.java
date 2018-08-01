@@ -30,7 +30,7 @@ public class TreeIndex extends BaseIndex {
 
     public TreeIndex(RegularTable table, int id, String indexName,
             IndexColumn[] columns, IndexType indexType) {
-        initBaseIndex(table, id, indexName, columns, indexType);
+        super(table, id, indexName, columns, indexType);
         tableData = table;
         if (!database.isStarting()) {
             checkIndexColumnTypes(columns);

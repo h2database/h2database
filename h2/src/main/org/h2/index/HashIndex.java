@@ -33,7 +33,7 @@ public class HashIndex extends BaseIndex {
 
     public HashIndex(RegularTable table, int id, String indexName,
             IndexColumn[] columns, IndexType indexType) {
-        initBaseIndex(table, id, indexName, columns, indexType);
+        super(table, id, indexName, columns, indexType);
         this.indexColumn = columns[0].column.getColumnId();
         this.tableData = table;
         reset();

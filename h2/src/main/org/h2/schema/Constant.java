@@ -23,7 +23,7 @@ public class Constant extends SchemaObjectBase {
     private ValueExpression expression;
 
     public Constant(Schema schema, int id, String name) {
-        initSchemaObjectBase(schema, id, name, Trace.SCHEMA);
+        super(schema, id, name, Trace.SCHEMA);
     }
 
     @Override

@@ -73,6 +73,7 @@ public class Schema extends DbObjectBase {
      */
     public Schema(Database database, int id, String schemaName, User owner,
             boolean system) {
+        super(database, id, schemaName, Trace.SCHEMA);
         tablesAndViews = database.newConcurrentStringMap();
         synonyms = database.newConcurrentStringMap();
         indexes = database.newConcurrentStringMap();
@@ -81,7 +82,6 @@ public class Schema extends DbObjectBase {
         constraints = database.newConcurrentStringMap();
         constants = database.newConcurrentStringMap();
         functions = database.newConcurrentStringMap();
-        initDbObjectBase(database, id, schemaName, Trace.SCHEMA);
         this.owner = owner;
         this.system = system;
     }

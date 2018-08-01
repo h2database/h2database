@@ -27,9 +27,9 @@ public class PageDelegateIndex extends PageIndex {
     public PageDelegateIndex(RegularTable table, int id, String name,
             IndexType indexType, PageDataIndex mainIndex, boolean create,
             Session session) {
-        IndexColumn[] cols = IndexColumn.wrap(
-                new Column[] { table.getColumn(mainIndex.getMainIndexColumn())});
-        this.initBaseIndex(table, id, name, cols, indexType);
+        super(table, id, name,
+                IndexColumn.wrap(new Column[] { table.getColumn(mainIndex.getMainIndexColumn()) }),
+                indexType);
         this.mainIndex = mainIndex;
         if (!database.isPersistent() || id < 0) {
             throw DbException.throwInternalError(name);

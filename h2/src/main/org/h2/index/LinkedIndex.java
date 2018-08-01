@@ -37,7 +37,7 @@ public class LinkedIndex extends BaseIndex {
 
     public LinkedIndex(TableLink table, int id, IndexColumn[] columns,
             IndexType indexType) {
-        initBaseIndex(table, id, null, columns, indexType);
+        super(table, id, null, columns, indexType);
         link = table;
         targetTableName = link.getQualifiedTable();
     }

@@ -24,7 +24,7 @@ public class RangeIndex extends BaseIndex {
     private final RangeTable rangeTable;
 
     public RangeIndex(RangeTable table, IndexColumn[] columns) {
-        initBaseIndex(table, 0, "RANGE_INDEX", columns,
+        super(table, 0, "RANGE_INDEX", columns,
                 IndexType.createNonUnique(true));
         this.rangeTable = table;
     }

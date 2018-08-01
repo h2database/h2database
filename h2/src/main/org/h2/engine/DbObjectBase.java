@@ -43,7 +43,7 @@ public abstract class DbObjectBase implements DbObject {
      * @param name the name
      * @param traceModuleId the trace module id
      */
-    protected void initDbObjectBase(Database db, int objectId, String name,
+    protected DbObjectBase(Database db, int objectId, String name,
             int traceModuleId) {
         this.database = db;
         this.trace = db.getTrace(traceModuleId);

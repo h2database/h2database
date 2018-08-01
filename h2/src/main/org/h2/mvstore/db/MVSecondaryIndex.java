@@ -48,8 +48,8 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
 
     public MVSecondaryIndex(Database db, MVTable table, int id, String indexName,
                 IndexColumn[] columns, IndexType indexType) {
+        super(table, id, indexName, columns, indexType);
         this.mvTable = table;
-        initBaseIndex(table, id, indexName, columns, indexType);
         if (!database.isStarting()) {
             checkIndexColumnTypes(columns);
         }

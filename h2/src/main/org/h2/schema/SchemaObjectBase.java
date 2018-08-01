@@ -13,7 +13,7 @@ import org.h2.engine.DbObjectBase;
 public abstract class SchemaObjectBase extends DbObjectBase implements
         SchemaObject {
 
-    private Schema schema;
+    private final Schema schema;
 
     /**
      * Initialize some attributes of this object.
@@ -23,9 +23,9 @@ public abstract class SchemaObjectBase extends DbObjectBase implements
      * @param name the name
      * @param traceModuleId the trace module id
      */
-    protected void initSchemaObjectBase(Schema newSchema, int id, String name,
+    protected SchemaObjectBase(Schema newSchema, int id, String name,
             int traceModuleId) {
-        initDbObjectBase(newSchema.getDatabase(), id, name, traceModuleId);
+        super(newSchema.getDatabase(), id, name, traceModuleId);
         this.schema = newSchema;
     }
 

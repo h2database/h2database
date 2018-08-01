@@ -38,7 +38,7 @@ public class NonUniqueHashIndex extends BaseIndex {
 
     public NonUniqueHashIndex(RegularTable table, int id, String indexName,
             IndexColumn[] columns, IndexType indexType) {
-        initBaseIndex(table, id, indexName, columns, indexType);
+        super(table, id, indexName, columns, indexType);
         this.indexColumn = columns[0].column.getColumnId();
         this.tableData = table;
         reset();

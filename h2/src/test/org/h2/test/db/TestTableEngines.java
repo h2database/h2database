@@ -920,7 +920,7 @@ public class TestTableEngines extends TestDb {
             public class Scan extends BaseIndex {
 
                 Scan(Table table) {
-                    initBaseIndex(table, table.getId(), table.getName() + "_SCAN",
+                    super(table, table.getId(), table.getName() + "_SCAN",
                             IndexColumn.wrap(table.getColumns()), IndexType.createScan(false));
                 }
 
@@ -1145,7 +1145,7 @@ public class TestTableEngines extends TestDb {
              */
             public class AffinityIndex extends BaseIndex {
                 AffinityIndex(Table table, int id, String name, IndexColumn[] newIndexColumns) {
-                    initBaseIndex(table, id, name, newIndexColumns, IndexType.createAffinity());
+                    super(table, id, name, newIndexColumns, IndexType.createAffinity());
                 }
 
                 @Override
@@ -1534,7 +1534,7 @@ public class TestTableEngines extends TestDb {
         final TreeSet<SearchRow> set = new TreeSet<>(this);
 
         TreeSetIndex(Table t, String name, IndexColumn[] cols, IndexType type) {
-            initBaseIndex(t, 0, name, cols, type);
+            super(t, 0, name, cols, type);
         }
 
         @Override

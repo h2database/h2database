@@ -26,7 +26,7 @@ public class TableSynonym extends SchemaObjectBase {
     private Table synonymFor;
 
     public TableSynonym(CreateSynonymData data) {
-        initSchemaObjectBase(data.schema, data.id, data.synonymName, Trace.TABLE);
+        super(data.schema, data.id, data.synonymName, Trace.TABLE);
         this.data = data;
     }
 

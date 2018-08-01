@@ -58,6 +58,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     public SpatialTreeIndex(Table table, int id, String indexName,
             IndexColumn[] columns, IndexType indexType, boolean persistent,
             boolean create, Session session) {
+        super(table, id, indexName, columns, indexType);
         if (indexType.isUnique()) {
             throw DbException.getUnsupportedException("not unique");
         }
@@ -81,9 +82,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
             throw DbException.getUnsupportedException(
                     "cannot do nulls last");
         }
-        initBaseIndex(table, id, indexName, columns, indexType);
         this.needRebuild = create;
-        this.table = table;
         if (!database.isStarting()) {
             if (columns[0].column.getType() != Value.GEOMETRY) {
                 throw DbException.getUnsupportedException(

@@ -30,9 +30,9 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
     public MVDelegateIndex(MVTable table, int id, String name,
             MVPrimaryIndex mainIndex,
             IndexType indexType) {
-        IndexColumn[] cols = IndexColumn.wrap(new Column[] { table
-                .getColumn(mainIndex.getMainIndexColumn()) });
-        this.initBaseIndex(table, id, name, cols, indexType);
+        super(table, id, name,
+                IndexColumn.wrap(new Column[] { table.getColumn(mainIndex.getMainIndexColumn()) }),
+                indexType);
         this.mainIndex = mainIndex;
         if (id < 0) {
             throw DbException.throwInternalError(name);

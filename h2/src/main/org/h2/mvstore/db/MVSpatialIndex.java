@@ -65,6 +65,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     public MVSpatialIndex(
             Database db, MVTable table, int id, String indexName,
             IndexColumn[] columns, IndexType indexType) {
+        super(table, id, indexName, columns, indexType);
         if (columns.length != 1) {
             throw DbException.getUnsupportedException(
                     "Can only index one column");
@@ -88,7 +89,6 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
                     + col.column.getCreateSQL());
         }
         this.mvTable = table;
-        initBaseIndex(table, id, indexName, columns, indexType);
         if (!database.isStarting()) {
             checkIndexColumnTypes(columns);
         }

@@ -95,8 +95,8 @@ public abstract class Table extends SchemaObjectBase {
 
     public Table(Schema schema, int id, String name, boolean persistIndexes,
             boolean persistData) {
+        super(schema, id, name, Trace.TABLE);
         columnMap = schema.getDatabase().newStringMap();
-        initSchemaObjectBase(schema, id, name, Trace.TABLE);
         this.persistIndexes = persistIndexes;
         this.persistData = persistData;
         compareMode = schema.getDatabase().getCompareMode();

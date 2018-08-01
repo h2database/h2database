@@ -29,7 +29,7 @@ public abstract class RightOwner extends DbObjectBase {
 
     protected RightOwner(Database database, int id, String name,
             int traceModuleId) {
-        initDbObjectBase(database, id, name, traceModuleId);
+        super(database, id, name, traceModuleId);
     }
 
     /**

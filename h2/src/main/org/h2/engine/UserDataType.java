@@ -18,7 +18,7 @@ public class UserDataType extends DbObjectBase {
     private Column column;
 
     public UserDataType(Database database, int id, String name) {
-        initDbObjectBase(database, id, name, Trace.DATABASE);
+        super(database, id, name, Trace.DATABASE);
     }
 
     @Override

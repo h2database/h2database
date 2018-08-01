@@ -47,7 +47,7 @@ public class FunctionAlias extends SchemaObjectBase {
     private boolean bufferResultSetToLocalTemp = true;
 
     private FunctionAlias(Schema schema, int id, String name) {
-        initSchemaObjectBase(schema, id, name, Trace.FUNCTION);
+        super(schema, id, name, Trace.FUNCTION);
     }
 
     /**

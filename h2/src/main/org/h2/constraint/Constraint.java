@@ -64,7 +64,7 @@ public abstract class Constraint extends SchemaObjectBase implements
     protected Table table;
 
     Constraint(Schema schema, int id, String name, Table table) {
-        initSchemaObjectBase(schema, id, name, Trace.CONSTRAINT);
+        super(schema, id, name, Trace.CONSTRAINT);
         this.table = table;
         this.setTemporary(table.isTemporary());
     }

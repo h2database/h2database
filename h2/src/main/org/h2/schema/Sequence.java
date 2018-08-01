@@ -67,7 +67,7 @@ public class Sequence extends SchemaObjectBase {
     public Sequence(Schema schema, int id, String name, Long startValue,
             Long increment, Long cacheSize, Long minValue, Long maxValue,
             boolean cycle, boolean belongsToTable) {
-        initSchemaObjectBase(schema, id, name, Trace.SEQUENCE);
+        super(schema, id, name, Trace.SEQUENCE);
         this.increment = increment != null ?
                 increment : 1;
         this.minValue = minValue != null ?

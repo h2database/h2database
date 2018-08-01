@@ -43,7 +43,7 @@ public class PageBtreeIndex extends PageIndex {
     public PageBtreeIndex(RegularTable table, int id, String indexName,
             IndexColumn[] columns,
             IndexType indexType, boolean create, Session session) {
-        initBaseIndex(table, id, indexName, columns, indexType);
+        super(table, id, indexName, columns, indexType);
         if (!database.isStarting() && create) {
             checkIndexColumnTypes(columns);
         }

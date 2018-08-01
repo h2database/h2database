@@ -35,7 +35,7 @@ public class ScanIndex extends BaseIndex {
 
     public ScanIndex(RegularTable table, int id, IndexColumn[] columns,
             IndexType indexType) {
-        initBaseIndex(table, id, table.getName() + "_DATA", columns, indexType);
+        super(table, id, table.getName() + "_DATA", columns, indexType);
         tableData = table;
     }
 

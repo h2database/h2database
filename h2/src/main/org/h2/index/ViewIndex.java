@@ -64,7 +64,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
      */
     public ViewIndex(TableView view, String querySQL,
             ArrayList<Parameter> originalParameters, boolean recursive) {
-        initBaseIndex(view, 0, null, null, IndexType.createNonUnique(false));
+        super(view, 0, null, null, IndexType.createNonUnique(false));
         this.view = view;
         this.querySQL = querySQL;
         this.originalParameters = originalParameters;
@@ -91,7 +91,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
      */
     public ViewIndex(TableView view, ViewIndex index, Session session,
             int[] masks, TableFilter[] filters, int filter, SortOrder sortOrder) {
-        initBaseIndex(view, 0, null, null, IndexType.createNonUnique(false));
+        super(view, 0, null, null, IndexType.createNonUnique(false));
         this.view = view;
         this.querySQL = index.querySQL;
         this.originalParameters = index.originalParameters;

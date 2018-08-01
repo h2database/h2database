@@ -26,7 +26,7 @@ public class UserAggregate extends DbObjectBase {
 
     public UserAggregate(Database db, int id, String name, String className,
             boolean force) {
-        initDbObjectBase(db, id, name, Trace.FUNCTION);
+        super(db, id, name, Trace.FUNCTION);
         this.className = className;
         if (!force) {
             getInstance();

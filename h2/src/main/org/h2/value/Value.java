@@ -576,7 +576,7 @@ public abstract class Value {
      * @param targetType the type of the returned value
      * @return the converted value
      */
-    public Value convertTo(int targetType) {
+    public final Value convertTo(int targetType) {
         // Use -1 to indicate "default behaviour" where value conversion should not
         // depend on any datatype precision.
         return convertTo(targetType, null);
@@ -587,7 +587,7 @@ public abstract class Value {
      * @param enumerators allowed values for the ENUM to which the value is converted
      * @return value represented as ENUM
      */
-    public Value convertToEnum(String[] enumerators) {
+    public final Value convertToEnum(String[] enumerators) {
         // Use -1 to indicate "default behaviour" where value conversion should not
         // depend on any datatype precision.
         return convertTo(ENUM, -1, null, null, enumerators);

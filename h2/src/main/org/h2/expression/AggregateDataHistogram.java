@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.Map;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
+import org.h2.engine.Mode;
 import org.h2.util.ValueHashMap;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
@@ -53,13 +54,14 @@ class AggregateDataHistogram extends AggregateData {
             values[i] = ValueArray.get(new Value[] { entry.getKey(), ValueLong.get(d.count) });
             i++;
         }
+        final Mode mode = database.getMode();
         final CompareMode compareMode = database.getCompareMode();
         Arrays.sort(values, new Comparator<ValueArray>() {
             @Override
             public int compare(ValueArray v1, ValueArray v2) {
                 Value a1 = v1.getList()[0];
                 Value a2 = v2.getList()[0];
-                return a1.compareTo(a2, compareMode);
+                return a1.compareTo(a2, mode, compareMode);
             }
         });
         Value v = ValueArray.get(values);

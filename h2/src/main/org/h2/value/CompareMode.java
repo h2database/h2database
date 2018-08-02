@@ -289,7 +289,7 @@ public class CompareMode implements Comparator<Value> {
 
     @Override
     public int compare(Value o1, Value o2) {
-        return o1.compareTo(o2, this);
+        return o1.compareTo(o2, null, this);
     }
 
 }

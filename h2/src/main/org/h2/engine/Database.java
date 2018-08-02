@@ -394,7 +394,7 @@ public class Database implements DataHandler {
      */
     public boolean areEqual(Value a, Value b) {
         // can not use equals because ValueDecimal 0.0 is not equal to 0.00.
-        return a.compareTo(b, compareMode) == 0;
+        return a.compareTo(b, mode, compareMode) == 0;
     }
 
     /**
@@ -407,7 +407,7 @@ public class Database implements DataHandler {
      *         1 otherwise
      */
     public int compare(Value a, Value b) {
-        return a.compareTo(b, compareMode);
+        return a.compareTo(b, mode, compareMode);
     }
 
     /**

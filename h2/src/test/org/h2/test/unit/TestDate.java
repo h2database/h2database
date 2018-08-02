@@ -87,13 +87,13 @@ public class TestDate extends TestBase {
         assertTrue(d1.equals(d1));
         assertTrue(d1.equals(d1b));
         assertTrue(d1b.equals(d1));
-        assertEquals(0, d1.compareTo(d1b, null));
-        assertEquals(0, d1b.compareTo(d1, null));
+        assertEquals(0, d1.compareTo(d1b, null, null));
+        assertEquals(0, d1b.compareTo(d1, null, null));
         ValueDate d2 = ValueDate.parse("2002-02-02");
         assertFalse(d1.equals(d2));
         assertFalse(d2.equals(d1));
-        assertEquals(-1, d1.compareTo(d2, null));
-        assertEquals(1, d2.compareTo(d1, null));
+        assertEquals(-1, d1.compareTo(d2, null, null));
+        assertEquals(1, d2.compareTo(d1, null, null));
 
         // can't convert using java.util.Date
         assertEquals(
@@ -175,13 +175,13 @@ public class TestDate extends TestBase {
         assertTrue(t1.equals(t1));
         assertTrue(t1.equals(t1b));
         assertTrue(t1b.equals(t1));
-        assertEquals(0, t1.compareTo(t1b, null));
-        assertEquals(0, t1b.compareTo(t1, null));
+        assertEquals(0, t1.compareTo(t1b, null, null));
+        assertEquals(0, t1b.compareTo(t1, null, null));
         ValueTime t2 = ValueTime.parse("22:22:22");
         assertFalse(t1.equals(t2));
         assertFalse(t2.equals(t1));
-        assertEquals(-1, t1.compareTo(t2, null));
-        assertEquals(1, t2.compareTo(t1, null));
+        assertEquals(-1, t1.compareTo(t2, null, null));
+        assertEquals(1, t2.compareTo(t1, null, null));
 
         if (SysProperties.UNLIMITED_TIME_RANGE) {
             assertEquals(-1, t1.negate().getSignum());
@@ -271,13 +271,13 @@ public class TestDate extends TestBase {
         assertTrue(t1.equals(t1));
         assertTrue(t1.equals(t1b));
         assertTrue(t1b.equals(t1));
-        assertEquals(0, t1.compareTo(t1b, null));
-        assertEquals(0, t1b.compareTo(t1, null));
+        assertEquals(0, t1.compareTo(t1b, null, null));
+        assertEquals(0, t1b.compareTo(t1, null, null));
         ValueTimestamp t2 = ValueTimestamp.parse("2002-02-02 02:02:02.222");
         assertFalse(t1.equals(t2));
         assertFalse(t2.equals(t1));
-        assertEquals(-1, t1.compareTo(t2, null));
-        assertEquals(1, t2.compareTo(t1, null));
+        assertEquals(-1, t1.compareTo(t2, null, null));
+        assertEquals(1, t2.compareTo(t1, null, null));
         t1 = ValueTimestamp.parse("2001-01-01 01:01:01.123456789");
         assertEquals("2001-01-01 01:01:01.123456789",
                 t1.getString());

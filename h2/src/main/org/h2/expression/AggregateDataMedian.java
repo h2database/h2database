@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.h2.engine.Database;
+import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
 import org.h2.index.Cursor;
@@ -160,7 +161,8 @@ class AggregateDataMedian extends AggregateDataCollecting {
             if (v2 == ValueNull.INSTANCE) {
                 return v;
             }
-            return getMedian(v, v2, dataType, session.getDatabase().getCompareMode());
+            Database database = session.getDatabase();
+            return getMedian(v, v2, dataType, database.getMode(), database.getCompareMode());
         }
         return v;
     }
@@ -171,19 +173,19 @@ class AggregateDataMedian extends AggregateDataCollecting {
         if (a == null) {
             return ValueNull.INSTANCE;
         }
-        final CompareMode mode = database.getCompareMode();
-        Arrays.sort(a, mode);
+        final CompareMode compareMode = database.getCompareMode();
+        Arrays.sort(a, compareMode);
         int len = a.length;
         int idx = len / 2;
         Value v1 = a[idx];
         if ((len & 1) == 1) {
             return v1.convertTo(dataType);
         }
-        return getMedian(a[idx - 1], v1, dataType, mode);
+        return getMedian(a[idx - 1], v1, dataType, database.getMode(), compareMode);
     }
 
-    private static Value getMedian(Value v0, Value v1, int dataType, CompareMode mode) {
-        if (v0.compareTo(v1, mode) == 0) {
+    private static Value getMedian(Value v0, Value v1, int dataType, Mode databaseMode, CompareMode compareMode) {
+        if (v0.compareTo(v1, databaseMode, compareMode) == 0) {
             return v0.convertTo(dataType);
         }
         switch (dataType) {

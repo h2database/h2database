@@ -141,9 +141,8 @@ public class ValueInt extends Value {
     }
 
     @Override
-    protected int compareSecure(Value o, CompareMode mode) {
-        ValueInt v = (ValueInt) o;
-        return Integer.compare(value, v.value);
+    public int compareTypeSafe(Value o, CompareMode mode) {
+        return Integer.compare(value, ((ValueInt) o).value);
     }
 
     @Override

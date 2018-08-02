@@ -102,7 +102,7 @@ public class ValueJavaObject extends ValueBytes {
         }
 
         @Override
-        protected int compareSecure(Value v, CompareMode mode) {
+        public int compareTypeSafe(Value v, CompareMode mode) {
             Object o1 = getObject();
             Object o2 = v.getObject();
 

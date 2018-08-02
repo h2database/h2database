@@ -181,7 +181,7 @@ public class ValueTime extends Value {
     }
 
     @Override
-    protected int compareSecure(Value o, CompareMode mode) {
+    public int compareTypeSafe(Value o, CompareMode mode) {
         return Long.compare(nanos, ((ValueTime) o).nanos);
     }
 

@@ -265,16 +265,6 @@ public abstract class Value {
     public abstract void set(PreparedStatement prep, int parameterIndex)
             throws SQLException;
 
-    /**
-     * Compare the value with another value of the same type.
-     *
-     * @param v the other value
-     * @param mode the compare mode
-     * @return 0 if both values are equal, -1 if the other value is smaller, and
-     *         1 otherwise
-     */
-    protected abstract int compareSecure(Value v, CompareMode mode);
-
     @Override
     public abstract int hashCode();
 
@@ -1157,9 +1147,7 @@ public abstract class Value {
      * @return 0 if both values are equal, -1 if the other value is smaller, and
      *         1 otherwise
      */
-    public final int compareTypeSafe(Value v, CompareMode mode) {
-        return compareSecure(v, mode);
-    }
+    public abstract int compareTypeSafe(Value v, CompareMode mode);
 
     /**
      * Compare this value against another value using the specified compare
@@ -1194,7 +1182,7 @@ public abstract class Value {
                 v = v.convertTo(dataType, databaseMode);
             }
         }
-        return l.compareSecure(v, compareMode);
+        return l.compareTypeSafe(v, compareMode);
     }
 
     public int getScale() {

@@ -371,7 +371,7 @@ public class TestCustomDataTypesHandler extends TestDb {
         }
 
         @Override
-        protected int compareSecure(Value v, CompareMode mode) {
+        public int compareTypeSafe(Value v, CompareMode mode) {
             return val.compare((ComplexNumber) v.getObject());
         }
 

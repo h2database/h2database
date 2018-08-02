@@ -45,10 +45,8 @@ public class ValueString extends Value {
     }
 
     @Override
-    protected int compareSecure(Value o, CompareMode mode) {
-        // compatibility: the other object could be another type
-        ValueString v = (ValueString) o;
-        return mode.compareString(value, v.value, false);
+    public int compareTypeSafe(Value o, CompareMode mode) {
+        return mode.compareString(value, ((ValueString) o).value, false);
     }
 
     @Override

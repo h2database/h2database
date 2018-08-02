@@ -108,9 +108,8 @@ public class ValueByte extends Value {
     }
 
     @Override
-    protected int compareSecure(Value o, CompareMode mode) {
-        ValueByte v = (ValueByte) o;
-        return Integer.compare(value, v.value);
+    public int compareTypeSafe(Value o, CompareMode mode) {
+        return Integer.compare(value, ((ValueByte) o).value);
     }
 
     @Override

@@ -375,7 +375,7 @@ public class ValueLobDb extends Value {
     }
 
     @Override
-    protected int compareSecure(Value v, CompareMode mode) {
+    public int compareTypeSafe(Value v, CompareMode mode) {
         if (v instanceof ValueLobDb) {
             ValueLobDb v2 = (ValueLobDb) v;
             if (v == this) {
@@ -511,7 +511,7 @@ public class ValueLobDb extends Value {
         ValueLobDb otherLob = (ValueLobDb) other;
         if (hashCode() != otherLob.hashCode())
             return false;
-        return compareSecure((Value) other, null) == 0;
+        return compareTypeSafe((Value) other, null) == 0;
     }
 
     @Override

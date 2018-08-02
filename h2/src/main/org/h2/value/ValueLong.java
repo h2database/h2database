@@ -161,9 +161,8 @@ public class ValueLong extends Value {
     }
 
     @Override
-    protected int compareSecure(Value o, CompareMode mode) {
-        ValueLong v = (ValueLong) o;
-        return Long.compare(value, v.value);
+    public int compareTypeSafe(Value o, CompareMode mode) {
+        return Long.compare(value, ((ValueLong) o).value);
     }
 
     @Override

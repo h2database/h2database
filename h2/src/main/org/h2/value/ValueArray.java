@@ -11,7 +11,6 @@ import java.sql.SQLException;
 import java.util.Arrays;
 
 import org.h2.engine.Constants;
-import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
 import org.h2.util.MathUtils;
 import org.h2.util.StatementBuilder;
@@ -99,7 +98,7 @@ public class ValueArray extends Value {
     }
 
     @Override
-    protected int compareSecure(Value o, CompareMode mode) {
+    public int compareTypeSafe(Value o, CompareMode mode) {
         ValueArray v = (ValueArray) o;
         if (values == v.values) {
             return 0;

@@ -163,7 +163,7 @@ public class ValueUuid extends Value {
     }
 
     @Override
-    protected int compareSecure(Value o, CompareMode mode) {
+    public int compareTypeSafe(Value o, CompareMode mode) {
         if (o == this) {
             return 0;
         }
@@ -176,7 +176,7 @@ public class ValueUuid extends Value {
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof ValueUuid && compareSecure((Value) other, null) == 0;
+        return other instanceof ValueUuid && compareTypeSafe((Value) other, null) == 0;
     }
 
     @Override

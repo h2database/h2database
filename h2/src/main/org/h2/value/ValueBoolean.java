@@ -66,9 +66,8 @@ public class ValueBoolean extends Value {
     }
 
     @Override
-    protected int compareSecure(Value o, CompareMode mode) {
-        ValueBoolean v = (ValueBoolean) o;
-        return Boolean.compare(value, v.value);
+    public int compareTypeSafe(Value o, CompareMode mode) {
+        return Boolean.compare(value, ((ValueBoolean) o).value);
     }
 
     @Override

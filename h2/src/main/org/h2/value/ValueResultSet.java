@@ -116,7 +116,7 @@ public class ValueResultSet extends Value {
     }
 
     @Override
-    protected int compareSecure(Value v, CompareMode mode) {
+    public int compareTypeSafe(Value v, CompareMode mode) {
         return this == v ? 0 : super.toString().compareTo(v.toString());
     }
 

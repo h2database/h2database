@@ -1066,7 +1066,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public byte[] getBytes(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getBytes", columnIndex);
-            return get(columnIndex).convertTo(Value.BYTES, -1, conn.getMode()).getBytes();
+            return get(columnIndex).convertTo(Value.BYTES, conn.getMode()).getBytes();
         } catch (Exception e) {
             throw logAndConvert(e);
         }

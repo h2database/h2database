@@ -101,9 +101,8 @@ public class ValueDouble extends Value {
     }
 
     @Override
-    protected int compareSecure(Value o, CompareMode mode) {
-        ValueDouble v = (ValueDouble) o;
-        return Double.compare(value, v.value);
+    public int compareTypeSafe(Value o, CompareMode mode) {
+        return Double.compare(value, ((ValueDouble) o).value);
     }
 
     @Override
@@ -180,7 +179,7 @@ public class ValueDouble extends Value {
         if (!(other instanceof ValueDouble)) {
             return false;
         }
-        return compareSecure((ValueDouble) other, null) == 0;
+        return compareTypeSafe((ValueDouble) other, null) == 0;
     }
 
 }

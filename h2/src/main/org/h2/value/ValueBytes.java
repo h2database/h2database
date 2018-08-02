@@ -94,7 +94,7 @@ public class ValueBytes extends Value {
     }
 
     @Override
-    protected int compareSecure(Value v, CompareMode mode) {
+    public int compareTypeSafe(Value v, CompareMode mode) {
         byte[] v2 = ((ValueBytes) v).value;
         if (mode.isBinaryUnsigned()) {
             return Bits.compareNotNullUnsigned(value, v2);

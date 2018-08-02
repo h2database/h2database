@@ -243,9 +243,8 @@ public class ValueGeometry extends Value {
     }
 
     @Override
-    protected int compareSecure(Value v, CompareMode mode) {
-        Geometry g = ((ValueGeometry) v).getGeometryNoCopy();
-        return getGeometryNoCopy().compareTo(g);
+    public int compareTypeSafe(Value v, CompareMode mode) {
+        return getGeometryNoCopy().compareTo(((ValueGeometry) v).getGeometryNoCopy());
     }
 
     @Override

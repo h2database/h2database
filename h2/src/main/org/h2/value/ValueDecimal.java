@@ -127,9 +127,8 @@ public class ValueDecimal extends Value {
     }
 
     @Override
-    protected int compareSecure(Value o, CompareMode mode) {
-        ValueDecimal v = (ValueDecimal) o;
-        return value.compareTo(v.value);
+    public int compareTypeSafe(Value o, CompareMode mode) {
+        return value.compareTo(((ValueDecimal) o).value);
     }
 
     @Override

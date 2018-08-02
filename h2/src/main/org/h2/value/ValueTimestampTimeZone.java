@@ -224,7 +224,7 @@ public class ValueTimestampTimeZone extends Value {
     }
 
     @Override
-    protected int compareSecure(Value o, CompareMode mode) {
+    public int compareTypeSafe(Value o, CompareMode mode) {
         ValueTimestampTimeZone t = (ValueTimestampTimeZone) o;
         // Maximum time zone offset is +/-18 hours so difference in days between local
         // and UTC cannot be more than one day

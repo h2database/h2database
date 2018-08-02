@@ -873,7 +873,7 @@ public class Function extends Expression implements FunctionCall {
         case CAST:
         case CONVERT: {
             Mode mode = database.getMode();
-            v0 = v0.convertTo(dataType, -1, mode);
+            v0 = v0.convertTo(dataType, mode);
             v0 = v0.convertScale(mode.convertOnlyToSmallerScale, scale);
             v0 = v0.convertPrecision(getPrecision(), false);
             result = v0;
@@ -902,7 +902,7 @@ public class Function extends Expression implements FunctionCall {
             if (v0 == ValueNull.INSTANCE) {
                 result = getNullOrValue(session, args, values, 1);
             }
-            result = result.convertTo(dataType, -1, database.getMode());
+            result = result.convertTo(dataType, database.getMode());
             break;
         }
         case CASEWHEN: {

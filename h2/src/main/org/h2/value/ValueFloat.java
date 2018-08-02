@@ -102,9 +102,8 @@ public class ValueFloat extends Value {
     }
 
     @Override
-    protected int compareSecure(Value o, CompareMode mode) {
-        ValueFloat v = (ValueFloat) o;
-        return Float.compare(value, v.value);
+    public int compareTypeSafe(Value o, CompareMode mode) {
+        return Float.compare(value, ((ValueFloat) o).value);
     }
 
     @Override
@@ -180,7 +179,7 @@ public class ValueFloat extends Value {
         if (!(other instanceof ValueFloat)) {
             return false;
         }
-        return compareSecure((ValueFloat) other, null) == 0;
+        return compareTypeSafe((ValueFloat) other, null) == 0;
     }
 
 }

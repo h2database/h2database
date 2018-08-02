@@ -33,7 +33,7 @@ public class ValueEnumBase extends Value {
     }
 
     @Override
-    protected int compareSecure(final Value v, final CompareMode mode) {
+    public int compareTypeSafe(Value v, CompareMode mode) {
         return Integer.compare(getInt(), v.getInt());
     }
 

@@ -60,7 +60,7 @@ public class ConditionInConstantSet extends Condition {
             }
         } else {
             for (Expression expression : valueList) {
-                valueSet.add(expression.getValue(session).convertTo(type, -1, mode));
+                valueSet.add(expression.getValue(session).convertTo(type, mode));
             }
         }
     }
@@ -172,7 +172,7 @@ public class ConditionInConstantSet extends Condition {
                 if (type == Value.ENUM) {
                     valueSet.add(add.getValue(session).convertToEnum(enumerators));
                 } else {
-                    valueSet.add(add.getValue(session).convertTo(type, -1, session.getDatabase().getMode()));
+                    valueSet.add(add.getValue(session).convertTo(type, session.getDatabase().getMode()));
                 }
                 return this;
             }

@@ -515,7 +515,7 @@ public class ValueLob extends Value {
     }
 
     @Override
-    protected int compareSecure(Value v, CompareMode mode) {
+    public int compareTypeSafe(Value v, CompareMode mode) {
         return compare(this, v);
     }
 
@@ -613,7 +613,7 @@ public class ValueLob extends Value {
     public boolean equals(Object other) {
         if (other instanceof ValueLob) {
             ValueLob o = (ValueLob) other;
-            return valueType == o.valueType && compareSecure(o, null) == 0;
+            return valueType == o.valueType && compareTypeSafe(o, null) == 0;
         }
         return false;
     }

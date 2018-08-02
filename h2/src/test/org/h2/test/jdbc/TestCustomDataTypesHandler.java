@@ -16,6 +16,7 @@ import java.text.DecimalFormat;
 import java.util.Locale;
 import org.h2.api.CustomDataTypesHandler;
 import org.h2.api.ErrorCode;
+import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.test.TestBase;
@@ -371,7 +372,7 @@ public class TestCustomDataTypesHandler extends TestDb {
         }
 
         @Override
-        protected int compareSecure(Value v, CompareMode mode) {
+        public int compareTypeSafe(Value v, CompareMode mode) {
             return val.compare((ComplexNumber) v.getObject());
         }
 
@@ -393,7 +394,7 @@ public class TestCustomDataTypesHandler extends TestDb {
         }
 
         @Override
-        public Value convertTo(int targetType) {
+        public Value convertTo(int targetType, int precision, Mode mode, Object column, String[] enumerators) {
             if (getType() == targetType) {
                 return this;
             }

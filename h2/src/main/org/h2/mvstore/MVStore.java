@@ -712,7 +712,7 @@ public class MVStore {
         Queue<Chunk> lastChunkCandidates = new PriorityQueue<>(Math.max(32, (int)(blocksInStore / 4)), new Comparator<Chunk>() {
             @Override
             public int compare(Chunk one, Chunk two) {
-                int result = Integer.compare(two.id, one.id);
+                int result = Long.compare(two.version, one.version);
                 if (result == 0) {
                     // out of two versions of the same chunk we prefer the one
                     // close to the begining of file (presumably later version)

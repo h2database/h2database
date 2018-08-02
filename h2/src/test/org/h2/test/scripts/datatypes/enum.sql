@@ -161,6 +161,26 @@ select rank from card where suit in ('clubs');
 > 1
 > rows: 2
 
+insert into card values (2, 'diamonds');
+> update count: 1
+
+select rank from card where suit in ('clubs', 'hearts');
+> RANK
+> ----
+> 0
+> 1
+> 3
+> rows: 3
+
+select rank from card where suit in ('clubs', 'hearts') or suit = 'diamonds';
+> RANK
+> ----
+> 0
+> 1
+> 2
+> 3
+> rows: 4
+
 drop table card;
 > ok
 

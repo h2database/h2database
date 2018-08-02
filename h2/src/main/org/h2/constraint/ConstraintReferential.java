@@ -352,7 +352,7 @@ public class ConstraintReferential extends Constraint {
                 int idx = cols[i].getColumnId();
                 Value c = check.getValue(idx);
                 Value f = found.getValue(idx);
-                if (searchTable.compareTypeSafe(c, f) != 0) {
+                if (searchTable.compareValues(c, f) != 0) {
                     allEqual = false;
                     break;
                 }

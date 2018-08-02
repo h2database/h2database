@@ -1169,11 +1169,12 @@ public abstract class Value {
      * mode.
      *
      * @param v the other value
-     * @param mode the compare mode
+     * @param databaseMode the database mode
+     * @param compareMode the compare mode
      * @return 0 if both values are equal, -1 if the other value is smaller, and
      *         1 otherwise
      */
-    public final int compareTo(Value v, CompareMode mode) {
+    public final int compareTo(Value v, Mode databaseMode, CompareMode compareMode) {
         if (this == v) {
             return 0;
         }
@@ -1182,11 +1183,21 @@ public abstract class Value {
         } else if (v == ValueNull.INSTANCE) {
             return 1;
         }
-        if (getType() == v.getType()) {
-            return compareSecure(v, mode);
+        Value l = this;
+        int leftType = l.getType();
+        int rightType = v.getType();
+        if (leftType != rightType || leftType == Value.ENUM) {
+            int dataType = Value.getHigherOrder(leftType, rightType);
+            if (dataType == Value.ENUM) {
+                String[] enumerators = ValueEnum.getEnumeratorsForBinaryOperation(l, v);
+                l = l.convertToEnum(enumerators);
+                v = v.convertToEnum(enumerators);
+            } else {
+                l = l.convertTo(dataType, -1, databaseMode);
+                v = v.convertTo(dataType, -1, databaseMode);
+            }
         }
-        int t2 = Value.getHigherOrder(getType(), v.getType());
-        return convertTo(t2).compareSecure(v.convertTo(t2), mode);
+        return l.compareSecure(v, compareMode);
     }
 
     public int getScale() {

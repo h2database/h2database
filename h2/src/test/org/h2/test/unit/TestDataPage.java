@@ -226,7 +226,7 @@ public class TestDataPage extends TestBase implements DataHandler {
         data.reset();
         Value v2 = data.readValue();
         assertEquals(v.getType(), v2.getType());
-        assertEquals(0, v.compareTo(v2, compareMode));
+        assertEquals(0, v.compareTo(v2, null, compareMode));
         assertEquals(123, data.readInt());
     }
 

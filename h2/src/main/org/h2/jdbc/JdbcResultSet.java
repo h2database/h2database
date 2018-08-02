@@ -32,6 +32,7 @@ import java.util.UUID;
 import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.command.CommandInterface;
+import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
@@ -3954,12 +3955,13 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         return getTraceObjectName() + ": " + result;
     }
 
-    private void patchCurrentRow(Value[] row) {
+    private void patchCurrentRow(Value[] row) throws SQLException {
         boolean changed = false;
         Value[] current = result.currentRow();
-        CompareMode mode = conn.getCompareMode();
+        Mode databaseMode = conn.getMode();
+        CompareMode compareMode = conn.getCompareMode();
         for (int i = 0; i < row.length; i++) {
-            if (row[i].compareTo(current[i], mode) != 0) {
+            if (row[i].compareTo(current[i], databaseMode, compareMode) != 0) {
                 changed = true;
                 break;
             }

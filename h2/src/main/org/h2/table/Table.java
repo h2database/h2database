@@ -18,7 +18,6 @@ import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
-import org.h2.engine.Mode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
@@ -41,7 +40,6 @@ import org.h2.schema.TriggerObject;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
-import org.h2.value.ValueEnum;
 import org.h2.value.ValueNull;
 
 /**
@@ -1209,25 +1207,8 @@ public abstract class Table extends SchemaObjectBase {
      * @return 0 if both values are equal, -1 if the first value is smaller, and
      *         1 otherwise
      */
-    public int compareTypeSafe(Value a, Value b) {
-        if (a == b) {
-            return 0;
-        }
-        int aType = a.getType();
-        int bType = b.getType();
-        if (aType != bType || aType == Value.ENUM) {
-            int dataType = Value.getHigherOrder(aType, bType);
-            if (dataType == Value.ENUM) {
-                String[] enumerators = ValueEnum.getEnumeratorsForBinaryOperation(a, b);
-                a = a.convertToEnum(enumerators);
-                b = b.convertToEnum(enumerators);
-            } else {
-                Mode mode = database.getMode();
-                a = a.convertTo(dataType, -1, mode);
-                b = b.convertTo(dataType, -1, mode);
-            }
-        }
-        return a.compareTypeSafe(b, compareMode);
+    public int compareValues(Value a, Value b) {
+        return a.compareTo(b, database.getMode(), compareMode);
     }
 
     public CompareMode getCompareMode() {

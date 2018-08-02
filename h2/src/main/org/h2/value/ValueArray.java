@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 
 import org.h2.engine.Constants;
+import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
 import org.h2.util.MathUtils;
 import org.h2.util.StatementBuilder;
@@ -109,7 +110,7 @@ public class ValueArray extends Value {
         for (int i = 0; i < len; i++) {
             Value v1 = values[i];
             Value v2 = v.values[i];
-            int comp = v1.compareTo(v2, mode);
+            int comp = v1.compareTo(v2, /* TODO */ null, mode);
             if (comp != 0) {
                 return comp;
             }

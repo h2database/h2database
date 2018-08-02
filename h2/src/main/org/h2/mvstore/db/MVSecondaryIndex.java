@@ -13,6 +13,7 @@ import java.util.Queue;
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Database;
+import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
@@ -106,15 +107,17 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         }
 
         public static final class Comparator implements java.util.Comparator<Source> {
+            private final Mode databaseMode;
             private final CompareMode compareMode;
 
-            public Comparator(CompareMode compareMode) {
+            public Comparator(Mode databaseMode, CompareMode compareMode) {
+                this.databaseMode = databaseMode;
                 this.compareMode = compareMode;
             }
 
             @Override
             public int compare(Source one, Source two) {
-                return one.currentRowData.compareTo(two.currentRowData, compareMode);
+                return one.currentRowData.compareTo(two.currentRowData, databaseMode, compareMode);
             }
         }
     }
@@ -123,7 +126,8 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     public void addBufferedRows(List<String> bufferNames) {
         CompareMode compareMode = database.getCompareMode();
         int buffersCount = bufferNames.size();
-        Queue<Source> queue = new PriorityQueue<>(buffersCount, new Source.Comparator(compareMode));
+        Queue<Source> queue = new PriorityQueue<>(buffersCount,
+                new Source.Comparator(database.getMode(), compareMode));
         for (String bufferName : bufferNames) {
             Iterator<ValueArray> iter = openMap(bufferName).keyIterator(null);
             if (iter.hasNext()) {

@@ -53,7 +53,6 @@ public class ConditionIn extends Condition {
             if (r == ValueNull.INSTANCE) {
                 hasNull = true;
             } else {
-                r = r.convertTo(l.getType(), -1, database.getMode());
                 result = Comparison.compareNotNull(database, l, r, Comparison.EQUAL);
                 if (result) {
                     break;
@@ -112,6 +111,9 @@ public class ConditionIn extends Condition {
         if (allValuesConstant && !allValuesNull) {
             int leftType = left.getType();
             if (leftType == Value.UNKNOWN) {
+                return this;
+            }
+            if (leftType == Value.ENUM && !(left instanceof ExpressionColumn)) {
                 return this;
             }
             Expression expr = new ConditionInConstantSet(session, left, valueList);

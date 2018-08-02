@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
-import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
 import org.h2.index.IndexCondition;
@@ -20,7 +19,6 @@ import org.h2.table.TableFilter;
 import org.h2.util.MathUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
-import org.h2.value.ValueEnum;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueNull;
 
@@ -271,22 +269,7 @@ public class Comparison extends Condition {
                 return ValueNull.INSTANCE;
             }
         }
-        int leftType = left.getType();
-        int rightType = right.getType();
-        if (leftType != rightType || leftType == Value.ENUM) {
-            int dataType = Value.getHigherOrder(leftType, rightType);
-            if (dataType == Value.ENUM) {
-                String[] enumerators = ValueEnum.getEnumeratorsForBinaryOperation(l, r);
-                l = l.convertToEnum(enumerators);
-                r = r.convertToEnum(enumerators);
-            } else {
-                Mode mode = database.getMode();
-                l = l.convertTo(dataType, -1, mode);
-                r = r.convertTo(dataType, -1, mode);
-            }
-        }
-        boolean result = compareNotNull(database, l, r, compareType);
-        return ValueBoolean.get(result);
+        return ValueBoolean.get(compareNotNull(database, l, r, compareType));
     }
 
     /**

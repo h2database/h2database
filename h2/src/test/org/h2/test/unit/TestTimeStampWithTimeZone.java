@@ -138,27 +138,27 @@ public class TestTimeStampWithTimeZone extends TestDb {
     private void test2() {
         ValueTimestampTimeZone a = ValueTimestampTimeZone.parse("1970-01-01 12:00:00.00+00:15");
         ValueTimestampTimeZone b = ValueTimestampTimeZone.parse("1970-01-01 12:00:01.00+01:15");
-        int c = a.compareTo(b, null);
+        int c = a.compareTo(b, null, null);
         assertEquals(1, c);
-        c = b.compareTo(a, null);
+        c = b.compareTo(a, null, null);
         assertEquals(-1, c);
     }
 
     private void test3() {
         ValueTimestampTimeZone a = ValueTimestampTimeZone.parse("1970-01-02 00:00:02.00+01:15");
         ValueTimestampTimeZone b = ValueTimestampTimeZone.parse("1970-01-01 23:00:01.00+00:15");
-        int c = a.compareTo(b, null);
+        int c = a.compareTo(b, null, null);
         assertEquals(1, c);
-        c = b.compareTo(a, null);
+        c = b.compareTo(a, null, null);
         assertEquals(-1, c);
     }
 
     private void test4() {
         ValueTimestampTimeZone a = ValueTimestampTimeZone.parse("1970-01-02 00:00:01.00+01:15");
         ValueTimestampTimeZone b = ValueTimestampTimeZone.parse("1970-01-01 23:00:01.00+00:15");
-        int c = a.compareTo(b, null);
+        int c = a.compareTo(b, null, null);
         assertEquals(0, c);
-        c = b.compareTo(a, null);
+        c = b.compareTo(a, null, null);
         assertEquals(0, c);
     }
 
@@ -209,7 +209,7 @@ public class TestTimeStampWithTimeZone extends TestDb {
         assertEquals(t, tstz.convertTo(Value.TIME));
         assertEquals(ts.getTimestamp(), tstz.getTimestamp());
         if (testReverse) {
-            assertEquals(0, tstz.compareTo(ts.convertTo(Value.TIMESTAMP_TZ), null));
+            assertEquals(0, tstz.compareTo(ts.convertTo(Value.TIMESTAMP_TZ), null, null));
             assertEquals(d.convertTo(Value.TIMESTAMP).convertTo(Value.TIMESTAMP_TZ),
                     d.convertTo(Value.TIMESTAMP_TZ));
             assertEquals(t.convertTo(Value.TIMESTAMP).convertTo(Value.TIMESTAMP_TZ),

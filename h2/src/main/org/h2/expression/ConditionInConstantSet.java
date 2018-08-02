@@ -33,24 +33,35 @@ public class ConditionInConstantSet extends Condition {
     private int queryLevel;
     private final ArrayList<Expression> valueList;
     private final TreeSet<Value> valueSet;
+    private final int type;
+    private String[] enumerators;
 
     /**
      * Create a new IN(..) condition.
      *
      * @param session the session
-     * @param left the expression before IN
+     * @param left
+     *            the expression before IN. Cannot have {@link Value#UNKNOWN}
+     *            data type and {@link Value#ENUM} type is also supported only
+     *            for {@link ExpressionColumn}.
      * @param valueList the value list (at least two elements)
      */
-    public ConditionInConstantSet(final Session session, Expression left,
-            ArrayList<Expression> valueList) {
+    public ConditionInConstantSet(Session session, Expression left, ArrayList<Expression> valueList) {
         this.left = left;
         this.valueList = valueList;
         Database database = session.getDatabase();
         this.valueSet = new TreeSet<>(database.getCompareMode());
-        int type = left.getType();
+        type = left.getType();
         Mode mode = database.getMode();
-        for (Expression expression : valueList) {
-            valueSet.add(expression.getValue(session).convertTo(type, -1, mode));
+        if (type == Value.ENUM) {
+            enumerators = ((ExpressionColumn) left).getColumn().getEnumerators();
+            for (Expression expression : valueList) {
+                valueSet.add(expression.getValue(session).convertToEnum(enumerators));
+            }
+        } else {
+            for (Expression expression : valueList) {
+                valueSet.add(expression.getValue(session).convertTo(type, -1, mode));
+            }
         }
     }
 
@@ -158,7 +169,11 @@ public class ConditionInConstantSet extends Condition {
         if (add != null) {
             if (add.isConstant()) {
                 valueList.add(add);
-                valueSet.add(add.getValue(session).convertTo(left.getType(), -1, session.getDatabase().getMode()));
+                if (type == Value.ENUM) {
+                    valueSet.add(add.getValue(session).convertToEnum(enumerators));
+                } else {
+                    valueSet.add(add.getValue(session).convertTo(type, -1, session.getDatabase().getMode()));
+                }
                 return this;
             }
         }

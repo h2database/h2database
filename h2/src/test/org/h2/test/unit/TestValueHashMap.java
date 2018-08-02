@@ -63,7 +63,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
         Comparator<Value> vc = new Comparator<Value>() {
             @Override
             public int compare(Value v1, Value v2) {
-                return v1.compareTo(v2, compareMode);
+                return v1.compareTo(v2, null, compareMode);
             }
         };
         for (int i = 0; i < 10000; i++) {

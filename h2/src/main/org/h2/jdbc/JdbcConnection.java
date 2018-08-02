@@ -2095,7 +2095,7 @@ public class JdbcConnection extends TraceObject
             }
             mode = Mode.getInstance(name);
             if (mode == null) {
-                mode = Mode.getRegular();
+                mode = Mode.REGULAR;
             }
             this.mode = mode;
         }

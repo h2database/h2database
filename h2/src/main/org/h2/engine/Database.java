@@ -189,7 +189,7 @@ public class Database implements DataHandler {
     private final String cacheType;
     private final String accessModeData;
     private boolean referentialIntegrity = true;
-    private Mode mode = Mode.getRegular();
+    private Mode mode = Mode.REGULAR;
     /** ie. the MULTI_THREADED setting */
     private boolean multiThreaded;
     private int maxOperationMemory =

@@ -49,6 +49,11 @@ public class Mode {
 
     private static final HashMap<String, Mode> MODES = new HashMap<>();
 
+    /**
+     * Regular mode.
+     */
+    public static final Mode REGULAR;
+
     // Modes are also documented in the features section
 
     /**
@@ -211,6 +216,7 @@ public class Mode {
         Mode mode = new Mode(ModeEnum.REGULAR);
         mode.nullConcatIsNull = true;
         add(mode);
+        REGULAR = mode;
 
         mode = new Mode(ModeEnum.DB2);
         mode.aliasColumnName = true;
@@ -339,10 +345,6 @@ public class Mode {
      */
     public static Mode getInstance(String name) {
         return MODES.get(StringUtils.toUpperEnglish(name));
-    }
-
-    public static Mode getRegular() {
-        return getInstance(ModeEnum.REGULAR.name());
     }
 
     public String getName() {

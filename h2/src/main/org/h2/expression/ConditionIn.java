@@ -114,6 +114,9 @@ public class ConditionIn extends Condition {
             if (leftType == Value.UNKNOWN) {
                 return this;
             }
+            if (leftType == Value.ENUM && !(left instanceof ExpressionColumn)) {
+                return this;
+            }
             Expression expr = new ConditionInConstantSet(session, left, valueList);
             expr = expr.optimize(session);
             return expr;

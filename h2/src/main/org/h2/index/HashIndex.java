@@ -77,7 +77,7 @@ public class HashIndex extends BaseIndex {
          * case we need to convert, otherwise the ValueHashMap will not find the
          * result.
          */
-        v = v.convertTo(tableData.getColumn(indexColumn).getType(), -1, database.getMode());
+        v = v.convertTo(tableData.getColumn(indexColumn).getType(), database.getMode());
         Row result;
         Long pos = rows.get(v);
         if (pos == null) {

@@ -62,7 +62,7 @@ public class ConditionInSelect extends Condition {
         if (dataType == Value.NULL) {
             return ValueBoolean.FALSE;
         }
-        l = l.convertTo(dataType, -1, database.getMode());
+        l = l.convertTo(dataType, database.getMode());
         if (rows.containsDistinct(new Value[] { l })) {
             return ValueBoolean.TRUE;
         }

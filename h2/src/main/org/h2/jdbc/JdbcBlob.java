@@ -102,6 +102,9 @@ public class JdbcBlob extends JdbcLob implements Blob {
      */
     @Override
     public int setBytes(long pos, byte[] bytes) throws SQLException {
+        if (bytes == null) {
+            throw new NullPointerException();
+        }
         try {
             if (isDebugEnabled()) {
                 debugCode("setBytes("+pos+", "+quoteBytes(bytes)+");");
@@ -129,6 +132,9 @@ public class JdbcBlob extends JdbcLob implements Blob {
     @Override
     public int setBytes(long pos, byte[] bytes, int offset, int len)
             throws SQLException {
+        if (bytes == null) {
+            throw new NullPointerException();
+        }
         try {
             if (isDebugEnabled()) {
                 debugCode("setBytes(" + pos + ", " + quoteBytes(bytes) + ", " + offset + ", " + len + ");");

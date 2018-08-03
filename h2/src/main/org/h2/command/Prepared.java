@@ -170,6 +170,11 @@ public abstract class Prepared {
      * @throws DbException if any parameter has not been set
      */
     protected void checkParameters() {
+        if (persistedObjectId < 0) {
+            // restore original persistedObjectId on Command re-run
+            // i.e. due to concurrent update
+            persistedObjectId = -persistedObjectId - 1;
+        }
         if (parameters != null) {
             for (Parameter param : parameters) {
                 param.checkSet();
@@ -268,7 +273,7 @@ public abstract class Prepared {
         } else if (id < 0) {
             throw DbException.throwInternalError("Prepared.getObjectId() was called before");
         }
-        persistedObjectId = -1;
+        persistedObjectId = -persistedObjectId - 1;  // while negative, it can be restored later
         return id;
     }
 

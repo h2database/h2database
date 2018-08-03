@@ -383,6 +383,7 @@ public class TestCrashAPI extends TestDb implements Runnable {
         boolean isDefault =
                 (m.getModifiers() & (Modifier.ABSTRACT | Modifier.PUBLIC | Modifier.STATIC)) == Modifier.PUBLIC
                 && m.getDeclaringClass().isInterface();
+        boolean allowNPE = isDefault || o instanceof Blob && "setBytes".equals(m.getName());
         Class<?>[] paramClasses = m.getParameterTypes();
         Object[] params = new Object[paramClasses.length];
         for (int i = 0; i < params.length; i++) {
@@ -398,7 +399,7 @@ public class TestCrashAPI extends TestDb implements Runnable {
             TestBase.logError("error", e);
         } catch (InvocationTargetException e) {
             Throwable t = e.getTargetException();
-            printIfBad(seed, id, objectId, t, isDefault);
+            printIfBad(seed, id, objectId, t, allowNPE);
         }
         if (result == null) {
             return null;
@@ -414,7 +415,7 @@ public class TestCrashAPI extends TestDb implements Runnable {
         printIfBad(seed, id, objectId, t, false);
     }
 
-    private void printIfBad(int seed, int id, int objectId, Throwable t, boolean isDefault) {
+    private void printIfBad(int seed, int id, int objectId, Throwable t, boolean allowNPE) {
         if (t instanceof BatchUpdateException) {
             // do nothing
         } else if (t.getClass().getName().contains("SQLClientInfoException")) {
@@ -438,8 +439,8 @@ public class TestCrashAPI extends TestDb implements Runnable {
                 // General error [HY000]
                 printError(seed, id, s);
             }
-        } else if (isDefault && t instanceof NullPointerException) {
-            // do nothing, default methods may throw this exception
+        } else if (allowNPE && t instanceof NullPointerException) {
+            // do nothing, this methods may throw this exception
         } else {
             printError(seed, id, t);
         }

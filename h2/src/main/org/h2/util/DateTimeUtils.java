@@ -111,7 +111,7 @@ public class DateTimeUtils {
      *
      * @return local time zone
      */
-    private static TimeZone getTimeZone() {
+    static TimeZone getTimeZone() {
         TimeZone tz = timeZone;
         if (tz == null) {
             timeZone = tz = TimeZone.getDefault();

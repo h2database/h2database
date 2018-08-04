@@ -1006,6 +1006,44 @@ public class MetaTable extends Table {
             add(rows, TableType.EXTERNAL_TABLE_ENGINE.toString());
             break;
         }
+        case TYPE_INFO: {
+            for (DataType t : DataType.getTypes()) {
+                if (t.hidden || t.sqlType == Value.NULL) {
+                    continue;
+                }
+                add(rows,
+                        // TYPE_NAME
+                        t.name,
+                        // DATA_TYPE
+                        Integer.toString(t.sqlType),
+                        // PRECISION
+                        Integer.toString(MathUtils.convertLongToInt(t.maxPrecision)),
+                        // PREFIX
+                        t.prefix,
+                        // SUFFIX
+                        t.suffix,
+                        // PARAMS
+                        t.params,
+                        // AUTO_INCREMENT
+                        String.valueOf(t.autoIncrement),
+                        // MINIMUM_SCALE
+                        Integer.toString(t.minScale),
+                        // MAXIMUM_SCALE
+                        Integer.toString(t.maxScale),
+                        // RADIX
+                        t.decimal ? "10" : null,
+                        // POS
+                        Integer.toString(t.sqlTypePos),
+                        // CASE_SENSITIVE
+                        String.valueOf(t.caseSensitive),
+                        // NULLABLE
+                        "" + DatabaseMetaData.typeNullable,
+                        // SEARCHABLE
+                        "" + DatabaseMetaData.typeSearchable
+                );
+            }
+            break;
+        }
         case CATALOGS: {
             add(rows, catalog);
             break;
@@ -1096,44 +1134,6 @@ public class MetaTable extends Table {
                     add(rows, "info.CACHE_SIZE",
                             Integer.toString(mvStore.getCacheSizeUsed()));
                 }
-            }
-            break;
-        }
-        case TYPE_INFO: {
-            for (DataType t : DataType.getTypes()) {
-                if (t.hidden || t.sqlType == Value.NULL) {
-                    continue;
-                }
-                add(rows,
-                        // TYPE_NAME
-                        t.name,
-                        // DATA_TYPE
-                        Integer.toString(t.sqlType),
-                        // PRECISION
-                        Integer.toString(MathUtils.convertLongToInt(t.maxPrecision)),
-                        // PREFIX
-                        t.prefix,
-                        // SUFFIX
-                        t.suffix,
-                        // PARAMS
-                        t.params,
-                        // AUTO_INCREMENT
-                        String.valueOf(t.autoIncrement),
-                        // MINIMUM_SCALE
-                        Integer.toString(t.minScale),
-                        // MAXIMUM_SCALE
-                        Integer.toString(t.maxScale),
-                        // RADIX
-                        t.decimal ? "10" : null,
-                        // POS
-                        Integer.toString(t.sqlTypePos),
-                        // CASE_SENSITIVE
-                        String.valueOf(t.caseSensitive),
-                        // NULLABLE
-                        "" + DatabaseMetaData.typeNullable,
-                        // SEARCHABLE
-                        "" + DatabaseMetaData.typeSearchable
-                );
             }
             break;
         }

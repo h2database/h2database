@@ -519,12 +519,10 @@ public abstract class Query extends Prepared {
             }
         }
         if (!isAlias) {
-            if (mustBeInResult) {
-                if (session.getDatabase().getMode().getEnum() != ModeEnum.MySQL) {
-                    if (!checkOrderOther(session, e, expressionSQL)) {
-                        throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT, e.getSQL());
-                    }
-                }
+            if (expressionSQL == null
+                    || mustBeInResult && session.getDatabase().getMode().getEnum() != ModeEnum.MySQL
+                            && !checkOrderOther(session, e, expressionSQL)) {
+                throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT, e.getSQL());
             }
             expressions.add(e);
             String sql = e.getSQL();
@@ -549,12 +547,10 @@ public abstract class Query extends Prepared {
         if (expr.isConstant()) {
             return true;
         }
-        if (expressionSQL != null) {
-            String exprSQL = expr.getSQL();
-            for (String sql: expressionSQL) {
-                if (session.getDatabase().equalsIdentifiers(exprSQL, sql)) {
-                    return true;
-                }
+        String exprSQL = expr.getSQL();
+        for (String sql: expressionSQL) {
+            if (session.getDatabase().equalsIdentifiers(exprSQL, sql)) {
+                return true;
             }
         }
         if (expr instanceof Function) {

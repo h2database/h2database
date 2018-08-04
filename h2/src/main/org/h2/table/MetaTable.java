@@ -11,7 +11,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
-import java.sql.Timestamp;
 import java.sql.Types;
 import java.text.Collator;
 import java.util.ArrayList;
@@ -58,6 +57,7 @@ import org.h2.schema.TriggerObject;
 import org.h2.store.InDoubtTransaction;
 import org.h2.store.PageStore;
 import org.h2.tools.Csv;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -509,10 +509,10 @@ public class MetaTable extends Table {
             cols = createColumns(
                     "ID INT",
                     "USER_NAME",
-                    "SESSION_START",
+                    "SESSION_START TIMESTAMP WITH TIME ZONE",
                     "STATEMENT",
-                    "STATEMENT_START",
-                    "CONTAINS_UNCOMMITTED",
+                    "STATEMENT_START TIMESTAMP WITH TIME ZONE",
+                    "CONTAINS_UNCOMMITTED BIT",
                     "STATE",
                     "BLOCKER_ID INT"
             );
@@ -1827,13 +1827,13 @@ public class MetaTable extends Table {
                             // USER_NAME
                             s.getUser().getName(),
                             // SESSION_START
-                            new Timestamp(s.getSessionStart()).toString(),
+                            DateTimeUtils.timestampTimeZoneFromMillis(s.getSessionStart()),
                             // STATEMENT
                             command == null ? null : command.toString(),
                             // STATEMENT_START
-                            new Timestamp(start).toString(),
+                            DateTimeUtils.timestampTimeZoneFromMillis(start),
                             // CONTAINS_UNCOMMITTED
-                            Boolean.toString(s.containsUncommitted()),
+                            ValueBoolean.get(s.containsUncommitted()),
                             // STATE
                             String.valueOf(s.getState()),
                             // BLOCKER_ID

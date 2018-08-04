@@ -21,17 +21,7 @@ public final class CurrentTimestamp {
      * @return current timestamp
      */
     public static ValueTimestampTimeZone get() {
-        long ms = System.currentTimeMillis();
-        /*
-         * This code intentionally does not support properly dates before UNIX
-         * epoch and time zone offsets with seconds because such support is not
-         * required for current dates.
-         */
-        int offset = DateTimeUtils.getTimeZone().getOffset(ms);
-        ms += offset;
-        return ValueTimestampTimeZone.fromDateValueAndNanos(
-                DateTimeUtils.dateValueFromAbsoluteDay(ms / DateTimeUtils.MILLIS_PER_DAY),
-                ms % DateTimeUtils.MILLIS_PER_DAY * 1_000_000, (short) (offset / 60_000));
+        return DateTimeUtils.timestampTimeZoneFromMillis(System.currentTimeMillis());
     }
 
     private CurrentTimestamp() {

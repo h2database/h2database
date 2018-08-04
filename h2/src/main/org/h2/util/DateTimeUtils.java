@@ -1164,6 +1164,24 @@ public class DateTimeUtils {
     }
 
     /**
+     * @param ms milliseconds since 1970-01-01 (UTC)
+     * @return timestamp with time zone with specified value and current time zone
+     */
+    public static ValueTimestampTimeZone timestampTimeZoneFromMillis(long ms) {
+        int offset = getTimeZone().getOffset(ms);
+        ms += offset;
+        long absoluteDay = ms / MILLIS_PER_DAY;
+        // Round toward negative infinity
+        if (ms < 0 && (absoluteDay * MILLIS_PER_DAY != ms)) {
+            absoluteDay--;
+        }
+        return ValueTimestampTimeZone.fromDateValueAndNanos(
+                dateValueFromAbsoluteDay(absoluteDay),
+                (ms - absoluteDay * MILLIS_PER_DAY) * 1_000_000,
+                (short) (offset / 60_000));
+    }
+
+    /**
      * Calculate the absolute day for a January, 1 of the specified year.
      *
      * @param year

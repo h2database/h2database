@@ -14,6 +14,7 @@ import java.sql.Statement;
 import java.util.TimeZone;
 
 import org.h2.api.TimestampWithTimeZone;
+import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.DateTimeUtils;
@@ -64,7 +65,7 @@ public class TestTimeStampWithTimeZone extends TestDb {
         ResultSet rs = stat.executeQuery("select t1 from test");
         rs.next();
         assertEquals("1970-01-01 12:00:00+00:15", rs.getString(1));
-        TimestampWithTimeZone ts = (TimestampWithTimeZone) rs.getObject(1);
+        TimestampWithTimeZone ts = test1_getTimestamp(rs);
         assertEquals(1970, ts.getYear());
         assertEquals(1, ts.getMonth());
         assertEquals(1, ts.getDay());
@@ -76,7 +77,7 @@ public class TestTimeStampWithTimeZone extends TestDb {
                             LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
         }
         rs.next();
-        ts = (TimestampWithTimeZone) rs.getObject(1);
+        ts = test1_getTimestamp(rs);
         assertEquals(2016, ts.getYear());
         assertEquals(9, ts.getMonth());
         assertEquals(24, ts.getDay());
@@ -87,7 +88,7 @@ public class TestTimeStampWithTimeZone extends TestDb {
                             LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
         }
         rs.next();
-        ts = (TimestampWithTimeZone) rs.getObject(1);
+        ts = test1_getTimestamp(rs);
         assertEquals(2016, ts.getYear());
         assertEquals(9, ts.getMonth());
         assertEquals(24, ts.getDay());
@@ -98,7 +99,7 @@ public class TestTimeStampWithTimeZone extends TestDb {
                             LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
         }
         rs.next();
-        ts = (TimestampWithTimeZone) rs.getObject(1);
+        ts = test1_getTimestamp(rs);
         assertEquals(2016, ts.getYear());
         assertEquals(1, ts.getMonth());
         assertEquals(1, ts.getDay());
@@ -107,7 +108,7 @@ public class TestTimeStampWithTimeZone extends TestDb {
                             LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
         }
         rs.next();
-        ts = (TimestampWithTimeZone) rs.getObject(1);
+        ts = test1_getTimestamp(rs);
         assertEquals(2015, ts.getYear());
         assertEquals(12, ts.getMonth());
         assertEquals(31, ts.getDay());
@@ -124,6 +125,11 @@ public class TestTimeStampWithTimeZone extends TestDb {
         // Types.TIMESTAMP_WITH_TIMEZONE
         // once Java 1.8 is required.
         assertEquals(2014, columnType);
+        if (SysProperties.RETURN_OFFSET_DATE_TIME && LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("java.time.OffsetDateTime", metaData.getColumnClassName(1));
+        } else {
+            assertEquals("org.h2.api.TimestampWithTimeZone", metaData.getColumnClassName(1));
+        }
 
         rs.close();
 
@@ -133,6 +139,16 @@ public class TestTimeStampWithTimeZone extends TestDb {
 
         stat.close();
         conn.close();
+    }
+
+    private static TimestampWithTimeZone test1_getTimestamp(ResultSet rs) throws SQLException {
+        Object o = rs.getObject(1);
+        if (SysProperties.RETURN_OFFSET_DATE_TIME && LocalDateTimeUtils.isJava8DateApiPresent()) {
+            ValueTimestampTimeZone value = LocalDateTimeUtils.offsetDateTimeToValue(o);
+            return new TimestampWithTimeZone(value.getDateValue(), value.getTimeNanos(),
+                    value.getTimeZoneOffsetMins());
+        }
+        return (TimestampWithTimeZone) o;
     }
 
     private void test2() {

@@ -342,6 +342,17 @@ public class SysProperties {
     public static final boolean BIG_DECIMAL_IS_DECIMAL =
             Utils.getProperty("h2.bigDecimalIsDecimal", true);
 
+    /**
+     * System property {@code h2.returnOffsetDateTime}, {@code false} by
+     * default. If {@code true}, {@link java.sql.ResultSet#getObject(int)} and
+     * {@link java.sql.ResultSet#getObject(String)} return
+     * {@code TIMESTAMP WITH TIME ZONE} values as
+     * {@code java.time.OffsetDateTime} instead of
+     * {@code org.h2.api.TimestampWithTimeZone}. This property has effect only
+     * on Java 8 / Android API 26 and later versions.
+     */
+    public static final boolean RETURN_OFFSET_DATE_TIME =
+            Utils.getProperty("h2.returnOffsetDateTime", false);
 
     /**
      * System property {@code h2.unlimitedTimeRange}, {@code false} by default.

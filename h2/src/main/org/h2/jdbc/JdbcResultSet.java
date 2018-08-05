@@ -59,6 +59,7 @@ import org.h2.value.ValueShort;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * <p>
@@ -3929,7 +3930,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             return type.cast(value == ValueNull.INSTANCE
                     ? null : new JdbcSQLXML(conn, value, JdbcLob.State.WITH_VALUE, id));
         } else if (type == TimestampWithTimeZone.class) {
-            return type.cast(value.convertTo(Value.TIMESTAMP_TZ).getObject());
+            ValueTimestampTimeZone v = (ValueTimestampTimeZone) value.convertTo(Value.TIMESTAMP_TZ);
+            return type.cast(new TimestampWithTimeZone(v.getDateValue(), v.getTimeNanos(), v.getTimeZoneOffsetMins()));
         } else if (DataType.isGeometryClass(type)) {
             return type.cast(value.convertTo(Value.GEOMETRY).getObject());
         } else if (type == LocalDateTimeUtils.LOCAL_DATE) {

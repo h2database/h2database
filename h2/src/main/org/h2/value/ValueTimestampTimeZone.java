@@ -10,8 +10,10 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
+import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.LocalDateTimeUtils;
 
 /**
  * Implementation of the TIMESTAMP WITH TIME ZONE data type.
@@ -273,8 +275,10 @@ public class ValueTimestampTimeZone extends Value {
 
     @Override
     public Object getObject() {
-        return new TimestampWithTimeZone(dateValue, timeNanos,
-                timeZoneOffsetMins);
+        if (SysProperties.RETURN_OFFSET_DATE_TIME && LocalDateTimeUtils.isJava8DateApiPresent()) {
+            return LocalDateTimeUtils.valueToOffsetDateTime(this);
+        }
+        return new TimestampWithTimeZone(dateValue, timeNanos, timeZoneOffsetMins);
     }
 
     @Override

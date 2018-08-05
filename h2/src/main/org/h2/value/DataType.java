@@ -583,9 +583,16 @@ public class DataType {
                 break;
             }
             case Value.TIMESTAMP_TZ: {
-                TimestampWithTimeZone value = (TimestampWithTimeZone) rs.getObject(columnIndex);
-                v = value == null ? (Value) ValueNull.INSTANCE :
-                    ValueTimestampTimeZone.get(value);
+                Object obj = rs.getObject(columnIndex);
+                if (obj == null) {
+                    v = ValueNull.INSTANCE;
+                } else if (LocalDateTimeUtils.isJava8DateApiPresent()
+                        && LocalDateTimeUtils.OFFSET_DATE_TIME.isInstance(obj)) {
+                    v = LocalDateTimeUtils.offsetDateTimeToValue(obj);
+                } else {
+                    TimestampWithTimeZone value = (TimestampWithTimeZone) obj;
+                    v = ValueTimestampTimeZone.get(value);
+                }
                 break;
             }
             case Value.DECIMAL: {
@@ -772,6 +779,10 @@ public class DataType {
             // "java.sql.Timestamp";
             return Timestamp.class.getName();
         case Value.TIMESTAMP_TZ:
+            if (SysProperties.RETURN_OFFSET_DATE_TIME && LocalDateTimeUtils.isJava8DateApiPresent()) {
+                // "java.time.OffsetDateTime";
+                return LocalDateTimeUtils.OFFSET_DATE_TIME.getName();
+            }
             // "org.h2.api.TimestampWithTimeZone";
             return TimestampWithTimeZone.class.getName();
         case Value.BYTES:

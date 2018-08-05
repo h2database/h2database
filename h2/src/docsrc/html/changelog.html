@@ -21,6 +21,66 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>PR #1357: Simplify execution flow in some places
+</li>
+<li>PR #1356: Fix NPE in Query.initExpression()
+</li>
+<li>PR #1355: Assorted changes in MetaTable
+</li>
+<li>Issue #1352: TestCrashAPI: Prepared.getObjectId() was called before
+</li>
+<li>PR #1349: Changes is conversion and comparison methods of Value
+</li>
+<li>Issue #1346: Exception when using IN condition for enums
+</li>
+<li>PR #1345: Replace some init methods with constructors
+</li>
+<li>PR #1344: Streamline last chunk verification on startup
+</li>
+<li>PR #1341: Optimize MVSecondaryIndex.convertToKey()
+</li>
+<li>PR #1340: NoSuchElementException instead of returning null
+</li>
+<li>PR #1339: Add support of TIMESTAMP WITH TIME ZONE to addition and subtraction operators
+</li>
+<li>PR #1337: Streamline Value comparison
+</li>
+<li>PR #1336: Minor refactorings
+</li>
+<li>Issue #1332: Constraint name not set correctly
+</li>
+<li>Rename fields to reflect actual type
+</li>
+<li>Issue #1331: Regression in Database.updateMeta()
+</li>
+<li>Issue #1323: Slow update after altering table in 1.4.197
+</li>
+<li>PR #1326: Add support of PERCENT in FETCH and TOP clauses
+</li>
+<li>PR #1325: Optimize WITH TIES in some queries and specify data types for KEY_COLUMN_USAGE
+</li>
+<li>PR #1321: Do not add rows before OFFSET to result if possible
+</li>
+<li>PR #1319: Treat NEXTVAL as an auto-generated key
+</li>
+<li>PR #1318: Mode append fo MVPlainTempResult
+</li>
+<li>PR #1314: Add ALTER VIEW RENAME command
+</li>
+<li>PR #1313, issue #1315: Bugfix - using default locale encoding issue in conversion between varchar and varbinary value, and checking javac output text issue in SourceCompiler
+</li>
+<li>PR #1312: Add Java 9+ support to NIO_CLEANER_HACK
+</li>
+<li>PR #1311: Fix minor issues with ResultSet.getObject(..., Class) and WITH TIES
+</li>
+<li>Issue #1298: TestKillRestartMulti: A map named undoLog.2 already exists
+</li>
+<li>Issue #1307: Invalid value "null" for parameter "calendar" [90008-193]
+</li>
+<li>PR #1306: Add initial implementation of WITH TIES clause
+</li>
+<li>PR #1304: Update changelog and fix building of documentation
+</li>
 <li>PR #1302: Use OpenJDK instead of OracleJDK 10 in Travis builds due to Travis problem
 </li>
 <li>Issue #1032: Error when executing "SELECT DISTINCT ON"

@@ -3916,7 +3916,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             return type.cast(value.getBytes());
         } else if (type == java.sql.Array.class) {
             int id = getNextId(TraceObject.ARRAY);
-            return type.cast(value == ValueNull.INSTANCE ? null : new JdbcArray(conn, value, id));
+            return type.cast(new JdbcArray(conn, value, id));
         } else if (type == Blob.class) {
             int id = getNextId(TraceObject.BLOB);
             return type.cast(new JdbcBlob(conn, value, JdbcLob.State.WITH_VALUE, id));

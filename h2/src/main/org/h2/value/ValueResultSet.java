@@ -142,7 +142,7 @@ public class ValueResultSet extends Value {
 
     @Override
     public void set(PreparedStatement prep, int parameterIndex) {
-        throw throwUnsupportedExceptionForType("PreparedStatement.set");
+        throw getUnsupportedExceptionForOperation("PreparedStatement.set");
     }
 
     @Override

@@ -451,83 +451,67 @@ public abstract class Query extends Prepared {
         // (oracle supports it, but only in order by, not in group by and
         // not in having):
         // SELECT 1 AS A FROM DUAL ORDER BY -A
-        boolean isAlias = false;
-        int idx = expressions.size();
         if (e instanceof ExpressionColumn) {
             // order by expression
             ExpressionColumn exprCol = (ExpressionColumn) e;
             String tableAlias = exprCol.getOriginalTableAliasName();
             String col = exprCol.getOriginalColumnName();
             for (int j = 0; j < visible; j++) {
-                boolean found = false;
                 Expression ec = expressions.get(j);
                 if (ec instanceof ExpressionColumn) {
                     // select expression
                     ExpressionColumn c = (ExpressionColumn) ec;
-                    found = db.equalsIdentifiers(col, c.getColumnName());
-                    if (found && tableAlias != null) {
-                        String ca = c.getOriginalTableAliasName();
-                        if (ca == null) {
-                            found = false;
-                            if (filters != null) {
-                                // select id from test order by test.id
-                                for (TableFilter f : filters) {
-                                    if (db.equalsIdentifiers(f.getTableAlias(), tableAlias)) {
-                                        found = true;
-                                        break;
-                                    }
-                                }
+                    if (!db.equalsIdentifiers(col, c.getColumnName())) {
+                        continue;
+                    }
+                    if (tableAlias == null) {
+                        return j;
+                    }
+                    String ca = c.getOriginalTableAliasName();
+                    if (ca != null) {
+                        if (db.equalsIdentifiers(ca, tableAlias)) {
+                            return j;
+                        }
+                    } else if (filters != null) {
+                        // select id from test order by test.id
+                        for (TableFilter f : filters) {
+                            if (db.equalsIdentifiers(f.getTableAlias(), tableAlias)) {
+                                return j;
                             }
-                        } else {
-                            found = db.equalsIdentifiers(ca, tableAlias);
                         }
                     }
-                } else if (!(ec instanceof Alias)) {
-                    continue;
-                } else if (tableAlias == null && db.equalsIdentifiers(col, ec.getAlias())) {
-                    found = true;
-                } else {
+                } else if (ec instanceof Alias) {
+                    if (tableAlias == null && db.equalsIdentifiers(col, ec.getAlias())) {
+                        return j;
+                    }
                     Expression ec2 = ec.getNonAliasExpression();
                     if (ec2 instanceof ExpressionColumn) {
                         ExpressionColumn c2 = (ExpressionColumn) ec2;
                         String ta = exprCol.getSQL();
                         String tb = c2.getSQL();
                         String s2 = c2.getColumnName();
-                        found = db.equalsIdentifiers(col, s2);
-                        if (!db.equalsIdentifiers(ta, tb)) {
-                            found = false;
+                        if (db.equalsIdentifiers(col, s2) && db.equalsIdentifiers(ta, tb)) {
+                            return j;
                         }
                     }
                 }
-                if (found) {
-                    idx = j;
-                    isAlias = true;
-                    break;
-                }
             }
-        } else {
+        } else if (expressionSQL != null) {
             String s = e.getSQL();
-            if (expressionSQL != null) {
-                for (int j = 0, size = expressionSQL.size(); j < size; j++) {
-                    String s2 = expressionSQL.get(j);
-                    if (db.equalsIdentifiers(s2, s)) {
-                        idx = j;
-                        isAlias = true;
-                        break;
-                    }
+            for (int j = 0, size = expressionSQL.size(); j < size; j++) {
+                if (db.equalsIdentifiers(expressionSQL.get(j), s)) {
+                    return j;
                 }
             }
         }
-        if (!isAlias) {
-            if (expressionSQL == null
-                    || mustBeInResult && session.getDatabase().getMode().getEnum() != ModeEnum.MySQL
-                            && !checkOrderOther(session, e, expressionSQL)) {
-                throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT, e.getSQL());
-            }
-            expressions.add(e);
-            String sql = e.getSQL();
-            expressionSQL.add(sql);
+        if (expressionSQL == null
+                || mustBeInResult && session.getDatabase().getMode().getEnum() != ModeEnum.MySQL
+                        && !checkOrderOther(session, e, expressionSQL)) {
+            throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT, e.getSQL());
         }
+        int idx = expressions.size();
+        expressions.add(e);
+        expressionSQL.add(e.getSQL());
         return idx;
     }
 

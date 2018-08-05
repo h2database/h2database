@@ -43,20 +43,15 @@ public abstract class CommandWithColumns extends SchemaCommand {
      *            the statement to add
      */
     public void addConstraintCommand(DefineCommand command) {
-        if (command instanceof CreateIndex) {
-            getConstraintCommands().add(command);
-        } else {
+        if (!(command instanceof CreateIndex)) {
             AlterTableAddConstraint con = (AlterTableAddConstraint) command;
-            boolean alreadySet;
             if (con.getType() == CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY) {
-                alreadySet = setPrimaryKey(con);
-            } else {
-                alreadySet = false;
-            }
-            if (!alreadySet) {
-                getConstraintCommands().add(command);
+                if (setPrimaryKey(con)) {
+                    return;
+                }
             }
         }
+        getConstraintCommands().add(command);
     }
 
     /**

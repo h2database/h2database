@@ -514,11 +514,11 @@ public abstract class Value {
      * @return the result
      */
     public Value add(@SuppressWarnings("unused") Value v) {
-        throw throwUnsupportedExceptionForType("+");
+        throw getUnsupportedExceptionForOperation("+");
     }
 
     public int getSignum() {
-        throw throwUnsupportedExceptionForType("SIGNUM");
+        throw getUnsupportedExceptionForOperation("SIGNUM");
     }
 
     /**
@@ -527,7 +527,7 @@ public abstract class Value {
      * @return the negative
      */
     public Value negate() {
-        throw throwUnsupportedExceptionForType("NEG");
+        throw getUnsupportedExceptionForOperation("NEG");
     }
 
     /**
@@ -537,7 +537,7 @@ public abstract class Value {
      * @return the result
      */
     public Value subtract(@SuppressWarnings("unused") Value v) {
-        throw throwUnsupportedExceptionForType("-");
+        throw getUnsupportedExceptionForOperation("-");
     }
 
     /**
@@ -547,7 +547,7 @@ public abstract class Value {
      * @return the result
      */
     public Value divide(@SuppressWarnings("unused") Value v) {
-        throw throwUnsupportedExceptionForType("/");
+        throw getUnsupportedExceptionForOperation("/");
     }
 
     /**
@@ -557,7 +557,7 @@ public abstract class Value {
      * @return the result
      */
     public Value multiply(@SuppressWarnings("unused") Value v) {
-        throw throwUnsupportedExceptionForType("*");
+        throw getUnsupportedExceptionForOperation("*");
     }
 
     /**
@@ -567,7 +567,7 @@ public abstract class Value {
      * @return the result
      */
     public Value modulus(@SuppressWarnings("unused") Value v) {
-        throw throwUnsupportedExceptionForType("%");
+        throw getUnsupportedExceptionForOperation("%");
     }
 
     /**
@@ -754,7 +754,7 @@ public abstract class Value {
             case DECIMAL: {
                 switch (getType()) {
                 case BOOLEAN:
-                    return ValueDecimal.get(BigDecimal.valueOf(getBoolean() ? 1 : 0));
+                    return (ValueDecimal) (getBoolean() ? ValueDecimal.ONE : ValueDecimal.ZERO);
                 case BYTE:
                 case SHORT:
                 case ENUM:
@@ -1320,15 +1320,14 @@ public abstract class Value {
     }
 
     /**
-     * Throw the exception that the feature is not support for the given data
-     * type.
+     * Create an exception meaning the specified operation is not supported for
+     * this data type.
      *
      * @param op the operation
-     * @return never returns normally
-     * @throws DbException the exception
+     * @return the exception
      */
-    protected DbException throwUnsupportedExceptionForType(String op) {
-        throw DbException.getUnsupportedException(
+    protected final DbException getUnsupportedExceptionForOperation(String op) {
+        return DbException.getUnsupportedException(
                 DataType.getDataType(getType()).name + " " + op);
     }
 

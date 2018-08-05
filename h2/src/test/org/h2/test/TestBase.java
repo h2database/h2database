@@ -35,6 +35,7 @@ import java.util.Objects;
 import java.util.SimpleTimeZone;
 import java.util.concurrent.TimeUnit;
 
+import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.store.fs.FilePath;
@@ -1028,7 +1029,8 @@ public abstract class TestBase {
                     break;
                 case Types.SMALLINT:
                     assertEquals("SMALLINT", typeName);
-                    assertEquals("java.lang.Short", className);
+                    assertEquals(SysProperties.OLD_RESULT_SET_GET_OBJECT ? "java.lang.Short" : "java.lang.Integer",
+                            className);
                     break;
                 case Types.TIMESTAMP:
                     assertEquals("TIMESTAMP", typeName);

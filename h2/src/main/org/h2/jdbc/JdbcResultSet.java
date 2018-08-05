@@ -3919,16 +3919,13 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             return type.cast(value == ValueNull.INSTANCE ? null : new JdbcArray(conn, value, id));
         } else if (type == Blob.class) {
             int id = getNextId(TraceObject.BLOB);
-            return type.cast(value == ValueNull.INSTANCE
-                    ? null : new JdbcBlob(conn, value, JdbcLob.State.WITH_VALUE, id));
+            return type.cast(new JdbcBlob(conn, value, JdbcLob.State.WITH_VALUE, id));
         } else if (type == Clob.class) {
             int id = getNextId(TraceObject.CLOB);
-            return type.cast(value == ValueNull.INSTANCE
-                    ? null : new JdbcClob(conn, value, JdbcLob.State.WITH_VALUE, id));
+            return type.cast(new JdbcClob(conn, value, JdbcLob.State.WITH_VALUE, id));
         } else if (type == SQLXML.class) {
             int id = getNextId(TraceObject.SQLXML);
-            return type.cast(value == ValueNull.INSTANCE
-                    ? null : new JdbcSQLXML(conn, value, JdbcLob.State.WITH_VALUE, id));
+            return type.cast(new JdbcSQLXML(conn, value, JdbcLob.State.WITH_VALUE, id));
         } else if (type == TimestampWithTimeZone.class) {
             ValueTimestampTimeZone v = (ValueTimestampTimeZone) value.convertTo(Value.TIMESTAMP_TZ);
             return type.cast(new TimestampWithTimeZone(v.getDateValue(), v.getTimeNanos(), v.getTimeZoneOffsetMins()));

@@ -754,7 +754,7 @@ public abstract class Value {
             case DECIMAL: {
                 switch (getType()) {
                 case BOOLEAN:
-                    return ValueDecimal.get(BigDecimal.valueOf(getBoolean() ? 1 : 0));
+                    return (ValueDecimal) (getBoolean() ? ValueDecimal.ONE : ValueDecimal.ZERO);
                 case BYTE:
                 case SHORT:
                 case ENUM:

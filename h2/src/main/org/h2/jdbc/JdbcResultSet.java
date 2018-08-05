@@ -59,6 +59,7 @@ import org.h2.value.ValueShort;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * <p>
@@ -3915,21 +3916,19 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             return type.cast(value.getBytes());
         } else if (type == java.sql.Array.class) {
             int id = getNextId(TraceObject.ARRAY);
-            return type.cast(value == ValueNull.INSTANCE ? null : new JdbcArray(conn, value, id));
+            return type.cast(new JdbcArray(conn, value, id));
         } else if (type == Blob.class) {
             int id = getNextId(TraceObject.BLOB);
-            return type.cast(value == ValueNull.INSTANCE
-                    ? null : new JdbcBlob(conn, value, JdbcLob.State.WITH_VALUE, id));
+            return type.cast(new JdbcBlob(conn, value, JdbcLob.State.WITH_VALUE, id));
         } else if (type == Clob.class) {
             int id = getNextId(TraceObject.CLOB);
-            return type.cast(value == ValueNull.INSTANCE
-                    ? null : new JdbcClob(conn, value, JdbcLob.State.WITH_VALUE, id));
+            return type.cast(new JdbcClob(conn, value, JdbcLob.State.WITH_VALUE, id));
         } else if (type == SQLXML.class) {
             int id = getNextId(TraceObject.SQLXML);
-            return type.cast(value == ValueNull.INSTANCE
-                    ? null : new JdbcSQLXML(conn, value, JdbcLob.State.WITH_VALUE, id));
+            return type.cast(new JdbcSQLXML(conn, value, JdbcLob.State.WITH_VALUE, id));
         } else if (type == TimestampWithTimeZone.class) {
-            return type.cast(value.convertTo(Value.TIMESTAMP_TZ).getObject());
+            ValueTimestampTimeZone v = (ValueTimestampTimeZone) value.convertTo(Value.TIMESTAMP_TZ);
+            return type.cast(new TimestampWithTimeZone(v.getDateValue(), v.getTimeNanos(), v.getTimeZoneOffsetMins()));
         } else if (DataType.isGeometryClass(type)) {
             return type.cast(value.convertTo(Value.GEOMETRY).getObject());
         } else if (type == LocalDateTimeUtils.LOCAL_DATE) {

@@ -2003,7 +2003,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     @Override
     public String getColumnClassName(int columnIndex) throws SQLException {
         int type = DataType.getValueTypeFromResultSet(this, columnIndex);
-        return DataType.getTypeClassName(type);
+        return DataType.getTypeClassName(type, true);
     }
 
     /**

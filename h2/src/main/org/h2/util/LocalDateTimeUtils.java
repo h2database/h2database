@@ -431,7 +431,7 @@ public class LocalDateTimeUtils {
      * @param offsetDateTime the OffsetDateTime to convert, not {@code null}
      * @return the value
      */
-    public static Value offsetDateTimeToValue(Object offsetDateTime) {
+    public static ValueTimestampTimeZone offsetDateTimeToValue(Object offsetDateTime) {
         try {
             Object localDateTime = OFFSET_DATE_TIME_TO_LOCAL_DATE_TIME.invoke(offsetDateTime);
             Object localDate = LOCAL_DATE_TIME_TO_LOCAL_DATE.invoke(localDateTime);

@@ -72,6 +72,16 @@ public class SysProperties {
             Utils.getProperty("user.home", "");
 
     /**
+     * System property {@code h2.preview} (default: false).
+     * <p>
+     * Controls default values of other properties. If {@code true} default
+     * values of other properties are changed to planned defaults for the 1.5.x
+     * versions of H2. Some other functionality may be also enabled or disabled.
+     * </p>
+     */
+    public static final boolean PREVIEW = Utils.getProperty("h2.preview", false);
+
+    /**
      * System property <code>h2.allowedClasses</code> (default: *).<br />
      * Comma separated list of class names or prefixes.
      */
@@ -325,23 +335,53 @@ public class SysProperties {
             Utils.getProperty("h2.oldStyleOuterJoin", false);
 
     /**
-     * System property {@code h2.oldResultSetGetObject}, {@code true} by default.
-     * Return {@code Byte} and {@code Short} instead of {@code Integer} from
-     * {@code ResultSet#getObject(...)} for {@code TINYINT} and {@code SMALLINT}
-     * values.
+     * System property {@code h2.oldResultSetGetObject}, {@code true} by default
+     * unless {@code h2.preview} is enabled.
+     * <p>
+     * If {@code true} return {@code Byte} and {@code Short} from
+     * {@code ResultSet#getObject(int)} and {@code ResultSet#getObject(String)}
+     * for {@code TINYINT} and {@code SMALLINT} values.
+     * </p>
+     * <p>
+     * If {@code false} return {@code Integer} for them as specified in JDBC
+     * specification (see Mapping from JDBC Types to Java Object Types).
+     * </p>
      */
-    public static final boolean OLD_RESULT_SET_GET_OBJECT =
-            Utils.getProperty("h2.oldResultSetGetObject", true);
+    public static final boolean OLD_RESULT_SET_GET_OBJECT = Utils.getProperty("h2.oldResultSetGetObject", !PREVIEW);
 
     /**
-     * System property {@code h2.bigDecimalIsDecimal}, {@code true} by default. If
-     * {@code true} map {@code BigDecimal} to {@code DECIMAL} type, if {@code false}
-     * map it to {@code NUMERIC} as specified in JDBC specification (see Mapping
-     * from Java Object Types to JDBC Types).
+     * System property {@code h2.bigDecimalIsDecimal}, {@code true} by default
+     * unless {@code h2.preview} is enabled.
+     * <p>
+     * If {@code true} map {@code BigDecimal} to {@code DECIMAL} type.
+     * <p>
+     * <p>
+     * If {@code false} map {@code BigDecimal} to {@code NUMERIC} as specified
+     * in JDBC specification (see Mapping from Java Object Types to JDBC Types).
+     * </p>
      */
-    public static final boolean BIG_DECIMAL_IS_DECIMAL =
-            Utils.getProperty("h2.bigDecimalIsDecimal", true);
+    public static final boolean BIG_DECIMAL_IS_DECIMAL = Utils.getProperty("h2.bigDecimalIsDecimal", !PREVIEW);
 
+    /**
+     * System property {@code h2.returnOffsetDateTime}, {@code false} by default
+     * unless {@code h2.preview} is enabled.
+     * <p>
+     * If {@code true} {@link java.sql.ResultSet#getObject(int)} and
+     * {@link java.sql.ResultSet#getObject(String)} return
+     * {@code TIMESTAMP WITH TIME ZONE} values as
+     * {@code java.time.OffsetDateTime}.
+     * </p>
+     * <p>
+     * If {@code false} return them as {@code org.h2.api.TimestampWithTimeZone}
+     * instead.
+     * </p>
+     * <p>
+     * This property has effect only on Java 8 / Android API 26 and later
+     * versions. Without JSR-310 {@code org.h2.api.TimestampWithTimeZone} is
+     * used unconditionally.
+     * </p>
+     */
+    public static final boolean RETURN_OFFSET_DATE_TIME = Utils.getProperty("h2.returnOffsetDateTime", PREVIEW);
 
     /**
      * System property {@code h2.unlimitedTimeRange}, {@code false} by default.

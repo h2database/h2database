@@ -2603,7 +2603,7 @@ Mapped to ""java.lang.Integer"".
 INT
 "
 
-"Data Types","BOOLEAN Type","
+"Data Types","BOOLEAN","
 BOOLEAN | BIT | BOOL
 ","
 Possible values: TRUE and FALSE.
@@ -2613,7 +2613,7 @@ Mapped to ""java.lang.Boolean"".
 BOOLEAN
 "
 
-"Data Types","TINYINT Type","
+"Data Types","TINYINT","
 TINYINT
 ","
 Possible values are: -128 to 127.
@@ -2623,7 +2623,7 @@ Mapped to ""java.lang.Byte"".
 TINYINT
 "
 
-"Data Types","SMALLINT Type","
+"Data Types","SMALLINT","
 SMALLINT | INT2 | YEAR
 ","
 Possible values: -32768 to 32767.
@@ -2633,7 +2633,7 @@ Mapped to ""java.lang.Short"".
 SMALLINT
 "
 
-"Data Types","BIGINT Type","
+"Data Types","BIGINT","
 BIGINT | INT8
 ","
 Possible values: -9223372036854775808 to 9223372036854775807.
@@ -2643,7 +2643,7 @@ Mapped to ""java.lang.Long"".
 BIGINT
 "
 
-"Data Types","IDENTITY Type","
+"Data Types","IDENTITY","
 IDENTITY
 ","
 Auto-Increment value. Possible values: -9223372036854775808 to
@@ -2655,7 +2655,7 @@ Mapped to ""java.lang.Long"".
 IDENTITY
 "
 
-"Data Types","DECIMAL Type","
+"Data Types","DECIMAL","
 { DECIMAL | NUMBER | DEC | NUMERIC } ( precisionInt [ , scaleInt ] )
 ","
 Data type with fixed precision and scale. This data type is recommended for
@@ -2666,7 +2666,7 @@ Mapped to ""java.math.BigDecimal"".
 DECIMAL(20, 2)
 "
 
-"Data Types","DOUBLE Type","
+"Data Types","DOUBLE","
 { DOUBLE [ PRECISION ] | FLOAT [ ( precisionInt ) ] | FLOAT8 }
 ","
 A floating point number. Should not be used to represent currency values, because
@@ -2678,7 +2678,7 @@ Mapped to ""java.lang.Double"".
 DOUBLE
 "
 
-"Data Types","REAL Type","
+"Data Types","REAL","
 { REAL | FLOAT ( precisionInt ) | FLOAT4 }
 ","
 A single precision floating point number. Should not be used to represent currency
@@ -2690,7 +2690,7 @@ Mapped to ""java.lang.Float"".
 REAL
 "
 
-"Data Types","TIME Type","
+"Data Types","TIME","
 TIME [ ( precisionInt ) ] [ WITHOUT TIME ZONE ]
 ","
 The time data type. The format is hh:mm:ss[.nnnnnnnnn].
@@ -2703,7 +2703,7 @@ Resolution of ""java.sql.Time"" is limited to milliseconds, use ""String"" or ""
 TIME
 "
 
-"Data Types","DATE Type","
+"Data Types","DATE","
 DATE
 ","
 The date data type. The format is yyyy-MM-dd.
@@ -2715,7 +2715,7 @@ Mapped to ""java.sql.Date"", with the time set to ""00:00:00""
 DATE
 "
 
-"Data Types","TIMESTAMP Type","
+"Data Types","TIMESTAMP","
 { TIMESTAMP [ ( precisionInt ) ] [ WITHOUT TIME ZONE ]
     | DATETIME [ ( precisionInt ) ] | SMALLDATETIME }
 ","
@@ -2730,7 +2730,7 @@ Mapped to ""java.sql.Timestamp"" (""java.util.Date"" may be used too).
 TIMESTAMP
 "
 
-"Data Types","TIMESTAMP WITH TIME ZONE Type","
+"Data Types","TIMESTAMP WITH TIME ZONE","
 TIMESTAMP [ ( precisionInt ) ] WITH TIME ZONE
 ","
 The timestamp with time zone data type.
@@ -2748,7 +2748,7 @@ Conversion from ""TIMESTAMP"" does the same operations in reverse and sets time 
 TIMESTAMP WITH TIME ZONE
 "
 
-"Data Types","BINARY Type","
+"Data Types","BINARY","
 { BINARY | VARBINARY | LONGVARBINARY | RAW | BYTEA }
 [ ( precisionInt ) ]
 ","
@@ -2763,7 +2763,7 @@ Mapped to byte[].
 BINARY(1000)
 "
 
-"Data Types","OTHER Type","
+"Data Types","OTHER","
 OTHER
 ","
 This type allows storing serialized Java objects. Internally, a byte array is used.
@@ -2777,7 +2777,7 @@ Mapped to ""java.lang.Object"" (or any subclass).
 OTHER
 "
 
-"Data Types","VARCHAR Type","
+"Data Types","VARCHAR","
 { VARCHAR | LONGVARCHAR | VARCHAR2 | NVARCHAR
     | NVARCHAR2 | VARCHAR_CASESENSITIVE} [ ( precisionInt ) ]
 ","
@@ -2795,7 +2795,7 @@ Mapped to ""java.lang.String"".
 VARCHAR(255)
 "
 
-"Data Types","VARCHAR_IGNORECASE Type","
+"Data Types","VARCHAR_IGNORECASE","
 VARCHAR_IGNORECASE [ ( precisionInt ) ]
 ","
 Same as VARCHAR, but not case sensitive when comparing.
@@ -2812,7 +2812,7 @@ Mapped to ""java.lang.String"".
 VARCHAR_IGNORECASE
 "
 
-"Data Types","CHAR Type","
+"Data Types","CHAR","
 { CHAR | CHARACTER | NCHAR } [ ( precisionInt ) ]
 ","
 A Unicode String.
@@ -2830,7 +2830,7 @@ Mapped to ""java.lang.String"".
 CHAR(10)
 "
 
-"Data Types","BLOB Type","
+"Data Types","BLOB","
 { BLOB | TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE | OID }
 [ ( precisionInt ) ]
 ","
@@ -2844,7 +2844,7 @@ Mapped to ""java.sql.Blob"" (""java.io.InputStream"" is also supported).
 BLOB
 "
 
-"Data Types","CLOB Type","
+"Data Types","CLOB","
 { CLOB | TINYTEXT | TEXT | MEDIUMTEXT | LONGTEXT | NTEXT | NCLOB }
 [ ( precisionInt ) ]
 ","
@@ -2863,7 +2863,7 @@ Mapped to ""java.sql.Clob"" (""java.io.Reader"" is also supported).
 CLOB
 "
 
-"Data Types","UUID Type","
+"Data Types","UUID","
 UUID
 ","
 Universally unique identifier. This is a 128 bit value.
@@ -2881,7 +2881,7 @@ For details, see the documentation of ""java.util.UUID"".
 UUID
 "
 
-"Data Types","ARRAY Type","
+"Data Types","ARRAY","
 ARRAY
 ","
 An array of values.
@@ -2894,7 +2894,7 @@ and ""ResultSet.getObject(..)"" or ""ResultSet.getArray(..)"" to retrieve the va
 ARRAY
 "
 
-"Data Types","ENUM Type","
+"Data Types","ENUM","
 { ENUM (string [, ... ]) }
 ","
 A type with enumerated values.
@@ -2908,7 +2908,7 @@ Duplicate and empty values are not permitted.
 
 ENUM('clubs', 'diamonds', 'hearts', 'spades')
 "
-"Data Types","GEOMETRY Type","
+"Data Types","GEOMETRY","
 GEOMETRY
 ","
 A spatial geometry type, based on the ""org.locationtech.jts"" library.

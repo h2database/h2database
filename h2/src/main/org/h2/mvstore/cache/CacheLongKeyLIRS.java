@@ -485,6 +485,14 @@ public class CacheLongKeyLIRS<V> {
         }
     }
 
+    public void trimNonResidentQueue() {
+        for (Segment<V> s : segments) {
+            synchronized (s) {
+                s.trimNonResidentQueue();
+            }
+        }
+    }
+
     /**
      * A cache segment
      *
@@ -905,7 +913,7 @@ public class CacheLongKeyLIRS<V> {
             // ensure there are not too many hot entries: right shift of 5 is
             // division by 32, that means if there are only 1/32 (3.125%) or
             // less cold entries, a hot entry needs to become cold
-            while (queueSize <= (mapSize >>> 5) && stackSize > 0) {
+            while (queueSize <= ((mapSize - queue2Size) >>> 5) && stackSize > 0) {
                 convertOldestHotToCold();
             }
             // the oldest resident cold entries become non-resident
@@ -917,17 +925,22 @@ public class CacheLongKeyLIRS<V> {
                 e.value = null;
                 addToQueue(queue2, e);
                 // the size of the non-resident-cold entries needs to be limited
-                int maxQueue2Size = nonResidentQueueSize * (mapSize - queue2Size);
-                if (maxQueue2Size >= 0) {
-                    while (queue2Size > maxQueue2Size) {
-                        e = queue2.queuePrev;
-                        WeakReference<V> reference = e.reference;
-                        if (reference != null && reference.get() != null) {
-                            break;  // stop trimming if entry holds a value
-                        }
-                        int hash = getHash(e.key);
-                        remove(e.key, hash);
+                trimNonResidentQueue();
+            }
+        }
+
+        private void trimNonResidentQueue() {
+            Entry<V> e;
+            int maxQueue2Size = nonResidentQueueSize * (mapSize - queue2Size);
+            if (maxQueue2Size >= 0) {
+                while (queue2Size > maxQueue2Size) {
+                    e = queue2.queuePrev;
+                    WeakReference<V> reference = e.reference;
+                    if (reference != null && reference.get() != null) {
+                        break;  // stop trimming if entry holds a value
                     }
+                    int hash = getHash(e.key);
+                    remove(e.key, hash);
                 }
             }
         }

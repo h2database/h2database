@@ -247,7 +247,7 @@ public class CacheLongKeyLIRS<V> {
      * @param key the key
      * @return the hash code
      */
-    private static int getHash(long key) {
+    static int getHash(long key) {
         int hash = (int) ((key >>> 32) ^ key);
         // a supplemental secondary hash function
         // to protect against hash codes that don't differ much
@@ -929,7 +929,7 @@ public class CacheLongKeyLIRS<V> {
             }
         }
 
-        private void trimNonResidentQueue() {
+        void trimNonResidentQueue() {
             Entry<V> e;
             int maxQueue2Size = nonResidentQueueSize * (mapSize - queue2Size);
             if (maxQueue2Size >= 0) {

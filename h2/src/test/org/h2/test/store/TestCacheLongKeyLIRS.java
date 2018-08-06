@@ -117,8 +117,8 @@ public class TestCacheLongKeyLIRS extends TestBase {
             test.put(j, j);
         }
         // for a cache of size 1000,
-        // there are 63 cold entries (about 6.25%).
-        assertEquals(63, test.size() - test.sizeHot());
+        // there are 32 cold entries (about 1/32).
+        assertEquals(32, test.size() - test.sizeHot());
         // at most as many non-resident elements
         // as there are entries in the stack
         assertEquals(1000, test.size());
@@ -333,7 +333,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         }
         assertEquals(100, test.size());
         assertEquals(200, test.sizeNonResident());
-        assertEquals(90, test.sizeHot());
+        assertEquals(96, test.sizeHot());
     }
 
     private void testLimitNonResident() {

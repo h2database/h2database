@@ -4252,6 +4252,10 @@ public class Parser {
                     i++;
                 } else if (command[i + 1] == '/') {
                     // single line comment
+                    if (!database.getMode().allowCppStyleLineComments) {
+                        /* Database Mode does not support C-style line comments */
+                        throw getSyntaxError();
+                    }
                     changed = true;
                     startLoop = i;
                     while (true) {

@@ -276,6 +276,9 @@ public class TestCompatibility extends TestDb {
                 /* Expected! */
             }
         }
+
+        /* Test that C-style line comments //... are not allowed */
+        assertThrows(ErrorCode.SYNTAX_ERROR_1, stat, "// Don't do anything, actually");
     }
 
     private void testMySQL() throws SQLException {

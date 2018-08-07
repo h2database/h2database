@@ -359,7 +359,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         verify(test, "mem: 4 stack: 7 6 4 3 cold: 7 non-resident: 6 2 1 4 0");
         assertTrue("" + test.getUsedMemory(), test.getUsedMemory() <= 4);
         test.put(8, 80, 4);
-        verify(test, "mem: 4 stack: 8 cold: non-resident: 3 7 6 2 1 4 0");
+        verify(test, "mem: 4 stack: 8 cold: non-resident:");
         assertTrue("" + test.getUsedMemory(), test.getUsedMemory() <= 4);
     }
 

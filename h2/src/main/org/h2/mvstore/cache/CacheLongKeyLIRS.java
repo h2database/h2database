@@ -931,17 +931,21 @@ public class CacheLongKeyLIRS<V> {
 
         void trimNonResidentQueue() {
             Entry<V> e;
-            int maxQueue2Size = nonResidentQueueSize * (mapSize - queue2Size);
-            if (maxQueue2Size >= 0) {
-                while (queue2Size > maxQueue2Size) {
-                    e = queue2.queuePrev;
-                    WeakReference<V> reference = e.reference;
-                    if (reference != null && reference.get() != null) {
-                        break;  // stop trimming if entry holds a value
-                    }
-                    int hash = getHash(e.key);
-                    remove(e.key, hash);
+            int maxQueue2Size = 4 * nonResidentQueueSize * (mapSize - queue2Size);
+            while (queue2Size > maxQueue2Size) {
+                e = queue2.queuePrev;
+                int hash = getHash(e.key);
+                remove(e.key, hash);
+            }
+            maxQueue2Size >>= 2;
+            while (queue2Size > maxQueue2Size) {
+                e = queue2.queuePrev;
+                WeakReference<V> reference = e.reference;
+                if (reference != null && reference.get() != null) {
+                    break;  // stop trimming if entry holds a value
                 }
+                int hash = getHash(e.key);
+                remove(e.key, hash);
             }
         }
 

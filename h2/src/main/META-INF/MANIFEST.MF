@@ -1,10 +1,10 @@
 Manifest-Version: 1.0
-Implementation-Title: ${title}
+Implementation-Title: H2 Database Engine
 Implementation-URL: http://www.h2database.com
 Implementation-Version: ${version}
 Build-Jdk: ${buildJdk}
 Created-By: ${createdBy}
-${mainClassTag}
+Main-Class: org.h2.tools.Console
 Bundle-Activator: org.h2.util.DbDriverActivator
 Bundle-ManifestVersion: 2
 Bundle-Name: H2 Database Engine

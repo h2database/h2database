@@ -239,7 +239,8 @@ public class Build extends BuildBase {
         String classpath = "temp";
         FileList files;
         files = files("src/main/org/h2/mvstore").
-                exclude("src/main/org/h2/mvstore/db/*");
+                exclude("src/main/org/h2/mvstore/db/*").
+                exclude("src/main/org/h2/mvstore/tx/*");
         StringList args = args();
         if (debugInfo) {
             args = args.plus("-Xlint:unchecked", "-d", "temp", "-sourcepath",

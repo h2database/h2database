@@ -267,7 +267,7 @@ public class Mode {
         dt = DataType.createDecimal(10, 10, 4, 12, false, false);
         dt.type = Value.DECIMAL;
         dt.sqlType = Types.NUMERIC;
-        dt.name = "MONEY";
+        dt.name = "SMALLMONEY";
         mode.typeByNameMap.put("SMALLMONEY", dt);
         add(mode);
 

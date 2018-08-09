@@ -4,6 +4,7 @@ Implementation-URL: http://www.h2database.com
 Implementation-Version: ${version}
 Build-Jdk: ${buildJdk}
 Created-By: ${createdBy}
+Automatic-Module-Name: com.h2database.client
 Bundle-ManifestVersion: 2
 Bundle-Name: H2 Database Client
 Bundle-SymbolicName: com.h2database.client

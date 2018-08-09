@@ -4,6 +4,7 @@ Implementation-URL: http://www.h2database.com
 Implementation-Version: ${version}
 Build-Jdk: ${buildJdk}
 Created-By: ${createdBy}
+Automatic-Module-Name: com.h2database.small
 Bundle-Activator: org.h2.util.DbDriverActivator
 Bundle-ManifestVersion: 2
 Bundle-Name: H2 Database embedded Engine

@@ -5,6 +5,7 @@ Implementation-Version: ${version}
 Build-Jdk: ${buildJdk}
 Created-By: ${createdBy}
 Main-Class: org.h2.tools.Console
+Automatic-Module-Name: com.h2database
 Bundle-Activator: org.h2.util.DbDriverActivator
 Bundle-ManifestVersion: 2
 Bundle-Name: H2 Database Engine

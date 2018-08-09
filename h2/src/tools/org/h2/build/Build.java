@@ -549,6 +549,7 @@ public class Build extends BuildBase {
     public void jarClient() {
         compile(true, true, false);
         addVersions(false);
+        manifest("src/installer/client/MANIFEST.MF");
         FileList files = files("temp").
             exclude("temp/org/h2/build/*").
             exclude("temp/org/h2/dev/*").
@@ -590,6 +591,7 @@ public class Build extends BuildBase {
     public void jarSmall() {
         compile(false, false, true);
         addVersions(true);
+        manifest("src/installer/small/MANIFEST.MF");
         FileList files = files("temp").
             exclude("temp/org/h2/build/*").
             exclude("temp/org/h2/dev/*").

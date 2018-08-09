@@ -448,7 +448,18 @@ public class DataType {
         }
     }
 
-    private static DataType createDecimal(int maxPrecision,
+    /**
+     * Create a numeric data type.
+     *
+     * @param maxPrecision maximum supported precision
+     * @param defaultPrecision default precision
+     * @param defaultScale default scale
+     * @param defaultDisplaySize default display size
+     * @param needsPrecisionAndScale where precision and scale are supported
+     * @param autoInc whether the data type is an auto-increment type
+     * @return data type
+     */
+    public static DataType createDecimal(int maxPrecision,
             int defaultPrecision, int defaultScale, int defaultDisplaySize,
             boolean needsPrecisionAndScale, boolean autoInc) {
         DataType dataType = new DataType();
@@ -466,7 +477,18 @@ public class DataType {
         return dataType;
     }
 
-    private static DataType createDate(int maxPrecision, int precision, String prefix,
+    /**
+     * Create a date-time data type.
+     *
+     * @param maxPrecision maximum supported precision
+     * @param precision default precision
+     * @param prefix the prefix for SQL literal representation
+     * @param supportsScale whether the scale parameter is supported
+     * @param scale default scale
+     * @param maxScale highest possible scale
+     * @return data type
+     */
+    public static DataType createDate(int maxPrecision, int precision, String prefix,
             boolean supportsScale, int scale, int maxScale) {
         DataType dataType = new DataType();
         dataType.prefix = prefix + " '";

@@ -1096,6 +1096,8 @@ or the SQL statement <code>SET MODE MSSQLServer</code>.
 </li><li>Concatenating <code>NULL</code> with another value
     results in the other value.
 </li><li>Text can be concatenated using '+'.
+</li><li>MONEY data type is treated like NUMERIC(19, 4) data type. SMALLMONEY data type is treated like NUMERIC(10, 4)
+    data type.
 </li></ul>
 
 <h3>MySQL Compatibility Mode</h3>
@@ -1141,7 +1143,7 @@ or the SQL statement <code>SET MODE Oracle</code>.
     results in the other value.
 </li><li>Empty strings are treated like <code>NULL</code> values.
 </li><li>REGEXP_REPLACE() uses \ for back-references.
-</li><li>DATE data type is treated like TIMESTAMP data type.
+</li><li>DATE data type is treated like TIMESTAMP(0) data type.
 </li></ul>
 
 <h3>PostgreSQL Compatibility Mode</h3>
@@ -1159,6 +1161,7 @@ or the SQL statement <code>SET MODE PostgreSQL</code>.
 </li><li>LOG(x) is base 10 in this mode.
 </li><li>REGEXP_REPLACE() uses \ for back-references.
 </li><li>Fixed-width strings are padded with spaces.
+</li><li>MONEY data type is treated like NUMERIC(19, 2) data type.
 </li></ul>
 
 <h3>Ignite Compatibility Mode</h3>

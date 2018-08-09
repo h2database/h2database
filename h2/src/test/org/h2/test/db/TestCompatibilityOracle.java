@@ -263,12 +263,12 @@ public class TestCompatibilityOracle extends TestDb {
         Timestamp t4 = Timestamp.valueOf("2018-01-10 22:10:01");
 
         stat.execute("CREATE TABLE TEST (ID INT PRIMARY KEY, D DATE)");
-        stat.executeUpdate("INSERT INTO TEST VALUES(1, TIMESTAMP '2011-02-03 12:11:10')");
-        stat.executeUpdate("INSERT INTO TEST VALUES(2, CAST ('1999-10-15 13:14:15' AS DATE))");
-        stat.executeUpdate("INSERT INTO TEST VALUES(3, '2030-11-22 11:22:33')");
+        stat.executeUpdate("INSERT INTO TEST VALUES(1, TIMESTAMP '2011-02-03 12:11:10.1')");
+        stat.executeUpdate("INSERT INTO TEST VALUES(2, CAST ('1999-10-15 13:14:15.1' AS DATE))");
+        stat.executeUpdate("INSERT INTO TEST VALUES(3, '2030-11-22 11:22:33.1')");
         PreparedStatement ps = conn.prepareStatement("INSERT INTO TEST VALUES (?, ?)");
         ps.setInt(1, 4);
-        ps.setTimestamp(2, t4);
+        ps.setTimestamp(2, Timestamp.valueOf("2018-01-10 22:10:01.1"));
         ps.executeUpdate();
         ResultSet rs = stat.executeQuery("SELECT D FROM TEST ORDER BY ID");
         rs.next();

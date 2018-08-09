@@ -5,6 +5,7 @@
  */
 package org.h2.engine;
 
+import java.sql.Types;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
@@ -258,6 +259,16 @@ public class Mode {
         // MS SQL Server does not support client info properties. See
         // https://msdn.microsoft.com/en-Us/library/dd571296%28v=sql.110%29.aspx
         mode.supportedClientInfoPropertiesRegEx = null;
+        DataType dt = DataType.createDecimal(19, 19, 4, 21, false, false);
+        dt.type = Value.DECIMAL;
+        dt.sqlType = Types.NUMERIC;
+        dt.name = "MONEY";
+        mode.typeByNameMap.put("MONEY", dt);
+        dt = DataType.createDecimal(10, 10, 4, 12, false, false);
+        dt.type = Value.DECIMAL;
+        dt.sqlType = Types.NUMERIC;
+        dt.name = "SMALLMONEY";
+        mode.typeByNameMap.put("SMALLMONEY", dt);
         add(mode);
 
         mode = new Mode(ModeEnum.MySQL);
@@ -289,7 +300,11 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx =
                 Pattern.compile(".*\\..*");
         mode.prohibitEmptyInPredicate = true;
-        mode.typeByNameMap.put("DATE", DataType.getDataType(Value.TIMESTAMP));
+        dt = DataType.createDate(/* 2001-01-01 23:59:59 */ 19, 19, "DATE", false, 0, 0);
+        dt.type = Value.TIMESTAMP;
+        dt.sqlType = Types.TIMESTAMP;
+        dt.name = "DATE";
+        mode.typeByNameMap.put("DATE", dt);
         add(mode);
 
         mode = new Mode(ModeEnum.PostgreSQL);
@@ -313,6 +328,11 @@ public class Mode {
         disallowedTypes.add("TINYINT");
         disallowedTypes.add("BLOB");
         mode.disallowedTypes = disallowedTypes;
+        dt = DataType.createDecimal(19, 19, 2, 21, false, false);
+        dt.type = Value.DECIMAL;
+        dt.sqlType = Types.NUMERIC;
+        dt.name = "MONEY";
+        mode.typeByNameMap.put("MONEY", dt);
         add(mode);
 
         mode = new Mode(ModeEnum.Ignite);

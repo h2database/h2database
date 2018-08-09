@@ -448,7 +448,18 @@ public class DataType {
         }
     }
 
-    private static DataType createDecimal(int maxPrecision,
+    /**
+     * Create a numeric data type.
+     *
+     * @param maxPrecision maximum supported precision
+     * @param defaultPrecision default precision
+     * @param defaultScale default scale
+     * @param defaultDisplaySize default display size
+     * @param needsPrecisionAndScale where precision and scale are supported
+     * @param autoInc whether the data type is an auto-increment type
+     * @return data type
+     */
+    public static DataType createDecimal(int maxPrecision,
             int defaultPrecision, int defaultScale, int defaultDisplaySize,
             boolean needsPrecisionAndScale, boolean autoInc) {
         DataType dataType = new DataType();

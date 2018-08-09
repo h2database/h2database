@@ -5,6 +5,7 @@
  */
 package org.h2.test.db;
 
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -276,6 +277,21 @@ public class TestCompatibility extends TestDb {
                 /* Expected! */
             }
         }
+
+        /* Test MONEY data type */
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("CREATE TABLE TEST(M MONEY)");
+        stat.execute("INSERT INTO TEST(M) VALUES (-92233720368547758.08)");
+        stat.execute("INSERT INTO TEST(M) VALUES (0.11111)");
+        stat.execute("INSERT INTO TEST(M) VALUES (92233720368547758.07)");
+        ResultSet rs = stat.executeQuery("SELECT M FROM TEST ORDER BY M");
+        assertTrue(rs.next());
+        assertEquals(new BigDecimal("-92233720368547758.08"), rs.getBigDecimal(1));
+        assertTrue(rs.next());
+        assertEquals(new BigDecimal("0.11"), rs.getBigDecimal(1));
+        assertTrue(rs.next());
+        assertEquals(new BigDecimal("92233720368547758.07"), rs.getBigDecimal(1));
+        assertFalse(rs.next());
     }
 
     private void testMySQL() throws SQLException {
@@ -496,6 +512,36 @@ public class TestCompatibility extends TestDb {
 
         // UNIQUEIDENTIFIER is MSSQL's equivalent of UUID
         stat.execute("create table test3 (id UNIQUEIDENTIFIER)");
+
+        /* Test MONEY data type */
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("CREATE TABLE TEST(M MONEY)");
+        stat.execute("INSERT INTO TEST(M) VALUES (-922337203685477.5808)");
+        stat.execute("INSERT INTO TEST(M) VALUES (0.11111)");
+        stat.execute("INSERT INTO TEST(M) VALUES (922337203685477.5807)");
+        rs = stat.executeQuery("SELECT M FROM TEST ORDER BY M");
+        assertTrue(rs.next());
+        assertEquals(new BigDecimal("-922337203685477.5808"), rs.getBigDecimal(1));
+        assertTrue(rs.next());
+        assertEquals(new BigDecimal("0.1111"), rs.getBigDecimal(1));
+        assertTrue(rs.next());
+        assertEquals(new BigDecimal("922337203685477.5807"), rs.getBigDecimal(1));
+        assertFalse(rs.next());
+
+        /* Test SMALLMONEY data type */
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("CREATE TABLE TEST(M SMALLMONEY)");
+        stat.execute("INSERT INTO TEST(M) VALUES (-214748.3648)");
+        stat.execute("INSERT INTO TEST(M) VALUES (0.11111)");
+        stat.execute("INSERT INTO TEST(M) VALUES (214748.3647)");
+        rs = stat.executeQuery("SELECT M FROM TEST ORDER BY M");
+        assertTrue(rs.next());
+        assertEquals(new BigDecimal("-214748.3648"), rs.getBigDecimal(1));
+        assertTrue(rs.next());
+        assertEquals(new BigDecimal("0.1111"), rs.getBigDecimal(1));
+        assertTrue(rs.next());
+        assertEquals(new BigDecimal("214748.3647"), rs.getBigDecimal(1));
+        assertFalse(rs.next());
     }
 
     private void testDB2() throws SQLException {

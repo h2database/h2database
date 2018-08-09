@@ -466,7 +466,18 @@ public class DataType {
         return dataType;
     }
 
-    private static DataType createDate(int maxPrecision, int precision, String prefix,
+    /**
+     * Create a date-time data type.
+     *
+     * @param maxPrecision maximum supported precision
+     * @param precision default precision
+     * @param prefix the prefix for SQL literal representation
+     * @param supportsScale whether the scale parameter is supported
+     * @param scale default scale
+     * @param maxScale highest possible scale
+     * @return data type
+     */
+    public static DataType createDate(int maxPrecision, int precision, String prefix,
             boolean supportsScale, int scale, int maxScale) {
         DataType dataType = new DataType();
         dataType.prefix = prefix + " '";

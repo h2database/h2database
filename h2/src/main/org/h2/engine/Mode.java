@@ -5,6 +5,7 @@
  */
 package org.h2.engine;
 
+import java.sql.Types;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
@@ -289,7 +290,11 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx =
                 Pattern.compile(".*\\..*");
         mode.prohibitEmptyInPredicate = true;
-        mode.typeByNameMap.put("DATE", DataType.getDataType(Value.TIMESTAMP));
+        DataType dt = DataType.createDate(/* 2001-01-01 23:59:59 */ 19, 19, "DATE", false, 0, 0);
+        dt.type = Value.TIMESTAMP;
+        dt.sqlType = Types.TIMESTAMP;
+        dt.name = "DATE";
+        mode.typeByNameMap.put("DATE", dt);
         add(mode);
 
         mode = new Mode(ModeEnum.PostgreSQL);

@@ -2757,7 +2757,8 @@ TIMESTAMP WITH TIME ZONE
 "
 
 "Data Types","BINARY Type","
-{ BINARY | VARBINARY | LONGVARBINARY | RAW | BYTEA }
+{ BINARY | VARBINARY | BINARY VARYING
+    | LONGVARBINARY | RAW | BYTEA }
 [ ( precisionInt ) ]
 ","
 Represents a byte array. For very long arrays, use BLOB.
@@ -2786,7 +2787,7 @@ OTHER
 "
 
 "Data Types","VARCHAR Type","
-{ VARCHAR | LONGVARCHAR | VARCHAR2 | NVARCHAR
+{ VARCHAR | CHARACTER VARYING | LONGVARCHAR | VARCHAR2 | NVARCHAR
     | NVARCHAR2 | VARCHAR_CASESENSITIVE} [ ( precisionInt ) ]
 ","
 A Unicode String.
@@ -2839,7 +2840,8 @@ CHAR(10)
 "
 
 "Data Types","BLOB Type","
-{ BLOB | TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE | OID }
+{ BLOB | BINARY LARGE OBJECT
+    | TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE | OID }
 [ ( precisionInt ) ]
 ","
 Like BINARY, but intended for very large values such as files or images. Unlike
@@ -2853,7 +2855,8 @@ BLOB
 "
 
 "Data Types","CLOB Type","
-{ CLOB | TINYTEXT | TEXT | MEDIUMTEXT | LONGTEXT | NTEXT | NCLOB }
+{ CLOB | CHARACTER LARGE OBJECT
+    | TINYTEXT | TEXT | MEDIUMTEXT | LONGTEXT | NTEXT | NCLOB }
 [ ( precisionInt ) ]
 ","
 CLOB is like VARCHAR, but intended for very large values. Unlike when using

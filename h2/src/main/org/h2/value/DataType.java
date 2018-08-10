@@ -192,8 +192,8 @@ public class DataType {
         );
         add(Value.STRING, Types.VARCHAR,
                 createString(true),
-                new String[]{"VARCHAR", "VARCHAR2", "NVARCHAR", "NVARCHAR2",
-                    "VARCHAR_CASESENSITIVE", "CHARACTER VARYING", "TID"},
+                new String[]{"VARCHAR", "CHARACTER VARYING", "VARCHAR2", "NVARCHAR", "NVARCHAR2",
+                    "VARCHAR_CASESENSITIVE", "TID"},
                 // 24 for ValueString, 24 for String
                 48
         );
@@ -319,7 +319,7 @@ public class DataType {
         );
         add(Value.BYTES, Types.VARBINARY,
                 createString(false),
-                new String[]{"VARBINARY"},
+                new String[]{"VARBINARY", "BINARY VARYING"},
                 32
         );
         add(Value.BYTES, Types.BINARY,
@@ -345,14 +345,14 @@ public class DataType {
         );
         add(Value.BLOB, Types.BLOB,
                 createLob(),
-                new String[]{"BLOB", "TINYBLOB", "MEDIUMBLOB",
+                new String[]{"BLOB", "BINARY LARGE OBJECT", "TINYBLOB", "MEDIUMBLOB",
                     "LONGBLOB", "IMAGE", "OID"},
                 // 80 for ValueLob, 24 for String
                 104
         );
         add(Value.CLOB, Types.CLOB,
                 createLob(),
-                new String[]{"CLOB", "TINYTEXT", "TEXT", "MEDIUMTEXT",
+                new String[]{"CLOB", "CHARACTER LARGE OBJECT", "TINYTEXT", "TEXT", "MEDIUMTEXT",
                     "LONGTEXT", "NTEXT", "NCLOB"},
                 // 80 for ValueLob, 24 for String
                 104

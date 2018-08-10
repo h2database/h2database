@@ -4688,15 +4688,25 @@ public class Parser {
         int originalScale = -1;
         if (readIf("LONG")) {
             if (readIf("RAW")) {
-                original += " RAW";
+                original = "LONG RAW";
             }
         } else if (readIf("DOUBLE")) {
             if (readIf("PRECISION")) {
-                original += " PRECISION";
+                original = "DOUBLE PRECISION";
             }
         } else if (readIf("CHARACTER")) {
             if (readIf("VARYING")) {
-                original += " VARYING";
+                original = "CHARACTER VARYING";
+            } else if (readIf("LARGE")) {
+                read("OBJECT");
+                original = "CHARACTER LARGE OBJECT";
+            }
+        } else if (readIf("BINARY")) {
+            if (readIf("VARYING")) {
+                original = "BINARY VARYING";
+            } else if (readIf("LARGE")) {
+                read("OBJECT");
+                original = "BINARY LARGE OBJECT";
             }
         } else if (readIf("TIME")) {
             if (readIf(OPEN_PAREN)) {
@@ -4709,7 +4719,7 @@ public class Parser {
             if (readIf("WITHOUT")) {
                 read("TIME");
                 read("ZONE");
-                original += " WITHOUT TIME ZONE";
+                original = "TIME WITHOUT TIME ZONE";
             }
         } else if (readIf("TIMESTAMP")) {
             if (readIf(OPEN_PAREN)) {
@@ -4726,11 +4736,11 @@ public class Parser {
             if (readIf(WITH)) {
                 read("TIME");
                 read("ZONE");
-                original += " WITH TIME ZONE";
+                original = "TIMESTAMP WITH TIME ZONE";
             } else if (readIf("WITHOUT")) {
                 read("TIME");
                 read("ZONE");
-                original += " WITHOUT TIME ZONE";
+                original = "TIMESTAMP WITHOUT TIME ZONE";
             }
         } else {
             regular = true;

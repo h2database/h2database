@@ -2358,55 +2358,57 @@ public class Parser {
             command.setOrder(orderList);
             currentSelect = oldSelect;
         }
-        // make sure aggregate functions will not work here
-        Select temp = currentSelect;
-        currentSelect = null;
-        // http://sqlpro.developpez.com/SQL2008/
-        if (readIf(OFFSET)) {
-            command.setOffset(readExpression().optimize(session));
-            if (!readIf("ROW")) {
-                readIf("ROWS");
+        if (command.getLimit() == null) {
+            // make sure aggregate functions will not work here
+            Select temp = currentSelect;
+            currentSelect = null;
+            boolean hasOffsetOrFetch = false;
+            // Standard SQL OFFSET / FETCH
+            if (readIf(OFFSET)) {
+                hasOffsetOrFetch = true;
+                command.setOffset(readExpression().optimize(session));
+                if (!readIf("ROW")) {
+                    readIf("ROWS");
+                }
             }
-        }
-        if (readIf(FETCH)) {
-            if (!readIf("FIRST")) {
-                read("NEXT");
+            if (readIf(FETCH)) {
+                hasOffsetOrFetch = true;
+                if (!readIf("FIRST")) {
+                    read("NEXT");
+                }
+                if (readIf("ROW") || readIf("ROWS")) {
+                    command.setLimit(ValueExpression.get(ValueInt.get(1)));
+                } else {
+                    Expression limit = readExpression().optimize(session);
+                    command.setLimit(limit);
+                    if (readIf("PERCENT")) {
+                        command.setFetchPercent(true);
+                    }
+                    if (!readIf("ROW")) {
+                        read("ROWS");
+                    }
+                }
+                if (readIf(WITH)) {
+                    read("TIES");
+                    command.setWithTies(true);
+                } else {
+                    read("ONLY");
+                }
             }
-            if (readIf("ROW") || readIf("ROWS")) {
-                command.setLimit(ValueExpression.get(ValueInt.get(1)));
-            } else {
+            // MySQL-style LIMIT / OFFSET
+            if (!hasOffsetOrFetch && readIf(LIMIT)) {
                 Expression limit = readExpression().optimize(session);
                 command.setLimit(limit);
-                if (readIf("PERCENT")) {
-                    command.setFetchPercent(true);
+                if (readIf(OFFSET)) {
+                    Expression offset = readExpression().optimize(session);
+                    command.setOffset(offset);
+                } else if (readIf(COMMA)) {
+                    // MySQL: [offset, ] rowcount
+                    Expression offset = limit;
+                    limit = readExpression().optimize(session);
+                    command.setOffset(offset);
+                    command.setLimit(limit);
                 }
-                if (!readIf("ROW")) {
-                    read("ROWS");
-                }
-            }
-            if (readIf(WITH)) {
-                read("TIES");
-                command.setWithTies(true);
-            } else {
-                read("ONLY");
-            }
-        }
-        currentSelect = temp;
-        if (readIf(LIMIT)) {
-            temp = currentSelect;
-            // make sure aggregate functions will not work here
-            currentSelect = null;
-            Expression limit = readExpression().optimize(session);
-            command.setLimit(limit);
-            if (readIf(OFFSET)) {
-                Expression offset = readExpression().optimize(session);
-                command.setOffset(offset);
-            } else if (readIf(COMMA)) {
-                // MySQL: [offset, ] rowcount
-                Expression offset = limit;
-                limit = readExpression().optimize(session);
-                command.setOffset(offset);
-                command.setLimit(limit);
             }
             if (readIf("SAMPLE_SIZE")) {
                 Expression sampleSize = readExpression().optimize(session);

@@ -691,25 +691,22 @@ public abstract class Query extends Prepared {
     }
 
     void appendLimitToSQL(StringBuilder buff) {
+        if (offsetExpr != null) {
+            String count = StringUtils.unEnclose(offsetExpr.getSQL());
+            buff.append("\nOFFSET ").append(count).append("1".equals(count) ? " ROW" : " ROWS");
+        }
         if (limitExpr != null) {
-            if (fetchPercent || withTies) {
-                if (offsetExpr != null) {
-                    buff.append("\nOFFSET ").append(StringUtils.unEnclose(offsetExpr.getSQL())).append(" ROWS");
-                }
-                buff.append("\nFETCH NEXT ").append(StringUtils.unEnclose(limitExpr.getSQL()));
+            buff.append("\nFETCH ").append(offsetExpr != null ? "NEXT" : "FIRST");
+            String count = StringUtils.unEnclose(limitExpr.getSQL());
+            boolean withCount = fetchPercent || !"1".equals(count);
+            if (withCount) {
+                buff.append(' ').append(count);
                 if (fetchPercent) {
                     buff.append(" PERCENT");
                 }
-                buff.append(" ROWS");
-                if (withTies) {
-                    buff.append(" WITH TIES");
-                }
-            } else {
-                buff.append("\nLIMIT ").append(StringUtils.unEnclose(limitExpr.getSQL()));
-                if (offsetExpr != null) {
-                    buff.append("\nOFFSET ").append(StringUtils.unEnclose(offsetExpr.getSQL()));
-                }
             }
+            buff.append(!withCount ? " ROW" : " ROWS")
+                    .append(withTies ? " WITH TIES" : " ONLY");
         }
     }
 

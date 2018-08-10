@@ -115,14 +115,13 @@ public class Analyze extends DefineCommand {
         }
         buff.append(" FROM ").append(table.getSQL());
         if (sample > 0) {
-            buff.append(" LIMIT ? SAMPLE_SIZE ? ");
+            buff.append(" FETCH NEXT ROW ONLY SAMPLE_SIZE ? ");
         }
         String sql = buff.toString();
         Prepared command = session.prepare(sql);
         if (sample > 0) {
             ArrayList<Parameter> params = command.getParameters();
-            params.get(0).setValue(ValueInt.get(1));
-            params.get(1).setValue(ValueInt.get(sample));
+            params.get(0).setValue(ValueInt.get(sample));
         }
         ResultInterface result = command.query(0);
         result.next();

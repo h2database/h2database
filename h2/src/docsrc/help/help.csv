@@ -12,7 +12,7 @@ FROM tableExpression [,...] [ WHERE expression ]
 [ ORDER BY order [,...] ]
 [ { LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] }
     | { [ OFFSET expression { ROW | ROWS } ]
-    [ FETCH { FIRST | NEXT } [ [ expression ] PERCENT ] { ROW | ROWS }
+    [ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
         { ONLY | WITH TIES } ] } ]
 [ FOR UPDATE ]
 ","

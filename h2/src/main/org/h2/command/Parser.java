@@ -2361,7 +2361,7 @@ public class Parser {
         // make sure aggregate functions will not work here
         Select temp = currentSelect;
         currentSelect = null;
-        // http://sqlpro.developpez.com/SQL2008/
+        // Standard SQL OFFSET / FETCH
         if (readIf(OFFSET)) {
             command.setOffset(readExpression().optimize(session));
             if (!readIf("ROW")) {
@@ -2391,11 +2391,8 @@ public class Parser {
                 read("ONLY");
             }
         }
-        currentSelect = temp;
+        // MySQL-style LIMIT / OFFSET
         if (readIf(LIMIT)) {
-            temp = currentSelect;
-            // make sure aggregate functions will not work here
-            currentSelect = null;
             Expression limit = readExpression().optimize(session);
             command.setLimit(limit);
             if (readIf(OFFSET)) {
@@ -2408,12 +2405,12 @@ public class Parser {
                 command.setOffset(offset);
                 command.setLimit(limit);
             }
-            if (readIf("SAMPLE_SIZE")) {
-                Expression sampleSize = readExpression().optimize(session);
-                command.setSampleSize(sampleSize);
-            }
-            currentSelect = temp;
         }
+        if (readIf("SAMPLE_SIZE")) {
+            Expression sampleSize = readExpression().optimize(session);
+            command.setSampleSize(sampleSize);
+        }
+        currentSelect = temp;
         if (readIf(FOR)) {
             if (readIf("UPDATE")) {
                 if (readIf("OF")) {

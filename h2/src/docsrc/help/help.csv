@@ -10,10 +10,10 @@ FROM tableExpression [,...] [ WHERE expression ]
 [ GROUP BY expression [,...] ] [ HAVING expression ]
 [ { UNION [ ALL ] | MINUS | EXCEPT | INTERSECT } select ]
 [ ORDER BY order [,...] ]
-[ { LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] }
-    | { [ OFFSET expression { ROW | ROWS } ]
+[ { { LIMIT expression [ OFFSET expression ] }
+| { [ OFFSET expression { ROW | ROWS } ]
     [ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
-        { ONLY | WITH TIES } ] } ]
+        { ONLY | WITH TIES } ] } } [ SAMPLE_SIZE rowCountInt ] ]
 [ FOR UPDATE ]
 ","
 Selects data from a table or multiple tables.

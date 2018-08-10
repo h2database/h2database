@@ -62,7 +62,7 @@ EXPLAIN SELECT DISTINCT TYPE FROM TEST ORDER BY TYPE LIMIT 3;
 -->    FROM PUBLIC.TEST
 -->        /* PUBLIC.IDX_TEST_TYPE */
 -->    ORDER BY 1
--->    LIMIT 3
+-->    FETCH FIRST 3 ROWS ONLY
 -->    /* distinct */
 -->    /* index sorted */
 ;
@@ -144,7 +144,7 @@ FROM (SELECT DISTINCT TYPE FROM TEST) T ORDER BY TYPE;
 -->            /* PUBLIC.IDX_TEST_TYPE_VALUE: TYPE = T.TYPE */
 -->        WHERE T.TYPE = T2.TYPE
 -->        ORDER BY =TYPE, 1
--->        LIMIT 1
+-->        FETCH FIRST ROW ONLY
 -->        /* index sorted */) AS MIN
 -->    FROM (
 -->        SELECT DISTINCT
@@ -194,7 +194,7 @@ EXPLAIN SELECT VALUE FROM TEST ORDER BY VALUE LIMIT 10;
 -->    FROM PUBLIC.TEST
 -->        /* PUBLIC.IDX_TEST_VALUE */
 -->    ORDER BY 1
--->    LIMIT 10
+-->    FETCH FIRST 10 ROWS ONLY
 -->    /* index sorted */
 ;
 
@@ -215,7 +215,7 @@ EXPLAIN SELECT VALUE FROM TEST ORDER BY VALUE DESC LIMIT 10;
 -->    FROM PUBLIC.TEST
 -->        /* PUBLIC.IDX_TEST_VALUE_D */
 -->    ORDER BY 1 DESC
--->    LIMIT 10
+-->    FETCH FIRST 10 ROWS ONLY
 -->    /* index sorted */
 ;
 

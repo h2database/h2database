@@ -7,13 +7,18 @@ package org.h2.mode;
 
 import java.util.HashMap;
 
+import org.h2.engine.Database;
 import org.h2.expression.Function;
 import org.h2.expression.FunctionInfo;
 
 /**
  * Base class for mode-specific functions.
  */
-abstract class FunctionsBase {
+abstract class FunctionsBase extends Function {
+
+    FunctionsBase(Database database, FunctionInfo info) {
+        super(database, info);
+    }
 
     /**
      * Copy a standard function to a mode functions with a different name.

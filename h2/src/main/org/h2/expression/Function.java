@@ -29,6 +29,7 @@ import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.mode.FunctionsMSSQLServer;
+import org.h2.mode.FunctionsMySQL;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.security.BlockCipher;
@@ -144,7 +145,7 @@ public class Function extends Expression implements FunctionCall {
 
     public static final int ROW_NUMBER = 300;
 
-    private static final int VAR_ARGS = -1;
+    protected static final int VAR_ARGS = -1;
     private static final long PRECISION_UNKNOWN = -1;
 
     private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>(256);
@@ -152,11 +153,13 @@ public class Function extends Expression implements FunctionCall {
 
     protected Expression[] args;
 
-    private final FunctionInfo info;
+    protected final FunctionInfo info;
     private ArrayList<Expression> varArgs;
-    private int dataType, scale;
-    private long precision = PRECISION_UNKNOWN;
-    private int displaySize;
+    protected int dataType;
+
+    protected int scale;
+    protected long precision = PRECISION_UNKNOWN;
+    protected int displaySize;
     private final Database database;
 
     static {
@@ -524,6 +527,8 @@ public class Function extends Expression implements FunctionCall {
             switch (database.getMode().getEnum()) {
             case MSSQLServer:
                 return FunctionsMSSQLServer.getFunction(database, name);
+            case MySQL:
+                return FunctionsMySQL.getFunction(database, name);
             default:
                 return null;
             }
@@ -1098,7 +1103,7 @@ public class Function extends Expression implements FunctionCall {
         return table.getDiskSpaceUsed();
     }
 
-    private static Value getNullOrValue(Session session, Expression[] args,
+    protected static Value getNullOrValue(Session session, Expression[] args,
             Value[] values, int i) {
         if (i >= args.length) {
             return null;
@@ -1114,7 +1119,7 @@ public class Function extends Expression implements FunctionCall {
         return v;
     }
 
-    private Value getValueWithArgs(Session session, Expression[] args) {
+    protected Value getValueWithArgs(Session session, Expression[] args) {
         Value[] values = new Value[args.length];
         if (info.nullIfParameterIsNull) {
             for (int i = 0; i < args.length; i++) {

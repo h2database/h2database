@@ -13,12 +13,12 @@ public final class FunctionInfo {
     /**
      * The name of the function.
      */
-    final String name;
+    public final String name;
 
     /**
      * The function type.
      */
-    final int type;
+    public final int type;
 
     /**
      * The number of parameters.
@@ -28,7 +28,7 @@ public final class FunctionInfo {
     /**
      * The data type of the return value.
      */
-    final int returnDataType;
+    public final int returnDataType;
 
     /**
      * If the result of the function is NULL if any of the parameters is NULL.
@@ -38,7 +38,7 @@ public final class FunctionInfo {
     /**
      * If this function always returns the same value for the same parameters.
      */
-    final boolean deterministic;
+    public final boolean deterministic;
 
     /**
      * Should the return value ResultSet be buffered in a local temporary file?
@@ -66,7 +66,7 @@ public final class FunctionInfo {
      *            should the return value ResultSet be buffered in a local
      *            temporary file?
      */
-    FunctionInfo(String name, int type, int parameterCount, int returnDataType, boolean nullIfParameterIsNull,
+    public FunctionInfo(String name, int type, int parameterCount, int returnDataType, boolean nullIfParameterIsNull,
             boolean deterministic, boolean bufferResultSetToLocalTemp) {
         this.name = name;
         this.type = type;

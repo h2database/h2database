@@ -39,6 +39,7 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
         return info != null ? new Function(database, info) : null;
     }
 
-    private FunctionsMSSQLServer() {
+    private FunctionsMSSQLServer(Database database, FunctionInfo info) {
+        super(database, info);
     }
 }

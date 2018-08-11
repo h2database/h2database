@@ -10,8 +10,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.regex.Pattern;
-import org.h2.expression.Function;
-import org.h2.expression.FunctionInfo;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -206,8 +204,6 @@ public class Mode {
      */
     public HashMap<String, DataType> typeByNameMap = new HashMap<>();
 
-    public HashMap<String, FunctionInfo> functionAliases;
-
     private final String name;
 
     private final ModeEnum modeEnum;
@@ -273,9 +269,6 @@ public class Mode {
         dt.sqlType = Types.NUMERIC;
         dt.name = "SMALLMONEY";
         mode.typeByNameMap.put("SMALLMONEY", dt);
-        HashMap<String, FunctionInfo> functions = new HashMap<>();
-        copyFunction(functions, "RANDOM_UUID", "NEWID");
-        mode.functionAliases = functions;
         add(mode);
 
         mode = new Mode(ModeEnum.MySQL);
@@ -347,10 +340,6 @@ public class Mode {
         mode.allowAffinityKey = true;
         mode.indexDefinitionInCreateTable = true;
         add(mode);
-    }
-
-    static void copyFunction(HashMap<String, FunctionInfo> functions, String stdName, String newName) {
-        functions.put(newName, new FunctionInfo(Function.getFunctionInfo(stdName), newName));
     }
 
     private Mode(ModeEnum modeEnum) {

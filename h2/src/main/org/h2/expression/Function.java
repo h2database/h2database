@@ -28,6 +28,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
+import org.h2.mode.FunctionsMSSQLServer;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.security.BlockCipher;
@@ -474,7 +475,13 @@ public class Function extends Expression implements FunctionCall {
         addFunction("VALUES", VALUES, 1, Value.NULL, false, true, false);
     }
 
-    protected Function(Database database, FunctionInfo info) {
+    /**
+     * Creates a new instance of function.
+     *
+     * @param database database
+     * @param info function information
+     */
+    public Function(Database database, FunctionInfo info) {
         this.database = database;
         this.info = info;
         if (info.parameterCount == VAR_ARGS) {
@@ -521,12 +528,10 @@ public class Function extends Expression implements FunctionCall {
         }
         FunctionInfo info = FUNCTIONS.get(name);
         if (info == null) {
-            HashMap<String, FunctionInfo> aliases = database.getMode().functionAliases;
-            if (aliases == null) {
-                return null;
-            }
-            info = aliases.get(name);
-            if (info == null) {
+            switch (database.getMode().getEnum()) {
+            case MSSQLServer:
+                return FunctionsMSSQLServer.getFunction(database, name);
+            default:
                 return null;
             }
         }

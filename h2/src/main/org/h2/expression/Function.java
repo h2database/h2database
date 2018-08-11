@@ -487,15 +487,8 @@ public class Function extends Expression implements FunctionCall {
     private static void addFunction(String name, int type, int parameterCount,
             int returnDataType, boolean nullIfParameterIsNull, boolean deterministic,
             boolean bufferResultSetToLocalTemp) {
-        FunctionInfo info = new FunctionInfo();
-        info.name = name;
-        info.type = type;
-        info.parameterCount = parameterCount;
-        info.returnDataType = returnDataType;
-        info.nullIfParameterIsNull = nullIfParameterIsNull;
-        info.deterministic = deterministic;
-        info.bufferResultSetToLocalTemp = bufferResultSetToLocalTemp;
-        FUNCTIONS.put(name, info);
+        FUNCTIONS.put(name, new FunctionInfo(name, type, parameterCount, returnDataType, nullIfParameterIsNull,
+                deterministic, bufferResultSetToLocalTemp));
     }
 
     private static void addFunctionNotDeterministic(String name, int type,
@@ -528,7 +521,14 @@ public class Function extends Expression implements FunctionCall {
         }
         FunctionInfo info = FUNCTIONS.get(name);
         if (info == null) {
-            return null;
+            HashMap<String, FunctionInfo> aliases = database.getMode().functionAliases;
+            if (aliases == null) {
+                return null;
+            }
+            info = aliases.get(name);
+            if (info == null) {
+                return null;
+            }
         }
         switch (info.type) {
         case TABLE:
@@ -537,6 +537,16 @@ public class Function extends Expression implements FunctionCall {
         default:
             return new Function(database, info);
         }
+    }
+
+    /**
+     * Returns function information for the specified function name.
+     *
+     * @param upperName the function name in upper case
+     * @return the function information or {@code null}
+     */
+    public static FunctionInfo getFunctionInfo(String upperName) {
+        return FUNCTIONS.get(upperName);
     }
 
     /**

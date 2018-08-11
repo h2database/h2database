@@ -14,3 +14,15 @@ select length(curdate()) c1, length(current_date()) c2, substring(curdate(), 5, 
 > -- -- --
 > 10 10 -
 > rows: 1
+
+SELECT GETDATE();
+> exception FUNCTION_NOT_FOUND_1
+
+SET MODE MSSQLServer;
+> ok
+
+SELECT CURRENT_DATE = GETDATE();
+>> TRUE
+
+SET MODE Regular;
+> ok

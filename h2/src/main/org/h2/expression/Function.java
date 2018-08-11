@@ -28,6 +28,8 @@ import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
+import org.h2.mode.FunctionsMSSQLServer;
+import org.h2.mode.FunctionsMySQL;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.security.BlockCipher;
@@ -143,7 +145,7 @@ public class Function extends Expression implements FunctionCall {
 
     public static final int ROW_NUMBER = 300;
 
-    private static final int VAR_ARGS = -1;
+    protected static final int VAR_ARGS = -1;
     private static final long PRECISION_UNKNOWN = -1;
 
     private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>(256);
@@ -151,11 +153,13 @@ public class Function extends Expression implements FunctionCall {
 
     protected Expression[] args;
 
-    private final FunctionInfo info;
+    protected final FunctionInfo info;
     private ArrayList<Expression> varArgs;
-    private int dataType, scale;
-    private long precision = PRECISION_UNKNOWN;
-    private int displaySize;
+    protected int dataType;
+
+    protected int scale;
+    protected long precision = PRECISION_UNKNOWN;
+    protected int displaySize;
     private final Database database;
 
     static {
@@ -239,12 +243,8 @@ public class Function extends Expression implements FunctionCall {
         addFunction("LCASE", LCASE, 1, Value.STRING);
         addFunction("LEFT", LEFT, 2, Value.STRING);
         addFunction("LENGTH", LENGTH, 1, Value.LONG);
-        // alias for MSSQLServer
-        addFunction("LEN", LENGTH, 1, Value.LONG);
         // 2 or 3 arguments
         addFunction("LOCATE", LOCATE, VAR_ARGS, Value.INT);
-        // alias for MSSQLServer
-        addFunction("CHARINDEX", LOCATE, VAR_ARGS, Value.INT);
         // same as LOCATE with 2 arguments
         addFunction("POSITION", LOCATE, 2, Value.INT);
         addFunction("INSTR", INSTR, VAR_ARGS, Value.INT);
@@ -292,9 +292,6 @@ public class Function extends Expression implements FunctionCall {
         addFunction("TO_TIMESTAMP", TO_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP);
         addFunction("ADD_MONTHS", ADD_MONTHS, 2, Value.TIMESTAMP);
         addFunction("TO_TIMESTAMP_TZ", TO_TIMESTAMP_TZ, VAR_ARGS, Value.TIMESTAMP_TZ);
-        // alias for MSSQLServer
-        addFunctionNotDeterministic("GETDATE", CURDATE,
-                0, Value.DATE);
         addFunctionNotDeterministic("CURRENT_TIME", CURRENT_TIME,
                 VAR_ARGS, Value.TIME);
         addFunctionNotDeterministic("LOCALTIME", CURRENT_TIME,
@@ -474,7 +471,13 @@ public class Function extends Expression implements FunctionCall {
         addFunction("VALUES", VALUES, 1, Value.NULL, false, true, false);
     }
 
-    protected Function(Database database, FunctionInfo info) {
+    /**
+     * Creates a new instance of function.
+     *
+     * @param database database
+     * @param info function information
+     */
+    public Function(Database database, FunctionInfo info) {
         this.database = database;
         this.info = info;
         if (info.parameterCount == VAR_ARGS) {
@@ -487,15 +490,8 @@ public class Function extends Expression implements FunctionCall {
     private static void addFunction(String name, int type, int parameterCount,
             int returnDataType, boolean nullIfParameterIsNull, boolean deterministic,
             boolean bufferResultSetToLocalTemp) {
-        FunctionInfo info = new FunctionInfo();
-        info.name = name;
-        info.type = type;
-        info.parameterCount = parameterCount;
-        info.returnDataType = returnDataType;
-        info.nullIfParameterIsNull = nullIfParameterIsNull;
-        info.deterministic = deterministic;
-        info.bufferResultSetToLocalTemp = bufferResultSetToLocalTemp;
-        FUNCTIONS.put(name, info);
+        FUNCTIONS.put(name, new FunctionInfo(name, type, parameterCount, returnDataType, nullIfParameterIsNull,
+                deterministic, bufferResultSetToLocalTemp));
     }
 
     private static void addFunctionNotDeterministic(String name, int type,
@@ -528,7 +524,14 @@ public class Function extends Expression implements FunctionCall {
         }
         FunctionInfo info = FUNCTIONS.get(name);
         if (info == null) {
-            return null;
+            switch (database.getMode().getEnum()) {
+            case MSSQLServer:
+                return FunctionsMSSQLServer.getFunction(database, name);
+            case MySQL:
+                return FunctionsMySQL.getFunction(database, name);
+            default:
+                return null;
+            }
         }
         switch (info.type) {
         case TABLE:
@@ -537,6 +540,16 @@ public class Function extends Expression implements FunctionCall {
         default:
             return new Function(database, info);
         }
+    }
+
+    /**
+     * Returns function information for the specified function name.
+     *
+     * @param upperName the function name in upper case
+     * @return the function information or {@code null}
+     */
+    public static FunctionInfo getFunctionInfo(String upperName) {
+        return FUNCTIONS.get(upperName);
     }
 
     /**
@@ -1090,7 +1103,7 @@ public class Function extends Expression implements FunctionCall {
         return table.getDiskSpaceUsed();
     }
 
-    private static Value getNullOrValue(Session session, Expression[] args,
+    protected static Value getNullOrValue(Session session, Expression[] args,
             Value[] values, int i) {
         if (i >= args.length) {
             return null;
@@ -1106,7 +1119,7 @@ public class Function extends Expression implements FunctionCall {
         return v;
     }
 
-    private Value getValueWithArgs(Session session, Expression[] args) {
+    protected Value getValueWithArgs(Session session, Expression[] args) {
         Value[] values = new Value[args.length];
         if (info.nullIfParameterIsNull) {
             for (int i = 0; i < args.length; i++) {

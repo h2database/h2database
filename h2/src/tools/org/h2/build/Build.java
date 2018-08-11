@@ -524,7 +524,6 @@ public class Build extends BuildBase {
             exclude("temp/org/h2/jcr/*").
             exclude("temp/org/h2/java/*").
             exclude("temp/org/h2/jcr/*").
-            exclude("temp/org/h2/mode/*").
             exclude("temp/org/h2/samples/*").
             exclude("temp/org/h2/server/ftp/*").
             exclude("temp/org/h2/test/*").
@@ -594,7 +593,6 @@ public class Build extends BuildBase {
             exclude("temp/org/h2/jcr/*").
             exclude("temp/org/h2/java/*").
             exclude("temp/org/h2/jcr/*").
-            exclude("temp/org/h2/mode/*").
             exclude("temp/org/h2/samples/*").
             exclude("temp/org/h2/server/ftp/*").
             exclude("temp/org/h2/test/*").

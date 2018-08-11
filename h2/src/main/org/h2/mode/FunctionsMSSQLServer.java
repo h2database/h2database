@@ -19,6 +19,9 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
     private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>();
 
     static {
+        copyFunction(FUNCTIONS, "LOCATE", "CHARINDEX");
+        copyFunction(FUNCTIONS, "CURRENT_DATE", "GETDATE");
+        copyFunction(FUNCTIONS, "LENGTH", "LEN");
         copyFunction(FUNCTIONS, "RANDOM_UUID", "NEWID");
     }
 

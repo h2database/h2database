@@ -9,8 +9,23 @@ create memory table test(id int primary key, name varchar(255));
 insert into test values(1, 'Hello');
 > update count: 1
 
-select length(null) en, len(null) en2, length('This has 17 chars') e_17, len('MSSQLServer uses the len keyword') e_32 from test;
-> EN   EN2  E_17 E_32
-> ---- ---- ---- ----
-> null null 17   32
+select length(null) en, length('This has 17 chars') e_17 from test;
+> EN   E_17
+> ---- ----
+> null 17
 > rows: 1
+
+SELECT LEN(NULL);
+> exception FUNCTION_NOT_FOUND_1
+
+SET MODE MSSQLServer;
+> ok
+
+select len(null) en, len('MSSQLServer uses the len keyword') e_32 from test;
+> EN   E_32
+> ---- ----
+> null 32
+> rows: 1
+
+SET MODE Regular;
+> ok

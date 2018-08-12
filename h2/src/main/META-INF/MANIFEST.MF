@@ -9,7 +9,7 @@ Automatic-Module-Name: com.h2database
 Bundle-Activator: org.h2.util.DbDriverActivator
 Bundle-ManifestVersion: 2
 Bundle-Name: H2 Database Engine
-Bundle-SymbolicName: org.h2
+Bundle-SymbolicName: com.h2database
 Bundle-Vendor: H2 Group
 Bundle-Version: ${version}
 Bundle-License: http://www.h2database.com/html/license.html

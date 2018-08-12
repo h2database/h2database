@@ -4,15 +4,18 @@ Implementation-URL: http://www.h2database.com
 Implementation-Version: ${version}
 Build-Jdk: ${buildJdk}
 Created-By: ${createdBy}
+Automatic-Module-Name: com.h2database.mvstore
 Bundle-Description: The MVStore is a persistent, log structured key-value store.
 Bundle-DocURL: http://h2database.com/html/mvstore.html
 Bundle-ManifestVersion: 2
 Bundle-Name: H2 MVStore
-Bundle-SymbolicName: org.h2.mvstore
+Bundle-SymbolicName: com.h2database.mvstore
 Bundle-Vendor: H2 Group
 Bundle-Version: ${version}
 Bundle-License: http://www.h2database.com/html/license.html
 Bundle-Category: utility
+Import-Package: javax.crypto,
+ javax.crypto.spec
 Export-Package: org.h2.mvstore;version="${version}",
  org.h2.mvstore.type;version="${version}",
  org.h2.mvstore.rtree;version="${version}"

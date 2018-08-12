@@ -15,6 +15,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -239,7 +240,8 @@ public class Build extends BuildBase {
         String classpath = "temp";
         FileList files;
         files = files("src/main/org/h2/mvstore").
-                exclude("src/main/org/h2/mvstore/db/*");
+                exclude("src/main/org/h2/mvstore/db/*").
+                exclude("src/main/org/h2/mvstore/tx/*");
         StringList args = args();
         if (debugInfo) {
             args = args.plus("-Xlint:unchecked", "-d", "temp", "-sourcepath",
@@ -517,7 +519,7 @@ public class Build extends BuildBase {
     public void jar() {
         compile();
         addVersions(true);
-        manifest("H2 Database Engine", "org.h2.tools.Console");
+        manifest("src/main/META-INF/MANIFEST.MF");
         FileList files = files("temp").
             exclude("temp/org/h2/build/*").
             exclude("temp/org/h2/dev/*").
@@ -546,6 +548,7 @@ public class Build extends BuildBase {
     public void jarClient() {
         compile(true, true, false);
         addVersions(false);
+        manifest("src/installer/client/MANIFEST.MF");
         FileList files = files("temp").
             exclude("temp/org/h2/build/*").
             exclude("temp/org/h2/dev/*").
@@ -572,7 +575,7 @@ public class Build extends BuildBase {
     public void jarMVStore() {
         compileMVStore(true);
         addVersions(false);
-        manifestMVStore();
+        manifest("src/installer/mvstore/MANIFEST.MF");
         FileList files = files("temp");
         files.exclude("*.DS_Store");
         files = excludeTestMetaInfFiles(files);
@@ -587,6 +590,7 @@ public class Build extends BuildBase {
     public void jarSmall() {
         compile(false, false, true);
         addVersions(true);
+        manifest("src/installer/small/MANIFEST.MF");
         FileList files = files("temp").
             exclude("temp/org/h2/build/*").
             exclude("temp/org/h2/dev/*").
@@ -687,23 +691,8 @@ public class Build extends BuildBase {
         copy("docs/javadocImpl", files("src/docsrc/javadoc"), "src/docsrc/javadoc");
     }
 
-    private static void manifest(String title, String mainClassName) {
-        String manifest = new String(readFile(new File(
-                "src/main/META-INF/MANIFEST.MF")));
-        manifest = replaceAll(manifest, "${title}", title);
-        manifest = replaceAll(manifest, "${version}", getVersion());
-        manifest = replaceAll(manifest, "${buildJdk}", getJavaSpecVersion());
-        String createdBy = System.getProperty("java.runtime.version") +
-            " (" + System.getProperty("java.vm.vendor") + ")";
-        manifest = replaceAll(manifest, "${createdBy}", createdBy);
-        String mainClassTag = manifest == null ? "" : "Main-Class: " + mainClassName;
-        manifest = replaceAll(manifest, "${mainClassTag}", mainClassTag);
-        writeFile(new File("temp/META-INF/MANIFEST.MF"), manifest.getBytes());
-    }
-
-    private static void manifestMVStore() {
-        String manifest = new String(readFile(new File(
-                "src/installer/mvstore/MANIFEST.MF")));
+    private static void manifest(String path) {
+        String manifest = new String(readFile(new File(path)), StandardCharsets.UTF_8);
         manifest = replaceAll(manifest, "${version}", getVersion());
         manifest = replaceAll(manifest, "${buildJdk}", getJavaSpecVersion());
         String createdBy = System.getProperty("java.runtime.version") +

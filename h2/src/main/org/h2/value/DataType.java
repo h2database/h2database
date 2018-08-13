@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import org.h2.api.ErrorCode;
+import org.h2.api.Interval;
 import org.h2.api.IntervalQualifier;
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.engine.Mode;
@@ -773,6 +774,26 @@ public class DataType {
                     return ValueNull.INSTANCE;
                 }
                 return ValueGeometry.getFromGeometry(x);
+            }
+            case Value.INTERVAL_YEAR:
+            case Value.INTERVAL_MONTH:
+            case Value.INTERVAL_DAY:
+            case Value.INTERVAL_HOUR:
+            case Value.INTERVAL_MINUTE:
+            case Value.INTERVAL_SECOND:
+            case Value.INTERVAL_YEAR_TO_MONTH:
+            case Value.INTERVAL_DAY_TO_HOUR:
+            case Value.INTERVAL_DAY_TO_MINUTE:
+            case Value.INTERVAL_DAY_TO_SECOND:
+            case Value.INTERVAL_HOUR_TO_MINUTE:
+            case Value.INTERVAL_HOUR_TO_SECOND:
+            case Value.INTERVAL_MINUTE_TO_SECOND: {
+                Object x = rs.getObject(columnIndex);
+                if (x == null) {
+                    return ValueNull.INSTANCE;
+                }
+                Interval interval = (Interval) x;
+                return ValueInterval.from(interval.getQualifier(), interval.getLeading(), interval.getRemaining());
             }
             default:
                 if (JdbcUtils.customDataTypesHandler != null) {

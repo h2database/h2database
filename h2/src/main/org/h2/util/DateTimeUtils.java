@@ -1503,31 +1503,31 @@ public class DateTimeUtils {
         case DAY:
         case HOUR:
         case MINUTE:
-            leading = parseIntervalLeading(s, 0, s.length());
+            leading = parseIntervalLeading(s, 0, s.length(), negative);
             remaining = 0;
             break;
         case SECOND: {
             int dot = s.indexOf('.');
             if (dot < 0) {
-                leading = parseIntervalLeading(s, 0, s.length());
+                leading = parseIntervalLeading(s, 0, s.length(), negative);
                 remaining = 0;
             } else {
-                leading = parseIntervalLeading(s, 0, dot);
+                leading = parseIntervalLeading(s, 0, dot, negative);
                 remaining = parseNanos(s, dot + 1, s.length());
             }
             break;
         }
         case YEAR_TO_MONTH:
-            return parseInterval2(qualifier, s, '-', 11);
+            return parseInterval2(qualifier, s, '-', 11, negative);
         case DAY_TO_HOUR:
-            return parseInterval2(qualifier, s, ' ', 23);
+            return parseInterval2(qualifier, s, ' ', 23, negative);
         case DAY_TO_MINUTE: {
             int space = s.indexOf(' ');
             if (space < 0) {
-                leading = parseIntervalLeading(s, 0, s.length());
+                leading = parseIntervalLeading(s, 0, s.length(), negative);
                 remaining = 0;
             } else {
-                leading = parseIntervalLeading(s, 0, space);
+                leading = parseIntervalLeading(s, 0, space, negative);
                 int colon = s.indexOf(':', space + 1);
                 if (colon < 0) {
                     remaining = parseIntervalRemaining(s, space + 1, s.length(), 23) * 60;
@@ -1541,10 +1541,10 @@ public class DateTimeUtils {
         case DAY_TO_SECOND: {
             int space = s.indexOf(' ');
             if (space < 0) {
-                leading = parseIntervalLeading(s, 0, s.length());
+                leading = parseIntervalLeading(s, 0, s.length(), negative);
                 remaining = 0;
             } else {
-                leading = parseIntervalLeading(s, 0, space);
+                leading = parseIntervalLeading(s, 0, space, negative);
                 int colon = s.indexOf(':', space + 1);
                 if (colon < 0) {
                     remaining = parseIntervalRemaining(s, space + 1, s.length(), 23) * 3_600_000_000_000L;
@@ -1563,14 +1563,14 @@ public class DateTimeUtils {
             break;
         }
         case HOUR_TO_MINUTE:
-            return parseInterval2(qualifier, s, ':', 59);
+            return parseInterval2(qualifier, s, ':', 59, negative);
         case HOUR_TO_SECOND: {
             int colon = s.indexOf(':');
             if (colon < 0) {
-                leading = parseIntervalLeading(s, 0, s.length());
+                leading = parseIntervalLeading(s, 0, s.length(), negative);
                 remaining = 0;
             } else {
-                leading = parseIntervalLeading(s, 0, colon);
+                leading = parseIntervalLeading(s, 0, colon, negative);
                 int colon2 = s.indexOf(':', colon + 1);
                 if (colon2 < 0) {
                     remaining = parseIntervalRemaining(s, colon + 1, s.length(), 59) * 60_000_000_000L;
@@ -1584,10 +1584,10 @@ public class DateTimeUtils {
         case MINUTE_TO_SECOND: {
             int dash = s.indexOf(':');
             if (dash < 0) {
-                leading = parseIntervalLeading(s, 0, s.length());
+                leading = parseIntervalLeading(s, 0, s.length(), negative);
                 remaining = 0;
             } else {
-                leading = parseIntervalLeading(s, 0, dash);
+                leading = parseIntervalLeading(s, 0, dash, negative);
                 remaining = parseIntervalRemainingSeconds(s, dash + 1);
             }
             return ValueInterval.from(qualifier, leading, remaining);
@@ -1598,22 +1598,23 @@ public class DateTimeUtils {
         return ValueInterval.from(qualifier, leading, remaining);
     }
 
-    static ValueInterval parseInterval2(IntervalQualifier qualifier, String s, char ch, int max) {
+    static ValueInterval parseInterval2(IntervalQualifier qualifier, String s, char ch, int max, boolean negative) {
         long leading;
         long remaining;
-        int dash = s.indexOf(ch);
+        int dash = s.indexOf(ch, 1);
         if (dash < 0) {
-            leading = parseIntervalLeading(s, 0, s.length());
+            leading = parseIntervalLeading(s, 0, s.length(), negative);
             remaining = 0;
         } else {
-            leading = parseIntervalLeading(s, 0, dash);
+            leading = parseIntervalLeading(s, 0, dash, negative);
             remaining = parseIntervalRemaining(s, dash + 1, s.length(), max);
         }
         return ValueInterval.from(qualifier, leading, remaining);
     }
 
-    private static long parseIntervalLeading(String s, int start, int end) {
-        return Long.parseLong(s.substring(start, end));
+    private static long parseIntervalLeading(String s, int start, int end, boolean negative) {
+        long leading = Long.parseLong(s.substring(start, end));
+        return negative ? -leading : leading;
     }
 
     private static long parseIntervalRemaining(String s, int start, int end, int max) {

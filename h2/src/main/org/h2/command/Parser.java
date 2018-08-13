@@ -188,6 +188,7 @@ import org.h2.table.TableFilter;
 import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableView;
 import org.h2.util.DateTimeFunctions;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.ParserUtil;
 import org.h2.util.StatementBuilder;
@@ -3510,6 +3511,58 @@ public class Parser {
                             r = ValueExpression.get(ValueTimestamp.parse(timestamp, database.getMode()));
                         }
                     }
+                } else if (equalsToken("INTERVAL", name)) {
+                    boolean negative = readIf(MINUS_SIGN);
+                    if (!negative) {
+                        readIf(PLUS_SIGN);
+                    }
+                    String s = readString();
+                    IntervalQualifier qualifier;
+                    if (readIf("YEAR")) {
+                        if (readIf("TO")) {
+                            read("MONTH");
+                            qualifier = IntervalQualifier.YEAR_TO_MONTH;
+                        } else {
+                            qualifier = IntervalQualifier.YEAR;
+                        }
+                    } else if (readIf("MONTH")) {
+                        qualifier = IntervalQualifier.MONTH;
+                    } else if (readIf("DAY")) {
+                        if (readIf("TO")) {
+                            if (readIf("HOUR")) {
+                                qualifier = IntervalQualifier.DAY_TO_HOUR;
+                            } else if (readIf("MINUTE")) {
+                                qualifier = IntervalQualifier.DAY_TO_MINUTE;
+                            } else {
+                                read("SECOND");
+                                qualifier = IntervalQualifier.DAY_TO_SECOND;
+                            }
+                        } else {
+                            qualifier = IntervalQualifier.DAY;
+                        }
+                    } else if (readIf("HOUR")) {
+                        if (readIf("TO")) {
+                            if (readIf("MINUTE")) {
+                                qualifier = IntervalQualifier.HOUR_TO_MINUTE;
+                            } else {
+                                read("SECOND");
+                                qualifier = IntervalQualifier.HOUR_TO_SECOND;
+                            }
+                        } else {
+                            qualifier = IntervalQualifier.HOUR;
+                        }
+                    } else if (readIf("MINUTE")) {
+                        if (readIf("TO")) {
+                            read("SECOND");
+                            qualifier = IntervalQualifier.MINUTE_TO_SECOND;
+                        } else {
+                            qualifier = IntervalQualifier.MINUTE;
+                        }
+                    } else {
+                        read("SECOND");
+                        qualifier = IntervalQualifier.SECOND;
+                    }
+                    r = ValueExpression.get(DateTimeUtils.parseInterval(qualifier, negative, s));
                 } else if (currentTokenType == VALUE &&
                         currentValue.getType() == Value.STRING) {
                     if (equalsToken("DATE", name) ||
@@ -4930,6 +4983,7 @@ public class Parser {
                             throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION,
                                     Integer.toString(originalScale));
                         }
+                        scale = originalScale;
                     }
                 }
             } else if (readIf(OPEN_PAREN)) {

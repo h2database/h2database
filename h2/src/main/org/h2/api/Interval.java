@@ -36,7 +36,7 @@ public final class Interval {
     }
 
     /**
-     * Return qualifier of this interval.
+     * Returns qualifier of this interval.
      *
      * @return qualifier
      */
@@ -44,13 +44,33 @@ public final class Interval {
         return qualifier;
     }
 
+    /**
+     * Returns value of leading field of this interval. For {@code SECOND}
+     * intervals returns integer part of seconds.
+     *
+     * @return value of leading field
+     */
+    public long getLeading() {
+        return leading;
+    }
+
+    /**
+     * Returns combined value of remaining fields of this interval. For
+     * {@code SECOND} intervals returns nanoseconds.
+     *
+     * @return combined value of remaining fields
+     */
+    public long getRemaining() {
+        return remaining;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
         result = prime * result + qualifier.hashCode();
-        result = prime * result + (int) (leading ^ (leading >>> 32));
-        result = prime * result + (int) (remaining ^ (remaining >>> 32));
+        result = prime * result + (int) (leading ^ leading >>> 32);
+        result = prime * result + (int) (remaining ^ remaining >>> 32);
         return result;
     }
 

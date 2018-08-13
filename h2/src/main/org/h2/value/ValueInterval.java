@@ -5,6 +5,7 @@ import java.sql.SQLException;
 
 import org.h2.api.Interval;
 import org.h2.api.IntervalQualifier;
+import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 
 /**
@@ -69,7 +70,66 @@ public class ValueInterval extends Value {
 
     @Override
     public long getPrecision() {
-        return MAXIMUM_PRECISION;
+        long l = leading;
+        if (l < 0) {
+            l = 0;
+        }
+        int precision = 0;
+        while (l > 0) {
+            precision++;
+            l /= 10;
+        }
+        return precision > 0 ? precision : 1;
+    }
+
+    @Override
+    public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
+        if (targetScale >= MAXIMUM_SCALE) {
+            return this;
+        }
+        if (targetScale < 0) {
+            throw DbException.getInvalidValueException("scale", targetScale);
+        }
+        IntervalQualifier qualifier = getQualifier();
+        if (!qualifier.hasSeconds()) {
+            return this;
+        }
+        long r = DateTimeUtils.convertScale(remaining, targetScale);
+        if (r == remaining) {
+            return this;
+        }
+        long l = leading;
+        boolean negative = l < 0;
+        if (negative) {
+            l = -l;
+        }
+        switch (type) {
+        case Value.INTERVAL_SECOND:
+            if (r >= 1_000_000_000) {
+                l++;
+                r -= 1_000_000_000;
+            }
+            break;
+        case Value.INTERVAL_DAY_TO_SECOND:
+            if (r >= DateTimeUtils.NANOS_PER_DAY) {
+                l++;
+                r -= DateTimeUtils.NANOS_PER_DAY;
+            }
+            break;
+        case Value.INTERVAL_HOUR_TO_SECOND:
+            if (r >= 3_600_000_000_000L) {
+                l++;
+                r -= 3_600_000_000_000L;
+            }
+            break;
+        case Value.INTERVAL_MINUTE_TO_SECOND:
+            if (r >= 60_000_000_000L) {
+                l++;
+                r -= 60_000_000_000L;
+            }
+            break;
+        }
+        return from(qualifier, l, r);
     }
 
     @Override
@@ -107,8 +167,8 @@ public class ValueInterval extends Value {
         final int prime = 31;
         int result = 1;
         result = prime * result + type;
-        result = prime * result + (int) (leading ^ (leading >>> 32));
-        result = prime * result + (int) (remaining ^ (remaining >>> 32));
+        result = prime * result + (int) (leading ^ leading >>> 32);
+        result = prime * result + (int) (remaining ^ remaining >>> 32);
         return result;
     }
 

@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import org.h2.api.ErrorCode;
+import org.h2.api.IntervalQualifier;
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.engine.Mode;
 import org.h2.engine.SessionInterface;
@@ -181,9 +182,7 @@ public class DataType {
             g = null;
         }
         GEOMETRY_CLASS = g;
-    }
 
-    static {
         add(Value.NULL, Types.NULL,
                 new DataType(),
                 new String[]{"NULL"},
@@ -294,7 +293,7 @@ public class DataType {
                 createDate(ValueDate.PRECISION, ValueDate.PRECISION,
                         "DATE", false, 0, 0),
                 new String[]{"DATE"},
-                // 24 for ValueDate, 32 for java.sql.Data
+                // 24 for ValueDate, 32 for java.sql.Date
                 56
         );
         add(Value.TIMESTAMP, Types.TIMESTAMP,
@@ -314,7 +313,7 @@ public class DataType {
                         "TIMESTAMP_TZ", true, ValueTimestampTimeZone.DEFAULT_SCALE,
                         ValueTimestampTimeZone.MAXIMUM_SCALE),
                 new String[]{"TIMESTAMP WITH TIME ZONE"},
-                // 26 for ValueTimestampUtc, 32 for java.sql.Timestamp
+                // 26 for ValueTimestampTimeZone, 32 for java.sql.Timestamp
                 58
         );
         add(Value.BYTES, Types.VARBINARY,
@@ -384,6 +383,9 @@ public class DataType {
                 new String[]{"ENUM"},
                 48
         );
+        for (int i = Value.INTERVAL_YEAR; i <= Value.INTERVAL_MINUTE_TO_SECOND; i++) {
+            addInterval(i);
+        }
         for (Integer i : TYPES_BY_VALUE_TYPE.keySet()) {
             Value.getOrder(i);
         }
@@ -409,6 +411,27 @@ public class DataType {
                         ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
                 new String[]{"NUMERIC", "NUMBER"},
                 64
+        );
+    }
+
+    private static void addInterval(int type) {
+        IntervalQualifier qualifier = IntervalQualifier.valueOf(type - Value.INTERVAL_YEAR);
+        String name = qualifier.toString();
+        DataType dataType = new DataType();
+        dataType.prefix = "INTERVAL ";
+        dataType.suffix = ' ' + name;
+        dataType.supportsPrecision = true;
+        dataType.defaultPrecision = ValueInterval.DEFAULT_PRECISION;
+        dataType.maxPrecision = ValueInterval.MAXIMUM_PRECISION;
+        if (qualifier.hasSeconds()) {
+            dataType.supportsScale = true;
+            dataType.defaultScale = ValueInterval.DEFAULT_SCALE;
+            dataType.maxScale = ValueInterval.MAXIMUM_SCALE;
+        }
+        dataType.defaultDisplaySize = Integer.MAX_VALUE;
+        add(type, Types.OTHER, dataType,
+                new String[]{("INTERVAL " + name).intern()},
+                36
         );
     }
 
@@ -1287,6 +1310,16 @@ public class DataType {
     }
 
     /**
+     * Check if the given value type is an interval type.
+     *
+     * @param type the value type
+     * @return true if the value type is an interval type
+     */
+    public static boolean isIntervalType(int type) {
+        return type >= Value.INTERVAL_YEAR && type <= Value.INTERVAL_MINUTE_TO_SECOND;
+    }
+
+    /**
      * Check if the given value type is a large object (BLOB or CLOB).
      *
      * @param type the value type
@@ -1321,6 +1354,19 @@ public class DataType {
         case Value.INT:
         case Value.LONG:
         case Value.SHORT:
+        case Value.INTERVAL_YEAR:
+        case Value.INTERVAL_MONTH:
+        case Value.INTERVAL_DAY:
+        case Value.INTERVAL_HOUR:
+        case Value.INTERVAL_MINUTE:
+        case Value.INTERVAL_SECOND:
+        case Value.INTERVAL_YEAR_TO_MONTH:
+        case Value.INTERVAL_DAY_TO_HOUR:
+        case Value.INTERVAL_DAY_TO_MINUTE:
+        case Value.INTERVAL_DAY_TO_SECOND:
+        case Value.INTERVAL_HOUR_TO_MINUTE:
+        case Value.INTERVAL_HOUR_TO_SECOND:
+        case Value.INTERVAL_MINUTE_TO_SECOND:
             return true;
         case Value.BOOLEAN:
         case Value.TIME:
@@ -1388,6 +1434,19 @@ public class DataType {
         case Value.ARRAY:
         case Value.RESULT_SET:
         case Value.GEOMETRY:
+        case Value.INTERVAL_YEAR:
+        case Value.INTERVAL_MONTH:
+        case Value.INTERVAL_DAY:
+        case Value.INTERVAL_HOUR:
+        case Value.INTERVAL_MINUTE:
+        case Value.INTERVAL_SECOND:
+        case Value.INTERVAL_YEAR_TO_MONTH:
+        case Value.INTERVAL_DAY_TO_HOUR:
+        case Value.INTERVAL_DAY_TO_MINUTE:
+        case Value.INTERVAL_DAY_TO_SECOND:
+        case Value.INTERVAL_HOUR_TO_MINUTE:
+        case Value.INTERVAL_HOUR_TO_SECOND:
+        case Value.INTERVAL_MINUTE_TO_SECOND:
             return type;
         default:
             if (JdbcUtils.customDataTypesHandler != null) {

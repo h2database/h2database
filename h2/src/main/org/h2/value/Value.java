@@ -175,9 +175,74 @@ public abstract class Value {
     public static final int ENUM = 25;
 
     /**
+     * The value type for {@code INTERVAL YEAR} values.
+     */
+    public static final int INTERVAL_YEAR = 26;
+
+    /**
+     * The value type for {@code INTERVAL MONTH} values.
+     */
+    public static final int INTERVAL_MONTH = 27;
+
+    /**
+     * The value type for {@code INTERVAL DAY} values.
+     */
+    public static final int INTERVAL_DAY = 28;
+
+    /**
+     * The value type for {@code INTERVAL HOUR} values.
+     */
+    public static final int INTERVAL_HOUR = 29;
+
+    /**
+     * The value type for {@code INTERVAL MINUTE} values.
+     */
+    public static final int INTERVAL_MINUTE = 30;
+
+    /**
+     * The value type for {@code INTERVAL SECOND} values.
+     */
+    public static final int INTERVAL_SECOND = 31;
+
+    /**
+     * The value type for {@code INTERVAL YEAR TO MONTH} values.
+     */
+    public static final int INTERVAL_YEAR_TO_MONTH = 32;
+
+    /**
+     * The value type for {@code INTERVAL DAY TO HOUR} values.
+     */
+    public static final int INTERVAL_DAY_TO_HOUR = 33;
+
+    /**
+     * The value type for {@code INTERVAL DAY TO MINUTE} values.
+     */
+    public static final int INTERVAL_DAY_TO_MINUTE = 34;
+
+    /**
+     * The value type for {@code INTERVAL DAY TO SECOND} values.
+     */
+    public static final int INTERVAL_DAY_TO_SECOND = 35;
+
+    /**
+     * The value type for {@code INTERVAL HOUR TO MINUTE} values.
+     */
+    public static final int INTERVAL_HOUR_TO_MINUTE = 36;
+
+    /**
+     * The value type for {@code INTERVAL HOUR TO SECOND} values.
+     */
+    public static final int INTERVAL_HOUR_TO_SECOND = 37;
+
+    /**
+     * The value type for {@code INTERVAL MINUTE TO SECOND} values.
+     */
+    public static final int INTERVAL_MINUTE_TO_SECOND = 38;
+
+    /**
      * The number of value types.
      */
-    public static final int TYPE_COUNT = ENUM;
+    public static final int TYPE_COUNT = INTERVAL_MINUTE_TO_SECOND;
 
     private static SoftReference<Value[]> softCache;
     private static final BigDecimal MAX_LONG_DECIMAL =
@@ -316,6 +381,32 @@ public abstract class Value {
             return 26_000;
         case DOUBLE:
             return 27_000;
+        case INTERVAL_YEAR:
+            return 28_000;
+        case INTERVAL_MONTH:
+            return 28_100;
+        case INTERVAL_YEAR_TO_MONTH:
+            return 28_200;
+        case INTERVAL_DAY:
+            return 29_000;
+        case INTERVAL_HOUR:
+            return 29_100;
+        case INTERVAL_DAY_TO_HOUR:
+            return 29_200;
+        case INTERVAL_MINUTE:
+            return 29_300;
+        case INTERVAL_HOUR_TO_MINUTE:
+            return 29_400;
+        case INTERVAL_DAY_TO_MINUTE:
+            return 29_500;
+        case INTERVAL_SECOND:
+            return 29_600;
+        case INTERVAL_MINUTE_TO_SECOND:
+            return 29_700;
+        case INTERVAL_HOUR_TO_SECOND:
+            return 29_800;
+        case INTERVAL_DAY_TO_SECOND:
+            return 29_900;
         case TIME:
             return 30_000;
         case DATE:

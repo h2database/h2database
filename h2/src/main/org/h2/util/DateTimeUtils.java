@@ -1654,9 +1654,11 @@ public class DateTimeUtils {
         boolean negative = leading < 0;
         if (negative) {
             leading = -leading;
-            buff.append('-');
         }
         buff.append('\'');
+        if (negative) {
+            buff.append('-');
+        }
         switch (qualifier) {
         case YEAR:
         case MONTH:

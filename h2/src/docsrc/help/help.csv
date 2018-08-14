@@ -10,10 +10,10 @@ FROM tableExpression [,...] [ WHERE expression ]
 [ GROUP BY expression [,...] ] [ HAVING expression ]
 [ { UNION [ ALL ] | MINUS | EXCEPT | INTERSECT } select ]
 [ ORDER BY order [,...] ]
-[ { { LIMIT expression [ OFFSET expression ] }
-| { [ OFFSET expression { ROW | ROWS } ]
+[ LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] ]
+[ [ OFFSET expression { ROW | ROWS } ]
     [ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
-        { ONLY | WITH TIES } ] } } [ SAMPLE_SIZE rowCountInt ] ]
+        { ONLY | WITH TIES } ] [ SAMPLE_SIZE rowCountInt ] ]
 [ FOR UPDATE ]
 ","
 Selects data from a table or multiple tables.
@@ -2593,8 +2593,124 @@ A literal value of any date-time data type.
 TIMESTAMP '1999-01-31 10:00:00'
 "
 
+"Other Grammar","INTERVAL YEAR","
+INTERVAL [-|+] '[-|+]yearInt' YEAR
+","
+An INTERVAL YEAR literal.
+","
+INTERVAL '10' YEAR
+"
+
+"Other Grammar","INTERVAL MONTH","
+INTERVAL [-|+] '[-|+]monthInt' MONTH
+","
+An INTERVAL MONTH literal.
+","
+INTERVAL '10' MONTH
+"
+
+"Other Grammar","INTERVAL DAY","
+INTERVAL [-|+] '[-|+]dayInt' DAY
+","
+An INTERVAL DAY literal.
+","
+INTERVAL '10' DAY
+"
+
+"Other Grammar","INTERVAL HOUR","
+INTERVAL [-|+] '[-|+]hourInt' HOUR
+","
+An INTERVAL HOUR literal.
+","
+INTERVAL '10' HOUR
+"
+
+"Other Grammar","INTERVAL MINUTE","
+INTERVAL [-|+] '[-|+]minuteInt' MINUTE
+","
+An INTERVAL MINUTE literal.
+","
+INTERVAL '10' MINUTE
+"
+
+"Other Grammar","INTERVAL SECOND","
+INTERVAL [-|+] '[-|+]secondInt[.nnnnnnnnn]' SECOND
+","
+An INTERVAL SECOND literal.
+","
+INTERVAL '10.123' SECOND
+"
+
+"Other Grammar","INTERVAL YEAR TO MONTH","
+INTERVAL [-|+] '[-|+]yearInt-monthInt' YEAR TO MONTH
+","
+An INTERVAL YEAR TO MONTH literal.
+","
+INTERVAL '1-6' YEAR TO MONTH
+"
+
+"Other Grammar","INTERVAL DAY TO HOUR","
+INTERVAL [-|+] '[-|+]dayInt hoursInt' DAY TO HOUR
+","
+An INTERVAL DAY TO HOUR literal.
+","
+INTERVAL '10 11' DAY TO *
+"
+
+"Other Grammar","INTERVAL DAY TO MINUTE","
+INTERVAL [-|+] '[-|+]dayInt hh:mm' DAY TO MINUTE
+","
+An INTERVAL DAY TO MINUTE literal.
+","
+INTERVAL '10 11:12' DAY TO MINUTE
+"
+
+"Other Grammar","INTERVAL DAY TO SECOND","
+INTERVAL [-|+] '[-|+]dayInt hh:mm:ss[.nnnnnnnnn]' DAY TO SECOND
+","
+An INTERVAL DAY TO SECOND literal.
+","
+INTERVAL '10 11:12:13.123' DAY TO SECOND
+"
+
+"Other Grammar","INTERVAL HOUR TO MINUTE","
+INTERVAL [-|+] '[-|+]hh:mm' HOUR TO MINUTE
+","
+An INTERVAL HOUR TO MINUTE literal.
+","
+INTERVAL '10:11' HOUR TO MINUTE
+"
+
+"Other Grammar","INTERVAL HOUR TO SECOND","
+INTERVAL [-|+] '[-|+]hh:mm:ss[.nnnnnnnnn]' HOUR TO SECOND
+","
+An INTERVAL HOUR TO SECOND literal.
+","
+INTERVAL '10:11:12.123' HOUR TO SECOND
+"
+
+"Other Grammar","INTERVAL MINUTE TO SECOND","
+INTERVAL [-|+] '[-|+]mm:ss[.nnnnnnnnn]' MINUTE TO SECOND
+","
+An INTERVAL MINUTE TO SECOND literal.
+","
+INTERVAL '11:12.123' MINUTE TO SECOND
+"
+
+"Other Grammar","Interval","
+intervalYear | intervalMonth | intervalDay | intervalHour | intervalMinute
+| intervalSecond | intervalYearToMonth | intervalDayToHour
+| intervalDayToMinute | intervalDayToSecond | intervalHourToMinute
+| intervalHourToSecond | intervalMinuteToSecond
+","
+An interval literal.
+","
+INTERVAL '1-2' YEAR TO MONTH
+"
+
 "Other Grammar","Value","
-string | dollarQuotedString | numeric | dateAndTime | boolean | bytes | array | null
+string | dollarQuotedString | numeric | dateAndTime | boolean | bytes
+| interval | array | null
 ","
 A literal value of any data type, or null.
 ","
@@ -2930,6 +3046,163 @@ Use a quoted string containing a WKT/EWKT formatted string or ""PreparedStatemen
 and ""ResultSet.getObject(..)"" or ""ResultSet.getString(..)"" to retrieve the values.
 ","
 GEOMETRY
+"
+
+"Data Types","INTERVAL YEAR Type","
+INTERVAL YEAR [ ( precisionInt ) ]
+","
+Interval data type.
+If precision is specified it should be from 1 to 18, 2 is default.
+
+Mapped to ""org.h2.api.Interval"".
+","
+INTERVAL YEAR
+"
+
+"Data Types","INTERVAL MONTH Type","
+INTERVAL MONTH [ ( precisionInt ) ]
+","
+Interval data type.
+If precision is specified it should be from 1 to 18, 2 is default.
+
+Mapped to ""org.h2.api.Interval"".
+","
+INTERVAL MONTH
+"
+
+"Data Types","INTERVAL DAY Type","
+INTERVAL DAY [ ( precisionInt ) ]
+","
+Interval data type.
+If precision is specified it should be from 1 to 18, 2 is default.
+
+Mapped to ""org.h2.api.Interval"".
+""java.time.Duration"" is also supported on Java 8 and later versions.
+","
+INTERVAL DAY
+"
+
+"Data Types","INTERVAL HOUR Type","
+INTERVAL HOUR [ ( precisionInt ) ]
+","
+Interval data type.
+If precision is specified it should be from 1 to 18, 2 is default.
+
+Mapped to ""org.h2.api.Interval"".
+""java.time.Duration"" is also supported on Java 8 and later versions.
+","
+INTERVAL HOUR
+"
+
+"Data Types","INTERVAL MINUTE Type","
+INTERVAL MINUTE [ ( precisionInt ) ]
+","
+Interval data type.
+If precision is specified it should be from 1 to 18, 2 is default.
+
+Mapped to ""org.h2.api.Interval"".
+""java.time.Duration"" is also supported on Java 8 and later versions.
+","
+INTERVAL MINUTE
+"
+
+"Data Types","INTERVAL SECOND Type","
+INTERVAL SECOND [ ( precisionInt [ , scaleInt ] ) ]
+","
+Interval data type.
+If precision is specified it should be from 1 to 18, 2 is default.
+If fractional seconds precision (scale) is specified it should be from 0 to 9, 6 is default.
+
+Mapped to ""org.h2.api.Interval"".
+""java.time.Duration"" is also supported on Java 8 and later versions.
+","
+INTERVAL SECOND
+"
+
+"Data Types","INTERVAL YEAR TO MONTH Type","
+INTERVAL YEAR [ ( precisionInt ) ] TO MONTH
+","
+Interval data type.
+If precision is specified it should be from 1 to 18, 2 is default.
+
+Mapped to ""org.h2.api.Interval"".
+","
+INTERVAL YEAR TO MONTH
+"
+
+"Data Types","INTERVAL DAY TO HOUR Type","
+INTERVAL DAY [ ( precisionInt ) ] TO HOUR
+","
+Interval data type.
+If precision is specified it should be from 1 to 18, 2 is default.
+
+Mapped to ""org.h2.api.Interval"".
+""java.time.Duration"" is also supported on Java 8 and later versions.
+","
+INTERVAL DAY TO HOUR
+"
+
+"Data Types","INTERVAL DAY TO MINUTE Type","
+INTERVAL DAY [ ( precisionInt ) ] TO MINUTE
+","
+Interval data type.
+If precision is specified it should be from 1 to 18, 2 is default.
+
+Mapped to ""org.h2.api.Interval"".
+""java.time.Duration"" is also supported on Java 8 and later versions.
+","
+INTERVAL DAY TO MINUTE
+"
+
+"Data Types","INTERVAL DAY TO SECOND Type","
+INTERVAL DAY [ ( precisionInt ) ] TO SECOND [ ( scaleInt ) ]
+","
+Interval data type.
+If precision is specified it should be from 1 to 18, 2 is default.
+If fractional seconds precision (scale) is specified it should be from 0 to 9, 6 is default.
+
+Mapped to ""org.h2.api.Interval"".
+""java.time.Duration"" is also supported on Java 8 and later versions.
+","
+INTERVAL DAY TO SECOND
+"
+
+"Data Types","INTERVAL HOUR TO MINUTE Type","
+INTERVAL HOUR [ ( precisionInt ) ] TO MINUTE
+","
+Interval data type.
+If precision is specified it should be from 1 to 18, 2 is default.
+
+Mapped to ""org.h2.api.Interval"".
+""java.time.Duration"" is also supported on Java 8 and later versions.
+","
+INTERVAL HOUR TO MINUTE
+"
+
+"Data Types","INTERVAL HOUR TO SECOND Type","
+INTERVAL HOUR [ ( precisionInt ) ] TO SECOND [ ( scaleInt ) ]
+","
+Interval data type.
+If precision is specified it should be from 1 to 18, 2 is default.
+If fractional seconds precision (scale) is specified it should be from 0 to 9, 6 is default.
+
+Mapped to ""org.h2.api.Interval"".
+""java.time.Duration"" is also supported on Java 8 and later versions.
+","
+INTERVAL HOUR TO SECOND
+"
+
+"Data Types","INTERVAL MINUTE TO SECOND Type","
+INTERVAL * [ ( precisionInt ) ] TO SECOND [ ( scaleInt ) ]
+","
+Interval data type.
+If precision is specified it should be from 1 to 18, 2 is default.
+If fractional seconds precision (scale) is specified it should be from 0 to 9, 6 is default.
+
+Mapped to ""org.h2.api.Interval"".
+""java.time.Duration"" is also supported on Java 8 and later versions.
+","
+INTERVAL MINUTE TO SECOND
 "
 
 "Functions (Aggregate)","AVG","
@@ -4078,7 +4351,7 @@ DAY_OF_YEAR(CREATED)
 "
 
 "Functions (Time and Date)","EXTRACT","
-EXTRACT ( datetimeField FROM dateAndTime )
+EXTRACT ( datetimeField FROM { dateAndTime | interval })
 ","
 Returns a value of the specific time unit from a date/time value.
 This method returns a numeric value with EPOCH field and

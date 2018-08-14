@@ -10,7 +10,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
@@ -709,13 +708,14 @@ public class MVStore {
 
         long blocksInStore = fileStore.size() / BLOCK_SIZE;
         // this queue will hold potential candidates for lastChunk to fall back to
-        Queue<Chunk> lastChunkCandidates = new PriorityQueue<>(Math.max(32, (int)(blocksInStore / 4)), new Comparator<Chunk>() {
+        Queue<Chunk> lastChunkCandidates = new PriorityQueue<>(Math.max(32, (int)(blocksInStore / 4)),
+                new Comparator<Chunk>() {
             @Override
             public int compare(Chunk one, Chunk two) {
                 int result = Long.compare(two.version, one.version);
                 if (result == 0) {
                     // out of two versions of the same chunk we prefer the one
-                    // close to the begining of file (presumably later version)
+                    // close to the beginning of file (presumably later version)
                     result = Long.compare(one.block, two.block);
                 }
                 return result;
@@ -772,7 +772,7 @@ public class MVStore {
                     continue;
                 }
                 // chunk reference is invalid
-                // this "last chunk" cadidate is not suitable
+                // this "last chunk" candidate is not suitable
                 // but we continue to process all references
                 // to find other potential candidates
                 verified = false;

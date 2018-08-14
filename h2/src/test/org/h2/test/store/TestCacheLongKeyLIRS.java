@@ -342,7 +342,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
             test.put(i, 10 * i);
         }
         verify(test, "mem: 4 stack: 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 " +
-                     "cold: 19 non-resident: 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 0");
+                "cold: 19 non-resident: 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 0");
     }
 
     private void testLimitMemory() {

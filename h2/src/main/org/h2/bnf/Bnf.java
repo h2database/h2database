@@ -258,6 +258,8 @@ public class Bnf {
         ArrayList<String> list = new ArrayList<>();
         syntax = StringUtils.replaceAll(syntax, "yyyy-MM-dd", "@ymd@");
         syntax = StringUtils.replaceAll(syntax, "hh:mm:ss", "@hms@");
+        syntax = StringUtils.replaceAll(syntax, "hh:mm", "@hms@");
+        syntax = StringUtils.replaceAll(syntax, "mm:ss", "@hms@");
         syntax = StringUtils.replaceAll(syntax, "nnnnnnnnn", "@nanos@");
         syntax = StringUtils.replaceAll(syntax, "function", "@func@");
         syntax = StringUtils.replaceAll(syntax, "0x", "@hexStart@");

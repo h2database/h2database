@@ -21,6 +21,8 @@ public final class Interval {
     private final long remaining;
 
     /**
+     * Creates a new interval.
+     *
      * @param years
      *            years
      * @return interval
@@ -30,6 +32,8 @@ public final class Interval {
     }
 
     /**
+     * Creates a new interval.
+     *
      * @param months
      *            months
      * @return interval
@@ -39,6 +43,8 @@ public final class Interval {
     }
 
     /**
+     * Creates a new interval.
+     *
      * @param days
      *            days
      * @return interval
@@ -48,6 +54,8 @@ public final class Interval {
     }
 
     /**
+     * Creates a new interval.
+     *
      * @param hours
      *            hours
      * @return interval
@@ -57,6 +65,8 @@ public final class Interval {
     }
 
     /**
+     * Creates a new interval.
+     *
      * @param minutes
      *            minutes
      * @return interval
@@ -66,6 +76,8 @@ public final class Interval {
     }
 
     /**
+     * Creates a new interval.
+     *
      * @param nanos
      *            nanoseconds (including seconds)
      * @return interval
@@ -82,6 +94,8 @@ public final class Interval {
     }
 
     /**
+     * Creates a new interval.
+     *
      * @param qualifier
      *            qualifier
      * @param negative

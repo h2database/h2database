@@ -690,7 +690,8 @@ public final class DateTimeFunctions {
                 return DateTimeUtils.getSundayDayOfWeek(dateValue);
             case WEEK:
                 GregorianCalendar gc = DateTimeUtils.getCalendar();
-                return DateTimeUtils.getWeekOfYear(dateValue, gc.getFirstDayOfWeek() - 1, gc.getMinimalDaysInFirstWeek());
+                return DateTimeUtils.getWeekOfYear(dateValue, gc.getFirstDayOfWeek() - 1,
+                        gc.getMinimalDaysInFirstWeek());
             case QUARTER:
                 return (DateTimeUtils.monthFromDateValue(dateValue) - 1) / 3 + 1;
             case ISO_YEAR:

@@ -290,7 +290,9 @@ public class TestScript extends TestDb {
                 if (buff.length() > 0) {
                     addWriteResultError("<command>", sql);
                 } else {
-                    reconnect(conn.getAutoCommit());
+                    if (!config.memory) {
+                        reconnect(conn.getAutoCommit());
+                    }
                 }
             } else {
                 write(sql);

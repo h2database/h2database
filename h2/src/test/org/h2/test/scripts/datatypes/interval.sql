@@ -75,23 +75,23 @@ INSERT INTO TEST VALUES (
 
 SELECT I01, I02, I03, I04, I05, I06 FROM TEST ORDER BY ID;
 > I01                I02                 I03               I04                I05                  I06
-> ------------------ ------------------- ----------------- ------------------ -------------------- --------------------------
+> ------------------ ------------------- ----------------- ------------------ -------------------- ---------------------------
 > INTERVAL '1' YEAR  INTERVAL '1' MONTH  INTERVAL '1' DAY  INTERVAL '1' HOUR  INTERVAL '1' MINUTE  INTERVAL '1.123457' SECOND
-> INTERVAL '-1' YEAR INTERVAL '-1' MONTH INTERVAL '-1' DAY INTERVAL '-1' HOUR INTERVAL '-1' MINUTE INTERVAL '1.123457' SECOND
+> INTERVAL '-1' YEAR INTERVAL '-1' MONTH INTERVAL '-1' DAY INTERVAL '-1' HOUR INTERVAL '-1' MINUTE INTERVAL '-1.123457' SECOND
 > rows (ordered): 2
 
 SELECT I07, I08, I09, I10 FROM TEST ORDER BY ID;
 > I07                           I08                          I09                               I10
-> ----------------------------- ---------------------------- --------------------------------- ------------------------------------------
+> ----------------------------- ---------------------------- --------------------------------- -------------------------------------------
 > INTERVAL '1-2' YEAR TO MONTH  INTERVAL '1 02' DAY TO HOUR  INTERVAL '1 02:03' DAY TO MINUTE  INTERVAL '1 02:03:04.123457' DAY TO SECOND
-> INTERVAL '-1-2' YEAR TO MONTH INTERVAL '-1 02' DAY TO HOUR INTERVAL '-1 02:03' DAY TO MINUTE INTERVAL '1 02:03:04.123457' DAY TO SECOND
+> INTERVAL '-1-2' YEAR TO MONTH INTERVAL '-1 02' DAY TO HOUR INTERVAL '-1 02:03' DAY TO MINUTE INTERVAL '-1 02:03:04.123457' DAY TO SECOND
 > rows (ordered): 2
 
 SELECT I11, I12, I12 FROM TEST ORDER BY ID;
-> I11                             I12                                      I12
-> ------------------------------- ---------------------------------------- ----------------------------------------
-> INTERVAL '1:02' HOUR TO MINUTE  INTERVAL '1:02:03.123457' HOUR TO SECOND INTERVAL '1:02:03.123457' HOUR TO SECOND
-> INTERVAL '-1:02' HOUR TO MINUTE INTERVAL '1:02:03.123457' HOUR TO SECOND INTERVAL '1:02:03.123457' HOUR TO SECOND
+> I11                             I12                                       I12
+> ------------------------------- ----------------------------------------- -----------------------------------------
+> INTERVAL '1:02' HOUR TO MINUTE  INTERVAL '1:02:03.123457' HOUR TO SECOND  INTERVAL '1:02:03.123457' HOUR TO SECOND
+> INTERVAL '-1:02' HOUR TO MINUTE INTERVAL '-1:02:03.123457' HOUR TO SECOND INTERVAL '-1:02:03.123457' HOUR TO SECOND
 > rows (ordered): 2
 
 SELECT J01, J02, J03, J04, J05, J06 FROM TEST ORDER BY ID;

@@ -129,7 +129,7 @@ public class ValueInterval extends Value {
             }
             break;
         }
-        return from(qualifier, l, r);
+        return from(qualifier, negative ? -l : l, r);
     }
 
     @Override
@@ -201,7 +201,7 @@ public class ValueInterval extends Value {
             return false;
         }
         ValueInterval other = (ValueInterval) obj;
-        return type == other.type && leading == other.leading || remaining == other.remaining;
+        return type == other.type && leading == other.leading && remaining == other.remaining;
     }
 
     @Override

@@ -3562,7 +3562,11 @@ public class Parser {
                         read("SECOND");
                         qualifier = IntervalQualifier.SECOND;
                     }
-                    r = ValueExpression.get(DateTimeUtils.parseInterval(qualifier, negative, s));
+                    try {
+                        r = ValueExpression.get(DateTimeUtils.parseInterval(qualifier, negative, s));
+                    } catch (Exception e) {
+                        throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, e, "INTERVAL", s);
+                    }
                 } else if (currentTokenType == VALUE &&
                         currentValue.getType() == Value.STRING) {
                     if (equalsToken("DATE", name) ||

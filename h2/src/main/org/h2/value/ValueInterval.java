@@ -157,6 +157,26 @@ public class ValueInterval extends Value {
         return IntervalQualifier.valueOf(type - INTERVAL_YEAR);
     }
 
+    /**
+     * Returns value of leading field of this interval. For {@code SECOND}
+     * intervals returns integer part of seconds.
+     *
+     * @return value of leading field
+     */
+    public long getLeading() {
+        return leading;
+    }
+
+    /**
+     * Returns combined value of remaining fields of this interval. For
+     * {@code SECOND} intervals returns nanoseconds.
+     *
+     * @return combined value of remaining fields
+     */
+    public long getRemaining() {
+        return remaining;
+    }
+
     @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         prep.setString(parameterIndex, getString());

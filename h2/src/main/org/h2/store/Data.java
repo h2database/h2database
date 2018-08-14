@@ -19,6 +19,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import org.h2.api.ErrorCode;
+import org.h2.api.IntervalQualifier;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
@@ -39,6 +40,7 @@ import org.h2.value.ValueDouble;
 import org.h2.value.ValueFloat;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueLobDb;
@@ -655,6 +657,32 @@ public class Data {
             }
             break;
         }
+        case Value.INTERVAL_YEAR:
+        case Value.INTERVAL_MONTH:
+        case Value.INTERVAL_DAY:
+        case Value.INTERVAL_HOUR:
+        case Value.INTERVAL_MINUTE: {
+            ValueInterval interval = (ValueInterval) v;
+            writeByte((byte) Value.INTERVAL_YEAR);
+            writeByte((byte) (type - Value.INTERVAL_YEAR));
+            writeVarLong(interval.getLeading());
+            break;
+        }
+        case Value.INTERVAL_SECOND:
+        case Value.INTERVAL_YEAR_TO_MONTH:
+        case Value.INTERVAL_DAY_TO_HOUR:
+        case Value.INTERVAL_DAY_TO_MINUTE:
+        case Value.INTERVAL_DAY_TO_SECOND:
+        case Value.INTERVAL_HOUR_TO_MINUTE:
+        case Value.INTERVAL_HOUR_TO_SECOND:
+        case Value.INTERVAL_MINUTE_TO_SECOND: {
+            ValueInterval interval = (ValueInterval) v;
+            writeByte((byte) Value.INTERVAL_YEAR);
+            writeByte((byte) (type - Value.INTERVAL_YEAR));
+            writeVarLong(interval.getLeading());
+            writeVarLong(interval.getRemaining());
+            break;
+        }
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 byte[] b = v.getBytesNoCopy();
@@ -842,6 +870,11 @@ public class Data {
                 rs.addRow(o);
             }
             return ValueResultSet.get(rs);
+        }
+        case Value.INTERVAL_YEAR: {
+            int ordinal = readByte() & 0xff;
+            return ValueInterval.from(IntervalQualifier.valueOf(ordinal), readVarLong(),
+                    ordinal < 5 ? 0 : readVarLong());
         }
         case CUSTOM_DATA_TYPE: {
             if (JdbcUtils.customDataTypesHandler != null) {
@@ -1081,6 +1114,25 @@ public class Data {
                 throw DbException.convert(e);
             }
             return len;
+        }
+        case Value.INTERVAL_YEAR:
+        case Value.INTERVAL_MONTH:
+        case Value.INTERVAL_DAY:
+        case Value.INTERVAL_HOUR:
+        case Value.INTERVAL_MINUTE: {
+            ValueInterval interval = (ValueInterval) v;
+            return 2 + getVarLongLen(interval.getLeading());
+        }
+        case Value.INTERVAL_SECOND:
+        case Value.INTERVAL_YEAR_TO_MONTH:
+        case Value.INTERVAL_DAY_TO_HOUR:
+        case Value.INTERVAL_DAY_TO_MINUTE:
+        case Value.INTERVAL_DAY_TO_SECOND:
+        case Value.INTERVAL_HOUR_TO_MINUTE:
+        case Value.INTERVAL_HOUR_TO_SECOND:
+        case Value.INTERVAL_MINUTE_TO_SECOND: {
+            ValueInterval interval = (ValueInterval) v;
+            return 2 + getVarLongLen(interval.getLeading()) + getVarLongLen(interval.getRemaining());
         }
         default:
             if (JdbcUtils.customDataTypesHandler != null) {

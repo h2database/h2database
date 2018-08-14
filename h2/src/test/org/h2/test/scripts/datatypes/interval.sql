@@ -71,6 +71,8 @@ INSERT INTO TEST VALUES (
     INTERVAL -'1:2:3.123456789' HOUR TO SECOND, INTERVAL -'1:2.123456789' MINUTE TO SECOND);
 > update count: 2
 
+@reconnect
+
 SELECT I01, I02, I03, I04, I05, I06 FROM TEST ORDER BY ID;
 > I01                I02                 I03               I04                I05                  I06
 > ------------------ ------------------- ----------------- ------------------ -------------------- --------------------------

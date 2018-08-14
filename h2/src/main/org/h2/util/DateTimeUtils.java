@@ -2039,4 +2039,149 @@ public class DateTimeUtils {
         return Math.abs(absolute.longValue());
     }
 
+    /**
+     * @param value interval
+     * @return years, or 0
+     */
+    public static long yearsFromInterval(ValueInterval value) {
+        IntervalQualifier qualifier = value.getQualifier();
+        if (qualifier == IntervalQualifier.YEAR || qualifier == IntervalQualifier.YEAR_TO_MONTH) {
+            long v = value.getLeading();
+            if (value.isNegative()) {
+                v = -v;
+            }
+            return v;
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * @param value interval
+     * @return months, or 0
+     */
+    public static long monthFromInterval(ValueInterval value) {
+        IntervalQualifier qualifier = value.getQualifier();
+        long v;
+        if (qualifier == IntervalQualifier.MONTH) {
+            v = value.getLeading();
+        } else if (qualifier == IntervalQualifier.YEAR_TO_MONTH){
+            v = value.getRemaining();
+        } else {
+            return 0;
+        }
+        if (value.isNegative()) {
+            v = -v;
+        }
+        return v;
+    }
+
+    /**
+     * @param value interval
+     * @return months, or 0
+     */
+    public static long daysFromInterval(ValueInterval value) {
+        switch (value.getQualifier()) {
+        case DAY:
+        case DAY_TO_HOUR:
+        case DAY_TO_MINUTE:
+        case DAY_TO_SECOND:
+            long v = value.getLeading();
+            if (value.isNegative()) {
+                v = -v;
+            }
+            return v;
+        default:
+            return 0;
+        }
+    }
+
+    /**
+     * @param value interval
+     * @return hours, or 0
+     */
+    public static long hoursFromInterval(ValueInterval value) {
+        long v;
+        switch (value.getQualifier()) {
+        case HOUR:
+        case HOUR_TO_MINUTE:
+        case HOUR_TO_SECOND:
+            v = value.getLeading();
+            break;
+        case DAY_TO_HOUR:
+            v = value.getRemaining();
+            break;
+        case DAY_TO_MINUTE:
+            v = value.getRemaining() / 60;
+            break;
+        case DAY_TO_SECOND:
+            v = value.getRemaining() / 3_600_000_000_000L;
+            break;
+        default:
+            return 0;
+        }
+        if (value.isNegative()) {
+            v = -v;
+        }
+        return v;
+    }
+
+    /**
+     * @param value interval
+     * @return minutes, or 0
+     */
+    public static long minutesFromInterval(ValueInterval value) {
+        long v;
+        switch (value.getQualifier()) {
+        case MINUTE:
+        case MINUTE_TO_SECOND:
+            v = value.getLeading();
+            break;
+        case DAY_TO_MINUTE:
+            v = value.getRemaining() % 60;
+            break;
+        case DAY_TO_SECOND:
+            v = value.getRemaining() / 60_000_000_000L % 60;
+            break;
+        case HOUR_TO_MINUTE:
+            v = value.getRemaining();
+            break;
+        case HOUR_TO_SECOND:
+            v = value.getRemaining() / 60_000_000_000L;
+            break;
+        default:
+            return 0;
+        }
+        if (value.isNegative()) {
+            v = -v;
+        }
+        return v;
+    }
+
+    /**
+     * @param value interval
+     * @return nanoseconds, or 0
+     */
+    public static long nanosFromInterval(ValueInterval value) {
+        long v;
+        switch (value.getQualifier()) {
+        case SECOND:
+            v = value.getLeading() * 1_000_000_000 + value.getRemaining();
+            break;
+        case DAY_TO_SECOND:
+        case HOUR_TO_SECOND:
+            v = value.getRemaining() % 60_000_000_000L;
+            break;
+        case MINUTE_TO_SECOND:
+            v = value.getRemaining();
+            break;
+        default:
+            return 0;
+        }
+        if (value.isNegative()) {
+            v = -v;
+        }
+        return v;
+    }
+
 }

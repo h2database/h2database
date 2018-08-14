@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import org.h2.api.ErrorCode;
+import org.h2.api.Interval;
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Mode;
@@ -53,6 +54,7 @@ import org.h2.value.ValueDecimal;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueFloat;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueInterval;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueShort;
@@ -3929,6 +3931,12 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         } else if (type == TimestampWithTimeZone.class) {
             ValueTimestampTimeZone v = (ValueTimestampTimeZone) value.convertTo(Value.TIMESTAMP_TZ);
             return type.cast(new TimestampWithTimeZone(v.getDateValue(), v.getTimeNanos(), v.getTimeZoneOffsetMins()));
+        } else if (type == Interval.class) {
+            if (!(value instanceof ValueInterval)) {
+                value = value.convertTo(Value.INTERVAL_DAY_TO_SECOND);
+            }
+            ValueInterval v = (ValueInterval) value;
+            return type.cast(new Interval(v.getQualifier(), v.getLeading(), v.getRemaining()));
         } else if (DataType.isGeometryClass(type)) {
             return type.cast(value.convertTo(Value.GEOMETRY).getObject());
         } else if (type == LocalDateTimeUtils.LOCAL_DATE) {

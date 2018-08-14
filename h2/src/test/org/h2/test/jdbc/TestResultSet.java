@@ -37,6 +37,8 @@ import java.util.Collections;
 import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
+import org.h2.api.Interval;
+import org.h2.api.IntervalQualifier;
 import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -103,6 +105,7 @@ public class TestResultSet extends TestDb {
         testDoubleFloat();
         testDatetime();
         testDatetimeWithCalendar();
+        testInterval();
         testBlob();
         testClob();
         testAutoIncrement();
@@ -1560,6 +1563,22 @@ public class TestResultSet extends TestDb {
 
         assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
+    }
+
+    private void testInterval() throws SQLException {
+        trace("Test INTERVAL");
+        ResultSet rs;
+
+        rs = stat.executeQuery("CALL INTERVAL '10' YEAR");
+        rs.next();
+        assertEquals("INTERVAL '10' YEAR", rs.getString(1));
+        Interval expected = new Interval(IntervalQualifier.YEAR, 10, 0);
+        assertEquals(expected, rs.getObject(1));
+        assertEquals(expected, rs.getObject(1, Interval.class));
+        ResultSetMetaData metaData = rs.getMetaData();
+        assertEquals(Types.OTHER, metaData.getColumnType(1));
+        assertEquals("INTERVAL YEAR", metaData.getColumnTypeName(1));
+        assertEquals(Interval.class.getName(), metaData.getColumnClassName(1));
     }
 
     private void testBlob() throws SQLException {

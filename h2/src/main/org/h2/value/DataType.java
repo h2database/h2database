@@ -1275,6 +1275,8 @@ public class DataType {
         } else if (x instanceof Interval) {
             Interval i = (Interval) x;
             return ValueInterval.from(i.getQualifier(), i.getLeading(), i.getRemaining());
+        } else if (clazz == LocalDateTimeUtils.DURATION) {
+            return LocalDateTimeUtils.durationToValue(x);
         } else {
             if (JdbcUtils.customDataTypesHandler != null) {
                 return JdbcUtils.customDataTypesHandler.getValue(type, x,

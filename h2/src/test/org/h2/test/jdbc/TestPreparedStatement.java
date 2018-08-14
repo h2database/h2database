@@ -183,6 +183,7 @@ public class TestPreparedStatement extends TestDb {
         testOffsetDateTime8(conn);
         testInstant8(conn);
         testInterval(conn);
+        testInterval8(conn);
         testArray(conn);
         testSetObject(conn);
         testPreparedSubquery(conn);
@@ -914,6 +915,25 @@ public class TestPreparedStatement extends TestDb {
         assertEquals("INTERVAL '100' MINUTE", rs.getString(1));
         assertEquals(interval, rs.getObject(1));
         assertEquals(interval, rs.getObject(1, Interval.class));
+    }
+
+    private void testInterval8(Connection conn) throws SQLException {
+        if (!LocalDateTimeUtils.isJava8DateApiPresent()) {
+            return;
+        }
+        PreparedStatement prep = conn.prepareStatement("SELECT ?");
+        Object duration;
+        try {
+            duration = LocalDateTimeUtils.DURATION.getMethod("ofSeconds", long.class, long.class)
+                    .invoke(null, -4, 900_000_000);
+        } catch (ReflectiveOperationException ex) {
+            throw new RuntimeException(ex);
+        }
+        prep.setObject(1, duration);
+        ResultSet rs = prep.executeQuery();
+        rs.next();
+        assertEquals("INTERVAL '-3.1' SECOND", rs.getString(1));
+        assertEquals(duration, rs.getObject(1, LocalDateTimeUtils.DURATION));
     }
 
     private void testPreparedSubquery(Connection conn) throws SQLException {

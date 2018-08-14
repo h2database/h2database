@@ -9,12 +9,17 @@ package org.h2.util;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import org.h2.api.ErrorCode;
+import org.h2.api.IntervalQualifier;
 import org.h2.message.DbException;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
+import org.h2.value.ValueInterval;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
@@ -64,6 +69,11 @@ public class LocalDateTimeUtils {
      * {@code Class<java.time.ZoneOffset>} or {@code null}.
      */
     private static final Class<?> ZONE_OFFSET;
+
+    /**
+     * {@code Class<java.time.Duration>} or {@code null}.
+     */
+    public static final Class<?> DURATION;
 
     /**
      * {@code java.time.LocalTime#ofNanoOfDay()} or {@code null}.
@@ -146,6 +156,21 @@ public class LocalDateTimeUtils {
      */
     private static final Method ZONE_OFFSET_GET_TOTAL_SECONDS;
 
+    /**
+     * {@code java.time.Duration#ofSeconds(long, long)} or {@code null}.
+     */
+    private static final Method DURATION_OF_SECONDS;
+
+    /**
+     * {@code java.time.Duration#getSeconds()} or {@code null}.
+     */
+    private static final Method DURATION_GET_SECONDS;
+
+    /**
+     * {@code java.time.Duration#getNano()} or {@code null}.
+     */
+    private static final Method DURATION_GET_NANO;
+
     private static final boolean IS_JAVA8_DATE_API_PRESENT;
 
     static {
@@ -155,9 +180,10 @@ public class LocalDateTimeUtils {
         INSTANT = tryGetClass("java.time.Instant");
         OFFSET_DATE_TIME = tryGetClass("java.time.OffsetDateTime");
         ZONE_OFFSET = tryGetClass("java.time.ZoneOffset");
+        DURATION = tryGetClass("java.time.Duration");
         IS_JAVA8_DATE_API_PRESENT = LOCAL_DATE != null && LOCAL_TIME != null &&
                 LOCAL_DATE_TIME != null && INSTANT != null &&
-                OFFSET_DATE_TIME != null && ZONE_OFFSET != null;
+                OFFSET_DATE_TIME != null && ZONE_OFFSET != null && DURATION != null;
 
         if (IS_JAVA8_DATE_API_PRESENT) {
             LOCAL_TIME_OF_NANO = getMethod(LOCAL_TIME, "ofNanoOfDay", long.class);
@@ -187,6 +213,10 @@ public class LocalDateTimeUtils {
                     OFFSET_DATE_TIME, "of", LOCAL_DATE_TIME, ZONE_OFFSET);
 
             ZONE_OFFSET_GET_TOTAL_SECONDS = getMethod(ZONE_OFFSET, "getTotalSeconds");
+
+            DURATION_OF_SECONDS = getMethod(DURATION, "ofSeconds", long.class, long.class);
+            DURATION_GET_SECONDS = getMethod(DURATION, "getSeconds");
+            DURATION_GET_NANO = getMethod(DURATION, "getNano");
         } else {
             LOCAL_TIME_OF_NANO = null;
             LOCAL_TIME_TO_NANO = null;
@@ -206,6 +236,9 @@ public class LocalDateTimeUtils {
             OFFSET_DATE_TIME_GET_OFFSET = null;
             OFFSET_DATE_TIME_OF_LOCAL_DATE_TIME_ZONE_OFFSET = null;
             ZONE_OFFSET_GET_TOTAL_SECONDS = null;
+            DURATION_OF_SECONDS = null;
+            DURATION_GET_SECONDS = null;
+            DURATION_GET_NANO = null;
         }
     }
 
@@ -342,6 +375,32 @@ public class LocalDateTimeUtils {
 
             return OFFSET_DATE_TIME_OF_LOCAL_DATE_TIME_ZONE_OFFSET.invoke(null,
                     localDateTime, offset);
+        } catch (IllegalAccessException e) {
+            throw DbException.convert(e);
+        } catch (InvocationTargetException e) {
+            throw DbException.convertInvocation(e, "timestamp with time zone conversion failed");
+        }
+    }
+
+    /**
+     * Converts a value to a OffsetDateTime.
+     *
+     * <p>This method should only called from Java 8 or later.</p>
+     *
+     * @param value the value to convert
+     * @return the OffsetDateTime
+     */
+    public static Object valueToDuration(Value value) {
+        if (!(value instanceof ValueInterval)) {
+            value = value.convertTo(Value.INTERVAL_DAY_TO_SECOND);
+        }
+        if (DataType.isYearMonthIntervalType(value.getType())) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, (Throwable) null, value.getString());
+        }
+        BigInteger[] dr = DateTimeUtils.intervalToAbsolute((ValueInterval) value)
+                .divideAndRemainder(BigInteger.valueOf(1_000_000_000));
+        try {
+            return DURATION_OF_SECONDS.invoke(null, dr[0].longValue(), dr[1].longValue());
         } catch (IllegalAccessException e) {
             throw DbException.convert(e);
         } catch (InvocationTargetException e) {
@@ -491,6 +550,28 @@ public class LocalDateTimeUtils {
         Object localDate = localDateFromDateValue(dateValue);
         Object localDateTime = LOCAL_DATE_AT_START_OF_DAY.invoke(localDate);
         return LOCAL_DATE_TIME_PLUS_NANOS.invoke(localDateTime, timeNanos);
+    }
+
+    /**
+     * Converts a Duration to a Value.
+     *
+     * @param duration the Duration to convert, not {@code null}
+     * @return the value
+     */
+    public static ValueInterval durationToValue(Object duration) {
+        try {
+            long seconds = (long) DURATION_GET_SECONDS.invoke(duration);
+            int nano = (int) DURATION_GET_NANO.invoke(duration);
+            if (seconds < 0 && nano != 0) {
+                nano = 1_000_000_000 - nano;
+                seconds++;
+            }
+            return ValueInterval.from(IntervalQualifier.SECOND, seconds, nano);
+        } catch (IllegalAccessException e) {
+            throw DbException.convert(e);
+        } catch (InvocationTargetException e) {
+            throw DbException.convertInvocation(e, "time conversion failed");
+        }
     }
 
 }

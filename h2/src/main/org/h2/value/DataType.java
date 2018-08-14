@@ -1341,6 +1341,16 @@ public class DataType {
     }
 
     /**
+     * Check if the given value type is a year-month interval type.
+     *
+     * @param type the value type
+     * @return true if the value type is a year-month interval type
+     */
+    public static boolean isYearMonthIntervalType(int type) {
+        return type == Value.INTERVAL_YEAR || type == Value.INTERVAL_MONTH || type == Value.INTERVAL_YEAR_TO_MONTH;
+    }
+
+    /**
      * Check if the given value type is a large object (BLOB or CLOB).
      *
      * @param type the value type
@@ -1348,6 +1358,16 @@ public class DataType {
      */
     public static boolean isLargeObject(int type) {
         return type == Value.BLOB || type == Value.CLOB;
+    }
+
+    /**
+     * Check if the given value type is a numeric type.
+     *
+     * @param type the value type
+     * @return true if the value type is a numeric type
+     */
+    public static boolean isNumericType(int type) {
+        return type >= Value.BYTE && type <= Value.FLOAT;
     }
 
     /**

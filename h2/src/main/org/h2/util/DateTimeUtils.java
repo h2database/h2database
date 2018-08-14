@@ -2040,14 +2040,20 @@ public class DateTimeUtils {
     }
 
     /**
-     * @param value interval
+     * @param qualifier
+     *            qualifier
+     * @param negative
+     *            whether interval is negative
+     * @param leading
+     *            value of leading field
+     * @param remaining
+     *            values of all remaining fields
      * @return years, or 0
      */
-    public static long yearsFromInterval(ValueInterval value) {
-        IntervalQualifier qualifier = value.getQualifier();
+    public static long yearsFromInterval(IntervalQualifier qualifier, boolean negative, long leading, long remaining) {
         if (qualifier == IntervalQualifier.YEAR || qualifier == IntervalQualifier.YEAR_TO_MONTH) {
-            long v = value.getLeading();
-            if (value.isNegative()) {
+            long v = leading;
+            if (negative) {
                 v = -v;
             }
             return v;
@@ -2057,37 +2063,50 @@ public class DateTimeUtils {
     }
 
     /**
-     * @param value interval
+     * @param qualifier
+     *            qualifier
+     * @param negative
+     *            whether interval is negative
+     * @param leading
+     *            value of leading field
+     * @param remaining
+     *            values of all remaining fields
      * @return months, or 0
      */
-    public static long monthFromInterval(ValueInterval value) {
-        IntervalQualifier qualifier = value.getQualifier();
+    public static long monthsFromInterval(IntervalQualifier qualifier, boolean negative, long leading, long remaining) {
         long v;
         if (qualifier == IntervalQualifier.MONTH) {
-            v = value.getLeading();
+            v = leading;
         } else if (qualifier == IntervalQualifier.YEAR_TO_MONTH){
-            v = value.getRemaining();
+            v = remaining;
         } else {
             return 0;
         }
-        if (value.isNegative()) {
+        if (negative) {
             v = -v;
         }
         return v;
     }
 
     /**
-     * @param value interval
+     * @param qualifier
+     *            qualifier
+     * @param negative
+     *            whether interval is negative
+     * @param leading
+     *            value of leading field
+     * @param remaining
+     *            values of all remaining fields
      * @return months, or 0
      */
-    public static long daysFromInterval(ValueInterval value) {
-        switch (value.getQualifier()) {
+    public static long daysFromInterval(IntervalQualifier qualifier, boolean negative, long leading, long remaining) {
+        switch (qualifier) {
         case DAY:
         case DAY_TO_HOUR:
         case DAY_TO_MINUTE:
         case DAY_TO_SECOND:
-            long v = value.getLeading();
-            if (value.isNegative()) {
+            long v = leading;
+            if (negative) {
                 v = -v;
             }
             return v;
@@ -2097,88 +2116,110 @@ public class DateTimeUtils {
     }
 
     /**
-     * @param value interval
+     * @param qualifier
+     *            qualifier
+     * @param negative
+     *            whether interval is negative
+     * @param leading
+     *            value of leading field
+     * @param remaining
+     *            values of all remaining fields
      * @return hours, or 0
      */
-    public static long hoursFromInterval(ValueInterval value) {
+    public static long hoursFromInterval(IntervalQualifier qualifier, boolean negative, long leading, long remaining) {
         long v;
-        switch (value.getQualifier()) {
+        switch (qualifier) {
         case HOUR:
         case HOUR_TO_MINUTE:
         case HOUR_TO_SECOND:
-            v = value.getLeading();
+            v = leading;
             break;
         case DAY_TO_HOUR:
-            v = value.getRemaining();
+            v = remaining;
             break;
         case DAY_TO_MINUTE:
-            v = value.getRemaining() / 60;
+            v = remaining / 60;
             break;
         case DAY_TO_SECOND:
-            v = value.getRemaining() / 3_600_000_000_000L;
+            v = remaining / 3_600_000_000_000L;
             break;
         default:
             return 0;
         }
-        if (value.isNegative()) {
+        if (negative) {
             v = -v;
         }
         return v;
     }
 
     /**
-     * @param value interval
+     * @param qualifier
+     *            qualifier
+     * @param negative
+     *            whether interval is negative
+     * @param leading
+     *            value of leading field
+     * @param remaining
+     *            values of all remaining fields
      * @return minutes, or 0
      */
-    public static long minutesFromInterval(ValueInterval value) {
+    public static long minutesFromInterval(IntervalQualifier qualifier, boolean negative, long leading, long remaining)
+    {
         long v;
-        switch (value.getQualifier()) {
+        switch (qualifier) {
         case MINUTE:
         case MINUTE_TO_SECOND:
-            v = value.getLeading();
+            v = leading;
             break;
         case DAY_TO_MINUTE:
-            v = value.getRemaining() % 60;
+            v = remaining % 60;
             break;
         case DAY_TO_SECOND:
-            v = value.getRemaining() / 60_000_000_000L % 60;
+            v = remaining / 60_000_000_000L % 60;
             break;
         case HOUR_TO_MINUTE:
-            v = value.getRemaining();
+            v = remaining;
             break;
         case HOUR_TO_SECOND:
-            v = value.getRemaining() / 60_000_000_000L;
+            v = remaining / 60_000_000_000L;
             break;
         default:
             return 0;
         }
-        if (value.isNegative()) {
+        if (negative) {
             v = -v;
         }
         return v;
     }
 
     /**
-     * @param value interval
+     * @param qualifier
+     *            qualifier
+     * @param negative
+     *            whether interval is negative
+     * @param leading
+     *            value of leading field
+     * @param remaining
+     *            values of all remaining fields
      * @return nanoseconds, or 0
      */
-    public static long nanosFromInterval(ValueInterval value) {
+    public static long nanosFromInterval(IntervalQualifier qualifier, boolean negative, long leading, long remaining) {
         long v;
-        switch (value.getQualifier()) {
+        switch (qualifier) {
         case SECOND:
-            v = value.getLeading() * 1_000_000_000 + value.getRemaining();
+            v = leading * 1_000_000_000 + remaining;
             break;
         case DAY_TO_SECOND:
         case HOUR_TO_SECOND:
-            v = value.getRemaining() % 60_000_000_000L;
+            v = remaining % 60_000_000_000L;
             break;
         case MINUTE_TO_SECOND:
-            v = value.getRemaining();
+            v = remaining;
             break;
         default:
             return 0;
         }
-        if (value.isNegative()) {
+        if (negative) {
             v = -v;
         }
         return v;

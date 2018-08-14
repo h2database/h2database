@@ -190,6 +190,7 @@ import org.h2.test.unit.TestFtp;
 import org.h2.test.unit.TestIntArray;
 import org.h2.test.unit.TestIntIntHashMap;
 import org.h2.test.unit.TestIntPerfectHash;
+import org.h2.test.unit.TestInterval;
 import org.h2.test.unit.TestJmx;
 import org.h2.test.unit.TestLocale;
 import org.h2.test.unit.TestMathUtils;
@@ -957,6 +958,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestDateIso8601());
         addTest(new TestFile());
         addTest(new TestFtp());
+        addTest(new TestInterval());
         addTest(new TestIntArray());
         addTest(new TestIntIntHashMap());
         addTest(new TestIntPerfectHash());

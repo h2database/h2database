@@ -35,9 +35,9 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
 import org.h2.api.ErrorCode;
+import org.h2.api.IntervalQualifier;
 import org.h2.expression.Function;
 import org.h2.message.DbException;
-import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDecimal;
@@ -623,36 +623,39 @@ public final class DateTimeFunctions {
     public static int getIntDatePart(Value date, int field) {
         if (date instanceof ValueInterval) {
             ValueInterval interval = (ValueInterval) date;
+            IntervalQualifier qualifier = interval.getQualifier();
+            boolean negative = interval.isNegative();
+            long leading = interval.getLeading(), remaining = interval.getRemaining();
             long v;
             switch (field) {
             case YEAR:
-                v = DateTimeUtils.yearsFromInterval(interval);
+                v = DateTimeUtils.yearsFromInterval(qualifier, negative, leading, remaining);
                 break;
             case MONTH:
-                v = DateTimeUtils.monthFromInterval(interval);
+                v = DateTimeUtils.monthsFromInterval(qualifier, negative, leading, remaining);
                 break;
             case DAY_OF_MONTH:
             case DAY_OF_WEEK:
             case DAY_OF_YEAR:
-                v = DateTimeUtils.daysFromInterval(interval);
+                v = DateTimeUtils.daysFromInterval(qualifier, negative, leading, remaining);
                 break;
             case HOUR:
-                v = DateTimeUtils.hoursFromInterval(interval);
+                v = DateTimeUtils.hoursFromInterval(qualifier, negative, leading, remaining);
                 break;
             case MINUTE:
-                v = DateTimeUtils.minutesFromInterval(interval);
+                v = DateTimeUtils.minutesFromInterval(qualifier, negative, leading, remaining);
                 break;
             case SECOND:
-                v = DateTimeUtils.nanosFromInterval(interval) / 1_000_000_000;
+                v = DateTimeUtils.nanosFromInterval(qualifier, negative, leading, remaining) / 1_000_000_000;
                 break;
             case MILLISECOND:
-                v = DateTimeUtils.nanosFromInterval(interval) / 1_000_000 % 1_000;
+                v = DateTimeUtils.nanosFromInterval(qualifier, negative, leading, remaining) / 1_000_000 % 1_000;
                 break;
             case MICROSECOND:
-                v = DateTimeUtils.nanosFromInterval(interval) / 1_000 % 1_000_000;
+                v = DateTimeUtils.nanosFromInterval(qualifier, negative, leading, remaining) / 1_000 % 1_000_000;
                 break;
             case NANOSECOND:
-                v = DateTimeUtils.nanosFromInterval(interval) % 1_000_000_000;
+                v = DateTimeUtils.nanosFromInterval(qualifier, negative, leading, remaining) % 1_000_000_000;
                 break;
             default:
                 throw DbException.getUnsupportedException("getDatePart(" + date + ", " + field + ')');

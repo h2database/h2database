@@ -21,6 +21,67 @@ public final class Interval {
     private final long remaining;
 
     /**
+     * @param years
+     *            years
+     * @return interval
+     */
+    public static Interval ofYears(long years) {
+        return new Interval(IntervalQualifier.YEAR, years < 0, Math.abs(years), 0);
+    }
+
+    /**
+     * @param months
+     *            months
+     * @return interval
+     */
+    public static Interval ofMonths(long months) {
+        return new Interval(IntervalQualifier.MONTH, months < 0, Math.abs(months), 0);
+    }
+
+    /**
+     * @param days
+     *            days
+     * @return interval
+     */
+    public static Interval ofDays(long days) {
+        return new Interval(IntervalQualifier.DAY, days < 0, Math.abs(days), 0);
+    }
+
+    /**
+     * @param hours
+     *            hours
+     * @return interval
+     */
+    public static Interval ofHours(long hours) {
+        return new Interval(IntervalQualifier.HOUR, hours < 0, Math.abs(hours), 0);
+    }
+
+    /**
+     * @param minutes
+     *            minutes
+     * @return interval
+     */
+    public static Interval ofMinutes(long minutes) {
+        return new Interval(IntervalQualifier.MINUTE, minutes < 0, Math.abs(minutes), 0);
+    }
+
+    /**
+     * @param nanos
+     *            nanoseconds (including seconds)
+     * @return interval
+     */
+    public static Interval ofNanos(long nanos) {
+        boolean negative = nanos < 0;
+        if (negative) {
+            nanos = -nanos;
+            if (nanos < 0) {
+                throw new IllegalArgumentException();
+            }
+        }
+        return new Interval(IntervalQualifier.SECOND, negative, nanos / 1_000_000_000, nanos % 1_000_000_000);
+    }
+
+    /**
      * @param qualifier
      *            qualifier
      * @param negative
@@ -81,6 +142,48 @@ public final class Interval {
      */
     public long getRemaining() {
         return remaining;
+    }
+
+    /**
+     * @return years, or 0
+     */
+    public long getYears() {
+        return DateTimeUtils.yearsFromInterval(qualifier, negative, leading, remaining);
+    }
+
+    /**
+     * @return months, or 0
+     */
+    public long getMonths() {
+        return DateTimeUtils.monthsFromInterval(qualifier, negative, leading, remaining);
+    }
+
+    /**
+     * @return days, or 0
+     */
+    public long getDays() {
+        return DateTimeUtils.daysFromInterval(qualifier, negative, leading, remaining);
+    }
+
+    /**
+     * @return hours, or 0
+     */
+    public long getHours() {
+        return DateTimeUtils.hoursFromInterval(qualifier, negative, leading, remaining);
+    }
+
+    /**
+     * @return minutes, or 0
+     */
+    public long getMinutes() {
+        return DateTimeUtils.minutesFromInterval(qualifier, negative, leading, remaining);
+    }
+
+    /**
+     * @return nanoseconds (including seconds), or 0
+     */
+    public long getNanos() {
+        return DateTimeUtils.nanosFromInterval(qualifier, negative, leading, remaining);
     }
 
     @Override

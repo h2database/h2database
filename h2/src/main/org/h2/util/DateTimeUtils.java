@@ -6,14 +6,17 @@
  */
 package org.h2.util;
 
+import java.math.BigInteger;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
+import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.Mode;
+import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueInterval;
@@ -1744,6 +1747,114 @@ public class DateTimeUtils {
             nanosOfDay += m;
         }
         return nanosOfDay - mod;
+    }
+
+    /**
+     * Converts interval value to an absolute value.
+     *
+     * @param interval the interval value
+     * @return absolute value in months for year-month intervals,
+     *         in nanoseconds for day-time intervals
+     */
+    public static BigInteger intervalToAbsolute(ValueInterval interval) {
+        switch (interval.getQualifier()) {
+        case YEAR:
+            return BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(12));
+        case MONTH:
+            return BigInteger.valueOf(interval.getLeading());
+        case DAY:
+            return BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(NANOS_PER_DAY));
+        case HOUR:
+            return BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(3_600_000_000_000L));
+        case MINUTE:
+            return BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(60_000_000_000L));
+        case SECOND:
+            return intervalToAbsolute(interval, 1_000_000_000);
+        case YEAR_TO_MONTH:
+            return intervalToAbsolute(interval, 12);
+        case DAY_TO_HOUR:
+            return intervalToAbsolute(interval, 24, 3_600_000_000_000L);
+        case DAY_TO_MINUTE:
+            return intervalToAbsolute(interval, 24 * 60, 60_000_000_000L);
+        case DAY_TO_SECOND:
+            return intervalToAbsolute(interval, NANOS_PER_DAY);
+        case HOUR_TO_MINUTE:
+            return intervalToAbsolute(interval, 60, 60_000_000_000L);
+        case HOUR_TO_SECOND:
+            return intervalToAbsolute(interval, 3_600_000_000_000L);
+        case MINUTE_TO_SECOND:
+            return intervalToAbsolute(interval, 60_000_000_000L);
+        default:
+            throw new IllegalArgumentException();
+        }
+    }
+
+    private static BigInteger intervalToAbsolute(ValueInterval interval, long multiplier, long totalMultiplier) {
+        return intervalToAbsolute(interval, multiplier).multiply(BigInteger.valueOf(totalMultiplier));
+    }
+
+    private static BigInteger intervalToAbsolute(ValueInterval interval, long multiplier) {
+        long leading = interval.getLeading(), remaining = interval.getRemaining();
+        if (leading < 0) {
+            remaining = -remaining;
+        }
+        return BigInteger.valueOf(leading).multiply(BigInteger.valueOf(multiplier)).add(BigInteger.valueOf(remaining));
+    }
+
+    /**
+     * Converts absolute value to an interval value.
+     *
+     * @param qualifier the qualifier of interval
+     * @param absolute absolute value in months for year-month intervals,
+     *                 in nanoseconds for day-time intervals
+     * @return the interval value
+     */
+    public static ValueInterval intervalFromAbsolute(IntervalQualifier qualifier, BigInteger absolute) {
+        switch (qualifier) {
+        case YEAR:
+            return ValueInterval.from(qualifier, absolute.divide(BigInteger.valueOf(12)).longValue(), 0);
+        case MONTH:
+            return ValueInterval.from(qualifier, leadingExact(absolute), 0);
+        case DAY:
+            return ValueInterval.from(qualifier, leadingExact(absolute.divide(BigInteger.valueOf(NANOS_PER_DAY))), 0);
+        case HOUR:
+            return ValueInterval.from(qualifier, leadingExact(absolute.divide(BigInteger.valueOf(3_600_000_000_000L))),
+                    0);
+        case MINUTE:
+            return ValueInterval.from(qualifier, leadingExact(absolute.divide(BigInteger.valueOf(60_000_000_000L))),
+                    0);
+        case SECOND:
+            return intervalFromAbsolute(qualifier, absolute, 1_000_000_000);
+        case YEAR_TO_MONTH:
+            return intervalFromAbsolute(qualifier, absolute, 12);
+        case DAY_TO_HOUR:
+            return intervalFromAbsolute(qualifier, absolute.divide(BigInteger.valueOf(3_600_000_000_000L)), 24);
+        case DAY_TO_MINUTE:
+            return intervalFromAbsolute(qualifier, absolute.divide(BigInteger.valueOf(60_000_000_000L)), 24 * 60);
+        case DAY_TO_SECOND:
+            return intervalFromAbsolute(qualifier, absolute, NANOS_PER_DAY);
+        case HOUR_TO_MINUTE:
+            return intervalFromAbsolute(qualifier, absolute.divide(BigInteger.valueOf(60_000_000_000L)), 60);
+        case HOUR_TO_SECOND:
+            return intervalFromAbsolute(qualifier, absolute, 3_600_000_000_000L);
+        case MINUTE_TO_SECOND:
+            return intervalFromAbsolute(qualifier, absolute, 60_000_000_000L);
+        default:
+            throw new IllegalArgumentException();
+        }
+    }
+
+    private static ValueInterval intervalFromAbsolute(IntervalQualifier qualifier, BigInteger absolute, long divisor) {
+        BigInteger[] dr = absolute.divideAndRemainder(BigInteger.valueOf(divisor));
+        return ValueInterval.from(qualifier, leadingExact(dr[0]), Math.abs(dr[1].longValue()));
+    }
+
+    private static long leadingExact(BigInteger absolute) {
+        if (absolute.compareTo(BigInteger.valueOf(999_999_999_999_999_999L)) > 0
+                || absolute.compareTo(BigInteger.valueOf(-999_999_999_999_999_999L)) < 0) {
+            throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, absolute.toString());
+        }
+        return absolute.longValue();
     }
 
 }

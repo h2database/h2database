@@ -236,7 +236,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         case Value.INTERVAL_HOUR:
         case Value.INTERVAL_MINUTE:
             return ValueInterval.from(IntervalQualifier.valueOf(type - Value.INTERVAL_YEAR),
-                    random.nextInt(), 0);
+                    random.nextBoolean(), random.nextInt(Integer.MAX_VALUE), 0);
         case Value.INTERVAL_SECOND:
         case Value.INTERVAL_YEAR_TO_MONTH:
         case Value.INTERVAL_DAY_TO_HOUR:
@@ -246,7 +246,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         case Value.INTERVAL_HOUR_TO_SECOND:
         case Value.INTERVAL_MINUTE_TO_SECOND:
             return ValueInterval.from(IntervalQualifier.valueOf(type - Value.INTERVAL_YEAR),
-                    random.nextInt(), random.nextInt(24));
+                    random.nextBoolean(), random.nextInt(Integer.MAX_VALUE), random.nextInt(24));
         default:
             throw new AssertionError("type=" + type);
         }

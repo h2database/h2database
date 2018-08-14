@@ -793,7 +793,8 @@ public class DataType {
                     return ValueNull.INSTANCE;
                 }
                 Interval interval = (Interval) x;
-                return ValueInterval.from(interval.getQualifier(), interval.getLeading(), interval.getRemaining());
+                return ValueInterval.from(interval.getQualifier(), interval.isNegative(),
+                        interval.getLeading(), interval.getRemaining());
             }
             default:
                 if (JdbcUtils.customDataTypesHandler != null) {
@@ -1274,7 +1275,7 @@ public class DataType {
             return ValueTimestampTimeZone.get((TimestampWithTimeZone) x);
         } else if (x instanceof Interval) {
             Interval i = (Interval) x;
-            return ValueInterval.from(i.getQualifier(), i.getLeading(), i.getRemaining());
+            return ValueInterval.from(i.getQualifier(), i.isNegative(), i.getLeading(), i.getRemaining());
         } else if (clazz == LocalDateTimeUtils.DURATION) {
             return LocalDateTimeUtils.durationToValue(x);
         } else {

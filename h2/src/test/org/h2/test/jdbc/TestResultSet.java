@@ -1573,7 +1573,7 @@ public class TestResultSet extends TestDb {
         rs = stat.executeQuery("CALL INTERVAL '10' YEAR");
         rs.next();
         assertEquals("INTERVAL '10' YEAR", rs.getString(1));
-        Interval expected = new Interval(IntervalQualifier.YEAR, 10, 0);
+        Interval expected = new Interval(IntervalQualifier.YEAR, false, 10, 0);
         assertEquals(expected, rs.getObject(1));
         assertEquals(expected, rs.getObject(1, Interval.class));
         ResultSetMetaData metaData = rs.getMetaData();

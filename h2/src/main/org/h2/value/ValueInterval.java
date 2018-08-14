@@ -35,6 +35,8 @@ public class ValueInterval extends Value {
 
     private final int type;
 
+    private final boolean negative;
+
     private final long leading;
 
     private final long remaining;
@@ -42,18 +44,27 @@ public class ValueInterval extends Value {
     /**
      * @param qualifier
      *            qualifier
+     * @param negative
+     *            whether interval is negative
      * @param leading
      *            value of leading field
      * @param remaining
      *            values of all remaining fields
      * @return interval value
      */
-    public static ValueInterval from(IntervalQualifier qualifier, long leading, long remaining) {
-        return (ValueInterval) Value.cache(new ValueInterval(qualifier.ordinal() + INTERVAL_YEAR, leading, remaining));
+    public static ValueInterval from(IntervalQualifier qualifier, boolean negative, long leading, long remaining) {
+        if (leading == 0L && remaining == 0L) {
+            negative = false;
+        } else if (leading < 0L || remaining < 0L) {
+            throw new RuntimeException();
+        }
+        return (ValueInterval) Value.cache(
+                new ValueInterval(qualifier.ordinal() + INTERVAL_YEAR, negative, leading, remaining));
     }
 
-    private ValueInterval(int type, long leading, long remaining) {
+    private ValueInterval(int type, boolean negative, long leading, long remaining) {
         this.type = type;
+        this.negative = negative;
         this.leading = leading;
         this.remaining = remaining;
     }
@@ -99,10 +110,6 @@ public class ValueInterval extends Value {
             return this;
         }
         long l = leading;
-        boolean negative = l < 0;
-        if (negative) {
-            l = -l;
-        }
         switch (type) {
         case Value.INTERVAL_SECOND:
             if (r >= 1_000_000_000) {
@@ -129,7 +136,7 @@ public class ValueInterval extends Value {
             }
             break;
         }
-        return from(qualifier, negative ? -l : l, r);
+        return from(qualifier, negative, l, r);
     }
 
     @Override
@@ -140,12 +147,12 @@ public class ValueInterval extends Value {
 
     @Override
     public String getString() {
-        return DateTimeUtils.intervalToString(getQualifier(), leading, remaining);
+        return DateTimeUtils.intervalToString(getQualifier(), negative, leading, remaining);
     }
 
     @Override
     public Object getObject() {
-        return new Interval(getQualifier(), leading, remaining);
+        return new Interval(getQualifier(), negative, leading, remaining);
     }
 
     /**
@@ -155,6 +162,15 @@ public class ValueInterval extends Value {
      */
     public IntervalQualifier getQualifier() {
         return IntervalQualifier.valueOf(type - INTERVAL_YEAR);
+    }
+
+    /**
+     * Returns where the interval is negative.
+     *
+     * @return where the interval is negative
+     */
+    public boolean isNegative() {
+        return negative;
     }
 
     /**
@@ -187,6 +203,7 @@ public class ValueInterval extends Value {
         final int prime = 31;
         int result = 1;
         result = prime * result + type;
+        result = prime * result + (negative ? 1231 : 1237);
         result = prime * result + (int) (leading ^ leading >>> 32);
         result = prime * result + (int) (remaining ^ remaining >>> 32);
         return result;
@@ -201,7 +218,8 @@ public class ValueInterval extends Value {
             return false;
         }
         ValueInterval other = (ValueInterval) obj;
-        return type == other.type && leading == other.leading && remaining == other.remaining;
+        return type == other.type && negative == other.negative && leading == other.leading
+                && remaining == other.remaining;
     }
 
     @Override
@@ -216,7 +234,10 @@ public class ValueInterval extends Value {
 
     @Override
     public Value negate() {
-        return from(getQualifier(), -leading, remaining);
+        if (leading == 0L && remaining == 0L) {
+            return this;
+        }
+        return from(getQualifier(), !negative, -leading, remaining);
     }
 
 }

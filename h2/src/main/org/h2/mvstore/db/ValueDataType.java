@@ -448,8 +448,12 @@ public class ValueDataType implements DataType {
         case Value.INTERVAL_HOUR:
         case Value.INTERVAL_MINUTE: {
             ValueInterval interval = (ValueInterval) v;
+            int ordinal = type - Value.INTERVAL_YEAR;
+            if (interval.isNegative()) {
+                ordinal = ~ordinal;
+            }
             buff.put((byte) Value.INTERVAL_YEAR).
-                put((byte) (type - Value.INTERVAL_YEAR)).
+                put((byte) (ordinal)).
                 putVarLong(interval.getLeading());
             break;
         }
@@ -462,8 +466,12 @@ public class ValueDataType implements DataType {
         case Value.INTERVAL_HOUR_TO_SECOND:
         case Value.INTERVAL_MINUTE_TO_SECOND: {
             ValueInterval interval = (ValueInterval) v;
+            int ordinal = type - Value.INTERVAL_YEAR;
+            if (interval.isNegative()) {
+                ordinal = ~ordinal;
+            }
             buff.put((byte) Value.INTERVAL_YEAR).
-                put((byte) (type - Value.INTERVAL_YEAR)).
+                put((byte) (ordinal)).
                 putVarLong(interval.getLeading()).
                 putVarLong(interval.getRemaining());
             break;
@@ -572,8 +580,12 @@ public class ValueDataType implements DataType {
         case Value.STRING_FIXED:
             return ValueStringFixed.get(readString(buff));
         case Value.INTERVAL_YEAR: {
-            int ordinal = buff.get() & 0xff;
-            return ValueInterval.from(IntervalQualifier.valueOf(ordinal), readVarLong(buff),
+            int ordinal = buff.get();
+            boolean negative = ordinal < 0;
+            if (negative) {
+                ordinal = ~ordinal;
+            }
+            return ValueInterval.from(IntervalQualifier.valueOf(ordinal), negative, readVarLong(buff),
                     ordinal < 5 ? 0 : readVarLong(buff));
         }
         case FLOAT_0_1:

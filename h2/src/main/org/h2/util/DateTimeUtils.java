@@ -1744,12 +1744,20 @@ public class DateTimeUtils {
                 leading = parseIntervalLeading(s, 0, dash, negative);
                 remaining = parseIntervalRemainingSeconds(s, dash + 1);
             }
-            return ValueInterval.from(qualifier, leading, remaining);
+            break;
         }
         default:
             throw new IllegalArgumentException();
         }
-        return ValueInterval.from(qualifier, leading, remaining);
+        negative = leading < 0;
+        if (negative) {
+            if (leading != Long.MIN_VALUE) {
+                leading = -leading;
+            } else {
+                leading = 0;
+            }
+        }
+        return ValueInterval.from(qualifier, negative, leading, remaining);
     }
 
     static ValueInterval parseInterval2(IntervalQualifier qualifier, String s, char ch, int max, boolean negative) {
@@ -1763,11 +1771,22 @@ public class DateTimeUtils {
             leading = parseIntervalLeading(s, 0, dash, negative);
             remaining = parseIntervalRemaining(s, dash + 1, s.length(), max);
         }
-        return ValueInterval.from(qualifier, leading, remaining);
+        negative = leading < 0;
+        if (negative) {
+            if (leading != Long.MIN_VALUE) {
+                leading = -leading;
+            } else {
+                leading = 0;
+            }
+        }
+        return ValueInterval.from(qualifier, negative, leading, remaining);
     }
 
     private static long parseIntervalLeading(String s, int start, int end, boolean negative) {
         long leading = Long.parseLong(s.substring(start, end));
+        if (leading == 0) {
+            return negative ^ s.charAt(start) == '-' ? Long.MIN_VALUE : 0;
+        }
         return negative ? -leading : leading;
     }
 
@@ -1799,16 +1818,14 @@ public class DateTimeUtils {
      * Formats interval as a string.
      *
      * @param qualifier qualifier of the interval
+     * @param negative whether interval is negative
      * @param leading the value of leading field
      * @param remaining the value of all remaining fields
      * @return string representation of the specified interval
      */
-    public static String intervalToString(IntervalQualifier qualifier, long leading, long remaining) {
+    public static String intervalToString(IntervalQualifier qualifier, boolean negative, long leading, long remaining)
+    {
         StringBuilder buff = new StringBuilder().append("INTERVAL ");
-        boolean negative = leading < 0;
-        if (negative) {
-            leading = -leading;
-        }
         buff.append('\'');
         if (negative) {
             buff.append('-');
@@ -1908,36 +1925,51 @@ public class DateTimeUtils {
      *         in nanoseconds for day-time intervals
      */
     public static BigInteger intervalToAbsolute(ValueInterval interval) {
+        BigInteger r;
         switch (interval.getQualifier()) {
         case YEAR:
-            return BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(12));
+            r = BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(12));
+            break;
         case MONTH:
-            return BigInteger.valueOf(interval.getLeading());
+            r = BigInteger.valueOf(interval.getLeading());
+            break;
         case DAY:
-            return BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(NANOS_PER_DAY));
+            r = BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(NANOS_PER_DAY));
+            break;
         case HOUR:
-            return BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(3_600_000_000_000L));
+            r = BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(3_600_000_000_000L));
+            break;
         case MINUTE:
-            return BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(60_000_000_000L));
+            r = BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(60_000_000_000L));
+            break;
         case SECOND:
-            return intervalToAbsolute(interval, 1_000_000_000);
+            r = intervalToAbsolute(interval, 1_000_000_000);
+            break;
         case YEAR_TO_MONTH:
-            return intervalToAbsolute(interval, 12);
+            r = intervalToAbsolute(interval, 12);
+            break;
         case DAY_TO_HOUR:
-            return intervalToAbsolute(interval, 24, 3_600_000_000_000L);
+            r = intervalToAbsolute(interval, 24, 3_600_000_000_000L);
+            break;
         case DAY_TO_MINUTE:
-            return intervalToAbsolute(interval, 24 * 60, 60_000_000_000L);
+            r = intervalToAbsolute(interval, 24 * 60, 60_000_000_000L);
+            break;
         case DAY_TO_SECOND:
-            return intervalToAbsolute(interval, NANOS_PER_DAY);
+            r = intervalToAbsolute(interval, NANOS_PER_DAY);
+            break;
         case HOUR_TO_MINUTE:
-            return intervalToAbsolute(interval, 60, 60_000_000_000L);
+            r = intervalToAbsolute(interval, 60, 60_000_000_000L);
+            break;
         case HOUR_TO_SECOND:
-            return intervalToAbsolute(interval, 3_600_000_000_000L);
+            r = intervalToAbsolute(interval, 3_600_000_000_000L);
+            break;
         case MINUTE_TO_SECOND:
-            return intervalToAbsolute(interval, 60_000_000_000L);
+            r = intervalToAbsolute(interval, 60_000_000_000L);
+            break;
         default:
             throw new IllegalArgumentException();
         }
+        return interval.isNegative() ? r.negate() : r;
     }
 
     private static BigInteger intervalToAbsolute(ValueInterval interval, long multiplier, long totalMultiplier) {
@@ -1945,11 +1977,8 @@ public class DateTimeUtils {
     }
 
     private static BigInteger intervalToAbsolute(ValueInterval interval, long multiplier) {
-        long leading = interval.getLeading(), remaining = interval.getRemaining();
-        if (leading < 0) {
-            remaining = -remaining;
-        }
-        return BigInteger.valueOf(leading).multiply(BigInteger.valueOf(multiplier)).add(BigInteger.valueOf(remaining));
+        return BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(multiplier))
+                .add(BigInteger.valueOf(interval.getRemaining()));
     }
 
     /**
@@ -1963,17 +1992,19 @@ public class DateTimeUtils {
     public static ValueInterval intervalFromAbsolute(IntervalQualifier qualifier, BigInteger absolute) {
         switch (qualifier) {
         case YEAR:
-            return ValueInterval.from(qualifier, absolute.divide(BigInteger.valueOf(12)).longValue(), 0);
+            return ValueInterval.from(qualifier, absolute.signum() < 0,
+                    Math.abs(absolute.divide(BigInteger.valueOf(12)).longValue()), 0);
         case MONTH:
-            return ValueInterval.from(qualifier, leadingExact(absolute), 0);
+            return ValueInterval.from(qualifier, absolute.signum() < 0, leadingExact(absolute), 0);
         case DAY:
-            return ValueInterval.from(qualifier, leadingExact(absolute.divide(BigInteger.valueOf(NANOS_PER_DAY))), 0);
+            return ValueInterval.from(qualifier, absolute.signum() < 0,
+                    leadingExact(absolute.divide(BigInteger.valueOf(NANOS_PER_DAY))), 0);
         case HOUR:
-            return ValueInterval.from(qualifier, leadingExact(absolute.divide(BigInteger.valueOf(3_600_000_000_000L))),
-                    0);
+            return ValueInterval.from(qualifier, absolute.signum() < 0,
+                    leadingExact(absolute.divide(BigInteger.valueOf(3_600_000_000_000L))), 0);
         case MINUTE:
-            return ValueInterval.from(qualifier, leadingExact(absolute.divide(BigInteger.valueOf(60_000_000_000L))),
-                    0);
+            return ValueInterval.from(qualifier, absolute.signum() < 0,
+                    leadingExact(absolute.divide(BigInteger.valueOf(60_000_000_000L))), 0);
         case SECOND:
             return intervalFromAbsolute(qualifier, absolute, 1_000_000_000);
         case YEAR_TO_MONTH:
@@ -1997,7 +2028,7 @@ public class DateTimeUtils {
 
     private static ValueInterval intervalFromAbsolute(IntervalQualifier qualifier, BigInteger absolute, long divisor) {
         BigInteger[] dr = absolute.divideAndRemainder(BigInteger.valueOf(divisor));
-        return ValueInterval.from(qualifier, leadingExact(dr[0]), Math.abs(dr[1].longValue()));
+        return ValueInterval.from(qualifier, absolute.signum() < 0, leadingExact(dr[0]), Math.abs(dr[1].longValue()));
     }
 
     private static long leadingExact(BigInteger absolute) {
@@ -2005,7 +2036,7 @@ public class DateTimeUtils {
                 || absolute.compareTo(BigInteger.valueOf(-999_999_999_999_999_999L)) < 0) {
             throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, absolute.toString());
         }
-        return absolute.longValue();
+        return Math.abs(absolute.longValue());
     }
 
 }

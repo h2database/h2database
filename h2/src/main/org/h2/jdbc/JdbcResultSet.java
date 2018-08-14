@@ -3936,7 +3936,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
                 value = value.convertTo(Value.INTERVAL_DAY_TO_SECOND);
             }
             ValueInterval v = (ValueInterval) value;
-            return type.cast(new Interval(v.getQualifier(), v.getLeading(), v.getRemaining()));
+            return type.cast(new Interval(v.getQualifier(), false, v.getLeading(), v.getRemaining()));
         } else if (DataType.isGeometryClass(type)) {
             return type.cast(value.convertTo(Value.GEOMETRY).getObject());
         } else if (type == LocalDateTimeUtils.LOCAL_DATE) {

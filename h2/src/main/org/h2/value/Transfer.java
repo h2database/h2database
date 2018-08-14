@@ -520,9 +520,12 @@ public class Transfer {
         case Value.INTERVAL_MONTH:
         case Value.INTERVAL_DAY:
         case Value.INTERVAL_HOUR:
-        case Value.INTERVAL_MINUTE:
-            writeLong(((ValueInterval) v).getLeading());
+        case Value.INTERVAL_MINUTE: {
+            ValueInterval interval = (ValueInterval) v;
+            writeBoolean(interval.isNegative());
+            writeLong(interval.getLeading());
             break;
+        }
         case Value.INTERVAL_SECOND:
         case Value.INTERVAL_YEAR_TO_MONTH:
         case Value.INTERVAL_DAY_TO_HOUR:
@@ -532,6 +535,7 @@ public class Transfer {
         case Value.INTERVAL_HOUR_TO_SECOND:
         case Value.INTERVAL_MINUTE_TO_SECOND: {
             ValueInterval interval = (ValueInterval) v;
+            writeBoolean(interval.isNegative());
             writeLong(interval.getLeading());
             writeLong(interval.getRemaining());
             break;
@@ -708,7 +712,7 @@ public class Transfer {
         case Value.INTERVAL_DAY:
         case Value.INTERVAL_HOUR:
         case Value.INTERVAL_MINUTE:
-            return ValueInterval.from(IntervalQualifier.valueOf(type - Value.INTERVAL_YEAR), readLong(), 0L);
+            return ValueInterval.from(IntervalQualifier.valueOf(type - Value.INTERVAL_YEAR), readBoolean(), readLong(), 0L);
         case Value.INTERVAL_SECOND:
         case Value.INTERVAL_YEAR_TO_MONTH:
         case Value.INTERVAL_DAY_TO_HOUR:
@@ -717,7 +721,7 @@ public class Transfer {
         case Value.INTERVAL_HOUR_TO_MINUTE:
         case Value.INTERVAL_HOUR_TO_SECOND:
         case Value.INTERVAL_MINUTE_TO_SECOND:
-            return ValueInterval.from(IntervalQualifier.valueOf(type - Value.INTERVAL_YEAR), readLong(), readLong());
+            return ValueInterval.from(IntervalQualifier.valueOf(type - Value.INTERVAL_YEAR), readBoolean(), readLong(), readLong());
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 return JdbcUtils.customDataTypesHandler.convert(

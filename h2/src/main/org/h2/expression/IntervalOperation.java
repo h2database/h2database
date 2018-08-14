@@ -205,13 +205,20 @@ public class IntervalOperation extends Expression {
         case DATETIME_MINUS_DATETIME:
             if (lType == Value.TIME && rType == Value.TIME) {
                 long diff = ((ValueTime) l).getNanos() - ((ValueTime) r).getNanos();
-                return ValueInterval.from(IntervalQualifier.HOUR_TO_SECOND, diff / 3_600_000_000_000L,
-                        Math.abs(diff % 3_600_000_000_000L));
+                boolean negative = diff < 0;
+                if (negative) {
+                    diff = -diff;
+                }
+                return ValueInterval.from(IntervalQualifier.HOUR_TO_SECOND, negative, diff / 3_600_000_000_000L,
+                        diff % 3_600_000_000_000L);
             } else if (lType == Value.DATE && rType == Value.DATE) {
-                return ValueInterval.from(IntervalQualifier.DAY,
-                        DateTimeUtils.absoluteDayFromDateValue(((ValueDate) l).getDateValue())
-                                - DateTimeUtils.absoluteDayFromDateValue(((ValueDate) r).getDateValue()),
-                        0L);
+                long diff = DateTimeUtils.absoluteDayFromDateValue(((ValueDate) l).getDateValue())
+                        - DateTimeUtils.absoluteDayFromDateValue(((ValueDate) r).getDateValue());
+                boolean negative = diff < 0;
+                if (negative) {
+                    diff = -diff;
+                }
+                return ValueInterval.from(IntervalQualifier.DAY, negative, diff, 0L);
             } else {
                 long[] a = DateTimeUtils.dateAndTimeFromValue(l);
                 long[] b = DateTimeUtils.dateAndTimeFromValue(r);

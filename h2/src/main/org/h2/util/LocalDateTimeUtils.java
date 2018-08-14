@@ -562,11 +562,13 @@ public class LocalDateTimeUtils {
         try {
             long seconds = (long) DURATION_GET_SECONDS.invoke(duration);
             int nano = (int) DURATION_GET_NANO.invoke(duration);
-            if (seconds < 0 && nano != 0) {
+            boolean negative = seconds < 0;
+            seconds = Math.abs(seconds);
+            if (negative && nano != 0) {
                 nano = 1_000_000_000 - nano;
-                seconds++;
+                seconds--;
             }
-            return ValueInterval.from(IntervalQualifier.SECOND, seconds, nano);
+            return ValueInterval.from(IntervalQualifier.SECOND, negative, seconds, nano);
         } catch (IllegalAccessException e) {
             throw DbException.convert(e);
         } catch (InvocationTargetException e) {

@@ -908,7 +908,7 @@ public class TestPreparedStatement extends TestDb {
 
     private void testInterval(Connection conn) throws SQLException {
         PreparedStatement prep = conn.prepareStatement("SELECT ?");
-        Interval interval = new Interval(IntervalQualifier.MINUTE, 100, 0);
+        Interval interval = new Interval(IntervalQualifier.MINUTE, false, 100, 0);
         prep.setObject(1, interval);
         ResultSet rs = prep.executeQuery();
         rs.next();

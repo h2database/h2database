@@ -14,6 +14,8 @@ public final class Interval {
 
     private final IntervalQualifier qualifier;
 
+    private final boolean negative;
+
     private final long leading;
 
     private final long remaining;
@@ -21,16 +23,24 @@ public final class Interval {
     /**
      * @param qualifier
      *            qualifier
+     * @param negative
+     *            whether interval is negative
      * @param leading
      *            value of leading field
      * @param remaining
      *            values of all remaining fields
      */
-    public Interval(IntervalQualifier qualifier, long leading, long remaining) {
+    public Interval(IntervalQualifier qualifier, boolean negative, long leading, long remaining) {
         if (qualifier == null) {
             throw new NullPointerException();
         }
+        if (leading == 0L && remaining == 0L) {
+            negative = false;
+        } else if (leading < 0L || remaining < 0L) {
+            throw new RuntimeException();
+        }
         this.qualifier = qualifier;
+        this.negative = negative;
         this.leading = leading;
         this.remaining = remaining;
     }
@@ -42,6 +52,15 @@ public final class Interval {
      */
     public IntervalQualifier getQualifier() {
         return qualifier;
+    }
+
+    /**
+     * Returns where the interval is negative.
+     *
+     * @return where the interval is negative
+     */
+    public boolean isNegative() {
+        return negative;
     }
 
     /**
@@ -69,6 +88,7 @@ public final class Interval {
         final int prime = 31;
         int result = 1;
         result = prime * result + qualifier.hashCode();
+        result = prime * result + (negative ? 1231 : 1237);
         result = prime * result + (int) (leading ^ leading >>> 32);
         result = prime * result + (int) (remaining ^ remaining >>> 32);
         return result;
@@ -83,12 +103,13 @@ public final class Interval {
             return false;
         }
         Interval other = (Interval) obj;
-        return qualifier == other.qualifier && leading == other.leading || remaining == other.remaining;
+        return qualifier == other.qualifier && negative == other.negative && leading == other.leading
+                && remaining == other.remaining;
     }
 
     @Override
     public String toString() {
-        return DateTimeUtils.intervalToString(qualifier, leading, remaining);
+        return DateTimeUtils.intervalToString(qualifier, negative, leading, remaining);
     }
 
 }

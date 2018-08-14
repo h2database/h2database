@@ -663,8 +663,12 @@ public class Data {
         case Value.INTERVAL_HOUR:
         case Value.INTERVAL_MINUTE: {
             ValueInterval interval = (ValueInterval) v;
+            int ordinal = type - Value.INTERVAL_YEAR;
+            if (interval.isNegative()) {
+                ordinal = ~ordinal;
+            }
             writeByte((byte) Value.INTERVAL_YEAR);
-            writeByte((byte) (type - Value.INTERVAL_YEAR));
+            writeByte((byte) ordinal);
             writeVarLong(interval.getLeading());
             break;
         }
@@ -677,8 +681,12 @@ public class Data {
         case Value.INTERVAL_HOUR_TO_SECOND:
         case Value.INTERVAL_MINUTE_TO_SECOND: {
             ValueInterval interval = (ValueInterval) v;
+            int ordinal = type - Value.INTERVAL_YEAR;
+            if (interval.isNegative()) {
+                ordinal = ~ordinal;
+            }
             writeByte((byte) Value.INTERVAL_YEAR);
-            writeByte((byte) (type - Value.INTERVAL_YEAR));
+            writeByte((byte) ordinal);
             writeVarLong(interval.getLeading());
             writeVarLong(interval.getRemaining());
             break;
@@ -872,8 +880,12 @@ public class Data {
             return ValueResultSet.get(rs);
         }
         case Value.INTERVAL_YEAR: {
-            int ordinal = readByte() & 0xff;
-            return ValueInterval.from(IntervalQualifier.valueOf(ordinal), readVarLong(),
+            int ordinal = readByte();
+            boolean negative = ordinal < 0;
+            if (negative) {
+                ordinal = ~ordinal;
+            }
+            return ValueInterval.from(IntervalQualifier.valueOf(ordinal), negative, readVarLong(),
                     ordinal < 5 ? 0 : readVarLong());
         }
         case CUSTOM_DATA_TYPE: {

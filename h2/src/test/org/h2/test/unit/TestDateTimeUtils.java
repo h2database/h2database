@@ -250,13 +250,13 @@ public class TestDateTimeUtils extends TestBase {
     }
 
     private void testParseInterval(IntervalQualifier qualifier, long leading, long remaining, String s, String full) {
-        testParseIntervalImpl(qualifier, leading, remaining, false, s, full);
-        testParseIntervalImpl(qualifier, -leading, remaining, true, s, full);
+        testParseIntervalImpl(qualifier, false, leading, remaining, s, full);
+        testParseIntervalImpl(qualifier, true, leading, remaining, s, full);
     }
 
-    private void testParseIntervalImpl(IntervalQualifier qualifier, long leading, long remaining, boolean negative,
+    private void testParseIntervalImpl(IntervalQualifier qualifier, boolean negative, long leading, long remaining,
             String s, String full) {
-        ValueInterval expected = ValueInterval.from(qualifier, leading, remaining);
+        ValueInterval expected = ValueInterval.from(qualifier, negative, leading, remaining);
         assertEquals(expected, DateTimeUtils.parseInterval(qualifier, negative, s));
         StringBuilder b = new StringBuilder();
         b.append("INTERVAL ").append('\'');

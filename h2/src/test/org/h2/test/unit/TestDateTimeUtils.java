@@ -259,11 +259,11 @@ public class TestDateTimeUtils extends TestBase {
         ValueInterval expected = ValueInterval.from(qualifier, leading, remaining);
         assertEquals(expected, DateTimeUtils.parseInterval(qualifier, negative, s));
         StringBuilder b = new StringBuilder();
-        b.append("INTERVAL ");
+        b.append("INTERVAL ").append('\'');
         if (negative) {
             b.append('-');
         }
-        b.append('\'').append(full).append("' ").append(qualifier);
+        b.append(full).append("' ").append(qualifier);
         assertEquals(b.toString(), expected.getString());
     }
 

@@ -225,11 +225,14 @@ public class ValueInterval extends Value {
     @Override
     public int compareTypeSafe(Value v, CompareMode mode) {
         ValueInterval other = (ValueInterval) v;
+        if (negative != other.negative) {
+            return negative ? -1 : 1;
+        }
         int cmp = Long.compare(leading, other.leading);
         if (cmp == 0) {
             cmp = Long.compare(remaining, other.remaining);
         }
-        return cmp;
+        return negative ? -cmp : cmp;
     }
 
     @Override

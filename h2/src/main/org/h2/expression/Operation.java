@@ -268,8 +268,14 @@ public class Operation extends Expression {
                     return new IntervalOperation(IntervalOpType.INTERVAL_PLUS_INTERVAL, left, right);
                 }
             } else if (lInterval && rDateTime) {
+                if (r == Value.TIME && DataType.isYearMonthIntervalType(l)) {
+                    break;
+                }
                 return new IntervalOperation(IntervalOpType.DATETIME_PLUS_INTERVAL, right, left);
             } else if (lDateTime && rInterval) {
+                if (l == Value.TIME && DataType.isYearMonthIntervalType(r)) {
+                    break;
+                }
                 return new IntervalOperation(IntervalOpType.DATETIME_PLUS_INTERVAL, left, right);
             }
             break;
@@ -279,6 +285,9 @@ public class Operation extends Expression {
                     return new IntervalOperation(IntervalOpType.INTERVAL_MINUS_INTERVAL, left, right);
                 }
             } else if (lDateTime && rInterval) {
+                if (l == Value.TIME && DataType.isYearMonthIntervalType(r)) {
+                    break;
+                }
                 return new IntervalOperation(IntervalOpType.DATETIME_MINUS_INTERVAL, left, right);
             }
             break;

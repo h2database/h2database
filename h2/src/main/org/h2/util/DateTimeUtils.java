@@ -1493,6 +1493,157 @@ public class DateTimeUtils {
     /**
      * Parses the specified string as {@code INTERVAL} value.
      *
+     * @param qualifier the default qualifier to use if string does not have one
+     * @param s the string with type information to parse
+     * @return the interval value.
+     *         Type of value can be different from the specified qualifier.
+     */
+    public static ValueInterval parseFormattedInterval(IntervalQualifier qualifier, String s) {
+        int i = 0;
+        i = skipWS(s, i);
+        if (!s.regionMatches(true, i, "INTERVAL", 0, 8)) {
+            return parseInterval(qualifier, false, s);
+        }
+        i = skipWS(s, i + 8);
+        boolean negative = false;
+        char ch = s.charAt(i);
+        if (ch == '-') {
+            negative = true;
+            i = skipWS(s, i + 1);
+            ch = s.charAt(i);
+        } else if (ch == '+') {
+            i = skipWS(s, i + 1);
+            ch = s.charAt(i);
+        }
+        if (ch != '\'') {
+            throw new IllegalArgumentException(s);
+        }
+        int start = ++i;
+        int l = s.length();
+        for (;;) {
+            if (i == l) {
+                throw new IllegalArgumentException(s);
+            }
+            if (s.charAt(i) == '\'') {
+                break;
+            }
+            i++;
+        }
+        String v = s.substring(start, i);
+        i = skipWS(s, i + 1);
+        if (s.regionMatches(true, i, "YEAR", 0, 4)) {
+            i += 4;
+            int j = skipWSEnd(s, i);
+            if (j == l) {
+                return parseInterval(IntervalQualifier.YEAR, negative, v);
+            }
+            if (j > i && s.regionMatches(true, j, "TO", 0, 2)) {
+                j += 2;
+                i = skipWS(s, j);
+                if (i > j && s.regionMatches(true, i, "MONTH", 0, 5)) {
+                    if (skipWSEnd(s, i + 5) == l) {
+                        return parseInterval(IntervalQualifier.YEAR_TO_MONTH, negative, v);
+                    }
+                }
+            }
+        } else if (s.regionMatches(true, i, "MONTH", 0, 5)) {
+            if (skipWSEnd(s, i + 5) == l) {
+                return parseInterval(IntervalQualifier.MONTH, negative, v);
+            }
+        } if (s.regionMatches(true, i, "DAY", 0, 3)) {
+            i += 3;
+            int j = skipWSEnd(s, i);
+            if (j == l) {
+                return parseInterval(IntervalQualifier.DAY, negative, v);
+            }
+            if (j > i && s.regionMatches(true, j, "TO", 0, 2)) {
+                j += 2;
+                i = skipWS(s, j);
+                if (i > j) {
+                    if (s.regionMatches(true, i, "HOUR", 0, 4)) {
+                        if (skipWSEnd(s, i + 4) == l) {
+                            return parseInterval(IntervalQualifier.DAY_TO_HOUR, negative, v);
+                        }
+                    } else if (s.regionMatches(true, i, "MINUTE", 0, 6)) {
+                        if (skipWSEnd(s, i + 6) == l) {
+                            return parseInterval(IntervalQualifier.DAY_TO_MINUTE, negative, v);
+                        }
+                    } else if (s.regionMatches(true, i, "SECOND", 0, 6)) {
+                        if (skipWSEnd(s, i + 6) == l) {
+                            return parseInterval(IntervalQualifier.DAY_TO_SECOND, negative, v);
+                        }
+                    }
+                }
+            }
+        } if (s.regionMatches(true, i, "HOUR", 0, 4)) {
+            i += 4;
+            int j = skipWSEnd(s, i);
+            if (j == l) {
+                return parseInterval(IntervalQualifier.HOUR, negative, v);
+            }
+            if (j > i && s.regionMatches(true, j, "TO", 0, 2)) {
+                j += 2;
+                i = skipWS(s, j);
+                if (i > j) {
+                    if (s.regionMatches(true, i, "MINUTE", 0, 6)) {
+                        if (skipWSEnd(s, i + 6) == l) {
+                            return parseInterval(IntervalQualifier.HOUR_TO_MINUTE, negative, v);
+                        }
+                    } else if (s.regionMatches(true, i, "SECOND", 0, 6)) {
+                        if (skipWSEnd(s, i + 6) == l) {
+                            return parseInterval(IntervalQualifier.HOUR_TO_SECOND, negative, v);
+                        }
+                    }
+                }
+            }
+        } if (s.regionMatches(true, i, "MINUTE", 0, 6)) {
+            i += 6;
+            int j = skipWSEnd(s, i);
+            if (j == l) {
+                return parseInterval(IntervalQualifier.MINUTE, negative, v);
+            }
+            if (j > i && s.regionMatches(true, j, "TO", 0, 2)) {
+                j += 2;
+                i = skipWS(s, j);
+                if (i > j && s.regionMatches(true, i, "SECOND", 0, 6)) {
+                    if (skipWSEnd(s, i + 6) == l) {
+                        return parseInterval(IntervalQualifier.MINUTE_TO_SECOND, negative, v);
+                    }
+                }
+            }
+        } if (s.regionMatches(true, i, "SECOND", 0, 6)) {
+            if (skipWSEnd(s, i + 6) == l) {
+                return parseInterval(IntervalQualifier.SECOND, negative, v);
+            }
+        }
+        throw new IllegalArgumentException(s);
+    }
+
+    private static int skipWS(String s, int i) {
+        for (int l = s.length(); ; i++) {
+            if (i == l) {
+                throw new IllegalArgumentException(s);
+            }
+            if (!Character.isWhitespace(s.charAt(i))) {
+                return i;
+            }
+        }
+    }
+
+    private static int skipWSEnd(String s, int i) {
+        for (int l = s.length(); ; i++) {
+            if (i == l) {
+                return i;
+            }
+            if (!Character.isWhitespace(s.charAt(i))) {
+                return i;
+            }
+        }
+    }
+
+    /**
+     * Parses the specified string as {@code INTERVAL} value.
+     *
      * @param qualifier the qualifier of interval
      * @param negative whether the interval is negative
      * @param s the string to parse

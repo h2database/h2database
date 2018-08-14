@@ -1153,6 +1153,18 @@ public abstract class Value {
             case Value.INTERVAL_MONTH:
             case Value.INTERVAL_YEAR_TO_MONTH:
                 switch (getType()) {
+                case Value.STRING:
+                case Value.STRING_IGNORECASE:
+                case Value.STRING_FIXED: {
+                    String s = getString();
+                    try {
+                        return DateTimeUtils.parseFormattedInterval(
+                                IntervalQualifier.valueOf(targetType - Value.INTERVAL_YEAR), s)
+                                .convertTo(targetType);
+                    } catch (Exception e) {
+                        throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, e, "INTERVAL", s);
+                    }
+                }
                 case Value.INTERVAL_YEAR:
                 case Value.INTERVAL_MONTH:
                 case Value.INTERVAL_YEAR_TO_MONTH:
@@ -1172,6 +1184,18 @@ public abstract class Value {
             case Value.INTERVAL_HOUR_TO_SECOND:
             case Value.INTERVAL_MINUTE_TO_SECOND:
                 switch (getType()) {
+                case Value.STRING:
+                case Value.STRING_IGNORECASE:
+                case Value.STRING_FIXED: {
+                    String s = getString();
+                    try {
+                        return DateTimeUtils.parseFormattedInterval(
+                                IntervalQualifier.valueOf(targetType - Value.INTERVAL_YEAR), s)
+                                .convertTo(targetType);
+                    } catch (Exception e) {
+                        throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, e, "INTERVAL", s);
+                    }
+                }
                 case Value.INTERVAL_DAY:
                 case Value.INTERVAL_HOUR:
                 case Value.INTERVAL_MINUTE:

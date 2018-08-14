@@ -242,7 +242,7 @@ public abstract class Value {
     /**
      * The number of value types.
      */
-    public static final int TYPE_COUNT = INTERVAL_MINUTE_TO_SECOND;
+    public static final int TYPE_COUNT = INTERVAL_MINUTE_TO_SECOND + 1;
 
     private static SoftReference<Value[]> softCache;
     private static final BigDecimal MAX_LONG_DECIMAL =

@@ -388,21 +388,13 @@ public class Operation extends Expression {
                     return this;
                 case Value.DATE:
                 case Value.TIMESTAMP:
-                case Value.TIMESTAMP_TZ: {
-                    // Oracle date subtract
-                    Function f = Function.getFunction(session.getDatabase(), "DATEDIFF");
-                    f.setParameter(0, ValueExpression.get(ValueString.get("DAY")));
-                    f.setParameter(1, right);
-                    f.setParameter(2, left);
-                    f.doneWithParameters();
-                    return f.optimize(session);
-                }
+                case Value.TIMESTAMP_TZ:
+                    return new IntervalOperation(IntervalOpType.DATETIME_MINUS_DATETIME, left, right);
                 }
                 break;
             case Value.TIME:
                 if (r == Value.TIME) {
-                    dataType = Value.TIME;
-                    return this;
+                    return new IntervalOperation(IntervalOpType.DATETIME_MINUS_DATETIME, left, right);
                 }
                 break;
             }

@@ -13,6 +13,7 @@ import java.io.LineNumberReader;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -118,7 +119,7 @@ public class TestScript extends TestDb {
 
         for (String s : new String[] { "array", "bigint", "binary", "blob",
                 "boolean", "char", "clob", "date", "decimal", decimal2, "double", "enum",
-                "geometry", "identity", "int", "other", "real", "smallint",
+                "geometry", "identity", "int", "interval", "other", "real", "smallint",
                 "time", "timestamp-with-timezone", "timestamp", "tinyint",
                 "uuid", "varchar", "varchar-ignorecase" }) {
             testScript("datatypes/" + s + ".sql");
@@ -268,7 +269,7 @@ public class TestScript extends TestDb {
             throw new IOException("could not find " + inFile);
         }
         fileName = inFile;
-        in = new LineNumberReader(new InputStreamReader(is, "Cp1252"));
+        in = new LineNumberReader(new InputStreamReader(is, StandardCharsets.UTF_8));
         StringBuilder buff = new StringBuilder();
         while (true) {
             String sql = readLine();
@@ -285,6 +286,14 @@ public class TestScript extends TestDb {
                 sql = buff.toString();
                 buff.setLength(0);
                 process(sql, allowReconnect);
+            } else if (sql.equals("@reconnect")) {
+                if (buff.length() > 0) {
+                    addWriteResultError("<command>", sql);
+                } else {
+                    if (!config.memory) {
+                        reconnect(conn.getAutoCommit());
+                    }
+                }
             } else {
                 write(sql);
                 buff.append(sql);
@@ -314,10 +323,7 @@ public class TestScript extends TestDb {
                 boolean autocommit = conn.getAutoCommit();
                 if (autocommit && random.nextInt(10) < 1) {
                     // reconnect 10% of the time
-                    conn.close();
-                    conn = getConnection("script");
-                    conn.setAutoCommit(autocommit);
-                    stat = conn.createStatement();
+                    reconnect(autocommit);
                 }
             }
         }
@@ -349,6 +355,13 @@ public class TestScript extends TestDb {
             }
         }
         write("");
+    }
+
+    private void reconnect(boolean autocommit) throws SQLException {
+        conn.close();
+        conn = getConnection("script");
+        conn.setAutoCommit(autocommit);
+        stat = conn.createStatement();
     }
 
     private static void setParameter(PreparedStatement prep, int i, String param)

@@ -175,6 +175,8 @@ public class MetaTable extends Table {
                     "NUMERIC_PRECISION_RADIX INT",
                     "NUMERIC_SCALE INT",
                     "DATETIME_PRECISION INT",
+                    "INTERVAL_TYPE",
+                    "INTERVAL_PRECISION INT",
                     "CHARACTER_SET_NAME",
                     "COLLATION_NAME",
                     // extensions
@@ -845,6 +847,24 @@ public class MetaTable extends Table {
                     ValueInt precision = ValueInt.get(c.getPrecisionAsInt());
                     ValueInt scale = ValueInt.get(c.getScale());
                     Sequence sequence = c.getSequence();
+                    boolean hasDateTimePrecision;
+                    int type = dataType.type;
+                    switch (type) {
+                    case Value.TIME:
+                    case Value.DATE:
+                    case Value.TIMESTAMP:
+                    case Value.TIMESTAMP_TZ:
+                    case Value.INTERVAL_SECOND:
+                    case Value.INTERVAL_DAY_TO_SECOND:
+                    case Value.INTERVAL_HOUR_TO_SECOND:
+                    case Value.INTERVAL_MINUTE_TO_SECOND:
+                        hasDateTimePrecision = true;
+                        break;
+                    default:
+                        hasDateTimePrecision = false;
+                    }
+                    boolean isInterval = DataType.isIntervalType(type);
+                    String createSQLWithoutName = c.getCreateSQLWithoutName();
                     add(rows,
                             // TABLE_CATALOG
                             catalog,
@@ -873,13 +893,17 @@ public class MetaTable extends Table {
                             // NUMERIC_SCALE
                             scale,
                             // DATETIME_PRECISION
-                            DataType.isDateTimeType(dataType.type) ? scale : null,
+                            hasDateTimePrecision ? scale : null,
+                            // INTERVAL_TYPE
+                            isInterval ? createSQLWithoutName.substring(9) : null,
+                            // INTERVAL_PRECISION
+                            isInterval ? precision : null,
                             // CHARACTER_SET_NAME
                             CHARACTER_SET_NAME,
                             // COLLATION_NAME
                             collation,
                             // TYPE_NAME
-                            identifier(dataType.name),
+                            identifier(isInterval ? "INTERVAL" : dataType.name),
                             // NULLABLE
                             ValueInt.get(c.isNullable()
                                     ? DatabaseMetaData.columnNullable : DatabaseMetaData.columnNoNulls),
@@ -897,7 +921,7 @@ public class MetaTable extends Table {
                             // SMALLINT
                             null,
                             // COLUMN_TYPE
-                            c.getCreateSQLWithoutName(),
+                            createSQLWithoutName,
                             // COLUMN_ON_UPDATE
                             c.getOnUpdateSQL()
                     );

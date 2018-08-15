@@ -504,6 +504,18 @@ select median(v) from test;
 drop table test;
 > ok
 
+create table test(v interval day to second);
+> ok
+
+insert into test values ('0 1'), ('0 2'), ('0 2'), ('0 2'), ('-0 1'), ('-0 1');
+> update count: 6
+
+select median (v) from test;
+>> INTERVAL '0 01:30:00' DAY TO SECOND
+
+drop table test;
+> ok
+
 -- with group by
 create table test(name varchar, value int);
 > ok

@@ -15,6 +15,8 @@ select sign(null) en, sign(10) e1, sign(0) e0, sign(-0.1) em1 from test;
 > null 1  0  -1
 > rows: 1
 
-
-
-
+SELECT SIGN(INTERVAL '-0-1' YEAR TO MONTH) A, SIGN(INTERVAL '0' DAY) B, SIGN(INTERVAL '1' HOUR) C;
+> A  B C
+> -- - -
+> -1 0 1
+> rows: 1

@@ -354,7 +354,7 @@ public class SysProperties {
      * unless {@code h2.preview} is enabled.
      * <p>
      * If {@code true} map {@code BigDecimal} to {@code DECIMAL} type.
-     * <p>
+     * </p>
      * <p>
      * If {@code false} map {@code BigDecimal} to {@code NUMERIC} as specified
      * in JDBC specification (see Mapping from Java Object Types to JDBC Types).

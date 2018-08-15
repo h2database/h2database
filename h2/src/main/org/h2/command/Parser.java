@@ -60,6 +60,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.h2.api.ErrorCode;
+import org.h2.api.IntervalQualifier;
 import org.h2.api.Trigger;
 import org.h2.command.ddl.AlterIndexRename;
 import org.h2.command.ddl.AlterSchemaRename;
@@ -187,6 +188,7 @@ import org.h2.table.TableFilter;
 import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableView;
 import org.h2.util.DateTimeFunctions;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.ParserUtil;
 import org.h2.util.StatementBuilder;
@@ -201,6 +203,7 @@ import org.h2.value.ValueDate;
 import org.h2.value.ValueDecimal;
 import org.h2.value.ValueEnum;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueInterval;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
@@ -3508,6 +3511,8 @@ public class Parser {
                             r = ValueExpression.get(ValueTimestamp.parse(timestamp, database.getMode()));
                         }
                     }
+                } else if (equalsToken("INTERVAL", name)) {
+                    r = readInterval();
                 } else if (currentTokenType == VALUE &&
                         currentValue.getType() == Value.STRING) {
                     if (equalsToken("DATE", name) ||
@@ -3657,6 +3662,64 @@ public class Parser {
             }
         }
         return r;
+    }
+
+    private Expression readInterval() {
+        boolean negative = readIf(MINUS_SIGN);
+        if (!negative) {
+            readIf(PLUS_SIGN);
+        }
+        String s = readString();
+        IntervalQualifier qualifier;
+        if (readIf("YEAR")) {
+            if (readIf("TO")) {
+                read("MONTH");
+                qualifier = IntervalQualifier.YEAR_TO_MONTH;
+            } else {
+                qualifier = IntervalQualifier.YEAR;
+            }
+        } else if (readIf("MONTH")) {
+            qualifier = IntervalQualifier.MONTH;
+        } else if (readIf("DAY")) {
+            if (readIf("TO")) {
+                if (readIf("HOUR")) {
+                    qualifier = IntervalQualifier.DAY_TO_HOUR;
+                } else if (readIf("MINUTE")) {
+                    qualifier = IntervalQualifier.DAY_TO_MINUTE;
+                } else {
+                    read("SECOND");
+                    qualifier = IntervalQualifier.DAY_TO_SECOND;
+                }
+            } else {
+                qualifier = IntervalQualifier.DAY;
+            }
+        } else if (readIf("HOUR")) {
+            if (readIf("TO")) {
+                if (readIf("MINUTE")) {
+                    qualifier = IntervalQualifier.HOUR_TO_MINUTE;
+                } else {
+                    read("SECOND");
+                    qualifier = IntervalQualifier.HOUR_TO_SECOND;
+                }
+            } else {
+                qualifier = IntervalQualifier.HOUR;
+            }
+        } else if (readIf("MINUTE")) {
+            if (readIf("TO")) {
+                read("SECOND");
+                qualifier = IntervalQualifier.MINUTE_TO_SECOND;
+            } else {
+                qualifier = IntervalQualifier.MINUTE;
+            }
+        } else {
+            read("SECOND");
+            qualifier = IntervalQualifier.SECOND;
+        }
+        try {
+            return ValueExpression.get(DateTimeUtils.parseInterval(qualifier, negative, s));
+        } catch (Exception e) {
+            throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, e, "INTERVAL", s);
+        }
     }
 
     private Expression parseDB2SpecialRegisters(String name) {
@@ -4685,7 +4748,7 @@ public class Parser {
     private Column parseColumnWithType(String columnName, boolean forTable) {
         String original = currentToken;
         boolean regular = false;
-        int originalScale = -1;
+        int originalPrecision = -1, originalScale = -1;
         if (readIf("LONG")) {
             if (readIf("RAW")) {
                 original = "LONG RAW";
@@ -4741,6 +4804,90 @@ public class Parser {
                 read("TIME");
                 read("ZONE");
                 original = "TIMESTAMP WITHOUT TIME ZONE";
+            }
+        } else if (readIf("INTERVAL")) {
+            if (readIf("YEAR")) {
+                if (readIf(OPEN_PAREN)) {
+                    originalPrecision = readNonNegativeInt();
+                    read(CLOSE_PAREN);
+                }
+                if (readIf("TO")) {
+                    read("MONTH");
+                    original = "INTERVAL YEAR TO MONTH";
+                } else {
+                    original = "INTERVAL YEAR";
+                }
+            } else if (readIf("MONTH")) {
+                if (readIf(OPEN_PAREN)) {
+                    originalPrecision = readNonNegativeInt();
+                    read(CLOSE_PAREN);
+                }
+                original = "INTERVAL MONTH";
+            } else if (readIf("DAY")) {
+                if (readIf(OPEN_PAREN)) {
+                    originalPrecision = readNonNegativeInt();
+                    read(CLOSE_PAREN);
+                }
+                if (readIf("TO")) {
+                    if (readIf("HOUR")) {
+                        original = "INTERVAL DAY TO HOUR";
+                    } else if (readIf("MINUTE")) {
+                        original = "INTERVAL DAY TO MINUTE";
+                    } else {
+                        read("SECOND");
+                        if (readIf(OPEN_PAREN)) {
+                            originalScale = readNonNegativeInt();
+                            read(CLOSE_PAREN);
+                        }
+                        original = "INTERVAL DAY TO SECOND";
+                    }
+                } else {
+                    original = "INTERVAL DAY";
+                }
+            } else if (readIf("HOUR")) {
+                if (readIf(OPEN_PAREN)) {
+                    originalPrecision = readNonNegativeInt();
+                    read(CLOSE_PAREN);
+                }
+                if (readIf("TO")) {
+                    if (readIf("MINUTE")) {
+                        original = "INTERVAL HOUR TO MINUTE";
+                    } else {
+                        read("SECOND");
+                        if (readIf(OPEN_PAREN)) {
+                            originalScale = readNonNegativeInt();
+                            read(CLOSE_PAREN);
+                        }
+                        original = "INTERVAL HOUR TO SECOND";
+                    }
+                } else {
+                    original = "INTERVAL HOUR";
+                }
+            } else if (readIf("MINUTE")) {
+                if (readIf(OPEN_PAREN)) {
+                    originalPrecision = readNonNegativeInt();
+                    read(CLOSE_PAREN);
+                }
+                if (readIf("TO")) {
+                    read("SECOND");
+                    if (readIf(OPEN_PAREN)) {
+                        originalScale = readNonNegativeInt();
+                        read(CLOSE_PAREN);
+                    }
+                    original = "INTERVAL MINUTE TO SECOND";
+                } else {
+                    original = "INTERVAL MINUTE";
+                }
+            } else {
+                read("SECOND");
+                if (readIf(OPEN_PAREN)) {
+                    originalPrecision = readNonNegativeInt();
+                    if (readIf(COMMA)) {
+                        originalScale = readNonNegativeInt();
+                    }
+                    read(CLOSE_PAREN);
+                }
+                original = "INTERVAL SECOND";
             }
         } else {
             regular = true;
@@ -4828,6 +4975,25 @@ public class Parser {
                     scale = 0;
                     precision = displaySize = ValueTimestamp.getDisplaySize(0);
                 }
+            } else if (DataType.isIntervalType(t)) {
+                if (originalPrecision >= 0 || originalScale >= 0) {
+                    IntervalQualifier qualifier = IntervalQualifier.valueOf(t - Value.INTERVAL_YEAR);
+                    original = qualifier.getTypeName(originalPrecision, originalScale);
+                    if (originalPrecision >= 0) {
+                        if (originalPrecision <= 0 || originalPrecision > ValueInterval.MAXIMUM_PRECISION) {
+                            throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION,
+                                    Integer.toString(originalPrecision));
+                        }
+                        precision = originalPrecision;
+                    }
+                    if (originalScale >= 0) {
+                        if (originalScale > ValueInterval.MAXIMUM_SCALE) {
+                            throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION,
+                                    Integer.toString(originalScale));
+                        }
+                        scale = originalScale;
+                    }
+                }
             } else if (readIf(OPEN_PAREN)) {
                 if (!readIf("MAX")) {
                     long p = readLong();
@@ -4909,7 +5075,7 @@ public class Parser {
         // MySQL compatibility
         readIf("UNSIGNED");
         int type = dataType.type;
-        if (scale > precision) {
+        if (scale > precision && !DataType.isIntervalType(type)) {
             throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION,
                     Integer.toString(scale), Long.toString(precision));
         }

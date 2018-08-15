@@ -20,6 +20,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import org.h2.api.ErrorCode;
+import org.h2.api.IntervalQualifier;
 import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
@@ -175,9 +176,74 @@ public abstract class Value {
     public static final int ENUM = 25;
 
     /**
+     * The value type for {@code INTERVAL YEAR} values.
+     */
+    public static final int INTERVAL_YEAR = 26;
+
+    /**
+     * The value type for {@code INTERVAL MONTH} values.
+     */
+    public static final int INTERVAL_MONTH = 27;
+
+    /**
+     * The value type for {@code INTERVAL DAY} values.
+     */
+    public static final int INTERVAL_DAY = 28;
+
+    /**
+     * The value type for {@code INTERVAL HOUR} values.
+     */
+    public static final int INTERVAL_HOUR = 29;
+
+    /**
+     * The value type for {@code INTERVAL MINUTE} values.
+     */
+    public static final int INTERVAL_MINUTE = 30;
+
+    /**
+     * The value type for {@code INTERVAL SECOND} values.
+     */
+    public static final int INTERVAL_SECOND = 31;
+
+    /**
+     * The value type for {@code INTERVAL YEAR TO MONTH} values.
+     */
+    public static final int INTERVAL_YEAR_TO_MONTH = 32;
+
+    /**
+     * The value type for {@code INTERVAL DAY TO HOUR} values.
+     */
+    public static final int INTERVAL_DAY_TO_HOUR = 33;
+
+    /**
+     * The value type for {@code INTERVAL DAY TO MINUTE} values.
+     */
+    public static final int INTERVAL_DAY_TO_MINUTE = 34;
+
+    /**
+     * The value type for {@code INTERVAL DAY TO SECOND} values.
+     */
+    public static final int INTERVAL_DAY_TO_SECOND = 35;
+
+    /**
+     * The value type for {@code INTERVAL HOUR TO MINUTE} values.
+     */
+    public static final int INTERVAL_HOUR_TO_MINUTE = 36;
+
+    /**
+     * The value type for {@code INTERVAL HOUR TO SECOND} values.
+     */
+    public static final int INTERVAL_HOUR_TO_SECOND = 37;
+
+    /**
+     * The value type for {@code INTERVAL MINUTE TO SECOND} values.
+     */
+    public static final int INTERVAL_MINUTE_TO_SECOND = 38;
+
+    /**
      * The number of value types.
      */
-    public static final int TYPE_COUNT = ENUM;
+    public static final int TYPE_COUNT = INTERVAL_MINUTE_TO_SECOND + 1;
 
     private static SoftReference<Value[]> softCache;
     private static final BigDecimal MAX_LONG_DECIMAL =
@@ -316,6 +382,32 @@ public abstract class Value {
             return 26_000;
         case DOUBLE:
             return 27_000;
+        case INTERVAL_YEAR:
+            return 28_000;
+        case INTERVAL_MONTH:
+            return 28_100;
+        case INTERVAL_YEAR_TO_MONTH:
+            return 28_200;
+        case INTERVAL_DAY:
+            return 29_000;
+        case INTERVAL_HOUR:
+            return 29_100;
+        case INTERVAL_DAY_TO_HOUR:
+            return 29_200;
+        case INTERVAL_MINUTE:
+            return 29_300;
+        case INTERVAL_HOUR_TO_MINUTE:
+            return 29_400;
+        case INTERVAL_DAY_TO_MINUTE:
+            return 29_500;
+        case INTERVAL_SECOND:
+            return 29_600;
+        case INTERVAL_MINUTE_TO_SECOND:
+            return 29_700;
+        case INTERVAL_HOUR_TO_SECOND:
+            return 29_800;
+        case INTERVAL_DAY_TO_SECOND:
+            return 29_900;
         case TIME:
             return 30_000;
         case DATE:
@@ -947,7 +1039,8 @@ public abstract class Value {
             case STRING: {
                 String s;
                 if (getType() == BYTES && mode != null && mode.charToBinaryInUtf8) {
-                    // Bugfix - Can't use the locale encoding when enabling charToBinaryInUtf8 in mode.
+                    // Bugfix - Can't use the locale encoding when enabling
+                    // charToBinaryInUtf8 in mode.
                     // The following two target types also are the same issue.
                     // @since 2018-07-19 little-pan
                     s = new String(getBytesNoCopy(), StandardCharsets.UTF_8);
@@ -1057,6 +1150,68 @@ public abstract class Value {
                 }
                 break;
             }
+            case Value.INTERVAL_YEAR:
+            case Value.INTERVAL_MONTH:
+            case Value.INTERVAL_YEAR_TO_MONTH:
+                switch (getType()) {
+                case Value.STRING:
+                case Value.STRING_IGNORECASE:
+                case Value.STRING_FIXED: {
+                    String s = getString();
+                    try {
+                        return DateTimeUtils.parseFormattedInterval(
+                                IntervalQualifier.valueOf(targetType - Value.INTERVAL_YEAR), s)
+                                .convertTo(targetType);
+                    } catch (Exception e) {
+                        throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, e, "INTERVAL", s);
+                    }
+                }
+                case Value.INTERVAL_YEAR:
+                case Value.INTERVAL_MONTH:
+                case Value.INTERVAL_YEAR_TO_MONTH:
+                    return DateTimeUtils.intervalFromAbsolute(
+                            IntervalQualifier.valueOf(targetType - Value.INTERVAL_YEAR),
+                            DateTimeUtils.intervalToAbsolute((ValueInterval) this));
+                }
+                break;
+            case Value.INTERVAL_DAY:
+            case Value.INTERVAL_HOUR:
+            case Value.INTERVAL_MINUTE:
+            case Value.INTERVAL_SECOND:
+            case Value.INTERVAL_DAY_TO_HOUR:
+            case Value.INTERVAL_DAY_TO_MINUTE:
+            case Value.INTERVAL_DAY_TO_SECOND:
+            case Value.INTERVAL_HOUR_TO_MINUTE:
+            case Value.INTERVAL_HOUR_TO_SECOND:
+            case Value.INTERVAL_MINUTE_TO_SECOND:
+                switch (getType()) {
+                case Value.STRING:
+                case Value.STRING_IGNORECASE:
+                case Value.STRING_FIXED: {
+                    String s = getString();
+                    try {
+                        return DateTimeUtils.parseFormattedInterval(
+                                IntervalQualifier.valueOf(targetType - Value.INTERVAL_YEAR), s)
+                                .convertTo(targetType);
+                    } catch (Exception e) {
+                        throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, e, "INTERVAL", s);
+                    }
+                }
+                case Value.INTERVAL_DAY:
+                case Value.INTERVAL_HOUR:
+                case Value.INTERVAL_MINUTE:
+                case Value.INTERVAL_SECOND:
+                case Value.INTERVAL_DAY_TO_HOUR:
+                case Value.INTERVAL_DAY_TO_MINUTE:
+                case Value.INTERVAL_DAY_TO_SECOND:
+                case Value.INTERVAL_HOUR_TO_MINUTE:
+                case Value.INTERVAL_HOUR_TO_SECOND:
+                case Value.INTERVAL_MINUTE_TO_SECOND:
+                    return DateTimeUtils.intervalFromAbsolute(
+                            IntervalQualifier.valueOf(targetType - Value.INTERVAL_YEAR),
+                            DateTimeUtils.intervalToAbsolute((ValueInterval) this));
+                }
+                break;
             }
             // conversion by parsing the string value
             String s = getString();

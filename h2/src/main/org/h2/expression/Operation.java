@@ -7,6 +7,7 @@ package org.h2.expression;
 
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
+import org.h2.expression.IntervalOperation.IntervalOpType;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -216,6 +217,8 @@ public class Operation extends Expression {
                 } else {
                     dataType = Value.DECIMAL;
                 }
+            } else if (DataType.isIntervalType(l) || DataType.isIntervalType(r)) {
+                return optimizeInterval(session, l, r);
             } else if (DataType.isDateTimeType(l) || DataType.isDateTimeType(r)) {
                 return optimizeDateTime(session, l, r);
             } else {
@@ -235,6 +238,74 @@ public class Operation extends Expression {
             return ValueExpression.get(getValue(session));
         }
         return this;
+    }
+
+    private Expression optimizeInterval(Session session, int l, int r) {
+        boolean lInterval = false, lNumeric = false, lDateTime = false;
+        if (DataType.isIntervalType(l)) {
+            lInterval = true;
+        } else if (DataType.isNumericType(l)) {
+            lNumeric = true;
+        } else if (DataType.isDateTimeType(l)) {
+            lDateTime = true;
+        } else {
+            throw getUnsupported(l, r);
+        }
+        boolean rInterval = false, rNumeric = false, rDateTime = false;
+        if (DataType.isIntervalType(r)) {
+            rInterval = true;
+        } else if (DataType.isNumericType(r)) {
+            rNumeric = true;
+        } else if (DataType.isDateTimeType(r)) {
+            rDateTime = true;
+        } else {
+            throw getUnsupported(l, r);
+        }
+        switch (opType) {
+        case PLUS:
+            if (lInterval && rInterval) {
+                if (DataType.isYearMonthIntervalType(l) == DataType.isYearMonthIntervalType(r)) {
+                    return new IntervalOperation(IntervalOpType.INTERVAL_PLUS_INTERVAL, left, right);
+                }
+            } else if (lInterval && rDateTime) {
+                if (r == Value.TIME && DataType.isYearMonthIntervalType(l)) {
+                    break;
+                }
+                return new IntervalOperation(IntervalOpType.DATETIME_PLUS_INTERVAL, right, left);
+            } else if (lDateTime && rInterval) {
+                if (l == Value.TIME && DataType.isYearMonthIntervalType(r)) {
+                    break;
+                }
+                return new IntervalOperation(IntervalOpType.DATETIME_PLUS_INTERVAL, left, right);
+            }
+            break;
+        case MINUS:
+            if (lInterval && rInterval) {
+                if (DataType.isYearMonthIntervalType(l) == DataType.isYearMonthIntervalType(r)) {
+                    return new IntervalOperation(IntervalOpType.INTERVAL_MINUS_INTERVAL, left, right);
+                }
+            } else if (lDateTime && rInterval) {
+                if (l == Value.TIME && DataType.isYearMonthIntervalType(r)) {
+                    break;
+                }
+                return new IntervalOperation(IntervalOpType.DATETIME_MINUS_INTERVAL, left, right);
+            }
+            break;
+        case MULTIPLY:
+            if (lInterval && rNumeric) {
+                return new IntervalOperation(IntervalOpType.INTERVAL_MULTIPLY_NUMERIC, left, right);
+            } else if (lNumeric && rInterval) {
+                return new IntervalOperation(IntervalOpType.INTERVAL_MULTIPLY_NUMERIC, right, left);
+            }
+            break;
+        case DIVIDE:
+            if (lInterval && rNumeric) {
+                return new IntervalOperation(IntervalOpType.INTERVAL_DIVIDE_NUMERIC, left, right);
+            }
+            break;
+        default:
+        }
+        throw getUnsupported(l, r);
     }
 
     private Expression optimizeDateTime(Session session, int l, int r) {
@@ -317,21 +388,13 @@ public class Operation extends Expression {
                     return this;
                 case Value.DATE:
                 case Value.TIMESTAMP:
-                case Value.TIMESTAMP_TZ: {
-                    // Oracle date subtract
-                    Function f = Function.getFunction(session.getDatabase(), "DATEDIFF");
-                    f.setParameter(0, ValueExpression.get(ValueString.get("DAY")));
-                    f.setParameter(1, right);
-                    f.setParameter(2, left);
-                    f.doneWithParameters();
-                    return f.optimize(session);
-                }
+                case Value.TIMESTAMP_TZ:
+                    return new IntervalOperation(IntervalOpType.DATETIME_MINUS_DATETIME, left, right);
                 }
                 break;
             case Value.TIME:
                 if (r == Value.TIME) {
-                    dataType = Value.TIME;
-                    return this;
+                    return new IntervalOperation(IntervalOpType.DATETIME_MINUS_DATETIME, left, right);
                 }
                 break;
             }
@@ -357,10 +420,12 @@ public class Operation extends Expression {
             break;
         default:
         }
-        throw DbException.getUnsupportedException(
-                DataType.getDataType(l).name + " " +
-                getOperationToken() + " " +
-                DataType.getDataType(r).name);
+        throw getUnsupported(l, r);
+    }
+
+    private DbException getUnsupported(int l, int r) {
+        return DbException.getUnsupportedException(
+                DataType.getDataType(l).name + ' ' + getOperationToken() + ' ' + DataType.getDataType(r).name);
     }
 
     private void swap() {

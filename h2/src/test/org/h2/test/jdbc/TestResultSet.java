@@ -37,6 +37,8 @@ import java.util.Collections;
 import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
+import org.h2.api.Interval;
+import org.h2.api.IntervalQualifier;
 import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -103,6 +105,8 @@ public class TestResultSet extends TestDb {
         testDoubleFloat();
         testDatetime();
         testDatetimeWithCalendar();
+        testInterval();
+        testInterval8();
         testBlob();
         testClob();
         testAutoIncrement();
@@ -1560,6 +1564,47 @@ public class TestResultSet extends TestDb {
 
         assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
+    }
+
+    private void testInterval() throws SQLException {
+        trace("Test INTERVAL");
+        ResultSet rs;
+
+        rs = stat.executeQuery("CALL INTERVAL '10' YEAR");
+        rs.next();
+        assertEquals("INTERVAL '10' YEAR", rs.getString(1));
+        Interval expected = new Interval(IntervalQualifier.YEAR, false, 10, 0);
+        assertEquals(expected, rs.getObject(1));
+        assertEquals(expected, rs.getObject(1, Interval.class));
+        ResultSetMetaData metaData = rs.getMetaData();
+        assertEquals(Types.OTHER, metaData.getColumnType(1));
+        assertEquals("INTERVAL YEAR", metaData.getColumnTypeName(1));
+        assertEquals(Interval.class.getName(), metaData.getColumnClassName(1));
+        assertEquals("INTERVAL '-111222333444555666' YEAR".length(), metaData.getColumnDisplaySize(1));
+    }
+
+    private void testInterval8() throws SQLException {
+        if (!LocalDateTimeUtils.isJava8DateApiPresent()) {
+            return;
+        }
+        trace("Test INTERVAL 8");
+        ResultSet rs;
+
+        rs = stat.executeQuery("CALL INTERVAL '-3.1' SECOND");
+        rs.next();
+        assertEquals("INTERVAL '-3.1' SECOND", rs.getString(1));
+        Object expected;
+        try {
+            expected = LocalDateTimeUtils.DURATION.getMethod("ofSeconds", long.class, long.class)
+                    .invoke(null, -4, 900_000_000);
+        } catch (ReflectiveOperationException ex) {
+            throw new RuntimeException(ex);
+        }
+        assertEquals(expected, rs.getObject(1, LocalDateTimeUtils.DURATION));
+
+        rs = stat.executeQuery("CALL INTERVAL '1-2' YEAR TO MONTH");
+        rs.next();
+        assertThrows(ErrorCode.DATA_CONVERSION_ERROR_1, rs).getObject(1, LocalDateTimeUtils.DURATION);
     }
 
     private void testBlob() throws SQLException {

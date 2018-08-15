@@ -27,6 +27,12 @@ import static org.h2.expression.Function.TIMEZONE_HOUR;
 import static org.h2.expression.Function.TIMEZONE_MINUTE;
 import static org.h2.expression.Function.WEEK;
 import static org.h2.expression.Function.YEAR;
+import static org.h2.util.DateTimeUtils.MILLIS_PER_DAY;
+import static org.h2.util.DateTimeUtils.NANOS_PER_DAY;
+import static org.h2.util.DateTimeUtils.NANOS_PER_HOUR;
+import static org.h2.util.DateTimeUtils.NANOS_PER_MINUTE;
+import static org.h2.util.DateTimeUtils.NANOS_PER_SECOND;
+
 import java.math.BigDecimal;
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
@@ -34,13 +40,16 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
+
 import org.h2.api.ErrorCode;
+import org.h2.api.IntervalQualifier;
 import org.h2.expression.Function;
 import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDecimal;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueInterval;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
@@ -169,14 +178,14 @@ public final class DateTimeFunctions {
                     .dateValueFromAbsoluteDay(DateTimeUtils.absoluteDayFromDateValue(dateValue) + count);
             return DateTimeUtils.dateTimeToValue(v, dateValue, timeNanos, forceTimestamp);
         case HOUR:
-            count *= 3_600_000_000_000L;
+            count *= NANOS_PER_HOUR;
             break;
         case MINUTE:
-            count *= 60_000_000_000L;
+            count *= NANOS_PER_MINUTE;
             break;
         case SECOND:
         case EPOCH:
-            count *= 1_000_000_000;
+            count *= NANOS_PER_SECOND;
             break;
         case MILLISECOND:
             count *= 1_000_000;
@@ -204,14 +213,14 @@ public final class DateTimeFunctions {
             forceTimestamp = true;
         }
         timeNanos += count;
-        if (timeNanos >= DateTimeUtils.NANOS_PER_DAY || timeNanos < 0) {
+        if (timeNanos >= NANOS_PER_DAY || timeNanos < 0) {
             long d;
-            if (timeNanos >= DateTimeUtils.NANOS_PER_DAY) {
-                d = timeNanos / DateTimeUtils.NANOS_PER_DAY;
+            if (timeNanos >= NANOS_PER_DAY) {
+                d = timeNanos / NANOS_PER_DAY;
             } else {
-                d = (timeNanos - DateTimeUtils.NANOS_PER_DAY + 1) / DateTimeUtils.NANOS_PER_DAY;
+                d = (timeNanos - NANOS_PER_DAY + 1) / NANOS_PER_DAY;
             }
-            timeNanos -= d * DateTimeUtils.NANOS_PER_DAY;
+            timeNanos -= d * NANOS_PER_DAY;
             return DateTimeUtils.dateTimeToValue(v,
                     DateTimeUtils.dateValueFromAbsoluteDay(DateTimeUtils.absoluteDayFromDateValue(dateValue) + d),
                     timeNanos, forceTimestamp);
@@ -255,21 +264,22 @@ public final class DateTimeFunctions {
             long timeNanos2 = a2[1];
             switch (field) {
             case NANOSECOND:
-                return (absolute2 - absolute1) * DateTimeUtils.NANOS_PER_DAY + (timeNanos2 - timeNanos1);
+                return (absolute2 - absolute1) * NANOS_PER_DAY + (timeNanos2 - timeNanos1);
             case MICROSECOND:
-                return (absolute2 - absolute1) * (DateTimeUtils.MILLIS_PER_DAY * 1_000)
+                return (absolute2 - absolute1) * (MILLIS_PER_DAY * 1_000)
                         + (timeNanos2 / 1_000 - timeNanos1 / 1_000);
             case MILLISECOND:
-                return (absolute2 - absolute1) * DateTimeUtils.MILLIS_PER_DAY
+                return (absolute2 - absolute1) * MILLIS_PER_DAY
                         + (timeNanos2 / 1_000_000 - timeNanos1 / 1_000_000);
             case SECOND:
             case EPOCH:
-                return (absolute2 - absolute1) * 86_400 + (timeNanos2 / 1_000_000_000 - timeNanos1 / 1_000_000_000);
+                return (absolute2 - absolute1) * 86_400
+                        + (timeNanos2 / NANOS_PER_SECOND - timeNanos1 / NANOS_PER_SECOND);
             case MINUTE:
-                return (absolute2 - absolute1) * 1_440 + (timeNanos2 / 60_000_000_000L - timeNanos1 / 60_000_000_000L);
+                return (absolute2 - absolute1) * 1_440
+                        + (timeNanos2 / NANOS_PER_MINUTE - timeNanos1 / NANOS_PER_MINUTE);
             case HOUR:
-                return (absolute2 - absolute1) * 24
-                        + (timeNanos2 / 3_600_000_000_000L - timeNanos1 / 3_600_000_000_000L);
+                return (absolute2 - absolute1) * 24 + (timeNanos2 / NANOS_PER_HOUR - timeNanos1 / NANOS_PER_HOUR);
             }
             // Fake fall-through
             // $FALL-THROUGH$
@@ -331,8 +341,25 @@ public final class DateTimeFunctions {
         if (field != EPOCH) {
             result = ValueInt.get(getIntDatePart(value, field));
         } else {
-
             // Case where we retrieve the EPOCH time.
+            if (value instanceof ValueInterval) {
+                ValueInterval interval = (ValueInterval) value;
+                BigDecimal bd;
+                if (interval.getQualifier().isYearMonth()) {
+                    interval = (ValueInterval) interval.convertTo(Value.INTERVAL_YEAR_TO_MONTH);
+                    long leading = interval.getLeading();
+                    long remaining = interval.getRemaining();
+                    bd = BigDecimal.valueOf(leading).multiply(BigDecimal.valueOf(31557600))
+                            .add(BigDecimal.valueOf(remaining * 2592000));
+                    if (interval.isNegative()) {
+                        bd = bd.negate();
+                    }
+                } else {
+                    bd = new BigDecimal(DateTimeUtils.intervalToAbsolute(interval))
+                            .divide(BigDecimal.valueOf(NANOS_PER_SECOND));
+                }
+                return ValueDecimal.get(bd);
+            }
             // First we retrieve the dateValue and his time in nanoseconds.
             long[] a = DateTimeUtils.dateAndTimeFromValue(value);
             long dateValue = a[0];
@@ -340,7 +367,7 @@ public final class DateTimeFunctions {
             // We compute the time in nanoseconds and the total number of days.
             BigDecimal timeNanosBigDecimal = new BigDecimal(timeNanos);
             BigDecimal numberOfDays = new BigDecimal(DateTimeUtils.absoluteDayFromDateValue(dateValue));
-            BigDecimal nanosSeconds = new BigDecimal(1_000_000_000);
+            BigDecimal nanosSeconds = new BigDecimal(NANOS_PER_SECOND);
             BigDecimal secondsPerDay = new BigDecimal(DateTimeUtils.SECONDS_PER_DAY);
 
             // Case where the value is of type time e.g. '10:00:00'
@@ -421,23 +448,20 @@ public final class DateTimeFunctions {
 
         case SECOND:
 
-            long nanoInSecond = 1_000_000_000L;
-            long seconds = timeNanosRetrieved / nanoInSecond;
-            timeNanos = seconds * nanoInSecond;
+            long seconds = timeNanosRetrieved / NANOS_PER_SECOND;
+            timeNanos = seconds * NANOS_PER_SECOND;
             break;
 
         case MINUTE:
 
-            long nanoInMinute = 60_000_000_000L;
-            long minutes = timeNanosRetrieved / nanoInMinute;
-            timeNanos = minutes * nanoInMinute;
+            long minutes = timeNanosRetrieved / NANOS_PER_MINUTE;
+            timeNanos = minutes * NANOS_PER_MINUTE;
             break;
 
         case HOUR:
 
-            long nanoInHour = 3_600_000_000_000L;
-            long hours = timeNanosRetrieved / nanoInHour;
-            timeNanos = hours * nanoInHour;
+            long hours = timeNanosRetrieved / NANOS_PER_HOUR;
+            timeNanos = hours * NANOS_PER_HOUR;
             break;
 
         case DAY_OF_MONTH:
@@ -602,56 +626,99 @@ public final class DateTimeFunctions {
      * @return the value
      */
     public static int getIntDatePart(Value date, int field) {
-        long[] a = DateTimeUtils.dateAndTimeFromValue(date);
-        long dateValue = a[0];
-        long timeNanos = a[1];
-        switch (field) {
-        case YEAR:
-            return DateTimeUtils.yearFromDateValue(dateValue);
-        case MONTH:
-            return DateTimeUtils.monthFromDateValue(dateValue);
-        case DAY_OF_MONTH:
-            return DateTimeUtils.dayFromDateValue(dateValue);
-        case HOUR:
-            return (int) (timeNanos / 3_600_000_000_000L % 24);
-        case MINUTE:
-            return (int) (timeNanos / 60_000_000_000L % 60);
-        case SECOND:
-            return (int) (timeNanos / 1_000_000_000 % 60);
-        case MILLISECOND:
-            return (int) (timeNanos / 1_000_000 % 1_000);
-        case MICROSECOND:
-            return (int) (timeNanos / 1_000 % 1_000_000);
-        case NANOSECOND:
-            return (int) (timeNanos % 1_000_000_000);
-        case DAY_OF_YEAR:
-            return DateTimeUtils.getDayOfYear(dateValue);
-        case DAY_OF_WEEK:
-            return DateTimeUtils.getSundayDayOfWeek(dateValue);
-        case WEEK:
-            GregorianCalendar gc = DateTimeUtils.getCalendar();
-            return DateTimeUtils.getWeekOfYear(dateValue, gc.getFirstDayOfWeek() - 1, gc.getMinimalDaysInFirstWeek());
-        case QUARTER:
-            return (DateTimeUtils.monthFromDateValue(dateValue) - 1) / 3 + 1;
-        case ISO_YEAR:
-            return DateTimeUtils.getIsoWeekYear(dateValue);
-        case ISO_WEEK:
-            return DateTimeUtils.getIsoWeekOfYear(dateValue);
-        case ISO_DAY_OF_WEEK:
-            return DateTimeUtils.getIsoDayOfWeek(dateValue);
-        case TIMEZONE_HOUR:
-        case TIMEZONE_MINUTE: {
-            int offsetMinutes;
-            if (date instanceof ValueTimestampTimeZone) {
-                offsetMinutes = ((ValueTimestampTimeZone) date).getTimeZoneOffsetMins();
-            } else {
-                offsetMinutes = DateTimeUtils.getTimeZoneOffsetMillis(null, dateValue, timeNanos);
+        if (date instanceof ValueInterval) {
+            ValueInterval interval = (ValueInterval) date;
+            IntervalQualifier qualifier = interval.getQualifier();
+            boolean negative = interval.isNegative();
+            long leading = interval.getLeading(), remaining = interval.getRemaining();
+            long v;
+            switch (field) {
+            case YEAR:
+                v = DateTimeUtils.yearsFromInterval(qualifier, negative, leading, remaining);
+                break;
+            case MONTH:
+                v = DateTimeUtils.monthsFromInterval(qualifier, negative, leading, remaining);
+                break;
+            case DAY_OF_MONTH:
+            case DAY_OF_WEEK:
+            case DAY_OF_YEAR:
+                v = DateTimeUtils.daysFromInterval(qualifier, negative, leading, remaining);
+                break;
+            case HOUR:
+                v = DateTimeUtils.hoursFromInterval(qualifier, negative, leading, remaining);
+                break;
+            case MINUTE:
+                v = DateTimeUtils.minutesFromInterval(qualifier, negative, leading, remaining);
+                break;
+            case SECOND:
+                v = DateTimeUtils.nanosFromInterval(qualifier, negative, leading, remaining) / NANOS_PER_SECOND;
+                break;
+            case MILLISECOND:
+                v = DateTimeUtils.nanosFromInterval(qualifier, negative, leading, remaining) / 1_000_000 % 1_000;
+                break;
+            case MICROSECOND:
+                v = DateTimeUtils.nanosFromInterval(qualifier, negative, leading, remaining) / 1_000 % 1_000_000;
+                break;
+            case NANOSECOND:
+                v = DateTimeUtils.nanosFromInterval(qualifier, negative, leading, remaining) % NANOS_PER_SECOND;
+                break;
+            default:
+                throw DbException.getUnsupportedException("getDatePart(" + date + ", " + field + ')');
             }
-            if (field == TIMEZONE_HOUR) {
-                return offsetMinutes / 60;
+            return (int) v;
+        } else {
+            long[] a = DateTimeUtils.dateAndTimeFromValue(date);
+            long dateValue = a[0];
+            long timeNanos = a[1];
+            switch (field) {
+            case YEAR:
+                return DateTimeUtils.yearFromDateValue(dateValue);
+            case MONTH:
+                return DateTimeUtils.monthFromDateValue(dateValue);
+            case DAY_OF_MONTH:
+                return DateTimeUtils.dayFromDateValue(dateValue);
+            case HOUR:
+                return (int) (timeNanos / NANOS_PER_HOUR % 24);
+            case MINUTE:
+                return (int) (timeNanos / NANOS_PER_MINUTE % 60);
+            case SECOND:
+                return (int) (timeNanos / NANOS_PER_SECOND % 60);
+            case MILLISECOND:
+                return (int) (timeNanos / 1_000_000 % 1_000);
+            case MICROSECOND:
+                return (int) (timeNanos / 1_000 % 1_000_000);
+            case NANOSECOND:
+                return (int) (timeNanos % NANOS_PER_SECOND);
+            case DAY_OF_YEAR:
+                return DateTimeUtils.getDayOfYear(dateValue);
+            case DAY_OF_WEEK:
+                return DateTimeUtils.getSundayDayOfWeek(dateValue);
+            case WEEK:
+                GregorianCalendar gc = DateTimeUtils.getCalendar();
+                return DateTimeUtils.getWeekOfYear(dateValue, gc.getFirstDayOfWeek() - 1,
+                        gc.getMinimalDaysInFirstWeek());
+            case QUARTER:
+                return (DateTimeUtils.monthFromDateValue(dateValue) - 1) / 3 + 1;
+            case ISO_YEAR:
+                return DateTimeUtils.getIsoWeekYear(dateValue);
+            case ISO_WEEK:
+                return DateTimeUtils.getIsoWeekOfYear(dateValue);
+            case ISO_DAY_OF_WEEK:
+                return DateTimeUtils.getIsoDayOfWeek(dateValue);
+            case TIMEZONE_HOUR:
+            case TIMEZONE_MINUTE: {
+                int offsetMinutes;
+                if (date instanceof ValueTimestampTimeZone) {
+                    offsetMinutes = ((ValueTimestampTimeZone) date).getTimeZoneOffsetMins();
+                } else {
+                    offsetMinutes = DateTimeUtils.getTimeZoneOffsetMillis(null, dateValue, timeNanos);
+                }
+                if (field == TIMEZONE_HOUR) {
+                    return offsetMinutes / 60;
+                }
+                return offsetMinutes % 60;
             }
-            return offsetMinutes % 60;
-        }
+            }
         }
         throw DbException.getUnsupportedException("getDatePart(" + date + ", " + field + ')');
     }

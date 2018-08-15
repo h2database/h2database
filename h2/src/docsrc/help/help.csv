@@ -3389,7 +3389,7 @@ MEDIAN( [ DISTINCT ] value ) [ FILTER ( WHERE expression ) ]
 ","
 The value separating the higher half of a values from the lower half.
 Returns the middle value or an interpolated value between two middle values if number of values is even.
-Interpolation is only supported for numeric, date, and time data types.
+Interpolation is only supported for numeric, date-time, and interval data types.
 NULL values are ignored in the calculation.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.

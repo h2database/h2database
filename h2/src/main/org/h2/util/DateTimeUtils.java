@@ -49,6 +49,21 @@ public class DateTimeUtils {
     public static final TimeZone UTC = TimeZone.getTimeZone("UTC");
 
     /**
+     * The number of nanoseconds per second.
+     */
+    public static final long NANOS_PER_SECOND = 1_000_000_000;
+
+    /**
+     * The number of nanoseconds per minute.
+     */
+    public static final long NANOS_PER_MINUTE = 60 * NANOS_PER_SECOND;
+
+    /**
+     * The number of nanoseconds per hour.
+     */
+    public static final long NANOS_PER_HOUR = 60 * NANOS_PER_MINUTE;
+
+    /**
      * The number of nanoseconds per day.
      */
     public static final long NANOS_PER_DAY = MILLIS_PER_DAY * 1_000_000;
@@ -406,7 +421,7 @@ public class DateTimeUtils {
         if (timeOfDay && hour >= 24) {
             throw new IllegalArgumentException(s);
         }
-        nanos += ((((hour * 60L) + minute) * 60) + second) * 1_000_000_000;
+        nanos += ((((hour * 60L) + minute) * 60) + second) * NANOS_PER_SECOND;
         return negative ? -nanos : nanos;
     }
 
@@ -946,7 +961,7 @@ public class DateTimeUtils {
             long timeNanos) {
         Timestamp ts = new Timestamp(convertDateTimeValueToMillis(null, dateValue, timeNanos / 1_000_000));
         // This method expects the complete nanoseconds value including milliseconds
-        ts.setNanos((int) (timeNanos % 1_000_000_000));
+        ts.setNanos((int) (timeNanos % NANOS_PER_SECOND));
         return ts;
     }
 
@@ -961,7 +976,7 @@ public class DateTimeUtils {
      */
     public static Timestamp convertTimestampTimeZoneToTimestamp(long dateValue, long timeNanos, short offsetMins) {
         Timestamp ts = new Timestamp(getMillis(dateValue, timeNanos, offsetMins));
-        ts.setNanos((int) (timeNanos % 1_000_000_000));
+        ts.setNanos((int) (timeNanos % NANOS_PER_SECOND));
         return ts;
     }
 
@@ -1701,15 +1716,15 @@ public class DateTimeUtils {
                 leading = parseIntervalLeading(s, 0, space, negative);
                 int colon = s.indexOf(':', space + 1);
                 if (colon < 0) {
-                    remaining = parseIntervalRemaining(s, space + 1, s.length(), 23) * 3_600_000_000_000L;
+                    remaining = parseIntervalRemaining(s, space + 1, s.length(), 23) * NANOS_PER_HOUR;
                 } else {
                     int colon2 = s.indexOf(':', colon + 1);
                     if (colon2 < 0) {
-                        remaining = parseIntervalRemaining(s, space + 1, colon, 23) * 3_600_000_000_000L
-                                + parseIntervalRemaining(s, colon + 1, s.length(), 59) * 60_000_000_000L;
+                        remaining = parseIntervalRemaining(s, space + 1, colon, 23) * NANOS_PER_HOUR
+                                + parseIntervalRemaining(s, colon + 1, s.length(), 59) * NANOS_PER_MINUTE;
                     } else {
-                        remaining = parseIntervalRemaining(s, space + 1, colon, 23) * 3_600_000_000_000L
-                                + parseIntervalRemaining(s, colon + 1, colon2, 59) * 60_000_000_000L
+                        remaining = parseIntervalRemaining(s, space + 1, colon, 23) * NANOS_PER_HOUR
+                                + parseIntervalRemaining(s, colon + 1, colon2, 59) * NANOS_PER_MINUTE
                                 + parseIntervalRemainingSeconds(s, colon2 + 1);
                     }
                 }
@@ -1727,9 +1742,9 @@ public class DateTimeUtils {
                 leading = parseIntervalLeading(s, 0, colon, negative);
                 int colon2 = s.indexOf(':', colon + 1);
                 if (colon2 < 0) {
-                    remaining = parseIntervalRemaining(s, colon + 1, s.length(), 59) * 60_000_000_000L;
+                    remaining = parseIntervalRemaining(s, colon + 1, s.length(), 59) * NANOS_PER_MINUTE;
                 } else {
-                    remaining = parseIntervalRemaining(s, colon + 1, colon2, 59) * 60_000_000_000L
+                    remaining = parseIntervalRemaining(s, colon + 1, colon2, 59) * NANOS_PER_MINUTE
                             + parseIntervalRemainingSeconds(s, colon2 + 1);
                 }
             }
@@ -1811,7 +1826,7 @@ public class DateTimeUtils {
         if (seconds < 0 || seconds > 59) {
             throw new IllegalArgumentException(s);
         }
-        return seconds * 1_000_000_000L + nanos;
+        return seconds * NANOS_PER_SECOND + nanos;
     }
 
     /**
@@ -1856,8 +1871,8 @@ public class DateTimeUtils {
             StringUtils.appendZeroPadded(buff, 2, remaining % 60);
             break;
         case DAY_TO_SECOND: {
-            long nanos = remaining % 60_000_000_000L;
-            remaining /= 60_000_000_000L;
+            long nanos = remaining % NANOS_PER_MINUTE;
+            remaining /= NANOS_PER_MINUTE;
             buff.append(leading).append(' ');
             StringUtils.appendZeroPadded(buff, 2, remaining / 60);
             buff.append(':');
@@ -1872,9 +1887,9 @@ public class DateTimeUtils {
             break;
         case HOUR_TO_SECOND:
             buff.append(leading).append(':');
-            StringUtils.appendZeroPadded(buff, 2, remaining / 60_000_000_000L);
+            StringUtils.appendZeroPadded(buff, 2, remaining / NANOS_PER_MINUTE);
             buff.append(':');
-            appendSecondsWithNanos(buff, remaining % 60_000_000_000L);
+            appendSecondsWithNanos(buff, remaining % NANOS_PER_MINUTE);
             break;
         case MINUTE_TO_SECOND:
             buff.append(leading).append(':');
@@ -1886,8 +1901,8 @@ public class DateTimeUtils {
     }
 
     private static void appendSecondsWithNanos(StringBuilder buff, long nanos) {
-        StringUtils.appendZeroPadded(buff, 2, nanos / 1_000_000_000);
-        appendNanos(buff, nanos % 1_000_000_000);
+        StringUtils.appendZeroPadded(buff, 2, nanos / NANOS_PER_SECOND);
+        appendNanos(buff, nanos % NANOS_PER_SECOND);
     }
 
     private static void appendNanos(StringBuilder buff, long nanos) {
@@ -1937,34 +1952,34 @@ public class DateTimeUtils {
             r = BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(NANOS_PER_DAY));
             break;
         case HOUR:
-            r = BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(3_600_000_000_000L));
+            r = BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(NANOS_PER_HOUR));
             break;
         case MINUTE:
-            r = BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(60_000_000_000L));
+            r = BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(NANOS_PER_MINUTE));
             break;
         case SECOND:
-            r = intervalToAbsolute(interval, 1_000_000_000);
+            r = intervalToAbsolute(interval, NANOS_PER_SECOND);
             break;
         case YEAR_TO_MONTH:
             r = intervalToAbsolute(interval, 12);
             break;
         case DAY_TO_HOUR:
-            r = intervalToAbsolute(interval, 24, 3_600_000_000_000L);
+            r = intervalToAbsolute(interval, 24, NANOS_PER_HOUR);
             break;
         case DAY_TO_MINUTE:
-            r = intervalToAbsolute(interval, 24 * 60, 60_000_000_000L);
+            r = intervalToAbsolute(interval, 24 * 60, NANOS_PER_MINUTE);
             break;
         case DAY_TO_SECOND:
             r = intervalToAbsolute(interval, NANOS_PER_DAY);
             break;
         case HOUR_TO_MINUTE:
-            r = intervalToAbsolute(interval, 60, 60_000_000_000L);
+            r = intervalToAbsolute(interval, 60, NANOS_PER_MINUTE);
             break;
         case HOUR_TO_SECOND:
-            r = intervalToAbsolute(interval, 3_600_000_000_000L);
+            r = intervalToAbsolute(interval, NANOS_PER_HOUR);
             break;
         case MINUTE_TO_SECOND:
-            r = intervalToAbsolute(interval, 60_000_000_000L);
+            r = intervalToAbsolute(interval, NANOS_PER_MINUTE);
             break;
         default:
             throw new IllegalArgumentException();
@@ -2001,26 +2016,26 @@ public class DateTimeUtils {
                     leadingExact(absolute.divide(BigInteger.valueOf(NANOS_PER_DAY))), 0);
         case HOUR:
             return ValueInterval.from(qualifier, absolute.signum() < 0,
-                    leadingExact(absolute.divide(BigInteger.valueOf(3_600_000_000_000L))), 0);
+                    leadingExact(absolute.divide(BigInteger.valueOf(NANOS_PER_HOUR))), 0);
         case MINUTE:
             return ValueInterval.from(qualifier, absolute.signum() < 0,
-                    leadingExact(absolute.divide(BigInteger.valueOf(60_000_000_000L))), 0);
+                    leadingExact(absolute.divide(BigInteger.valueOf(NANOS_PER_MINUTE))), 0);
         case SECOND:
-            return intervalFromAbsolute(qualifier, absolute, 1_000_000_000);
+            return intervalFromAbsolute(qualifier, absolute, NANOS_PER_SECOND);
         case YEAR_TO_MONTH:
             return intervalFromAbsolute(qualifier, absolute, 12);
         case DAY_TO_HOUR:
-            return intervalFromAbsolute(qualifier, absolute.divide(BigInteger.valueOf(3_600_000_000_000L)), 24);
+            return intervalFromAbsolute(qualifier, absolute.divide(BigInteger.valueOf(NANOS_PER_HOUR)), 24);
         case DAY_TO_MINUTE:
-            return intervalFromAbsolute(qualifier, absolute.divide(BigInteger.valueOf(60_000_000_000L)), 24 * 60);
+            return intervalFromAbsolute(qualifier, absolute.divide(BigInteger.valueOf(NANOS_PER_MINUTE)), 24 * 60);
         case DAY_TO_SECOND:
             return intervalFromAbsolute(qualifier, absolute, NANOS_PER_DAY);
         case HOUR_TO_MINUTE:
-            return intervalFromAbsolute(qualifier, absolute.divide(BigInteger.valueOf(60_000_000_000L)), 60);
+            return intervalFromAbsolute(qualifier, absolute.divide(BigInteger.valueOf(NANOS_PER_MINUTE)), 60);
         case HOUR_TO_SECOND:
-            return intervalFromAbsolute(qualifier, absolute, 3_600_000_000_000L);
+            return intervalFromAbsolute(qualifier, absolute, NANOS_PER_HOUR);
         case MINUTE_TO_SECOND:
-            return intervalFromAbsolute(qualifier, absolute, 60_000_000_000L);
+            return intervalFromAbsolute(qualifier, absolute, NANOS_PER_MINUTE);
         default:
             throw new IllegalArgumentException();
         }
@@ -2142,7 +2157,7 @@ public class DateTimeUtils {
             v = remaining / 60;
             break;
         case DAY_TO_SECOND:
-            v = remaining / 3_600_000_000_000L;
+            v = remaining / NANOS_PER_HOUR;
             break;
         default:
             return 0;
@@ -2176,13 +2191,13 @@ public class DateTimeUtils {
             v = remaining % 60;
             break;
         case DAY_TO_SECOND:
-            v = remaining / 60_000_000_000L % 60;
+            v = remaining / NANOS_PER_MINUTE % 60;
             break;
         case HOUR_TO_MINUTE:
             v = remaining;
             break;
         case HOUR_TO_SECOND:
-            v = remaining / 60_000_000_000L;
+            v = remaining / NANOS_PER_MINUTE;
             break;
         default:
             return 0;
@@ -2208,11 +2223,11 @@ public class DateTimeUtils {
         long v;
         switch (qualifier) {
         case SECOND:
-            v = leading * 1_000_000_000 + remaining;
+            v = leading * NANOS_PER_SECOND + remaining;
             break;
         case DAY_TO_SECOND:
         case HOUR_TO_SECOND:
-            v = remaining % 60_000_000_000L;
+            v = remaining % NANOS_PER_MINUTE;
             break;
         case MINUTE_TO_SECOND:
             v = remaining;

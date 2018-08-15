@@ -53,11 +53,11 @@ public class TestDateTimeUtils extends TestBase {
     }
 
     private void testParseTimeNanosDB2Format() {
-        assertEquals(3723004000000L, DateTimeUtils.parseTimeNanos("01:02:03.004", 0, 12, true));
-        assertEquals(3723004000000L, DateTimeUtils.parseTimeNanos("01.02.03.004", 0, 12, true));
+        assertEquals(3723004000000L, DateTimeUtils.parseTimeNanos("01:02:03.004", 0, 12));
+        assertEquals(3723004000000L, DateTimeUtils.parseTimeNanos("01.02.03.004", 0, 12));
 
-        assertEquals(3723000000000L, DateTimeUtils.parseTimeNanos("01:02:03", 0, 8, true));
-        assertEquals(3723000000000L, DateTimeUtils.parseTimeNanos("01.02.03", 0, 8, true));
+        assertEquals(3723000000000L, DateTimeUtils.parseTimeNanos("01:02:03", 0, 8));
+        assertEquals(3723000000000L, DateTimeUtils.parseTimeNanos("01.02.03", 0, 8));
     }
 
     /**

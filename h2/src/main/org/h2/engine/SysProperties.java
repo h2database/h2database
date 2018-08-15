@@ -384,38 +384,6 @@ public class SysProperties {
     public static final boolean RETURN_OFFSET_DATE_TIME = Utils.getProperty("h2.returnOffsetDateTime", PREVIEW);
 
     /**
-     * System property {@code h2.unlimitedTimeRange}, {@code false} by default.
-     *
-     * <p>
-     * Controls limits of TIME data type.
-     * </p>
-     *
-     * <table>
-     * <thead>
-     * <tr>
-     * <th>h2.unlimitedTimeRange</th>
-     * <th>Minimum TIME value</th>
-     * <th>Maximum TIME value</th>
-     * </tr>
-     * </thead>
-     * <tbody>
-     * <tr>
-     * <td>false</td>
-     * <td>00:00:00.000000000</td>
-     * <td>23:59:59.999999999</td>
-     * </tr>
-     * <tr>
-     * <td>true</td>
-     * <td>-2562047:47:16.854775808</td>
-     * <td>2562047:47:16.854775807</td>
-     * </tr>
-     * </tbody>
-     * </table>
-     */
-    public static final boolean UNLIMITED_TIME_RANGE =
-            Utils.getProperty("h2.unlimitedTimeRange", false);
-
-    /**
      * System property <code>h2.pgClientEncoding</code> (default: UTF-8).<br />
      * Default client encoding for PG server. It is used if the client does not
      * sends his encoding.

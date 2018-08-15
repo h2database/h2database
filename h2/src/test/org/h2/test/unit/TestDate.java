@@ -15,7 +15,6 @@ import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
@@ -119,36 +118,17 @@ public class TestDate extends TestBase {
         assertEquals("00:00:00", ValueTime.fromNanos(0).getString());
         assertEquals("23:59:59", ValueTime.parse("23:59:59").getString());
         assertEquals("11:22:33.444555666", ValueTime.parse("11:22:33.444555666").getString());
-        if (SysProperties.UNLIMITED_TIME_RANGE) {
-            assertEquals("99:59:59", ValueTime.parse("99:59:59").getString());
-            assertEquals("-00:10:10", ValueTime.parse("-00:10:10").getString());
-            assertEquals("-99:02:03.001002003",
-                    ValueTime.parse("-99:02:03.001002003").getString());
-            assertEquals("-99:02:03.001002",
-                    ValueTime.parse("-99:02:03.001002000").getString());
-            assertEquals("-99:02:03",
-                    ValueTime.parse("-99:02:03.0000000000001").getString());
-            assertEquals("1999999:59:59.999999999",
-                    ValueTime.parse("1999999:59:59.999999999").getString());
-            assertEquals("-1999999:59:59.999999999",
-                    ValueTime.parse("-1999999:59:59.999999999").getString());
-            assertEquals("2562047:47:16.854775807",
-                    ValueTime.fromNanos(Long.MAX_VALUE).getString());
-            assertEquals("-2562047:47:16.854775808",
-                    ValueTime.fromNanos(Long.MIN_VALUE).getString());
-        } else {
-            try {
-                ValueTime.parse("-00:00:00.000000001");
-                fail();
-            } catch (DbException ex) {
-                assertEquals(ErrorCode.INVALID_DATETIME_CONSTANT_2, ex.getErrorCode());
-            }
-            try {
-                ValueTime.parse("24:00:00");
-                fail();
-            } catch (DbException ex) {
-                assertEquals(ErrorCode.INVALID_DATETIME_CONSTANT_2, ex.getErrorCode());
-            }
+        try {
+            ValueTime.parse("-00:00:00.000000001");
+            fail();
+        } catch (DbException ex) {
+            assertEquals(ErrorCode.INVALID_DATETIME_CONSTANT_2, ex.getErrorCode());
+        }
+        try {
+            ValueTime.parse("24:00:00");
+            fail();
+        } catch (DbException ex) {
+            assertEquals(ErrorCode.INVALID_DATETIME_CONSTANT_2, ex.getErrorCode());
         }
         ValueTime t1 = ValueTime.parse("11:11:11");
         assertEquals("11:11:11", t1.getTime().toString());
@@ -182,24 +162,6 @@ public class TestDate extends TestBase {
         assertFalse(t2.equals(t1));
         assertEquals(-1, t1.compareTo(t2, null, null));
         assertEquals(1, t2.compareTo(t1, null, null));
-
-        if (SysProperties.UNLIMITED_TIME_RANGE) {
-            assertEquals(-1, t1.negate().getSignum());
-            assertEquals("-11:11:11", t1.negate().getString());
-            assertEquals("11:11:11", t1.negate().negate().getString());
-            assertEquals("33:33:33", t1.add(t2).getString());
-            assertEquals("33:33:33", t1.multiply(ValueInt.get(4)).subtract(t1).getString());
-
-            // can't convert using java.util.Date
-            assertEquals(
-                    "1969-12-31 23:00:00.0",
-                    ValueTime.parse("-1:00:00").
-                    convertTo(Value.TIMESTAMP).getString());
-            assertEquals(
-                    "1970-01-01",
-                    ValueTime.parse("-1:00:00").
-                    convertTo(Value.DATE).getString());
-        }
     }
 
     private void testValueTimestampWithTimezone() {
@@ -322,15 +284,6 @@ public class TestDate extends TestBase {
         assertEquals("-1010-10-10 00:00:00",
                 ValueTimestamp.parse("-1010-10-10 10:10:10").subtract(
                 ValueTime.parse("10:10:10")).getString());
-
-        if (SysProperties.UNLIMITED_TIME_RANGE) {
-            assertEquals("2001-01-02 01:01:01",
-                    ValueTimestamp.parse("2001-01-01").add(
-                    ValueTime.parse("25:01:01")).getString());
-            assertEquals("1010-10-10 10:00:00",
-                    ValueTimestamp.parse("1010-10-11 10:10:10").subtract(
-                    ValueTime.parse("24:10:10")).getString());
-        }
 
         assertEquals(0, DateTimeUtils.absoluteDayFromDateValue(
                 ValueTimestamp.parse("1970-01-01").getDateValue()));

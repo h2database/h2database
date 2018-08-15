@@ -364,21 +364,17 @@ public class DateTimeUtils {
     }
 
     /**
-     * Parse a time string. The format is: [-]hour:minute:second[.nanos] or
-     * alternatively [-]hour.minute.second[.nanos].
+     * Parse a time string. The format is: hour:minute:second[.nanos] or
+     * alternatively hour.minute.second[.nanos].
      *
      * @param s the string to parse
      * @param start the parse index start
      * @param end the parse index end
-     * @param timeOfDay whether the result need to be within 0 (inclusive) and 1
-     *            day (exclusive)
      * @return the time in nanoseconds
      * @throws IllegalArgumentException if there is a problem
      */
-    public static long parseTimeNanos(String s, int start, int end,
-            boolean timeOfDay) {
-        int hour = 0, minute = 0, second = 0;
-        long nanos = 0;
+    public static long parseTimeNanos(String s, int start, int end) {
+        int hour, minute, second, nanos;
         int s1 = s.indexOf(':', start);
         int s2 = s.indexOf(':', s1 + 1);
         int s3 = s.indexOf('.', s2 + 1);
@@ -388,41 +384,26 @@ public class DateTimeUtils {
             s1 = s.indexOf('.', start);
             s2 = s.indexOf('.', s1 + 1);
             s3 = s.indexOf('.', s2 + 1);
-
             if (s1 <= 0 || s2 <= s1) {
                 throw new IllegalArgumentException(s);
             }
         }
-        boolean negative;
         hour = Integer.parseInt(s.substring(start, s1));
-        if (hour < 0 || hour == 0 && s.charAt(0) == '-') {
-            if (timeOfDay) {
-                /*
-                 * This also forbids -00:00:00 and similar values.
-                 */
-                throw new IllegalArgumentException(s);
-            }
-            negative = true;
-            hour = -hour;
-        } else {
-            negative = false;
+        if (hour < 0 || hour == 0 && s.charAt(0) == '-' || hour >= 24) {
+            throw new IllegalArgumentException(s);
         }
         minute = Integer.parseInt(s.substring(s1 + 1, s2));
         if (s3 < 0) {
             second = Integer.parseInt(s.substring(s2 + 1, end));
+            nanos = 0;
         } else {
             second = Integer.parseInt(s.substring(s2 + 1, s3));
             nanos = parseNanos(s, s3 + 1, end);
         }
-        if (hour >= 2_000_000 || minute < 0 || minute >= 60 || second < 0
-                || second >= 60) {
+        if (minute < 0 || minute >= 60 || second < 0 || second >= 60) {
             throw new IllegalArgumentException(s);
         }
-        if (timeOfDay && hour >= 24) {
-            throw new IllegalArgumentException(s);
-        }
-        nanos += ((((hour * 60L) + minute) * 60) + second) * NANOS_PER_SECOND;
-        return negative ? -nanos : nanos;
+        return ((((hour * 60L) + minute) * 60) + second) * NANOS_PER_SECOND + nanos;
     }
 
     private static int parseNanos(String s, int start, int end) {
@@ -514,7 +495,7 @@ public class DateTimeUtils {
                     }
                 }
             }
-            nanos = parseTimeNanos(s, dateEnd + 1, timeEnd, true);
+            nanos = parseTimeNanos(s, dateEnd + 1, timeEnd);
             if (tz != null) {
                 if (withTimeZone) {
                     if (tz != UTC) {

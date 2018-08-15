@@ -1993,7 +1993,7 @@ public class DateTimeUtils {
         switch (qualifier) {
         case YEAR:
             return ValueInterval.from(qualifier, absolute.signum() < 0,
-                    Math.abs(absolute.divide(BigInteger.valueOf(12)).longValue()), 0);
+                    leadingExact(absolute.divide(BigInteger.valueOf(12))), 0);
         case MONTH:
             return ValueInterval.from(qualifier, absolute.signum() < 0, leadingExact(absolute), 0);
         case DAY:

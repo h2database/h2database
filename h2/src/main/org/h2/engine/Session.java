@@ -166,7 +166,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     /**
      * Set of database object ids to be released at the end of transaction
      */
-    private final BitSet idsToRelease = new BitSet();
+    private BitSet idsToRelease;
 
 
     public Session(Database database, User user, int id) {
@@ -634,7 +634,15 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         return command;
     }
 
-    void releaseDatabaseObjectId(int id) {
+    /**
+     * Arranges for the specified database object id to be released
+     * at the end of the current transaction.
+     * @param id to be scheduled
+     */
+    void scheduleDatabaseObjectIdForRelease(int id) {
+        if (idsToRelease == null) {
+            idsToRelease = new BitSet();
+        }
         idsToRelease.set(id);
     }
 
@@ -757,8 +765,10 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             removeLobMap = null;
         }
         unlockAll();
-        database.releaseDatabaseObjectIds(idsToRelease);
-        idsToRelease.clear();
+        if (idsToRelease != null) {
+            database.releaseDatabaseObjectIds(idsToRelease);
+            idsToRelease = null;
+        }
     }
 
     /**
@@ -775,6 +785,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (!locks.isEmpty() || needCommit) {
             database.commit(this);
         }
+        idsToRelease = null;
         cleanTempTables(false);
         if (autoCommitAtTransactionEnd) {
             autoCommit = true;

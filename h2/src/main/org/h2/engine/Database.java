@@ -1084,7 +1084,7 @@ public class Database implements DataHandler {
                 // otherwise it might be re-used prematurely, and it would make
                 // rollback impossible or lead to MVMaps name collision,
                 // so until then ids are accumulated within session
-                session.releaseDatabaseObjectId(id);
+                session.scheduleDatabaseObjectIdForRelease(id);
             } else {
                 // but PageStore, on the other hand, for reasons unknown to me,
                 // requires immediate id release

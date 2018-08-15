@@ -154,7 +154,6 @@ public class Insert extends Prepared implements ResultTarget {
             Mode mode = session.getDatabase().getMode();
             int columnLen = columns.length;
             for (int x = 0; x < listSize; x++) {
-                session.startStatementWithinTransaction();
                 generatedKeys.nextRow();
                 Row newRow = table.getTemplateRow();
                 Expression[] expr = list.get(x);

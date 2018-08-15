@@ -3107,11 +3107,11 @@ INTERVAL MINUTE
 "
 
 "Data Types","INTERVAL SECOND Type","
-INTERVAL SECOND [ ( precisionInt [ , scaleInt ] ) ]
+INTERVAL SECOND [ ( precisionInt [, fractionalPrecisionInt ] ) ]
 ","
 Interval data type.
 If precision is specified it should be from 1 to 18, 2 is default.
-If fractional seconds precision (scale) is specified it should be from 0 to 9, 6 is default.
+If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 
 Mapped to ""org.h2.api.Interval"".
 ""java.time.Duration"" is also supported on Java 8 and later versions.
@@ -3123,7 +3123,7 @@ INTERVAL SECOND
 INTERVAL YEAR [ ( precisionInt ) ] TO MONTH
 ","
 Interval data type.
-If precision is specified it should be from 1 to 18, 2 is default.
+If leading field precision is specified it should be from 1 to 18, 2 is default.
 
 Mapped to ""org.h2.api.Interval"".
 ","
@@ -3134,7 +3134,7 @@ INTERVAL YEAR TO MONTH
 INTERVAL DAY [ ( precisionInt ) ] TO HOUR
 ","
 Interval data type.
-If precision is specified it should be from 1 to 18, 2 is default.
+If leading field precision is specified it should be from 1 to 18, 2 is default.
 
 Mapped to ""org.h2.api.Interval"".
 ""java.time.Duration"" is also supported on Java 8 and later versions.
@@ -3146,7 +3146,7 @@ INTERVAL DAY TO HOUR
 INTERVAL DAY [ ( precisionInt ) ] TO MINUTE
 ","
 Interval data type.
-If precision is specified it should be from 1 to 18, 2 is default.
+If leading field precision is specified it should be from 1 to 18, 2 is default.
 
 Mapped to ""org.h2.api.Interval"".
 ""java.time.Duration"" is also supported on Java 8 and later versions.
@@ -3155,11 +3155,11 @@ INTERVAL DAY TO MINUTE
 "
 
 "Data Types","INTERVAL DAY TO SECOND Type","
-INTERVAL DAY [ ( precisionInt ) ] TO SECOND [ ( scaleInt ) ]
+INTERVAL DAY [ ( precisionInt ) ] TO SECOND [ ( fractionalPrecisionInt ) ]
 ","
 Interval data type.
-If precision is specified it should be from 1 to 18, 2 is default.
-If fractional seconds precision (scale) is specified it should be from 0 to 9, 6 is default.
+If leading field precision is specified it should be from 1 to 18, 2 is default.
+If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 
 Mapped to ""org.h2.api.Interval"".
 ""java.time.Duration"" is also supported on Java 8 and later versions.
@@ -3171,7 +3171,7 @@ INTERVAL DAY TO SECOND
 INTERVAL HOUR [ ( precisionInt ) ] TO MINUTE
 ","
 Interval data type.
-If precision is specified it should be from 1 to 18, 2 is default.
+If leading field precision is specified it should be from 1 to 18, 2 is default.
 
 Mapped to ""org.h2.api.Interval"".
 ""java.time.Duration"" is also supported on Java 8 and later versions.
@@ -3180,11 +3180,11 @@ INTERVAL HOUR TO MINUTE
 "
 
 "Data Types","INTERVAL HOUR TO SECOND Type","
-INTERVAL HOUR [ ( precisionInt ) ] TO SECOND [ ( scaleInt ) ]
+INTERVAL HOUR [ ( precisionInt ) ] TO SECOND [ ( fractionalPrecisionInt ) ]
 ","
 Interval data type.
-If precision is specified it should be from 1 to 18, 2 is default.
-If fractional seconds precision (scale) is specified it should be from 0 to 9, 6 is default.
+If leading field precision is specified it should be from 1 to 18, 2 is default.
+If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 
 Mapped to ""org.h2.api.Interval"".
 ""java.time.Duration"" is also supported on Java 8 and later versions.
@@ -3193,11 +3193,11 @@ INTERVAL HOUR TO SECOND
 "
 
 "Data Types","INTERVAL MINUTE TO SECOND Type","
-INTERVAL * [ ( precisionInt ) ] TO SECOND [ ( scaleInt ) ]
+INTERVAL * [ ( precisionInt ) ] TO SECOND [ ( fractionalPrecisionInt ) ]
 ","
 Interval data type.
-If precision is specified it should be from 1 to 18, 2 is default.
-If fractional seconds precision (scale) is specified it should be from 0 to 9, 6 is default.
+If leading field precision is specified it should be from 1 to 18, 2 is default.
+If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 
 Mapped to ""org.h2.api.Interval"".
 ""java.time.Duration"" is also supported on Java 8 and later versions.

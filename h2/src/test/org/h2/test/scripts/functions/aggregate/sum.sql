@@ -28,3 +28,15 @@ select sum(v), sum(v) filter (where v >= 4) from test where v <= 10;
 
 drop table test;
 > ok
+
+create table test(v interval day to second);
+> ok
+
+insert into test values ('0 1'), ('0 2'), ('0 2'), ('0 2'), ('-0 1'), ('-0 1');
+> update count: 6
+
+select sum(v) from test;
+>> INTERVAL '0 05:00:00' DAY TO SECOND
+
+drop table test;
+> ok

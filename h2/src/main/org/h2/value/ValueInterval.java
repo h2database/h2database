@@ -292,6 +292,23 @@ public class ValueInterval extends Value {
     }
 
     @Override
+    public int getSignum() {
+        return negative ? -1 : leading == 0L && remaining == 0L ? 0 : 1;
+    }
+
+    @Override
+    public Value add(Value v) {
+        return DateTimeUtils.intervalFromAbsolute(getQualifier(),
+                DateTimeUtils.intervalToAbsolute(this).add(DateTimeUtils.intervalToAbsolute((ValueInterval) v)));
+    }
+
+    @Override
+    public Value subtract(Value v) {
+        return DateTimeUtils.intervalFromAbsolute(getQualifier(),
+                DateTimeUtils.intervalToAbsolute(this).subtract(DateTimeUtils.intervalToAbsolute((ValueInterval) v)));
+    }
+
+    @Override
     public Value negate() {
         if (leading == 0L && remaining == 0L) {
             return this;

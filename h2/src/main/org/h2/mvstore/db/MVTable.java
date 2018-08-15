@@ -809,16 +809,18 @@ public class MVTable extends TableBase {
         }
         database.getStore().removeTable(this);
         super.removeChildrenAndResources(session);
-        // go backwards because database.removeIndex will
-        // call table.removeIndex
+        // remove scan index (at position 0 on the list) last
         while (indexes.size() > 1) {
             Index index = indexes.get(1);
+            index.remove(session);
             if (index.getName() != null) {
                 database.removeSchemaObject(session, index);
             }
             // needed for session temporary indexes
             indexes.remove(index);
         }
+        primaryIndex.remove(session);
+        indexes.clear();
         if (SysProperties.CHECK) {
             for (SchemaObject obj : database
                     .getAllSchemaObjects(DbObject.INDEX)) {
@@ -829,8 +831,6 @@ public class MVTable extends TableBase {
                 }
             }
         }
-        primaryIndex.remove(session);
-        database.removeMeta(session, getId());
         close(session);
         invalidate();
     }

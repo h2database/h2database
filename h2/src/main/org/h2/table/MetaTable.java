@@ -1129,7 +1129,7 @@ public class MetaTable extends Table {
                     add(rows, "info.PAGE_COUNT",
                             Long.toString(pageCount));
                     add(rows, "info.PAGE_SIZE",
-                            Integer.toString(pageSize));
+                            Integer.toString(mvStore.getPageSplitSize()));
                     add(rows, "info.CACHE_MAX_SIZE",
                             Integer.toString(mvStore.getCacheSize()));
                     add(rows, "info.CACHE_SIZE",

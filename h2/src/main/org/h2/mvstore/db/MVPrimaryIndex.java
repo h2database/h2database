@@ -54,6 +54,7 @@ public class MVPrimaryIndex extends BaseIndex {
         ValueDataType keyType = new ValueDataType();
         ValueDataType valueType = new ValueDataType(db, sortTypes);
         mapName = "table." + getId();
+        assert db.isStarting() || !db.getStore().getMvStore().getMetaMap().containsKey("name." + mapName);
         Transaction t = mvTable.getTransactionBegin();
         dataMap = t.openMap(mapName, keyType, valueType);
         dataMap.map.setVolatile(!table.isPersistData() || !indexType.isPersistent());

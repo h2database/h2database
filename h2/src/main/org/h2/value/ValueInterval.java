@@ -58,11 +58,7 @@ public class ValueInterval extends Value {
      * @return interval value
      */
     public static ValueInterval from(IntervalQualifier qualifier, boolean negative, long leading, long remaining) {
-        if (leading == 0L && remaining == 0L) {
-            negative = false;
-        } else if (leading < 0L || remaining < 0L) {
-            throw new RuntimeException();
-        }
+        negative = DateTimeUtils.validateInterval(qualifier, negative, leading, remaining);
         return (ValueInterval) Value.cache(
                 new ValueInterval(qualifier.ordinal() + INTERVAL_YEAR, negative, leading, remaining));
     }

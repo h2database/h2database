@@ -106,16 +106,8 @@ public final class Interval {
      *            values of all remaining fields
      */
     public Interval(IntervalQualifier qualifier, boolean negative, long leading, long remaining) {
-        if (qualifier == null) {
-            throw new NullPointerException();
-        }
-        if (leading == 0L && remaining == 0L) {
-            negative = false;
-        } else if (leading < 0L || remaining < 0L) {
-            throw new RuntimeException();
-        }
         this.qualifier = qualifier;
-        this.negative = negative;
+        this.negative = DateTimeUtils.validateInterval(qualifier, negative, leading, remaining);
         this.leading = leading;
         this.remaining = remaining;
     }

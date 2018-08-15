@@ -2055,6 +2055,70 @@ public class DateTimeUtils {
     }
 
     /**
+     * Ensures that all fields in interval are valid.
+     *
+     * @param qualifier
+     *            qualifier
+     * @param negative
+     *            whether interval is negative
+     * @param leading
+     *            value of leading field
+     * @param remaining
+     *            values of all remaining fields
+     * @return fixed value of negative field
+     */
+    public static boolean validateInterval(IntervalQualifier qualifier, boolean negative, long leading, long remaining)
+    {
+        if (qualifier == null) {
+            throw new NullPointerException();
+        }
+        if (leading == 0L && remaining == 0L) {
+            return false;
+        }
+        // Upper bound for remaining value (exclusive)
+        long bound;
+        switch (qualifier) {
+        case YEAR:
+        case MONTH:
+        case DAY:
+        case HOUR:
+        case MINUTE:
+            bound = 1;
+            break;
+        case SECOND:
+            bound = NANOS_PER_SECOND;
+            break;
+        case YEAR_TO_MONTH:
+            bound = 12;
+            break;
+        case DAY_TO_HOUR:
+            bound = 24;
+            break;
+        case DAY_TO_MINUTE:
+            bound = 24 * 60;
+            break;
+        case DAY_TO_SECOND:
+            bound = NANOS_PER_DAY;
+            break;
+        case HOUR_TO_MINUTE:
+            bound = 60;
+            break;
+        case HOUR_TO_SECOND:
+            bound = NANOS_PER_HOUR;
+            break;
+        case MINUTE_TO_SECOND:
+            bound = NANOS_PER_MINUTE;
+            break;
+        default:
+            throw DbException.getInvalidValueException("interval", qualifier);
+        }
+        if (leading < 0L || leading >= 1_000_000_000_000_000_000L || remaining < 0L || remaining >= bound) {
+            throw DbException.getInvalidValueException("interval", Long.toString(leading));
+        }
+        return negative;
+    }
+
+    /**
      * @param qualifier
      *            qualifier
      * @param negative

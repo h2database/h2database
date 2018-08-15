@@ -453,7 +453,7 @@ public class ValueDataType implements DataType {
                 ordinal = ~ordinal;
             }
             buff.put((byte) Value.INTERVAL_YEAR).
-                put((byte) (ordinal)).
+                put((byte) ordinal).
                 putVarLong(interval.getLeading());
             break;
         }

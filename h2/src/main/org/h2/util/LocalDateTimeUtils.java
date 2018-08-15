@@ -383,12 +383,12 @@ public class LocalDateTimeUtils {
     }
 
     /**
-     * Converts a value to a OffsetDateTime.
+     * Converts a value to a Duration.
      *
      * <p>This method should only called from Java 8 or later.</p>
      *
      * @param value the value to convert
-     * @return the OffsetDateTime
+     * @return the Duration
      */
     public static Object valueToDuration(Value value) {
         if (!(value instanceof ValueInterval)) {
@@ -572,7 +572,7 @@ public class LocalDateTimeUtils {
         } catch (IllegalAccessException e) {
             throw DbException.convert(e);
         } catch (InvocationTargetException e) {
-            throw DbException.convertInvocation(e, "time conversion failed");
+            throw DbException.convertInvocation(e, "interval conversion failed");
         }
     }
 

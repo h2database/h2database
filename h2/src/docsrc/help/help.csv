@@ -2654,7 +2654,7 @@ INTERVAL [-|+] '[-|+]dayInt hoursInt' DAY TO HOUR
 ","
 An INTERVAL DAY TO HOUR literal.
 ","
-INTERVAL '10 11' DAY TO *
+INTERVAL '10 11' DAY TO HOUR
 "
 
 "Other Grammar","INTERVAL DAY TO MINUTE","

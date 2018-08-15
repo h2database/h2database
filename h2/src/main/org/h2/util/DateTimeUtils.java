@@ -2112,8 +2112,11 @@ public class DateTimeUtils {
         default:
             throw DbException.getInvalidValueException("interval", qualifier);
         }
-        if (leading < 0L || leading >= 1_000_000_000_000_000_000L || remaining < 0L || remaining >= bound) {
+        if (leading < 0L || leading >= 1_000_000_000_000_000_000L) {
             throw DbException.getInvalidValueException("interval", Long.toString(leading));
+        }
+        if (remaining < 0L || remaining >= bound) {
+            throw DbException.getInvalidValueException("interval", Long.toString(remaining));
         }
         return negative;
     }

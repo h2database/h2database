@@ -238,15 +238,17 @@ public class TestValueMemory extends TestBase implements DataHandler {
             return ValueInterval.from(IntervalQualifier.valueOf(type - Value.INTERVAL_YEAR),
                     random.nextBoolean(), random.nextInt(Integer.MAX_VALUE), 0);
         case Value.INTERVAL_SECOND:
-        case Value.INTERVAL_YEAR_TO_MONTH:
-        case Value.INTERVAL_DAY_TO_HOUR:
-        case Value.INTERVAL_DAY_TO_MINUTE:
         case Value.INTERVAL_DAY_TO_SECOND:
-        case Value.INTERVAL_HOUR_TO_MINUTE:
         case Value.INTERVAL_HOUR_TO_SECOND:
         case Value.INTERVAL_MINUTE_TO_SECOND:
             return ValueInterval.from(IntervalQualifier.valueOf(type - Value.INTERVAL_YEAR),
-                    random.nextBoolean(), random.nextInt(Integer.MAX_VALUE), random.nextInt(24));
+                    random.nextBoolean(), random.nextInt(Integer.MAX_VALUE), random.nextInt(1_000_000_000));
+        case Value.INTERVAL_YEAR_TO_MONTH:
+        case Value.INTERVAL_DAY_TO_HOUR:
+        case Value.INTERVAL_DAY_TO_MINUTE:
+        case Value.INTERVAL_HOUR_TO_MINUTE:
+            return ValueInterval.from(IntervalQualifier.valueOf(type - Value.INTERVAL_YEAR),
+                    random.nextBoolean(), random.nextInt(Integer.MAX_VALUE), random.nextInt(12));
         default:
             throw new AssertionError("type=" + type);
         }

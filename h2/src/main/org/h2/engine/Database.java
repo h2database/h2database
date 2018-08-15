@@ -161,7 +161,7 @@ public class Database implements DataHandler {
     private Index metaIdIndex;
     private FileLock lock;
     private WriterThread writer;
-    private boolean starting;
+    private volatile boolean starting;
     private TraceSystem traceSystem;
     private Trace trace;
     private final FileLockMethod fileLockMethod;

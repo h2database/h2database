@@ -29,7 +29,7 @@ public class TestLargeBlob extends TestDb {
 
     @Override
     public boolean isEnabled() {
-        if (!config.big || config.memory || config.mvStore || config.networked) {
+        if (!config.big || config.memory || config.networked) {
             return false;
         }
         return true;

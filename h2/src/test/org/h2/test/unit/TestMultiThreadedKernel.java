@@ -34,7 +34,7 @@ public class TestMultiThreadedKernel extends TestDb implements Runnable {
 
     @Override
     public boolean isEnabled() {
-        if (config.networked || config.mvStore) {
+        if (config.networked) {
             return false;
         }
         return true;

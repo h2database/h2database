@@ -123,14 +123,6 @@ public class TestMultiThreaded extends TestDb {
     }
 
     @Override
-    public boolean isEnabled() {
-        if (config.mvStore) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
     public void test() throws Exception {
         deleteDb("multiThreaded");
         int size = getSize(2, 4);

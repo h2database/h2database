@@ -59,8 +59,67 @@ public class ValueInterval extends Value {
      */
     public static ValueInterval from(IntervalQualifier qualifier, boolean negative, long leading, long remaining) {
         negative = DateTimeUtils.validateInterval(qualifier, negative, leading, remaining);
-        return (ValueInterval) Value.cache(
-                new ValueInterval(qualifier.ordinal() + INTERVAL_YEAR, negative, leading, remaining));
+        return (ValueInterval) Value
+                .cache(new ValueInterval(qualifier.ordinal() + INTERVAL_YEAR, negative, leading, remaining));
+    }
+
+    /**
+     * Returns display size for the specified qualifier, precision and
+     *
+     * @param type
+     *            the value type
+     * @param precision
+     *            leading field precision
+     * @param scale
+     *            fractional seconds precision
+     */
+    public static int getDisplaySize(int type, int precision, int scale) {
+        switch (type) {
+        case INTERVAL_YEAR:
+        case INTERVAL_HOUR:
+            // INTERVAL '-11' YEAR
+            // INTERVAL '-11' HOUR
+            return 17 + precision;
+        case INTERVAL_MONTH:
+            // INTERVAL '-11' MONTH
+            return 18 + precision;
+        case INTERVAL_DAY:
+            // INTERVAL '-11' DAY
+            return 16 + precision;
+        case INTERVAL_MINUTE:
+            // INTERVAL '-11' MINUTE
+            return 19 + precision;
+        case INTERVAL_SECOND:
+            // INTERVAL '-11' SECOND
+            // INTERVAL '-11.999999' SECOND
+            return scale > 0 ? 20 + precision + scale : 19 + precision;
+        case INTERVAL_YEAR_TO_MONTH:
+            // INTERVAL '-11-11' YEAR TO MONTH
+            return 29 + precision;
+        case INTERVAL_DAY_TO_HOUR:
+            // INTERVAL '-11 23' DAY TO HOUR
+            return 27 + precision;
+        case INTERVAL_DAY_TO_MINUTE:
+            // INTERVAL '-11 23:59' DAY TO MINUTE
+            return 32 + precision;
+        case INTERVAL_DAY_TO_SECOND:
+            // INTERVAL '-11 23:59.59' DAY TO SECOND
+            // INTERVAL '-11 23:59.59.999999' DAY TO SECOND
+            return scale > 0 ? 36 + precision + scale : 35 + precision;
+        case INTERVAL_HOUR_TO_MINUTE:
+            // INTERVAL '-11:59' HOUR TO MINUTE
+            return 30 + precision;
+        case INTERVAL_HOUR_TO_SECOND:
+            // INTERVAL '-11:59:59' HOUR TO SECOND
+            // INTERVAL '-11:59:59.999999' HOUR TO SECOND
+            return scale > 0 ? 34 + precision + scale : 33 + precision;
+        case INTERVAL_MINUTE_TO_SECOND:
+            // INTERVAL '-11:59' MINUTE TO SECOND
+            // INTERVAL '-11:59.999999' MINUTE TO SECOND
+            return scale > 0 ? 33 + precision + scale : 32 + precision;
+        default:
+            throw DbException.getUnsupportedException(Integer.toString(type));
+        }
     }
 
     private ValueInterval(int type, boolean negative, long leading, long remaining) {
@@ -83,9 +142,6 @@ public class ValueInterval extends Value {
     @Override
     public long getPrecision() {
         long l = leading;
-        if (l < 0) {
-            l = 0;
-        }
         int precision = 0;
         while (l > 0) {
             precision++;
@@ -142,8 +198,7 @@ public class ValueInterval extends Value {
 
     @Override
     public int getDisplaySize() {
-        // TODO Auto-generated method stub
-        return 0;
+        return getDisplaySize(type, MAXIMUM_PRECISION, MAXIMUM_SCALE);
     }
 
     @Override

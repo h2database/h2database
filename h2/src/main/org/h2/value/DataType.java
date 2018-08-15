@@ -429,7 +429,9 @@ public class DataType {
             dataType.defaultScale = ValueInterval.DEFAULT_SCALE;
             dataType.maxScale = ValueInterval.MAXIMUM_SCALE;
         }
-        dataType.defaultDisplaySize = Integer.MAX_VALUE;
+        dataType.defaultDisplaySize = ValueInterval.getDisplaySize(type, ValueInterval.DEFAULT_PRECISION,
+                // Scale will be ignored if it is not supported
+                ValueInterval.DEFAULT_SCALE);
         add(type, Types.OTHER, dataType,
                 new String[]{("INTERVAL " + name).intern()},
                 36

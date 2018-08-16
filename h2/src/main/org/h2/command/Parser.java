@@ -1494,17 +1494,6 @@ public class Parser {
         }
 
         setSQL(command, "MERGE", start);
-
-        // build and prepare the targetMatchQuery ready to test each rows
-        // existence in the target table (using source row to match)
-        StringBuilder targetMatchQuerySQL = new StringBuilder("SELECT _ROWID_ FROM ");
-        appendTableWithSchemaAndAlias(targetMatchQuerySQL, command.getTargetTable(),
-                command.getTargetTableFilter().getTableAlias());
-        targetMatchQuerySQL
-                .append(" WHERE ").append(command.getOnCondition().getSQL());
-        command.setTargetMatchQuery(
-                (Select) parse(targetMatchQuerySQL.toString()));
-
         return command;
     }
 
@@ -1545,18 +1534,6 @@ public class Parser {
             command.setInsertCommand(insertCommand);
         } else {
             throw getSyntaxError();
-        }
-    }
-
-    private static void appendTableWithSchemaAndAlias(StringBuilder buff, Table table, String alias) {
-        if (table instanceof RangeTable) {
-            buff.append(table.getSQL());
-        } else {
-            buff.append(quoteIdentifier(table.getSchema().getName()))
-                .append('.').append(quoteIdentifier(table.getName()));
-        }
-        if (alias != null) {
-            buff.append(" AS ").append(quoteIdentifier(alias));
         }
     }
 

@@ -18,10 +18,23 @@ public final class Interval {
 
     private final IntervalQualifier qualifier;
 
+    /**
+     * {@code false} for zero or positive intervals, {@code true} for negative
+     * intervals.
+     */
     private final boolean negative;
 
+    /**
+     * Non-negative long with value of leading field. For INTERVAL SECOND
+     * contains only integer part of seconds.
+     */
     private final long leading;
 
+    /**
+     * Non-negative long with combined value of all remaining field, or 0 for
+     * single-field intervals, with exception for INTERVAL SECOND that uses this
+     * field to store fractional part of seconds measured in nanoseconds.
+     */
     private final long remaining;
 
     /**
@@ -104,13 +117,18 @@ public final class Interval {
      * @return INTERVAL SECOND
      */
     public static Interval ofSeconds(long seconds, int nanos) {
+        // Interval is negative if any field is negative
         boolean negative = (seconds | nanos) < 0;
         if (negative) {
+            // Ensure that all fields are negative or zero
             if (seconds > 0 || nanos > 0) {
                 throw new IllegalArgumentException();
             }
+            // Make them positive
             seconds = -seconds;
             nanos = -nanos;
+            // Long.MIN_VALUE and Integer.MIN_VALUE will be rejected by
+            // constructor
         }
         return new Interval(IntervalQualifier.SECOND, negative, seconds, nanos);
     }
@@ -148,13 +166,18 @@ public final class Interval {
      * @return INTERVAL YEAR TO MONTH
      */
     public static Interval ofYearsMonths(long years, int months) {
+        // Interval is negative if any field is negative
         boolean negative = (years | months) < 0;
         if (negative) {
+            // Ensure that all fields are negative or zero
             if (years > 0 || months > 0) {
                 throw new IllegalArgumentException();
             }
+            // Make them positive
             years = -years;
             months = -months;
+            // Long.MIN_VALUE and Integer.MIN_VALUE will be rejected by
+            // constructor
         }
         return new Interval(IntervalQualifier.YEAR_TO_MONTH, negative, years, months);
     }
@@ -173,13 +196,18 @@ public final class Interval {
      * @return INTERVAL DAY TO HOUR
      */
     public static Interval ofDaysHours(long days, int hours) {
+        // Interval is negative if any field is negative
         boolean negative = (days | hours) < 0;
         if (negative) {
+            // Ensure that all fields are negative or zero
             if (days > 0 || hours > 0) {
                 throw new IllegalArgumentException();
             }
+            // Make them positive
             days = -days;
             hours = -hours;
+            // Long.MIN_VALUE and Integer.MIN_VALUE will be rejected by
+            // constructor
         }
         return new Interval(IntervalQualifier.DAY_TO_HOUR, negative, days, hours);
     }
@@ -200,11 +228,14 @@ public final class Interval {
      * @return INTERVAL DAY TO MINUTE
      */
     public static Interval ofDaysHoursMinutes(long days, int hours, int minutes) {
+        // Interval is negative if any field is negative
         boolean negative = (days | hours | minutes) < 0;
         if (negative) {
+            // Ensure that all fields are negative or zero
             if (days > 0 || hours > 0 || minutes > 0) {
                 throw new IllegalArgumentException();
             }
+            // Make them positive
             days = -days;
             hours = -hours;
             minutes = -minutes;
@@ -212,7 +243,9 @@ public final class Interval {
                 // Integer.MIN_VALUE
                 throw new IllegalArgumentException();
             }
+            // days = Long.MIN_VALUE will be rejected by constructor
         }
+        // Check only minutes.
         // Overflow in days or hours will be detected by constructor
         if (minutes >= 60) {
             throw new IllegalArgumentException();
@@ -259,11 +292,14 @@ public final class Interval {
      * @return INTERVAL DAY TO SECOND
      */
     public static Interval ofDaysHoursMinutesNanos(long days, int hours, int minutes, long nanos) {
+        // Interval is negative if any field is negative
         boolean negative = (days | hours | minutes | nanos) < 0;
         if (negative) {
+            // Ensure that all fields are negative or zero
             if (days > 0 || hours > 0 || minutes > 0 || nanos > 0) {
                 throw new IllegalArgumentException();
             }
+            // Make them positive
             days = -days;
             hours = -hours;
             minutes = -minutes;
@@ -272,8 +308,11 @@ public final class Interval {
                 // Integer.MIN_VALUE, Long.MIN_VALUE
                 throw new IllegalArgumentException();
             }
+            // days = Long.MIN_VALUE will be rejected by constructor
         }
-        if (hours >= 24 || minutes >= 60 || nanos >= NANOS_PER_MINUTE) {
+        // Check only minutes and nanoseconds.
+        // Overflow in days or hours will be detected by constructor
+        if (minutes >= 60 || nanos >= NANOS_PER_MINUTE) {
             throw new IllegalArgumentException();
         }
         return new Interval(IntervalQualifier.DAY_TO_SECOND, negative, days,
@@ -294,13 +333,18 @@ public final class Interval {
      * @return INTERVAL HOUR TO MINUTE
      */
     public static Interval ofHoursMinutes(long hours, int minutes) {
+        // Interval is negative if any field is negative
         boolean negative = (hours | minutes) < 0;
         if (negative) {
+            // Ensure that all fields are negative or zero
             if (hours > 0 || minutes > 0) {
                 throw new IllegalArgumentException();
             }
+            // Make them positive
             hours = -hours;
             minutes = -minutes;
+            // Long.MIN_VALUE and Integer.MIN_VALUE will be rejected by
+            // constructor
         }
         return new Interval(IntervalQualifier.HOUR_TO_MINUTE, negative, hours, minutes);
     }
@@ -340,11 +384,14 @@ public final class Interval {
      * @return INTERVAL HOUR TO SECOND
      */
     public static Interval ofHoursMinutesNanos(long hours, int minutes, long nanos) {
+        // Interval is negative if any field is negative
         boolean negative = (hours | minutes | nanos) < 0;
         if (negative) {
+            // Ensure that all fields are negative or zero
             if (hours > 0 || minutes > 0 || nanos > 0) {
                 throw new IllegalArgumentException();
             }
+            // Make them positive
             hours = -hours;
             minutes = -minutes;
             nanos = -nanos;
@@ -352,7 +399,9 @@ public final class Interval {
                 // Integer.MIN_VALUE, Long.MIN_VALUE
                 throw new IllegalArgumentException();
             }
+            // hours = Long.MIN_VALUE will be rejected by constructor
         }
+        // Check only nanoseconds.
         // Overflow in hours or minutes will be detected by constructor
         if (nanos >= NANOS_PER_MINUTE) {
             throw new IllegalArgumentException();
@@ -391,13 +440,17 @@ public final class Interval {
      * @return INTERVAL MINUTE TO SECOND
      */
     public static Interval ofMinutesNanos(long minutes, long nanos) {
+        // Interval is negative if any field is negative
         boolean negative = (minutes | nanos) < 0;
         if (negative) {
+            // Ensure that all fields are negative or zero
             if (minutes > 0 || nanos > 0) {
                 throw new IllegalArgumentException();
             }
+            // Make them positive
             minutes = -minutes;
             nanos = -nanos;
+            // Long.MIN_VALUE will be rejected by constructor
         }
         return new Interval(IntervalQualifier.MINUTE_TO_SECOND, negative, minutes, nanos);
     }

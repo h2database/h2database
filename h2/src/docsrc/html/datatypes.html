@@ -71,6 +71,28 @@ syntax-end -->
 <p class="notranslate">${item.example}</p>
 </c:forEach>
 
+<h2>Interval Data Types</h2>
+
+<c:forEach var="item" items="intervalDataTypes">
+<h3 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h3>
+<!-- railroad-start -->
+<pre name="bnf" style="display: none">
+${item.syntax}
+</pre>
+<div name="railroad">
+${item.railroad}
+</div>
+<!-- railroad-end -->
+<!-- syntax-start
+<pre>
+${item.syntax}
+</pre>
+syntax-end -->
+<p>${item.text}</p>
+<p>Example:</p>
+<p class="notranslate">${item.example}</p>
+</c:forEach>
+
 <!--[if lte IE 7]><script language="javascript">switchBnf(null);</script><![endif]-->
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

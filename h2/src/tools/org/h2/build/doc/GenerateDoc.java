@@ -92,6 +92,8 @@ public class GenerateDoc {
                 help + "= 'Functions (System)' ORDER BY ID", true);
         map("dataTypes",
                 help + "LIKE 'Data Types%' ORDER BY SECTION, ID", true);
+        map("intervalDataTypes",
+                help + "LIKE 'Interval Data Types%' ORDER BY SECTION, ID", true);
         map("informationSchema", "SELECT TABLE_NAME TOPIC, " +
                 "GROUP_CONCAT(COLUMN_NAME " +
                 "ORDER BY ORDINAL_POSITION SEPARATOR ', ') SYNTAX " +

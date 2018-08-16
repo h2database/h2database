@@ -3048,7 +3048,26 @@ and ""ResultSet.getObject(..)"" or ""ResultSet.getString(..)"" to retrieve the v
 GEOMETRY
 "
 
-"Data Types","INTERVAL YEAR Type","
+"Data Types","INTERVAL Types","
+intervalYearType | intervalMonthType | intervalDayType
+    | intervalHourType| intervalMinuteType | intervalSecondType
+    | intervalYearToMonthType | intervalDayToHourType
+    | intervalDayToMinuteType | intervalDayToSecondType
+    | intervalHourToMinuteType | intervalHourToSecondType
+    | intervalMinuteToSecondType
+","
+Interval data types.
+There are two classes of intervals. Year-month intervals can store years or months.
+Day-time intervals can store days, hours, minutes, and seconds.
+Year-month intervals are comparable only with another year-month intervals.
+Day-time intervals are comparable only with another day-time intervals.
+
+Mapped to ""org.h2.api.Interval"".
+","
+INTERVAL DAY TO SECOND
+"
+
+"Interval Data Types","INTERVAL YEAR Type","
 INTERVAL YEAR [ ( precisionInt ) ]
 ","
 Interval data type.
@@ -3059,7 +3078,7 @@ Mapped to ""org.h2.api.Interval"".
 INTERVAL YEAR
 "
 
-"Data Types","INTERVAL MONTH Type","
+"Interval Data Types","INTERVAL MONTH Type","
 INTERVAL MONTH [ ( precisionInt ) ]
 ","
 Interval data type.
@@ -3070,7 +3089,7 @@ Mapped to ""org.h2.api.Interval"".
 INTERVAL MONTH
 "
 
-"Data Types","INTERVAL DAY Type","
+"Interval Data Types","INTERVAL DAY Type","
 INTERVAL DAY [ ( precisionInt ) ]
 ","
 Interval data type.
@@ -3082,7 +3101,7 @@ Mapped to ""org.h2.api.Interval"".
 INTERVAL DAY
 "
 
-"Data Types","INTERVAL HOUR Type","
+"Interval Data Types","INTERVAL HOUR Type","
 INTERVAL HOUR [ ( precisionInt ) ]
 ","
 Interval data type.
@@ -3094,7 +3113,7 @@ Mapped to ""org.h2.api.Interval"".
 INTERVAL HOUR
 "
 
-"Data Types","INTERVAL MINUTE Type","
+"Interval Data Types","INTERVAL MINUTE Type","
 INTERVAL MINUTE [ ( precisionInt ) ]
 ","
 Interval data type.
@@ -3106,7 +3125,7 @@ Mapped to ""org.h2.api.Interval"".
 INTERVAL MINUTE
 "
 
-"Data Types","INTERVAL SECOND Type","
+"Interval Data Types","INTERVAL SECOND Type","
 INTERVAL SECOND [ ( precisionInt [, fractionalPrecisionInt ] ) ]
 ","
 Interval data type.
@@ -3119,7 +3138,7 @@ Mapped to ""org.h2.api.Interval"".
 INTERVAL SECOND
 "
 
-"Data Types","INTERVAL YEAR TO MONTH Type","
+"Interval Data Types","INTERVAL YEAR TO MONTH Type","
 INTERVAL YEAR [ ( precisionInt ) ] TO MONTH
 ","
 Interval data type.
@@ -3130,7 +3149,7 @@ Mapped to ""org.h2.api.Interval"".
 INTERVAL YEAR TO MONTH
 "
 
-"Data Types","INTERVAL DAY TO HOUR Type","
+"Interval Data Types","INTERVAL DAY TO HOUR Type","
 INTERVAL DAY [ ( precisionInt ) ] TO HOUR
 ","
 Interval data type.
@@ -3142,7 +3161,7 @@ Mapped to ""org.h2.api.Interval"".
 INTERVAL DAY TO HOUR
 "
 
-"Data Types","INTERVAL DAY TO MINUTE Type","
+"Interval Data Types","INTERVAL DAY TO MINUTE Type","
 INTERVAL DAY [ ( precisionInt ) ] TO MINUTE
 ","
 Interval data type.
@@ -3154,7 +3173,7 @@ Mapped to ""org.h2.api.Interval"".
 INTERVAL DAY TO MINUTE
 "
 
-"Data Types","INTERVAL DAY TO SECOND Type","
+"Interval Data Types","INTERVAL DAY TO SECOND Type","
 INTERVAL DAY [ ( precisionInt ) ] TO SECOND [ ( fractionalPrecisionInt ) ]
 ","
 Interval data type.
@@ -3167,7 +3186,7 @@ Mapped to ""org.h2.api.Interval"".
 INTERVAL DAY TO SECOND
 "
 
-"Data Types","INTERVAL HOUR TO MINUTE Type","
+"Interval Data Types","INTERVAL HOUR TO MINUTE Type","
 INTERVAL HOUR [ ( precisionInt ) ] TO MINUTE
 ","
 Interval data type.
@@ -3179,7 +3198,7 @@ Mapped to ""org.h2.api.Interval"".
 INTERVAL HOUR TO MINUTE
 "
 
-"Data Types","INTERVAL HOUR TO SECOND Type","
+"Interval Data Types","INTERVAL HOUR TO SECOND Type","
 INTERVAL HOUR [ ( precisionInt ) ] TO SECOND [ ( fractionalPrecisionInt ) ]
 ","
 Interval data type.
@@ -3192,7 +3211,7 @@ Mapped to ""org.h2.api.Interval"".
 INTERVAL HOUR TO SECOND
 "
 
-"Data Types","INTERVAL MINUTE TO SECOND Type","
+"Interval Data Types","INTERVAL MINUTE TO SECOND Type","
 INTERVAL * [ ( precisionInt ) ] TO SECOND [ ( fractionalPrecisionInt ) ]
 ","
 Interval data type.

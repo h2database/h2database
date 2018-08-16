@@ -3212,7 +3212,7 @@ INTERVAL HOUR TO SECOND
 "
 
 "Interval Data Types","INTERVAL MINUTE TO SECOND Type","
-INTERVAL * [ ( precisionInt ) ] TO SECOND [ ( fractionalPrecisionInt ) ]
+INTERVAL MINUTE [ ( precisionInt ) ] TO SECOND [ ( fractionalPrecisionInt ) ]
 ","
 Interval data type.
 If leading field precision is specified it should be from 1 to 18, 2 is default.

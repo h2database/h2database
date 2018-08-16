@@ -43,21 +43,12 @@ public class TestMultiThreadedKernel extends TestDb {
     }
 
     @Override
-    public boolean isEnabled() {
-        if (config.mvStore) { // FIXME can't see why test should not work in MVStore mode
-            return false;
-        }
-        return true;
-    }
-
-    @Override
     public void test() throws Exception {
         deleteDb("multiThreadedKernel");
         testConcurrentRead();
         testCache();
         deleteDb("multiThreadedKernel");
-        final String url = getURL("multiThreadedKernel;" +
-                "DB_CLOSE_DELAY=-1;MULTI_THREADED=1", true);
+        final String url = getURL("multiThreadedKernel;DB_CLOSE_DELAY=-1", true);
         final String user = getUser(), password = getPassword();
         int len = 3;
         Thread[] threads = new Thread[len];
@@ -110,8 +101,7 @@ public class TestMultiThreadedKernel extends TestDb {
         final int count = 1000;
         ArrayList<Task> list = new ArrayList<>(size);
         final Connection[] connections = new Connection[count];
-        String url = getURL("multiThreadedKernel;" +
-                "MULTI_THREADED=TRUE;CACHE_SIZE=16", true);
+        String url = getURL("multiThreadedKernel;CACHE_SIZE=16", true);
         for (int i = 0; i < size; i++) {
             final Connection conn = DriverManager.getConnection(
                     url, getUser(), getPassword());
@@ -151,8 +141,7 @@ public class TestMultiThreadedKernel extends TestDb {
         final int count = 100;
         ArrayList<Task> list = new ArrayList<>(size);
         final Connection[] connections = new Connection[count];
-        String url = getURL("multiThreadedKernel;" +
-                "MULTI_THREADED=TRUE;CACHE_SIZE=1", true);
+        String url = getURL("multiThreadedKernel;CACHE_SIZE=1", true);
         for (int i = 0; i < size; i++) {
             final Connection conn = DriverManager.getConnection(
                     url, getUser(), getPassword());
@@ -187,4 +176,8 @@ public class TestMultiThreadedKernel extends TestDb {
         }
     }
 
+    @Override
+    protected String getURL(String name, boolean admin) {
+        return super.getURL(name + ";MULTI_THREADED=1;LOCK_TIMEOUT=2000", admin);
+    }
 }

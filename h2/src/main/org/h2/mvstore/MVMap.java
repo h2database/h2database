@@ -930,7 +930,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             int id = getId();
             String mapName = store.getMapName(id);
             throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_CLOSED, "Map {0}({1}) is closed", mapName, id, store.getPanicException());
+                    DataUtils.ERROR_CLOSED, "Map {0}({1}) is closed. {2}", mapName, id, store.getPanicException());
         }
         if (readOnly) {
             throw DataUtils.newUnsupportedOperationException(

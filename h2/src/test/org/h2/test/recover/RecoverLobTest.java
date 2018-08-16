@@ -29,7 +29,7 @@ public class RecoverLobTest extends TestDb {
 
     @Override
     public boolean isEnabled() {
-        if (config.mvStore || config.memory) {
+        if (config.memory) {
             return false;
         }
         return true;

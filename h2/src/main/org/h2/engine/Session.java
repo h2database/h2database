@@ -7,6 +7,7 @@ package org.h2.engine;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -161,6 +162,12 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private Transaction transaction;
     private State state = State.INIT;
     private long startStatement = -1;
+
+    /**
+     * Set of database object ids to be released at the end of transaction
+     */
+    private BitSet idsToRelease;
+
 
     public Session(Database database, User user, int id) {
         this.database = database;
@@ -627,6 +634,18 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         return command;
     }
 
+    /**
+     * Arranges for the specified database object id to be released
+     * at the end of the current transaction.
+     * @param id to be scheduled
+     */
+    void scheduleDatabaseObjectIdForRelease(int id) {
+        if (idsToRelease == null) {
+            idsToRelease = new BitSet();
+        }
+        idsToRelease.set(id);
+    }
+
     public Database getDatabase() {
         return database;
     }
@@ -746,6 +765,10 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             removeLobMap = null;
         }
         unlockAll();
+        if (idsToRelease != null) {
+            database.releaseDatabaseObjectIds(idsToRelease);
+            idsToRelease = null;
+        }
     }
 
     /**
@@ -762,6 +785,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (!locks.isEmpty() || needCommit) {
             database.commit(this);
         }
+        idsToRelease = null;
         cleanTempTables(false);
         if (autoCommitAtTransactionEnd) {
             autoCommit = true;
@@ -853,6 +877,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
                 removeTemporaryLobs(false);
                 cleanTempTables(true);
+                commit(true);       // temp table rempval may have opened new transaction
                 if (undoLog != null) {
                     undoLog.clear();
                 }
@@ -961,27 +986,35 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     private void cleanTempTables(boolean closeSession) {
         if (localTempTables != null && localTempTables.size() > 0) {
-            synchronized (database) {
-                Iterator<Table> it = localTempTables.values().iterator();
-                while (it.hasNext()) {
-                    Table table = it.next();
-                    if (closeSession || table.getOnCommitDrop()) {
-                        modificationId++;
-                        table.setModified();
-                        it.remove();
-                        // Exception thrown in org.h2.engine.Database.removeMeta
-                        // if line below is missing with TestDeadlock
-                        database.lockMeta(this);
-                        table.removeChildrenAndResources(this);
-                        if (closeSession) {
-                            // need to commit, otherwise recovery might
-                            // ignore the table removal
-                            database.commit(this);
-                        }
-                    } else if (table.getOnCommitTruncate()) {
-                        table.truncate(this);
-                    }
+            if (database.isMVStore()) {
+                _cleanTempTables(closeSession);
+            } else {
+                synchronized (database) {
+                    _cleanTempTables(closeSession);
                 }
+            }
+        }
+    }
+
+    private void _cleanTempTables(boolean closeSession) {
+        Iterator<Table> it = localTempTables.values().iterator();
+        while (it.hasNext()) {
+            Table table = it.next();
+            if (closeSession || table.getOnCommitDrop()) {
+                modificationId++;
+                table.setModified();
+                it.remove();
+                // Exception thrown in org.h2.engine.Database.removeMeta
+                // if line below is missing with TestDeadlock
+                database.lockMeta(this);
+                table.removeChildrenAndResources(this);
+                if (closeSession) {
+                    // need to commit, otherwise recovery might
+                    // ignore the table removal
+                    database.commit(this);
+                }
+            } else if (table.getOnCommitTruncate()) {
+                table.truncate(this);
             }
         }
     }

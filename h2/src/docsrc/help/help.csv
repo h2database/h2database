@@ -2244,7 +2244,7 @@ intType | booleanType | tinyintType | smallintType | bigintType | identityType
     | decimalType | doubleType | realType | dateType | timeType | timestampType
     | timestampWithTimeZoneType | binaryType | otherType | varcharType
     | varcharIgnorecaseType | charType | blobType | clobType | uuidType
-    | arrayType | enumType
+    | arrayType | enumType | intervalType
 ","
 A data type definition.
 ","
@@ -3048,7 +3048,7 @@ and ""ResultSet.getObject(..)"" or ""ResultSet.getString(..)"" to retrieve the v
 GEOMETRY
 "
 
-"Data Types","INTERVAL Types","
+"Data Types","INTERVAL Type","
 intervalYearType | intervalMonthType | intervalDayType
     | intervalHourType| intervalMinuteType | intervalSecondType
     | intervalYearToMonthType | intervalDayToHourType
@@ -3056,8 +3056,8 @@ intervalYearType | intervalMonthType | intervalDayType
     | intervalHourToMinuteType | intervalHourToSecondType
     | intervalMinuteToSecondType
 ","
-Interval data types.
-There are two classes of intervals. Year-month intervals can store years or months.
+Interval data type.
+There are two classes of intervals. Year-month intervals can store years and months.
 Day-time intervals can store days, hours, minutes, and seconds.
 Year-month intervals are comparable only with another year-month intervals.
 Day-time intervals are comparable only with another day-time intervals.

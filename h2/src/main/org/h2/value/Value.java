@@ -1285,7 +1285,11 @@ public abstract class Value {
                 if (JdbcUtils.customDataTypesHandler != null) {
                     return JdbcUtils.customDataTypesHandler.convert(this, targetType);
                 }
-                throw DbException.throwInternalError("type=" + targetType);
+                DataType from = DataType.getDataType(getType());
+                DataType to = DataType.getDataType(targetType);
+                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1,
+                        (from != null ? from.name : "type=" + getType()) + " to "
+                                + (to != null ? to.name : "type=" + targetType));
             }
         } catch (NumberFormatException e) {
             throw DbException.get(

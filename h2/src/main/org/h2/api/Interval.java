@@ -12,7 +12,7 @@ import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 
 /**
- * {@code INTERVAL} representation for result sets.
+ * INTERVAL representation for result sets.
  */
 public final class Interval {
 
@@ -410,7 +410,7 @@ public final class Interval {
     }
 
     /**
-     * Creates a new INTERVAL MINUTE TO SECOND
+     * Creates a new INTERVAL MINUTE TO SECOND.
      *
      * <p>
      * If both arguments are not equal to zero they should have the same sign.
@@ -427,7 +427,7 @@ public final class Interval {
     }
 
     /**
-     * Creates a new INTERVAL MINUTE TO SECOND
+     * Creates a new INTERVAL MINUTE TO SECOND.
      *
      * <p>
      * If both arguments are not equal to zero they should have the same sign.

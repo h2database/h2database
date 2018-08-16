@@ -71,33 +71,35 @@ public class GenerateDoc {
         String help = "SELECT ROWNUM ID, * FROM CSVREAD('" +
                 IN_HELP + "', NULL, 'lineComment=#') WHERE SECTION ";
         map("commandsDML",
-                help + "= 'Commands (DML)' ORDER BY ID", true);
+                help + "= 'Commands (DML)' ORDER BY ID", true, false);
         map("commandsDDL",
-                help + "= 'Commands (DDL)' ORDER BY ID", true);
+                help + "= 'Commands (DDL)' ORDER BY ID", true, false);
         map("commandsOther",
-                help + "= 'Commands (Other)' ORDER BY ID", true);
+                help + "= 'Commands (Other)' ORDER BY ID", true, false);
         map("datetimeFields",
-                help + "= 'Datetime fields' ORDER BY ID", true);
+                help + "= 'Datetime fields' ORDER BY ID", true, false);
         map("otherGrammar",
-                help + "= 'Other Grammar' ORDER BY ID", true);
+                help + "= 'Other Grammar' ORDER BY ID", true, false);
         map("functionsAggregate",
-                help + "= 'Functions (Aggregate)' ORDER BY ID", true);
+                help + "= 'Functions (Aggregate)' ORDER BY ID", true, false);
         map("functionsNumeric",
-                help + "= 'Functions (Numeric)' ORDER BY ID", true);
+                help + "= 'Functions (Numeric)' ORDER BY ID", true, false);
         map("functionsString",
-                help + "= 'Functions (String)' ORDER BY ID", true);
+                help + "= 'Functions (String)' ORDER BY ID", true, false);
         map("functionsTimeDate",
-                help + "= 'Functions (Time and Date)' ORDER BY ID", true);
+                help + "= 'Functions (Time and Date)' ORDER BY ID", true, false);
         map("functionsSystem",
-                help + "= 'Functions (System)' ORDER BY ID", true);
+                help + "= 'Functions (System)' ORDER BY ID", true, false);
         map("dataTypes",
-                help + "LIKE 'Data Types%' ORDER BY SECTION, ID", true);
+                help + "LIKE 'Data Types%' ORDER BY SECTION, ID", true, true);
+        map("intervalDataTypes",
+                help + "LIKE 'Interval Data Types%' ORDER BY SECTION, ID", true, true);
         map("informationSchema", "SELECT TABLE_NAME TOPIC, " +
                 "GROUP_CONCAT(COLUMN_NAME " +
                 "ORDER BY ORDINAL_POSITION SEPARATOR ', ') SYNTAX " +
                 "FROM INFORMATION_SCHEMA.COLUMNS " +
                 "WHERE TABLE_SCHEMA='INFORMATION_SCHEMA' " +
-                "GROUP BY TABLE_NAME ORDER BY TABLE_NAME", false);
+                "GROUP BY TABLE_NAME ORDER BY TABLE_NAME", false, false);
         processAll("");
         conn.close();
     }
@@ -132,7 +134,7 @@ public class GenerateDoc {
         out.close();
     }
 
-    private void map(String key, String sql, boolean railroads)
+    private void map(String key, String sql, boolean railroads, boolean forDataTypes)
             throws Exception {
         ResultSet rs = null;
         Statement stat = null;
@@ -144,13 +146,17 @@ public class GenerateDoc {
             while (rs.next()) {
                 HashMap<String, String> map = new HashMap<>();
                 ResultSetMetaData meta = rs.getMetaData();
-                for (int i = 0; i < meta.getColumnCount(); i++) {
-                    String k = StringUtils.toLowerEnglish(meta.getColumnLabel(i + 1));
-                    String value = rs.getString(i + 1);
+                for (int i = 1; i <= meta.getColumnCount(); i++) {
+                    String k = StringUtils.toLowerEnglish(meta.getColumnLabel(i));
+                    String value = rs.getString(i);
                     value = value.trim();
                     map.put(k, PageParser.escapeHtml(value));
                 }
                 String topic = rs.getString("TOPIC");
+                // Convert "INT Type" to "INT" etc.
+                if (forDataTypes && topic.endsWith(" Type")) {
+                    map.put("topic", topic.substring(0, topic.length() - 5));
+                }
                 String syntax = rs.getString("SYNTAX").trim();
                 if (railroads) {
                     BnfRailroad r = new BnfRailroad();

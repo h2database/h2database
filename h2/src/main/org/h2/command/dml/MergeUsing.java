@@ -202,41 +202,28 @@ public class MergeUsing extends Prepared {
     protected void merge(Row sourceRow) {
         // put the column values into the table filter
         sourceTableFilter.set(sourceRow);
-
-        // Is the target row there already ?
-        boolean rowFound = isTargetRowFound();
-
-        // try and perform an update
-        int rowUpdateCount = 0;
-
-        if (rowFound) {
+        if (isTargetRowFound()) {
             if (updateCommand != null) {
-                rowUpdateCount += updateCommand.update();
+                countUpdatedRows += updateCommand.update();
             }
+            // under oracle rules these updates & delete combinations are
+            // allowed together
             if (deleteCommand != null) {
-                int deleteRowUpdateCount = deleteCommand.update();
-                // under oracle rules these updates & delete combinations are
-                // allowed together
-                if (rowUpdateCount == 1 && deleteRowUpdateCount == 1) {
-                    countUpdatedRows += deleteRowUpdateCount;
-                    deleteRowUpdateCount = 0;
-                } else {
-                    rowUpdateCount += deleteRowUpdateCount;
-                }
+                countUpdatedRows += deleteCommand.update();
             }
         } else {
-            // if either updates do nothing, try an insert
-            if (rowUpdateCount == 0) {
-                rowUpdateCount += addRowByCommandInsert(sourceRow);
-            } else if (rowUpdateCount != 1) {
-                throw DbException.get(ErrorCode.DUPLICATE_KEY_1,
-                        "Duplicate key inserted " + rowUpdateCount
-                                + " rows at once, only 1 expected:"
-                                + targetTable.getSQL());
+            if (insertCommand != null) {
+                int count = insertCommand.update();
+                if (!isTargetRowFound()) {
+                    throw DbException.get(ErrorCode.GENERAL_ERROR_1,
+                            "Expected to find key after row inserted, but none found. "
+                                    + "Insert does not match ON condition.:"
+                                    + targetTable.getSQL() + ":source row="
+                                    + Arrays.asList(sourceRow.getValueList()));
+                }
+                countUpdatedRows += count;
             }
-
         }
-        countUpdatedRows += rowUpdateCount;
     }
 
     private boolean isTargetRowFound() {
@@ -279,20 +266,6 @@ public class MergeUsing extends Prepared {
             }
             return true;
         }
-    }
-
-    private int addRowByCommandInsert(Row sourceRow) {
-        int localCount = 0;
-        if (insertCommand != null) {
-            localCount += insertCommand.update();
-            if (!isTargetRowFound()) {
-                throw DbException.get(ErrorCode.GENERAL_ERROR_1,
-                        "Expected to find key after row inserted, but none found. Insert does not match ON condition.:"
-                                + targetTable.getSQL() + ":source row="
-                                + Arrays.asList(sourceRow.getValueList()));
-            }
-        }
-        return localCount;
     }
 
     // Use the regular merge syntax as our plan SQL

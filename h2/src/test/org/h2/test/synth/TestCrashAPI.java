@@ -527,13 +527,11 @@ public class TestCrashAPI extends TestDb implements Runnable {
 
     private void initMethods() {
         for (Class<?> inter : INTERFACES) {
-            classMethods.put(inter, new ArrayList<Method>());
-        }
-        for (Class<?> inter : INTERFACES) {
-            ArrayList<Method> list = classMethods.get(inter);
+            ArrayList<Method> list = new ArrayList<>();
             for (Method m : inter.getMethods()) {
                 list.add(m);
             }
+            classMethods.put(inter, list);
         }
     }
 

@@ -148,7 +148,7 @@ public final class Interval {
      * @return INTERVAL YEAR TO MONTH
      */
     public static Interval ofYearsMonths(long years, int months) {
-        boolean negative = years < 0 || months < 0;
+        boolean negative = (years | months) < 0;
         if (negative) {
             if (years > 0 || months > 0) {
                 throw new IllegalArgumentException();
@@ -173,7 +173,7 @@ public final class Interval {
      * @return INTERVAL DAY TO HOUR
      */
     public static Interval ofDaysHours(long days, int hours) {
-        boolean negative = days < 0 || hours < 0;
+        boolean negative = (days | hours) < 0;
         if (negative) {
             if (days > 0 || hours > 0) {
                 throw new IllegalArgumentException();
@@ -200,7 +200,7 @@ public final class Interval {
      * @return INTERVAL DAY TO MINUTE
      */
     public static Interval ofDaysHoursMinutes(long days, int hours, int minutes) {
-        boolean negative = days < 0 || (hours | minutes) < 0;
+        boolean negative = (days | hours | minutes) < 0;
         if (negative) {
             if (days > 0 || hours > 0 || minutes > 0) {
                 throw new IllegalArgumentException();
@@ -259,7 +259,7 @@ public final class Interval {
      * @return INTERVAL DAY TO SECOND
      */
     public static Interval ofDaysHoursMinutesNanos(long days, int hours, int minutes, long nanos) {
-        boolean negative = (days | nanos) < 0 || (hours | minutes) < 0;
+        boolean negative = (days | hours | minutes | nanos) < 0;
         if (negative) {
             if (days > 0 || hours > 0 || minutes > 0 || nanos > 0) {
                 throw new IllegalArgumentException();
@@ -268,7 +268,7 @@ public final class Interval {
             hours = -hours;
             minutes = -minutes;
             nanos = -nanos;
-            if ((hours | minutes) < 0 || nanos < 0) {
+            if ((hours | minutes | nanos) < 0) {
                 // Integer.MIN_VALUE, Long.MIN_VALUE
                 throw new IllegalArgumentException();
             }
@@ -340,7 +340,7 @@ public final class Interval {
      * @return INTERVAL HOUR TO SECOND
      */
     public static Interval ofHoursMinutesNanos(long hours, int minutes, long nanos) {
-        boolean negative = (hours | nanos) < 0 || minutes < 0;
+        boolean negative = (hours | minutes | nanos) < 0;
         if (negative) {
             if (hours > 0 || minutes > 0 || nanos > 0) {
                 throw new IllegalArgumentException();
@@ -348,7 +348,7 @@ public final class Interval {
             hours = -hours;
             minutes = -minutes;
             nanos = -nanos;
-            if (minutes < 0 || nanos < 0) {
+            if ((minutes | nanos) < 0) {
                 // Integer.MIN_VALUE, Long.MIN_VALUE
                 throw new IllegalArgumentException();
             }

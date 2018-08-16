@@ -128,6 +128,7 @@ public class MergeUsing extends Prepared {
 
     @Override
     public int update() {
+        countUpdatedRows = 0;
 
         // clear list of source table keys & rowids we have processed already
         targetRowidsRemembered.clear();

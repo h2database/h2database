@@ -17,6 +17,7 @@ import org.h2.command.Prepared;
 import org.h2.engine.Right;
 import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
@@ -128,6 +129,7 @@ public class MergeUsing extends Prepared {
 
     @Override
     public int update() {
+        countUpdatedRows = 0;
 
         // clear list of source table keys & rowids we have processed already
         targetRowidsRemembered.clear();
@@ -202,41 +204,28 @@ public class MergeUsing extends Prepared {
     protected void merge(Row sourceRow) {
         // put the column values into the table filter
         sourceTableFilter.set(sourceRow);
-
-        // Is the target row there already ?
-        boolean rowFound = isTargetRowFound();
-
-        // try and perform an update
-        int rowUpdateCount = 0;
-
-        if (rowFound) {
+        if (isTargetRowFound()) {
             if (updateCommand != null) {
-                rowUpdateCount += updateCommand.update();
+                countUpdatedRows += updateCommand.update();
             }
+            // under oracle rules these updates & delete combinations are
+            // allowed together
             if (deleteCommand != null) {
-                int deleteRowUpdateCount = deleteCommand.update();
-                // under oracle rules these updates & delete combinations are
-                // allowed together
-                if (rowUpdateCount == 1 && deleteRowUpdateCount == 1) {
-                    countUpdatedRows += deleteRowUpdateCount;
-                    deleteRowUpdateCount = 0;
-                } else {
-                    rowUpdateCount += deleteRowUpdateCount;
-                }
+                countUpdatedRows += deleteCommand.update();
             }
         } else {
-            // if either updates do nothing, try an insert
-            if (rowUpdateCount == 0) {
-                rowUpdateCount += addRowByCommandInsert(sourceRow);
-            } else if (rowUpdateCount != 1) {
-                throw DbException.get(ErrorCode.DUPLICATE_KEY_1,
-                        "Duplicate key inserted " + rowUpdateCount
-                                + " rows at once, only 1 expected:"
-                                + targetTable.getSQL());
+            if (insertCommand != null) {
+                int count = insertCommand.update();
+                if (!isTargetRowFound()) {
+                    throw DbException.get(ErrorCode.GENERAL_ERROR_1,
+                            "Expected to find key after row inserted, but none found. "
+                                    + "Insert does not match ON condition.:"
+                                    + targetTable.getSQL() + ":source row="
+                                    + Arrays.asList(sourceRow.getValueList()));
+                }
+                countUpdatedRows += count;
             }
-
         }
-        countUpdatedRows += rowUpdateCount;
     }
 
     private boolean isTargetRowFound() {
@@ -279,20 +268,6 @@ public class MergeUsing extends Prepared {
             }
             return true;
         }
-    }
-
-    private int addRowByCommandInsert(Row sourceRow) {
-        int localCount = 0;
-        if (insertCommand != null) {
-            localCount += insertCommand.update();
-            if (!isTargetRowFound()) {
-                throw DbException.get(ErrorCode.GENERAL_ERROR_1,
-                        "Expected to find key after row inserted, but none found. Insert does not match ON condition.:"
-                                + targetTable.getSQL() + ":source row="
-                                + Arrays.asList(sourceRow.getValueList()));
-            }
-        }
-        return localCount;
     }
 
     // Use the regular merge syntax as our plan SQL
@@ -407,11 +382,14 @@ public class MergeUsing extends Prepared {
         }
 
         // setup the targetMatchQuery - for detecting if the target row exists
-        Expression targetMatchCondition = targetMatchQuery.getCondition();
-        targetMatchCondition.addFilterConditions(sourceTableFilter, true);
-        targetMatchCondition.mapColumns(sourceTableFilter, 2);
-        targetMatchCondition = targetMatchCondition.optimize(session);
-        targetMatchCondition.createIndexConditions(session, sourceTableFilter);
+        targetMatchQuery = new Select(session);
+        ArrayList<Expression> expressions = new ArrayList<>(1);
+        expressions.add(new ExpressionColumn(session.getDatabase(), targetTable.getSchema().getName(),
+                targetTableFilter.getTableAlias(), "_ROWID_"));
+        targetMatchQuery.setExpressions(expressions);
+        targetMatchQuery.addTableFilter(targetTableFilter, true);
+        targetMatchQuery.addCondition(onCondition);
+        targetMatchQuery.init();
         targetMatchQuery.prepare();
     }
 
@@ -510,14 +488,6 @@ public class MergeUsing extends Prepared {
 
     public void setTargetTable(Table targetTable) {
         this.targetTable = targetTable;
-    }
-
-    public Select getTargetMatchQuery() {
-        return targetMatchQuery;
-    }
-
-    public void setTargetMatchQuery(Select targetMatchQuery) {
-        this.targetMatchQuery = targetMatchQuery;
     }
 
     // Prepared interface implementations

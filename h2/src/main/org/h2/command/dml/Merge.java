@@ -172,7 +172,7 @@ public class Merge extends Prepared {
             p.setValue(v);
         }
 
-        // try and update
+        // try an update
         int count = update.update();
 
         // if update fails try an insert

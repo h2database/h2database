@@ -462,7 +462,21 @@ public class DateTimeUtils {
     }
 
     private static int parseNanos(String s, int start, int end) {
-        return Integer.parseInt((s.substring(start, end) + "000000000").substring(0, 9));
+        if (start >= end) {
+            throw new IllegalArgumentException(s);
+        }
+        int nanos = 0, mul = 100_000_000;
+        do {
+            char c = s.charAt(start);
+            if (c < '0' || c > '9') {
+                throw new IllegalArgumentException(s);
+            }
+            nanos += mul * (c - '0');
+            // mul can become 0, but continue loop anyway to ensure that all
+            // remaining digits are valid
+            mul /= 10;
+        } while (++start < end);
+        return nanos;
     }
 
     /**

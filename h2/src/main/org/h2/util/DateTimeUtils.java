@@ -370,8 +370,8 @@ public class DateTimeUtils {
             }
         }
         int year = Integer.parseInt(s.substring(start, yEnd));
-        int month = Integer.parseInt(s.substring(mStart, mEnd));
-        int day = Integer.parseInt(s.substring(dStart, end));
+        int month = StringUtils.parseUInt31(s, mStart, mEnd);
+        int day = StringUtils.parseUInt31(s, dStart, end);
         if (!isValidDate(year, month, day)) {
             throw new IllegalArgumentException(year + "-" + month + "-" + day);
         }
@@ -439,23 +439,23 @@ public class DateTimeUtils {
                 sEnd = s.indexOf('.', sStart);
             }
         }
-        hour = Integer.parseInt(s.substring(start, hEnd));
-        if (hour < 0 || hour == 0 && s.charAt(start) == '-' || hour >= 24) {
+        hour = StringUtils.parseUInt31(s, start, hEnd);
+        if (hour >= 24) {
             throw new IllegalArgumentException(s);
         }
-        minute = Integer.parseInt(s.substring(mStart, mEnd));
+        minute = StringUtils.parseUInt31(s, mStart, mEnd);
         if (sStart > 0) {
             if (sEnd < 0) {
-                second = Integer.parseInt(s.substring(sStart, end));
+                second = StringUtils.parseUInt31(s, sStart, end);
                 nanos = 0;
             } else {
-                second = Integer.parseInt(s.substring(sStart, sEnd));
+                second = StringUtils.parseUInt31(s, sStart, sEnd);
                 nanos = parseNanos(s, sEnd + 1, end);
             }
         } else {
             second = nanos = 0;
         }
-        if (minute < 0 || minute >= 60 || second < 0 || second >= 60) {
+        if (minute >= 60 || second >= 60) {
             throw new IllegalArgumentException(s);
         }
         return ((((hour * 60L) + minute) * 60) + second) * NANOS_PER_SECOND + nanos;
@@ -1856,8 +1856,8 @@ public class DateTimeUtils {
     }
 
     private static long parseIntervalRemaining(String s, int start, int end, int max) {
-        long v = Integer.parseInt(s.substring(start, end));
-        if (v < 0 || v > max) {
+        int v = StringUtils.parseUInt31(s, start, end);
+        if (v > max) {
             throw new IllegalArgumentException(s);
         }
         return v;
@@ -1867,13 +1867,13 @@ public class DateTimeUtils {
         int seconds, nanos;
         int dot = s.indexOf('.', start + 1);
         if (dot < 0) {
-            seconds = Integer.parseInt(s.substring(start));
+            seconds = StringUtils.parseUInt31(s, start, s.length());
             nanos = 0;
         } else {
-            seconds = Integer.parseInt(s.substring(start, dot));
+            seconds = StringUtils.parseUInt31(s, start, dot);
             nanos = parseNanos(s, dot + 1, s.length());
         }
-        if (seconds < 0 || seconds > 59) {
+        if (seconds > 59) {
             throw new IllegalArgumentException(s);
         }
         return seconds * NANOS_PER_SECOND + nanos;

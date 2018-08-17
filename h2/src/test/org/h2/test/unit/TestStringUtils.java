@@ -32,6 +32,7 @@ public class TestStringUtils extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testParseUInt31();
         testHex();
         testXML();
         testSplit();
@@ -41,6 +42,32 @@ public class TestStringUtils extends TestBase {
         testReplaceAll();
         testTrim();
         testTrimSubstring();
+    }
+
+    private void testParseUInt31() {
+        assertEquals(0, StringUtils.parseUInt31("101", 1, 2));
+        assertEquals(11, StringUtils.parseUInt31("11", 0, 2));
+        assertEquals(0, StringUtils.parseUInt31("000", 0, 3));
+        assertEquals(1, StringUtils.parseUInt31("01", 0, 2));
+        assertEquals(999999999, StringUtils.parseUInt31("X999999999", 1, 10));
+        assertEquals(2147483647, StringUtils.parseUInt31("2147483647", 0, 10));
+        testParseUInt31Bad(null, 0, 1);
+        testParseUInt31Bad("1", -1, 1);
+        testParseUInt31Bad("1", 0, 0);
+        testParseUInt31Bad("12", 1, 0);
+        testParseUInt31Bad("-0", 0, 2);
+        testParseUInt31Bad("+0", 0, 2);
+        testParseUInt31Bad("2147483648", 0, 10);
+        testParseUInt31Bad("21474836470", 0, 11);
+    }
+
+    private void testParseUInt31Bad(String s, int start, int end) {
+        try {
+            StringUtils.parseUInt31(s, start, end);
+        } catch (NullPointerException | IndexOutOfBoundsException | NumberFormatException e) {
+            return;
+        }
+        fail();
     }
 
     private void testHex() {

@@ -922,6 +922,38 @@ public class StringUtils {
     }
 
     /**
+     * Parses an unsigned 31-bit integer. Neither - nor + signs are allowed.
+     *
+     * @param s string to parse
+     * @param start the beginning index, inclusive
+     * @param end the ending index, exclusive
+     * @return the unsigned {@code int} not greater than {@link Integer#MAX_VALUE}.
+     */
+    public static int parseUInt31(String s, int start, int end) {
+        if (end > s.length() || start < 0 || start > end) {
+            throw new IndexOutOfBoundsException();
+        }
+        if (start == end) {
+            throw new NumberFormatException("");
+        }
+        int result = 0;
+        for (int i = start; i < end; i++) {
+            char ch = s.charAt(i);
+            // Ensure that character is valid and that multiplication by 10 will
+            // be performed without overflow
+            if (ch < '0' || ch > '9' || result > 214_748_364) {
+                throw new NumberFormatException(s.substring(start, end));
+            }
+            result = result * 10 + ch - '0';
+            if (result < 0) {
+                // Overflow
+                throw new NumberFormatException(s.substring(start, end));
+            }
+        }
+        return result;
+    }
+
+    /**
      * Convert a hex encoded string to a byte array.
      *
      * @param s the hex encoded string

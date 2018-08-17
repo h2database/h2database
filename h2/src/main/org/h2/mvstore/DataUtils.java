@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.h2.engine.Constants;
+import org.h2.util.StringUtils;
 
 /**
  * Utility methods
@@ -931,9 +932,8 @@ public final class DataUtils {
         if (m != null && m.endsWith("]")) {
             int dash = m.lastIndexOf('/');
             if (dash >= 0) {
-                String s = m.substring(dash + 1, m.length() - 1);
                 try {
-                    return Integer.parseInt(s);
+                    return StringUtils.parseUInt31(m, dash + 1, m.length() - 1);
                 } catch (NumberFormatException e) {
                     // no error code
                 }

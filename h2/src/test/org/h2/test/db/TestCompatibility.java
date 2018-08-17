@@ -15,6 +15,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.api.ErrorCode;
+import org.h2.jdbc.JdbcSQLException;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 
@@ -54,8 +55,12 @@ public class TestCompatibility extends TestDb {
         testSybaseAndMSSQLServer();
         testIgnite();
 
+        testUnknownSet();
+
         conn.close();
         deleteDb("compatibility");
+
+        testUnknownURL();
     }
 
     private void testKeyAsColumnInMySQLMode() throws SQLException {
@@ -660,4 +665,21 @@ public class TestCompatibility extends TestDb {
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("create table test(id int, v1 varchar, v2 long, primary key(v1, id), shard key (id))");
     }
+
+    private void testUnknownSet() throws SQLException {
+        Statement stat = conn.createStatement();
+        assertThrows(ErrorCode.UNKNOWN_MODE_1, stat).execute("SET MODE Unknown");
+    }
+
+    private void testUnknownURL() throws SQLException {
+        try {
+            getConnection("compatibility;MODE=Unknown").close();
+            deleteDb("compatibility");
+        } catch (JdbcSQLException ex) {
+            assertEquals(ErrorCode.UNKNOWN_MODE_1, ex.getErrorCode());
+            return;
+        }
+        fail();
+    }
+
 }

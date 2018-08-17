@@ -373,4 +373,9 @@ public class Mode {
         return this.modeEnum;
     }
 
+    @Override
+    public String toString() {
+        return name;
+    }
+
 }

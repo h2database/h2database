@@ -285,7 +285,10 @@ public class Database implements DataHandler {
         }
         String modeName = ci.removeProperty("MODE", null);
         if (modeName != null) {
-            this.mode = Mode.getInstance(modeName);
+            mode = Mode.getInstance(modeName);
+            if (mode == null) {
+                throw DbException.get(ErrorCode.UNKNOWN_MODE_1, modeName);
+            }
         }
         this.logMode =
                 ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);

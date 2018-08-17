@@ -777,7 +777,7 @@ public abstract class Value {
             case Value.INTERVAL_HOUR_TO_MINUTE:
             case Value.INTERVAL_HOUR_TO_SECOND:
             case Value.INTERVAL_MINUTE_TO_SECOND:
-                return convertToDayTimeInterval(targetType);
+                return convertToIntervalDayTime(targetType);
             case ARRAY:
                 return convertToArray();
             case RESULT_SET:
@@ -1250,7 +1250,7 @@ public abstract class Value {
         throw getDataConversionError(targetType);
     }
 
-    private ValueInterval convertToDayTimeInterval(int targetType) {
+    private ValueInterval convertToIntervalDayTime(int targetType) {
         switch (getType()) {
         case Value.STRING:
         case Value.STRING_IGNORECASE:

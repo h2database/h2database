@@ -766,7 +766,7 @@ public abstract class Value {
             case Value.INTERVAL_YEAR:
             case Value.INTERVAL_MONTH:
             case Value.INTERVAL_YEAR_TO_MONTH:
-                return convertToInterval1(targetType);
+                return convertToIntervalYearMonth(targetType);
             case Value.INTERVAL_DAY:
             case Value.INTERVAL_HOUR:
             case Value.INTERVAL_MINUTE:
@@ -777,7 +777,7 @@ public abstract class Value {
             case Value.INTERVAL_HOUR_TO_MINUTE:
             case Value.INTERVAL_HOUR_TO_SECOND:
             case Value.INTERVAL_MINUTE_TO_SECOND:
-                return convertToInterval2(targetType);
+                return convertToDayTimeInterval(targetType);
             case ARRAY:
                 return convertToArray();
             case RESULT_SET:
@@ -1227,7 +1227,7 @@ public abstract class Value {
         return ValueGeometry.get(getString());
     }
 
-    private ValueInterval convertToInterval1(int targetType) {
+    private ValueInterval convertToIntervalYearMonth(int targetType) {
         switch (getType()) {
         case Value.STRING:
         case Value.STRING_IGNORECASE:
@@ -1250,7 +1250,7 @@ public abstract class Value {
         throw getDataConversionError(targetType);
     }
 
-    private ValueInterval convertToInterval2(int targetType) {
+    private ValueInterval convertToDayTimeInterval(int targetType) {
         switch (getType()) {
         case Value.STRING:
         case Value.STRING_IGNORECASE:

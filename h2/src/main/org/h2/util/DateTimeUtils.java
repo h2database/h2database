@@ -336,6 +336,7 @@ public class DateTimeUtils {
 
     /**
      * Parse a date string. The format is: [+|-]year-month-day
+     * or [+|-]yyyyMMdd.
      *
      * @param s the string to parse
      * @param start the parse index start
@@ -349,14 +350,28 @@ public class DateTimeUtils {
             start++;
         }
         // start at position 1 to support "-year"
-        int s1 = s.indexOf('-', start + 1);
-        int s2 = s.indexOf('-', s1 + 1);
-        if (s1 <= 0 || s2 <= s1) {
-            throw new IllegalArgumentException(s);
+        int yEnd = s.indexOf('-', start + 1);
+        int mStart, mEnd, dStart;
+        if (yEnd > 0) {
+            // Standard [+|-]year-month-day format
+            mStart = yEnd + 1;
+            mEnd = s.indexOf('-', mStart);
+            if (mEnd <= mStart) {
+                throw new IllegalArgumentException(s);
+            }
+            dStart = mEnd + 1;
+        } else {
+            // Additional [+|-]yyyyMMdd format for compatibility
+            mEnd = dStart = end - 2;
+            yEnd = mStart = mEnd - 2;
+            // Accept only 3 or more digits in year for now
+            if (yEnd < start + 3) {
+                throw new IllegalArgumentException(s);
+            }
         }
-        int year = Integer.parseInt(s.substring(start, s1));
-        int month = Integer.parseInt(s.substring(s1 + 1, s2));
-        int day = Integer.parseInt(s.substring(s2 + 1, end));
+        int year = Integer.parseInt(s.substring(start, yEnd));
+        int month = StringUtils.parseUInt31(s, mStart, mEnd);
+        int day = StringUtils.parseUInt31(s, dStart, end);
         if (!isValidDate(year, month, day)) {
             throw new IllegalArgumentException(year + "-" + month + "-" + day);
         }
@@ -364,8 +379,8 @@ public class DateTimeUtils {
     }
 
     /**
-     * Parse a time string. The format is: hour:minute:second[.nanos] or
-     * alternatively hour.minute.second[.nanos].
+     * Parse a time string. The format is: hour:minute[:second[.nanos]],
+     * hhmm[ss[.nanos]], or hour.minute.second[.nanos].
      *
      * @param s the string to parse
      * @param start the parse index start
@@ -375,39 +390,93 @@ public class DateTimeUtils {
      */
     public static long parseTimeNanos(String s, int start, int end) {
         int hour, minute, second, nanos;
-        int s1 = s.indexOf(':', start);
-        int s2 = s.indexOf(':', s1 + 1);
-        int s3 = s.indexOf('.', s2 + 1);
-        if (s1 <= 0 || s2 <= s1) {
-            // if first try fails try to use IBM DB2 time format
-            // [-]hour.minute.second[.nanos]
-            s1 = s.indexOf('.', start);
-            s2 = s.indexOf('.', s1 + 1);
-            s3 = s.indexOf('.', s2 + 1);
-            if (s1 <= 0 || s2 <= s1) {
-                throw new IllegalArgumentException(s);
+        int hEnd = s.indexOf(':', start);
+        int mStart, mEnd, sStart, sEnd;
+        if (hEnd > 0) {
+            mStart = hEnd + 1;
+            mEnd = s.indexOf(':', mStart);
+            if (mEnd >= mStart) {
+                // Standard hour:minute:second[.nanos] format
+                sStart = mEnd + 1;
+                sEnd = s.indexOf('.', sStart);
+            } else {
+                // Additional hour:minute format for compatibility
+                mEnd = end;
+                sStart = sEnd = -1;
+            }
+        } else {
+            int t = s.indexOf('.', start);
+            if (t < 0) {
+                // Additional hhmm[ss] format for compatibility
+                hEnd = mStart = start + 2;
+                mEnd = mStart + 2;
+                int len = end - start;
+                if (len == 6) {
+                    sStart = mEnd;
+                    sEnd = -1;
+                } else if (len == 4) {
+                    sStart = sEnd = -1;
+                } else {
+                    throw new IllegalArgumentException(s);
+                }
+            } else if (t >= start + 6) {
+                // Additional hhmmss.nanos format for compatibility
+                if (t - start != 6) {
+                    throw new IllegalArgumentException(s);
+                }
+                hEnd = mStart = start + 2;
+                mEnd = sStart = mStart + 2;
+                sEnd = t;
+            } else {
+                // Additional hour.minute.second[.nanos] IBM DB2 time format
+                hEnd = t;
+                mStart = hEnd + 1;
+                mEnd = s.indexOf('.', mStart);
+                if (mEnd <= mStart) {
+                    throw new IllegalArgumentException(s);
+                }
+                sStart = mEnd + 1;
+                sEnd = s.indexOf('.', sStart);
             }
         }
-        hour = Integer.parseInt(s.substring(start, s1));
-        if (hour < 0 || hour == 0 && s.charAt(0) == '-' || hour >= 24) {
+        hour = StringUtils.parseUInt31(s, start, hEnd);
+        if (hour >= 24) {
             throw new IllegalArgumentException(s);
         }
-        minute = Integer.parseInt(s.substring(s1 + 1, s2));
-        if (s3 < 0) {
-            second = Integer.parseInt(s.substring(s2 + 1, end));
-            nanos = 0;
+        minute = StringUtils.parseUInt31(s, mStart, mEnd);
+        if (sStart > 0) {
+            if (sEnd < 0) {
+                second = StringUtils.parseUInt31(s, sStart, end);
+                nanos = 0;
+            } else {
+                second = StringUtils.parseUInt31(s, sStart, sEnd);
+                nanos = parseNanos(s, sEnd + 1, end);
+            }
         } else {
-            second = Integer.parseInt(s.substring(s2 + 1, s3));
-            nanos = parseNanos(s, s3 + 1, end);
+            second = nanos = 0;
         }
-        if (minute < 0 || minute >= 60 || second < 0 || second >= 60) {
+        if (minute >= 60 || second >= 60) {
             throw new IllegalArgumentException(s);
         }
         return ((((hour * 60L) + minute) * 60) + second) * NANOS_PER_SECOND + nanos;
     }
 
     private static int parseNanos(String s, int start, int end) {
-        return Integer.parseInt((s.substring(start, end) + "000000000").substring(0, 9));
+        if (start >= end) {
+            throw new IllegalArgumentException(s);
+        }
+        int nanos = 0, mul = 100_000_000;
+        do {
+            char c = s.charAt(start);
+            if (c < '0' || c > '9') {
+                throw new IllegalArgumentException(s);
+            }
+            nanos += mul * (c - '0');
+            // mul can become 0, but continue loop anyway to ensure that all
+            // remaining digits are valid
+            mul /= 10;
+        } while (++start < end);
+        return nanos;
     }
 
     /**
@@ -1787,8 +1856,8 @@ public class DateTimeUtils {
     }
 
     private static long parseIntervalRemaining(String s, int start, int end, int max) {
-        long v = Integer.parseInt(s.substring(start, end));
-        if (v < 0 || v > max) {
+        int v = StringUtils.parseUInt31(s, start, end);
+        if (v > max) {
             throw new IllegalArgumentException(s);
         }
         return v;
@@ -1798,13 +1867,13 @@ public class DateTimeUtils {
         int seconds, nanos;
         int dot = s.indexOf('.', start + 1);
         if (dot < 0) {
-            seconds = Integer.parseInt(s.substring(start));
+            seconds = StringUtils.parseUInt31(s, start, s.length());
             nanos = 0;
         } else {
-            seconds = Integer.parseInt(s.substring(start, dot));
+            seconds = StringUtils.parseUInt31(s, start, dot);
             nanos = parseNanos(s, dot + 1, s.length());
         }
-        if (seconds < 0 || seconds > 59) {
+        if (seconds > 59) {
             throw new IllegalArgumentException(s);
         }
         return seconds * NANOS_PER_SECOND + nanos;

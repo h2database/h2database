@@ -19,6 +19,7 @@ import org.h2.mvstore.MVStore;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
+import org.h2.util.StringUtils;
 
 /**
  * A store that supports concurrent MVCC read-committed transactions.
@@ -153,7 +154,8 @@ public class TransactionStore {
                     if (mapName.length() > UNDO_LOG_NAME_PREFIX.length()) {
                         boolean committed = mapName.charAt(UNDO_LOG_NAME_PREFIX.length()) == UNDO_LOG_COMMITTED;
                         if (store.hasData(mapName) || committed) {
-                            int transactionId = Integer.parseInt(mapName.substring(UNDO_LOG_NAME_PREFIX.length() + 1));
+                            int transactionId = StringUtils.parseUInt31(mapName, UNDO_LOG_NAME_PREFIX.length() + 1,
+                                    mapName.length());
                             VersionedBitSet openTxBitSet = openTransactions.get();
                             if (!openTxBitSet.get(transactionId)) {
                                 Object[] data = preparedTransactions.get(transactionId);

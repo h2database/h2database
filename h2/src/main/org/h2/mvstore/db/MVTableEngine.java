@@ -33,6 +33,7 @@ import org.h2.store.InDoubtTransaction;
 import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FileUtils;
 import org.h2.table.TableBase;
+import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
@@ -267,7 +268,7 @@ public class MVTableEngine implements TableEngine {
                 if (mapName.startsWith("temp.")) {
                     mvStore.removeMap(mapName);
                 } else if (mapName.startsWith("table.") || mapName.startsWith("index.")) {
-                    int id = Integer.parseInt(mapName.substring(1 + mapName.indexOf('.')));
+                    int id = StringUtils.parseUInt31(mapName, mapName.indexOf('.') + 1, mapName.length());
                     if (!objectIds.get(id)) {
                         mvStore.removeMap(mapName);
                     }

@@ -364,7 +364,8 @@ public class DateTimeUtils {
             // Additional [+|-]yyyyMMdd format for compatibility
             mEnd = dStart = end - 2;
             yEnd = mStart = mEnd - 2;
-            if (yEnd <= start) {
+            // Accept only 3 or more digits in year for now
+            if (yEnd < start + 3) {
                 throw new IllegalArgumentException(s);
             }
         }

@@ -19,8 +19,10 @@ import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
+import org.h2.mvstore.MVMap;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionMap;
+import org.h2.mvstore.tx.VersionedValue;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -358,8 +360,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     @Override
     public long getDiskSpaceUsed() {
-        // TODO estimate disk space usage
-        return 0;
+        return dataMap.map.getRootPage().getDiskSpaceUsed();
     }
 
     public String getMapName() {

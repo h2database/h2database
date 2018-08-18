@@ -195,7 +195,7 @@ public class ColumnNamerConfiguration {
             break;
 
         case PostgreSQL:
-            // this default can be changed to 128 by postgres config
+            // https://www.postgresql.org/docs/current/static/sql-syntax-lexical.html
             setMaxIdentiferLength(63);
             setRegularExpressionMatchAllowed("(?m)(?s)[A-Za-z0-9_\\$]+");
             setRegularExpressionMatchDisallowed("(?m)(?s)[^A-Za-z0-9_\\$]");
@@ -204,7 +204,8 @@ public class ColumnNamerConfiguration {
             break;
 
         case MySQL:
-            // https://dev.mysql.com/doc/refman/5.7/en/identifiers.html
+            // https://dev.mysql.com/doc/refman/8.0/en/identifiers.html
+            // https://mariadb.com/kb/en/library/identifier-names/
             setMaxIdentiferLength(64);
             setRegularExpressionMatchAllowed("(?m)(?s)`?[A-Za-z0-9_`\\$]+`?");
             setRegularExpressionMatchDisallowed("(?m)(?s)[^A-Za-z0-9_`\\$]");

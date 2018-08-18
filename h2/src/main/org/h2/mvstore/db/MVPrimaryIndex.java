@@ -358,8 +358,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     @Override
     public long getDiskSpaceUsed() {
-        // TODO estimate disk space usage
-        return 0;
+        return dataMap.map.getRootPage().getDiskSpaceUsed();
     }
 
     public String getMapName() {

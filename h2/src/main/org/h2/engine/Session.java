@@ -877,7 +877,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
                 removeTemporaryLobs(false);
                 cleanTempTables(true);
-                commit(true);       // temp table rempval may have opened new transaction
+                commit(true);       // temp table removal may have opened new transaction
                 if (undoLog != null) {
                     undoLog.clear();
                 }

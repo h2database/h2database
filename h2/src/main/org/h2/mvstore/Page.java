@@ -55,6 +55,11 @@ public abstract class Page implements Cloneable
     private int memory;
 
     /**
+     * Amount of used disk space by this page only in persistent case.
+     */
+    private int diskSpaceUsed;
+
+    /**
      * The keys.
      */
     private Object[] keys;
@@ -672,6 +677,7 @@ public abstract class Page implements Cloneable
         if (isLeaf()) {
             readPayLoad(buff);
         }
+        diskSpaceUsed = maxLength;
         recalculateMemory();
     }
 
@@ -748,7 +754,7 @@ public abstract class Page implements Cloneable
             // for a longer time
             store.cachePage(this);
         }
-        long max = DataUtils.getPageMaxLength(pos);
+        int max = DataUtils.getPageMaxLength(pos);
         chunk.maxLen += max;
         chunk.maxLenLive += max;
         chunk.pageCount++;
@@ -759,6 +765,7 @@ public abstract class Page implements Cloneable
             // when the next chunk is stored
             map.removePage(pos, memory);
         }
+        diskSpaceUsed = max != DataUtils.PAGE_LARGE ? max : pageLength;
         return typePos + 1;
     }
 
@@ -803,6 +810,27 @@ public abstract class Page implements Cloneable
             return memory;
         }
         return 0;
+    }
+
+    /**
+     * Amount of used disk space in persistent case including child pages.
+     *
+     * @return amount of used disk space in persistent case
+     */
+    public long getDiskSpaceUsed() {
+        long r = 0;
+        if (isPersistent()) {
+            r += diskSpaceUsed;
+        }
+        if (!isLeaf()) {
+            for (int i = 0; i < getRawChildPageCount(); i++) {
+                long pos = getChildPagePos(i);
+                if (pos != 0) {
+                    r += getChildPage(i).getDiskSpaceUsed();
+                }
+            }
+        }
+        return r;
     }
 
     final void addMemory(int mem) {

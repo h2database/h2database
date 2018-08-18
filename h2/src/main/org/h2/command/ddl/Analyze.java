@@ -115,7 +115,7 @@ public class Analyze extends DefineCommand {
         }
         buff.append(" FROM ").append(table.getSQL());
         if (sample > 0) {
-            buff.append(" FETCH NEXT ROW ONLY SAMPLE_SIZE ? ");
+            buff.append(" FETCH FIRST ROW ONLY SAMPLE_SIZE ? ");
         }
         String sql = buff.toString();
         Prepared command = session.prepare(sql);

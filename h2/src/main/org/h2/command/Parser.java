@@ -170,6 +170,7 @@ import org.h2.expression.Rownum;
 import org.h2.expression.SequenceValue;
 import org.h2.expression.Subquery;
 import org.h2.expression.TableFunction;
+import org.h2.expression.UnaryOperation;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.Variable;
 import org.h2.expression.Wildcard;
@@ -3551,7 +3552,7 @@ public class Parser {
                 }
                 read();
             } else {
-                r = new Operation(OpType.NEGATE, readTerm(), null);
+                r = new UnaryOperation(readTerm());
             }
             break;
         case PLUS_SIGN:

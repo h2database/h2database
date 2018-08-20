@@ -24,6 +24,7 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Function;
 import org.h2.expression.Operation;
 import org.h2.expression.Parameter;
+import org.h2.expression.UnaryOperation;
 import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
@@ -554,6 +555,9 @@ public abstract class Query extends Prepared {
             Expression right = operation.getRightSubExpression();
             return checkOrderOther(session, operation.getLeftSubExpression(), expressionSQL)
                     && (right == null || checkOrderOther(session, right, expressionSQL));
+        }
+        if (expr instanceof UnaryOperation) {
+            return checkOrderOther(session, ((UnaryOperation) expr).getSubExpression(), expressionSQL);
         }
         if (expr instanceof ConditionAndOr) {
             ConditionAndOr condition = (ConditionAndOr) expr;

@@ -51,11 +51,6 @@ public class Operation extends Expression {
         DIVIDE,
 
         /**
-         * This operation represents a negation as in - ID.
-         */
-        NEGATE,
-
-        /**
          * This operation represents a modulus as in 5 % 2.
          */
         MODULUS
@@ -74,23 +69,13 @@ public class Operation extends Expression {
 
     @Override
     public String getSQL() {
-        String sql;
-        if (opType == OpType.NEGATE) {
-            // don't remove the space, otherwise it might end up some thing like
-            // --1 which is a line remark
-            sql = "- " + left.getSQL();
-        } else {
-            // don't remove the space, otherwise it might end up some thing like
-            // --1 which is a line remark
-            sql = left.getSQL() + " " + getOperationToken() + " " + right.getSQL();
-        }
-        return "(" + sql + ")";
+        // don't remove the space, otherwise it might end up some thing like
+        // --1 which is a line remark
+        return '(' + left.getSQL() + ' ' + getOperationToken() + ' ' + right.getSQL() + ')';
     }
 
     private String getOperationToken() {
         switch (opType) {
-        case NEGATE:
-            return "-";
         case CONCAT:
             return "||";
         case PLUS:
@@ -112,18 +97,11 @@ public class Operation extends Expression {
     public Value getValue(Session session) {
         Mode mode = session.getDatabase().getMode();
         Value l = left.getValue(session).convertTo(dataType, mode);
-        Value r;
-        if (right == null) {
-            r = null;
-        } else {
-            r = right.getValue(session);
-            if (convertRight) {
-                r = r.convertTo(dataType, mode);
-            }
+        Value r = right.getValue(session);
+        if (convertRight) {
+            r = r.convertTo(dataType, mode);
         }
         switch (opType) {
-        case NEGATE:
-            return l == ValueNull.INSTANCE ? l : l.negate();
         case CONCAT: {
             if (l == ValueNull.INSTANCE) {
                 if (mode.nullConcatIsNull) {
@@ -174,25 +152,15 @@ public class Operation extends Expression {
     @Override
     public void mapColumns(ColumnResolver resolver, int level) {
         left.mapColumns(resolver, level);
-        if (right != null) {
-            right.mapColumns(resolver, level);
-        }
+        right.mapColumns(resolver, level);
     }
 
     @Override
     public Expression optimize(Session session) {
         left = left.optimize(session);
+        right = right.optimize(session);
         switch (opType) {
-        case NEGATE:
-            dataType = left.getType();
-            if (dataType == Value.UNKNOWN) {
-                dataType = Value.DECIMAL;
-            } else if (dataType == Value.ENUM) {
-                dataType = Value.INT;
-            }
-            break;
         case CONCAT:
-            right = right.optimize(session);
             dataType = Value.STRING;
             if (left.isConstant() && right.isConstant()) {
                 return ValueExpression.get(getValue(session));
@@ -203,7 +171,6 @@ public class Operation extends Expression {
         case MULTIPLY:
         case DIVIDE:
         case MODULUS:
-            right = right.optimize(session);
             int l = left.getType();
             int r = right.getType();
             if ((l == Value.NULL && r == Value.NULL) ||
@@ -234,7 +201,7 @@ public class Operation extends Expression {
         default:
             DbException.throwInternalError("type=" + opType);
         }
-        if (left.isConstant() && (right == null || right.isConstant())) {
+        if (left.isConstant() && right.isConstant()) {
             return ValueExpression.get(getValue(session));
         }
         return this;
@@ -361,7 +328,7 @@ public class Operation extends Expression {
                     // Oracle date subtract
                     Function f = Function.getFunction(session.getDatabase(), "DATEADD");
                     f.setParameter(0, ValueExpression.get(ValueString.get("DAY")));
-                    right = new Operation(OpType.NEGATE, right, null);
+                    right = new UnaryOperation(right);
                     right = right.optimize(session);
                     f.setParameter(1, right);
                     f.setParameter(2, left);
@@ -376,7 +343,7 @@ public class Operation extends Expression {
                     f.setParameter(0, ValueExpression.get(ValueString.get("SECOND")));
                     right = new Operation(OpType.MULTIPLY, ValueExpression.get(ValueInt
                             .get(60 * 60 * 24)), right);
-                    right = new Operation(OpType.NEGATE, right, null);
+                    right = new UnaryOperation(right);
                     right = right.optimize(session);
                     f.setParameter(1, right);
                     f.setParameter(2, left);
@@ -437,9 +404,7 @@ public class Operation extends Expression {
     @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         left.setEvaluatable(tableFilter, b);
-        if (right != null) {
-            right.setEvaluatable(tableFilter, b);
-        }
+        right.setEvaluatable(tableFilter, b);
     }
 
     @Override
@@ -449,56 +414,44 @@ public class Operation extends Expression {
 
     @Override
     public long getPrecision() {
-        if (right != null) {
-            switch (opType) {
-            case CONCAT:
-                return left.getPrecision() + right.getPrecision();
-            default:
-                return Math.max(left.getPrecision(), right.getPrecision());
-            }
+        switch (opType) {
+        case CONCAT:
+            return left.getPrecision() + right.getPrecision();
+        default:
+            return Math.max(left.getPrecision(), right.getPrecision());
         }
-        return left.getPrecision();
     }
 
     @Override
     public int getDisplaySize() {
-        if (right != null) {
-            switch (opType) {
-            case CONCAT:
-                return MathUtils.convertLongToInt((long) left.getDisplaySize() +
-                        (long) right.getDisplaySize());
-            default:
-                return Math.max(left.getDisplaySize(), right.getDisplaySize());
-            }
+        switch (opType) {
+        case CONCAT:
+            return MathUtils.convertLongToInt((long) left.getDisplaySize() +
+                    (long) right.getDisplaySize());
+        default:
+            return Math.max(left.getDisplaySize(), right.getDisplaySize());
         }
-        return left.getDisplaySize();
     }
 
     @Override
     public int getScale() {
-        if (right != null) {
-            return Math.max(left.getScale(), right.getScale());
-        }
-        return left.getScale();
+        return Math.max(left.getScale(), right.getScale());
     }
 
     @Override
     public void updateAggregate(Session session) {
         left.updateAggregate(session);
-        if (right != null) {
-            right.updateAggregate(session);
-        }
+        right.updateAggregate(session);
     }
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
-        return left.isEverything(visitor) &&
-                (right == null || right.isEverything(visitor));
+        return left.isEverything(visitor) && right.isEverything(visitor);
     }
 
     @Override
     public int getCost() {
-        return left.getCost() + 1 + (right == null ? 0 : right.getCost());
+        return left.getCost() + right.getCost() + 1;
     }
 
     /**

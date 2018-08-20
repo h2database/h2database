@@ -1798,9 +1798,6 @@ public class Parser {
     }
 
     private IndexHints parseIndexHints(Table table) {
-        if (table == null) {
-            throw getSyntaxError();
-        }
         read(OPEN_PAREN);
         LinkedHashSet<String> indexNames = new LinkedHashSet<>();
         if (!readIf(CLOSE_PAREN)) {

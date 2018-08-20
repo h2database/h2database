@@ -162,9 +162,6 @@ public class Operation extends Expression {
         switch (opType) {
         case CONCAT:
             dataType = Value.STRING;
-            if (left.isConstant() && right.isConstant()) {
-                return ValueExpression.get(getValue(session));
-            }
             break;
         case PLUS:
         case MINUS:

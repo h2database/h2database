@@ -2710,4 +2710,14 @@ public class Function extends Expression implements FunctionCall {
         return info.type == NEXTVAL;
     }
 
+    @Override
+    public int getSubexpressionCount() {
+        return args.length;
+    }
+
+    @Override
+    public Expression getSubexpression(int index) {
+        return args[index];
+    }
+
 }

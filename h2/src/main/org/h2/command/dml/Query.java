@@ -12,19 +12,14 @@ import java.util.List;
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.engine.Database;
-import org.h2.engine.Session;
 import org.h2.engine.Mode.ModeEnum;
+import org.h2.engine.Session;
 import org.h2.expression.Alias;
-import org.h2.expression.Comparison;
-import org.h2.expression.ConditionAndOr;
-import org.h2.expression.ConditionNot;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Function;
-import org.h2.expression.Operation;
 import org.h2.expression.Parameter;
-import org.h2.expression.UnaryOperation;
 import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
@@ -530,6 +525,7 @@ public abstract class Query extends Prepared {
      */
     private static boolean checkOrderOther(Session session, Expression expr, ArrayList<String> expressionSQL) {
         if (expr.isConstant()) {
+            // ValueExpression or other
             return true;
         }
         String exprSQL = expr.getSQL();
@@ -538,41 +534,19 @@ public abstract class Query extends Prepared {
                 return true;
             }
         }
-        if (expr instanceof Function) {
-            Function function = (Function) expr;
-            if (!function.isDeterministic()) {
+        int count = expr.getSubexpressionCount();
+        if (expr instanceof Function ? !((Function) expr).isDeterministic() : count <= 0) {
+            // If expression is a non-deterministic function or expression is an
+            // ExpressionColumn, Parameter, SequenceValue or has other
+            // unsupported type without subexpressions
+            return false;
+        }
+        for (int i = 0; i < count; i++) {
+            if (!checkOrderOther(session, expr.getSubexpression(i), expressionSQL)) {
                 return false;
             }
-            for (Expression e : function.getArgs()) {
-                if (!checkOrderOther(session, e, expressionSQL)) {
-                    return false;
-                }
-            }
-            return true;
         }
-        if (expr instanceof Operation) {
-            Operation operation = (Operation) expr;
-            Expression right = operation.getRightSubExpression();
-            return checkOrderOther(session, operation.getLeftSubExpression(), expressionSQL)
-                    && (right == null || checkOrderOther(session, right, expressionSQL));
-        }
-        if (expr instanceof UnaryOperation) {
-            return checkOrderOther(session, ((UnaryOperation) expr).getSubExpression(), expressionSQL);
-        }
-        if (expr instanceof ConditionAndOr) {
-            ConditionAndOr condition = (ConditionAndOr) expr;
-            return checkOrderOther(session, condition.getLeftSubExpression(), expressionSQL)
-                    && checkOrderOther(session, condition.getRightSubExpression(), expressionSQL);
-        }
-        if (expr instanceof ConditionNot) {
-            return checkOrderOther(session, ((ConditionNot) expr).getSubCondition(), expressionSQL);
-        }
-        if (expr instanceof Comparison) {
-            Comparison condition = (Comparison) expr;
-            return checkOrderOther(session, condition.getLeftSubExpression(), expressionSQL)
-                    && checkOrderOther(session, condition.getRightSubExpression(), expressionSQL);
-        }
-        return false;
+        return true;
     }
 
     /**

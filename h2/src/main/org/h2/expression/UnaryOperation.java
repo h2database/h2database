@@ -96,13 +96,17 @@ public class UnaryOperation extends Expression {
         return arg.getCost() + 1;
     }
 
-    /**
-     * Get the sub-expression of this operation.
-     *
-     * @return the sub-expression
-     */
-    public Expression getSubExpression() {
-        return arg;
+    @Override
+    public int getSubexpressionCount() {
+        return 1;
+    }
+
+    @Override
+    public Expression getSubexpression(int index) {
+        if (index == 0) {
+            return arg;
+        }
+        throw new IndexOutOfBoundsException();
     }
 
 }

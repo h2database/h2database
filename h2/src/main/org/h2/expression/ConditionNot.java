@@ -98,13 +98,17 @@ public class ConditionNot extends Condition {
         return condition.getCost();
     }
 
-    /**
-     * Get the sub-expression of this condition.
-     *
-     * @return the sub-expression
-     */
-    public Expression getSubCondition() {
-        return condition;
+    @Override
+    public int getSubexpressionCount() {
+        return 1;
+    }
+
+    @Override
+    public Expression getSubexpression(int index) {
+        if (index == 0) {
+            return condition;
+        }
+        throw new IndexOutOfBoundsException();
     }
 
 }

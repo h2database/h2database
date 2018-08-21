@@ -21,7 +21,7 @@ import org.h2.value.ValueString;
 /**
  * A mathematical expression, or string concatenation.
  */
-public class Operation extends Expression {
+public class BinaryOperation extends Expression {
 
     public enum OpType {
         /**
@@ -61,7 +61,7 @@ public class Operation extends Expression {
     private int dataType;
     private boolean convertRight = true;
 
-    public Operation(OpType opType, Expression left, Expression right) {
+    public BinaryOperation(OpType opType, Expression left, Expression right) {
         this.opType = opType;
         this.left = left;
         this.right = right;
@@ -298,7 +298,7 @@ public class Operation extends Expression {
                 // Oracle date add
                 Function f = Function.getFunction(session.getDatabase(), "DATEADD");
                 f.setParameter(0, ValueExpression.get(ValueString.get("SECOND")));
-                left = new Operation(OpType.MULTIPLY, ValueExpression.get(ValueInt
+                left = new BinaryOperation(OpType.MULTIPLY, ValueExpression.get(ValueInt
                         .get(60 * 60 * 24)), left);
                 f.setParameter(1, left);
                 f.setParameter(2, right);
@@ -338,7 +338,7 @@ public class Operation extends Expression {
                     // Oracle date subtract
                     Function f = Function.getFunction(session.getDatabase(), "DATEADD");
                     f.setParameter(0, ValueExpression.get(ValueString.get("SECOND")));
-                    right = new Operation(OpType.MULTIPLY, ValueExpression.get(ValueInt
+                    right = new BinaryOperation(OpType.MULTIPLY, ValueExpression.get(ValueInt
                             .get(60 * 60 * 24)), right);
                     right = new UnaryOperation(right);
                     right = right.optimize(session);

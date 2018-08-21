@@ -148,6 +148,8 @@ import org.h2.engine.UserDataType;
 import org.h2.expression.Aggregate;
 import org.h2.expression.Aggregate.AggregateType;
 import org.h2.expression.Alias;
+import org.h2.expression.BinaryOperation;
+import org.h2.expression.BinaryOperation.OpType;
 import org.h2.expression.CompareLike;
 import org.h2.expression.Comparison;
 import org.h2.expression.ConditionAndOr;
@@ -163,8 +165,6 @@ import org.h2.expression.Function;
 import org.h2.expression.FunctionCall;
 import org.h2.expression.JavaAggregate;
 import org.h2.expression.JavaFunction;
-import org.h2.expression.Operation;
-import org.h2.expression.Operation.OpType;
 import org.h2.expression.Parameter;
 import org.h2.expression.Rownum;
 import org.h2.expression.SequenceValue;
@@ -2856,7 +2856,7 @@ public class Parser {
         Expression r = readSum();
         while (true) {
             if (readIf(STRING_CONCAT)) {
-                r = new Operation(OpType.CONCAT, r, readSum());
+                r = new BinaryOperation(OpType.CONCAT, r, readSum());
             } else if (readIf(TILDE)) {
                 if (readIf(ASTERISK)) {
                     Function function = Function.getFunction(database, "CAST");
@@ -2886,9 +2886,9 @@ public class Parser {
         Expression r = readFactor();
         while (true) {
             if (readIf(PLUS_SIGN)) {
-                r = new Operation(OpType.PLUS, r, readFactor());
+                r = new BinaryOperation(OpType.PLUS, r, readFactor());
             } else if (readIf(MINUS_SIGN)) {
-                r = new Operation(OpType.MINUS, r, readFactor());
+                r = new BinaryOperation(OpType.MINUS, r, readFactor());
             } else {
                 return r;
             }
@@ -2899,11 +2899,11 @@ public class Parser {
         Expression r = readTerm();
         while (true) {
             if (readIf(ASTERISK)) {
-                r = new Operation(OpType.MULTIPLY, r, readTerm());
+                r = new BinaryOperation(OpType.MULTIPLY, r, readTerm());
             } else if (readIf(SLASH)) {
-                r = new Operation(OpType.DIVIDE, r, readTerm());
+                r = new BinaryOperation(OpType.DIVIDE, r, readTerm());
             } else if (readIf(PERCENT)) {
-                r = new Operation(OpType.MODULUS, r, readTerm());
+                r = new BinaryOperation(OpType.MODULUS, r, readTerm());
             } else {
                 return r;
             }
@@ -3608,7 +3608,7 @@ public class Parser {
             Function function = Function.getFunction(database, "ARRAY_GET");
             function.setParameter(0, r);
             r = readExpression();
-            r = new Operation(OpType.PLUS, r, ValueExpression.get(ValueInt
+            r = new BinaryOperation(OpType.PLUS, r, ValueExpression.get(ValueInt
                     .get(1)));
             function.setParameter(1, r);
             r = function;

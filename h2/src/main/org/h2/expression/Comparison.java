@@ -587,22 +587,24 @@ public class Comparison extends Condition {
         return null;
     }
 
-    /**
-     * Get the left sub-expression of this condition.
-     *
-     * @return the left sub-expression
-     */
-    public Expression getLeftSubExpression() {
-        return left;
+    @Override
+    public int getSubexpressionCount() {
+        return compareType == IS_NULL || compareType == IS_NOT_NULL ? 1 : 2;
     }
 
-    /**
-     * Get the right sub-expression of this condition.
-     *
-     * @return the right sub-expression
-     */
-    public Expression getRightSubExpression() {
-        return right;
+    @Override
+    public Expression getSubexpression(int index) {
+        switch (index) {
+        case 0:
+            return left;
+        case 1:
+            if (compareType != IS_NULL && compareType != IS_NOT_NULL) {
+                return right;
+            }
+            //$FALL-THROUGH$
+        default:
+            throw new IndexOutOfBoundsException();
+        }
     }
 
 }

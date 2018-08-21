@@ -357,4 +357,24 @@ public abstract class Expression {
         }
     }
 
+    /**
+     * Returns count of subexpressions.
+     *
+     * @return count of subexpressions
+     */
+    public int getSubexpressionCount() {
+        return 0;
+    }
+
+    /**
+     * Returns subexpression with specified index.
+     *
+     * @param index 0-based index
+     * @return subexpression with specified index
+     * @throws IndexOutOfBoundsException if specified index is not valid
+     */
+    public Expression getSubexpression(int index) {
+        throw new IndexOutOfBoundsException();
+    }
+
 }

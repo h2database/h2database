@@ -79,7 +79,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Console: add accesskey to most important commands (A, AREA, BUTTON, INPUT, LABEL, LEGEND, TEXTAREA).
 </li><li>Test performance again with SQL Server, Oracle, DB2.
 </li><li>Test with Spatial DB in a box / JTS: http://www.opengeospatial.org/standards/sfs - OpenGIS Implementation Specification.
-</li><li>Write more tests and documentation for MVCC (Multi Version Concurrency Control).
+</li><li>Improve documentation of MVCC (Multi Version Concurrency Control).
 </li><li>Find a tool to view large text file (larger than 100 MB), with find, page up and down (like less), truncate before / after.
 </li><li>Implement, test, document XAConnection and so on.
 </li><li>Pluggable data type (for streaming, hashing, compression, validation, conversion, encryption).
@@ -219,7 +219,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Integrate spatial functions from http://geosysin.iict.ch/irstv-trac/wiki/H2spatial/Download
 </li><li>Cluster: hot deploy (adding a node at runtime).
 </li><li>Support DatabaseMetaData.insertsAreDetected: updatable result sets should detect inserts.
-</li><li>Oracle: support DECODE method (convert to CASE WHEN).
 </li><li>Native search: support "phrase search", wildcard search (* and ?), case-insensitive search, boolean operators, and grouping
 </li><li>Improve documentation of access rights.
 </li><li>Support opening a database that is in the classpath, maybe using a new file system. Workaround: detect jar file using getClass().getProtectionDomain().getCodeSource().getLocation().
@@ -256,7 +255,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>MySQL compatibility: real SQL statement for DESCRIBE TEST
 </li><li>Use a default delay of 1 second before closing a database.
 </li><li>Write (log) to system table before adding to internal data structures.
-</li><li>Support direct lookup for MIN and MAX when using WHERE (see todo.txt / Direct Lookup).
 </li><li>Support other array types (String[], double[]) in PreparedStatement.setObject(int, Object) (with test case).
 </li><li>Oracle compatibility: support NLS_DATE_FORMAT.
 </li><li>Support for Thread.interrupt to cancel running statements.
@@ -322,7 +320,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Doclet: convert tests in javadocs to a java class.
 </li><li>Doclet: format fields like methods, but support sorting by name and value.
 </li><li>Doclet: shrink the html files.
-</li><li>MySQL compatibility: support SET NAMES 'latin1' - See also http://code.google.com/p/h2database/issues/detail?id=56
 </li><li>Allow to scan index backwards starting with a value (to better support ORDER BY DESC).
 </li><li>Java Service Wrapper: try http://yajsw.sourceforge.net/
 </li><li>Batch parameter for INSERT, UPDATE, and DELETE, and commit after each batch. See also MySQL DELETE.
@@ -334,7 +331,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Sybase/DB2/Oracle compatibility: support out parameters in stored procedures - See http://code.google.com/p/h2database/issues/detail?id=83
 </li><li>Combine Server and Console tool (only keep Server).
 </li><li>Store the Lucene index in the database itself.
-</li><li>Oracle compatibility: support DECODE(x, ...).
 </li><li>MVCC: compare concurrent update behavior with PostgreSQL and Oracle.
 </li><li>HSQLDB compatibility: CREATE FUNCTION (maybe using a Function interface).
 </li><li>HSQLDB compatibility: support CALL "java.lang.Math.sqrt"(2.0)
@@ -346,7 +342,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support =ANY(array) as in PostgreSQL. See also http://www.postgresql.org/docs/8.0/interactive/arrays.html
 </li><li>IBM DB2 compatibility: support PREVIOUS VALUE FOR sequence.
 </li><li>Compatibility: use different LIKE ESCAPE characters depending on the mode (disable for Derby, HSQLDB, DB2, Oracle, MSSQLServer).
-</li><li>Oracle compatibility: support CREATE SYNONYM table FOR schema.table.
 </li><li>FTP: document the server, including -ftpTask option to execute / kill remote processes
 </li><li>FTP: problems with multithreading?
 </li><li>FTP: implement SFTP / FTPS
@@ -410,7 +405,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Issue 178: Optimizer: index usage when both ascending and descending indexes are available.
 </li><li>Issue 179: Related subqueries in HAVING clause.
 </li><li>IBM DB2 compatibility: NOT NULL WITH DEFAULT. Similar to MySQL Mode.convertInsertNullToZero.
-</li><li>Creating primary key: always create a constraint.
 </li><li>Maybe use a different page layout: keep the data at the head of the page, and ignore the tail
     (don't store / read it). This may increase write / read performance depending on the file system.
 </li><li>Indexes of temporary tables are currently kept in-memory. Is this how it should be?
@@ -501,10 +495,10 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>PostgreSQL compatibility: UPDATE with FROM.
 </li><li>Issue 297: Oracle compatibility for "at time zone".
 </li><li>IBM DB2 compatibility: IDENTITY_VAL_LOCAL().
-</li><li>Support SQL/XML.
+</li><li>Support SQL/XML data type.
 </li><li>Support concurrent opening of databases.
 </li><li>Improved error message and diagnostics in case of network configuration problems.
-</li><li>TRUNCATE should reset the identity columns as in MySQL and MS SQL Server (and possibly other databases).
+</li><li>TRUNCATE should reset the identity columns by default in MySQL and MS SQL Server compatibility modes (and possibly other).
 </li><li>Adding a primary key should make the columns 'not null' unless if there is a row with null
     (compatibility with MySQL, PostgreSQL, HSQLDB; not Derby).
 </li><li>ARRAY data type: support Integer[] and so on in Java functions (currently only Object[] is supported).
@@ -526,7 +520,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support [INNER | OUTER] JOIN USING(column [,...]).
 </li><li>Support NATURAL [ { LEFT | RIGHT } [ OUTER ] | INNER ] JOIN (Derby, Oracle)
 </li><li>GROUP BY columnNumber (similar to ORDER BY columnNumber) (MySQL, PostgreSQL, SQLite; not by HSQLDB and Derby).
-</li><li>Sybase / MS SQL Server compatibility: CONVERT(..) parameters are swapped.
 </li><li>Index conditions: WHERE AGE>1 should not scan through all rows with AGE=1.
 </li><li>PHP support: H2 should support PDO, or test with PostgreSQL PDO.
 </li><li>Outer joins: if no column of the outer join table is referenced, the outer join table could be removed from the query.
@@ -539,7 +532,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     Keep an pointer to the data area and the column id that is already read.
 </li><li>Long running transactions: log session id when detected.
 </li><li>Optimization: "select id from test" should use the index on id even without "order by".
-</li><li>Issue 362: LIMIT support for UPDATE statements (MySQL compatibility).
 </li><li>Sybase SQL Anywhere compatibility: SELECT TOP ... START AT ...
 </li><li>Use Java 6 SQLException subclasses.
 </li><li>Issue 390: RUNSCRIPT FROM '...' CONTINUE_ON_ERROR

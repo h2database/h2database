@@ -669,19 +669,17 @@ public class FullText {
             ArrayList<String> data, Expression expr) {
         if (expr instanceof ConditionAndOr) {
             ConditionAndOr and = (ConditionAndOr) expr;
-            Expression left = and.getLeftSubExpression();
-            Expression right = and.getRightSubExpression();
-            addColumnData(columns, data, left);
-            addColumnData(columns, data, right);
+            addColumnData(columns, data, and.getSubexpression(0));
+            addColumnData(columns, data, and.getSubexpression(1));
         } else {
             Comparison comp = (Comparison) expr;
-            ExpressionColumn ec = (ExpressionColumn) comp.getLeftSubExpression();
-            ValueExpression ev = (ValueExpression) comp.getRightSubExpression();
+            ExpressionColumn ec = (ExpressionColumn) comp.getSubexpression(0);
             String columnName = ec.getColumnName();
             columns.add(columnName);
-            if (ev == null) {
+            if (expr.getSubexpressionCount() == 1) {
                 data.add(null);
             } else {
+                ValueExpression ev = (ValueExpression) comp.getSubexpression(1);
                 data.add(ev.getValue(null).getString());
             }
         }

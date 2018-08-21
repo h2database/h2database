@@ -283,22 +283,21 @@ public class ConditionAndOr extends Condition {
         return left.getCost() + right.getCost();
     }
 
-    /**
-     * Get the left sub-expression of this condition.
-     *
-     * @return the left sub-expression
-     */
-    public Expression getLeftSubExpression() {
-        return left;
+    @Override
+    public int getSubexpressionCount() {
+        return 2;
     }
 
-    /**
-     * Get the right sub-expression of this condition.
-     *
-     * @return the right sub-expression
-     */
-    public Expression getRightSubExpression() {
-        return right;
+    @Override
+    public Expression getSubexpression(int index) {
+        switch (index) {
+        case 0:
+            return left;
+        case 1:
+            return right;
+        default:
+            throw new IndexOutOfBoundsException();
+        }
     }
 
 }

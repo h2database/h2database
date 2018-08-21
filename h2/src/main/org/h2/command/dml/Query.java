@@ -535,10 +535,13 @@ public abstract class Query extends Prepared {
             }
         }
         int count = expr.getSubexpressionCount();
-        if (expr instanceof Function ? !((Function) expr).isDeterministic() : count <= 0) {
-            // If expression is a non-deterministic function or expression is an
-            // ExpressionColumn, Parameter, SequenceValue or has other
-            // unsupported type without subexpressions
+        if (expr instanceof Function) {
+            if (!((Function) expr).isDeterministic()) {
+                return false;
+            }
+        } else if (count <= 0) {
+            // Expression is an ExpressionColumn, Parameter, SequenceValue or
+            // has other unsupported type without subexpressions
             return false;
         }
         for (int i = 0; i < count; i++) {

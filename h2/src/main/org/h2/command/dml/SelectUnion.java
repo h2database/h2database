@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import org.h2.api.ErrorCode;
-import org.h2.command.CommandInterface;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
@@ -23,7 +22,6 @@ import org.h2.result.LazyResult;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
-import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
@@ -73,10 +71,6 @@ public class SelectUnion extends Query {
      */
     final Query right;
 
-    private ArrayList<Expression> expressions;
-    private Expression[] expressionArray;
-    private ArrayList<SelectOrderBy> orderList;
-    private SortOrder sort;
     private boolean isPrepared, checkInit;
     private boolean isForUpdate;
 
@@ -108,21 +102,6 @@ public class SelectUnion extends Query {
 
     public Query getRight() {
         return right;
-    }
-
-    @Override
-    public void setSQL(String sql) {
-        this.sqlStatement = sql;
-    }
-
-    @Override
-    public void setOrder(ArrayList<SelectOrderBy> order) {
-        orderList = order;
-    }
-
-    @Override
-    public boolean hasOrder() {
-        return orderList != null || sort != null;
     }
 
     @Override
@@ -377,11 +356,6 @@ public class SelectUnion extends Query {
     }
 
     @Override
-    public ArrayList<Expression> getExpressions() {
-        return expressions;
-    }
-
-    @Override
     public void setForUpdate(boolean forUpdate) {
         left.setForUpdate(forUpdate);
         right.setForUpdate(forUpdate);
@@ -482,11 +456,6 @@ public class SelectUnion extends Query {
     public void fireBeforeSelectTriggers() {
         left.fireBeforeSelectTriggers();
         right.fireBeforeSelectTriggers();
-    }
-
-    @Override
-    public int getType() {
-        return CommandInterface.SELECT;
     }
 
     @Override

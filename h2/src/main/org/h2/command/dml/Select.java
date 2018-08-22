@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.Map;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
-import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -76,12 +75,6 @@ public class Select extends Query {
     private final ArrayList<TableFilter> filters = Utils.newSmallArrayList();
     private final ArrayList<TableFilter> topFilters = Utils.newSmallArrayList();
 
-    /**
-     * The column list, including synthetic columns (columns not shown in the
-     * result).
-     */
-    ArrayList<Expression> expressions;
-    private Expression[] expressionArray;
     private Expression having;
     private Expression condition;
 
@@ -98,7 +91,6 @@ public class Select extends Query {
     private int[] distinctIndexes;
 
     private int distinctColumnCount;
-    private ArrayList<SelectOrderBy> orderList;
     private ArrayList<Expression> group;
 
     /**
@@ -136,7 +128,6 @@ public class Select extends Query {
     private boolean isQuickAggregateQuery, isDistinctQuery;
     private boolean isPrepared, checkInit;
     private boolean sortUsingIndex;
-    private SortOrder sort;
 
     /**
      * The id of the current group.
@@ -243,16 +234,6 @@ public class Select extends Query {
 
     public int getCurrentGroupRowId() {
         return currentGroupRowId;
-    }
-
-    @Override
-    public void setOrder(ArrayList<SelectOrderBy> order) {
-        orderList = order;
-    }
-
-    @Override
-    public boolean hasOrder() {
-        return orderList != null || sort != null;
     }
 
     @Override
@@ -1453,11 +1434,6 @@ public class Select extends Query {
     }
 
     @Override
-    public ArrayList<Expression> getExpressions() {
-        return expressions;
-    }
-
-    @Override
     public void setForUpdate(boolean b) {
         this.isForUpdate = b;
         if (session.getDatabase().getSettings().selectForUpdateMvcc &&
@@ -1615,11 +1591,6 @@ public class Select extends Query {
     @Override
     public boolean isCacheable() {
         return !isForUpdate;
-    }
-
-    @Override
-    public int getType() {
-        return CommandInterface.SELECT;
     }
 
     @Override

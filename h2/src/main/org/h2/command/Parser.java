@@ -189,7 +189,6 @@ import org.h2.table.TableFilter;
 import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableView;
 import org.h2.util.DateTimeFunctions;
-import org.h2.util.DateTimeUtils;
 import org.h2.util.IntervalUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.ParserUtil;

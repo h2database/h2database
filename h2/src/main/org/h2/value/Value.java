@@ -28,6 +28,7 @@ import org.h2.store.DataHandler;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.IntervalUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
@@ -1234,7 +1235,7 @@ public abstract class Value {
         case Value.STRING_FIXED: {
             String s = getString();
             try {
-                return (ValueInterval) DateTimeUtils
+                return (ValueInterval) IntervalUtils
                         .parseFormattedInterval(IntervalQualifier.valueOf(targetType - Value.INTERVAL_YEAR), s)
                         .convertTo(targetType);
             } catch (Exception e) {
@@ -1244,8 +1245,8 @@ public abstract class Value {
         case Value.INTERVAL_YEAR:
         case Value.INTERVAL_MONTH:
         case Value.INTERVAL_YEAR_TO_MONTH:
-            return DateTimeUtils.intervalFromAbsolute(IntervalQualifier.valueOf(targetType - Value.INTERVAL_YEAR),
-                    DateTimeUtils.intervalToAbsolute((ValueInterval) this));
+            return IntervalUtils.intervalFromAbsolute(IntervalQualifier.valueOf(targetType - Value.INTERVAL_YEAR),
+                    IntervalUtils.intervalToAbsolute((ValueInterval) this));
         }
         throw getDataConversionError(targetType);
     }
@@ -1257,7 +1258,7 @@ public abstract class Value {
         case Value.STRING_FIXED: {
             String s = getString();
             try {
-                return (ValueInterval) DateTimeUtils
+                return (ValueInterval) IntervalUtils
                         .parseFormattedInterval(IntervalQualifier.valueOf(targetType - Value.INTERVAL_YEAR), s)
                         .convertTo(targetType);
             } catch (Exception e) {
@@ -1274,8 +1275,8 @@ public abstract class Value {
         case Value.INTERVAL_HOUR_TO_MINUTE:
         case Value.INTERVAL_HOUR_TO_SECOND:
         case Value.INTERVAL_MINUTE_TO_SECOND:
-            return DateTimeUtils.intervalFromAbsolute(IntervalQualifier.valueOf(targetType - Value.INTERVAL_YEAR),
-                    DateTimeUtils.intervalToAbsolute((ValueInterval) this));
+            return IntervalUtils.intervalFromAbsolute(IntervalQualifier.valueOf(targetType - Value.INTERVAL_YEAR),
+                    IntervalUtils.intervalToAbsolute((ValueInterval) this));
         }
         throw getDataConversionError(targetType);
     }

@@ -12,6 +12,7 @@ import org.h2.api.Interval;
 import org.h2.api.IntervalQualifier;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.IntervalUtils;
 
 /**
  * Implementation of the INTERVAL data type.
@@ -58,7 +59,7 @@ public class ValueInterval extends Value {
      * @return interval value
      */
     public static ValueInterval from(IntervalQualifier qualifier, boolean negative, long leading, long remaining) {
-        negative = DateTimeUtils.validateInterval(qualifier, negative, leading, remaining);
+        negative = IntervalUtils.validateInterval(qualifier, negative, leading, remaining);
         return (ValueInterval) Value
                 .cache(new ValueInterval(qualifier.ordinal() + INTERVAL_YEAR, negative, leading, remaining));
     }
@@ -203,7 +204,7 @@ public class ValueInterval extends Value {
 
     @Override
     public String getString() {
-        return DateTimeUtils.intervalToString(getQualifier(), negative, leading, remaining);
+        return IntervalUtils.intervalToString(getQualifier(), negative, leading, remaining);
     }
 
     @Override
@@ -298,14 +299,14 @@ public class ValueInterval extends Value {
 
     @Override
     public Value add(Value v) {
-        return DateTimeUtils.intervalFromAbsolute(getQualifier(),
-                DateTimeUtils.intervalToAbsolute(this).add(DateTimeUtils.intervalToAbsolute((ValueInterval) v)));
+        return IntervalUtils.intervalFromAbsolute(getQualifier(),
+                IntervalUtils.intervalToAbsolute(this).add(IntervalUtils.intervalToAbsolute((ValueInterval) v)));
     }
 
     @Override
     public Value subtract(Value v) {
-        return DateTimeUtils.intervalFromAbsolute(getQualifier(),
-                DateTimeUtils.intervalToAbsolute(this).subtract(DateTimeUtils.intervalToAbsolute((ValueInterval) v)));
+        return IntervalUtils.intervalFromAbsolute(getQualifier(),
+                IntervalUtils.intervalToAbsolute(this).subtract(IntervalUtils.intervalToAbsolute((ValueInterval) v)));
     }
 
     @Override

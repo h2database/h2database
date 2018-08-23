@@ -15,11 +15,12 @@ import java.util.TimeZone;
 import org.h2.api.IntervalQualifier;
 import org.h2.test.TestBase;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.IntervalUtils;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueTimestamp;
 
 /**
- * Unit tests for the DateTimeUtils class
+ * Unit tests for the DateTimeUtils and IntervalUtils classes.
  */
 public class TestDateTimeUtils extends TestBase {
 
@@ -257,7 +258,7 @@ public class TestDateTimeUtils extends TestBase {
     private void testParseIntervalImpl(IntervalQualifier qualifier, boolean negative, long leading, long remaining,
             String s, String full) {
         ValueInterval expected = ValueInterval.from(qualifier, negative, leading, remaining);
-        assertEquals(expected, DateTimeUtils.parseInterval(qualifier, negative, s));
+        assertEquals(expected, IntervalUtils.parseInterval(qualifier, negative, s));
         StringBuilder b = new StringBuilder();
         b.append("INTERVAL ").append('\'');
         if (negative) {

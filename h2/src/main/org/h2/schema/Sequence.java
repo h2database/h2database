@@ -143,9 +143,9 @@ public class Sequence extends SchemaObjectBase {
             maxValue >= value &&
             maxValue > minValue &&
             increment != 0 &&
-            // Math.abs(increment) < maxValue - minValue
+            // Math.abs(increment) <= maxValue - minValue
             // Can use Long.compareUnsigned() on Java 8
-            Math.abs(increment) + Long.MIN_VALUE < maxValue - minValue + Long.MIN_VALUE;
+            Math.abs(increment) + Long.MIN_VALUE <= maxValue - minValue + Long.MIN_VALUE;
     }
 
     private static long getDefaultMinValue(Long startValue, long increment) {

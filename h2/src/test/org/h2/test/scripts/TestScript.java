@@ -125,7 +125,7 @@ public class TestScript extends TestDb {
             testScript("datatypes/" + s + ".sql");
         }
         for (String s : new String[] { "alterTableAdd", "alterTableDropColumn", "alterTableRename",
-                "createAlias", "createSynonym", "createTable", "createTrigger", "createView",
+                "createAlias", "createSequence", "createSynonym", "createTable", "createTrigger", "createView",
                 "dropDomain", "dropIndex", "dropSchema", "truncateTable" }) {
             testScript("ddl/" + s + ".sql");
         }

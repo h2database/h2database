@@ -5,7 +5,6 @@
  */
 package org.h2.schema;
 
-import java.math.BigInteger;
 import org.h2.api.ErrorCode;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
@@ -139,17 +138,14 @@ public class Sequence extends SchemaObjectBase {
      * @param maxValue the prospective max value
      * @param increment the prospective increment
      */
-    private static boolean isValid(long value, long minValue, long maxValue,
-            long increment) {
+    private static boolean isValid(long value, long minValue, long maxValue, long increment) {
         return minValue <= value &&
             maxValue >= value &&
             maxValue > minValue &&
             increment != 0 &&
             // Math.abs(increment) < maxValue - minValue
-            // use BigInteger to avoid overflows when maxValue and minValue
-            // are really big
-            BigInteger.valueOf(increment).abs().compareTo(
-                    BigInteger.valueOf(maxValue).subtract(BigInteger.valueOf(minValue))) < 0;
+            // Can use Long.compareUnsigned() on Java 8
+            Math.abs(increment) + Long.MIN_VALUE < maxValue - minValue + Long.MIN_VALUE;
     }
 
     private static long getDefaultMinValue(Long startValue, long increment) {

@@ -811,17 +811,14 @@ public class SessionRemote extends SessionWithState implements DataHandler {
      */
     private String readSerializationSettings() {
         String javaObjectSerializerFQN = null;
-        CommandInterface ci = prepareCommand(
-                "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS "+
-                " WHERE NAME='JAVA_OBJECT_SERIALIZER'", Integer.MAX_VALUE);
-        try {
+        try (CommandInterface ci = prepareCommand(
+                "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS " + " WHERE NAME='JAVA_OBJECT_SERIALIZER'",
+                Integer.MAX_VALUE)) {
             ResultInterface result = ci.executeQuery(0, false);
             if (result.next()) {
                 Value[] row = result.currentRow();
                 javaObjectSerializerFQN = row[0].getString();
             }
-        } finally {
-            ci.close();
         }
         return javaObjectSerializerFQN;
     }

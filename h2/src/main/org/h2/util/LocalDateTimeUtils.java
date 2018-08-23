@@ -397,7 +397,7 @@ public class LocalDateTimeUtils {
         if (DataType.isYearMonthIntervalType(value.getType())) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, (Throwable) null, value.getString());
         }
-        BigInteger[] dr = DateTimeUtils.intervalToAbsolute((ValueInterval) value)
+        BigInteger[] dr = IntervalUtils.intervalToAbsolute((ValueInterval) value)
                 .divideAndRemainder(BigInteger.valueOf(1_000_000_000));
         try {
             return DURATION_OF_SECONDS.invoke(null, dr[0].longValue(), dr[1].longValue());

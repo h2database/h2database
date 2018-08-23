@@ -2324,20 +2324,24 @@ public class Function extends Expression implements FunctionCall {
             d = displaySize;
             break;
         case TRUNCATE:
-            t = p0.getType();
-            s = p0.getScale();
-            p = p0.getPrecision();
-            d = p0.getDisplaySize();
-            if (t == Value.NULL) {
-                t = Value.INT;
-                p = ValueInt.PRECISION;
-                d = ValueInt.DISPLAY_SIZE;
+            switch (p0.getType()) {
+            case Value.STRING:
+            case Value.DATE:
+            case Value.TIMESTAMP:
+                t = Value.TIMESTAMP;
+                p = d = ValueTimestamp.DEFAULT_PRECISION;
                 s = 0;
-            } else if (t == Value.TIMESTAMP) {
-                t = Value.DATE;
-                p = ValueDate.PRECISION;
+                break;
+            case Value.TIMESTAMP_TZ:
+                t = Value.TIMESTAMP;
+                p = d = ValueTimestampTimeZone.DEFAULT_PRECISION;
                 s = 0;
-                d = ValueDate.PRECISION;
+                break;
+            default:
+                t = Value.DOUBLE;
+                s = 0;
+                p = ValueDouble.PRECISION;
+                d = ValueDouble.DISPLAY_SIZE;
             }
             break;
         case ABS:

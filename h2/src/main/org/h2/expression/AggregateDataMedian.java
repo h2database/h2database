@@ -23,6 +23,7 @@ import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.IntervalUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
@@ -261,9 +262,9 @@ class AggregateDataMedian extends AggregateDataCollecting {
         case Value.INTERVAL_HOUR_TO_MINUTE:
         case Value.INTERVAL_HOUR_TO_SECOND:
         case Value.INTERVAL_MINUTE_TO_SECOND:
-            return DateTimeUtils.intervalFromAbsolute(IntervalQualifier.valueOf(dataType - Value.INTERVAL_YEAR),
-                    DateTimeUtils.intervalToAbsolute((ValueInterval) v0)
-                    .add(DateTimeUtils.intervalToAbsolute((ValueInterval) v1)).shiftRight(1));
+            return IntervalUtils.intervalFromAbsolute(IntervalQualifier.valueOf(dataType - Value.INTERVAL_YEAR),
+                    IntervalUtils.intervalToAbsolute((ValueInterval) v0)
+                    .add(IntervalUtils.intervalToAbsolute((ValueInterval) v1)).shiftRight(1));
         default:
             // Just return first
             return v0.convertTo(dataType);

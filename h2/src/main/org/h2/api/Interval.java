@@ -9,7 +9,7 @@ import static org.h2.util.DateTimeUtils.NANOS_PER_MINUTE;
 import static org.h2.util.DateTimeUtils.NANOS_PER_SECOND;
 
 import org.h2.message.DbException;
-import org.h2.util.DateTimeUtils;
+import org.h2.util.IntervalUtils;
 
 /**
  * INTERVAL representation for result sets.
@@ -471,7 +471,7 @@ public final class Interval {
     public Interval(IntervalQualifier qualifier, boolean negative, long leading, long remaining) {
         this.qualifier = qualifier;
         try {
-            this.negative = DateTimeUtils.validateInterval(qualifier, negative, leading, remaining);
+            this.negative = IntervalUtils.validateInterval(qualifier, negative, leading, remaining);
         } catch (DbException e) {
             throw new IllegalArgumentException();
         }
@@ -523,7 +523,7 @@ public final class Interval {
      * @return years, or 0
      */
     public long getYears() {
-        return DateTimeUtils.yearsFromInterval(qualifier, negative, leading, remaining);
+        return IntervalUtils.yearsFromInterval(qualifier, negative, leading, remaining);
     }
 
     /**
@@ -532,7 +532,7 @@ public final class Interval {
      * @return months, or 0
      */
     public long getMonths() {
-        return DateTimeUtils.monthsFromInterval(qualifier, negative, leading, remaining);
+        return IntervalUtils.monthsFromInterval(qualifier, negative, leading, remaining);
     }
 
     /**
@@ -541,7 +541,7 @@ public final class Interval {
      * @return days, or 0
      */
     public long getDays() {
-        return DateTimeUtils.daysFromInterval(qualifier, negative, leading, remaining);
+        return IntervalUtils.daysFromInterval(qualifier, negative, leading, remaining);
     }
 
     /**
@@ -550,7 +550,7 @@ public final class Interval {
      * @return hours, or 0
      */
     public long getHours() {
-        return DateTimeUtils.hoursFromInterval(qualifier, negative, leading, remaining);
+        return IntervalUtils.hoursFromInterval(qualifier, negative, leading, remaining);
     }
 
     /**
@@ -559,7 +559,7 @@ public final class Interval {
      * @return minutes, or 0
      */
     public long getMinutes() {
-        return DateTimeUtils.minutesFromInterval(qualifier, negative, leading, remaining);
+        return IntervalUtils.minutesFromInterval(qualifier, negative, leading, remaining);
     }
 
     /**
@@ -599,7 +599,7 @@ public final class Interval {
      * @return nanoseconds (including seconds), or 0
      */
     public long getSecondsAndNanos() {
-        return DateTimeUtils.nanosFromInterval(qualifier, negative, leading, remaining);
+        return IntervalUtils.nanosFromInterval(qualifier, negative, leading, remaining);
     }
 
     @Override
@@ -628,7 +628,7 @@ public final class Interval {
 
     @Override
     public String toString() {
-        return DateTimeUtils.intervalToString(qualifier, negative, leading, remaining);
+        return IntervalUtils.intervalToString(qualifier, negative, leading, remaining);
     }
 
 }

@@ -28,12 +28,20 @@ public class ValueDouble extends Value {
     public static final int DISPLAY_SIZE = 24;
 
     /**
-     * Double.doubleToLongBits(0.0)
+     * Double.doubleToLongBits(0d)
      */
-    public static final long ZERO_BITS = Double.doubleToLongBits(0.0);
+    public static final long ZERO_BITS = 0L;
 
-    private static final ValueDouble ZERO = new ValueDouble(0.0);
-    private static final ValueDouble ONE = new ValueDouble(1.0);
+    /**
+     * The value 0.
+     */
+    public static final ValueDouble ZERO = new ValueDouble(0d);
+
+    /**
+     * The value 1.
+     */
+    public static final ValueDouble ONE = new ValueDouble(1d);
+
     private static final ValueDouble NAN = new ValueDouble(Double.NaN);
 
     private final double value;
@@ -45,24 +53,24 @@ public class ValueDouble extends Value {
     @Override
     public Value add(Value v) {
         ValueDouble v2 = (ValueDouble) v;
-        return ValueDouble.get(value + v2.value);
+        return get(value + v2.value);
     }
 
     @Override
     public Value subtract(Value v) {
         ValueDouble v2 = (ValueDouble) v;
-        return ValueDouble.get(value - v2.value);
+        return get(value - v2.value);
     }
 
     @Override
     public Value negate() {
-        return ValueDouble.get(-value);
+        return get(-value);
     }
 
     @Override
     public Value multiply(Value v) {
         ValueDouble v2 = (ValueDouble) v;
-        return ValueDouble.get(value * v2.value);
+        return get(value * v2.value);
     }
 
     @Override
@@ -71,7 +79,7 @@ public class ValueDouble extends Value {
         if (v2.value == 0.0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
         }
-        return ValueDouble.get(value / v2.value);
+        return get(value / v2.value);
     }
 
     @Override
@@ -80,7 +88,7 @@ public class ValueDouble extends Value {
         if (other.value == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
         }
-        return ValueDouble.get(value % other.value);
+        return get(value % other.value);
     }
 
     @Override

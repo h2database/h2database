@@ -963,7 +963,7 @@ public abstract class Value {
     private ValueDouble convertToDouble() {
         switch (getType()) {
         case BOOLEAN:
-            return ValueDouble.get(getBoolean() ? 1 : 0);
+            return getBoolean() ? ValueDouble.ONE : ValueDouble.ZERO;
         case BYTE:
         case SHORT:
         case INT:
@@ -984,7 +984,7 @@ public abstract class Value {
     private ValueFloat convertToFloat() {
         switch (getType()) {
         case BOOLEAN:
-            return ValueFloat.get(getBoolean() ? 1 : 0);
+            return getBoolean() ? ValueFloat.ONE : ValueFloat.ZERO;
         case BYTE:
         case SHORT:
         case INT:

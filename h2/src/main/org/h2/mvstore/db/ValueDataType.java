@@ -589,13 +589,13 @@ public class ValueDataType implements DataType {
                     ordinal < 5 ? 0 : readVarLong(buff));
         }
         case FLOAT_0_1:
-            return ValueFloat.get(0);
+            return ValueFloat.ZERO;
         case FLOAT_0_1 + 1:
-            return ValueFloat.get(1);
+            return ValueFloat.ONE;
         case DOUBLE_0_1:
-            return ValueDouble.get(0);
+            return ValueDouble.ZERO;
         case DOUBLE_0_1 + 1:
-            return ValueDouble.get(1);
+            return ValueDouble.ONE;
         case Value.DOUBLE:
             return ValueDouble.get(Double.longBitsToDouble(
                     Long.reverse(readVarLong(buff))));

@@ -17,11 +17,6 @@ import org.h2.message.DbException;
 public class ValueFloat extends Value {
 
     /**
-     * Float.floatToIntBits(0.0F).
-     */
-    public static final int ZERO_BITS = Float.floatToIntBits(0.0F);
-
-    /**
      * The precision in digits.
      */
     static final int PRECISION = 7;
@@ -32,8 +27,21 @@ public class ValueFloat extends Value {
      */
     static final int DISPLAY_SIZE = 15;
 
-    private static final ValueFloat ZERO = new ValueFloat(0.0F);
-    private static final ValueFloat ONE = new ValueFloat(1.0F);
+    /**
+     * Float.floatToIntBits(0f).
+     */
+    public static final int ZERO_BITS = 0;
+
+    /**
+     * The value 0.
+     */
+    public static final ValueFloat ZERO = new ValueFloat(0f);
+
+    /**
+     * The value 1.
+     */
+    public static final ValueFloat ONE = new ValueFloat(1f);
+
     private static final ValueFloat NAN = new ValueFloat(Float.NaN);
 
     private final float value;
@@ -45,24 +53,24 @@ public class ValueFloat extends Value {
     @Override
     public Value add(Value v) {
         ValueFloat v2 = (ValueFloat) v;
-        return ValueFloat.get(value + v2.value);
+        return get(value + v2.value);
     }
 
     @Override
     public Value subtract(Value v) {
         ValueFloat v2 = (ValueFloat) v;
-        return ValueFloat.get(value - v2.value);
+        return get(value - v2.value);
     }
 
     @Override
     public Value negate() {
-        return ValueFloat.get(-value);
+        return get(-value);
     }
 
     @Override
     public Value multiply(Value v) {
         ValueFloat v2 = (ValueFloat) v;
-        return ValueFloat.get(value * v2.value);
+        return get(value * v2.value);
     }
 
     @Override
@@ -71,7 +79,7 @@ public class ValueFloat extends Value {
         if (v2.value == 0.0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
         }
-        return ValueFloat.get(value / v2.value);
+        return get(value / v2.value);
     }
 
     @Override
@@ -80,7 +88,7 @@ public class ValueFloat extends Value {
         if (other.value == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
         }
-        return ValueFloat.get(value % other.value);
+        return get(value % other.value);
     }
 
     @Override

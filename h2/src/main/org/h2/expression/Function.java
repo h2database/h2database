@@ -2196,6 +2196,43 @@ public class Function extends Expression implements FunctionCall {
         long p;
         Expression p0 = args.length < 1 ? null : args[0];
         switch (info.type) {
+        case DATE_ADD: {
+            t = Value.TIMESTAMP;
+            p = d = ValueTimestamp.DEFAULT_PRECISION;
+            s = ValueTimestamp.MAXIMUM_SCALE;
+            if (p0.isConstant()) {
+                Expression p2 = args[2];
+                switch (p2.getType()) {
+                case Value.TIME:
+                    t = Value.TIME;
+                    p = d = ValueTime.DEFAULT_PRECISION;
+                    break;
+                case Value.DATE: {
+                    int field = DateTimeFunctions.getDatePart(p0.getValue(session).getString());
+                    switch (field) {
+                    case HOUR:
+                    case MINUTE:
+                    case SECOND:
+                    case EPOCH:
+                    case MILLISECOND:
+                    case MICROSECOND:
+                    case NANOSECOND:
+                        // TIMESTAMP result
+                        break;
+                    default:
+                        t = Value.DATE;
+                        p = d = ValueDate.PRECISION;
+                        s = 0;
+                    }
+                    break;
+                }
+                case Value.TIMESTAMP_TZ:
+                    t = Value.TIMESTAMP_TZ;
+                    p = d = ValueTimestampTimeZone.DEFAULT_PRECISION;
+                }
+            }
+            break;
+        }
         case EXTRACT: {
             if (p0.isConstant() && DateTimeFunctions.getDatePart(p0.getValue(session).getString()) == Function.EPOCH) {
                 t = Value.DECIMAL;

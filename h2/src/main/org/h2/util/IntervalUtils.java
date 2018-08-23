@@ -22,6 +22,29 @@ import org.h2.value.ValueInterval;
  */
 public class IntervalUtils {
 
+    private static final BigInteger NANOS_PER_SECOND_BI = BigInteger.valueOf(NANOS_PER_SECOND);
+
+    private static final BigInteger NANOS_PER_MINUTE_BI = BigInteger.valueOf(NANOS_PER_MINUTE);
+
+    private static final BigInteger NANOS_PER_HOUR_BI = BigInteger.valueOf(NANOS_PER_HOUR);
+
+    /**
+     * The number of nanoseconds per day as BigInteger.
+     */
+    public static final BigInteger NANOS_PER_DAY_BI = BigInteger.valueOf(NANOS_PER_DAY);
+
+    private static final BigInteger MONTHS_PER_YEAR_BI = BigInteger.valueOf(12);
+
+    private static final BigInteger HOURS_PER_DAY_BI = BigInteger.valueOf(24);
+
+    private static final BigInteger MINUTES_PER_DAY_BI = BigInteger.valueOf(24 * 60);
+
+    private static final BigInteger MINUTES_PER_HOUR_BI = BigInteger.valueOf(60);
+
+    private static final BigInteger LEADING_MIN = BigInteger.valueOf(-999_999_999_999_999_999L);
+
+    private static final BigInteger LEADING_MAX = BigInteger.valueOf(999_999_999_999_999_999L);
+
     private IntervalUtils() {
         // utility class
     }
@@ -458,43 +481,43 @@ public class IntervalUtils {
         BigInteger r;
         switch (interval.getQualifier()) {
         case YEAR:
-            r = BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(12));
+            r = BigInteger.valueOf(interval.getLeading()).multiply(MONTHS_PER_YEAR_BI);
             break;
         case MONTH:
             r = BigInteger.valueOf(interval.getLeading());
             break;
         case DAY:
-            r = BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(NANOS_PER_DAY));
+            r = BigInteger.valueOf(interval.getLeading()).multiply(NANOS_PER_DAY_BI);
             break;
         case HOUR:
-            r = BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(NANOS_PER_HOUR));
+            r = BigInteger.valueOf(interval.getLeading()).multiply(NANOS_PER_HOUR_BI);
             break;
         case MINUTE:
-            r = BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(NANOS_PER_MINUTE));
+            r = BigInteger.valueOf(interval.getLeading()).multiply(NANOS_PER_MINUTE_BI);
             break;
         case SECOND:
-            r = intervalToAbsolute(interval, NANOS_PER_SECOND);
+            r = intervalToAbsolute(interval, NANOS_PER_SECOND_BI);
             break;
         case YEAR_TO_MONTH:
-            r = intervalToAbsolute(interval, 12);
+            r = intervalToAbsolute(interval, MONTHS_PER_YEAR_BI);
             break;
         case DAY_TO_HOUR:
-            r = intervalToAbsolute(interval, 24, NANOS_PER_HOUR);
+            r = intervalToAbsolute(interval, HOURS_PER_DAY_BI, NANOS_PER_HOUR_BI);
             break;
         case DAY_TO_MINUTE:
-            r = intervalToAbsolute(interval, 24 * 60, NANOS_PER_MINUTE);
+            r = intervalToAbsolute(interval, MINUTES_PER_DAY_BI, NANOS_PER_MINUTE_BI);
             break;
         case DAY_TO_SECOND:
-            r = intervalToAbsolute(interval, NANOS_PER_DAY);
+            r = intervalToAbsolute(interval, NANOS_PER_DAY_BI);
             break;
         case HOUR_TO_MINUTE:
-            r = intervalToAbsolute(interval, 60, NANOS_PER_MINUTE);
+            r = intervalToAbsolute(interval, MINUTES_PER_HOUR_BI, NANOS_PER_MINUTE_BI);
             break;
         case HOUR_TO_SECOND:
-            r = intervalToAbsolute(interval, NANOS_PER_HOUR);
+            r = intervalToAbsolute(interval, NANOS_PER_HOUR_BI);
             break;
         case MINUTE_TO_SECOND:
-            r = intervalToAbsolute(interval, NANOS_PER_MINUTE);
+            r = intervalToAbsolute(interval, NANOS_PER_MINUTE_BI);
             break;
         default:
             throw new IllegalArgumentException();
@@ -502,12 +525,13 @@ public class IntervalUtils {
         return interval.isNegative() ? r.negate() : r;
     }
 
-    private static BigInteger intervalToAbsolute(ValueInterval interval, long multiplier, long totalMultiplier) {
-        return intervalToAbsolute(interval, multiplier).multiply(BigInteger.valueOf(totalMultiplier));
+    private static BigInteger intervalToAbsolute(ValueInterval interval, BigInteger multiplier,
+            BigInteger totalMultiplier) {
+        return intervalToAbsolute(interval, multiplier).multiply(totalMultiplier);
     }
 
-    private static BigInteger intervalToAbsolute(ValueInterval interval, long multiplier) {
-        return BigInteger.valueOf(interval.getLeading()).multiply(BigInteger.valueOf(multiplier))
+    private static BigInteger intervalToAbsolute(ValueInterval interval, BigInteger multiplier) {
+        return BigInteger.valueOf(interval.getLeading()).multiply(multiplier)
                 .add(BigInteger.valueOf(interval.getRemaining()));
     }
 
@@ -525,47 +549,47 @@ public class IntervalUtils {
         switch (qualifier) {
         case YEAR:
             return ValueInterval.from(qualifier, absolute.signum() < 0,
-                    leadingExact(absolute.divide(BigInteger.valueOf(12))), 0);
+                    leadingExact(absolute.divide(MONTHS_PER_YEAR_BI)), 0);
         case MONTH:
             return ValueInterval.from(qualifier, absolute.signum() < 0, leadingExact(absolute), 0);
         case DAY:
-            return ValueInterval.from(qualifier, absolute.signum() < 0,
-                    leadingExact(absolute.divide(BigInteger.valueOf(NANOS_PER_DAY))), 0);
+            return ValueInterval.from(qualifier, absolute.signum() < 0, leadingExact(absolute.divide(NANOS_PER_DAY_BI)),
+                    0);
         case HOUR:
             return ValueInterval.from(qualifier, absolute.signum() < 0,
-                    leadingExact(absolute.divide(BigInteger.valueOf(NANOS_PER_HOUR))), 0);
+                    leadingExact(absolute.divide(NANOS_PER_HOUR_BI)), 0);
         case MINUTE:
             return ValueInterval.from(qualifier, absolute.signum() < 0,
-                    leadingExact(absolute.divide(BigInteger.valueOf(NANOS_PER_MINUTE))), 0);
+                    leadingExact(absolute.divide(NANOS_PER_MINUTE_BI)), 0);
         case SECOND:
-            return intervalFromAbsolute(qualifier, absolute, NANOS_PER_SECOND);
+            return intervalFromAbsolute(qualifier, absolute, NANOS_PER_SECOND_BI);
         case YEAR_TO_MONTH:
-            return intervalFromAbsolute(qualifier, absolute, 12);
+            return intervalFromAbsolute(qualifier, absolute, MONTHS_PER_YEAR_BI);
         case DAY_TO_HOUR:
-            return intervalFromAbsolute(qualifier, absolute.divide(BigInteger.valueOf(NANOS_PER_HOUR)), 24);
+            return intervalFromAbsolute(qualifier, absolute.divide(NANOS_PER_HOUR_BI), HOURS_PER_DAY_BI);
         case DAY_TO_MINUTE:
-            return intervalFromAbsolute(qualifier, absolute.divide(BigInteger.valueOf(NANOS_PER_MINUTE)), 24 * 60);
+            return intervalFromAbsolute(qualifier, absolute.divide(NANOS_PER_MINUTE_BI), MINUTES_PER_DAY_BI);
         case DAY_TO_SECOND:
-            return intervalFromAbsolute(qualifier, absolute, NANOS_PER_DAY);
+            return intervalFromAbsolute(qualifier, absolute, NANOS_PER_DAY_BI);
         case HOUR_TO_MINUTE:
-            return intervalFromAbsolute(qualifier, absolute.divide(BigInteger.valueOf(NANOS_PER_MINUTE)), 60);
+            return intervalFromAbsolute(qualifier, absolute.divide(NANOS_PER_MINUTE_BI), MINUTES_PER_HOUR_BI);
         case HOUR_TO_SECOND:
-            return intervalFromAbsolute(qualifier, absolute, NANOS_PER_HOUR);
+            return intervalFromAbsolute(qualifier, absolute, NANOS_PER_HOUR_BI);
         case MINUTE_TO_SECOND:
-            return intervalFromAbsolute(qualifier, absolute, NANOS_PER_MINUTE);
+            return intervalFromAbsolute(qualifier, absolute, NANOS_PER_MINUTE_BI);
         default:
             throw new IllegalArgumentException();
         }
     }
 
-    private static ValueInterval intervalFromAbsolute(IntervalQualifier qualifier, BigInteger absolute, long divisor) {
-        BigInteger[] dr = absolute.divideAndRemainder(BigInteger.valueOf(divisor));
+    private static ValueInterval intervalFromAbsolute(IntervalQualifier qualifier, BigInteger absolute,
+            BigInteger divisor) {
+        BigInteger[] dr = absolute.divideAndRemainder(divisor);
         return ValueInterval.from(qualifier, absolute.signum() < 0, leadingExact(dr[0]), Math.abs(dr[1].longValue()));
     }
 
     private static long leadingExact(BigInteger absolute) {
-        if (absolute.compareTo(BigInteger.valueOf(999_999_999_999_999_999L)) > 0
-                || absolute.compareTo(BigInteger.valueOf(-999_999_999_999_999_999L)) < 0) {
+        if (absolute.compareTo(LEADING_MAX) > 0 || absolute.compareTo(LEADING_MIN) < 0) {
             throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, absolute.toString());
         }
         return Math.abs(absolute.longValue());

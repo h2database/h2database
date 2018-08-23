@@ -5,6 +5,8 @@
  */
 package org.h2.expression;
 
+import static org.h2.util.IntervalUtils.NANOS_PER_DAY_BI;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
@@ -169,9 +171,9 @@ public class IntervalOperation extends Expression {
             } else {
                 long[] a = DateTimeUtils.dateAndTimeFromValue(l);
                 long[] b = DateTimeUtils.dateAndTimeFromValue(r);
-                BigInteger bi1 = BigInteger.valueOf(a[0]).multiply(BigInteger.valueOf(DateTimeUtils.NANOS_PER_DAY))
+                BigInteger bi1 = BigInteger.valueOf(a[0]).multiply(NANOS_PER_DAY_BI)
                         .add(BigInteger.valueOf(a[1]));
-                BigInteger bi2 = BigInteger.valueOf(b[0]).multiply(BigInteger.valueOf(DateTimeUtils.NANOS_PER_DAY))
+                BigInteger bi2 = BigInteger.valueOf(b[0]).multiply(NANOS_PER_DAY_BI)
                         .add(BigInteger.valueOf(b[1]));
                 BigInteger diff = bi1.subtract(bi2);
                 if (lType == Value.TIMESTAMP_TZ || rType == Value.TIMESTAMP_TZ) {
@@ -195,7 +197,7 @@ public class IntervalOperation extends Expression {
             BigInteger a1 = BigInteger.valueOf(((ValueTime) l).getNanos());
             BigInteger a2 = IntervalUtils.intervalToAbsolute((ValueInterval) r);
             BigInteger n = opType == IntervalOpType.DATETIME_PLUS_INTERVAL ? a1.add(a2) : a1.subtract(a2);
-            if (n.signum() < 0 || n.compareTo(BigInteger.valueOf(DateTimeUtils.NANOS_PER_DAY)) >= 0) {
+            if (n.signum() < 0 || n.compareTo(NANOS_PER_DAY_BI) >= 0) {
                 throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, n.toString());
             }
             return ValueTime.fromNanos(n.longValue());
@@ -214,14 +216,14 @@ public class IntervalOperation extends Expression {
                 if (lType == Value.DATE) {
                     BigInteger a1 = BigInteger
                             .valueOf(DateTimeUtils.absoluteDayFromDateValue(((ValueDate) l).getDateValue()));
-                    a2 = a2.divide(BigInteger.valueOf(DateTimeUtils.NANOS_PER_DAY));
+                    a2 = a2.divide(NANOS_PER_DAY_BI);
                     BigInteger n = opType == IntervalOpType.DATETIME_PLUS_INTERVAL ? a1.add(a2) : a1.subtract(a2);
                     return ValueDate.fromDateValue(DateTimeUtils.dateValueFromAbsoluteDay(n.longValue()));
                 } else {
                     long[] a = DateTimeUtils.dateAndTimeFromValue(l);
                     long absoluteDay = DateTimeUtils.absoluteDayFromDateValue(a[0]);
                     long timeNanos = a[1];
-                    BigInteger[] dr = a2.divideAndRemainder(BigInteger.valueOf(DateTimeUtils.NANOS_PER_DAY));
+                    BigInteger[] dr = a2.divideAndRemainder(NANOS_PER_DAY_BI);
                     if (opType == IntervalOpType.DATETIME_PLUS_INTERVAL) {
                         absoluteDay += dr[0].longValue();
                         timeNanos += dr[1].longValue();

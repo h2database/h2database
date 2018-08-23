@@ -189,7 +189,8 @@ public class MetaTable extends Table {
                     "REMARKS",
                     "SOURCE_DATA_TYPE SMALLINT",
                     "COLUMN_TYPE",
-                    "COLUMN_ON_UPDATE"
+                    "COLUMN_ON_UPDATE",
+                    "IS_VISIBLE"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -923,7 +924,9 @@ public class MetaTable extends Table {
                             // COLUMN_TYPE
                             createSQLWithoutName,
                             // COLUMN_ON_UPDATE
-                            c.getOnUpdateSQL()
+                            c.getOnUpdateSQL(),
+                            // IS_VISIBLE
+                            ValueBoolean.get(c.getVisible())
                     );
                 }
             }

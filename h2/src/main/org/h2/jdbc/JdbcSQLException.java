@@ -24,8 +24,8 @@ public class JdbcSQLException extends SQLException {
     public static final String HIDE_SQL = "--hide--";
 
     private static final long serialVersionUID = 1L;
+
     private final String originalMessage;
-    private final Throwable cause;
     private final String stackTrace;
     private String message;
     private String sql;
@@ -44,7 +44,6 @@ public class JdbcSQLException extends SQLException {
             int errorCode, Throwable cause, String stackTrace) {
         super(message, state, errorCode);
         this.originalMessage = message;
-        this.cause = cause;
         this.stackTrace = stackTrace;
         // setSQL() invokes buildMessage() by itself
         setSQL(sql);
@@ -122,13 +121,6 @@ public class JdbcSQLException extends SQLException {
                 s.println("(truncated)");
             }
         }
-    }
-
-    /**
-     * INTERNAL
-     */
-    public Throwable getOriginalCause() {
-        return cause;
     }
 
     /**

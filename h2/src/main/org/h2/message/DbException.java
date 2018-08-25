@@ -406,8 +406,8 @@ public class DbException extends RuntimeException {
         }
         if (e instanceof JdbcSQLException) {
             JdbcSQLException e2 = (JdbcSQLException) e;
-            if (e2.getOriginalCause() != null) {
-                e = e2.getOriginalCause();
+            if (e2.getCause() != null) {
+                e = e2.getCause();
             }
         }
         return new IOException(e.toString(), e);

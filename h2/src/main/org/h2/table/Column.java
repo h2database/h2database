@@ -710,7 +710,7 @@ public class Column {
         }
         if (checkConstraint == null) {
             checkConstraint = expr;
-        } else {
+        } else if (!expr.getSQL().equals(checkConstraintSQL)) {
             checkConstraint = new ConditionAndOr(ConditionAndOr.AND, checkConstraint, expr);
         }
         checkConstraintSQL = getCheckConstraintSQL(session, name);

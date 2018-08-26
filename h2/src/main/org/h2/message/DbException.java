@@ -20,7 +20,14 @@ import java.util.Properties;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcException;
+import org.h2.jdbc.JdbcSQLDataException;
 import org.h2.jdbc.JdbcSQLException;
+import org.h2.jdbc.JdbcSQLFeatureNotSupportedException;
+import org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException;
+import org.h2.jdbc.JdbcSQLInvalidAuthorizationSpecException;
+import org.h2.jdbc.JdbcSQLNonTransientConnectionException;
+import org.h2.jdbc.JdbcSQLSyntaxErrorException;
+import org.h2.jdbc.JdbcSQLTransactionRollbackException;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -414,7 +421,36 @@ public class DbException extends RuntimeException {
      */
     public static SQLException getJdbcSQLException(String message, String sql, String state, int errorCode,
             Throwable cause, String stackTrace) {
-        return new JdbcSQLException(message, filterSQL(sql), state, errorCode, cause, stackTrace);
+        sql = filterSQL(sql);
+        // Use SQLState class value to detect type
+        switch (errorCode / 1_000) {
+        case 8:
+            return new JdbcSQLNonTransientConnectionException(message, sql, state, errorCode, cause, stackTrace);
+        case 22:
+            return new JdbcSQLDataException(message, sql, state, errorCode, cause, stackTrace);
+        case 23:
+            return new JdbcSQLIntegrityConstraintViolationException(message, sql, state, errorCode, cause, stackTrace);
+        case 28:
+            return new JdbcSQLInvalidAuthorizationSpecException(message, sql, state, errorCode, cause, stackTrace);
+        case 40:
+            return new JdbcSQLTransactionRollbackException(message, sql, state, errorCode, cause, stackTrace);
+        case 42:
+            return new JdbcSQLSyntaxErrorException(message, sql, state, errorCode, cause, stackTrace);
+        }
+        // Check error code
+        switch (errorCode){
+        case ErrorCode.FEATURE_NOT_SUPPORTED_1:
+            return new JdbcSQLFeatureNotSupportedException(message, sql, state, errorCode, cause, stackTrace);
+        case ErrorCode.HEX_STRING_ODD_1:
+        case ErrorCode.HEX_STRING_WRONG_1:
+        case ErrorCode.INVALID_VALUE_2:
+        case ErrorCode.PARSE_ERROR_1:
+        case ErrorCode.INVALID_TO_DATE_FORMAT:
+        case ErrorCode.STRING_FORMAT_ERROR_1:
+            return new JdbcSQLDataException(message, sql, state, errorCode, cause, stackTrace);
+        }
+        // Default
+        return new JdbcSQLException(message, sql, state, errorCode, cause, stackTrace);
     }
 
     private static String filterSQL(String sql) {

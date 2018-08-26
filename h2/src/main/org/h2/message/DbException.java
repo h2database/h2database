@@ -135,8 +135,8 @@ public class DbException extends RuntimeException {
      */
     public DbException addSQL(String sql) {
         SQLException e = getSQLException();
-        if (e instanceof JdbcSQLException) {
-            JdbcSQLException j = (JdbcSQLException) e;
+        if (e instanceof JdbcException) {
+            JdbcException j = (JdbcException) e;
             if (j.getSQL() == null) {
                 j.setSQL(filterSQL(sql));
             }

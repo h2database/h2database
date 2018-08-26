@@ -22,7 +22,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.h2.api.ErrorCode;
-import org.h2.jdbc.JdbcSQLException;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -372,9 +371,8 @@ public class TestMultiThread extends TestDb implements Runnable {
                     // ignore timeout exceptions, happens periodically when the
                     // machine is really busy and it's not the thing we are
                     // trying to test
-                    if (!(ex.getCause() instanceof JdbcSQLException)
-                            || ((JdbcSQLException) ex.getCause())
-                                    .getErrorCode() != ErrorCode.LOCK_TIMEOUT_1) {
+                    if (!(ex.getCause() instanceof SQLException)
+                            || ((SQLException) ex.getCause()).getErrorCode() != ErrorCode.LOCK_TIMEOUT_1) {
                         throw ex;
                     }
                 }

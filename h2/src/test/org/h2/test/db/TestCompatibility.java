@@ -15,7 +15,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.api.ErrorCode;
-import org.h2.jdbc.JdbcSQLException;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 
@@ -278,7 +277,7 @@ public class TestCompatibility extends TestDb {
             try {
                 stat.execute("CREATE TABLE TEST(COL " + type + ")");
                 fail("Expect type " + type + " to not exist in PostgreSQL mode");
-            } catch (org.h2.jdbc.JdbcSQLException e) {
+            } catch (SQLException e) {
                 /* Expected! */
             }
         }
@@ -675,7 +674,7 @@ public class TestCompatibility extends TestDb {
         try {
             getConnection("compatibility;MODE=Unknown").close();
             deleteDb("compatibility");
-        } catch (JdbcSQLException ex) {
+        } catch (SQLException ex) {
             assertEquals(ErrorCode.UNKNOWN_MODE_1, ex.getErrorCode());
             return;
         }

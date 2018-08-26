@@ -2522,6 +2522,7 @@ insert into address(id, name, name2) values(1, 'test@abc', 'test@gmail.com');
 insert into address(id, name, name2) values(2, 'test@abc', 'test@acme');
 > exception CHECK_CONSTRAINT_VIOLATED_1
 
+@reconnect
 insert into address(id, name, name2) values(3, 'test_abc', 'test@gmail');
 > exception CHECK_CONSTRAINT_VIOLATED_1
 

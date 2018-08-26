@@ -691,7 +691,9 @@ public class Column {
         if (expr == null) {
             return;
         }
-        resolver = new SingleColumnResolver(this);
+        if (resolver == null) {
+            resolver = new SingleColumnResolver(this);
+        }
         synchronized (this) {
             String oldName = name;
             if (name == null) {

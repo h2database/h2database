@@ -347,7 +347,7 @@ public class TestMergeUsing extends TestDb implements Trigger {
         try {
             testMergeUsing(setupSQL, statementUnderTest, gatherResultsSQL,
                     expectedResultsSQL, expectedRowUpdateCount);
-        } catch (RuntimeException | org.h2.jdbc.JdbcSQLException e) {
+        } catch (RuntimeException | SQLException e) {
             if (!e.getMessage().contains(exceptionMessage)) {
                 e.printStackTrace();
             }

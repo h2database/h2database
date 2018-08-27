@@ -41,7 +41,6 @@ import org.h2.expression.ValueExpression;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.MetaIndex;
-import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.DbException;
 import org.h2.mvstore.FileStore;
 import org.h2.mvstore.MVStore;
@@ -788,7 +787,7 @@ public class MetaTable extends Table {
                 }
                 String sql = table.getCreateSQL();
                 if (!admin) {
-                    if (sql != null && sql.contains(JdbcSQLException.HIDE_SQL)) {
+                    if (sql != null && sql.contains(DbException.HIDE_SQL)) {
                         // hide the password of linked tables
                         sql = "-";
                     }

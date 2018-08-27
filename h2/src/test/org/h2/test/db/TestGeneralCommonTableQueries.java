@@ -8,8 +8,8 @@ package org.h2.test.db;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
-import org.h2.jdbc.JdbcSQLException;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 
@@ -235,7 +235,7 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
             rs = prep.executeQuery();
             fail("Temp view T1 was accessible after previous WITH statement finished "+
                     "- but should not have been.");
-        } catch (JdbcSQLException e) {
+        } catch (SQLException e) {
             // ensure the T1 table has been removed even without auto commit
             assertContains(e.getMessage(), "Table \"T1\" not found;");
         }

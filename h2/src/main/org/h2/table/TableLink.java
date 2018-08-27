@@ -24,7 +24,6 @@ import org.h2.engine.UndoLogRecord;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.LinkedIndex;
-import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.RowList;
@@ -392,7 +391,7 @@ public class TableLink extends Table {
         if (readOnly) {
             buff.append(" READONLY");
         }
-        buff.append(" /*").append(JdbcSQLException.HIDE_SQL).append("*/");
+        buff.append(" /*").append(DbException.HIDE_SQL).append("*/");
         return buff.toString();
     }
 

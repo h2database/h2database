@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
-import org.h2.jdbc.JdbcSQLException;
+import org.h2.jdbc.JdbcException;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
 
@@ -260,8 +260,8 @@ public class TraceSystem implements TraceWriter {
             }
             printWriter.println(s);
             if (t != null) {
-                if (levelFile == ERROR && t instanceof JdbcSQLException) {
-                    JdbcSQLException se = (JdbcSQLException) t;
+                if (levelFile == ERROR && t instanceof JdbcException) {
+                    JdbcException se = (JdbcException) t;
                     int code = se.getErrorCode();
                     if (ErrorCode.isCommon(code)) {
                         printWriter.println(t.toString());

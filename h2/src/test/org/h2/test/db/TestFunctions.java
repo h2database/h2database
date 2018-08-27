@@ -46,7 +46,6 @@ import org.h2.api.Aggregate;
 import org.h2.api.AggregateFunction;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
-import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -2023,12 +2022,12 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         conn.close();
     }
 
-    private void testAnnotationProcessorsOutput() throws SQLException {
+    private void testAnnotationProcessorsOutput() {
         try {
             System.setProperty(TestAnnotationProcessor.MESSAGES_KEY, "WARNING,foo1|ERROR,foo2");
             callCompiledFunction("test_annotation_processor_warn_and_error");
             fail();
-        } catch (JdbcSQLException e) {
+        } catch (SQLException e) {
             assertEquals(ErrorCode.SYNTAX_ERROR_1, e.getErrorCode());
             assertContains(e.getMessage(), "foo1");
             assertContains(e.getMessage(), "foo2");

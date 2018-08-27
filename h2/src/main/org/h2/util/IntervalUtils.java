@@ -395,7 +395,8 @@ public class IntervalUtils {
      *            the value of all remaining fields
      * @return string representation of the specified interval
      */
-    public static String intervalToString(IntervalQualifier qualifier, boolean negative, long leading, long remaining) {
+    public static String intervalToString(IntervalQualifier qualifier, boolean negative, long leading, long remaining)
+    {
         StringBuilder buff = new StringBuilder().append("INTERVAL ");
         buff.append('\'');
         if (negative) {
@@ -553,8 +554,8 @@ public class IntervalUtils {
         case MONTH:
             return ValueInterval.from(qualifier, absolute.signum() < 0, leadingExact(absolute), 0);
         case DAY:
-            return ValueInterval.from(qualifier, absolute.signum() < 0, leadingExact(absolute.divide(NANOS_PER_DAY_BI)),
-                    0);
+            return ValueInterval.from(qualifier, absolute.signum() < 0,
+                    leadingExact(absolute.divide(NANOS_PER_DAY_BI)), 0);
         case HOUR:
             return ValueInterval.from(qualifier, absolute.signum() < 0,
                     leadingExact(absolute.divide(NANOS_PER_HOUR_BI)), 0);
@@ -696,7 +697,8 @@ public class IntervalUtils {
      *            values of all remaining fields
      * @return months, or 0
      */
-    public static long monthsFromInterval(IntervalQualifier qualifier, boolean negative, long leading, long remaining) {
+    public static long monthsFromInterval(IntervalQualifier qualifier, boolean negative, long leading, long remaining)
+    {
         long v;
         if (qualifier == IntervalQualifier.MONTH) {
             v = leading;

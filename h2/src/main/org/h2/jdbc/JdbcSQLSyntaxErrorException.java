@@ -7,14 +7,14 @@ package org.h2.jdbc;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.sql.SQLException;
+import java.sql.SQLSyntaxErrorException;
 
 import org.h2.message.DbException;
 
 /**
  * Represents a database exception.
  */
-public class JdbcSQLException extends SQLException implements JdbcException {
+public class JdbcSQLSyntaxErrorException extends SQLSyntaxErrorException implements JdbcException {
 
     private static final long serialVersionUID = 1L;
 
@@ -24,7 +24,7 @@ public class JdbcSQLException extends SQLException implements JdbcException {
     private String sql;
 
     /**
-     * Creates a SQLException.
+     * Creates a SQLSyntaxErrorException.
      *
      * @param message the reason
      * @param sql the SQL statement
@@ -33,7 +33,7 @@ public class JdbcSQLException extends SQLException implements JdbcException {
      * @param cause the exception that was the reason for this exception
      * @param stackTrace the stack trace
      */
-    public JdbcSQLException(String message, String sql, String state,
+    public JdbcSQLSyntaxErrorException(String message, String sql, String state,
             int errorCode, Throwable cause, String stackTrace) {
         super(message, state, errorCode);
         this.originalMessage = message;

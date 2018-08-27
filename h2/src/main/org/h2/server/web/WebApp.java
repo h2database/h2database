@@ -42,7 +42,7 @@ import org.h2.bnf.context.DbSchema;
 import org.h2.bnf.context.DbTableOrView;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
-import org.h2.jdbc.JdbcSQLException;
+import org.h2.jdbc.JdbcException;
 import org.h2.message.DbException;
 import org.h2.security.SHA256;
 import org.h2.tools.Backup;
@@ -935,8 +935,7 @@ public class WebApp {
      * @return the formatted error message
      */
     private String getLoginError(Exception e, boolean isH2) {
-        if (e instanceof JdbcSQLException &&
-                ((JdbcSQLException) e).getErrorCode() == ErrorCode.CLASS_NOT_FOUND_1) {
+        if (e instanceof JdbcException && ((JdbcException) e).getErrorCode() == ErrorCode.CLASS_NOT_FOUND_1) {
             return "${text.login.driverNotFound}<br />" + getStackTrace(0, e, isH2);
         }
         return getStackTrace(0, e, isH2);

@@ -7,6 +7,7 @@ package org.h2.message;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
@@ -17,7 +18,16 @@ import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.Properties;
 import org.h2.api.ErrorCode;
+import org.h2.engine.Constants;
+import org.h2.jdbc.JdbcException;
+import org.h2.jdbc.JdbcSQLDataException;
 import org.h2.jdbc.JdbcSQLException;
+import org.h2.jdbc.JdbcSQLFeatureNotSupportedException;
+import org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException;
+import org.h2.jdbc.JdbcSQLInvalidAuthorizationSpecException;
+import org.h2.jdbc.JdbcSQLNonTransientConnectionException;
+import org.h2.jdbc.JdbcSQLSyntaxErrorException;
+import org.h2.jdbc.JdbcSQLTransactionRollbackException;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -30,6 +40,13 @@ import org.h2.util.Utils;
 public class DbException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
+
+    /**
+     * If the SQL statement contains this text, then it is never added to the
+     * SQL exception. Hiding the SQL statement may be important if it contains a
+     * passwords, such as a CREATE LINKED TABLE statement.
+     */
+    public static final String HIDE_SQL = "--hide--";
 
     private static final Properties MESSAGES = new Properties();
 
@@ -125,15 +142,14 @@ public class DbException extends RuntimeException {
      */
     public DbException addSQL(String sql) {
         SQLException e = getSQLException();
-        if (e instanceof JdbcSQLException) {
-            JdbcSQLException j = (JdbcSQLException) e;
+        if (e instanceof JdbcException) {
+            JdbcException j = (JdbcException) e;
             if (j.getSQL() == null) {
-                j.setSQL(sql);
+                j.setSQL(filterSQL(sql));
             }
             return this;
         }
-        e = new JdbcSQLException(e.getMessage(), sql, e.getSQLState(),
-                e.getErrorCode(), e, null);
+        e = getJdbcSQLException(e.getMessage(), sql, e.getSQLState(), e.getErrorCode(), e, null);
         return new DbException(e);
     }
 
@@ -191,7 +207,7 @@ public class DbException extends RuntimeException {
      */
     public static DbException fromUser(String sqlstate, String message) {
         // do not translate as sqlstate is arbitrary : avoid "message not found"
-        return new DbException(new JdbcSQLException(message, null, sqlstate, 0, null, null));
+        return new DbException(getJdbcSQLException(message, null, sqlstate, 0, null, null));
     }
 
     /**
@@ -387,11 +403,58 @@ public class DbException extends RuntimeException {
      * @param params the list of parameters of the message
      * @return the SQLException object
      */
-    public static JdbcSQLException getJdbcSQLException(int errorCode,
-            Throwable cause, String... params) {
+    public static SQLException getJdbcSQLException(int errorCode, Throwable cause, String... params) {
         String sqlstate = ErrorCode.getState(errorCode);
         String message = translate(sqlstate, params);
-        return new JdbcSQLException(message, null, sqlstate, errorCode, cause, null);
+        return getJdbcSQLException(message, null, sqlstate, errorCode, cause, null);
+    }
+
+    /**
+     * Creates a SQLException.
+     *
+     * @param message the reason
+     * @param sql the SQL statement
+     * @param state the SQL state
+     * @param errorCode the error code
+     * @param cause the exception that was the reason for this exception
+     * @param stackTrace the stack trace
+     */
+    public static SQLException getJdbcSQLException(String message, String sql, String state, int errorCode,
+            Throwable cause, String stackTrace) {
+        sql = filterSQL(sql);
+        // Use SQLState class value to detect type
+        switch (errorCode / 1_000) {
+        case 8:
+            return new JdbcSQLNonTransientConnectionException(message, sql, state, errorCode, cause, stackTrace);
+        case 22:
+            return new JdbcSQLDataException(message, sql, state, errorCode, cause, stackTrace);
+        case 23:
+            return new JdbcSQLIntegrityConstraintViolationException(message, sql, state, errorCode, cause, stackTrace);
+        case 28:
+            return new JdbcSQLInvalidAuthorizationSpecException(message, sql, state, errorCode, cause, stackTrace);
+        case 40:
+            return new JdbcSQLTransactionRollbackException(message, sql, state, errorCode, cause, stackTrace);
+        case 42:
+            return new JdbcSQLSyntaxErrorException(message, sql, state, errorCode, cause, stackTrace);
+        }
+        // Check error code
+        switch (errorCode){
+        case ErrorCode.FEATURE_NOT_SUPPORTED_1:
+            return new JdbcSQLFeatureNotSupportedException(message, sql, state, errorCode, cause, stackTrace);
+        case ErrorCode.HEX_STRING_ODD_1:
+        case ErrorCode.HEX_STRING_WRONG_1:
+        case ErrorCode.INVALID_VALUE_2:
+        case ErrorCode.PARSE_ERROR_1:
+        case ErrorCode.INVALID_TO_DATE_FORMAT:
+        case ErrorCode.STRING_FORMAT_ERROR_1:
+            return new JdbcSQLDataException(message, sql, state, errorCode, cause, stackTrace);
+        }
+        // Default
+        return new JdbcSQLException(message, sql, state, errorCode, cause, stackTrace);
+    }
+
+    private static String filterSQL(String sql) {
+        return sql == null || !sql.contains(HIDE_SQL) ? sql : "-";
     }
 
     /**
@@ -404,13 +467,67 @@ public class DbException extends RuntimeException {
         if (e instanceof IOException) {
             return (IOException) e;
         }
-        if (e instanceof JdbcSQLException) {
-            JdbcSQLException e2 = (JdbcSQLException) e;
-            if (e2.getOriginalCause() != null) {
-                e = e2.getOriginalCause();
+        if (e instanceof JdbcException) {
+            if (e.getCause() != null) {
+                e = e.getCause();
             }
         }
         return new IOException(e.toString(), e);
+    }
+
+    /**
+     * Builds message for an exception.
+     *
+     * @param e exception
+     * @return message
+     */
+    public static String buildMessageForException(JdbcException e) {
+        String s = e.getOriginalMessage();
+        StringBuilder buff = new StringBuilder(s != null ? s : "- ");
+        s = e.getSQL();
+        if (s != null) {
+            buff.append("; SQL statement:\n").append(s);
+        }
+        buff.append(" [").append(e.getErrorCode()).append('-').append(Constants.BUILD_ID).append(']');
+        return buff.toString();
+    }
+
+    /**
+     * Prints up to 100 next exceptions for a specified SQL exception.
+     *
+     * @param e SQL exception
+     * @param s print writer
+     */
+    public static void printNextExceptions(SQLException e, PrintWriter s) {
+        // getNextException().printStackTrace(s) would be very very slow
+        // if many exceptions are joined
+        int i = 0;
+        while ((e = e.getNextException()) != null) {
+            if (i++ == 100) {
+                s.println("(truncated)");
+                return;
+            }
+            s.println(e.toString());
+        }
+    }
+
+    /**
+     * Prints up to 100 next exceptions for a specified SQL exception.
+     *
+     * @param e SQL exception
+     * @param s print stream
+     */
+    public static void printNextExceptions(SQLException e, PrintStream s) {
+        // getNextException().printStackTrace(s) would be very very slow
+        // if many exceptions are joined
+        int i = 0;
+        while ((e = e.getNextException()) != null) {
+            if (i++ == 100) {
+                s.println("(truncated)");
+                return;
+            }
+            s.println(e.toString());
+        }
     }
 
     public Object getSource() {

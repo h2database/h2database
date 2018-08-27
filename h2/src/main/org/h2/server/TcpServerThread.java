@@ -28,7 +28,7 @@ import org.h2.engine.SysProperties;
 import org.h2.expression.Parameter;
 import org.h2.expression.ParameterInterface;
 import org.h2.expression.ParameterRemote;
-import org.h2.jdbc.JdbcSQLException;
+import org.h2.jdbc.JdbcException;
 import org.h2.message.DbException;
 import org.h2.result.ResultColumn;
 import org.h2.result.ResultInterface;
@@ -235,8 +235,8 @@ public class TcpServerThread implements Runnable {
             String trace = writer.toString();
             String message;
             String sql;
-            if (e instanceof JdbcSQLException) {
-                JdbcSQLException j = (JdbcSQLException) e;
+            if (e instanceof JdbcException) {
+                JdbcException j = (JdbcException) e;
                 message = j.getOriginalMessage();
                 sql = j.getSQL();
             } else {

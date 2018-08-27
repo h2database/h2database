@@ -206,7 +206,11 @@ public class TestScript extends TestDb {
         stat = conn.createStatement();
         out = new PrintStream(new FileOutputStream(outFile));
         errors = new StringBuilder();
-        testFile(BASE_DIR + scriptFileName, !scriptFileName.equals("functions/system/set.sql"));
+        testFile(BASE_DIR + scriptFileName,
+                !scriptFileName.equals("functions/numeric/rand.sql") &&
+                !scriptFileName.equals("functions/system/set.sql") &&
+                !scriptFileName.equals("ddl/createAlias.sql") &&
+                !scriptFileName.equals("ddl/dropSchema.sql"));
         conn.close();
         out.close();
         if (errors.length() > 0) {

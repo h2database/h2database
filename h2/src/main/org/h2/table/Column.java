@@ -691,7 +691,9 @@ public class Column {
         if (expr == null) {
             return;
         }
-        resolver = new SingleColumnResolver(this);
+        if (resolver == null) {
+            resolver = new SingleColumnResolver(this);
+        }
         synchronized (this) {
             String oldName = name;
             if (name == null) {
@@ -708,7 +710,7 @@ public class Column {
         }
         if (checkConstraint == null) {
             checkConstraint = expr;
-        } else {
+        } else if (!expr.getSQL().equals(checkConstraintSQL)) {
             checkConstraint = new ConditionAndOr(ConditionAndOr.AND, checkConstraint, expr);
         }
         checkConstraintSQL = getCheckConstraintSQL(session, name);

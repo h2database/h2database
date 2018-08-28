@@ -210,6 +210,8 @@ public class Aggregate extends Expression {
         addAggregate("MEDIAN", AggregateType.MEDIAN);
         addAggregate("ARRAY_AGG", AggregateType.ARRAY_AGG);
         addAggregate("MODE", AggregateType.MODE);
+        // Oracle compatibility
+        addAggregate("STATS_MODE", AggregateType.MODE);
     }
 
     private static void addAggregate(String name, AggregateType type) {

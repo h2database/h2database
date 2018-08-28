@@ -27,6 +27,10 @@ SELECT MODE(V), MODE(V) FILTER (WHERE (V > 1)), MODE(V) FILTER (WHERE (V < 0)) F
 > 1       2                              null
 > rows: 1
 
+-- Oracle compatibility
+SELECT STATS_MODE(V) FROM TEST;
+>> 1
+
 INSERT INTO TEST VALUES (2), (3), (3);
 > update count: 3
 

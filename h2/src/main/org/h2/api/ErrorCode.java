@@ -1927,16 +1927,6 @@ public class ErrorCode {
     public static final int DATABASE_IS_IN_EXCLUSIVE_MODE = 90135;
 
     /**
-     * The error with code <code>90136</code> is thrown when
-     * executing a query that used an unsupported outer join condition.
-     * Example:
-     * <pre>
-     * SELECT * FROM DUAL A LEFT JOIN DUAL B ON B.X=(SELECT MAX(X) FROM DUAL);
-     * </pre>
-     */
-    public static final int UNSUPPORTED_OUTER_JOIN_CONDITION_1 = 90136;
-
-    /**
      * The error with code <code>90137</code> is thrown when
      * trying to assign a value to something that is not a variable.
      * <pre>
@@ -2019,7 +2009,7 @@ public class ErrorCode {
     public static final int AUTHENTICATOR_NOT_AVAILABLE = 90144;
 
 
-    // next is 90145
+    // next are 90136, 90145
 
     private ErrorCode() {
         // utility class

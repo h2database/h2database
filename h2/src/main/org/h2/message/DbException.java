@@ -5,6 +5,8 @@
  */
 package org.h2.message;
 
+import static org.h2.api.ErrorCode.*;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -17,7 +19,7 @@ import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.Properties;
-import org.h2.api.ErrorCode;
+
 import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcException;
 import org.h2.jdbc.JdbcSQLDataException;
@@ -26,8 +28,11 @@ import org.h2.jdbc.JdbcSQLFeatureNotSupportedException;
 import org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException;
 import org.h2.jdbc.JdbcSQLInvalidAuthorizationSpecException;
 import org.h2.jdbc.JdbcSQLNonTransientConnectionException;
+import org.h2.jdbc.JdbcSQLNonTransientException;
 import org.h2.jdbc.JdbcSQLSyntaxErrorException;
+import org.h2.jdbc.JdbcSQLTimeoutException;
 import org.h2.jdbc.JdbcSQLTransactionRollbackException;
+import org.h2.jdbc.JdbcSQLTransientException;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -51,7 +56,7 @@ public class DbException extends RuntimeException {
     private static final Properties MESSAGES = new Properties();
 
     public static final SQLException SQL_OOME =
-            new SQLException("OutOfMemoryError", "HY000", ErrorCode.OUT_OF_MEMORY, new OutOfMemoryError());
+            new SQLException("OutOfMemoryError", "HY000", OUT_OF_MEMORY, new OutOfMemoryError());
     private static final DbException OOME = new DbException(SQL_OOME);
 
     private Object source;
@@ -219,7 +224,7 @@ public class DbException extends RuntimeException {
      */
     public static DbException getSyntaxError(String sql, int index) {
         sql = StringUtils.addAsterisk(sql, index);
-        return get(ErrorCode.SYNTAX_ERROR_1, sql);
+        return get(SYNTAX_ERROR_1, sql);
     }
 
     /**
@@ -233,8 +238,7 @@ public class DbException extends RuntimeException {
     public static DbException getSyntaxError(String sql, int index,
             String message) {
         sql = StringUtils.addAsterisk(sql, index);
-        return new DbException(getJdbcSQLException(ErrorCode.SYNTAX_ERROR_2,
-                null, sql, message));
+        return new DbException(getJdbcSQLException(SYNTAX_ERROR_2, null, sql, message));
     }
 
     /**
@@ -248,7 +252,7 @@ public class DbException extends RuntimeException {
      */
     public static DbException getSyntaxError(int errorCode, String sql, int index, String... params) {
         sql = StringUtils.addAsterisk(sql, index);
-        String sqlstate = ErrorCode.getState(errorCode);
+        String sqlstate = getState(errorCode);
         String message = translate(sqlstate, params);
         return new DbException(getJdbcSQLException(message, sql, sqlstate, errorCode, null, null));
     }
@@ -260,7 +264,7 @@ public class DbException extends RuntimeException {
      * @return the exception
      */
     public static DbException getUnsupportedException(String message) {
-        return get(ErrorCode.FEATURE_NOT_SUPPORTED_1, message);
+        return get(FEATURE_NOT_SUPPORTED_1, message);
     }
 
     /**
@@ -270,10 +274,8 @@ public class DbException extends RuntimeException {
      * @param value the value passed
      * @return the IllegalArgumentException object
      */
-    public static DbException getInvalidValueException(String param,
-            Object value) {
-        return get(ErrorCode.INVALID_VALUE_2,
-                value == null ? "null" : value.toString(), param);
+    public static DbException getInvalidValueException(String param, Object value) {
+        return get(INVALID_VALUE_2, value == null ? "null" : value.toString(), param);
     }
 
     /**
@@ -332,19 +334,19 @@ public class DbException extends RuntimeException {
             } else if (e instanceof InvocationTargetException) {
                 return convertInvocation((InvocationTargetException) e, null);
             } else if (e instanceof IOException) {
-                return get(ErrorCode.IO_EXCEPTION_1, e, e.toString());
+                return get(IO_EXCEPTION_1, e, e.toString());
             } else if (e instanceof OutOfMemoryError) {
-                return get(ErrorCode.OUT_OF_MEMORY, e);
+                return get(OUT_OF_MEMORY, e);
             } else if (e instanceof StackOverflowError || e instanceof LinkageError) {
-                return get(ErrorCode.GENERAL_ERROR_1, e, e.toString());
+                return get(GENERAL_ERROR_1, e, e.toString());
             } else if (e instanceof Error) {
                 throw (Error) e;
             }
-            return get(ErrorCode.GENERAL_ERROR_1, e, e.toString());
+            return get(GENERAL_ERROR_1, e, e.toString());
         } catch (Throwable ex) {
             try {
                 DbException dbException = new DbException(
-                        new SQLException("GeneralError", "HY000", ErrorCode.GENERAL_ERROR_1, e));
+                        new SQLException("GeneralError", "HY000", GENERAL_ERROR_1, e));
                 dbException.addSuppressed(ex);
                 return dbException;
             } catch (OutOfMemoryError ignore) {
@@ -367,7 +369,7 @@ public class DbException extends RuntimeException {
             return convert(t);
         }
         message = message == null ? t.getMessage() : message + ": " + t.getMessage();
-        return get(ErrorCode.EXCEPTION_IN_FUNCTION_1, t, message);
+        return get(EXCEPTION_IN_FUNCTION_1, t, message);
     }
 
     /**
@@ -383,9 +385,9 @@ public class DbException extends RuntimeException {
             if (t instanceof DbException) {
                 return (DbException) t;
             }
-            return get(ErrorCode.IO_EXCEPTION_1, e, e.toString());
+            return get(IO_EXCEPTION_1, e, e.toString());
         }
-        return get(ErrorCode.IO_EXCEPTION_2, e, e.toString(), message);
+        return get(IO_EXCEPTION_2, e, e.toString(), message);
     }
 
     /**
@@ -394,8 +396,7 @@ public class DbException extends RuntimeException {
      * @param errorCode the error code
      * @return the SQLException object
      */
-    public static SQLException getJdbcSQLException(int errorCode)
-    {
+    public static SQLException getJdbcSQLException(int errorCode) {
         return getJdbcSQLException(errorCode, (Throwable)null);
     }
 
@@ -406,8 +407,7 @@ public class DbException extends RuntimeException {
      * @param p1 the first parameter of the message
      * @return the SQLException object
      */
-    public static SQLException getJdbcSQLException(int errorCode, String p1)
-    {
+    public static SQLException getJdbcSQLException(int errorCode, String p1) {
         return getJdbcSQLException(errorCode, null, p1);
     }
 
@@ -420,7 +420,7 @@ public class DbException extends RuntimeException {
      * @return the SQLException object
      */
     public static SQLException getJdbcSQLException(int errorCode, Throwable cause, String... params) {
-        String sqlstate = ErrorCode.getState(errorCode);
+        String sqlstate = getState(errorCode);
         String message = translate(sqlstate, params);
         return getJdbcSQLException(message, null, sqlstate, errorCode, cause, null);
     }
@@ -440,6 +440,12 @@ public class DbException extends RuntimeException {
         sql = filterSQL(sql);
         // Use SQLState class value to detect type
         switch (errorCode / 1_000) {
+        case 2:
+            return new JdbcSQLNonTransientException(message, sql, state, errorCode, cause, stackTrace);
+        case 7:
+        case 21:
+        case 42:
+            return new JdbcSQLSyntaxErrorException(message, sql, state, errorCode, cause, stackTrace);
         case 8:
             return new JdbcSQLNonTransientConnectionException(message, sql, state, errorCode, cause, stackTrace);
         case 22:
@@ -450,20 +456,163 @@ public class DbException extends RuntimeException {
             return new JdbcSQLInvalidAuthorizationSpecException(message, sql, state, errorCode, cause, stackTrace);
         case 40:
             return new JdbcSQLTransactionRollbackException(message, sql, state, errorCode, cause, stackTrace);
-        case 42:
-            return new JdbcSQLSyntaxErrorException(message, sql, state, errorCode, cause, stackTrace);
         }
         // Check error code
         switch (errorCode){
-        case ErrorCode.FEATURE_NOT_SUPPORTED_1:
+        case GENERAL_ERROR_1:
+        case UNKNOWN_DATA_TYPE_1:
+        case METHOD_NOT_ALLOWED_FOR_QUERY:
+        case METHOD_ONLY_ALLOWED_FOR_QUERY:
+        case SEQUENCE_EXHAUSTED:
+        case OBJECT_CLOSED:
+        case CANNOT_DROP_CURRENT_USER:
+        case UNSUPPORTED_SETTING_COMBINATION:
+        case FILE_RENAME_FAILED_2:
+        case FILE_DELETE_FAILED_1:
+        case IO_EXCEPTION_1:
+        case NOT_ON_UPDATABLE_ROW:
+        case IO_EXCEPTION_2:
+        case TRACE_FILE_ERROR_2:
+        case ADMIN_RIGHTS_REQUIRED:
+        case ERROR_EXECUTING_TRIGGER_3:
+        case COMMIT_ROLLBACK_NOT_ALLOWED:
+        case FILE_CREATION_FAILED_1:
+        case SAVEPOINT_IS_INVALID_1:
+        case SAVEPOINT_IS_UNNAMED:
+        case SAVEPOINT_IS_NAMED:
+        case NOT_ENOUGH_RIGHTS_FOR_1:
+        case DATABASE_IS_READ_ONLY:
+        case WRONG_XID_FORMAT_1:
+        case UNSUPPORTED_COMPRESSION_OPTIONS_1:
+        case UNSUPPORTED_COMPRESSION_ALGORITHM_1:
+        case COMPRESSION_ERROR:
+        case EXCEPTION_IN_FUNCTION_1:
+        case ERROR_ACCESSING_LINKED_TABLE_2:
+        case FILE_NOT_FOUND_1:
+        case INVALID_CLASS_2:
+        case DATABASE_IS_NOT_PERSISTENT:
+        case RESULT_SET_NOT_UPDATABLE:
+        case RESULT_SET_NOT_SCROLLABLE:
+        case METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT:
+        case ACCESS_DENIED_TO_CLASS_1:
+        case RESULT_SET_READONLY:
+            return new JdbcSQLNonTransientException(message, sql, state, errorCode, cause, stackTrace);
+        case FEATURE_NOT_SUPPORTED_1:
             return new JdbcSQLFeatureNotSupportedException(message, sql, state, errorCode, cause, stackTrace);
-        case ErrorCode.HEX_STRING_ODD_1:
-        case ErrorCode.HEX_STRING_WRONG_1:
-        case ErrorCode.INVALID_VALUE_2:
-        case ErrorCode.PARSE_ERROR_1:
-        case ErrorCode.INVALID_TO_DATE_FORMAT:
-        case ErrorCode.STRING_FORMAT_ERROR_1:
+        case LOCK_TIMEOUT_1:
+        case STATEMENT_WAS_CANCELED:
+        case LOB_CLOSED_ON_TIMEOUT_1:
+            return new JdbcSQLTimeoutException(message, sql, state, errorCode, cause, stackTrace);
+        case FUNCTION_MUST_RETURN_RESULT_SET_1:
+        case TRIGGER_SELECT_AND_ROW_BASED_NOT_SUPPORTED:
+        case SUM_OR_AVG_ON_WRONG_DATATYPE_1:
+        case MUST_GROUP_BY_COLUMN_1:
+        case SECOND_PRIMARY_KEY:
+        case FUNCTION_NOT_FOUND_1:
+        case COLUMN_MUST_NOT_BE_NULLABLE_1:
+        case USER_NOT_FOUND_1:
+        case USER_ALREADY_EXISTS_1:
+        case SEQUENCE_ALREADY_EXISTS_1:
+        case SEQUENCE_NOT_FOUND_1:
+        case VIEW_NOT_FOUND_1:
+        case VIEW_ALREADY_EXISTS_1:
+        case TRIGGER_ALREADY_EXISTS_1:
+        case TRIGGER_NOT_FOUND_1:
+        case ERROR_CREATING_TRIGGER_OBJECT_3:
+        case CONSTRAINT_ALREADY_EXISTS_1:
+        case INVALID_VALUE_SCALE_PRECISION:
+        case SUBQUERY_IS_NOT_SINGLE_COLUMN:
+        case INVALID_USE_OF_AGGREGATE_FUNCTION_1:
+        case CONSTRAINT_NOT_FOUND_1:
+        case AMBIGUOUS_COLUMN_NAME_1:
+        case ORDER_BY_NOT_IN_RESULT:
+        case ROLE_ALREADY_EXISTS_1:
+        case ROLE_NOT_FOUND_1:
+        case USER_OR_ROLE_NOT_FOUND_1:
+        case ROLES_AND_RIGHT_CANNOT_BE_MIXED:
+        case METHODS_MUST_HAVE_DIFFERENT_PARAMETER_COUNTS_2:
+        case ROLE_ALREADY_GRANTED_1:
+        case COLUMN_IS_PART_OF_INDEX_1:
+        case FUNCTION_ALIAS_ALREADY_EXISTS_1:
+        case FUNCTION_ALIAS_NOT_FOUND_1:
+        case SCHEMA_ALREADY_EXISTS_1:
+        case SCHEMA_NOT_FOUND_1:
+        case SCHEMA_NAME_MUST_MATCH:
+        case COLUMN_CONTAINS_NULL_VALUES_1:
+        case SEQUENCE_BELONGS_TO_A_TABLE_1:
+        case COLUMN_IS_REFERENCED_1:
+        case CANNOT_DROP_LAST_COLUMN:
+        case INDEX_BELONGS_TO_CONSTRAINT_2:
+        case CLASS_NOT_FOUND_1:
+        case METHOD_NOT_FOUND_1:
+        case COLLATION_CHANGE_WITH_DATA_TABLE_1:
+        case SCHEMA_CAN_NOT_BE_DROPPED_1:
+        case ROLE_CAN_NOT_BE_DROPPED_1:
+        case CANNOT_TRUNCATE_1:
+        case CANNOT_DROP_2:
+        case VIEW_IS_INVALID_2:
+        case COMPARING_ARRAY_TO_SCALAR:
+        case CONSTANT_ALREADY_EXISTS_1:
+        case CONSTANT_NOT_FOUND_1:
+        case LITERALS_ARE_NOT_ALLOWED:
+        case CANNOT_DROP_TABLE_1:
+        case USER_DATA_TYPE_ALREADY_EXISTS_1:
+        case USER_DATA_TYPE_NOT_FOUND_1:
+        case WITH_TIES_WITHOUT_ORDER_BY:
+        case CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS:
+        case TRANSACTION_NOT_FOUND_1:
+        case AGGREGATE_NOT_FOUND_1:
+        case CAN_ONLY_ASSIGN_TO_VARIABLE_1:
+        case PUBLIC_STATIC_JAVA_METHOD_NOT_FOUND_1:
+        case JAVA_OBJECT_SERIALIZER_CHANGE_WITH_DATA_TABLE:
+            return new JdbcSQLSyntaxErrorException(message, sql, state, errorCode, cause, stackTrace);
+        case HEX_STRING_ODD_1:
+        case HEX_STRING_WRONG_1:
+        case INVALID_VALUE_2:
+        case SEQUENCE_ATTRIBUTES_INVALID:
+        case INVALID_TO_CHAR_FORMAT:
+        case PARAMETER_NOT_SET_1:
+        case PARSE_ERROR_1:
+        case INVALID_TO_DATE_FORMAT:
+        case STRING_FORMAT_ERROR_1:
+        case SERIALIZATION_FAILED_1:
+        case DESERIALIZATION_FAILED_1:
+        case SCALAR_SUBQUERY_CONTAINS_MORE_THAN_ONE_ROW:
+        case STEP_SIZE_MUST_NOT_BE_ZERO:
             return new JdbcSQLDataException(message, sql, state, errorCode, cause, stackTrace);
+        case URL_RELATIVE_TO_CWD:
+        case DATABASE_NOT_FOUND_1:
+        case TRACE_CONNECTION_NOT_CLOSED:
+        case DATABASE_ALREADY_OPEN_1:
+        case FILE_CORRUPTED_1:
+        case URL_FORMAT_ERROR_2:
+        case DRIVER_VERSION_ERROR_2:
+        case FILE_VERSION_ERROR_1:
+        case FILE_ENCRYPTION_ERROR_1:
+        case WRONG_PASSWORD_FORMAT:
+        case UNSUPPORTED_CIPHER:
+        case UNSUPPORTED_LOCK_METHOD_1:
+        case EXCEPTION_OPENING_PORT_2:
+        case DUPLICATE_PROPERTY_1:
+        case CONNECTION_BROKEN_1:
+        case UNKNOWN_MODE_1:
+        case CLUSTER_ERROR_DATABASE_RUNS_ALONE:
+        case CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1:
+        case DATABASE_IS_CLOSED:
+        case ERROR_SETTING_DATABASE_EVENT_LISTENER_2:
+        case OUT_OF_MEMORY:
+        case UNSUPPORTED_SETTING_1:
+        case REMOTE_CONNECTION_NOT_ALLOWED:
+        case DATABASE_CALLED_AT_SHUTDOWN:
+        case CANNOT_CHANGE_SETTING_WHEN_OPEN_1:
+        case DATABASE_IS_IN_EXCLUSIVE_MODE:
+        case INVALID_DATABASE_NAME_1:
+        case AUTHENTICATOR_NOT_AVAILABLE:
+            return new JdbcSQLNonTransientConnectionException(message, sql, state, errorCode, cause, stackTrace);
+        case ROW_NOT_FOUND_WHEN_DELETING_1:
+        case CONCURRENT_UPDATE_1:
+        case ROW_NOT_FOUND_IN_PRIMARY_INDEX:
+            return new JdbcSQLTransientException(message, sql, state, errorCode, cause, stackTrace);
         }
         // Default
         return new JdbcSQLException(message, sql, state, errorCode, cause, stackTrace);

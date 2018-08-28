@@ -402,6 +402,17 @@ public class ErrorCode {
      */
     public static final int COLUMN_NOT_FOUND_1 = 42122;
 
+    /**
+     * The error with code <code>42123</code> is thrown when
+     * identical expressions should be used, but different
+     * exceptions were found.
+     * Example:
+     * <pre>
+     * SELECT MODE(A ORDER BY B) FROM TEST;
+     * </pre>
+     */
+    public static final int IDENTICAL_EXPRESSIONS_SHOULD_BE_USED = 42131;
+
     // 0A: feature not supported
 
     // HZ: remote database access
@@ -2068,6 +2079,7 @@ public class ErrorCode {
         case INDEX_NOT_FOUND_1: return "42S12";
         case DUPLICATE_COLUMN_NAME_1: return "42S21";
         case COLUMN_NOT_FOUND_1: return "42S22";
+        case IDENTICAL_EXPRESSIONS_SHOULD_BE_USED: return "42S31";
 
         // 0A: feature not supported
 

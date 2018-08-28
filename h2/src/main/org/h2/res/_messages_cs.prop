@@ -31,7 +31,7 @@
 42S12=Index {0} nenalezen
 42S21=Duplicitní název sloupce {0}
 42S22=Sloupec {0} nenalezen
-42S32=Nastavení {0} nenalezeno
+42S31=#Identical expressions should be used; expected {0}, found {1}
 57014=Příkaz byl zrušen nebo připojení vypršelo
 90000=Funkce {0} musí vracet výsledek
 90001=Metoda neumožňuje dotazování. Použijte execute nebo executeQuery namísto executeUpdate

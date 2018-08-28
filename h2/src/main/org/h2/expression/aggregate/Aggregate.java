@@ -3,7 +3,7 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.expression;
+package org.h2.expression.aggregate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,6 +13,9 @@ import org.h2.api.ErrorCode;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Session;
+import org.h2.expression.Expression;
+import org.h2.expression.ExpressionColumn;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.message.DbException;
@@ -129,10 +132,16 @@ public class Aggregate extends Expression {
          * The aggregate type for MEDIAN(expression).
          */
         MEDIAN,
+
         /**
          * The aggregate type for ARRAY_AGG(expression).
          */
-        ARRAY_AGG
+        ARRAY_AGG,
+
+        /**
+         * The aggregate type for MODE(expression).
+         */
+        MODE,
     }
 
     private static final HashMap<String, AggregateType> AGGREGATES = new HashMap<>(64);
@@ -200,6 +209,9 @@ public class Aggregate extends Expression {
         addAggregate("BIT_AND", AggregateType.BIT_AND);
         addAggregate("MEDIAN", AggregateType.MEDIAN);
         addAggregate("ARRAY_AGG", AggregateType.ARRAY_AGG);
+        addAggregate("MODE", AggregateType.MODE);
+        // Oracle compatibility
+        addAggregate("STATS_MODE", AggregateType.MODE);
     }
 
     private static void addAggregate(String name, AggregateType type) {
@@ -372,7 +384,8 @@ public class Aggregate extends Expression {
             data = AggregateData.create(type);
             select.setCurrentGroupExprData(this, data);
         }
-        if (type == AggregateType.GROUP_CONCAT) {
+        switch (type) {
+        case GROUP_CONCAT: {
             Value[] array = ((AggregateDataCollecting) data).getArray();
             if (array == null) {
                 return ValueNull.INSTANCE;
@@ -399,7 +412,8 @@ public class Aggregate extends Expression {
                 buff.append(s);
             }
             return ValueString.get(buff.toString());
-        } else if (type == AggregateType.ARRAY_AGG) {
+        }
+        case ARRAY_AGG: {
             Value[] array = ((AggregateDataCollecting) data).getArray();
             if (array == null) {
                 return ValueNull.INSTANCE;
@@ -414,7 +428,15 @@ public class Aggregate extends Expression {
             }
             return ValueArray.get(array);
         }
-        return data.getValue(session.getDatabase(), dataType, distinct);
+        case MODE:
+            if (orderByList != null) {
+                return ((AggregateDataMode) data).getOrderedValue(session.getDatabase(), dataType,
+                        (orderByList.get(0).sortType & SortOrder.DESCENDING) != 0);
+            }
+            //$FALL-THROUGH$
+        default:
+            return data.getValue(session.getDatabase(), dataType, distinct);
+        }
     }
 
     @Override
@@ -503,6 +525,7 @@ public class Aggregate extends Expression {
         case MIN:
         case MAX:
         case MEDIAN:
+        case MODE:
             break;
         case STDDEV_POP:
         case STDDEV_SAMP:
@@ -673,6 +696,9 @@ public class Aggregate extends Expression {
             break;
         case ARRAY_AGG:
             return getSQLArrayAggregate();
+        case MODE:
+            text = "MODE";
+            break;
         default:
             throw DbException.throwInternalError("type=" + type);
         }

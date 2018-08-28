@@ -3,10 +3,10 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.expression;
+package org.h2.expression.aggregate;
 
 import org.h2.engine.Database;
-import org.h2.expression.Aggregate.AggregateType;
+import org.h2.expression.aggregate.Aggregate.AggregateType;
 import org.h2.value.Value;
 
 /**
@@ -35,6 +35,8 @@ abstract class AggregateData {
             return new AggregateDataHistogram();
         case MEDIAN:
             return new AggregateDataMedian();
+        case MODE:
+            return new AggregateDataMode();
         default:
             return new AggregateDataDefault(aggregateType);
         }

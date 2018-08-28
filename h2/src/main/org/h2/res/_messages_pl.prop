@@ -31,7 +31,7 @@
 42S12=Indeks {0} nie istnieje
 42S21=Zduplikowana nazwa kolumny {0}
 42S22=Kolumna {0} nie istnieje
-42S32=Ustawienie {0} nie istnieje
+42S31=#Identical expressions should be used; expected {0}, found {1}
 57014=Kwerenda została anulowana albo sesja wygasła
 90000=Funkcja {0} musi zwrócić dane
 90001=Metoda nie jest dozwolona w kwerendzie

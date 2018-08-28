@@ -3,7 +3,7 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.expression;
+package org.h2.expression.aggregate;
 
 import org.h2.engine.Database;
 import org.h2.util.ValueHashMap;

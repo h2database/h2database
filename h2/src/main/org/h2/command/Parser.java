@@ -145,8 +145,6 @@ import org.h2.engine.SysProperties;
 import org.h2.engine.User;
 import org.h2.engine.UserAggregate;
 import org.h2.engine.UserDataType;
-import org.h2.expression.Aggregate;
-import org.h2.expression.Aggregate.AggregateType;
 import org.h2.expression.Alias;
 import org.h2.expression.BinaryOperation;
 import org.h2.expression.BinaryOperation.OpType;
@@ -163,7 +161,6 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionList;
 import org.h2.expression.Function;
 import org.h2.expression.FunctionCall;
-import org.h2.expression.JavaAggregate;
 import org.h2.expression.JavaFunction;
 import org.h2.expression.Parameter;
 import org.h2.expression.Rownum;
@@ -174,6 +171,9 @@ import org.h2.expression.UnaryOperation;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.Variable;
 import org.h2.expression.Wildcard;
+import org.h2.expression.aggregate.Aggregate;
+import org.h2.expression.aggregate.Aggregate.AggregateType;
+import org.h2.expression.aggregate.JavaAggregate;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.SortOrder;
@@ -1209,12 +1209,7 @@ public class Parser {
     }
 
     private int parseSortType() {
-        int sortType = 0;
-        if (readIf("ASC")) {
-            // ignore
-        } else if (readIf("DESC")) {
-            sortType = SortOrder.DESCENDING;
-        }
+        int sortType = parseSimpleSortType();
         if (readIf("NULLS")) {
             if (readIf("FIRST")) {
                 sortType |= SortOrder.NULLS_FIRST;
@@ -1224,6 +1219,13 @@ public class Parser {
             }
         }
         return sortType;
+    }
+
+    private int parseSimpleSortType() {
+        if (!readIf("ASC") && readIf("DESC")) {
+            return SortOrder.DESCENDING;
+        }
+        return SortOrder.ASCENDING;
     }
 
     private String[] parseColumnList() {
@@ -2916,40 +2918,35 @@ public class Parser {
         }
         currentSelect.setGroupQuery();
         Aggregate r;
-        if (aggregateType == AggregateType.COUNT) {
+        switch (aggregateType) {
+        case COUNT:
             if (readIf(ASTERISK)) {
-                r = new Aggregate(AggregateType.COUNT_ALL, null, currentSelect,
-                        false);
+                r = new Aggregate(AggregateType.COUNT_ALL, null, currentSelect, false);
             } else {
                 boolean distinct = readIf(DISTINCT);
                 Expression on = readExpression();
                 if (on instanceof Wildcard && !distinct) {
                     // PostgreSQL compatibility: count(t.*)
-                    r = new Aggregate(AggregateType.COUNT_ALL, null, currentSelect,
-                            false);
+                    r = new Aggregate(AggregateType.COUNT_ALL, null, currentSelect, false);
                 } else {
-                    r = new Aggregate(AggregateType.COUNT, on, currentSelect,
-                            distinct);
+                    r = new Aggregate(AggregateType.COUNT, on, currentSelect, distinct);
                 }
             }
-        } else if (aggregateType == AggregateType.GROUP_CONCAT) {
+            break;
+        case GROUP_CONCAT: {
             boolean distinct = readIf(DISTINCT);
-
             if (equalsToken("GROUP_CONCAT", aggregateName)) {
-                r = new Aggregate(AggregateType.GROUP_CONCAT,
-                    readExpression(), currentSelect, distinct);
+                r = new Aggregate(AggregateType.GROUP_CONCAT, readExpression(), currentSelect, distinct);
                 if (readIf(ORDER)) {
                     read("BY");
                     r.setOrderByList(parseSimpleOrderList());
                 }
-
                 if (readIf("SEPARATOR")) {
                     r.setGroupConcatSeparator(readExpression());
                 }
             } else if (equalsToken("STRING_AGG", aggregateName)) {
                 // PostgreSQL compatibility: string_agg(expression, delimiter)
-                r = new Aggregate(AggregateType.GROUP_CONCAT,
-                    readExpression(), currentSelect, distinct);
+                r = new Aggregate(AggregateType.GROUP_CONCAT, readExpression(), currentSelect, distinct);
                 read(COMMA);
                 r.setGroupConcatSeparator(readExpression());
                 if (readIf(ORDER)) {
@@ -2959,25 +2956,62 @@ public class Parser {
             } else {
                 r = null;
             }
-        } else if (aggregateType == AggregateType.ARRAY_AGG) {
+            break;
+        }
+        case ARRAY_AGG: {
             boolean distinct = readIf(DISTINCT);
-
-            r = new Aggregate(AggregateType.ARRAY_AGG,
-                readExpression(), currentSelect, distinct);
+            r = new Aggregate(AggregateType.ARRAY_AGG, readExpression(), currentSelect, distinct);
             if (readIf(ORDER)) {
                 read("BY");
                 r.setOrderByList(parseSimpleOrderList());
             }
-        } else {
+            break;
+        }
+        case MODE: {
+            if (readIf(CLOSE_PAREN)) {
+                read("WITHIN");
+                read(GROUP);
+                read(OPEN_PAREN);
+                read(ORDER);
+                read("BY");
+                Expression expr = readExpression();
+                r = new Aggregate(AggregateType.MODE, expr, currentSelect, false);
+                setModeAggOrder(r, expr);
+            } else {
+                Expression expr = readExpression();
+                r = new Aggregate(aggregateType, expr, currentSelect, false);
+                if (readIf(ORDER)) {
+                    read("BY");
+                    Expression expr2 = readExpression();
+                    String sql = expr.getSQL(), sql2 = expr2.getSQL();
+                    if (!sql.equals(sql2)) {
+                        throw DbException.getSyntaxError(ErrorCode.IDENTICAL_EXPRESSIONS_SHOULD_BE_USED, sqlCommand,
+                                lastParseIndex, sql, sql2);
+                    }
+                    setModeAggOrder(r, expr);
+                }
+            }
+            break;
+        }
+        default:
             boolean distinct = readIf(DISTINCT);
-            r = new Aggregate(aggregateType, readExpression(), currentSelect,
-                    distinct);
+            r = new Aggregate(aggregateType, readExpression(), currentSelect, distinct);
+            break;
         }
         read(CLOSE_PAREN);
         if (r != null) {
             r.setFilterCondition(readFilterCondition());
         }
         return r;
+    }
+
+    private void setModeAggOrder(Aggregate r, Expression expr) {
+        ArrayList<SelectOrderBy> orderList = new ArrayList<>(1);
+        SelectOrderBy order = new SelectOrderBy();
+        order.expression = expr;
+        order.sortType = parseSimpleSortType();
+        orderList.add(order);
+        r.setOrderByList(orderList);
     }
 
     private ArrayList<SelectOrderBy> parseSimpleOrderList() {

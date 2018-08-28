@@ -137,7 +137,7 @@ public class TestScript extends TestDb {
             testScript("other/" + s + ".sql");
         }
         for (String s : new String[] { "avg", "bit-and", "bit-or", "count",
-                "group-concat", "max", "median", "min", "selectivity", "stddev-pop",
+                "group-concat", "max", "median", "min", "mode", "selectivity", "stddev-pop",
                 "stddev-samp", "sum", "var-pop", "var-samp", "array-agg" }) {
             testScript("functions/aggregate/" + s + ".sql");
         }

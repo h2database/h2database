@@ -382,7 +382,8 @@ public class Aggregate extends Expression {
             data = AggregateData.create(type);
             select.setCurrentGroupExprData(this, data);
         }
-        if (type == AggregateType.GROUP_CONCAT) {
+        switch (type) {
+        case GROUP_CONCAT: {
             Value[] array = ((AggregateDataCollecting) data).getArray();
             if (array == null) {
                 return ValueNull.INSTANCE;
@@ -409,7 +410,8 @@ public class Aggregate extends Expression {
                 buff.append(s);
             }
             return ValueString.get(buff.toString());
-        } else if (type == AggregateType.ARRAY_AGG) {
+        }
+        case ARRAY_AGG: {
             Value[] array = ((AggregateDataCollecting) data).getArray();
             if (array == null) {
                 return ValueNull.INSTANCE;
@@ -424,7 +426,15 @@ public class Aggregate extends Expression {
             }
             return ValueArray.get(array);
         }
-        return data.getValue(session.getDatabase(), dataType, distinct);
+        case MODE:
+            if (orderByList != null) {
+                return ((AggregateDataMode) data).getOrderedValue(session.getDatabase(), dataType,
+                        (orderByList.get(0).sortType & SortOrder.DESCENDING) != 0);
+            }
+            //$FALL-THROUGH$
+        default:
+            return data.getValue(session.getDatabase(), dataType, distinct);
+        }
     }
 
     @Override

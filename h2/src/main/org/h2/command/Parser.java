@@ -2965,9 +2965,30 @@ public class Parser {
             }
             break;
         }
-        case MODE:
-            r = new Aggregate(aggregateType, readExpression(), currentSelect, false);
+        case MODE: {
+            Expression expr = readExpression();
+            r = new Aggregate(aggregateType, expr, currentSelect, false);
+            if (readIf(ORDER)) {
+                read("BY");
+                Expression expr2 = readExpression();
+                String sql = expr.getSQL();
+                if (!sql.equals(expr2.getSQL())) {
+                    parseIndex = lastParseIndex;
+                    if (expectedList != null) {
+                        expectedList.clear();
+                        expectedList.add(sql);
+                    }
+                    throw getSyntaxError();
+                }
+                ArrayList<SelectOrderBy> orderList = new ArrayList<>(1);
+                SelectOrderBy order = new SelectOrderBy();
+                order.expression = expr;
+                order.sortType = parseSortType();
+                orderList.add(order);
+                r.setOrderByList(orderList);
+            }
             break;
+        }
         default:
             boolean distinct = readIf(DISTINCT);
             r = new Aggregate(aggregateType, readExpression(), currentSelect, distinct);

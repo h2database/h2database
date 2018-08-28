@@ -3417,15 +3417,23 @@ MEDIAN(X)
 "
 
 "Functions (Aggregate)","MODE","
-MODE( value ) [ FILTER ( WHERE expression ) ]
+MODE( value )
+[ ORDER BY { expression [ ASC | DESC ] } ]
+[ FILTER ( WHERE expression ) ]
 ","
 Returns the value that occurs with the greatest frequency.
 If there are multiple values with the same frequency only one value will be returned.
+In this situation value will be chosen based on optional ORDER BY clause
+that should specify exactly the same expression as argument of this function.
+Use ascending order to get smallest value or descending order to get largest value
+from multiple values with the same frequency.
+If this clause is not specified the exact chosen value is not determined in this situation.
 NULL values are ignored in the calculation.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
 MODE(X)
+MODE(X ORDER BY X)
 "
 
 "Functions (Numeric)","ABS","

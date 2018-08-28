@@ -51,4 +51,30 @@ class AggregateDataMode extends AggregateData {
         return v.convertTo(dataType);
     }
 
+    Value getOrderedValue(Database database, int dataType, boolean desc) {
+        Value v = ValueNull.INSTANCE;
+        if (distinctValues != null) {
+            long count = 0L;
+            for (Entry<Value, LongDataCounter> entry : distinctValues.entries()) {
+                long c = entry.getValue().count;
+                if (c > count) {
+                    v = entry.getKey();
+                    count = c;
+                } else if (c == count) {
+                    Value v2 = entry.getKey();
+                    int cmp = database.compareTypeSafe(v, v2);
+                    if (desc) {
+                        if (cmp >= 0) {
+                            continue;
+                        }
+                    } else if (cmp <= 0) {
+                        continue;
+                    }
+                    v = v2;
+                }
+            }
+        }
+        return v.convertTo(dataType);
+    }
+
 }

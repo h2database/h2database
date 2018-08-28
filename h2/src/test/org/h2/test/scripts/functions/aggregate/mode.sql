@@ -27,5 +27,20 @@ SELECT MODE(V), MODE(V) FILTER (WHERE (V > 1)), MODE(V) FILTER (WHERE (V < 0)) F
 > 1       2                              null
 > rows: 1
 
+INSERT INTO TEST VALUES (2), (3), (3);
+> update count: 3
+
+SELECT MODE(V ORDER BY V) FROM TEST;
+>> 1
+
+SELECT MODE(V ORDER BY V ASC) FROM TEST;
+>> 1
+
+SELECT MODE(V ORDER BY V DESC) FROM TEST;
+>> 3
+
+SELECT MODE(V ORDER BY V + 1) FROM TEST;
+> exception SYNTAX_ERROR_2
+
 DROP TABLE TEST;
 > ok

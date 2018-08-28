@@ -7,7 +7,7 @@ package org.h2.expression.aggregate;
 
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Map;
+import java.util.Map.Entry;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
@@ -21,37 +21,35 @@ import org.h2.value.ValueLong;
  * Data stored while calculating a HISTOGRAM aggregate.
  */
 class AggregateDataHistogram extends AggregateData {
-    private long count;
-    private ValueHashMap<AggregateDataHistogram> distinctValues;
+
+    private ValueHashMap<LongDataCounter> distinctValues;
 
     @Override
     void add(Database database, int dataType, boolean distinct, Value v) {
         if (distinctValues == null) {
             distinctValues = ValueHashMap.newInstance();
         }
-        AggregateDataHistogram a = distinctValues.get(v);
+        LongDataCounter a = distinctValues.get(v);
         if (a == null) {
-            if (distinctValues.size() < Constants.SELECTIVITY_DISTINCT_COUNT) {
-                a = new AggregateDataHistogram();
-                distinctValues.put(v, a);
+            if (distinctValues.size() >= Constants.SELECTIVITY_DISTINCT_COUNT) {
+                return;
             }
+            a = new LongDataCounter();
+            distinctValues.put(v, a);
         }
-        if (a != null) {
-            a.count++;
-        }
+        a.count++;
     }
 
     @Override
     Value getValue(Database database, int dataType, boolean distinct) {
-        if (distinct) {
-            count = 0;
-            groupDistinct(database, dataType);
+        if (distinctValues == null) {
+            return ValueArray.get(new Value[0]).convertTo(dataType);
         }
         ValueArray[] values = new ValueArray[distinctValues.size()];
         int i = 0;
-        for (Map.Entry<Value,AggregateDataHistogram> entry : distinctValues.entries()) {
-            AggregateDataHistogram d = entry.getValue();
-            values[i] = ValueArray.get(new Value[] { entry.getKey(), ValueLong.get(d.count) });
+        for (Entry<Value, LongDataCounter> entry : distinctValues.entries()) {
+            LongDataCounter d = entry.getValue();
+            values[i] = ValueArray.get(new Value[] { entry.getKey(), ValueLong.get(distinct ? 1L : d.count) });
             i++;
         }
         final Mode mode = database.getMode();
@@ -64,18 +62,7 @@ class AggregateDataHistogram extends AggregateData {
                 return a1.compareTo(a2, mode, compareMode);
             }
         });
-        Value v = ValueArray.get(values);
-        return v.convertTo(dataType);
-    }
-
-    private void groupDistinct(Database database, int dataType) {
-        if (distinctValues == null) {
-            return;
-        }
-        count = 0;
-        for (Value v : distinctValues.keys()) {
-            add(database, dataType, false, v);
-        }
+        return ValueArray.get(values).convertTo(dataType);
     }
 
 }

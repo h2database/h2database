@@ -1209,12 +1209,7 @@ public class Parser {
     }
 
     private int parseSortType() {
-        int sortType = 0;
-        if (readIf("ASC")) {
-            // ignore
-        } else if (readIf("DESC")) {
-            sortType = SortOrder.DESCENDING;
-        }
+        int sortType = parseSimpleSortType();
         if (readIf("NULLS")) {
             if (readIf("FIRST")) {
                 sortType |= SortOrder.NULLS_FIRST;
@@ -1224,6 +1219,13 @@ public class Parser {
             }
         }
         return sortType;
+    }
+
+    private int parseSimpleSortType() {
+        if (!readIf("ASC") && readIf("DESC")) {
+            return SortOrder.DESCENDING;
+        }
+        return SortOrder.ASCENDING;
     }
 
     private String[] parseColumnList() {
@@ -2983,7 +2985,7 @@ public class Parser {
                 ArrayList<SelectOrderBy> orderList = new ArrayList<>(1);
                 SelectOrderBy order = new SelectOrderBy();
                 order.expression = expr;
-                order.sortType = parseSortType();
+                order.sortType = parseSimpleSortType();
                 orderList.add(order);
                 r.setOrderByList(orderList);
             }

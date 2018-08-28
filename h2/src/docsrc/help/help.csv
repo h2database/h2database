@@ -3417,8 +3417,8 @@ MEDIAN(X)
 "
 
 "Functions (Aggregate)","MODE","
-MODE( value )
-[ ORDER BY { expression [ ASC | DESC ] } ]
+{ MODE( value ) [ ORDER BY expression [ ASC | DESC ] ] }
+    | { MODE() WITHIN GROUP(ORDER BY expression [ ASC | DESC ]) }
 [ FILTER ( WHERE expression ) ]
 ","
 Returns the value that occurs with the greatest frequency.
@@ -3434,6 +3434,7 @@ Aggregates are only allowed in select statements.
 ","
 MODE(X)
 MODE(X ORDER BY X)
+MODE() WITHIN GROUP(ORDER BY X)
 "
 
 "Functions (Numeric)","ABS","

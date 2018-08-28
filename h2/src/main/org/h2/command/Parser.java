@@ -2968,26 +2968,32 @@ public class Parser {
             break;
         }
         case MODE: {
-            Expression expr = readExpression();
-            r = new Aggregate(aggregateType, expr, currentSelect, false);
-            if (readIf(ORDER)) {
+            if (readIf(CLOSE_PAREN)) {
+                read("WITHIN");
+                read(GROUP);
+                read(OPEN_PAREN);
+                read(ORDER);
                 read("BY");
-                Expression expr2 = readExpression();
-                String sql = expr.getSQL();
-                if (!sql.equals(expr2.getSQL())) {
-                    parseIndex = lastParseIndex;
-                    if (expectedList != null) {
-                        expectedList.clear();
-                        expectedList.add(sql);
+                Expression expr = readExpression();
+                r = new Aggregate(AggregateType.MODE, expr, currentSelect, false);
+                setModeAggOrder(r, expr);
+            } else {
+                Expression expr = readExpression();
+                r = new Aggregate(aggregateType, expr, currentSelect, false);
+                if (readIf(ORDER)) {
+                    read("BY");
+                    Expression expr2 = readExpression();
+                    String sql = expr.getSQL();
+                    if (!sql.equals(expr2.getSQL())) {
+                        parseIndex = lastParseIndex;
+                        if (expectedList != null) {
+                            expectedList.clear();
+                            expectedList.add(sql);
+                        }
+                        throw getSyntaxError();
                     }
-                    throw getSyntaxError();
+                    setModeAggOrder(r, expr);
                 }
-                ArrayList<SelectOrderBy> orderList = new ArrayList<>(1);
-                SelectOrderBy order = new SelectOrderBy();
-                order.expression = expr;
-                order.sortType = parseSimpleSortType();
-                orderList.add(order);
-                r.setOrderByList(orderList);
             }
             break;
         }
@@ -3001,6 +3007,15 @@ public class Parser {
             r.setFilterCondition(readFilterCondition());
         }
         return r;
+    }
+
+    private void setModeAggOrder(Aggregate r, Expression expr) {
+        ArrayList<SelectOrderBy> orderList = new ArrayList<>(1);
+        SelectOrderBy order = new SelectOrderBy();
+        order.expression = expr;
+        order.sortType = parseSimpleSortType();
+        orderList.add(order);
+        r.setOrderByList(orderList);
     }
 
     private ArrayList<SelectOrderBy> parseSimpleOrderList() {

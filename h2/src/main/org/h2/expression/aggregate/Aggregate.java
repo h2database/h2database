@@ -3,7 +3,7 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.expression;
+package org.h2.expression.aggregate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,6 +13,9 @@ import org.h2.api.ErrorCode;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Session;
+import org.h2.expression.Expression;
+import org.h2.expression.ExpressionColumn;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.message.DbException;

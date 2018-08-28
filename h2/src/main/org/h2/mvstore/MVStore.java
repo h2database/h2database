@@ -1377,7 +1377,7 @@ public class MVStore {
 
     final class ChunkIdsCollector {
 
-        private final Set<Integer>      referenced = new HashSet<>();
+        private final Set<Integer>      referencedChunks = new HashSet<>();
         private final ChunkIdsCollector parent;
         private       ChunkIdsCollector child;
         private       int               mapId;
@@ -1404,13 +1404,13 @@ public class MVStore {
         }
 
         public Set<Integer> getReferenced() {
-            return referenced;
+            return referencedChunks;
         }
 
         public void visit(Page page) {
             long pos = page.getPos();
             if (DataUtils.isPageSaved(pos)) {
-                register(DataUtils.getPageChunkId(pos));
+                registerChunk(DataUtils.getPageChunkId(pos));
             }
             int count = page.map.getChildPageCount(page);
             if (count > 0) {
@@ -1435,13 +1435,13 @@ public class MVStore {
             if (!DataUtils.isPageSaved(pos)) {
                 return;
             }
-            register(DataUtils.getPageChunkId(pos));
+            registerChunk(DataUtils.getPageChunkId(pos));
             if (DataUtils.getPageType(pos) != DataUtils.PAGE_TYPE_LEAF) {
                 int chunkIds[];
                 if (cacheChunkRef != null && (chunkIds = cacheChunkRef.get(pos)) != null) {
                     // there is a cached set of chunk ids for this position
                     for (int chunkId : chunkIds) {
-                        register(chunkId);
+                        registerChunk(chunkId);
                     }
                 } else {
                     ChunkIdsCollector childCollector = getChild();
@@ -1475,21 +1475,21 @@ public class MVStore {
             if (child == null) {
                 child = new ChunkIdsCollector(this);
             } else {
-                child.referenced.clear();
+                child.referencedChunks.clear();
             }
             return child;
         }
 
-        private void register(int chunkId) {
-            if (referenced.add(chunkId) && parent != null) {
-                parent.register(chunkId);
+        private void registerChunk(int chunkId) {
+            if (referencedChunks.add(chunkId) && parent != null) {
+                parent.registerChunk(chunkId);
             }
         }
 
         private int[] getChunkIds() {
-            int chunkIds[] = new int[referenced.size()];
+            int chunkIds[] = new int[referencedChunks.size()];
             int index = 0;
-            for (int chunkId : referenced) {
+            for (int chunkId : referencedChunks) {
                 chunkIds[index++] = chunkId;
             }
             return chunkIds;

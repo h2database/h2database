@@ -31,7 +31,7 @@
 42S12=找不到索引 {0}
 42S21=重复的字段： {0}
 42S22=找不到字段 {0}
-42S32=找不到设置 {0}
+42S31=#Identical expressions should be used; expected {0}, found {1}
 57014=语句已取消执行或会话已过期
 90000={0} 函数必须返回一个结果集
 90001=不允许在查询内使用的方法，使用execute 或 executeQuery 代替 executeUpdate

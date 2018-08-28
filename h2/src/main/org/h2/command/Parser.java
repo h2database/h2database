@@ -2983,14 +2983,10 @@ public class Parser {
                 if (readIf(ORDER)) {
                     read("BY");
                     Expression expr2 = readExpression();
-                    String sql = expr.getSQL();
-                    if (!sql.equals(expr2.getSQL())) {
-                        parseIndex = lastParseIndex;
-                        if (expectedList != null) {
-                            expectedList.clear();
-                            expectedList.add(sql);
-                        }
-                        throw getSyntaxError();
+                    String sql = expr.getSQL(), sql2 = expr2.getSQL();
+                    if (!sql.equals(sql2)) {
+                        throw DbException.getSyntaxError(ErrorCode.IDENTICAL_EXPRESSIONS_SHOULD_BE_USED, sqlCommand,
+                                lastParseIndex, sql, sql2);
                     }
                     setModeAggOrder(r, expr);
                 }

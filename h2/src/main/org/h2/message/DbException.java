@@ -238,6 +238,22 @@ public class DbException extends RuntimeException {
     }
 
     /**
+     * Create a syntax error exception for a specific error code.
+     *
+     * @param errorCode the error code
+     * @param sql the SQL statement
+     * @param index the position of the error in the SQL statement
+     * @param params the list of parameters of the message
+     * @return the exception
+     */
+    public static DbException getSyntaxError(int errorCode, String sql, int index, String... params) {
+        sql = StringUtils.addAsterisk(sql, index);
+        String sqlstate = ErrorCode.getState(errorCode);
+        String message = translate(sqlstate, params);
+        return new DbException(getJdbcSQLException(message, sql, sqlstate, errorCode, null, null));
+    }
+
+    /**
      * Gets a SQL exception meaning this feature is not supported.
      *
      * @param message what exactly is not supported

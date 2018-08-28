@@ -17,6 +17,7 @@ import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.Properties;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcException;
@@ -26,8 +27,11 @@ import org.h2.jdbc.JdbcSQLFeatureNotSupportedException;
 import org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException;
 import org.h2.jdbc.JdbcSQLInvalidAuthorizationSpecException;
 import org.h2.jdbc.JdbcSQLNonTransientConnectionException;
+import org.h2.jdbc.JdbcSQLNonTransientException;
 import org.h2.jdbc.JdbcSQLSyntaxErrorException;
+import org.h2.jdbc.JdbcSQLTimeoutException;
 import org.h2.jdbc.JdbcSQLTransactionRollbackException;
+import org.h2.jdbc.JdbcSQLTransientException;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -440,6 +444,12 @@ public class DbException extends RuntimeException {
         sql = filterSQL(sql);
         // Use SQLState class value to detect type
         switch (errorCode / 1_000) {
+        case 2:
+            return new JdbcSQLNonTransientException(message, sql, state, errorCode, cause, stackTrace);
+        case 7:
+        case 21:
+        case 42:
+            return new JdbcSQLSyntaxErrorException(message, sql, state, errorCode, cause, stackTrace);
         case 8:
             return new JdbcSQLNonTransientConnectionException(message, sql, state, errorCode, cause, stackTrace);
         case 22:
@@ -450,20 +460,163 @@ public class DbException extends RuntimeException {
             return new JdbcSQLInvalidAuthorizationSpecException(message, sql, state, errorCode, cause, stackTrace);
         case 40:
             return new JdbcSQLTransactionRollbackException(message, sql, state, errorCode, cause, stackTrace);
-        case 42:
-            return new JdbcSQLSyntaxErrorException(message, sql, state, errorCode, cause, stackTrace);
         }
         // Check error code
         switch (errorCode){
+        case ErrorCode.GENERAL_ERROR_1:
+        case ErrorCode.UNKNOWN_DATA_TYPE_1:
+        case ErrorCode.METHOD_NOT_ALLOWED_FOR_QUERY:
+        case ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY:
+        case ErrorCode.SEQUENCE_EXHAUSTED:
+        case ErrorCode.OBJECT_CLOSED:
+        case ErrorCode.CANNOT_DROP_CURRENT_USER:
+        case ErrorCode.UNSUPPORTED_SETTING_COMBINATION:
+        case ErrorCode.FILE_RENAME_FAILED_2:
+        case ErrorCode.FILE_DELETE_FAILED_1:
+        case ErrorCode.IO_EXCEPTION_1:
+        case ErrorCode.NOT_ON_UPDATABLE_ROW:
+        case ErrorCode.IO_EXCEPTION_2:
+        case ErrorCode.TRACE_FILE_ERROR_2:
+        case ErrorCode.ADMIN_RIGHTS_REQUIRED:
+        case ErrorCode.ERROR_EXECUTING_TRIGGER_3:
+        case ErrorCode.COMMIT_ROLLBACK_NOT_ALLOWED:
+        case ErrorCode.FILE_CREATION_FAILED_1:
+        case ErrorCode.SAVEPOINT_IS_INVALID_1:
+        case ErrorCode.SAVEPOINT_IS_UNNAMED:
+        case ErrorCode.SAVEPOINT_IS_NAMED:
+        case ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1:
+        case ErrorCode.DATABASE_IS_READ_ONLY:
+        case ErrorCode.WRONG_XID_FORMAT_1:
+        case ErrorCode.UNSUPPORTED_COMPRESSION_OPTIONS_1:
+        case ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1:
+        case ErrorCode.COMPRESSION_ERROR:
+        case ErrorCode.EXCEPTION_IN_FUNCTION_1:
+        case ErrorCode.ERROR_ACCESSING_LINKED_TABLE_2:
+        case ErrorCode.FILE_NOT_FOUND_1:
+        case ErrorCode.INVALID_CLASS_2:
+        case ErrorCode.DATABASE_IS_NOT_PERSISTENT:
+        case ErrorCode.RESULT_SET_NOT_UPDATABLE:
+        case ErrorCode.RESULT_SET_NOT_SCROLLABLE:
+        case ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT:
+        case ErrorCode.ACCESS_DENIED_TO_CLASS_1:
+        case ErrorCode.RESULT_SET_READONLY:
+            return new JdbcSQLNonTransientException(message, sql, state, errorCode, cause, stackTrace);
         case ErrorCode.FEATURE_NOT_SUPPORTED_1:
             return new JdbcSQLFeatureNotSupportedException(message, sql, state, errorCode, cause, stackTrace);
+        case ErrorCode.LOCK_TIMEOUT_1:
+        case ErrorCode.STATEMENT_WAS_CANCELED:
+        case ErrorCode.LOB_CLOSED_ON_TIMEOUT_1:
+            return new JdbcSQLTimeoutException(message, sql, state, errorCode, cause, stackTrace);
+        case ErrorCode.FUNCTION_MUST_RETURN_RESULT_SET_1:
+        case ErrorCode.TRIGGER_SELECT_AND_ROW_BASED_NOT_SUPPORTED:
+        case ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1:
+        case ErrorCode.MUST_GROUP_BY_COLUMN_1:
+        case ErrorCode.SECOND_PRIMARY_KEY:
+        case ErrorCode.FUNCTION_NOT_FOUND_1:
+        case ErrorCode.COLUMN_MUST_NOT_BE_NULLABLE_1:
+        case ErrorCode.USER_NOT_FOUND_1:
+        case ErrorCode.USER_ALREADY_EXISTS_1:
+        case ErrorCode.SEQUENCE_ALREADY_EXISTS_1:
+        case ErrorCode.SEQUENCE_NOT_FOUND_1:
+        case ErrorCode.VIEW_NOT_FOUND_1:
+        case ErrorCode.VIEW_ALREADY_EXISTS_1:
+        case ErrorCode.TRIGGER_ALREADY_EXISTS_1:
+        case ErrorCode.TRIGGER_NOT_FOUND_1:
+        case ErrorCode.ERROR_CREATING_TRIGGER_OBJECT_3:
+        case ErrorCode.CONSTRAINT_ALREADY_EXISTS_1:
+        case ErrorCode.INVALID_VALUE_SCALE_PRECISION:
+        case ErrorCode.SUBQUERY_IS_NOT_SINGLE_COLUMN:
+        case ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1:
+        case ErrorCode.CONSTRAINT_NOT_FOUND_1:
+        case ErrorCode.AMBIGUOUS_COLUMN_NAME_1:
+        case ErrorCode.ORDER_BY_NOT_IN_RESULT:
+        case ErrorCode.ROLE_ALREADY_EXISTS_1:
+        case ErrorCode.ROLE_NOT_FOUND_1:
+        case ErrorCode.USER_OR_ROLE_NOT_FOUND_1:
+        case ErrorCode.ROLES_AND_RIGHT_CANNOT_BE_MIXED:
+        case ErrorCode.METHODS_MUST_HAVE_DIFFERENT_PARAMETER_COUNTS_2:
+        case ErrorCode.ROLE_ALREADY_GRANTED_1:
+        case ErrorCode.COLUMN_IS_PART_OF_INDEX_1:
+        case ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1:
+        case ErrorCode.FUNCTION_ALIAS_NOT_FOUND_1:
+        case ErrorCode.SCHEMA_ALREADY_EXISTS_1:
+        case ErrorCode.SCHEMA_NOT_FOUND_1:
+        case ErrorCode.SCHEMA_NAME_MUST_MATCH:
+        case ErrorCode.COLUMN_CONTAINS_NULL_VALUES_1:
+        case ErrorCode.SEQUENCE_BELONGS_TO_A_TABLE_1:
+        case ErrorCode.COLUMN_IS_REFERENCED_1:
+        case ErrorCode.CANNOT_DROP_LAST_COLUMN:
+        case ErrorCode.INDEX_BELONGS_TO_CONSTRAINT_2:
+        case ErrorCode.CLASS_NOT_FOUND_1:
+        case ErrorCode.METHOD_NOT_FOUND_1:
+        case ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1:
+        case ErrorCode.SCHEMA_CAN_NOT_BE_DROPPED_1:
+        case ErrorCode.ROLE_CAN_NOT_BE_DROPPED_1:
+        case ErrorCode.CANNOT_TRUNCATE_1:
+        case ErrorCode.CANNOT_DROP_2:
+        case ErrorCode.VIEW_IS_INVALID_2:
+        case ErrorCode.COMPARING_ARRAY_TO_SCALAR:
+        case ErrorCode.CONSTANT_ALREADY_EXISTS_1:
+        case ErrorCode.CONSTANT_NOT_FOUND_1:
+        case ErrorCode.LITERALS_ARE_NOT_ALLOWED:
+        case ErrorCode.CANNOT_DROP_TABLE_1:
+        case ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1:
+        case ErrorCode.USER_DATA_TYPE_NOT_FOUND_1:
+        case ErrorCode.WITH_TIES_WITHOUT_ORDER_BY:
+        case ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS:
+        case ErrorCode.TRANSACTION_NOT_FOUND_1:
+        case ErrorCode.AGGREGATE_NOT_FOUND_1:
+        case ErrorCode.CAN_ONLY_ASSIGN_TO_VARIABLE_1:
+        case ErrorCode.PUBLIC_STATIC_JAVA_METHOD_NOT_FOUND_1:
+        case ErrorCode.JAVA_OBJECT_SERIALIZER_CHANGE_WITH_DATA_TABLE:
+            return new JdbcSQLSyntaxErrorException(message, sql, state, errorCode, cause, stackTrace);
         case ErrorCode.HEX_STRING_ODD_1:
         case ErrorCode.HEX_STRING_WRONG_1:
         case ErrorCode.INVALID_VALUE_2:
+        case ErrorCode.SEQUENCE_ATTRIBUTES_INVALID:
+        case ErrorCode.INVALID_TO_CHAR_FORMAT:
+        case ErrorCode.PARAMETER_NOT_SET_1:
         case ErrorCode.PARSE_ERROR_1:
         case ErrorCode.INVALID_TO_DATE_FORMAT:
         case ErrorCode.STRING_FORMAT_ERROR_1:
+        case ErrorCode.SERIALIZATION_FAILED_1:
+        case ErrorCode.DESERIALIZATION_FAILED_1:
+        case ErrorCode.SCALAR_SUBQUERY_CONTAINS_MORE_THAN_ONE_ROW:
+        case ErrorCode.STEP_SIZE_MUST_NOT_BE_ZERO:
             return new JdbcSQLDataException(message, sql, state, errorCode, cause, stackTrace);
+        case ErrorCode.URL_RELATIVE_TO_CWD:
+        case ErrorCode.DATABASE_NOT_FOUND_1:
+        case ErrorCode.TRACE_CONNECTION_NOT_CLOSED:
+        case ErrorCode.DATABASE_ALREADY_OPEN_1:
+        case ErrorCode.FILE_CORRUPTED_1:
+        case ErrorCode.URL_FORMAT_ERROR_2:
+        case ErrorCode.DRIVER_VERSION_ERROR_2:
+        case ErrorCode.FILE_VERSION_ERROR_1:
+        case ErrorCode.FILE_ENCRYPTION_ERROR_1:
+        case ErrorCode.WRONG_PASSWORD_FORMAT:
+        case ErrorCode.UNSUPPORTED_CIPHER:
+        case ErrorCode.UNSUPPORTED_LOCK_METHOD_1:
+        case ErrorCode.EXCEPTION_OPENING_PORT_2:
+        case ErrorCode.DUPLICATE_PROPERTY_1:
+        case ErrorCode.CONNECTION_BROKEN_1:
+        case ErrorCode.UNKNOWN_MODE_1:
+        case ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_ALONE:
+        case ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1:
+        case ErrorCode.DATABASE_IS_CLOSED:
+        case ErrorCode.ERROR_SETTING_DATABASE_EVENT_LISTENER_2:
+        case ErrorCode.OUT_OF_MEMORY:
+        case ErrorCode.UNSUPPORTED_SETTING_1:
+        case ErrorCode.REMOTE_CONNECTION_NOT_ALLOWED:
+        case ErrorCode.DATABASE_CALLED_AT_SHUTDOWN:
+        case ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1:
+        case ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE:
+        case ErrorCode.INVALID_DATABASE_NAME_1:
+        case ErrorCode.AUTHENTICATOR_NOT_AVAILABLE:
+            return new JdbcSQLNonTransientConnectionException(message, sql, state, errorCode, cause, stackTrace);
+        case ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1:
+        case ErrorCode.CONCURRENT_UPDATE_1:
+        case ErrorCode.ROW_NOT_FOUND_IN_PRIMARY_INDEX:
+            return new JdbcSQLTransientException(message, sql, state, errorCode, cause, stackTrace);
         }
         // Default
         return new JdbcSQLException(message, sql, state, errorCode, cause, stackTrace);

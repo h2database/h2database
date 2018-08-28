@@ -2916,40 +2916,35 @@ public class Parser {
         }
         currentSelect.setGroupQuery();
         Aggregate r;
-        if (aggregateType == AggregateType.COUNT) {
+        switch (aggregateType) {
+        case COUNT:
             if (readIf(ASTERISK)) {
-                r = new Aggregate(AggregateType.COUNT_ALL, null, currentSelect,
-                        false);
+                r = new Aggregate(AggregateType.COUNT_ALL, null, currentSelect, false);
             } else {
                 boolean distinct = readIf(DISTINCT);
                 Expression on = readExpression();
                 if (on instanceof Wildcard && !distinct) {
                     // PostgreSQL compatibility: count(t.*)
-                    r = new Aggregate(AggregateType.COUNT_ALL, null, currentSelect,
-                            false);
+                    r = new Aggregate(AggregateType.COUNT_ALL, null, currentSelect, false);
                 } else {
-                    r = new Aggregate(AggregateType.COUNT, on, currentSelect,
-                            distinct);
+                    r = new Aggregate(AggregateType.COUNT, on, currentSelect, distinct);
                 }
             }
-        } else if (aggregateType == AggregateType.GROUP_CONCAT) {
+            break;
+        case GROUP_CONCAT: {
             boolean distinct = readIf(DISTINCT);
-
             if (equalsToken("GROUP_CONCAT", aggregateName)) {
-                r = new Aggregate(AggregateType.GROUP_CONCAT,
-                    readExpression(), currentSelect, distinct);
+                r = new Aggregate(AggregateType.GROUP_CONCAT, readExpression(), currentSelect, distinct);
                 if (readIf(ORDER)) {
                     read("BY");
                     r.setOrderByList(parseSimpleOrderList());
                 }
-
                 if (readIf("SEPARATOR")) {
                     r.setGroupConcatSeparator(readExpression());
                 }
             } else if (equalsToken("STRING_AGG", aggregateName)) {
                 // PostgreSQL compatibility: string_agg(expression, delimiter)
-                r = new Aggregate(AggregateType.GROUP_CONCAT,
-                    readExpression(), currentSelect, distinct);
+                r = new Aggregate(AggregateType.GROUP_CONCAT, readExpression(), currentSelect, distinct);
                 read(COMMA);
                 r.setGroupConcatSeparator(readExpression());
                 if (readIf(ORDER)) {
@@ -2959,19 +2954,24 @@ public class Parser {
             } else {
                 r = null;
             }
-        } else if (aggregateType == AggregateType.ARRAY_AGG) {
+            break;
+        }
+        case ARRAY_AGG: {
             boolean distinct = readIf(DISTINCT);
-
-            r = new Aggregate(AggregateType.ARRAY_AGG,
-                readExpression(), currentSelect, distinct);
+            r = new Aggregate(AggregateType.ARRAY_AGG, readExpression(), currentSelect, distinct);
             if (readIf(ORDER)) {
                 read("BY");
                 r.setOrderByList(parseSimpleOrderList());
             }
-        } else {
+            break;
+        }
+        case MODE:
+            r = new Aggregate(aggregateType, readExpression(), currentSelect, false);
+            break;
+        default:
             boolean distinct = readIf(DISTINCT);
-            r = new Aggregate(aggregateType, readExpression(), currentSelect,
-                    distinct);
+            r = new Aggregate(aggregateType, readExpression(), currentSelect, distinct);
+            break;
         }
         read(CLOSE_PAREN);
         if (r != null) {

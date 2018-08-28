@@ -35,6 +35,8 @@ abstract class AggregateData {
             return new AggregateDataHistogram();
         case MEDIAN:
             return new AggregateDataMedian();
+        case MODE:
+            return new AggregateDataMode();
         default:
             return new AggregateDataDefault(aggregateType);
         }

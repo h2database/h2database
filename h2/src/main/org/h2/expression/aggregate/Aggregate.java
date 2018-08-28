@@ -132,10 +132,16 @@ public class Aggregate extends Expression {
          * The aggregate type for MEDIAN(expression).
          */
         MEDIAN,
+
         /**
          * The aggregate type for ARRAY_AGG(expression).
          */
-        ARRAY_AGG
+        ARRAY_AGG,
+
+        /**
+         * The aggregate type for MODE(expression).
+         */
+        MODE,
     }
 
     private static final HashMap<String, AggregateType> AGGREGATES = new HashMap<>(64);
@@ -203,6 +209,7 @@ public class Aggregate extends Expression {
         addAggregate("BIT_AND", AggregateType.BIT_AND);
         addAggregate("MEDIAN", AggregateType.MEDIAN);
         addAggregate("ARRAY_AGG", AggregateType.ARRAY_AGG);
+        addAggregate("MODE", AggregateType.MODE);
     }
 
     private static void addAggregate(String name, AggregateType type) {
@@ -506,6 +513,7 @@ public class Aggregate extends Expression {
         case MIN:
         case MAX:
         case MEDIAN:
+        case MODE:
             break;
         case STDDEV_POP:
         case STDDEV_SAMP:
@@ -676,6 +684,9 @@ public class Aggregate extends Expression {
             break;
         case ARRAY_AGG:
             return getSQLArrayAggregate();
+        case MODE:
+            text = "MODE";
+            break;
         default:
             throw DbException.throwInternalError("type=" + type);
         }

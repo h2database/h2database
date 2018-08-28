@@ -3416,6 +3416,18 @@ Aggregates are only allowed in select statements.
 MEDIAN(X)
 "
 
+"Functions (Aggregate)","MODE","
+MODE( value ) [ FILTER ( WHERE expression ) ]
+","
+Returns the value that occurs with the greatest frequency.
+If there are multiple values with the same frequency only one value will be returned.
+NULL values are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+MODE(X)
+"
+
 "Functions (Numeric)","ABS","
 ABS ( { numeric } )
 ","

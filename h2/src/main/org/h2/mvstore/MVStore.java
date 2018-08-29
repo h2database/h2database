@@ -1324,6 +1324,7 @@ public class MVStore {
                         fileStore.free(start, length);
                         assert fileStore.getFileLengthInUse() == measureFileLengthInUse() :
                                 fileStore.getFileLengthInUse() + " != " + measureFileLengthInUse();
+                        cacheChunkRef.remove(c.id);
                     } else {
                         if (c.unused == 0) {
                             c.unused = time;
@@ -1409,8 +1410,9 @@ public class MVStore {
 
         public void visit(Page page) {
             long pos = page.getPos();
+            final int chunkId = DataUtils.getPageChunkId(pos);
             if (DataUtils.isPageSaved(pos)) {
-                registerChunk(DataUtils.getPageChunkId(pos));
+                registerChunk(chunkId);
             }
             int count = page.map.getChildPageCount(page);
             if (count == 0) {
@@ -1428,7 +1430,7 @@ public class MVStore {
             // and cache resulting set of chunk ids
             if (DataUtils.isPageSaved(pos) && cacheChunkRef != null) {
                 int[] chunkIds = childCollector.getChunkIds();
-                cacheChunkRef.put(pos, chunkIds, Constants.MEMORY_ARRAY + 4 * chunkIds.length);
+                cacheChunkRef.put(chunkId, chunkIds, Constants.MEMORY_ARRAY + 4 * chunkIds.length);
             }
         }
 
@@ -1436,15 +1438,15 @@ public class MVStore {
             if (!DataUtils.isPageSaved(pos)) {
                 return;
             }
-            registerChunk(DataUtils.getPageChunkId(pos));
+            final int chunkId = DataUtils.getPageChunkId(pos);
             if (DataUtils.getPageType(pos) == DataUtils.PAGE_TYPE_LEAF) {
                 return;
             }
-            int chunkIds[];
-            if (cacheChunkRef != null && (chunkIds = cacheChunkRef.get(pos)) != null) {
+            int referencedChunkIds[];
+            if (cacheChunkRef != null && (referencedChunkIds = cacheChunkRef.get(chunkId)) != null) {
                 // there is a cached set of chunk ids for this position
-                for (int chunkId : chunkIds) {
-                    registerChunk(chunkId);
+                for (int i : referencedChunkIds) {
+                    registerChunk(i);
                 }
             } else {
                 ChunkIdsCollector childCollector = getChild();
@@ -1458,8 +1460,7 @@ public class MVStore {
                     long filePos = chunk.block * BLOCK_SIZE;
                     filePos += DataUtils.getPageOffset(pos);
                     if (filePos < 0) {
-                        throw DataUtils.newIllegalStateException(
-                                DataUtils.ERROR_FILE_CORRUPT,
+                        throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
                                 "Negative position {0}; p={1}, c={2}", filePos, pos, chunk.toString());
                     }
                     long maxPos = (chunk.block + chunk.len) * BLOCK_SIZE;
@@ -1467,8 +1468,9 @@ public class MVStore {
                 }
                 // and cache resulting set of chunk ids
                 if (cacheChunkRef != null) {
-                    chunkIds = childCollector.getChunkIds();
-                    cacheChunkRef.put(pos, chunkIds, Constants.MEMORY_ARRAY + 4 * chunkIds.length);
+                    referencedChunkIds = childCollector.getChunkIds();
+                    cacheChunkRef.put(chunkId, referencedChunkIds,
+                            Constants.MEMORY_ARRAY + 4 * referencedChunkIds.length);
                 }
             }
         }

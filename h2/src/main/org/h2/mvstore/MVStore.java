@@ -1379,7 +1379,6 @@ public class MVStore {
 
         private final Set<Integer>      referencedChunks = new HashSet<>();
         private final ChunkIdsCollector parent;
-        private       ChunkIdsCollector child;
         private       int               mapId;
 
         ChunkIdsCollector(int mapId) {
@@ -1398,9 +1397,6 @@ public class MVStore {
 
         public void setMapId(int mapId) {
             this.mapId = mapId;
-            if (child != null) {
-                child.setMapId(mapId);
-            }
         }
 
         public Set<Integer> getReferenced() {
@@ -1416,7 +1412,7 @@ public class MVStore {
             if (count == 0) {
                 return;
             }
-            ChunkIdsCollector childCollector = getChild();
+            final ChunkIdsCollector childCollector = new ChunkIdsCollector(this);
             for (int i = 0; i < count; i++) {
                 Page childPage = page.getChildPageIfLoaded(i);
                 if (childPage != null) {
@@ -1447,7 +1443,7 @@ public class MVStore {
                     registerChunk(chunkId);
                 }
             } else {
-                ChunkIdsCollector childCollector = getChild();
+                final ChunkIdsCollector childCollector = new ChunkIdsCollector(this);
                 Page page;
                 if (cache != null && (page = cache.get(pos)) != null) {
                     // there is a full page in cache, use it
@@ -1471,15 +1467,6 @@ public class MVStore {
                     cacheChunkRef.put(pos, chunkIds, Constants.MEMORY_ARRAY + 4 * chunkIds.length);
                 }
             }
-        }
-
-        private ChunkIdsCollector getChild() {
-            if (child == null) {
-                child = new ChunkIdsCollector(this);
-            } else {
-                child.referencedChunks.clear();
-            }
-            return child;
         }
 
         private void registerChunk(int chunkId) {

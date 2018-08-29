@@ -1439,6 +1439,10 @@ public class MVStore {
                 return;
             }
             final int chunkId = DataUtils.getPageChunkId(pos);
+            if (registerChunk(chunkId)) {
+                // if we have already visited this chunk
+                return;
+            }
             if (DataUtils.getPageType(pos) == DataUtils.PAGE_TYPE_LEAF) {
                 return;
             }
@@ -1484,10 +1488,15 @@ public class MVStore {
             return child;
         }
 
-        private void registerChunk(int chunkId) {
-            if (referencedChunks.add(chunkId) && parent != null) {
-                parent.registerChunk(chunkId);
+        /**
+         * @return true if already registered
+         */
+        private boolean registerChunk(int chunkId) {
+            boolean alreadyVisited = !referencedChunks.add(chunkId); 
+            if (!alreadyVisited && parent != null) {
+                alreadyVisited = parent.registerChunk(chunkId);
             }
+            return alreadyVisited;
         }
 
         private int[] getChunkIds() {

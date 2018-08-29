@@ -5,15 +5,20 @@
  */
 package org.h2.mvstore;
 
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import org.h2.compress.Compressor;
-import org.h2.mvstore.type.DataType;
-import org.h2.util.Utils;
 import static org.h2.engine.Constants.MEMORY_ARRAY;
 import static org.h2.engine.Constants.MEMORY_OBJECT;
 import static org.h2.engine.Constants.MEMORY_POINTER;
 import static org.h2.mvstore.DataUtils.PAGE_TYPE_LEAF;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Future;
+import org.h2.compress.Compressor;
+import org.h2.mvstore.type.DataType;
+import org.h2.util.Utils;
 
 /**
  * A page (a node or a leaf).
@@ -247,9 +252,10 @@ public abstract class Page implements Cloneable
      * @param maxPos the maximum position (the end of the chunk)
      * @param collector to report child pages positions to
      */
-    static void readChildrenPositions(FileStore fileStore, long pos,
+    static List<Future<?>> readChildrenPositions(FileStore fileStore, long pos,
                                         long filePos, long maxPos,
-                                        MVStore.ChunkIdsCollector collector) {
+                                        MVStore.ChunkIdsCollector collector,
+                                        ExecutorService executorService) {
         ByteBuffer buff;
         int maxLength = DataUtils.getPageMaxLength(pos);
         if (maxLength == DataUtils.PAGE_LARGE) {
@@ -302,9 +308,18 @@ public abstract class Page implements Cloneable
                     DataUtils.ERROR_FILE_CORRUPT,
                     "Position {0} expected to be a non-leaf", pos);
         }
+        final List<Future<?>> futures = new ArrayList<>(len);
         for (int i = 0; i <= len; i++) {
-            collector.visit(buff.getLong());
+            final long childPagePos = buff.getLong();
+            Future<?> f = executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    collector.visit(childPagePos);
+                }
+            });
+            futures.add(f);
         }
+        return futures;
     }
 
     /**

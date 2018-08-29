@@ -5,6 +5,7 @@
  */
 package org.h2.mvstore;
 
+import static org.h2.mvstore.MVMap.INITIAL_VERSION;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -17,11 +18,17 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -30,9 +37,9 @@ import org.h2.compress.CompressDeflate;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
 import org.h2.engine.Constants;
+import org.h2.message.DbException;
 import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.util.MathUtils;
-import static org.h2.mvstore.MVMap.INITIAL_VERSION;
 import org.h2.util.Utils;
 
 /*
@@ -1374,10 +1381,11 @@ public class MVStore {
         return collector.getReferenced();
     }
 
-
+    final ExecutorService executorService = Executors.newCachedThreadPool();
+    
     final class ChunkIdsCollector {
 
-        private final Set<Integer>      referencedChunks = new HashSet<>();
+        private final Set<Integer>      referencedChunks = ConcurrentHashMap.newKeySet();
         private final ChunkIdsCollector parent;
         private       int               mapId;
 
@@ -1454,12 +1462,21 @@ public class MVStore {
                     long filePos = chunk.block * BLOCK_SIZE;
                     filePos += DataUtils.getPageOffset(pos);
                     if (filePos < 0) {
-                        throw DataUtils.newIllegalStateException(
-                                DataUtils.ERROR_FILE_CORRUPT,
+                        throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
                                 "Negative position {0}; p={1}, c={2}", filePos, pos, chunk.toString());
                     }
                     long maxPos = (chunk.block + chunk.len) * BLOCK_SIZE;
-                    Page.readChildrenPositions(fileStore, pos, filePos, maxPos, childCollector);
+                    final List<Future<?>> futures = Page.readChildrenPositions(fileStore, pos, filePos, maxPos,
+                            childCollector, executorService);
+                    for (Future<?> f : futures) {
+                        try {
+                            f.get();
+                        } catch (InterruptedException ex) {
+                            throw new RuntimeException(ex);
+                        } catch (ExecutionException ex) {
+                            throw DbException.convert(ex);
+                        }
+                    }
                 }
                 // and cache resulting set of chunk ids
                 if (cacheChunkRef != null) {

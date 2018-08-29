@@ -1413,21 +1413,22 @@ public class MVStore {
                 registerChunk(DataUtils.getPageChunkId(pos));
             }
             int count = page.map.getChildPageCount(page);
-            if (count > 0) {
-                ChunkIdsCollector childCollector = getChild();
-                for (int i = 0; i < count; i++) {
-                    Page childPage = page.getChildPageIfLoaded(i);
-                    if (childPage != null) {
-                        childCollector.visit(childPage);
-                    } else {
-                        childCollector.visit(page.getChildPagePos(i));
-                    }
+            if (count == 0) {
+                return;
+            }
+            ChunkIdsCollector childCollector = getChild();
+            for (int i = 0; i < count; i++) {
+                Page childPage = page.getChildPageIfLoaded(i);
+                if (childPage != null) {
+                    childCollector.visit(childPage);
+                } else {
+                    childCollector.visit(page.getChildPagePos(i));
                 }
-                // and cache resulting set of chunk ids
-                if (DataUtils.isPageSaved(pos) && cacheChunkRef != null) {
-                    int[] chunkIds = childCollector.getChunkIds();
-                    cacheChunkRef.put(pos, chunkIds, Constants.MEMORY_ARRAY + 4 * chunkIds.length);
-                }
+            }
+            // and cache resulting set of chunk ids
+            if (DataUtils.isPageSaved(pos) && cacheChunkRef != null) {
+                int[] chunkIds = childCollector.getChunkIds();
+                cacheChunkRef.put(pos, chunkIds, Constants.MEMORY_ARRAY + 4 * chunkIds.length);
             }
         }
 
@@ -1436,37 +1437,38 @@ public class MVStore {
                 return;
             }
             registerChunk(DataUtils.getPageChunkId(pos));
-            if (DataUtils.getPageType(pos) != DataUtils.PAGE_TYPE_LEAF) {
-                int chunkIds[];
-                if (cacheChunkRef != null && (chunkIds = cacheChunkRef.get(pos)) != null) {
-                    // there is a cached set of chunk ids for this position
-                    for (int chunkId : chunkIds) {
-                        registerChunk(chunkId);
-                    }
+            if (DataUtils.getPageType(pos) == DataUtils.PAGE_TYPE_LEAF) {
+                return;
+            }
+            int chunkIds[];
+            if (cacheChunkRef != null && (chunkIds = cacheChunkRef.get(pos)) != null) {
+                // there is a cached set of chunk ids for this position
+                for (int chunkId : chunkIds) {
+                    registerChunk(chunkId);
+                }
+            } else {
+                ChunkIdsCollector childCollector = getChild();
+                Page page;
+                if (cache != null && (page = cache.get(pos)) != null) {
+                    // there is a full page in cache, use it
+                    childCollector.visit(page);
                 } else {
-                    ChunkIdsCollector childCollector = getChild();
-                    Page page;
-                    if (cache != null && (page = cache.get(pos)) != null) {
-                        // there is a full page in cache, use it
-                        childCollector.visit(page);
-                    } else {
-                        // page was not cached: read the data
-                        Chunk chunk = getChunk(pos);
-                        long filePos = chunk.block * BLOCK_SIZE;
-                        filePos += DataUtils.getPageOffset(pos);
-                        if (filePos < 0) {
-                            throw DataUtils.newIllegalStateException(
-                                    DataUtils.ERROR_FILE_CORRUPT,
-                                    "Negative position {0}; p={1}, c={2}", filePos, pos, chunk.toString());
-                        }
-                        long maxPos = (chunk.block + chunk.len) * BLOCK_SIZE;
-                        Page.readChildrenPositions(fileStore, pos, filePos, maxPos, childCollector);
+                    // page was not cached: read the data
+                    Chunk chunk = getChunk(pos);
+                    long filePos = chunk.block * BLOCK_SIZE;
+                    filePos += DataUtils.getPageOffset(pos);
+                    if (filePos < 0) {
+                        throw DataUtils.newIllegalStateException(
+                                DataUtils.ERROR_FILE_CORRUPT,
+                                "Negative position {0}; p={1}, c={2}", filePos, pos, chunk.toString());
                     }
-                    // and cache resulting set of chunk ids
-                    if (cacheChunkRef != null) {
-                        chunkIds = childCollector.getChunkIds();
-                        cacheChunkRef.put(pos, chunkIds, Constants.MEMORY_ARRAY + 4 * chunkIds.length);
-                    }
+                    long maxPos = (chunk.block + chunk.len) * BLOCK_SIZE;
+                    Page.readChildrenPositions(fileStore, pos, filePos, maxPos, childCollector);
+                }
+                // and cache resulting set of chunk ids
+                if (cacheChunkRef != null) {
+                    chunkIds = childCollector.getChunkIds();
+                    cacheChunkRef.put(pos, chunkIds, Constants.MEMORY_ARRAY + 4 * chunkIds.length);
                 }
             }
         }

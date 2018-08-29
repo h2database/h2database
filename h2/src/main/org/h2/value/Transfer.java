@@ -104,7 +104,7 @@ public class Transfer {
      * @return the value
      */
     public boolean readBoolean() throws IOException {
-        return in.readByte() == 1;
+        return in.readByte() != 0;
     }
 
     /**
@@ -217,11 +217,8 @@ public class Transfer {
         if (s == null) {
             out.writeInt(-1);
         } else {
-            int len = s.length();
-            out.writeInt(len);
-            for (int i = 0; i < len; i++) {
-                out.writeChar(s.charAt(i));
-            }
+            out.writeInt(s.length());
+            out.writeChars(s);
         }
         return this;
     }

@@ -1324,7 +1324,9 @@ public class MVStore {
                         fileStore.free(start, length);
                         assert fileStore.getFileLengthInUse() == measureFileLengthInUse() :
                                 fileStore.getFileLengthInUse() + " != " + measureFileLengthInUse();
-                        cacheChunkRef.remove(c.id);
+                        if (cacheChunkRef != null) {
+                            cacheChunkRef.remove(c.id);
+                        }
                     } else {
                         if (c.unused == 0) {
                             c.unused = time;

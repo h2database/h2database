@@ -254,7 +254,7 @@ public abstract class Page implements Cloneable
      */
     static List<Future<?>> readChildrenPositions(FileStore fileStore, long pos,
                                         long filePos, long maxPos,
-                                        MVStore.ChunkIdsCollector collector,
+                                        final MVStore.ChunkIdsCollector collector,
                                         ExecutorService executorService) {
         ByteBuffer buff;
         int maxLength = DataUtils.getPageMaxLength(pos);

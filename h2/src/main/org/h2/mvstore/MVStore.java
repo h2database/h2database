@@ -23,10 +23,10 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -310,6 +310,11 @@ public class MVStore {
     private long lastFreeUnusedChunks;
 
     /**
+     * Service for executing multiple reads in parallel when doing garbage collection.
+     */
+    final ExecutorService executorService;
+    
+    /**
      * Create and open the store.
      *
      * @param config the configuration to use
@@ -359,6 +364,8 @@ public class MVStore {
         keysPerPage = DataUtils.getConfigParam(config, "keysPerPage", 48);
         backgroundExceptionHandler =
                 (UncaughtExceptionHandler)config.get("backgroundExceptionHandler");
+        executorService = new ThreadPoolExecutor(0, 10, 10L, TimeUnit.SECONDS,
+                new ArrayBlockingQueue<Runnable>(keysPerPage + 1));
         meta = new MVMap<>(this);
         meta.init();
         if (this.fileStore != null) {
@@ -945,6 +952,7 @@ public class MVStore {
             return;
         }
         stopBackgroundThread();
+        executorService.shutdownNow(); // no need to wait for reads
         closed = true;
         storeLock.lock();
         try {
@@ -1381,11 +1389,9 @@ public class MVStore {
         return collector.getReferenced();
     }
 
-    final ExecutorService executorService = Executors.newCachedThreadPool();
-    
     final class ChunkIdsCollector {
 
-        private final Set<Integer>      referencedChunks = ConcurrentHashMap.newKeySet();
+        private final Set<Integer>      referencedChunks = ConcurrentHashMap.<Integer>newKeySet();
         private final ChunkIdsCollector parent;
         private       int               mapId;
 

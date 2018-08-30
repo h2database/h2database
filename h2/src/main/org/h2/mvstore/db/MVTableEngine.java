@@ -360,19 +360,18 @@ public class MVTableEngine implements TableEngine {
          * fill rate are compacted, but old chunks are kept for some time, so
          * most likely the database file will not shrink.
          *
-         * @param maxCompactTime the maximum time in milliseconds to compact
+         * @param compactFully true if storage need to be compacted after closer
          */
-        public void close(long maxCompactTime) {
+        public void close(boolean compactFully) {
             try {
-                if (!mvStore.isClosed() && mvStore.getFileStore() != null) {
-                    boolean compactFully = false;
-                    if (!mvStore.getFileStore().isReadOnly()) {
+                FileStore fileStore = mvStore.getFileStore();
+                if (!mvStore.isClosed() && fileStore != null) {
+                    if (fileStore.isReadOnly()) {
+                        compactFully = false;
+                    } else {
                         transactionStore.close();
-                        if (maxCompactTime == Long.MAX_VALUE) {
-                            compactFully = true;
-                        }
                     }
-                    String fileName = mvStore.getFileStore().getFileName();
+                    String fileName = fileStore.getFileName();
                     mvStore.close();
                     if (compactFully && FileUtils.exists(fileName)) {
                         // the file could have been deleted concurrently,

@@ -740,8 +740,7 @@ public class TestMVTableEngine extends TestDb {
         conn.close();
         long sizeNew = FileUtils.size(getBaseDir() + "/" + getTestName()
                 + Constants.SUFFIX_MV_FILE);
-        println("new: " + sizeNew + " old: " + sizeOld);
-//        assertTrue("new: " + sizeNew + " old: " + sizeOld, sizeNew < sizeOld);
+        assertTrue("new: " + sizeNew + " old: " + sizeOld, sizeNew < sizeOld);
     }
 
     private void testTwoPhaseCommit() throws Exception {
@@ -1436,7 +1435,7 @@ public class TestMVTableEngine extends TestDb {
             reverse += testReverseDeletePerformance(true);
             direct += testReverseDeletePerformance(false);
         }
-        assertTrue("direct: " + direct + ", reverse: " + reverse, 2 * Math.abs(reverse - direct) < reverse + direct);
+        assertTrue("direct: " + direct + ", reverse: " + reverse, 3 * Math.abs(reverse - direct) < 2 * (reverse + direct));
     }
 
     private long testReverseDeletePerformance(boolean reverse) throws Exception {

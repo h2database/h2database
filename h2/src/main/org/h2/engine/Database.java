@@ -1519,16 +1519,22 @@ public class Database implements DataHandler {
                 }
             }
             reconnectModified(false);
-            if (store != null && store.getMvStore() != null && !store.getMvStore().isClosed()) {
-                long maxCompactTime = dbSettings.maxCompactTime;
-                if (compactMode == CommandInterface.SHUTDOWN_COMPACT) {
-                    store.compactFile(dbSettings.maxCompactTime);
-                } else if (compactMode == CommandInterface.SHUTDOWN_DEFRAG) {
-                    maxCompactTime = Long.MAX_VALUE;
-                } else if (getSettings().defragAlways) {
-                    maxCompactTime = Long.MAX_VALUE;
+            if (store != null) {
+                MVStore mvStore = store.getMvStore();
+                if (mvStore != null && !mvStore.isClosed()) {
+                    boolean compactFully =
+                            compactMode == CommandInterface.SHUTDOWN_COMPACT ||
+                            compactMode == CommandInterface.SHUTDOWN_DEFRAG ||
+                            getSettings().defragAlways;
+                    if (!compactFully && !mvStore.isReadOnly()) {
+                        try {
+                            store.compactFile(dbSettings.maxCompactTime);
+                        } catch (Throwable t) {
+                            trace.error(t, "compactFile");
+                        }
+                    }
+                    store.close(compactFully);
                 }
-                store.close(maxCompactTime);
             }
             if (systemSession != null) {
                 systemSession.close();

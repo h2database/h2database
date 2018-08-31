@@ -1839,7 +1839,7 @@ but only for at most the time defined by the database setting ""h2.maxCompactTim
 
 SHUTDOWN IMMEDIATELY closes the database files without any cleanup and without compacting.
 
-SHUTDOWN DEFRAG re-orders the pages when closing the database so that table scans are faster.
+SHUTDOWN DEFRAG re-orders the pages when closing the database so that table scans are faster. In case of MVStore it is currently equvalent to COMPACT.
 
 Admin rights are required to execute this command.
 ","

@@ -13,10 +13,12 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.compress.Compressor;
+import org.h2.message.DbException;
 import org.h2.mvstore.type.DataType;
 import org.h2.util.Utils;
 
@@ -252,10 +254,9 @@ public abstract class Page implements Cloneable
      * @param maxPos the maximum position (the end of the chunk)
      * @param collector to report child pages positions to
      */
-    static List<Future<?>> readChildrenPositions(FileStore fileStore, long pos,
-                                        long filePos, long maxPos,
-                                        final MVStore.ChunkIdsCollector collector,
-                                        ExecutorService executorService) {
+    static void readChildrenPositions(FileStore fileStore, long pos, long filePos, long maxPos,
+            final MVStore.ChunkIdsCollector collector, final ThreadPoolExecutor executorService,
+            final AtomicInteger executingThreadCounter) {
         ByteBuffer buff;
         int maxLength = DataUtils.getPageMaxLength(pos);
         if (maxLength == DataUtils.PAGE_LARGE) {
@@ -266,10 +267,8 @@ public abstract class Page implements Cloneable
         maxLength = (int) Math.min(maxPos - filePos, maxLength);
         int length = maxLength;
         if (length < 0) {
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_FILE_CORRUPT,
-                    "Illegal page length {0} reading at {1}; max pos {2} ",
-                    length, filePos, maxPos);
+            throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
+                    "Illegal page length {0} reading at {1}; max pos {2} ", length, filePos, maxPos);
         }
         buff = fileStore.readFully(filePos, length);
         int chunkId = DataUtils.getPageChunkId(pos);
@@ -277,49 +276,65 @@ public abstract class Page implements Cloneable
         int start = buff.position();
         int pageLength = buff.getInt();
         if (pageLength > maxLength) {
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_FILE_CORRUPT,
-                    "File corrupted in chunk {0}, expected page length =< {1}, got {2}",
-                    chunkId, maxLength, pageLength);
+            throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
+                    "File corrupted in chunk {0}, expected page length =< {1}, got {2}", chunkId, maxLength,
+                    pageLength);
         }
         buff.limit(start + pageLength);
         short check = buff.getShort();
         int m = DataUtils.readVarInt(buff);
         int mapId = collector.getMapId();
         if (m != mapId) {
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_FILE_CORRUPT,
-                    "File corrupted in chunk {0}, expected map id {1}, got {2}",
-                    chunkId, mapId, m);
+            throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
+                    "File corrupted in chunk {0}, expected map id {1}, got {2}", chunkId, mapId, m);
         }
-        int checkTest = DataUtils.getCheckValue(chunkId)
-                ^ DataUtils.getCheckValue(offset)
+        int checkTest = DataUtils.getCheckValue(chunkId) ^ DataUtils.getCheckValue(offset)
                 ^ DataUtils.getCheckValue(pageLength);
         if (check != (short) checkTest) {
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_FILE_CORRUPT,
-                    "File corrupted in chunk {0}, expected check value {1}, got {2}",
-                    chunkId, checkTest, check);
+            throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
+                    "File corrupted in chunk {0}, expected check value {1}, got {2}", chunkId, checkTest, check);
         }
         int len = DataUtils.readVarInt(buff);
         int type = buff.get();
         if ((type & 1) != DataUtils.PAGE_TYPE_NODE) {
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_FILE_CORRUPT,
+            throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
                     "Position {0} expected to be a non-leaf", pos);
         }
+        /**
+         * The logic here is a little awkward. We want to (a) execute reads in parallel, but (b)
+         * limit the number of threads we create. This is complicated by (a) the algorithm is
+         * recursive and needs to wait for children before returning up the call-stack, (b) checking
+         * the size of the thread-pool is not reliable.
+         */
         final List<Future<?>> futures = new ArrayList<>(len);
         for (int i = 0; i <= len; i++) {
             final long childPagePos = buff.getLong();
-            Future<?> f = executorService.submit(new Runnable() {
-                @Override
-                public void run() {
-                    collector.visit(childPagePos);
-                }
-            });
-            futures.add(f);
+            if (executingThreadCounter.get() >= executorService.getMaximumPoolSize()) {
+                collector.visit(childPagePos, executorService, executingThreadCounter);
+            } else {
+                executingThreadCounter.incrementAndGet();
+                Future<?> f = executorService.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            collector.visit(childPagePos, executorService, executingThreadCounter);
+                        } finally {
+                            executingThreadCounter.decrementAndGet();
+                        }
+                    }
+                });
+                futures.add(f);
+            }
         }
-        return futures;
+        for (Future<?> f : futures) {
+            try {
+                f.get();
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            } catch (ExecutionException ex) {
+                throw DbException.convert(ex);
+            }
+        }
     }
 
     /**

@@ -1390,7 +1390,8 @@ public class MVStore {
 
     final class ChunkIdsCollector {
 
-        private final Set<Integer>      referencedChunks = ConcurrentHashMap.<Integer>newKeySet();
+        /** really a set */
+        private final ConcurrentHashMap<Integer, Integer> referencedChunks = new ConcurrentHashMap<>();
         private final ChunkIdsCollector parent;
         private       int               mapId;
 
@@ -1413,7 +1414,9 @@ public class MVStore {
         }
 
         public Set<Integer> getReferenced() {
-            return referencedChunks;
+            Set<Integer> set = new HashSet<>();
+            set.addAll(referencedChunks.keySet());
+            return set;
         }
 
         public void visit(Page page, ThreadPoolExecutor executorService, AtomicInteger executingThreadCounter) {
@@ -1483,7 +1486,7 @@ public class MVStore {
         }
 
         private void registerChunk(int chunkId) {
-            if (referencedChunks.add(chunkId) && parent != null) {
+            if (referencedChunks.put(chunkId, 1) == null && parent != null) {
                 parent.registerChunk(chunkId);
             }
         }
@@ -1491,7 +1494,7 @@ public class MVStore {
         private int[] getChunkIds() {
             int chunkIds[] = new int[referencedChunks.size()];
             int index = 0;
-            for (int chunkId : referencedChunks) {
+            for (Integer chunkId : referencedChunks.keySet()) {
                 chunkIds[index++] = chunkId;
             }
             return chunkIds;

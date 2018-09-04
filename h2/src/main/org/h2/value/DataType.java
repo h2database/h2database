@@ -6,6 +6,7 @@
 package org.h2.value;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
@@ -42,6 +43,8 @@ import org.h2.tools.SimpleResultSet;
 import org.h2.util.JdbcUtils;
 import org.h2.util.LocalDateTimeUtils;
 import org.h2.util.Utils;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * This class contains meta data information about data types,
@@ -361,6 +364,11 @@ public class DataType {
                 createString(false),
                 new String[]{"GEOMETRY"},
                 32
+        );
+        add(Value.JSON, Types.OTHER,
+        		createString(false),
+        		new String[] {"JSON"},
+        		32
         );
         DataType dataType = new DataType();
         dataType.prefix = "(";
@@ -798,6 +806,20 @@ public class DataType {
                 return ValueInterval.from(interval.getQualifier(), interval.isNegative(),
                         interval.getLeading(), interval.getRemaining());
             }
+            case Value.JSON: {
+            	Object x = rs.getObject(columnIndex);
+            	if (x == null) {
+            		return ValueNull.INSTANCE;
+            	} else if (x.getClass() == String.class) {
+            		try {
+            			return new ValueJson((String) x);
+            		} catch (IOException e) {
+            			throw DbException.throwInternalError("type="+type);
+            		}
+            	} else if (x instanceof JsonNode) {
+            		return new ValueJson((JsonNode) x);
+            	}
+            }
             default:
                 if (JdbcUtils.customDataTypesHandler != null) {
                     return JdbcUtils.customDataTypesHandler.getValue(type,
@@ -914,6 +936,8 @@ public class DataType {
         case Value.INTERVAL_MINUTE_TO_SECOND:
             // "org.h2.api.Interval"
             return Interval.class.getName();
+        case Value.JSON:
+        	return JsonNode.class.getName();
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 return JdbcUtils.customDataTypesHandler.getDataTypeClassName(type);
@@ -971,6 +995,8 @@ public class DataType {
             case Types.JAVA_OBJECT:
                 if (sqlTypeName.equalsIgnoreCase("geometry")) {
                     return Value.GEOMETRY;
+                } else if (sqlTypeName.equalsIgnoreCase("json")) {
+                	return Value.JSON;
                 }
         }
         return convertSQLTypeToValueType(sqlType);
@@ -1135,6 +1161,8 @@ public class DataType {
             return Value.TIMESTAMP;
         } else if (LocalDateTimeUtils.OFFSET_DATE_TIME == x || LocalDateTimeUtils.INSTANT == x) {
             return Value.TIMESTAMP_TZ;
+        } else if (com.fasterxml.jackson.databind.JsonNode.class == x) {
+        	return Value.JSON;
         } else {
             if (JdbcUtils.customDataTypesHandler != null) {
                 return JdbcUtils.customDataTypesHandler.getTypeIdFromClass(x);

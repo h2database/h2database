@@ -191,6 +191,10 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/jts-core-1.15.0.jar" +
             File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
             File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
+            File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+            File.pathSeparator + "ext/jackson-core-2.9.5.jar" +
+            File.pathSeparator + "ext/jackson-databind-2.9.5.jar" +
+            File.pathSeparator + "ext/jackson-annotations-2.9.5.jar" +
             File.pathSeparator + javaToolsJar;
         // Run tests
         execJava(args(
@@ -269,6 +273,9 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
                 File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+                File.pathSeparator + "ext/jackson-core-2.9.5.jar" +
+                File.pathSeparator + "ext/jackson-databind-2.9.5.jar" +
+                File.pathSeparator + "ext/jackson-annotations-2.9.5.jar" +
                 File.pathSeparator + javaToolsJar;
         FileList files;
         if (clientOnly) {
@@ -377,6 +384,15 @@ public class Build extends BuildBase {
         downloadOrVerify("ext/junit-4.12.jar",
                 "junit", "junit", "4.12",
                 "2973d150c0dc1fefe998f834810d68f278ea58ec", offline);
+        downloadOrVerify("ext/jackson-core-2.9.5.jar",
+        		"com.fasterxml.jackson.core", "jackson-core", "2.9.5",
+        		"a22ac51016944b06fd9ffbc9541c6e7ce5eea117", offline);
+        downloadOrVerify("ext/jackson-databind-2.9.5.jar",
+        		"com.fasterxml.jackson.core", "jackson-databind", "2.9.5",
+        		"3490508379d065fe3fcb80042b62f630f7588606", offline);
+        downloadOrVerify("ext/jackson-annotations-2.9.5.jar",
+        		"com.fasterxml.jackson.core", "jackson-annotations", "2.9.5",
+        		"9056ec9db21c57d43219a84bb18c129ae51c6a5d", offline);
     }
 
     private void downloadOrVerify(String target, String group, String artifact,
@@ -628,7 +644,11 @@ public class Build extends BuildBase {
                 "org.h2.tools", "org.h2.api", "org.h2.engine", "org.h2.fulltext",
                 "-classpath",
                 "ext/lucene-core-3.6.2.jar" +
-                File.pathSeparator + "ext/jts-core-1.15.0.jar",
+                File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+                File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+                File.pathSeparator + "ext/jackson-core-2.9.5.jar" +
+                File.pathSeparator + "ext/jackson-databind-2.9.5.jar" +
+                File.pathSeparator + "ext/jackson-annotations-2.9.5.jar",
                 "-docletpath", "bin" + File.pathSeparator + "temp",
                 "-doclet", "org.h2.build.doclet.Doclet");
         copy("docs/javadoc", files("src/docsrc/javadoc"), "src/docsrc/javadoc");
@@ -654,7 +674,11 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-core-3.6.2.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
-                File.pathSeparator + "ext/jts-core-1.15.0.jar",
+                File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+                File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+                File.pathSeparator + "ext/jackson-core-2.9.5.jar" +
+                File.pathSeparator + "ext/jackson-databind-2.9.5.jar" +
+                File.pathSeparator + "ext/jackson-annotations-2.9.5.jar",
                 "-subpackages", "org.h2");
 
         mkdir("docs/javadocImpl3");
@@ -668,7 +692,11 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-core-3.6.2.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
-                File.pathSeparator + "ext/jts-core-1.15.0.jar",
+                File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+                File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+                File.pathSeparator + "ext/jackson-core-2.9.5.jar" +
+                File.pathSeparator + "ext/jackson-databind-2.9.5.jar" +
+                File.pathSeparator + "ext/jackson-annotations-2.9.5.jar",
                 "-subpackages", "org.h2.mvstore",
                 "-exclude", "org.h2.mvstore.db");
 
@@ -683,7 +711,11 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-core-3.6.2.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
-                File.pathSeparator + "ext/jts-core-1.15.0.jar",
+                File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+                File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+                File.pathSeparator + "ext/jackson-core-2.9.5.jar" +
+                File.pathSeparator + "ext/jackson-databind-2.9.5.jar" +
+                File.pathSeparator + "ext/jackson-annotations-2.9.5.jar",
                 "-subpackages", "org.h2",
                 "-package",
                 "-docletpath", "bin" + File.pathSeparator + "temp",
@@ -884,7 +916,10 @@ public class Build extends BuildBase {
             javadoc("-sourcepath", "src/main", "org.h2.tools", "org.h2.jmx",
                     "-classpath",
                     "ext/lucene-core-3.6.2.jar" +
-                    File.pathSeparator + "ext/jts-core-1.15.0.jar",
+                    File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+                    File.pathSeparator + "ext/jackson-core-2.9.5.jar" +
+                    File.pathSeparator + "ext/jackson-databind-2.9.5.jar" +
+                    File.pathSeparator + "ext/jackson-annotations-2.9.5.jar",
                     "-docletpath", "bin" + File.pathSeparator + "temp",
                     "-doclet", "org.h2.build.doclet.ResourceDoclet");
         }
@@ -942,6 +977,10 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/jts-core-1.15.0.jar" +
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
+                File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+                File.pathSeparator + "ext/jackson-core-2.9.5.jar" +
+                File.pathSeparator + "ext/jackson-databind-2.9.5.jar" +
+                File.pathSeparator + "ext/jackson-annotations-2.9.5.jar" +
                 File.pathSeparator + javaToolsJar;
         int version = getJavaVersion();
         if (version >= 9) {

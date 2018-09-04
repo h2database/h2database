@@ -6,6 +6,7 @@
 package org.h2.value;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
@@ -240,11 +241,16 @@ public abstract class Value {
      * The value type for {@code INTERVAL MINUTE TO SECOND} values.
      */
     public static final int INTERVAL_MINUTE_TO_SECOND = 38;
+    
+    /**
+     * The value type for JSON values.
+     */
+    public static final int JSON = 39;
 
     /**
      * The number of value types.
      */
-    public static final int TYPE_COUNT = INTERVAL_MINUTE_TO_SECOND + 1;
+    public static final int TYPE_COUNT = JSON + 1;
 
     private static SoftReference<Value[]> softCache;
     private static final BigDecimal MAX_LONG_DECIMAL =
@@ -427,6 +433,8 @@ public abstract class Value {
             return 43_000;
         case GEOMETRY:
             return 44_000;
+        case JSON:
+        	return 45_000;
         case ARRAY:
             return 50_000;
         case RESULT_SET:
@@ -779,6 +787,8 @@ public abstract class Value {
             case Value.INTERVAL_HOUR_TO_SECOND:
             case Value.INTERVAL_MINUTE_TO_SECOND:
                 return convertToIntervalDayTime(targetType);
+            case Value.JSON:
+            	return new ValueJson(getString());
             case ARRAY:
                 return convertToArray();
             case RESULT_SET:
@@ -791,10 +801,12 @@ public abstract class Value {
             }
         } catch (NumberFormatException e) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, getString());
+        } catch (IOException e) {
+        	throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, getString());
         }
     }
 
-    private ValueBoolean convertToBoolean() {
+	private ValueBoolean convertToBoolean() {
         switch (getType()) {
         case BYTE:
         case SHORT:

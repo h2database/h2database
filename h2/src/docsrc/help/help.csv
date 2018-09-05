@@ -1839,7 +1839,7 @@ but only for at most the time defined by the database setting ""h2.maxCompactTim
 
 SHUTDOWN IMMEDIATELY closes the database files without any cleanup and without compacting.
 
-SHUTDOWN DEFRAG re-orders the pages when closing the database so that table scans are faster. In case of MVStore it is currently equvalent to COMPACT.
+SHUTDOWN DEFRAG re-orders the pages when closing the database so that table scans are faster. In case of MVStore it is currently equivalent to COMPACT.
 
 Admin rights are required to execute this command.
 ","
@@ -3438,7 +3438,7 @@ MODE() WITHIN GROUP(ORDER BY X)
 "
 
 "Functions (Aggregate)","ST_EXTENT","
-{ ST_EXTENT( value ) [ FILTER ( WHERE expression ) ]
+ST_EXTENT( value ) [ FILTER ( WHERE expression ) ]
 ","
 Returns the minimum bounding box that encloses all specified GEOMETRY values.
 Only 2D coordinate plane is supported.

@@ -1435,7 +1435,8 @@ public class TestMVTableEngine extends TestDb {
             reverse += testReverseDeletePerformance(true);
             direct += testReverseDeletePerformance(false);
         }
-        assertTrue("direct: " + direct + ", reverse: " + reverse, 3 * Math.abs(reverse - direct) < 2 * (reverse + direct));
+        assertTrue("direct: " + direct + ", reverse: " + reverse,
+                3 * Math.abs(reverse - direct) < 2 * (reverse + direct));
     }
 
     private long testReverseDeletePerformance(boolean reverse) throws Exception {

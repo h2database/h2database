@@ -289,3 +289,43 @@ SELECT ID FROM TEST FETCH NEXT ROW ONLY LIMIT 1;
 
 DROP TABLE TEST;
 > ok
+
+-- ORDER BY with parameter
+CREATE TABLE TEST(A INT, B INT);
+> ok
+
+INSERT INTO TEST VALUES (1, 1), (1, 2), (2, 1), (2, 2);
+> update count: 4
+
+SELECT * FROM TEST ORDER BY ?, ? FETCH FIRST ROW ONLY;
+{
+1, 2
+> A B
+> - -
+> 1 1
+> rows (ordered): 1
+-1, 2
+> A B
+> - -
+> 2 1
+> rows (ordered): 1
+1, -2
+> A B
+> - -
+> 1 2
+> rows (ordered): 1
+-1, -2
+> A B
+> - -
+> 2 2
+> rows (ordered): 1
+2, -1
+> A B
+> - -
+> 2 1
+> rows (ordered): 1
+}
+> update count: 0
+
+DROP TABLE TEST;
+> ok

@@ -116,7 +116,7 @@ public class ConditionInParameter extends Condition {
     @Override
     public Expression optimize(Session session) {
         left = left.optimize(session);
-        if (left.isConstant() && left == ValueExpression.getNull()) {
+        if (left == ValueExpression.getNull()) {
             return left;
         }
         return this;

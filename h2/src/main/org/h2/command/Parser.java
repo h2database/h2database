@@ -1397,18 +1397,17 @@ public class Parser {
 
 
     private Prepared parseMerge() {
-        Merge command = new Merge(session);
-        currentPrepared = command;
         int start = lastParseIndex;
         read("INTO");
         List<String> excludeIdentifiers = Arrays.asList("USING", "KEY", "VALUES");
         TableFilter targetTableFilter = readSimpleTableFilter(0, excludeIdentifiers);
+        if (readIf("USING")) {
+            return parseMergeUsing(targetTableFilter, start);
+        }
+        Merge command = new Merge(session);
+        currentPrepared = command;
         command.setTargetTableFilter(targetTableFilter);
         Table table = command.getTargetTable();
-
-        if (readIf("USING")) {
-            return parseMergeUsing(command, start);
-        }
         if (readIf(OPEN_PAREN)) {
             if (isSelect()) {
                 command.setQuery(parseSelect());
@@ -1434,8 +1433,8 @@ public class Parser {
         return command;
     }
 
-    private MergeUsing parseMergeUsing(Merge oldCommand, int start) {
-        MergeUsing command = new MergeUsing(oldCommand);
+    private MergeUsing parseMergeUsing(TableFilter targetTableFilter, int start) {
+        MergeUsing command = new MergeUsing(session, targetTableFilter);
         currentPrepared = command;
 
         if (readIf(OPEN_PAREN)) {

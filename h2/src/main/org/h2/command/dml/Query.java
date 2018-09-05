@@ -577,14 +577,13 @@ public abstract class Query extends Prepared {
 
     /**
      * Create a {@link SortOrder} object given the list of {@link SelectOrderBy}
-     * objects. The expression list is extended if necessary.
+     * objects.
      *
      * @param orderList a list of {@link SelectOrderBy} elements
      * @param expressionCount the number of columns in the query
      * @return the {@link SortOrder} object
      */
-    public SortOrder prepareOrder(ArrayList<SelectOrderBy> orderList,
-            int expressionCount) {
+    public SortOrder prepareOrder(ArrayList<SelectOrderBy> orderList, int expressionCount) {
         int size = orderList.size();
         int[] index = new int[size];
         int[] sortType = new int[size];
@@ -592,8 +591,7 @@ public abstract class Query extends Prepared {
             SelectOrderBy o = orderList.get(i);
             int idx;
             boolean reverse = false;
-            Expression expr = o.columnIndexExpr;
-            Value v = expr.getValue(null);
+            Value v = o.columnIndexExpr.getValue(null);
             if (v == ValueNull.INSTANCE) {
                 // parameter not yet set - order by first column
                 idx = 0;
@@ -612,11 +610,7 @@ public abstract class Query extends Prepared {
             int type = o.sortType;
             if (reverse) {
                 // TODO NULLS FIRST / LAST should be inverted too?
-                if ((type & SortOrder.DESCENDING) != 0) {
-                    type &= ~SortOrder.DESCENDING;
-                } else {
-                    type |= SortOrder.DESCENDING;
-                }
+                type ^= SortOrder.DESCENDING;
             }
             sortType[i] = type;
         }

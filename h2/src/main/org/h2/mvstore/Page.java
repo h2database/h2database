@@ -309,21 +309,27 @@ public abstract class Page implements Cloneable
         final List<Future<?>> futures = new ArrayList<>(len);
         for (int i = 0; i <= len; i++) {
             final long childPagePos = buff.getLong();
-            if (executingThreadCounter.get() >= executorService.getMaximumPoolSize()) {
-                collector.visit(childPagePos, executorService, executingThreadCounter);
-            } else {
-                executingThreadCounter.incrementAndGet();
-                Future<?> f = executorService.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            collector.visit(childPagePos, executorService, executingThreadCounter);
-                        } finally {
-                            executingThreadCounter.decrementAndGet();
-                        }
+            for (;;) {
+                int counter = executingThreadCounter.get();
+                if (counter >= executorService.getMaximumPoolSize()) {
+                    collector.visit(childPagePos, executorService, executingThreadCounter);
+                    break;
+                } else {
+                    if (executingThreadCounter.compareAndSet(counter, counter + 1)) {
+                        Future<?> f = executorService.submit(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    collector.visit(childPagePos, executorService, executingThreadCounter);
+                                } finally {
+                                    executingThreadCounter.decrementAndGet();
+                                }
+                            }
+                        });
+                        futures.add(f);
+                        break;
                     }
-                });
-                futures.add(f);
+                }
             }
         }
         for (Future<?> f : futures) {

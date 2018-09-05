@@ -321,7 +321,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     /**
      * A cursor.
      */
-    private static class MVStoreCursor implements Cursor {
+    public static class MVStoreCursor implements Cursor {
 
         private final Session session;
         private final Iterator<SpatialKey> it;
@@ -356,6 +356,15 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
                 }
             }
             return searchRow;
+        }
+
+        /**
+         * Returns the current key.
+         *
+         * @return the current key
+         */
+        public SpatialKey getKey() {
+            return current;
         }
 
         @Override

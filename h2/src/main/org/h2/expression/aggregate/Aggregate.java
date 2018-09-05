@@ -142,6 +142,11 @@ public class Aggregate extends Expression {
          * The aggregate type for MODE(expression).
          */
         MODE,
+
+        /**
+         * The aggregate type for ST_EXTENT(expression).
+         */
+        ST_EXTENT,
     }
 
     private static final HashMap<String, AggregateType> AGGREGATES = new HashMap<>(64);
@@ -212,6 +217,7 @@ public class Aggregate extends Expression {
         addAggregate("MODE", AggregateType.MODE);
         // Oracle compatibility
         addAggregate("STATS_MODE", AggregateType.MODE);
+        addAggregate("ST_EXTENT", AggregateType.ST_EXTENT);
     }
 
     private static void addAggregate(String name, AggregateType type) {
@@ -369,9 +375,10 @@ public class Aggregate extends Expression {
                 }
                 return v;
             }
-            case MEDIAN: {
+            case MEDIAN:
                 return AggregateDataMedian.getResultFromIndex(session, on, dataType);
-            }
+            case ST_EXTENT:
+                return AggregateDataST_Extent.getResultFromIndex(session, on);
             default:
                 DbException.throwInternalError("type=" + type);
             }
@@ -554,6 +561,11 @@ public class Aggregate extends Expression {
             scale = 0;
             precision = displaySize = Integer.MAX_VALUE;
             break;
+        case ST_EXTENT:
+            dataType = Value.GEOMETRY;
+            scale = 0;
+            precision = displaySize = Integer.MAX_VALUE;
+            break;
         default:
             DbException.throwInternalError("type=" + type);
         }
@@ -699,6 +711,9 @@ public class Aggregate extends Expression {
         case MODE:
             text = "MODE";
             break;
+        case ST_EXTENT:
+            text = "ST_EXTENT";
+            break;
         default:
             throw DbException.throwInternalError("type=" + type);
         }
@@ -749,6 +764,8 @@ public class Aggregate extends Expression {
                     return false;
                 }
                 return AggregateDataMedian.getMedianColumnIndex(on) != null;
+            case ST_EXTENT:
+                return AggregateDataST_Extent.getGeometryColumnIndex(on) != null;
             default:
                 return false;
             }

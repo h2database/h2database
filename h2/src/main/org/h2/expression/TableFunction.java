@@ -12,6 +12,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
+import org.h2.result.LocalResultFactory;
 import org.h2.table.Column;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.MathUtils;
@@ -86,7 +87,7 @@ public class TableFunction extends Function {
             ExpressionColumn col = new ExpressionColumn(db, c);
             header[i] = col;
         }
-        LocalResult result = new LocalResult(session, header, len);
+        LocalResult result = LocalResultFactory.createRow(session, header, len);
         if (distinctRows) {
             result.setDistinct();
         }

@@ -12,6 +12,7 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.result.LocalResult;
+import org.h2.result.LocalResultFactory;
 import org.h2.result.ResultInterface;
 import org.h2.value.Value;
 
@@ -34,9 +35,9 @@ public class Call extends Prepared {
         LocalResult result;
         if (isResultSet) {
             Expression[] expr = expression.getExpressionColumns(session);
-            result = new LocalResult(session, expr, expr.length);
+            result = LocalResultFactory.createRow(session, expr, expr.length);
         } else {
-            result = new LocalResult(session, expressions, 1);
+            result = LocalResultFactory.createRow(session, expressions, 1);
         }
         result.done();
         return result;
@@ -66,9 +67,9 @@ public class Call extends Prepared {
         if (isResultSet) {
             v = v.convertTo(Value.RESULT_SET);
             ResultSet rs = v.getResultSet();
-            return LocalResult.read(session, rs, maxrows);
+            return LocalResultFactory.read(session, rs, maxrows);
         }
-        LocalResult result = new LocalResult(session, expressions, 1);
+        LocalResult result = LocalResultFactory.createRow(session, expressions, 1);
         Value[] row = { v };
         result.addRow(row);
         result.done();

@@ -32,6 +32,7 @@ import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.result.LazyResult;
 import org.h2.result.LocalResult;
+import org.h2.result.LocalResultFactory;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.result.Row;
@@ -687,7 +688,7 @@ public class Select extends Query {
 
     @Override
     public ResultInterface queryMeta() {
-        LocalResult result = new LocalResult(session, expressionArray,
+        LocalResult result = LocalResultFactory.createRow(session, expressionArray,
                 visibleColumnCount);
         result.done();
         return result;
@@ -858,12 +859,12 @@ public class Select extends Query {
     }
 
     private LocalResult createLocalResult(LocalResult old) {
-        return old != null ? old : new LocalResult(session, expressionArray,
+        return old != null ? old : LocalResultFactory.createRow(session, expressionArray,
                 visibleColumnCount);
     }
 
     private LocalResult convertToDistinct(ResultInterface result) {
-        LocalResult distinctResult = new LocalResult(session, expressionArray, visibleColumnCount);
+        LocalResult distinctResult = LocalResultFactory.createRow(session, expressionArray, visibleColumnCount);
         distinctResult.setDistinct();
         result.reset();
         while (result.next()) {

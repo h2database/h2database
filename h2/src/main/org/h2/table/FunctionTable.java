@@ -19,6 +19,7 @@ import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
+import org.h2.result.LocalResultFactory;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
@@ -194,7 +195,7 @@ public class FunctionTable extends Table {
             cachedResult.reset();
             return cachedResult;
         }
-        LocalResult result = LocalResult.read(session,  v.getResultSet(), 0);
+        LocalResult result = LocalResultFactory.read(session,  v.getResultSet(), 0);
         if (function.isDeterministic()) {
             cachedResult = result;
             cachedValue = v;

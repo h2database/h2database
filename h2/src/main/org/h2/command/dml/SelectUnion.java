@@ -20,6 +20,7 @@ import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.result.LazyResult;
 import org.h2.result.LocalResult;
+import org.h2.result.LocalResultFactory;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.table.Column;
@@ -130,14 +131,14 @@ public class SelectUnion extends Query {
     @Override
     public ResultInterface queryMeta() {
         int columnCount = left.getColumnCount();
-        LocalResult result = new LocalResult(session, expressionArray, columnCount);
+        LocalResult result = LocalResultFactory.createRow(session, expressionArray, columnCount);
         result.done();
         return result;
     }
 
     public LocalResult getEmptyResult() {
         int columnCount = left.getColumnCount();
-        return new LocalResult(session, expressionArray, columnCount);
+        return LocalResultFactory.createRow(session, expressionArray, columnCount);
     }
 
     @Override
@@ -189,7 +190,7 @@ public class SelectUnion extends Query {
                 return lazyResult;
             }
         }
-        LocalResult result = new LocalResult(session, expressionArray, columnCount);
+        LocalResult result = LocalResultFactory.createRow(session, expressionArray, columnCount);
         if (sort != null) {
             result.setSortOrder(sort);
         }
@@ -239,7 +240,7 @@ public class SelectUnion extends Query {
             break;
         }
         case INTERSECT: {
-            LocalResult temp = new LocalResult(session, expressionArray, columnCount);
+            LocalResult temp = LocalResultFactory.createRow(session, expressionArray, columnCount);
             temp.setDistinct();
             while (l.next()) {
                 temp.addRow(convert(l.currentRow(), columnCount));

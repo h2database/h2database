@@ -15,6 +15,7 @@ import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.Right;
+import org.h2.engine.Session;
 import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -32,7 +33,7 @@ import org.h2.value.Value;
 
 /**
  * This class represents the statement syntax
- * MERGE table alias USING...
+ * MERGE INTO table alias USING...
  *
  * It does not replace the existing MERGE INTO... KEYS... form.
  *
@@ -119,12 +120,10 @@ public class MergeUsing extends Prepared {
     private int sourceQueryRowNumber;
 
 
-    public MergeUsing(Merge merge) {
-        super(merge.getSession());
-
-        // bring across only the already parsed data from Merge...
-        this.targetTable = merge.getTargetTable();
-        this.targetTableFilter = merge.getTargetTableFilter();
+    public MergeUsing(Session session, TableFilter targetTableFilter) {
+        super(session);
+        this.targetTable = targetTableFilter.getTable();
+        this.targetTableFilter = targetTableFilter;
     }
 
     @Override

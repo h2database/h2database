@@ -46,7 +46,7 @@ class AggregateDataEnvelope extends AggregateData {
                     if (indexes != null) {
                         for (int i = 1, size = indexes.size(); i < size; i++) {
                             Index index = indexes.get(i);
-                            if (index instanceof MVSpatialIndex) {
+                            if (index instanceof MVSpatialIndex && index.isFirstColumn(column)) {
                                 return index;
                             }
                         }

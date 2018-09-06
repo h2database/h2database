@@ -47,6 +47,7 @@ import org.h2.test.db.TestLargeBlob;
 import org.h2.test.db.TestLinkedTable;
 import org.h2.test.db.TestListener;
 import org.h2.test.db.TestLob;
+import org.h2.test.db.TestLocalResultFactory;
 import org.h2.test.db.TestMemoryUsage;
 import org.h2.test.db.TestMergeUsing;
 import org.h2.test.db.TestMultiConn;
@@ -795,6 +796,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestViewDropView());
         addTest(new TestSynonymForTable());
         addTest(new TestColumnNamer());
+        addTest(new TestLocalResultFactory());
 
         // jdbc
         addTest(new TestBatchUpdates());

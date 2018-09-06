@@ -161,7 +161,7 @@ public class LocalResultImpl implements LocalResult, ResultInterface, ResultTarg
     /**
      * @return whether this result is a distinct result
      */
-    public boolean isAnyDistinct() {
+    private boolean isAnyDistinct() {
         return distinct || distinctIndexes != null;
     }
 

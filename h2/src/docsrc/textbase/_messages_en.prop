@@ -31,7 +31,7 @@
 42S12=Index {0} not found
 42S21=Duplicate column name {0}
 42S22=Column {0} not found
-42S32=Setting {0} not found
+42S31=Identical expressions should be used; expected {0}, found {1}
 57014=Statement was canceled or the session timed out
 90000=Function {0} must return a result set
 90001=Method is not allowed for a query. Use execute or executeQuery instead of executeUpdate

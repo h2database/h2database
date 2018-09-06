@@ -19,6 +19,7 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.message.DbException;
+import org.h2.mvstore.db.MVSpatialIndex;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
@@ -142,6 +143,11 @@ public class Aggregate extends Expression {
          * The aggregate type for MODE(expression).
          */
         MODE,
+
+        /**
+         * The aggregate type for ENVELOPE(expression).
+         */
+        ENVELOPE,
     }
 
     private static final HashMap<String, AggregateType> AGGREGATES = new HashMap<>(64);
@@ -212,6 +218,7 @@ public class Aggregate extends Expression {
         addAggregate("MODE", AggregateType.MODE);
         // Oracle compatibility
         addAggregate("STATS_MODE", AggregateType.MODE);
+        addAggregate("ENVELOPE", AggregateType.ENVELOPE);
     }
 
     private static void addAggregate(String name, AggregateType type) {
@@ -369,9 +376,10 @@ public class Aggregate extends Expression {
                 }
                 return v;
             }
-            case MEDIAN: {
+            case MEDIAN:
                 return AggregateDataMedian.getResultFromIndex(session, on, dataType);
-            }
+            case ENVELOPE:
+                return ((MVSpatialIndex) AggregateDataEnvelope.getGeometryColumnIndex(on)).getBounds(session);
             default:
                 DbException.throwInternalError("type=" + type);
             }
@@ -554,6 +562,11 @@ public class Aggregate extends Expression {
             scale = 0;
             precision = displaySize = Integer.MAX_VALUE;
             break;
+        case ENVELOPE:
+            dataType = Value.GEOMETRY;
+            scale = 0;
+            precision = displaySize = Integer.MAX_VALUE;
+            break;
         default:
             DbException.throwInternalError("type=" + type);
         }
@@ -699,6 +712,9 @@ public class Aggregate extends Expression {
         case MODE:
             text = "MODE";
             break;
+        case ENVELOPE:
+            text = "ENVELOPE";
+            break;
         default:
             throw DbException.throwInternalError("type=" + type);
         }
@@ -749,6 +765,8 @@ public class Aggregate extends Expression {
                     return false;
                 }
                 return AggregateDataMedian.getMedianColumnIndex(on) != null;
+            case ENVELOPE:
+                return AggregateDataEnvelope.getGeometryColumnIndex(on) != null;
             default:
                 return false;
             }

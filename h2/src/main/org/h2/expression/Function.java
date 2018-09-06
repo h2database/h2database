@@ -27,9 +27,11 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
+import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mode.FunctionsMSSQLServer;
 import org.h2.mode.FunctionsMySQL;
+import org.h2.mvstore.db.MVSpatialIndex;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.security.BlockCipher;
@@ -116,7 +118,7 @@ public class Function extends Expression implements FunctionCall {
     public static final int DATABASE = 150, USER = 151, CURRENT_USER = 152,
             IDENTITY = 153, SCOPE_IDENTITY = 154, AUTOCOMMIT = 155,
             READONLY = 156, DATABASE_PATH = 157, LOCK_TIMEOUT = 158,
-            DISK_SPACE_USED = 159, SIGNAL = 160;
+            DISK_SPACE_USED = 159, SIGNAL = 160, ESTIMATED_ENVELOPE = 161;
 
     private static final Pattern SIGNAL_PATTERN = Pattern.compile("[0-9A-Z]{5}");
 
@@ -456,6 +458,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("DISK_SPACE_USED", DISK_SPACE_USED,
                 1, Value.LONG);
         addFunctionWithNull("SIGNAL", SIGNAL, 2, Value.NULL);
+        addFunctionNotDeterministic("ESTIMATED_ENVELOPE", ESTIMATED_ENVELOPE, 2, Value.LONG);
         addFunction("H2VERSION", H2VERSION, 0, Value.STRING);
 
         // TableFunction
@@ -883,6 +886,9 @@ public class Function extends Expression implements FunctionCall {
         case DISK_SPACE_USED:
             result = ValueLong.get(getDiskSpaceUsed(session, v0));
             break;
+        case ESTIMATED_ENVELOPE:
+            result = getEstimatedEnvelope(session, v0, values[1]);
+            break;
         case CAST:
         case CONVERT: {
             Mode mode = database.getMode();
@@ -1096,11 +1102,27 @@ public class Function extends Expression implements FunctionCall {
         return false;
     }
 
-    private static long getDiskSpaceUsed(Session session, Value v0) {
-        Parser p = new Parser(session);
-        String sql = v0.getString();
-        Table table = p.parseTableName(sql);
-        return table.getDiskSpaceUsed();
+    private static long getDiskSpaceUsed(Session session, Value tableName) {
+        return getTable(session, tableName).getDiskSpaceUsed();
+    }
+
+    private static Value getEstimatedEnvelope(Session session, Value tableName, Value columnName) {
+        Table table = getTable(session, tableName);
+        Column column = table.getColumn(columnName.getString());
+        ArrayList<Index> indexes = table.getIndexes();
+        if (indexes != null) {
+            for (int i = 1, size = indexes.size(); i < size; i++) {
+                Index index = indexes.get(i);
+                if (index instanceof MVSpatialIndex && index.isFirstColumn(column)) {
+                    return ((MVSpatialIndex) index).getEstimatedBounds(session);
+                }
+            }
+        }
+        return ValueNull.INSTANCE;
+    }
+
+    private static Table getTable(Session session, Value tableName) {
+        return new Parser(session).parseTableName(tableName.getString());
     }
 
     protected static Value getNullOrValue(Session session, Expression[] args,

@@ -403,7 +403,7 @@ public class ErrorCode {
     public static final int COLUMN_NOT_FOUND_1 = 42122;
 
     /**
-     * The error with code <code>42123</code> is thrown when
+     * The error with code <code>42131</code> is thrown when
      * identical expressions should be used, but different
      * exceptions were found.
      * Example:

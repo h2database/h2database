@@ -24,7 +24,6 @@ import org.h2.value.Value;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueNull;
 import org.locationtech.jts.geom.Envelope;
-import org.locationtech.jts.geom.Geometry;
 
 /**
  * This is an index based on a MVR-TreeMap.
@@ -134,8 +133,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
         if (v == ValueNull.INSTANCE) {
             return new SpatialKey(row.getKey());
         }
-        Geometry g = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getGeometryNoCopy();
-        Envelope env = g.getEnvelopeInternal();
+        Envelope env = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getEnvelopeNoCopy();
         return new SpatialKey(row.getKey(),
                 (float) env.getMinX(), (float) env.getMaxX(),
                 (float) env.getMinY(), (float) env.getMaxY());

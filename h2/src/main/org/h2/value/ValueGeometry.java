@@ -53,6 +53,11 @@ public class ValueGeometry extends Value {
     private Geometry geometry;
 
     /**
+     * The envelope of the value. Calculated only on request.
+     */
+    private Envelope envelope;
+
+    /**
      * Create a new geometry objects.
      *
      * @param bytes the bytes (always known)
@@ -206,6 +211,18 @@ public class ValueGeometry extends Value {
     }
 
     /**
+     * Return an envelope of this geometry. Do not modify the returned value.
+     *
+     * @return envelope of this geometry
+     */
+    public Envelope getEnvelopeNoCopy() {
+        if (envelope == null) {
+            envelope = getGeometryNoCopy().getEnvelopeInternal();
+        }
+        return envelope;
+    }
+
+    /**
      * Test if this geometry envelope intersects with the other geometry
      * envelope.
      *
@@ -213,9 +230,7 @@ public class ValueGeometry extends Value {
      * @return true if the two overlap
      */
     public boolean intersectsBoundingBox(ValueGeometry r) {
-        // the Geometry object caches the envelope
-        return getGeometryNoCopy().getEnvelopeInternal().intersects(
-                r.getGeometryNoCopy().getEnvelopeInternal());
+        return getEnvelopeNoCopy().intersects(r.getEnvelopeNoCopy());
     }
 
     /**
@@ -226,8 +241,8 @@ public class ValueGeometry extends Value {
      */
     public Value getEnvelopeUnion(ValueGeometry r) {
         GeometryFactory gf = new GeometryFactory();
-        Envelope mergedEnvelope = new Envelope(getGeometryNoCopy().getEnvelopeInternal());
-        mergedEnvelope.expandToInclude(r.getGeometryNoCopy().getEnvelopeInternal());
+        Envelope mergedEnvelope = new Envelope(getEnvelopeNoCopy());
+        mergedEnvelope.expandToInclude(r.getEnvelopeNoCopy());
         return get(gf.toGeometry(mergedEnvelope));
     }
 

@@ -55,4 +55,7 @@ public class PlanItem {
         this.nestedJoinPlan = nestedJoinPlan;
     }
 
+    boolean isVirtualIndex(){
+        return index.getTable().isView();
+    }
 }

@@ -17,8 +17,7 @@ import org.h2.message.Trace;
 import org.h2.table.TableFilter.TableFilterVisitor;
 
 /**
- * A possible query execution plan. The time required to execute a query depends
- * on the order the tables are accessed.
+ * A possible query execution plan. The time required to execute a query depends on the order the tables are accessed.
  */
 public class Plan {
 
@@ -84,8 +83,8 @@ public class Plan {
         for (int i = 0; i < allFilters.length; i++) {
             TableFilter f = allFilters[i];
             setEvaluatable(f, true);
-            if (i < allFilters.length - 1 ||
-                    f.getSession().getDatabase().getSettings().earlyFilter) {
+            if (i < allFilters.length - 1
+                    || f.getSession().getDatabase().getSettings().earlyFilter) {
                 // the last table doesn't need the optimization,
                 // otherwise the expression is calculated twice unnecessarily
                 // (not that bad but not optimal)
@@ -122,7 +121,16 @@ public class Plan {
                 t.debug("Plan       :   best plan item cost {0} index {1}",
                         item.cost, item.getIndex().getPlanSQL());
             }
-            cost += cost * item.cost;
+            /**
+             * If the current item is virtual and it'll be joined with another filter, then the cost of the inner node must be multiplied by the outer
+             * node. Therefore, to process each row of the outer join node (the previous plan item cost), one pass in the inner node must be processed
+             * (cost of the virtual index scan).
+             */
+            if (i > 0 && item.isVirtualIndex()) {
+                cost += cost * planItems.get(allFilters[i - 1]).cost * item.cost;
+            } else {
+                cost += cost * item.cost;
+            }
             setEvaluatable(tableFilter, true);
             Expression on = tableFilter.getJoinCondition();
             if (on != null) {

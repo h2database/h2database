@@ -327,14 +327,6 @@ public class SysProperties {
     }
 
     /**
-     * System property <code>h2.oldStyleOuterJoin</code>
-     * (default: false).<br />
-     * Limited support for the old-style Oracle outer join with "(+)".
-     */
-    public static final boolean OLD_STYLE_OUTER_JOIN =
-            Utils.getProperty("h2.oldStyleOuterJoin", false);
-
-    /**
      * System property {@code h2.oldResultSetGetObject}, {@code true} by default
      * unless {@code h2.preview} is enabled.
      * <p>

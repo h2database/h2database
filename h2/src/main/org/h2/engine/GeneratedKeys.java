@@ -125,7 +125,7 @@ public final class GeneratedKeys {
      * @return local result with generated keys
      */
     public LocalResult getKeys(Session session) {
-        Database db = session == null ? null : session.getDatabase();
+        Database db = session.getDatabase();
         if (Boolean.FALSE.equals(generatedKeysRequest)) {
             clear(null);
             return new LocalResult();

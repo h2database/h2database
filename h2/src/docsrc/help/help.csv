@@ -4736,6 +4736,23 @@ Throw an SQLException with the passed SQLState and reason.
 CALL SIGNAL('23505', 'Duplicate user ID: ' || user_id);
 "
 
+"Functions (System)","ESTIMATED_ENVELOPE","
+ESTIMATED_ENVELOPE(tableNameString, columnNameString)
+","
+Returns the estimated minimum bounding box that encloses all specified GEOMETRY values.
+Only 2D coordinate plane is supported.
+NULL values are ignored.
+This function is only supported by MVStore engine.
+Column must have a spatial index.
+This function is fast, but estimation may include uncommitted data (including data from other transactions),
+may return approximate bounds, or be different with actual value due to other reasons.
+Use with caution.
+If estimation is not available this function returns NULL.
+For accurate and reliable result use ESTIMATE aggregate function instead.
+","
+CALL ESTIMATED_ENVELOPE('MY_TABLE', 'GEOMETRY_COLUMN');
+"
+
 "Functions (System)","FILE_READ","
 FILE_READ(fileNameString [,encodingString])
 ","

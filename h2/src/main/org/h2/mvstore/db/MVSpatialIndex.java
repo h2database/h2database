@@ -234,6 +234,42 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         return cursor.getBounds();
     }
 
+    /**
+     * Returns the estimated minimum bounding box that encloses all keys.
+     *
+     * The returned value may be incorrect.
+     *
+     * @param session the session
+     * @return the estimated minimum bounding box that encloses all keys, or null
+     */
+    public Value getEstimatedBounds(Session session) {
+        Page p = spatialMap.getRootPage();
+        int count = p.getKeyCount();
+        if (count > 0) {
+            SpatialKey key = (SpatialKey) p.getKey(0);
+            float bminxf = key.min(0), bmaxxf = key.max(0), bminyf = key.min(1), bmaxyf = key.max(1);
+            for (int i = 1; i < count; i++) {
+                key = (SpatialKey) p.getKey(i);
+                float minxf = key.min(0), maxxf = key.max(0), minyf = key.min(1), maxyf = key.max(1);
+                if (minxf < bminxf) {
+                    bminxf = minxf;
+                }
+                if (maxxf > bmaxxf) {
+                    bmaxxf = maxxf;
+                }
+                if (minyf < bminyf) {
+                    bminyf = minyf;
+                }
+                if (maxyf > bmaxyf) {
+                    bmaxyf = maxyf;
+                }
+            }
+            return ValueGeometry.getFromGeometry(new GeometryFactory().toGeometry(
+                    new Envelope(bminxf, bmaxxf, bminyf, bmaxyf)));
+        }
+        return ValueNull.INSTANCE;
+    }
+
     private SpatialKey getKey(SearchRow row) {
         Value v = row.getValue(columnIds[0]);
         if (v == ValueNull.INSTANCE) {

@@ -23,7 +23,7 @@ import org.locationtech.jts.geom.GeometryFactory;
 /**
  * Data stored while calculating an aggregate.
  */
-class AggregateDataST_Extent extends AggregateData {
+class AggregateDataEnvelope extends AggregateData {
 
     private Envelope envelope;
 

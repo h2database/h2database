@@ -37,8 +37,8 @@ abstract class AggregateData {
             return new AggregateDataMedian();
         case MODE:
             return new AggregateDataMode();
-        case ST_EXTENT:
-            return new AggregateDataST_Extent();
+        case ENVELOPE:
+            return new AggregateDataEnvelope();
         default:
             return new AggregateDataDefault(aggregateType);
         }

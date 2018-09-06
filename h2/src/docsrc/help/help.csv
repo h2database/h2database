@@ -3438,7 +3438,7 @@ MODE() WITHIN GROUP(ORDER BY X)
 "
 
 "Functions (Aggregate)","ST_EXTENT","
-ST_EXTENT( value ) [ FILTER ( WHERE expression ) ]
+ENVELOPE( value ) [ FILTER ( WHERE expression ) ]
 ","
 Returns the minimum bounding box that encloses all specified GEOMETRY values.
 Only 2D coordinate plane is supported.
@@ -3446,7 +3446,7 @@ NULL values are ignored in the calculation.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
-ST_EXTENT(X)
+ENVELOPE(X)
 "
 
 "Functions (Numeric)","ABS","

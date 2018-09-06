@@ -8,12 +8,10 @@ package org.h2.expression.aggregate;
 import java.util.ArrayList;
 
 import org.h2.engine.Database;
-import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.index.Index;
 import org.h2.mvstore.db.MVSpatialIndex;
-import org.h2.mvstore.rtree.SpatialKey;
 import org.h2.table.Column;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
@@ -57,32 +55,6 @@ class AggregateDataST_Extent extends AggregateData {
             }
         }
         return null;
-    }
-
-    /**
-     * Get the result from the index.
-     *
-     * @param session
-     *            the session
-     * @param on
-     *            the expression
-     * @return the result
-     */
-    static Value getResultFromIndex(Session session, Expression on) {
-        MVSpatialIndex index = (MVSpatialIndex) getGeometryColumnIndex(on);
-        MVSpatialIndex.MVStoreCursor cursor = (MVSpatialIndex.MVStoreCursor) index.find(session, null, null);
-        Envelope envelope = new Envelope();
-        while (cursor.next()) {
-            SpatialKey key = cursor.getKey();
-            if (!key.isNull()) {
-                envelope.expandToInclude(key.min(0), key.min(1));
-                envelope.expandToInclude(key.max(0), key.max(1));
-            }
-        }
-        if (envelope.isNull()) {
-            return ValueNull.INSTANCE;
-        }
-        return ValueGeometry.getFromGeometry(new GeometryFactory().toGeometry(envelope));
     }
 
     @Override

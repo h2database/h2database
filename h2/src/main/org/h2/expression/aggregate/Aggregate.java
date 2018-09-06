@@ -19,6 +19,7 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.message.DbException;
+import org.h2.mvstore.db.MVSpatialIndex;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
@@ -378,7 +379,7 @@ public class Aggregate extends Expression {
             case MEDIAN:
                 return AggregateDataMedian.getResultFromIndex(session, on, dataType);
             case ST_EXTENT:
-                return AggregateDataST_Extent.getResultFromIndex(session, on);
+                return ((MVSpatialIndex) AggregateDataST_Extent.getGeometryColumnIndex(on)).getBounds(session);
             default:
                 DbException.throwInternalError("type=" + type);
             }

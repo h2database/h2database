@@ -35,6 +35,7 @@ public class TestLocalResultFactory extends TestDb {
         Connection conn = getConnection("localResultFactory;LOCAL_RESULT_FACTORY=\"" +
             MyTestLocalResultFactory.class.getName() + '"');
         Statement stat = conn.createStatement();
+
         stat.execute("create table t1(id int, name varchar)");
         for (int i = 0; i < 1000; i++) {
             stat.execute("insert into t1 values(" + i + ", 'name')");
@@ -42,7 +43,6 @@ public class TestLocalResultFactory extends TestDb {
         assertEquals(MyTestLocalResultFactory.COUNTER.get(), 0);
 
         stat.execute("select * from t1");
-
         assertEquals(MyTestLocalResultFactory.COUNTER.get(),  1);
 
         conn.close();

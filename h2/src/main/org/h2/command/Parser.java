@@ -141,7 +141,6 @@ import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.Procedure;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
-import org.h2.engine.SysProperties;
 import org.h2.engine.User;
 import org.h2.engine.UserAggregate;
 import org.h2.engine.UserDataType;
@@ -2809,41 +2808,7 @@ public class Parser {
                     }
                     read(CLOSE_PAREN);
                 } else {
-                    Expression right = readConcat();
-                    if (SysProperties.OLD_STYLE_OUTER_JOIN &&
-                            readIf(OPEN_PAREN) && readIf(PLUS_SIGN) && readIf(CLOSE_PAREN)) {
-                        // support for a subset of old-fashioned Oracle outer
-                        // join with (+)
-                        if (r instanceof ExpressionColumn &&
-                                right instanceof ExpressionColumn) {
-                            ExpressionColumn leftCol = (ExpressionColumn) r;
-                            ExpressionColumn rightCol = (ExpressionColumn) right;
-                            ArrayList<TableFilter> filters = currentSelect
-                                    .getTopFilters();
-                            for (TableFilter f : filters) {
-                                while (f != null) {
-                                    leftCol.mapColumns(f, 0);
-                                    rightCol.mapColumns(f, 0);
-                                    f = f.getJoin();
-                                }
-                            }
-                            TableFilter leftFilter = leftCol.getTableFilter();
-                            TableFilter rightFilter = rightCol.getTableFilter();
-                            r = new Comparison(session, compareType, r, right);
-                            if (leftFilter != null && rightFilter != null) {
-                                int idx = filters.indexOf(rightFilter);
-                                if (idx >= 0) {
-                                    filters.remove(idx);
-                                    leftFilter.addJoin(rightFilter, true, r);
-                                } else {
-                                    rightFilter.mapAndAddFilter(r);
-                                }
-                                r = ValueExpression.get(ValueBoolean.TRUE);
-                            }
-                        }
-                    } else {
-                        r = new Comparison(session, compareType, r, right);
-                    }
+                    r = new Comparison(session, compareType, r, readConcat());
                 }
             }
             if (not) {
@@ -3313,12 +3278,7 @@ public class Parser {
         }
         String name = readColumnIdentifier();
         Schema s = database.findSchema(objectName);
-        if ((!SysProperties.OLD_STYLE_OUTER_JOIN || s != null) && readIf(OPEN_PAREN)) {
-            // only if the token before the dot is a valid schema name,
-            // otherwise the old style Oracle outer join doesn't work:
-            // t.x = t2.x(+)
-            // this additional check is not required
-            // if the old style outer joins are not supported
+        if (readIf(OPEN_PAREN)) {
             return readFunction(s, name);
         } else if (readIf(DOT)) {
             String schema = objectName;

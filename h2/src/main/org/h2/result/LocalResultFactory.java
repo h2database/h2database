@@ -39,43 +39,6 @@ public abstract class LocalResultFactory {
     public abstract LocalResult create();
 
     /**
-     * Default implementation of local result factory.
-     */
-    static final class DefaultLocalResultFactory extends LocalResultFactory {
-        @Override
-        public LocalResult create(Session session, Expression[] expressions, int visibleColumnCount) {
-            return new LocalResultImpl(session, expressions, visibleColumnCount);
-        }
-
-        @Override
-        public LocalResult create() {
-            return new LocalResultImpl();
-        }
-    }
-
-    /**
-     * Create a local result object by factory registered at the database.
-     *
-     * @param session the session
-     * @param expressions the expression array
-     * @param visibleColumnCount the number of visible columns
-     * @return objetc to collect local result.
-     */
-    public static LocalResult createRow(Session session, Expression[] expressions, int visibleColumnCount) {
-        return session.getDatabase().getLocalResultFactory().create(session, expressions, visibleColumnCount);
-    }
-
-    /**
-     * Create a local result object by factory registered at the database.
-     *
-     * @param session the session
-     * @return objetc to collect local result.
-     */
-    public static LocalResult createRow(Session session) {
-        return session.getDatabase().getLocalResultFactory().create();
-    }
-
-    /**
      * Construct a local result set by reading all data from a regular result
      * set.
      *
@@ -87,7 +50,7 @@ public abstract class LocalResultFactory {
     public static LocalResult read(Session session, ResultSet rs, int maxrows) {
         Expression[] cols = Expression.getExpressionColumns(session, rs);
         int columnCount = cols.length;
-        LocalResult result = session.getDatabase().getLocalResultFactory().create(session, cols, columnCount);
+        LocalResult result = session.getDatabase().getResultFactory().create(session, cols, columnCount);
         try {
             for (int i = 0; (maxrows == 0 || i < maxrows) && rs.next(); i++) {
                 Value[] list = new Value[columnCount];
@@ -104,4 +67,25 @@ public abstract class LocalResultFactory {
         return result;
     }
 
+    /**
+     * Default implementation of local result factory.
+     */
+    private static final class DefaultLocalResultFactory extends LocalResultFactory {
+        /**
+         *
+         */
+        DefaultLocalResultFactory() {
+            //No-op.
+        }
+
+        @Override
+        public LocalResult create(Session session, Expression[] expressions, int visibleColumnCount) {
+            return new LocalResultImpl(session, expressions, visibleColumnCount);
+        }
+
+        @Override
+        public LocalResult create() {
+            return new LocalResultImpl();
+        }
+    }
 }

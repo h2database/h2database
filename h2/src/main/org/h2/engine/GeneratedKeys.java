@@ -13,7 +13,6 @@ import java.util.Map;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.result.LocalResult;
-import org.h2.result.LocalResultFactory;
 import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
@@ -129,7 +128,7 @@ public final class GeneratedKeys {
         Database db = session.getDatabase();
         if (Boolean.FALSE.equals(generatedKeysRequest)) {
             clear(null);
-            return LocalResultFactory.createRow(session);
+            return session.getDatabase().getResultFactory().create();
         }
         ArrayList<ExpressionColumn> expressionColumns;
         if (Boolean.TRUE.equals(generatedKeysRequest)) {
@@ -153,7 +152,7 @@ public final class GeneratedKeys {
                 }
             } else {
                 clear(null);
-                return LocalResultFactory.createRow(session);
+                return session.getDatabase().getResultFactory().create();
             }
         } else if (generatedKeysRequest instanceof String[]) {
             if (table != null) {
@@ -183,18 +182,19 @@ public final class GeneratedKeys {
                 }
             } else {
                 clear(null);
-                return LocalResultFactory.createRow(session);
+                return session.getDatabase().getResultFactory().create();
             }
         } else {
             clear(null);
-            return LocalResultFactory.createRow(session);
+            return session.getDatabase().getResultFactory().create();
         }
         int columnCount = expressionColumns.size();
         if (columnCount == 0) {
             clear(null);
-            return LocalResultFactory.createRow(session);
+            return session.getDatabase().getResultFactory().create();
         }
-        LocalResult result = LocalResultFactory.createRow(session, expressionColumns.toArray(new Expression[0]), columnCount);
+        LocalResult result = session.getDatabase().getResultFactory().create(session,
+            expressionColumns.toArray(new Expression[0]), columnCount);
         for (Map<Column, Value> map : data) {
             Value[] row = new Value[columnCount];
             for (Map.Entry<Column, Value> entry : map.entrySet()) {

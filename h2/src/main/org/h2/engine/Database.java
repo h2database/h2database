@@ -41,7 +41,6 @@ import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.MVTableEngine;
-import org.h2.result.LocalResult;
 import org.h2.result.LocalResultFactory;
 import org.h2.result.Row;
 import org.h2.result.RowFactory;
@@ -372,11 +371,11 @@ public class Database implements DataHandler {
         this.rowFactory = rowFactory;
     }
 
-    public LocalResultFactory getLocalResultFactory() {
+    public LocalResultFactory getResultFactory() {
         return resultFactory;
     }
 
-    public void setLocalResultFactory(LocalResultFactory resultFactory) {
+    public void setResultFactory(LocalResultFactory resultFactory) {
         this.resultFactory = resultFactory;
     }
 

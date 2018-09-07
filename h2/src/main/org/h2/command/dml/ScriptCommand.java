@@ -43,7 +43,6 @@ import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
-import org.h2.result.LocalResultFactory;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Constant;
@@ -138,7 +137,7 @@ public class ScriptCommand extends ScriptBase {
     private LocalResult createResult() {
         Expression[] expressions = { new ExpressionColumn(
                 session.getDatabase(), new Column("SCRIPT", Value.STRING)) };
-        return LocalResultFactory.createRow(session, expressions, 1);
+        return session.getDatabase().getResultFactory().create(session, expressions, 1);
     }
 
     @Override

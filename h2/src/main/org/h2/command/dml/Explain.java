@@ -16,7 +16,6 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.mvstore.db.MVTableEngine.Store;
 import org.h2.result.LocalResult;
-import org.h2.result.LocalResultFactory;
 import org.h2.result.ResultInterface;
 import org.h2.store.PageStore;
 import org.h2.table.Column;
@@ -73,7 +72,7 @@ public class Explain extends Prepared {
         Database db = session.getDatabase();
         ExpressionColumn expr = new ExpressionColumn(db, column);
         Expression[] expressions = { expr };
-        result = LocalResultFactory.createRow(session, expressions, 1);
+        result = session.getDatabase().getResultFactory().create(session, expressions, 1);
         if (maxrows >= 0) {
             String plan;
             if (executeCommand) {

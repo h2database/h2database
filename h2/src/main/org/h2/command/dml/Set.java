@@ -566,7 +566,7 @@ public class Set extends Prepared {
             LocalResultFactory localResultFactory;
             try {
                 localResultFactory = localResultFactoryClass.getDeclaredConstructor().newInstance();
-                database.setLocalResultFactory(localResultFactory);
+                database.setResultFactory(localResultFactory);
             } catch (Exception e) {
                 throw DbException.convert(e);
             }

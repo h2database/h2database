@@ -35,9 +35,9 @@ public class Call extends Prepared {
         LocalResult result;
         if (isResultSet) {
             Expression[] expr = expression.getExpressionColumns(session);
-            result = LocalResultFactory.createRow(session, expr, expr.length);
+            result = session.getDatabase().getResultFactory().create(session, expr, expr.length);
         } else {
-            result = LocalResultFactory.createRow(session, expressions, 1);
+            result = session.getDatabase().getResultFactory().create(session, expressions, 1);
         }
         result.done();
         return result;
@@ -69,7 +69,7 @@ public class Call extends Prepared {
             ResultSet rs = v.getResultSet();
             return LocalResultFactory.read(session, rs, maxrows);
         }
-        LocalResult result = LocalResultFactory.createRow(session, expressions, 1);
+        LocalResult result = session.getDatabase().getResultFactory().create(session, expressions, 1);
         Value[] row = { v };
         result.addRow(row);
         result.done();

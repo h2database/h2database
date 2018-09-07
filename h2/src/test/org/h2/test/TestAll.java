@@ -47,7 +47,6 @@ import org.h2.test.db.TestLargeBlob;
 import org.h2.test.db.TestLinkedTable;
 import org.h2.test.db.TestListener;
 import org.h2.test.db.TestLob;
-import org.h2.test.db.TestLocalResultFactory;
 import org.h2.test.db.TestMemoryUsage;
 import org.h2.test.db.TestMergeUsing;
 import org.h2.test.db.TestMultiConn;
@@ -194,6 +193,7 @@ import org.h2.test.unit.TestIntIntHashMap;
 import org.h2.test.unit.TestIntPerfectHash;
 import org.h2.test.unit.TestInterval;
 import org.h2.test.unit.TestJmx;
+import org.h2.test.unit.TestLocalResultFactory;
 import org.h2.test.unit.TestLocale;
 import org.h2.test.unit.TestMathUtils;
 import org.h2.test.unit.TestMemoryUnmapper;
@@ -796,7 +796,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestViewDropView());
         addTest(new TestSynonymForTable());
         addTest(new TestColumnNamer());
-        addTest(new TestLocalResultFactory());
 
         // jdbc
         addTest(new TestBatchUpdates());
@@ -982,6 +981,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestTraceSystem());
         addTest(new TestUtils());
         addTest(new TestValueHashMap());
+        addTest(new TestLocalResultFactory());
 
         runAddedTests();
 

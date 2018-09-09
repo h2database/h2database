@@ -14,18 +14,17 @@ import org.h2.index.Index;
 import org.h2.mvstore.db.MVSpatialIndex;
 import org.h2.table.Column;
 import org.h2.table.TableFilter;
+import org.h2.util.geometry.GeometryUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueNull;
-import org.locationtech.jts.geom.Envelope;
-import org.locationtech.jts.geom.GeometryFactory;
 
 /**
  * Data stored while calculating an aggregate.
  */
 class AggregateDataEnvelope extends AggregateData {
 
-    private Envelope envelope;
+    private double[] envelope;
 
     /**
      * Get the index (if any) for the column specified in the geometry
@@ -62,18 +61,15 @@ class AggregateDataEnvelope extends AggregateData {
         if (v == ValueNull.INSTANCE) {
             return;
         }
-        if (envelope == null) {
-            envelope = new Envelope();
-        }
-        envelope.expandToInclude(((ValueGeometry) v.convertTo(Value.GEOMETRY)).getEnvelopeNoCopy());
+        envelope = GeometryUtils.union(envelope, ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getEnvelopeNoCopy());
     }
 
     @Override
     Value getValue(Database database, int dataType, boolean distinct) {
-        if (envelope == null || envelope.isNull()) {
+        if (envelope == null) {
             return ValueNull.INSTANCE;
         }
-        return ValueGeometry.getFromGeometry(new GeometryFactory().toGeometry(envelope));
+        return ValueGeometry.get(GeometryUtils.envelope2wkb(envelope));
     }
 
 }

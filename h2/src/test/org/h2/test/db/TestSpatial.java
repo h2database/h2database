@@ -612,12 +612,13 @@ public class TestSpatial extends TestDb {
         ValueGeometry geom3d = ValueGeometry.get(ewkt);
         assertEquals(ewkt, geom3d.getString());
         ValueGeometry copy = ValueGeometry.get(geom3d.getBytes());
-        assertEquals(6, copy.getGeometry().getCoordinates()[0].z);
-        assertEquals(5, copy.getGeometry().getCoordinates()[1].z);
-        assertEquals(4, copy.getGeometry().getCoordinates()[2].z);
+        Geometry g = (Geometry) copy.getGeometry();
+        assertEquals(6, g.getCoordinates()[0].z);
+        assertEquals(5, g.getCoordinates()[1].z);
+        assertEquals(4, g.getCoordinates()[2].z);
         // Test SRID
         copy = ValueGeometry.get(geom3d.getBytes());
-        assertEquals(27572, copy.getGeometry().getSRID());
+        assertEquals(27572, g.getSRID());
 
         Point point = new GeometryFactory().createPoint((new Coordinate(1.1d, 1.2d)));
         // SRID 0
@@ -696,7 +697,7 @@ public class TestSpatial extends TestDb {
         assertFalse(valueGeometry.equals(valueGeometry2));
         ValueGeometry valueGeometry3 = ValueGeometry.getFromGeometry(geometry);
         assertEquals(valueGeometry, valueGeometry3);
-        assertEquals(geometry.getSRID(), valueGeometry3.getGeometry().getSRID());
+        assertEquals(geometry.getSRID(), ((Geometry) valueGeometry3.getGeometry()).getSRID());
         // Check illegal geometry (no WKB representation)
         try {
             ValueGeometry.get("POINT EMPTY");

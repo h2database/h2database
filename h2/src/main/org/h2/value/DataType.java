@@ -898,7 +898,7 @@ public class DataType {
         case Value.RESULT_SET:
             return ResultSet.class.getName();
         case Value.GEOMETRY:
-            return GEOMETRY_CLASS_NAME;
+            return GEOMETRY_CLASS != null ? GEOMETRY_CLASS_NAME : String.class.getName();
         case Value.INTERVAL_YEAR:
         case Value.INTERVAL_MONTH:
         case Value.INTERVAL_DAY:

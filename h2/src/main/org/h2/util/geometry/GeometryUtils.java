@@ -550,22 +550,26 @@ public final class GeometryUtils {
         } else if (envelope2 == null) {
             return envelope1;
         }
-
         double minX1 = envelope1[MIN_X], maxX1 = envelope1[MAX_X], minY1 = envelope1[MIN_Y], maxY1 = envelope1[MAX_Y];
         double minX2 = envelope2[MIN_X], maxX2 = envelope2[MAX_X], minY2 = envelope2[MIN_Y], maxY2 = envelope2[MAX_Y];
+        boolean modified = false;
         if (minX1 > minX2) {
             minX1 = minX2;
+            modified = true;
         }
         if (maxX1 < maxX2) {
             maxX1 = maxX2;
+            modified = true;
         }
         if (minY1 > minY2) {
             minY1 = minY2;
+            modified = true;
         }
         if (maxY1 < maxY2) {
             maxY1 = maxY2;
+            modified = true;
         }
-        return new double[] { minX1, maxX1, minY1, maxY1 };
+        return modified ? new double[] { minX1, maxX1, minY1, maxY1 } : envelope1;
     }
 
     /**

@@ -13,8 +13,10 @@ import org.h2.message.DbException;
 import org.h2.util.Bits;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
+import org.h2.util.geometry.EWKBUtils;
 import org.h2.util.geometry.EWKTUtils;
 import org.h2.util.geometry.GeometryUtils;
+import org.h2.util.geometry.GeometryUtils.EnvelopeAndDimensionSystemTarget;
 import org.h2.util.geometry.JTSUtils;
 import org.locationtech.jts.geom.Geometry;
 
@@ -40,10 +42,9 @@ public class ValueGeometry extends Value {
     private final int hashCode;
 
     /**
-     * The value. Converted from WKB only on request as conversion from/to WKB
-     * cost a significant amount of CPU cycles.
+     * Dimension system. -1 if not known yet.
      */
-    private Object geometry;
+    private int dimensionSystem;
 
     /**
      * The envelope of the value. Calculated only on request.
@@ -51,13 +52,23 @@ public class ValueGeometry extends Value {
     private double[] envelope;
 
     /**
-     * Create a new geometry objects.
+     * The value. Converted from WKB only on request as conversion from/to WKB
+     * cost a significant amount of CPU cycles.
+     */
+    private Object geometry;
+
+    /**
+     * Create a new geometry object.
      *
      * @param bytes the EWKB bytes
+     * @param dimensionSystem dimension system
+     * @param envelope the envelope
      */
-    private ValueGeometry(byte[] bytes) {
+    private ValueGeometry(byte[] bytes, int dimensionSystem, double[] envelope) {
         this.bytes = bytes;
         this.hashCode = Arrays.hashCode(bytes);
+        this.dimensionSystem = dimensionSystem;
+        this.envelope = envelope;
     }
 
     /**
@@ -68,7 +79,16 @@ public class ValueGeometry extends Value {
      * @return the value
      */
     public static ValueGeometry getFromGeometry(Object o) {
-        return get(JTSUtils.geometry2ewkb((Geometry) o));
+        try {
+            EnvelopeAndDimensionSystemTarget target = new EnvelopeAndDimensionSystemTarget();
+            Geometry g = (Geometry) o;
+            JTSUtils.parseGeometry(g, target);
+            int dimensionSystem = target.getDimensionSystem();
+            return (ValueGeometry) Value.cache(new ValueGeometry(JTSUtils.geometry2ewkb(g, dimensionSystem),
+                    dimensionSystem, target.getEnvelope()));
+        } catch (RuntimeException ex) {
+            throw DbException.convert(ex);
+        }
     }
 
     /**
@@ -79,7 +99,11 @@ public class ValueGeometry extends Value {
      */
     public static ValueGeometry get(String s) {
         try {
-            return get(EWKTUtils.ewkt2ewkb(s));
+            EnvelopeAndDimensionSystemTarget target = new EnvelopeAndDimensionSystemTarget();
+            EWKTUtils.parseEWKT(s, target);
+            int dimensionSystem = target.getDimensionSystem();
+            return (ValueGeometry) Value.cache(new ValueGeometry(EWKTUtils.ewkt2ewkb(s, dimensionSystem),
+                    dimensionSystem, target.getEnvelope()));
         } catch (RuntimeException ex) {
             throw DbException.convert(ex);
         }
@@ -98,13 +122,42 @@ public class ValueGeometry extends Value {
     }
 
     /**
-     * Get or create a geometry value for the given geometry.
+     * Get or create a geometry value for the given internal EWKB representation.
+     *
+     * @param bytes the WKB representation of the geometry. May not be modified.
+     * @return the value
+     */
+    public static ValueGeometry get(byte[] bytes) {
+        return (ValueGeometry) Value.cache(new ValueGeometry(bytes, -1, null));
+    }
+
+    /**
+     * Get or create a geometry value for the given EWKB value.
      *
      * @param bytes the WKB representation of the geometry
      * @return the value
      */
-    public static ValueGeometry get(byte[] bytes) {
-        return (ValueGeometry) Value.cache(new ValueGeometry(bytes));
+    public static ValueGeometry getFromEWKB(byte[] bytes) {
+        try {
+            EnvelopeAndDimensionSystemTarget target = new EnvelopeAndDimensionSystemTarget();
+            EWKBUtils.parseEWKB(bytes, target);
+            int dimensionSystem = target.getDimensionSystem();
+            return (ValueGeometry) Value.cache(new ValueGeometry(EWKBUtils.ewkb2ewkb(bytes, dimensionSystem),
+                    dimensionSystem, target.getEnvelope()));
+        } catch (RuntimeException ex) {
+            throw DbException.convert(ex);
+        }
+    }
+
+    /**
+     * Creates a geometry value for the given envelope.
+     *
+     * @param envelope envelope. May not be modified.
+     * @return the value
+     */
+    public static ValueGeometry fromEnvelope(double[] envelope) {
+        return (ValueGeometry) Value.cache(new ValueGeometry(GeometryUtils.envelope2wkb(envelope),
+                GeometryUtils.DIMENSION_SYSTEM_XY, envelope));
     }
 
     /**
@@ -116,7 +169,7 @@ public class ValueGeometry extends Value {
     public Object getGeometry() {
         if (geometry == null) {
             try {
-                geometry = JTSUtils.ewkb2geometry(bytes);
+                geometry = JTSUtils.ewkb2geometry(bytes, getDimensionSystem());
             } catch (RuntimeException ex) {
                 throw DbException.convert(ex);
             }
@@ -153,15 +206,32 @@ public class ValueGeometry extends Value {
         return 0;
     }
 
+    private void calculateInfo() {
+        if (dimensionSystem < 0) {
+            EnvelopeAndDimensionSystemTarget target = new EnvelopeAndDimensionSystemTarget();
+            EWKBUtils.parseEWKB(bytes, target);
+            envelope = target.getEnvelope();
+            dimensionSystem = target.getDimensionSystem();
+        }
+    }
+
+    /**
+     * Return a minimal dimension system that can be used for this geometry.
+     *
+     * @return dimension system
+     */
+    public int getDimensionSystem() {
+        calculateInfo();
+        return dimensionSystem;
+    }
+
     /**
      * Return an envelope of this geometry. Do not modify the returned value.
      *
      * @return envelope of this geometry
      */
     public double[] getEnvelopeNoCopy() {
-        if (envelope == null) {
-            envelope = GeometryUtils.getEnvelope(bytes);
-        }
+        calculateInfo();
         return envelope;
     }
 
@@ -183,7 +253,7 @@ public class ValueGeometry extends Value {
      * @return the union of this geometry envelope and another geometry envelope
      */
     public Value getEnvelopeUnion(ValueGeometry r) {
-        return get(GeometryUtils.envelope2wkb(GeometryUtils.union(getEnvelopeNoCopy(), r.getEnvelopeNoCopy())));
+        return fromEnvelope(GeometryUtils.union(getEnvelopeNoCopy(), r.getEnvelopeNoCopy()));
     }
 
     @Override
@@ -247,12 +317,12 @@ public class ValueGeometry extends Value {
 
     @Override
     public int getMemory() {
-        return getEWKB().length * 20 + 24;
+        return bytes.length * 20 + 24;
     }
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof ValueGeometry && Arrays.equals(getEWKB(), ((ValueGeometry) other).getEWKB());
+        return other instanceof ValueGeometry && Arrays.equals(bytes, ((ValueGeometry) other).bytes);
     }
 
     /**
@@ -261,7 +331,7 @@ public class ValueGeometry extends Value {
      * @return the extended well-known text
      */
     public String getEWKT() {
-        return EWKTUtils.ewkb2ewkt(bytes);
+        return EWKTUtils.ewkb2ewkt(bytes, getDimensionSystem());
     }
 
     /**

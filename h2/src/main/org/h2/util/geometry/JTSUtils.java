@@ -198,10 +198,23 @@ public final class JTSUtils {
     public static Geometry ewkb2geometry(byte[] ewkb) {
         // Determine dimension system first
         DimensionSystemTarget dimensionTarget = new DimensionSystemTarget();
-        EWKBUtils.parseEKWB(ewkb, dimensionTarget);
+        EWKBUtils.parseEWKB(ewkb, dimensionTarget);
         // Generate a Geometry
-        GeometryTarget target = new GeometryTarget(dimensionTarget.getDimensionSystem());
-        EWKBUtils.parseEKWB(ewkb, target);
+        return ewkb2geometry(ewkb, dimensionTarget.getDimensionSystem());
+    }
+
+    /**
+     * Converts EWKB to a JTS geometry object.
+     *
+     * @param ewkb
+     *            source EWKB
+     * @param dimensionSystem
+     *            dimension system
+     * @return JTS geometry object
+     */
+    public static Geometry ewkb2geometry(byte[] ewkb, int dimensionSystem) {
+        GeometryTarget target = new GeometryTarget(dimensionSystem);
+        EWKBUtils.parseEWKB(ewkb, target);
         return target.getGeometry();
     }
 
@@ -217,8 +230,22 @@ public final class JTSUtils {
         DimensionSystemTarget dimensionTarget = new DimensionSystemTarget();
         parseGeometry(geometry, dimensionTarget);
         // Write an EWKB
+        return geometry2ewkb(geometry, dimensionTarget.getDimensionSystem());
+    }
+
+    /**
+     * Converts Geometry to EWKB.
+     *
+     * @param geometry
+     *            source geometry
+     * @param dimensionSystem
+     *            dimension system
+     * @return EWKB representation
+     */
+    public static byte[] geometry2ewkb(Geometry geometry, int dimensionSystem) {
+        // Write an EWKB
         ByteArrayOutputStream output = new ByteArrayOutputStream();
-        EWKBTarget target = new EWKBTarget(output, dimensionTarget.getDimensionSystem());
+        EWKBTarget target = new EWKBTarget(output, dimensionSystem);
         parseGeometry(geometry, target);
         return output.toByteArray();
     }
@@ -231,7 +258,7 @@ public final class JTSUtils {
      * @param target
      *            output target
      */
-    private static void parseGeometry(Geometry geometry, Target target) {
+    public static void parseGeometry(Geometry geometry, Target target) {
         parseGeometry(geometry, target, 0, 0);
     }
 

@@ -156,7 +156,7 @@ public class TestGeometryUtils extends TestBase {
         Envelope envelopeFromJTS = geometryFromJTS.getEnvelopeInternal();
         testEnvelope(envelopeFromJTS, GeometryUtils.getEnvelope(wkbFromJTS));
         EnvelopeAndDimensionSystemTarget target = new EnvelopeAndDimensionSystemTarget();
-        EWKBUtils.parseEKWB(wkbFromJTS, target);
+        EWKBUtils.parseEWKB(wkbFromJTS, target);
         testEnvelope(envelopeFromJTS, target.getEnvelope());
 
         // Test dimensions
@@ -242,10 +242,10 @@ public class TestGeometryUtils extends TestBase {
 
     private void testDimensions(int expected, byte[] ewkb) {
         DimensionSystemTarget dst = new DimensionSystemTarget();
-        EWKBUtils.parseEKWB(ewkb, dst);
+        EWKBUtils.parseEWKB(ewkb, dst);
         assertEquals(expected, dst.getDimensionSystem());
         EnvelopeAndDimensionSystemTarget envelopeAndDimensionTarget = new EnvelopeAndDimensionSystemTarget();
-        EWKBUtils.parseEKWB(ewkb, envelopeAndDimensionTarget);
+        EWKBUtils.parseEWKB(ewkb, envelopeAndDimensionTarget);
         assertEquals(expected, envelopeAndDimensionTarget.getDimensionSystem());
     }
 

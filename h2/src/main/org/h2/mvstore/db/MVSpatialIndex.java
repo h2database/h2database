@@ -34,7 +34,6 @@ import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
-import org.h2.util.geometry.GeometryUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueLong;
@@ -268,7 +267,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
                     bmaxyf = maxyf;
                 }
             }
-            return ValueGeometry.get(GeometryUtils.envelope2wkb(new double[] {bminxf, bmaxxf, bminyf, bmaxyf}));
+            return ValueGeometry.fromEnvelope(new double[] {bminxf, bmaxxf, bminyf, bmaxyf});
         }
         return ValueNull.INSTANCE;
     }
@@ -514,8 +513,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         }
 
         Value getBounds() {
-            return hasBounds ? ValueGeometry.get(
-                    GeometryUtils.envelope2wkb(new double[] {bminxd, bmaxxd, bminyd, bmaxyd}))
+            return hasBounds ? ValueGeometry.fromEnvelope(new double[] {bminxd, bmaxxd, bminyd, bmaxyd})
                     : ValueNull.INSTANCE;
         }
 

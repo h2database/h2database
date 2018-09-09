@@ -468,7 +468,7 @@ public final class GeometryUtils {
      */
     public static double[] getEnvelope(byte[] ewkb) {
         EnvelopeAndDimensionSystemTarget target = new EnvelopeAndDimensionSystemTarget();
-        EWKBUtils.parseEKWB(ewkb, target);
+        EWKBUtils.parseEWKB(ewkb, target);
         return target.getEnvelope();
     }
 

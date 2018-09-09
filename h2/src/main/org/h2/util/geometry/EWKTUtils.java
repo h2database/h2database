@@ -442,11 +442,24 @@ public final class EWKTUtils {
     public static String ewkb2ewkt(byte[] ewkb) {
         // Determine dimension system first
         DimensionSystemTarget dimensionTarget = new DimensionSystemTarget();
-        EWKBUtils.parseEKWB(ewkb, dimensionTarget);
+        EWKBUtils.parseEWKB(ewkb, dimensionTarget);
         // Write an EWKT
+        return ewkb2ewkt(ewkb, dimensionTarget.getDimensionSystem());
+    }
+
+    /**
+     * Converts EWKB to EWKT.
+     *
+     * @param ewkb
+     *            source EWKB
+     * @param dimension
+     *            dimension system
+     * @return EWKT representation
+     */
+    public static String ewkb2ewkt(byte[] ewkb, int dimensionSystem) {
         StringBuilder output = new StringBuilder();
-        EWKTTarget target = new EWKTTarget(output, dimensionTarget.getDimensionSystem());
-        EWKBUtils.parseEKWB(ewkb, target);
+        EWKTTarget target = new EWKTTarget(output, dimensionSystem);
+        EWKBUtils.parseEWKB(ewkb, target);
         return output.toString();
     }
 
@@ -462,8 +475,21 @@ public final class EWKTUtils {
         DimensionSystemTarget dimensionTarget = new DimensionSystemTarget();
         parseEWKT(ewkt, dimensionTarget);
         // Write an EWKB
+        return ewkt2ewkb(ewkt, dimensionTarget.getDimensionSystem());
+    }
+
+    /**
+     * Converts EWKT to EWKB.
+     *
+     * @param ewkt
+     *            source EWKT
+     * @param dimension
+     *            dimension system
+     * @return EWKB representation
+     */
+    public static byte[] ewkt2ewkb(String ewkt, int dimensionSystem) {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
-        EWKBTarget target = new EWKBTarget(output, dimensionTarget.getDimensionSystem());
+        EWKBTarget target = new EWKBTarget(output, dimensionSystem);
         parseEWKT(ewkt, target);
         return output.toByteArray();
     }

@@ -69,7 +69,7 @@ class AggregateDataEnvelope extends AggregateData {
         if (envelope == null) {
             return ValueNull.INSTANCE;
         }
-        return ValueGeometry.get(GeometryUtils.envelope2wkb(envelope));
+        return ValueGeometry.fromEnvelope(envelope);
     }
 
 }

@@ -237,11 +237,26 @@ public final class EWKBUtils {
     public static byte[] ewkb2ewkb(byte[] ewkb) {
         // Determine dimension system first
         DimensionSystemTarget dimensionTarget = new DimensionSystemTarget();
-        parseEKWB(ewkb, dimensionTarget);
+        parseEWKB(ewkb, dimensionTarget);
         // Write an EWKB
+        return ewkb2ewkb(ewkb, dimensionTarget.getDimensionSystem());
+    }
+
+    /**
+     * Converts any supported EWKB to EWKB representation that is used by this
+     * class. Reduces dimension system to minimal possible and uses EWKB flags
+     * for dimension system indication. May also perform other changes.
+     *
+     * @param ewkb
+     *            source EWKB
+     * @param dimension
+     *            dimension system
+     * @return canonical EWKB, may be the same as the source
+     */
+    public static byte[] ewkb2ewkb(byte[] ewkb, int dimensionSystem) {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
-        EWKBTarget target = new EWKBTarget(output, dimensionTarget.getDimensionSystem());
-        parseEKWB(ewkb, target);
+        EWKBTarget target = new EWKBTarget(output, dimensionSystem);
+        parseEWKB(ewkb, target);
         return output.toByteArray();
     }
 
@@ -253,8 +268,8 @@ public final class EWKBUtils {
      * @param target
      *            output target
      */
-    public static void parseEKWB(byte[] ewkb, Target target) {
-        parseEKWB(new EWKBSource(ewkb), target, 0, 0);
+    public static void parseEWKB(byte[] ewkb, Target target) {
+        parseEWKB(new EWKBSource(ewkb), target, 0, 0);
     }
 
     /**
@@ -270,7 +285,7 @@ public final class EWKBUtils {
      *            SRID of a parent geometry collection, or any value for the
      *            root geometry (will be determined from the EWKB instead)
      */
-    private static void parseEKWB(EWKBSource source, Target target, int parentType, int parentSrid) {
+    private static void parseEWKB(EWKBSource source, Target target, int parentType, int parentSrid) {
         try {
             // Read byte order of a next geometry
             switch (source.readByte()) {
@@ -374,7 +389,7 @@ public final class EWKBUtils {
                 target.startCollection(type, srid, numItems);
                 for (int i = 0; i < numItems; i++) {
                     Target innerTarget = target.startCollectionItem(i, numItems);
-                    parseEKWB(source, innerTarget, type, srid);
+                    parseEWKB(source, innerTarget, type, srid);
                     target.endCollectionItem(innerTarget, i, numItems);
                 }
                 target.endCollection(type);

@@ -793,4 +793,4 @@ immediate hhmmss scheduled hhmm prematurely postponed arranges subexpression sub
 minxf maxxf minyf maxyf bminxf bmaxxf bminyf bmaxyf
 minxd maxxd minyd maxyd bminxd bmaxxd bminyd bmaxyd
 interior envelopes multilinestring multipoint packed exterior normalization awkward determination subgeometries
-xym ekwb normalizes coord setz xyzm geometrycollection multipolygon mixup rings polygons
+xym normalizes coord setz xyzm geometrycollection multipolygon mixup rings polygons

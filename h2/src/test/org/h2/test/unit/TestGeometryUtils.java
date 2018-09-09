@@ -14,7 +14,6 @@ import static org.h2.util.geometry.GeometryUtils.X;
 import static org.h2.util.geometry.GeometryUtils.Y;
 import static org.h2.util.geometry.GeometryUtils.Z;
 
-import java.util.Locale;
 import java.util.Random;
 
 import org.h2.test.TestBase;
@@ -145,11 +144,10 @@ public class TestGeometryUtils extends TestBase {
 
         // Test WKB->Geometry conversion
         Geometry geometryFromH2 = JTSUtils.ewkb2geometry(wkbFromJTS);
-        // JTS has a bug with NaN on non-English locales
-        Locale l = Locale.getDefault();
-        Locale.setDefault(Locale.ENGLISH);
-        assertEquals(jtsWkt.replaceAll(" Z", ""), new WKTWriter(numOfDimensions).write(geometryFromH2));
-        Locale.setDefault(l);
+        // JTS has locale-specific bugs with NaNs, also such geometries are not fully valid
+        if (!wkt.contains("NaN")) {
+            assertEquals(jtsWkt.replaceAll(" Z", ""), new WKTWriter(numOfDimensions).write(geometryFromH2));
+        }
 
         // Test Geometry->WKB conversion
         assertEquals(wkbFromJTS, JTSUtils.geometry2ewkb(geometryFromJTS));

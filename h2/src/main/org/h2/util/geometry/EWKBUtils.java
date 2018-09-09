@@ -195,7 +195,7 @@ public final class EWKBUtils {
             long v = Bits.readLong(ewkb, offset);
             offset += 8;
             if (!bigEndian) {
-                Long.reverseBytes(v);
+                v = Long.reverseBytes(v);
             }
             return toCanonicalDouble(Double.longBitsToDouble(v));
         }

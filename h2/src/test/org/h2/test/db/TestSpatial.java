@@ -13,10 +13,12 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.Random;
 import org.h2.api.Aggregate;
+import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.tools.SimpleResultSet;
 import org.h2.tools.SimpleRowSource;
+import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueGeometry;
@@ -608,7 +610,7 @@ public class TestSpatial extends TestDb {
      * Test serialization of Z and SRID values.
      */
     private void testWKB() {
-        String ewkt = "SRID=27572;POLYGON ((67 13 6, 67 18 5, 59 18 4, 59 13 6, 67 13 6))";
+        String ewkt = "SRID=27572;POLYGON Z ((67 13 6, 67 18 5, 59 18 4, 59 13 6, 67 13 6))";
         ValueGeometry geom3d = ValueGeometry.get(ewkt);
         assertEquals(ewkt, geom3d.getString());
         ValueGeometry copy = ValueGeometry.get(geom3d.getBytes());
@@ -701,8 +703,8 @@ public class TestSpatial extends TestDb {
         // Check illegal geometry (no WKB representation)
         try {
             ValueGeometry.get("POINT EMPTY");
-            fail("expected this to throw IllegalArgumentException");
-        } catch (IllegalArgumentException ex) {
+            fail("expected exception");
+        } catch (IllegalArgumentException | DbException ex) {
             // expected
         }
     }

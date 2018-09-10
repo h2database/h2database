@@ -75,6 +75,11 @@ public final class JTSUtils {
             this.dimensionSystem = dimensionSystem;
         }
 
+        private GeometryTarget(int dimensionSystem, GeometryFactory factory) {
+            this.dimensionSystem = dimensionSystem;
+            this.factory = factory;
+        }
+
         @Override
         protected void startPoint(int srid) {
             init(POINT, srid);
@@ -125,7 +130,7 @@ public final class JTSUtils {
 
         @Override
         protected Target startCollectionItem(int index, int total) {
-            return new GeometryTarget(dimensionSystem);
+            return new GeometryTarget(dimensionSystem, factory);
         }
 
         @Override
@@ -134,9 +139,11 @@ public final class JTSUtils {
         }
 
         private void init(int type, int srid) {
-            factory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), srid,
-                    (dimensionSystem & DIMENSION_SYSTEM_XYM) != 0 ? PackedCoordinateSequenceFactory.DOUBLE_FACTORY
-                            : CoordinateArraySequenceFactory.instance());
+            if (factory == null) {
+                factory = new GeometryFactory(new PrecisionModel(), srid,
+                        (dimensionSystem & DIMENSION_SYSTEM_XYM) != 0 ? PackedCoordinateSequenceFactory.DOUBLE_FACTORY
+                                : CoordinateArraySequenceFactory.instance());
+            }
             this.type = type;
         }
 

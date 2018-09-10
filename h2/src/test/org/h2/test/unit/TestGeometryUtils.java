@@ -177,11 +177,7 @@ public class TestGeometryUtils extends TestBase {
 
         // Test WKB->Geometry conversion
         Geometry geometryFromH2 = JTSUtils.ewkb2geometry(wkbFromJTS);
-        // JTS has locale-specific bugs with NaNs, also such geometries are not
-        // fully valid
-        if (!wkt.contains("NaN")) {
-            assertEquals(jtsWkt.replaceAll(" Z", ""), new WKTWriter(numOfDimensions).write(geometryFromH2));
-        }
+        assertEquals(jtsWkt.replaceAll(" Z", ""), new WKTWriter(numOfDimensions).write(geometryFromH2));
 
         // Test Geometry->WKB conversion
         assertEquals(wkbFromJTS, JTSUtils.geometry2ewkb(geometryFromJTS));
@@ -203,19 +199,12 @@ public class TestGeometryUtils extends TestBase {
             assertNull(envelopeFromH2);
             assertNull(GeometryUtils.envelope2wkb(envelopeFromH2));
         } else {
-            double minX = envelopeFromJTS.getMinX(), maxX = envelopeFromJTS.getMaxX();
-            double minY = envelopeFromJTS.getMinY(), maxY = envelopeFromJTS.getMaxY();
-            if (Double.isNaN(minX) || Double.isNaN(maxX) || Double.isNaN(minY) || Double.isNaN(maxY)) {
-                assertNull(envelopeFromH2);
-                assertNull(GeometryUtils.envelope2wkb(envelopeFromH2));
-            } else {
-                assertEquals(minX, envelopeFromH2[0]);
-                assertEquals(maxX, envelopeFromH2[1]);
-                assertEquals(minY, envelopeFromH2[2]);
-                assertEquals(maxY, envelopeFromH2[3]);
-                assertEquals(new WKBWriter(2).write(new GeometryFactory().toGeometry(envelopeFromJTS)),
-                        GeometryUtils.envelope2wkb(envelopeFromH2));
-            }
+            assertEquals(envelopeFromJTS.getMinX(), envelopeFromH2[0]);
+            assertEquals(envelopeFromJTS.getMaxX(), envelopeFromH2[1]);
+            assertEquals(envelopeFromJTS.getMinY(), envelopeFromH2[2]);
+            assertEquals(envelopeFromJTS.getMaxY(), envelopeFromH2[3]);
+            assertEquals(new WKBWriter(2).write(new GeometryFactory().toGeometry(envelopeFromJTS)),
+                    GeometryUtils.envelope2wkb(envelopeFromH2));
         }
     }
 

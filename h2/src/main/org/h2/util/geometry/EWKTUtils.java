@@ -42,8 +42,6 @@ public final class EWKTUtils {
 
         private final int dimensionSystem;
 
-        private int level;
-
         private int type;
 
         private boolean inMulti;
@@ -62,21 +60,28 @@ public final class EWKTUtils {
         }
 
         @Override
-        protected void startPoint(int srid) {
-            writeHeader(POINT, srid);
+        protected void init(int srid) {
+            if (srid != 0) {
+                output.append("SRID=").append(srid).append(';');
+            }
         }
 
         @Override
-        protected void startLineString(int srid, int numPoints) {
-            writeHeader(LINE_STRING, srid);
+        protected void startPoint() {
+            writeHeader(POINT);
+        }
+
+        @Override
+        protected void startLineString(int numPoints) {
+            writeHeader(LINE_STRING);
             if (numPoints == 0) {
                 output.append("EMPTY");
             }
         }
 
         @Override
-        protected void startPolygon(int srid, int numInner, int numPoints) {
-            writeHeader(POLYGON, srid);
+        protected void startPolygon(int numInner, int numPoints) {
+            writeHeader(POLYGON);
             if (numPoints == 0) {
                 output.append("EMPTY");
             } else {
@@ -95,8 +100,8 @@ public final class EWKTUtils {
         }
 
         @Override
-        protected void startCollection(int type, int srid, int numItems) {
-            writeHeader(type, srid);
+        protected void startCollection(int type, int numItems) {
+            writeHeader(type);
             if (numItems == 0) {
                 output.append("EMPTY");
             }
@@ -105,12 +110,8 @@ public final class EWKTUtils {
             }
         }
 
-        private void writeHeader(int type, int srid) {
+        private void writeHeader(int type) {
             this.type = type;
-            // Never write SRID in inner objects
-            if (level == 0 && srid != 0) {
-                output.append("SRID=").append(srid).append(';');
-            }
             if (inMulti) {
                 return;
             }
@@ -154,7 +155,6 @@ public final class EWKTUtils {
 
         @Override
         protected Target startCollectionItem(int index, int total) {
-            level++;
             if (index == 0) {
                 output.append('(');
             } else {
@@ -168,7 +168,6 @@ public final class EWKTUtils {
             if (index + 1 == total) {
                 output.append(')');
             }
-            level--;
         }
 
         @Override
@@ -229,10 +228,12 @@ public final class EWKTUtils {
 
         private int offset;
 
-        int srid;
-
         EWKTSource(String ewkt) {
             this.ewkt = ewkt;
+        }
+
+        int readSRID() {
+            int srid;
             if (ewkt.startsWith("SRID=")) {
                 int idx = ewkt.indexOf(';', 5);
                 srid = Integer.parseInt(ewkt.substring(5, idx));
@@ -240,6 +241,7 @@ public final class EWKTUtils {
             } else {
                 srid = 0;
             }
+            return srid;
         }
 
         void read(char symbol) {
@@ -522,6 +524,9 @@ public final class EWKTUtils {
      *            parent geometry uses dimension M
      */
     private static void parseEWKT(EWKTSource source, Target target, int parentType, boolean useZ, boolean useM) {
+        if (parentType == 0) {
+            target.init(source.readSRID());
+        }
         String type;
         boolean empty = false;
         switch (parentType) {
@@ -577,7 +582,7 @@ public final class EWKTUtils {
                 throw new IllegalArgumentException();
             }
             empty = source.readEmpty(empty);
-            target.startPoint(source.srid);
+            target.startPoint();
             if (empty) {
                 target.addCoordinate(Double.NaN, Double.NaN, Double.NaN, Double.NaN, 0, 1);
             } else {
@@ -591,7 +596,7 @@ public final class EWKTUtils {
             }
             empty = source.readEmpty(empty);
             if (empty) {
-                target.startLineString(source.srid, 0);
+                target.startLineString(0);
             } else {
                 ArrayList<double[]> coordinates = new ArrayList<>();
                 do {
@@ -601,7 +606,7 @@ public final class EWKTUtils {
                 if (numPoints < 0 || numPoints == 1) {
                     throw new IllegalArgumentException();
                 }
-                target.startLineString(source.srid, numPoints);
+                target.startLineString(numPoints);
                 for (int i = 0; i < numPoints; i++) {
                     double[] c = coordinates.get(i);
                     target.addCoordinate(c[X], c[Y], c[Z], c[M], i, numPoints);
@@ -615,7 +620,7 @@ public final class EWKTUtils {
             }
             empty = source.readEmpty(empty);
             if (empty) {
-                target.startPolygon(source.srid, 0, 0);
+                target.startPolygon(0, 0);
             } else {
                 ArrayList<double[]> outer = readRing(source, useZ, useM);
                 ArrayList<ArrayList<double[]>> inner = new ArrayList<>();
@@ -631,7 +636,7 @@ public final class EWKTUtils {
                 if (size == 0 && numInner > 0) {
                     throw new IllegalArgumentException();
                 }
-                target.startPolygon(source.srid, numInner, size);
+                target.startPolygon(numInner, size);
                 if (size > 0) {
                     addRing(outer, target, useZ, useM);
                     for (int i = 0; i < numInner; i++) {
@@ -675,13 +680,13 @@ public final class EWKTUtils {
             throw new IllegalArgumentException();
         }
         if (source.readEmpty(empty)) {
-            target.startCollection(type, source.srid, 0);
+            target.startCollection(type, 0);
         } else {
             if (type == MULTI_POINT && source.hasCoordinate()) {
                 parseMultiPointAlternative(source, target, useZ, useM);
             } else {
                 int numItems = source.getItemCount();
-                target.startCollection(type, source.srid, numItems);
+                target.startCollection(type, numItems);
                 for (int i = 0; i < numItems; i++) {
                     if (i > 0) {
                         source.read(',');
@@ -703,10 +708,10 @@ public final class EWKTUtils {
             points.add(readCoordinate(source, useZ, useM));
         } while (source.hasMoreCoordinates());
         int numItems = points.size();
-        target.startCollection(MULTI_POINT, source.srid, numItems);
+        target.startCollection(MULTI_POINT, numItems);
         for (int i = 0; i < points.size(); i++) {
             Target innerTarget = target.startCollectionItem(i, numItems);
-            target.startPoint(source.srid);
+            target.startPoint();
             double[] c = points.get(i);
             target.addCoordinate(c[X], c[Y], c[Z], c[M], 0, 1);
             target.endCollectionItem(innerTarget, i, numItems);

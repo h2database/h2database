@@ -21,36 +21,38 @@ public final class GeometryUtils {
         }
 
         /**
-         * Invoked before writing a POINT.
+         * Initializes top-level target.
          *
          * @param srid
          *            SRID
          */
-        protected void startPoint(int srid) {
+        protected void init(int srid) {
+        }
+
+        /**
+         * Invoked before writing a POINT.
+         */
+        protected void startPoint() {
         }
 
         /**
          * Invoked before writing a LINESTRING.
          *
-         * @param srid
-         *            SRID
          * @param numPoints
          *            number of points in line string
          */
-        protected void startLineString(int srid, int numPoints) {
+        protected void startLineString(int numPoints) {
         }
 
         /**
          * Invoked before writing a POLYGON.
          *
-         * @param srid
-         *            SRID
          * @param numInner
          *            number of inner polygons
          * @param numPoints
          *            number of points in outer polygon
          */
-        protected void startPolygon(int srid, int numInner, int numPoints) {
+        protected void startPolygon(int numInner, int numPoints) {
         }
 
         /**
@@ -77,12 +79,10 @@ public final class GeometryUtils {
          *            {@link GeometryUtils#MULTI_LINE_STRING},
          *            {@link GeometryUtils#MULTI_POLYGON},
          *            {@link GeometryUtils#GEOMETRY_COLLECTION}
-         * @param srid
-         *            SRID
          * @param numItems
          *            number of items in this collection
          */
-        protected void startCollection(int type, int srid, int numItems) {
+        protected void startCollection(int type, int numItems) {
         }
 
         /**
@@ -120,7 +120,7 @@ public final class GeometryUtils {
          *
          * @param type
          *            type of collection, see
-         *            {@link #startCollection(int, int, int)}
+         *            {@link #startCollection(int, int)}
          */
         protected void endCollection(int type) {
         }
@@ -170,17 +170,17 @@ public final class GeometryUtils {
         }
 
         @Override
-        protected void startPoint(int srid) {
+        protected void startPoint() {
             enabled = true;
         }
 
         @Override
-        protected void startLineString(int srid, int numPoints) {
+        protected void startLineString(int numPoints) {
             enabled = true;
         }
 
         @Override
-        protected void startPolygon(int srid, int numInner, int numPoints) {
+        protected void startPolygon(int numInner, int numPoints) {
             enabled = true;
         }
 
@@ -292,17 +292,17 @@ public final class GeometryUtils {
         }
 
         @Override
-        protected void startPoint(int srid) {
+        protected void startPoint() {
             enabled = true;
         }
 
         @Override
-        protected void startLineString(int srid, int numPoints) {
+        protected void startLineString(int numPoints) {
             enabled = true;
         }
 
         @Override
-        protected void startPolygon(int srid, int numInner, int numPoints) {
+        protected void startPolygon(int numInner, int numPoints) {
             enabled = true;
         }
 

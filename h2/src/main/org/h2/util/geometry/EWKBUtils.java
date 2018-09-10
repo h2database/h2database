@@ -43,7 +43,7 @@ public final class EWKBUtils {
 
         private int type;
 
-        private int level;
+        private int srid;
 
         /**
          * Creates a new EWKB output target.
@@ -59,19 +59,24 @@ public final class EWKBUtils {
         }
 
         @Override
-        protected void startPoint(int srid) {
-            writeHeader(POINT, srid);
+        protected void init(int srid) {
+            this.srid = srid;
         }
 
         @Override
-        protected void startLineString(int srid, int numPoints) {
-            writeHeader(LINE_STRING, srid);
+        protected void startPoint() {
+            writeHeader(POINT);
+        }
+
+        @Override
+        protected void startLineString(int numPoints) {
+            writeHeader(LINE_STRING);
             writeInt(numPoints);
         }
 
         @Override
-        protected void startPolygon(int srid, int numInner, int numPoints) {
-            writeHeader(POLYGON, srid);
+        protected void startPolygon(int numInner, int numPoints) {
+            writeHeader(POLYGON);
             writeInt(numInner + 1);
             writeInt(numPoints);
         }
@@ -82,12 +87,12 @@ public final class EWKBUtils {
         }
 
         @Override
-        protected void startCollection(int type, int srid, int numItems) {
-            writeHeader(type, srid);
+        protected void startCollection(int type, int numItems) {
+            writeHeader(type);
             writeInt(numItems);
         }
 
-        private void writeHeader(int type, int srid) {
+        private void writeHeader(int type) {
             this.type = type;
             switch (dimensionSystem) {
             case DIMENSION_SYSTEM_XYZ:
@@ -99,28 +104,21 @@ public final class EWKBUtils {
             case DIMENSION_SYSTEM_XYM:
                 type |= EWKB_M;
             }
-            // Never write SRID in inner objects
-            if (level > 0) {
-                srid = 0;
-            } else if (srid != 0) {
+            if (srid != 0) {
                 type |= EWKB_SRID;
             }
             output.write(0);
             writeInt(type);
             if (srid != 0) {
                 writeInt(srid);
+                // Newer write SRID in inner objects
+                srid = 0;
             }
         }
 
         @Override
         protected Target startCollectionItem(int index, int total) {
-            level++;
             return this;
-        }
-
-        @Override
-        protected void endCollectionItem(Target target, int index, int total) {
-            level--;
         }
 
         @Override
@@ -281,7 +279,7 @@ public final class EWKBUtils {
      */
     public static void parseEWKB(byte[] ewkb, Target target) {
         try {
-            parseEWKB(new EWKBSource(ewkb), target, 0, 0);
+            parseEWKB(new EWKBSource(ewkb), target, 0);
         } catch (ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException();
         }
@@ -296,11 +294,8 @@ public final class EWKBUtils {
      *            output target
      * @param parentType
      *            type of parent geometry collection, or 0 for the root geometry
-     * @param parentSrid
-     *            SRID of a parent geometry collection, or any value for the
-     *            root geometry (will be determined from the EWKB instead)
      */
-    private static void parseEWKB(EWKBSource source, Target target, int parentType, int parentSrid) {
+    private static void parseEWKB(EWKBSource source, Target target, int parentType) {
         // Read byte order of a next geometry
         switch (source.readByte()) {
         case 0:
@@ -318,9 +313,9 @@ public final class EWKBUtils {
         boolean useZ = (type & EWKB_Z) != 0;
         boolean useM = (type & EWKB_M) != 0;
         int srid = (type & EWKB_SRID) != 0 ? source.readInt() : 0;
-        // Preserve parent SRID unconditionally
-        if (parentType != 0) {
-            srid = parentSrid;
+        // Use only top-level SRID
+        if (parentType == 0) {
+            target.init(srid);
         }
         // OGC 06-103r4
         type &= 0xffff;
@@ -340,7 +335,7 @@ public final class EWKBUtils {
             if (parentType != 0 && parentType != MULTI_POINT && parentType != GEOMETRY_COLLECTION) {
                 throw new IllegalArgumentException();
             }
-            target.startPoint(srid);
+            target.startPoint();
             addCoordinate(source, target, useZ, useM, 0, 1);
             break;
         case LINE_STRING: {
@@ -351,7 +346,7 @@ public final class EWKBUtils {
             if (numPoints < 0 || numPoints == 1) {
                 throw new IllegalArgumentException();
             }
-            target.startLineString(srid, numPoints);
+            target.startLineString(numPoints);
             for (int i = 0; i < numPoints; i++) {
                 addCoordinate(source, target, useZ, useM, i, numPoints);
             }
@@ -373,7 +368,7 @@ public final class EWKBUtils {
             if (size == 0 && numInner > 0) {
                 throw new IllegalArgumentException();
             }
-            target.startPolygon(srid, numInner, size);
+            target.startPolygon(numInner, size);
             if (size > 0) {
                 addRing(source, target, useZ, useM, size);
                 for (int i = 0; i < numInner; i++) {
@@ -400,10 +395,10 @@ public final class EWKBUtils {
             if (numItems < 0) {
                 throw new IllegalArgumentException();
             }
-            target.startCollection(type, srid, numItems);
+            target.startCollection(type, numItems);
             for (int i = 0; i < numItems; i++) {
                 Target innerTarget = target.startCollectionItem(i, numItems);
-                parseEWKB(source, innerTarget, type, srid);
+                parseEWKB(source, innerTarget, type);
                 target.endCollectionItem(innerTarget, i, numItems);
             }
             target.endCollection(type);

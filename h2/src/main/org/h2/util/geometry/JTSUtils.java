@@ -81,22 +81,29 @@ public final class JTSUtils {
         }
 
         @Override
-        protected void startPoint(int srid) {
-            init(POINT, srid);
+        protected void init(int srid) {
+            factory = new GeometryFactory(new PrecisionModel(), srid,
+                    (dimensionSystem & DIMENSION_SYSTEM_XYM) != 0 ? PackedCoordinateSequenceFactory.DOUBLE_FACTORY
+                            : CoordinateArraySequenceFactory.instance());
+        }
+
+        @Override
+        protected void startPoint() {
+            type = POINT;
             initCoordinates(1);
             innerOffset = -1;
         }
 
         @Override
-        protected void startLineString(int srid, int numPoints) {
-            init(LINE_STRING, srid);
+        protected void startLineString(int numPoints) {
+            type = LINE_STRING;
             initCoordinates(numPoints);
             innerOffset = -1;
         }
 
         @Override
-        protected void startPolygon(int srid, int numInner, int numPoints) {
-            init(POLYGON, srid);
+        protected void startPolygon(int numInner, int numPoints) {
+            type = POLYGON;
             initCoordinates(numPoints);
             innerCoordinates = new CoordinateSequence[numInner];
             innerOffset = -1;
@@ -108,8 +115,8 @@ public final class JTSUtils {
         }
 
         @Override
-        protected void startCollection(int type, int srid, int numItems) {
-            init(type, srid);
+        protected void startCollection(int type, int numItems) {
+            this.type = type;
             switch (type) {
             case MULTI_POINT:
                 subgeometries = new Point[numItems];
@@ -136,15 +143,6 @@ public final class JTSUtils {
         @Override
         protected void endCollectionItem(Target target, int index, int total) {
             subgeometries[index] = ((GeometryTarget) target).getGeometry();
-        }
-
-        private void init(int type, int srid) {
-            if (factory == null) {
-                factory = new GeometryFactory(new PrecisionModel(), srid,
-                        (dimensionSystem & DIMENSION_SYSTEM_XYM) != 0 ? PackedCoordinateSequenceFactory.DOUBLE_FACTORY
-                                : CoordinateArraySequenceFactory.instance());
-            }
-            this.type = type;
         }
 
         private void initCoordinates(int numPoints) {
@@ -273,7 +271,7 @@ public final class JTSUtils {
      *            output target
      */
     public static void parseGeometry(Geometry geometry, Target target) {
-        parseGeometry(geometry, target, 0, 0);
+        parseGeometry(geometry, target, 0);
     }
 
     /**
@@ -285,21 +283,16 @@ public final class JTSUtils {
      *            output target
      * @param parentType
      *            type of parent geometry collection, or 0 for the root geometry
-     * @param parentSrid
-     *            SRID of a parent geometry collection, or any value for the
-     *            root geometry (will be determined from the EWKB instead)
      */
-    private static void parseGeometry(Geometry geometry, Target target, int parentType, int parentSrid) {
-        int srid = geometry.getSRID();
-        // Preserve parent SRID unconditionally
-        if (parentType != 0) {
-            srid = parentSrid;
+    private static void parseGeometry(Geometry geometry, Target target, int parentType) {
+        if (parentType == 0) {
+            target.init(geometry.getSRID());
         }
         if (geometry instanceof Point) {
             if (parentType != 0 && parentType != MULTI_POINT && parentType != GEOMETRY_COLLECTION) {
                 throw new IllegalArgumentException();
             }
-            target.startPoint(srid);
+            target.startPoint();
             Point p = (Point) geometry;
             if (p.isEmpty()) {
                 target.addCoordinate(Double.NaN, Double.NaN, Double.NaN, Double.NaN, 0, 1);
@@ -316,7 +309,7 @@ public final class JTSUtils {
             if (numPoints < 0 || numPoints == 1) {
                 throw new IllegalArgumentException();
             }
-            target.startLineString(srid, numPoints);
+            target.startLineString(numPoints);
             for (int i = 0; i < numPoints; i++) {
                 addCoordinate(cs, target, i, numPoints);
             }
@@ -338,7 +331,7 @@ public final class JTSUtils {
             if (size == 0 && numInner > 0) {
                 throw new IllegalArgumentException();
             }
-            target.startPolygon(srid, numInner, size);
+            target.startPolygon(numInner, size);
             if (size > 0) {
                 addRing(cs, target, size);
                 for (int i = 0; i < numInner; i++) {
@@ -372,10 +365,10 @@ public final class JTSUtils {
             if (numItems < 0) {
                 throw new IllegalArgumentException();
             }
-            target.startCollection(type, srid, numItems);
+            target.startCollection(type, numItems);
             for (int i = 0; i < numItems; i++) {
                 Target innerTarget = target.startCollectionItem(i, numItems);
-                parseGeometry(gc.getGeometryN(i), innerTarget, type, srid);
+                parseGeometry(gc.getGeometryN(i), innerTarget, type);
                 target.endCollectionItem(innerTarget, i, numItems);
             }
             target.endCollection(type);

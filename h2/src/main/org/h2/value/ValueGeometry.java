@@ -178,35 +178,6 @@ public class ValueGeometry extends Value {
         return ((Geometry) geometry).copy();
     }
 
-    /**
-     * Return the SRID (Spatial Reference Identifier).
-     *
-     * @return spatial reference identifier
-     */
-    public int getSRID() {
-        if (bytes.length >= 9) {
-            boolean bigEndian;
-            switch (bytes[0]) {
-            case 0:
-                bigEndian = true;
-                break;
-            case 1:
-                bigEndian = false;
-                break;
-            default:
-                return 0;
-            }
-            if ((bytes[bigEndian ? 1 : 4] & 0x20) != 0) {
-                int srid = Bits.readInt(bytes, 5);
-                if (!bigEndian) {
-                    srid = Integer.reverseBytes(srid);
-                }
-                return srid;
-            }
-        }
-        return 0;
-    }
-
     private void calculateInfo() {
         if (dimensionSystem < 0) {
             EnvelopeAndDimensionSystemTarget target = new EnvelopeAndDimensionSystemTarget();

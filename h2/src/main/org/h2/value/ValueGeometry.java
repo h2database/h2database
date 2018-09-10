@@ -167,7 +167,7 @@ public class ValueGeometry extends Value {
      *
      * @return a copy of the geometry object
      */
-    public Object getGeometry() {
+    public Geometry getGeometry() {
         if (geometry == null) {
             try {
                 geometry = JTSUtils.ewkb2geometry(bytes, getDimensionSystem());

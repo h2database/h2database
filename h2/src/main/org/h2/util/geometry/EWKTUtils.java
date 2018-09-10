@@ -206,7 +206,7 @@ public final class EWKTUtils {
         }
 
         private void writeDouble(double v) {
-            String s = Double.toString(v);
+            String s = Double.toString(GeometryUtils.checkFinite(v));
             if (s.endsWith(".0")) {
                 output.append(s, 0, s.length() - 2);
             } else {
@@ -354,8 +354,6 @@ public final class EWKTUtils {
             case '+':
             case '-':
             case '.':
-            case 'N':
-            case 'n':
                 return true;
             default:
                 return false;
@@ -370,12 +368,8 @@ public final class EWKTUtils {
             case '+':
             case '-':
             case '.':
-            case 'A':
             case 'E':
-            case 'N':
-            case 'a':
             case 'e':
-            case 'n':
                 return true;
             default:
                 return false;

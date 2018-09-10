@@ -15,6 +15,8 @@ import static org.h2.util.geometry.GeometryUtils.MULTI_POINT;
 import static org.h2.util.geometry.GeometryUtils.MULTI_POLYGON;
 import static org.h2.util.geometry.GeometryUtils.POINT;
 import static org.h2.util.geometry.GeometryUtils.POLYGON;
+import static org.h2.util.geometry.GeometryUtils.checkFinite;
+import static org.h2.util.geometry.GeometryUtils.toCanonicalDouble;
 
 import java.io.ByteArrayOutputStream;
 
@@ -38,6 +40,8 @@ public final class EWKBUtils {
         private final int dimensionSystem;
 
         private final byte[] buf = new byte[8];
+
+        private int type;
 
         private int level;
 
@@ -84,6 +88,7 @@ public final class EWKBUtils {
         }
 
         private void writeHeader(int type, int srid) {
+            this.type = type;
             switch (dimensionSystem) {
             case DIMENSION_SYSTEM_XYZ:
                 type |= EWKB_Z;
@@ -120,13 +125,19 @@ public final class EWKBUtils {
 
         @Override
         protected void addCoordinate(double x, double y, double z, double m, int index, int total) {
+            boolean check = type != POINT || !Double.isNaN(x) || !Double.isNaN(y) || !Double.isNaN(z)
+                    || !Double.isNaN(m);
+            if (check) {
+                checkFinite(x);
+                checkFinite(y);
+            }
             writeDouble(x);
             writeDouble(y);
             if ((dimensionSystem & DIMENSION_SYSTEM_XYZ) != 0) {
-                writeDouble(z);
+                writeDouble(check ? checkFinite(z) : z);
             }
             if ((dimensionSystem & DIMENSION_SYSTEM_XYM) != 0) {
-                writeDouble(m);
+                writeDouble(check ? checkFinite(m) : m);
             }
         }
 
@@ -432,18 +443,6 @@ public final class EWKBUtils {
         target.addCoordinate(source.readCoordinate(), source.readCoordinate(),
                 useZ ? source.readCoordinate() : Double.NaN, useM ? source.readCoordinate() : Double.NaN, //
                 index, total);
-    }
-
-    /**
-     * Normalizes all NaNs into single type on NaN and negative zero to positive
-     * zero.
-     *
-     * @param d
-     *            double value
-     * @return normalized value
-     */
-    static double toCanonicalDouble(double d) {
-        return Double.isNaN(d) ? Double.NaN : d == 0d ? 0d : d;
     }
 
     private EWKBUtils() {

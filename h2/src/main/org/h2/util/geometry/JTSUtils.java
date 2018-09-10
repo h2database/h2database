@@ -6,6 +6,7 @@
 package org.h2.util.geometry;
 
 import static org.h2.util.geometry.GeometryUtils.DIMENSION_SYSTEM_XYM;
+import static org.h2.util.geometry.GeometryUtils.DIMENSION_SYSTEM_XYZ;
 import static org.h2.util.geometry.GeometryUtils.GEOMETRY_COLLECTION;
 import static org.h2.util.geometry.GeometryUtils.LINE_STRING;
 import static org.h2.util.geometry.GeometryUtils.M;
@@ -17,6 +18,7 @@ import static org.h2.util.geometry.GeometryUtils.POLYGON;
 import static org.h2.util.geometry.GeometryUtils.X;
 import static org.h2.util.geometry.GeometryUtils.Y;
 import static org.h2.util.geometry.GeometryUtils.Z;
+import static org.h2.util.geometry.GeometryUtils.checkFinite;
 import static org.h2.util.geometry.GeometryUtils.toCanonicalDouble;
 
 import java.io.ByteArrayOutputStream;
@@ -154,11 +156,12 @@ public final class JTSUtils {
                 return;
             }
             CoordinateSequence coordinates = innerOffset < 0 ? this.coordinates : innerCoordinates[innerOffset];
-            coordinates.setOrdinate(index, X, x);
-            coordinates.setOrdinate(index, Y, y);
-            coordinates.setOrdinate(index, Z, z);
+            coordinates.setOrdinate(index, X, checkFinite(x));
+            coordinates.setOrdinate(index, Y, checkFinite(y));
+            coordinates.setOrdinate(index, Z,
+                    (dimensionSystem & DIMENSION_SYSTEM_XYZ) != 0 ? checkFinite(z) : Double.NaN);
             if ((dimensionSystem & DIMENSION_SYSTEM_XYM) != 0) {
-                coordinates.setOrdinate(index, M, m);
+                coordinates.setOrdinate(index, M, checkFinite(m));
             }
         }
 

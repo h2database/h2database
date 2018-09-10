@@ -5,6 +5,9 @@
  */
 package org.h2.test.unit;
 
+import static org.h2.util.geometry.GeometryUtils.DIMENSION_SYSTEM_XY;
+import static org.h2.util.geometry.GeometryUtils.DIMENSION_SYSTEM_XYM;
+import static org.h2.util.geometry.GeometryUtils.DIMENSION_SYSTEM_XYZ;
 import static org.h2.util.geometry.GeometryUtils.M;
 import static org.h2.util.geometry.GeometryUtils.MAX_X;
 import static org.h2.util.geometry.GeometryUtils.MAX_Y;
@@ -14,16 +17,21 @@ import static org.h2.util.geometry.GeometryUtils.X;
 import static org.h2.util.geometry.GeometryUtils.Y;
 import static org.h2.util.geometry.GeometryUtils.Z;
 
+import java.io.ByteArrayOutputStream;
 import java.util.Random;
 
 import org.h2.test.TestBase;
 import org.h2.util.StringUtils;
 import org.h2.util.geometry.EWKBUtils;
+import org.h2.util.geometry.EWKBUtils.EWKBTarget;
 import org.h2.util.geometry.EWKTUtils;
+import org.h2.util.geometry.EWKTUtils.EWKTTarget;
 import org.h2.util.geometry.GeometryUtils;
 import org.h2.util.geometry.GeometryUtils.DimensionSystemTarget;
 import org.h2.util.geometry.GeometryUtils.EnvelopeAndDimensionSystemTarget;
+import org.h2.util.geometry.GeometryUtils.Target;
 import org.h2.util.geometry.JTSUtils;
+import org.h2.util.geometry.JTSUtils.GeometryTarget;
 import org.locationtech.jts.geom.CoordinateSequence;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
@@ -38,6 +46,29 @@ import org.locationtech.jts.io.WKTWriter;
  * Tests the classes from org.h2.util.geometry package.
  */
 public class TestGeometryUtils extends TestBase {
+
+    private static final byte[][] NON_FINITE = { //
+            // XY
+            StringUtils.convertHexToBytes("0000000001" //
+                    + "0000000000000000" //
+                    + "7ff8000000000000"), //
+            // XY
+            StringUtils.convertHexToBytes("0000000001" //
+                    + "7ff8000000000000" //
+                    + "0000000000000000"), //
+            // XYZ
+            StringUtils.convertHexToBytes("0080000001" //
+                    + "0000000000000000" //
+                    + "0000000000000000" //
+                    + "7ff8000000000000"), //
+            // XYM
+            StringUtils.convertHexToBytes("0040000001" //
+                    + "0000000000000000" //
+                    + "0000000000000000" //
+                    + "7ff8000000000000") };
+
+    private static final int[] NON_FINITE_DIMENSIONS = { DIMENSION_SYSTEM_XY, DIMENSION_SYSTEM_XY, DIMENSION_SYSTEM_XYZ,
+            DIMENSION_SYSTEM_XYM };
 
     /**
      * Run just this test.
@@ -61,14 +92,16 @@ public class TestGeometryUtils extends TestBase {
         testEmptyPoint();
         testDimensionM();
         testDimensionZM();
+        testFiniteOnly();
         testSRID();
         testIntersectionAndUnion();
     }
 
     private void testPoint() throws Exception {
         testGeometry("POINT (1 2)", 2);
-        testGeometry("POINT (-1.3 NaN)", 2);
-        testGeometry("POINT (-1E32 NaN)", "POINT (-1E32 NaN)", "POINT (-100000000000000000000000000000000 NaN)", 2);
+        testGeometry("POINT (-1.3 15)", 2);
+        testGeometry("POINT (-1E32 1.000001)", "POINT (-1E32 1.000001)",
+                "POINT (-100000000000000000000000000000000 1.000001)", 2);
         testGeometry("POINT Z (2.7 -3 34)", 3);
     }
 
@@ -76,7 +109,6 @@ public class TestGeometryUtils extends TestBase {
         testGeometry("LINESTRING (-1 -2, 10 1, 2 20)", 2);
         testGeometry("LINESTRING (1 2, 1 3)", 2);
         testGeometry("LINESTRING (1 2, 2 2)", 2);
-        testGeometry("LINESTRING (1 NaN, 2 NaN)", 2);
         testGeometry("LINESTRING EMPTY", 2);
         testGeometry("LINESTRING Z (-1 -2 -3, 10 15.7 3)", 3);
     }
@@ -225,6 +257,27 @@ public class TestGeometryUtils extends TestBase {
         assertEquals(4, cs.getOrdinate(0, M));
         assertEquals(ewkb, JTSUtils.geometry2ewkb(p));
         testDimensions(GeometryUtils.DIMENSION_SYSTEM_XYZM, ewkb);
+    }
+
+    private void testFiniteOnly() {
+        for (int i = 0; i < NON_FINITE.length; i++) {
+            testFiniteOnly(NON_FINITE[i], new EWKBTarget(new ByteArrayOutputStream(), NON_FINITE_DIMENSIONS[i]));
+        }
+        for (int i = 0; i < NON_FINITE.length; i++) {
+            testFiniteOnly(NON_FINITE[i], new EWKTTarget(new StringBuilder(), NON_FINITE_DIMENSIONS[i]));
+        }
+        for (int i = 0; i < NON_FINITE.length; i++) {
+            testFiniteOnly(NON_FINITE[i], new GeometryTarget(NON_FINITE_DIMENSIONS[i]));
+        }
+    }
+
+    private void testFiniteOnly(byte[] ewkb, Target target) {
+        try {
+            EWKBUtils.parseEWKB(ewkb, target);
+            fail(target.getClass().getName() + ' ' + StringUtils.convertBytesToHex(ewkb));
+        } catch (IllegalArgumentException e) {
+            // Expected
+        }
     }
 
     private void testSRID() throws Exception {

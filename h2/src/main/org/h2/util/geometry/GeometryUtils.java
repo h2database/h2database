@@ -191,6 +191,7 @@ public final class GeometryUtils {
 
         @Override
         protected void addCoordinate(double x, double y, double z, double m, int index, int total) {
+            // POINT EMPTY has NaNs
             if (enabled && !Double.isNaN(x) && !Double.isNaN(y)) {
                 if (!set) {
                     minX = maxX = x;
@@ -318,6 +319,7 @@ public final class GeometryUtils {
             if (!hasM && !Double.isNaN(m)) {
                 hasM = true;
             }
+            // POINT EMPTY has NaNs
             if (enabled && !Double.isNaN(x) && !Double.isNaN(y)) {
                 if (!set) {
                     minX = maxX = x;
@@ -582,6 +584,14 @@ public final class GeometryUtils {
      */
     static double toCanonicalDouble(double d) {
         return Double.isNaN(d) ? Double.NaN : d == 0d ? 0d : d;
+    }
+
+    static double checkFinite(double d) {
+        // Do not push this negation down, it will break NaN rejection
+        if (!(Math.abs(d) <= Double.MAX_VALUE)) {
+            throw new IllegalArgumentException();
+        }
+        return d;
     }
 
     private GeometryUtils() {

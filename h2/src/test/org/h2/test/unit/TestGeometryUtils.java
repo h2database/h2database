@@ -67,7 +67,10 @@ public class TestGeometryUtils extends TestBase {
                     + "0000000000000000" //
                     + "7ff8000000000000") };
 
-    private static final int[] NON_FINITE_DIMENSIONS = { DIMENSION_SYSTEM_XY, DIMENSION_SYSTEM_XY, DIMENSION_SYSTEM_XYZ,
+    private static final int[] NON_FINITE_DIMENSIONS = { //
+            DIMENSION_SYSTEM_XY, //
+            DIMENSION_SYSTEM_XY, //
+            DIMENSION_SYSTEM_XYZ, //
             DIMENSION_SYSTEM_XYM };
 
     /**

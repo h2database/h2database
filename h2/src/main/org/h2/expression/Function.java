@@ -144,6 +144,15 @@ public class Function extends Expression implements FunctionCall {
     public static final int H2VERSION = 231;
 
     public static final int ROW_NUMBER = 300;
+    
+    /**
+     * Json functions.
+     */
+    public static final int JSON_FIELD = 350, JSON_FIELD_TEXT = 351,
+    		JSON_FIELD_PATH = 352, JSON_FIELD_PATH_TEXT = 353,
+    		JSON_CONTAINS = 354, JSON_EXISTS = 355, JSON_EXISTS_ANY = 356,
+    		JSON_EXISTS_ALL = 357, JSON_CONCAT = 358, JSON_DELETE_FIELD = 359,
+    		JSON_DELETE_PATH = 360;
 
     protected static final int VAR_ARGS = -1;
     private static final long PRECISION_UNKNOWN = -1;
@@ -457,6 +466,19 @@ public class Function extends Expression implements FunctionCall {
                 1, Value.LONG);
         addFunctionWithNull("SIGNAL", SIGNAL, 2, Value.NULL);
         addFunction("H2VERSION", H2VERSION, 0, Value.STRING);
+        
+        // JSON
+        addFunction("JSON_FIELD", JSON_FIELD, 2, Value.JSON);
+        addFunction("JSON_FIELD_TEXT", JSON_FIELD_TEXT, 2, Value.STRING);
+        addFunction("JSON_FIELD_PATH", JSON_FIELD_PATH, 2, Value.JSON);
+        addFunction("JSON_FIELD_PATH_TEXT", JSON_FIELD_PATH_TEXT, 2, Value.STRING);
+        addFunction("JSON_CONTAINS", JSON_CONTAINS, 2, Value.BOOLEAN);
+        addFunction("JSON_EXISTS", JSON_EXISTS, 2, Value.BOOLEAN);
+        addFunction("JSON_EXIST_ANY", JSON_EXISTS_ANY, 2, Value.BOOLEAN);
+        addFunction("JSON_EXISTS_ALL", JSON_EXISTS_ALL, 2, Value.BOOLEAN);
+        addFunction("JSON_CONCAT", JSON_CONCAT, 2, Value.JSON);
+        addFunction("JSON_DELETE_FIELD", JSON_DELETE_FIELD, 2, Value.JSON);
+        addFunction("JSON_DELETE_PATH", JSON_DELETE_PATH, 2, Value.JSON);
 
         // TableFunction
         addFunctionWithNull("TABLE", TABLE,
@@ -1649,6 +1671,54 @@ public class Function extends Expression implements FunctionCall {
             }
             String msgText = v1.getString();
             throw DbException.fromUser(sqlState, msgText);
+        }
+        case JSON_FIELD: {
+        	if(v0.getType() == Value.STRING || v0.getType() == Value.JSON) {
+        		result = ValueString.get("result of JSON_FIELD function");
+        	} else {
+        		throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
+        	}
+        	break;
+        }
+        case JSON_FIELD_TEXT: {
+    		result = ValueString.get("result of JSON_FIELD_TEXT function");
+        	break;
+        }
+        case JSON_FIELD_PATH: {
+    		result = ValueString.get("result of JSON_FIELD_PATH function");
+        	break;
+        }
+        case JSON_FIELD_PATH_TEXT: {
+    		result = ValueString.get("result of JSON_FIELD_PATH_TEXT function");
+        	break;
+        }
+        case JSON_CONTAINS: {
+    		result = ValueString.get("result of JSON_CONTAINS function");
+        	break;
+        }
+        case JSON_EXISTS: {
+    		result = ValueString.get("result of JSON_EXISTS function");
+        	break;
+        }
+        case JSON_EXISTS_ANY: {
+    		result = ValueString.get("result of JSON_EXISTS_ANY function");
+        	break;
+        }
+        case JSON_EXISTS_ALL: {
+    		result = ValueString.get("result of JSON_EXISTS_ALL function");
+        	break;
+        }
+        case JSON_CONCAT: {
+    		result = ValueString.get("result of JSON_CONCAT function");
+        	break;
+        }
+        case JSON_DELETE_FIELD: {
+    		result = ValueString.get("result of JSON_DELETE_FIELD function");
+        	break;
+        }
+        case JSON_DELETE_PATH: {
+    		result = ValueString.get("result of JSON_DELETE_PATH function");
+        	break;
         }
         default:
             throw DbException.throwInternalError("type=" + info.type);

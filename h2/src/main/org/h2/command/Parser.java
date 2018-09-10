@@ -3366,15 +3366,15 @@ public class Parser {
     	Expression arg1;
 		switch(type) {
 			case JSON_FIELD:
-				fun = Function.getFunction(database, "GET_JSON_FIELD");
+				fun = Function.getFunction(database, "JSON_FIELD");
 				arg1 = ValueExpression.get(currentValue);
 				break;
 			case JSON_FIELD_TEXT:
-				fun = Function.getFunction(database, "GET_JSON_FIELD_AS_TEXT");
+				fun = Function.getFunction(database, "JSON_FIELD_TEXT");
 				arg1 = ValueExpression.get(currentValue);
 				break;
 			case JSON_FIELD_PATH: {
-				fun = Function.getFunction(database, "GET_JSON_OBJECT_BY_PATH");
+				fun = Function.getFunction(database, "JSON_FIELD_PATH");
 				String param = currentValue.getString();
         		String[] args;
 				if(param.startsWith("{") && param.endsWith("}")) {
@@ -3393,7 +3393,7 @@ public class Parser {
 				break;
 			}
 			case JSON_FIELD_PATH_TEXT: {
-				fun = Function.getFunction(database, "GET_JSON_TEXT_BY_PATH");
+				fun = Function.getFunction(database, "JSON_FIELD_PATH_TEXT");
 				String param = currentValue.getString();
         		String[] args;
 				if(param.startsWith("{") && param.endsWith("}")) {
@@ -3412,24 +3412,24 @@ public class Parser {
 				break;
 			}
 			case JSON_CONTAINS_LEFT:
-				fun = Function.getFunction(database, "JSON_CONTAINS_PAIR");
+				fun = Function.getFunction(database, "JSON_CONTAINS");
 				arg1 = ValueExpression.get(currentValue);
 				break;
 			case JSON_CONTAINS_RIGHT:
-				fun = Function.getFunction(database, "JSON_CONTAINS_PAIR");
+				fun = Function.getFunction(database, "JSON_CONTAINS");
 				arg1 = arg0;
 				arg0 = ValueExpression.get(currentValue);
 				break;
 			case JSON_EXISTS_ANY:
-				fun = Function.getFunction(database, "JSON_CONTAINS_ANY_KEY");
+				fun = Function.getFunction(database, "JSON_CONTAINS_ANY");
 				arg1 = readTerm();
 				break;
 			case JSON_EXISTS_ALL:
-				fun = Function.getFunction(database, "JSON_CONTAINS_KEYS");
+				fun = Function.getFunction(database, "JSON_CONTAINS_ALL");
 				arg1 = readTerm();
 				break;
 			case JSON_EXISTS:
-				fun = Function.getFunction(database, "JSON_CONTAINS_KEY");
+				fun = Function.getFunction(database, "JSON_EXISTS");
 				arg1 = ValueExpression.get(currentValue);
 				break;
 			case JSON_CONCAT:
@@ -3439,7 +3439,7 @@ public class Parser {
 			case JSON_DELETE_FIELD:
 				String param = currentValue.getString();
 				if (!(param.startsWith("{") && param.endsWith("}"))) {
-					fun = Function.getFunction(database, "JSON_REMOVE");
+					fun = Function.getFunction(database, "JSON_DELETE_FIELD");
 					arg1 = ValueExpression.get(currentValue);
 				} else {
 					fun = Function.getFunction(database, "JSON_REMOVE_ALL");
@@ -3747,9 +3747,19 @@ public class Parser {
                         r = new ExpressionColumn(database, null, null, name);
                     }
                 } else if (currentTokenType >= JSON_FIELD && currentTokenType <= JSON_DELETE_PATH) {
-                	read();
-                	r = new ExpressionColumn(database, null, null, name);
-                	read();
+                	Function fun = null;
+                	while (currentTokenType >= JSON_FIELD && currentTokenType <= JSON_DELETE_PATH) {
+                		if(fun != null && fun.getType() != Value.JSON) {
+                			throw getSyntaxError();
+                		}
+                		fun = getJsonFunction(fun == null ? new ExpressionColumn(database, null, null, name) : fun);
+                		read();
+                	}
+            		r = fun;
+            		break;
+//                	read();
+//                	r = new ExpressionColumn(database, null, null, name);
+//                	read();
             	} else {
                     r = new ExpressionColumn(database, null, null, name);
                 }

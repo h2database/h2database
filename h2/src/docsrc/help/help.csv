@@ -3038,9 +3038,14 @@ ENUM('clubs', 'diamonds', 'hearts', 'spades')
 "Data Types","GEOMETRY Type","
 GEOMETRY
 ","
-A spatial geometry type, based on the ""org.locationtech.jts"" library.
+A spatial geometry type.
+Mapped to ""org.locationtech.jts.geom.Geometry"" if JTS library is in classpath.
 May be represented in textual format using the WKT (well-known text) or EWKT (extended well-known text) format.
 Values are stored internally in EWKB (extended well-known binary) format.
+Only a subset of EWKB and EWKT features is supported.
+Supported objects are POINT, LINESTRING, POLYGON, MULTIPOINT, MULTILINESTRING, MULTIPOLYGON, and GEOMETRYCOLLECTION.
+Supported dimension systems are XY (2D), XYZ, XYM, and XYZM.
+SRID (spatial reference system identifier) is supported.
 
 Use a quoted string containing a WKT/EWKT formatted string or ""PreparedStatement.setObject()"" to store values,
 and ""ResultSet.getObject(..)"" or ""ResultSet.getString(..)"" to retrieve the values.

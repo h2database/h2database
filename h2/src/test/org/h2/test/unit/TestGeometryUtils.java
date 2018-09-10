@@ -106,6 +106,7 @@ public class TestGeometryUtils extends TestBase {
         testGeometry("POINT (-1E32 1.000001)", "POINT (-1E32 1.000001)",
                 "POINT (-100000000000000000000000000000000 1.000001)", 2);
         testGeometry("POINT Z (2.7 -3 34)", 3);
+        assertEquals("POINT Z (1 2 3)", EWKTUtils.ewkb2ewkt(EWKTUtils.ewkt2ewkb("POINTz(1 2 3)")));
     }
 
     private void testLineString() throws Exception {
@@ -226,6 +227,7 @@ public class TestGeometryUtils extends TestBase {
     private void testDimensionM() {
         byte[] ewkb = EWKTUtils.ewkt2ewkb("POINT M (1 2 3)");
         assertEquals("POINT M (1 2 3)", EWKTUtils.ewkb2ewkt(ewkb));
+        assertEquals("POINT M (1 2 3)", EWKTUtils.ewkb2ewkt(EWKTUtils.ewkt2ewkb("POINTm(1 2 3)")));
         Point p = (Point) JTSUtils.ewkb2geometry(ewkb);
         CoordinateSequence cs = p.getCoordinateSequence();
         assertEquals(4, cs.getDimension());
@@ -240,6 +242,7 @@ public class TestGeometryUtils extends TestBase {
     private void testDimensionZM() {
         byte[] ewkb = EWKTUtils.ewkt2ewkb("POINT ZM (1 2 3 4)");
         assertEquals("POINT ZM (1 2 3 4)", EWKTUtils.ewkb2ewkt(ewkb));
+        assertEquals("POINT ZM (1 2 3 4)", EWKTUtils.ewkb2ewkt(EWKTUtils.ewkt2ewkb("POINTzm(1 2 3 4)")));
         Point p = (Point) JTSUtils.ewkb2geometry(ewkb);
         CoordinateSequence cs = p.getCoordinateSequence();
         assertEquals(4, cs.getDimension());

@@ -29,7 +29,14 @@ import org.h2.util.geometry.GeometryUtils.DimensionSystemTarget;
 import org.h2.util.geometry.GeometryUtils.Target;
 
 /**
- * Utilities for GEOMETRY data type.
+ * EWKT format support for GEOMETRY data type.
+ *
+ * <p>
+ * This class provides limited support of Well-known Text Representation from
+ * OGC 06-103r4 plus <a href=
+ * "https://postgis.net/docs/using_postgis_dbmanagement.html#EWKB_EWKT">PostGIS
+ * extension</a> for SRID support.
+ * </p>
  */
 public final class EWKTUtils {
 

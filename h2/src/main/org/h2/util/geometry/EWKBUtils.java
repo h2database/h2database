@@ -26,7 +26,15 @@ import org.h2.util.geometry.GeometryUtils.DimensionSystemTarget;
 import org.h2.util.geometry.GeometryUtils.Target;
 
 /**
- * Utilities for GEOMETRY data type.
+ * EWKB format support for GEOMETRY data type.
+ *
+ * <p>
+ * This class provides limited support of Well-known Binary Representation from
+ * OGC 06-103r4 plus PostGIS extensions for SRID support. This class can read
+ * dimension system marks in both OGC WKB and EWKB formats, but always writes
+ * them in EWKB format. As an addition POINT EMPTY is stored with NaN values as
+ * specified in <a href="http://www.geopackage.org/spec/">OGC 12-128r15</a>.
+ * </p>
  */
 public final class EWKBUtils {
 

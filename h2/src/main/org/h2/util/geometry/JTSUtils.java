@@ -149,6 +149,10 @@ public final class JTSUtils {
 
         @Override
         protected void addCoordinate(double x, double y, double z, double m, int index, int total) {
+            if (type == POINT && Double.isNaN(x) && Double.isNaN(y) && Double.isNaN(z) && Double.isNaN(m)) {
+                this.coordinates = createCoordinates(0);
+                return;
+            }
             CoordinateSequence coordinates = innerOffset < 0 ? this.coordinates : innerCoordinates[innerOffset];
             coordinates.setOrdinate(index, X, x);
             coordinates.setOrdinate(index, Y, y);
@@ -287,7 +291,11 @@ public final class JTSUtils {
             }
             target.startPoint(srid);
             Point p = (Point) geometry;
-            addCoordinate(p.getCoordinateSequence(), target, 0, 1);
+            if (p.isEmpty()) {
+                target.addCoordinate(Double.NaN, Double.NaN, Double.NaN, Double.NaN, 0, 1);
+            } else {
+                addCoordinate(p.getCoordinateSequence(), target, 0, 1);
+            }
         } else if (geometry instanceof LineString) {
             if (parentType != 0 && parentType != MULTI_LINE_STRING && parentType != GEOMETRY_COLLECTION) {
                 throw new IllegalArgumentException();

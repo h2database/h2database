@@ -191,7 +191,7 @@ public final class GeometryUtils {
 
         @Override
         protected void addCoordinate(double x, double y, double z, double m, int index, int total) {
-            if (enabled) {
+            if (enabled && !Double.isNaN(x) && !Double.isNaN(y)) {
                 if (!set) {
                     minX = maxX = x;
                     minY = maxY = y;
@@ -318,7 +318,7 @@ public final class GeometryUtils {
             if (!hasM && !Double.isNaN(m)) {
                 hasM = true;
             }
-            if (enabled) {
+            if (enabled && !Double.isNaN(x) && !Double.isNaN(y)) {
                 if (!set) {
                     minX = maxX = x;
                     minY = maxY = y;
@@ -467,7 +467,7 @@ public final class GeometryUtils {
      * @return envelope, or null
      */
     public static double[] getEnvelope(byte[] ewkb) {
-        EnvelopeAndDimensionSystemTarget target = new EnvelopeAndDimensionSystemTarget();
+        EnvelopeTarget target = new EnvelopeTarget();
         EWKBUtils.parseEWKB(ewkb, target);
         return target.getEnvelope();
     }

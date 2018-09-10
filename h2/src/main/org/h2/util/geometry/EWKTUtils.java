@@ -44,6 +44,8 @@ public final class EWKTUtils {
 
         private int level;
 
+        private int type;
+
         private boolean inMulti;
 
         /**
@@ -104,6 +106,7 @@ public final class EWKTUtils {
         }
 
         private void writeHeader(int type, int srid) {
+            this.type = type;
             // Never write SRID in inner objects
             if (level == 0 && srid != 0) {
                 output.append("SRID=").append(srid).append(';');
@@ -177,6 +180,10 @@ public final class EWKTUtils {
 
         @Override
         protected void addCoordinate(double x, double y, double z, double m, int index, int total) {
+            if (type == POINT && Double.isNaN(x) && Double.isNaN(y) && Double.isNaN(z) && Double.isNaN(m)) {
+                output.append("EMPTY");
+                return;
+            }
             if (index == 0) {
                 output.append('(');
             } else {
@@ -572,13 +579,17 @@ public final class EWKTUtils {
         }
         switch (type) {
         case "POINT":
-            if (parentType != 0 && parentType != MULTI_POINT && parentType != GEOMETRY_COLLECTION || empty) {
+            if (parentType != 0 && parentType != MULTI_POINT && parentType != GEOMETRY_COLLECTION) {
                 throw new IllegalArgumentException();
             }
+            empty = source.readEmpty(empty);
             target.startPoint(source.srid);
-            source.read('(');
-            addCoordinate(source, target, useZ, useM, 0, 1);
-            source.read(')');
+            if (empty) {
+                target.addCoordinate(Double.NaN, Double.NaN, Double.NaN, Double.NaN, 0, 1);
+            } else {
+                addCoordinate(source, target, useZ, useM, 0, 1);
+                source.read(')');
+            }
             break;
         case "LINESTRING": {
             if (parentType != 0 && parentType != MULTI_LINE_STRING && parentType != GEOMETRY_COLLECTION) {

@@ -13,12 +13,10 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.Random;
 import org.h2.api.Aggregate;
-import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.tools.SimpleResultSet;
 import org.h2.tools.SimpleRowSource;
-import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueGeometry;
@@ -700,13 +698,6 @@ public class TestSpatial extends TestDb {
         ValueGeometry valueGeometry3 = ValueGeometry.getFromGeometry(geometry);
         assertEquals(valueGeometry, valueGeometry3);
         assertEquals(geometry.getSRID(), ((Geometry) valueGeometry3.getGeometry()).getSRID());
-        // Check illegal geometry (no WKB representation)
-        try {
-            ValueGeometry.get("POINT EMPTY");
-            fail("expected exception");
-        } catch (IllegalArgumentException | DbException ex) {
-            // expected
-        }
     }
 
     /**

@@ -58,6 +58,7 @@ public class TestGeometryUtils extends TestBase {
         testMultiLineString();
         testMultiPolygon();
         testGeometryCollection();
+        testEmptyPoint();
         testDimensionM();
         testDimensionZM();
         testSRID();
@@ -144,7 +145,8 @@ public class TestGeometryUtils extends TestBase {
 
         // Test WKB->Geometry conversion
         Geometry geometryFromH2 = JTSUtils.ewkb2geometry(wkbFromJTS);
-        // JTS has locale-specific bugs with NaNs, also such geometries are not fully valid
+        // JTS has locale-specific bugs with NaNs, also such geometries are not
+        // fully valid
         if (!wkt.contains("NaN")) {
             assertEquals(jtsWkt.replaceAll(" Z", ""), new WKTWriter(numOfDimensions).write(geometryFromH2));
         }
@@ -171,16 +173,30 @@ public class TestGeometryUtils extends TestBase {
         } else {
             double minX = envelopeFromJTS.getMinX(), maxX = envelopeFromJTS.getMaxX();
             double minY = envelopeFromJTS.getMinY(), maxY = envelopeFromJTS.getMaxY();
-            assertEquals(minX, envelopeFromH2[0]);
-            assertEquals(maxX, envelopeFromH2[1]);
-            assertEquals(minY, envelopeFromH2[2]);
-            assertEquals(maxY, envelopeFromH2[3]);
-            // TODO determine what to do with NaNs in dimensions X and Y
-            if (!Double.isNaN(minX) && !Double.isNaN(maxX) && !Double.isNaN(minY) && !Double.isNaN(maxY)) {
+            if (Double.isNaN(minX) || Double.isNaN(maxX) || Double.isNaN(minY) || Double.isNaN(maxY)) {
+                assertNull(envelopeFromH2);
+                assertNull(GeometryUtils.envelope2wkb(envelopeFromH2));
+            } else {
+                assertEquals(minX, envelopeFromH2[0]);
+                assertEquals(maxX, envelopeFromH2[1]);
+                assertEquals(minY, envelopeFromH2[2]);
+                assertEquals(maxY, envelopeFromH2[3]);
                 assertEquals(new WKBWriter(2).write(new GeometryFactory().toGeometry(envelopeFromJTS)),
                         GeometryUtils.envelope2wkb(envelopeFromH2));
             }
         }
+    }
+
+    private void testEmptyPoint() {
+        String ewkt = "POINT EMPTY";
+        byte[] ewkb = EWKTUtils.ewkt2ewkb(ewkt);
+        assertEquals(StringUtils.convertHexToBytes("00000000017ff80000000000007ff8000000000000"), ewkb);
+        assertEquals(ewkt, EWKTUtils.ewkb2ewkt(ewkb));
+        assertNull(GeometryUtils.getEnvelope(ewkb));
+        Point p = (Point) JTSUtils.ewkb2geometry(ewkb);
+        assertTrue(p.isEmpty());
+        assertEquals(ewkt, new WKTWriter().write(p));
+        assertEquals(ewkb, JTSUtils.geometry2ewkb(p));
     }
 
     private void testDimensionM() {

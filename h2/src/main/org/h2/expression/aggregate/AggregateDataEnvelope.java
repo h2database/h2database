@@ -66,9 +66,6 @@ class AggregateDataEnvelope extends AggregateData {
 
     @Override
     Value getValue(Database database, int dataType, boolean distinct) {
-        if (envelope == null) {
-            return ValueNull.INSTANCE;
-        }
         return ValueGeometry.fromEnvelope(envelope);
     }
 

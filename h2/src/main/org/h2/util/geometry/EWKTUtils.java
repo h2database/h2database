@@ -32,10 +32,10 @@ import org.h2.util.geometry.GeometryUtils.Target;
  * EWKT format support for GEOMETRY data type.
  *
  * <p>
- * This class provides limited support of Well-known Text Representation from
- * OGC 06-103r4 plus <a href=
+ * This class provides limited support of EWKT. EWKT is based on Well-known Text
+ * Representation (WKT) from OGC 06-103r4 and includes additional <a href=
  * "https://postgis.net/docs/using_postgis_dbmanagement.html#EWKB_EWKT">PostGIS
- * extension</a> for SRID support.
+ * extensions</a>. SRID support from EWKT is implemented.
  * </p>
  */
 public final class EWKTUtils {

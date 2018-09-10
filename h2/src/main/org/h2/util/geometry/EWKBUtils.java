@@ -269,7 +269,11 @@ public final class EWKBUtils {
      *            output target
      */
     public static void parseEWKB(byte[] ewkb, Target target) {
-        parseEWKB(new EWKBSource(ewkb), target, 0, 0);
+        try {
+            parseEWKB(new EWKBSource(ewkb), target, 0, 0);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new IllegalArgumentException();
+        }
     }
 
     /**
@@ -286,120 +290,115 @@ public final class EWKBUtils {
      *            root geometry (will be determined from the EWKB instead)
      */
     private static void parseEWKB(EWKBSource source, Target target, int parentType, int parentSrid) {
-        try {
-            // Read byte order of a next geometry
-            switch (source.readByte()) {
-            case 0:
-                source.bigEndian = true;
-                break;
-            case 1:
-                source.bigEndian = false;
-                break;
-            default:
+        // Read byte order of a next geometry
+        switch (source.readByte()) {
+        case 0:
+            source.bigEndian = true;
+            break;
+        case 1:
+            source.bigEndian = false;
+            break;
+        default:
+            throw new IllegalArgumentException();
+        }
+        // Type contains type of a geometry and additional flags
+        int type = source.readInt();
+        // PostGIS extensions
+        boolean useZ = (type & EWKB_Z) != 0;
+        boolean useM = (type & EWKB_M) != 0;
+        int srid = (type & EWKB_SRID) != 0 ? source.readInt() : 0;
+        // Preserve parent SRID unconditionally
+        if (parentType != 0) {
+            srid = parentSrid;
+        }
+        // OGC 06-103r4
+        type &= 0xffff;
+        switch (type / 1_000) {
+        case DIMENSION_SYSTEM_XYZ:
+            useZ = true;
+            break;
+        case DIMENSION_SYSTEM_XYZM:
+            useZ = true;
+            //$FALL-THROUGH$
+        case DIMENSION_SYSTEM_XYM:
+            useM = true;
+        }
+        type %= 1_000;
+        switch (type) {
+        case POINT:
+            if (parentType != 0 && parentType != MULTI_POINT && parentType != GEOMETRY_COLLECTION) {
                 throw new IllegalArgumentException();
             }
-            // Type contains type of a geometry and additional flags
-            int type = source.readInt();
-            // PostGIS extensions
-            boolean useZ = (type & EWKB_Z) != 0;
-            boolean useM = (type & EWKB_M) != 0;
-            int srid = (type & EWKB_SRID) != 0 ? source.readInt() : 0;
-            // Preserve parent SRID unconditionally
-            if (parentType != 0) {
-                srid = parentSrid;
+            target.startPoint(srid);
+            addCoordinate(source, target, useZ, useM, 0, 1);
+            break;
+        case LINE_STRING: {
+            if (parentType != 0 && parentType != MULTI_LINE_STRING && parentType != GEOMETRY_COLLECTION) {
+                throw new IllegalArgumentException();
             }
-            // OGC 06-103r4
-            type &= 0xffff;
-            switch (type / 1_000) {
-            case DIMENSION_SYSTEM_XYZ:
-                useZ = true;
-                break;
-            case DIMENSION_SYSTEM_XYZM:
-                useZ = true;
-                //$FALL-THROUGH$
-            case DIMENSION_SYSTEM_XYM:
-                useM = true;
+            int numPoints = source.readInt();
+            if (numPoints < 0 || numPoints == 1) {
+                throw new IllegalArgumentException();
             }
-            type %= 1_000;
-            switch (type) {
-            case POINT:
-                if (parentType != 0 && parentType != MULTI_POINT && parentType != GEOMETRY_COLLECTION) {
-                    throw new IllegalArgumentException();
-                }
-                target.startPoint(srid);
-                addCoordinate(source, target, useZ, useM, 0, 1);
-                break;
-            case LINE_STRING: {
-                if (parentType != 0 && parentType != MULTI_LINE_STRING && parentType != GEOMETRY_COLLECTION) {
-                    throw new IllegalArgumentException();
-                }
-                int numPoints = source.readInt();
-                if (numPoints < 0 || numPoints == 1) {
-                    throw new IllegalArgumentException();
-                }
-                target.startLineString(srid, numPoints);
-                for (int i = 0; i < numPoints; i++) {
-                    addCoordinate(source, target, useZ, useM, i, numPoints);
-                }
-                break;
+            target.startLineString(srid, numPoints);
+            for (int i = 0; i < numPoints; i++) {
+                addCoordinate(source, target, useZ, useM, i, numPoints);
             }
-            case POLYGON: {
-                if (parentType != 0 && parentType != MULTI_POLYGON && parentType != GEOMETRY_COLLECTION) {
-                    throw new IllegalArgumentException();
-                }
-                int numInner = source.readInt() - 1;
-                if (numInner < 0) {
-                    throw new IllegalArgumentException();
-                }
-                int size = source.readInt();
-                // Size may be 0 (EMPTY) or 4+
-                if (size < 0 || size >= 1 && size <= 3) {
-                    throw new IllegalArgumentException();
-                }
-                if (size == 0 && numInner > 0) {
-                    throw new IllegalArgumentException();
-                }
-                target.startPolygon(srid, numInner, size);
-                if (size > 0) {
-                    addRing(source, target, useZ, useM, size);
-                    for (int i = 0; i < numInner; i++) {
-                        size = source.readInt();
-                        // Size may be 0 (EMPTY) or 4+
-                        if (size < 0 || size >= 1 && size <= 3) {
-                            throw new IllegalArgumentException();
-                        }
-                        target.startPolygonInner(size);
-                        addRing(source, target, useZ, useM, size);
+            break;
+        }
+        case POLYGON: {
+            if (parentType != 0 && parentType != MULTI_POLYGON && parentType != GEOMETRY_COLLECTION) {
+                throw new IllegalArgumentException();
+            }
+            int numInner = source.readInt() - 1;
+            if (numInner < 0) {
+                throw new IllegalArgumentException();
+            }
+            int size = source.readInt();
+            // Size may be 0 (EMPTY) or 4+
+            if (size < 0 || size >= 1 && size <= 3) {
+                throw new IllegalArgumentException();
+            }
+            if (size == 0 && numInner > 0) {
+                throw new IllegalArgumentException();
+            }
+            target.startPolygon(srid, numInner, size);
+            if (size > 0) {
+                addRing(source, target, useZ, useM, size);
+                for (int i = 0; i < numInner; i++) {
+                    size = source.readInt();
+                    // Size may be 0 (EMPTY) or 4+
+                    if (size < 0 || size >= 1 && size <= 3) {
+                        throw new IllegalArgumentException();
                     }
-                    target.endNonEmptyPolygon();
+                    target.startPolygonInner(size);
+                    addRing(source, target, useZ, useM, size);
                 }
-                break;
+                target.endNonEmptyPolygon();
             }
-            case MULTI_POINT:
-            case MULTI_LINE_STRING:
-            case MULTI_POLYGON:
-            case GEOMETRY_COLLECTION: {
-                if (parentType != 0 && parentType != GEOMETRY_COLLECTION) {
-                    throw new IllegalArgumentException();
-                }
-                int numItems = source.readInt();
-                if (numItems < 0) {
-                    throw new IllegalArgumentException();
-                }
-                target.startCollection(type, srid, numItems);
-                for (int i = 0; i < numItems; i++) {
-                    Target innerTarget = target.startCollectionItem(i, numItems);
-                    parseEWKB(source, innerTarget, type, srid);
-                    target.endCollectionItem(innerTarget, i, numItems);
-                }
-                target.endCollection(type);
-                break;
-            }
-            default:
+            break;
+        }
+        case MULTI_POINT:
+        case MULTI_LINE_STRING:
+        case MULTI_POLYGON:
+        case GEOMETRY_COLLECTION: {
+            if (parentType != 0 && parentType != GEOMETRY_COLLECTION) {
                 throw new IllegalArgumentException();
             }
-        } catch (ArrayIndexOutOfBoundsException e) {
-            e.printStackTrace();
+            int numItems = source.readInt();
+            if (numItems < 0) {
+                throw new IllegalArgumentException();
+            }
+            target.startCollection(type, srid, numItems);
+            for (int i = 0; i < numItems; i++) {
+                Target innerTarget = target.startCollectionItem(i, numItems);
+                parseEWKB(source, innerTarget, type, srid);
+                target.endCollectionItem(innerTarget, i, numItems);
+            }
+            target.endCollection(type);
+            break;
+        }
+        default:
             throw new IllegalArgumentException();
         }
     }

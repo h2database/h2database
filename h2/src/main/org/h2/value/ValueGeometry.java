@@ -8,6 +8,7 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
+import org.h2.api.ErrorCode;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.util.Bits;
@@ -87,7 +88,7 @@ public class ValueGeometry extends Value {
             return (ValueGeometry) Value.cache(new ValueGeometry(JTSUtils.geometry2ewkb(g, dimensionSystem),
                     dimensionSystem, target.getEnvelope()));
         } catch (RuntimeException ex) {
-            throw DbException.convert(ex);
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, String.valueOf(o));
         }
     }
 
@@ -105,7 +106,7 @@ public class ValueGeometry extends Value {
             return (ValueGeometry) Value.cache(new ValueGeometry(EWKTUtils.ewkt2ewkb(s, dimensionSystem),
                     dimensionSystem, target.getEnvelope()));
         } catch (RuntimeException ex) {
-            throw DbException.convert(ex);
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, s);
         }
     }
 
@@ -145,7 +146,7 @@ public class ValueGeometry extends Value {
             return (ValueGeometry) Value.cache(new ValueGeometry(EWKBUtils.ewkb2ewkb(bytes, dimensionSystem),
                     dimensionSystem, target.getEnvelope()));
         } catch (RuntimeException ex) {
-            throw DbException.convert(ex);
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, StringUtils.convertBytesToHex(bytes));
         }
     }
 

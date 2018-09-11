@@ -22,12 +22,15 @@ import static org.h2.util.geometry.GeometryUtils.checkFinite;
 import static org.h2.util.geometry.GeometryUtils.toCanonicalDouble;
 
 import java.io.ByteArrayOutputStream;
+import java.lang.reflect.Method;
 
 import org.h2.engine.SysProperties;
+import org.h2.message.DbException;
 import org.h2.util.geometry.EWKBUtils.EWKBTarget;
 import org.h2.util.geometry.GeometryUtils.DimensionSystemTarget;
 import org.h2.util.geometry.GeometryUtils.Target;
 import org.locationtech.jts.geom.CoordinateSequence;
+import org.locationtech.jts.geom.CoordinateSequenceFactory;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -46,6 +49,34 @@ import org.locationtech.jts.geom.impl.PackedCoordinateSequenceFactory;
  * Utilities for Geometry data type from JTS library.
  */
 public final class JTSUtils {
+
+    /**
+     * {@code true} if M dimension is supported by used version of JTS,
+     * {@code false} if M dimension is only partially supported (JTS 1.15).
+     */
+    public static final boolean M_IS_SUPPORTED;
+
+    static final Method CREATE;
+
+    private static final Method GET_Z, GET_M;
+
+    static {
+        Method create;
+        Method getZ, getM;
+        try {
+            create = CoordinateSequenceFactory.class.getMethod("create", int.class, int.class, int.class);
+            getZ = CoordinateSequence.class.getMethod("getZ", int.class);
+            getM = CoordinateSequence.class.getMethod("getM", int.class);
+        } catch (ReflectiveOperationException e) {
+            create = null;
+            getZ = null;
+            getM = null;
+        }
+        M_IS_SUPPORTED = create != null;
+        CREATE = create;
+        GET_Z = getZ;
+        GET_M = getM;
+    }
 
     /**
      * Converter output target that creates a JTS Geometry.
@@ -151,8 +182,19 @@ public final class JTSUtils {
         }
 
         private CoordinateSequence createCoordinates(int numPoints) {
-            return factory.getCoordinateSequenceFactory().create(numPoints,
-                    (dimensionSystem & DIMENSION_SYSTEM_XYM) != 0 ? 4 : 3);
+            if ((dimensionSystem & DIMENSION_SYSTEM_XYM) != 0) {
+                if (M_IS_SUPPORTED) {
+                    try {
+                        return (CoordinateSequence) CREATE.invoke(factory.getCoordinateSequenceFactory(), numPoints, 4,
+                                1);
+                    } catch (ReflectiveOperationException e) {
+                        throw DbException.convert(e);
+                    }
+                }
+                return factory.getCoordinateSequenceFactory().create(numPoints, 4);
+            } else {
+                return factory.getCoordinateSequenceFactory().create(numPoints, 3);
+            }
         }
 
         @Override
@@ -165,8 +207,7 @@ public final class JTSUtils {
             coordinates.setOrdinate(index, X, checkFinite(x));
             coordinates.setOrdinate(index, Y, checkFinite(y));
             coordinates.setOrdinate(index, Z,
-                    (dimensionSystem & DIMENSION_SYSTEM_XYZ) != 0
-                            ? SysProperties.MIXED_GEOMETRIES ? z : checkFinite(z)
+                    (dimensionSystem & DIMENSION_SYSTEM_XYZ) != 0 ? SysProperties.MIXED_GEOMETRIES ? z : checkFinite(z)
                             : Double.NaN);
             if ((dimensionSystem & DIMENSION_SYSTEM_XYM) != 0) {
                 coordinates.setOrdinate(index, M, checkFinite(m));
@@ -384,14 +425,9 @@ public final class JTSUtils {
     private static void addRing(CoordinateSequence sequence, Target target, int size) {
         // 0 or 4+ are valid
         if (size >= 4) {
-            int d = sequence.getDimension();
-            boolean useZ = d >= 3, useM = d >= 4;
             double startX = toCanonicalDouble(sequence.getOrdinate(0, X)),
                     startY = toCanonicalDouble(sequence.getOrdinate(0, Y));
-            target.addCoordinate(startX, startY, //
-                    useZ ? toCanonicalDouble(sequence.getOrdinate(0, Z)) : Double.NaN,
-                    useM ? toCanonicalDouble(sequence.getOrdinate(0, M)) : Double.NaN, //
-                    0, size);
+            addCoordinate(sequence, target, 0, size, startX, startY);
             for (int i = 1; i < size - 1; i++) {
                 addCoordinate(sequence, target, i, size);
             }
@@ -404,20 +440,31 @@ public final class JTSUtils {
             if (startX != endX || startY != endY) {
                 throw new IllegalArgumentException();
             }
-            target.addCoordinate(endX, endY, //
-                    useZ ? toCanonicalDouble(sequence.getOrdinate(size - 1, Z)) : Double.NaN,
-                    useM ? toCanonicalDouble(sequence.getOrdinate(size - 1, M)) : Double.NaN, //
-                    size - 1, size);
+            addCoordinate(sequence, target, size - 1, size, endX, endY);
         }
     }
 
     private static void addCoordinate(CoordinateSequence sequence, Target target, int index, int total) {
-        int d = sequence.getDimension();
-        target.addCoordinate(toCanonicalDouble(sequence.getOrdinate(index, X)),
-                toCanonicalDouble(sequence.getOrdinate(index, Y)),
-                d >= 3 ? toCanonicalDouble(sequence.getOrdinate(index, Z)) : Double.NaN,
-                d >= 4 ? toCanonicalDouble(sequence.getOrdinate(index, M)) : Double.NaN, //
-                index, total);
+        addCoordinate(sequence, target, index, total, toCanonicalDouble(sequence.getOrdinate(index, X)),
+                toCanonicalDouble(sequence.getOrdinate(index, Y)));
+    }
+
+    private static void addCoordinate(CoordinateSequence sequence, Target target, int index, int total, double x,
+            double y) {
+        double m, z;
+        if (M_IS_SUPPORTED) {
+            try {
+                z = (double) GET_Z.invoke(sequence, index);
+                m = (double) GET_M.invoke(sequence, index);
+            } catch (ReflectiveOperationException e) {
+                throw DbException.convert(e);
+            }
+        } else {
+            int d = sequence.getDimension();
+            z = d >= 3 ? toCanonicalDouble(sequence.getOrdinate(index, Z)) : Double.NaN;
+            m = d >= 4 ? toCanonicalDouble(sequence.getOrdinate(index, M)) : Double.NaN;
+        }
+        target.addCoordinate(x, y, z, m, index, total);
     }
 
     private JTSUtils() {

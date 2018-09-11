@@ -86,7 +86,7 @@ public class TableFunction extends Function {
             ExpressionColumn col = new ExpressionColumn(db, c);
             header[i] = col;
         }
-        LocalResult result = new LocalResult(session, header, len);
+        LocalResult result = db.getResultFactory().create(session, header, len);
         if (distinctRows) {
             result.setDistinct();
         }

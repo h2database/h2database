@@ -19,6 +19,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.result.LocalResultFactory;
 import org.h2.result.ResultInterface;
 import org.h2.result.RowFactory;
 import org.h2.schema.Schema;
@@ -555,6 +556,19 @@ public class Set extends Prepared {
                 } else {
                     throw DbException.convert(e);
                 }
+            }
+            break;
+        }
+        case SetTypes.LOCAL_RESULT_FACTORY: {
+            session.getUser().checkAdmin();
+            String localResultFactoryName = expression.getColumnName();
+            Class<LocalResultFactory> localResultFactoryClass = JdbcUtils.loadUserClass(localResultFactoryName);
+            LocalResultFactory localResultFactory;
+            try {
+                localResultFactory = localResultFactoryClass.getDeclaredConstructor().newInstance();
+                database.setResultFactory(localResultFactory);
+            } catch (Exception e) {
+                throw DbException.convert(e);
             }
             break;
         }

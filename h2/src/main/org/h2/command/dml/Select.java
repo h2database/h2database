@@ -687,7 +687,7 @@ public class Select extends Query {
 
     @Override
     public ResultInterface queryMeta() {
-        LocalResult result = new LocalResult(session, expressionArray,
+        LocalResult result = session.getDatabase().getResultFactory().create(session, expressionArray,
                 visibleColumnCount);
         result.done();
         return result;
@@ -858,12 +858,13 @@ public class Select extends Query {
     }
 
     private LocalResult createLocalResult(LocalResult old) {
-        return old != null ? old : new LocalResult(session, expressionArray,
+        return old != null ? old : session.getDatabase().getResultFactory().create(session, expressionArray,
                 visibleColumnCount);
     }
 
     private LocalResult convertToDistinct(ResultInterface result) {
-        LocalResult distinctResult = new LocalResult(session, expressionArray, visibleColumnCount);
+        LocalResult distinctResult = session.getDatabase().getResultFactory().create(session,
+            expressionArray, visibleColumnCount);
         distinctResult.setDistinct();
         result.reset();
         while (result.next()) {

@@ -41,6 +41,7 @@ import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.MVTableEngine;
+import org.h2.result.LocalResultFactory;
 import org.h2.result.Row;
 import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
@@ -230,6 +231,7 @@ public class Database implements DataHandler {
     private int queryStatisticsMaxEntries = Constants.QUERY_STATISTICS_MAX_ENTRIES;
     private QueryStatisticsData queryStatisticsData;
     private RowFactory rowFactory = RowFactory.DEFAULT;
+    private LocalResultFactory resultFactory = LocalResultFactory.DEFAULT;
 
     private Authenticator authenticator;
 
@@ -367,6 +369,14 @@ public class Database implements DataHandler {
 
     public void setRowFactory(RowFactory rowFactory) {
         this.rowFactory = rowFactory;
+    }
+
+    public LocalResultFactory getResultFactory() {
+        return resultFactory;
+    }
+
+    public void setResultFactory(LocalResultFactory resultFactory) {
+        this.resultFactory = resultFactory;
     }
 
     public static void setInitialPowerOffCount(int count) {

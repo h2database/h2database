@@ -252,7 +252,12 @@ public class SetTypes {
      */
     public static final int AUTHENTICATOR = 48;
 
-    private static final int COUNT = AUTHENTICATOR + 1;
+    /**
+     * The type of a SET LOCAL_RESULT_FACTORY statement.
+     */
+    public static final int LOCAL_RESULT_FACTORY = 49;
+
+    private static final int COUNT = LOCAL_RESULT_FACTORY + 1;
 
     private static final ArrayList<String> TYPES;
 
@@ -311,6 +316,7 @@ public class SetTypes {
         list.add(BUILTIN_ALIAS_OVERRIDE, "BUILTIN_ALIAS_OVERRIDE");
         list.add(COLUMN_NAME_RULES, "COLUMN_NAME_RULES");
         list.add(AUTHENTICATOR, "AUTHENTICATOR");
+        list.add(LOCAL_RESULT_FACTORY, "LOCAL_RESULT_FACTORY");
         TYPES = list;
     }
 

@@ -128,7 +128,7 @@ public final class GeneratedKeys {
         Database db = session.getDatabase();
         if (Boolean.FALSE.equals(generatedKeysRequest)) {
             clear(null);
-            return new LocalResult();
+            return db.getResultFactory().create();
         }
         ArrayList<ExpressionColumn> expressionColumns;
         if (Boolean.TRUE.equals(generatedKeysRequest)) {
@@ -152,7 +152,7 @@ public final class GeneratedKeys {
                 }
             } else {
                 clear(null);
-                return new LocalResult();
+                return db.getResultFactory().create();
             }
         } else if (generatedKeysRequest instanceof String[]) {
             if (table != null) {
@@ -182,18 +182,19 @@ public final class GeneratedKeys {
                 }
             } else {
                 clear(null);
-                return new LocalResult();
+                return db.getResultFactory().create();
             }
         } else {
             clear(null);
-            return new LocalResult();
+            return db.getResultFactory().create();
         }
         int columnCount = expressionColumns.size();
         if (columnCount == 0) {
             clear(null);
-            return new LocalResult();
+            return db.getResultFactory().create();
         }
-        LocalResult result = new LocalResult(session, expressionColumns.toArray(new Expression[0]), columnCount);
+        LocalResult result = db.getResultFactory().create(session,
+            expressionColumns.toArray(new Expression[0]), columnCount);
         for (Map<Column, Value> map : data) {
             Value[] row = new Value[columnCount];
             for (Map.Entry<Column, Value> entry : map.entrySet()) {

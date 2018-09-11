@@ -5,6 +5,7 @@
  */
 package org.h2.util.geometry;
 
+import static org.h2.util.geometry.GeometryUtils.DIMENSION_SYSTEM_XY;
 import static org.h2.util.geometry.GeometryUtils.DIMENSION_SYSTEM_XYM;
 import static org.h2.util.geometry.GeometryUtils.DIMENSION_SYSTEM_XYZ;
 import static org.h2.util.geometry.GeometryUtils.DIMENSION_SYSTEM_XYZM;
@@ -24,7 +25,6 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 
 import org.h2.engine.SysProperties;
-import org.h2.util.StringUtils;
 import org.h2.util.geometry.EWKBUtils.EWKBTarget;
 import org.h2.util.geometry.GeometryUtils.DimensionSystemTarget;
 import org.h2.util.geometry.GeometryUtils.Target;
@@ -272,10 +272,87 @@ public final class EWKTUtils {
             offset++;
         }
 
-        boolean readEmpty(boolean empty) {
-            if (empty) {
-                return true;
+        int readType() {
+            skipWS();
+            int len = ewkt.length();
+            if (offset >= len) {
+                throw new IllegalArgumentException();
             }
+            int result = 0;
+            char ch = ewkt.charAt(offset);
+            switch (ch) {
+            case 'P':
+            case 'p':
+                result = match("POINT", POINT);
+                if (result == 0) {
+                    result = match("POLYGON", POLYGON);
+                }
+                break;
+            case 'L':
+            case 'l':
+                result = match("LINESTRING", LINE_STRING);
+                break;
+            case 'M':
+            case 'm':
+                if (match("MULTI", 1) != 0) {
+                    result = match("POINT", MULTI_POINT);
+                    if (result == 0) {
+                        result = match("POLYGON", MULTI_POLYGON);
+                        if (result == 0) {
+                            result = match("LINESTRING", MULTI_LINE_STRING);
+                        }
+                    }
+                }
+                break;
+            case 'G':
+            case 'g':
+                result = match("GEOMETRYCOLLECTION", GEOMETRY_COLLECTION);
+                break;
+            }
+            if (result == 0) {
+                throw new IllegalArgumentException();
+            }
+            return result;
+        }
+
+        int readDimensionSystem() {
+            int o = offset;
+            skipWS();
+            int len = ewkt.length();
+            if (offset > len - 2) {
+                throw new IllegalArgumentException();
+            }
+            int result;
+            char ch = ewkt.charAt(offset);
+            switch (ch) {
+            case 'M':
+            case 'm':
+                result = DIMENSION_SYSTEM_XYM;
+                offset++;
+                break;
+            case 'Z':
+            case 'z':
+                offset++;
+                ch = ewkt.charAt(offset);
+                if (ch == 'M' || ch == 'm') {
+                    offset++;
+                    result = DIMENSION_SYSTEM_XYZM;
+                } else {
+                    result = DIMENSION_SYSTEM_XYZ;
+                }
+                break;
+            default:
+                result = DIMENSION_SYSTEM_XY;
+                if (o != offset) {
+                    // Token is already terminated by a whitespace
+                    return result;
+                }
+            }
+            checkStringEnd(len);
+            return result;
+        }
+
+        boolean readEmpty() {
             skipWS();
             int len = ewkt.length();
             if (offset >= len) {
@@ -285,52 +362,30 @@ public final class EWKTUtils {
                 offset++;
                 return false;
             }
-            if (!readWord().equals("EMPTY")) {
-                throw new IllegalArgumentException();
+            if (match("EMPTY", 1) != 0) {
+                checkStringEnd(len);
+                return true;
             }
-            return true;
+            throw new IllegalArgumentException();
         }
 
-        String readWord() {
-            return readWordImpl(true);
+        private int match(String token, int code) {
+            int l = token.length();
+            if (offset <= ewkt.length() - l && ewkt.regionMatches(true, offset, token, 0, l)) {
+                offset += l;
+            } else {
+                code = 0;
+            }
+            return code;
         }
 
-        String tryReadWord() {
-            return readWordImpl(false);
-        }
-
-        private String readWordImpl(boolean required) {
-            skipWS();
-            int len = ewkt.length();
-            if (offset >= len) {
-                if (required) {
-                    throw new IllegalArgumentException();
-                } else {
-                    return null;
-                }
-            }
-            char ch = ewkt.charAt(offset);
-            if (!isLatinLetter(ch)) {
-                if (required) {
-                    throw new IllegalArgumentException();
-                } else {
-                    return null;
-                }
-            }
-            int start = offset++;
-            while (offset < len && isLatinLetter(ch = ewkt.charAt(offset))) {
-                offset++;
-            }
+        private void checkStringEnd(int len) {
             if (offset < len) {
+                char ch = ewkt.charAt(offset);
                 if (ch > ' ' && ch != '(' && ch != ')' && ch != ',') {
                     throw new IllegalArgumentException();
                 }
             }
-            return StringUtils.toUpperEnglish(ewkt.substring(start, offset));
-        }
-
-        private static boolean isLatinLetter(char ch) {
-            return ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z';
         }
 
         public boolean hasCoordinate() {
@@ -543,61 +598,35 @@ public final class EWKTUtils {
         if (parentType == 0) {
             target.init(source.readSRID());
         }
-        String type;
-        boolean empty = false;
+        int type;
         switch (parentType) {
         default: {
-            type = source.readWord();
-            if (type.endsWith("M")) {
-                useM = true;
-                if (type.endsWith("ZM")) {
-                    useZ = true;
-                    type = type.substring(0, type.length() - 2);
-                } else {
-                    type = type.substring(0, type.length() - 1);
-                }
-            } else if (type.endsWith("Z")) {
+            type = source.readType();
+            int ds = source.readDimensionSystem();
+            if ((ds & DIMENSION_SYSTEM_XYZ) != 0) {
                 useZ = true;
-                type = type.substring(0, type.length() - 1);
-            } else {
-                String s = source.tryReadWord();
-                if (s != null) {
-                    switch (s) {
-                    case "Z":
-                        useZ = true;
-                        break;
-                    case "M":
-                        useM = true;
-                        break;
-                    case "ZM":
-                        useZ = useM = true;
-                        break;
-                    case "EMPTY":
-                        empty = true;
-                        break;
-                    default:
-                        throw new IllegalArgumentException();
-                    }
-                }
+            }
+            if ((ds & DIMENSION_SYSTEM_XYM) != 0) {
+                useM = true;
             }
             break;
         }
         case MULTI_POINT:
-            type = "POINT";
+            type = POINT;
             break;
         case MULTI_LINE_STRING:
-            type = "LINESTRING";
+            type = LINE_STRING;
             break;
         case MULTI_POLYGON:
-            type = "POLYGON";
+            type = POLYGON;
             break;
         }
         switch (type) {
-        case "POINT":
+        case POINT: {
             if (parentType != 0 && parentType != MULTI_POINT && parentType != GEOMETRY_COLLECTION) {
                 throw new IllegalArgumentException();
             }
-            empty = source.readEmpty(empty);
+            boolean empty = source.readEmpty();
             target.startPoint();
             if (empty) {
                 target.addCoordinate(Double.NaN, Double.NaN, Double.NaN, Double.NaN, 0, 1);
@@ -606,11 +635,12 @@ public final class EWKTUtils {
                 source.read(')');
             }
             break;
-        case "LINESTRING": {
+        }
+        case LINE_STRING: {
             if (parentType != 0 && parentType != MULTI_LINE_STRING && parentType != GEOMETRY_COLLECTION) {
                 throw new IllegalArgumentException();
             }
-            empty = source.readEmpty(empty);
+            boolean empty = source.readEmpty();
             if (empty) {
                 target.startLineString(0);
             } else {
@@ -630,11 +660,11 @@ public final class EWKTUtils {
             }
             break;
         }
-        case "POLYGON": {
+        case POLYGON: {
             if (parentType != 0 && parentType != MULTI_POLYGON && parentType != GEOMETRY_COLLECTION) {
                 throw new IllegalArgumentException();
             }
-            empty = source.readEmpty(empty);
+            boolean empty = source.readEmpty();
             if (empty) {
                 target.startPolygon(0, 0);
             } else {
@@ -670,17 +700,17 @@ public final class EWKTUtils {
             }
             break;
         }
-        case "MULTIPOINT":
-            parseCollection(source, target, MULTI_POINT, parentType, empty, useZ, useM);
+        case MULTI_POINT:
+            parseCollection(source, target, MULTI_POINT, parentType, useZ, useM);
             break;
-        case "MULTILINESTRING":
-            parseCollection(source, target, MULTI_LINE_STRING, parentType, empty, useZ, useM);
+        case MULTI_LINE_STRING:
+            parseCollection(source, target, MULTI_LINE_STRING, parentType, useZ, useM);
             break;
-        case "MULTIPOLYGON":
-            parseCollection(source, target, MULTI_POLYGON, parentType, empty, useZ, useM);
+        case MULTI_POLYGON:
+            parseCollection(source, target, MULTI_POLYGON, parentType, useZ, useM);
             break;
-        case "GEOMETRYCOLLECTION":
-            parseCollection(source, target, GEOMETRY_COLLECTION, parentType, empty, useZ, useM);
+        case GEOMETRY_COLLECTION:
+            parseCollection(source, target, GEOMETRY_COLLECTION, parentType, useZ, useM);
             break;
         default:
             throw new IllegalArgumentException();
@@ -690,12 +720,12 @@ public final class EWKTUtils {
         }
     }
 
-    private static void parseCollection(EWKTSource source, Target target, int type, int parentType, boolean empty,
-            boolean useZ, boolean useM) {
+    private static void parseCollection(EWKTSource source, Target target, int type, int parentType, boolean useZ,
+            boolean useM) {
         if (parentType != 0 && parentType != GEOMETRY_COLLECTION) {
             throw new IllegalArgumentException();
         }
-        if (source.readEmpty(empty)) {
+        if (source.readEmpty()) {
             target.startCollection(type, 0);
         } else {
             if (type == MULTI_POINT && source.hasCoordinate()) {
@@ -735,7 +765,7 @@ public final class EWKTUtils {
     }
 
     private static ArrayList<double[]> readRing(EWKTSource source, boolean useZ, boolean useM) {
-        if (source.readEmpty(false)) {
+        if (source.readEmpty()) {
             return new ArrayList<>(0);
         }
         ArrayList<double[]> result = new ArrayList<>();

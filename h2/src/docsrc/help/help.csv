@@ -3442,7 +3442,7 @@ MODE(X ORDER BY X)
 MODE() WITHIN GROUP(ORDER BY X)
 "
 
-"Functions (Aggregate)","ST_EXTENT","
+"Functions (Aggregate)","ENVELOPE","
 ENVELOPE( value ) [ FILTER ( WHERE expression ) ]
 ","
 Returns the minimum bounding box that encloses all specified GEOMETRY values.

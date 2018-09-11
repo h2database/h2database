@@ -425,14 +425,13 @@ public final class JTSUtils {
     private static void addRing(CoordinateSequence sequence, Target target, int size) {
         // 0 or 4+ are valid
         if (size >= 4) {
-            double startX = toCanonicalDouble(sequence.getOrdinate(0, X)),
-                    startY = toCanonicalDouble(sequence.getOrdinate(0, Y));
+            double startX = toCanonicalDouble(sequence.getX(0)), startY = toCanonicalDouble(sequence.getY(0));
             addCoordinate(sequence, target, 0, size, startX, startY);
             for (int i = 1; i < size - 1; i++) {
                 addCoordinate(sequence, target, i, size);
             }
-            double endX = toCanonicalDouble(sequence.getOrdinate(size - 1, X)),
-                    endY = toCanonicalDouble(sequence.getOrdinate(size - 1, Y));
+            double endX = toCanonicalDouble(sequence.getX(size - 1)), //
+                    endY = toCanonicalDouble(sequence.getY(size - 1));
             /*
              * TODO OGC 06-103r4 determines points as equal if they have the
              * same X and Y coordinates. Should we check Z and M here too?
@@ -445,8 +444,8 @@ public final class JTSUtils {
     }
 
     private static void addCoordinate(CoordinateSequence sequence, Target target, int index, int total) {
-        addCoordinate(sequence, target, index, total, toCanonicalDouble(sequence.getOrdinate(index, X)),
-                toCanonicalDouble(sequence.getOrdinate(index, Y)));
+        addCoordinate(sequence, target, index, total, toCanonicalDouble(sequence.getX(index)),
+                toCanonicalDouble(sequence.getY(index)));
     }
 
     private static void addCoordinate(CoordinateSequence sequence, Target target, int index, int total, double x,

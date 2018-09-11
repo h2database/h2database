@@ -119,7 +119,8 @@ Features
 </li><li>Many built-in functions, including XML and lossless data compression
 </li><li>Wide range of data types including large objects (BLOB/CLOB) and arrays
 </li><li>Sequence and autoincrement columns, computed columns (can be used for function based indexes)
-</li><li><code>ORDER BY, GROUP BY, HAVING, UNION, LIMIT, TOP</code>
+</li><li>ORDER BY, GROUP BY, HAVING, UNION, OFFSET / FETCH (including PERCENT and WITH TIES), LIMIT, TOP,
+    DISTINCT / DISTINCT ON (...)
 </li><li>Collation support, including support for the ICU4J library
 </li><li>Support for users and roles
 </li><li>Compatibility modes for IBM DB2, Apache Derby, HSQLDB,
@@ -142,7 +143,7 @@ encrypted using the AES-128 encryption algorithm
 
 <h3>Other Features and Tools</h3>
 <ul>
-<li>Small footprint (smaller than 1.5 MB), low memory requirements
+<li>Small footprint (around 2 MB), low memory requirements
 </li><li>Multiple index types (b-tree, tree, hash)
 </li><li>Support for multi-dimensional indexes
 </li><li>CSV (comma separated values) file support
@@ -1044,8 +1045,6 @@ or the SQL statement <code>SET MODE DB2</code>.
 <ul><li>For aliased columns, <code>ResultSetMetaData.getColumnName()</code>
     returns the alias name and <code>getTableName()</code> returns
     <code>null</code>.
-</li><li>Support for the syntax <code>[OFFSET .. ROW] [FETCH ... ONLY]</code>
-    as an alternative for <code>LIMIT .. OFFSET</code>.
 </li><li>Concatenating <code>NULL</code> with another value
     results in the other value.
 </li><li>Support the pseudo-table SYSIBM.SYSDUMMY1.

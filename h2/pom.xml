@@ -200,6 +200,10 @@
           <include>META-INF/**</include>
         </includes>
       </resource>
+      <resource>
+        <directory>src/java9/precompiled</directory>
+        <targetPath>META-INF/versions/9</targetPath>
+      </resource>
     </resources>
     <testResources>
   <testResource>

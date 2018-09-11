@@ -106,8 +106,8 @@ Before the result is returned to the application, all rows are read by the datab
 Server side cursors are not supported currently.
 If only the first few rows are interesting for the application, then the
 result set size should be limited to improve the performance.
-This can be done using <code>LIMIT</code> in a query
-(example: <code>SELECT * FROM TEST LIMIT 100</code>),
+This can be done using <code>FETCH</code> in a query
+(example: <code>SELECT * FROM TEST FETCH FIRST 100 ROWS ONLY</code>),
 or by using <code>Statement.setMaxRows(max)</code>.
 </p>
 

@@ -58,24 +58,20 @@ public final class JTSUtils {
 
     static final Method CREATE;
 
-    private static final Method GET_Z, GET_M;
+    private static final Method GET_MEASURES;
 
     static {
-        Method create;
-        Method getZ, getM;
+        Method create, getMeasures;
         try {
             create = CoordinateSequenceFactory.class.getMethod("create", int.class, int.class, int.class);
-            getZ = CoordinateSequence.class.getMethod("getZ", int.class);
-            getM = CoordinateSequence.class.getMethod("getM", int.class);
+            getMeasures = CoordinateSequence.class.getMethod("getMeasures");
         } catch (ReflectiveOperationException e) {
             create = null;
-            getZ = null;
-            getM = null;
+            getMeasures = null;
         }
         M_IS_SUPPORTED = create != null;
         CREATE = create;
-        GET_Z = getZ;
-        GET_M = getM;
+        GET_MEASURES = getMeasures;
     }
 
     /**
@@ -341,7 +337,8 @@ public final class JTSUtils {
             if (p.isEmpty()) {
                 target.addCoordinate(Double.NaN, Double.NaN, Double.NaN, Double.NaN, 0, 1);
             } else {
-                addCoordinate(p.getCoordinateSequence(), target, 0, 1);
+                CoordinateSequence sequence = p.getCoordinateSequence();
+                addCoordinate(sequence, target, 0, 1, getMeasures(sequence));
             }
         } else if (geometry instanceof LineString) {
             if (parentType != 0 && parentType != MULTI_LINE_STRING && parentType != GEOMETRY_COLLECTION) {
@@ -354,8 +351,9 @@ public final class JTSUtils {
                 throw new IllegalArgumentException();
             }
             target.startLineString(numPoints);
+            int measures = getMeasures(cs);
             for (int i = 0; i < numPoints; i++) {
-                addCoordinate(cs, target, i, numPoints);
+                addCoordinate(cs, target, i, numPoints, measures);
             }
         } else if (geometry instanceof Polygon) {
             if (parentType != 0 && parentType != MULTI_POLYGON && parentType != GEOMETRY_COLLECTION) {
@@ -377,7 +375,8 @@ public final class JTSUtils {
             }
             target.startPolygon(numInner, size);
             if (size > 0) {
-                addRing(cs, target, size);
+                int measures = getMeasures(cs);
+                addRing(cs, target, size, measures);
                 for (int i = 0; i < numInner; i++) {
                     cs = p.getInteriorRingN(i).getCoordinateSequence();
                     size = cs.size();
@@ -386,7 +385,7 @@ public final class JTSUtils {
                         throw new IllegalArgumentException();
                     }
                     target.startPolygonInner(size);
-                    addRing(cs, target, size);
+                    addRing(cs, target, size, measures);
                 }
                 target.endNonEmptyPolygon();
             }
@@ -422,13 +421,13 @@ public final class JTSUtils {
 
     }
 
-    private static void addRing(CoordinateSequence sequence, Target target, int size) {
+    private static void addRing(CoordinateSequence sequence, Target target, int size, int measures) {
         // 0 or 4+ are valid
         if (size >= 4) {
             double startX = toCanonicalDouble(sequence.getX(0)), startY = toCanonicalDouble(sequence.getY(0));
-            addCoordinate(sequence, target, 0, size, startX, startY);
+            addCoordinate(sequence, target, 0, size, startX, startY, measures);
             for (int i = 1; i < size - 1; i++) {
-                addCoordinate(sequence, target, i, size);
+                addCoordinate(sequence, target, i, size, measures);
             }
             double endX = toCanonicalDouble(sequence.getX(size - 1)), //
                     endY = toCanonicalDouble(sequence.getY(size - 1));
@@ -439,31 +438,42 @@ public final class JTSUtils {
             if (startX != endX || startY != endY) {
                 throw new IllegalArgumentException();
             }
-            addCoordinate(sequence, target, size - 1, size, endX, endY);
+            addCoordinate(sequence, target, size - 1, size, endX, endY, measures);
         }
     }
 
-    private static void addCoordinate(CoordinateSequence sequence, Target target, int index, int total) {
+    private static void addCoordinate(CoordinateSequence sequence, Target target, int index, int total, int measures) {
         addCoordinate(sequence, target, index, total, toCanonicalDouble(sequence.getX(index)),
-                toCanonicalDouble(sequence.getY(index)));
+                toCanonicalDouble(sequence.getY(index)), measures);
     }
 
     private static void addCoordinate(CoordinateSequence sequence, Target target, int index, int total, double x,
-            double y) {
+            double y, int measures) {
         double m, z;
+        int d = sequence.getDimension();
         if (M_IS_SUPPORTED) {
-            try {
-                z = (double) GET_Z.invoke(sequence, index);
-                m = (double) GET_M.invoke(sequence, index);
-            } catch (ReflectiveOperationException e) {
-                throw DbException.convert(e);
-            }
+            d -= measures;
+            z = d > 2 ? sequence.getOrdinate(index, Z) : Double.NaN;
+            m = measures >= 1 ? sequence.getOrdinate(index, d) : Double.NaN;
         } else {
-            int d = sequence.getDimension();
             z = d >= 3 ? toCanonicalDouble(sequence.getOrdinate(index, Z)) : Double.NaN;
             m = d >= 4 ? toCanonicalDouble(sequence.getOrdinate(index, M)) : Double.NaN;
         }
         target.addCoordinate(x, y, z, m, index, total);
+    }
+
+    private static int getMeasures(CoordinateSequence sequence) {
+        int m;
+        if (M_IS_SUPPORTED) {
+            try {
+                m = (int) GET_MEASURES.invoke(sequence);
+            } catch (ReflectiveOperationException e) {
+                throw DbException.convert(e);
+            }
+        } else {
+            m = 0;
+        }
+        return m;
     }
 
     private JTSUtils() {

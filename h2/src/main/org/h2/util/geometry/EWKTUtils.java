@@ -23,6 +23,7 @@ import static org.h2.util.geometry.GeometryUtils.Z;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 
+import org.h2.engine.SysProperties;
 import org.h2.util.StringUtils;
 import org.h2.util.geometry.EWKBUtils.EWKBTarget;
 import org.h2.util.geometry.GeometryUtils.DimensionSystemTarget;
@@ -198,7 +199,15 @@ public final class EWKTUtils {
             writeDouble(x);
             output.append(' ');
             writeDouble(y);
-            if ((dimensionSystem & DIMENSION_SYSTEM_XYZ) != 0) {
+            dimensionZ: if ((dimensionSystem & DIMENSION_SYSTEM_XYZ) != 0) {
+                if (SysProperties.MIXED_GEOMETRIES) {
+                    if (Double.isNaN(z)) {
+                        if ((dimensionSystem & DIMENSION_SYSTEM_XYM) != 0) {
+                            throw new IllegalArgumentException();
+                        }
+                        break dimensionZ;
+                    }
+                }
                 output.append(' ');
                 writeDouble(z);
             }

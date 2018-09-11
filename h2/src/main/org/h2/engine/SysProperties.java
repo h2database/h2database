@@ -565,6 +565,18 @@ public class SysProperties {
     public static final String AUTH_CONFIG_FILE =
             Utils.getProperty("h2.authConfigFile", null);
 
+    /**
+     * System property {@code h2.mixedGeometries}, {@code false} by default.
+     * <p>
+     * If {@code true} illegal geometries with mixed XY/XYZ dimensionality like
+     * {@code 'LINESTRING (1 2, 3 4 5)'} are accepted.
+     * </p>
+     * <p>
+     * If {@code false} such geometries are rejected with data conversion error.
+     * </p>
+     */
+    public static final boolean MIXED_GEOMETRIES = Utils.getProperty("h2.mixedGeometries", false);
+
     private static final String H2_BASE_DIR = "h2.baseDir";
 
     private SysProperties() {

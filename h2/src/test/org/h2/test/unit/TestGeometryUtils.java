@@ -18,6 +18,7 @@ import static org.h2.util.geometry.GeometryUtils.Y;
 import static org.h2.util.geometry.GeometryUtils.Z;
 
 import java.io.ByteArrayOutputStream;
+import java.lang.ProcessBuilder.Redirect;
 import java.util.Random;
 
 import org.h2.test.TestBase;
@@ -37,6 +38,7 @@ import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.io.WKBWriter;
 import org.locationtech.jts.io.WKTReader;
@@ -73,14 +75,44 @@ public class TestGeometryUtils extends TestBase {
             DIMENSION_SYSTEM_XYZ, //
             DIMENSION_SYSTEM_XYM };
 
+    private static final String MIXED_WKT = "LINESTRING (1 2, 3 4 5)";
+
+    private static final String MIXED_WKT_Z = "LINESTRING Z (1 2, 3 4 5)";
+
+    private static final byte[] MIXED_WKB = StringUtils.convertHexToBytes(""
+            // BOM (BigEndian)
+            + "00"
+            // Z | LINESTRING
+            + "80000002"
+            // 2 items
+            + "00000002"
+            // 1.0
+            + "3ff0000000000000"
+            // 2.0
+            + "4000000000000000"
+            // NaN
+            + "7ff8000000000000"
+            // 3.0
+            + "4008000000000000"
+            // 4.0
+            + "4010000000000000"
+            // 5.0
+            + "4014000000000000");
+
     /**
-     * Run just this test.
+     * May be used to run only this test and may be launched by this test in a
+     * subprocess.
      *
      * @param a
-     *            ignored
+     *            if empty run this test only
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestGeometryUtils test = (TestGeometryUtils) TestBase.createCaller().init();
+        if (a.length == 0) {
+            test.test();
+        } else {
+            test.testMixedGeometriesAcceptImpl();
+        }
     }
 
     @Override
@@ -98,6 +130,8 @@ public class TestGeometryUtils extends TestBase {
         testFiniteOnly();
         testSRID();
         testIntersectionAndUnion();
+        testMixedGeometries();
+        testMixedGeometriesAccept();
     }
 
     private void testPoint() throws Exception {
@@ -358,6 +392,57 @@ public class TestGeometryUtils extends TestBase {
             maxY = t;
         }
         return new double[] { minX, maxX, minY, maxY };
+    }
+
+    private void testMixedGeometries() throws Exception {
+        try {
+            EWKTUtils.ewkt2ewkb(MIXED_WKT);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            // Expected
+        }
+        try {
+            EWKTUtils.ewkb2ewkt(MIXED_WKB);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            // Expected
+        }
+        try {
+            JTSUtils.ewkb2geometry(MIXED_WKB);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            // Expected
+        }
+        Geometry g = new WKTReader().read(MIXED_WKT);
+        try {
+            JTSUtils.geometry2ewkb(g);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            // Expected
+        }
+    }
+
+    private void testMixedGeometriesAccept() throws Exception {
+        ProcessBuilder pb = new ProcessBuilder().redirectError(Redirect.INHERIT);
+        pb.command(getJVM(), "-cp", getClassPath(), "-ea", "-Dh2.mixedGeometries=true", getClass().getName(), "dummy");
+        assertEquals(0, pb.start().waitFor());
+    }
+
+    private void testMixedGeometriesAcceptImpl() throws Exception {
+        assertEquals(MIXED_WKB, EWKTUtils.ewkt2ewkb(MIXED_WKT));
+        assertEquals(MIXED_WKT_Z, EWKTUtils.ewkb2ewkt(MIXED_WKB));
+        Geometry g = new WKTReader().read(MIXED_WKT);
+        assertEquals(MIXED_WKB, JTSUtils.geometry2ewkb(g));
+        LineString ls = (LineString) JTSUtils.ewkb2geometry(MIXED_WKB);
+        CoordinateSequence cs = ls.getCoordinateSequence();
+        assertEquals(2, cs.size());
+        assertEquals(3, cs.getDimension());
+        assertEquals(1, cs.getOrdinate(0, X));
+        assertEquals(2, cs.getOrdinate(0, Y));
+        assertEquals(Double.NaN, cs.getOrdinate(0, Z));
+        assertEquals(3, cs.getOrdinate(1, X));
+        assertEquals(4, cs.getOrdinate(1, Y));
+        assertEquals(5, cs.getOrdinate(1, Z));
     }
 
 }

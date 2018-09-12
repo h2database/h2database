@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
@@ -159,7 +160,8 @@ public class SelectUnion extends Query {
             }
             limitExpr = ValueExpression.get(ValueInt.get(l));
         }
-        if (session.getDatabase().getSettings().optimizeInsertFromSelect) {
+        Database db = session.getDatabase();
+        if (db.getSettings().optimizeInsertFromSelect) {
             if (unionType == UnionType.UNION_ALL && target != null) {
                 if (sort == null && !distinct && maxRows == 0 &&
                         offsetExpr == null && limitExpr == null) {
@@ -189,7 +191,7 @@ public class SelectUnion extends Query {
                 return lazyResult;
             }
         }
-        LocalResult result = session.getDatabase().getResultFactory().create(session, expressionArray, columnCount);
+        LocalResult result = db.getResultFactory().create(session, expressionArray, columnCount);
         if (sort != null) {
             result.setSortOrder(sort);
         }
@@ -239,7 +241,7 @@ public class SelectUnion extends Query {
             break;
         }
         case INTERSECT: {
-            LocalResult temp = session.getDatabase().getResultFactory().create(session, expressionArray, columnCount);
+            LocalResult temp = db.getResultFactory().create(session, expressionArray, columnCount);
             temp.setDistinct();
             while (l.next()) {
                 temp.addRow(convert(l.currentRow(), columnCount));

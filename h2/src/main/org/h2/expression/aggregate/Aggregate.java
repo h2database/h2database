@@ -307,6 +307,11 @@ public class Aggregate extends Expression {
         }
         lastGroupRowId = groupRowId;
 
+        if (filterCondition != null) {
+            if (!filterCondition.getBooleanValue(session)) {
+                return;
+            }
+        }
         AggregateData data = (AggregateData) select.getCurrentGroupExprData(this);
         if (data == null) {
             data = AggregateData.create(type);
@@ -320,11 +325,6 @@ public class Aggregate extends Expression {
         } else if (type == AggregateType.ARRAY_AGG) {
             if (v != ValueNull.INSTANCE) {
                 v = updateCollecting(session, v);
-            }
-        }
-        if (filterCondition != null) {
-            if (!filterCondition.getBooleanValue(session)) {
-                return;
             }
         }
         data.add(session.getDatabase(), dataType, distinct, v);

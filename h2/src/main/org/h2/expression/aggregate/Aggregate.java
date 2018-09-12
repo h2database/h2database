@@ -315,31 +315,11 @@ public class Aggregate extends Expression {
         Value v = on == null ? null : on.getValue(session);
         if (type == AggregateType.GROUP_CONCAT) {
             if (v != ValueNull.INSTANCE) {
-                v = v.convertTo(Value.STRING);
-                if (orderByList != null) {
-                    int size = orderByList.size();
-                    Value[] array = new Value[1 + size];
-                    array[0] = v;
-                    for (int i = 0; i < size; i++) {
-                        SelectOrderBy o = orderByList.get(i);
-                        array[i + 1] = o.expression.getValue(session);
-                    }
-                    v = ValueArray.get(array);
-                }
+                v = updateCollecting(session, v.convertTo(Value.STRING));
             }
-        }
-        if (type == AggregateType.ARRAY_AGG) {
+        } else if (type == AggregateType.ARRAY_AGG) {
             if (v != ValueNull.INSTANCE) {
-                if (orderByList != null) {
-                    int size = orderByList.size();
-                    Value[] array = new Value[1 + size];
-                    array[0] = v;
-                    for (int i = 0; i < size; i++) {
-                        SelectOrderBy o = orderByList.get(i);
-                        array[i + 1] = o.expression.getValue(session);
-                    }
-                    v = ValueArray.get(array);
-                }
+                v = updateCollecting(session, v);
             }
         }
         if (filterCondition != null) {
@@ -348,6 +328,20 @@ public class Aggregate extends Expression {
             }
         }
         data.add(session.getDatabase(), dataType, distinct, v);
+    }
+
+    private Value updateCollecting(Session session, Value v) {
+        if (orderByList != null) {
+            int size = orderByList.size();
+            Value[] array = new Value[1 + size];
+            array[0] = v;
+            for (int i = 0; i < size; i++) {
+                SelectOrderBy o = orderByList.get(i);
+                array[i + 1] = o.expression.getValue(session);
+            }
+            v = ValueArray.get(array);
+        }
+        return v;
     }
 
     @Override

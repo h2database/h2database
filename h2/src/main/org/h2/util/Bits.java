@@ -124,8 +124,22 @@ public final class Bits {
     }
 
     /**
-     * Reads a long value from the byte array at the given position in big-endian
-     * order.
+     * Reads a int value from the byte array at the given position in
+     * little-endian order.
+     *
+     * @param buff
+     *            the byte array
+     * @param pos
+     *            the position
+     * @return the value
+     */
+    public static int readIntLE(byte[] buff, int pos) {
+        return (buff[pos++] & 0xff) + ((buff[pos++] & 0xff) << 8) + ((buff[pos++] & 0xff) << 16) + (buff[pos] << 24);
+    }
+
+    /**
+     * Reads a long value from the byte array at the given position in
+     * big-endian order.
      *
      * @param buff
      *            the byte array
@@ -134,7 +148,49 @@ public final class Bits {
      * @return the value
      */
     public static long readLong(byte[] buff, int pos) {
-        return (((long) readInt(buff, pos)) << 32) + (readInt(buff, pos + 4) & 0xffffffffL);
+        return (((long) readInt(buff, pos)) << 32) + (readInt(buff, pos + 4) & 0xffff_ffffL);
+    }
+
+    /**
+     * Reads a long value from the byte array at the given position in
+     * little-endian order.
+     *
+     * @param buff
+     *            the byte array
+     * @param pos
+     *            the position
+     * @return the value
+     */
+    public static long readLongLE(byte[] buff, int pos) {
+        return (readIntLE(buff, pos) & 0xffff_ffffL) + (((long) readIntLE(buff, pos + 4)) << 32);
+    }
+
+    /**
+     * Reads a double value from the byte array at the given position in
+     * big-endian order.
+     *
+     * @param buff
+     *            the byte array
+     * @param pos
+     *            the position
+     * @return the value
+     */
+    public static double readDouble(byte[] buff, int pos) {
+        return Double.longBitsToDouble(readLong(buff, pos));
+    }
+
+    /**
+     * Reads a double value from the byte array at the given position in
+     * little-endian order.
+     *
+     * @param buff
+     *            the byte array
+     * @param pos
+     *            the position
+     * @return the value
+     */
+    public static double readDoubleLE(byte[] buff, int pos) {
+        return Double.longBitsToDouble(readLongLE(buff, pos));
     }
 
     /**
@@ -185,6 +241,24 @@ public final class Bits {
     }
 
     /**
+     * Writes a int value to the byte array at the given position in
+     * little-endian order.
+     *
+     * @param buff
+     *            the byte array
+     * @param pos
+     *            the position
+     * @param x
+     *            the value to write
+     */
+    public static void writeIntLE(byte[] buff, int pos, int x) {
+        buff[pos++] = (byte) x;
+        buff[pos++] = (byte) (x >> 8);
+        buff[pos++] = (byte) (x >> 16);
+        buff[pos] = (byte) (x >> 24);
+    }
+
+    /**
      * Writes a long value to the byte array at the given position in big-endian
      * order.
      *
@@ -198,6 +272,52 @@ public final class Bits {
     public static void writeLong(byte[] buff, int pos, long x) {
         writeInt(buff, pos, (int) (x >> 32));
         writeInt(buff, pos + 4, (int) x);
+    }
+
+    /**
+     * Writes a long value to the byte array at the given position in
+     * little-endian order.
+     *
+     * @param buff
+     *            the byte array
+     * @param pos
+     *            the position
+     * @param x
+     *            the value to write
+     */
+    public static void writeLongLE(byte[] buff, int pos, long x) {
+        writeIntLE(buff, pos, (int) x);
+        writeIntLE(buff, pos + 4, (int) (x >> 32));
+    }
+
+    /**
+     * Writes a double value to the byte array at the given position in
+     * big-endian order.
+     *
+     * @param buff
+     *            the byte array
+     * @param pos
+     *            the position
+     * @param x
+     *            the value to write
+     */
+    public static void writeDouble(byte[] buff, int pos, double x) {
+        writeLong(buff, pos, Double.doubleToRawLongBits(x));
+    }
+
+    /**
+     * Writes a double value to the byte array at the given position in
+     * little-endian order.
+     *
+     * @param buff
+     *            the byte array
+     * @param pos
+     *            the position
+     * @param x
+     *            the value to write
+     */
+    public static void writeDoubleLE(byte[] buff, int pos, double x) {
+        writeLongLE(buff, pos, Double.doubleToRawLongBits(x));
     }
 
     private Bits() {

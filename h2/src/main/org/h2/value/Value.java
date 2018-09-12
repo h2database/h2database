@@ -1215,7 +1215,7 @@ public abstract class Value {
     private ValueGeometry convertToGeometry() {
         switch (getType()) {
         case BYTES:
-            return ValueGeometry.get(getBytesNoCopy());
+            return ValueGeometry.getFromEWKB(getBytesNoCopy());
         case JAVA_OBJECT:
             Object object = JdbcUtils.deserialize(getBytesNoCopy(), getDataHandler());
             if (DataType.isGeometry(object)) {

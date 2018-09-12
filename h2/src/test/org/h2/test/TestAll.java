@@ -188,6 +188,7 @@ import org.h2.test.unit.TestFileLockProcess;
 import org.h2.test.unit.TestFileLockSerialized;
 import org.h2.test.unit.TestFileSystem;
 import org.h2.test.unit.TestFtp;
+import org.h2.test.unit.TestGeometryUtils;
 import org.h2.test.unit.TestIntArray;
 import org.h2.test.unit.TestIntIntHashMap;
 import org.h2.test.unit.TestIntPerfectHash;
@@ -961,6 +962,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestDbException());
         addTest(new TestFile());
         addTest(new TestFtp());
+        addTest(new TestGeometryUtils());
         addTest(new TestInterval());
         addTest(new TestIntArray());
         addTest(new TestIntIntHashMap());

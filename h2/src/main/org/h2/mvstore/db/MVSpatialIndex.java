@@ -5,6 +5,11 @@
  */
 package org.h2.mvstore.db;
 
+import static org.h2.util.geometry.GeometryUtils.MAX_X;
+import static org.h2.util.geometry.GeometryUtils.MAX_Y;
+import static org.h2.util.geometry.GeometryUtils.MIN_X;
+import static org.h2.util.geometry.GeometryUtils.MIN_Y;
+
 import java.util.Iterator;
 import java.util.List;
 import org.h2.api.ErrorCode;
@@ -33,8 +38,6 @@ import org.h2.value.Value;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
-import org.locationtech.jts.geom.Envelope;
-import org.locationtech.jts.geom.GeometryFactory;
 
 /**
  * This is an index based on a MVRTreeMap.
@@ -264,21 +267,21 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
                     bmaxyf = maxyf;
                 }
             }
-            return ValueGeometry.getFromGeometry(new GeometryFactory().toGeometry(
-                    new Envelope(bminxf, bmaxxf, bminyf, bmaxyf)));
+            return ValueGeometry.fromEnvelope(new double[] {bminxf, bmaxxf, bminyf, bmaxyf});
         }
         return ValueNull.INSTANCE;
     }
 
     private SpatialKey getKey(SearchRow row) {
         Value v = row.getValue(columnIds[0]);
-        if (v == ValueNull.INSTANCE) {
+        double[] env;
+        if (v == ValueNull.INSTANCE ||
+                (env = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getEnvelopeNoCopy()) == null) {
             return new SpatialKey(row.getKey());
         }
-        Envelope env = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getEnvelopeNoCopy();
         return new SpatialKey(row.getKey(),
-                (float) env.getMinX(), (float) env.getMaxX(),
-                (float) env.getMinY(), (float) env.getMaxY());
+                (float) env[MIN_X], (float) env[MAX_X],
+                (float) env[MIN_Y], (float) env[MAX_Y]);
     }
 
     @Override
@@ -467,10 +470,9 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
                 if (hasBounds) {
                     if ((minxf <= bminxf || maxxf >= bmaxxf || minyf <= bminyf || maxyf >= bmaxyf)
                             && map.containsKey(key)) {
-                        Envelope env = ((ValueGeometry) mvTable.getRow(session, key.getId()).getValue(columnId))
+                        double[] env = ((ValueGeometry) mvTable.getRow(session, key.getId()).getValue(columnId))
                                 .getEnvelopeNoCopy();
-                        double minxd = env.getMinX(), maxxd = env.getMaxX(), minyd = env.getMinY(),
-                                maxyd = env.getMaxY();
+                        double minxd = env[MIN_X], maxxd = env[MAX_X], minyd = env[MIN_Y], maxyd = env[MAX_Y];
                         if (minxd < bminxd) {
                             bminxf = minxf;
                             bminxd = minxd;
@@ -490,16 +492,16 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
                     }
                 } else if (map.containsKey(key)) {
                     hasBounds = true;
-                    Envelope env = ((ValueGeometry) mvTable.getRow(session, key.getId()).getValue(columnId))
+                    double[] env = ((ValueGeometry) mvTable.getRow(session, key.getId()).getValue(columnId))
                             .getEnvelopeNoCopy();
                     bminxf = minxf;
-                    bminxd = env.getMinX();
+                    bminxd = env[MIN_X];
                     bmaxxf = maxxf;
-                    bmaxxd = env.getMaxX();
+                    bmaxxd = env[MAX_X];
                     bminyf = minyf;
-                    bminyd = env.getMinY();
+                    bminyd = env[MIN_Y];
                     bmaxyf = maxyf;
-                    bmaxyd = env.getMaxY();
+                    bmaxyd = env[MAX_Y];
                 }
             } else if (hasBounds) {
                 if (minxf <= bminxf || maxxf >= bmaxxf || minyf <= bminyf || maxyf >= bmaxyf) {
@@ -512,8 +514,8 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         }
 
         Value getBounds() {
-            return hasBounds ? ValueGeometry.getFromGeometry(new GeometryFactory().toGeometry(
-                    new Envelope(bminxd, bmaxxd, bminyd, bmaxyd))) : ValueNull.INSTANCE;
+            return hasBounds ? ValueGeometry.fromEnvelope(new double[] {bminxd, bmaxxd, bminyd, bmaxyd})
+                    : ValueNull.INSTANCE;
         }
 
     }

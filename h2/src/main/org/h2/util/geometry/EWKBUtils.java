@@ -160,7 +160,7 @@ public final class EWKBUtils {
 
         private void writeDouble(double v) {
             v = toCanonicalDouble(v);
-            Bits.writeLong(buf, 0, Double.doubleToRawLongBits(v));
+            Bits.writeDouble(buf, 0, v);
             output.write(buf, 0, 8);
         }
 
@@ -204,9 +204,9 @@ public final class EWKBUtils {
          * @return next 32-bit integer
          */
         int readInt() {
-            int result = Bits.readInt(ewkb, offset);
+            int result = bigEndian ? Bits.readInt(ewkb, offset) : Bits.readIntLE(ewkb, offset);
             offset += 4;
-            return bigEndian ? result : Integer.reverseBytes(result);
+            return result;
         }
 
         /**
@@ -215,12 +215,9 @@ public final class EWKBUtils {
          * @return next 64-bit floating point
          */
         double readCoordinate() {
-            long v = Bits.readLong(ewkb, offset);
+            double v = bigEndian ? Bits.readDouble(ewkb, offset) : Bits.readDoubleLE(ewkb, offset);
             offset += 8;
-            if (!bigEndian) {
-                v = Long.reverseBytes(v);
-            }
-            return toCanonicalDouble(Double.longBitsToDouble(v));
+            return toCanonicalDouble(v);
         }
 
         @Override
@@ -470,31 +467,31 @@ public final class EWKBUtils {
         if (minX == maxX && minY == maxY) {
             result = new byte[21];
             result[4] = POINT;
-            Bits.writeLong(result, 5, Double.doubleToRawLongBits(minX));
-            Bits.writeLong(result, 13, Double.doubleToRawLongBits(minY));
+            Bits.writeDouble(result, 5, minX);
+            Bits.writeDouble(result, 13, minY);
         } else if (minX == maxX || minY == maxY) {
             result = new byte[41];
             result[4] = LINE_STRING;
             result[8] = 2;
-            Bits.writeLong(result, 9, Double.doubleToRawLongBits(minX));
-            Bits.writeLong(result, 17, Double.doubleToRawLongBits(minY));
-            Bits.writeLong(result, 25, Double.doubleToRawLongBits(maxX));
-            Bits.writeLong(result, 33, Double.doubleToRawLongBits(maxY));
+            Bits.writeDouble(result, 9, minX);
+            Bits.writeDouble(result, 17, minY);
+            Bits.writeDouble(result, 25, maxX);
+            Bits.writeDouble(result, 33, maxY);
         } else {
             result = new byte[93];
             result[4] = POLYGON;
             result[8] = 1;
             result[12] = 5;
-            Bits.writeLong(result, 13, Double.doubleToRawLongBits(minX));
-            Bits.writeLong(result, 21, Double.doubleToRawLongBits(minY));
-            Bits.writeLong(result, 29, Double.doubleToRawLongBits(minX));
-            Bits.writeLong(result, 37, Double.doubleToRawLongBits(maxY));
-            Bits.writeLong(result, 45, Double.doubleToRawLongBits(maxX));
-            Bits.writeLong(result, 53, Double.doubleToRawLongBits(maxY));
-            Bits.writeLong(result, 61, Double.doubleToRawLongBits(maxX));
-            Bits.writeLong(result, 69, Double.doubleToRawLongBits(minY));
-            Bits.writeLong(result, 77, Double.doubleToRawLongBits(minX));
-            Bits.writeLong(result, 85, Double.doubleToRawLongBits(minY));
+            Bits.writeDouble(result, 13, minX);
+            Bits.writeDouble(result, 21, minY);
+            Bits.writeDouble(result, 29, minX);
+            Bits.writeDouble(result, 37, maxY);
+            Bits.writeDouble(result, 45, maxX);
+            Bits.writeDouble(result, 53, maxY);
+            Bits.writeDouble(result, 61, maxX);
+            Bits.writeDouble(result, 69, minY);
+            Bits.writeDouble(result, 77, minX);
+            Bits.writeDouble(result, 85, minY);
         }
         return result;
     }

@@ -162,6 +162,8 @@ public class Function extends Expression implements FunctionCall {
     protected int scale;
     protected long precision = PRECISION_UNKNOWN;
     protected int displaySize;
+    protected String[] enumerators;
+
     private final Database database;
 
     static {
@@ -892,7 +894,7 @@ public class Function extends Expression implements FunctionCall {
         case CAST:
         case CONVERT: {
             Mode mode = database.getMode();
-            v0 = v0.convertTo(dataType, mode);
+            v0 = v0.convertTo(dataType, MathUtils.convertLongToInt(precision), mode, null, enumerators);
             v0 = v0.convertScale(mode.convertOnlyToSmallerScale, scale);
             v0 = v0.convertPrecision(getPrecision(), false);
             result = v0;
@@ -2198,6 +2200,7 @@ public class Function extends Expression implements FunctionCall {
         precision = col.getPrecision();
         displaySize = col.getDisplaySize();
         scale = col.getScale();
+        enumerators = col.getEnumerators();
     }
 
     @Override
@@ -2598,7 +2601,7 @@ public class Function extends Expression implements FunctionCall {
         case CAST: {
             buff.append(args[0].getSQL()).append(" AS ").
                 append(new Column(null, dataType, precision,
-                        scale, displaySize).getCreateSQL());
+                        scale, displaySize, enumerators).getCreateSQL());
             break;
         }
         case CONVERT: {

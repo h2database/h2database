@@ -265,3 +265,6 @@ DROP VIEW V3;
 
 DROP TABLE TEST;
 > ok
+
+SELECT CAST (2 AS ENUM('a', 'b', 'c', 'd'));
+>> c

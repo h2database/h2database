@@ -794,4 +794,4 @@ minxf maxxf minyf maxyf bminxf bmaxxf bminyf bmaxyf
 minxd maxxd minyd maxyd bminxd bmaxxd bminyd bmaxyd
 interior envelopes multilinestring multipoint packed exterior normalization awkward determination subgeometries
 xym normalizes coord setz xyzm geometrycollection multipolygon mixup rings polygons rejection finite
-pointzm pointz pointm dimensionality
+pointzm pointz pointm dimensionality redefine forum measures

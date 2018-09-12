@@ -157,8 +157,10 @@ public class ValueGeometry extends Value {
      * @return the value
      */
     public static Value fromEnvelope(double[] envelope) {
-        return envelope != null ? Value.cache(new ValueGeometry(GeometryUtils.envelope2wkb(envelope),
-                GeometryUtils.DIMENSION_SYSTEM_XY, envelope)): ValueNull.INSTANCE;
+        return envelope != null
+                ? Value.cache(new ValueGeometry(EWKBUtils.envelope2wkb(envelope), GeometryUtils.DIMENSION_SYSTEM_XY,
+                        envelope))
+                : ValueNull.INSTANCE;
     }
 
     /**

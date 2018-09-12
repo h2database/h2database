@@ -241,14 +241,14 @@ public class TestGeometryUtils extends TestBase {
     private void testEnvelope(Envelope envelopeFromJTS, double[] envelopeFromH2) {
         if (envelopeFromJTS.isNull()) {
             assertNull(envelopeFromH2);
-            assertNull(GeometryUtils.envelope2wkb(envelopeFromH2));
+            assertNull(EWKBUtils.envelope2wkb(envelopeFromH2));
         } else {
             assertEquals(envelopeFromJTS.getMinX(), envelopeFromH2[0]);
             assertEquals(envelopeFromJTS.getMaxX(), envelopeFromH2[1]);
             assertEquals(envelopeFromJTS.getMinY(), envelopeFromH2[2]);
             assertEquals(envelopeFromJTS.getMaxY(), envelopeFromH2[3]);
             assertEquals(new WKBWriter(2).write(new GeometryFactory().toGeometry(envelopeFromJTS)),
-                    GeometryUtils.envelope2wkb(envelopeFromH2));
+                    EWKBUtils.envelope2wkb(envelopeFromH2));
         }
     }
 

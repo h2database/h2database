@@ -5,8 +5,6 @@
  */
 package org.h2.util.geometry;
 
-import org.h2.util.Bits;
-
 /**
  * Utilities for GEOMETRY data type.
  */
@@ -119,8 +117,7 @@ public final class GeometryUtils {
          * Invoked after writing of a collection.
          *
          * @param type
-         *            type of collection, see
-         *            {@link #startCollection(int, int)}
+         *            type of collection, see {@link #startCollection(int, int)}
          */
         protected void endCollection(int type) {
         }
@@ -472,51 +469,6 @@ public final class GeometryUtils {
         EnvelopeTarget target = new EnvelopeTarget();
         EWKBUtils.parseEWKB(ewkb, target);
         return target.getEnvelope();
-    }
-
-    /**
-     * Converts an envelope to a WKB.
-     *
-     * @param envelope
-     *            envelope, or null
-     * @return WKB, or null
-     */
-    public static byte[] envelope2wkb(double[] envelope) {
-        if (envelope == null) {
-            return null;
-        }
-        byte[] result;
-        double minX = envelope[MIN_X], maxX = envelope[MAX_X], minY = envelope[MIN_Y], maxY = envelope[MAX_Y];
-        if (minX == maxX && minY == maxY) {
-            result = new byte[21];
-            result[4] = POINT;
-            Bits.writeLong(result, 5, Double.doubleToRawLongBits(minX));
-            Bits.writeLong(result, 13, Double.doubleToRawLongBits(minY));
-        } else if (minX == maxX || minY == maxY) {
-            result = new byte[41];
-            result[4] = LINE_STRING;
-            result[8] = 2;
-            Bits.writeLong(result, 9, Double.doubleToRawLongBits(minX));
-            Bits.writeLong(result, 17, Double.doubleToRawLongBits(minY));
-            Bits.writeLong(result, 25, Double.doubleToRawLongBits(maxX));
-            Bits.writeLong(result, 33, Double.doubleToRawLongBits(maxY));
-        } else {
-            result = new byte[93];
-            result[4] = POLYGON;
-            result[8] = 1;
-            result[12] = 5;
-            Bits.writeLong(result, 13, Double.doubleToRawLongBits(minX));
-            Bits.writeLong(result, 21, Double.doubleToRawLongBits(minY));
-            Bits.writeLong(result, 29, Double.doubleToRawLongBits(minX));
-            Bits.writeLong(result, 37, Double.doubleToRawLongBits(maxY));
-            Bits.writeLong(result, 45, Double.doubleToRawLongBits(maxX));
-            Bits.writeLong(result, 53, Double.doubleToRawLongBits(maxY));
-            Bits.writeLong(result, 61, Double.doubleToRawLongBits(maxX));
-            Bits.writeLong(result, 69, Double.doubleToRawLongBits(minY));
-            Bits.writeLong(result, 77, Double.doubleToRawLongBits(minX));
-            Bits.writeLong(result, 85, Double.doubleToRawLongBits(minY));
-        }
-        return result;
     }
 
     /**

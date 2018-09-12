@@ -18,16 +18,45 @@ import java.util.UUID;
 public final class Bits {
 
     /**
-     * VarHandle giving access to elements of a byte[] array viewed as if it were a
-     * int[] array on big-endian system.
+     * VarHandle giving access to elements of a byte[] array viewed as if it
+     * were a int[] array on big-endian system.
      */
-    private static final VarHandle INT_VH = MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.BIG_ENDIAN);
+    private static final VarHandle INT_VH_BE = MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.BIG_ENDIAN);
 
     /**
-     * VarHandle giving access to elements of a byte[] array viewed as if it were a
-     * long[] array on big-endian system.
+     * VarHandle giving access to elements of a byte[] array viewed as if it
+     * were a int[] array on little-endian system.
      */
-    private static final VarHandle LONG_VH = MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.BIG_ENDIAN);
+    private static final VarHandle INT_VH_LE = MethodHandles.byteArrayViewVarHandle(int[].class,
+            ByteOrder.LITTLE_ENDIAN);
+
+    /**
+     * VarHandle giving access to elements of a byte[] array viewed as if it
+     * were a long[] array on big-endian system.
+     */
+    private static final VarHandle LONG_VH_BE = MethodHandles.byteArrayViewVarHandle(long[].class,
+            ByteOrder.BIG_ENDIAN);
+
+    /**
+     * VarHandle giving access to elements of a byte[] array viewed as if it
+     * were a long[] array on little-endian system.
+     */
+    private static final VarHandle LONG_VH_LE = MethodHandles.byteArrayViewVarHandle(long[].class,
+            ByteOrder.LITTLE_ENDIAN);
+
+    /**
+     * VarHandle giving access to elements of a byte[] array viewed as if it
+     * were a double[] array on big-endian system.
+     */
+    private static final VarHandle DOUBLE_VH_BE = MethodHandles.byteArrayViewVarHandle(double[].class,
+            ByteOrder.BIG_ENDIAN);
+
+    /**
+     * VarHandle giving access to elements of a byte[] array viewed as if it
+     * were a double[] array on little-endian system.
+     */
+    private static final VarHandle DOUBLE_VH_LE = MethodHandles.byteArrayViewVarHandle(double[].class,
+            ByteOrder.LITTLE_ENDIAN);
 
     /**
      * Compare the contents of two char arrays. If the content or length of the
@@ -96,12 +125,26 @@ public final class Bits {
      * @return the value
      */
     public static int readInt(byte[] buff, int pos) {
-        return (int) INT_VH.get(buff, pos);
+        return (int) INT_VH_BE.get(buff, pos);
     }
 
     /**
-     * Reads a long value from the byte array at the given position in big-endian
-     * order.
+     * Reads a int value from the byte array at the given position in
+     * little-endian order.
+     *
+     * @param buff
+     *            the byte array
+     * @param pos
+     *            the position
+     * @return the value
+     */
+    public static int readIntLE(byte[] buff, int pos) {
+        return (int) INT_VH_LE.get(buff, pos);
+    }
+
+    /**
+     * Reads a long value from the byte array at the given position in
+     * big-endian order.
      *
      * @param buff
      *            the byte array
@@ -110,7 +153,49 @@ public final class Bits {
      * @return the value
      */
     public static long readLong(byte[] buff, int pos) {
-        return (long) LONG_VH.get(buff, pos);
+        return (long) LONG_VH_BE.get(buff, pos);
+    }
+
+    /**
+     * Reads a long value from the byte array at the given position in
+     * little-endian order.
+     *
+     * @param buff
+     *            the byte array
+     * @param pos
+     *            the position
+     * @return the value
+     */
+    public static long readLongLE(byte[] buff, int pos) {
+        return (long) LONG_VH_LE.get(buff, pos);
+    }
+
+    /**
+     * Reads a double value from the byte array at the given position in
+     * big-endian order.
+     *
+     * @param buff
+     *            the byte array
+     * @param pos
+     *            the position
+     * @return the value
+     */
+    public static double readDouble(byte[] buff, int pos) {
+        return (double) DOUBLE_VH_BE.get(buff, pos);
+    }
+
+    /**
+     * Reads a double value from the byte array at the given position in
+     * little-endian order.
+     *
+     * @param buff
+     *            the byte array
+     * @param pos
+     *            the position
+     * @return the value
+     */
+    public static double readDoubleLE(byte[] buff, int pos) {
+        return (double) DOUBLE_VH_LE.get(buff, pos);
     }
 
     /**
@@ -124,8 +209,8 @@ public final class Bits {
      */
     public static byte[] uuidToBytes(long msb, long lsb) {
         byte[] buff = new byte[16];
-        LONG_VH.set(buff, 0, msb);
-        LONG_VH.set(buff, 8, lsb);
+        LONG_VH_BE.set(buff, 0, msb);
+        LONG_VH_BE.set(buff, 8, lsb);
         return buff;
     }
 
@@ -152,7 +237,22 @@ public final class Bits {
      *            the value to write
      */
     public static void writeInt(byte[] buff, int pos, int x) {
-        INT_VH.set(buff, pos, x);
+        INT_VH_BE.set(buff, pos, x);
+    }
+
+    /**
+     * Writes a int value to the byte array at the given position in
+     * little-endian order.
+     *
+     * @param buff
+     *            the byte array
+     * @param pos
+     *            the position
+     * @param x
+     *            the value to write
+     */
+    public static void writeIntLE(byte[] buff, int pos, int x) {
+        INT_VH_LE.set(buff, pos, x);
     }
 
     /**
@@ -167,7 +267,52 @@ public final class Bits {
      *            the value to write
      */
     public static void writeLong(byte[] buff, int pos, long x) {
-        LONG_VH.set(buff, pos, x);
+        LONG_VH_BE.set(buff, pos, x);
+    }
+
+    /**
+     * Writes a long value to the byte array at the given position in
+     * little-endian order.
+     *
+     * @param buff
+     *            the byte array
+     * @param pos
+     *            the position
+     * @param x
+     *            the value to write
+     */
+    public static void writeLongLE(byte[] buff, int pos, long x) {
+        LONG_VH_LE.set(buff, pos, x);
+    }
+
+    /**
+     * Writes a double value to the byte array at the given position in
+     * big-endian order.
+     *
+     * @param buff
+     *            the byte array
+     * @param pos
+     *            the position
+     * @param x
+     *            the value to write
+     */
+    public static void writeDouble(byte[] buff, int pos, double x) {
+        DOUBLE_VH_BE.set(buff, pos, x);
+    }
+
+    /**
+     * Writes a double value to the byte array at the given position in
+     * little-endian order.
+     *
+     * @param buff
+     *            the byte array
+     * @param pos
+     *            the position
+     * @param x
+     *            the value to write
+     */
+    public static void writeDoubleLE(byte[] buff, int pos, double x) {
+        DOUBLE_VH_LE.set(buff, pos, x);
     }
 
     private Bits() {

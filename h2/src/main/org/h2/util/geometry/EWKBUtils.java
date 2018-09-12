@@ -121,7 +121,7 @@ public final class EWKBUtils {
             writeInt(type);
             if (srid != 0) {
                 writeInt(srid);
-                // Newer write SRID in inner objects
+                // Never write SRID in inner objects
                 srid = 0;
             }
         }
@@ -156,7 +156,7 @@ public final class EWKBUtils {
 
         private void writeDouble(double v) {
             v = toCanonicalDouble(v);
-            Bits.writeLong(buf, 0, Double.doubleToLongBits(v));
+            Bits.writeLong(buf, 0, Double.doubleToRawLongBits(v));
             output.write(buf, 0, 8);
         }
 

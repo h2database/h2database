@@ -577,7 +577,7 @@ public final class EWKTUtils {
      *            output target
      */
     public static void parseEWKT(String ewkt, Target target) {
-        parseEWKT(new EWKTSource(ewkt), target, 0, false, false);
+        parseEWKT(new EWKTSource(ewkt), target, 0, 0);
     }
 
     /**
@@ -589,12 +589,10 @@ public final class EWKTUtils {
      *            output target
      * @param parentType
      *            type of parent geometry collection, or 0 for the root geometry
-     * @param useZ
-     *            parent geometry uses dimension Z
-     * @param useM
-     *            parent geometry uses dimension M
+     * @param dimensionSystem
+     *            dimension system of parent geometry
      */
-    private static void parseEWKT(EWKTSource source, Target target, int parentType, boolean useZ, boolean useM) {
+    private static void parseEWKT(EWKTSource source, Target target, int parentType, int dimensionSystem) {
         if (parentType == 0) {
             target.init(source.readSRID());
         }
@@ -602,13 +600,7 @@ public final class EWKTUtils {
         switch (parentType) {
         default: {
             type = source.readType();
-            int ds = source.readDimensionSystem();
-            if ((ds & DIMENSION_SYSTEM_XYZ) != 0) {
-                useZ = true;
-            }
-            if ((ds & DIMENSION_SYSTEM_XYM) != 0) {
-                useM = true;
-            }
+            dimensionSystem = source.readDimensionSystem();
             break;
         }
         case MULTI_POINT:
@@ -631,7 +623,7 @@ public final class EWKTUtils {
             if (empty) {
                 target.addCoordinate(Double.NaN, Double.NaN, Double.NaN, Double.NaN, 0, 1);
             } else {
-                addCoordinate(source, target, useZ, useM, 0, 1);
+                addCoordinate(source, target, dimensionSystem, 0, 1);
                 source.read(')');
             }
             break;
@@ -646,7 +638,7 @@ public final class EWKTUtils {
             } else {
                 ArrayList<double[]> coordinates = new ArrayList<>();
                 do {
-                    coordinates.add(readCoordinate(source, useZ, useM));
+                    coordinates.add(readCoordinate(source, dimensionSystem));
                 } while (source.hasMoreCoordinates());
                 int numPoints = coordinates.size();
                 if (numPoints < 0 || numPoints == 1) {
@@ -668,10 +660,10 @@ public final class EWKTUtils {
             if (empty) {
                 target.startPolygon(0, 0);
             } else {
-                ArrayList<double[]> outer = readRing(source, useZ, useM);
+                ArrayList<double[]> outer = readRing(source, dimensionSystem);
                 ArrayList<ArrayList<double[]>> inner = new ArrayList<>();
                 while (source.hasMoreCoordinates()) {
-                    inner.add(readRing(source, useZ, useM));
+                    inner.add(readRing(source, dimensionSystem));
                 }
                 int numInner = inner.size();
                 int size = outer.size();
@@ -684,7 +676,7 @@ public final class EWKTUtils {
                 }
                 target.startPolygon(numInner, size);
                 if (size > 0) {
-                    addRing(outer, target, useZ, useM);
+                    addRing(outer, target);
                     for (int i = 0; i < numInner; i++) {
                         ArrayList<double[]> ring = inner.get(i);
                         size = ring.size();
@@ -693,7 +685,7 @@ public final class EWKTUtils {
                             throw new IllegalArgumentException();
                         }
                         target.startPolygonInner(size);
-                        addRing(ring, target, useZ, useM);
+                        addRing(ring, target);
                     }
                     target.endNonEmptyPolygon();
                 }
@@ -701,16 +693,16 @@ public final class EWKTUtils {
             break;
         }
         case MULTI_POINT:
-            parseCollection(source, target, MULTI_POINT, parentType, useZ, useM);
+            parseCollection(source, target, MULTI_POINT, parentType, dimensionSystem);
             break;
         case MULTI_LINE_STRING:
-            parseCollection(source, target, MULTI_LINE_STRING, parentType, useZ, useM);
+            parseCollection(source, target, MULTI_LINE_STRING, parentType, dimensionSystem);
             break;
         case MULTI_POLYGON:
-            parseCollection(source, target, MULTI_POLYGON, parentType, useZ, useM);
+            parseCollection(source, target, MULTI_POLYGON, parentType, dimensionSystem);
             break;
         case GEOMETRY_COLLECTION:
-            parseCollection(source, target, GEOMETRY_COLLECTION, parentType, useZ, useM);
+            parseCollection(source, target, GEOMETRY_COLLECTION, parentType, 0);
             break;
         default:
             throw new IllegalArgumentException();
@@ -720,8 +712,8 @@ public final class EWKTUtils {
         }
     }
 
-    private static void parseCollection(EWKTSource source, Target target, int type, int parentType, boolean useZ,
-            boolean useM) {
+    private static void parseCollection(EWKTSource source, Target target, int type, int parentType,
+            int dimensionSystem) {
         if (parentType != 0 && parentType != GEOMETRY_COLLECTION) {
             throw new IllegalArgumentException();
         }
@@ -729,7 +721,7 @@ public final class EWKTUtils {
             target.startCollection(type, 0);
         } else {
             if (type == MULTI_POINT && source.hasCoordinate()) {
-                parseMultiPointAlternative(source, target, useZ, useM);
+                parseMultiPointAlternative(source, target, dimensionSystem);
             } else {
                 int numItems = source.getItemCount();
                 target.startCollection(type, numItems);
@@ -738,7 +730,7 @@ public final class EWKTUtils {
                         source.read(',');
                     }
                     Target innerTarget = target.startCollectionItem(i, numItems);
-                    parseEWKT(source, innerTarget, type, useZ, useM);
+                    parseEWKT(source, innerTarget, type, dimensionSystem);
                     target.endCollectionItem(innerTarget, i, numItems);
                 }
                 source.read(')');
@@ -747,11 +739,11 @@ public final class EWKTUtils {
         target.endCollection(type);
     }
 
-    private static void parseMultiPointAlternative(EWKTSource source, Target target, boolean useZ, boolean useM) {
+    private static void parseMultiPointAlternative(EWKTSource source, Target target, int dimensionSystem) {
         // Special case for MULTIPOINT (1 2, 3 4)
         ArrayList<double[]> points = new ArrayList<>();
         do {
-            points.add(readCoordinate(source, useZ, useM));
+            points.add(readCoordinate(source, dimensionSystem));
         } while (source.hasMoreCoordinates());
         int numItems = points.size();
         target.startCollection(MULTI_POINT, numItems);
@@ -764,16 +756,16 @@ public final class EWKTUtils {
         }
     }
 
-    private static ArrayList<double[]> readRing(EWKTSource source, boolean useZ, boolean useM) {
+    private static ArrayList<double[]> readRing(EWKTSource source, int dimensionSystem) {
         if (source.readEmpty()) {
             return new ArrayList<>(0);
         }
         ArrayList<double[]> result = new ArrayList<>();
-        double[] c = readCoordinate(source, useZ, useM);
+        double[] c = readCoordinate(source, dimensionSystem);
         double startX = c[X], startY = c[Y];
         result.add(c);
         while (source.hasMoreCoordinates()) {
-            result.add(readCoordinate(source, useZ, useM));
+            result.add(readCoordinate(source, dimensionSystem));
         }
         int size = result.size();
         if (size < 4) {
@@ -791,20 +783,19 @@ public final class EWKTUtils {
         return result;
     }
 
-    private static void addRing(ArrayList<double[]> ring, Target target, boolean useZ, boolean useM) {
+    private static void addRing(ArrayList<double[]> ring, Target target) {
         for (int i = 0, size = ring.size(); i < size; i++) {
             double[] coordinates = ring.get(i);
             target.addCoordinate(coordinates[X], coordinates[Y], coordinates[Z], coordinates[M], i, size);
         }
     }
 
-    private static void addCoordinate(EWKTSource source, Target target, boolean useZ, boolean useM, int index,
-            int total) {
+    private static void addCoordinate(EWKTSource source, Target target, int dimensionSystem, int index, int total) {
         double x = source.readCoordinate();
         double y = source.readCoordinate();
         double z = Double.NaN, m = Double.NaN;
         if (source.hasCoordinate()) {
-            if (!useZ && useM) {
+            if (dimensionSystem == DIMENSION_SYSTEM_XYM) {
                 m = source.readCoordinate();
             } else {
                 z = source.readCoordinate();
@@ -816,12 +807,12 @@ public final class EWKTUtils {
         target.addCoordinate(x, y, z, m, index, total);
     }
 
-    private static double[] readCoordinate(EWKTSource source, boolean useZ, boolean useM) {
+    private static double[] readCoordinate(EWKTSource source, int dimensionSystem) {
         double x = source.readCoordinate();
         double y = source.readCoordinate();
         double z = Double.NaN, m = Double.NaN;
         if (source.hasCoordinate()) {
-            if (!useZ && useM) {
+            if (dimensionSystem == DIMENSION_SYSTEM_XYM) {
                 m = source.readCoordinate();
             } else {
                 z = source.readCoordinate();

@@ -381,6 +381,7 @@ public class TestGeometryUtils extends TestBase {
         assertEquals(10, gc.getSRID());
         assertEquals(10, gc.getGeometryN(0).getSRID());
         assertEquals(ewkb, JTSUtils.geometry2ewkb(gc));
+        assertEquals("SRID=-1;POINT EMPTY", EWKTUtils.ewkb2ewkt(EWKTUtils.ewkt2ewkb(" srid=-1  ; POINT  EMPTY ")));
     }
 
     private void testDimensions(int expected, byte[] ewkb) {

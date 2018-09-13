@@ -249,10 +249,19 @@ public final class EWKTUtils {
         }
 
         int readSRID() {
+            skipWS();
             int srid;
-            if (ewkt.startsWith("SRID=")) {
+            if (ewkt.regionMatches(true, offset, "SRID=", 0, 5)) {
+                offset += 5;
                 int idx = ewkt.indexOf(';', 5);
-                srid = Integer.parseInt(ewkt.substring(5, idx));
+                if (idx < 0) {
+                    throw new IllegalArgumentException();
+                }
+                int end = idx;
+                while (ewkt.charAt(end - 1) <= ' ') {
+                    end--;
+                }
+                srid = Integer.parseInt(ewkt.substring(offset, end).trim());
                 offset = idx + 1;
             } else {
                 srid = 0;

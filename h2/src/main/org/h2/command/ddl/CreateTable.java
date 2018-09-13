@@ -199,15 +199,17 @@ public class CreateTable extends CommandWithColumns {
                 precision = scale;
             }
             ExtTypeInfo extTypeInfo = null;
-            if (dt.type == Value.ENUM) {
-                /**
-                 * Only columns of tables may be enumerated.
-                 */
-                if (!(expr instanceof ExpressionColumn)) {
+            int t = dt.type;
+            if (DataType.isExtInfoType(t)) {
+                if (expr instanceof ExpressionColumn) {
+                    extTypeInfo = ((ExpressionColumn) expr).getColumn().getExtTypeInfo();
+                } else if (t == Value.ENUM) {
+                    /*
+                     * Only columns of tables may be enumerated.
+                     */
                     throw DbException.get(ErrorCode.GENERAL_ERROR_1,
                             "Unable to resolve enumerators of expression");
                 }
-                extTypeInfo = ((ExpressionColumn) expr).getColumn().getExtTypeInfo();
             }
             Column col = new Column(name, type, precision, scale, displaySize, extTypeInfo);
             addColumn(col);

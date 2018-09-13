@@ -362,37 +362,37 @@ public final class GeometryUtils {
     /**
      * POINT geometry type.
      */
-    static final int POINT = 1;
+    public static final int POINT = 1;
 
     /**
      * LINESTRING geometry type.
      */
-    static final int LINE_STRING = 2;
+    public static final int LINE_STRING = 2;
 
     /**
      * POLYGON geometry type.
      */
-    static final int POLYGON = 3;
+    public static final int POLYGON = 3;
 
     /**
      * MULTIPOINT geometry type.
      */
-    static final int MULTI_POINT = 4;
+    public static final int MULTI_POINT = 4;
 
     /**
      * MULTILINESTRING geometry type.
      */
-    static final int MULTI_LINE_STRING = 5;
+    public static final int MULTI_LINE_STRING = 5;
 
     /**
      * MULTIPOLYGON geometry type.
      */
-    static final int MULTI_POLYGON = 6;
+    public static final int MULTI_POLYGON = 6;
 
     /**
      * GEOMETRYCOLLECTION geometry type.
      */
-    static final int GEOMETRY_COLLECTION = 7;
+    public static final int GEOMETRY_COLLECTION = 7;
 
     /**
      * Number of X coordinate.

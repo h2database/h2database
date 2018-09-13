@@ -233,17 +233,17 @@ public final class EWKBUtils {
     /**
      * Geometry type mask that indicates presence of dimension Z.
      */
-    private static final int EWKB_Z = 0x8000_0000;
+    public static final int EWKB_Z = 0x8000_0000;
 
     /**
      * Geometry type mask that indicates presence of dimension M.
      */
-    private static final int EWKB_M = 0x4000_0000;
+    public static final int EWKB_M = 0x4000_0000;
 
     /**
      * Geometry type mask that indicates presence of SRID.
      */
-    private static final int EWKB_SRID = 0x2000_0000;
+    public static final int EWKB_SRID = 0x2000_0000;
 
     /**
      * Converts any supported EWKB to EWKB representation that is used by this
@@ -294,6 +294,32 @@ public final class EWKBUtils {
         } catch (ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException();
         }
+    }
+
+    /**
+     * Converts geometry type with flags to a dimension system.
+     *
+     * @param type
+     *            geometry type with flags
+     * @return dimension system
+     */
+    public static int type2dimensionSystem(int type) {
+        // PostGIS extensions
+        boolean useZ = (type & EWKB_Z) != 0;
+        boolean useM = (type & EWKB_M) != 0;
+        // OGC 06-103r4
+        type &= 0xffff;
+        switch (type / 1_000) {
+        case DIMENSION_SYSTEM_XYZ:
+            useZ = true;
+            break;
+        case DIMENSION_SYSTEM_XYZM:
+            useZ = true;
+            //$FALL-THROUGH$
+        case DIMENSION_SYSTEM_XYM:
+            useM = true;
+        }
+        return (useZ ? DIMENSION_SYSTEM_XYZ : 0) | (useM ? DIMENSION_SYSTEM_XYM : 0);
     }
 
     /**

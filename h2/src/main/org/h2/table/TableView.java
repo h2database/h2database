@@ -38,6 +38,7 @@ import org.h2.util.ColumnNamer;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
+import org.h2.value.DataType;
 import org.h2.value.ExtTypeInfo;
 import org.h2.value.Value;
 
@@ -196,7 +197,7 @@ public class TableView extends Table {
                 int scale = expr.getScale();
                 int displaySize = expr.getDisplaySize();
                 ExtTypeInfo extTypeInfo = null;
-                if (type == Value.ENUM) {
+                if (DataType.isExtInfoType(type)) {
                     if (expr instanceof ExpressionColumn) {
                         extTypeInfo = ((ExpressionColumn) expr).getColumn().getExtTypeInfo();
                     }

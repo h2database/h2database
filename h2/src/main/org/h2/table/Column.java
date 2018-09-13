@@ -402,7 +402,7 @@ public class Column {
                         getCreateSQL(), s + " (" + value.getPrecision() + ")");
             }
         }
-        if (type == Value.ENUM && value != ValueNull.INSTANCE) {
+        if (value != ValueNull.INSTANCE && DataType.isExtInfoType(type) && extTypeInfo != null) {
             value = extTypeInfo.cast(value);
         }
         updateSequenceIfRequired(session, value);
@@ -509,6 +509,11 @@ public class Column {
             case Value.DECIMAL:
                 buff.append('(').append(precision).append(", ").append(scale).append(')');
                 break;
+            case Value.GEOMETRY:
+                if (extTypeInfo == null) {
+                    break;
+                }
+                //$FALL-THROUGH$
             case Value.ENUM:
                 buff.append(extTypeInfo.toString());
                 break;

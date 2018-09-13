@@ -194,10 +194,12 @@ import org.h2.util.ParserUtil;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
+import org.h2.util.geometry.EWKTUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.ExtTypeInfo;
 import org.h2.value.ExtTypeInfoEnum;
+import org.h2.value.ExtTypeInfoGeometry;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueBytes;
@@ -5026,6 +5028,31 @@ public class Parser {
                     throw e.addSQL(original);
                 }
                 original += extTypeInfo.toString();
+            }
+        } else if (dataType.type == Value.GEOMETRY) {
+            if (extTypeInfo == null) {
+                if (readIf(OPEN_PAREN)) {
+                    int type = 0;
+                    if (currentTokenType == IDENTIFIER && !currentTokenQuoted) {
+                        try {
+                            type = EWKTUtils.parseGeometryType(currentToken);
+                            read();
+                            if (type / 1_000 == 0 && currentTokenType == IDENTIFIER && !currentTokenQuoted) {
+                                type +=  EWKTUtils.parseDimensionSystem(currentToken) * 1_000;
+                                read();
+                            }
+                        } catch (IllegalArgumentException ex) {
+                            throw getSyntaxError();
+                        }
+                    }
+                    Integer srid = null;
+                    if (type == 0 || readIf(COMMA)) {
+                        srid = readInt();
+                    }
+                    read(CLOSE_PAREN);
+                    extTypeInfo = new ExtTypeInfoGeometry(type, srid);
+                    original += extTypeInfo.toString();
+                }
             }
         } else if (readIf(OPEN_PAREN)) {
             // Support for MySQL: INT(11), MEDIUMINT(8) and so on.

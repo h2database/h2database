@@ -5,6 +5,7 @@
  */
 package org.h2.value;
 
+import static org.h2.util.geometry.EWKBUtils.EWKB_SRID;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -18,6 +19,7 @@ import org.h2.util.geometry.EWKBUtils;
 import org.h2.util.geometry.EWKTUtils;
 import org.h2.util.geometry.GeometryUtils;
 import org.h2.util.geometry.GeometryUtils.EnvelopeAndDimensionSystemTarget;
+import org.h2.util.geometry.GeometryUtils.EnvelopeTarget;
 import org.h2.util.geometry.JTSUtils;
 import org.locationtech.jts.geom.Geometry;
 
@@ -29,6 +31,8 @@ import org.locationtech.jts.geom.Geometry;
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
 public class ValueGeometry extends Value {
+
+    private static final double[] UNKNOWN_ENVELOPE = new double[0];
 
     /**
      * As conversion from/to WKB cost a significant amount of CPU cycles, WKB
@@ -43,9 +47,15 @@ public class ValueGeometry extends Value {
     private final int hashCode;
 
     /**
-     * Dimension system. -1 if not known yet.
+     * Geometry type and dimension system in OGC geometry code format (type +
+     * dimensionSystem * 1000).
      */
-    private int dimensionSystem;
+    private final int typeAndDimensionSystem;
+
+    /**
+     * Spatial reference system identifier.
+     */
+    private final int srid;
 
     /**
      * The envelope of the value. Calculated only on request.
@@ -62,14 +72,18 @@ public class ValueGeometry extends Value {
      * Create a new geometry object.
      *
      * @param bytes the EWKB bytes
-     * @param dimensionSystem dimension system
      * @param envelope the envelope
      */
-    private ValueGeometry(byte[] bytes, int dimensionSystem, double[] envelope) {
+    private ValueGeometry(byte[] bytes, double[] envelope) {
+        if (bytes.length < 9 || bytes[0] != 0) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, StringUtils.convertBytesToHex(bytes));
+        }
         this.bytes = bytes;
-        this.hashCode = Arrays.hashCode(bytes);
-        this.dimensionSystem = dimensionSystem;
         this.envelope = envelope;
+        int t = Bits.readInt(bytes, 1);
+        srid = (t & EWKB_SRID) != 0 ? Bits.readInt(bytes, 5) : 0;
+        typeAndDimensionSystem = (t & 0xffff) % 1_000 + EWKBUtils.type2dimensionSystem(t) * 1_000;
+        hashCode = Arrays.hashCode(bytes);
     }
 
     /**
@@ -84,9 +98,8 @@ public class ValueGeometry extends Value {
             EnvelopeAndDimensionSystemTarget target = new EnvelopeAndDimensionSystemTarget();
             Geometry g = (Geometry) o;
             JTSUtils.parseGeometry(g, target);
-            int dimensionSystem = target.getDimensionSystem();
-            return (ValueGeometry) Value.cache(new ValueGeometry(JTSUtils.geometry2ewkb(g, dimensionSystem),
-                    dimensionSystem, target.getEnvelope()));
+            return (ValueGeometry) Value.cache(new ValueGeometry( //
+                    JTSUtils.geometry2ewkb(g, target.getDimensionSystem()), target.getEnvelope()));
         } catch (RuntimeException ex) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, String.valueOf(o));
         }
@@ -102,9 +115,8 @@ public class ValueGeometry extends Value {
         try {
             EnvelopeAndDimensionSystemTarget target = new EnvelopeAndDimensionSystemTarget();
             EWKTUtils.parseEWKT(s, target);
-            int dimensionSystem = target.getDimensionSystem();
-            return (ValueGeometry) Value.cache(new ValueGeometry(EWKTUtils.ewkt2ewkb(s, dimensionSystem),
-                    dimensionSystem, target.getEnvelope()));
+            return (ValueGeometry) Value.cache(new ValueGeometry( //
+                    EWKTUtils.ewkt2ewkb(s, target.getDimensionSystem()), target.getEnvelope()));
         } catch (RuntimeException ex) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, s);
         }
@@ -129,7 +141,7 @@ public class ValueGeometry extends Value {
      * @return the value
      */
     public static ValueGeometry get(byte[] bytes) {
-        return (ValueGeometry) Value.cache(new ValueGeometry(bytes, -1, null));
+        return (ValueGeometry) Value.cache(new ValueGeometry(bytes, UNKNOWN_ENVELOPE));
     }
 
     /**
@@ -142,9 +154,8 @@ public class ValueGeometry extends Value {
         try {
             EnvelopeAndDimensionSystemTarget target = new EnvelopeAndDimensionSystemTarget();
             EWKBUtils.parseEWKB(bytes, target);
-            int dimensionSystem = target.getDimensionSystem();
-            return (ValueGeometry) Value.cache(new ValueGeometry(EWKBUtils.ewkb2ewkb(bytes, dimensionSystem),
-                    dimensionSystem, target.getEnvelope()));
+            return (ValueGeometry) Value.cache(new ValueGeometry( //
+                    EWKBUtils.ewkb2ewkb(bytes, target.getDimensionSystem()), target.getEnvelope()));
         } catch (RuntimeException ex) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, StringUtils.convertBytesToHex(bytes));
         }
@@ -158,8 +169,7 @@ public class ValueGeometry extends Value {
      */
     public static Value fromEnvelope(double[] envelope) {
         return envelope != null
-                ? Value.cache(new ValueGeometry(EWKBUtils.envelope2wkb(envelope), GeometryUtils.DIMENSION_SYSTEM_XY,
-                        envelope))
+                ? Value.cache(new ValueGeometry(EWKBUtils.envelope2wkb(envelope), envelope))
                 : ValueNull.INSTANCE;
     }
 
@@ -180,13 +190,23 @@ public class ValueGeometry extends Value {
         return ((Geometry) geometry).copy();
     }
 
-    private void calculateInfo() {
-        if (dimensionSystem < 0) {
-            EnvelopeAndDimensionSystemTarget target = new EnvelopeAndDimensionSystemTarget();
-            EWKBUtils.parseEWKB(bytes, target);
-            envelope = target.getEnvelope();
-            dimensionSystem = target.getDimensionSystem();
-        }
+    /**
+     * Returns geometry type and dimension system in OGC geometry code format
+     * (type + dimensionSystem * 1000).
+     *
+     * @return geometry type and dimension system
+     */
+    public int getTypeAndDimensionSystem() {
+        return typeAndDimensionSystem;
+    }
+
+    /**
+     * Returns geometry type.
+     *
+     * @return geometry type and dimension system
+     */
+    public int getGeometryType() {
+        return typeAndDimensionSystem % 1_000;
     }
 
     /**
@@ -195,8 +215,16 @@ public class ValueGeometry extends Value {
      * @return dimension system
      */
     public int getDimensionSystem() {
-        calculateInfo();
-        return dimensionSystem;
+        return typeAndDimensionSystem / 1_000;
+    }
+
+    /**
+     * Return a spatial reference system identifier.
+     *
+     * @return spatial reference system identifier
+     */
+    public int getSRID() {
+        return srid;
     }
 
     /**
@@ -205,7 +233,11 @@ public class ValueGeometry extends Value {
      * @return envelope of this geometry
      */
     public double[] getEnvelopeNoCopy() {
-        calculateInfo();
+        if (envelope == UNKNOWN_ENVELOPE) {
+            EnvelopeTarget target = new EnvelopeTarget();
+            EWKBUtils.parseEWKB(bytes, target);
+            envelope = target.getEnvelope();
+        }
         return envelope;
     }
 
@@ -319,7 +351,9 @@ public class ValueGeometry extends Value {
 
     @Override
     public Value convertTo(int targetType, int precision, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
-        if (targetType == Value.JAVA_OBJECT) {
+        if (targetType == Value.GEOMETRY) {
+            return extTypeInfo != null ? extTypeInfo.cast(this) : this;
+        } else if (targetType == Value.JAVA_OBJECT) {
             return this;
         }
         return super.convertTo(targetType, precision, mode, column, null);

@@ -56,6 +56,7 @@ import org.h2.util.ToChar;
 import org.h2.util.ToDateParser;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
+import org.h2.value.ExtTypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -162,7 +163,7 @@ public class Function extends Expression implements FunctionCall {
     protected int scale;
     protected long precision = PRECISION_UNKNOWN;
     protected int displaySize;
-    protected String[] enumerators;
+    protected ExtTypeInfo extTypeInfo;
 
     private final Database database;
 
@@ -894,7 +895,7 @@ public class Function extends Expression implements FunctionCall {
         case CAST:
         case CONVERT: {
             Mode mode = database.getMode();
-            v0 = v0.convertTo(dataType, MathUtils.convertLongToInt(precision), mode, null, enumerators);
+            v0 = v0.convertTo(dataType, MathUtils.convertLongToInt(precision), mode, null, extTypeInfo);
             v0 = v0.convertScale(mode.convertOnlyToSmallerScale, scale);
             v0 = v0.convertPrecision(getPrecision(), false);
             result = v0;
@@ -2200,7 +2201,7 @@ public class Function extends Expression implements FunctionCall {
         precision = col.getPrecision();
         displaySize = col.getDisplaySize();
         scale = col.getScale();
-        enumerators = col.getEnumerators();
+        extTypeInfo = col.getExtTypeInfo();
     }
 
     @Override
@@ -2601,7 +2602,7 @@ public class Function extends Expression implements FunctionCall {
         case CAST: {
             buff.append(args[0].getSQL()).append(" AS ").
                 append(new Column(null, dataType, precision,
-                        scale, displaySize, enumerators).getCreateSQL());
+                        scale, displaySize, extTypeInfo).getCreateSQL());
             break;
         }
         case CONVERT: {

@@ -318,7 +318,7 @@ public class ValueGeometry extends Value {
     }
 
     @Override
-    public Value convertTo(int targetType, int precision, Mode mode, Object column, String[] enumerators) {
+    public Value convertTo(int targetType, int precision, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
         if (targetType == Value.JAVA_OBJECT) {
             return this;
         }

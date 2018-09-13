@@ -16,6 +16,7 @@ import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.StatementBuilder;
+import org.h2.value.ExtTypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
@@ -34,7 +35,7 @@ public class ConditionInConstantSet extends Condition {
     private final ArrayList<Expression> valueList;
     private final TreeSet<Value> valueSet;
     private final int type;
-    private String[] enumerators;
+    private ExtTypeInfo extTypeInfo;
 
     /**
      * Create a new IN(..) condition.
@@ -54,9 +55,9 @@ public class ConditionInConstantSet extends Condition {
         type = left.getType();
         Mode mode = database.getMode();
         if (type == Value.ENUM) {
-            enumerators = ((ExpressionColumn) left).getColumn().getEnumerators();
+            extTypeInfo = ((ExpressionColumn) left).getColumn().getExtTypeInfo();
             for (Expression expression : valueList) {
-                valueSet.add(expression.getValue(session).convertToEnum(enumerators));
+                valueSet.add(extTypeInfo.cast(expression.getValue(session)));
             }
         } else {
             for (Expression expression : valueList) {
@@ -170,7 +171,7 @@ public class ConditionInConstantSet extends Condition {
             if (add.isConstant()) {
                 valueList.add(add);
                 if (type == Value.ENUM) {
-                    valueSet.add(add.getValue(session).convertToEnum(enumerators));
+                    valueSet.add(add.getValue(session).convertToEnum(extTypeInfo));
                 } else {
                     valueSet.add(add.getValue(session).convertTo(type, session.getDatabase().getMode()));
                 }

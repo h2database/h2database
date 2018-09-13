@@ -6,7 +6,8 @@
 package org.h2.table;
 
 import java.sql.ResultSetMetaData;
-import java.util.Arrays;
+import java.util.Objects;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.engine.Constants;
@@ -25,8 +26,8 @@ import org.h2.schema.Sequence;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
+import org.h2.value.ExtTypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueEnum;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
@@ -65,7 +66,7 @@ public class Column {
     private final int type;
     private long precision;
     private int scale;
-    private String[] enumerators;
+    private ExtTypeInfo extTypeInfo;
     private int displaySize;
     private Table table;
     private String name;
@@ -99,8 +100,7 @@ public class Column {
         this(name, type, precision, scale, displaySize, null);
     }
 
-    public Column(String name, int type, long precision, int scale,
-            int displaySize, String[] enumerators) {
+    public Column(String name, int type, long precision, int scale, int displaySize, ExtTypeInfo extTypeInfo) {
         this.name = name;
         this.type = type;
         if (precision == -1 && scale == -1 && displaySize == -1 && type != Value.UNKNOWN) {
@@ -112,7 +112,7 @@ public class Column {
         this.precision = precision;
         this.scale = scale;
         this.displaySize = displaySize;
-        this.enumerators = enumerators;
+        this.extTypeInfo = extTypeInfo;
     }
 
     @Override
@@ -141,12 +141,8 @@ public class Column {
         return table.getId() ^ name.hashCode();
     }
 
-    public boolean isEnumerated() {
-        return type == Value.ENUM;
-    }
-
     public Column getClone() {
-        Column newColumn = new Column(name, type, precision, scale, displaySize, enumerators);
+        Column newColumn = new Column(name, type, precision, scale, displaySize, extTypeInfo);
         newColumn.copy(this);
         return newColumn;
     }
@@ -172,7 +168,7 @@ public class Column {
      */
     public Value convert(Value v, Mode mode) {
         try {
-            return v.convertTo(type, MathUtils.convertLongToInt(precision), mode, this, getEnumerators());
+            return v.convertTo(type, MathUtils.convertLongToInt(precision), mode, this, extTypeInfo);
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.DATA_CONVERSION_ERROR_1) {
                 String target = (table == null ? "" : table.getName() + ": ") +
@@ -300,12 +296,12 @@ public class Column {
         nullable = b;
     }
 
-    public String[] getEnumerators() {
-        return enumerators;
+    public ExtTypeInfo getExtTypeInfo() {
+        return extTypeInfo;
     }
 
-    public void setEnumerators(String[] enumerators) {
-        this.enumerators = enumerators;
+    public void setExtTypeInfo(ExtTypeInfo extTypeInfo) {
+        this.extTypeInfo = extTypeInfo;
     }
 
     public boolean getVisible() {
@@ -406,17 +402,8 @@ public class Column {
                         getCreateSQL(), s + " (" + value.getPrecision() + ")");
             }
         }
-        if (isEnumerated() && value != ValueNull.INSTANCE) {
-            if (!ValueEnum.isValid(enumerators, value)) {
-                String s = value.getTraceSQL();
-                if (s.length() > 127) {
-                    s = s.substring(0, 128) + "...";
-                }
-                throw DbException.get(ErrorCode.ENUM_VALUE_NOT_PERMITTED,
-                        getCreateSQL(), s);
-            }
-
-            value = ValueEnum.get(enumerators, value.getInt());
+        if (type == Value.ENUM && value != ValueNull.INSTANCE) {
+            value = extTypeInfo.cast(value);
         }
         updateSequenceIfRequired(session, value);
         return value;
@@ -523,14 +510,7 @@ public class Column {
                 buff.append('(').append(precision).append(", ").append(scale).append(')');
                 break;
             case Value.ENUM:
-                buff.append('(');
-                for (int i = 0; i < enumerators.length; i++) {
-                    buff.append('\'').append(enumerators[i]).append('\'');
-                    if(i < enumerators.length - 1) {
-                        buff.append(',');
-                    }
-                }
-                buff.append(')');
+                buff.append(extTypeInfo.toString());
                 break;
             case Value.BYTES:
             case Value.STRING:
@@ -862,6 +842,9 @@ public class Column {
         if (onUpdateExpression != null || newColumn.onUpdateExpression != null) {
             return false;
         }
+        if (!Objects.equals(extTypeInfo, newColumn.extTypeInfo)) {
+            return false;
+        }
         return true;
     }
 
@@ -876,8 +859,7 @@ public class Column {
         displaySize = source.displaySize;
         name = source.name;
         precision = source.precision;
-        enumerators = source.enumerators == null ? null :
-            Arrays.copyOf(source.enumerators, source.enumerators.length);
+        extTypeInfo = source.extTypeInfo;
         scale = source.scale;
         // table is not set
         // columnId is not set

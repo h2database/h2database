@@ -196,12 +196,13 @@ import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
+import org.h2.value.ExtTypeInfo;
+import org.h2.value.ExtTypeInfoEnum;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueBytes;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDecimal;
-import org.h2.value.ValueEnum;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueLong;
@@ -4862,7 +4863,7 @@ public class Parser {
         }
         long precision = -1;
         int displaySize = -1;
-        String[] enumerators = null;
+        ExtTypeInfo extTypeInfo = null;
         int scale = -1;
         String comment = null;
         Column templateColumn = null;
@@ -4879,7 +4880,7 @@ public class Parser {
             precision = templateColumn.getPrecision();
             displaySize = templateColumn.getDisplaySize();
             scale = templateColumn.getScale();
-            enumerators = templateColumn.getEnumerators();
+            extTypeInfo = templateColumn.getExtTypeInfo();
         } else {
             Mode mode = database.getMode();
             dataType = DataType.getTypeByName(original, mode);
@@ -5007,25 +5008,24 @@ public class Parser {
                 original = original + '(' + p + ')';
             }
         } else if (dataType.type == Value.ENUM) {
-            if (readIf(OPEN_PAREN)) {
-                java.util.List<String> enumeratorList = new ArrayList<>();
-                original += '(';
-                String enumerator0 = readString();
-                enumeratorList.add(enumerator0);
-                original += "'" + enumerator0 + "'";
-                while (readIfMore(true)) {
-                    original += ',';
-                    String enumeratorN = readString();
-                    original += "'" + enumeratorN + "'";
-                    enumeratorList.add(enumeratorN);
+            if (extTypeInfo == null) {
+                String[] enumerators = null;
+                if (readIf(OPEN_PAREN)) {
+                    java.util.List<String> enumeratorList = new ArrayList<>();
+                    String enumerator0 = readString();
+                    enumeratorList.add(enumerator0);
+                    while (readIfMore(true)) {
+                        String enumeratorN = readString();
+                        enumeratorList.add(enumeratorN);
+                    }
+                    enumerators = enumeratorList.toArray(new String[0]);
                 }
-                original += ')';
-                enumerators = enumeratorList.toArray(new String[0]);
-            }
-            try {
-                ValueEnum.check(enumerators);
-            } catch (DbException e) {
-                throw e.addSQL(original);
+                try {
+                    extTypeInfo = new ExtTypeInfoEnum(enumerators);
+                } catch (DbException e) {
+                    throw e.addSQL(original);
+                }
+                original += extTypeInfo.toString();
             }
         } else if (readIf(OPEN_PAREN)) {
             // Support for MySQL: INT(11), MEDIUMINT(8) and so on.
@@ -5049,7 +5049,7 @@ public class Parser {
         }
 
         Column column = new Column(columnName, type, precision, scale,
-            displaySize, enumerators);
+            displaySize, extTypeInfo);
         if (templateColumn != null) {
             column.setNullable(templateColumn.isNullable());
             column.setDefaultExpression(session,

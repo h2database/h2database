@@ -19,9 +19,9 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.value.ExtTypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
-import org.h2.value.ValueEnum;
 import org.h2.value.ValueNull;
 
 /**
@@ -191,8 +191,11 @@ public class ExpressionColumn extends Expression {
                 throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
             }
         }
-        if (column.getEnumerators() != null && value != ValueNull.INSTANCE) {
-            return ValueEnum.get(column.getEnumerators(), value.getInt());
+        if (value != ValueNull.INSTANCE) {
+            ExtTypeInfo extTypeInfo = column.getExtTypeInfo();
+            if (extTypeInfo != null) {
+                return extTypeInfo.cast(value);
+            }
         }
         return value;
     }

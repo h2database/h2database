@@ -23,6 +23,7 @@ import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.util.ColumnNamer;
 import org.h2.value.DataType;
+import org.h2.value.ExtTypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -197,18 +198,18 @@ public class CreateTable extends CommandWithColumns {
             if (scale > precision) {
                 precision = scale;
             }
-            String[] enumerators = null;
+            ExtTypeInfo extTypeInfo = null;
             if (dt.type == Value.ENUM) {
                 /**
                  * Only columns of tables may be enumerated.
                  */
-                if(!(expr instanceof ExpressionColumn)) {
+                if (!(expr instanceof ExpressionColumn)) {
                     throw DbException.get(ErrorCode.GENERAL_ERROR_1,
                             "Unable to resolve enumerators of expression");
                 }
-                enumerators = ((ExpressionColumn)expr).getColumn().getEnumerators();
+                extTypeInfo = ((ExpressionColumn) expr).getColumn().getExtTypeInfo();
             }
-            Column col = new Column(name, type, precision, scale, displaySize, enumerators);
+            Column col = new Column(name, type, precision, scale, displaySize, extTypeInfo);
             addColumn(col);
         }
     }

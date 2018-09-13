@@ -134,7 +134,7 @@ public class ValueNull extends Value {
     }
 
     @Override
-    public Value convertTo(int type, int precision, Mode mode, Object column, String[] enumerators) {
+    public Value convertTo(int type, int precision, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
         return this;
     }
 

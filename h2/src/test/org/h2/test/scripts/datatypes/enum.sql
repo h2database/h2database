@@ -26,6 +26,12 @@ select * from card;
 > 4    null
 > rows: 3
 
+alter table card alter column suit enum('a', 'b', 'c', 'd');
+> exception ENUM_VALUE_NOT_PERMITTED
+
+alter table card alter column suit enum('''none''', 'hearts', 'clubs', 'spades', 'diamonds');
+> ok
+
 select * from card order by suit;
 > RANK SUIT
 > ---- ------
@@ -50,7 +56,10 @@ select rank from card where suit = 'diamonds';
 >> 8
 
 select column_type from information_schema.columns where COLUMN_NAME = 'SUIT';
->> ENUM('hearts','clubs','spades','diamonds')
+>> ENUM('''none''', 'hearts', 'clubs', 'spades', 'diamonds')
+
+alter table card alter column suit enum('hearts', 'clubs', 'spades', 'diamonds');
+> ok
 
 --- ENUM integer-based operations
 
@@ -242,13 +251,13 @@ SELECT * FROM V3;
 >> -1
 
 SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE COLUMN_NAME = 'E' ORDER BY TABLE_NAME;
-> TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME ORDINAL_POSITION COLUMN_DEFAULT IS_NULLABLE DATA_TYPE CHARACTER_MAXIMUM_LENGTH CHARACTER_OCTET_LENGTH NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE DATETIME_PRECISION INTERVAL_TYPE INTERVAL_PRECISION CHARACTER_SET_NAME COLLATION_NAME TYPE_NAME NULLABLE IS_COMPUTED SELECTIVITY CHECK_CONSTRAINT SEQUENCE_NAME REMARKS SOURCE_DATA_TYPE COLUMN_TYPE   COLUMN_ON_UPDATE IS_VISIBLE
-> ------------- ------------ ---------- ----------- ---------------- -------------- ----------- --------- ------------------------ ---------------------- ----------------- ----------------------- ------------- ------------------ ------------- ------------------ ------------------ -------------- --------- -------- ----------- ----------- ---------------- ------------- ------- ---------------- ------------- ---------------- ----------
-> SCRIPT        PUBLIC       TEST       E           1                null           YES         1111      2147483647               2147483647             2147483647        10                      0             null               null          null               Unicode            OFF            ENUM      1        FALSE       50                           null                  null             ENUM('A','B') null             TRUE
-> SCRIPT        PUBLIC       V          E           1                null           YES         1111      2147483647               2147483647             2147483647        10                      0             null               null          null               Unicode            OFF            ENUM      1        FALSE       50                           null                  null             ENUM('A','B') null             TRUE
-> SCRIPT        PUBLIC       V1         E           1                null           YES         4         2147483647               2147483647             2147483647        10                      0             null               null          null               Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER       null             TRUE
-> SCRIPT        PUBLIC       V2         E           1                null           YES         4         2147483647               2147483647             2147483647        10                      0             null               null          null               Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER       null             TRUE
-> SCRIPT        PUBLIC       V3         E           1                null           YES         4         2147483647               2147483647             2147483647        10                      0             null               null          null               Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER       null             TRUE
+> TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME ORDINAL_POSITION COLUMN_DEFAULT IS_NULLABLE DATA_TYPE CHARACTER_MAXIMUM_LENGTH CHARACTER_OCTET_LENGTH NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE DATETIME_PRECISION INTERVAL_TYPE INTERVAL_PRECISION CHARACTER_SET_NAME COLLATION_NAME TYPE_NAME NULLABLE IS_COMPUTED SELECTIVITY CHECK_CONSTRAINT SEQUENCE_NAME REMARKS SOURCE_DATA_TYPE COLUMN_TYPE    COLUMN_ON_UPDATE IS_VISIBLE
+> ------------- ------------ ---------- ----------- ---------------- -------------- ----------- --------- ------------------------ ---------------------- ----------------- ----------------------- ------------- ------------------ ------------- ------------------ ------------------ -------------- --------- -------- ----------- ----------- ---------------- ------------- ------- ---------------- -------------- ---------------- ----------
+> SCRIPT        PUBLIC       TEST       E           1                null           YES         1111      2147483647               2147483647             2147483647        10                      0             null               null          null               Unicode            OFF            ENUM      1        FALSE       50                           null                  null             ENUM('A', 'B') null             TRUE
+> SCRIPT        PUBLIC       V          E           1                null           YES         1111      2147483647               2147483647             2147483647        10                      0             null               null          null               Unicode            OFF            ENUM      1        FALSE       50                           null                  null             ENUM('A', 'B') null             TRUE
+> SCRIPT        PUBLIC       V1         E           1                null           YES         4         2147483647               2147483647             2147483647        10                      0             null               null          null               Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER        null             TRUE
+> SCRIPT        PUBLIC       V2         E           1                null           YES         4         2147483647               2147483647             2147483647        10                      0             null               null          null               Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER        null             TRUE
+> SCRIPT        PUBLIC       V3         E           1                null           YES         4         2147483647               2147483647             2147483647        10                      0             null               null          null               Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER        null             TRUE
 > rows (ordered): 5
 
 DROP VIEW V;

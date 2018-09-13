@@ -641,7 +641,7 @@ public class TestSpatial extends TestDb {
     }
 
     private void checkSRID(byte[] bytes, int srid) {
-        Point point = (Point) ValueGeometry.get(bytes).getGeometry();
+        Point point = (Point) ValueGeometry.getFromEWKB(bytes).getGeometry();
         assertEquals(1.1, point.getX());
         assertEquals(1.2, point.getY());
         assertEquals(srid, point.getSRID());

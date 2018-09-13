@@ -715,6 +715,7 @@ public final class EWKTUtils {
             type = POLYGON;
             break;
         }
+        target.dimensionSystem(dimensionSystem);
         switch (type) {
         case POINT: {
             if (parentType != 0 && parentType != MULTI_POINT && parentType != GEOMETRY_COLLECTION) {

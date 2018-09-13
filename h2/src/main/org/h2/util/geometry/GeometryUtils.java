@@ -28,6 +28,15 @@ public final class GeometryUtils {
         }
 
         /**
+         * Invoked to add dimension system requirement.
+         *
+         * @param dimensionSystem
+         *            dimension system
+         */
+        protected void dimensionSystem(int dimensionSystem) {
+        }
+
+        /**
          * Invoked before writing a POINT.
          */
         protected void startPoint() {
@@ -239,6 +248,16 @@ public final class GeometryUtils {
         }
 
         @Override
+        protected void dimensionSystem(int dimensionSystem) {
+            if ((dimensionSystem & DIMENSION_SYSTEM_XYZ) != 0) {
+                hasZ = true;
+            }
+            if ((dimensionSystem & DIMENSION_SYSTEM_XYM) != 0) {
+                hasM = true;
+            }
+        }
+
+        @Override
         protected void addCoordinate(double x, double y, double z, double m, int index, int total) {
             if (!hasZ && !Double.isNaN(z)) {
                 hasZ = true;
@@ -286,6 +305,16 @@ public final class GeometryUtils {
          * Creates a new envelope and dimension system calculation target.
          */
         public EnvelopeAndDimensionSystemTarget() {
+        }
+
+        @Override
+        protected void dimensionSystem(int dimensionSystem) {
+            if ((dimensionSystem & DIMENSION_SYSTEM_XYZ) != 0) {
+                hasZ = true;
+            }
+            if ((dimensionSystem & DIMENSION_SYSTEM_XYM) != 0) {
+                hasM = true;
+            }
         }
 
         @Override

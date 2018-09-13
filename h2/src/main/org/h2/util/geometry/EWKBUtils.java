@@ -366,6 +366,7 @@ public final class EWKBUtils {
         case DIMENSION_SYSTEM_XYM:
             useM = true;
         }
+        target.dimensionSystem((useZ ? DIMENSION_SYSTEM_XYZ : 0) | (useM ? DIMENSION_SYSTEM_XYM : 0));
         type %= 1_000;
         switch (type) {
         case POINT:

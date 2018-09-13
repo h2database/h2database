@@ -485,16 +485,27 @@ public class MVStoreTool {
                 fileName(sourceFileName).
                 readOnly().
                 open();
-        FileUtils.delete(targetFileName);
-        MVStore.Builder b = new MVStore.Builder().
+        // Bugfix - Add double "try-finally" statements to close source and target stores for
+        //releasing lock and file resources in these stores even if OOM occurs.
+        // Fix issues such as "Cannot delete file "/h2/data/test.mv.db.tempFile" [90025-197]"
+        //when client connects to this server and reopens this store database in this process.
+        // @since 2018-09-13 little-pan
+        try{
+            FileUtils.delete(targetFileName);
+            MVStore.Builder b = new MVStore.Builder().
                 fileName(targetFileName);
-        if (compress) {
-            b.compress();
+            if (compress) {
+                b.compress();
+            }
+            MVStore target = b.open();
+            try{
+                compact(source, target);
+            }finally{
+                target.close();
+            }
+        }finally{
+            source.close();
         }
-        MVStore target = b.open();
-        compact(source, target);
-        target.close();
-        source.close();
     }
 
     /**

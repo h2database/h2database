@@ -58,7 +58,7 @@ public final class EWKTUtils {
     /**
      * Names of dimension systems.
      */
-    private static final String[] DIMENSION_SYTEMS = { //
+    private static final String[] DIMENSION_SYSTEMS = { //
             "XY", //
             "Z", //
             "M", //
@@ -677,7 +677,7 @@ public final class EWKTUtils {
         }
         String result = TYPES[t - 1];
         if (d != DIMENSION_SYSTEM_XY) {
-            result = result + ' ' + DIMENSION_SYTEMS[d];
+            result = result + ' ' + DIMENSION_SYSTEMS[d];
         }
         return result;
     }

@@ -5,11 +5,14 @@
  */
 package org.h2.value;
 
+/**
+ * ENUM value.
+ */
 public class ValueEnum extends ValueEnumBase {
 
     private final ExtTypeInfoEnum enumerators;
 
-    ValueEnum(ExtTypeInfoEnum enumerators, String label,  int ordinal) {
+    ValueEnum(ExtTypeInfoEnum enumerators, String label, int ordinal) {
         super(label, ordinal);
         this.enumerators = enumerators;
     }

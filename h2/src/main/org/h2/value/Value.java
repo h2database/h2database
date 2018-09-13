@@ -762,7 +762,7 @@ public abstract class Value {
             case UUID:
                 return convertToUuid();
             case GEOMETRY:
-                return convertToGeometry();
+                return convertToGeometry((ExtTypeInfoGeometry) extTypeInfo);
             case Value.INTERVAL_YEAR:
             case Value.INTERVAL_MONTH:
             case Value.INTERVAL_YEAR_TO_MONTH:
@@ -1211,20 +1211,25 @@ public abstract class Value {
         return ValueUuid.get(getString());
     }
 
-    private ValueGeometry convertToGeometry() {
+    private Value convertToGeometry(ExtTypeInfoGeometry extTypeInfo) {
+        ValueGeometry result;
         switch (getType()) {
         case BYTES:
-            return ValueGeometry.getFromEWKB(getBytesNoCopy());
+            result = ValueGeometry.getFromEWKB(getBytesNoCopy());
+            break;
         case JAVA_OBJECT:
             Object object = JdbcUtils.deserialize(getBytesNoCopy(), getDataHandler());
             if (DataType.isGeometry(object)) {
-                return ValueGeometry.getFromGeometry(object);
+                result = ValueGeometry.getFromGeometry(object);
+                break;
             }
             //$FALL-THROUGH$
         case TIMESTAMP_TZ:
             throw getDataConversionError(GEOMETRY);
+        default:
+            result = ValueGeometry.get(getString());
         }
-        return ValueGeometry.get(getString());
+        return extTypeInfo != null ? extTypeInfo.cast(result) : result;
     }
 
     private ValueInterval convertToIntervalYearMonth(int targetType) {

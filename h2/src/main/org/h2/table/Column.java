@@ -515,7 +515,7 @@ public class Column {
                 }
                 //$FALL-THROUGH$
             case Value.ENUM:
-                buff.append(extTypeInfo.toString());
+                buff.append(extTypeInfo.getCreateSQL());
                 break;
             case Value.BYTES:
             case Value.STRING:

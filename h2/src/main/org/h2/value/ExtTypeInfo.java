@@ -19,4 +19,16 @@ public abstract class ExtTypeInfo {
      */
     public abstract Value cast(Value value);
 
+    /**
+     * Returns SQL including parentheses that should be appended to a type name.
+     *
+     * @return SQL including parentheses that should be appended to a type name
+     */
+    public abstract String getCreateSQL();
+
+    @Override
+    public String toString() {
+        return getCreateSQL();
+    }
+
 }

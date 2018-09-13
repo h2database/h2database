@@ -5027,7 +5027,7 @@ public class Parser {
                 } catch (DbException e) {
                     throw e.addSQL(original);
                 }
-                original += extTypeInfo.toString();
+                original += extTypeInfo.getCreateSQL();
             }
         } else if (dataType.type == Value.GEOMETRY) {
             if (extTypeInfo == null) {
@@ -5051,7 +5051,7 @@ public class Parser {
                     }
                     read(CLOSE_PAREN);
                     extTypeInfo = new ExtTypeInfoGeometry(type, srid);
-                    original += extTypeInfo.toString();
+                    original += extTypeInfo.getCreateSQL();
                 }
             }
         } else if (readIf(OPEN_PAREN)) {

@@ -18,7 +18,7 @@ public final class ExtTypeInfoGeometry extends ExtTypeInfo {
 
     private final Integer srid;
 
-    private static String toString(int type, Integer srid) {
+    private static String toSQL(int type, Integer srid) {
         if (type == 0 && srid == null) {
             return "";
         }
@@ -58,14 +58,14 @@ public final class ExtTypeInfoGeometry extends ExtTypeInfo {
         ValueGeometry g = (ValueGeometry) value;
         if (type != 0 && g.getTypeAndDimensionSystem() != type || srid != null && g.getSRID() != srid) {
             throw DbException.get(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1,
-                    toString(g.getTypeAndDimensionSystem(), g.getSRID()) + " <> " + toString());
+                    toSQL(g.getTypeAndDimensionSystem(), g.getSRID()) + " <> " + toString());
         }
         return g;
     }
 
     @Override
-    public String toString() {
-        return toString(type, srid);
+    public String getCreateSQL() {
+        return toSQL(type, srid);
     }
 
 }

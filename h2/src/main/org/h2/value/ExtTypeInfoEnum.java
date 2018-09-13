@@ -162,7 +162,7 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(cleaned) + 203_117;
+        return Arrays.hashCode(enumerators) + 203_117;
     }
 
     @Override
@@ -173,7 +173,7 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
         if (obj == null || obj.getClass() != ExtTypeInfoEnum.class) {
             return false;
         }
-        return Arrays.equals(cleaned, ((ExtTypeInfoEnum) obj).cleaned);
+        return Arrays.equals(enumerators, ((ExtTypeInfoEnum) obj).enumerators);
     }
 
     @Override

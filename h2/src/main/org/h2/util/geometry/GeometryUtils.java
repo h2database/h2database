@@ -28,6 +28,15 @@ public final class GeometryUtils {
         }
 
         /**
+         * Invoked to add dimension system requirement.
+         *
+         * @param dimensionSystem
+         *            dimension system
+         */
+        protected void dimensionSystem(int dimensionSystem) {
+        }
+
+        /**
          * Invoked before writing a POINT.
          */
         protected void startPoint() {
@@ -239,6 +248,16 @@ public final class GeometryUtils {
         }
 
         @Override
+        protected void dimensionSystem(int dimensionSystem) {
+            if ((dimensionSystem & DIMENSION_SYSTEM_XYZ) != 0) {
+                hasZ = true;
+            }
+            if ((dimensionSystem & DIMENSION_SYSTEM_XYM) != 0) {
+                hasM = true;
+            }
+        }
+
+        @Override
         protected void addCoordinate(double x, double y, double z, double m, int index, int total) {
             if (!hasZ && !Double.isNaN(z)) {
                 hasZ = true;
@@ -286,6 +305,16 @@ public final class GeometryUtils {
          * Creates a new envelope and dimension system calculation target.
          */
         public EnvelopeAndDimensionSystemTarget() {
+        }
+
+        @Override
+        protected void dimensionSystem(int dimensionSystem) {
+            if ((dimensionSystem & DIMENSION_SYSTEM_XYZ) != 0) {
+                hasZ = true;
+            }
+            if ((dimensionSystem & DIMENSION_SYSTEM_XYM) != 0) {
+                hasM = true;
+            }
         }
 
         @Override
@@ -362,37 +391,37 @@ public final class GeometryUtils {
     /**
      * POINT geometry type.
      */
-    static final int POINT = 1;
+    public static final int POINT = 1;
 
     /**
      * LINESTRING geometry type.
      */
-    static final int LINE_STRING = 2;
+    public static final int LINE_STRING = 2;
 
     /**
      * POLYGON geometry type.
      */
-    static final int POLYGON = 3;
+    public static final int POLYGON = 3;
 
     /**
      * MULTIPOINT geometry type.
      */
-    static final int MULTI_POINT = 4;
+    public static final int MULTI_POINT = 4;
 
     /**
      * MULTILINESTRING geometry type.
      */
-    static final int MULTI_LINE_STRING = 5;
+    public static final int MULTI_LINE_STRING = 5;
 
     /**
      * MULTIPOLYGON geometry type.
      */
-    static final int MULTI_POLYGON = 6;
+    public static final int MULTI_POLYGON = 6;
 
     /**
      * GEOMETRYCOLLECTION geometry type.
      */
-    static final int GEOMETRY_COLLECTION = 7;
+    public static final int GEOMETRY_COLLECTION = 7;
 
     /**
      * Number of X coordinate.

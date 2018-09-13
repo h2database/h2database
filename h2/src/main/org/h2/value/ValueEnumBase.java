@@ -8,6 +8,8 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import org.h2.engine.Mode;
+
 /**
  * Base implementation of the ENUM data type.
  *
@@ -137,4 +139,13 @@ public class ValueEnumBase extends Value {
         final Value iv = v.convertTo(Value.INT);
         return convertTo(Value.INT).subtract(iv);
     }
+
+    @Override
+    public Value convertTo(int targetType, int precision, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
+        if (targetType == Value.ENUM) {
+            return extTypeInfo.cast(this);
+        }
+        return super.convertTo(targetType, precision, mode, column, extTypeInfo);
+    }
+
 }

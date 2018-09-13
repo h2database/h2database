@@ -210,7 +210,7 @@ public class Comparison extends Condition {
                         Column column = ((ExpressionColumn) left).getColumn();
                         right = ValueExpression.get(r.convertTo(resType,
                                 MathUtils.convertLongToInt(left.getPrecision()),
-                                session.getDatabase().getMode(), column, column.getEnumerators()));
+                                session.getDatabase().getMode(), column, column.getExtTypeInfo()));
                     }
                 } else if (right instanceof Parameter) {
                     ((Parameter) right).setColumn(

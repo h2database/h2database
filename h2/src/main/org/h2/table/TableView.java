@@ -38,6 +38,8 @@ import org.h2.util.ColumnNamer;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
+import org.h2.value.DataType;
+import org.h2.value.ExtTypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -194,13 +196,13 @@ public class TableView extends Table {
                 long precision = expr.getPrecision();
                 int scale = expr.getScale();
                 int displaySize = expr.getDisplaySize();
-                String[] enumerators = null;
-                if (type == Value.ENUM) {
+                ExtTypeInfo extTypeInfo = null;
+                if (DataType.isExtInfoType(type)) {
                     if (expr instanceof ExpressionColumn) {
-                        enumerators = ((ExpressionColumn) expr).getColumn().getEnumerators();
+                        extTypeInfo = ((ExpressionColumn) expr).getColumn().getExtTypeInfo();
                     }
                 }
-                Column col = new Column(name, type, precision, scale, displaySize, enumerators);
+                Column col = new Column(name, type, precision, scale, displaySize, extTypeInfo);
                 col.setTable(this, i);
                 // Fetch check constraint from view column source
                 ExpressionColumn fromColumn = null;

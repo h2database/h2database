@@ -42,6 +42,30 @@ import org.h2.util.geometry.GeometryUtils.Target;
 public final class EWKTUtils {
 
     /**
+     * 0-based type names of geometries, subtract 1 from type code to get index
+     * in this array.
+     */
+    private static final String[] TYPES = { //
+            "POINT", //
+            "LINESTRING", //
+            "POLYGON", //
+            "MULTIPOINT", //
+            "MULTILINESTRING", //
+            "MULTIPOLYGON", //
+            "GEOMETRYCOLLECTION", //
+    };
+
+    /**
+     * Names of dimension systems.
+     */
+    private static final String[] DIMENSION_SYSTEMS = { //
+            "XY", //
+            "Z", //
+            "M", //
+            "ZM", //
+    };
+
+    /**
      * Converter output target that writes a EWKT.
      */
     public static final class EWKTTarget extends Target {
@@ -249,10 +273,19 @@ public final class EWKTUtils {
         }
 
         int readSRID() {
+            skipWS();
             int srid;
-            if (ewkt.startsWith("SRID=")) {
+            if (ewkt.regionMatches(true, offset, "SRID=", 0, 5)) {
+                offset += 5;
                 int idx = ewkt.indexOf(';', 5);
-                srid = Integer.parseInt(ewkt.substring(5, idx));
+                if (idx < 0) {
+                    throw new IllegalArgumentException();
+                }
+                int end = idx;
+                while (ewkt.charAt(end - 1) <= ' ') {
+                    end--;
+                }
+                srid = Integer.parseInt(ewkt.substring(offset, end).trim());
                 offset = idx + 1;
             } else {
                 srid = 0;
@@ -319,7 +352,7 @@ public final class EWKTUtils {
             int o = offset;
             skipWS();
             int len = ewkt.length();
-            if (offset > len - 2) {
+            if (offset >= len) {
                 throw new IllegalArgumentException();
             }
             int result;
@@ -333,12 +366,16 @@ public final class EWKTUtils {
             case 'Z':
             case 'z':
                 offset++;
-                ch = ewkt.charAt(offset);
-                if (ch == 'M' || ch == 'm') {
-                    offset++;
-                    result = DIMENSION_SYSTEM_XYZM;
-                } else {
+                if (offset >= len) {
                     result = DIMENSION_SYSTEM_XYZ;
+                } else {
+                    ch = ewkt.charAt(offset);
+                    if (ch == 'M' || ch == 'm') {
+                        offset++;
+                        result = DIMENSION_SYSTEM_XYZM;
+                    } else {
+                        result = DIMENSION_SYSTEM_XYZ;
+                    }
                 }
                 break;
             default:
@@ -581,6 +618,71 @@ public final class EWKTUtils {
     }
 
     /**
+     * Parses geometry type and dimension system from the given string.
+     *
+     * @param s
+     *            string to parse
+     * @return geometry type and dimension system in OGC geometry code format
+     *         (type + dimensionSystem * 1000)
+     * @throws IllegalArgumentException
+     *             if input is not valid
+     */
+    public static int parseGeometryType(String s) {
+        EWKTSource source = new EWKTSource(s);
+        int type = source.readType();
+        int dimensionSystem = 0;
+        if (source.hasData()) {
+            dimensionSystem = source.readDimensionSystem();
+            if (source.hasData()) {
+                throw new IllegalArgumentException();
+            }
+        }
+        return dimensionSystem * 1_000 + type;
+    }
+
+    /**
+     * Parses a dimension system from the given string.
+     *
+     * @param s
+     *            string to parse
+     * @return dimension system, one of XYZ, XYM, or XYZM
+     * @see GeometryUtils#DIMENSION_SYSTEM_XYZ
+     * @see GeometryUtils#DIMENSION_SYSTEM_XYM
+     * @see GeometryUtils#DIMENSION_SYSTEM_XYZM
+     * @throws IllegalArgumentException
+     *             if input is not valid
+     */
+    public static int parseDimensionSystem(String s) {
+        EWKTSource source = new EWKTSource(s);
+        int dimensionSystem = source.readDimensionSystem();
+        if (source.hasData() || dimensionSystem == DIMENSION_SYSTEM_XY) {
+            throw new IllegalArgumentException();
+        }
+        return dimensionSystem;
+    }
+
+    /**
+     * Formats type and dimension system as a string.
+     *
+     * @param type
+     *            OGC geometry code format (type + dimensionSystem * 1000)
+     * @return formatted string
+     * @throws IllegalArgumentException
+     *             if type is not valid
+     */
+    public static String formatGeometryTypeAndDimensionSystem(int type) {
+        int t = type % 1_000, d = type / 1_000;
+        if (t < POINT || t > GEOMETRY_COLLECTION || d < DIMENSION_SYSTEM_XY || d > DIMENSION_SYSTEM_XYZM) {
+            throw new IllegalArgumentException();
+        }
+        String result = TYPES[t - 1];
+        if (d != DIMENSION_SYSTEM_XY) {
+            result = result + ' ' + DIMENSION_SYSTEMS[d];
+        }
+        return result;
+    }
+
+    /**
      * Parses a EWKB.
      *
      * @param source
@@ -613,6 +715,7 @@ public final class EWKTUtils {
             type = POLYGON;
             break;
         }
+        target.dimensionSystem(dimensionSystem);
         switch (type) {
         case POINT: {
             if (parentType != 0 && parentType != MULTI_POINT && parentType != GEOMETRY_COLLECTION) {

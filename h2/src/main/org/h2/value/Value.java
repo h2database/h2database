@@ -677,10 +677,10 @@ public abstract class Value {
 
     /**
      * Convert value to ENUM value
-     * @param enumerators allowed values for the ENUM to which the value is converted
+     * @param enumerators the extended type information for the ENUM data type
      * @return value represented as ENUM
      */
-    public final Value convertToEnum(String[] enumerators) {
+    public final Value convertToEnum(ExtTypeInfo enumerators) {
         // Use -1 to indicate "default behaviour" where value conversion should not
         // depend on any datatype precision.
         return convertTo(ENUM, -1, null, null, enumerators);
@@ -706,11 +706,10 @@ public abstract class Value {
      *        the precision plays no role when converting the value
      * @param mode the conversion mode
      * @param column the column (if any), used for to improve the error message if conversion fails
-     * @param enumerators the ENUM datatype enumerators (if any),
-     *        for dealing with ENUM conversions
+     * @param extTypeInfo the extended data type information, or null
      * @return the converted value
      */
-    public Value convertTo(int targetType, int precision, Mode mode, Object column, String[] enumerators) {
+    public Value convertTo(int targetType, int precision, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
         // converting NULL is done in ValueNull
         // converting BLOB to CLOB and vice versa is done in ValueLob
         if (getType() == targetType) {
@@ -755,7 +754,7 @@ public abstract class Value {
             case JAVA_OBJECT:
                 return convertToJavaObject();
             case ENUM:
-                return convertToEnumInternal(enumerators);
+                return convertToEnumInternal((ExtTypeInfoEnum) extTypeInfo);
             case BLOB:
                 return convertToBlob();
             case CLOB:
@@ -763,7 +762,7 @@ public abstract class Value {
             case UUID:
                 return convertToUuid();
             case GEOMETRY:
-                return convertToGeometry();
+                return convertToGeometry((ExtTypeInfoGeometry) extTypeInfo);
             case Value.INTERVAL_YEAR:
             case Value.INTERVAL_MONTH:
             case Value.INTERVAL_YEAR_TO_MONTH:
@@ -1158,24 +1157,24 @@ public abstract class Value {
         return ValueJavaObject.getNoCopy(null, StringUtils.convertHexToBytes(getString().trim()), getDataHandler());
     }
 
-    private ValueEnum convertToEnumInternal(String[] enumerators) {
+    private ValueEnum convertToEnumInternal(ExtTypeInfoEnum extTypeInfo) {
         switch (getType()) {
         case BYTE:
         case SHORT:
         case INT:
         case LONG:
         case DECIMAL:
-            return ValueEnum.get(enumerators, getInt());
+            return extTypeInfo.getValue(getInt());
         case STRING:
         case STRING_IGNORECASE:
         case STRING_FIXED:
-            return ValueEnum.get(enumerators, getString());
+            return extTypeInfo.getValue(getString());
         case JAVA_OBJECT:
             Object object = JdbcUtils.deserialize(getBytesNoCopy(), getDataHandler());
             if (object instanceof String) {
-                return ValueEnum.get(enumerators, (String) object);
+                return extTypeInfo.getValue((String) object);
             } else if (object instanceof Integer) {
-                return ValueEnum.get(enumerators, (int) object);
+                return extTypeInfo.getValue((int) object);
             }
             //$FALL-THROUGH$
         }
@@ -1212,20 +1211,25 @@ public abstract class Value {
         return ValueUuid.get(getString());
     }
 
-    private ValueGeometry convertToGeometry() {
+    private Value convertToGeometry(ExtTypeInfoGeometry extTypeInfo) {
+        ValueGeometry result;
         switch (getType()) {
         case BYTES:
-            return ValueGeometry.getFromEWKB(getBytesNoCopy());
+            result = ValueGeometry.getFromEWKB(getBytesNoCopy());
+            break;
         case JAVA_OBJECT:
             Object object = JdbcUtils.deserialize(getBytesNoCopy(), getDataHandler());
             if (DataType.isGeometry(object)) {
-                return ValueGeometry.getFromGeometry(object);
+                result = ValueGeometry.getFromGeometry(object);
+                break;
             }
             //$FALL-THROUGH$
         case TIMESTAMP_TZ:
             throw getDataConversionError(GEOMETRY);
+        default:
+            result = ValueGeometry.get(getString());
         }
-        return ValueGeometry.get(getString());
+        return extTypeInfo != null ? extTypeInfo.cast(result) : result;
     }
 
     private ValueInterval convertToIntervalYearMonth(int targetType) {
@@ -1337,7 +1341,7 @@ public abstract class Value {
         if (leftType != rightType || leftType == Value.ENUM) {
             int dataType = Value.getHigherOrder(leftType, rightType);
             if (dataType == Value.ENUM) {
-                String[] enumerators = ValueEnum.getEnumeratorsForBinaryOperation(l, v);
+                ExtTypeInfoEnum enumerators = ExtTypeInfoEnum.getEnumeratorsForBinaryOperation(l, v);
                 l = l.convertToEnum(enumerators);
                 v = v.convertToEnum(enumerators);
             } else {

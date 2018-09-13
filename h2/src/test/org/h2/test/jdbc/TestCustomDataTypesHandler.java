@@ -25,6 +25,7 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
+import org.h2.value.ExtTypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBytes;
 import org.h2.value.ValueDouble;
@@ -394,7 +395,7 @@ public class TestCustomDataTypesHandler extends TestDb {
         }
 
         @Override
-        public Value convertTo(int targetType, int precision, Mode mode, Object column, String[] enumerators) {
+        public Value convertTo(int targetType, int precision, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
             if (getType() == targetType) {
                 return this;
             }

@@ -36,12 +36,12 @@ DROP DOMAIN E_NN CASCADE;
 
 SELECT COLUMN_NAME, NULLABLE, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
 > COLUMN_NAME NULLABLE COLUMN_TYPE
-> ----------- -------- ----------------------
+> ----------- -------- -----------------------
 > I           0        INT NOT NULL
-> E1          1        ENUM('A','B')
-> E2          0        ENUM('A','B') NOT NULL
-> E3          0        ENUM('A','B') NOT NULL
-> E4          1        ENUM('A','B')
+> E1          1        ENUM('A', 'B')
+> E2          0        ENUM('A', 'B') NOT NULL
+> E3          0        ENUM('A', 'B') NOT NULL
+> E4          1        ENUM('A', 'B')
 > rows (ordered): 5
 
 DROP TABLE TEST;

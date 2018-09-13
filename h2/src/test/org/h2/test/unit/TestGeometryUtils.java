@@ -8,6 +8,8 @@ package org.h2.test.unit;
 import static org.h2.util.geometry.GeometryUtils.DIMENSION_SYSTEM_XY;
 import static org.h2.util.geometry.GeometryUtils.DIMENSION_SYSTEM_XYM;
 import static org.h2.util.geometry.GeometryUtils.DIMENSION_SYSTEM_XYZ;
+import static org.h2.util.geometry.GeometryUtils.DIMENSION_SYSTEM_XYZM;
+import static org.h2.util.geometry.GeometryUtils.GEOMETRY_COLLECTION;
 import static org.h2.util.geometry.GeometryUtils.M;
 import static org.h2.util.geometry.GeometryUtils.MAX_X;
 import static org.h2.util.geometry.GeometryUtils.MAX_Y;
@@ -33,6 +35,7 @@ import org.h2.util.geometry.GeometryUtils.EnvelopeAndDimensionSystemTarget;
 import org.h2.util.geometry.GeometryUtils.Target;
 import org.h2.util.geometry.JTSUtils;
 import org.h2.util.geometry.JTSUtils.GeometryTarget;
+import org.h2.value.ValueGeometry;
 import org.locationtech.jts.geom.CoordinateSequence;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
@@ -234,8 +237,11 @@ public class TestGeometryUtils extends TestBase {
         testEnvelope(envelopeFromJTS, target.getEnvelope());
 
         // Test dimensions
-        testDimensions(numOfDimensions > 2 ? GeometryUtils.DIMENSION_SYSTEM_XYZ : GeometryUtils.DIMENSION_SYSTEM_XY,
-                wkbFromJTS);
+        int expectedDimensionSystem = numOfDimensions > 2 ? GeometryUtils.DIMENSION_SYSTEM_XYZ
+                : GeometryUtils.DIMENSION_SYSTEM_XY;
+        testDimensions(expectedDimensionSystem, wkbFromJTS);
+
+        testValueGeometryProperties(wkbFromJTS);
     }
 
     private void testEnvelope(Envelope envelopeFromJTS, double[] envelopeFromH2) {
@@ -274,6 +280,7 @@ public class TestGeometryUtils extends TestBase {
         testDimensionMCheckPoint(cs);
         assertEquals(ewkb, JTSUtils.geometry2ewkb(p));
         testDimensions(GeometryUtils.DIMENSION_SYSTEM_XYM, ewkb);
+        testValueGeometryProperties(ewkb);
 
         if (JTSUtils.M_IS_SUPPORTED) {
             p = (Point) new WKTReader().read("POINT M (1 2 3)");
@@ -310,6 +317,7 @@ public class TestGeometryUtils extends TestBase {
         testDimensionZMCheckPoint(cs);
         assertEquals(ewkb, JTSUtils.geometry2ewkb(p));
         testDimensions(GeometryUtils.DIMENSION_SYSTEM_XYZM, ewkb);
+        testValueGeometryProperties(ewkb);
 
         if (JTSUtils.M_IS_SUPPORTED) {
             p = (Point) new WKTReader().read("POINT ZM (1 2 3 4)");
@@ -331,6 +339,32 @@ public class TestGeometryUtils extends TestBase {
         assertEquals(2, cs.getOrdinate(0, Y));
         assertEquals(3, cs.getOrdinate(0, Z));
         assertEquals(4, cs.getOrdinate(0, M));
+    }
+
+    private void testValueGeometryProperties(byte[] ewkb) {
+        ValueGeometry vg = ValueGeometry.getFromEWKB(ewkb);
+        DimensionSystemTarget target = new DimensionSystemTarget();
+        EWKBUtils.parseEWKB(ewkb, target);
+        int dimensionSystem = target.getDimensionSystem();
+        assertEquals(dimensionSystem, vg.getDimensionSystem());
+        String formattedType = EWKTUtils.formatGeometryTypeAndDimensionSystem(vg.getTypeAndDimensionSystem());
+        assertTrue(EWKTUtils.ewkb2ewkt(ewkb).startsWith(formattedType));
+        switch (dimensionSystem) {
+        case DIMENSION_SYSTEM_XY:
+            assertTrue(formattedType.indexOf(' ') < 0);
+            break;
+        case DIMENSION_SYSTEM_XYZ:
+            assertTrue(formattedType.endsWith(" Z"));
+            break;
+        case DIMENSION_SYSTEM_XYM:
+            assertTrue(formattedType.endsWith(" M"));
+            break;
+        case DIMENSION_SYSTEM_XYZM:
+            assertTrue(formattedType.endsWith(" ZM"));
+            break;
+        }
+        assertEquals(vg.getTypeAndDimensionSystem(), vg.getGeometryType() + vg.getDimensionSystem() * 1_000);
+        assertEquals(0, vg.getSRID());
     }
 
     private void testFiniteOnly() {
@@ -381,6 +415,10 @@ public class TestGeometryUtils extends TestBase {
         assertEquals(10, gc.getSRID());
         assertEquals(10, gc.getGeometryN(0).getSRID());
         assertEquals(ewkb, JTSUtils.geometry2ewkb(gc));
+        ValueGeometry vg = ValueGeometry.getFromEWKB(ewkb);
+        assertEquals(10, vg.getSRID());
+        assertEquals(GEOMETRY_COLLECTION, vg.getTypeAndDimensionSystem());
+        assertEquals("SRID=-1;POINT EMPTY", EWKTUtils.ewkb2ewkt(EWKTUtils.ewkt2ewkb(" srid=-1  ; POINT  EMPTY ")));
     }
 
     private void testDimensions(int expected, byte[] ewkb) {

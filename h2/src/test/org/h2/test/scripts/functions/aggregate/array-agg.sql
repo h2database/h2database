@@ -67,3 +67,51 @@ select array_agg(distinct v order by v desc) from test;
 
 drop table test;
 > ok
+
+CREATE TABLE TEST (ID INT PRIMARY KEY, NAME VARCHAR);
+> ok
+
+INSERT INTO TEST VALUES (1, 'a'), (2, 'a'), (3, 'b'), (4, 'c'), (5, 'c'), (6, 'c');
+> update count: 6
+
+SELECT ARRAY_AGG(ID), NAME FROM TEST;
+> exception MUST_GROUP_BY_COLUMN_1
+
+SELECT ARRAY_AGG(ID), NAME FROM TEST GROUP BY NAME;
+> ARRAY_AGG(ID) NAME
+> ------------- ----
+> (1, 2)        a
+> (3)           b
+> (4, 5, 6)     c
+> rows: 3
+
+SELECT ARRAY_AGG(ID) OVER (), NAME FROM TEST;
+> ARRAY_AGG(ID) OVER () NAME
+> --------------------- ----
+> (1, 2, 3, 4, 5, 6)    a
+> (1, 2, 3, 4, 5, 6)    a
+> (1, 2, 3, 4, 5, 6)    b
+> (1, 2, 3, 4, 5, 6)    c
+> (1, 2, 3, 4, 5, 6)    c
+> (1, 2, 3, 4, 5, 6)    c
+> rows: 6
+
+SELECT ARRAY_AGG(ID) OVER (PARTITION BY NAME), NAME FROM TEST;
+> ARRAY_AGG(ID) OVER (PARTITION BY NAME) NAME
+> -------------------------------------- ----
+> (1, 2)                                 a
+> (1, 2)                                 a
+> (3)                                    b
+> (4, 5, 6)                              c
+> (4, 5, 6)                              c
+> (4, 5, 6)                              c
+> rows: 6
+
+SELECT ARRAY_AGG(SUM(ID)) OVER () FROM TEST;
+> exception FEATURE_NOT_SUPPORTED_1
+
+SELECT ARRAY_AGG(ID) OVER() FROM TEST GROUP BY ID;
+> exception FEATURE_NOT_SUPPORTED_1
+
+DROP TABLE TEST;
+> ok

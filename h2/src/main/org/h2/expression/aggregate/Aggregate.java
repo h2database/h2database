@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.Select;
+import org.h2.command.dml.SelectGroups;
 import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -28,6 +29,7 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.util.ValueHashMap;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -41,7 +43,7 @@ import org.h2.value.ValueString;
 /**
  * Implements the integrated aggregate functions, such as COUNT, MAX, SUM.
  */
-public class Aggregate extends Expression {
+public class Aggregate extends AbstractAggregate {
 
     public enum AggregateType {
         /**
@@ -165,8 +167,6 @@ public class Aggregate extends Expression {
     private int displaySize;
     private int lastGroupRowId;
 
-    private Expression filterCondition;
-
     /**
      * Create a new aggregate object.
      *
@@ -254,15 +254,6 @@ public class Aggregate extends Expression {
         this.groupConcatSeparator = separator;
     }
 
-    /**
-     * Sets the FILTER condition.
-     *
-     * @param filterCondition condition
-     */
-    public void setFilterCondition(Expression filterCondition) {
-        this.filterCondition = filterCondition;
-    }
-
     private SortOrder initOrder(Session session) {
         int size = orderByList.size();
         int[] index = new int[size];
@@ -295,12 +286,13 @@ public class Aggregate extends Expression {
         // if (on != null) {
         // on.updateAggregate();
         // }
-        if (!select.isCurrentGroup()) {
+        SelectGroups groupData = select.getGroupDataIfCurrent(true);
+        if (groupData == null) {
             // this is a different level (the enclosing query)
             return;
         }
 
-        int groupRowId = select.getCurrentGroupRowId();
+        int groupRowId = groupData.getCurrentGroupRowId();
         if (lastGroupRowId == groupRowId) {
             // already visited
             return;
@@ -312,11 +304,7 @@ public class Aggregate extends Expression {
                 return;
             }
         }
-        AggregateData data = (AggregateData) select.getCurrentGroupExprData(this);
-        if (data == null) {
-            data = AggregateData.create(type);
-            select.setCurrentGroupExprData(this, data);
-        }
+        AggregateData data = getData(session, groupData);
         Value v = on == null ? null : on.getValue(session);
         if (type == AggregateType.GROUP_CONCAT) {
             if (v != ValueNull.INSTANCE) {
@@ -378,14 +366,11 @@ public class Aggregate extends Expression {
                 DbException.throwInternalError("type=" + type);
             }
         }
-        if (!select.isCurrentGroup()) {
+        SelectGroups groupData = select.getGroupDataIfCurrent(true);
+        if (groupData == null) {
             throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
-        AggregateData data = (AggregateData)select.getCurrentGroupExprData(this);
-        if (data == null) {
-            data = AggregateData.create(type);
-            select.setCurrentGroupExprData(this, data);
-        }
+        AggregateData data = getData(session, groupData);
         switch (type) {
         case GROUP_CONCAT: {
             Value[] array = ((AggregateDataCollecting) data).getArray();
@@ -441,6 +426,31 @@ public class Aggregate extends Expression {
         }
     }
 
+    private AggregateData getData(Session session, SelectGroups groupData) {
+        AggregateData data;
+        ValueArray key;
+        if (over != null && (key = over.getCurrentKey(session)) != null) {
+            @SuppressWarnings("unchecked")
+            ValueHashMap<AggregateData> map = (ValueHashMap<AggregateData>) groupData.getCurrentGroupExprData(this);
+            if (map == null) {
+                map = new ValueHashMap<>();
+                groupData.setCurrentGroupExprData(this, map);
+            }
+            data = map.get(key);
+            if (data == null) {
+                data = AggregateData.create(type);
+                map.put(key, data);
+            }
+        } else {
+            data = (AggregateData) groupData.getCurrentGroupExprData(this);
+            if (data == null) {
+                data = AggregateData.create(type);
+                groupData.setCurrentGroupExprData(this, data);
+            }
+        }
+        return data;
+    }
+
     @Override
     public int getType() {
         return dataType;
@@ -459,9 +469,7 @@ public class Aggregate extends Expression {
         if (groupConcatSeparator != null) {
             groupConcatSeparator.mapColumns(resolver, level);
         }
-        if (filterCondition != null) {
-            filterCondition.mapColumns(resolver, level);
-        }
+        super.mapColumns(resolver, level);
     }
 
     @Override
@@ -621,6 +629,9 @@ public class Aggregate extends Expression {
         if (filterCondition != null) {
             buff.append(" FILTER (WHERE ").append(filterCondition.getSQL()).append(')');
         }
+        if (over != null) {
+            buff.append(' ').append(over.getSQL());
+        }
         return buff.toString();
     }
 
@@ -641,6 +652,9 @@ public class Aggregate extends Expression {
         buff.append(')');
         if (filterCondition != null) {
             buff.append(" FILTER (WHERE ").append(filterCondition.getSQL()).append(')');
+        }
+        if (over != null) {
+            buff.append(' ').append(over.getSQL());
         }
         return buff.toString();
     }
@@ -719,6 +733,9 @@ public class Aggregate extends Expression {
         }
         if (filterCondition != null) {
             text += " FILTER (WHERE " + filterCondition.getSQL() + ')';
+        }
+        if (over != null) {
+            text += ' ' + over.getSQL();
         }
         return text;
     }

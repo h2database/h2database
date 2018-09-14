@@ -8,6 +8,7 @@ package org.h2.expression;
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
+import org.h2.command.dml.SelectGroups;
 import org.h2.command.dml.SelectListColumnResolver;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -158,13 +159,14 @@ public class ExpressionColumn extends Expression {
         if (select == null) {
             throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
         }
-        if (!select.isCurrentGroup()) {
+        SelectGroups groupData = select.getGroupDataIfCurrent(false);
+        if (groupData == null) {
             // this is a different level (the enclosing query)
             return;
         }
-        Value v = (Value) select.getCurrentGroupExprData(this);
+        Value v = (Value) groupData.getCurrentGroupExprData(this);
         if (v == null) {
-            select.setCurrentGroupExprData(this, now);
+            groupData.setCurrentGroupExprData(this, now);
         } else {
             if (!database.areEqual(now, v)) {
                 throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
@@ -176,8 +178,9 @@ public class ExpressionColumn extends Expression {
     public Value getValue(Session session) {
         Select select = columnResolver.getSelect();
         if (select != null) {
-            if (select.isCurrentGroup()) {
-                Value v = (Value) select.getCurrentGroupExprData(this);
+            SelectGroups groupData = select.getGroupDataIfCurrent(false);
+            if (groupData != null) {
+                Value v = (Value) groupData.getCurrentGroupExprData(this);
                 if (v != null) {
                     return v;
                 }

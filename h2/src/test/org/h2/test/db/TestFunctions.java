@@ -757,6 +757,16 @@ public class TestFunctions extends TestDb implements AggregateFunction {
                 "SELECT SIMPLE_MEDIAN(X) FILTER (WHERE X > 2) FROM SYSTEM_RANGE(1, 9)");
         rs.next();
         assertEquals("6", rs.getString(1));
+        rs = stat.executeQuery("SELECT SIMPLE_MEDIAN(X) OVER () FROM SYSTEM_RANGE(1, 9)");
+        for (int i = 1; i < 9; i++) {
+            assertTrue(rs.next());
+            assertEquals("5", rs.getString(1));
+        }
+        rs = stat.executeQuery("SELECT SIMPLE_MEDIAN(X) OVER (PARTITION BY X) FROM SYSTEM_RANGE(1, 9)");
+        for (int i = 1; i < 9; i++) {
+            assertTrue(rs.next());
+            assertEquals(Integer.toString(i), rs.getString(1));
+        }
         conn.close();
 
         if (config.memory) {

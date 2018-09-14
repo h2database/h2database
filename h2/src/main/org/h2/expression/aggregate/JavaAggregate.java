@@ -11,6 +11,7 @@ import org.h2.api.Aggregate;
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
+import org.h2.command.dml.SelectGroups;
 import org.h2.engine.Session;
 import org.h2.engine.UserAggregate;
 import org.h2.expression.Expression;
@@ -19,6 +20,7 @@ import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.StatementBuilder;
+import org.h2.util.ValueHashMap;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -27,25 +29,22 @@ import org.h2.value.ValueNull;
 /**
  * This class wraps a user-defined aggregate.
  */
-public class JavaAggregate extends Expression {
+public class JavaAggregate extends AbstractAggregate {
 
     private final UserAggregate userAggregate;
     private final Select select;
     private final Expression[] args;
     private int[] argTypes;
     private final boolean distinct;
-    private Expression filterCondition;
     private int dataType;
     private Connection userConnection;
     private int lastGroupRowId;
 
-    public JavaAggregate(UserAggregate userAggregate, Expression[] args,
-            Select select, boolean distinct, Expression filterCondition) {
+    public JavaAggregate(UserAggregate userAggregate, Expression[] args, Select select, boolean distinct) {
         this.userAggregate = userAggregate;
         this.args = args;
         this.select = select;
         this.distinct = distinct;
-        this.filterCondition = filterCondition;
     }
 
     @Override
@@ -87,6 +86,9 @@ public class JavaAggregate extends Expression {
         if (filterCondition != null) {
             buff.append(" FILTER (WHERE ").append(filterCondition.getSQL()).append(')');
         }
+        if (over != null) {
+            buff.append(' ').append(over.getSQL());
+        }
         return buff.toString();
     }
 
@@ -122,9 +124,7 @@ public class JavaAggregate extends Expression {
         for (Expression arg : args) {
             arg.mapColumns(resolver, level);
         }
-        if (filterCondition != null) {
-            filterCondition.mapColumns(resolver, level);
-        }
+        super.mapColumns(resolver, level);
     }
 
     @Override
@@ -168,14 +168,15 @@ public class JavaAggregate extends Expression {
 
     @Override
     public Value getValue(Session session) {
-        if (!select.isCurrentGroup()) {
+        SelectGroups groupData = select.getGroupDataIfCurrent(true);
+        if (groupData == null) {
             throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
         try {
             Aggregate agg;
             if (distinct) {
                 agg = getInstance();
-                AggregateDataCollecting data = (AggregateDataCollecting) select.getCurrentGroupExprData(this);
+                AggregateDataCollecting data = getDataDistinct(session, groupData, true);
                 if (data != null) {
                     for (Value value : data.values) {
                         if (args.length == 1) {
@@ -191,7 +192,7 @@ public class JavaAggregate extends Expression {
                     }
                 }
             } else {
-                agg = (Aggregate) select.getCurrentGroupExprData(this);
+                agg = getData(session, groupData, true);
                 if (agg == null) {
                     agg = getInstance();
                 }
@@ -208,12 +209,13 @@ public class JavaAggregate extends Expression {
 
     @Override
     public void updateAggregate(Session session) {
-        if (!select.isCurrentGroup()) {
+        SelectGroups groupData = select.getGroupDataIfCurrent(true);
+        if (groupData == null) {
             // this is a different level (the enclosing query)
             return;
         }
 
-        int groupRowId = select.getCurrentGroupRowId();
+        int groupRowId = groupData.getCurrentGroupRowId();
         if (lastGroupRowId == groupRowId) {
             // already visited
             return;
@@ -228,11 +230,7 @@ public class JavaAggregate extends Expression {
 
         try {
             if (distinct) {
-                AggregateDataCollecting data = (AggregateDataCollecting) select.getCurrentGroupExprData(this);
-                if (data == null) {
-                    data = new AggregateDataCollecting();
-                    select.setCurrentGroupExprData(this, data);
-                }
+                AggregateDataCollecting data = getDataDistinct(session, groupData, false);
                 Value[] argValues = new Value[args.length];
                 Value arg = null;
                 for (int i = 0, len = args.length; i < len; i++) {
@@ -242,11 +240,7 @@ public class JavaAggregate extends Expression {
                 }
                 data.add(session.getDatabase(), dataType, true, args.length == 1 ? arg : ValueArray.get(argValues));
             } else {
-                Aggregate agg = (Aggregate) select.getCurrentGroupExprData(this);
-                if (agg == null) {
-                    agg = getInstance();
-                    select.setCurrentGroupExprData(this, agg);
-                }
+                Aggregate agg = getData(session, groupData, false);
                 Object[] argValues = new Object[args.length];
                 Object arg = null;
                 for (int i = 0, len = args.length; i < len; i++) {
@@ -260,6 +254,75 @@ public class JavaAggregate extends Expression {
         } catch (SQLException e) {
             throw DbException.convert(e);
         }
+    }
+
+    private Aggregate getData(Session session, SelectGroups groupData, boolean ifExists) throws SQLException {
+        Aggregate data;
+        ValueArray key;
+        if (over != null && (key = over.getCurrentKey(session)) != null) {
+            @SuppressWarnings("unchecked")
+            ValueHashMap<Aggregate> map = (ValueHashMap<Aggregate>) groupData.getCurrentGroupExprData(this);
+            if (map == null) {
+                if (ifExists) {
+                    return null;
+                }
+                map = new ValueHashMap<>();
+                groupData.setCurrentGroupExprData(this, map);
+            }
+            data = map.get(key);
+            if (data == null) {
+                if (ifExists) {
+                    return null;
+                }
+                data = getInstance();
+                map.put(key, data);
+            }
+        } else {
+            data = (Aggregate) groupData.getCurrentGroupExprData(this);
+            if (data == null) {
+                if (ifExists) {
+                    return null;
+                }
+                data = getInstance();
+                groupData.setCurrentGroupExprData(this, data);
+            }
+        }
+        return data;
+    }
+
+    private AggregateDataCollecting getDataDistinct(Session session, SelectGroups groupData, boolean ifExists) {
+        AggregateDataCollecting data;
+        ValueArray key;
+        if (over != null && (key = over.getCurrentKey(session)) != null) {
+            @SuppressWarnings("unchecked")
+            ValueHashMap<AggregateDataCollecting> map =
+                    (ValueHashMap<AggregateDataCollecting>) groupData.getCurrentGroupExprData(this);
+            if (map == null) {
+                if (ifExists) {
+                    return null;
+                }
+                map = new ValueHashMap<>();
+                groupData.setCurrentGroupExprData(this, map);
+            }
+            data = map.get(key);
+            if (data == null) {
+                if (ifExists) {
+                    return null;
+                }
+                data = new AggregateDataCollecting();
+                map.put(key, data);
+            }
+        } else {
+            data = (AggregateDataCollecting) groupData.getCurrentGroupExprData(this);
+            if (data == null) {
+                if (ifExists) {
+                    return null;
+                }
+                data = new AggregateDataCollecting();
+                groupData.setCurrentGroupExprData(this, data);
+            }
+        }
+        return data;
     }
 
 }

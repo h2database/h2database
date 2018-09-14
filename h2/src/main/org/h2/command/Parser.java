@@ -170,9 +170,11 @@ import org.h2.expression.UnaryOperation;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.Variable;
 import org.h2.expression.Wildcard;
+import org.h2.expression.aggregate.AbstractAggregate;
 import org.h2.expression.aggregate.Aggregate;
 import org.h2.expression.aggregate.Aggregate.AggregateType;
 import org.h2.expression.aggregate.JavaAggregate;
+import org.h2.expression.aggregate.Window;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.SortOrder;
@@ -2883,7 +2885,6 @@ public class Parser {
         if (currentSelect == null) {
             throw getSyntaxError();
         }
-        currentSelect.setGroupQuery();
         Aggregate r;
         switch (aggregateType) {
         case COUNT:
@@ -2967,7 +2968,7 @@ public class Parser {
         }
         read(CLOSE_PAREN);
         if (r != null) {
-            r.setFilterCondition(readFilterCondition());
+            readFilterAndOver(r);
         }
         return r;
     }
@@ -3024,22 +3025,37 @@ public class Parser {
         do {
             params.add(readExpression());
         } while (readIfMore(true));
-        Expression filterCondition = readFilterCondition();
         Expression[] list = params.toArray(new Expression[0]);
-        JavaAggregate agg = new JavaAggregate(aggregate, list, currentSelect, distinct, filterCondition);
-        currentSelect.setGroupQuery();
+        JavaAggregate agg = new JavaAggregate(aggregate, list, currentSelect, distinct);
+        readFilterAndOver(agg);
         return agg;
     }
 
-    private Expression readFilterCondition() {
+    private void readFilterAndOver(AbstractAggregate aggregate) {
         if (readIf("FILTER")) {
             read(OPEN_PAREN);
             read(WHERE);
             Expression filterCondition = readExpression();
             read(CLOSE_PAREN);
-            return filterCondition;
+            aggregate.setFilterCondition(filterCondition);
         }
-        return null;
+        if (readIf("OVER")) {
+            read(OPEN_PAREN);
+            ArrayList<Expression> partitionBy = null;
+            if (readIf("PARTITION")) {
+                read("BY");
+                partitionBy = Utils.newSmallArrayList();
+                do {
+                    Expression expr = readExpression();
+                    partitionBy.add(expr);
+                } while (readIf(COMMA));
+            }
+            read(CLOSE_PAREN);
+            aggregate.setOverCondition(new Window(partitionBy));
+            currentSelect.setWindowQuery();
+        } else {
+            currentSelect.setGroupQuery();
+        }
     }
 
     private AggregateType getAggregateType(String name) {

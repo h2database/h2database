@@ -168,6 +168,8 @@ public class Aggregate extends Expression {
 
     private Expression filterCondition;
 
+    private Window over;
+
     /**
      * Create a new aggregate object.
      *
@@ -264,6 +266,15 @@ public class Aggregate extends Expression {
         this.filterCondition = filterCondition;
     }
 
+    /**
+     * Sets the OVER condition.
+     *
+     * @param over OVER condition
+     */
+    public void setOverCondition(Window over) {
+        this.over = over;
+    }
+
     private SortOrder initOrder(Session session) {
         int size = orderByList.size();
         int[] index = new int[size];
@@ -296,7 +307,7 @@ public class Aggregate extends Expression {
         // if (on != null) {
         // on.updateAggregate();
         // }
-        SelectGroups groupData = select.getGroupDataIfCurrent();
+        SelectGroups groupData = select.getGroupDataIfCurrent(true);
         if (groupData == null) {
             // this is a different level (the enclosing query)
             return;
@@ -380,7 +391,7 @@ public class Aggregate extends Expression {
                 DbException.throwInternalError("type=" + type);
             }
         }
-        SelectGroups groupData = select.getGroupDataIfCurrent();
+        SelectGroups groupData = select.getGroupDataIfCurrent(true);
         if (groupData == null) {
             throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
@@ -624,6 +635,9 @@ public class Aggregate extends Expression {
         if (filterCondition != null) {
             buff.append(" FILTER (WHERE ").append(filterCondition.getSQL()).append(')');
         }
+        if (over != null) {
+            buff.append(" OVER()");
+        }
         return buff.toString();
     }
 
@@ -644,6 +658,9 @@ public class Aggregate extends Expression {
         buff.append(')');
         if (filterCondition != null) {
             buff.append(" FILTER (WHERE ").append(filterCondition.getSQL()).append(')');
+        }
+        if (over != null) {
+            buff.append(" OVER()");
         }
         return buff.toString();
     }
@@ -722,6 +739,9 @@ public class Aggregate extends Expression {
         }
         if (filterCondition != null) {
             text += " FILTER (WHERE " + filterCondition.getSQL() + ')';
+        }
+        if (over != null) {
+            text += " OVER()";
         }
         return text;
     }

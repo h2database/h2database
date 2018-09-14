@@ -159,7 +159,7 @@ public class ExpressionColumn extends Expression {
         if (select == null) {
             throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
         }
-        SelectGroups groupData = select.getGroupDataIfCurrent();
+        SelectGroups groupData = select.getGroupDataIfCurrent(false);
         if (groupData == null) {
             // this is a different level (the enclosing query)
             return;
@@ -178,7 +178,7 @@ public class ExpressionColumn extends Expression {
     public Value getValue(Session session) {
         Select select = columnResolver.getSelect();
         if (select != null) {
-            SelectGroups groupData = select.getGroupDataIfCurrent();
+            SelectGroups groupData = select.getGroupDataIfCurrent(false);
             if (groupData != null) {
                 Value v = (Value) groupData.getCurrentGroupExprData(this);
                 if (v != null) {

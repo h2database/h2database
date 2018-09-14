@@ -173,6 +173,7 @@ import org.h2.expression.Wildcard;
 import org.h2.expression.aggregate.Aggregate;
 import org.h2.expression.aggregate.Aggregate.AggregateType;
 import org.h2.expression.aggregate.JavaAggregate;
+import org.h2.expression.aggregate.Window;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.SortOrder;
@@ -2883,7 +2884,6 @@ public class Parser {
         if (currentSelect == null) {
             throw getSyntaxError();
         }
-        currentSelect.setGroupQuery();
         Aggregate r;
         switch (aggregateType) {
         case COUNT:
@@ -2968,8 +2968,24 @@ public class Parser {
         read(CLOSE_PAREN);
         if (r != null) {
             r.setFilterCondition(readFilterCondition());
+            Window over = readOver();
+            if (over != null) {
+                r.setOverCondition(over);
+                currentSelect.setWindowQuery();
+            } else {
+                currentSelect.setGroupQuery();
+            }
         }
         return r;
+    }
+
+    private Window readOver() {
+        if (readIf("OVER")) {
+            read(OPEN_PAREN);
+            read(CLOSE_PAREN);
+            return new Window();
+        }
+        return null;
     }
 
     private void setModeAggOrder(Aggregate r, Expression expr) {
@@ -3027,7 +3043,13 @@ public class Parser {
         Expression filterCondition = readFilterCondition();
         Expression[] list = params.toArray(new Expression[0]);
         JavaAggregate agg = new JavaAggregate(aggregate, list, currentSelect, distinct, filterCondition);
-        currentSelect.setGroupQuery();
+        Window over = readOver();
+        if (over != null) {
+            agg.setOverCondition(over);
+            currentSelect.setWindowQuery();
+        } else {
+            currentSelect.setGroupQuery();
+        }
         return agg;
     }
 

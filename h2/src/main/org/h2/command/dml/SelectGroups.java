@@ -167,8 +167,10 @@ public final class SelectGroups {
     /**
      * Invoked for each source row to evaluate group key and setup all necessary
      * data for aggregates.
+     *
+     * @return key of the current group
      */
-    public void nextSource() {
+    public ValueArray nextSource() {
         if (groupIndex == null) {
             currentGroupsKey = defaultGroup;
         } else {
@@ -188,6 +190,7 @@ public final class SelectGroups {
         }
         currentGroupByExprData = values;
         currentGroupRowId++;
+        return currentGroupsKey;
     }
 
     /**

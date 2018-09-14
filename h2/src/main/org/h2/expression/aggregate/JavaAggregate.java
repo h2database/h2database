@@ -36,6 +36,7 @@ public class JavaAggregate extends Expression {
     private int[] argTypes;
     private final boolean distinct;
     private Expression filterCondition;
+    private Window over;
     private int dataType;
     private Connection userConnection;
     private int lastGroupRowId;
@@ -47,6 +48,15 @@ public class JavaAggregate extends Expression {
         this.select = select;
         this.distinct = distinct;
         this.filterCondition = filterCondition;
+    }
+
+    /**
+     * Sets the OVER condition.
+     *
+     * @param over OVER condition
+     */
+    public void setOverCondition(Window over) {
+        this.over = over;
     }
 
     @Override
@@ -87,6 +97,9 @@ public class JavaAggregate extends Expression {
         buff.append(')');
         if (filterCondition != null) {
             buff.append(" FILTER (WHERE ").append(filterCondition.getSQL()).append(')');
+        }
+        if (over != null) {
+            buff.append(" OVER()");
         }
         return buff.toString();
     }
@@ -169,7 +182,7 @@ public class JavaAggregate extends Expression {
 
     @Override
     public Value getValue(Session session) {
-        SelectGroups groupData = select.getGroupDataIfCurrent();
+        SelectGroups groupData = select.getGroupDataIfCurrent(true);
         if (groupData == null) {
             throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
@@ -210,7 +223,7 @@ public class JavaAggregate extends Expression {
 
     @Override
     public void updateAggregate(Session session) {
-        SelectGroups groupData = select.getGroupDataIfCurrent();
+        SelectGroups groupData = select.getGroupDataIfCurrent(true);
         if (groupData == null) {
             // this is a different level (the enclosing query)
             return;

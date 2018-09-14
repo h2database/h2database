@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.Select;
+import org.h2.command.dml.SelectGroups;
 import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -295,12 +296,13 @@ public class Aggregate extends Expression {
         // if (on != null) {
         // on.updateAggregate();
         // }
-        if (!select.isCurrentGroup()) {
+        SelectGroups groupData = select.getGroupDataIfCurrent();
+        if (groupData == null) {
             // this is a different level (the enclosing query)
             return;
         }
 
-        int groupRowId = select.getCurrentGroupRowId();
+        int groupRowId = groupData.getCurrentGroupRowId();
         if (lastGroupRowId == groupRowId) {
             // already visited
             return;
@@ -312,10 +314,10 @@ public class Aggregate extends Expression {
                 return;
             }
         }
-        AggregateData data = (AggregateData) select.getCurrentGroupExprData(this);
+        AggregateData data = (AggregateData) groupData.getCurrentGroupExprData(this);
         if (data == null) {
             data = AggregateData.create(type);
-            select.setCurrentGroupExprData(this, data);
+            groupData.setCurrentGroupExprData(this, data);
         }
         Value v = on == null ? null : on.getValue(session);
         if (type == AggregateType.GROUP_CONCAT) {
@@ -378,13 +380,14 @@ public class Aggregate extends Expression {
                 DbException.throwInternalError("type=" + type);
             }
         }
-        if (!select.isCurrentGroup()) {
+        SelectGroups groupData = select.getGroupDataIfCurrent();
+        if (groupData == null) {
             throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
-        AggregateData data = (AggregateData)select.getCurrentGroupExprData(this);
+        AggregateData data = (AggregateData) groupData.getCurrentGroupExprData(this);
         if (data == null) {
             data = AggregateData.create(type);
-            select.setCurrentGroupExprData(this, data);
+            groupData.setCurrentGroupExprData(this, data);
         }
         switch (type) {
         case GROUP_CONCAT: {

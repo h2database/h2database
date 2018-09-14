@@ -86,14 +86,25 @@ SELECT ARRAY_AGG(ID), NAME FROM TEST GROUP BY NAME;
 > rows: 3
 
 SELECT ARRAY_AGG(ID) OVER (), NAME FROM TEST;
-> ARRAY_AGG(ID) OVER() NAME
-> -------------------- ----
-> (1, 2, 3, 4, 5, 6)   a
-> (1, 2, 3, 4, 5, 6)   a
-> (1, 2, 3, 4, 5, 6)   b
-> (1, 2, 3, 4, 5, 6)   c
-> (1, 2, 3, 4, 5, 6)   c
-> (1, 2, 3, 4, 5, 6)   c
+> ARRAY_AGG(ID) OVER () NAME
+> --------------------- ----
+> (1, 2, 3, 4, 5, 6)    a
+> (1, 2, 3, 4, 5, 6)    a
+> (1, 2, 3, 4, 5, 6)    b
+> (1, 2, 3, 4, 5, 6)    c
+> (1, 2, 3, 4, 5, 6)    c
+> (1, 2, 3, 4, 5, 6)    c
+> rows: 6
+
+SELECT ARRAY_AGG(ID) OVER (PARTITION BY NAME), NAME FROM TEST;
+> ARRAY_AGG(ID) OVER (PARTITION BY NAME) NAME
+> -------------------------------------- ----
+> (1, 2)                                 a
+> (1, 2)                                 a
+> (3)                                    b
+> (4, 5, 6)                              c
+> (4, 5, 6)                              c
+> (4, 5, 6)                              c
 > rows: 6
 
 DROP TABLE TEST;

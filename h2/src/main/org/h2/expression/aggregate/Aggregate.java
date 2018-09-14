@@ -29,6 +29,7 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.util.ValueHashMap;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -303,11 +304,7 @@ public class Aggregate extends AbstractAggregate {
                 return;
             }
         }
-        AggregateData data = (AggregateData) groupData.getCurrentGroupExprData(this);
-        if (data == null) {
-            data = AggregateData.create(type);
-            groupData.setCurrentGroupExprData(this, data);
-        }
+        AggregateData data = getData(session, groupData);
         Value v = on == null ? null : on.getValue(session);
         if (type == AggregateType.GROUP_CONCAT) {
             if (v != ValueNull.INSTANCE) {
@@ -373,11 +370,7 @@ public class Aggregate extends AbstractAggregate {
         if (groupData == null) {
             throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
-        AggregateData data = (AggregateData) groupData.getCurrentGroupExprData(this);
-        if (data == null) {
-            data = AggregateData.create(type);
-            groupData.setCurrentGroupExprData(this, data);
-        }
+        AggregateData data = getData(session, groupData);
         switch (type) {
         case GROUP_CONCAT: {
             Value[] array = ((AggregateDataCollecting) data).getArray();
@@ -433,6 +426,31 @@ public class Aggregate extends AbstractAggregate {
         }
     }
 
+    private AggregateData getData(Session session, SelectGroups groupData) {
+        AggregateData data;
+        ValueArray key;
+        if (over != null && (key = over.getCurrentKey(session)) != null) {
+            @SuppressWarnings("unchecked")
+            ValueHashMap<AggregateData> map = (ValueHashMap<AggregateData>) groupData.getCurrentGroupExprData(this);
+            if (map == null) {
+                map = new ValueHashMap<>();
+                groupData.setCurrentGroupExprData(this, map);
+            }
+            data = map.get(key);
+            if (data == null) {
+                data = AggregateData.create(type);
+                map.put(key, data);
+            }
+        } else {
+            data = (AggregateData) groupData.getCurrentGroupExprData(this);
+            if (data == null) {
+                data = AggregateData.create(type);
+                groupData.setCurrentGroupExprData(this, data);
+            }
+        }
+        return data;
+    }
+
     @Override
     public int getType() {
         return dataType;
@@ -451,9 +469,7 @@ public class Aggregate extends AbstractAggregate {
         if (groupConcatSeparator != null) {
             groupConcatSeparator.mapColumns(resolver, level);
         }
-        if (filterCondition != null) {
-            filterCondition.mapColumns(resolver, level);
-        }
+        super.mapColumns(resolver, level);
     }
 
     @Override
@@ -614,7 +630,7 @@ public class Aggregate extends AbstractAggregate {
             buff.append(" FILTER (WHERE ").append(filterCondition.getSQL()).append(')');
         }
         if (over != null) {
-            buff.append(" OVER()");
+            buff.append(' ').append(over.getSQL());
         }
         return buff.toString();
     }
@@ -638,7 +654,7 @@ public class Aggregate extends AbstractAggregate {
             buff.append(" FILTER (WHERE ").append(filterCondition.getSQL()).append(')');
         }
         if (over != null) {
-            buff.append(" OVER()");
+            buff.append(' ').append(over.getSQL());
         }
         return buff.toString();
     }
@@ -719,7 +735,7 @@ public class Aggregate extends AbstractAggregate {
             text += " FILTER (WHERE " + filterCondition.getSQL() + ')';
         }
         if (over != null) {
-            text += " OVER()";
+            text += ' ' + over.getSQL();
         }
         return text;
     }

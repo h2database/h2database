@@ -3041,8 +3041,17 @@ public class Parser {
         }
         if (readIf("OVER")) {
             read(OPEN_PAREN);
+            ArrayList<Expression> partitionBy = null;
+            if (readIf("PARTITION")) {
+                read("BY");
+                partitionBy = Utils.newSmallArrayList();
+                do {
+                    Expression expr = readExpression();
+                    partitionBy.add(expr);
+                } while (readIf(COMMA));
+            }
             read(CLOSE_PAREN);
-            aggregate.setOverCondition(new Window());
+            aggregate.setOverCondition(new Window(partitionBy));
             currentSelect.setWindowQuery();
         } else {
             currentSelect.setGroupQuery();

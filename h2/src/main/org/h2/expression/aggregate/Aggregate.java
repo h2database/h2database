@@ -42,7 +42,7 @@ import org.h2.value.ValueString;
 /**
  * Implements the integrated aggregate functions, such as COUNT, MAX, SUM.
  */
-public class Aggregate extends Expression {
+public class Aggregate extends AbstractAggregate {
 
     public enum AggregateType {
         /**
@@ -166,10 +166,6 @@ public class Aggregate extends Expression {
     private int displaySize;
     private int lastGroupRowId;
 
-    private Expression filterCondition;
-
-    private Window over;
-
     /**
      * Create a new aggregate object.
      *
@@ -255,24 +251,6 @@ public class Aggregate extends Expression {
      */
     public void setGroupConcatSeparator(Expression separator) {
         this.groupConcatSeparator = separator;
-    }
-
-    /**
-     * Sets the FILTER condition.
-     *
-     * @param filterCondition condition
-     */
-    public void setFilterCondition(Expression filterCondition) {
-        this.filterCondition = filterCondition;
-    }
-
-    /**
-     * Sets the OVER condition.
-     *
-     * @param over OVER condition
-     */
-    public void setOverCondition(Window over) {
-        this.over = over;
     }
 
     private SortOrder initOrder(Session session) {

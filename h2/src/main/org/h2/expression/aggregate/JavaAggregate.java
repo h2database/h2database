@@ -28,35 +28,22 @@ import org.h2.value.ValueNull;
 /**
  * This class wraps a user-defined aggregate.
  */
-public class JavaAggregate extends Expression {
+public class JavaAggregate extends AbstractAggregate {
 
     private final UserAggregate userAggregate;
     private final Select select;
     private final Expression[] args;
     private int[] argTypes;
     private final boolean distinct;
-    private Expression filterCondition;
-    private Window over;
     private int dataType;
     private Connection userConnection;
     private int lastGroupRowId;
 
-    public JavaAggregate(UserAggregate userAggregate, Expression[] args,
-            Select select, boolean distinct, Expression filterCondition) {
+    public JavaAggregate(UserAggregate userAggregate, Expression[] args, Select select, boolean distinct) {
         this.userAggregate = userAggregate;
         this.args = args;
         this.select = select;
         this.distinct = distinct;
-        this.filterCondition = filterCondition;
-    }
-
-    /**
-     * Sets the OVER condition.
-     *
-     * @param over OVER condition
-     */
-    public void setOverCondition(Window over) {
-        this.over = over;
     }
 
     @Override

@@ -24,14 +24,13 @@ public final class ExtTypeInfoGeometry extends ExtTypeInfo {
         }
         StringBuilder builder = new StringBuilder();
         builder.append('(');
-        if (type != 0) {
+        if (type == 0) {
+            builder.append("GEOMETRY");
+        } else {
             builder.append(EWKTUtils.formatGeometryTypeAndDimensionSystem(type));
         }
         if (srid != null) {
-            if (type != 0) {
-                builder.append(", ");
-            }
-            builder.append((int) srid);
+            builder.append(", ").append((int) srid);
         }
         return builder.append(')').toString();
     }

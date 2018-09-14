@@ -3037,8 +3037,15 @@ ENUM('clubs', 'diamonds', 'hearts', 'spades')
 "
 "Data Types","GEOMETRY Type","
 GEOMETRY
-    [({ sridInt | { {POINT|LINESTRING|POLYGON|MULTIPOINT|MULTILINESTRING
-    |MULTIPOLYGON|GEOMETRYCOLLECTION} [Z|M|ZM] [, sridInt]} })]
+    [({ GEOMETRY |
+    { POINT
+    | LINESTRING
+    | POLYGON
+    | MULTIPOINT
+    | MULTILINESTRING
+    | MULTIPOLYGON
+    | GEOMETRYCOLLECTION } [Z|M|ZM]}
+    [, sridInt] )]
 ","
 A spatial geometry type.
 If additional constraints are not specified this type accepts all supported types of geometries.
@@ -3046,8 +3053,8 @@ A constraint with required geometry type and dimension system can be set by spec
 dimension system. A whitespace between them is optional.
 2D dimension system does not have a name and assumed if only a geometry type name is specified.
 POINT means 2D point, POINT Z or POINTZ means 3D point.
+GEOMETRY constraint means no restrictions on type or dimension system of geometry.
 A constraint with required spatial reference system identifier (SRID) can be set by specifying this identifier.
-Both constraints for type and SRID can be specified together.
 
 Mapped to ""org.locationtech.jts.geom.Geometry"" if JTS library is in classpath and to ""java.lang.String"" otherwise.
 May be represented in textual format using the WKT (well-known text) or EWKT (extended well-known text) format.
@@ -3064,7 +3071,7 @@ GEOMETRY
 GEOMETRY(POINT)
 GEOMETRY(POINT Z)
 GEOMETRY(POINT Z, 4326)
-GEOMETRY(4326)
+GEOMETRY(GEOMETRY, 4326)
 "
 
 "Data Types","INTERVAL Type","

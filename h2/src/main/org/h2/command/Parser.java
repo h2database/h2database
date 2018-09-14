@@ -5049,7 +5049,10 @@ public class Parser {
             if (extTypeInfo == null) {
                 if (readIf(OPEN_PAREN)) {
                     int type = 0;
-                    if (currentTokenType == IDENTIFIER && !currentTokenQuoted) {
+                    if (currentTokenType != IDENTIFIER || currentTokenQuoted) {
+                        throw getSyntaxError();
+                    }
+                    if (!readIf("GEOMETRY")) {
                         try {
                             type = EWKTUtils.parseGeometryType(currentToken);
                             read();
@@ -5062,7 +5065,7 @@ public class Parser {
                         }
                     }
                     Integer srid = null;
-                    if (type == 0 || readIf(COMMA)) {
+                    if (readIf(COMMA)) {
                         srid = readInt();
                     }
                     read(CLOSE_PAREN);

@@ -953,6 +953,10 @@ public class Select extends Query {
             throw DbException.get(ErrorCode.WITH_TIES_WITHOUT_ORDER_BY);
         }
 
+        if (isWindowQuery && isGroupQuery) {
+            throw DbException.getUnsupportedException("Window functions in group query are not currently supported.");
+        }
+
         Database db = session.getDatabase();
 
         // first the select list (visible columns),

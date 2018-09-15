@@ -149,9 +149,7 @@ public class JavaAggregate extends AbstractAggregate {
         for (Expression e : args) {
             e.setEvaluatable(tableFilter, b);
         }
-        if (filterCondition != null) {
-            filterCondition.setEvaluatable(tableFilter, b);
-        }
+        super.setEvaluatable(tableFilter, b);
     }
 
     private Aggregate getInstance() throws SQLException {

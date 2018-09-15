@@ -7,6 +7,7 @@ package org.h2.expression.aggregate;
 
 import org.h2.expression.Expression;
 import org.h2.table.ColumnResolver;
+import org.h2.table.TableFilter;
 
 /**
  * A base class for aggregates.
@@ -44,6 +45,16 @@ public abstract class AbstractAggregate extends Expression {
         }
         if (over != null) {
             over.mapColumns(resolver, level);
+        }
+    }
+
+    @Override
+    public void setEvaluatable(TableFilter tableFilter, boolean b) {
+        if (filterCondition != null) {
+            filterCondition.setEvaluatable(tableFilter, b);
+        }
+        if (over != null) {
+            over.setEvaluatable(tableFilter, b);
         }
     }
 

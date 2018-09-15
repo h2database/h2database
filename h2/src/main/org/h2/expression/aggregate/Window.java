@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.table.ColumnResolver;
+import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -43,6 +44,23 @@ public final class Window {
         if (partitionBy != null) {
             for (Expression e : partitionBy) {
                 e.mapColumns(resolver, level);
+            }
+        }
+    }
+
+    /**
+     * Tell the expression columns whether the table filter can return values
+     * now. This is used when optimizing the query.
+     *
+     * @param tableFilter
+     *            the table filter
+     * @param value
+     *            true if the table filter can return value
+     */
+    public void setEvaluatable(TableFilter tableFilter, boolean value) {
+        if (partitionBy != null) {
+            for (Expression e : partitionBy) {
+                e.setEvaluatable(tableFilter, value);
             }
         }
     }

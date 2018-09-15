@@ -588,9 +588,7 @@ public class Aggregate extends AbstractAggregate {
         if (groupConcatSeparator != null) {
             groupConcatSeparator.setEvaluatable(tableFilter, b);
         }
-        if (filterCondition != null) {
-            filterCondition.setEvaluatable(tableFilter, b);
-        }
+        super.setEvaluatable(tableFilter, b);
     }
 
     @Override

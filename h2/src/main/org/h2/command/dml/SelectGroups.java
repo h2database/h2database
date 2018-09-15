@@ -127,6 +127,7 @@ public abstract class SelectGroups {
             if (cursor.hasNext()) {
                 Map.Entry<ValueArray, Object[]> entry = cursor.next();
                 currentGroupByExprData = entry.getValue();
+                currentGroupRowId++;
                 return entry.getKey();
             }
             return null;

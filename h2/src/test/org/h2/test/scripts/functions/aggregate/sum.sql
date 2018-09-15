@@ -40,3 +40,11 @@ select sum(v) from test;
 
 drop table test;
 > ok
+
+SELECT X, COUNT(*), SUM(COUNT(*)) OVER() FROM VALUES (1), (1), (1), (1), (2), (2), (3) T(X) GROUP BY X;
+> X COUNT(*) SUM(COUNT(*)) OVER ()
+> - -------- ---------------------
+> 1 4        7
+> 2 2        7
+> 3 1        7
+> rows: 3

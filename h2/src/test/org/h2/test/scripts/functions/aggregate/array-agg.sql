@@ -119,10 +119,44 @@ SELECT ARRAY_AGG(ID) FILTER (WHERE ID < 3 OR ID > 4) OVER (PARTITION BY NAME), N
 > rows (ordered): 6
 
 SELECT ARRAY_AGG(SUM(ID)) OVER () FROM TEST;
-> exception FEATURE_NOT_SUPPORTED_1
+> ARRAY_AGG(SUM(ID)) OVER ()
+> --------------------------
+> (21)
+> rows: 1
 
 SELECT ARRAY_AGG(ID) OVER() FROM TEST GROUP BY ID;
-> exception FEATURE_NOT_SUPPORTED_1
+> ARRAY_AGG(ID) OVER ()
+> ---------------------
+> (1, 2, 3, 4, 5, 6)
+> (1, 2, 3, 4, 5, 6)
+> (1, 2, 3, 4, 5, 6)
+> (1, 2, 3, 4, 5, 6)
+> (1, 2, 3, 4, 5, 6)
+> (1, 2, 3, 4, 5, 6)
+> rows: 6
+
+SELECT ARRAY_AGG(NAME) OVER(PARTITION BY NAME) FROM TEST GROUP BY NAME;
+> ARRAY_AGG(NAME) OVER (PARTITION BY NAME)
+> ----------------------------------------
+> (a)
+> (b)
+> (c)
+> rows: 3
+
+SELECT ARRAY_AGG(ARRAY_AGG(ID)) OVER (PARTITION BY NAME), NAME FROM TEST GROUP BY NAME;
+> ARRAY_AGG(ARRAY_AGG(ID)) OVER (PARTITION BY NAME) NAME
+> ------------------------------------------------- ----
+> ((1, 2))                                          a
+> ((3))                                             b
+> ((4, 5, 6))                                       c
+> rows: 3
+
+SELECT ARRAY_AGG(ARRAY_AGG(ID)) OVER (PARTITION BY NAME), NAME FROM TEST GROUP BY NAME OFFSET 1 ROW;
+> ARRAY_AGG(ARRAY_AGG(ID)) OVER (PARTITION BY NAME) NAME
+> ------------------------------------------------- ----
+> ((3))                                             b
+> ((4, 5, 6))                                       c
+> rows: 2
 
 DROP TABLE TEST;
 > ok

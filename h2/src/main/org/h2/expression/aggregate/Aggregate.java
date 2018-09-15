@@ -654,7 +654,7 @@ public class Aggregate extends AbstractAggregate {
         case GROUP_CONCAT:
             return getSQLGroupConcat();
         case COUNT_ALL:
-            return "COUNT(*)";
+            return appendTailConditions(new StringBuilder().append("COUNT(*)")).toString();
         case COUNT:
             text = "COUNT";
             break;

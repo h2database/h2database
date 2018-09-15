@@ -626,13 +626,7 @@ public class Aggregate extends AbstractAggregate {
             buff.append(" SEPARATOR ").append(groupConcatSeparator.getSQL());
         }
         buff.append(')');
-        if (filterCondition != null) {
-            buff.append(" FILTER (WHERE ").append(filterCondition.getSQL()).append(')');
-        }
-        if (over != null) {
-            buff.append(' ').append(over.getSQL());
-        }
-        return buff.toString();
+        return appendTailConditions(buff.builder()).toString();
     }
 
     private String getSQLArrayAggregate() {
@@ -650,13 +644,7 @@ public class Aggregate extends AbstractAggregate {
             }
         }
         buff.append(')');
-        if (filterCondition != null) {
-            buff.append(" FILTER (WHERE ").append(filterCondition.getSQL()).append(')');
-        }
-        if (over != null) {
-            buff.append(' ').append(over.getSQL());
-        }
-        return buff.toString();
+        return appendTailConditions(buff.builder()).toString();
     }
 
     @Override
@@ -726,18 +714,13 @@ public class Aggregate extends AbstractAggregate {
         default:
             throw DbException.throwInternalError("type=" + type);
         }
+        StringBuilder builder = new StringBuilder().append(text);
         if (distinct) {
-            text += "(DISTINCT " + on.getSQL() + ')';
+            builder.append("(DISTINCT ").append(on.getSQL()).append(')');
         } else {
-            text += StringUtils.enclose(on.getSQL());
+            builder.append(StringUtils.enclose(on.getSQL()));
         }
-        if (filterCondition != null) {
-            text += " FILTER (WHERE " + filterCondition.getSQL() + ')';
-        }
-        if (over != null) {
-            text += ' ' + over.getSQL();
-        }
-        return text;
+        return appendTailConditions(builder).toString();
     }
 
     private Index getMinMaxColumnIndex() {

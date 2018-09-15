@@ -47,4 +47,14 @@ public abstract class AbstractAggregate extends Expression {
         }
     }
 
+    protected StringBuilder appendTailConditions(StringBuilder builder) {
+        if (filterCondition != null) {
+            builder.append(" FILTER (WHERE ").append(filterCondition.getSQL()).append(')');
+        }
+        if (over != null) {
+            builder.append(' ').append(over.getSQL());
+        }
+        return builder;
+    }
+
 }

@@ -83,13 +83,7 @@ public class JavaAggregate extends AbstractAggregate {
             buff.append(e.getSQL());
         }
         buff.append(')');
-        if (filterCondition != null) {
-            buff.append(" FILTER (WHERE ").append(filterCondition.getSQL()).append(')');
-        }
-        if (over != null) {
-            buff.append(' ').append(over.getSQL());
-        }
-        return buff.toString();
+        return appendTailConditions(buff.builder()).toString();
     }
 
     @Override

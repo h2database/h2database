@@ -291,9 +291,9 @@ public class IntervalOperation extends Expression {
     }
 
     @Override
-    public void updateAggregate(Session session) {
-        left.updateAggregate(session);
-        right.updateAggregate(session);
+    public void updateAggregate(Session session, boolean window) {
+        left.updateAggregate(session, window);
+        right.updateAggregate(session, window);
     }
 
     @Override

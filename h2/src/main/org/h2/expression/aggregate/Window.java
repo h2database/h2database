@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.table.ColumnResolver;
+import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -38,11 +39,30 @@ public final class Window {
      *            the column resolver
      * @param level
      *            the subquery nesting level
+     * @see Expression#mapColumns(ColumnResolver, int)
      */
     public void mapColumns(ColumnResolver resolver, int level) {
         if (partitionBy != null) {
             for (Expression e : partitionBy) {
                 e.mapColumns(resolver, level);
+            }
+        }
+    }
+
+    /**
+     * Tell the expression columns whether the table filter can return values
+     * now. This is used when optimizing the query.
+     *
+     * @param tableFilter
+     *            the table filter
+     * @param value
+     *            true if the table filter can return value
+     * @see Expression#setEvaluatable(TableFilter, boolean)
+     */
+    public void setEvaluatable(TableFilter tableFilter, boolean value) {
+        if (partitionBy != null) {
+            for (Expression e : partitionBy) {
+                e.setEvaluatable(tableFilter, value);
             }
         }
     }
@@ -72,6 +92,7 @@ public final class Window {
      * Returns SQL representation.
      *
      * @return SQL representation.
+     * @see Expression#getSQL()
      */
     public String getSQL() {
         if (partitionBy == null) {
@@ -85,6 +106,22 @@ public final class Window {
             builder.append(StringUtils.unEnclose(partitionBy.get(i).getSQL()));
         }
         return builder.append(')').toString();
+    }
+
+    /**
+     * Update an aggregate value.
+     *
+     * @param session
+     *            the session
+     * @param window true for window processing stage, false for group stage
+     * @see Expression#updateAggregate(Session, boolean)
+     */
+    public void updateAggregate(Session session, boolean window) {
+        if (partitionBy != null) {
+            for (Expression expr : partitionBy) {
+                expr.updateAggregate(session, window);
+            }
+        }
     }
 
     @Override

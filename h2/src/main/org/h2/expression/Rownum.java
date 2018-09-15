@@ -73,7 +73,7 @@ public class Rownum extends Expression {
     }
 
     @Override
-    public void updateAggregate(Session session) {
+    public void updateAggregate(Session session, boolean window) {
         // nothing to do
     }
 

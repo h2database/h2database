@@ -24,7 +24,7 @@ import org.h2.value.ValueArray;
  * Call sequence:
  * </p>
  * <ul>
- * <li>{@link #reset()} (not required before the first execution).</li>
+ * <li>{@link #reset()}.</li>
  * <li>For each source row {@link #nextSource()} should be invoked.</li>
  * <li>{@link #done()}.</li>
  * <li>{@link #next()} is invoked inside a loop until it returns null.</li>
@@ -39,51 +39,179 @@ import org.h2.value.ValueArray;
  * can have one or more rows.</li>
  * </ul>
  */
-public final class SelectGroups {
+public abstract class SelectGroups {
 
-    private final Session session;
+    private static final class Grouped extends SelectGroups {
 
-    private final ArrayList<Expression> expressions;
+        private final int[] groupIndex;
 
-    private final int[] groupIndex;
+        /**
+         * Map of group-by key to group-by expression data e.g. AggregateData
+         */
+        private HashMap<ValueArray, Object[]> groupByData;
+
+        /**
+         * Key into groupByData that produces currentGroupByExprData. Not used
+         * in lazy mode.
+         */
+        private ValueArray currentGroupsKey;
+
+        /**
+         * Cursor for {@link #next()} method.
+         */
+        private Iterator<Entry<ValueArray, Object[]>> cursor;
+
+        /**
+         * The key for the default group.
+         */
+        // Can be static, but TestClearReferences complains about it
+        private final ValueArray defaultGroup = ValueArray.get(new Value[0]);
+
+        Grouped(Session session, ArrayList<Expression> expressions, int[] groupIndex) {
+            super(session, expressions);
+            this.groupIndex = groupIndex;
+        }
+
+        @Override
+        public void reset() {
+            super.reset();
+            groupByData = new HashMap<>();
+            currentGroupsKey = null;
+            cursor = null;
+        }
+
+        @Override
+        public void nextSource() {
+            if (groupIndex == null) {
+                currentGroupsKey = defaultGroup;
+            } else {
+                Value[] keyValues = new Value[groupIndex.length];
+                // update group
+                for (int i = 0; i < groupIndex.length; i++) {
+                    int idx = groupIndex[i];
+                    Expression expr = expressions.get(idx);
+                    keyValues[i] = expr.getValue(session);
+                }
+                currentGroupsKey = ValueArray.get(keyValues);
+            }
+            Object[] values = groupByData.get(currentGroupsKey);
+            if (values == null) {
+                values = new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())];
+                groupByData.put(currentGroupsKey, values);
+            }
+            currentGroupByExprData = values;
+            currentGroupRowId++;
+        }
+
+        @Override
+        void updateCurrentGroupExprData() {
+            // this can be null in lazy mode
+            if (currentGroupsKey != null) {
+                // since we changed the size of the array, update the object in
+                // the groups map
+                groupByData.put(currentGroupsKey, currentGroupByExprData);
+            }
+        }
+
+        @Override
+        public void done() {
+            if (groupIndex == null && groupByData.size() == 0) {
+                groupByData.put(defaultGroup,
+                        new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())]);
+            }
+            cursor = groupByData.entrySet().iterator();
+        }
+
+        @Override
+        public ValueArray next() {
+            if (cursor.hasNext()) {
+                Map.Entry<ValueArray, Object[]> entry = cursor.next();
+                currentGroupByExprData = entry.getValue();
+                return entry.getKey();
+            }
+            return null;
+        }
+
+        @Override
+        public void resetLazy() {
+            super.resetLazy();
+            currentGroupsKey = null;
+        }
+    }
+
+    private static final class Plain extends SelectGroups {
+
+        private ArrayList<Object[]> rows;
+
+        /**
+         * Cursor for {@link #next()} method.
+         */
+        private Iterator<Object[]> cursor;
+
+        Plain(Session session, ArrayList<Expression> expressions) {
+            super(session, expressions);
+        }
+
+        @Override
+        public void reset() {
+            super.reset();
+            rows = new ArrayList<>();
+            cursor = null;
+        }
+
+        @Override
+        public void nextSource() {
+            Object[] values = new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())];
+            rows.add(values);
+            currentGroupByExprData = values;
+            currentGroupRowId++;
+        }
+
+        @Override
+        void updateCurrentGroupExprData() {
+            rows.set(rows.size() - 1, currentGroupByExprData);
+        }
+
+        @Override
+        public void done() {
+            cursor = rows.iterator();
+        }
+
+        @Override
+        public ValueArray next() {
+            if (cursor.hasNext()) {
+                Object[] values = cursor.next();
+                currentGroupByExprData = values;
+                return ValueArray.get(new Value[0]);
+            }
+            return null;
+        }
+    }
+
+    final Session session;
+
+    final ArrayList<Expression> expressions;
 
     /**
      * The array of current group-by expression data e.g. AggregateData.
      */
-    private Object[] currentGroupByExprData;
+    Object[] currentGroupByExprData;
 
     /**
      * Maps an expression object to an index, to use in accessing the Object[]
      * pointed to by groupByData.
      */
-    private final HashMap<Expression, Integer> exprToIndexInGroupByData = new HashMap<>();
+    final HashMap<Expression, Integer> exprToIndexInGroupByData = new HashMap<>();
 
     /**
-     * Map of group-by key to group-by expression data e.g. AggregateData
+     * Maps an expression object to its data.
      */
-    private HashMap<ValueArray, Object[]> groupByData;
-
-    /**
-     * Key into groupByData that produces currentGroupByExprData. Not used in
-     * lazy mode.
-     */
-    private ValueArray currentGroupsKey;
+    private final HashMap<Expression, Object> windowData = new HashMap<>();
 
     /**
      * The id of the current group.
      */
-    private int currentGroupRowId;
-
-    /**
-     * The key for the default group.
-     */
-    // Can be static, but TestClearReferences complains about it
-    private ValueArray defaultGroup = ValueArray.get(new Value[0]);
-
-    /**
-     * Cursor for {@link #next()} method.
-     */
-    private Iterator<Entry<ValueArray, Object[]>> cursor;
+    int currentGroupRowId;
 
     /**
      * Creates new instance of grouped data.
@@ -92,13 +220,19 @@ public final class SelectGroups {
      *            the session
      * @param expressions
      *            the expressions
+     * @param isGroupQuery
+     *            is this query is a group query
      * @param groupIndex
      *            the indexes of group expressions, or null
      */
-    public SelectGroups(Session session, ArrayList<Expression> expressions, int[] groupIndex) {
+    public static SelectGroups getInstance(Session session, ArrayList<Expression> expressions, boolean isGroupQuery,
+            int[] groupIndex) {
+        return isGroupQuery ? new Grouped(session, expressions, groupIndex) : new Plain(session, expressions);
+    }
+
+    SelectGroups(Session session, ArrayList<Expression> expressions) {
         this.session = session;
         this.expressions = expressions;
-        this.groupIndex = groupIndex;
     }
 
     /**
@@ -110,8 +244,17 @@ public final class SelectGroups {
 
     /**
      * Get the group-by data for the current group and the passed in expression.
+     *
+     * @param expr
+     *            expression
+     * @param window
+     *            true if expression is a window expression
+     * @return expression data or null
      */
-    public Object getCurrentGroupExprData(Expression expr) {
+    public Object getCurrentGroupExprData(Expression expr, boolean window) {
+        if (window) {
+            return windowData.get(expr);
+        }
         Integer index = exprToIndexInGroupByData.get(expr);
         if (index == null) {
             return null;
@@ -121,8 +264,20 @@ public final class SelectGroups {
 
     /**
      * Set the group-by data for the current group and the passed in expression.
+     *
+     * @param expr
+     *            expression
+     * @param object
+     *            expression data to set
+     * @param window
+     *            true if expression is a window expression
      */
-    public void setCurrentGroupExprData(Expression expr, Object obj) {
+    public void setCurrentGroupExprData(Expression expr, Object obj, boolean window) {
+        if (window) {
+            Object old = windowData.put(expr, obj);
+            assert old == null;
+            return;
+        }
         Integer index = exprToIndexInGroupByData.get(expr);
         if (index != null) {
             assert currentGroupByExprData[index] == null;
@@ -133,15 +288,12 @@ public final class SelectGroups {
         exprToIndexInGroupByData.put(expr, index);
         if (index >= currentGroupByExprData.length) {
             currentGroupByExprData = Arrays.copyOf(currentGroupByExprData, currentGroupByExprData.length * 2);
-            // this can be null in lazy mode
-            if (currentGroupsKey != null) {
-                // since we changed the size of the array, update the object in
-                // the groups map
-                groupByData.put(currentGroupsKey, currentGroupByExprData);
-            }
+            updateCurrentGroupExprData();
         }
         currentGroupByExprData[index] = obj;
     }
+
+    abstract void updateCurrentGroupExprData();
 
     /**
      * Returns identity of the current row. Used by aggregates to check whether
@@ -157,72 +309,34 @@ public final class SelectGroups {
      * Resets this group data for reuse.
      */
     public void reset() {
-        groupByData = new HashMap<>();
         currentGroupByExprData = null;
-        currentGroupsKey = null;
         exprToIndexInGroupByData.clear();
-        cursor = null;
+        windowData.clear();
     }
 
     /**
      * Invoked for each source row to evaluate group key and setup all necessary
      * data for aggregates.
-     *
-     * @return key of the current group
      */
-    public ValueArray nextSource() {
-        if (groupIndex == null) {
-            currentGroupsKey = defaultGroup;
-        } else {
-            Value[] keyValues = new Value[groupIndex.length];
-            // update group
-            for (int i = 0; i < groupIndex.length; i++) {
-                int idx = groupIndex[i];
-                Expression expr = expressions.get(idx);
-                keyValues[i] = expr.getValue(session);
-            }
-            currentGroupsKey = ValueArray.get(keyValues);
-        }
-        Object[] values = groupByData.get(currentGroupsKey);
-        if (values == null) {
-            values = new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())];
-            groupByData.put(currentGroupsKey, values);
-        }
-        currentGroupByExprData = values;
-        currentGroupRowId++;
-        return currentGroupsKey;
-    }
+    public abstract void nextSource();
 
     /**
      * Invoked after all source rows are evaluated.
      */
-    public void done() {
-        if (groupIndex == null && groupByData.size() == 0) {
-            groupByData.put(defaultGroup, new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())]);
-        }
-        cursor = groupByData.entrySet().iterator();
-    }
+    public abstract void done();
 
     /**
      * Returns the key of the next group.
      *
      * @return the key of the next group, or null
      */
-    public ValueArray next() {
-        if (cursor.hasNext()) {
-            Map.Entry<ValueArray, Object[]> entry = cursor.next();
-            currentGroupByExprData = entry.getValue();
-            return entry.getKey();
-        }
-        return null;
-    }
+    public abstract ValueArray next();
 
     /**
      * Resets this group data for reuse in lazy mode.
      */
     public void resetLazy() {
         currentGroupByExprData = null;
-        currentGroupsKey = null;
     }
 
     /**

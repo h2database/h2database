@@ -449,9 +449,9 @@ public class SelectUnion extends Query {
     }
 
     @Override
-    public void updateAggregate(Session s) {
-        left.updateAggregate(s);
-        right.updateAggregate(s);
+    public void updateAggregate(Session s, boolean window) {
+        left.updateAggregate(s, window);
+        right.updateAggregate(s, window);
     }
 
     @Override

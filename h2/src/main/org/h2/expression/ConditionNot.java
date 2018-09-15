@@ -70,8 +70,8 @@ public class ConditionNot extends Condition {
     }
 
     @Override
-    public void updateAggregate(Session session) {
-        condition.updateAggregate(session);
+    public void updateAggregate(Session session, boolean window) {
+        condition.updateAggregate(session, window);
     }
 
     @Override

@@ -141,7 +141,7 @@ public class Parameter extends Expression implements ParameterInterface {
     }
 
     @Override
-    public void updateAggregate(Session session) {
+    public void updateAggregate(Session session, boolean window) {
         // nothing to do
     }
 

@@ -46,7 +46,7 @@ public class ConditionExists extends Condition {
     }
 
     @Override
-    public void updateAggregate(Session session) {
+    public void updateAggregate(Session session, boolean window) {
         // TODO exists: is it allowed that the subquery contains aggregates?
         // probably not
         // select id from test group by id having exists (select * from test2

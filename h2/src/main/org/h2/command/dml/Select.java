@@ -113,6 +113,8 @@ public class Select extends Query {
     private boolean isPrepared, checkInit;
     private boolean sortUsingIndex;
 
+    private boolean isGroupWindowStage2;
+
     public Select(Session session) {
         super(session);
     }
@@ -383,7 +385,12 @@ public class Select extends Query {
                 updateAgg(columnCount, true);
             }
             groupData.done();
-            processGroupResult(columnCount, result, offset, quickOffset);
+            try {
+                isGroupWindowStage2 = true;
+                processGroupResult(columnCount, result, offset, quickOffset);
+            } finally {
+                isGroupWindowStage2 = false;
+            }
         } finally {
             groupData.reset();
         }
@@ -1460,6 +1467,16 @@ public class Select extends Query {
      */
     public boolean isWindowQuery() {
         return isWindowQuery;
+    }
+
+    /**
+     * Checks if window stage of group window query is performed. If true,
+     * column resolver may not be used.
+     *
+     * @return true if window stage of group window query is performed
+     */
+    public boolean isGroupWindowStage2() {
+        return isGroupWindowStage2;
     }
 
     @Override

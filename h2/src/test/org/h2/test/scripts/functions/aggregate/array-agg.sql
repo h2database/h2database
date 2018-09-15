@@ -158,5 +158,8 @@ SELECT ARRAY_AGG(ARRAY_AGG(ID ORDER  BY ID)) OVER (PARTITION BY NAME), NAME FROM
 > ((4, 5, 6))                                                   c
 > rows: 2
 
+SELECT ARRAY_AGG(ID) OVER() FROM TEST GROUP BY NAME;
+> exception MUST_GROUP_BY_COLUMN_1
+
 DROP TABLE TEST;
 > ok

@@ -495,11 +495,11 @@ public class CompareLike extends Condition {
     }
 
     @Override
-    public void updateAggregate(Session session) {
-        left.updateAggregate(session);
-        right.updateAggregate(session);
+    public void updateAggregate(Session session, boolean window) {
+        left.updateAggregate(session, window);
+        right.updateAggregate(session, window);
         if (escape != null) {
-            escape.updateAggregate(session);
+            escape.updateAggregate(session, window);
         }
     }
 

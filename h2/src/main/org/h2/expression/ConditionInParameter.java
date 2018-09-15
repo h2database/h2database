@@ -145,8 +145,8 @@ public class ConditionInParameter extends Condition {
     }
 
     @Override
-    public void updateAggregate(Session session) {
-        left.updateAggregate(session);
+    public void updateAggregate(Session session, boolean window) {
+        left.updateAggregate(session, window);
     }
 
     @Override

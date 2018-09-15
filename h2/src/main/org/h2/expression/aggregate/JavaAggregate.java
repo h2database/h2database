@@ -200,8 +200,11 @@ public class JavaAggregate extends AbstractAggregate {
     }
 
     @Override
-    public void updateAggregate(Session session) {
-        SelectGroups groupData = select.getGroupDataIfCurrent(over != null);
+    public void updateAggregate(Session session, boolean window) {
+        if (window != (over != null)) {
+            return;
+        }
+        SelectGroups groupData = select.getGroupDataIfCurrent(window);
         if (groupData == null) {
             // this is a different level (the enclosing query)
             return;
@@ -215,7 +218,7 @@ public class JavaAggregate extends AbstractAggregate {
         lastGroupRowId = groupRowId;
 
         if (over != null) {
-            over.updateAggregate(session);
+            over.updateAggregate(session, true);
         }
         if (filterCondition != null) {
             if (!filterCondition.getBooleanValue(session)) {

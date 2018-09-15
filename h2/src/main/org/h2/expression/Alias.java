@@ -83,8 +83,8 @@ public class Alias extends Expression {
     }
 
     @Override
-    public void updateAggregate(Session session) {
-        expr.updateAggregate(session);
+    public void updateAggregate(Session session, boolean window) {
+        expr.updateAggregate(session, window);
     }
 
     @Override

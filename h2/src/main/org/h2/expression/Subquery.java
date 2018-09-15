@@ -94,8 +94,8 @@ public class Subquery extends Expression {
     }
 
     @Override
-    public void updateAggregate(Session session) {
-        query.updateAggregate(session);
+    public void updateAggregate(Session session, boolean window) {
+        query.updateAggregate(session, window);
     }
 
     private Expression getExpression() {

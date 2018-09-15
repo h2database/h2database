@@ -82,8 +82,8 @@ public class UnaryOperation extends Expression {
     }
 
     @Override
-    public void updateAggregate(Session session) {
-        arg.updateAggregate(session);
+    public void updateAggregate(Session session, boolean window) {
+        arg.updateAggregate(session, window);
     }
 
     @Override

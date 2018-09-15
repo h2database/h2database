@@ -113,12 +113,13 @@ public final class Window {
      *
      * @param session
      *            the session
-     * @see Expression#updateAggregate(Session)
+     * @param window true for window processing stage, false for group stage
+     * @see Expression#updateAggregate(Session, boolean)
      */
-    public void updateAggregate(Session session) {
+    public void updateAggregate(Session session, boolean window) {
         if (partitionBy != null) {
             for (Expression expr : partitionBy) {
-                expr.updateAggregate(session);
+                expr.updateAggregate(session, window);
             }
         }
     }

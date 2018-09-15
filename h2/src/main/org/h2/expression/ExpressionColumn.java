@@ -153,7 +153,7 @@ public class ExpressionColumn extends Expression {
     }
 
     @Override
-    public void updateAggregate(Session session) {
+    public void updateAggregate(Session session, boolean window) {
         Value now = columnResolver.getValue(column);
         Select select = columnResolver.getSelect();
         if (select == null) {

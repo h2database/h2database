@@ -98,9 +98,9 @@ public class ExpressionList extends Expression {
     }
 
     @Override
-    public void updateAggregate(Session session) {
+    public void updateAggregate(Session session, boolean window) {
         for (Expression e : list) {
-            e.updateAggregate(session);
+            e.updateAggregate(session, window);
         }
     }
 

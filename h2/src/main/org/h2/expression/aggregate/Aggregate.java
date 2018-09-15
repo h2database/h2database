@@ -289,12 +289,15 @@ public class Aggregate extends AbstractAggregate {
     }
 
     @Override
-    public void updateAggregate(Session session) {
+    public void updateAggregate(Session session, boolean window) {
+        if (window != (over != null)) {
+            return;
+        }
         // TODO aggregates: check nested MIN(MAX(ID)) and so on
         // if (on != null) {
         // on.updateAggregate();
         // }
-        SelectGroups groupData = select.getGroupDataIfCurrent(over != null);
+        SelectGroups groupData = select.getGroupDataIfCurrent(window);
         if (groupData == null) {
             // this is a different level (the enclosing query)
             return;
@@ -308,7 +311,7 @@ public class Aggregate extends AbstractAggregate {
         lastGroupRowId = groupRowId;
 
         if (over != null) {
-            over.updateAggregate(session);
+            over.updateAggregate(session, true);
         }
         if (filterCondition != null) {
             if (!filterCondition.getBooleanValue(session)) {

@@ -369,7 +369,7 @@ public class Select extends Query {
                 if (isConditionMet()) {
                     rowNumber++;
                     groupData.nextSource();
-                    updateAgg(columnCount);
+                    updateAgg(columnCount, true);
                     if (sampleSize > 0 && rowNumber >= sampleSize) {
                         break;
                     }
@@ -398,7 +398,7 @@ public class Select extends Query {
                 if (isConditionMet()) {
                     rowNumber++;
                     groupData.nextSource();
-                    updateAgg(columnCount);
+                    updateAgg(columnCount, false);
                     if (sampleSize > 0 && rowNumber >= sampleSize) {
                         break;
                     }
@@ -413,11 +413,11 @@ public class Select extends Query {
         }
     }
 
-    private void updateAgg(int columnCount) {
+    private void updateAgg(int columnCount, boolean window) {
         for (int i = 0; i < columnCount; i++) {
             if (groupByExpression == null || !groupByExpression[i]) {
                 Expression expr = expressions.get(i);
-                expr.updateAggregate(session);
+                expr.updateAggregate(session, window);
             }
         }
     }
@@ -1482,15 +1482,15 @@ public class Select extends Query {
     }
 
     @Override
-    public void updateAggregate(Session s) {
+    public void updateAggregate(Session s, boolean window) {
         for (Expression e : expressions) {
-            e.updateAggregate(s);
+            e.updateAggregate(s, window);
         }
         if (condition != null) {
-            condition.updateAggregate(s);
+            condition.updateAggregate(s, window);
         }
         if (having != null) {
-            having.updateAggregate(s);
+            having.updateAggregate(s, window);
         }
     }
 
@@ -1686,7 +1686,7 @@ public class Select extends Query {
                     for (int i = 0; i < columnCount; i++) {
                         if (groupByExpression == null || !groupByExpression[i]) {
                             Expression expr = expressions.get(i);
-                            expr.updateAggregate(getSession());
+                            expr.updateAggregate(getSession(), false);
                         }
                     }
                     if (row != null) {

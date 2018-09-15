@@ -91,7 +91,7 @@ public class Wildcard extends Expression {
     }
 
     @Override
-    public void updateAggregate(Session session) {
+    public void updateAggregate(Session session, boolean window) {
         DbException.throwInternalError(toString());
     }
 

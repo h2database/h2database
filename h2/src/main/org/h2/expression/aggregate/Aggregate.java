@@ -170,10 +170,14 @@ public class Aggregate extends AbstractAggregate {
     /**
      * Create a new aggregate object.
      *
-     * @param type the aggregate type
-     * @param on the aggregated expression
-     * @param select the select statement
-     * @param distinct if distinct is used
+     * @param type
+     *            the aggregate type
+     * @param on
+     *            the aggregated expression
+     * @param select
+     *            the select statement
+     * @param distinct
+     *            if distinct is used
      */
     public Aggregate(AggregateType type, Expression on, Select select, boolean distinct) {
         this.type = type;
@@ -229,8 +233,10 @@ public class Aggregate extends AbstractAggregate {
      * Get the aggregate type for this name, or -1 if no aggregate has been
      * found.
      *
-     * @param name the aggregate function name
-     * @return null if no aggregate function has been found, or the aggregate type
+     * @param name
+     *            the aggregate function name
+     * @return null if no aggregate function has been found, or the aggregate
+     *         type
      */
     public static AggregateType getAggregateType(String name) {
         return AGGREGATES.get(name);
@@ -239,7 +245,8 @@ public class Aggregate extends AbstractAggregate {
     /**
      * Set the order for ARRAY_AGG() or GROUP_CONCAT() aggregate.
      *
-     * @param orderByList the order by list
+     * @param orderByList
+     *            the order by list
      */
     public void setOrderByList(ArrayList<SelectOrderBy> orderByList) {
         this.orderByList = orderByList;
@@ -248,7 +255,8 @@ public class Aggregate extends AbstractAggregate {
     /**
      * Set the separator for the GROUP_CONCAT() aggregate.
      *
-     * @param separator the separator expression
+     * @param separator
+     *            the separator expression
      */
     public void setGroupConcatSeparator(Expression separator) {
         this.groupConcatSeparator = separator;
@@ -286,7 +294,7 @@ public class Aggregate extends AbstractAggregate {
         // if (on != null) {
         // on.updateAggregate();
         // }
-        SelectGroups groupData = select.getGroupDataIfCurrent(true);
+        SelectGroups groupData = select.getGroupDataIfCurrent(over != null);
         if (groupData == null) {
             // this is a different level (the enclosing query)
             return;
@@ -299,6 +307,9 @@ public class Aggregate extends AbstractAggregate {
         }
         lastGroupRowId = groupRowId;
 
+        if (over != null) {
+            over.updateAggregate(session);
+        }
         if (filterCondition != null) {
             if (!filterCondition.getBooleanValue(session)) {
                 return;
@@ -366,7 +377,7 @@ public class Aggregate extends AbstractAggregate {
                 DbException.throwInternalError("type=" + type);
             }
         }
-        SelectGroups groupData = select.getGroupDataIfCurrent(true);
+        SelectGroups groupData = select.getGroupDataIfCurrent(over != null);
         if (groupData == null) {
             throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
@@ -381,8 +392,7 @@ public class Aggregate extends AbstractAggregate {
                 sortWithOrderBy(array);
             }
             StatementBuilder buff = new StatementBuilder();
-            String sep = groupConcatSeparator == null ?
-                    "," : groupConcatSeparator.getValue(session).getString();
+            String sep = groupConcatSeparator == null ? "," : groupConcatSeparator.getValue(session).getString();
             for (Value val : array) {
                 String s;
                 if (val.getType() == Value.ARRAY) {
@@ -431,10 +441,11 @@ public class Aggregate extends AbstractAggregate {
         ValueArray key;
         if (over != null && (key = over.getCurrentKey(session)) != null) {
             @SuppressWarnings("unchecked")
-            ValueHashMap<AggregateData> map = (ValueHashMap<AggregateData>) groupData.getCurrentGroupExprData(this);
+            ValueHashMap<AggregateData> map = (ValueHashMap<AggregateData>) groupData.getCurrentGroupExprData(this,
+                    true);
             if (map == null) {
                 map = new ValueHashMap<>();
-                groupData.setCurrentGroupExprData(this, map);
+                groupData.setCurrentGroupExprData(this, map, true);
             }
             data = map.get(key);
             if (data == null) {
@@ -442,10 +453,10 @@ public class Aggregate extends AbstractAggregate {
                 map.put(key, data);
             }
         } else {
-            data = (AggregateData) groupData.getCurrentGroupExprData(this);
+            data = (AggregateData) groupData.getCurrentGroupExprData(this, over != null);
             if (data == null) {
                 data = AggregateData.create(type);
-                groupData.setCurrentGroupExprData(this, data);
+                groupData.setCurrentGroupExprData(this, data, over != null);
             }
         }
         return data;
@@ -766,8 +777,7 @@ public class Aggregate extends AbstractAggregate {
         if (on != null && !on.isEverything(visitor)) {
             return false;
         }
-        if (groupConcatSeparator != null &&
-                !groupConcatSeparator.isEverything(visitor)) {
+        if (groupConcatSeparator != null && !groupConcatSeparator.isEverything(visitor)) {
             return false;
         }
         if (orderByList != null) {

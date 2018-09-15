@@ -160,7 +160,7 @@ public class JavaAggregate extends AbstractAggregate {
 
     @Override
     public Value getValue(Session session) {
-        SelectGroups groupData = select.getGroupDataIfCurrent(true);
+        SelectGroups groupData = select.getGroupDataIfCurrent(over != null);
         if (groupData == null) {
             throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
@@ -201,7 +201,7 @@ public class JavaAggregate extends AbstractAggregate {
 
     @Override
     public void updateAggregate(Session session) {
-        SelectGroups groupData = select.getGroupDataIfCurrent(true);
+        SelectGroups groupData = select.getGroupDataIfCurrent(over != null);
         if (groupData == null) {
             // this is a different level (the enclosing query)
             return;
@@ -214,6 +214,9 @@ public class JavaAggregate extends AbstractAggregate {
         }
         lastGroupRowId = groupRowId;
 
+        if (over != null) {
+            over.updateAggregate(session);
+        }
         if (filterCondition != null) {
             if (!filterCondition.getBooleanValue(session)) {
                 return;
@@ -253,13 +256,13 @@ public class JavaAggregate extends AbstractAggregate {
         ValueArray key;
         if (over != null && (key = over.getCurrentKey(session)) != null) {
             @SuppressWarnings("unchecked")
-            ValueHashMap<Aggregate> map = (ValueHashMap<Aggregate>) groupData.getCurrentGroupExprData(this);
+            ValueHashMap<Aggregate> map = (ValueHashMap<Aggregate>) groupData.getCurrentGroupExprData(this, true);
             if (map == null) {
                 if (ifExists) {
                     return null;
                 }
                 map = new ValueHashMap<>();
-                groupData.setCurrentGroupExprData(this, map);
+                groupData.setCurrentGroupExprData(this, map, true);
             }
             data = map.get(key);
             if (data == null) {
@@ -270,13 +273,13 @@ public class JavaAggregate extends AbstractAggregate {
                 map.put(key, data);
             }
         } else {
-            data = (Aggregate) groupData.getCurrentGroupExprData(this);
+            data = (Aggregate) groupData.getCurrentGroupExprData(this, over != null);
             if (data == null) {
                 if (ifExists) {
                     return null;
                 }
                 data = getInstance();
-                groupData.setCurrentGroupExprData(this, data);
+                groupData.setCurrentGroupExprData(this, data, over != null);
             }
         }
         return data;
@@ -287,14 +290,14 @@ public class JavaAggregate extends AbstractAggregate {
         ValueArray key;
         if (over != null && (key = over.getCurrentKey(session)) != null) {
             @SuppressWarnings("unchecked")
-            ValueHashMap<AggregateDataCollecting> map =
-                    (ValueHashMap<AggregateDataCollecting>) groupData.getCurrentGroupExprData(this);
+            ValueHashMap<AggregateDataCollecting> map = (ValueHashMap<AggregateDataCollecting>) groupData
+                    .getCurrentGroupExprData(this, true);
             if (map == null) {
                 if (ifExists) {
                     return null;
                 }
                 map = new ValueHashMap<>();
-                groupData.setCurrentGroupExprData(this, map);
+                groupData.setCurrentGroupExprData(this, map, true);
             }
             data = map.get(key);
             if (data == null) {
@@ -305,13 +308,13 @@ public class JavaAggregate extends AbstractAggregate {
                 map.put(key, data);
             }
         } else {
-            data = (AggregateDataCollecting) groupData.getCurrentGroupExprData(this);
+            data = (AggregateDataCollecting) groupData.getCurrentGroupExprData(this, over != null);
             if (data == null) {
                 if (ifExists) {
                     return null;
                 }
                 data = new AggregateDataCollecting();
-                groupData.setCurrentGroupExprData(this, data);
+                groupData.setCurrentGroupExprData(this, data, over != null);
             }
         }
         return data;

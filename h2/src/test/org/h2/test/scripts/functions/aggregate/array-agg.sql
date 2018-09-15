@@ -107,6 +107,17 @@ SELECT ARRAY_AGG(ID) OVER (PARTITION BY NAME), NAME FROM TEST;
 > (4, 5, 6)                              c
 > rows: 6
 
+SELECT ARRAY_AGG(ID) FILTER (WHERE ID < 3 OR ID > 4) OVER (PARTITION BY NAME), NAME FROM TEST ORDER BY NAME;
+> ARRAY_AGG(ID) FILTER (WHERE ((ID < 3) OR (ID > 4))) OVER (PARTITION BY NAME) NAME
+> ---------------------------------------------------------------------------- ----
+> (1, 2)                                                                       a
+> (1, 2)                                                                       a
+> null                                                                         b
+> (5, 6)                                                                       c
+> (5, 6)                                                                       c
+> (5, 6)                                                                       c
+> rows (ordered): 6
+
 SELECT ARRAY_AGG(SUM(ID)) OVER () FROM TEST;
 > exception FEATURE_NOT_SUPPORTED_1
 

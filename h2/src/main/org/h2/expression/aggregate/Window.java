@@ -39,6 +39,7 @@ public final class Window {
      *            the column resolver
      * @param level
      *            the subquery nesting level
+     * @see Expression#mapColumns(ColumnResolver, int)
      */
     public void mapColumns(ColumnResolver resolver, int level) {
         if (partitionBy != null) {
@@ -56,6 +57,7 @@ public final class Window {
      *            the table filter
      * @param value
      *            true if the table filter can return value
+     * @see Expression#setEvaluatable(TableFilter, boolean)
      */
     public void setEvaluatable(TableFilter tableFilter, boolean value) {
         if (partitionBy != null) {
@@ -90,6 +92,7 @@ public final class Window {
      * Returns SQL representation.
      *
      * @return SQL representation.
+     * @see Expression#getSQL()
      */
     public String getSQL() {
         if (partitionBy == null) {
@@ -103,6 +106,21 @@ public final class Window {
             builder.append(StringUtils.unEnclose(partitionBy.get(i).getSQL()));
         }
         return builder.append(')').toString();
+    }
+
+    /**
+     * Update an aggregate value.
+     *
+     * @param session
+     *            the session
+     * @see Expression#updateAggregate(Session)
+     */
+    public void updateAggregate(Session session) {
+        if (partitionBy != null) {
+            for (Expression expr : partitionBy) {
+                expr.updateAggregate(session);
+            }
+        }
     }
 
     @Override

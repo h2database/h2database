@@ -5,6 +5,8 @@
  */
 package org.h2.expression.aggregate;
 
+import java.util.HashMap;
+
 import org.h2.value.Value;
 
 /**
@@ -21,6 +23,11 @@ final class PartitionData {
      * Evaluated result.
      */
     private Value result;
+
+    /**
+     * Evaluated ordered result.
+     */
+    private HashMap<Integer, Value> orderedResult;
 
     /**
      * Creates new instance of partition data.
@@ -58,6 +65,25 @@ final class PartitionData {
      */
     void setResult(Value result) {
         this.result = result;
+    }
+
+    /**
+     * Returns the ordered result.
+     *
+     * @return the ordered result
+     */
+    HashMap<Integer, Value> getOrderedResult() {
+        return orderedResult;
+    }
+
+    /**
+     * Sets the ordered result.
+     *
+     * @param orderedResult
+     *            the ordered result to set
+     */
+    void setOrderedResult(HashMap<Integer, Value> orderedResult) {
+        this.orderedResult = orderedResult;
     }
 
 }

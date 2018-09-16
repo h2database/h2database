@@ -286,13 +286,17 @@ public class Aggregate extends AbstractAggregate {
     protected void updateAggregate(Session session, Object aggregateData) {
         AggregateData data = (AggregateData) aggregateData;
         Value v = on == null ? null : on.getValue(session);
+        updateData(session, data, v, null);
+    }
+
+    private void updateData(Session session, AggregateData data, Value v, Value[] remembered) {
         if (type == AggregateType.GROUP_CONCAT) {
             if (v != ValueNull.INSTANCE) {
-                v = updateCollecting(session, v.convertTo(Value.STRING));
+                v = updateCollecting(session, v.convertTo(Value.STRING), remembered);
             }
         } else if (type == AggregateType.ARRAY_AGG) {
             if (v != ValueNull.INSTANCE) {
-                v = updateCollecting(session, v);
+                v = updateCollecting(session, v, remembered);
             }
         }
         data.add(session.getDatabase(), dataType, distinct, v);
@@ -310,18 +314,53 @@ public class Aggregate extends AbstractAggregate {
         }
     }
 
-    private Value updateCollecting(Session session, Value v) {
+    private Value updateCollecting(Session session, Value v, Value[] remembered) {
         if (orderByList != null) {
             int size = orderByList.size();
             Value[] array = new Value[1 + size];
             array[0] = v;
-            for (int i = 0; i < size; i++) {
-                SelectOrderBy o = orderByList.get(i);
-                array[i + 1] = o.expression.getValue(session);
+            if (remembered == null) {
+                for (int i = 0; i < size; i++) {
+                    SelectOrderBy o = orderByList.get(i);
+                    array[i + 1] = o.expression.getValue(session);
+                }
+            } else {
+                for (int i = 1; i <= size; i++) {
+                    array[i] = remembered[i];
+                }
             }
             v = ValueArray.get(array);
         }
         return v;
+    }
+
+    @Override
+    protected int getNumExpressions() {
+        int n = on != null ? 1 : 0;
+        if (orderByList != null) {
+            n += orderByList.size();
+        }
+        return n;
+    }
+
+    @Override
+    protected void rememberExpressions(Session session, Value[] array) {
+        int offset = 0;
+        if (on != null) {
+            array[offset++] = on.getValue(session);
+        }
+        if (orderByList != null) {
+            for (SelectOrderBy o : orderByList) {
+                array[offset++] = o.expression.getValue(session);
+            }
+        }
+    }
+
+    @Override
+    protected void updateFromExpressions(Session session, Object aggregateData, Value[] array) {
+        AggregateData data = (AggregateData) aggregateData;
+        Value v = on == null ? null : array[0];
+        updateData(session, data, v, array);
     }
 
     @Override
@@ -583,42 +622,28 @@ public class Aggregate extends AbstractAggregate {
     }
 
     private String getSQLGroupConcat() {
-        StatementBuilder buff = new StatementBuilder("GROUP_CONCAT(");
+        StringBuilder buff = new StringBuilder("GROUP_CONCAT(");
         if (distinct) {
             buff.append("DISTINCT ");
         }
         buff.append(on.getSQL());
-        if (orderByList != null) {
-            buff.append(" ORDER BY ");
-            for (SelectOrderBy o : orderByList) {
-                buff.appendExceptFirst(", ");
-                buff.append(o.expression.getSQL());
-                SortOrder.typeToString(buff.builder(), o.sortType);
-            }
-        }
+        Window.appendOrderBy(buff, orderByList);
         if (groupConcatSeparator != null) {
             buff.append(" SEPARATOR ").append(groupConcatSeparator.getSQL());
         }
         buff.append(')');
-        return appendTailConditions(buff.builder()).toString();
+        return appendTailConditions(buff).toString();
     }
 
     private String getSQLArrayAggregate() {
-        StatementBuilder buff = new StatementBuilder("ARRAY_AGG(");
+        StringBuilder buff = new StringBuilder("ARRAY_AGG(");
         if (distinct) {
             buff.append("DISTINCT ");
         }
         buff.append(on.getSQL());
-        if (orderByList != null) {
-            buff.append(" ORDER BY ");
-            for (SelectOrderBy o : orderByList) {
-                buff.appendExceptFirst(", ");
-                buff.append(o.expression.getSQL());
-                SortOrder.typeToString(buff.builder(), o.sortType);
-            }
-        }
+        Window.appendOrderBy(buff, orderByList);
         buff.append(')');
-        return appendTailConditions(buff.builder()).toString();
+        return appendTailConditions(buff).toString();
     }
 
     @Override

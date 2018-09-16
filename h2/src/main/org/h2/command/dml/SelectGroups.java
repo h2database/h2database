@@ -183,6 +183,7 @@ public abstract class SelectGroups {
             if (cursor.hasNext()) {
                 Object[] values = cursor.next();
                 currentGroupByExprData = values;
+                currentGroupRowId++;
                 return ValueArray.get(new Value[0]);
             }
             return null;
@@ -313,6 +314,14 @@ public abstract class SelectGroups {
         currentGroupByExprData = null;
         exprToIndexInGroupByData.clear();
         windowData.clear();
+    }
+
+    /**
+     * Reset the row id counter.
+     */
+    public void resetCounter() {
+        // TODO merge into reset() and done()
+        currentGroupRowId = 0;
     }
 
     /**

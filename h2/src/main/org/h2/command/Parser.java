@@ -3050,8 +3050,13 @@ public class Parser {
                     partitionBy.add(expr);
                 } while (readIf(COMMA));
             }
+            ArrayList<SelectOrderBy> orderBy = null;
+            if (readIf(ORDER)) {
+                read("BY");
+                orderBy = parseSimpleOrderList();
+            }
             read(CLOSE_PAREN);
-            aggregate.setOverCondition(new Window(partitionBy));
+            aggregate.setOverCondition(new Window(partitionBy, orderBy));
             currentSelect.setWindowQuery();
         } else {
             currentSelect.setGroupQuery();

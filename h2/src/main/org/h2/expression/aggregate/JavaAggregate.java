@@ -10,7 +10,6 @@ import java.sql.SQLException;
 import org.h2.api.Aggregate;
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
-import org.h2.command.dml.SelectGroups;
 import org.h2.engine.Session;
 import org.h2.engine.UserAggregate;
 import org.h2.expression.Expression;

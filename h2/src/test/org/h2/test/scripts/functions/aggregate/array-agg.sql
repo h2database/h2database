@@ -77,52 +77,89 @@ INSERT INTO TEST VALUES (1, 'a'), (2, 'a'), (3, 'b'), (4, 'c'), (5, 'c'), (6, 'c
 SELECT ARRAY_AGG(ID), NAME FROM TEST;
 > exception MUST_GROUP_BY_COLUMN_1
 
-SELECT ARRAY_AGG(ID), NAME FROM TEST GROUP BY NAME;
-> ARRAY_AGG(ID) NAME
-> ------------- ----
-> (1, 2)        a
-> (3)           b
-> (4, 5, 6)     c
+SELECT ARRAY_AGG(ID ORDER /**/ BY ID), NAME FROM TEST GROUP BY NAME;
+> ARRAY_AGG(ID ORDER BY ID) NAME
+> ------------------------- ----
+> (1, 2)                    a
+> (3)                       b
+> (4, 5, 6)                 c
 > rows: 3
 
-SELECT ARRAY_AGG(ID) OVER (), NAME FROM TEST;
-> ARRAY_AGG(ID) OVER () NAME
-> --------------------- ----
-> (1, 2, 3, 4, 5, 6)    a
-> (1, 2, 3, 4, 5, 6)    a
-> (1, 2, 3, 4, 5, 6)    b
-> (1, 2, 3, 4, 5, 6)    c
-> (1, 2, 3, 4, 5, 6)    c
-> (1, 2, 3, 4, 5, 6)    c
+SELECT ARRAY_AGG(ID ORDER /**/ BY ID) OVER (), NAME FROM TEST;
+> ARRAY_AGG(ID ORDER BY ID) OVER () NAME
+> --------------------------------- ----
+> (1, 2, 3, 4, 5, 6)                a
+> (1, 2, 3, 4, 5, 6)                a
+> (1, 2, 3, 4, 5, 6)                b
+> (1, 2, 3, 4, 5, 6)                c
+> (1, 2, 3, 4, 5, 6)                c
+> (1, 2, 3, 4, 5, 6)                c
 > rows: 6
 
-SELECT ARRAY_AGG(ID) OVER (PARTITION BY NAME), NAME FROM TEST;
-> ARRAY_AGG(ID) OVER (PARTITION BY NAME) NAME
-> -------------------------------------- ----
-> (1, 2)                                 a
-> (1, 2)                                 a
-> (3)                                    b
-> (4, 5, 6)                              c
-> (4, 5, 6)                              c
-> (4, 5, 6)                              c
+SELECT ARRAY_AGG(ID ORDER /**/ BY ID) OVER (PARTITION BY NAME), NAME FROM TEST;
+> ARRAY_AGG(ID ORDER BY ID) OVER (PARTITION BY NAME) NAME
+> -------------------------------------------------- ----
+> (1, 2)                                             a
+> (1, 2)                                             a
+> (3)                                                b
+> (4, 5, 6)                                          c
+> (4, 5, 6)                                          c
+> (4, 5, 6)                                          c
 > rows: 6
 
-SELECT ARRAY_AGG(ID) FILTER (WHERE ID < 3 OR ID > 4) OVER (PARTITION BY NAME), NAME FROM TEST ORDER BY NAME;
-> ARRAY_AGG(ID) FILTER (WHERE ((ID < 3) OR (ID > 4))) OVER (PARTITION BY NAME) NAME
-> ---------------------------------------------------------------------------- ----
-> (1, 2)                                                                       a
-> (1, 2)                                                                       a
-> null                                                                         b
-> (5, 6)                                                                       c
-> (5, 6)                                                                       c
-> (5, 6)                                                                       c
+SELECT ARRAY_AGG(ID ORDER /**/ BY ID) FILTER (WHERE ID < 3 OR ID > 4) OVER (PARTITION BY NAME), NAME FROM TEST ORDER BY NAME;
+> ARRAY_AGG(ID ORDER BY ID) FILTER (WHERE ((ID < 3) OR (ID > 4))) OVER (PARTITION BY NAME) NAME
+> ---------------------------------------------------------------------------------------- ----
+> (1, 2)                                                                                   a
+> (1, 2)                                                                                   a
+> null                                                                                     b
+> (5, 6)                                                                                   c
+> (5, 6)                                                                                   c
+> (5, 6)                                                                                   c
 > rows (ordered): 6
 
 SELECT ARRAY_AGG(SUM(ID)) OVER () FROM TEST;
-> exception FEATURE_NOT_SUPPORTED_1
+> ARRAY_AGG(SUM(ID)) OVER ()
+> --------------------------
+> (21)
+> rows: 1
 
-SELECT ARRAY_AGG(ID) OVER() FROM TEST GROUP BY ID;
-> exception FEATURE_NOT_SUPPORTED_1
+SELECT ARRAY_AGG(ID ORDER /**/ BY ID) OVER() FROM TEST GROUP BY ID ORDER /**/ BY ID;
+> ARRAY_AGG(ID ORDER BY ID) OVER ()
+> ---------------------------------
+> (1, 2, 3, 4, 5, 6)
+> (1, 2, 3, 4, 5, 6)
+> (1, 2, 3, 4, 5, 6)
+> (1, 2, 3, 4, 5, 6)
+> (1, 2, 3, 4, 5, 6)
+> (1, 2, 3, 4, 5, 6)
+> rows: 6
+
+SELECT ARRAY_AGG(NAME) OVER(PARTITION BY NAME) FROM TEST GROUP BY NAME;
+> ARRAY_AGG(NAME) OVER (PARTITION BY NAME)
+> ----------------------------------------
+> (a)
+> (b)
+> (c)
+> rows: 3
+
+SELECT ARRAY_AGG(ARRAY_AGG(ID ORDER /**/ BY ID)) OVER (PARTITION BY NAME), NAME FROM TEST GROUP BY NAME;
+> ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) OVER (PARTITION BY NAME) NAME
+> ------------------------------------------------------------- ----
+> ((1, 2))                                                      a
+> ((3))                                                         b
+> ((4, 5, 6))                                                   c
+> rows: 3
+
+SELECT ARRAY_AGG(ARRAY_AGG(ID ORDER /**/ BY ID)) OVER (PARTITION BY NAME), NAME FROM TEST GROUP BY NAME ORDER /**/ BY NAME OFFSET 1 ROW;
+> ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) OVER (PARTITION BY NAME) NAME
+> ------------------------------------------------------------- ----
+> ((3))                                                         b
+> ((4, 5, 6))                                                   c
+> rows: 2
+
+SELECT ARRAY_AGG(ID) OVER() FROM TEST GROUP BY NAME;
+> exception MUST_GROUP_BY_COLUMN_1
 
 DROP TABLE TEST;
 > ok

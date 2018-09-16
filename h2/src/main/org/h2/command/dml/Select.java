@@ -113,6 +113,8 @@ public class Select extends Query {
     private boolean isPrepared, checkInit;
     private boolean sortUsingIndex;
 
+    private boolean isGroupWindowStage2;
+
     public Select(Session session) {
         super(session);
     }
@@ -356,28 +358,38 @@ public class Select extends Query {
     }
 
     private void queryWindow(int columnCount, LocalResult result, long offset, boolean quickOffset) {
+        if (isGroupQuery) {
+            queryGroupWindow(columnCount, result, offset, quickOffset);
+            return;
+        }
         if (groupData == null) {
             groupData = SelectGroups.getInstance(session, expressions, isGroupQuery, groupIndex);
         }
         groupData.reset();
         try {
-            int rowNumber = 0;
-            setCurrentRowNumber(0);
-            int sampleSize = getSampleSizeValue(session);
-            while (topTableFilter.next()) {
-                setCurrentRowNumber(rowNumber + 1);
-                if (isConditionMet()) {
-                    rowNumber++;
-                    groupData.nextSource();
-                    updateAgg(columnCount, true);
-                    if (sampleSize > 0 && rowNumber >= sampleSize) {
-                        break;
-                    }
-                }
+            gatherGroup(columnCount, true);
+            processGroupResult(columnCount, result, offset, quickOffset);
+        } finally {
+            groupData.reset();
+        }
+    }
+
+    private void queryGroupWindow(int columnCount, LocalResult result, long offset, boolean quickOffset) {
+        if (groupData == null) {
+            groupData = SelectGroups.getInstance(session, expressions, isGroupQuery, groupIndex);
+        }
+        groupData.reset();
+        try {
+            gatherGroup(columnCount, false);
+            while (groupData.next() != null) {
+                updateAgg(columnCount, true);
             }
             groupData.done();
-            for (ValueArray currentGroupsKey; (currentGroupsKey = groupData.next()) != null;) {
-                offset = processGroupedRow(columnCount, result, offset, quickOffset, currentGroupsKey);
+            try {
+                isGroupWindowStage2 = true;
+                processGroupResult(columnCount, result, offset, quickOffset);
+            } finally {
+                isGroupWindowStage2 = false;
             }
         } finally {
             groupData.reset();
@@ -390,27 +402,29 @@ public class Select extends Query {
         }
         groupData.reset();
         try {
-            int rowNumber = 0;
-            setCurrentRowNumber(0);
-            int sampleSize = getSampleSizeValue(session);
-            while (topTableFilter.next()) {
-                setCurrentRowNumber(rowNumber + 1);
-                if (isConditionMet()) {
-                    rowNumber++;
-                    groupData.nextSource();
-                    updateAgg(columnCount, false);
-                    if (sampleSize > 0 && rowNumber >= sampleSize) {
-                        break;
-                    }
-                }
-            }
-            groupData.done();
-            for (ValueArray currentGroupsKey; (currentGroupsKey = groupData.next()) != null;) {
-                offset = processGroupedRow(columnCount, result, offset, quickOffset, currentGroupsKey);
-            }
+            gatherGroup(columnCount, false);
+            processGroupResult(columnCount, result, offset, quickOffset);
         } finally {
             groupData.reset();
         }
+    }
+
+    private void gatherGroup(int columnCount, boolean window) {
+        int rowNumber = 0;
+        setCurrentRowNumber(0);
+        int sampleSize = getSampleSizeValue(session);
+        while (topTableFilter.next()) {
+            setCurrentRowNumber(rowNumber + 1);
+            if (isConditionMet()) {
+                rowNumber++;
+                groupData.nextSource();
+                updateAgg(columnCount, window);
+                if (sampleSize > 0 && rowNumber >= sampleSize) {
+                    break;
+                }
+            }
+        }
+        groupData.done();
     }
 
     private void updateAgg(int columnCount, boolean window) {
@@ -422,30 +436,30 @@ public class Select extends Query {
         }
     }
 
-    private long processGroupedRow(int columnCount, LocalResult result, long offset, boolean quickOffset,
-            ValueArray currentGroupsKey) {
-        Value[] keyValues = currentGroupsKey.getList();
-        Value[] row = new Value[columnCount];
-        for (int j = 0; groupIndex != null && j < groupIndex.length; j++) {
-            row[groupIndex[j]] = keyValues[j];
-        }
-        for (int j = 0; j < columnCount; j++) {
-            if (groupByExpression != null && groupByExpression[j]) {
+    private void processGroupResult(int columnCount, LocalResult result, long offset, boolean quickOffset) {
+        for (ValueArray currentGroupsKey; (currentGroupsKey = groupData.next()) != null;) {
+            Value[] keyValues = currentGroupsKey.getList();
+            Value[] row = new Value[columnCount];
+            for (int j = 0; groupIndex != null && j < groupIndex.length; j++) {
+                row[groupIndex[j]] = keyValues[j];
+            }
+            for (int j = 0; j < columnCount; j++) {
+                if (groupByExpression != null && groupByExpression[j]) {
+                    continue;
+                }
+                Expression expr = expressions.get(j);
+                row[j] = expr.getValue(session);
+            }
+            if (isHavingNullOrFalse(row)) {
                 continue;
             }
-            Expression expr = expressions.get(j);
-            row[j] = expr.getValue(session);
+            if (quickOffset && offset > 0) {
+                offset--;
+                continue;
+            }
+            row = keepOnlyDistinct(row, columnCount);
+            result.addRow(row);
         }
-        if (isHavingNullOrFalse(row)) {
-            return offset;
-        }
-        if (quickOffset && offset > 0) {
-            offset--;
-            return offset;
-        }
-        row = keepOnlyDistinct(row, columnCount);
-        result.addRow(row);
-        return offset;
     }
 
     /**
@@ -746,7 +760,11 @@ public class Select extends Query {
                 if (isQuickAggregateQuery) {
                     queryQuick(columnCount, to, quickOffset && offset > 0);
                 } else if (isWindowQuery) {
-                    queryWindow(columnCount, result, offset, quickOffset);
+                    if (isGroupQuery) {
+                        queryGroupWindow(columnCount, result, offset, quickOffset);
+                    } else {
+                        queryWindow(columnCount, result, offset, quickOffset);
+                    }
                 } else if (isGroupQuery) {
                     if (isGroupSortedQuery) {
                         lazyResult = queryGroupSorted(columnCount, to, offset, quickOffset);
@@ -941,10 +959,6 @@ public class Select extends Query {
 
         if (withTies && !hasOrder()) {
             throw DbException.get(ErrorCode.WITH_TIES_WITHOUT_ORDER_BY);
-        }
-
-        if (isWindowQuery && isGroupQuery) {
-            throw DbException.getUnsupportedException("Window functions in group query are not currently supported.");
         }
 
         Database db = session.getDatabase();
@@ -1435,6 +1449,34 @@ public class Select extends Query {
      */
     public boolean isQuickAggregateQuery() {
         return isQuickAggregateQuery;
+    }
+
+    /**
+     * Checks if this query is a group query.
+     *
+     * @return whether this query is a group query.
+     */
+    public boolean isGroupQuery() {
+        return isGroupQuery;
+    }
+
+    /**
+     * Checks if this query contains window functions.
+     *
+     * @return whether this query contains window functions
+     */
+    public boolean isWindowQuery() {
+        return isWindowQuery;
+    }
+
+    /**
+     * Checks if window stage of group window query is performed. If true,
+     * column resolver may not be used.
+     *
+     * @return true if window stage of group window query is performed
+     */
+    public boolean isGroupWindowStage2() {
+        return isGroupWindowStage2;
     }
 
     @Override

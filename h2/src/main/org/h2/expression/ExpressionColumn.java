@@ -184,6 +184,9 @@ public class ExpressionColumn extends Expression {
                 if (v != null) {
                     return v;
                 }
+                if (select.isGroupWindowStage2()) {
+                    throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
+                }
             }
         }
         Value value = columnResolver.getValue(column);

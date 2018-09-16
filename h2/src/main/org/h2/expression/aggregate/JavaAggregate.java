@@ -116,6 +116,7 @@ public class JavaAggregate extends AbstractAggregate {
 
     @Override
     public Expression optimize(Session session) {
+        super.optimize(session);
         userConnection = session.createConnection(false);
         int len = args.length;
         argTypes = new int[len];
@@ -194,13 +195,17 @@ public class JavaAggregate extends AbstractAggregate {
 
     @Override
     protected void updateAggregate(Session session, Object aggregateData) {
+        updateData(session, aggregateData, null);
+    }
+
+    private void updateData(Session session, Object aggregateData, Value[] remembered) {
         try {
             if (distinct) {
                 AggregateDataCollecting data = (AggregateDataCollecting) aggregateData;
                 Value[] argValues = new Value[args.length];
                 Value arg = null;
                 for (int i = 0, len = args.length; i < len; i++) {
-                    arg = args[i].getValue(session);
+                    arg = remembered == null ? args[i].getValue(session) : remembered[i];
                     arg = arg.convertTo(argTypes[i]);
                     argValues[i] = arg;
                 }
@@ -210,7 +215,7 @@ public class JavaAggregate extends AbstractAggregate {
                 Object[] argValues = new Object[args.length];
                 Object arg = null;
                 for (int i = 0, len = args.length; i < len; i++) {
-                    Value v = args[i].getValue(session);
+                    Value v = remembered == null ? args[i].getValue(session) : remembered[i];
                     v = v.convertTo(argTypes[i]);
                     arg = v.getObject();
                     argValues[i] = arg;
@@ -227,6 +232,23 @@ public class JavaAggregate extends AbstractAggregate {
         for (Expression expr : args) {
             expr.updateAggregate(session, false);
         }
+    }
+
+    @Override
+    protected int getNumExpressions() {
+        return args.length;
+    }
+
+    @Override
+    protected void rememberExpressions(Session session, Value[] array) {
+        for (int i = 0; i < args.length; i++) {
+            array[i] = args[i].getValue(session);
+        }
+    }
+
+    @Override
+    protected void updateFromExpressions(Session session, Object aggregateData, Value[] array) {
+        updateData(session, aggregateData, array);
     }
 
     @Override

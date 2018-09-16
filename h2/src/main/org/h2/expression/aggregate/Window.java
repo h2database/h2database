@@ -7,8 +7,10 @@ package org.h2.expression.aggregate;
 
 import java.util.ArrayList;
 
+import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
@@ -22,14 +24,39 @@ public final class Window {
 
     private final ArrayList<Expression> partitionBy;
 
+    private final ArrayList<SelectOrderBy> orderBy;
+
+    /**
+     * @param builder
+     *            string builder
+     * @param orderBy
+     *            ORDER BY clause, or null
+     */
+    static void appendOrderBy(StringBuilder builder, ArrayList<SelectOrderBy> orderBy) {
+        if (orderBy != null) {
+            builder.append(" ORDER BY ");
+            for (int i = 0; i < orderBy.size(); i++) {
+                SelectOrderBy o = orderBy.get(i);
+                if (i > 0) {
+                    builder.append(", ");
+                }
+                builder.append(o.expression.getSQL());
+                SortOrder.typeToString(builder, o.sortType);
+            }
+        }
+    }
+
     /**
      * Creates a new instance of window clause.
      *
      * @param partitionBy
      *            PARTITION BY clause, or null
+     * @param orderBy
+     *            ORDER BY clause, or null
      */
-    public Window(ArrayList<Expression> partitionBy) {
+    public Window(ArrayList<Expression> partitionBy, ArrayList<SelectOrderBy> orderBy) {
         this.partitionBy = partitionBy;
+        this.orderBy = orderBy;
     }
 
     /**
@@ -45,6 +72,11 @@ public final class Window {
         if (partitionBy != null) {
             for (Expression e : partitionBy) {
                 e.mapColumns(resolver, level);
+            }
+        }
+        if (orderBy != null) {
+            for (SelectOrderBy o : orderBy) {
+                o.expression.mapColumns(resolver, level);
             }
         }
     }
@@ -65,6 +97,20 @@ public final class Window {
                 e.setEvaluatable(tableFilter, value);
             }
         }
+        if (orderBy != null) {
+            for (SelectOrderBy o : orderBy) {
+                o.expression.setEvaluatable(tableFilter, value);
+            }
+        }
+    }
+
+    /**
+     * Returns ORDER BY clause.
+     *
+     * @return ORDER BY clause, or null
+     */
+    public ArrayList<SelectOrderBy> getOrderBy() {
+        return orderBy;
     }
 
     /**
@@ -95,16 +141,20 @@ public final class Window {
      * @see Expression#getSQL()
      */
     public String getSQL() {
-        if (partitionBy == null) {
+        if (partitionBy == null && orderBy == null) {
             return "OVER ()";
         }
-        StringBuilder builder = new StringBuilder().append("OVER (PARTITION BY ");
-        for (int i = 0; i < partitionBy.size(); i++) {
-            if (i > 0) {
-                builder.append(", ");
+        StringBuilder builder = new StringBuilder().append("OVER (");
+        if (partitionBy != null) {
+            builder.append("PARTITION BY ");
+            for (int i = 0; i < partitionBy.size(); i++) {
+                if (i > 0) {
+                    builder.append(", ");
+                }
+                builder.append(StringUtils.unEnclose(partitionBy.get(i).getSQL()));
             }
-            builder.append(StringUtils.unEnclose(partitionBy.get(i).getSQL()));
         }
+        appendOrderBy(builder, orderBy);
         return builder.append(')').toString();
     }
 
@@ -113,13 +163,19 @@ public final class Window {
      *
      * @param session
      *            the session
-     * @param window true for window processing stage, false for group stage
+     * @param window
+     *            true for window processing stage, false for group stage
      * @see Expression#updateAggregate(Session, boolean)
      */
     public void updateAggregate(Session session, boolean window) {
         if (partitionBy != null) {
             for (Expression expr : partitionBy) {
                 expr.updateAggregate(session, window);
+            }
+        }
+        if (orderBy != null) {
+            for (SelectOrderBy o : orderBy) {
+                o.expression.updateAggregate(session, false);
             }
         }
     }

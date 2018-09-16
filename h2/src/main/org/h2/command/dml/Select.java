@@ -366,8 +366,10 @@ public class Select extends Query {
             groupData = SelectGroups.getInstance(session, expressions, isGroupQuery, groupIndex);
         }
         groupData.reset();
+        groupData.resetCounter();
         try {
             gatherGroup(columnCount, true);
+            groupData.resetCounter();
             processGroupResult(columnCount, result, offset, quickOffset);
         } finally {
             groupData.reset();
@@ -379,12 +381,15 @@ public class Select extends Query {
             groupData = SelectGroups.getInstance(session, expressions, isGroupQuery, groupIndex);
         }
         groupData.reset();
+        groupData.resetCounter();
         try {
             gatherGroup(columnCount, false);
+            groupData.resetCounter();
             while (groupData.next() != null) {
                 updateAgg(columnCount, true);
             }
             groupData.done();
+            groupData.resetCounter();
             try {
                 isGroupWindowStage2 = true;
                 processGroupResult(columnCount, result, offset, quickOffset);

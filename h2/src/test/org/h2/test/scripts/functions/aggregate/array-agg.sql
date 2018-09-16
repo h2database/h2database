@@ -196,5 +196,52 @@ SELECT ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) FILTER (WHERE NAME > 'c') OVER () FR
 SELECT ARRAY_AGG(ID) OVER() FROM TEST GROUP BY NAME;
 > exception MUST_GROUP_BY_COLUMN_1
 
+SELECT ARRAY_AGG(ID) OVER(PARTITION BY NAME ORDER /**/ BY ID), NAME FROM TEST;
+> ARRAY_AGG(ID) OVER (PARTITION BY NAME ORDER BY ID) NAME
+> -------------------------------------------------- ----
+> (1)                                                a
+> (1, 2)                                             a
+> (3)                                                b
+> (4)                                                c
+> (4, 5)                                             c
+> (4, 5, 6)                                          c
+> rows: 6
+
+SELECT ARRAY_AGG(ID) OVER(PARTITION BY NAME ORDER /**/ BY ID DESC), NAME FROM TEST;
+> ARRAY_AGG(ID) OVER (PARTITION BY NAME ORDER BY ID DESC) NAME
+> ------------------------------------------------------- ----
+> (2)                                                     a
+> (2, 1)                                                  a
+> (3)                                                     b
+> (6)                                                     c
+> (6, 5)                                                  c
+> (6, 5, 4)                                               c
+> rows: 6
+
+SELECT
+    ARRAY_AGG(ID ORDER /**/ BY ID) OVER(PARTITION BY NAME ORDER /**/ BY ID DESC) A,
+    ARRAY_AGG(ID) OVER(PARTITION BY NAME ORDER /**/ BY ID DESC) D,
+    NAME FROM TEST;
+> A         D         NAME
+> --------- --------- ----
+> (1, 2)    (2, 1)    a
+> (2)       (2)       a
+> (3)       (3)       b
+> (4, 5, 6) (6, 5, 4) c
+> (5, 6)    (6, 5)    c
+> (6)       (6)       c
+> rows: 6
+
+SELECT ARRAY_AGG(SUM(ID)) OVER(ORDER /**/ BY ID) FROM TEST GROUP BY ID;
+> ARRAY_AGG(SUM(ID)) OVER ( ORDER BY ID)
+> --------------------------------------
+> (1)
+> (1, 2)
+> (1, 2, 3)
+> (1, 2, 3, 4)
+> (1, 2, 3, 4, 5)
+> (1, 2, 3, 4, 5, 6)
+> rows: 6
+
 DROP TABLE TEST;
 > ok

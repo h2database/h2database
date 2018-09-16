@@ -5,17 +5,24 @@
  */
 package org.h2.expression.aggregate;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectGroups;
+import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
+import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
+import org.h2.value.ValueInt;
 
 /**
  * A base class for aggregates.
@@ -30,7 +37,21 @@ public abstract class AbstractAggregate extends Expression {
 
     protected Window over;
 
+    private SortOrder overOrderBySort;
+
     private int lastGroupRowId;
+
+    protected static SortOrder createOrder(Session session, ArrayList<SelectOrderBy> orderBy, int offset) {
+        int size = orderBy.size();
+        int[] index = new int[size];
+        int[] sortType = new int[size];
+        for (int i = 0; i < size; i++) {
+            SelectOrderBy o = orderBy.get(i);
+            index[i] = i + offset;
+            sortType[i] = o.sortType;
+        }
+        return new SortOrder(session.getDatabase(), index, sortType, null);
+    }
 
     AbstractAggregate(Select select, boolean distinct) {
         this.select = select;
@@ -65,6 +86,17 @@ public abstract class AbstractAggregate extends Expression {
         if (over != null) {
             over.mapColumns(resolver, level);
         }
+    }
+
+    @Override
+    public Expression optimize(Session session) {
+        if (over != null) {
+            ArrayList<SelectOrderBy> orderBy = over.getOrderBy();
+            if (orderBy != null) {
+                overOrderBySort = createOrder(session, orderBy, getNumExpressions());
+            }
+        }
+        return this;
     }
 
     @Override
@@ -116,7 +148,14 @@ public abstract class AbstractAggregate extends Expression {
                 return;
             }
         }
-        updateAggregate(session, getData(session, groupData, false));
+        if (over != null) {
+            ArrayList<SelectOrderBy> orderBy = over.getOrderBy();
+            if (orderBy != null) {
+                updateOrderedAggregate(session, groupData, groupRowId, orderBy);
+                return;
+            }
+        }
+        updateAggregate(session, getData(session, groupData, false, false));
     }
 
     /**
@@ -138,7 +177,36 @@ public abstract class AbstractAggregate extends Expression {
      */
     protected abstract void updateGroupAggregates(Session session);
 
-    protected Object getData(Session session, SelectGroups groupData, boolean ifExists) {
+    /**
+     * Returns the number of expressions, excluding FILTER and OVER clauses.
+     *
+     * @return the number of expressions
+     */
+    protected abstract int getNumExpressions();
+
+    /**
+     * Stores current values of expressions into the specified array.
+     *
+     * @param session
+     *            the session
+     * @param array
+     *            array to store values of expressions
+     */
+    protected abstract void rememberExpressions(Session session, Value[] array);
+
+    /**
+     * Updates the provided aggregate data from the remembered expressions.
+     *
+     * @param session
+     *            the session
+     * @param aggregateData
+     *            aggregate data
+     * @param array
+     *            values of expressions
+     */
+    protected abstract void updateFromExpressions(Session session, Object aggregateData, Value[] array);
+
+    protected Object getData(Session session, SelectGroups groupData, boolean ifExists, boolean forOrderBy) {
         Object data;
         if (over != null) {
             ValueArray key = over.getCurrentKey(session);
@@ -157,7 +225,7 @@ public abstract class AbstractAggregate extends Expression {
                     if (ifExists) {
                         return null;
                     }
-                    data = createAggregateData();
+                    data = forOrderBy ? new ArrayList<>() : createAggregateData();
                     map.put(key, new PartitionData(data));
                 } else {
                     data = partition.getData();
@@ -168,7 +236,7 @@ public abstract class AbstractAggregate extends Expression {
                     if (ifExists) {
                         return null;
                     }
-                    data = createAggregateData();
+                    data = forOrderBy ? new ArrayList<>() : createAggregateData();
                     groupData.setCurrentGroupExprData(this, new PartitionData(data), true);
                 } else {
                     data = partition.getData();
@@ -180,7 +248,7 @@ public abstract class AbstractAggregate extends Expression {
                 if (ifExists) {
                     return null;
                 }
-                data = createAggregateData();
+                data = forOrderBy ? new ArrayList<>() : createAggregateData();
                 groupData.setCurrentGroupExprData(this, data, false);
             }
         }
@@ -195,13 +263,14 @@ public abstract class AbstractAggregate extends Expression {
         if (groupData == null) {
             throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
-        return over == null ? getAggregatedValue(session, getData(session, groupData, true))
+        return over == null ? getAggregatedValue(session, getData(session, groupData, true, false))
                 : getWindowResult(session, groupData);
     }
 
     private Value getWindowResult(Session session, SelectGroups groupData) {
         PartitionData partition;
         Object data;
+        boolean forOrderBy = over.getOrderBy() != null;
         ValueArray key = over.getCurrentKey(session);
         if (key != null) {
             @SuppressWarnings("unchecked")
@@ -212,7 +281,7 @@ public abstract class AbstractAggregate extends Expression {
             }
             partition = (PartitionData) map.get(key);
             if (partition == null) {
-                data = createAggregateData();
+                data = forOrderBy ? new ArrayList<>() : createAggregateData();
                 partition = new PartitionData(data);
                 map.put(key, partition);
             } else {
@@ -221,12 +290,15 @@ public abstract class AbstractAggregate extends Expression {
         } else {
             partition = (PartitionData) groupData.getCurrentGroupExprData(this, true);
             if (partition == null) {
-                data = createAggregateData();
+                data = forOrderBy ? new ArrayList<>() : createAggregateData();
                 partition = new PartitionData(data);
                 groupData.setCurrentGroupExprData(this, partition, true);
             } else {
                 data = partition.getData();
             }
+        }
+        if (over.getOrderBy() != null) {
+            return getOrderedResult(session, groupData, partition, data);
         }
         Value result = partition.getResult();
         if (result == null) {
@@ -237,6 +309,41 @@ public abstract class AbstractAggregate extends Expression {
     }
 
     protected abstract Value getAggregatedValue(Session session, Object aggregateData);
+
+    private void updateOrderedAggregate(Session session, SelectGroups groupData, int groupRowId,
+            ArrayList<SelectOrderBy> orderBy) {
+        int ne = getNumExpressions();
+        int size = orderBy.size();
+        Value[] array = new Value[ne + size + 1];
+        rememberExpressions(session, array);
+        for (int i = 0; i < size; i++) {
+            SelectOrderBy o = orderBy.get(i);
+            array[ne++] = o.expression.getValue(session);
+        }
+        array[ne] = ValueInt.get(groupRowId);
+        @SuppressWarnings("unchecked")
+        ArrayList<Value[]> data = (ArrayList<Value[]>) getData(session, groupData, false, true);
+        data.add(array);
+        return;
+    }
+
+    private Value getOrderedResult(Session session, SelectGroups groupData, PartitionData partition, Object data) {
+        HashMap<Integer, Value> result = partition.getOrderedResult();
+        if (result == null) {
+            result = new HashMap<>();
+            @SuppressWarnings("unchecked")
+            ArrayList<Value[]> orderedData = (ArrayList<Value[]>) data;
+            int ne = getNumExpressions();
+            int last = ne + over.getOrderBy().size();
+            Collections.sort(orderedData, overOrderBySort);
+            Object aggregateData = createAggregateData();
+            for (Value[] row : orderedData) {
+                updateFromExpressions(session, aggregateData, row);
+                result.put(row[last].getInt(), getAggregatedValue(session, aggregateData));
+            }
+        }
+        return result.get(groupData.getCurrentGroupRowId());
+    }
 
     protected StringBuilder appendTailConditions(StringBuilder builder) {
         if (filterCondition != null) {

@@ -295,6 +295,11 @@ public class Aggregate extends AbstractAggregate {
                 if (on != null) {
                     on.updateAggregate(session, false);
                 }
+                if (orderByList != null) {
+                    for (SelectOrderBy orderBy : orderByList) {
+                        orderBy.expression.updateAggregate(session, false);
+                    }
+                }
                 if (filterCondition != null) {
                     filterCondition.updateAggregate(session, false);
                 }

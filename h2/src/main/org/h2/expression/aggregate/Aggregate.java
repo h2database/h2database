@@ -29,7 +29,6 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
-import org.h2.util.ValueHashMap;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -285,8 +284,8 @@ public class Aggregate extends AbstractAggregate {
     }
 
     @Override
-    protected void updateAggregate(Session session, SelectGroups groupData) {
-        AggregateData data = getData(session, groupData);
+    protected void updateAggregate(Session session, Object aggregateData) {
+        AggregateData data = (AggregateData) aggregateData;
         Value v = on == null ? null : on.getValue(session);
         if (type == AggregateType.GROUP_CONCAT) {
             if (v != ValueNull.INSTANCE) {
@@ -327,6 +326,11 @@ public class Aggregate extends AbstractAggregate {
     }
 
     @Override
+    protected Object createAggregateData() {
+        return AggregateData.create(type);
+    }
+
+    @Override
     public Value getValue(Session session) {
         if (select.isQuickAggregateQuery()) {
             switch (type) {
@@ -364,7 +368,10 @@ public class Aggregate extends AbstractAggregate {
         if (groupData == null) {
             throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
-        AggregateData data = getData(session, groupData);
+        AggregateData data = (AggregateData) getData(session, groupData, true);
+        if (data == null) {
+            data = (AggregateData) createAggregateData();
+        }
         switch (type) {
         case GROUP_CONCAT: {
             Value[] array = ((AggregateDataCollecting) data).getArray();
@@ -417,32 +424,6 @@ public class Aggregate extends AbstractAggregate {
         default:
             return data.getValue(session.getDatabase(), dataType, distinct);
         }
-    }
-
-    private AggregateData getData(Session session, SelectGroups groupData) {
-        AggregateData data;
-        ValueArray key;
-        if (over != null && (key = over.getCurrentKey(session)) != null) {
-            @SuppressWarnings("unchecked")
-            ValueHashMap<AggregateData> map = (ValueHashMap<AggregateData>) groupData.getCurrentGroupExprData(this,
-                    true);
-            if (map == null) {
-                map = new ValueHashMap<>();
-                groupData.setCurrentGroupExprData(this, map, true);
-            }
-            data = map.get(key);
-            if (data == null) {
-                data = AggregateData.create(type);
-                map.put(key, data);
-            }
-        } else {
-            data = (AggregateData) groupData.getCurrentGroupExprData(this, over != null);
-            if (data == null) {
-                data = AggregateData.create(type);
-                groupData.setCurrentGroupExprData(this, data, over != null);
-            }
-        }
-        return data;
     }
 
     @Override

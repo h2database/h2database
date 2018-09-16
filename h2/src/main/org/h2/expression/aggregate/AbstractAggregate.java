@@ -11,6 +11,8 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.util.ValueHashMap;
+import org.h2.value.ValueArray;
 
 /**
  * A base class for aggregates.
@@ -111,7 +113,7 @@ public abstract class AbstractAggregate extends Expression {
                 return;
             }
         }
-        updateAggregate(session, groupData);
+        updateAggregate(session, getData(session, groupData, false));
     }
 
     /**
@@ -119,10 +121,10 @@ public abstract class AbstractAggregate extends Expression {
      *
      * @param session
      *            the session
-     * @param groupData
-     *            group data from the select
+     * @param aggregateData
+     *            aggregate data
      */
-    protected abstract void updateAggregate(Session session, SelectGroups groupData);
+    protected abstract void updateAggregate(Session session, Object aggregateData);
 
     /**
      * Invoked when processing group stage of grouped window queries to update
@@ -132,6 +134,42 @@ public abstract class AbstractAggregate extends Expression {
      *            the session
      */
     protected abstract void updateGroupAggregates(Session session);
+
+    protected Object getData(Session session, SelectGroups groupData, boolean ifExists) {
+        Object data;
+        ValueArray key;
+        if (over != null && (key = over.getCurrentKey(session)) != null) {
+            @SuppressWarnings("unchecked")
+            ValueHashMap<Object> map = (ValueHashMap<Object>) groupData.getCurrentGroupExprData(this, true);
+            if (map == null) {
+                if (ifExists) {
+                    return null;
+                }
+                map = new ValueHashMap<>();
+                groupData.setCurrentGroupExprData(this, map, true);
+            }
+            data = map.get(key);
+            if (data == null) {
+                if (ifExists) {
+                    return null;
+                }
+                data = createAggregateData();
+                map.put(key, data);
+            }
+        } else {
+            data = groupData.getCurrentGroupExprData(this, over != null);
+            if (data == null) {
+                if (ifExists) {
+                    return null;
+                }
+                data = createAggregateData();
+                groupData.setCurrentGroupExprData(this, data, over != null);
+            }
+        }
+        return data;
+    }
+
+    protected abstract Object createAggregateData();
 
     protected StringBuilder appendTailConditions(StringBuilder builder) {
         if (filterCondition != null) {

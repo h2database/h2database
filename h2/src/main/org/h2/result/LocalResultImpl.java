@@ -84,6 +84,7 @@ public class LocalResultImpl implements LocalResult {
         return false;
     }
 
+    @Override
     public void setMaxMemoryRows(int maxValue) {
         this.maxMemoryRows = maxValue;
     }
@@ -134,6 +135,7 @@ public class LocalResultImpl implements LocalResult {
      *
      * @param sort the sort order
      */
+    @Override
     public void setSortOrder(SortOrder sort) {
         this.sort = sort;
     }
@@ -141,6 +143,7 @@ public class LocalResultImpl implements LocalResult {
     /**
      * Remove duplicate rows.
      */
+    @Override
     public void setDistinct() {
         assert distinctIndexes == null;
         distinct = true;
@@ -152,6 +155,7 @@ public class LocalResultImpl implements LocalResult {
      *
      * @param distinctIndexes distinct indexes
      */
+    @Override
     public void setDistinct(int[] distinctIndexes) {
         assert !distinct;
         this.distinctIndexes = distinctIndexes;
@@ -170,6 +174,7 @@ public class LocalResultImpl implements LocalResult {
      *
      * @param values the row
      */
+    @Override
     public void removeDistinct(Value[] values) {
         if (!distinct) {
             DbException.throwInternalError();
@@ -329,6 +334,7 @@ public class LocalResultImpl implements LocalResult {
     /**
      * This method is called after all rows have been added.
      */
+    @Override
     public void done() {
         if (external != null) {
             addRowsToDisk();
@@ -455,6 +461,7 @@ public class LocalResultImpl implements LocalResult {
      *
      * @param limit the limit (-1 means no limit, 0 means no rows)
      */
+    @Override
     public void setLimit(int limit) {
         this.limit = limit;
     }
@@ -462,6 +469,7 @@ public class LocalResultImpl implements LocalResult {
     /**
      * @param fetchPercent whether limit expression specifies percentage of rows
      */
+    @Override
     public void setFetchPercent(boolean fetchPercent) {
         this.fetchPercent = fetchPercent;
     }
@@ -469,6 +477,7 @@ public class LocalResultImpl implements LocalResult {
     /**
      * @param withTies whether tied rows should be included in result too
      */
+    @Override
     public void setWithTies(boolean withTies) {
         this.withTies = withTies;
     }
@@ -542,6 +551,7 @@ public class LocalResultImpl implements LocalResult {
      *
      * @param offset the offset
      */
+    @Override
     public void setOffset(int offset) {
         this.offset = offset;
     }

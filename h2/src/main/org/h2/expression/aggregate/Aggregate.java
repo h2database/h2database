@@ -11,7 +11,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.Select;
-import org.h2.command.dml.SelectGroups;
 import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -332,43 +331,45 @@ public class Aggregate extends AbstractAggregate {
 
     @Override
     public Value getValue(Session session) {
-        if (select.isQuickAggregateQuery()) {
-            switch (type) {
-            case COUNT:
-            case COUNT_ALL:
-                Table table = select.getTopTableFilter().getTable();
-                return ValueLong.get(table.getRowCount(session));
-            case MIN:
-            case MAX: {
-                boolean first = type == AggregateType.MIN;
-                Index index = getMinMaxColumnIndex();
-                int sortType = index.getIndexColumns()[0].sortType;
-                if ((sortType & SortOrder.DESCENDING) != 0) {
-                    first = !first;
-                }
-                Cursor cursor = index.findFirstOrLast(session, first);
-                SearchRow row = cursor.getSearchRow();
-                Value v;
-                if (row == null) {
-                    v = ValueNull.INSTANCE;
-                } else {
-                    v = row.getValue(index.getColumns()[0].getColumnId());
-                }
-                return v;
+        return select.isQuickAggregateQuery() ? getValueQuick(session) : super.getValue(session);
+    }
+
+    private Value getValueQuick(Session session) {
+        switch (type) {
+        case COUNT:
+        case COUNT_ALL:
+            Table table = select.getTopTableFilter().getTable();
+            return ValueLong.get(table.getRowCount(session));
+        case MIN:
+        case MAX: {
+            boolean first = type == AggregateType.MIN;
+            Index index = getMinMaxColumnIndex();
+            int sortType = index.getIndexColumns()[0].sortType;
+            if ((sortType & SortOrder.DESCENDING) != 0) {
+                first = !first;
             }
-            case MEDIAN:
-                return AggregateDataMedian.getResultFromIndex(session, on, dataType);
-            case ENVELOPE:
-                return ((MVSpatialIndex) AggregateDataEnvelope.getGeometryColumnIndex(on)).getBounds(session);
-            default:
-                DbException.throwInternalError("type=" + type);
+            Cursor cursor = index.findFirstOrLast(session, first);
+            SearchRow row = cursor.getSearchRow();
+            Value v;
+            if (row == null) {
+                v = ValueNull.INSTANCE;
+            } else {
+                v = row.getValue(index.getColumns()[0].getColumnId());
             }
+            return v;
         }
-        SelectGroups groupData = select.getGroupDataIfCurrent(over != null);
-        if (groupData == null) {
-            throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
+        case MEDIAN:
+            return AggregateDataMedian.getResultFromIndex(session, on, dataType);
+        case ENVELOPE:
+            return ((MVSpatialIndex) AggregateDataEnvelope.getGeometryColumnIndex(on)).getBounds(session);
+        default:
+            throw DbException.throwInternalError("type=" + type);
         }
-        AggregateData data = (AggregateData) getData(session, groupData, true);
+    }
+
+    @Override
+    public Value getAggregatedValue(Session session, Object aggregateData) {
+        AggregateData data = (AggregateData) aggregateData;
         if (data == null) {
             data = (AggregateData) createAggregateData();
         }

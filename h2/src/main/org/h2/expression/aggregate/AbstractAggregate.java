@@ -5,13 +5,16 @@
  */
 package org.h2.expression.aggregate;
 
+import org.h2.api.ErrorCode;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectGroups;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.ValueHashMap;
+import org.h2.value.Value;
 import org.h2.value.ValueArray;
 
 /**
@@ -137,39 +140,103 @@ public abstract class AbstractAggregate extends Expression {
 
     protected Object getData(Session session, SelectGroups groupData, boolean ifExists) {
         Object data;
-        ValueArray key;
-        if (over != null && (key = over.getCurrentKey(session)) != null) {
-            @SuppressWarnings("unchecked")
-            ValueHashMap<Object> map = (ValueHashMap<Object>) groupData.getCurrentGroupExprData(this, true);
-            if (map == null) {
-                if (ifExists) {
-                    return null;
+        if (over != null) {
+            ValueArray key = over.getCurrentKey(session);
+            if (key != null) {
+                @SuppressWarnings("unchecked")
+                ValueHashMap<Object> map = (ValueHashMap<Object>) groupData.getCurrentGroupExprData(this, true);
+                if (map == null) {
+                    if (ifExists) {
+                        return null;
+                    }
+                    map = new ValueHashMap<>();
+                    groupData.setCurrentGroupExprData(this, map, true);
                 }
-                map = new ValueHashMap<>();
-                groupData.setCurrentGroupExprData(this, map, true);
-            }
-            data = map.get(key);
-            if (data == null) {
-                if (ifExists) {
-                    return null;
+                PartitionData partition = (PartitionData) map.get(key);
+                if (partition == null) {
+                    if (ifExists) {
+                        return null;
+                    }
+                    data = createAggregateData();
+                    map.put(key, new PartitionData(data));
+                } else {
+                    data = partition.getData();
                 }
-                data = createAggregateData();
-                map.put(key, data);
+            } else {
+                PartitionData partition = (PartitionData) groupData.getCurrentGroupExprData(this, true);
+                if (partition == null) {
+                    if (ifExists) {
+                        return null;
+                    }
+                    data = createAggregateData();
+                    groupData.setCurrentGroupExprData(this, new PartitionData(data), true);
+                } else {
+                    data = partition.getData();
+                }
             }
         } else {
-            data = groupData.getCurrentGroupExprData(this, over != null);
+            data = groupData.getCurrentGroupExprData(this, false);
             if (data == null) {
                 if (ifExists) {
                     return null;
                 }
                 data = createAggregateData();
-                groupData.setCurrentGroupExprData(this, data, over != null);
+                groupData.setCurrentGroupExprData(this, data, false);
             }
         }
         return data;
     }
 
     protected abstract Object createAggregateData();
+
+    @Override
+    public Value getValue(Session session) {
+        SelectGroups groupData = select.getGroupDataIfCurrent(over != null);
+        if (groupData == null) {
+            throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
+        }
+        return over == null ? getAggregatedValue(session, getData(session, groupData, true))
+                : getWindowResult(session, groupData);
+    }
+
+    private Value getWindowResult(Session session, SelectGroups groupData) {
+        PartitionData partition;
+        Object data;
+        ValueArray key = over.getCurrentKey(session);
+        if (key != null) {
+            @SuppressWarnings("unchecked")
+            ValueHashMap<Object> map = (ValueHashMap<Object>) groupData.getCurrentGroupExprData(this, true);
+            if (map == null) {
+                map = new ValueHashMap<>();
+                groupData.setCurrentGroupExprData(this, map, true);
+            }
+            partition = (PartitionData) map.get(key);
+            if (partition == null) {
+                data = createAggregateData();
+                partition = new PartitionData(data);
+                map.put(key, partition);
+            } else {
+                data = partition.getData();
+            }
+        } else {
+            partition = (PartitionData) groupData.getCurrentGroupExprData(this, true);
+            if (partition == null) {
+                data = createAggregateData();
+                partition = new PartitionData(data);
+                groupData.setCurrentGroupExprData(this, partition, true);
+            } else {
+                data = partition.getData();
+            }
+        }
+        Value result = partition.getResult();
+        if (result == null) {
+            result = getAggregatedValue(session, data);
+            partition.setResult(result);
+        }
+        return result;
+    }
+
+    protected abstract Value getAggregatedValue(Session session, Object aggregateData);
 
     protected StringBuilder appendTailConditions(StringBuilder builder) {
         if (filterCondition != null) {

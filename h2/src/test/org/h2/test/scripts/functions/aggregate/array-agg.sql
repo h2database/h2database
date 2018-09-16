@@ -151,12 +151,47 @@ SELECT ARRAY_AGG(ARRAY_AGG(ID ORDER /**/ BY ID)) OVER (PARTITION BY NAME), NAME 
 > ((4, 5, 6))                                                   c
 > rows: 3
 
-SELECT ARRAY_AGG(ARRAY_AGG(ID ORDER /**/ BY ID)) OVER (PARTITION BY NAME), NAME FROM TEST GROUP BY NAME ORDER /**/ BY NAME OFFSET 1 ROW;
+SELECT ARRAY_AGG(ARRAY_AGG(ID ORDER /**/ BY ID)) OVER (PARTITION BY NAME), NAME FROM TEST
+    GROUP BY NAME ORDER /**/ BY NAME OFFSET 1 ROW;
 > ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) OVER (PARTITION BY NAME) NAME
 > ------------------------------------------------------------- ----
 > ((3))                                                         b
 > ((4, 5, 6))                                                   c
 > rows: 2
+
+SELECT ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) FILTER (WHERE NAME > 'b') OVER (PARTITION BY NAME), NAME FROM TEST
+    GROUP BY NAME ORDER BY NAME;
+> ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) FILTER (WHERE (NAME > 'b')) OVER (PARTITION BY NAME) NAME
+> ----------------------------------------------------------------------------------------- ----
+> null                                                                                      a
+> null                                                                                      b
+> ((4, 5, 6))                                                                               c
+> rows (ordered): 3
+
+SELECT ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) FILTER (WHERE NAME > 'c') OVER (PARTITION BY NAME), NAME FROM TEST
+    GROUP BY NAME ORDER BY NAME;
+> ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) FILTER (WHERE (NAME > 'c')) OVER (PARTITION BY NAME) NAME
+> ----------------------------------------------------------------------------------------- ----
+> null                                                                                      a
+> null                                                                                      b
+> null                                                                                      c
+> rows (ordered): 3
+
+SELECT ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) FILTER (WHERE NAME > 'b') OVER () FROM TEST GROUP BY NAME ORDER BY NAME;
+> ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) FILTER (WHERE (NAME > 'b')) OVER ()
+> ------------------------------------------------------------------------
+> ((4, 5, 6))
+> ((4, 5, 6))
+> ((4, 5, 6))
+> rows (ordered): 3
+
+SELECT ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) FILTER (WHERE NAME > 'c') OVER () FROM TEST GROUP BY NAME ORDER BY NAME;
+> ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) FILTER (WHERE (NAME > 'c')) OVER ()
+> ------------------------------------------------------------------------
+> null
+> null
+> null
+> rows (ordered): 3
 
 SELECT ARRAY_AGG(ID) OVER() FROM TEST GROUP BY NAME;
 > exception MUST_GROUP_BY_COLUMN_1

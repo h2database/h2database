@@ -256,18 +256,6 @@ public class Aggregate extends AbstractAggregate {
         this.groupConcatSeparator = separator;
     }
 
-    private SortOrder initOrder(Session session) {
-        int size = orderByList.size();
-        int[] index = new int[size];
-        int[] sortType = new int[size];
-        for (int i = 0; i < size; i++) {
-            SelectOrderBy o = orderByList.get(i);
-            index[i] = i + 1;
-            sortType[i] = o.sortType;
-        }
-        return new SortOrder(session.getDatabase(), index, sortType, null);
-    }
-
     private void sortWithOrderBy(Value[] array) {
         final SortOrder sortOrder = orderBySort;
         if (sortOrder != null) {
@@ -489,6 +477,7 @@ public class Aggregate extends AbstractAggregate {
 
     @Override
     public Expression optimize(Session session) {
+        super.optimize(session);
         if (on != null) {
             on = on.optimize(session);
             dataType = on.getType();
@@ -500,7 +489,7 @@ public class Aggregate extends AbstractAggregate {
             for (SelectOrderBy o : orderByList) {
                 o.expression = o.expression.optimize(session);
             }
-            orderBySort = initOrder(session);
+            orderBySort = createOrder(session, orderByList, 1);
         }
         if (groupConcatSeparator != null) {
             groupConcatSeparator = groupConcatSeparator.optimize(session);

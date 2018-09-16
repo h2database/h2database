@@ -116,6 +116,7 @@ public class JavaAggregate extends AbstractAggregate {
 
     @Override
     public Expression optimize(Session session) {
+        super.optimize(session);
         userConnection = session.createConnection(false);
         int len = args.length;
         argTypes = new int[len];

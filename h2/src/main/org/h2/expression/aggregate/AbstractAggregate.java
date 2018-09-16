@@ -36,7 +36,21 @@ public abstract class AbstractAggregate extends Expression {
 
     protected Window over;
 
+    private SortOrder overOrderBySort;
+
     private int lastGroupRowId;
+
+    protected static SortOrder createOrder(Session session, ArrayList<SelectOrderBy> orderBy, int offset) {
+        int size = orderBy.size();
+        int[] index = new int[size];
+        int[] sortType = new int[size];
+        for (int i = 0; i < size; i++) {
+            SelectOrderBy o = orderBy.get(i);
+            index[i] = i + offset;
+            sortType[i] = o.sortType;
+        }
+        return new SortOrder(session.getDatabase(), index, sortType, null);
+    }
 
     AbstractAggregate(Select select, boolean distinct) {
         this.select = select;
@@ -71,6 +85,17 @@ public abstract class AbstractAggregate extends Expression {
         if (over != null) {
             over.mapColumns(resolver, level);
         }
+    }
+
+    @Override
+    public Expression optimize(Session session) {
+        if (over != null) {
+            ArrayList<SelectOrderBy> orderBy = over.getOrderBy();
+            if (orderBy != null) {
+                overOrderBySort = createOrder(session, orderBy, getNumExpressions());
+            }
+        }
+        return this;
     }
 
     @Override
@@ -309,8 +334,7 @@ public abstract class AbstractAggregate extends Expression {
             ArrayList<Value[]> orderedData = (ArrayList<Value[]>) data;
             int ne = getNumExpressions();
             int last = ne + over.getOrderBy().size();
-            SortOrder sortOrder = createOrder(session, ne);
-            orderedData.sort(sortOrder);
+            orderedData.sort(overOrderBySort);
             Object aggregateData = createAggregateData();
             for (Value[] row : orderedData) {
                 updateFromExpressions(session, aggregateData, row);
@@ -318,19 +342,6 @@ public abstract class AbstractAggregate extends Expression {
             }
         }
         return result.get(groupData.getCurrentGroupRowId());
-    }
-
-    private SortOrder createOrder(Session session, int ne) {
-        ArrayList<SelectOrderBy> orderBy = over.getOrderBy();
-        int size = orderBy.size();
-        int[] index = new int[size];
-        int[] sortType = new int[size];
-        for (int i = 0; i < size; i++) {
-            SelectOrderBy o = orderBy.get(i);
-            index[i] = i + ne;
-            sortType[i] = o.sortType;
-        }
-        return new SortOrder(session.getDatabase(), index, sortType, null);
     }
 
     protected StringBuilder appendTailConditions(StringBuilder builder) {

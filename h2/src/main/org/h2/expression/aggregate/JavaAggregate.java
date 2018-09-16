@@ -8,7 +8,6 @@ package org.h2.expression.aggregate;
 import java.sql.Connection;
 import java.sql.SQLException;
 import org.h2.api.Aggregate;
-import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectGroups;
@@ -158,16 +157,12 @@ public class JavaAggregate extends AbstractAggregate {
     }
 
     @Override
-    public Value getValue(Session session) {
-        SelectGroups groupData = select.getGroupDataIfCurrent(over != null);
-        if (groupData == null) {
-            throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
-        }
+    public Value getAggregatedValue(Session session, Object aggregateData) {
         try {
             Aggregate agg;
             if (distinct) {
                 agg = getInstance();
-                AggregateDataCollecting data = (AggregateDataCollecting) getData(session, groupData, true);
+                AggregateDataCollecting data = (AggregateDataCollecting) aggregateData;
                 if (data != null) {
                     for (Value value : data.values) {
                         if (args.length == 1) {
@@ -183,7 +178,7 @@ public class JavaAggregate extends AbstractAggregate {
                     }
                 }
             } else {
-                agg = (Aggregate) getData(session, groupData, true);
+                agg = (Aggregate) aggregateData;
                 if (agg == null) {
                     agg = getInstance();
                 }

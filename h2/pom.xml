@@ -217,6 +217,23 @@
     </testResource>
     </testResources>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              <mainClass>org.h2.tools.Console</mainClass>
+            </manifest>
+            <manifestEntries>
+              <Automatic-Module-Name>com.h2database</Automatic-Module-Name>
+              <Multi-Release>true</Multi-Release>
+              <Premain-Class>org.h2.util.Profiler</Premain-Class>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
       <!-- Add tools folder to test sources but consider moving them to src/test -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>

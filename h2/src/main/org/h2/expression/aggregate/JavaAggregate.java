@@ -32,19 +32,15 @@ import org.h2.value.ValueNull;
 public class JavaAggregate extends AbstractAggregate {
 
     private final UserAggregate userAggregate;
-    private final Select select;
     private final Expression[] args;
     private int[] argTypes;
-    private final boolean distinct;
     private int dataType;
     private Connection userConnection;
-    private int lastGroupRowId;
 
     public JavaAggregate(UserAggregate userAggregate, Expression[] args, Select select, boolean distinct) {
+        super(select, distinct);
         this.userAggregate = userAggregate;
         this.args = args;
-        this.select = select;
-        this.distinct = distinct;
     }
 
     @Override
@@ -200,32 +196,7 @@ public class JavaAggregate extends AbstractAggregate {
     }
 
     @Override
-    public void updateAggregate(Session session, boolean window) {
-        if (window != (over != null)) {
-            return;
-        }
-        SelectGroups groupData = select.getGroupDataIfCurrent(window);
-        if (groupData == null) {
-            // this is a different level (the enclosing query)
-            return;
-        }
-
-        int groupRowId = groupData.getCurrentGroupRowId();
-        if (lastGroupRowId == groupRowId) {
-            // already visited
-            return;
-        }
-        lastGroupRowId = groupRowId;
-
-        if (over != null) {
-            over.updateAggregate(session, true);
-        }
-        if (filterCondition != null) {
-            if (!filterCondition.getBooleanValue(session)) {
-                return;
-            }
-        }
-
+    protected void updateAggregate(Session session, SelectGroups groupData) {
         try {
             if (distinct) {
                 AggregateDataCollecting data = getDataDistinct(session, groupData, false);
@@ -251,6 +222,13 @@ public class JavaAggregate extends AbstractAggregate {
             }
         } catch (SQLException e) {
             throw DbException.convert(e);
+        }
+    }
+
+    @Override
+    protected void updateGroupAggregates(Session session) {
+        for (Expression expr : args) {
+            expr.updateAggregate(session, false);
         }
     }
 

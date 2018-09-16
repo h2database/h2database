@@ -48,3 +48,17 @@ SELECT X, COUNT(*), SUM(COUNT(*)) OVER() FROM VALUES (1), (1), (1), (1), (2), (2
 > 2 2        7
 > 3 1        7
 > rows: 3
+
+CREATE TABLE TEST(ID INT);
+> ok
+
+SELECT SUM(ID) FROM TEST;
+>> null
+
+SELECT SUM(ID) OVER () FROM TEST;
+> SUM(ID) OVER ()
+> ---------------
+> rows: 0
+
+DROP TABLE TEST;
+> ok

@@ -29,7 +29,6 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
-import org.h2.util.ValueHashMap;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -155,8 +154,6 @@ public class Aggregate extends AbstractAggregate {
     private static final HashMap<String, AggregateType> AGGREGATES = new HashMap<>(64);
 
     private final AggregateType type;
-    private final Select select;
-    private final boolean distinct;
 
     private Expression on;
     private Expression groupConcatSeparator;
@@ -165,7 +162,6 @@ public class Aggregate extends AbstractAggregate {
     private int dataType, scale;
     private long precision;
     private int displaySize;
-    private int lastGroupRowId;
 
     /**
      * Create a new aggregate object.
@@ -180,10 +176,9 @@ public class Aggregate extends AbstractAggregate {
      *            if distinct is used
      */
     public Aggregate(AggregateType type, Expression on, Select select, boolean distinct) {
+        super(select, distinct);
         this.type = type;
         this.on = on;
-        this.select = select;
-        this.distinct = distinct;
     }
 
     static {
@@ -289,52 +284,8 @@ public class Aggregate extends AbstractAggregate {
     }
 
     @Override
-    public void updateAggregate(Session session, boolean window) {
-        if (window != (over != null)) {
-            if (!window && select.isWindowQuery()) {
-                if (on != null) {
-                    on.updateAggregate(session, false);
-                }
-                if (orderByList != null) {
-                    for (SelectOrderBy orderBy : orderByList) {
-                        orderBy.expression.updateAggregate(session, false);
-                    }
-                }
-                if (filterCondition != null) {
-                    filterCondition.updateAggregate(session, false);
-                }
-                over.updateAggregate(session, false);
-            }
-            return;
-        }
-        // TODO aggregates: check nested MIN(MAX(ID)) and so on
-        // if (on != null) {
-        // on.updateAggregate();
-        // }
-        SelectGroups groupData = select.getGroupDataIfCurrent(window);
-        if (groupData == null) {
-            // this is a different level (the enclosing query)
-            return;
-        }
-
-        int groupRowId = groupData.getCurrentGroupRowId();
-        if (lastGroupRowId == groupRowId) {
-            // already visited
-            return;
-        }
-        lastGroupRowId = groupRowId;
-
-        if (over != null) {
-            if (!select.isGroupQuery()) {
-                over.updateAggregate(session, true);
-            }
-        }
-        if (filterCondition != null) {
-            if (!filterCondition.getBooleanValue(session)) {
-                return;
-            }
-        }
-        AggregateData data = getData(session, groupData);
+    protected void updateAggregate(Session session, Object aggregateData) {
+        AggregateData data = (AggregateData) aggregateData;
         Value v = on == null ? null : on.getValue(session);
         if (type == AggregateType.GROUP_CONCAT) {
             if (v != ValueNull.INSTANCE) {
@@ -346,6 +297,18 @@ public class Aggregate extends AbstractAggregate {
             }
         }
         data.add(session.getDatabase(), dataType, distinct, v);
+    }
+
+    @Override
+    protected void updateGroupAggregates(Session session) {
+        if (on != null) {
+            on.updateAggregate(session, false);
+        }
+        if (orderByList != null) {
+            for (SelectOrderBy orderBy : orderByList) {
+                orderBy.expression.updateAggregate(session, false);
+            }
+        }
     }
 
     private Value updateCollecting(Session session, Value v) {
@@ -360,6 +323,11 @@ public class Aggregate extends AbstractAggregate {
             v = ValueArray.get(array);
         }
         return v;
+    }
+
+    @Override
+    protected Object createAggregateData() {
+        return AggregateData.create(type);
     }
 
     @Override
@@ -400,7 +368,10 @@ public class Aggregate extends AbstractAggregate {
         if (groupData == null) {
             throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
-        AggregateData data = getData(session, groupData);
+        AggregateData data = (AggregateData) getData(session, groupData, true);
+        if (data == null) {
+            data = (AggregateData) createAggregateData();
+        }
         switch (type) {
         case GROUP_CONCAT: {
             Value[] array = ((AggregateDataCollecting) data).getArray();
@@ -453,32 +424,6 @@ public class Aggregate extends AbstractAggregate {
         default:
             return data.getValue(session.getDatabase(), dataType, distinct);
         }
-    }
-
-    private AggregateData getData(Session session, SelectGroups groupData) {
-        AggregateData data;
-        ValueArray key;
-        if (over != null && (key = over.getCurrentKey(session)) != null) {
-            @SuppressWarnings("unchecked")
-            ValueHashMap<AggregateData> map = (ValueHashMap<AggregateData>) groupData.getCurrentGroupExprData(this,
-                    true);
-            if (map == null) {
-                map = new ValueHashMap<>();
-                groupData.setCurrentGroupExprData(this, map, true);
-            }
-            data = map.get(key);
-            if (data == null) {
-                data = AggregateData.create(type);
-                map.put(key, data);
-            }
-        } else {
-            data = (AggregateData) groupData.getCurrentGroupExprData(this, over != null);
-            if (data == null) {
-                data = AggregateData.create(type);
-                groupData.setCurrentGroupExprData(this, data, over != null);
-            }
-        }
-        return data;
     }
 
     @Override

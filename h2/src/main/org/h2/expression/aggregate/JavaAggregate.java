@@ -20,7 +20,6 @@ import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.StatementBuilder;
-import org.h2.util.ValueHashMap;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -32,19 +31,15 @@ import org.h2.value.ValueNull;
 public class JavaAggregate extends AbstractAggregate {
 
     private final UserAggregate userAggregate;
-    private final Select select;
     private final Expression[] args;
     private int[] argTypes;
-    private final boolean distinct;
     private int dataType;
     private Connection userConnection;
-    private int lastGroupRowId;
 
     public JavaAggregate(UserAggregate userAggregate, Expression[] args, Select select, boolean distinct) {
+        super(select, distinct);
         this.userAggregate = userAggregate;
         this.args = args;
-        this.select = select;
-        this.distinct = distinct;
     }
 
     @Override
@@ -152,9 +147,13 @@ public class JavaAggregate extends AbstractAggregate {
         super.setEvaluatable(tableFilter, b);
     }
 
-    private Aggregate getInstance() throws SQLException {
+    private Aggregate getInstance() {
         Aggregate agg = userAggregate.getInstance();
-        agg.init(userConnection);
+        try {
+            agg.init(userConnection);
+        } catch (SQLException ex) {
+            throw DbException.convert(ex);
+        }
         return agg;
     }
 
@@ -168,7 +167,7 @@ public class JavaAggregate extends AbstractAggregate {
             Aggregate agg;
             if (distinct) {
                 agg = getInstance();
-                AggregateDataCollecting data = getDataDistinct(session, groupData, true);
+                AggregateDataCollecting data = (AggregateDataCollecting) getData(session, groupData, true);
                 if (data != null) {
                     for (Value value : data.values) {
                         if (args.length == 1) {
@@ -184,7 +183,7 @@ public class JavaAggregate extends AbstractAggregate {
                     }
                 }
             } else {
-                agg = getData(session, groupData, true);
+                agg = (Aggregate) getData(session, groupData, true);
                 if (agg == null) {
                     agg = getInstance();
                 }
@@ -200,35 +199,10 @@ public class JavaAggregate extends AbstractAggregate {
     }
 
     @Override
-    public void updateAggregate(Session session, boolean window) {
-        if (window != (over != null)) {
-            return;
-        }
-        SelectGroups groupData = select.getGroupDataIfCurrent(window);
-        if (groupData == null) {
-            // this is a different level (the enclosing query)
-            return;
-        }
-
-        int groupRowId = groupData.getCurrentGroupRowId();
-        if (lastGroupRowId == groupRowId) {
-            // already visited
-            return;
-        }
-        lastGroupRowId = groupRowId;
-
-        if (over != null) {
-            over.updateAggregate(session, true);
-        }
-        if (filterCondition != null) {
-            if (!filterCondition.getBooleanValue(session)) {
-                return;
-            }
-        }
-
+    protected void updateAggregate(Session session, Object aggregateData) {
         try {
             if (distinct) {
-                AggregateDataCollecting data = getDataDistinct(session, groupData, false);
+                AggregateDataCollecting data = (AggregateDataCollecting) aggregateData;
                 Value[] argValues = new Value[args.length];
                 Value arg = null;
                 for (int i = 0, len = args.length; i < len; i++) {
@@ -238,7 +212,7 @@ public class JavaAggregate extends AbstractAggregate {
                 }
                 data.add(session.getDatabase(), dataType, true, args.length == 1 ? arg : ValueArray.get(argValues));
             } else {
-                Aggregate agg = getData(session, groupData, false);
+                Aggregate agg = (Aggregate) aggregateData;
                 Object[] argValues = new Object[args.length];
                 Object arg = null;
                 for (int i = 0, len = args.length; i < len; i++) {
@@ -254,73 +228,16 @@ public class JavaAggregate extends AbstractAggregate {
         }
     }
 
-    private Aggregate getData(Session session, SelectGroups groupData, boolean ifExists) throws SQLException {
-        Aggregate data;
-        ValueArray key;
-        if (over != null && (key = over.getCurrentKey(session)) != null) {
-            @SuppressWarnings("unchecked")
-            ValueHashMap<Aggregate> map = (ValueHashMap<Aggregate>) groupData.getCurrentGroupExprData(this, true);
-            if (map == null) {
-                if (ifExists) {
-                    return null;
-                }
-                map = new ValueHashMap<>();
-                groupData.setCurrentGroupExprData(this, map, true);
-            }
-            data = map.get(key);
-            if (data == null) {
-                if (ifExists) {
-                    return null;
-                }
-                data = getInstance();
-                map.put(key, data);
-            }
-        } else {
-            data = (Aggregate) groupData.getCurrentGroupExprData(this, over != null);
-            if (data == null) {
-                if (ifExists) {
-                    return null;
-                }
-                data = getInstance();
-                groupData.setCurrentGroupExprData(this, data, over != null);
-            }
+    @Override
+    protected void updateGroupAggregates(Session session) {
+        for (Expression expr : args) {
+            expr.updateAggregate(session, false);
         }
-        return data;
     }
 
-    private AggregateDataCollecting getDataDistinct(Session session, SelectGroups groupData, boolean ifExists) {
-        AggregateDataCollecting data;
-        ValueArray key;
-        if (over != null && (key = over.getCurrentKey(session)) != null) {
-            @SuppressWarnings("unchecked")
-            ValueHashMap<AggregateDataCollecting> map = (ValueHashMap<AggregateDataCollecting>) groupData
-                    .getCurrentGroupExprData(this, true);
-            if (map == null) {
-                if (ifExists) {
-                    return null;
-                }
-                map = new ValueHashMap<>();
-                groupData.setCurrentGroupExprData(this, map, true);
-            }
-            data = map.get(key);
-            if (data == null) {
-                if (ifExists) {
-                    return null;
-                }
-                data = new AggregateDataCollecting();
-                map.put(key, data);
-            }
-        } else {
-            data = (AggregateDataCollecting) groupData.getCurrentGroupExprData(this, over != null);
-            if (data == null) {
-                if (ifExists) {
-                    return null;
-                }
-                data = new AggregateDataCollecting();
-                groupData.setCurrentGroupExprData(this, data, over != null);
-            }
-        }
-        return data;
+    @Override
+    protected Object createAggregateData() {
+        return distinct ? new AggregateDataCollecting() : getInstance();
     }
 
 }

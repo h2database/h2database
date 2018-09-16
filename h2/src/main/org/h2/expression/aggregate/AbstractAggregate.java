@@ -6,6 +6,7 @@
 package org.h2.expression.aggregate;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 import org.h2.api.ErrorCode;
@@ -334,7 +335,7 @@ public abstract class AbstractAggregate extends Expression {
             ArrayList<Value[]> orderedData = (ArrayList<Value[]>) data;
             int ne = getNumExpressions();
             int last = ne + over.getOrderBy().size();
-            orderedData.sort(overOrderBySort);
+            Collections.sort(orderedData, overOrderBySort);
             Object aggregateData = createAggregateData();
             for (Value[] row : orderedData) {
                 updateFromExpressions(session, aggregateData, row);

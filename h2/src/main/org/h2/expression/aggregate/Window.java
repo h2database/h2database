@@ -174,8 +174,8 @@ public final class Window {
             }
         }
         if (orderBy != null) {
-            for (SelectOrderBy orderBy : orderBy) {
-                orderBy.expression.updateAggregate(session, false);
+            for (SelectOrderBy o : orderBy) {
+                o.expression.updateAggregate(session, false);
             }
         }
     }

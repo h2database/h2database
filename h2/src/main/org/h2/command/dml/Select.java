@@ -24,6 +24,7 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.Wildcard;
+import org.h2.expression.aggregate.Aggregate;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -358,18 +359,9 @@ public class Select extends Query {
     }
 
     private void queryWindow(int columnCount, LocalResult result, long offset, boolean quickOffset) {
-        if (isGroupQuery) {
-            queryGroupWindow(columnCount, result, offset, quickOffset);
-            return;
-        }
-        if (groupData == null) {
-            groupData = SelectGroups.getInstance(session, expressions, isGroupQuery, groupIndex);
-        }
-        groupData.reset();
-        groupData.resetCounter();
+        initGroupData(columnCount);
         try {
-            gatherGroup(columnCount, true);
-            groupData.resetCounter();
+            gatherGroup(columnCount, Aggregate.STAGE_WINDOW);
             processGroupResult(columnCount, result, offset, quickOffset);
         } finally {
             groupData.reset();
@@ -377,19 +369,13 @@ public class Select extends Query {
     }
 
     private void queryGroupWindow(int columnCount, LocalResult result, long offset, boolean quickOffset) {
-        if (groupData == null) {
-            groupData = SelectGroups.getInstance(session, expressions, isGroupQuery, groupIndex);
-        }
-        groupData.reset();
-        groupData.resetCounter();
+        initGroupData(columnCount);
         try {
-            gatherGroup(columnCount, false);
-            groupData.resetCounter();
+            gatherGroup(columnCount, Aggregate.STAGE_GROUP);
             while (groupData.next() != null) {
-                updateAgg(columnCount, true);
+                updateAgg(columnCount, Aggregate.STAGE_WINDOW);
             }
             groupData.done();
-            groupData.resetCounter();
             try {
                 isGroupWindowStage2 = true;
                 processGroupResult(columnCount, result, offset, quickOffset);
@@ -402,19 +388,25 @@ public class Select extends Query {
     }
 
     private void queryGroup(int columnCount, LocalResult result, long offset, boolean quickOffset) {
-        if (groupData == null) {
-            groupData = SelectGroups.getInstance(session, expressions, isGroupQuery, groupIndex);
-        }
-        groupData.reset();
+        initGroupData(columnCount);
         try {
-            gatherGroup(columnCount, false);
+            gatherGroup(columnCount, Aggregate.STAGE_GROUP);
             processGroupResult(columnCount, result, offset, quickOffset);
         } finally {
             groupData.reset();
         }
     }
 
-    private void gatherGroup(int columnCount, boolean window) {
+    private void initGroupData(int columnCount) {
+        if (groupData == null) {
+            groupData = SelectGroups.getInstance(session, expressions, isGroupQuery, groupIndex);
+        } else {
+            updateAgg(columnCount, Aggregate.STAGE_RESET);
+        }
+        groupData.reset();
+    }
+
+    private void gatherGroup(int columnCount, int stage) {
         int rowNumber = 0;
         setCurrentRowNumber(0);
         int sampleSize = getSampleSizeValue(session);
@@ -423,7 +415,7 @@ public class Select extends Query {
             if (isConditionMet()) {
                 rowNumber++;
                 groupData.nextSource();
-                updateAgg(columnCount, window);
+                updateAgg(columnCount, stage);
                 if (sampleSize > 0 && rowNumber >= sampleSize) {
                     break;
                 }
@@ -432,11 +424,11 @@ public class Select extends Query {
         groupData.done();
     }
 
-    private void updateAgg(int columnCount, boolean window) {
+    void updateAgg(int columnCount, int stage) {
         for (int i = 0; i < columnCount; i++) {
             if (groupByExpression == null || !groupByExpression[i]) {
                 Expression expr = expressions.get(i);
-                expr.updateAggregate(session, window);
+                expr.updateAggregate(session, stage);
             }
         }
     }
@@ -1529,15 +1521,15 @@ public class Select extends Query {
     }
 
     @Override
-    public void updateAggregate(Session s, boolean window) {
+    public void updateAggregate(Session s, int stage) {
         for (Expression e : expressions) {
-            e.updateAggregate(s, window);
+            e.updateAggregate(s, stage);
         }
         if (condition != null) {
-            condition.updateAggregate(s, window);
+            condition.updateAggregate(s, stage);
         }
         if (having != null) {
-            having.updateAggregate(s, window);
+            having.updateAggregate(s, stage);
         }
     }
 
@@ -1694,6 +1686,7 @@ public class Select extends Query {
                 groupData = SelectGroups.getInstance(getSession(), Select.this.expressions, isGroupQuery, groupIndex);
             } else {
                 // TODO is this branch possible?
+                updateAgg(columnCount, Aggregate.STAGE_RESET);
                 groupData.resetLazy();
             }
         }
@@ -1729,13 +1722,7 @@ public class Select extends Query {
                         groupData.nextLazyGroup();
                     }
                     groupData.nextLazyRow();
-
-                    for (int i = 0; i < columnCount; i++) {
-                        if (groupByExpression == null || !groupByExpression[i]) {
-                            Expression expr = expressions.get(i);
-                            expr.updateAggregate(getSession(), false);
-                        }
-                    }
+                    updateAgg(columnCount, Aggregate.STAGE_GROUP);
                     if (row != null) {
                         return row;
                     }

@@ -2633,10 +2633,10 @@ public class Function extends Expression implements FunctionCall {
     }
 
     @Override
-    public void updateAggregate(Session session, boolean window) {
+    public void updateAggregate(Session session, int stage) {
         for (Expression e : args) {
             if (e != null) {
-                e.updateAggregate(session, window);
+                e.updateAggregate(session, stage);
             }
         }
     }

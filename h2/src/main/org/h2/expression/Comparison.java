@@ -475,10 +475,10 @@ public class Comparison extends Condition {
     }
 
     @Override
-    public void updateAggregate(Session session, boolean window) {
-        left.updateAggregate(session, window);
+    public void updateAggregate(Session session, int stage) {
+        left.updateAggregate(session, stage);
         if (right != null) {
-            right.updateAggregate(session, window);
+            right.updateAggregate(session, stage);
         }
     }
 

@@ -143,7 +143,7 @@ public class ValueExpression extends Expression {
     }
 
     @Override
-    public void updateAggregate(Session session, boolean window) {
+    public void updateAggregate(Session session, int stage) {
         // nothing to do
     }
 

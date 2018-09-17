@@ -7,7 +7,6 @@ package org.h2.expression.aggregate;
 
 import org.h2.command.dml.Select;
 import org.h2.engine.Session;
-import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
@@ -228,27 +227,6 @@ public class WindowFunction extends AbstractAggregate {
         }
         StringBuilder builder = new StringBuilder().append(text).append("()");
         return appendTailConditions(builder).toString();
-    }
-
-    @Override
-    public boolean isEverything(ExpressionVisitor visitor) {
-        switch (visitor.getType()) {
-        case ExpressionVisitor.QUERY_COMPARABLE:
-        case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
-        case ExpressionVisitor.DETERMINISTIC:
-        case ExpressionVisitor.INDEPENDENT:
-            return false;
-        case ExpressionVisitor.EVALUATABLE:
-        case ExpressionVisitor.READONLY:
-        case ExpressionVisitor.NOT_FROM_RESOLVER:
-        case ExpressionVisitor.GET_DEPENDENCIES:
-        case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
-        case ExpressionVisitor.GET_COLUMNS1:
-        case ExpressionVisitor.GET_COLUMNS2:
-            return true;
-        default:
-            throw DbException.throwInternalError("type="+visitor.getType());
-        }
     }
 
     @Override

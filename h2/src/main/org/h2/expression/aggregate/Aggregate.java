@@ -746,6 +746,9 @@ public class Aggregate extends AbstractAggregate {
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
+        if (!super.isEverything(visitor)) {
+            return false;
+        }
         if (filterCondition != null && !filterCondition.isEverything(visitor)) {
             return false;
         }

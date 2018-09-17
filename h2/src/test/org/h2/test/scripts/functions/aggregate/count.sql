@@ -47,3 +47,25 @@ select count(v), count(v) filter (where v >= 4) from test;
 
 drop table test;
 > ok
+
+CREATE TABLE TEST (ID INT PRIMARY KEY, NAME VARCHAR);
+> ok
+
+INSERT INTO TEST VALUES (1, 'b'), (3, 'a');
+> update count: 2
+
+SELECT COUNT(ID) OVER (ORDER BY NAME) AS NR,
+    A.ID AS ID FROM (SELECT ID, NAME FROM TEST ORDER BY NAME) AS A;
+> NR ID
+> -- --
+> 1  3
+> 2  1
+> rows (ordered): 2
+
+SELECT NR FROM (SELECT COUNT(ID) OVER (ORDER BY NAME) AS NR,
+    A.ID AS ID FROM (SELECT ID, NAME FROM TEST ORDER BY NAME) AS A)
+    AS B WHERE B.ID = 1;
+>> 2
+
+DROP TABLE TEST;
+> ok

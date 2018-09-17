@@ -15,6 +15,7 @@ import org.h2.command.dml.SelectGroups;
 import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
 import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
@@ -291,6 +292,30 @@ public abstract class AbstractAggregate extends Expression {
     }
 
     protected abstract Object createAggregateData();
+
+    @Override
+    public boolean isEverything(ExpressionVisitor visitor) {
+        if (over == null) {
+            return true;
+        }
+        switch (visitor.getType()) {
+        case ExpressionVisitor.QUERY_COMPARABLE:
+        case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
+        case ExpressionVisitor.DETERMINISTIC:
+        case ExpressionVisitor.INDEPENDENT:
+            return false;
+        case ExpressionVisitor.EVALUATABLE:
+        case ExpressionVisitor.READONLY:
+        case ExpressionVisitor.NOT_FROM_RESOLVER:
+        case ExpressionVisitor.GET_DEPENDENCIES:
+        case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
+        case ExpressionVisitor.GET_COLUMNS1:
+        case ExpressionVisitor.GET_COLUMNS2:
+            return true;
+        default:
+            throw DbException.throwInternalError("type=" + visitor.getType());
+        }
+    }
 
     @Override
     public Value getValue(Session session) {

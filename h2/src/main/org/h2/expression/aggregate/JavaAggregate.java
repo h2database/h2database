@@ -91,6 +91,9 @@ public class JavaAggregate extends AbstractAggregate {
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
+        if (!super.isEverything(visitor)) {
+            return false;
+        }
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
             // TODO optimization: some functions are deterministic, but we don't

@@ -2534,7 +2534,7 @@ SELECT * FROM (VALUES(1, 'Hello'), (2, 'World')) AS V;
 "
 
 "Other Grammar","Window specification","
-([PARTITION BY expression [,...])] [ORDER BY order [,...]])
+([PARTITION BY expression [,...]] [ORDER BY order [,...]])
 ","
 A window specification for a window function or aggregate.
 Window functions are currently experimental in H2 and should be used with caution.

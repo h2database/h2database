@@ -232,10 +232,23 @@ public class WindowFunction extends AbstractAggregate {
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
-        if (visitor.getType() == ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL) {
+        switch (visitor.getType()) {
+        case ExpressionVisitor.QUERY_COMPARABLE:
+        case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
+        case ExpressionVisitor.DETERMINISTIC:
+        case ExpressionVisitor.INDEPENDENT:
             return false;
+        case ExpressionVisitor.EVALUATABLE:
+        case ExpressionVisitor.READONLY:
+        case ExpressionVisitor.NOT_FROM_RESOLVER:
+        case ExpressionVisitor.GET_DEPENDENCIES:
+        case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
+        case ExpressionVisitor.GET_COLUMNS1:
+        case ExpressionVisitor.GET_COLUMNS2:
+            return true;
+        default:
+            throw DbException.throwInternalError("type="+visitor.getType());
         }
-        return true;
     }
 
     @Override

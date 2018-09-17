@@ -121,7 +121,15 @@ public class TestView extends TestDb {
         stat.execute("drop table test if exists");
         stat.execute("create table test(id int primary key, name varchar(1))");
         stat.execute("insert into test(id, name) values(1, 'b'), (3, 'a')");
-        ResultSet rs = stat.executeQuery(
+        ResultSet rs;
+        rs = stat.executeQuery(
+                "select nr from (select rownum() as nr, " +
+                "a.id as id from (select id from test order by name) as a) as b " +
+                "where b.id = 1;");
+        assertTrue(rs.next());
+        assertEquals(2, rs.getInt(1));
+        assertFalse(rs.next());
+        rs = stat.executeQuery(
                 "select nr from (select row_number() over() as nr, " +
                 "a.id as id from (select id from test order by name) as a) as b " +
                 "where b.id = 1;");

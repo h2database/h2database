@@ -41,6 +41,11 @@ public class JavaAggregate extends AbstractAggregate {
     }
 
     @Override
+    public boolean isAggregate() {
+        return true;
+    }
+
+    @Override
     public int getCost() {
         int cost = 5;
         for (Expression e : args) {
@@ -86,6 +91,9 @@ public class JavaAggregate extends AbstractAggregate {
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
+        if (!super.isEverything(visitor)) {
+            return false;
+        }
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
             // TODO optimization: some functions are deterministic, but we don't

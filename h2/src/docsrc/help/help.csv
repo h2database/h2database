@@ -2533,6 +2533,19 @@ The column list of the resulting table is C1, C2, and so on.
 SELECT * FROM (VALUES(1, 'Hello'), (2, 'World')) AS V;
 "
 
+"Other Grammar","Window specification","
+([PARTITION BY expression [,...]] [ORDER BY order [,...]])
+","
+A window specification for a window function or aggregate.
+Window functions are currently experimental in H2 and should be used with caution.
+They also may require a lot of memory for large queries.
+","
+()
+(ORDER BY ID)
+(PARTITION BY CATEGORY)
+(PARTITION BY CATEGORY ORDER BY NAME, ID)
+"
+
 "Other Grammar","Term","
 value
     | columnName
@@ -3251,7 +3264,8 @@ INTERVAL MINUTE TO SECOND
 "
 
 "Functions (Aggregate)","AVG","
-AVG ( [ DISTINCT ] { numeric } ) [ FILTER ( WHERE expression ) ]
+AVG ( [ DISTINCT ] { numeric } )
+[FILTER (WHERE expression)] [OVER windowSpecification]
 ","
 The average (mean) value.
 If no rows are selected, the result is NULL.
@@ -3262,7 +3276,8 @@ AVG(X)
 "
 
 "Functions (Aggregate)","BIT_AND","
-BIT_AND(expression) [ FILTER ( WHERE expression ) ]
+BIT_AND(expression)
+[FILTER (WHERE expression)] [OVER windowSpecification]
 ","
 The bitwise AND of all non-null values.
 If no rows are selected, the result is NULL.
@@ -3272,7 +3287,8 @@ BIT_AND(ID)
 "
 
 "Functions (Aggregate)","BIT_OR","
-BIT_OR(expression) [ FILTER ( WHERE expression ) ]
+BIT_OR(expression)
+[FILTER (WHERE expression)] [OVER windowSpecification]
 ","
 The bitwise OR of all non-null values.
 If no rows are selected, the result is NULL.
@@ -3282,7 +3298,8 @@ BIT_OR(ID)
 "
 
 "Functions (Aggregate)","BOOL_AND","
-BOOL_AND(boolean) [ FILTER ( WHERE expression ) ]
+BOOL_AND(boolean)
+[FILTER (WHERE expression)] [OVER windowSpecification]
 ","
 Returns true if all expressions are true.
 If no rows are selected, the result is NULL.
@@ -3292,7 +3309,8 @@ BOOL_AND(ID>10)
 "
 
 "Functions (Aggregate)","BOOL_OR","
-BOOL_OR(boolean) [ FILTER ( WHERE expression ) ]
+BOOL_OR(boolean)
+[FILTER (WHERE expression)] [OVER windowSpecification]
 ","
 Returns true if any expression is true.
 If no rows are selected, the result is NULL.
@@ -3302,7 +3320,8 @@ BOOL_OR(NAME LIKE 'W%')
 "
 
 "Functions (Aggregate)","COUNT","
-COUNT( { * | { [ DISTINCT ] expression } } ) [ FILTER ( WHERE expression ) ]
+COUNT( { * | { [ DISTINCT ] expression } } )
+[FILTER (WHERE expression)] [OVER windowSpecification]
 ","
 The count of all row, or of the non-null values.
 This method returns a long.
@@ -3315,7 +3334,8 @@ COUNT(*)
 "Functions (Aggregate)","GROUP_CONCAT","
 GROUP_CONCAT ( [ DISTINCT ] string
 [ ORDER BY { expression [ ASC | DESC ] } [,...] ]
-[ SEPARATOR expression ] ) [ FILTER ( WHERE expression ) ]
+[ SEPARATOR expression ] )
+[FILTER (WHERE expression)] [OVER windowSpecification]
 ","
 Concatenates strings with a separator.
 The default separator is a ',' (without space).
@@ -3329,7 +3349,7 @@ GROUP_CONCAT(NAME ORDER BY ID SEPARATOR ', ')
 "Functions (Aggregate)","ARRAY_AGG","
 ARRAY_AGG ( [ DISTINCT ] string
 [ ORDER BY { expression [ ASC | DESC ] } [,...] ] )
-[ FILTER ( WHERE expression ) ]
+[FILTER (WHERE expression)] [OVER windowSpecification]
 ","
 Aggregate the value into an array.
 This method returns an array.
@@ -3340,7 +3360,8 @@ ARRAY_AGG(NAME ORDER BY ID)
 "
 
 "Functions (Aggregate)","MAX","
-MAX(value) [ FILTER ( WHERE expression ) ]
+MAX(value)
+[FILTER (WHERE expression)] [OVER windowSpecification]
 ","
 The highest value.
 If no rows are selected, the result is NULL.
@@ -3351,7 +3372,8 @@ MAX(NAME)
 "
 
 "Functions (Aggregate)","MIN","
-MIN(value) [ FILTER ( WHERE expression ) ]
+MIN(value)
+[FILTER (WHERE expression)] [OVER windowSpecification]
 ","
 The lowest value.
 If no rows are selected, the result is NULL.
@@ -3362,7 +3384,8 @@ MIN(NAME)
 "
 
 "Functions (Aggregate)","SUM","
-SUM( [ DISTINCT ] { numeric } ) [ FILTER ( WHERE expression ) ]
+SUM( [ DISTINCT ] { numeric } )
+[FILTER (WHERE expression)] [OVER windowSpecification]
 ","
 The sum of all values.
 If no rows are selected, the result is NULL.
@@ -3374,7 +3397,8 @@ SUM(X)
 "
 
 "Functions (Aggregate)","SELECTIVITY","
-SELECTIVITY(value) [ FILTER ( WHERE expression ) ]
+SELECTIVITY(value)
+[FILTER (WHERE expression)] [OVER windowSpecification]
 ","
 Estimates the selectivity (0-100) of a value.
 The value is defined as (100 * distinctCount / rowCount).
@@ -3386,7 +3410,8 @@ SELECT SELECTIVITY(FIRSTNAME), SELECTIVITY(NAME) FROM TEST WHERE ROWNUM()<20000
 "
 
 "Functions (Aggregate)","STDDEV_POP","
-STDDEV_POP( [ DISTINCT ] numeric ) [ FILTER ( WHERE expression ) ]
+STDDEV_POP( [ DISTINCT ] numeric )
+[FILTER (WHERE expression)] [OVER windowSpecification]
 ","
 The population standard deviation.
 This method returns a double.
@@ -3397,7 +3422,8 @@ STDDEV_POP(X)
 "
 
 "Functions (Aggregate)","STDDEV_SAMP","
-STDDEV_SAMP( [ DISTINCT ] numeric ) [ FILTER ( WHERE expression ) ]
+STDDEV_SAMP( [ DISTINCT ] numeric )
+[FILTER (WHERE expression)] [OVER windowSpecification]
 ","
 The sample standard deviation.
 This method returns a double.
@@ -3408,7 +3434,8 @@ STDDEV(X)
 "
 
 "Functions (Aggregate)","VAR_POP","
-VAR_POP( [ DISTINCT ] numeric ) [ FILTER ( WHERE expression ) ]
+VAR_POP( [ DISTINCT ] numeric )
+[FILTER (WHERE expression)] [OVER windowSpecification]
 ","
 The population variance (square of the population standard deviation).
 This method returns a double.
@@ -3419,7 +3446,8 @@ VAR_POP(X)
 "
 
 "Functions (Aggregate)","VAR_SAMP","
-VAR_SAMP( [ DISTINCT ] numeric ) [ FILTER ( WHERE expression ) ]
+VAR_SAMP( [ DISTINCT ] numeric )
+[FILTER (WHERE expression)] [OVER windowSpecification]
 ","
 The sample variance (square of the sample standard deviation).
 This method returns a double.
@@ -3430,7 +3458,8 @@ VAR_SAMP(X)
 "
 
 "Functions (Aggregate)","MEDIAN","
-MEDIAN( [ DISTINCT ] value ) [ FILTER ( WHERE expression ) ]
+MEDIAN( [ DISTINCT ] value )
+[FILTER (WHERE expression)] [OVER windowSpecification]
 ","
 The value separating the higher half of a values from the lower half.
 Returns the middle value or an interpolated value between two middle values if number of values is even.
@@ -3445,7 +3474,7 @@ MEDIAN(X)
 "Functions (Aggregate)","MODE","
 { MODE( value ) [ ORDER BY expression [ ASC | DESC ] ] }
     | { MODE() WITHIN GROUP(ORDER BY expression [ ASC | DESC ]) }
-[ FILTER ( WHERE expression ) ]
+[FILTER (WHERE expression)] [OVER windowSpecification]
 ","
 Returns the value that occurs with the greatest frequency.
 If there are multiple values with the same frequency only one value will be returned.
@@ -3464,7 +3493,8 @@ MODE() WITHIN GROUP(ORDER BY X)
 "
 
 "Functions (Aggregate)","ENVELOPE","
-ENVELOPE( value ) [ FILTER ( WHERE expression ) ]
+ENVELOPE( value )
+[FILTER (WHERE expression)] [OVER windowSpecification]
 ","
 Returns the minimum bounding box that encloses all specified GEOMETRY values.
 Only 2D coordinate plane is supported.
@@ -4931,14 +4961,14 @@ READONLY()
 "
 
 "Functions (System)","ROWNUM","
-{ ROWNUM() } | { ROW_NUMBER() OVER() }
+ROWNUM()
 ","
 Returns the number of the current row.
-This method returns a long.
+This method returns an integer value.
 It is supported for SELECT statements, as well as for DELETE and UPDATE.
 The first row has the row number 1, and is calculated before ordering and grouping the result set,
 but after evaluating index conditions (even when the index conditions are specified in an outer query).
-To get the row number after ordering and grouping, use a subquery.
+Use the ROW_NUMBER() OVER () function to get row numbers after grouping or in specified order.
 ","
 SELECT ROWNUM(), * FROM TEST;
 SELECT ROWNUM(), * FROM (SELECT * FROM TEST ORDER BY NAME);
@@ -5034,6 +5064,78 @@ H2VERSION()
 Returns the H2 version as a String.
 ","
 H2VERSION()
+"
+
+"Functions (Window)","ROW_NUMBER","
+ROW_NUMBER() OVER windowSpecification
+","
+Returns the number of the current row starting with 1.
+
+Window functions are currently experimental in H2 and should be used with caution.
+They also may require a lot of memory for large queries.
+","
+SELECT ROW_NUMBER() OVER (), * FROM TEST;
+SELECT ROW_NUMBER() OVER (ORDER BY ID), * FROM TEST;
+SELECT ROW_NUMBER() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
+"Functions (Window)","RANK","
+RANK() OVER windowSpecification
+","
+Returns the rank of the current row.
+The rank of a row is the number of rows that precede this row plus 1.
+If two or more rows have the same values in ORDER BY columns, these rows get the same rank from the first row with the same values.
+It means that gaps in ranks are possible.
+
+Window functions are currently experimental in H2 and should be used with caution.
+They also may require a lot of memory for large queries.
+","
+SELECT RANK() OVER (ORDER BY ID), * FROM TEST;
+SELECT RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
+"Functions (Window)","DENSE_RANK","
+DENSE_RANK() OVER windowSpecification
+","
+Returns the dense rank of the current row.
+The rank of a row is the number of groups of rows with the same values in ORDER BY columns that precede group with this row plus 1.
+If two or more rows have the same values in ORDER BY columns, these rows get the same rank.
+Gaps in ranks are not possible.
+
+Window functions are currently experimental in H2 and should be used with caution.
+They also may require a lot of memory for large queries.
+","
+SELECT DENSE_RANK() OVER (ORDER BY ID), * FROM TEST;
+SELECT DENSE_RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
+"Functions (Window)","PERCENT_RANK","
+PERCENT_RANK() OVER windowSpecification
+","
+Returns the relative rank of the current row.
+The relative rank is calculated as (RANK - 1) / (NR - 1),
+where RANK is a rank of the row and NR is a number of rows in window partition with this row.
+
+Window functions are currently experimental in H2 and should be used with caution.
+They also may require a lot of memory for large queries.
+","
+SELECT PERCENT_RANK() OVER (ORDER BY ID), * FROM TEST;
+SELECT PERCENT_RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
+"Functions (Window)","CUME_DIST","
+CUME_DIST() OVER windowSpecification
+","
+Returns the relative rank of the current row.
+The relative rank is calculated as NP / NR
+where NP is a number of rows that precede the current row or have the same values in ORDER BY columns
+and NR is a number of rows in window partition with this row.
+
+Window functions are currently experimental in H2 and should be used with caution.
+They also may require a lot of memory for large queries.
+","
+SELECT CUME_DIST() OVER (ORDER BY ID), * FROM TEST;
+SELECT CUME_DIST() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
 "
 
 "System Tables","Information Schema","

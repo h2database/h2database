@@ -15,6 +15,7 @@ import org.h2.command.dml.SelectGroups;
 import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
 import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
@@ -25,7 +26,7 @@ import org.h2.value.ValueArray;
 import org.h2.value.ValueInt;
 
 /**
- * A base class for aggregates.
+ * A base class for aggregates and window functions.
  */
 public abstract class AbstractAggregate extends Expression {
 
@@ -37,7 +38,7 @@ public abstract class AbstractAggregate extends Expression {
 
     protected Window over;
 
-    private SortOrder overOrderBySort;
+    protected SortOrder overOrderBySort;
 
     private int lastGroupRowId;
 
@@ -65,7 +66,11 @@ public abstract class AbstractAggregate extends Expression {
      *            FILTER condition
      */
     public void setFilterCondition(Expression filterCondition) {
-        this.filterCondition = filterCondition;
+        if (isAggregate()) {
+            this.filterCondition = filterCondition;
+        } else {
+            throw DbException.getUnsupportedException("Window function");
+        }
     }
 
     /**
@@ -76,6 +81,23 @@ public abstract class AbstractAggregate extends Expression {
      */
     public void setOverCondition(Window over) {
         this.over = over;
+    }
+
+    /**
+     * Checks whether this expression is an aggregate function.
+     *
+     * @return true if this is an aggregate function (including aggregates with
+     *         OVER clause), false if this is a window function
+     */
+    public abstract boolean isAggregate();
+
+    /**
+     * Returns the sort order for OVER clause.
+     *
+     * @return the sort order for OVER clause
+     */
+    SortOrder getOverOrderBySort() {
+        return overOrderBySort;
     }
 
     @Override
@@ -272,6 +294,30 @@ public abstract class AbstractAggregate extends Expression {
     protected abstract Object createAggregateData();
 
     @Override
+    public boolean isEverything(ExpressionVisitor visitor) {
+        if (over == null) {
+            return true;
+        }
+        switch (visitor.getType()) {
+        case ExpressionVisitor.QUERY_COMPARABLE:
+        case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
+        case ExpressionVisitor.DETERMINISTIC:
+        case ExpressionVisitor.INDEPENDENT:
+            return false;
+        case ExpressionVisitor.EVALUATABLE:
+        case ExpressionVisitor.READONLY:
+        case ExpressionVisitor.NOT_FROM_RESOLVER:
+        case ExpressionVisitor.GET_DEPENDENCIES:
+        case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
+        case ExpressionVisitor.GET_COLUMNS1:
+        case ExpressionVisitor.GET_COLUMNS2:
+            return true;
+        default:
+            throw DbException.throwInternalError("type=" + visitor.getType());
+        }
+    }
+
+    @Override
     public Value getValue(Session session) {
         SelectGroups groupData = select.getGroupDataIfCurrent(over != null);
         if (groupData == null) {
@@ -322,6 +368,15 @@ public abstract class AbstractAggregate extends Expression {
         return result;
     }
 
+    /***
+     * Returns aggregated value.
+     *
+     * @param session
+     *            the session
+     * @param aggregateData
+     *            the aggregate data
+     * @return aggregated value.
+     */
     protected abstract Value getAggregatedValue(Session session, Object aggregateData);
 
     private void updateOrderedAggregate(Session session, SelectGroups groupData, int groupRowId,
@@ -348,15 +403,31 @@ public abstract class AbstractAggregate extends Expression {
             @SuppressWarnings("unchecked")
             ArrayList<Value[]> orderedData = (ArrayList<Value[]>) data;
             int ne = getNumExpressions();
-            int last = ne + over.getOrderBy().size();
+            int rowIdColumn = ne + over.getOrderBy().size();
             Collections.sort(orderedData, overOrderBySort);
-            Object aggregateData = createAggregateData();
-            for (Value[] row : orderedData) {
-                updateFromExpressions(session, aggregateData, row);
-                result.put(row[last].getInt(), getAggregatedValue(session, aggregateData));
-            }
+            getOrderedResultLoop(session, result, orderedData, rowIdColumn);
+            partition.setOrderedResult(result);
         }
         return result.get(groupData.getCurrentGroupRowId());
+    }
+
+    /**
+     * @param session
+     *            the session
+     * @param result
+     *            the map to append result to
+     * @param ordered
+     *            ordered data
+     * @param rowIdColumn
+     *            the index of row id value
+     */
+    protected void getOrderedResultLoop(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
+            int rowIdColumn) {
+        Object aggregateData = createAggregateData();
+        for (Value[] row : ordered) {
+            updateFromExpressions(session, aggregateData, row);
+            result.put(row[rowIdColumn].getInt(), getAggregatedValue(session, aggregateData));
+        }
     }
 
     protected StringBuilder appendTailConditions(StringBuilder builder) {

@@ -33,7 +33,7 @@ public final class Window {
      *            ORDER BY clause, or null
      */
     static void appendOrderBy(StringBuilder builder, ArrayList<SelectOrderBy> orderBy) {
-        if (orderBy != null) {
+        if (orderBy != null && !orderBy.isEmpty()) {
             builder.append(" ORDER BY ");
             for (int i = 0; i < orderBy.size(); i++) {
                 SelectOrderBy o = orderBy.get(i);

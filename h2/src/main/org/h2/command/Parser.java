@@ -175,6 +175,8 @@ import org.h2.expression.aggregate.Aggregate;
 import org.h2.expression.aggregate.Aggregate.AggregateType;
 import org.h2.expression.aggregate.JavaAggregate;
 import org.h2.expression.aggregate.Window;
+import org.h2.expression.aggregate.WindowFunction;
+import org.h2.expression.aggregate.WindowFunction.WindowFunctionType;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.SortOrder;
@@ -3032,13 +3034,15 @@ public class Parser {
     }
 
     private void readFilterAndOver(AbstractAggregate aggregate) {
-        if (readIf("FILTER")) {
+        boolean isAggregate = aggregate.isAggregate();
+        if (isAggregate && readIf("FILTER")) {
             read(OPEN_PAREN);
             read(WHERE);
             Expression filterCondition = readExpression();
             read(CLOSE_PAREN);
             aggregate.setFilterCondition(filterCondition);
         }
+        Window over = null;
         if (readIf("OVER")) {
             read(OPEN_PAREN);
             ArrayList<Expression> partitionBy = null;
@@ -3054,10 +3058,15 @@ public class Parser {
             if (readIf(ORDER)) {
                 read("BY");
                 orderBy = parseSimpleOrderList();
+            } else if (!isAggregate) {
+                orderBy = new ArrayList<>(0);
             }
             read(CLOSE_PAREN);
-            aggregate.setOverCondition(new Window(partitionBy, orderBy));
+            over = new Window(partitionBy, orderBy);
+            aggregate.setOverCondition(over);
             currentSelect.setWindowQuery();
+        } else if (!isAggregate) {
+            throw getSyntaxError();
         } else {
             currentSelect.setGroupQuery();
         }
@@ -3088,6 +3097,10 @@ public class Parser {
         }
         Function function = Function.getFunction(database, name);
         if (function == null) {
+            WindowFunction windowFunction = readWindowFunction(name);
+            if (windowFunction != null) {
+                return windowFunction;
+            }
             UserAggregate aggregate = database.findAggregate(name);
             if (aggregate != null) {
                 return readJavaAggregate(aggregate);
@@ -3233,16 +3246,6 @@ public class Parser {
             tf.setColumns(columns);
             break;
         }
-        case Function.ROW_NUMBER:
-            read(CLOSE_PAREN);
-            read("OVER");
-            read(OPEN_PAREN);
-            read(CLOSE_PAREN);
-            if (currentSelect == null && currentPrepared == null) {
-                throw getSyntaxError();
-            }
-            return new Rownum(currentSelect == null ? currentPrepared
-                    : currentSelect);
         default:
             if (!readIf(CLOSE_PAREN)) {
                 int i = 0;
@@ -3252,6 +3255,24 @@ public class Parser {
             }
         }
         function.doneWithParameters();
+        return function;
+    }
+
+    private WindowFunction readWindowFunction(String name) {
+        if (!database.getSettings().databaseToUpper) {
+            // if not yet converted to uppercase, do it now
+            name = StringUtils.toUpperEnglish(name);
+        }
+        WindowFunctionType type = WindowFunctionType.get(name);
+        if (type == null) {
+            return null;
+        }
+        if (currentSelect == null) {
+            throw getSyntaxError();
+        }
+        read(CLOSE_PAREN);
+        WindowFunction function = new WindowFunction(type, currentSelect);
+        readFilterAndOver(function);
         return function;
     }
 

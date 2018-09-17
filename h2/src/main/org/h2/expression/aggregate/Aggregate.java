@@ -251,6 +251,11 @@ public class Aggregate extends AbstractAggregate {
         return AGGREGATES.get(name);
     }
 
+    @Override
+    public boolean isAggregate() {
+        return true;
+    }
+
     /**
      * Set the order for ARRAY_AGG() or GROUP_CONCAT() aggregate.
      *
@@ -741,6 +746,9 @@ public class Aggregate extends AbstractAggregate {
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
+        if (!super.isEverything(visitor)) {
+            return false;
+        }
         if (filterCondition != null && !filterCondition.isEverything(visitor)) {
             return false;
         }

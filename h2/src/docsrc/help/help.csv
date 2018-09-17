@@ -5105,8 +5105,37 @@ Gaps in ranks are not possible.
 Window functions are currently experimental in H2 and should be used with caution.
 They also may require a lot of memory for large queries.
 ","
-SELECT RANK() OVER (ORDER BY ID), * FROM TEST;
-SELECT RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+SELECT DENSE_RANK() OVER (ORDER BY ID), * FROM TEST;
+SELECT DENSE_RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
+"Functions (Window)","PERCENT_RANK","
+PERCENT_RANK() OVER windowSpecification
+","
+Returns the relative rank of the current row.
+The relative rank is calculated as (RANK - 1) / (NR - 1),
+where RANK is a rank of the row and NR is a number of rows in window partition with this row.
+
+Window functions are currently experimental in H2 and should be used with caution.
+They also may require a lot of memory for large queries.
+","
+SELECT PERCENT_RANK() OVER (ORDER BY ID), * FROM TEST;
+SELECT PERCENT_RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
+"Functions (Window)","CUME_DIST","
+CUME_DIST() OVER windowSpecification
+","
+Returns the relative rank of the current row.
+The relative rank is calculated as NP / NR
+where NP is a number of rows that precede the current row or have the same values in ORDER BY columns
+and NR is a number of rows in window partition with this row.
+
+Window functions are currently experimental in H2 and should be used with caution.
+They also may require a lot of memory for large queries.
+","
+SELECT CUME_DIST() OVER (ORDER BY ID), * FROM TEST;
+SELECT CUME_DIST() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
 "
 
 "System Tables","Information Schema","

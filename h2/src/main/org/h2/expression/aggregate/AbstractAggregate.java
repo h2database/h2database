@@ -38,7 +38,7 @@ public abstract class AbstractAggregate extends Expression {
 
     protected Window over;
 
-    private SortOrder overOrderBySort;
+    protected SortOrder overOrderBySort;
 
     private int lastGroupRowId;
 
@@ -368,6 +368,15 @@ public abstract class AbstractAggregate extends Expression {
         return result;
     }
 
+    /***
+     * Returns aggregated value.
+     *
+     * @param session
+     *            the session
+     * @param aggregateData
+     *            the aggregate data
+     * @return aggregated value.
+     */
     protected abstract Value getAggregatedValue(Session session, Object aggregateData);
 
     private void updateOrderedAggregate(Session session, SelectGroups groupData, int groupRowId,
@@ -394,15 +403,31 @@ public abstract class AbstractAggregate extends Expression {
             @SuppressWarnings("unchecked")
             ArrayList<Value[]> orderedData = (ArrayList<Value[]>) data;
             int ne = getNumExpressions();
-            int last = ne + over.getOrderBy().size();
+            int rowIdColumn = ne + over.getOrderBy().size();
             Collections.sort(orderedData, overOrderBySort);
-            Object aggregateData = createAggregateData();
-            for (Value[] row : orderedData) {
-                updateFromExpressions(session, aggregateData, row);
-                result.put(row[last].getInt(), getAggregatedValue(session, aggregateData));
-            }
+            getOrderedResultLoop(session, result, orderedData, rowIdColumn);
+            partition.setOrderedResult(result);
         }
         return result.get(groupData.getCurrentGroupRowId());
+    }
+
+    /**
+     * @param session
+     *            the session
+     * @param result
+     *            the map to append result to
+     * @param ordered
+     *            ordered data
+     * @param rowIdColumn
+     *            the index of row id value
+     */
+    protected void getOrderedResultLoop(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
+            int rowIdColumn) {
+        Object aggregateData = createAggregateData();
+        for (Value[] row : ordered) {
+            updateFromExpressions(session, aggregateData, row);
+            result.put(row[rowIdColumn].getInt(), getAggregatedValue(session, aggregateData));
+        }
     }
 
     protected StringBuilder appendTailConditions(StringBuilder builder) {

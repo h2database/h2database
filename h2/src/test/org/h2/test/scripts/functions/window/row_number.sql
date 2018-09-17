@@ -14,66 +14,91 @@ INSERT INTO TEST VALUES
     (5, 2, 22),
     (6, 3, 31),
     (7, 3, 32),
-    (8, 3, 33);
-> update count: 8
+    (8, 3, 33),
+    (9, 4, 41);
+> update count: 9
 
 SELECT *,
-    ROW_NUMBER() OVER () RN, RANK() OVER () RK, DENSE_RANK() OVER () DR,
-    ROW_NUMBER() OVER (ORDER BY ID) RNO, RANK() OVER (ORDER BY ID) RKO, DENSE_RANK() OVER (ORDER BY ID) DRO
+    ROW_NUMBER() OVER () RN,
+    RANK() OVER () RK,
+    DENSE_RANK() OVER () DR,
+    ROUND(PERCENT_RANK() OVER (), 2) PR,
+    ROUND(CUME_DIST() OVER (), 2) CD,
+
+    ROW_NUMBER() OVER (ORDER BY ID) RNO,
+    RANK() OVER (ORDER BY ID) RKO,
+    DENSE_RANK() OVER (ORDER BY ID) DRO,
+    ROUND(PERCENT_RANK() OVER (ORDER BY ID), 2) PRO,
+    ROUND(CUME_DIST() OVER (ORDER BY ID), 2) CDO
+
     FROM TEST;
-> ID CATEGORY VALUE RN RK DR RNO RKO DRO
-> -- -------- ----- -- -- -- --- --- ---
-> 1  1        11    1  1  1  1   1   1
-> 2  1        12    2  1  1  2   2   2
-> 3  1        13    3  1  1  3   3   3
-> 4  2        21    4  1  1  4   4   4
-> 5  2        22    5  1  1  5   5   5
-> 6  3        31    6  1  1  6   6   6
-> 7  3        32    7  1  1  7   7   7
-> 8  3        33    8  1  1  8   8   8
-> rows (ordered): 8
+> ID CATEGORY VALUE RN RK DR PR  CD  RNO RKO DRO PRO  CDO
+> -- -------- ----- -- -- -- --- --- --- --- --- ---- ----
+> 1  1        11    1  1  1  0.0 1.0 1   1   1   0.0  0.11
+> 2  1        12    2  1  1  0.0 1.0 2   2   2   0.13 0.22
+> 3  1        13    3  1  1  0.0 1.0 3   3   3   0.25 0.33
+> 4  2        21    4  1  1  0.0 1.0 4   4   4   0.38 0.44
+> 5  2        22    5  1  1  0.0 1.0 5   5   5   0.5  0.56
+> 6  3        31    6  1  1  0.0 1.0 6   6   6   0.63 0.67
+> 7  3        32    7  1  1  0.0 1.0 7   7   7   0.75 0.78
+> 8  3        33    8  1  1  0.0 1.0 8   8   8   0.88 0.89
+> 9  4        41    9  1  1  0.0 1.0 9   9   9   1.0  1.0
+> rows (ordered): 9
 
 SELECT *,
-    ROW_NUMBER() OVER (ORDER BY CATEGORY) RN, RANK() OVER (ORDER BY CATEGORY) RK, DENSE_RANK() OVER (ORDER BY CATEGORY) DR
+    ROW_NUMBER() OVER (ORDER BY CATEGORY) RN,
+    RANK() OVER (ORDER BY CATEGORY) RK,
+    DENSE_RANK() OVER (ORDER BY CATEGORY) DR,
+    ROUND(PERCENT_RANK() OVER (ORDER BY CATEGORY), 2) PR,
+    ROUND(CUME_DIST() OVER (ORDER BY CATEGORY), 2) CD
     FROM TEST;
-> ID CATEGORY VALUE RN RK DR
-> -- -------- ----- -- -- --
-> 1  1        11    1  1  1
-> 2  1        12    2  1  1
-> 3  1        13    3  1  1
-> 4  2        21    4  4  2
-> 5  2        22    5  4  2
-> 6  3        31    6  6  3
-> 7  3        32    7  6  3
-> 8  3        33    8  6  3
-> rows (ordered): 8
+> ID CATEGORY VALUE RN RK DR PR   CD
+> -- -------- ----- -- -- -- ---- ----
+> 1  1        11    1  1  1  0.0  0.33
+> 2  1        12    2  1  1  0.0  0.33
+> 3  1        13    3  1  1  0.0  0.33
+> 4  2        21    4  4  2  0.38 0.56
+> 5  2        22    5  4  2  0.38 0.56
+> 6  3        31    6  6  3  0.63 0.89
+> 7  3        32    7  6  3  0.63 0.89
+> 8  3        33    8  6  3  0.63 0.89
+> 9  4        41    9  9  4  1.0  1.0
+> rows (ordered): 9
 
 SELECT *,
     ROW_NUMBER() OVER (PARTITION BY CATEGORY ORDER BY ID) RN,
     RANK() OVER (PARTITION BY CATEGORY ORDER BY ID) RK,
-    DENSE_RANK() OVER (PARTITION BY CATEGORY ORDER BY ID) DR
+    DENSE_RANK() OVER (PARTITION BY CATEGORY ORDER BY ID) DR,
+    ROUND(PERCENT_RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), 2) PR,
+    ROUND(CUME_DIST() OVER (PARTITION BY CATEGORY ORDER BY ID), 2) CD
     FROM TEST;
-> ID CATEGORY VALUE RN RK DR
-> -- -------- ----- -- -- --
-> 1  1        11    1  1  1
-> 2  1        12    2  2  2
-> 3  1        13    3  3  3
-> 4  2        21    1  1  1
-> 5  2        22    2  2  2
-> 6  3        31    1  1  1
-> 7  3        32    2  2  2
-> 8  3        33    3  3  3
-> rows (ordered): 8
+> ID CATEGORY VALUE RN RK DR PR  CD
+> -- -------- ----- -- -- -- --- ----
+> 1  1        11    1  1  1  0.0 0.33
+> 2  1        12    2  2  2  0.5 0.67
+> 3  1        13    3  3  3  1.0 1.0
+> 4  2        21    1  1  1  0.0 0.5
+> 5  2        22    2  2  2  1.0 1.0
+> 6  3        31    1  1  1  0.0 0.33
+> 7  3        32    2  2  2  0.5 0.67
+> 8  3        33    3  3  3  1.0 1.0
+> 9  4        41    1  1  1  0.0 1.0
+> rows (ordered): 9
 
 SELECT
-    ROW_NUMBER() OVER () RN, RANK() OVER () RK, DENSE_RANK() OVER () DR
+    ROW_NUMBER() OVER () RN,
+    RANK() OVER () RK,
+    DENSE_RANK() OVER () DR,
+    PERCENT_RANK() OVER () PR,
+    CUME_DIST() OVER () CD
     FROM TEST GROUP BY CATEGORY;
-> RN RK DR
-> -- -- --
-> 1  1  1
-> 2  1  1
-> 3  1  1
-> rows: 3
+> RN RK DR PR  CD
+> -- -- -- --- ---
+> 1  1  1  0.0 1.0
+> 2  1  1  0.0 1.0
+> 3  1  1  0.0 1.0
+> 4  1  1  0.0 1.0
+> rows: 4
 
 DROP TABLE TEST;
 > ok

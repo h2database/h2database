@@ -5,10 +5,14 @@
  */
 package org.h2.expression.aggregate;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import org.h2.command.dml.Select;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.value.Value;
+import org.h2.value.ValueDouble;
 import org.h2.value.ValueInt;
 
 /**
@@ -36,6 +40,16 @@ public class WindowFunction extends AbstractAggregate {
      */
     DENSE_RANK,
 
+    /**
+     * The type for PERCENT_RANK() window function.
+     */
+    PERCENT_RANK,
+
+    /**
+     * The type for CUME_DIST() window function.
+     */
+    CUME_DIST,
+
         ;
 
         /**
@@ -53,6 +67,10 @@ public class WindowFunction extends AbstractAggregate {
                 return RANK;
             case "DENSE_RANK":
                 return WindowFunctionType.DENSE_RANK;
+            case "PERCENT_RANK":
+                return WindowFunctionType.PERCENT_RANK;
+            case "CUME_DIST":
+                return WindowFunctionType.CUME_DIST;
             default:
                 return null;
             }
@@ -60,27 +78,7 @@ public class WindowFunction extends AbstractAggregate {
 
     }
 
-    private static class RowNumberData {
-
-        int number;
-
-        RowNumberData() {
-        }
-
-    }
-
-    private static final class RankData extends RowNumberData {
-
-        Value[] previousRow;
-
-        int previousNumber;
-
-        RankData() {
-        }
-
-    }
-
-    private WindowFunctionType type;
+    private final WindowFunctionType type;
 
     /**
      * Creates new instance of a window function.
@@ -102,20 +100,7 @@ public class WindowFunction extends AbstractAggregate {
 
     @Override
     protected void updateAggregate(Session session, Object aggregateData) {
-        switch (type) {
-        case ROW_NUMBER:
-            ((RowNumberData) aggregateData).number++;
-            break;
-        case RANK:
-        case DENSE_RANK: {
-            RankData data = (RankData) aggregateData;
-            data.number++;
-            data.previousNumber++;
-            break;
-        }
-        default:
-            throw DbException.throwInternalError("type=" + type);
-        }
+        throw DbException.getUnsupportedException("Window function");
     }
 
     @Override
@@ -135,63 +120,104 @@ public class WindowFunction extends AbstractAggregate {
 
     @Override
     protected void updateFromExpressions(Session session, Object aggregateData, Value[] array) {
-        switch (type) {
-        case ROW_NUMBER:
-            ((RowNumberData) aggregateData).number++;
-            break;
-        case RANK:
-        case DENSE_RANK: {
-            RankData data = (RankData) aggregateData;
-            data.number++;
-            Value[] previous = data.previousRow;
-            if (previous == null) {
-                data.previousNumber++;
-            } else {
-                if (getOverOrderBySort().compare(previous, array) != 0) {
-                    if (type == WindowFunctionType.RANK) {
-                        data.previousNumber = data.number;
-                    } else /* DENSE_RANK */ {
-                        data.previousNumber++;
-                    }
-                }
-            }
-            data.previousRow = array;
-            break;
-        }
-        default:
-            throw DbException.throwInternalError("type=" + type);
-        }
+        throw DbException.getUnsupportedException("Window function");
     }
 
     @Override
     protected Object createAggregateData() {
-        switch (type) {
-        case ROW_NUMBER:
-            return new RowNumberData();
-        case RANK:
-        case DENSE_RANK:
-            return new RankData();
-        default:
-            throw DbException.throwInternalError("type=" + type);
+        throw DbException.getUnsupportedException("Window function");
+    }
+
+    @Override
+    protected void getOrderedResultLoop(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
+            int rowIdColumn) {
+        if (type == WindowFunctionType.CUME_DIST) {
+            getCumeDist(session, result, ordered, rowIdColumn);
+            return;
+        }
+        int size = ordered.size();
+        int number = 0;
+        for (int i = 0; i < size; i++) {
+            Value[] row = ordered.get(i);
+            int rowId = row[rowIdColumn].getInt();
+            Value v;
+            switch (type) {
+            case ROW_NUMBER:
+                v = ValueInt.get(i + 1);
+                break;
+            case RANK:
+            case DENSE_RANK:
+            case PERCENT_RANK: {
+                if (i == 0) {
+                    number = 1;
+                } else {
+                    if (getOverOrderBySort().compare(ordered.get(i - 1), row) != 0) {
+                        switch (type) {
+                        case RANK:
+                        case PERCENT_RANK:
+                            number = i + 1;
+                            break;
+                        default: // DENSE_RANK
+                            number++;
+                        }
+                    }
+                }
+                if (type == WindowFunctionType.PERCENT_RANK) {
+                    int nm = number - 1;
+                    v = nm == 0 ? ValueDouble.ZERO : ValueDouble.get((double) nm / (size - 1));
+                } else {
+                    v = ValueInt.get(number);
+                }
+                break;
+            }
+            case CUME_DIST: {
+                int nm = number;
+                v = ValueDouble.get((double) nm / size);
+                break;
+            }
+            default:
+                throw DbException.throwInternalError("type=" + type);
+            }
+            result.put(rowId, v);
+        }
+    }
+
+    private void getCumeDist(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> orderedData,
+            int last) {
+        int size = orderedData.size();
+        for (int start = 0; start < size;) {
+            Value[] array = orderedData.get(start);
+            int end = start + 1;
+            while (end < size && overOrderBySort.compare(array, orderedData.get(end)) == 0) {
+                end++;
+            }
+            ValueDouble v = ValueDouble.get((double) end / size);
+            for (int i = start; i < end; i++) {
+                int rowId = orderedData.get(i)[last].getInt();
+                result.put(rowId, v);
+            }
+            start = end;
         }
     }
 
     @Override
     protected Value getAggregatedValue(Session session, Object aggregateData) {
-        switch (type) {
-        case ROW_NUMBER:
-            return ValueInt.get(((RowNumberData) aggregateData).number);
-        case RANK:
-        case DENSE_RANK:
-            return ValueInt.get(((RankData) aggregateData).previousNumber);
-        default:
-            throw DbException.throwInternalError("type=" + type);
-        }
+        throw DbException.getUnsupportedException("Window function");
     }
 
     @Override
     public int getType() {
-        return Value.INT;
+        switch (type) {
+        case ROW_NUMBER:
+        case RANK:
+        case DENSE_RANK:
+            return Value.INT;
+        case PERCENT_RANK:
+        case CUME_DIST:
+            return Value.DOUBLE;
+        default:
+            throw DbException.throwInternalError("type=" + type);
+        }
     }
 
     @Override
@@ -201,12 +227,32 @@ public class WindowFunction extends AbstractAggregate {
 
     @Override
     public long getPrecision() {
-        return ValueInt.PRECISION;
+        switch (type) {
+        case ROW_NUMBER:
+        case RANK:
+        case DENSE_RANK:
+            return ValueInt.PRECISION;
+        case PERCENT_RANK:
+        case CUME_DIST:
+            return ValueDouble.PRECISION;
+        default:
+            throw DbException.throwInternalError("type=" + type);
+        }
     }
 
     @Override
     public int getDisplaySize() {
-        return ValueInt.DISPLAY_SIZE;
+        switch (type) {
+        case ROW_NUMBER:
+        case RANK:
+        case DENSE_RANK:
+            return ValueInt.DISPLAY_SIZE;
+        case PERCENT_RANK:
+        case CUME_DIST:
+            return ValueDouble.DISPLAY_SIZE;
+        default:
+            throw DbException.throwInternalError("type=" + type);
+        }
     }
 
     @Override
@@ -221,6 +267,12 @@ public class WindowFunction extends AbstractAggregate {
             break;
         case DENSE_RANK:
             text = "DENSE_RANK";
+            break;
+        case PERCENT_RANK:
+            text = "PERCENT_RANK";
+            break;
+        case CUME_DIST:
+            text = "CUME_DIST";
             break;
         default:
             throw DbException.throwInternalError("type=" + type);

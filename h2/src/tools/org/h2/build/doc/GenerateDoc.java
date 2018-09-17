@@ -90,6 +90,8 @@ public class GenerateDoc {
                 help + "= 'Functions (Time and Date)' ORDER BY ID", true, false);
         map("functionsSystem",
                 help + "= 'Functions (System)' ORDER BY ID", true, false);
+        map("functionsWindow",
+                help + "= 'Functions (Window)' ORDER BY ID", true, false);
         map("dataTypes",
                 help + "LIKE 'Data Types%' ORDER BY SECTION, ID", true, true);
         map("intervalDataTypes",

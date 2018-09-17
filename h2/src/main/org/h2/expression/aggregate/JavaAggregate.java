@@ -41,6 +41,11 @@ public class JavaAggregate extends AbstractAggregate {
     }
 
     @Override
+    public boolean isAggregate() {
+        return true;
+    }
+
+    @Override
     public int getCost() {
         int cost = 5;
         for (Expression e : args) {

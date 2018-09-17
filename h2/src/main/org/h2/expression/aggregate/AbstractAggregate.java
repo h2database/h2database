@@ -25,7 +25,7 @@ import org.h2.value.ValueArray;
 import org.h2.value.ValueInt;
 
 /**
- * A base class for aggregates.
+ * A base class for aggregates and window functions.
  */
 public abstract class AbstractAggregate extends Expression {
 
@@ -65,7 +65,11 @@ public abstract class AbstractAggregate extends Expression {
      *            FILTER condition
      */
     public void setFilterCondition(Expression filterCondition) {
-        this.filterCondition = filterCondition;
+        if (isAggregate()) {
+            this.filterCondition = filterCondition;
+        } else {
+            throw DbException.getUnsupportedException("Window function");
+        }
     }
 
     /**
@@ -76,6 +80,23 @@ public abstract class AbstractAggregate extends Expression {
      */
     public void setOverCondition(Window over) {
         this.over = over;
+    }
+
+    /**
+     * Checks whether this expression is an aggregate function.
+     *
+     * @return true if this is an aggregate function (including aggregates with
+     *         OVER clause), false if this is a window function
+     */
+    public abstract boolean isAggregate();
+
+    /**
+     * Returns the sort order for OVER clause.
+     *
+     * @return the sort order for OVER clause
+     */
+    SortOrder getOverOrderBySort() {
+        return overOrderBySort;
     }
 
     @Override

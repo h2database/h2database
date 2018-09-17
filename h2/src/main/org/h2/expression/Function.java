@@ -146,8 +146,6 @@ public class Function extends Expression implements FunctionCall {
      */
     public static final int H2VERSION = 231;
 
-    public static final int ROW_NUMBER = 300;
-
     protected static final int VAR_ARGS = -1;
     private static final long PRECISION_UNKNOWN = -1;
 
@@ -469,9 +467,6 @@ public class Function extends Expression implements FunctionCall {
                 VAR_ARGS, Value.RESULT_SET);
         addFunctionWithNull("TABLE_DISTINCT", TABLE_DISTINCT,
                 VAR_ARGS, Value.RESULT_SET);
-
-        // pseudo function
-        addFunctionWithNull("ROW_NUMBER", ROW_NUMBER, 0, Value.LONG);
 
         // ON DUPLICATE KEY VALUES function
         addFunction("VALUES", VALUES, 1, Value.NULL, false, true, false);

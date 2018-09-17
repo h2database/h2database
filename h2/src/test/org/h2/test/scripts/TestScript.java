@@ -136,9 +136,9 @@ public class TestScript extends TestDb {
         for (String s : new String[] { "help" }) {
             testScript("other/" + s + ".sql");
         }
-        for (String s : new String[] { "avg", "bit-and", "bit-or", "count", "envelope",
+        for (String s : new String[] { "array-agg", "avg", "bit-and", "bit-or", "count", "envelope",
                 "group-concat", "max", "median", "min", "mode", "selectivity", "stddev-pop",
-                "stddev-samp", "sum", "var-pop", "var-samp", "array-agg" }) {
+                "stddev-samp", "sum", "var-pop", "var-samp" }) {
             testScript("functions/aggregate/" + s + ".sql");
         }
         for (String s : new String[] { "abs", "acos", "asin", "atan", "atan2",
@@ -178,6 +178,9 @@ public class TestScript extends TestDb {
                 "formatdatetime", "hour", "minute", "month", "monthname",
                 "parsedatetime", "quarter", "second", "truncate", "week", "year", "date_trunc" }) {
             testScript("functions/timeanddate/" + s + ".sql");
+        }
+        for (String s : new String[] { "row_number" }) {
+            testScript("functions/window/" + s + ".sql");
         }
 
         deleteDb("script");

@@ -281,21 +281,21 @@ create table test(id int primary key, name varchar(255), row_number int);
 insert into test values(1, 'hello', 10), (2, 'world', 20);
 > update count: 2
 
-select row_number() over(), id, name from test order by id;
+select rownum(), id, name from test order by id;
 > ROWNUM() ID NAME
 > -------- -- -----
 > 1        1  hello
 > 2        2  world
 > rows (ordered): 2
 
-select row_number() over(), id, name from test order by name;
+select rownum(), id, name from test order by name;
 > ROWNUM() ID NAME
 > -------- -- -----
 > 1        1  hello
 > 2        2  world
 > rows (ordered): 2
 
-select row_number() over(), id, name from test order by name desc;
+select rownum(), id, name from test order by name desc;
 > ROWNUM() ID NAME
 > -------- -- -----
 > 2        2  world

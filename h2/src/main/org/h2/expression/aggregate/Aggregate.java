@@ -251,6 +251,11 @@ public class Aggregate extends AbstractAggregate {
         return AGGREGATES.get(name);
     }
 
+    @Override
+    public boolean isAggregate() {
+        return true;
+    }
+
     /**
      * Set the order for ARRAY_AGG() or GROUP_CONCAT() aggregate.
      *

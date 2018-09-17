@@ -228,9 +228,9 @@ public class JavaAggregate extends AbstractAggregate {
     }
 
     @Override
-    protected void updateGroupAggregates(Session session) {
+    protected void updateGroupAggregates(Session session, int stage) {
         for (Expression expr : args) {
-            expr.updateAggregate(session, false);
+            expr.updateAggregate(session, stage);
         }
     }
 

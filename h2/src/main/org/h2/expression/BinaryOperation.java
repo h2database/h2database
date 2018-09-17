@@ -436,9 +436,9 @@ public class BinaryOperation extends Expression {
     }
 
     @Override
-    public void updateAggregate(Session session, boolean window) {
-        left.updateAggregate(session, window);
-        right.updateAggregate(session, window);
+    public void updateAggregate(Session session, int stage) {
+        left.updateAggregate(session, stage);
+        right.updateAggregate(session, stage);
     }
 
     @Override

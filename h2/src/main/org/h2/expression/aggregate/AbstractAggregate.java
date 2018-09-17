@@ -110,14 +110,16 @@ public abstract class AbstractAggregate extends Expression {
     }
 
     @Override
-    public void updateAggregate(Session session, boolean window) {
+    public void updateAggregate(Session session, int stage) {
+        if (stage == Aggregate.STAGE_RESET) {
+            updateSubAggregates(session, Aggregate.STAGE_RESET);
+            lastGroupRowId = 0;
+            return;
+        }
+        boolean window = stage == Aggregate.STAGE_WINDOW;
         if (window != (over != null)) {
             if (!window && select.isWindowQuery()) {
-                updateGroupAggregates(session);
-                if (filterCondition != null) {
-                    filterCondition.updateAggregate(session, false);
-                }
-                over.updateAggregate(session, false);
+                updateSubAggregates(session, stage);
             }
             return;
         }
@@ -140,7 +142,7 @@ public abstract class AbstractAggregate extends Expression {
 
         if (over != null) {
             if (!select.isGroupQuery()) {
-                over.updateAggregate(session, true);
+                over.updateAggregate(session, stage);
             }
         }
         if (filterCondition != null) {
@@ -156,6 +158,16 @@ public abstract class AbstractAggregate extends Expression {
             }
         }
         updateAggregate(session, getData(session, groupData, false, false));
+    }
+
+    private void updateSubAggregates(Session session, int stage) {
+        updateGroupAggregates(session, stage);
+        if (filterCondition != null) {
+            filterCondition.updateAggregate(session, stage);
+        }
+        if (over != null) {
+            over.updateAggregate(session, stage);
+        }
     }
 
     /**
@@ -174,8 +186,10 @@ public abstract class AbstractAggregate extends Expression {
      *
      * @param session
      *            the session
+     * @param stage
+     *            select stage
      */
-    protected abstract void updateGroupAggregates(Session session);
+    protected abstract void updateGroupAggregates(Session session, int stage);
 
     /**
      * Returns the number of expressions, excluding FILTER and OVER clauses.

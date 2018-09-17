@@ -276,9 +276,9 @@ public abstract class Query extends Prepared {
      * Update all aggregate function values.
      *
      * @param s the session
-     * @param window true for window processing stage, false for group stage
+     * @param stage select stage
      */
-    public abstract void updateAggregate(Session s, boolean window);
+    public abstract void updateAggregate(Session s, int stage);
 
     /**
      * Call the before triggers on all tables.

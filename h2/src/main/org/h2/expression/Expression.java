@@ -105,9 +105,9 @@ public abstract class Expression {
      * be used to make sure the internal state is only updated once.
      *
      * @param session the session
-     * @param window true for window processing stage, false for group stage
+     * @param stage select stage
      */
-    public abstract void updateAggregate(Session session, boolean window);
+    public abstract void updateAggregate(Session session, int stage);
 
     /**
      * Check if this expression and all sub-expressions can fulfill a criteria.

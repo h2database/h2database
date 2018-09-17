@@ -163,19 +163,19 @@ public final class Window {
      *
      * @param session
      *            the session
-     * @param window
-     *            true for window processing stage, false for group stage
-     * @see Expression#updateAggregate(Session, boolean)
+     * @param stage
+     *            select stage
+     * @see Expression#updateAggregate(Session, int)
      */
-    public void updateAggregate(Session session, boolean window) {
+    public void updateAggregate(Session session, int stage) {
         if (partitionBy != null) {
             for (Expression expr : partitionBy) {
-                expr.updateAggregate(session, window);
+                expr.updateAggregate(session, stage);
             }
         }
         if (orderBy != null) {
             for (SelectOrderBy o : orderBy) {
-                o.expression.updateAggregate(session, false);
+                o.expression.updateAggregate(session, stage);
             }
         }
     }

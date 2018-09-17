@@ -115,6 +115,7 @@ public abstract class SelectGroups {
 
         @Override
         public void done() {
+            super.done();
             if (groupIndex == null && groupByData.size() == 0) {
                 groupByData.put(defaultGroup,
                         new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())]);
@@ -175,6 +176,7 @@ public abstract class SelectGroups {
 
         @Override
         public void done() {
+            super.done();
             cursor = rows.iterator();
         }
 
@@ -314,13 +316,6 @@ public abstract class SelectGroups {
         currentGroupByExprData = null;
         exprToIndexInGroupByData.clear();
         windowData.clear();
-    }
-
-    /**
-     * Reset the row id counter.
-     */
-    public void resetCounter() {
-        // TODO merge into reset() and done()
         currentGroupRowId = 0;
     }
 
@@ -333,7 +328,9 @@ public abstract class SelectGroups {
     /**
      * Invoked after all source rows are evaluated.
      */
-    public abstract void done();
+    public void done() {
+        currentGroupRowId = 0;
+    }
 
     /**
      * Returns the key of the next group.
@@ -347,6 +344,7 @@ public abstract class SelectGroups {
      */
     public void resetLazy() {
         currentGroupByExprData = null;
+        currentGroupRowId = 0;
     }
 
     /**

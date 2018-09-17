@@ -77,3 +77,24 @@ SELECT
 
 DROP TABLE TEST;
 > ok
+
+CREATE TABLE TEST (ID INT PRIMARY KEY, TYPE VARCHAR, CNT INT);
+> ok
+
+INSERT INTO TEST VALUES
+    (1, 'a', 1),
+    (2, 'b', 2),
+    (3, 'c', 4),
+    (4, 'b', 8);
+> update count: 4
+
+SELECT ROW_NUMBER() OVER() RN, TYPE, SUM(CNT) SUM FROM TEST GROUP BY TYPE;
+> RN TYPE SUM
+> -- ---- ---
+> 1  a    1
+> 2  b    10
+> 3  c    4
+> rows: 3
+
+DROP TABLE TEST;
+> ok

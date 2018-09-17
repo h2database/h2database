@@ -3270,8 +3270,19 @@ public class Parser {
         if (currentSelect == null) {
             throw getSyntaxError();
         }
+        int numArgs = WindowFunction.getArgumentCount(type);
+        Expression[] args = null;
+        if (numArgs > 0) {
+            args = new Expression[numArgs];
+            for (int i = 0; i < numArgs; i++) {
+                if (i > 0) {
+                    read(COMMA);
+                }
+                args[i] = readExpression();
+            }
+        }
         read(CLOSE_PAREN);
-        WindowFunction function = new WindowFunction(type, currentSelect);
+        WindowFunction function = new WindowFunction(type, currentSelect, args);
         readFilterAndOver(function);
         return function;
     }

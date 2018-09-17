@@ -10,10 +10,14 @@ import java.util.HashMap;
 
 import org.h2.command.dml.Select;
 import org.h2.engine.Session;
+import org.h2.expression.Expression;
 import org.h2.message.DbException;
+import org.h2.table.ColumnResolver;
+import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueNull;
 
 /**
  * A window function.
@@ -50,6 +54,21 @@ public class WindowFunction extends AbstractAggregate {
      */
     CUME_DIST,
 
+    /**
+     * The type for FIRST_VALUE() window function.
+     */
+    FIRST_VALUE,
+
+    /**
+     * The type for LAST_VALUE() window function.
+     */
+    LAST_VALUE,
+
+    /**
+     * The type for NTH_VALUE() window function.
+     */
+    NTH_VALUE,
+
         ;
 
         /**
@@ -62,15 +81,21 @@ public class WindowFunction extends AbstractAggregate {
         public static WindowFunctionType get(String name) {
             switch (name) {
             case "ROW_NUMBER":
-                return WindowFunctionType.ROW_NUMBER;
+                return ROW_NUMBER;
             case "RANK":
                 return RANK;
             case "DENSE_RANK":
-                return WindowFunctionType.DENSE_RANK;
+                return DENSE_RANK;
             case "PERCENT_RANK":
-                return WindowFunctionType.PERCENT_RANK;
+                return PERCENT_RANK;
             case "CUME_DIST":
-                return WindowFunctionType.CUME_DIST;
+                return CUME_DIST;
+            case "FIRST_VALUE":
+                return FIRST_VALUE;
+            case "LAST_VALUE":
+                return LAST_VALUE;
+            case "NTH_VALUE":
+                return NTH_VALUE;
             default:
                 return null;
             }
@@ -80,6 +105,27 @@ public class WindowFunction extends AbstractAggregate {
 
     private final WindowFunctionType type;
 
+    private final Expression[] args;
+
+    /**
+     * Returns number of arguments for the specified type.
+     *
+     * @param type
+     *            the type of a window function
+     * @return number of arguments
+     */
+    public static int getArgumentCount(WindowFunctionType type) {
+        switch (type) {
+        case FIRST_VALUE:
+        case LAST_VALUE:
+            return 1;
+        case NTH_VALUE:
+            return 2;
+        default:
+            return 0;
+        }
+    }
+
     /**
      * Creates new instance of a window function.
      *
@@ -87,10 +133,13 @@ public class WindowFunction extends AbstractAggregate {
      *            the type
      * @param select
      *            the select statement
+     * @param args
+     *            arguments, or null
      */
-    public WindowFunction(WindowFunctionType type, Select select) {
+    public WindowFunction(WindowFunctionType type, Select select, Expression[] args) {
         super(select, false);
         this.type = type;
+        this.args = args;
     }
 
     @Override
@@ -105,17 +154,24 @@ public class WindowFunction extends AbstractAggregate {
 
     @Override
     protected void updateGroupAggregates(Session session, int stage) {
-        // Nothing to do
+        if (args != null) {
+            for (Expression expr : args) {
+                expr.updateAggregate(session, stage);
+            }
+        }
     }
 
     @Override
     protected int getNumExpressions() {
-        return 0;
+        return getArgumentCount(type);
     }
 
     @Override
     protected void rememberExpressions(Session session, Value[] array) {
-        // Nothing to do
+        int cnt = getNumExpressions();
+        for (int i = 0; i < cnt; i++) {
+            array[i] = args[i].getValue(session);
+        }
     }
 
     @Override
@@ -175,6 +231,25 @@ public class WindowFunction extends AbstractAggregate {
                 v = ValueDouble.get((double) nm / size);
                 break;
             }
+            case FIRST_VALUE:
+                v = ordered.get(0)[0];
+                break;
+            case LAST_VALUE:
+                v = row[0];
+                break;
+            case NTH_VALUE: {
+                int n = row[1].getInt();
+                if (n <= 0) {
+                    throw DbException.getInvalidValueException("nth row", n);
+                }
+                n--;
+                if (n < 0 || n > i) {
+                    v = ValueNull.INSTANCE;
+                } else {
+                    v = ordered.get(n)[0];
+                }
+                break;
+            }
             default:
                 throw DbException.throwInternalError("type=" + type);
             }
@@ -206,6 +281,37 @@ public class WindowFunction extends AbstractAggregate {
     }
 
     @Override
+    public void mapColumns(ColumnResolver resolver, int level) {
+        if (args != null) {
+            for (Expression arg : args) {
+                arg.mapColumns(resolver, level);
+            }
+        }
+        super.mapColumns(resolver, level);
+    }
+
+    @Override
+    public Expression optimize(Session session) {
+        super.optimize(session);
+        if (args != null) {
+            for (int i = 0; i < args.length; i++) {
+                args[i] = args[i].optimize(session);
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public void setEvaluatable(TableFilter tableFilter, boolean b) {
+        if (args != null) {
+            for (Expression e : args) {
+                e.setEvaluatable(tableFilter, b);
+            }
+        }
+        super.setEvaluatable(tableFilter, b);
+    }
+
+    @Override
     public int getType() {
         switch (type) {
         case ROW_NUMBER:
@@ -215,6 +321,10 @@ public class WindowFunction extends AbstractAggregate {
         case PERCENT_RANK:
         case CUME_DIST:
             return Value.DOUBLE;
+        case FIRST_VALUE:
+        case LAST_VALUE:
+        case NTH_VALUE:
+            return args[0].getType();
         default:
             throw DbException.throwInternalError("type=" + type);
         }
@@ -222,7 +332,14 @@ public class WindowFunction extends AbstractAggregate {
 
     @Override
     public int getScale() {
-        return 0;
+        switch (type) {
+        case FIRST_VALUE:
+        case LAST_VALUE:
+        case NTH_VALUE:
+            return args[0].getScale();
+        default:
+            return 0;
+        }
     }
 
     @Override
@@ -235,6 +352,10 @@ public class WindowFunction extends AbstractAggregate {
         case PERCENT_RANK:
         case CUME_DIST:
             return ValueDouble.PRECISION;
+        case FIRST_VALUE:
+        case LAST_VALUE:
+        case NTH_VALUE:
+            return args[0].getPrecision();
         default:
             throw DbException.throwInternalError("type=" + type);
         }
@@ -250,6 +371,10 @@ public class WindowFunction extends AbstractAggregate {
         case PERCENT_RANK:
         case CUME_DIST:
             return ValueDouble.DISPLAY_SIZE;
+        case FIRST_VALUE:
+        case LAST_VALUE:
+        case NTH_VALUE:
+            return args[0].getDisplaySize();
         default:
             throw DbException.throwInternalError("type=" + type);
         }
@@ -258,6 +383,7 @@ public class WindowFunction extends AbstractAggregate {
     @Override
     public String getSQL() {
         String text;
+        int numArgs = 0;
         switch (type) {
         case ROW_NUMBER:
             text = "ROW_NUMBER";
@@ -274,16 +400,40 @@ public class WindowFunction extends AbstractAggregate {
         case CUME_DIST:
             text = "CUME_DIST";
             break;
+        case FIRST_VALUE:
+            text = "FIRST_VALUE";
+            numArgs = 1;
+            break;
+        case LAST_VALUE:
+            text = "LAST_VALUE";
+            numArgs = 1;
+            break;
+        case NTH_VALUE:
+            text = "NTH_VALUE";
+            numArgs = 2;
+            break;
         default:
             throw DbException.throwInternalError("type=" + type);
         }
-        StringBuilder builder = new StringBuilder().append(text).append("()");
+        StringBuilder builder = new StringBuilder().append(text).append('(');
+        for (int i = 0; i < numArgs; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            builder.append(args[i].getSQL());
+        }
+        builder.append(')');
         return appendTailConditions(builder).toString();
     }
 
     @Override
     public int getCost() {
         int cost = 1;
+        if (args != null) {
+            for (Expression expr : args) {
+                cost += expr.getCost();
+            }
+        }
         return cost;
     }
 

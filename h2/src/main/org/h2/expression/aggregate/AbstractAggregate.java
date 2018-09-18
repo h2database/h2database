@@ -113,6 +113,7 @@ public abstract class AbstractAggregate extends Expression {
     @Override
     public Expression optimize(Session session) {
         if (over != null) {
+            over.optimize(session);
             ArrayList<SelectOrderBy> orderBy = over.getOrderBy();
             if (orderBy != null) {
                 overOrderBySort = createOrder(session, orderBy, getNumExpressions());

@@ -82,6 +82,25 @@ public final class Window {
     }
 
     /**
+     * Try to optimize the window conditions.
+     *
+     * @param session
+     *            the session
+     */
+    public void optimize(Session session) {
+        if (partitionBy != null) {
+            for (int i = 0; i < partitionBy.size(); i++) {
+                partitionBy.set(i, partitionBy.get(i).optimize(session));
+            }
+        }
+        if (orderBy != null) {
+            for (SelectOrderBy o : orderBy) {
+                o.expression = o.expression.optimize(session);
+            }
+        }
+    }
+
+    /**
      * Tell the expression columns whether the table filter can return values
      * now. This is used when optimizing the query.
      *

@@ -2535,16 +2535,9 @@ SELECT * FROM (VALUES(1, 'Hello'), (2, 'World')) AS V;
 
 "Other Grammar","Window specification","
 ([PARTITION BY expression [,...]] [ORDER BY order [,...]]
-[RANGE BETWEEN {
-    UNBOUNDED PRECEDING AND CURRENT ROW
-    |CURRENT ROW AND UNBOUNDED FOLLOWING
-    |UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
-    }])
+[windowFrame])
 ","
 A window specification for a window function or aggregate.
-
-Window frame clause (RANGE) is currently supported only in aggregates and
-FIRST_VALUE(), LAST_VALUE(), and NTH_VALUE() window functions.
 
 Window functions are currently experimental in H2 and should be used with caution.
 They also may require a lot of memory for large queries.
@@ -2553,6 +2546,21 @@ They also may require a lot of memory for large queries.
 (ORDER BY ID)
 (PARTITION BY CATEGORY)
 (PARTITION BY CATEGORY ORDER BY NAME, ID)
+(ORDER BY Y RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE TIES)
+"
+
+"Other Grammar","Window frame","
+[RANGE BETWEEN {
+    UNBOUNDED PRECEDING AND CURRENT ROW
+    |CURRENT ROW AND UNBOUNDED FOLLOWING
+    |UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+    }]
+[EXCLUDE {CURRENT ROW|GROUP|TIES|NO OTHERS}]
+","
+A window frame clause.
+Is currently supported only in aggregates and FIRST_VALUE(), LAST_VALUE(), and NTH_VALUE() window functions.
+","
+RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE GROUP
 "
 
 "Other Grammar","Term","

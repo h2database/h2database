@@ -36,7 +36,10 @@ public final class Window {
      */
     static void appendOrderBy(StringBuilder builder, ArrayList<SelectOrderBy> orderBy) {
         if (orderBy != null && !orderBy.isEmpty()) {
-            builder.append(" ORDER BY ");
+            if (builder.charAt(builder.length() - 1) != '(') {
+                builder.append(' ');
+            }
+            builder.append("ORDER BY ");
             for (int i = 0; i < orderBy.size(); i++) {
                 SelectOrderBy o = orderBy.get(i);
                 if (i > 0) {
@@ -187,10 +190,10 @@ public final class Window {
                 builder.append(StringUtils.unEnclose(partitionBy.get(i).getSQL()));
             }
         }
+        appendOrderBy(builder, orderBy);
         if (!frame.isDefault()) {
             builder.append(' ').append(frame.getSQL());
         }
-        appendOrderBy(builder, orderBy);
         return builder.append(')').toString();
     }
 

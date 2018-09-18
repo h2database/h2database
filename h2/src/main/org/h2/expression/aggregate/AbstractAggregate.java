@@ -8,6 +8,7 @@ package org.h2.expression.aggregate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.Select;
@@ -441,12 +442,12 @@ public abstract class AbstractAggregate extends Expression {
                 result.put(row[rowIdColumn].getInt(), value);
             }
         } else {
-            // TODO optimize unordered aggregates
             int size = ordered.size();
             for (int i = 0; i < size; i++) {
                 Object aggregateData = createAggregateData();
-                for (int j = i; j < size; j++) {
-                    updateFromExpressions(session, aggregateData, ordered.get(j));
+                for (Iterator<Value[]> iter = frame.iterator(ordered, getOverOrderBySort(), i, false); iter
+                        .hasNext();) {
+                    updateFromExpressions(session, aggregateData, iter.next());
                 }
                 result.put(ordered.get(i)[rowIdColumn].getInt(), getAggregatedValue(session, aggregateData));
             }

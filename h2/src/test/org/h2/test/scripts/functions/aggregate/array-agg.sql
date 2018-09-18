@@ -233,8 +233,8 @@ SELECT
 > rows: 6
 
 SELECT ARRAY_AGG(SUM(ID)) OVER(ORDER /**/ BY ID) FROM TEST GROUP BY ID;
-> ARRAY_AGG(SUM(ID)) OVER ( ORDER BY ID)
-> --------------------------------------
+> ARRAY_AGG(SUM(ID)) OVER (ORDER BY ID)
+> -------------------------------------
 > (1)
 > (1, 2)
 > (1, 2, 3)
@@ -242,6 +242,36 @@ SELECT ARRAY_AGG(SUM(ID)) OVER(ORDER /**/ BY ID) FROM TEST GROUP BY ID;
 > (1, 2, 3, 4, 5)
 > (1, 2, 3, 4, 5, 6)
 > rows: 6
+
+DROP TABLE TEST;
+> ok
+
+CREATE TABLE TEST(ID INT, G INT);
+> ok
+
+INSERT INTO TEST VALUES
+    (1, 1),
+    (2, 2),
+    (3, 2),
+    (4, 2),
+    (5, 3);
+> update count: 5
+
+SELECT
+    ARRAY_AGG(ID) OVER (ORDER BY G RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) D,
+    ARRAY_AGG(ID) OVER (ORDER BY G RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE CURRENT ROW) R,
+    ARRAY_AGG(ID) OVER (ORDER BY G RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE GROUP) G,
+    ARRAY_AGG(ID) OVER (ORDER BY G RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE TIES) T,
+    ARRAY_AGG(ID) OVER (ORDER BY G RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE NO OTHERS) N
+    FROM TEST;
+> D               R            G            T               N
+> --------------- ------------ ------------ --------------- ---------------
+> (1, 2, 3, 4, 5) (2, 3, 4, 5) (2, 3, 4, 5) (1, 2, 3, 4, 5) (1, 2, 3, 4, 5)
+> (1, 2, 3, 4, 5) (1, 3, 4, 5) (1, 5)       (1, 2, 5)       (1, 2, 3, 4, 5)
+> (1, 2, 3, 4, 5) (1, 2, 4, 5) (1, 5)       (1, 3, 5)       (1, 2, 3, 4, 5)
+> (1, 2, 3, 4, 5) (1, 2, 3, 5) (1, 5)       (1, 4, 5)       (1, 2, 3, 4, 5)
+> (1, 2, 3, 4, 5) (1, 2, 3, 4) (1, 2, 3, 4) (1, 2, 3, 4, 5) (1, 2, 3, 4, 5)
+> rows (ordered): 5
 
 DROP TABLE TEST;
 > ok

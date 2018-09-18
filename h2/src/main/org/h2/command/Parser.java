@@ -177,6 +177,7 @@ import org.h2.expression.aggregate.JavaAggregate;
 import org.h2.expression.aggregate.Window;
 import org.h2.expression.aggregate.WindowFrame;
 import org.h2.expression.aggregate.WindowFrame.SimpleExtent;
+import org.h2.expression.aggregate.WindowFrame.WindowFrameExclusion;
 import org.h2.expression.aggregate.WindowFunction;
 import org.h2.expression.aggregate.WindowFunction.WindowFunctionType;
 import org.h2.index.Index;
@@ -3073,7 +3074,8 @@ public class Parser {
                     frame = readWindowFrame();
                     break;
                 default:
-                    frame = new WindowFrame(SimpleExtent.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW);
+                    frame = new WindowFrame(SimpleExtent.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW,
+                            WindowFrameExclusion.EXCLUDE_NO_OTHERS);
                 }
             } else {
                 frame = readWindowFrame();
@@ -3091,6 +3093,7 @@ public class Parser {
 
     private WindowFrame readWindowFrame() {
         SimpleExtent extent;
+        WindowFrameExclusion exclusion = WindowFrameExclusion.EXCLUDE_NO_OTHERS;
         if (readIf("RANGE")) {
             read("BETWEEN");
             if (readIf("UNBOUNDED")) {
@@ -3112,10 +3115,23 @@ public class Parser {
                 read("FOLLOWING");
                 extent = SimpleExtent.RANGE_BETWEEN_CURRENT_ROW_AND_UNBOUNDED_FOLLOWING;
             }
+            if (readIf("EXCLUDE")) {
+                if (readIf("CURRENT")) {
+                    read("ROW");
+                    exclusion = WindowFrameExclusion.EXCLUDE_CURRENT_ROW;
+                } else if (readIf(GROUP)) {
+                    exclusion = WindowFrameExclusion.EXCLUDE_GROUP;
+                } else if (readIf("TIES")) {
+                    exclusion = WindowFrameExclusion.EXCLUDE_TIES;
+                } else {
+                    read("NO");
+                    read("OTHERS");
+                }
+            }
         } else {
             extent = SimpleExtent.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW;
         }
-        return new WindowFrame(extent);
+        return new WindowFrame(extent, exclusion);
     }
 
     private AggregateType getAggregateType(String name) {

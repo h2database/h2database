@@ -3283,8 +3283,36 @@ public class Parser {
         }
         read(CLOSE_PAREN);
         WindowFunction function = new WindowFunction(type, currentSelect, args);
+        if (type == WindowFunctionType.NTH_VALUE) {
+            readFromFirstOrLast(function);
+        }
+        switch (type) {
+        case FIRST_VALUE:
+        case LAST_VALUE:
+        case NTH_VALUE:
+            readRespectOrIgnoreNulls(function);
+            //$FALL-THROUGH$
+        default:
+            // Avoid warning
+        }
         readFilterAndOver(function);
         return function;
+    }
+
+    private void readFromFirstOrLast(WindowFunction function) {
+        if (readIf(FROM) && !readIf("FIRST")) {
+            read("LAST");
+            function.setFromLast(true);
+        }
+    }
+
+    private void readRespectOrIgnoreNulls(WindowFunction function) {
+        if (readIf("RESPECT")) {
+            read("NULLS");
+        } else if (readIf("IGNORE")) {
+            read("NULLS");
+            function.setIgnoreNulls(true);
+        }
     }
 
     private Expression readFunctionWithoutParameters(String name) {

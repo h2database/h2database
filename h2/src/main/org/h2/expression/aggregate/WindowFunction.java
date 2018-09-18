@@ -107,6 +107,10 @@ public class WindowFunction extends AbstractAggregate {
 
     private final Expression[] args;
 
+    private boolean fromLast;
+
+    private boolean ignoreNulls;
+
     /**
      * Returns number of arguments for the specified type.
      *
@@ -126,6 +130,40 @@ public class WindowFunction extends AbstractAggregate {
         }
     }
 
+    private static Value getNthValue(ArrayList<Value[]> ordered, int currentRowNumber, int number, boolean fromLast,
+            boolean ignoreNulls) {
+        return ignoreNulls ? getNthValueIgnoreNulls(ordered, currentRowNumber, number, fromLast)
+                : ordered.get(fromLast ? currentRowNumber - number : number)[0];
+    }
+
+    private static Value getNthValueIgnoreNulls(ArrayList<Value[]> ordered, int currentRowNumber, int number,
+            boolean fromLast) {
+        Value v = ValueNull.INSTANCE;
+        int cnt = 0;
+        if (fromLast) {
+            for (int i = currentRowNumber; i >= 0; i--) {
+                Value t = ordered.get(i)[0];
+                if (t != ValueNull.INSTANCE) {
+                    if (cnt++ == number) {
+                        v = t;
+                        break;
+                    }
+                }
+            }
+        } else {
+            for (int i = 0; i <= currentRowNumber; i++) {
+                Value t = ordered.get(i)[0];
+                if (t != ValueNull.INSTANCE) {
+                    if (cnt++ == number) {
+                        v = t;
+                        break;
+                    }
+                }
+            }
+        }
+        return v;
+    }
+
     /**
      * Creates new instance of a window function.
      *
@@ -140,6 +178,26 @@ public class WindowFunction extends AbstractAggregate {
         super(select, false);
         this.type = type;
         this.args = args;
+    }
+
+    /**
+     * Sets FROM FIRST or FROM LAST clause value.
+     *
+     * @param fromLast
+     *            whether FROM LAST clause was specified.
+     */
+    public void setFromLast(boolean fromLast) {
+        this.fromLast = fromLast;
+    }
+
+    /**
+     * Sets RESPECT NULLS or IGNORE NULLS clause value.
+     *
+     * @param ignoreNulls
+     *            whether IGNORE NULLS clause was specified
+     */
+    public void setIgnoreNulls(boolean ignoreNulls) {
+        this.ignoreNulls = ignoreNulls;
     }
 
     @Override
@@ -232,10 +290,10 @@ public class WindowFunction extends AbstractAggregate {
                 break;
             }
             case FIRST_VALUE:
-                v = ordered.get(0)[0];
+                v = getNthValue(ordered, i, 0, false, ignoreNulls);
                 break;
             case LAST_VALUE:
-                v = row[0];
+                v = getNthValue(ordered, i, 0, true, ignoreNulls);
                 break;
             case NTH_VALUE: {
                 int n = row[1].getInt();
@@ -243,10 +301,10 @@ public class WindowFunction extends AbstractAggregate {
                     throw DbException.getInvalidValueException("nth row", n);
                 }
                 n--;
-                if (n < 0 || n > i) {
+                if (n > i) {
                     v = ValueNull.INSTANCE;
                 } else {
-                    v = ordered.get(n)[0];
+                    v = getNthValue(ordered, i, n, fromLast, ignoreNulls);
                 }
                 break;
             }
@@ -423,6 +481,12 @@ public class WindowFunction extends AbstractAggregate {
             builder.append(args[i].getSQL());
         }
         builder.append(')');
+        if (fromLast && type == WindowFunctionType.NTH_VALUE) {
+            builder.append(" FROM LAST");
+        }
+        if (ignoreNulls && (type == WindowFunctionType.FIRST_VALUE || type == WindowFunctionType.LAST_VALUE)) {
+            builder.append(" IGNORE NULLS");
+        }
         return appendTailConditions(builder).toString();
     }
 

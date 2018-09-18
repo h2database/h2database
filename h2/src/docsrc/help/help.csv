@@ -5167,7 +5167,7 @@ SELECT LAST_VALUE(X) IGNORE NULLS OVER (PARTITION BY CATEGORY ORDER BY ID), * FR
 "
 
 "Functions (Window)","NTH_VALUE","
-NTH(value, nInt) [FROM {FIRST|LAST}] [{RESPECT|IGNORE} NULLS]
+NTH_VALUE(value, nInt) [FROM {FIRST|LAST}] [{RESPECT|IGNORE} NULLS]
 OVER windowSpecification
 ","
 Returns the value in a row with a specified relative number in a window.

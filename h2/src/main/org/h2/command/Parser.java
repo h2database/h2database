@@ -175,7 +175,8 @@ import org.h2.expression.aggregate.Aggregate;
 import org.h2.expression.aggregate.Aggregate.AggregateType;
 import org.h2.expression.aggregate.JavaAggregate;
 import org.h2.expression.aggregate.Window;
-import org.h2.expression.aggregate.Window.SimpleWindowFrame;
+import org.h2.expression.aggregate.WindowFrame;
+import org.h2.expression.aggregate.WindowFrame.SimpleExtent;
 import org.h2.expression.aggregate.WindowFunction;
 import org.h2.expression.aggregate.WindowFunction.WindowFunctionType;
 import org.h2.index.Index;
@@ -3062,7 +3063,7 @@ public class Parser {
             } else if (!isAggregate) {
                 orderBy = new ArrayList<>(0);
             }
-            SimpleWindowFrame frame;
+            WindowFrame frame;
             if (aggregate instanceof WindowFunction) {
                 WindowFunction w = (WindowFunction) aggregate;
                 switch (w.getFunctionType()) {
@@ -3072,7 +3073,7 @@ public class Parser {
                     frame = readWindowFrame();
                     break;
                 default:
-                    frame = SimpleWindowFrame.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW;
+                    frame = new WindowFrame(SimpleExtent.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW);
                 }
             } else {
                 frame = readWindowFrame();
@@ -3088,8 +3089,8 @@ public class Parser {
         }
     }
 
-    private SimpleWindowFrame readWindowFrame() {
-        SimpleWindowFrame frame;
+    private WindowFrame readWindowFrame() {
+        SimpleExtent extent;
         if (readIf("RANGE")) {
             read("BETWEEN");
             if (readIf("UNBOUNDED")) {
@@ -3097,11 +3098,11 @@ public class Parser {
                 read("AND");
                 if (readIf("CURRENT")) {
                     read("ROW");
-                    frame = SimpleWindowFrame.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW;
+                    extent = SimpleExtent.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW;
                 } else {
                     read("UNBOUNDED");
                     read("FOLLOWING");
-                    frame = SimpleWindowFrame.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_UNBOUNDED_FOLLOWING;
+                    extent = SimpleExtent.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_UNBOUNDED_FOLLOWING;
                 }
             } else {
                 read("CURRENT");
@@ -3109,12 +3110,12 @@ public class Parser {
                 read("AND");
                 read("UNBOUNDED");
                 read("FOLLOWING");
-                frame = SimpleWindowFrame.RANGE_BETWEEN_CURRENT_ROW_AND_UNBOUNDED_FOLLOWING;
+                extent = SimpleExtent.RANGE_BETWEEN_CURRENT_ROW_AND_UNBOUNDED_FOLLOWING;
             }
         } else {
-            frame = SimpleWindowFrame.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW;
+            extent = SimpleExtent.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW;
         }
-        return frame;
+        return new WindowFrame(extent);
     }
 
     private AggregateType getAggregateType(String name) {

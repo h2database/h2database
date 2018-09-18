@@ -424,16 +424,23 @@ public abstract class AbstractAggregate extends Expression {
      */
     protected void getOrderedResultLoop(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
             int rowIdColumn) {
-        switch (over.getWindowFrame()) {
-        case RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW: {
+        WindowFrame frame = over.getWindowFrame();
+        if (frame.isDefault()) {
             Object aggregateData = createAggregateData();
             for (Value[] row : ordered) {
                 updateFromExpressions(session, aggregateData, row);
                 result.put(row[rowIdColumn].getInt(), getAggregatedValue(session, aggregateData));
             }
-            break;
-        }
-        case RANGE_BETWEEN_CURRENT_ROW_AND_UNBOUNDED_FOLLOWING: {
+        } else if (frame.isFullPartition()) {
+            Object aggregateData = createAggregateData();
+            for (Value[] row : ordered) {
+                updateFromExpressions(session, aggregateData, row);
+            }
+            Value value = getAggregatedValue(session, aggregateData);
+            for (Value[] row : ordered) {
+                result.put(row[rowIdColumn].getInt(), value);
+            }
+        } else {
             // TODO optimize unordered aggregates
             int size = ordered.size();
             for (int i = 0; i < size; i++) {
@@ -443,18 +450,6 @@ public abstract class AbstractAggregate extends Expression {
                 }
                 result.put(ordered.get(i)[rowIdColumn].getInt(), getAggregatedValue(session, aggregateData));
             }
-            break;
-        }
-        case RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_UNBOUNDED_FOLLOWING: {
-            Object aggregateData = createAggregateData();
-            for (Value[] row : ordered) {
-                updateFromExpressions(session, aggregateData, row);
-            }
-            Value value = getAggregatedValue(session, aggregateData);
-            for (Value[] row : ordered) {
-                result.put(row[rowIdColumn].getInt(), value);
-            }
-        }
         }
     }
 

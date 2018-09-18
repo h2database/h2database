@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import org.h2.expression.aggregate.WindowFrameBound.WindowFrameBoundType;
 import org.h2.message.DbException;
 import org.h2.result.SortOrder;
 import org.h2.value.Value;
@@ -19,92 +20,6 @@ import org.h2.value.Value;
  * Window frame clause.
  */
 public final class WindowFrame {
-
-    /**
-     * Simple extent.
-     */
-    public enum SimpleExtent {
-
-    /**
-     * RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW frame specification.
-     */
-    RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW("RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW"),
-
-    /**
-     * RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING frame specification.
-     */
-    RANGE_BETWEEN_CURRENT_ROW_AND_UNBOUNDED_FOLLOWING("RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING"),
-
-    /**
-     * RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING frame
-     * specification.
-     */
-    RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_UNBOUNDED_FOLLOWING(
-            "RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING"),
-
-        ;
-
-        private final String sql;
-
-        private SimpleExtent(String sql) {
-            this.sql = sql;
-        }
-
-        /**
-         * Returns SQL representation.
-         *
-         * @return SQL representation.
-         * @see org.h2.expression.Expression#getSQL()
-         */
-        public String getSQL() {
-            return sql;
-        }
-
-    }
-
-    /**
-     * Window frame exclusion clause.
-     */
-    public enum WindowFrameExclusion {
-        /**
-         * EXCLUDE CURRENT ROW exclusion clause.
-         */
-        EXCLUDE_CURRENT_ROW("EXCLUDE CURRENT ROW"),
-
-        /**
-         * EXCLUDE GROUP exclusion clause.
-         */
-        EXCLUDE_GROUP("EXCLUDE GROUP"),
-
-        /**
-         * EXCLUDE TIES exclusion clause.
-         */
-        EXCLUDE_TIES("EXCLUDE TIES"),
-
-        /**
-         * EXCLUDE NO OTHERS exclusion clause.
-         */
-        EXCLUDE_NO_OTHERS("EXCLUDE NO OTHERS"),
-
-        ;
-
-        private final String sql;
-
-        private WindowFrameExclusion(String sql) {
-            this.sql = sql;
-        }
-
-        /**
-         * Returns SQL representation.
-         *
-         * @return SQL representation.
-         * @see org.h2.expression.Expression#getSQL()
-         */
-        public String getSQL() {
-            return sql;
-        }
-
-    }
 
     private abstract class Itr implements Iterator<Value[]> {
 
@@ -231,20 +146,34 @@ public final class WindowFrame {
 
     }
 
-    private final SimpleExtent extent;
+    private final WindowFrameUnits units;
+
+    private final WindowFrameBound starting;
+
+    private final WindowFrameBound following;
 
     private final WindowFrameExclusion exclusion;
 
     /**
      * Creates new instance of window frame clause.
      *
-     * @param extent
-     *            window frame extent
+     * @param units
+     *            units
+     * @param starting
+     *            starting clause
+     * @param following
+     *            following clause
      * @param exclusion
-     *            window frame exclusion
+     *            exclusion clause
      */
-    public WindowFrame(SimpleExtent extent, WindowFrameExclusion exclusion) {
-        this.extent = extent;
+    public WindowFrame(WindowFrameUnits units, WindowFrameBound starting, WindowFrameBound following,
+            WindowFrameExclusion exclusion) {
+        this.units = units;
+        this.starting = starting;
+        if (following != null && following.getType() == WindowFrameBoundType.CURRENT_ROW) {
+            following = null;
+        }
+        this.following = following;
         this.exclusion = exclusion;
     }
 
@@ -254,7 +183,7 @@ public final class WindowFrame {
      * @return whether window frame specification can be omitted
      */
     public boolean isDefault() {
-        return extent == SimpleExtent.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW
+        return starting.getType() == WindowFrameBoundType.UNBOUNDED && following == null
                 && exclusion == WindowFrameExclusion.EXCLUDE_NO_OTHERS;
     }
 
@@ -265,7 +194,8 @@ public final class WindowFrame {
      * @return whether window frame specification contains all rows in partition
      */
     public boolean isFullPartition() {
-        return extent == SimpleExtent.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_UNBOUNDED_FOLLOWING
+        return starting.getType() == WindowFrameBoundType.UNBOUNDED && following != null
+                && following.getType() == WindowFrameBoundType.UNBOUNDED
                 && exclusion == WindowFrameExclusion.EXCLUDE_NO_OTHERS;
     }
 
@@ -285,22 +215,57 @@ public final class WindowFrame {
     public Iterator<Value[]> iterator(ArrayList<Value[]> orderedRows, SortOrder sortOrder, int currentRow,
             boolean reverse) {
         int size = orderedRows.size();
-        final int startIndex, endIndex;
-        switch (extent) {
-        case RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW:
+        final int startIndex;
+        switch (starting.getType()) {
+        case UNBOUNDED:
             startIndex = 0;
-            endIndex = currentRow;
             break;
-        case RANGE_BETWEEN_CURRENT_ROW_AND_UNBOUNDED_FOLLOWING:
+        case CURRENT_ROW:
             startIndex = currentRow;
-            endIndex = size - 1;
             break;
-        case RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_UNBOUNDED_FOLLOWING:
-            startIndex = 0;
-            endIndex = size - 1;
+        case VALUE:
+            switch (units) {
+            case ROWS: {
+                int value = starting.getValue();
+                startIndex = value > currentRow ? 0 : currentRow - value;
+                break;
+            }
+            default:
+                // TODO
+                throw DbException.getUnsupportedException("units=" + units);
+            }
             break;
         default:
-            throw DbException.getUnsupportedException("window frame extent =" + extent);
+            throw DbException.getUnsupportedException("window frame bound type=" + starting.getType());
+        }
+
+        int endIndex;
+        if (following == null) {
+            endIndex = currentRow;
+        } else {
+            switch (following.getType()) {
+            case UNBOUNDED:
+                endIndex = size - 1;
+                break;
+            case CURRENT_ROW:
+                endIndex = currentRow;
+                break;
+            case VALUE:
+                switch (units) {
+                case ROWS: {
+                    int value = following.getValue();
+                    int rem = size - currentRow - 1;
+                    endIndex = value > rem ? size - 1 : currentRow + value;
+                    break;
+                }
+                default:
+                    // TODO
+                    throw DbException.getUnsupportedException("units=" + units);
+                }
+                break;
+            default:
+                throw DbException.getUnsupportedException("window frame bound type=" + following.getType());
+            }
         }
         if (exclusion != WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
             return complexIterator(orderedRows, sortOrder, currentRow, startIndex, endIndex, reverse);
@@ -350,11 +315,17 @@ public final class WindowFrame {
      * @see org.h2.expression.Expression#getSQL()
      */
     public String getSQL() {
-        String sql = extent.getSQL();
-        if (exclusion != WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
-            sql = sql + ' ' + exclusion.getSQL();
+        StringBuilder builder = new StringBuilder();
+        builder.append(units.getSQL());
+        if (following == null) {
+            builder.append(' ').append(starting.getSQL(false));
+        } else {
+            builder.append(" BETWEEN ").append(starting.getSQL(false)).append(" AND ").append(following.getSQL(true));
         }
-        return sql;
+        if (exclusion != WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
+            builder.append(' ').append(exclusion.getSQL());
+        }
+        return builder.toString();
     }
 
 }

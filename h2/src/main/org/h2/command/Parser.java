@@ -176,8 +176,10 @@ import org.h2.expression.aggregate.Aggregate.AggregateType;
 import org.h2.expression.aggregate.JavaAggregate;
 import org.h2.expression.aggregate.Window;
 import org.h2.expression.aggregate.WindowFrame;
-import org.h2.expression.aggregate.WindowFrame.SimpleExtent;
-import org.h2.expression.aggregate.WindowFrame.WindowFrameExclusion;
+import org.h2.expression.aggregate.WindowFrameBound;
+import org.h2.expression.aggregate.WindowFrameBound.WindowFrameBoundType;
+import org.h2.expression.aggregate.WindowFrameExclusion;
+import org.h2.expression.aggregate.WindowFrameUnits;
 import org.h2.expression.aggregate.WindowFunction;
 import org.h2.expression.aggregate.WindowFunction.WindowFunctionType;
 import org.h2.index.Index;
@@ -3074,8 +3076,7 @@ public class Parser {
                     frame = readWindowFrame();
                     break;
                 default:
-                    frame = new WindowFrame(SimpleExtent.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW,
-                            WindowFrameExclusion.EXCLUDE_NO_OTHERS);
+                    frame = null;
                 }
             } else {
                 frame = readWindowFrame();
@@ -3092,46 +3093,68 @@ public class Parser {
     }
 
     private WindowFrame readWindowFrame() {
-        SimpleExtent extent;
-        WindowFrameExclusion exclusion = WindowFrameExclusion.EXCLUDE_NO_OTHERS;
-        if (readIf("RANGE")) {
-            read("BETWEEN");
-            if (readIf("UNBOUNDED")) {
-                read("PRECEDING");
-                read("AND");
-                if (readIf("CURRENT")) {
-                    read("ROW");
-                    extent = SimpleExtent.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW;
-                } else {
-                    read("UNBOUNDED");
-                    read("FOLLOWING");
-                    extent = SimpleExtent.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_UNBOUNDED_FOLLOWING;
-                }
-            } else {
-                read("CURRENT");
-                read("ROW");
-                read("AND");
-                read("UNBOUNDED");
-                read("FOLLOWING");
-                extent = SimpleExtent.RANGE_BETWEEN_CURRENT_ROW_AND_UNBOUNDED_FOLLOWING;
-            }
-            if (readIf("EXCLUDE")) {
-                if (readIf("CURRENT")) {
-                    read("ROW");
-                    exclusion = WindowFrameExclusion.EXCLUDE_CURRENT_ROW;
-                } else if (readIf(GROUP)) {
-                    exclusion = WindowFrameExclusion.EXCLUDE_GROUP;
-                } else if (readIf("TIES")) {
-                    exclusion = WindowFrameExclusion.EXCLUDE_TIES;
-                } else {
-                    read("NO");
-                    read("OTHERS");
-                }
-            }
+        WindowFrameUnits units;
+        if (readIf("ROWS")) {
+            units = WindowFrameUnits.ROWS;
+        } else if (readIf("RANGE")) {
+            units = WindowFrameUnits.RANGE;
+        } else if (readIf("GROUPS")) {
+            units = WindowFrameUnits.GROUPS;
         } else {
-            extent = SimpleExtent.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW;
+            return null;
         }
-        return new WindowFrame(extent, exclusion);
+        WindowFrameBound starting, following;
+        if (readIf("BETWEEN")) {
+            starting = readWindowFrameStarting();
+            read("AND");
+            following = readWindowFrameFollowing();
+        } else {
+            starting = readWindowFrameStarting();
+            following = null;
+        }
+        WindowFrameExclusion exclusion = WindowFrameExclusion.EXCLUDE_NO_OTHERS;
+        if (readIf("EXCLUDE")) {
+            if (readIf("CURRENT")) {
+                read("ROW");
+                exclusion = WindowFrameExclusion.EXCLUDE_CURRENT_ROW;
+            } else if (readIf(GROUP)) {
+                exclusion = WindowFrameExclusion.EXCLUDE_GROUP;
+            } else if (readIf("TIES")) {
+                exclusion = WindowFrameExclusion.EXCLUDE_TIES;
+            } else {
+                read("NO");
+                read("OTHERS");
+            }
+        }
+        return new WindowFrame(units, starting, following, exclusion);
+    }
+
+    private WindowFrameBound readWindowFrameStarting() {
+        if (readIf("UNBOUNDED")) {
+            read("PRECEDING");
+            return new WindowFrameBound(WindowFrameBoundType.UNBOUNDED, 0);
+        }
+        if (readIf("CURRENT")) {
+            read("ROW");
+            return new WindowFrameBound(WindowFrameBoundType.CURRENT_ROW, 0);
+        }
+        int value = readNonNegativeInt();
+        read("PRECEDING");
+        return new WindowFrameBound(WindowFrameBoundType.VALUE, value);
+    }
+
+    private WindowFrameBound readWindowFrameFollowing() {
+        if (readIf("UNBOUNDED")) {
+            read("FOLLOWING");
+            return new WindowFrameBound(WindowFrameBoundType.UNBOUNDED, 0);
+        }
+        if (readIf("CURRENT")) {
+            read("ROW");
+            return new WindowFrameBound(WindowFrameBoundType.CURRENT_ROW, 0);
+        }
+        int value = readNonNegativeInt();
+        read("FOLLOWING");
+        return new WindowFrameBound(WindowFrameBoundType.VALUE, value);
     }
 
     private AggregateType getAggregateType(String name) {

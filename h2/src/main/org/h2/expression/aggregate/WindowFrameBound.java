@@ -37,7 +37,7 @@ public class WindowFrameBound {
 
     private final WindowFrameBoundType type;
 
-    private final int value;
+    private final Expression value;
 
     /**
      * Creates new instance of window frame bound.
@@ -47,15 +47,12 @@ public class WindowFrameBound {
      * @param value
      *            bound value, if any
      */
-    public WindowFrameBound(WindowFrameBoundType type, int value) {
+    public WindowFrameBound(WindowFrameBoundType type, Expression value) {
         this.type = type;
         if (type == WindowFrameBoundType.VALUE) {
-            if (value < 0) {
-                throw DbException.getInvalidValueException("unsigned", value);
-            }
             this.value = value;
         } else {
-            this.value = 0;
+            this.value = null;
         }
     }
 
@@ -73,7 +70,7 @@ public class WindowFrameBound {
      *
      * @return the value
      */
-    public int getValue() {
+    public Expression getValue() {
         return value;
     }
 
@@ -93,7 +90,7 @@ public class WindowFrameBound {
         case CURRENT_ROW:
             return "CURRENT ROW";
         case VALUE:
-            return value + (following ? " FOLLOWING" : " PRECEDING");
+            return value.getSQL() + (following ? " FOLLOWING" : " PRECEDING");
         default:
             throw DbException.throwInternalError("type=" + type);
         }

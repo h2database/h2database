@@ -3132,13 +3132,13 @@ public class Parser {
     private WindowFrameBound readWindowFrameStarting() {
         if (readIf("UNBOUNDED")) {
             read("PRECEDING");
-            return new WindowFrameBound(WindowFrameBoundType.UNBOUNDED, 0);
+            return new WindowFrameBound(WindowFrameBoundType.UNBOUNDED, null);
         }
         if (readIf("CURRENT")) {
             read("ROW");
-            return new WindowFrameBound(WindowFrameBoundType.CURRENT_ROW, 0);
+            return new WindowFrameBound(WindowFrameBoundType.CURRENT_ROW, null);
         }
-        int value = readNonNegativeInt();
+        Expression value = readValueOrParameter();
         read("PRECEDING");
         return new WindowFrameBound(WindowFrameBoundType.VALUE, value);
     }
@@ -3146,15 +3146,25 @@ public class Parser {
     private WindowFrameBound readWindowFrameFollowing() {
         if (readIf("UNBOUNDED")) {
             read("FOLLOWING");
-            return new WindowFrameBound(WindowFrameBoundType.UNBOUNDED, 0);
+            return new WindowFrameBound(WindowFrameBoundType.UNBOUNDED, null);
         }
         if (readIf("CURRENT")) {
             read("ROW");
-            return new WindowFrameBound(WindowFrameBoundType.CURRENT_ROW, 0);
+            return new WindowFrameBound(WindowFrameBoundType.CURRENT_ROW, null);
         }
-        int value = readNonNegativeInt();
+        Expression value = readValueOrParameter();
         read("FOLLOWING");
         return new WindowFrameBound(WindowFrameBoundType.VALUE, value);
+    }
+
+    private Expression readValueOrParameter() {
+        int index = parseIndex;
+        Expression value = readExpression();
+        if (!(value instanceof ValueExpression) && !(value instanceof Parameter)) {
+            parseIndex = index;
+            throw getSyntaxError();
+        }
+        return value;
     }
 
     private AggregateType getAggregateType(String name) {

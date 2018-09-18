@@ -11,6 +11,10 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import org.h2.engine.Session;
+import org.h2.expression.BinaryOperation;
+import org.h2.expression.BinaryOperation.OpType;
+import org.h2.expression.ValueExpression;
 import org.h2.expression.aggregate.WindowFrameBound.WindowFrameBoundType;
 import org.h2.message.DbException;
 import org.h2.result.SortOrder;
@@ -154,6 +158,54 @@ public final class WindowFrame {
 
     private final WindowFrameExclusion exclusion;
 
+    private static int toGroupStart(ArrayList<Value[]> orderedRows, SortOrder sortOrder, int offset, int minOffset) {
+        Value[] row = orderedRows.get(offset);
+        while (offset > minOffset && sortOrder.compare(row, orderedRows.get(offset - 1)) == 0) {
+            offset--;
+        }
+        return offset;
+    }
+
+    private static int toGroupEnd(ArrayList<Value[]> orderedRows, SortOrder sortOrder, int offset, int maxOffset) {
+        Value[] row = orderedRows.get(offset);
+        while (offset < maxOffset && sortOrder.compare(row, orderedRows.get(offset + 1)) == 0) {
+            offset++;
+        }
+        return offset;
+    }
+
+    private static int getIntOffset(WindowFrameBound bound, Session session) {
+        int value = bound.getValue().getValue(session).getInt();
+        if (value < 0) {
+            throw DbException.getInvalidValueException("unsigned", value);
+        }
+        return value;
+    }
+
+    private static Value plus(Session session, ArrayList<Value[]> orderedRows, int currentRow, WindowFrameBound bound,
+            int index) {
+        return new BinaryOperation(OpType.PLUS, //
+                ValueExpression.get(orderedRows.get(currentRow)[index]),
+                ValueExpression.get(getValueOffset(bound, session))) //
+                        .optimize(session).getValue(session);
+    }
+
+    private static Value minus(Session session, ArrayList<Value[]> orderedRows, int currentRow, WindowFrameBound bound,
+            int index) {
+        return new BinaryOperation(OpType.MINUS, //
+                ValueExpression.get(orderedRows.get(currentRow)[index]),
+                ValueExpression.get(getValueOffset(bound, session))) //
+                        .optimize(session).getValue(session);
+    }
+
+    private static Value getValueOffset(WindowFrameBound bound, Session session) {
+        Value value = bound.getValue().getValue(session);
+        if (value.getSignum() < 0) {
+            throw DbException.getInvalidValueException("unsigned", value.getTraceSQL());
+        }
+        return value;
+    }
+
     /**
      * Creates new instance of window frame clause.
      *
@@ -202,6 +254,8 @@ public final class WindowFrame {
     /**
      * Returns iterator.
      *
+     * @param session
+     *            the session
      * @param orderedRows
      *            ordered rows
      * @param sortOrder
@@ -210,13 +264,15 @@ public final class WindowFrame {
      *            index of the current row
      * @param reverse
      *            whether iterator should iterate in reverse order
+     *
      * @return iterator
      */
-    public Iterator<Value[]> iterator(ArrayList<Value[]> orderedRows, SortOrder sortOrder, int currentRow,
-            boolean reverse) {
+    public Iterator<Value[]> iterator(Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder,
+            int currentRow, boolean reverse) {
         int size = orderedRows.size();
-        final int startIndex;
-        switch (starting.getType()) {
+        WindowFrameBound bound = starting;
+        int startIndex;
+        switch (bound.getType()) {
         case UNBOUNDED:
             startIndex = 0;
             break;
@@ -226,26 +282,53 @@ public final class WindowFrame {
         case VALUE:
             switch (units) {
             case ROWS: {
-                int value = starting.getValue();
+                int value = getIntOffset(bound, session);
                 startIndex = value > currentRow ? 0 : currentRow - value;
                 break;
             }
+            case GROUPS: {
+                int value = getIntOffset(bound, session);
+                startIndex = toGroupStart(orderedRows, sortOrder, currentRow, 0);
+                while (value > 0 && startIndex > 0) {
+                    value--;
+                    startIndex = toGroupStart(orderedRows, sortOrder, startIndex - 1, 0);
+                }
+                break;
+            }
+            case RANGE: {
+                startIndex = currentRow;
+                int index = sortOrder.getQueryColumnIndexes()[0];
+                if ((sortOrder.getSortTypes()[0] & SortOrder.DESCENDING) != 0) {
+                    Value c = plus(session, orderedRows, currentRow, bound, index);
+                    while (startIndex > 0
+                            && session.getDatabase().compare(c, orderedRows.get(startIndex - 1)[index]) >= 0) {
+                        startIndex--;
+                    }
+                } else {
+                    Value c = minus(session, orderedRows, currentRow, bound, index);
+                    while (startIndex > 0
+                            && session.getDatabase().compare(c, orderedRows.get(startIndex - 1)[index]) <= 0) {
+                        startIndex--;
+                    }
+                }
+                break;
+            }
             default:
-                // TODO
                 throw DbException.getUnsupportedException("units=" + units);
             }
             break;
         default:
-            throw DbException.getUnsupportedException("window frame bound type=" + starting.getType());
+            throw DbException.getUnsupportedException("window frame bound type=" + bound.getType());
         }
-
+        bound = following;
         int endIndex;
-        if (following == null) {
+        if (bound == null) {
             endIndex = currentRow;
         } else {
-            switch (following.getType()) {
+            int last = size - 1;
+            switch (bound.getType()) {
             case UNBOUNDED:
-                endIndex = size - 1;
+                endIndex = last;
                 break;
             case CURRENT_ROW:
                 endIndex = currentRow;
@@ -253,18 +336,44 @@ public final class WindowFrame {
             case VALUE:
                 switch (units) {
                 case ROWS: {
-                    int value = following.getValue();
-                    int rem = size - currentRow - 1;
-                    endIndex = value > rem ? size - 1 : currentRow + value;
+                    int value = getIntOffset(bound, session);
+                    int rem = last - currentRow;
+                    endIndex = value > rem ? last : currentRow + value;
+                    break;
+                }
+                case GROUPS: {
+                    int value = getIntOffset(bound, session);
+                    endIndex = toGroupEnd(orderedRows, sortOrder, currentRow, last);
+                    while (value > 0 && endIndex < last) {
+                        value--;
+                        endIndex = toGroupEnd(orderedRows, sortOrder, endIndex + 1, last);
+                    }
+                    break;
+                }
+                case RANGE: {
+                    endIndex = currentRow;
+                    int index = sortOrder.getQueryColumnIndexes()[0];
+                    if ((sortOrder.getSortTypes()[0] & SortOrder.DESCENDING) != 0) {
+                        Value c = minus(session, orderedRows, currentRow, bound, index);
+                        while (endIndex < last
+                                && session.getDatabase().compare(c, orderedRows.get(endIndex + 1)[index]) <= 0) {
+                            endIndex++;
+                        }
+                    } else {
+                        Value c = plus(session, orderedRows, currentRow, bound, index);
+                        while (endIndex < last
+                                && session.getDatabase().compare(c, orderedRows.get(endIndex + 1)[index]) >= 0) {
+                            endIndex++;
+                        }
+                    }
                     break;
                 }
                 default:
-                    // TODO
                     throw DbException.getUnsupportedException("units=" + units);
                 }
                 break;
             default:
-                throw DbException.getUnsupportedException("window frame bound type=" + following.getType());
+                throw DbException.getUnsupportedException("window frame bound type=" + bound.getType());
             }
         }
         if (exclusion != WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
@@ -285,15 +394,8 @@ public final class WindowFrame {
             break;
         case EXCLUDE_GROUP:
         case EXCLUDE_TIES: {
-            int exStart = currentRow;
-            Value[] row = orderedRows.get(currentRow);
-            while (exStart > startIndex && sortOrder.compare(row, orderedRows.get(exStart - 1)) == 0) {
-                exStart--;
-            }
-            int exEnd = currentRow;
-            while (exEnd < endIndex && sortOrder.compare(row, orderedRows.get(exEnd + 1)) == 0) {
-                exEnd++;
-            }
+            int exStart = toGroupStart(orderedRows, sortOrder, currentRow, startIndex);
+            int exEnd = toGroupEnd(orderedRows, sortOrder, currentRow, endIndex);
             set.clear(exStart, exEnd + 1);
             if (exclusion == WindowFrameExclusion.EXCLUDE_TIES) {
                 set.set(currentRow);

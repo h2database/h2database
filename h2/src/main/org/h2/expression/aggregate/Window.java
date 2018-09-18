@@ -66,7 +66,7 @@ public final class Window {
         this.partitionBy = partitionBy;
         this.orderBy = orderBy;
         if (frame == null) {
-            frame = new WindowFrame(WindowFrameUnits.RANGE, new WindowFrameBound(WindowFrameBoundType.UNBOUNDED, 0),
+            frame = new WindowFrame(WindowFrameUnits.RANGE, new WindowFrameBound(WindowFrameBoundType.UNBOUNDED, null),
                     null, WindowFrameExclusion.EXCLUDE_NO_OTHERS);
         }
         this.frame = frame;

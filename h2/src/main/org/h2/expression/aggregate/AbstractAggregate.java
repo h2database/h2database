@@ -445,7 +445,7 @@ public abstract class AbstractAggregate extends Expression {
             int size = ordered.size();
             for (int i = 0; i < size; i++) {
                 Object aggregateData = createAggregateData();
-                for (Iterator<Value[]> iter = frame.iterator(ordered, getOverOrderBySort(), i, false); iter
+                for (Iterator<Value[]> iter = frame.iterator(session, ordered, getOverOrderBySort(), i, false); iter
                         .hasNext();) {
                     updateFromExpressions(session, aggregateData, iter.next());
                 }

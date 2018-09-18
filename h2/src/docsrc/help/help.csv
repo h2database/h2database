@@ -2721,9 +2721,9 @@ INTERVAL '11:12.123' MINUTE TO SECOND
 
 "Other Grammar","Interval","
 intervalYear | intervalMonth | intervalDay | intervalHour | intervalMinute
-| intervalSecond | intervalYearToMonth | intervalDayToHour
-| intervalDayToMinute | intervalDayToSecond | intervalHourToMinute
-| intervalHourToSecond | intervalMinuteToSecond
+    | intervalSecond | intervalYearToMonth | intervalDayToHour
+    | intervalDayToMinute | intervalDayToSecond | intervalHourToMinute
+    | intervalHourToSecond | intervalMinuteToSecond
 ","
 An interval literal.
 ","
@@ -2732,7 +2732,7 @@ INTERVAL '1-2' YEAR TO MONTH
 
 "Other Grammar","Value","
 string | dollarQuotedString | numeric | dateAndTime | boolean | bytes
-| interval | array | null
+    | interval | array | null
 ","
 A literal value of any data type, or null.
 ","

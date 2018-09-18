@@ -48,8 +48,8 @@ SELECT * FROM TEST ORDER BY NAME;
 SELECT ID, COUNT(*) FROM TEST GROUP BY ID;
 SELECT NAME, COUNT(*) FROM TEST GROUP BY NAME HAVING COUNT(*) > 2;
 SELECT 'ID' COL, MAX(ID) AS MAX FROM TEST UNION SELECT 'NAME', MAX(NAME) FROM TEST;
-SELECT * FROM TEST OFFSET 1000 ROWS FETCH NEXT 1000 ROWS ONLY;
-SELECT A, B FROM TEST ORDER BY A FETCH NEXT 10 ROWS WITH TIES;
+SELECT * FROM TEST OFFSET 1000 ROWS FETCH FIRST 1000 ROWS ONLY;
+SELECT A, B FROM TEST ORDER BY A FETCH FIRST 10 ROWS WITH TIES;
 SELECT * FROM (SELECT ID, COUNT(*) FROM TEST
     GROUP BY ID UNION SELECT NULL, COUNT(*) FROM TEST)
     ORDER BY 1 NULLS LAST;
@@ -2534,9 +2534,11 @@ SELECT * FROM (VALUES(1, 'Hello'), (2, 'World')) AS V;
 "
 
 "Other Grammar","Window specification","
-([PARTITION BY expression [,...]] [ORDER BY order [,...]])
+([PARTITION BY expression [,...]] [ORDER BY order [,...]]
+[windowFrame])
 ","
 A window specification for a window function or aggregate.
+
 Window functions are currently experimental in H2 and should be used with caution.
 They also may require a lot of memory for large queries.
 ","
@@ -2544,6 +2546,21 @@ They also may require a lot of memory for large queries.
 (ORDER BY ID)
 (PARTITION BY CATEGORY)
 (PARTITION BY CATEGORY ORDER BY NAME, ID)
+(ORDER BY Y RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE TIES)
+"
+
+"Other Grammar","Window frame","
+[RANGE BETWEEN {
+    UNBOUNDED PRECEDING AND CURRENT ROW
+    |CURRENT ROW AND UNBOUNDED FOLLOWING
+    |UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+    }]
+[EXCLUDE {CURRENT ROW|GROUP|TIES|NO OTHERS}]
+","
+A window frame clause.
+Is currently supported only in aggregates and FIRST_VALUE(), LAST_VALUE(), and NTH_VALUE() window functions.
+","
+RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE GROUP
 "
 
 "Other Grammar","Term","
@@ -2712,9 +2729,9 @@ INTERVAL '11:12.123' MINUTE TO SECOND
 
 "Other Grammar","Interval","
 intervalYear | intervalMonth | intervalDay | intervalHour | intervalMinute
-| intervalSecond | intervalYearToMonth | intervalDayToHour
-| intervalDayToMinute | intervalDayToSecond | intervalHourToMinute
-| intervalHourToSecond | intervalMinuteToSecond
+    | intervalSecond | intervalYearToMonth | intervalDayToHour
+    | intervalDayToMinute | intervalDayToSecond | intervalHourToMinute
+    | intervalHourToSecond | intervalMinuteToSecond
 ","
 An interval literal.
 ","
@@ -2723,7 +2740,7 @@ INTERVAL '1-2' YEAR TO MONTH
 
 "Other Grammar","Value","
 string | dollarQuotedString | numeric | dateAndTime | boolean | bytes
-| interval | array | null
+    | interval | array | null
 ","
 A literal value of any data type, or null.
 ","
@@ -5136,6 +5153,58 @@ They also may require a lot of memory for large queries.
 ","
 SELECT CUME_DIST() OVER (ORDER BY ID), * FROM TEST;
 SELECT CUME_DIST() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
+"Functions (Window)","FIRST_VALUE","
+FIRST_VALUE(value) [{RESPECT|IGNORE} NULLS] OVER windowSpecification
+","
+Returns the first value in a window.
+If IGNORE NULLS is specified null values are skipped and the function returns first non-null value, if any.
+
+Window functions are currently experimental in H2 and should be used with caution.
+They also may require a lot of memory for large queries.
+","
+SELECT FIRST_VALUE(X) OVER (ORDER BY ID), * FROM TEST;
+SELECT FIRST_VALUE(X) IGNORE NULLS OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
+"Functions (Window)","LAST_VALUE","
+LAST_VALUE(value) [{RESPECT|IGNORE} NULLS] OVER windowSpecification
+","
+Returns the last value in a window.
+If IGNORE NULLS is specified null values are skipped and the function returns last non-null value before them, if any;
+if there is no non-null value it returns NULL.
+Note that the last value is actually a value in the current row if window frame is not specified.
+
+Window functions are currently experimental in H2 and should be used with caution.
+They also may require a lot of memory for large queries.
+","
+SELECT LAST_VALUE(X) OVER (ORDER BY ID), * FROM TEST;
+SELECT LAST_VALUE(X) IGNORE NULLS OVER (
+    PARTITION BY CATEGORY ORDER BY ID
+    RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING
+), * FROM TEST;
+"
+
+"Functions (Window)","NTH_VALUE","
+NTH_VALUE(value, nInt) [FROM {FIRST|LAST}] [{RESPECT|IGNORE} NULLS]
+OVER windowSpecification
+","
+Returns the value in a row with a specified relative number in a window.
+Relative row number must be positive.
+If FROM LAST is specified rows a counted backwards from the last row.
+If IGNORE NULLS is specified rows with null values in selected expression are skipped.
+If number of considered rows is less than specified relative number this function returns NULL.
+Note that the last row is actually a current row if window frame is not specified.
+
+Window functions are currently experimental in H2 and should be used with caution.
+They also may require a lot of memory for large queries.
+","
+SELECT NTH_VALUE(X) OVER (ORDER BY ID), * FROM TEST;
+SELECT NTH_VALUE(X) IGNORE NULLS OVER (
+    PARTITION BY CATEGORY ORDER BY ID
+    RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+), * FROM TEST;
 "
 
 "System Tables","Information Schema","

@@ -26,6 +26,8 @@ public final class Window {
 
     private final ArrayList<SelectOrderBy> orderBy;
 
+    private final WindowFrame frame;
+
     /**
      * @param builder
      *            string builder
@@ -34,7 +36,10 @@ public final class Window {
      */
     static void appendOrderBy(StringBuilder builder, ArrayList<SelectOrderBy> orderBy) {
         if (orderBy != null && !orderBy.isEmpty()) {
-            builder.append(" ORDER BY ");
+            if (builder.charAt(builder.length() - 1) != '(') {
+                builder.append(' ');
+            }
+            builder.append("ORDER BY ");
             for (int i = 0; i < orderBy.size(); i++) {
                 SelectOrderBy o = orderBy.get(i);
                 if (i > 0) {
@@ -53,10 +58,13 @@ public final class Window {
      *            PARTITION BY clause, or null
      * @param orderBy
      *            ORDER BY clause, or null
+     * @param frame
+     *            window frame clause
      */
-    public Window(ArrayList<Expression> partitionBy, ArrayList<SelectOrderBy> orderBy) {
+    public Window(ArrayList<Expression> partitionBy, ArrayList<SelectOrderBy> orderBy, WindowFrame frame) {
         this.partitionBy = partitionBy;
         this.orderBy = orderBy;
+        this.frame = frame;
     }
 
     /**
@@ -77,6 +85,25 @@ public final class Window {
         if (orderBy != null) {
             for (SelectOrderBy o : orderBy) {
                 o.expression.mapColumns(resolver, level);
+            }
+        }
+    }
+
+    /**
+     * Try to optimize the window conditions.
+     *
+     * @param session
+     *            the session
+     */
+    public void optimize(Session session) {
+        if (partitionBy != null) {
+            for (int i = 0; i < partitionBy.size(); i++) {
+                partitionBy.set(i, partitionBy.get(i).optimize(session));
+            }
+        }
+        if (orderBy != null) {
+            for (SelectOrderBy o : orderBy) {
+                o.expression = o.expression.optimize(session);
             }
         }
     }
@@ -111,6 +138,15 @@ public final class Window {
      */
     public ArrayList<SelectOrderBy> getOrderBy() {
         return orderBy;
+    }
+
+    /**
+     * Returns window frame.
+     *
+     * @return window frame
+     */
+    public WindowFrame getWindowFrame() {
+        return frame;
     }
 
     /**
@@ -155,6 +191,9 @@ public final class Window {
             }
         }
         appendOrderBy(builder, orderBy);
+        if (!frame.isDefault()) {
+            builder.append(' ').append(frame.getSQL());
+        }
         return builder.append(')').toString();
     }
 

@@ -8,6 +8,7 @@ package org.h2.expression.aggregate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.Select;
@@ -113,6 +114,7 @@ public abstract class AbstractAggregate extends Expression {
     @Override
     public Expression optimize(Session session) {
         if (over != null) {
+            over.optimize(session);
             ArrayList<SelectOrderBy> orderBy = over.getOrderBy();
             if (orderBy != null) {
                 overOrderBySort = createOrder(session, orderBy, getNumExpressions());
@@ -423,10 +425,32 @@ public abstract class AbstractAggregate extends Expression {
      */
     protected void getOrderedResultLoop(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
             int rowIdColumn) {
-        Object aggregateData = createAggregateData();
-        for (Value[] row : ordered) {
-            updateFromExpressions(session, aggregateData, row);
-            result.put(row[rowIdColumn].getInt(), getAggregatedValue(session, aggregateData));
+        WindowFrame frame = over.getWindowFrame();
+        if (frame.isDefault()) {
+            Object aggregateData = createAggregateData();
+            for (Value[] row : ordered) {
+                updateFromExpressions(session, aggregateData, row);
+                result.put(row[rowIdColumn].getInt(), getAggregatedValue(session, aggregateData));
+            }
+        } else if (frame.isFullPartition()) {
+            Object aggregateData = createAggregateData();
+            for (Value[] row : ordered) {
+                updateFromExpressions(session, aggregateData, row);
+            }
+            Value value = getAggregatedValue(session, aggregateData);
+            for (Value[] row : ordered) {
+                result.put(row[rowIdColumn].getInt(), value);
+            }
+        } else {
+            int size = ordered.size();
+            for (int i = 0; i < size; i++) {
+                Object aggregateData = createAggregateData();
+                for (Iterator<Value[]> iter = frame.iterator(ordered, getOverOrderBySort(), i, false); iter
+                        .hasNext();) {
+                    updateFromExpressions(session, aggregateData, iter.next());
+                }
+                result.put(ordered.get(i)[rowIdColumn].getInt(), getAggregatedValue(session, aggregateData));
+            }
         }
     }
 

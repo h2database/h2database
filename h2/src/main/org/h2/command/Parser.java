@@ -175,6 +175,9 @@ import org.h2.expression.aggregate.Aggregate;
 import org.h2.expression.aggregate.Aggregate.AggregateType;
 import org.h2.expression.aggregate.JavaAggregate;
 import org.h2.expression.aggregate.Window;
+import org.h2.expression.aggregate.WindowFrame;
+import org.h2.expression.aggregate.WindowFrame.SimpleExtent;
+import org.h2.expression.aggregate.WindowFrame.WindowFrameExclusion;
 import org.h2.expression.aggregate.WindowFunction;
 import org.h2.expression.aggregate.WindowFunction.WindowFunctionType;
 import org.h2.index.Index;
@@ -3061,8 +3064,24 @@ public class Parser {
             } else if (!isAggregate) {
                 orderBy = new ArrayList<>(0);
             }
+            WindowFrame frame;
+            if (aggregate instanceof WindowFunction) {
+                WindowFunction w = (WindowFunction) aggregate;
+                switch (w.getFunctionType()) {
+                case FIRST_VALUE:
+                case LAST_VALUE:
+                case NTH_VALUE:
+                    frame = readWindowFrame();
+                    break;
+                default:
+                    frame = new WindowFrame(SimpleExtent.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW,
+                            WindowFrameExclusion.EXCLUDE_NO_OTHERS);
+                }
+            } else {
+                frame = readWindowFrame();
+            }
             read(CLOSE_PAREN);
-            over = new Window(partitionBy, orderBy);
+            over = new Window(partitionBy, orderBy, frame);
             aggregate.setOverCondition(over);
             currentSelect.setWindowQuery();
         } else if (!isAggregate) {
@@ -3070,6 +3089,49 @@ public class Parser {
         } else {
             currentSelect.setGroupQuery();
         }
+    }
+
+    private WindowFrame readWindowFrame() {
+        SimpleExtent extent;
+        WindowFrameExclusion exclusion = WindowFrameExclusion.EXCLUDE_NO_OTHERS;
+        if (readIf("RANGE")) {
+            read("BETWEEN");
+            if (readIf("UNBOUNDED")) {
+                read("PRECEDING");
+                read("AND");
+                if (readIf("CURRENT")) {
+                    read("ROW");
+                    extent = SimpleExtent.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW;
+                } else {
+                    read("UNBOUNDED");
+                    read("FOLLOWING");
+                    extent = SimpleExtent.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_UNBOUNDED_FOLLOWING;
+                }
+            } else {
+                read("CURRENT");
+                read("ROW");
+                read("AND");
+                read("UNBOUNDED");
+                read("FOLLOWING");
+                extent = SimpleExtent.RANGE_BETWEEN_CURRENT_ROW_AND_UNBOUNDED_FOLLOWING;
+            }
+            if (readIf("EXCLUDE")) {
+                if (readIf("CURRENT")) {
+                    read("ROW");
+                    exclusion = WindowFrameExclusion.EXCLUDE_CURRENT_ROW;
+                } else if (readIf(GROUP)) {
+                    exclusion = WindowFrameExclusion.EXCLUDE_GROUP;
+                } else if (readIf("TIES")) {
+                    exclusion = WindowFrameExclusion.EXCLUDE_TIES;
+                } else {
+                    read("NO");
+                    read("OTHERS");
+                }
+            }
+        } else {
+            extent = SimpleExtent.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW;
+        }
+        return new WindowFrame(extent, exclusion);
     }
 
     private AggregateType getAggregateType(String name) {
@@ -3270,10 +3332,49 @@ public class Parser {
         if (currentSelect == null) {
             throw getSyntaxError();
         }
+        int numArgs = WindowFunction.getArgumentCount(type);
+        Expression[] args = null;
+        if (numArgs > 0) {
+            args = new Expression[numArgs];
+            for (int i = 0; i < numArgs; i++) {
+                if (i > 0) {
+                    read(COMMA);
+                }
+                args[i] = readExpression();
+            }
+        }
         read(CLOSE_PAREN);
-        WindowFunction function = new WindowFunction(type, currentSelect);
+        WindowFunction function = new WindowFunction(type, currentSelect, args);
+        if (type == WindowFunctionType.NTH_VALUE) {
+            readFromFirstOrLast(function);
+        }
+        switch (type) {
+        case FIRST_VALUE:
+        case LAST_VALUE:
+        case NTH_VALUE:
+            readRespectOrIgnoreNulls(function);
+            //$FALL-THROUGH$
+        default:
+            // Avoid warning
+        }
         readFilterAndOver(function);
         return function;
+    }
+
+    private void readFromFirstOrLast(WindowFunction function) {
+        if (readIf(FROM) && !readIf("FIRST")) {
+            read("LAST");
+            function.setFromLast(true);
+        }
+    }
+
+    private void readRespectOrIgnoreNulls(WindowFunction function) {
+        if (readIf("RESPECT")) {
+            read("NULLS");
+        } else if (readIf("IGNORE")) {
+            read("NULLS");
+            function.setIgnoreNulls(true);
+        }
     }
 
     private Expression readFunctionWithoutParameters(String name) {

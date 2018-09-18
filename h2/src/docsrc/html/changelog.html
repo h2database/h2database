@@ -21,6 +21,16 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>PR #1454: Add FIRST_VALUE(), LAST_VALUE(), and NTH_VALUE()
+</li>
+<li>PR #1453, Issue #1161: Add ROW_NUMBER(), RANK(), DENSE_RANK(), PERCENT_RANK(), and CUME_DIST() window functions
+</li>
+<li>PR #1452: Reset aggregates before reuse
+</li>
+<li>PR #1451: Add experimental support for aggregates with OVER (ORDER BY *)
+</li>
+<li>PR #1450: Evaluate window aggregates only once for each partition
+</li>
 <li>PR #1449: Move more code from Aggregate and JavaAggregate to AbstractAggregate
 </li>
 <li>PR #1448: Add experimental implementation of grouped window queries
@@ -32,6 +42,8 @@ Change Log
 <li>PR #1445: Use PostGIS-compatible format for SRID-only constraint in GEOMETRY
 </li>
 <li>PR #1444: Add experimental unoptimized support for OVER ([PARTITION BY ...]) in aggregates
+</li>
+<li>PR #1442: Bugfix - Release MVStore lock and file resources rightly even if errors when compacting database
 </li>
 <li>PR #1441: Add GEOMETRY type subtypes with type and SRID constraints
 </li>

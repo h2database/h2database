@@ -323,6 +323,49 @@ SELECT *, ARRAY_AGG(ID) OVER (ORDER BY ID ROWS BETWEEN 2 PRECEDING AND 1 PRECEDI
 > 4  8     (2, 3)
 > rows (ordered): 4
 
+SELECT *, ARRAY_AGG(ID) OVER (ORDER BY ID ROWS BETWEEN 1 FOLLOWING AND 2 FOLLOWING) FROM TEST OFFSET 4 ROWS;
+> ID VALUE ARRAY_AGG(ID) OVER (ORDER BY ID ROWS BETWEEN 1 FOLLOWING AND 2 FOLLOWING)
+> -- ----- -------------------------------------------------------------------------
+> 5  8     (6, 7)
+> 6  8     (7, 8)
+> 7  9     (8)
+> 8  9     null
+> rows (ordered): 4
+
+SELECT *,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING) U_P,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN 2 PRECEDING AND 1 PRECEDING) P,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN 1 FOLLOWING AND 2 FOLLOWING) F,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN 1 FOLLOWING AND UNBOUNDED FOLLOWING) U_F
+    FROM TEST;
+> ID VALUE U_P                P            F               U_F
+> -- ----- ------------------ ------------ --------------- ------------------
+> 1  1     null               null         (3, 4, 5, 6)    (3, 4, 5, 6, 7, 8)
+> 2  1     null               null         (3, 4, 5, 6)    (3, 4, 5, 6, 7, 8)
+> 3  5     (1, 2)             (1, 2)       (4, 5, 6, 7, 8) (4, 5, 6, 7, 8)
+> 4  8     (1, 2, 3)          (1, 2, 3)    (7, 8)          (7, 8)
+> 5  8     (1, 2, 3)          (1, 2, 3)    (7, 8)          (7, 8)
+> 6  8     (1, 2, 3)          (1, 2, 3)    (7, 8)          (7, 8)
+> 7  9     (1, 2, 3, 4, 5, 6) (3, 4, 5, 6) null            null
+> 8  9     (1, 2, 3, 4, 5, 6) (3, 4, 5, 6) null            null
+> rows (ordered): 8
+
+SELECT *,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN 1 PRECEDING AND 0 PRECEDING) P,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN 0 FOLLOWING AND 1 FOLLOWING) F
+    FROM TEST;
+> ID VALUE P               F
+> -- ----- --------------- ---------------
+> 1  1     (1, 2)          (1, 2, 3)
+> 2  1     (1, 2)          (1, 2, 3)
+> 3  5     (1, 2, 3)       (3, 4, 5, 6)
+> 4  8     (3, 4, 5, 6)    (4, 5, 6, 7, 8)
+> 5  8     (3, 4, 5, 6)    (4, 5, 6, 7, 8)
+> 6  8     (3, 4, 5, 6)    (4, 5, 6, 7, 8)
+> 7  9     (4, 5, 6, 7, 8) (7, 8)
+> 8  9     (4, 5, 6, 7, 8) (7, 8)
+> rows (ordered): 8
+
 SELECT *, ARRAY_AGG(ID) OVER (ORDER BY ID RANGE BETWEEN CURRENT ROW AND 1 PRECEDING) FROM TEST;
 > exception SYNTAX_ERROR_1
 

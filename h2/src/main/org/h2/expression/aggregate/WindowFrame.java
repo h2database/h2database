@@ -269,8 +269,8 @@ public final class WindowFrame {
      */
     public Iterator<Value[]> iterator(Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder,
             int currentRow, boolean reverse) {
-        int startIndex = getIndex(session, orderedRows, sortOrder, currentRow, starting);
-        int endIndex = following != null ? getIndex(session, orderedRows, sortOrder, currentRow, following)
+        int startIndex = getIndex(session, orderedRows, sortOrder, currentRow, starting, false);
+        int endIndex = following != null ? getIndex(session, orderedRows, sortOrder, currentRow, following, true)
                 : currentRow;
         if (endIndex < startIndex) {
             throw DbException.get(ErrorCode.SYNTAX_ERROR_1, getSQL());
@@ -293,13 +293,13 @@ public final class WindowFrame {
     }
 
     private int getIndex(Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder, int currentRow,
-            WindowFrameBound bound) {
+            WindowFrameBound bound, boolean forFollowing) {
         int size = orderedRows.size();
         int last = size - 1;
         int index;
         switch (bound.getType()) {
         case UNBOUNDED_PRECEDING:
-            index = 0;
+            index = -1;
             break;
         case PRECEDING:
             switch (units) {
@@ -310,13 +310,25 @@ public final class WindowFrame {
             }
             case GROUPS: {
                 int value = getIntOffset(bound, session);
-                index = toGroupStart(orderedRows, sortOrder, currentRow, 0);
-                while (value > 0 && index > 0) {
-                    value--;
-                    index = toGroupStart(orderedRows, sortOrder, index - 1, 0);
-                }
-                if (value > 0) {
-                    index = -1;
+                if (!forFollowing) {
+                    index = toGroupStart(orderedRows, sortOrder, currentRow, 0);
+                    while (value > 0 && index > 0) {
+                        value--;
+                        index = toGroupStart(orderedRows, sortOrder, index - 1, 0);
+                    }
+                    if (value > 0) {
+                        index = -1;
+                    }
+                } else {
+                    if (value == 0) {
+                        index = toGroupEnd(orderedRows, sortOrder, currentRow, last);
+                    } else {
+                        index = currentRow;
+                        while (value > 0 && index >= 0) {
+                            value--;
+                            index = toGroupStart(orderedRows, sortOrder, index, 0) - 1;
+                        }
+                    }
                 }
                 break;
             }
@@ -353,13 +365,25 @@ public final class WindowFrame {
             }
             case GROUPS: {
                 int value = getIntOffset(bound, session);
-                index = toGroupEnd(orderedRows, sortOrder, currentRow, last);
-                while (value > 0 && index < last) {
-                    value--;
-                    index = toGroupEnd(orderedRows, sortOrder, index + 1, last);
-                }
-                if (value > 0) {
-                    index = size;
+                if (forFollowing) {
+                    index = toGroupEnd(orderedRows, sortOrder, currentRow, last);
+                    while (value > 0 && index < last) {
+                        value--;
+                        index = toGroupEnd(orderedRows, sortOrder, index + 1, last);
+                    }
+                    if (value > 0) {
+                        index = size;
+                    }
+                } else {
+                    if (value == 0) {
+                        index = toGroupStart(orderedRows, sortOrder, currentRow, 0);
+                    } else {
+                        index = currentRow;
+                        while (value > 0 && index <= last) {
+                            value--;
+                            index = toGroupEnd(orderedRows, sortOrder, index, last) + 1;
+                        }
+                    }
                 }
                 break;
             }
@@ -386,7 +410,7 @@ public final class WindowFrame {
             }
             break;
         case UNBOUNDED_FOLLOWING:
-            index = last;
+            index = size;
             break;
         default:
             throw DbException.getUnsupportedException("window frame bound type=" + bound.getType());

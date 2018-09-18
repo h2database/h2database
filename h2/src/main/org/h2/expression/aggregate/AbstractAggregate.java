@@ -424,10 +424,37 @@ public abstract class AbstractAggregate extends Expression {
      */
     protected void getOrderedResultLoop(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
             int rowIdColumn) {
-        Object aggregateData = createAggregateData();
-        for (Value[] row : ordered) {
-            updateFromExpressions(session, aggregateData, row);
-            result.put(row[rowIdColumn].getInt(), getAggregatedValue(session, aggregateData));
+        switch (over.getWindowFrame()) {
+        case RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW: {
+            Object aggregateData = createAggregateData();
+            for (Value[] row : ordered) {
+                updateFromExpressions(session, aggregateData, row);
+                result.put(row[rowIdColumn].getInt(), getAggregatedValue(session, aggregateData));
+            }
+            break;
+        }
+        case RANGE_BETWEEN_CURRENT_ROW_AND_UNBOUNDED_FOLLOWING: {
+            // TODO optimize unordered aggregates
+            int size = ordered.size();
+            for (int i = 0; i < size; i++) {
+                Object aggregateData = createAggregateData();
+                for (int j = i; j < size; j++) {
+                    updateFromExpressions(session, aggregateData, ordered.get(j));
+                }
+                result.put(ordered.get(i)[rowIdColumn].getInt(), getAggregatedValue(session, aggregateData));
+            }
+            break;
+        }
+        case RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_UNBOUNDED_FOLLOWING: {
+            Object aggregateData = createAggregateData();
+            for (Value[] row : ordered) {
+                updateFromExpressions(session, aggregateData, row);
+            }
+            Value value = getAggregatedValue(session, aggregateData);
+            for (Value[] row : ordered) {
+                result.put(row[rowIdColumn].getInt(), value);
+            }
+        }
         }
     }
 

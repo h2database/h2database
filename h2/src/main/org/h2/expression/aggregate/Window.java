@@ -22,9 +22,53 @@ import org.h2.value.ValueArray;
  */
 public final class Window {
 
+    /**
+     * Simple window frame.
+     */
+    public enum SimpleWindowFrame {
+
+    /**
+     * RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW frame specification.
+     */
+    RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW("RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW"),
+
+    /**
+     * RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING frame specification.
+     */
+    RANGE_BETWEEN_CURRENT_ROW_AND_UNBOUNDED_FOLLOWING("RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING"),
+
+    /**
+     * RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING frame
+     * specification.
+     */
+    RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_UNBOUNDED_FOLLOWING(
+            "RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING"),
+
+        ;
+
+        private final String sql;
+
+        private SimpleWindowFrame(String sql) {
+            this.sql = sql;
+        }
+
+        /**
+         * Returns SQL representation.
+         *
+         * @return SQL representation.
+         * @see Expression#getSQL()
+         */
+        public String getSQL() {
+            return sql;
+        }
+
+    }
+
     private final ArrayList<Expression> partitionBy;
 
     private final ArrayList<SelectOrderBy> orderBy;
+
+    private final SimpleWindowFrame frame;
 
     /**
      * @param builder
@@ -53,10 +97,13 @@ public final class Window {
      *            PARTITION BY clause, or null
      * @param orderBy
      *            ORDER BY clause, or null
+     * @param frame
+     *            window frame clause
      */
-    public Window(ArrayList<Expression> partitionBy, ArrayList<SelectOrderBy> orderBy) {
+    public Window(ArrayList<Expression> partitionBy, ArrayList<SelectOrderBy> orderBy, SimpleWindowFrame frame) {
         this.partitionBy = partitionBy;
         this.orderBy = orderBy;
+        this.frame = frame;
     }
 
     /**
@@ -133,6 +180,15 @@ public final class Window {
     }
 
     /**
+     * Returns window frame.
+     *
+     * @return window frame
+     */
+    public SimpleWindowFrame getWindowFrame() {
+        return frame;
+    }
+
+    /**
      * Returns the key for the current group.
      *
      * @param session
@@ -172,6 +228,9 @@ public final class Window {
                 }
                 builder.append(StringUtils.unEnclose(partitionBy.get(i).getSQL()));
             }
+        }
+        if (frame != SimpleWindowFrame.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW) {
+            builder.append(' ').append(frame.getSQL());
         }
         appendOrderBy(builder, orderBy);
         return builder.append(')').toString();

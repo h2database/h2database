@@ -82,6 +82,34 @@ SELECT *,
 > 6  1        13    12   12     null   12    12       null     13     13        13
 > rows (ordered): 6
 
+SELECT *,
+    NTH_VALUE(VALUE, 2) OVER(ORDER BY ID) F,
+    NTH_VALUE(VALUE, 2) OVER(ORDER BY ID RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) F_U_C,
+    NTH_VALUE(VALUE, 2) OVER(ORDER BY ID RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) F_C_U,
+    NTH_VALUE(VALUE, 2) OVER(ORDER BY ID RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) F_U_U,
+
+    NTH_VALUE(VALUE, 2) FROM LAST OVER(ORDER BY ID) L,
+    NTH_VALUE(VALUE, 2) FROM LAST OVER(ORDER BY ID RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) L_U_C,
+    NTH_VALUE(VALUE, 2) FROM LAST OVER(ORDER BY ID RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) L_C_U,
+    NTH_VALUE(VALUE, 2) FROM LAST OVER(ORDER BY ID RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) L_U_U
+    FROM TEST;
+> ID CATEGORY VALUE F    F_U_C F_C_U F_U_U L    L_U_C L_C_U L_U_U
+> -- -------- ----- ---- ----- ----- ----- ---- ----- ----- -----
+> 1  1        null  null null  12    12    null null  41    41
+> 2  1        12    12   12    null  12    null null  41    41
+> 3  1        null  12   12    13    12    12   12    41    41
+> 4  1        13    12   12    null  12    null null  41    41
+> 5  1        null  12   12    13    12    13   13    41    41
+> 6  1        13    12   12    21    12    null null  41    41
+> 7  2        21    12   12    22    12    13   13    41    41
+> 8  2        22    12   12    31    12    21   21    41    41
+> 9  3        31    12   12    32    12    22   22    41    41
+> 10 3        32    12   12    33    12    31   31    41    41
+> 11 3        33    12   12    41    12    32   32    41    41
+> 12 4        41    12   12    null  12    33   33    41    41
+> 13 4        null  12   12    null  12    41   41    null  41
+> rows (ordered): 13
+
 SELECT NTH_VALUE(VALUE, 0) OVER (ORDER BY ID) FROM TEST;
 > exception INVALID_VALUE_2
 

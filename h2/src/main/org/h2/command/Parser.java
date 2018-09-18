@@ -175,6 +175,7 @@ import org.h2.expression.aggregate.Aggregate;
 import org.h2.expression.aggregate.Aggregate.AggregateType;
 import org.h2.expression.aggregate.JavaAggregate;
 import org.h2.expression.aggregate.Window;
+import org.h2.expression.aggregate.Window.SimpleWindowFrame;
 import org.h2.expression.aggregate.WindowFunction;
 import org.h2.expression.aggregate.WindowFunction.WindowFunctionType;
 import org.h2.index.Index;
@@ -3061,8 +3062,23 @@ public class Parser {
             } else if (!isAggregate) {
                 orderBy = new ArrayList<>(0);
             }
+            SimpleWindowFrame frame;
+            if (aggregate instanceof WindowFunction) {
+                WindowFunction w = (WindowFunction) aggregate;
+                switch (w.getFunctionType()) {
+                case FIRST_VALUE:
+                case LAST_VALUE:
+                case NTH_VALUE:
+                    frame = readWindowFrame();
+                    break;
+                default:
+                    frame = SimpleWindowFrame.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW;
+                }
+            } else {
+                frame = readWindowFrame();
+            }
             read(CLOSE_PAREN);
-            over = new Window(partitionBy, orderBy);
+            over = new Window(partitionBy, orderBy, frame);
             aggregate.setOverCondition(over);
             currentSelect.setWindowQuery();
         } else if (!isAggregate) {
@@ -3070,6 +3086,35 @@ public class Parser {
         } else {
             currentSelect.setGroupQuery();
         }
+    }
+
+    private SimpleWindowFrame readWindowFrame() {
+        SimpleWindowFrame frame;
+        if (readIf("RANGE")) {
+            read("BETWEEN");
+            if (readIf("UNBOUNDED")) {
+                read("PRECEDING");
+                read("AND");
+                if (readIf("CURRENT")) {
+                    read("ROW");
+                    frame = SimpleWindowFrame.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW;
+                } else {
+                    read("UNBOUNDED");
+                    read("FOLLOWING");
+                    frame = SimpleWindowFrame.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_UNBOUNDED_FOLLOWING;
+                }
+            } else {
+                read("CURRENT");
+                read("ROW");
+                read("AND");
+                read("UNBOUNDED");
+                read("FOLLOWING");
+                frame = SimpleWindowFrame.RANGE_BETWEEN_CURRENT_ROW_AND_UNBOUNDED_FOLLOWING;
+            }
+        } else {
+            frame = SimpleWindowFrame.RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW;
+        }
+        return frame;
     }
 
     private AggregateType getAggregateType(String name) {

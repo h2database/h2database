@@ -130,18 +130,18 @@ public class WindowFunction extends AbstractAggregate {
         }
     }
 
-    private static Value getNthValue(ArrayList<Value[]> ordered, int currentRowNumber, int number, boolean fromLast,
-            boolean ignoreNulls) {
-        return ignoreNulls ? getNthValueIgnoreNulls(ordered, currentRowNumber, number, fromLast)
-                : ordered.get(fromLast ? currentRowNumber - number : number)[0];
+    private static Value getNthValue(ArrayList<Value[]> ordered, int startIndex, int endIndex, int number,
+            boolean fromLast, boolean ignoreNulls) {
+        return ignoreNulls ? getNthValueIgnoreNulls(ordered, startIndex, endIndex, number, fromLast)
+                : ordered.get(fromLast ? endIndex - number : startIndex + number)[0];
     }
 
-    private static Value getNthValueIgnoreNulls(ArrayList<Value[]> ordered, int currentRowNumber, int number,
+    private static Value getNthValueIgnoreNulls(ArrayList<Value[]> ordered, int startIndex, int endIndex, int number,
             boolean fromLast) {
         Value v = ValueNull.INSTANCE;
         int cnt = 0;
         if (fromLast) {
-            for (int i = currentRowNumber; i >= 0; i--) {
+            for (int i = endIndex; i >= startIndex; i--) {
                 Value t = ordered.get(i)[0];
                 if (t != ValueNull.INSTANCE) {
                     if (cnt++ == number) {
@@ -151,7 +151,7 @@ public class WindowFunction extends AbstractAggregate {
                 }
             }
         } else {
-            for (int i = 0; i <= currentRowNumber; i++) {
+            for (int i = startIndex; i <= endIndex; i++) {
                 Value t = ordered.get(i)[0];
                 if (t != ValueNull.INSTANCE) {
                     if (cnt++ == number) {
@@ -178,6 +178,15 @@ public class WindowFunction extends AbstractAggregate {
         super(select, false);
         this.type = type;
         this.args = args;
+    }
+
+    /**
+     * Returns the type of this function.
+     *
+     * @return the type of this function
+     */
+    public WindowFunctionType getFunctionType() {
+        return type;
     }
 
     /**
@@ -245,9 +254,16 @@ public class WindowFunction extends AbstractAggregate {
     @Override
     protected void getOrderedResultLoop(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
             int rowIdColumn) {
-        if (type == WindowFunctionType.CUME_DIST) {
+        switch (type) {
+        case CUME_DIST:
             getCumeDist(session, result, ordered, rowIdColumn);
             return;
+        case FIRST_VALUE:
+        case LAST_VALUE:
+        case NTH_VALUE:
+            getNth(session, result, ordered, rowIdColumn);
+            return;
+        default:
         }
         int size = ordered.size();
         int number = 0;
@@ -289,25 +305,6 @@ public class WindowFunction extends AbstractAggregate {
                 v = ValueDouble.get((double) nm / size);
                 break;
             }
-            case FIRST_VALUE:
-                v = getNthValue(ordered, i, 0, false, ignoreNulls);
-                break;
-            case LAST_VALUE:
-                v = getNthValue(ordered, i, 0, true, ignoreNulls);
-                break;
-            case NTH_VALUE: {
-                int n = row[1].getInt();
-                if (n <= 0) {
-                    throw DbException.getInvalidValueException("nth row", n);
-                }
-                n--;
-                if (n > i) {
-                    v = ValueNull.INSTANCE;
-                } else {
-                    v = getNthValue(ordered, i, n, fromLast, ignoreNulls);
-                }
-                break;
-            }
             default:
                 throw DbException.throwInternalError("type=" + type);
             }
@@ -330,6 +327,57 @@ public class WindowFunction extends AbstractAggregate {
                 result.put(rowId, v);
             }
             start = end;
+        }
+    }
+
+    private void getNth(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered, int rowIdColumn) {
+        int size = ordered.size();
+        for (int i = 0; i < size; i++) {
+            int startIndex, endIndex;
+            switch (over.getWindowFrame()) {
+            case RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_CURRENT_ROW:
+                startIndex = 0;
+                endIndex = i;
+                break;
+            case RANGE_BETWEEN_CURRENT_ROW_AND_UNBOUNDED_FOLLOWING:
+                startIndex = i;
+                endIndex = size - 1;
+                break;
+            case RANGE_BETWEEN_UNBOUNDED_PRECEDING_AND_UNBOUNDED_FOLLOWING:
+                startIndex = 0;
+                endIndex = size - 1;
+                break;
+            default:
+                throw DbException.getUnsupportedException("window frame=" + over.getWindowFrame());
+            }
+            Value[] row = ordered.get(i);
+            int rowId = row[rowIdColumn].getInt();
+            Value v;
+            switch (type) {
+            case FIRST_VALUE: {
+                v = getNthValue(ordered, startIndex, endIndex, 0, false, ignoreNulls);
+                break;
+            }
+            case LAST_VALUE:
+                v = getNthValue(ordered, startIndex, endIndex, 0, true, ignoreNulls);
+                break;
+            case NTH_VALUE: {
+                int n = row[1].getInt();
+                if (n <= 0) {
+                    throw DbException.getInvalidValueException("nth row", n);
+                }
+                n--;
+                if (n > endIndex - startIndex) {
+                    v = ValueNull.INSTANCE;
+                } else {
+                    v = getNthValue(ordered, startIndex, endIndex, n, fromLast, ignoreNulls);
+                }
+                break;
+            }
+            default:
+                throw DbException.throwInternalError("type=" + type);
+            }
+            result.put(rowId, v);
         }
     }
 

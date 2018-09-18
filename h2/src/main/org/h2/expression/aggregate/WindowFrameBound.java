@@ -6,34 +6,11 @@
 package org.h2.expression.aggregate;
 
 import org.h2.expression.Expression;
-import org.h2.message.DbException;
 
 /**
  * Window frame bound.
  */
 public class WindowFrameBound {
-
-    /**
-     * Window frame bound type.
-     */
-    public enum WindowFrameBoundType {
-
-    /**
-     * UNBOUNDED PRECEDING or UNBOUNDED FOLLOWING clause.
-     */
-    UNBOUNDED,
-
-    /**
-     * CURRENT_ROW clause.
-     */
-    CURRENT_ROW,
-
-    /**
-     * PRECEDING or FOLLOWING clause.
-     */
-    VALUE;
-
-    }
 
     private final WindowFrameBoundType type;
 
@@ -49,7 +26,7 @@ public class WindowFrameBound {
      */
     public WindowFrameBound(WindowFrameBoundType type, Expression value) {
         this.type = type;
-        if (type == WindowFrameBoundType.VALUE) {
+        if (type == WindowFrameBoundType.PRECEDING || type == WindowFrameBoundType.FOLLOWING) {
             this.value = value;
         } else {
             this.value = null;
@@ -84,16 +61,10 @@ public class WindowFrameBound {
      * @see Expression#getSQL()
      */
     public String getSQL(boolean following) {
-        switch (type) {
-        case UNBOUNDED:
-            return following ? "UNBOUNDED FOLLOWING" : "UNBOUNDED PRECEDING";
-        case CURRENT_ROW:
-            return "CURRENT ROW";
-        case VALUE:
-            return value.getSQL() + (following ? " FOLLOWING" : " PRECEDING");
-        default:
-            throw DbException.throwInternalError("type=" + type);
+        if (type == WindowFrameBoundType.PRECEDING || type == WindowFrameBoundType.FOLLOWING) {
+            return value.getSQL() + ' ' + type.getSQL();
         }
+        return type.getSQL();
     }
 
 }

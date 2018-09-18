@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.expression.aggregate.WindowFrameBound.WindowFrameBoundType;
 import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -66,8 +65,9 @@ public final class Window {
         this.partitionBy = partitionBy;
         this.orderBy = orderBy;
         if (frame == null) {
-            frame = new WindowFrame(WindowFrameUnits.RANGE, new WindowFrameBound(WindowFrameBoundType.UNBOUNDED, null),
-                    null, WindowFrameExclusion.EXCLUDE_NO_OTHERS);
+            frame = new WindowFrame(WindowFrameUnits.RANGE,
+                    new WindowFrameBound(WindowFrameBoundType.UNBOUNDED_PRECEDING, null), null,
+                    WindowFrameExclusion.EXCLUDE_NO_OTHERS);
         }
         this.frame = frame;
     }

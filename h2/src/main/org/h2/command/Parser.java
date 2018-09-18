@@ -177,7 +177,7 @@ import org.h2.expression.aggregate.JavaAggregate;
 import org.h2.expression.aggregate.Window;
 import org.h2.expression.aggregate.WindowFrame;
 import org.h2.expression.aggregate.WindowFrameBound;
-import org.h2.expression.aggregate.WindowFrameBound.WindowFrameBoundType;
+import org.h2.expression.aggregate.WindowFrameBoundType;
 import org.h2.expression.aggregate.WindowFrameExclusion;
 import org.h2.expression.aggregate.WindowFrameUnits;
 import org.h2.expression.aggregate.WindowFunction;
@@ -3105,9 +3105,9 @@ public class Parser {
         }
         WindowFrameBound starting, following;
         if (readIf("BETWEEN")) {
-            starting = readWindowFrameStarting();
+            starting = readWindowFrameRange();
             read("AND");
-            following = readWindowFrameFollowing();
+            following = readWindowFrameRange();
         } else {
             starting = readWindowFrameStarting();
             following = null;
@@ -3132,7 +3132,7 @@ public class Parser {
     private WindowFrameBound readWindowFrameStarting() {
         if (readIf("UNBOUNDED")) {
             read("PRECEDING");
-            return new WindowFrameBound(WindowFrameBoundType.UNBOUNDED, null);
+            return new WindowFrameBound(WindowFrameBoundType.UNBOUNDED_PRECEDING, null);
         }
         if (readIf("CURRENT")) {
             read("ROW");
@@ -3140,21 +3140,27 @@ public class Parser {
         }
         Expression value = readValueOrParameter();
         read("PRECEDING");
-        return new WindowFrameBound(WindowFrameBoundType.VALUE, value);
+        return new WindowFrameBound(WindowFrameBoundType.PRECEDING, value);
     }
 
-    private WindowFrameBound readWindowFrameFollowing() {
+    private WindowFrameBound readWindowFrameRange() {
         if (readIf("UNBOUNDED")) {
+            if (readIf("PRECEDING")) {
+                return new WindowFrameBound(WindowFrameBoundType.UNBOUNDED_PRECEDING, null);
+            }
             read("FOLLOWING");
-            return new WindowFrameBound(WindowFrameBoundType.UNBOUNDED, null);
+            return new WindowFrameBound(WindowFrameBoundType.UNBOUNDED_FOLLOWING, null);
         }
         if (readIf("CURRENT")) {
             read("ROW");
             return new WindowFrameBound(WindowFrameBoundType.CURRENT_ROW, null);
         }
         Expression value = readValueOrParameter();
+        if (readIf("PRECEDING")) {
+            return new WindowFrameBound(WindowFrameBoundType.PRECEDING, value);
+        }
         read("FOLLOWING");
-        return new WindowFrameBound(WindowFrameBoundType.VALUE, value);
+        return new WindowFrameBound(WindowFrameBoundType.FOLLOWING, value);
     }
 
     private Expression readValueOrParameter() {

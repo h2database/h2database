@@ -2551,7 +2551,7 @@ They also may require a lot of memory for large queries.
 
 "Other Grammar","Window frame","
 ROWS|RANGE|GROUP
-{windowFramePreceding|BETWEEN windowFramePreceding AND windowFrameFollowing}
+{windowFramePreceding|BETWEEN windowFrameBound AND windowFrameBound}
 [EXCLUDE {CURRENT ROW|GROUP|TIES|NO OTHERS}]
 ","
 A window frame clause.
@@ -2571,12 +2571,14 @@ UNBOUNDED PRECEDING
 CURRENT ROW
 "
 
-"Other Grammar","Window frame following","
-UNBOUNDED FOLLOWING|value FOLLOWING|CURRENT ROW
+"Other Grammar","Window frame bound","
+UNBOUNDED PRECEDING|value PRECEDING|CURRENT ROW
+    |value FOLLOWING|UNBOUNDED FOLLOWING
 ","
-A window frame following clause.
+A window frame bound clause.
 If value is specified it should be non-negative value or parameter.
 ","
+UNBOUNDED PRECEDING
 UNBOUNDED FOLLOWING
 1 FOLLOWING
 CURRENT ROW

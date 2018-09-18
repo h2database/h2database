@@ -796,4 +796,4 @@ interior envelopes multilinestring multipoint packed exterior normalization awkw
 xym normalizes coord setz xyzm geometrycollection multipolygon mixup rings polygons rejection finite
 pointzm pointz pointm dimensionality redefine forum measures
 mpg casted pzm mls constrained subtypes complains
-ranks rno dro rko precede cume reopens
+ranks rno dro rko precede cume reopens preceding unbounded

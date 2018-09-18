@@ -2534,9 +2534,18 @@ SELECT * FROM (VALUES(1, 'Hello'), (2, 'World')) AS V;
 "
 
 "Other Grammar","Window specification","
-([PARTITION BY expression [,...]] [ORDER BY order [,...]])
+([PARTITION BY expression [,...]] [ORDER BY order [,...]]
+[RANGE BETWEEN {
+    UNBOUNDED PRECEDING AND CURRENT ROW
+    |CURRENT ROW AND UNBOUNDED FOLLOWING
+    |UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+    }])
 ","
 A window specification for a window function or aggregate.
+
+Window frame clause (RANGE) is currently supported only in aggregates and
+FIRST_VALUE(), LAST_VALUE(), and NTH_VALUE() window functions.
+
 Window functions are currently experimental in H2 and should be used with caution.
 They also may require a lot of memory for large queries.
 ","
@@ -5157,13 +5166,16 @@ LAST_VALUE(value) [{RESPECT|IGNORE} NULLS] OVER windowSpecification
 Returns the last value in a window.
 If IGNORE NULLS is specified null values are skipped and the function returns last non-null value before them, if any;
 if there is no non-null value it returns NULL.
-Note that the last value is actually a value in the current row.
+Note that the last value is actually a value in the current row if window frame is not specified.
 
 Window functions are currently experimental in H2 and should be used with caution.
 They also may require a lot of memory for large queries.
 ","
 SELECT LAST_VALUE(X) OVER (ORDER BY ID), * FROM TEST;
-SELECT LAST_VALUE(X) IGNORE NULLS OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+SELECT LAST_VALUE(X) IGNORE NULLS OVER (
+    PARTITION BY CATEGORY ORDER BY ID
+    RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING
+), * FROM TEST;
 "
 
 "Functions (Window)","NTH_VALUE","
@@ -5172,15 +5184,19 @@ OVER windowSpecification
 ","
 Returns the value in a row with a specified relative number in a window.
 Relative row number must be positive.
-If FROM LAST is specified rows a counted backwards from the current row.
+If FROM LAST is specified rows a counted backwards from the last row.
 If IGNORE NULLS is specified rows with null values in selected expression are skipped.
 If number of considered rows is less than specified relative number this function returns NULL.
+Note that the last row is actually a current row if window frame is not specified.
 
 Window functions are currently experimental in H2 and should be used with caution.
 They also may require a lot of memory for large queries.
 ","
 SELECT NTH_VALUE(X) OVER (ORDER BY ID), * FROM TEST;
-SELECT NTH_VALUE(X) IGNORE NULLS OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+SELECT NTH_VALUE(X) IGNORE NULLS OVER (
+    PARTITION BY CATEGORY ORDER BY ID
+    RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+), * FROM TEST;
 "
 
 "System Tables","Information Schema","

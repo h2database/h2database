@@ -20,8 +20,6 @@ INSERT INTO TEST VALUES
 
 SELECT *,
     ROW_NUMBER() OVER () RN,
-    RANK() OVER () RK,
-    DENSE_RANK() OVER () DR,
     ROUND(PERCENT_RANK() OVER (), 2) PR,
     ROUND(CUME_DIST() OVER (), 2) CD,
 
@@ -32,17 +30,17 @@ SELECT *,
     ROUND(CUME_DIST() OVER (ORDER BY ID), 2) CDO
 
     FROM TEST;
-> ID CATEGORY VALUE RN RK DR PR  CD  RNO RKO DRO PRO  CDO
-> -- -------- ----- -- -- -- --- --- --- --- --- ---- ----
-> 1  1        11    1  1  1  0.0 1.0 1   1   1   0.0  0.11
-> 2  1        12    2  1  1  0.0 1.0 2   2   2   0.13 0.22
-> 3  1        13    3  1  1  0.0 1.0 3   3   3   0.25 0.33
-> 4  2        21    4  1  1  0.0 1.0 4   4   4   0.38 0.44
-> 5  2        22    5  1  1  0.0 1.0 5   5   5   0.5  0.56
-> 6  3        31    6  1  1  0.0 1.0 6   6   6   0.63 0.67
-> 7  3        32    7  1  1  0.0 1.0 7   7   7   0.75 0.78
-> 8  3        33    8  1  1  0.0 1.0 8   8   8   0.88 0.89
-> 9  4        41    9  1  1  0.0 1.0 9   9   9   1.0  1.0
+> ID CATEGORY VALUE RN PR  CD  RNO RKO DRO PRO  CDO
+> -- -------- ----- -- --- --- --- --- --- ---- ----
+> 1  1        11    1  0.0 1.0 1   1   1   0.0  0.11
+> 2  1        12    2  0.0 1.0 2   2   2   0.13 0.22
+> 3  1        13    3  0.0 1.0 3   3   3   0.25 0.33
+> 4  2        21    4  0.0 1.0 4   4   4   0.38 0.44
+> 5  2        22    5  0.0 1.0 5   5   5   0.5  0.56
+> 6  3        31    6  0.0 1.0 6   6   6   0.63 0.67
+> 7  3        32    7  0.0 1.0 7   7   7   0.75 0.78
+> 8  3        33    8  0.0 1.0 8   8   8   0.88 0.89
+> 9  4        41    9  0.0 1.0 9   9   9   1.0  1.0
 > rows (ordered): 9
 
 SELECT *,
@@ -86,19 +84,41 @@ SELECT *,
 > rows (ordered): 9
 
 SELECT
-    ROW_NUMBER() OVER () RN,
-    RANK() OVER () RK,
-    DENSE_RANK() OVER () DR,
+    ROW_NUMBER() OVER (ORDER BY CATEGORY) RN,
+    RANK() OVER (ORDER BY CATEGORY) RK,
+    DENSE_RANK() OVER (ORDER BY CATEGORY) DR,
     PERCENT_RANK() OVER () PR,
-    CUME_DIST() OVER () CD
-    FROM TEST GROUP BY CATEGORY;
-> RN RK DR PR  CD
-> -- -- -- --- ---
-> 1  1  1  0.0 1.0
-> 2  1  1  0.0 1.0
-> 3  1  1  0.0 1.0
-> 4  1  1  0.0 1.0
-> rows: 4
+    CUME_DIST() OVER () CD,
+    CATEGORY C
+    FROM TEST GROUP BY CATEGORY ORDER BY RN;
+> RN RK DR PR  CD  C
+> -- -- -- --- --- -
+> 1  1  1  0.0 1.0 1
+> 2  2  2  0.0 1.0 2
+> 3  3  3  0.0 1.0 3
+> 4  4  4  0.0 1.0 4
+> rows (ordered): 4
+
+SELECT RANK() OVER () FROM TEST;
+> exception SYNTAX_ERROR_2
+
+SELECT DENSE_RANK() OVER () FROM TEST;
+> exception SYNTAX_ERROR_2
+
+SELECT ROW_NUMBER() OVER (ORDER BY ID RANGE CURRENT ROW) FROM TEST;
+> exception SYNTAX_ERROR_1
+
+SELECT RANK() OVER (ORDER BY ID RANGE CURRENT ROW) FROM TEST;
+> exception SYNTAX_ERROR_1
+
+SELECT DENSE_RANK() OVER (ORDER BY ID RANGE CURRENT ROW) FROM TEST;
+> exception SYNTAX_ERROR_1
+
+SELECT PERCENT_RANK() OVER (ORDER BY ID RANGE CURRENT ROW) FROM TEST;
+> exception SYNTAX_ERROR_1
+
+SELECT CUME_DIST() OVER (ORDER BY ID RANGE CURRENT ROW) FROM TEST;
+> exception SYNTAX_ERROR_1
 
 DROP TABLE TEST;
 > ok
@@ -120,6 +140,12 @@ SELECT ROW_NUMBER() OVER(ORDER /**/ BY TYPE) RN, TYPE, SUM(CNT) SUM FROM TEST GR
 > 2  b    10
 > 3  c    4
 > rows: 3
+
+SELECT RANK () OVER () FROM TEST;
+> exception SYNTAX_ERROR_2
+
+SELECT DENSE_RANK () OVER () FROM TEST;
+> exception SYNTAX_ERROR_2
 
 DROP TABLE TEST;
 > ok

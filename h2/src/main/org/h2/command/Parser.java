@@ -3049,40 +3049,7 @@ public class Parser {
         }
         Window over = null;
         if (readIf("OVER")) {
-            read(OPEN_PAREN);
-            ArrayList<Expression> partitionBy = null;
-            if (readIf("PARTITION")) {
-                read("BY");
-                partitionBy = Utils.newSmallArrayList();
-                do {
-                    Expression expr = readExpression();
-                    partitionBy.add(expr);
-                } while (readIf(COMMA));
-            }
-            ArrayList<SelectOrderBy> orderBy = null;
-            if (readIf(ORDER)) {
-                read("BY");
-                orderBy = parseSimpleOrderList();
-            } else if (!isAggregate) {
-                orderBy = new ArrayList<>(0);
-            }
-            WindowFrame frame;
-            if (aggregate instanceof WindowFunction) {
-                WindowFunction w = (WindowFunction) aggregate;
-                switch (w.getFunctionType()) {
-                case FIRST_VALUE:
-                case LAST_VALUE:
-                case NTH_VALUE:
-                    frame = readWindowFrame();
-                    break;
-                default:
-                    frame = null;
-                }
-            } else {
-                frame = readWindowFrame();
-            }
-            read(CLOSE_PAREN);
-            over = new Window(partitionBy, orderBy, frame);
+            over = readWindowSpecification();
             aggregate.setOverCondition(over);
             currentSelect.setWindowQuery();
         } else if (!isAggregate) {
@@ -3090,6 +3057,27 @@ public class Parser {
         } else {
             currentSelect.setGroupQuery();
         }
+    }
+
+    private Window readWindowSpecification() {
+        read(OPEN_PAREN);
+        ArrayList<Expression> partitionBy = null;
+        if (readIf("PARTITION")) {
+            read("BY");
+            partitionBy = Utils.newSmallArrayList();
+            do {
+                Expression expr = readExpression();
+                partitionBy.add(expr);
+            } while (readIf(COMMA));
+        }
+        ArrayList<SelectOrderBy> orderBy = null;
+        if (readIf(ORDER)) {
+            read("BY");
+            orderBy = parseSimpleOrderList();
+        }
+        WindowFrame frame = readWindowFrame();
+        read(CLOSE_PAREN);
+        return new Window(partitionBy, orderBy, frame);
     }
 
     private WindowFrame readWindowFrame() {

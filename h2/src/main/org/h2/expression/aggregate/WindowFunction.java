@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import org.h2.command.dml.Select;
+import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
@@ -358,10 +359,12 @@ public class WindowFunction extends AbstractAggregate {
             Value v;
             switch (type) {
             case FIRST_VALUE:
-                v = getNthValue(frame.iterator(session, ordered, getOverOrderBySort(), i, false), 0, ignoreNulls);
+                v = getNthValue(WindowFrame.iterator(frame, session, ordered, getOverOrderBySort(), i, false), 0,
+                        ignoreNulls);
                 break;
             case LAST_VALUE:
-                v = getNthValue(frame.iterator(session, ordered, getOverOrderBySort(), i, true), 0, ignoreNulls);
+                v = getNthValue(WindowFrame.iterator(frame, session, ordered, getOverOrderBySort(), i, true), 0,
+                        ignoreNulls);
                 break;
             case NTH_VALUE: {
                 int n = row[1].getInt();
@@ -369,7 +372,8 @@ public class WindowFunction extends AbstractAggregate {
                     throw DbException.getInvalidValueException("nth row", n);
                 }
                 n--;
-                Iterator<Value[]> iter = frame.iterator(session, ordered, getOverOrderBySort(), i, fromLast);
+                Iterator<Value[]> iter = WindowFrame.iterator(frame, session, ordered, getOverOrderBySort(), i,
+                        fromLast);
                 v = getNthValue(iter, n, ignoreNulls);
                 break;
             }
@@ -397,6 +401,30 @@ public class WindowFunction extends AbstractAggregate {
 
     @Override
     public Expression optimize(Session session) {
+        if (over.getWindowFrame() != null) {
+            switch (type) {
+            case FIRST_VALUE:
+            case LAST_VALUE:
+            case NTH_VALUE:
+                break;
+            default:
+                String sql = getSQL();
+                throw DbException.getSyntaxError(sql, sql.length() - 1);
+            }
+        }
+        ArrayList<SelectOrderBy> orderBy = over.getOrderBy();
+        if (orderBy == null || orderBy.isEmpty()) {
+            switch (type) {
+            case RANK:
+            case DENSE_RANK:
+            case NTILE:
+            case LEAD:
+            case LAG:
+                String sql = getSQL();
+                throw DbException.getSyntaxError(sql, sql.length() - 1, "ORDER BY");
+            default:
+            }
+        }
         super.optimize(session);
         if (args != null) {
             for (int i = 0; i < args.length; i++) {

@@ -24,7 +24,7 @@ import org.h2.value.Value;
  */
 public final class WindowFrame {
 
-    private abstract class Itr implements Iterator<Value[]> {
+    private static abstract class Itr implements Iterator<Value[]> {
 
         final ArrayList<Value[]> orderedRows;
 
@@ -39,7 +39,7 @@ public final class WindowFrame {
 
     }
 
-    private final class PlainItr extends Itr {
+    private static final class PlainItr extends Itr {
 
         private final int endIndex;
 
@@ -66,7 +66,7 @@ public final class WindowFrame {
 
     }
 
-    private final class PlainReverseItr extends Itr {
+    private static final class PlainReverseItr extends Itr {
 
         private final int startIndex;
 
@@ -93,7 +93,7 @@ public final class WindowFrame {
 
     }
 
-    private abstract class AbstractBitSetItr extends Itr {
+    private static abstract class AbstractBitSetItr extends Itr {
 
         final BitSet set;
 
@@ -111,7 +111,7 @@ public final class WindowFrame {
 
     }
 
-    private final class BitSetItr extends AbstractBitSetItr {
+    private static final class BitSetItr extends AbstractBitSetItr {
 
         BitSetItr(ArrayList<Value[]> orderedRows, BitSet set) {
             super(orderedRows, set);
@@ -130,7 +130,7 @@ public final class WindowFrame {
 
     }
 
-    private final class BitSetReverseItr extends AbstractBitSetItr {
+    private static final class BitSetReverseItr extends AbstractBitSetItr {
 
         BitSetReverseItr(ArrayList<Value[]> orderedRows, BitSet set) {
             super(orderedRows, set);
@@ -156,6 +156,31 @@ public final class WindowFrame {
     private final WindowFrameBound following;
 
     private final WindowFrameExclusion exclusion;
+
+    /**
+     * Returns iterator for the specified frame, or default iterator if frame is
+     * null.
+     *
+     * @param frame
+     *            window frame, or null
+     * @param session
+     *            the session
+     * @param orderedRows
+     *            ordered rows
+     * @param sortOrder
+     *            sort order
+     * @param currentRow
+     *            index of the current row
+     * @param reverse
+     *            whether iterator should iterate in reverse order
+     *
+     * @return iterator
+     */
+    public static Iterator<Value[]> iterator(WindowFrame frame, Session session, ArrayList<Value[]> orderedRows,
+            SortOrder sortOrder, int currentRow, boolean reverse) {
+        return frame != null ? frame.iterator(session, orderedRows, sortOrder, currentRow, reverse)
+                : reverse ? new PlainReverseItr(orderedRows, 0, currentRow) : new PlainItr(orderedRows, 0, currentRow);
+    }
 
     private static int toGroupStart(ArrayList<Value[]> orderedRows, SortOrder sortOrder, int offset, int minOffset) {
         Value[] row = orderedRows.get(offset);

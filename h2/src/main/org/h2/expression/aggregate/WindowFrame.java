@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.h2.api.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.expression.BinaryOperation;
 import org.h2.expression.BinaryOperation.OpType;
@@ -226,6 +225,18 @@ public final class WindowFrame {
     }
 
     /**
+     * Checks validity of this frame.
+     *
+     * @return whether bounds of this frame valid
+     */
+    public boolean isValid() {
+        WindowFrameBoundType s = starting.getType(),
+                f = following != null ? following.getType() : WindowFrameBoundType.CURRENT_ROW;
+        return s != WindowFrameBoundType.UNBOUNDED_FOLLOWING && f != WindowFrameBoundType.UNBOUNDED_PRECEDING
+                && s.compareTo(f) <= 0;
+    }
+
+    /**
      * Returns whether window frame specification can be omitted.
      *
      * @return whether window frame specification can be omitted
@@ -269,10 +280,7 @@ public final class WindowFrame {
         int endIndex = following != null ? getIndex(session, orderedRows, sortOrder, currentRow, following, true)
                 : currentRow;
         if (endIndex < startIndex) {
-            startIndex = getIndex(session, orderedRows, sortOrder, currentRow, starting, false);
-            endIndex = following != null ? getIndex(session, orderedRows, sortOrder, currentRow, following, true)
-                    : currentRow;
-            throw DbException.get(ErrorCode.SYNTAX_ERROR_1, getSQL());
+            return Collections.emptyIterator();
         }
         int size = orderedRows.size();
         if (startIndex >= size || endIndex < 0) {

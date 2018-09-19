@@ -3112,6 +3112,7 @@ public class Parser {
             starting = readWindowFrameStarting();
             following = null;
         }
+        int idx = lastParseIndex;
         WindowFrameExclusion exclusion = WindowFrameExclusion.EXCLUDE_NO_OTHERS;
         if (readIf("EXCLUDE")) {
             if (readIf("CURRENT")) {
@@ -3126,7 +3127,11 @@ public class Parser {
                 read("OTHERS");
             }
         }
-        return new WindowFrame(units, starting, following, exclusion);
+        WindowFrame frame = new WindowFrame(units, starting, following, exclusion);
+        if (!frame.isValid()) {
+            throw DbException.getSyntaxError(sqlCommand, idx);
+        }
+        return frame;
     }
 
     private WindowFrameBound readWindowFrameStarting() {

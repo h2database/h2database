@@ -118,6 +118,8 @@ public abstract class AbstractAggregate extends Expression {
             ArrayList<SelectOrderBy> orderBy = over.getOrderBy();
             if (orderBy != null) {
                 overOrderBySort = createOrder(session, orderBy, getNumExpressions());
+            } else if (!isAggregate()) {
+                overOrderBySort = new SortOrder(session.getDatabase(), new int[getNumExpressions()], new int[0], null);
             }
         }
         return this;
@@ -176,7 +178,7 @@ public abstract class AbstractAggregate extends Expression {
         }
         if (over != null) {
             ArrayList<SelectOrderBy> orderBy = over.getOrderBy();
-            if (orderBy != null) {
+            if (orderBy != null || !isAggregate()) {
                 updateOrderedAggregate(session, groupData, groupRowId, orderBy);
                 return;
             }
@@ -359,7 +361,7 @@ public abstract class AbstractAggregate extends Expression {
                 data = partition.getData();
             }
         }
-        if (over.getOrderBy() != null) {
+        if (over.getOrderBy() != null || !isAggregate()) {
             return getOrderedResult(session, groupData, partition, data);
         }
         Value result = partition.getResult();
@@ -384,10 +386,11 @@ public abstract class AbstractAggregate extends Expression {
     private void updateOrderedAggregate(Session session, SelectGroups groupData, int groupRowId,
             ArrayList<SelectOrderBy> orderBy) {
         int ne = getNumExpressions();
-        int size = orderBy.size();
+        int size = orderBy != null ? orderBy.size() : 0;
         Value[] array = new Value[ne + size + 1];
         rememberExpressions(session, array);
         for (int i = 0; i < size; i++) {
+            @SuppressWarnings("null")
             SelectOrderBy o = orderBy.get(i);
             array[ne++] = o.expression.getValue(session);
         }
@@ -395,7 +398,6 @@ public abstract class AbstractAggregate extends Expression {
         @SuppressWarnings("unchecked")
         ArrayList<Value[]> data = (ArrayList<Value[]>) getData(session, groupData, false, true);
         data.add(array);
-        return;
     }
 
     private Value getOrderedResult(Session session, SelectGroups groupData, PartitionData partition, Object data) {
@@ -404,9 +406,12 @@ public abstract class AbstractAggregate extends Expression {
             result = new HashMap<>();
             @SuppressWarnings("unchecked")
             ArrayList<Value[]> orderedData = (ArrayList<Value[]>) data;
-            int ne = getNumExpressions();
-            int rowIdColumn = ne + over.getOrderBy().size();
-            Collections.sort(orderedData, overOrderBySort);
+            int rowIdColumn = getNumExpressions();
+            ArrayList<SelectOrderBy> orderBy = over.getOrderBy();
+            if (orderBy != null) {
+                rowIdColumn += orderBy.size();
+                Collections.sort(orderedData, overOrderBySort);
+            }
             getOrderedResultLoop(session, result, orderedData, rowIdColumn);
             partition.setOrderedResult(result);
         }

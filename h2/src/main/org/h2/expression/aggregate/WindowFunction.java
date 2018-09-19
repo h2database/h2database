@@ -358,10 +358,12 @@ public class WindowFunction extends AbstractAggregate {
             Value v;
             switch (type) {
             case FIRST_VALUE:
-                v = getNthValue(frame.iterator(session, ordered, getOverOrderBySort(), i, false), 0, ignoreNulls);
+                v = getNthValue(WindowFrame.iterator(frame, session, ordered, getOverOrderBySort(), i, false), 0,
+                        ignoreNulls);
                 break;
             case LAST_VALUE:
-                v = getNthValue(frame.iterator(session, ordered, getOverOrderBySort(), i, true), 0, ignoreNulls);
+                v = getNthValue(WindowFrame.iterator(frame, session, ordered, getOverOrderBySort(), i, true), 0,
+                        ignoreNulls);
                 break;
             case NTH_VALUE: {
                 int n = row[1].getInt();
@@ -369,7 +371,8 @@ public class WindowFunction extends AbstractAggregate {
                     throw DbException.getInvalidValueException("nth row", n);
                 }
                 n--;
-                Iterator<Value[]> iter = frame.iterator(session, ordered, getOverOrderBySort(), i, fromLast);
+                Iterator<Value[]> iter = WindowFrame.iterator(frame, session, ordered, getOverOrderBySort(), i,
+                        fromLast);
                 v = getNthValue(iter, n, ignoreNulls);
                 break;
             }

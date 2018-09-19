@@ -426,7 +426,7 @@ public abstract class AbstractAggregate extends Expression {
     protected void getOrderedResultLoop(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
             int rowIdColumn) {
         WindowFrame frame = over.getWindowFrame();
-        if (frame.isDefault()) {
+        if (frame == null || frame.isDefault()) {
             Object aggregateData = createAggregateData();
             for (Value[] row : ordered) {
                 updateFromExpressions(session, aggregateData, row);

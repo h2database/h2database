@@ -64,11 +64,6 @@ public final class Window {
     public Window(ArrayList<Expression> partitionBy, ArrayList<SelectOrderBy> orderBy, WindowFrame frame) {
         this.partitionBy = partitionBy;
         this.orderBy = orderBy;
-        if (frame == null) {
-            frame = new WindowFrame(WindowFrameUnits.RANGE,
-                    new WindowFrameBound(WindowFrameBoundType.UNBOUNDED_PRECEDING, null), null,
-                    WindowFrameExclusion.EXCLUDE_NO_OTHERS);
-        }
         this.frame = frame;
     }
 
@@ -146,9 +141,9 @@ public final class Window {
     }
 
     /**
-     * Returns window frame.
+     * Returns window frame, or null.
      *
-     * @return window frame
+     * @return window frame, or null
      */
     public WindowFrame getWindowFrame() {
         return frame;
@@ -196,7 +191,7 @@ public final class Window {
             }
         }
         appendOrderBy(builder, orderBy);
-        if (!frame.isDefault()) {
+        if (frame != null && !frame.isDefault()) {
             builder.append(' ').append(frame.getSQL());
         }
         return builder.append(')').toString();

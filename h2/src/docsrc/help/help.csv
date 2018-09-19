@@ -5176,6 +5176,46 @@ SELECT CUME_DIST() OVER (ORDER BY ID), * FROM TEST;
 SELECT CUME_DIST() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
 "
 
+"Functions (Window)","LEAD","
+LEAD(value [, offsetInt [, defaultValue]]) [{RESPECT|IGNORE} NULLS]
+OVER windowSpecification
+","
+Returns the value in a next row with specified offset relative to the current row.
+Offset must be non-negative.
+If IGNORE NULLS is specified rows with null values in selected expression are skipped.
+If number of considered rows is less than specified relative number this function returns NULL
+or the specified default value, if any.
+If offset is 0 the value from the current row is returned unconditionally.
+
+Window functions are currently experimental in H2 and should be used with caution.
+They also may require a lot of memory for large queries.
+","
+SELECT LEAD(X) OVER (ORDER BY ID), * FROM TEST;
+SELECT LEAD(X, 2, 0) IGNORE NULLS OVER (
+    PARTITION BY CATEGORY ORDER BY ID
+), * FROM TEST;
+"
+
+"Functions (Window)","LAG","
+LAG(value [, offsetInt [, defaultValue]]) [{RESPECT|IGNORE} NULLS]
+OVER windowSpecification
+","
+Returns the value in a previous row with specified offset relative to the current row.
+Offset must be non-negative.
+If IGNORE NULLS is specified rows with null values in selected expression are skipped.
+If number of considered rows is less than specified relative number this function returns NULL
+or the specified default value, if any.
+If offset is 0 the value from the current row is returned unconditionally.
+
+Window functions are currently experimental in H2 and should be used with caution.
+They also may require a lot of memory for large queries.
+","
+SELECT LAG(X) OVER (ORDER BY ID), * FROM TEST;
+SELECT LAG(X, 2, 0) IGNORE NULLS OVER (
+    PARTITION BY CATEGORY ORDER BY ID
+), * FROM TEST;
+"
+
 "Functions (Window)","FIRST_VALUE","
 FIRST_VALUE(value) [{RESPECT|IGNORE} NULLS] OVER windowSpecification
 ","

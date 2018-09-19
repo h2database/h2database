@@ -179,7 +179,7 @@ public class TestScript extends TestDb {
                 "parsedatetime", "quarter", "second", "truncate", "week", "year", "date_trunc" }) {
             testScript("functions/timeanddate/" + s + ".sql");
         }
-        for (String s : new String[] { "row_number", "nth_value" }) {
+        for (String s : new String[] { "lead", "row_number", "nth_value" }) {
             testScript("functions/window/" + s + ".sql");
         }
 

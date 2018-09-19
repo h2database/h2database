@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import org.h2.command.dml.Select;
+import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
@@ -409,6 +410,19 @@ public class WindowFunction extends AbstractAggregate {
             default:
                 String sql = getSQL();
                 throw DbException.getSyntaxError(sql, sql.length() - 1);
+            }
+        }
+        ArrayList<SelectOrderBy> orderBy = over.getOrderBy();
+        if (orderBy == null || orderBy.isEmpty()) {
+            switch (type) {
+            case RANK:
+            case DENSE_RANK:
+            case NTILE:
+            case LEAD:
+            case LAG:
+                String sql = getSQL();
+                throw DbException.getSyntaxError(sql, sql.length() - 1, "ORDER BY");
+            default:
             }
         }
         super.optimize(session);

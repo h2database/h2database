@@ -177,7 +177,7 @@ public final class Window {
      * @see Expression#getSQL()
      */
     public String getSQL() {
-        if (partitionBy == null && orderBy == null) {
+        if (partitionBy == null && orderBy == null && frame == null) {
             return "OVER ()";
         }
         StringBuilder builder = new StringBuilder().append("OVER (");
@@ -192,7 +192,10 @@ public final class Window {
         }
         appendOrderBy(builder, orderBy);
         if (frame != null && !frame.isDefault()) {
-            builder.append(' ').append(frame.getSQL());
+            if (builder.charAt(builder.length() - 1) != '(') {
+                builder.append(' ');
+            }
+            builder.append(frame.getSQL());
         }
         return builder.append(')').toString();
     }

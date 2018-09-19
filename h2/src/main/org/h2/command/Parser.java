@@ -3049,7 +3049,7 @@ public class Parser {
         }
         Window over = null;
         if (readIf("OVER")) {
-            over = readWindowSpecification(aggregate);
+            over = readWindowSpecification();
             aggregate.setOverCondition(over);
             currentSelect.setWindowQuery();
         } else if (!isAggregate) {
@@ -3059,7 +3059,7 @@ public class Parser {
         }
     }
 
-    private Window readWindowSpecification(AbstractAggregate aggregate) {
+    private Window readWindowSpecification() {
         read(OPEN_PAREN);
         ArrayList<Expression> partitionBy = null;
         if (readIf("PARTITION")) {
@@ -3075,21 +3075,7 @@ public class Parser {
             read("BY");
             orderBy = parseSimpleOrderList();
         }
-        WindowFrame frame;
-        if (aggregate instanceof WindowFunction) {
-            WindowFunction w = (WindowFunction) aggregate;
-            switch (w.getFunctionType()) {
-            case FIRST_VALUE:
-            case LAST_VALUE:
-            case NTH_VALUE:
-                frame = readWindowFrame();
-                break;
-            default:
-                frame = null;
-            }
-        } else {
-            frame = readWindowFrame();
-        }
+        WindowFrame frame = readWindowFrame();
         read(CLOSE_PAREN);
         return new Window(partitionBy, orderBy, frame);
     }

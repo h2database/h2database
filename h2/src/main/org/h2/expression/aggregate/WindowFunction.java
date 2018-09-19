@@ -400,6 +400,17 @@ public class WindowFunction extends AbstractAggregate {
 
     @Override
     public Expression optimize(Session session) {
+        if (over.getWindowFrame() != null) {
+            switch (type) {
+            case FIRST_VALUE:
+            case LAST_VALUE:
+            case NTH_VALUE:
+                break;
+            default:
+                String sql = getSQL();
+                throw DbException.getSyntaxError(sql, sql.length() - 1);
+            }
+        }
         super.optimize(session);
         if (args != null) {
             for (int i = 0; i < args.length; i++) {

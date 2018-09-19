@@ -2555,7 +2555,7 @@ ROWS|RANGE|GROUP
 [EXCLUDE {CURRENT ROW|GROUP|TIES|NO OTHERS}]
 ","
 A window frame clause.
-Is currently supported only in aggregates and FIRST_VALUE(), LAST_VALUE(), and NTH_VALUE() window functions.
+May be specified only for aggregates and FIRST_VALUE(), LAST_VALUE(), and NTH_VALUE() window functions.
 ","
 RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE GROUP
 "

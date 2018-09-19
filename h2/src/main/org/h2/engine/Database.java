@@ -30,8 +30,11 @@ import org.h2.api.JavaObjectSerializer;
 import org.h2.api.TableEngine;
 import org.h2.command.CommandInterface;
 import org.h2.command.ddl.CreateTableData;
+import org.h2.command.dml.SelectGroups;
+import org.h2.command.dml.SelectGroupsFactory;
 import org.h2.command.dml.SetTypes;
 import org.h2.constraint.Constraint;
+import org.h2.expression.aggregate.AggregateDataFactory;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -232,6 +235,8 @@ public class Database implements DataHandler {
     private QueryStatisticsData queryStatisticsData;
     private RowFactory rowFactory = RowFactory.DEFAULT;
     private LocalResultFactory resultFactory = LocalResultFactory.DEFAULT;
+    private SelectGroupsFactory selectGroupsFactory = SelectGroupsFactory.DEFAULT;
+    private AggregateDataFactory aggregateDataFactory = AggregateDataFactory.DEFAULT;
 
     private Authenticator authenticator;
 
@@ -377,6 +382,22 @@ public class Database implements DataHandler {
 
     public void setResultFactory(LocalResultFactory resultFactory) {
         this.resultFactory = resultFactory;
+    }
+
+    public SelectGroupsFactory getSelectGroupsFactory() {
+        return selectGroupsFactory;
+    }
+
+    public void setSelectGroupsFactory(SelectGroupsFactory selectGroupsFactory) {
+        this.selectGroupsFactory = selectGroupsFactory;
+    }
+
+    public AggregateDataFactory getAggregateDataFactory() {
+        return aggregateDataFactory;
+    }
+
+    public void setAggregateDataFactory(AggregateDataFactory aggregateDataFactory) {
+        this.aggregateDataFactory = aggregateDataFactory;
     }
 
     public static void setInitialPowerOffCount(int count) {

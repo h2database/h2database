@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.h2.api.IntervalQualifier;
+import org.h2.command.dml.Select;
+import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
@@ -44,6 +46,10 @@ import org.h2.value.ValueTimestampTimeZone;
  * Data stored while calculating a MEDIAN aggregate.
  */
 class AggregateDataMedian extends AggregateDataCollecting {
+    public AggregateDataMedian() {
+        super(null, null, null);
+    }
+
     private static boolean isNullsLast(Index index) {
         IndexColumn ic = index.getIndexColumns()[0];
         int sortType = ic.sortType;

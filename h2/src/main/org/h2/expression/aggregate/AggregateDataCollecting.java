@@ -5,12 +5,14 @@
  */
 package org.h2.expression.aggregate;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.*;
 
+import org.h2.command.dml.Select;
+import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Database;
+import org.h2.result.SortOrder;
 import org.h2.value.Value;
+import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
 
 /**
@@ -24,8 +26,17 @@ import org.h2.value.ValueNull;
  * override {@link #getValue(Database, int, boolean)} to return useful result.
  * </p>
  */
-class AggregateDataCollecting extends AggregateData {
-    Collection<Value> values;
+abstract class AggregateDataCollecting extends AggregateData {
+    private Collection<Value> values;
+    protected Select select;
+    protected SortOrder sortOrder;
+    protected ArrayList<SelectOrderBy> orderByList;
+
+    public AggregateDataCollecting(Select select, ArrayList<SelectOrderBy> orderByList, SortOrder sortOrder) {
+        this.sortOrder = sortOrder;
+        this.orderByList= orderByList;
+        this.select = select;
+    }
 
     @Override
     void add(Database database, int dataType, boolean distinct, Value v) {
@@ -39,11 +50,6 @@ class AggregateDataCollecting extends AggregateData {
         c.add(v);
     }
 
-    @Override
-    Value getValue(Database database, int dataType, boolean distinct) {
-        return null;
-    }
-
     /**
      * Returns array with values or {@code null}.
      *
@@ -55,5 +61,18 @@ class AggregateDataCollecting extends AggregateData {
             return null;
         }
         return values.toArray(new Value[0]);
+    }
+
+     void sortWithOrderBy(Value[] array) {
+        if (sortOrder != null) {
+            Arrays.sort(array, new Comparator<Value>() {
+                @Override
+                public int compare(Value v1, Value v2) {
+                    return sortOrder.compare(((ValueArray) v1).getList(), ((ValueArray) v2).getList());
+                }
+            });
+        } else {
+            Arrays.sort(array, select.getSession().getDatabase().getCompareMode());
+        }
     }
 }

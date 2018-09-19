@@ -15,36 +15,6 @@ import org.h2.value.Value;
 abstract class AggregateData {
 
     /**
-     * Create an AggregateData object of the correct sub-type.
-     *
-     * @param aggregateType the type of the aggregate operation
-     * @return the aggregate data object of the specified type
-     */
-    static AggregateData create(AggregateType aggregateType) {
-        switch (aggregateType) {
-        case SELECTIVITY:
-            return new AggregateDataSelectivity();
-        case GROUP_CONCAT:
-        case ARRAY_AGG:
-            return new AggregateDataCollecting();
-        case COUNT_ALL:
-            return new AggregateDataCountAll();
-        case COUNT:
-            return new AggregateDataCount();
-        case HISTOGRAM:
-            return new AggregateDataHistogram();
-        case MEDIAN:
-            return new AggregateDataMedian();
-        case MODE:
-            return new AggregateDataMode();
-        case ENVELOPE:
-            return new AggregateDataEnvelope();
-        default:
-            return new AggregateDataDefault(aggregateType);
-        }
-    }
-
-    /**
      * Add a value to this aggregate.
      *
      * @param database the database

@@ -34,6 +34,10 @@ public class JavaAggregate extends AbstractAggregate {
     private int dataType;
     private Connection userConnection;
 
+    public static abstract class UserAggregateFactory {
+        abstract public Aggregate create();
+    }
+
     public JavaAggregate(UserAggregate userAggregate, Expression[] args, Select select, boolean distinct) {
         super(select, distinct);
         this.userAggregate = userAggregate;
@@ -167,35 +171,16 @@ public class JavaAggregate extends AbstractAggregate {
     @Override
     public Value getAggregatedValue(Session session, Object aggregateData) {
         try {
-            Aggregate agg;
+            Object obj;
             if (distinct) {
-                agg = getInstance();
-                AggregateDataCollecting data = (AggregateDataCollecting) aggregateData;
-                if (data != null) {
-                    for (Value value : data.values) {
-                        if (args.length == 1) {
-                            agg.add(value.getObject());
-                        } else {
-                            Value[] values = ((ValueArray) value).getList();
-                            Object[] argValues = new Object[args.length];
-                            for (int i = 0, len = args.length; i < len; i++) {
-                                argValues[i] = values[i].getObject();
-                            }
-                            agg.add(argValues);
-                        }
-                    }
-                }
+                JavaAggregateData data = (JavaAggregateData) aggregateData;
+                obj = data != null ? data.getValue() : getInstance().getResult();
             } else {
-                agg = (Aggregate) aggregateData;
-                if (agg == null) {
-                    agg = getInstance();
-                }
+                Aggregate agg = (Aggregate) aggregateData;
+                obj = agg != null ? agg.getResult() : getInstance().getResult();
             }
-            Object obj = agg.getResult();
-            if (obj == null) {
-                return ValueNull.INSTANCE;
-            }
-            return DataType.convertToValue(session, obj, dataType);
+
+            return obj == null ? ValueNull.INSTANCE : DataType.convertToValue(session, obj, dataType);
         } catch (SQLException e) {
             throw DbException.convert(e);
         }
@@ -207,18 +192,18 @@ public class JavaAggregate extends AbstractAggregate {
     }
 
     private void updateData(Session session, Object aggregateData, Value[] remembered) {
-        try {
-            if (distinct) {
-                AggregateDataCollecting data = (AggregateDataCollecting) aggregateData;
-                Value[] argValues = new Value[args.length];
-                Value arg = null;
-                for (int i = 0, len = args.length; i < len; i++) {
-                    arg = remembered == null ? args[i].getValue(session) : remembered[i];
-                    arg = arg.convertTo(argTypes[i]);
-                    argValues[i] = arg;
-                }
-                data.add(session.getDatabase(), dataType, true, args.length == 1 ? arg : ValueArray.get(argValues));
-            } else {
+        if (distinct) {
+            JavaAggregateData data = (JavaAggregateData) aggregateData;
+            Value[] argValues = new Value[args.length];
+            Value arg = null;
+            for (int i = 0, len = args.length; i < len; i++) {
+                arg = remembered == null ? args[i].getValue(session) : remembered[i];
+                arg = arg.convertTo(argTypes[i]);
+                argValues[i] = arg;
+            }
+            data.add(args.length == 1 ? arg : ValueArray.get(argValues));
+        } else {
+            try {
                 Aggregate agg = (Aggregate) aggregateData;
                 Object[] argValues = new Object[args.length];
                 Object arg = null;
@@ -229,9 +214,9 @@ public class JavaAggregate extends AbstractAggregate {
                     argValues[i] = arg;
                 }
                 agg.add(args.length == 1 ? arg : argValues);
+            } catch (SQLException e) {
+                throw DbException.convert(e);
             }
-        } catch (SQLException e) {
-            throw DbException.convert(e);
         }
     }
 
@@ -261,7 +246,7 @@ public class JavaAggregate extends AbstractAggregate {
 
     @Override
     protected Object createAggregateData() {
-        return distinct ? new AggregateDataCollecting() : getInstance();
+        return distinct ? select.getSession().getDatabase().getAggregateDataFactory().create(getInstance(), args.length) : getInstance();
     }
 
 }

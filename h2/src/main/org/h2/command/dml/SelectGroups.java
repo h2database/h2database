@@ -41,7 +41,7 @@ import org.h2.value.ValueArray;
  */
 public abstract class SelectGroups {
 
-    private static final class Grouped extends SelectGroups {
+    public static final class Grouped extends SelectGroups {
 
         private final int[] groupIndex;
 
@@ -67,7 +67,7 @@ public abstract class SelectGroups {
         // Can be static, but TestClearReferences complains about it
         private final ValueArray defaultGroup = ValueArray.get(new Value[0]);
 
-        Grouped(Session session, ArrayList<Expression> expressions, int[] groupIndex) {
+        public Grouped(Session session, ArrayList<Expression> expressions, int[] groupIndex) {
             super(session, expressions);
             this.groupIndex = groupIndex;
         }
@@ -141,7 +141,7 @@ public abstract class SelectGroups {
         }
     }
 
-    private static final class Plain extends SelectGroups {
+    public static final class Plain extends SelectGroups {
 
         private ArrayList<Object[]> rows;
 
@@ -150,7 +150,7 @@ public abstract class SelectGroups {
          */
         private Iterator<Object[]> cursor;
 
-        Plain(Session session, ArrayList<Expression> expressions) {
+        public Plain(Session session, ArrayList<Expression> expressions) {
             super(session, expressions);
         }
 
@@ -231,7 +231,7 @@ public abstract class SelectGroups {
      */
     public static SelectGroups getInstance(Session session, ArrayList<Expression> expressions, boolean isGroupQuery,
             int[] groupIndex) {
-        return isGroupQuery ? new Grouped(session, expressions, groupIndex) : new Plain(session, expressions);
+        return session.getDatabase().getSelectGroupsFactory().create(session, expressions, isGroupQuery, groupIndex);
     }
 
     SelectGroups(Session session, ArrayList<Expression> expressions) {

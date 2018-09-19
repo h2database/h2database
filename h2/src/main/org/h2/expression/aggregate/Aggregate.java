@@ -373,7 +373,7 @@ public class Aggregate extends AbstractAggregate {
 
     @Override
     protected Object createAggregateData() {
-        return AggregateData.create(type);
+        return select.getSession().getDatabase().getAggregateDataFactory().create(select,this);
     }
 
     @Override
@@ -420,63 +420,29 @@ public class Aggregate extends AbstractAggregate {
         if (data == null) {
             data = (AggregateData) createAggregateData();
         }
-        switch (type) {
-        case GROUP_CONCAT: {
-            Value[] array = ((AggregateDataCollecting) data).getArray();
-            if (array == null) {
-                return ValueNull.INSTANCE;
-            }
-            if (orderByList != null || distinct) {
-                sortWithOrderBy(array);
-            }
-            StatementBuilder buff = new StatementBuilder();
-            String sep = groupConcatSeparator == null ? "," : groupConcatSeparator.getValue(session).getString();
-            for (Value val : array) {
-                String s;
-                if (val.getType() == Value.ARRAY) {
-                    s = ((ValueArray) val).getList()[0].getString();
-                } else {
-                    s = val.getString();
-                }
-                if (s == null) {
-                    continue;
-                }
-                if (sep != null) {
-                    buff.appendExceptFirst(sep);
-                }
-                buff.append(s);
-            }
-            return ValueString.get(buff.toString());
-        }
-        case ARRAY_AGG: {
-            Value[] array = ((AggregateDataCollecting) data).getArray();
-            if (array == null) {
-                return ValueNull.INSTANCE;
-            }
-            if (orderByList != null || distinct) {
-                sortWithOrderBy(array);
-            }
-            if (orderByList != null) {
-                for (int i = 0; i < array.length; i++) {
-                    array[i] = ((ValueArray) array[i]).getList()[0];
-                }
-            }
-            return ValueArray.get(array);
-        }
-        case MODE:
-            if (orderByList != null) {
-                return ((AggregateDataMode) data).getOrderedValue(session.getDatabase(), dataType,
-                        (orderByList.get(0).sortType & SortOrder.DESCENDING) != 0);
-            }
-            //$FALL-THROUGH$
-        default:
-            return data.getValue(session.getDatabase(), dataType, distinct);
-        }
+
+        return data.getValue(session.getDatabase(), dataType, distinct);
     }
 
     @Override
     public int getType() {
         return dataType;
+    }
+
+    public AggregateType getAggregateType() {
+        return type;
+    }
+
+    public SortOrder getOrderBySort() {
+        return orderBySort;
+    }
+
+    public ArrayList<SelectOrderBy> getOrderByList() {
+        return orderByList;
+    }
+
+    public String getGroupConcatSeparator() {
+        return groupConcatSeparator == null ? "," : groupConcatSeparator.getValue(select.getSession()).getString();
     }
 
     @Override

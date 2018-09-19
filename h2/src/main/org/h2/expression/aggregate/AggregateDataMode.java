@@ -5,9 +5,13 @@
  */
 package org.h2.expression.aggregate;
 
+import java.util.ArrayList;
 import java.util.Map.Entry;
 
+import org.h2.command.dml.Select;
+import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Database;
+import org.h2.result.SortOrder;
 import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -18,6 +22,13 @@ import org.h2.value.ValueNull;
 class AggregateDataMode extends AggregateData {
 
     private ValueHashMap<LongDataCounter> distinctValues;
+    private Select select;
+    private ArrayList<SelectOrderBy> orderByList;
+
+    public AggregateDataMode(Select select, ArrayList<SelectOrderBy> orderByList) {
+        this.select = select;
+        this.orderByList = orderByList;
+    }
 
     @Override
     void add(Database database, int dataType, boolean distinct, Value v) {
@@ -37,21 +48,26 @@ class AggregateDataMode extends AggregateData {
 
     @Override
     Value getValue(Database database, int dataType, boolean distinct) {
-        Value v = ValueNull.INSTANCE;
-        if (distinctValues != null) {
-            long count = 0L;
-            for (Entry<Value, LongDataCounter> entry : distinctValues.entries()) {
-                long c = entry.getValue().count;
-                if (c > count) {
-                    v = entry.getKey();
-                    count = c;
+        if (orderByList == null) {
+            Value v = ValueNull.INSTANCE;
+            if (distinctValues != null) {
+                long count = 0L;
+                for (Entry<Value, LongDataCounter> entry : distinctValues.entries()) {
+                    long c = entry.getValue().count;
+                    if (c > count) {
+                        v = entry.getKey();
+                        count = c;
+                    }
                 }
             }
+            return v.convertTo(dataType);
+        } else {
+            return getOrderedValue(select.getSession().getDatabase(), dataType,
+                    (orderByList.get(0).sortType & SortOrder.DESCENDING) != 0);
         }
-        return v.convertTo(dataType);
     }
 
-    Value getOrderedValue(Database database, int dataType, boolean desc) {
+    private Value getOrderedValue(Database database, int dataType, boolean desc) {
         Value v = ValueNull.INSTANCE;
         if (distinctValues != null) {
             long count = 0L;

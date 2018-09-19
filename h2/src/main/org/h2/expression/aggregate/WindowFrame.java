@@ -182,20 +182,16 @@ public final class WindowFrame {
         return value;
     }
 
-    private static Value plus(Session session, ArrayList<Value[]> orderedRows, int currentRow, WindowFrameBound bound,
-            int index) {
-        return new BinaryOperation(OpType.PLUS, //
-                ValueExpression.get(orderedRows.get(currentRow)[index]),
-                ValueExpression.get(getValueOffset(bound, session))) //
+    private static Value[] getCompareRow(Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder,
+            int currentRow, WindowFrameBound bound, boolean add) {
+        int sortIndex = sortOrder.getQueryColumnIndexes()[0];
+        OpType opType = add ^ (sortOrder.getSortTypes()[0] & SortOrder.DESCENDING) != 0 ? OpType.PLUS : OpType.MINUS;
+        Value[] row = orderedRows.get(currentRow);
+        Value[] newRow = row.clone();
+        newRow[sortIndex] = new BinaryOperation(opType, //
+                ValueExpression.get(row[sortIndex]), ValueExpression.get(getValueOffset(bound, session))) //
                         .optimize(session).getValue(session);
-    }
-
-    private static Value minus(Session session, ArrayList<Value[]> orderedRows, int currentRow, WindowFrameBound bound,
-            int index) {
-        return new BinaryOperation(OpType.MINUS, //
-                ValueExpression.get(orderedRows.get(currentRow)[index]),
-                ValueExpression.get(getValueOffset(bound, session))) //
-                        .optimize(session).getValue(session);
+        return newRow;
     }
 
     private static Value getValueOffset(WindowFrameBound bound, Session session) {
@@ -273,6 +269,9 @@ public final class WindowFrame {
         int endIndex = following != null ? getIndex(session, orderedRows, sortOrder, currentRow, following, true)
                 : currentRow;
         if (endIndex < startIndex) {
+            startIndex = getIndex(session, orderedRows, sortOrder, currentRow, starting, false);
+            endIndex = following != null ? getIndex(session, orderedRows, sortOrder, currentRow, following, true)
+                    : currentRow;
             throw DbException.get(ErrorCode.SYNTAX_ERROR_1, getSQL());
         }
         int size = orderedRows.size();
@@ -334,15 +333,25 @@ public final class WindowFrame {
             }
             case RANGE: {
                 index = currentRow;
-                int sortIndex = sortOrder.getQueryColumnIndexes()[0];
-                if ((sortOrder.getSortTypes()[0] & SortOrder.DESCENDING) != 0) {
-                    Value c = plus(session, orderedRows, currentRow, bound, sortIndex);
-                    while (index > 0 && session.getDatabase().compare(c, orderedRows.get(index - 1)[sortIndex]) >= 0) {
-                        index--;
+                Value[] row = getCompareRow(session, orderedRows, sortOrder, index, bound, false);
+                index = Collections.binarySearch(orderedRows, row, sortOrder);
+                if (index >= 0) {
+                    if (!forFollowing) {
+                        while (index > 0 && sortOrder.compare(row, orderedRows.get(index - 1)) == 0) {
+                            index--;
+                        }
+                    } else {
+                        while (index < last && sortOrder.compare(row, orderedRows.get(index + 1)) == 0) {
+                            index++;
+                        }
                     }
                 } else {
-                    Value c = minus(session, orderedRows, currentRow, bound, sortIndex);
-                    while (index > 0 && session.getDatabase().compare(c, orderedRows.get(index - 1)[sortIndex]) <= 0) {
+                    index = ~index;
+                    if (!forFollowing) {
+                        if (index == 0) {
+                            index = -1;
+                        }
+                    } else {
                         index--;
                     }
                 }
@@ -389,18 +398,24 @@ public final class WindowFrame {
             }
             case RANGE: {
                 index = currentRow;
-                int sortIndex = sortOrder.getQueryColumnIndexes()[0];
-                if ((sortOrder.getSortTypes()[0] & SortOrder.DESCENDING) != 0) {
-                    Value c = minus(session, orderedRows, currentRow, bound, sortIndex);
-                    while (index < last
-                            && session.getDatabase().compare(c, orderedRows.get(index + 1)[sortIndex]) <= 0) {
-                        index++;
+                Value[] row = getCompareRow(session, orderedRows, sortOrder, index, bound, true);
+                index = Collections.binarySearch(orderedRows, row, sortOrder);
+                if (index >= 0) {
+                    if (forFollowing) {
+                        while (index < last && sortOrder.compare(row, orderedRows.get(index + 1)) == 0) {
+                            index++;
+                        }
+                    } else {
+                        while (index > 0 && sortOrder.compare(row, orderedRows.get(index - 1)) == 0) {
+                            index--;
+                        }
                     }
                 } else {
-                    Value c = plus(session, orderedRows, currentRow, bound, sortIndex);
-                    while (index < last
-                            && session.getDatabase().compare(c, orderedRows.get(index + 1)[sortIndex]) >= 0) {
-                        index++;
+                    index = ~index;
+                    if (forFollowing) {
+                        if (index != size) {
+                            index--;
+                        }
                     }
                 }
                 break;

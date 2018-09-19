@@ -25,85 +25,6 @@ import org.h2.value.ValueNull;
  */
 public class WindowFunction extends AbstractAggregate {
 
-    /**
-     * A type of a window function.
-     */
-    public enum WindowFunctionType {
-
-    /**
-     * The type for ROW_NUMBER() window function.
-     */
-    ROW_NUMBER,
-
-    /**
-     * The type for RANK() window function.
-     */
-    RANK,
-
-    /**
-     * The type for DENSE_RANK() window function.
-     */
-    DENSE_RANK,
-
-    /**
-     * The type for PERCENT_RANK() window function.
-     */
-    PERCENT_RANK,
-
-    /**
-     * The type for CUME_DIST() window function.
-     */
-    CUME_DIST,
-
-    /**
-     * The type for FIRST_VALUE() window function.
-     */
-    FIRST_VALUE,
-
-    /**
-     * The type for LAST_VALUE() window function.
-     */
-    LAST_VALUE,
-
-    /**
-     * The type for NTH_VALUE() window function.
-     */
-    NTH_VALUE,
-
-        ;
-
-        /**
-         * Returns the type of window function with the specified name, or null.
-         *
-         * @param name
-         *            name of a window function
-         * @return the type of window function, or null.
-         */
-        public static WindowFunctionType get(String name) {
-            switch (name) {
-            case "ROW_NUMBER":
-                return ROW_NUMBER;
-            case "RANK":
-                return RANK;
-            case "DENSE_RANK":
-                return DENSE_RANK;
-            case "PERCENT_RANK":
-                return PERCENT_RANK;
-            case "CUME_DIST":
-                return CUME_DIST;
-            case "FIRST_VALUE":
-                return FIRST_VALUE;
-            case "LAST_VALUE":
-                return LAST_VALUE;
-            case "NTH_VALUE":
-                return NTH_VALUE;
-            default:
-                return null;
-            }
-        }
-
-    }
-
     private final WindowFunctionType type;
 
     private final Expression[] args;
@@ -113,17 +34,43 @@ public class WindowFunction extends AbstractAggregate {
     private boolean ignoreNulls;
 
     /**
-     * Returns number of arguments for the specified type.
+     * Returns minimal number of arguments for the specified type.
      *
      * @param type
      *            the type of a window function
-     * @return number of arguments
+     * @return minimal number of arguments
      */
-    public static int getArgumentCount(WindowFunctionType type) {
+    public static int getMinArgumentCount(WindowFunctionType type) {
         switch (type) {
+        case NTILE:
+        case LEAD:
+        case LAG:
         case FIRST_VALUE:
         case LAST_VALUE:
             return 1;
+        case NTH_VALUE:
+            return 2;
+        default:
+            return 0;
+        }
+    }
+
+    /**
+     * Returns maximal number of arguments for the specified type.
+     *
+     * @param type
+     *            the type of a window function
+     * @return maximal number of arguments
+     */
+    public static int getMaxArgumentCount(WindowFunctionType type) {
+        switch (type) {
+        case NTILE:
+        case FIRST_VALUE:
+        case LAST_VALUE:
+            return 1;
+        case LEAD:
+        case LAG:
+            return 3;
         case NTH_VALUE:
             return 2;
         default:
@@ -212,14 +159,15 @@ public class WindowFunction extends AbstractAggregate {
 
     @Override
     protected int getNumExpressions() {
-        return getArgumentCount(type);
+        return args != null ? args.length : 0;
     }
 
     @Override
     protected void rememberExpressions(Session session, Value[] array) {
-        int cnt = getNumExpressions();
-        for (int i = 0; i < cnt; i++) {
-            array[i] = args[i].getValue(session);
+        if (args != null) {
+            for (int i = 0, cnt = args.length; i < cnt; i++) {
+                array[i] = args[i].getValue(session);
+            }
         }
     }
 
@@ -239,6 +187,13 @@ public class WindowFunction extends AbstractAggregate {
         switch (type) {
         case CUME_DIST:
             getCumeDist(session, result, ordered, rowIdColumn);
+            return;
+        case NTILE:
+            getNtile(session, result, ordered, rowIdColumn);
+            return;
+        case LEAD:
+        case LAG:
+            getLeadLag(session, result, ordered, rowIdColumn);
             return;
         case FIRST_VALUE:
         case LAST_VALUE:
@@ -282,11 +237,6 @@ public class WindowFunction extends AbstractAggregate {
                 }
                 break;
             }
-            case CUME_DIST: {
-                int nm = number;
-                v = ValueDouble.get((double) nm / size);
-                break;
-            }
             default:
                 throw DbException.throwInternalError("type=" + type);
             }
@@ -312,6 +262,93 @@ public class WindowFunction extends AbstractAggregate {
         }
     }
 
+    private static void getNtile(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> orderedData,
+            int last) {
+        int size = orderedData.size();
+        for (int i = 0; i < size; i++) {
+            Value[] array = orderedData.get(i);
+            int buckets = array[0].getInt();
+            if (buckets <= 0) {
+                throw DbException.getInvalidValueException("number of tiles", buckets);
+            }
+            int perTile = size / buckets;
+            int numLarger = size - perTile * buckets;
+            int largerGroup = numLarger * (perTile + 1);
+            int v;
+            if (i >= largerGroup) {
+                v = (i - largerGroup) / perTile + numLarger + 1;
+            } else {
+                v = i / (perTile + 1) + 1;
+            }
+            result.put(orderedData.get(i)[last].getInt(), ValueInt.get(v));
+        }
+    }
+
+    private void getLeadLag(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
+            int rowIdColumn) {
+        int size = ordered.size();
+        int numExpressions = getNumExpressions();
+        int dataType = args[0].getType();
+        for (int i = 0; i < size; i++) {
+            Value[] row = ordered.get(i);
+            int rowId = row[rowIdColumn].getInt();
+            int n;
+            if (numExpressions >= 2) {
+                n = row[1].getInt();
+                // 0 is valid here
+                if (n < 0) {
+                    throw DbException.getInvalidValueException("nth row", n);
+                }
+            } else {
+                n = 1;
+            }
+            Value v = null;
+            if (n == 0) {
+                v = ordered.get(i)[0];
+            } else if (type == WindowFunctionType.LEAD) {
+                if (ignoreNulls) {
+                    for (int j = i + 1; n > 0 && j < size; j++) {
+                        v = ordered.get(j)[0];
+                        if (v != ValueNull.INSTANCE) {
+                            n--;
+                        }
+                    }
+                    if (n > 0) {
+                        v = null;
+                    }
+                } else {
+                    if (n <= size - i - 1) {
+                        v = ordered.get(i + n)[0];
+                    }
+                }
+            } else /* LAG */ {
+                if (ignoreNulls) {
+                    for (int j = i - 1; n > 0 && j >= 0; j--) {
+                        v = ordered.get(j)[0];
+                        if (v != ValueNull.INSTANCE) {
+                            n--;
+                        }
+                    }
+                    if (n > 0) {
+                        v = null;
+                    }
+                } else {
+                    if (n <= i) {
+                        v = ordered.get(i - n)[0];
+                    }
+                }
+            }
+            if (v == null) {
+                if (numExpressions >= 3) {
+                    v = row[2].convertTo(dataType);
+                } else {
+                    v = ValueNull.INSTANCE;
+                }
+            }
+            result.put(rowId, v);
+        }
+    }
+
     private void getNth(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered, int rowIdColumn) {
         int size = ordered.size();
         for (int i = 0; i < size; i++) {
@@ -320,10 +357,9 @@ public class WindowFunction extends AbstractAggregate {
             int rowId = row[rowIdColumn].getInt();
             Value v;
             switch (type) {
-            case FIRST_VALUE: {
+            case FIRST_VALUE:
                 v = getNthValue(frame.iterator(session, ordered, getOverOrderBySort(), i, false), 0, ignoreNulls);
                 break;
-            }
             case LAST_VALUE:
                 v = getNthValue(frame.iterator(session, ordered, getOverOrderBySort(), i, true), 0, ignoreNulls);
                 break;
@@ -386,10 +422,13 @@ public class WindowFunction extends AbstractAggregate {
         case ROW_NUMBER:
         case RANK:
         case DENSE_RANK:
+        case NTILE:
             return Value.INT;
         case PERCENT_RANK:
         case CUME_DIST:
             return Value.DOUBLE;
+        case LEAD:
+        case LAG:
         case FIRST_VALUE:
         case LAST_VALUE:
         case NTH_VALUE:
@@ -402,6 +441,8 @@ public class WindowFunction extends AbstractAggregate {
     @Override
     public int getScale() {
         switch (type) {
+        case LEAD:
+        case LAG:
         case FIRST_VALUE:
         case LAST_VALUE:
         case NTH_VALUE:
@@ -417,10 +458,13 @@ public class WindowFunction extends AbstractAggregate {
         case ROW_NUMBER:
         case RANK:
         case DENSE_RANK:
+        case NTILE:
             return ValueInt.PRECISION;
         case PERCENT_RANK:
         case CUME_DIST:
             return ValueDouble.PRECISION;
+        case LEAD:
+        case LAG:
         case FIRST_VALUE:
         case LAST_VALUE:
         case NTH_VALUE:
@@ -436,10 +480,13 @@ public class WindowFunction extends AbstractAggregate {
         case ROW_NUMBER:
         case RANK:
         case DENSE_RANK:
+        case NTILE:
             return ValueInt.DISPLAY_SIZE;
         case PERCENT_RANK:
         case CUME_DIST:
             return ValueDouble.DISPLAY_SIZE;
+        case LEAD:
+        case LAG:
         case FIRST_VALUE:
         case LAST_VALUE:
         case NTH_VALUE:
@@ -451,52 +498,31 @@ public class WindowFunction extends AbstractAggregate {
 
     @Override
     public String getSQL() {
-        String text;
-        int numArgs = 0;
-        switch (type) {
-        case ROW_NUMBER:
-            text = "ROW_NUMBER";
-            break;
-        case RANK:
-            text = "RANK";
-            break;
-        case DENSE_RANK:
-            text = "DENSE_RANK";
-            break;
-        case PERCENT_RANK:
-            text = "PERCENT_RANK";
-            break;
-        case CUME_DIST:
-            text = "CUME_DIST";
-            break;
-        case FIRST_VALUE:
-            text = "FIRST_VALUE";
-            numArgs = 1;
-            break;
-        case LAST_VALUE:
-            text = "LAST_VALUE";
-            numArgs = 1;
-            break;
-        case NTH_VALUE:
-            text = "NTH_VALUE";
-            numArgs = 2;
-            break;
-        default:
-            throw DbException.throwInternalError("type=" + type);
-        }
-        StringBuilder builder = new StringBuilder().append(text).append('(');
-        for (int i = 0; i < numArgs; i++) {
-            if (i > 0) {
-                builder.append(", ");
+        String name = type.getSQL();
+        StringBuilder builder = new StringBuilder().append(name).append('(');
+        if (args != null) {
+            for (int i = 0, numArgs = args.length; i < numArgs; i++) {
+                if (i > 0) {
+                    builder.append(", ");
+                }
+                builder.append(args[i].getSQL());
             }
-            builder.append(args[i].getSQL());
         }
         builder.append(')');
         if (fromLast && type == WindowFunctionType.NTH_VALUE) {
             builder.append(" FROM LAST");
         }
-        if (ignoreNulls && (type == WindowFunctionType.FIRST_VALUE || type == WindowFunctionType.LAST_VALUE)) {
-            builder.append(" IGNORE NULLS");
+        if (ignoreNulls) {
+            switch (type) {
+            case LEAD:
+            case LAG:
+            case FIRST_VALUE:
+            case LAST_VALUE:
+            case NTH_VALUE:
+                builder.append(" IGNORE NULLS");
+                //$FALL-THROUGH$
+            default:
+            }
         }
         return appendTailConditions(builder).toString();
     }

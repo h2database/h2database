@@ -394,14 +394,14 @@ CREATE TABLE TEST (ID INT, VALUE INT);
 > ok
 
 INSERT INTO TEST VALUES
-  (1, 1),
-  (2, 1),
-  (3, 2),
-  (4, 2),
-  (5, 3),
-  (6, 3),
-  (7, 4),
-  (8, 4);
+    (1, 1),
+    (2, 1),
+    (3, 2),
+    (4, 2),
+    (5, 3),
+    (6, 3),
+    (7, 4),
+    (8, 4);
 > update count: 8
 
 SELECT *, ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING) FROM TEST;

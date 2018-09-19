@@ -181,7 +181,7 @@ import org.h2.expression.aggregate.WindowFrameBoundType;
 import org.h2.expression.aggregate.WindowFrameExclusion;
 import org.h2.expression.aggregate.WindowFrameUnits;
 import org.h2.expression.aggregate.WindowFunction;
-import org.h2.expression.aggregate.WindowFunction.WindowFunctionType;
+import org.h2.expression.aggregate.WindowFunctionType;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.SortOrder;
@@ -3376,15 +3376,34 @@ public class Parser {
         if (currentSelect == null) {
             throw getSyntaxError();
         }
-        int numArgs = WindowFunction.getArgumentCount(type);
+        int numArgs = WindowFunction.getMinArgumentCount(type);
         Expression[] args = null;
         if (numArgs > 0) {
-            args = new Expression[numArgs];
-            for (int i = 0; i < numArgs; i++) {
-                if (i > 0) {
-                    read(COMMA);
+            // There is no functions with numArgs == 0 && numArgsMax > 0
+            int numArgsMax = WindowFunction.getMaxArgumentCount(type);
+            args = new Expression[numArgsMax];
+            if (numArgs == numArgsMax) {
+                for (int i = 0; i < numArgs; i++) {
+                    if (i > 0) {
+                        read(COMMA);
+                    }
+                    args[i] = readExpression();
                 }
-                args[i] = readExpression();
+            } else {
+                int i = 0;
+                while (i < numArgsMax) {
+                    if (i > 0 && !readIf(COMMA)) {
+                        break;
+                    }
+                    args[i] = readExpression();
+                    i++;
+                }
+                if (i < numArgs) {
+                    throw getSyntaxError();
+                }
+                if (i != numArgsMax) {
+                    args = Arrays.copyOf(args, i);
+                }
             }
         }
         read(CLOSE_PAREN);
@@ -3393,6 +3412,8 @@ public class Parser {
             readFromFirstOrLast(function);
         }
         switch (type) {
+        case LEAD:
+        case LAG:
         case FIRST_VALUE:
         case LAST_VALUE:
         case NTH_VALUE:

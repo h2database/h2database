@@ -275,3 +275,160 @@ SELECT
 
 DROP TABLE TEST;
 > ok
+
+CREATE TABLE TEST(ID INT, VALUE INT);
+> ok
+
+INSERT INTO TEST VALUES
+    (1, 1),
+    (2, 1),
+    (3, 5),
+    (4, 8),
+    (5, 8),
+    (6, 8),
+    (7, 9),
+    (8, 9);
+> update count: 8
+
+SELECT *,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) R_ID,
+    ARRAY_AGG(VALUE) OVER (ORDER BY VALUE ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) R_V,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING) V_ID,
+    ARRAY_AGG(VALUE) OVER (ORDER BY VALUE RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING) V_V,
+    ARRAY_AGG(VALUE) OVER (ORDER BY VALUE DESC RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING) V_V_R,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN 1 PRECEDING AND 1 FOLLOWING) G_ID,
+    ARRAY_AGG(VALUE) OVER (ORDER BY VALUE GROUPS BETWEEN 1 PRECEDING AND 1 FOLLOWING) G_V
+    FROM TEST;
+> ID VALUE R_ID      R_V       V_ID            V_V             V_V_R           G_ID               G_V
+> -- ----- --------- --------- --------------- --------------- --------------- ------------------ ------------------
+> 1  1     (1, 2)    (1, 1)    (1, 2)          (1, 1)          (1, 1)          (1, 2, 3)          (1, 1, 5)
+> 2  1     (1, 2, 3) (1, 1, 5) (1, 2)          (1, 1)          (1, 1)          (1, 2, 3)          (1, 1, 5)
+> 3  5     (2, 3, 4) (1, 5, 8) (3)             (5)             (5)             (1, 2, 3, 4, 5, 6) (1, 1, 5, 8, 8, 8)
+> 4  8     (3, 4, 5) (5, 8, 8) (4, 5, 6, 7, 8) (8, 8, 8, 9, 9) (9, 9, 8, 8, 8) (3, 4, 5, 6, 7, 8) (5, 8, 8, 8, 9, 9)
+> 5  8     (4, 5, 6) (8, 8, 8) (4, 5, 6, 7, 8) (8, 8, 8, 9, 9) (9, 9, 8, 8, 8) (3, 4, 5, 6, 7, 8) (5, 8, 8, 8, 9, 9)
+> 6  8     (5, 6, 7) (8, 8, 9) (4, 5, 6, 7, 8) (8, 8, 8, 9, 9) (9, 9, 8, 8, 8) (3, 4, 5, 6, 7, 8) (5, 8, 8, 8, 9, 9)
+> 7  9     (6, 7, 8) (8, 9, 9) (4, 5, 6, 7, 8) (8, 8, 8, 9, 9) (9, 9, 8, 8, 8) (4, 5, 6, 7, 8)    (8, 8, 8, 9, 9)
+> 8  9     (7, 8)    (9, 9)    (4, 5, 6, 7, 8) (8, 8, 8, 9, 9) (9, 9, 8, 8, 8) (4, 5, 6, 7, 8)    (8, 8, 8, 9, 9)
+> rows (ordered): 8
+
+SELECT *, ARRAY_AGG(ID) OVER (ORDER BY VALUE ROWS -1 PRECEDING) FROM TEST;
+> exception INVALID_VALUE_2
+
+SELECT *, ARRAY_AGG(ID) OVER (ORDER BY ID ROWS BETWEEN 2 PRECEDING AND 1 PRECEDING) FROM TEST FETCH FIRST 4 ROWS ONLY;
+> ID VALUE ARRAY_AGG(ID) OVER (ORDER BY ID ROWS BETWEEN 2 PRECEDING AND 1 PRECEDING)
+> -- ----- -------------------------------------------------------------------------
+> 1  1     null
+> 2  1     (1)
+> 3  5     (1, 2)
+> 4  8     (2, 3)
+> rows (ordered): 4
+
+SELECT *, ARRAY_AGG(ID) OVER (ORDER BY ID ROWS BETWEEN 1 FOLLOWING AND 2 FOLLOWING) FROM TEST OFFSET 4 ROWS;
+> ID VALUE ARRAY_AGG(ID) OVER (ORDER BY ID ROWS BETWEEN 1 FOLLOWING AND 2 FOLLOWING)
+> -- ----- -------------------------------------------------------------------------
+> 5  8     (6, 7)
+> 6  8     (7, 8)
+> 7  9     (8)
+> 8  9     null
+> rows (ordered): 4
+
+SELECT *, ARRAY_AGG(ID) OVER (ORDER BY ID RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING) FROM TEST FETCH FIRST 4 ROWS ONLY;
+> ID VALUE ARRAY_AGG(ID) OVER (ORDER BY ID RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING)
+> -- ----- --------------------------------------------------------------------------
+> 1  1     null
+> 2  1     (1)
+> 3  5     (1, 2)
+> 4  8     (2, 3)
+> rows (ordered): 4
+
+SELECT *, ARRAY_AGG(ID) OVER (ORDER BY ID RANGE BETWEEN 1 FOLLOWING AND 2 FOLLOWING) FROM TEST OFFSET 4 ROWS;
+> ID VALUE ARRAY_AGG(ID) OVER (ORDER BY ID RANGE BETWEEN 1 FOLLOWING AND 2 FOLLOWING)
+> -- ----- --------------------------------------------------------------------------
+> 5  8     (6, 7)
+> 6  8     (7, 8)
+> 7  9     (8)
+> 8  9     null
+> rows (ordered): 4
+
+SELECT *,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING) U_P,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN 2 PRECEDING AND 1 PRECEDING) P,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN 1 FOLLOWING AND 2 FOLLOWING) F,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN 1 FOLLOWING AND UNBOUNDED FOLLOWING) U_F
+    FROM TEST;
+> ID VALUE U_P                P            F               U_F
+> -- ----- ------------------ ------------ --------------- ------------------
+> 1  1     null               null         (3, 4, 5, 6)    (3, 4, 5, 6, 7, 8)
+> 2  1     null               null         (3, 4, 5, 6)    (3, 4, 5, 6, 7, 8)
+> 3  5     (1, 2)             (1, 2)       (4, 5, 6, 7, 8) (4, 5, 6, 7, 8)
+> 4  8     (1, 2, 3)          (1, 2, 3)    (7, 8)          (7, 8)
+> 5  8     (1, 2, 3)          (1, 2, 3)    (7, 8)          (7, 8)
+> 6  8     (1, 2, 3)          (1, 2, 3)    (7, 8)          (7, 8)
+> 7  9     (1, 2, 3, 4, 5, 6) (3, 4, 5, 6) null            null
+> 8  9     (1, 2, 3, 4, 5, 6) (3, 4, 5, 6) null            null
+> rows (ordered): 8
+
+SELECT *,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN 1 PRECEDING AND 0 PRECEDING) P,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN 0 FOLLOWING AND 1 FOLLOWING) F
+    FROM TEST;
+> ID VALUE P               F
+> -- ----- --------------- ---------------
+> 1  1     (1, 2)          (1, 2, 3)
+> 2  1     (1, 2)          (1, 2, 3)
+> 3  5     (1, 2, 3)       (3, 4, 5, 6)
+> 4  8     (3, 4, 5, 6)    (4, 5, 6, 7, 8)
+> 5  8     (3, 4, 5, 6)    (4, 5, 6, 7, 8)
+> 6  8     (3, 4, 5, 6)    (4, 5, 6, 7, 8)
+> 7  9     (4, 5, 6, 7, 8) (7, 8)
+> 8  9     (4, 5, 6, 7, 8) (7, 8)
+> rows (ordered): 8
+
+SELECT *, ARRAY_AGG(ID) OVER (ORDER BY ID RANGE BETWEEN CURRENT ROW AND 1 PRECEDING) FROM TEST;
+> exception SYNTAX_ERROR_1
+
+DROP TABLE TEST;
+> ok
+
+CREATE TABLE TEST (ID INT, VALUE INT);
+> ok
+
+INSERT INTO TEST VALUES
+  (1, 1),
+  (2, 1),
+  (3, 2),
+  (4, 2),
+  (5, 3),
+  (6, 3),
+  (7, 4),
+  (8, 4);
+> update count: 8
+
+SELECT *, ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING) FROM TEST;
+> ID VALUE ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING)
+> -- ----- -----------------------------------------------------------------------------
+> 1  1     null
+> 2  1     null
+> 3  2     (1, 2)
+> 4  2     (1, 2)
+> 5  3     (1, 2, 3, 4)
+> 6  3     (1, 2, 3, 4)
+> 7  4     (3, 4, 5, 6)
+> 8  4     (3, 4, 5, 6)
+> rows (ordered): 8
+
+SELECT *, ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN 1 FOLLOWING AND 2 FOLLOWING) FROM TEST;
+> ID VALUE ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN 1 FOLLOWING AND 2 FOLLOWING)
+> -- ----- -----------------------------------------------------------------------------
+> 1  1     (3, 4, 5, 6)
+> 2  1     (3, 4, 5, 6)
+> 3  2     (5, 6, 7, 8)
+> 4  2     (5, 6, 7, 8)
+> 5  3     (7, 8)
+> 6  3     (7, 8)
+> 7  4     null
+> 8  4     null
+> rows (ordered): 8
+
+DROP TABLE TEST;
+> ok

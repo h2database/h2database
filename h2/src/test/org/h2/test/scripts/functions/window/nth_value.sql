@@ -139,8 +139,8 @@ SELECT ID, CATEGORY,
     NTH_VALUE(CATEGORY, 2) OVER (ORDER BY CATEGORY RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) C,
     NTH_VALUE(CATEGORY, 2) OVER (ORDER BY CATEGORY RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE CURRENT ROW)
     FROM TEST FETCH FIRST 3 ROWS ONLY;
-> ID CATEGORY C    NTH_VALUE(CATEGORY, 2) OVER (ORDER BY CATEGORY RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE CURRENT ROW)
-> -- -------- ---- ---------------------------------------------------------------------------------------------------------------------
+> ID CATEGORY C    NTH_VALUE(CATEGORY, 2) OVER (ORDER BY CATEGORY RANGE UNBOUNDED PRECEDING EXCLUDE CURRENT ROW)
+> -- -------- ---- ---------------------------------------------------------------------------------------------
 > 1  1        null null
 > 2  1        1    null
 > 3  1        1    1

@@ -2550,17 +2550,38 @@ They also may require a lot of memory for large queries.
 "
 
 "Other Grammar","Window frame","
-[RANGE BETWEEN {
-    UNBOUNDED PRECEDING AND CURRENT ROW
-    |CURRENT ROW AND UNBOUNDED FOLLOWING
-    |UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
-    }]
+ROWS|RANGE|GROUP
+{windowFramePreceding|BETWEEN windowFrameBound AND windowFrameBound}
 [EXCLUDE {CURRENT ROW|GROUP|TIES|NO OTHERS}]
 ","
 A window frame clause.
 Is currently supported only in aggregates and FIRST_VALUE(), LAST_VALUE(), and NTH_VALUE() window functions.
 ","
 RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE GROUP
+"
+
+"Other Grammar","Window frame preceding","
+UNBOUNDED PRECEDING|value PRECEDING|CURRENT ROW
+","
+A window frame preceding clause.
+If value is specified it should be non-negative value or parameter.
+","
+UNBOUNDED PRECEDING
+1 PRECEDING
+CURRENT ROW
+"
+
+"Other Grammar","Window frame bound","
+UNBOUNDED PRECEDING|value PRECEDING|CURRENT ROW
+    |value FOLLOWING|UNBOUNDED FOLLOWING
+","
+A window frame bound clause.
+If value is specified it should be non-negative value or parameter.
+","
+UNBOUNDED PRECEDING
+UNBOUNDED FOLLOWING
+1 FOLLOWING
+CURRENT ROW
 "
 
 "Other Grammar","Term","

@@ -64,6 +64,11 @@ public final class Window {
     public Window(ArrayList<Expression> partitionBy, ArrayList<SelectOrderBy> orderBy, WindowFrame frame) {
         this.partitionBy = partitionBy;
         this.orderBy = orderBy;
+        if (frame == null) {
+            frame = new WindowFrame(WindowFrameUnits.RANGE,
+                    new WindowFrameBound(WindowFrameBoundType.UNBOUNDED_PRECEDING, null), null,
+                    WindowFrameExclusion.EXCLUDE_NO_OTHERS);
+        }
         this.frame = frame;
     }
 

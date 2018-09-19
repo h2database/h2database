@@ -36,6 +36,11 @@ public enum WindowFunctionType {
     CUME_DIST,
 
     /**
+     * The type for NTILE() window function.
+     */
+    NTILE,
+
+    /**
      * The type for LEAD() window function.
      */
     LEAD,
@@ -81,6 +86,8 @@ public enum WindowFunctionType {
             return PERCENT_RANK;
         case "CUME_DIST":
             return CUME_DIST;
+        case "NTILE":
+            return NTILE;
         case "LEAD":
             return LEAD;
         case "LAG":
@@ -94,6 +101,16 @@ public enum WindowFunctionType {
         default:
             return null;
         }
+    }
+
+    /**
+     * Returns SQL representation.
+     *
+     * @return SQL representation.
+     * @see org.h2.expression.Expression#getSQL()
+     */
+    public String getSQL() {
+        return name();
     }
 
 }

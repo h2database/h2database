@@ -5176,6 +5176,22 @@ SELECT CUME_DIST() OVER (ORDER BY ID), * FROM TEST;
 SELECT CUME_DIST() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
 "
 
+"Functions (Window)","NTILE","
+NTILE(int) OVER windowSpecification
+","
+Distributes the rows into a specified number of groups.
+Number of groups should be a positive integer value.
+NTILE returns the 1-based number of the group to which the current row belongs.
+First groups will have more rows if number of rows is not divisible by number of groups.
+For example, if 5 rows are distributed into 2 groups this function returns 1 for the first 3 row and 2 for the last 2 rows.
+
+Window functions are currently experimental in H2 and should be used with caution.
+They also may require a lot of memory for large queries.
+","
+SELECT NTILE(10) OVER (ORDER BY ID), * FROM TEST;
+SELECT NTILE(5) OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
 "Functions (Window)","LEAD","
 LEAD(value [, offsetInt [, defaultValue]]) [{RESPECT|IGNORE} NULLS]
 OVER windowSpecification

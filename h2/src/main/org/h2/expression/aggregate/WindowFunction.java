@@ -42,6 +42,7 @@ public class WindowFunction extends AbstractAggregate {
      */
     public static int getMinArgumentCount(WindowFunctionType type) {
         switch (type) {
+        case NTILE:
         case LEAD:
         case LAG:
         case FIRST_VALUE:
@@ -63,12 +64,13 @@ public class WindowFunction extends AbstractAggregate {
      */
     public static int getMaxArgumentCount(WindowFunctionType type) {
         switch (type) {
-        case LEAD:
-        case LAG:
-            return 3;
+        case NTILE:
         case FIRST_VALUE:
         case LAST_VALUE:
             return 1;
+        case LEAD:
+        case LAG:
+            return 3;
         case NTH_VALUE:
             return 2;
         default:
@@ -186,6 +188,9 @@ public class WindowFunction extends AbstractAggregate {
         case CUME_DIST:
             getCumeDist(session, result, ordered, rowIdColumn);
             return;
+        case NTILE:
+            getNtile(session, result, ordered, rowIdColumn);
+            return;
         case LEAD:
         case LAG:
             getLeadLag(session, result, ordered, rowIdColumn);
@@ -232,11 +237,6 @@ public class WindowFunction extends AbstractAggregate {
                 }
                 break;
             }
-            case CUME_DIST: {
-                int nm = number;
-                v = ValueDouble.get((double) nm / size);
-                break;
-            }
             default:
                 throw DbException.throwInternalError("type=" + type);
             }
@@ -259,6 +259,28 @@ public class WindowFunction extends AbstractAggregate {
                 result.put(rowId, v);
             }
             start = end;
+        }
+    }
+
+    private static void getNtile(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> orderedData,
+            int last) {
+        int size = orderedData.size();
+        for (int i = 0; i < size; i++) {
+            Value[] array = orderedData.get(i);
+            int buckets = array[0].getInt();
+            if (buckets <= 0) {
+                throw DbException.getInvalidValueException("number of tiles", buckets);
+            }
+            int perTile = size / buckets;
+            int numLarger = size - perTile * buckets;
+            int largerGroup = numLarger * (perTile + 1);
+            int v;
+            if (i >= largerGroup) {
+                v = (i - largerGroup) / perTile + numLarger + 1;
+            } else {
+                v = i / (perTile + 1) + 1;
+            }
+            result.put(orderedData.get(i)[last].getInt(), ValueInt.get(v));
         }
     }
 
@@ -400,6 +422,7 @@ public class WindowFunction extends AbstractAggregate {
         case ROW_NUMBER:
         case RANK:
         case DENSE_RANK:
+        case NTILE:
             return Value.INT;
         case PERCENT_RANK:
         case CUME_DIST:
@@ -435,6 +458,7 @@ public class WindowFunction extends AbstractAggregate {
         case ROW_NUMBER:
         case RANK:
         case DENSE_RANK:
+        case NTILE:
             return ValueInt.PRECISION;
         case PERCENT_RANK:
         case CUME_DIST:
@@ -456,6 +480,7 @@ public class WindowFunction extends AbstractAggregate {
         case ROW_NUMBER:
         case RANK:
         case DENSE_RANK:
+        case NTILE:
             return ValueInt.DISPLAY_SIZE;
         case PERCENT_RANK:
         case CUME_DIST:
@@ -473,42 +498,8 @@ public class WindowFunction extends AbstractAggregate {
 
     @Override
     public String getSQL() {
-        String text;
-        switch (type) {
-        case ROW_NUMBER:
-            text = "ROW_NUMBER";
-            break;
-        case RANK:
-            text = "RANK";
-            break;
-        case DENSE_RANK:
-            text = "DENSE_RANK";
-            break;
-        case PERCENT_RANK:
-            text = "PERCENT_RANK";
-            break;
-        case CUME_DIST:
-            text = "CUME_DIST";
-            break;
-        case LEAD:
-            text = "LEAD";
-            break;
-        case LAG:
-            text = "LAG";
-            break;
-        case FIRST_VALUE:
-            text = "FIRST_VALUE";
-            break;
-        case LAST_VALUE:
-            text = "LAST_VALUE";
-            break;
-        case NTH_VALUE:
-            text = "NTH_VALUE";
-            break;
-        default:
-            throw DbException.throwInternalError("type=" + type);
-        }
-        StringBuilder builder = new StringBuilder().append(text).append('(');
+        String name = type.getSQL();
+        StringBuilder builder = new StringBuilder().append(name).append('(');
         if (args != null) {
             for (int i = 0, numArgs = args.length; i < numArgs; i++) {
                 if (i > 0) {

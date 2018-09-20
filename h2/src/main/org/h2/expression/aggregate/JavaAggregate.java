@@ -41,11 +41,6 @@ public class JavaAggregate extends AbstractAggregate {
     }
 
     @Override
-    public boolean isAggregate() {
-        return true;
-    }
-
-    @Override
     public int getCost() {
         int cost = 5;
         for (Expression e : args) {
@@ -139,9 +134,6 @@ public class JavaAggregate extends AbstractAggregate {
             dataType = aggregate.getInternalType(argTypes);
         } catch (SQLException e) {
             throw DbException.convert(e);
-        }
-        if (filterCondition != null) {
-            filterCondition = filterCondition.optimize(session);
         }
         return this;
     }
@@ -237,6 +229,7 @@ public class JavaAggregate extends AbstractAggregate {
 
     @Override
     protected void updateGroupAggregates(Session session, int stage) {
+        super.updateGroupAggregates(session, stage);
         for (Expression expr : args) {
             expr.updateAggregate(session, stage);
         }

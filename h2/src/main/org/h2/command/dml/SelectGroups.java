@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.expression.aggregate.DataAnalysisOperation;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 
@@ -210,7 +211,7 @@ public abstract class SelectGroups {
     /**
      * Maps an expression object to its data.
      */
-    private final HashMap<Expression, Object> windowData = new HashMap<>();
+    private final HashMap<DataAnalysisOperation, Object> windowData = new HashMap<>();
 
     /**
      * The id of the current group.
@@ -251,14 +252,9 @@ public abstract class SelectGroups {
      *
      * @param expr
      *            expression
-     * @param window
-     *            true if expression is a window expression
      * @return expression data or null
      */
-    public Object getCurrentGroupExprData(Expression expr, boolean window) {
-        if (window) {
-            return windowData.get(expr);
-        }
+    public final Object getCurrentGroupExprData(Expression expr) {
         Integer index = exprToIndexInGroupByData.get(expr);
         if (index == null) {
             return null;
@@ -273,15 +269,8 @@ public abstract class SelectGroups {
      *            expression
      * @param object
      *            expression data to set
-     * @param window
-     *            true if expression is a window expression
      */
-    public void setCurrentGroupExprData(Expression expr, Object obj, boolean window) {
-        if (window) {
-            Object old = windowData.put(expr, obj);
-            assert old == null;
-            return;
-        }
+    public final void setCurrentGroupExprData(Expression expr, Object obj) {
         Integer index = exprToIndexInGroupByData.get(expr);
         if (index != null) {
             assert currentGroupByExprData[index] == null;
@@ -295,6 +284,30 @@ public abstract class SelectGroups {
             updateCurrentGroupExprData();
         }
         currentGroupByExprData[index] = obj;
+    }
+
+    /**
+     * Get the window data for the specified expression.
+     *
+     * @param expr
+     *            expression
+     * @return expression data or null
+     */
+    public final Object getWindowExprData(DataAnalysisOperation expr) {
+        return windowData.get(expr);
+    }
+
+    /**
+     * Set the window data for the specified expression.
+     *
+     * @param expr
+     *            expression
+     * @param object
+     *            expression data to set
+     */
+    public final void setWindowExprData(DataAnalysisOperation expr, Object obj) {
+        Object old = windowData.put(expr, obj);
+        assert old == null;
     }
 
     abstract void updateCurrentGroupExprData();

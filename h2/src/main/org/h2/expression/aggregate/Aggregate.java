@@ -251,11 +251,6 @@ public class Aggregate extends AbstractAggregate {
         return AGGREGATES.get(name);
     }
 
-    @Override
-    public boolean isAggregate() {
-        return true;
-    }
-
     /**
      * Set the order for ARRAY_AGG() or GROUP_CONCAT() aggregate.
      *
@@ -312,6 +307,7 @@ public class Aggregate extends AbstractAggregate {
 
     @Override
     protected void updateGroupAggregates(Session session, int stage) {
+        super.updateGroupAggregates(session, stage);
         if (on != null) {
             on.updateAggregate(session, stage);
         }
@@ -513,9 +509,6 @@ public class Aggregate extends AbstractAggregate {
         }
         if (groupConcatSeparator != null) {
             groupConcatSeparator = groupConcatSeparator.optimize(session);
-        }
-        if (filterCondition != null) {
-            filterCondition = filterCondition.optimize(session);
         }
         switch (type) {
         case GROUP_CONCAT:

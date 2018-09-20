@@ -166,7 +166,7 @@
 90133=Kann das Setting {0} nicht ändern wenn die Datenbank bereits geöffnet ist
 90134=Der Zugriff auf die Klasse {0} ist nicht erlaubt
 90135=Die Datenbank befindet sich im Exclusiv Modus; es können keine zusätzlichen Verbindungen geöffnet werden
-90136=Diese Outer Join Bedingung wird nicht unterstützt: {0}
+90136=#Window not found: {0}
 90137=Werte können nur einer Variablen zugewiesen werden, nicht an: {0}
 90138=Ungültiger Datenbank Name: {0}
 90139=Die (public static) Java Funktion wurde nicht gefunden: {0}

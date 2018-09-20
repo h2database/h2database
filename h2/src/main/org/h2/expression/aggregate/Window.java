@@ -7,9 +7,11 @@ package org.h2.expression.aggregate;
 
 import java.util.ArrayList;
 
+import org.h2.api.ErrorCode;
 import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.message.DbException;
 import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -22,11 +24,13 @@ import org.h2.value.ValueArray;
  */
 public final class Window {
 
-    private final ArrayList<Expression> partitionBy;
+    private ArrayList<Expression> partitionBy;
 
-    private final ArrayList<SelectOrderBy> orderBy;
+    private ArrayList<SelectOrderBy> orderBy;
 
-    private final WindowFrame frame;
+    private WindowFrame frame;
+
+    private String parent;
 
     /**
      * @param builder
@@ -54,6 +58,8 @@ public final class Window {
     /**
      * Creates a new instance of window clause.
      *
+     * @param parent
+     *            name of the parent window
      * @param partitionBy
      *            PARTITION BY clause, or null
      * @param orderBy
@@ -61,7 +67,9 @@ public final class Window {
      * @param frame
      *            window frame clause
      */
-    public Window(ArrayList<Expression> partitionBy, ArrayList<SelectOrderBy> orderBy, WindowFrame frame) {
+    public Window(String parent, ArrayList<Expression> partitionBy, ArrayList<SelectOrderBy> orderBy,
+            WindowFrame frame) {
+        this.parent = parent;
         this.partitionBy = partitionBy;
         this.orderBy = orderBy;
         this.frame = frame;
@@ -77,6 +85,7 @@ public final class Window {
      * @see Expression#mapColumns(ColumnResolver, int)
      */
     public void mapColumns(ColumnResolver resolver, int level) {
+        resolveWindows(resolver);
         if (partitionBy != null) {
             for (Expression e : partitionBy) {
                 e.mapColumns(resolver, level);
@@ -86,6 +95,26 @@ public final class Window {
             for (SelectOrderBy o : orderBy) {
                 o.expression.mapColumns(resolver, level);
             }
+        }
+    }
+
+    private void resolveWindows(ColumnResolver resolver) {
+        if (parent != null) {
+            Window p = resolver.getSelect().getWindow(parent);
+            if (p == null) {
+                throw DbException.get(ErrorCode.WINDOW_NOT_FOUND_1, parent);
+            }
+            p.resolveWindows(resolver);
+            if (partitionBy == null) {
+                partitionBy = p.partitionBy;
+            }
+            if (orderBy == null) {
+                orderBy = p.orderBy;
+            }
+            if (frame == null) {
+                frame = p.frame;
+            }
+            parent = null;
         }
     }
 

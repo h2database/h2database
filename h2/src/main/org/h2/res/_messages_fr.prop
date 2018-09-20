@@ -166,7 +166,7 @@
 90133=Impossible de changer le paramétrage {0} lorsque la base de données est déjà ouverte
 90134=L''accès à la classe {0} est interdit
 90135=La base de données est ouverte en mode exclusif; impossible d''ouvrir des connexions additionnelles
-90136=Condition de jointure extérieure non prise en charge: {0}
+90136=#Window not found: {0}
 90137=Peut seulement être assigné à une variable, pas à: {0}
 90138=Nom de la base de données invalide: {0}
 90139=La méthode Java public static n''a pas été trouvée: {0}

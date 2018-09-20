@@ -44,6 +44,7 @@ import static org.h2.util.ParserUtil.TRUE;
 import static org.h2.util.ParserUtil.UNION;
 import static org.h2.util.ParserUtil.UNIQUE;
 import static org.h2.util.ParserUtil.WHERE;
+import static org.h2.util.ParserUtil.WINDOW;
 import static org.h2.util.ParserUtil.WITH;
 
 import java.math.BigDecimal;
@@ -482,6 +483,8 @@ public class Parser {
             "UNIQUE",
             // WHERE
             "WHERE",
+            // WINDOW
+            "WINDOW",
             // WITH
             "WITH",
             // PARAMETER
@@ -2628,6 +2631,17 @@ public class Parser {
             Expression condition = readExpression();
             command.setHaving(condition);
         }
+        if (readIf(WINDOW)) {
+            do {
+                int index = parseIndex;
+                String name = readAliasIdentifier();
+                read("AS");
+                Window w = readWindowSpecification();
+                if (!currentSelect.addWindow(name, w)) {
+                    throw DbException.getSyntaxError(sqlCommand, index, "unique identifier");
+                }
+            } while (readIf(COMMA));
+        }
         command.setParameterList(parameters);
         currentSelect = oldSelect;
         setSQL(command, "SELECT", start);
@@ -3049,7 +3063,7 @@ public class Parser {
         }
         Window over = null;
         if (readIf("OVER")) {
-            over = readWindowSpecification();
+            over = readWindowNameOrSpecification();
             aggregate.setOverCondition(over);
             currentSelect.setWindowQuery();
         } else if (!isAggregate) {
@@ -3059,8 +3073,24 @@ public class Parser {
         }
     }
 
+    private Window readWindowNameOrSpecification() {
+        return isToken(OPEN_PAREN) ? readWindowSpecification() : new Window(readAliasIdentifier(), null, null, null);
+    }
+
     private Window readWindowSpecification() {
         read(OPEN_PAREN);
+        String parent = null;
+        if (currentTokenType == IDENTIFIER) {
+            String token = currentToken;
+            if (currentTokenQuoted || ( //
+                    !equalsToken(token, "PARTITION") //
+                    && !equalsToken(token, "ROWS") //
+                    && !equalsToken(token, "RANGE") //
+                    && !equalsToken(token, "GROUPS"))) {
+                parent = token;
+                read();
+            }
+        }
         ArrayList<Expression> partitionBy = null;
         if (readIf("PARTITION")) {
             read("BY");
@@ -3077,7 +3107,7 @@ public class Parser {
         }
         WindowFrame frame = readWindowFrame();
         read(CLOSE_PAREN);
-        return new Window(partitionBy, orderBy, frame);
+        return new Window(parent, partitionBy, orderBy, frame);
     }
 
     private WindowFrame readWindowFrame() {

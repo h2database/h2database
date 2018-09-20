@@ -163,8 +163,14 @@ public class SpatialDataType implements DataType {
             return;
         }
         for (int i = 0; i < dimensions; i++) {
-            b.setMin(i, Math.min(b.min(i), a.min(i)));
-            b.setMax(i, Math.max(b.max(i), a.max(i)));
+            float v = a.min(i);
+            if (v < b.min(i)) {
+                b.setMin(i, v);
+            }
+            v = a.max(i);
+            if (v > b.max(i)) {
+                b.setMax(i, v);
+            }
         }
     }
 
@@ -287,12 +293,7 @@ public class SpatialDataType implements DataType {
         if (a.isNull()) {
             return a;
         }
-        float[] minMax = new float[dimensions * 2];
-        for (int i = 0; i < dimensions; i++) {
-            minMax[i + i] = a.min(i);
-            minMax[i + i + 1] = a.max(i);
-        }
-        return new SpatialKey(0, minMax);
+        return new SpatialKey(0, a);
     }
 
     /**

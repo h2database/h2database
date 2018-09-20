@@ -166,7 +166,7 @@
 90133=Nemôžem zmeniť nastavenie {0} keď už je databáza otvorená
 90134=Prístup k triede {0} odoprený
 90135=Databáza je otvorená vo výhradnom (exclusive) móde; nemôžem na ňu otvoriť ďalšie pripojenia
-90136=Nepodporovaná "outer join" podmienka: {0}
+90136=#Window not found: {0}
 90137=Môžete priradiť len do premennej, nie do: {0}
 90138=Nesprávne meno databázy: {0}
 90139=Verejná statická Java metóda nebola nájdená: {0}

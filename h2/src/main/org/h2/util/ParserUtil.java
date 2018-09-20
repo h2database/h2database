@@ -208,9 +208,14 @@ public class ParserUtil {
     public static final int WHERE = UNIQUE + 1;
 
     /**
+     * The token "WINDOW".
+     */
+    public static final int WINDOW = WHERE + 1;
+
+    /**
      * The token "WITH".
      */
-    public static final int WITH = WHERE + 1;
+    public static final int WITH = WINDOW + 1;
 
     private static final int UPPER_OR_OTHER_LETTER =
             1 << Character.UPPERCASE_LETTER
@@ -426,10 +431,12 @@ public class ParserUtil {
             }
             return IDENTIFIER;
         case 'W':
-            if ("WITH".equals(s)) {
-                return WITH;
-            } else if ("WHERE".equals(s)) {
+            if ("WHERE".equals(s)) {
                 return WHERE;
+            } else if ("WINDOW".equals(s)) {
+                return WINDOW;
+            } else if ("WITH".equals(s)) {
+                return WITH;
             }
             return IDENTIFIER;
         default:

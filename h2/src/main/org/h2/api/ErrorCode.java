@@ -1927,6 +1927,16 @@ public class ErrorCode {
     public static final int DATABASE_IS_IN_EXCLUSIVE_MODE = 90135;
 
     /**
+     * The error with code <code>90136</code> is thrown when
+     * trying to reference a window that does not exist.
+     * Example:
+     * <pre>
+     * SELECT LEAD(X) OVER W FROM TEST;
+     * </pre>
+     */
+    public static final int WINDOW_NOT_FOUND_1 = 90136;
+
+    /**
      * The error with code <code>90137</code> is thrown when
      * trying to assign a value to something that is not a variable.
      * <pre>
@@ -2009,7 +2019,7 @@ public class ErrorCode {
     public static final int AUTHENTICATOR_NOT_AVAILABLE = 90144;
 
 
-    // next are 90136, 90145
+    // next is 90145
 
     private ErrorCode() {
         // utility class

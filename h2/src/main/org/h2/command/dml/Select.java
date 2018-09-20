@@ -8,6 +8,7 @@ package org.h2.command.dml;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
@@ -25,6 +26,7 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.Wildcard;
 import org.h2.expression.aggregate.Aggregate;
+import org.h2.expression.aggregate.Window;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -115,6 +117,8 @@ public class Select extends Query {
     private boolean sortUsingIndex;
 
     private boolean isGroupWindowStage2;
+
+    private HashMap<String, Window> windows;
 
     public Select(Session session) {
         super(session);
@@ -212,6 +216,30 @@ public class Select extends Query {
     @Override
     public boolean isAnyDistinct() {
         return distinct || distinctExpressions != null;
+    }
+
+    /**
+     * Adds a named window definition.
+     *
+     * @param name name
+     * @param window window definition
+     * @return true if a new definition was added, false if old definition was replaced
+     */
+    public boolean addWindow(String name, Window window) {
+        if (windows == null) {
+            windows = new HashMap<>();
+        }
+        return windows.put(name, window) == null;
+    }
+
+    /**
+     * Returns a window with specified name, or null.
+     *
+     * @param name name of the window
+     * @return the window with specified name, or null
+     */
+    public Window getWindow(String name) {
+        return windows != null ? windows.get(name) : null;
     }
 
     /**

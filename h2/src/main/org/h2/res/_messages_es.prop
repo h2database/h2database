@@ -166,7 +166,7 @@
 90133=No puede cambiar el setting {0} cuando la base de datos esta abierta
 90134=Acceso denegado a la clase {0}
 90135=La base de datos esta abierta en modo EXCLUSIVO; no puede abrir conexiones adicionales
-90136=Condición No soportada en Outer join : {0}
+90136=#Window not found: {0}
 90137=Solo puede asignarse a una variable, no a: {0}
 90138=Nombre de base de datos Invalido: {0}
 90139=El metodo Java (publico y estatico) : {0} no fue encontrado

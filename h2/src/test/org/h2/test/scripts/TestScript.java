@@ -110,6 +110,7 @@ public class TestScript extends TestDb {
         testScript("altertable-fk.sql");
         testScript("default-and-on_update.sql");
         testScript("query-optimisations.sql");
+        testScript("window.sql");
         String decimal2;
         if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
             decimal2 = "decimal_decimal";

@@ -562,6 +562,7 @@ public class DbException extends RuntimeException {
         case CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS:
         case TRANSACTION_NOT_FOUND_1:
         case AGGREGATE_NOT_FOUND_1:
+        case WINDOW_NOT_FOUND_1:
         case CAN_ONLY_ASSIGN_TO_VARIABLE_1:
         case PUBLIC_STATIC_JAVA_METHOD_NOT_FOUND_1:
         case JAVA_OBJECT_SERIALIZER_CHANGE_WITH_DATA_TABLE:

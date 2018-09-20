@@ -166,7 +166,7 @@
 90133=#Cannot change the setting {0} when the database is already open
 90134=#Access to the class {0} is denied
 90135=#The database is open in exclusive mode; can not open additional connections
-90136=#Unsupported outer join condition: {0}
+90136=#Window not found: {0}
 90137=#Can only assign to a variable, not to: {0}
 90138=#Invalid database name: {0}
 90139=#The public static Java method was not found: {0}

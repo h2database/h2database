@@ -166,7 +166,7 @@
 90133=Nelze změnit nastavení {0}, pokud je již databáze otevřena
 90134=Přístup ke třídě {0} byl odepřen
 90135=Databáze je spuštěna ve vyhrazeném režimu; nelze otevřít další spojení
-90136=Nepodporovaná podmínka vnějšího spojení: {0}
+90136=#Window not found: {0}
 90137=Lze přiřadit pouze proměnné, nikoli: {0}
 90138=Neplatný název databáze: {0}
 90139=Nenalezena veřejná statická Java metoda: {0}

@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import org.h2.command.dml.Select;
+import org.h2.command.dml.SelectGroups;
 import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -24,7 +25,7 @@ import org.h2.value.ValueNull;
 /**
  * A window function.
  */
-public class WindowFunction extends AbstractAggregate {
+public class WindowFunction extends DataAnalysisOperation {
 
     private final WindowFunctionType type;
 
@@ -105,7 +106,7 @@ public class WindowFunction extends AbstractAggregate {
      *            arguments, or null
      */
     public WindowFunction(WindowFunctionType type, Select select, Expression[] args) {
-        super(select, false);
+        super(select);
         this.type = type;
         this.args = args;
     }
@@ -145,12 +146,13 @@ public class WindowFunction extends AbstractAggregate {
     }
 
     @Override
-    protected void updateAggregate(Session session, Object aggregateData) {
-        throw DbException.getUnsupportedException("Window function");
+    protected void updateAggregate(Session session, SelectGroups groupData, int groupRowId) {
+        updateOrderedAggregate(session, groupData, groupRowId, over.getOrderBy());
     }
 
     @Override
     protected void updateGroupAggregates(Session session, int stage) {
+        super.updateGroupAggregates(session, stage);
         if (args != null) {
             for (Expression expr : args) {
                 expr.updateAggregate(session, stage);

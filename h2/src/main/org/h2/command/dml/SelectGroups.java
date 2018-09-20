@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.expression.aggregate.DataAnalysisOperation;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 
@@ -210,7 +211,7 @@ public abstract class SelectGroups {
     /**
      * Maps an expression object to its data.
      */
-    private final HashMap<Expression, Object> windowData = new HashMap<>();
+    private final HashMap<DataAnalysisOperation, Object> windowData = new HashMap<>();
 
     /**
      * The id of the current group.
@@ -292,7 +293,7 @@ public abstract class SelectGroups {
      *            expression
      * @return expression data or null
      */
-    public final Object getWindowExprData(Expression expr) {
+    public final Object getWindowExprData(DataAnalysisOperation expr) {
         return windowData.get(expr);
     }
 
@@ -304,7 +305,7 @@ public abstract class SelectGroups {
      * @param object
      *            expression data to set
      */
-    public final void setWindowExprData(Expression expr, Object obj) {
+    public final void setWindowExprData(DataAnalysisOperation expr, Object obj) {
         Object old = windowData.put(expr, obj);
         assert old == null;
     }

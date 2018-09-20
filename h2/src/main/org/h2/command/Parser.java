@@ -171,6 +171,7 @@ import org.h2.expression.UnaryOperation;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.Variable;
 import org.h2.expression.Wildcard;
+import org.h2.expression.aggregate.DataAnalysisOperation;
 import org.h2.expression.aggregate.AbstractAggregate;
 import org.h2.expression.aggregate.Aggregate;
 import org.h2.expression.aggregate.Aggregate.AggregateType;
@@ -3053,23 +3054,24 @@ public class Parser {
     }
 
     private void readFilterAndOver(AbstractAggregate aggregate) {
-        boolean isAggregate = aggregate.isAggregate();
-        if (isAggregate && readIf("FILTER")) {
+        if (readIf("FILTER")) {
             read(OPEN_PAREN);
             read(WHERE);
             Expression filterCondition = readExpression();
             read(CLOSE_PAREN);
             aggregate.setFilterCondition(filterCondition);
         }
-        Window over = null;
+        readOver(aggregate);
+    }
+
+    private void readOver(DataAnalysisOperation operation) {
         if (readIf("OVER")) {
-            over = readWindowNameOrSpecification();
-            aggregate.setOverCondition(over);
+            operation.setOverCondition(readWindowNameOrSpecification());
             currentSelect.setWindowQuery();
-        } else if (!isAggregate) {
-            throw getSyntaxError();
-        } else {
+        } else if (operation.isAggregate()) {
             currentSelect.setGroupQuery();
+        } else {
+            throw getSyntaxError();
         }
     }
 
@@ -3440,7 +3442,7 @@ public class Parser {
         default:
             // Avoid warning
         }
-        readFilterAndOver(function);
+        readOver(function);
         return function;
     }
 

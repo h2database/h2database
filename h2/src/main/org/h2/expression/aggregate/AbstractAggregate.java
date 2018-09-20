@@ -252,13 +252,13 @@ public abstract class AbstractAggregate extends Expression {
             ValueArray key = over.getCurrentKey(session);
             if (key != null) {
                 @SuppressWarnings("unchecked")
-                ValueHashMap<Object> map = (ValueHashMap<Object>) groupData.getCurrentGroupExprData(this, true);
+                ValueHashMap<Object> map = (ValueHashMap<Object>) groupData.getWindowExprData(this);
                 if (map == null) {
                     if (ifExists) {
                         return null;
                     }
                     map = new ValueHashMap<>();
-                    groupData.setCurrentGroupExprData(this, map, true);
+                    groupData.setWindowExprData(this, map);
                 }
                 PartitionData partition = (PartitionData) map.get(key);
                 if (partition == null) {
@@ -271,25 +271,25 @@ public abstract class AbstractAggregate extends Expression {
                     data = partition.getData();
                 }
             } else {
-                PartitionData partition = (PartitionData) groupData.getCurrentGroupExprData(this, true);
+                PartitionData partition = (PartitionData) groupData.getWindowExprData(this);
                 if (partition == null) {
                     if (ifExists) {
                         return null;
                     }
                     data = forOrderBy ? new ArrayList<>() : createAggregateData();
-                    groupData.setCurrentGroupExprData(this, new PartitionData(data), true);
+                    groupData.setWindowExprData(this, new PartitionData(data));
                 } else {
                     data = partition.getData();
                 }
             }
         } else {
-            data = groupData.getCurrentGroupExprData(this, false);
+            data = groupData.getCurrentGroupExprData(this);
             if (data == null) {
                 if (ifExists) {
                     return null;
                 }
                 data = forOrderBy ? new ArrayList<>() : createAggregateData();
-                groupData.setCurrentGroupExprData(this, data, false);
+                groupData.setCurrentGroupExprData(this, data);
             }
         }
         return data;
@@ -338,10 +338,10 @@ public abstract class AbstractAggregate extends Expression {
         ValueArray key = over.getCurrentKey(session);
         if (key != null) {
             @SuppressWarnings("unchecked")
-            ValueHashMap<Object> map = (ValueHashMap<Object>) groupData.getCurrentGroupExprData(this, true);
+            ValueHashMap<Object> map = (ValueHashMap<Object>) groupData.getWindowExprData(this);
             if (map == null) {
                 map = new ValueHashMap<>();
-                groupData.setCurrentGroupExprData(this, map, true);
+                groupData.setWindowExprData(this, map);
             }
             partition = (PartitionData) map.get(key);
             if (partition == null) {
@@ -352,11 +352,11 @@ public abstract class AbstractAggregate extends Expression {
                 data = partition.getData();
             }
         } else {
-            partition = (PartitionData) groupData.getCurrentGroupExprData(this, true);
+            partition = (PartitionData) groupData.getWindowExprData(this);
             if (partition == null) {
                 data = forOrderBy ? new ArrayList<>() : createAggregateData();
                 partition = new PartitionData(data);
-                groupData.setCurrentGroupExprData(this, partition, true);
+                groupData.setWindowExprData(this, partition);
             } else {
                 data = partition.getData();
             }

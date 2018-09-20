@@ -251,14 +251,9 @@ public abstract class SelectGroups {
      *
      * @param expr
      *            expression
-     * @param window
-     *            true if expression is a window expression
      * @return expression data or null
      */
-    public Object getCurrentGroupExprData(Expression expr, boolean window) {
-        if (window) {
-            return windowData.get(expr);
-        }
+    public final Object getCurrentGroupExprData(Expression expr) {
         Integer index = exprToIndexInGroupByData.get(expr);
         if (index == null) {
             return null;
@@ -273,15 +268,8 @@ public abstract class SelectGroups {
      *            expression
      * @param object
      *            expression data to set
-     * @param window
-     *            true if expression is a window expression
      */
-    public void setCurrentGroupExprData(Expression expr, Object obj, boolean window) {
-        if (window) {
-            Object old = windowData.put(expr, obj);
-            assert old == null;
-            return;
-        }
+    public final void setCurrentGroupExprData(Expression expr, Object obj) {
         Integer index = exprToIndexInGroupByData.get(expr);
         if (index != null) {
             assert currentGroupByExprData[index] == null;
@@ -295,6 +283,30 @@ public abstract class SelectGroups {
             updateCurrentGroupExprData();
         }
         currentGroupByExprData[index] = obj;
+    }
+
+    /**
+     * Get the window data for the specified expression.
+     *
+     * @param expr
+     *            expression
+     * @return expression data or null
+     */
+    public final Object getWindowExprData(Expression expr) {
+        return windowData.get(expr);
+    }
+
+    /**
+     * Set the window data for the specified expression.
+     *
+     * @param expr
+     *            expression
+     * @param object
+     *            expression data to set
+     */
+    public final void setWindowExprData(Expression expr, Object obj) {
+        Object old = windowData.put(expr, obj);
+        assert old == null;
     }
 
     abstract void updateCurrentGroupExprData();

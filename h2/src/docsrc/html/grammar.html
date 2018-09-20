@@ -256,7 +256,12 @@ ${item.example}</p>
 <c:forEach var="item" items="otherGrammar">
 <h3 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h3>
 <!-- railroad-start -->
+<pre name="bnf" style="display: none">
+${item.syntax}
+</pre>
+<div name="railroad">
 ${item.railroad}
+</div>
 <!-- railroad-end -->
 <!-- syntax-start
 <pre>

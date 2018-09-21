@@ -17,20 +17,31 @@ import org.h2.value.ValueNull;
 
 /**
  * Data stored while calculating an aggregate that needs collecting of all
- * values.
+ * values or a distinct aggregate.
  *
  * <p>
- * NULL values are not collected. {@link #getValue(Database, int, boolean)}
+ * NULL values are not collected. {@link #getValue(Database, int)}
  * method returns {@code null}. Use {@link #getArray()} for instances of this
  * class instead.
  * </p>
  */
 class AggregateDataCollecting extends AggregateData implements Iterable<Value> {
 
+    private final boolean distinct;
+
     Collection<Value> values;
 
+    /**
+     * Creates new instance of data for collecting aggregates.
+     *
+     * @param distinct if distinct is used
+     */
+    AggregateDataCollecting(boolean distinct) {
+        this.distinct = distinct;
+    }
+
     @Override
-    void add(Database database, int dataType, boolean distinct, Value v) {
+    void add(Database database, int dataType, Value v) {
         if (v == ValueNull.INSTANCE) {
             return;
         }
@@ -42,7 +53,7 @@ class AggregateDataCollecting extends AggregateData implements Iterable<Value> {
     }
 
     @Override
-    Value getValue(Database database, int dataType, boolean distinct) {
+    Value getValue(Database database, int dataType) {
         return null;
     }
 

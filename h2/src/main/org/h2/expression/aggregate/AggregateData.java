@@ -53,9 +53,9 @@ abstract class AggregateData {
             }
             break;
         case SELECTIVITY:
-            return new AggregateDataSelectivity();
+            return new AggregateDataSelectivity(distinct);
         case HISTOGRAM:
-            return new AggregateDataHistogram();
+            return new AggregateDataHistogram(distinct);
         case MODE:
             return new AggregateDataMode();
         case ENVELOPE:
@@ -63,7 +63,7 @@ abstract class AggregateData {
         default:
             throw DbException.throwInternalError("type=" + aggregateType);
         }
-        return new AggregateDataCollecting();
+        return new AggregateDataCollecting(distinct);
     }
 
     /**
@@ -71,18 +71,16 @@ abstract class AggregateData {
      *
      * @param database the database
      * @param dataType the datatype of the computed result
-     * @param distinct if the calculation should be distinct
      * @param v the value
      */
-    abstract void add(Database database, int dataType, boolean distinct, Value v);
+    abstract void add(Database database, int dataType, Value v);
 
     /**
      * Get the aggregate result.
      *
      * @param database the database
      * @param dataType the datatype of the computed result
-     * @param distinct if distinct is used
      * @return the value
      */
-    abstract Value getValue(Database database, int dataType, boolean distinct);
+    abstract Value getValue(Database database, int dataType);
 }

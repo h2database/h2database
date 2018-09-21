@@ -192,6 +192,9 @@ public class Aggregate extends AbstractAggregate {
      */
     public Aggregate(AggregateType type, Expression on, Select select, boolean distinct) {
         super(select, distinct);
+        if (distinct && type == AggregateType.COUNT_ALL) {
+            throw DbException.throwInternalError();
+        }
         this.type = type;
         this.on = on;
     }
@@ -303,7 +306,7 @@ public class Aggregate extends AbstractAggregate {
                 v = updateCollecting(session, v, remembered);
             }
         }
-        data.add(session.getDatabase(), dataType, distinct, v);
+        data.add(session.getDatabase(), dataType, v);
     }
 
     @Override
@@ -437,9 +440,9 @@ public class Aggregate extends AbstractAggregate {
                 AggregateDataDefault d = new AggregateDataDefault(type);
                 Database db = session.getDatabase();
                 for (Value v : c) {
-                    d.add(db, dataType, false, v);
+                    d.add(db, dataType, v);
                 }
-                return d.getValue(db, dataType, false);
+                return d.getValue(db, dataType);
             }
             break;
         case GROUP_CONCAT: {
@@ -500,7 +503,7 @@ public class Aggregate extends AbstractAggregate {
         default:
             // Avoid compiler warning
         }
-        return data.getValue(session.getDatabase(), dataType, distinct);
+        return data.getValue(session.getDatabase(), dataType);
     }
 
     @Override

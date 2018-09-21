@@ -17,15 +17,14 @@ class AggregateDataCount extends AggregateData {
     private long count;
 
     @Override
-    void add(Database database, int dataType, boolean distinct, Value v) {
-        if (v == ValueNull.INSTANCE) {
-            return;
+    void add(Database database, int dataType, Value v) {
+        if (v != ValueNull.INSTANCE) {
+            count++;
         }
-        count++;
     }
 
     @Override
-    Value getValue(Database database, int dataType, boolean distinct) {
+    Value getValue(Database database, int dataType) {
         return ValueLong.get(count).convertTo(dataType);
     }
 

@@ -33,7 +33,7 @@ class AggregateDataDefault extends AggregateData {
     }
 
     @Override
-    void add(Database database, int dataType, boolean distinct, Value v) {
+    void add(Database database, int dataType, Value v) {
         if (v == ValueNull.INSTANCE) {
             return;
         }
@@ -119,7 +119,7 @@ class AggregateDataDefault extends AggregateData {
     }
 
     @Override
-    Value getValue(Database database, int dataType, boolean distinct) {
+    Value getValue(Database database, int dataType) {
         Value v = null;
         switch (aggregateType) {
         case SUM:

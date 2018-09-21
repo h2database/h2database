@@ -8,7 +8,6 @@ package org.h2.expression.aggregate;
 import org.h2.engine.Database;
 import org.h2.expression.aggregate.Aggregate.AggregateType;
 import org.h2.message.DbException;
-import org.h2.util.ValueHashMap;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
@@ -20,9 +19,9 @@ import org.h2.value.ValueNull;
  * Data stored while calculating an aggregate.
  */
 class AggregateDataDefault extends AggregateData {
+
     private final AggregateType aggregateType;
     private long count;
-    private ValueHashMap<AggregateDataDefault> distinctValues;
     private Value value;
     private double m2, mean;
 
@@ -34,18 +33,11 @@ class AggregateDataDefault extends AggregateData {
     }
 
     @Override
-    void add(Database database, int dataType, boolean distinct, Value v) {
+    void add(Database database, int dataType, Value v) {
         if (v == ValueNull.INSTANCE) {
             return;
         }
         count++;
-        if (distinct) {
-            if (distinctValues == null) {
-                distinctValues = ValueHashMap.newInstance();
-            }
-            distinctValues.put(v, this);
-            return;
-        }
         switch (aggregateType) {
         case SUM:
             if (value == null) {
@@ -127,11 +119,7 @@ class AggregateDataDefault extends AggregateData {
     }
 
     @Override
-    Value getValue(Database database, int dataType, boolean distinct) {
-        if (distinct) {
-            count = 0;
-            groupDistinct(database, dataType);
-        }
+    Value getValue(Database database, int dataType) {
         Value v = null;
         switch (aggregateType) {
         case SUM:
@@ -190,16 +178,6 @@ class AggregateDataDefault extends AggregateData {
         Value b = ValueLong.get(by).convertTo(type);
         a = a.convertTo(type).divide(b);
         return a;
-    }
-
-    private void groupDistinct(Database database, int dataType) {
-        if (distinctValues == null) {
-            return;
-        }
-        count = 0;
-        for (Value v : distinctValues.keys()) {
-            add(database, dataType, false, v);
-        }
     }
 
 }

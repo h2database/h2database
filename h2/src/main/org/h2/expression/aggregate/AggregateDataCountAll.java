@@ -6,7 +6,6 @@
 package org.h2.expression.aggregate;
 
 import org.h2.engine.Database;
-import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
 
@@ -14,21 +13,16 @@ import org.h2.value.ValueLong;
  * Data stored while calculating a COUNT(*) aggregate.
  */
 class AggregateDataCountAll extends AggregateData {
+
     private long count;
 
     @Override
-    void add(Database database, int dataType, boolean distinct, Value v) {
-        if (distinct) {
-            throw DbException.throwInternalError();
-        }
+    void add(Database database, int dataType, Value v) {
         count++;
     }
 
     @Override
-    Value getValue(Database database, int dataType, boolean distinct) {
-        if (distinct) {
-            throw DbException.throwInternalError();
-        }
+    Value getValue(Database database, int dataType) {
         return ValueLong.get(count).convertTo(dataType);
     }
 

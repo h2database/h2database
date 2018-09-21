@@ -12,6 +12,7 @@ import java.util.HashMap;
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectOrderBy;
+import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -191,6 +192,9 @@ public class Aggregate extends AbstractAggregate {
      */
     public Aggregate(AggregateType type, Expression on, Select select, boolean distinct) {
         super(select, distinct);
+        if (distinct && type == AggregateType.COUNT_ALL) {
+            throw DbException.throwInternalError();
+        }
         this.type = type;
         this.on = on;
     }
@@ -302,7 +306,7 @@ public class Aggregate extends AbstractAggregate {
                 v = updateCollecting(session, v, remembered);
             }
         }
-        data.add(session.getDatabase(), dataType, distinct, v);
+        data.add(session.getDatabase(), dataType, v);
     }
 
     @Override
@@ -369,7 +373,7 @@ public class Aggregate extends AbstractAggregate {
 
     @Override
     protected Object createAggregateData() {
-        return AggregateData.create(type);
+        return AggregateData.create(type, distinct);
     }
 
     @Override
@@ -402,7 +406,7 @@ public class Aggregate extends AbstractAggregate {
             return v;
         }
         case MEDIAN:
-            return AggregateDataMedian.getResultFromIndex(session, on, dataType);
+            return AggregateMedian.medianFromIndex(session, on, dataType);
         case ENVELOPE:
             return ((MVSpatialIndex) AggregateDataEnvelope.getGeometryColumnIndex(on)).getBounds(session);
         default:
@@ -417,6 +421,30 @@ public class Aggregate extends AbstractAggregate {
             data = (AggregateData) createAggregateData();
         }
         switch (type) {
+        case COUNT:
+            if (distinct) {
+                return ValueLong.get(((AggregateDataCollecting) data).getCount());
+            }
+            break;
+        case SUM:
+        case AVG:
+        case STDDEV_POP:
+        case STDDEV_SAMP:
+        case VAR_POP:
+        case VAR_SAMP:
+            if (distinct) {
+                AggregateDataCollecting c = ((AggregateDataCollecting) data);
+                if (c.getCount() == 0) {
+                    return ValueNull.INSTANCE;
+                }
+                AggregateDataDefault d = new AggregateDataDefault(type);
+                Database db = session.getDatabase();
+                for (Value v : c) {
+                    d.add(db, dataType, v);
+                }
+                return d.getValue(db, dataType);
+            }
+            break;
         case GROUP_CONCAT: {
             Value[] array = ((AggregateDataCollecting) data).getArray();
             if (array == null) {
@@ -459,6 +487,13 @@ public class Aggregate extends AbstractAggregate {
             }
             return ValueArray.get(array);
         }
+        case MEDIAN: {
+            Value[] array = ((AggregateDataCollecting) data).getArray();
+            if (array == null) {
+                return ValueNull.INSTANCE;
+            }
+            return AggregateMedian.median(session.getDatabase(), array, dataType);
+        }
         case MODE:
             if (orderByList != null) {
                 return ((AggregateDataMode) data).getOrderedValue(session.getDatabase(), dataType,
@@ -466,8 +501,9 @@ public class Aggregate extends AbstractAggregate {
             }
             //$FALL-THROUGH$
         default:
-            return data.getValue(session.getDatabase(), dataType, distinct);
+            // Avoid compiler warning
         }
+        return data.getValue(session.getDatabase(), dataType);
     }
 
     @Override
@@ -762,7 +798,7 @@ public class Aggregate extends AbstractAggregate {
                 if (distinct) {
                     return false;
                 }
-                return AggregateDataMedian.getMedianColumnIndex(on) != null;
+                return AggregateMedian.getMedianColumnIndex(on) != null;
             case ENVELOPE:
                 return AggregateDataEnvelope.getGeometryColumnIndex(on) != null;
             default:

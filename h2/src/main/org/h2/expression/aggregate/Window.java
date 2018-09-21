@@ -185,18 +185,22 @@ public final class Window {
      *            session
      * @return key for the current group, or null
      */
-    public ValueArray getCurrentKey(Session session) {
+    public Value getCurrentKey(Session session) {
         if (partitionBy == null) {
             return null;
         }
         int len = partitionBy.size();
-        Value[] keyValues = new Value[len];
-        // update group
-        for (int i = 0; i < len; i++) {
-            Expression expr = partitionBy.get(i);
-            keyValues[i] = expr.getValue(session);
+        if (len == 1) {
+            return partitionBy.get(0).getValue(session);
+        } else {
+            Value[] keyValues = new Value[len];
+            // update group
+            for (int i = 0; i < len; i++) {
+                Expression expr = partitionBy.get(i);
+                keyValues[i] = expr.getValue(session);
+            }
+            return ValueArray.get(keyValues);
         }
-        return ValueArray.get(keyValues);
     }
 
     /**

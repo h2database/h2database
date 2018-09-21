@@ -21,7 +21,6 @@ import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
 import org.h2.value.ValueInt;
 
 /**
@@ -184,7 +183,7 @@ public abstract class DataAnalysisOperation extends Expression {
 
     protected Object getWindowData(Session session, SelectGroups groupData, boolean forOrderBy) {
         Object data;
-        ValueArray key = over.getCurrentKey(session);
+        Value key = over.getCurrentKey(session);
         PartitionData partition = groupData.getWindowExprData(this, key);
         if (partition == null) {
             data = forOrderBy ? new ArrayList<>() : createAggregateData();
@@ -258,7 +257,7 @@ public abstract class DataAnalysisOperation extends Expression {
         PartitionData partition;
         Object data;
         boolean forOrderBy = over.getOrderBy() != null;
-        ValueArray key = over.getCurrentKey(session);
+        Value key = over.getCurrentKey(session);
         partition = groupData.getWindowExprData(this, key);
         if (partition == null) {
             // Window aggregates with FILTER clause may have no collected values

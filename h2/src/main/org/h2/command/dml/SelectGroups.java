@@ -298,7 +298,7 @@ public abstract class SelectGroups {
      *            a key of partition
      * @return expression data or null
      */
-    public final PartitionData getWindowExprData(DataAnalysisOperation expr, ValueArray partitionKey) {
+    public final PartitionData getWindowExprData(DataAnalysisOperation expr, Value partitionKey) {
         if (partitionKey == null) {
             return windowData.get(expr);
         } else {
@@ -317,7 +317,7 @@ public abstract class SelectGroups {
      * @param object
      *            window expression data to set
      */
-    public final void setWindowExprData(DataAnalysisOperation expr, ValueArray partitionKey, PartitionData obj) {
+    public final void setWindowExprData(DataAnalysisOperation expr, Value partitionKey, PartitionData obj) {
         if (partitionKey == null) {
             Object old = windowData.put(expr, obj);
             assert old == null;

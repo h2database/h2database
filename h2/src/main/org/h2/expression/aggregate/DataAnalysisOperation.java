@@ -20,7 +20,6 @@ import org.h2.message.DbException;
 import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueInt;
@@ -187,37 +186,15 @@ public abstract class DataAnalysisOperation extends Expression {
         Object data;
         if (over != null) {
             ValueArray key = over.getCurrentKey(session);
-            if (key != null) {
-                @SuppressWarnings("unchecked")
-                ValueHashMap<Object> map = (ValueHashMap<Object>) groupData.getWindowExprData(this);
-                if (map == null) {
-                    if (ifExists) {
-                        return null;
-                    }
-                    map = new ValueHashMap<>();
-                    groupData.setWindowExprData(this, map);
+            PartitionData partition = groupData.getWindowExprData(this, key);
+            if (partition == null) {
+                if (ifExists) {
+                    return null;
                 }
-                PartitionData partition = (PartitionData) map.get(key);
-                if (partition == null) {
-                    if (ifExists) {
-                        return null;
-                    }
-                    data = forOrderBy ? new ArrayList<>() : createAggregateData();
-                    map.put(key, new PartitionData(data));
-                } else {
-                    data = partition.getData();
-                }
+                data = forOrderBy ? new ArrayList<>() : createAggregateData();
+                groupData.setWindowExprData(this, key, new PartitionData(data));
             } else {
-                PartitionData partition = (PartitionData) groupData.getWindowExprData(this);
-                if (partition == null) {
-                    if (ifExists) {
-                        return null;
-                    }
-                    data = forOrderBy ? new ArrayList<>() : createAggregateData();
-                    groupData.setWindowExprData(this, new PartitionData(data));
-                } else {
-                    data = partition.getData();
-                }
+                data = partition.getData();
             }
         } else {
             data = groupData.getCurrentGroupExprData(this);
@@ -273,30 +250,13 @@ public abstract class DataAnalysisOperation extends Expression {
         Object data;
         boolean forOrderBy = over.getOrderBy() != null;
         ValueArray key = over.getCurrentKey(session);
-        if (key != null) {
-            @SuppressWarnings("unchecked")
-            ValueHashMap<Object> map = (ValueHashMap<Object>) groupData.getWindowExprData(this);
-            if (map == null) {
-                map = new ValueHashMap<>();
-                groupData.setWindowExprData(this, map);
-            }
-            partition = (PartitionData) map.get(key);
-            if (partition == null) {
-                data = forOrderBy ? new ArrayList<>() : createAggregateData();
-                partition = new PartitionData(data);
-                map.put(key, partition);
-            } else {
-                data = partition.getData();
-            }
+        partition = groupData.getWindowExprData(this, key);
+        if (partition == null) {
+            data = forOrderBy ? new ArrayList<>() : createAggregateData();
+            partition = new PartitionData(data);
+            groupData.setWindowExprData(this, key, partition);
         } else {
-            partition = (PartitionData) groupData.getWindowExprData(this);
-            if (partition == null) {
-                data = forOrderBy ? new ArrayList<>() : createAggregateData();
-                partition = new PartitionData(data);
-                groupData.setWindowExprData(this, partition);
-            } else {
-                data = partition.getData();
-            }
+            data = partition.getData();
         }
         if (over.getOrderBy() != null || !isAggregate()) {
             return getOrderedResult(session, groupData, partition, data);

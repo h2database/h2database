@@ -15,6 +15,8 @@ import java.util.Map.Entry;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.aggregate.DataAnalysisOperation;
+import org.h2.expression.aggregate.PartitionData;
+import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 
@@ -209,9 +211,14 @@ public abstract class SelectGroups {
     final HashMap<Expression, Integer> exprToIndexInGroupByData = new HashMap<>();
 
     /**
-     * Maps an expression object to its data.
+     * Maps an window expression object to its data.
      */
-    private final HashMap<DataAnalysisOperation, Object> windowData = new HashMap<>();
+    private final HashMap<DataAnalysisOperation, PartitionData> windowData = new HashMap<>();
+
+    /**
+     * Maps an partitioned window expression object to its data.
+     */
+    private final HashMap<DataAnalysisOperation, ValueHashMap<PartitionData>> windowPartitionData = new HashMap<>();
 
     /**
      * The id of the current group.
@@ -291,10 +298,17 @@ public abstract class SelectGroups {
      *
      * @param expr
      *            expression
+     * @param partitionKey
+     *            a key of partition
      * @return expression data or null
      */
-    public final Object getWindowExprData(DataAnalysisOperation expr) {
-        return windowData.get(expr);
+    public final PartitionData getWindowExprData(DataAnalysisOperation expr, ValueArray partitionKey) {
+        if (partitionKey == null) {
+            return windowData.get(expr);
+        } else {
+            ValueHashMap<PartitionData> map = windowPartitionData.get(expr);
+            return map != null ? map.get(partitionKey) : null;
+        }
     }
 
     /**
@@ -302,12 +316,23 @@ public abstract class SelectGroups {
      *
      * @param expr
      *            expression
+     * @param partitionKey
+     *            a key of partition
      * @param object
-     *            expression data to set
+     *            window expression data to set
      */
-    public final void setWindowExprData(DataAnalysisOperation expr, Object obj) {
-        Object old = windowData.put(expr, obj);
-        assert old == null;
+    public final void setWindowExprData(DataAnalysisOperation expr, ValueArray partitionKey, PartitionData obj) {
+        if (partitionKey == null) {
+            Object old = windowData.put(expr, obj);
+            assert old == null;
+        } else {
+            ValueHashMap<PartitionData> map = windowPartitionData.get(expr);
+            if (map == null) {
+                map = new ValueHashMap<>();
+                windowPartitionData.put(expr, map);
+            }
+            map.put(partitionKey, obj);
+        }
     }
 
     abstract void updateCurrentGroupExprData();
@@ -329,6 +354,7 @@ public abstract class SelectGroups {
         currentGroupByExprData = null;
         exprToIndexInGroupByData.clear();
         windowData.clear();
+        windowPartitionData.clear();
         currentGroupRowId = 0;
     }
 

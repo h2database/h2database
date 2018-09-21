@@ -133,13 +133,23 @@ INSERT INTO TEST VALUES
     (4, 'b', 8);
 > update count: 4
 
-SELECT ROW_NUMBER() OVER(ORDER /**/ BY TYPE) RN, TYPE, SUM(CNT) SUM FROM TEST GROUP BY TYPE;
+SELECT ROW_NUMBER() OVER (ORDER /**/ BY TYPE) RN, TYPE, SUM(CNT) SUM FROM TEST GROUP BY TYPE;
 > RN TYPE SUM
 > -- ---- ---
 > 1  a    1
 > 2  b    10
 > 3  c    4
 > rows: 3
+
+SELECT A, B, C, ROW_NUMBER() OVER (PARTITION BY A, B) N FROM
+    VALUES (1, 1, 1), (1, 1, 2), (1, 2, 3), (2, 1, 4) T(A, B, C);
+> A B C N
+> - - - -
+> 1 1 1 1
+> 1 1 2 2
+> 1 2 3 1
+> 2 1 4 1
+> rows: 4
 
 SELECT RANK () OVER () FROM TEST;
 > exception SYNTAX_ERROR_2
@@ -149,3 +159,9 @@ SELECT DENSE_RANK () OVER () FROM TEST;
 
 DROP TABLE TEST;
 > ok
+
+SELECT ROW_NUMBER() OVER () FROM VALUES (1);
+> ROW_NUMBER() OVER ()
+> --------------------
+> 1
+> rows: 1

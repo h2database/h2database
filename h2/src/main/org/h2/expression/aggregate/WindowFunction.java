@@ -175,11 +175,6 @@ public class WindowFunction extends DataAnalysisOperation {
     }
 
     @Override
-    protected void updateFromExpressions(Session session, Object aggregateData, Value[] array) {
-        throw DbException.getUnsupportedException("Window function");
-    }
-
-    @Override
     protected Object createAggregateData() {
         throw DbException.getUnsupportedException("Window function");
     }
@@ -188,62 +183,58 @@ public class WindowFunction extends DataAnalysisOperation {
     protected void getOrderedResultLoop(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
             int rowIdColumn) {
         switch (type) {
+        case ROW_NUMBER:
+            for (int i = 0, size = ordered.size(); i < size;) {
+                result.put(ordered.get(i)[rowIdColumn].getInt(), ValueInt.get(++i));
+            }
+            break;
+        case RANK:
+        case DENSE_RANK:
+        case PERCENT_RANK:
+            getRank(result, ordered, rowIdColumn);
+            break;
         case CUME_DIST:
             getCumeDist(session, result, ordered, rowIdColumn);
-            return;
+            break;
         case NTILE:
             getNtile(session, result, ordered, rowIdColumn);
-            return;
+            break;
         case LEAD:
         case LAG:
             getLeadLag(session, result, ordered, rowIdColumn);
-            return;
+            break;
         case FIRST_VALUE:
         case LAST_VALUE:
         case NTH_VALUE:
             getNth(session, result, ordered, rowIdColumn);
-            return;
+            break;
         default:
+            throw DbException.throwInternalError("type=" + type);
         }
+    }
+
+    private void getRank(HashMap<Integer, Value> result, ArrayList<Value[]> ordered, int rowIdColumn) {
         int size = ordered.size();
         int number = 0;
         for (int i = 0; i < size; i++) {
             Value[] row = ordered.get(i);
-            int rowId = row[rowIdColumn].getInt();
+            if (i == 0) {
+                number = 1;
+            } else if (getOverOrderBySort().compare(ordered.get(i - 1), row) != 0) {
+                if (type == WindowFunctionType.DENSE_RANK) {
+                    number++;
+                } else {
+                    number = i + 1;
+                }
+            }
             Value v;
-            switch (type) {
-            case ROW_NUMBER:
-                v = ValueInt.get(i + 1);
-                break;
-            case RANK:
-            case DENSE_RANK:
-            case PERCENT_RANK: {
-                if (i == 0) {
-                    number = 1;
-                } else {
-                    if (getOverOrderBySort().compare(ordered.get(i - 1), row) != 0) {
-                        switch (type) {
-                        case RANK:
-                        case PERCENT_RANK:
-                            number = i + 1;
-                            break;
-                        default: // DENSE_RANK
-                            number++;
-                        }
-                    }
-                }
-                if (type == WindowFunctionType.PERCENT_RANK) {
-                    int nm = number - 1;
-                    v = nm == 0 ? ValueDouble.ZERO : ValueDouble.get((double) nm / (size - 1));
-                } else {
-                    v = ValueInt.get(number);
-                }
-                break;
+            if (type == WindowFunctionType.PERCENT_RANK) {
+                int nm = number - 1;
+                v = nm == 0 ? ValueDouble.ZERO : ValueDouble.get((double) nm / (size - 1));
+            } else {
+                v = ValueInt.get(number);
             }
-            default:
-                throw DbException.throwInternalError("type=" + type);
-            }
-            result.put(rowId, v);
+            result.put(row[rowIdColumn].getInt(), v);
         }
     }
 

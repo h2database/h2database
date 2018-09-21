@@ -20,6 +20,11 @@ import org.h2.util.StatementBuilder;
  */
 public class ValueArray extends Value {
 
+    /**
+     * Empty array.
+     */
+    private static final Object EMPTY = get(new Value[0]);
+
     private final Class<?> componentType;
     private final Value[] values;
     private int hash;
@@ -50,6 +55,15 @@ public class ValueArray extends Value {
      */
     public static ValueArray get(Class<?> componentType, Value[] list) {
         return new ValueArray(componentType, list);
+    }
+
+    /**
+     * Returns empty array.
+     *
+     * @return empty array
+     */
+    public static ValueArray getEmpty() {
+        return (ValueArray) EMPTY;
     }
 
     @Override

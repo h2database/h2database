@@ -12,7 +12,7 @@ import org.h2.value.Value;
 /**
  * Partition data of a window aggregate.
  */
-final class PartitionData {
+public final class PartitionData {
 
     /**
      * Aggregate data.

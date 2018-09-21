@@ -47,7 +47,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
     }
 
     private void testNotANumber() {
-        ValueHashMap<Integer> map = ValueHashMap.newInstance();
+        ValueHashMap<Integer> map = new ValueHashMap<>();
         for (int i = 1; i < 100; i++) {
             double d = Double.longBitsToDouble(0x7ff0000000000000L | i);
             ValueDouble v = ValueDouble.get(d);
@@ -57,7 +57,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
     }
 
     private void testRandomized() {
-        ValueHashMap<Value> map = ValueHashMap.newInstance();
+        ValueHashMap<Value> map = new ValueHashMap<>();
         HashMap<Value, Value> hash = new HashMap<>();
         Random random = new Random(1);
         Comparator<Value> vc = new Comparator<Value>() {

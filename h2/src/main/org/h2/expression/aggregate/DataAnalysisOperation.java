@@ -8,7 +8,6 @@ package org.h2.expression.aggregate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.Select;
@@ -21,9 +20,7 @@ import org.h2.message.DbException;
 import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
 import org.h2.value.ValueInt;
 
 /**
@@ -184,63 +181,28 @@ public abstract class DataAnalysisOperation extends Expression {
      */
     protected abstract void rememberExpressions(Session session, Value[] array);
 
-    /**
-     * Updates the provided aggregate data from the remembered expressions.
-     *
-     * @param session
-     *            the session
-     * @param aggregateData
-     *            aggregate data
-     * @param array
-     *            values of expressions
-     */
-    protected abstract void updateFromExpressions(Session session, Object aggregateData, Value[] array);
-
-    protected Object getData(Session session, SelectGroups groupData, boolean ifExists, boolean forOrderBy) {
+    protected Object getWindowData(Session session, SelectGroups groupData, boolean forOrderBy) {
         Object data;
-        if (over != null) {
-            ValueArray key = over.getCurrentKey(session);
-            if (key != null) {
-                @SuppressWarnings("unchecked")
-                ValueHashMap<Object> map = (ValueHashMap<Object>) groupData.getWindowExprData(this);
-                if (map == null) {
-                    if (ifExists) {
-                        return null;
-                    }
-                    map = new ValueHashMap<>();
-                    groupData.setWindowExprData(this, map);
-                }
-                PartitionData partition = (PartitionData) map.get(key);
-                if (partition == null) {
-                    if (ifExists) {
-                        return null;
-                    }
-                    data = forOrderBy ? new ArrayList<>() : createAggregateData();
-                    map.put(key, new PartitionData(data));
-                } else {
-                    data = partition.getData();
-                }
-            } else {
-                PartitionData partition = (PartitionData) groupData.getWindowExprData(this);
-                if (partition == null) {
-                    if (ifExists) {
-                        return null;
-                    }
-                    data = forOrderBy ? new ArrayList<>() : createAggregateData();
-                    groupData.setWindowExprData(this, new PartitionData(data));
-                } else {
-                    data = partition.getData();
-                }
-            }
+        Value key = over.getCurrentKey(session);
+        PartitionData partition = groupData.getWindowExprData(this, key);
+        if (partition == null) {
+            data = forOrderBy ? new ArrayList<>() : createAggregateData();
+            groupData.setWindowExprData(this, key, new PartitionData(data));
         } else {
-            data = groupData.getCurrentGroupExprData(this);
-            if (data == null) {
-                if (ifExists) {
-                    return null;
-                }
-                data = forOrderBy ? new ArrayList<>() : createAggregateData();
-                groupData.setCurrentGroupExprData(this, data);
+            data = partition.getData();
+        }
+        return data;
+    }
+
+    protected Object getGroupData(SelectGroups groupData, boolean ifExists) {
+        Object data;
+        data = groupData.getCurrentGroupExprData(this);
+        if (data == null) {
+            if (ifExists) {
+                return null;
             }
+            data = createAggregateData();
+            groupData.setCurrentGroupExprData(this, data);
         }
         return data;
     }
@@ -277,43 +239,38 @@ public abstract class DataAnalysisOperation extends Expression {
         if (groupData == null) {
             throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
-        return over == null ? getAggregatedValue(session, getData(session, groupData, true, false))
+        return over == null ? getAggregatedValue(session, getGroupData(groupData, true))
                 : getWindowResult(session, groupData);
     }
 
+    /**
+     * Returns result of this window function or window aggregate. This method
+     * is not used for plain aggregates.
+     *
+     * @param session
+     *            the session
+     * @param groupData
+     *            the group data
+     * @return result of this function
+     */
     private Value getWindowResult(Session session, SelectGroups groupData) {
         PartitionData partition;
         Object data;
         boolean forOrderBy = over.getOrderBy() != null;
-        ValueArray key = over.getCurrentKey(session);
-        if (key != null) {
-            @SuppressWarnings("unchecked")
-            ValueHashMap<Object> map = (ValueHashMap<Object>) groupData.getWindowExprData(this);
-            if (map == null) {
-                map = new ValueHashMap<>();
-                groupData.setWindowExprData(this, map);
-            }
-            partition = (PartitionData) map.get(key);
-            if (partition == null) {
-                data = forOrderBy ? new ArrayList<>() : createAggregateData();
-                partition = new PartitionData(data);
-                map.put(key, partition);
-            } else {
-                data = partition.getData();
-            }
+        Value key = over.getCurrentKey(session);
+        partition = groupData.getWindowExprData(this, key);
+        if (partition == null) {
+            // Window aggregates with FILTER clause may have no collected values
+            data = forOrderBy ? new ArrayList<>() : createAggregateData();
+            partition = new PartitionData(data);
+            groupData.setWindowExprData(this, key, partition);
         } else {
-            partition = (PartitionData) groupData.getWindowExprData(this);
-            if (partition == null) {
-                data = forOrderBy ? new ArrayList<>() : createAggregateData();
-                partition = new PartitionData(data);
-                groupData.setWindowExprData(this, partition);
-            } else {
-                data = partition.getData();
-            }
+            data = partition.getData();
         }
-        if (over.getOrderBy() != null || !isAggregate()) {
+        if (forOrderBy || !isAggregate()) {
             return getOrderedResult(session, groupData, partition, data);
         }
+        // Window aggregate without ORDER BY clause in window specification
         Value result = partition.getResult();
         if (result == null) {
             result = getAggregatedValue(session, data);
@@ -346,7 +303,7 @@ public abstract class DataAnalysisOperation extends Expression {
         }
         array[ne] = ValueInt.get(groupRowId);
         @SuppressWarnings("unchecked")
-        ArrayList<Value[]> data = (ArrayList<Value[]>) getData(session, groupData, false, true);
+        ArrayList<Value[]> data = (ArrayList<Value[]>) getWindowData(session, groupData, true);
         data.add(array);
     }
 
@@ -378,36 +335,8 @@ public abstract class DataAnalysisOperation extends Expression {
      * @param rowIdColumn
      *            the index of row id value
      */
-    protected void getOrderedResultLoop(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
-            int rowIdColumn) {
-        WindowFrame frame = over.getWindowFrame();
-        if (frame == null || frame.isDefault()) {
-            Object aggregateData = createAggregateData();
-            for (Value[] row : ordered) {
-                updateFromExpressions(session, aggregateData, row);
-                result.put(row[rowIdColumn].getInt(), getAggregatedValue(session, aggregateData));
-            }
-        } else if (frame.isFullPartition()) {
-            Object aggregateData = createAggregateData();
-            for (Value[] row : ordered) {
-                updateFromExpressions(session, aggregateData, row);
-            }
-            Value value = getAggregatedValue(session, aggregateData);
-            for (Value[] row : ordered) {
-                result.put(row[rowIdColumn].getInt(), value);
-            }
-        } else {
-            int size = ordered.size();
-            for (int i = 0; i < size; i++) {
-                Object aggregateData = createAggregateData();
-                for (Iterator<Value[]> iter = frame.iterator(session, ordered, getOverOrderBySort(), i, false); iter
-                        .hasNext();) {
-                    updateFromExpressions(session, aggregateData, iter.next());
-                }
-                result.put(ordered.get(i)[rowIdColumn].getInt(), getAggregatedValue(session, aggregateData));
-            }
-        }
-    }
+    protected abstract void getOrderedResultLoop(Session session, HashMap<Integer, Value> result,
+            ArrayList<Value[]> ordered, int rowIdColumn);
 
     protected StringBuilder appendTailConditions(StringBuilder builder) {
         if (over != null) {

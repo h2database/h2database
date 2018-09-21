@@ -6,6 +6,8 @@
 package org.h2.expression.aggregate;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectGroups;
@@ -14,6 +16,7 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.Value;
 
 /**
  * A base class for aggregate functions.
@@ -69,13 +72,66 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
     }
 
     @Override
+    protected void getOrderedResultLoop(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
+            int rowIdColumn) {
+        WindowFrame frame = over.getWindowFrame();
+        if (frame == null || frame.isDefault()) {
+            // Aggregate all values before the current row (including)
+            Object aggregateData = createAggregateData();
+            for (Value[] row : ordered) {
+                // Collect values one by one
+                updateFromExpressions(session, aggregateData, row);
+                result.put(row[rowIdColumn].getInt(), getAggregatedValue(session, aggregateData));
+            }
+        } else if (frame.isFullPartition()) {
+            // Aggregate values from the whole partition
+            Object aggregateData = createAggregateData();
+            for (Value[] row : ordered) {
+                updateFromExpressions(session, aggregateData, row);
+            }
+            // All rows have the same value
+            Value value = getAggregatedValue(session, aggregateData);
+            for (Value[] row : ordered) {
+                result.put(row[rowIdColumn].getInt(), value);
+            }
+        } else {
+            // All other types of frames (slow)
+            int size = ordered.size();
+            for (int i = 0; i < size; i++) {
+                Object aggregateData = createAggregateData();
+                for (Iterator<Value[]> iter = frame.iterator(session, ordered, getOverOrderBySort(), i, false); iter
+                        .hasNext();) {
+                    updateFromExpressions(session, aggregateData, iter.next());
+                }
+                result.put(ordered.get(i)[rowIdColumn].getInt(), getAggregatedValue(session, aggregateData));
+            }
+        }
+    }
+
+    /**
+     * Updates the provided aggregate data from the remembered expressions.
+     *
+     * @param session
+     *            the session
+     * @param aggregateData
+     *            aggregate data
+     * @param array
+     *            values of expressions
+     */
+    protected abstract void updateFromExpressions(Session session, Object aggregateData, Value[] array);
+
+    @Override
     protected void updateAggregate(Session session, SelectGroups groupData, int groupRowId) {
         if (filterCondition == null || filterCondition.getBooleanValue(session)) {
             ArrayList<SelectOrderBy> orderBy;
-            if (over != null && (orderBy = over.getOrderBy()) != null) {
-                updateOrderedAggregate(session, groupData, groupRowId, orderBy);
+            if (over != null) {
+                if ((orderBy = over.getOrderBy()) != null) {
+                    updateOrderedAggregate(session, groupData, groupRowId, orderBy);
+                } else {
+                    updateAggregate(session, getWindowData(session, groupData, false));
+                }
             } else {
-                updateAggregate(session, getData(session, groupData, false, false));
+                updateAggregate(session, getGroupData(groupData, false));
             }
         }
     }

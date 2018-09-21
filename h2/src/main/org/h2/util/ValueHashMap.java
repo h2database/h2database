@@ -38,15 +38,6 @@ public class ValueHashMap<V> extends HashBase {
     Value[] keys;
     V[] values;
 
-    /**
-     * Create a new value hash map.
-     *
-     * @return the object
-     */
-    public static <T> ValueHashMap<T> newInstance() {
-        return new ValueHashMap<>();
-    }
-
     @Override
     @SuppressWarnings("unchecked")
     protected void reset(int newLevel) {

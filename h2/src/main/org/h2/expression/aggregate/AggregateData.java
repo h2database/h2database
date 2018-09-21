@@ -7,6 +7,7 @@ package org.h2.expression.aggregate;
 
 import org.h2.engine.Database;
 import org.h2.expression.aggregate.Aggregate.AggregateType;
+import org.h2.message.DbException;
 import org.h2.value.Value;
 
 /**
@@ -23,12 +24,6 @@ abstract class AggregateData {
      */
     static AggregateData create(AggregateType aggregateType, boolean distinct) {
         switch (aggregateType) {
-        case SELECTIVITY:
-            return new AggregateDataSelectivity();
-        case GROUP_CONCAT:
-        case ARRAY_AGG:
-        case MEDIAN:
-            break;
         case COUNT_ALL:
             return new AggregateDataCountAll();
         case COUNT:
@@ -36,6 +31,29 @@ abstract class AggregateData {
                 return new AggregateDataCount();
             }
             break;
+        case GROUP_CONCAT:
+        case ARRAY_AGG:
+        case MEDIAN:
+            break;
+        case MIN:
+        case MAX:
+        case BIT_OR:
+        case BIT_AND:
+        case BOOL_OR:
+        case BOOL_AND:
+            return new AggregateDataDefault(aggregateType);
+        case SUM:
+        case AVG:
+        case STDDEV_POP:
+        case STDDEV_SAMP:
+        case VAR_POP:
+        case VAR_SAMP:
+            if (!distinct) {
+                return new AggregateDataDefault(aggregateType);
+            }
+            break;
+        case SELECTIVITY:
+            return new AggregateDataSelectivity();
         case HISTOGRAM:
             return new AggregateDataHistogram();
         case MODE:
@@ -43,7 +61,7 @@ abstract class AggregateData {
         case ENVELOPE:
             return new AggregateDataEnvelope();
         default:
-            return new AggregateDataDefault(aggregateType);
+            throw DbException.throwInternalError("type=" + aggregateType);
         }
         return new AggregateDataCollecting();
     }

@@ -7,7 +7,9 @@ package org.h2.expression.aggregate;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 
 import org.h2.engine.Database;
 import org.h2.value.Value;
@@ -23,7 +25,8 @@ import org.h2.value.ValueNull;
  * class instead.
  * </p>
  */
-class AggregateDataCollecting extends AggregateData {
+class AggregateDataCollecting extends AggregateData implements Iterable<Value> {
+
     Collection<Value> values;
 
     @Override
@@ -64,4 +67,10 @@ class AggregateDataCollecting extends AggregateData {
         }
         return values.toArray(new Value[0]);
     }
+
+    @Override
+    public Iterator<Value> iterator() {
+        return values != null ? values.iterator() : Collections.<Value>emptyIterator();
+    }
+
 }

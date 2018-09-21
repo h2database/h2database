@@ -12,6 +12,7 @@ import java.util.HashMap;
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectOrderBy;
+import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -417,12 +418,30 @@ public class Aggregate extends AbstractAggregate {
             data = (AggregateData) createAggregateData();
         }
         switch (type) {
-        case COUNT: {
-            if (!distinct) {
-                return data.getValue(session.getDatabase(), dataType, distinct);
+        case COUNT:
+            if (distinct) {
+                return ValueLong.get(((AggregateDataCollecting) data).getCount());
             }
-            return ValueLong.get(((AggregateDataCollecting) data).getCount());
-        }
+            break;
+        case SUM:
+        case AVG:
+        case STDDEV_POP:
+        case STDDEV_SAMP:
+        case VAR_POP:
+        case VAR_SAMP:
+            if (distinct) {
+                AggregateDataCollecting c = ((AggregateDataCollecting) data);
+                if (c.getCount() == 0) {
+                    return ValueNull.INSTANCE;
+                }
+                AggregateDataDefault d = new AggregateDataDefault(type);
+                Database db = session.getDatabase();
+                for (Value v : c) {
+                    d.add(db, dataType, false, v);
+                }
+                return d.getValue(db, dataType, false);
+            }
+            break;
         case GROUP_CONCAT: {
             Value[] array = ((AggregateDataCollecting) data).getArray();
             if (array == null) {
@@ -479,8 +498,9 @@ public class Aggregate extends AbstractAggregate {
             }
             //$FALL-THROUGH$
         default:
-            return data.getValue(session.getDatabase(), dataType, distinct);
+            // Avoid compiler warning
         }
+        return data.getValue(session.getDatabase(), dataType, distinct);
     }
 
     @Override

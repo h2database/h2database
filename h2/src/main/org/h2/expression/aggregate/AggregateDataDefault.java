@@ -8,7 +8,6 @@ package org.h2.expression.aggregate;
 import org.h2.engine.Database;
 import org.h2.expression.aggregate.Aggregate.AggregateType;
 import org.h2.message.DbException;
-import org.h2.util.ValueHashMap;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
@@ -20,9 +19,9 @@ import org.h2.value.ValueNull;
  * Data stored while calculating an aggregate.
  */
 class AggregateDataDefault extends AggregateData {
+
     private final AggregateType aggregateType;
     private long count;
-    private ValueHashMap<AggregateDataDefault> distinctValues;
     private Value value;
     private double m2, mean;
 
@@ -39,13 +38,6 @@ class AggregateDataDefault extends AggregateData {
             return;
         }
         count++;
-        if (distinct) {
-            if (distinctValues == null) {
-                distinctValues = ValueHashMap.newInstance();
-            }
-            distinctValues.put(v, this);
-            return;
-        }
         switch (aggregateType) {
         case SUM:
             if (value == null) {
@@ -128,9 +120,6 @@ class AggregateDataDefault extends AggregateData {
 
     @Override
     Value getValue(Database database, int dataType, boolean distinct) {
-        if (distinct) {
-            return getDistinct(database, dataType);
-        }
         Value v = null;
         switch (aggregateType) {
         case SUM:
@@ -189,17 +178,6 @@ class AggregateDataDefault extends AggregateData {
         Value b = ValueLong.get(by).convertTo(type);
         a = a.convertTo(type).divide(b);
         return a;
-    }
-
-    private Value getDistinct(Database database, int dataType) {
-        if (distinctValues == null) {
-            return ValueNull.INSTANCE;
-        }
-        AggregateDataDefault d = new AggregateDataDefault(aggregateType);
-        for (Value v : distinctValues.keys()) {
-            d.add(database, dataType, false, v);
-        }
-        return d.getValue(database, dataType, false);
     }
 
 }

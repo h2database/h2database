@@ -149,3 +149,9 @@ SELECT DENSE_RANK () OVER () FROM TEST;
 
 DROP TABLE TEST;
 > ok
+
+SELECT ROW_NUMBER() OVER () FROM VALUES (1);
+> ROW_NUMBER() OVER ()
+> --------------------
+> 1
+> rows: 1

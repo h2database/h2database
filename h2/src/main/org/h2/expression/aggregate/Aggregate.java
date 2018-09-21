@@ -369,7 +369,7 @@ public class Aggregate extends AbstractAggregate {
 
     @Override
     protected Object createAggregateData() {
-        return AggregateData.create(type);
+        return AggregateData.create(type, distinct);
     }
 
     @Override
@@ -417,6 +417,12 @@ public class Aggregate extends AbstractAggregate {
             data = (AggregateData) createAggregateData();
         }
         switch (type) {
+        case COUNT: {
+            if (!distinct) {
+                return data.getValue(session.getDatabase(), dataType, distinct);
+            }
+            return ValueLong.get(((AggregateDataCollecting) data).getCount());
+        }
         case GROUP_CONCAT: {
             Value[] array = ((AggregateDataCollecting) data).getArray();
             if (array == null) {

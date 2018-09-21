@@ -44,6 +44,15 @@ class AggregateDataCollecting extends AggregateData {
     }
 
     /**
+     * Returns the count of values.
+     *
+     * @return the count of values
+     */
+    int getCount() {
+        return values != null ? values.size() : 0;
+    }
+
+    /**
      * Returns array with values or {@code null}.
      *
      * @return array with values or {@code null}

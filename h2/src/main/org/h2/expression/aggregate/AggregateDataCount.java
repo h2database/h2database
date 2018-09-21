@@ -6,7 +6,6 @@
 package org.h2.expression.aggregate;
 
 import org.h2.engine.Database;
-import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
@@ -16,7 +15,6 @@ import org.h2.value.ValueNull;
  */
 class AggregateDataCount extends AggregateData {
     private long count;
-    private ValueHashMap<AggregateDataCount> distinctValues;
 
     @Override
     void add(Database database, int dataType, boolean distinct, Value v) {
@@ -24,23 +22,10 @@ class AggregateDataCount extends AggregateData {
             return;
         }
         count++;
-        if (distinct) {
-            if (distinctValues == null) {
-                distinctValues = ValueHashMap.newInstance();
-            }
-            distinctValues.put(v, this);
-        }
     }
 
     @Override
     Value getValue(Database database, int dataType, boolean distinct) {
-        if (distinct) {
-            if (distinctValues != null) {
-                count = distinctValues.size();
-            } else {
-                count = 0;
-            }
-        }
         return ValueLong.get(count).convertTo(dataType);
     }
 

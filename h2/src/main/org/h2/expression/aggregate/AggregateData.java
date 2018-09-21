@@ -18,20 +18,24 @@ abstract class AggregateData {
      * Create an AggregateData object of the correct sub-type.
      *
      * @param aggregateType the type of the aggregate operation
+     * @param distinct if the calculation should be distinct
      * @return the aggregate data object of the specified type
      */
-    static AggregateData create(AggregateType aggregateType) {
+    static AggregateData create(AggregateType aggregateType, boolean distinct) {
         switch (aggregateType) {
         case SELECTIVITY:
             return new AggregateDataSelectivity();
         case GROUP_CONCAT:
         case ARRAY_AGG:
         case MEDIAN:
-            return new AggregateDataCollecting();
+            break;
         case COUNT_ALL:
             return new AggregateDataCountAll();
         case COUNT:
-            return new AggregateDataCount();
+            if (!distinct) {
+                return new AggregateDataCount();
+            }
+            break;
         case HISTOGRAM:
             return new AggregateDataHistogram();
         case MODE:
@@ -41,6 +45,7 @@ abstract class AggregateData {
         default:
             return new AggregateDataDefault(aggregateType);
         }
+        return new AggregateDataCollecting();
     }
 
     /**

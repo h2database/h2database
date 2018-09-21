@@ -38,7 +38,7 @@ class AggregateDataHistogram extends AggregateData {
     @Override
     void add(Database database, int dataType, Value v) {
         if (distinctValues == null) {
-            distinctValues = ValueHashMap.newInstance();
+            distinctValues = new ValueHashMap<>();
         }
         LongDataCounter a = distinctValues.get(v);
         if (a == null) {

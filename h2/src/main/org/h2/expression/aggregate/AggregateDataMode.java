@@ -25,7 +25,7 @@ class AggregateDataMode extends AggregateData {
             return;
         }
         if (distinctValues == null) {
-            distinctValues = ValueHashMap.newInstance();
+            distinctValues = new ValueHashMap<>();
         }
         LongDataCounter a = distinctValues.get(v);
         if (a == null) {

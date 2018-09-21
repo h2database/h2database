@@ -99,7 +99,7 @@ public abstract class SelectGroups {
             }
             Object[] values = groupByData.get(currentGroupsKey);
             if (values == null) {
-                values = new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())];
+                values = createRow();
                 groupByData.put(currentGroupsKey, values);
             }
             currentGroupByExprData = values;
@@ -120,8 +120,7 @@ public abstract class SelectGroups {
         public void done() {
             super.done();
             if (groupIndex == null && groupByData.size() == 0) {
-                groupByData.put(defaultGroup,
-                        new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())]);
+                groupByData.put(defaultGroup, createRow());
             }
             cursor = groupByData.entrySet().iterator();
         }
@@ -166,7 +165,7 @@ public abstract class SelectGroups {
 
         @Override
         public void nextSource() {
-            Object[] values = new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())];
+            Object[] values = createRow();
             rows.add(values);
             currentGroupByExprData = values;
             currentGroupRowId++;
@@ -208,7 +207,7 @@ public abstract class SelectGroups {
      * Maps an expression object to an index, to use in accessing the Object[]
      * pointed to by groupByData.
      */
-    final HashMap<Expression, Integer> exprToIndexInGroupByData = new HashMap<>();
+    private final HashMap<Expression, Integer> exprToIndexInGroupByData = new HashMap<>();
 
     /**
      * Maps an window expression object to its data.
@@ -291,6 +290,10 @@ public abstract class SelectGroups {
             updateCurrentGroupExprData();
         }
         currentGroupByExprData[index] = obj;
+    }
+
+    final Object[] createRow() {
+        return new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())];
     }
 
     /**

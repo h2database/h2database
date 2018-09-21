@@ -182,29 +182,31 @@ public abstract class DataAnalysisOperation extends Expression {
      */
     protected abstract void rememberExpressions(Session session, Value[] array);
 
-    protected Object getData(Session session, SelectGroups groupData, boolean ifExists, boolean forOrderBy) {
+    protected Object getWindowData(Session session, SelectGroups groupData, boolean ifExists, boolean forOrderBy) {
         Object data;
-        if (over != null) {
-            ValueArray key = over.getCurrentKey(session);
-            PartitionData partition = groupData.getWindowExprData(this, key);
-            if (partition == null) {
-                if (ifExists) {
-                    return null;
-                }
-                data = forOrderBy ? new ArrayList<>() : createAggregateData();
-                groupData.setWindowExprData(this, key, new PartitionData(data));
-            } else {
-                data = partition.getData();
+        ValueArray key = over.getCurrentKey(session);
+        PartitionData partition = groupData.getWindowExprData(this, key);
+        if (partition == null) {
+            if (ifExists) {
+                return null;
             }
+            data = forOrderBy ? new ArrayList<>() : createAggregateData();
+            groupData.setWindowExprData(this, key, new PartitionData(data));
         } else {
-            data = groupData.getCurrentGroupExprData(this);
-            if (data == null) {
-                if (ifExists) {
-                    return null;
-                }
-                data = createAggregateData();
-                groupData.setCurrentGroupExprData(this, data);
+            data = partition.getData();
+        }
+        return data;
+    }
+
+    protected Object getGroupData(SelectGroups groupData, boolean ifExists) {
+        Object data;
+        data = groupData.getCurrentGroupExprData(this);
+        if (data == null) {
+            if (ifExists) {
+                return null;
             }
+            data = createAggregateData();
+            groupData.setCurrentGroupExprData(this, data);
         }
         return data;
     }
@@ -241,7 +243,7 @@ public abstract class DataAnalysisOperation extends Expression {
         if (groupData == null) {
             throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
-        return over == null ? getAggregatedValue(session, getData(session, groupData, true, false))
+        return over == null ? getAggregatedValue(session, getGroupData(groupData, true))
                 : getWindowResult(session, groupData);
     }
 
@@ -293,7 +295,7 @@ public abstract class DataAnalysisOperation extends Expression {
         }
         array[ne] = ValueInt.get(groupRowId);
         @SuppressWarnings("unchecked")
-        ArrayList<Value[]> data = (ArrayList<Value[]>) getData(session, groupData, false, true);
+        ArrayList<Value[]> data = (ArrayList<Value[]>) getWindowData(session, groupData, false, true);
         data.add(array);
     }
 

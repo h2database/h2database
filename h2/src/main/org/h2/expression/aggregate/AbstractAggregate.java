@@ -119,10 +119,14 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
     protected void updateAggregate(Session session, SelectGroups groupData, int groupRowId) {
         if (filterCondition == null || filterCondition.getBooleanValue(session)) {
             ArrayList<SelectOrderBy> orderBy;
-            if (over != null && (orderBy = over.getOrderBy()) != null) {
-                updateOrderedAggregate(session, groupData, groupRowId, orderBy);
+            if (over != null) {
+                if ((orderBy = over.getOrderBy()) != null) {
+                    updateOrderedAggregate(session, groupData, groupRowId, orderBy);
+                } else {
+                    updateAggregate(session, getWindowData(session, groupData, false, false));
+                }
             } else {
-                updateAggregate(session, getData(session, groupData, false, false));
+                updateAggregate(session, getGroupData(groupData, false));
             }
         }
     }

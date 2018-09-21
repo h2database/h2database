@@ -123,7 +123,7 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
                 if ((orderBy = over.getOrderBy()) != null) {
                     updateOrderedAggregate(session, groupData, groupRowId, orderBy);
                 } else {
-                    updateAggregate(session, getWindowData(session, groupData, false, false));
+                    updateAggregate(session, getWindowData(session, groupData, false));
                 }
             } else {
                 updateAggregate(session, getGroupData(groupData, false));

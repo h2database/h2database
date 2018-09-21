@@ -182,14 +182,11 @@ public abstract class DataAnalysisOperation extends Expression {
      */
     protected abstract void rememberExpressions(Session session, Value[] array);
 
-    protected Object getWindowData(Session session, SelectGroups groupData, boolean ifExists, boolean forOrderBy) {
+    protected Object getWindowData(Session session, SelectGroups groupData, boolean forOrderBy) {
         Object data;
         ValueArray key = over.getCurrentKey(session);
         PartitionData partition = groupData.getWindowExprData(this, key);
         if (partition == null) {
-            if (ifExists) {
-                return null;
-            }
             data = forOrderBy ? new ArrayList<>() : createAggregateData();
             groupData.setWindowExprData(this, key, new PartitionData(data));
         } else {
@@ -295,7 +292,7 @@ public abstract class DataAnalysisOperation extends Expression {
         }
         array[ne] = ValueInt.get(groupRowId);
         @SuppressWarnings("unchecked")
-        ArrayList<Value[]> data = (ArrayList<Value[]>) getWindowData(session, groupData, false, true);
+        ArrayList<Value[]> data = (ArrayList<Value[]>) getWindowData(session, groupData, true);
         data.add(array);
     }
 

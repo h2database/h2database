@@ -168,12 +168,14 @@ public class FileStore {
                         "The file is locked: {0}", fileName, e);
             }
             if (fileLock == null) {
+                try { close(); } catch (Exception ignore) {}
                 throw DataUtils.newIllegalStateException(
                         DataUtils.ERROR_FILE_LOCKED,
                         "The file is locked: {0}", fileName);
             }
             fileSize = file.size();
         } catch (IOException e) {
+            try { close(); } catch (Exception ignore) {}
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_READING_FAILED,
                     "Could not open file {0}", fileName, e);
@@ -184,19 +186,21 @@ public class FileStore {
      * Close this store.
      */
     public void close() {
-        try {
-            if (fileLock != null) {
-                fileLock.release();
-                fileLock = null;
+        if(file != null) {
+            try {
+                if (fileLock != null) {
+                    fileLock.release();
+                    fileLock = null;
+                }
+                file.close();
+                freeSpace.clear();
+            } catch (Exception e) {
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_WRITING_FAILED,
+                        "Closing failed for file {0}", fileName, e);
+            } finally {
+                file = null;
             }
-            file.close();
-            freeSpace.clear();
-        } catch (Exception e) {
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_WRITING_FAILED,
-                    "Closing failed for file {0}", fileName, e);
-        } finally {
-            file = null;
         }
     }
 
@@ -204,12 +208,14 @@ public class FileStore {
      * Flush all changes.
      */
     public void sync() {
-        try {
-            file.force(true);
-        } catch (IOException e) {
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_WRITING_FAILED,
-                    "Could not sync file {0}", fileName, e);
+        if (file != null) {
+            try {
+                file.force(true);
+            } catch (IOException e) {
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_WRITING_FAILED,
+                        "Could not sync file {0}", fileName, e);
+            }
         }
     }
 
@@ -228,15 +234,23 @@ public class FileStore {
      * @param size the new file size
      */
     public void truncate(long size) {
-        try {
-            writeCount.incrementAndGet();
-            file.truncate(size);
-            fileSize = Math.min(fileSize, size);
-        } catch (IOException e) {
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_WRITING_FAILED,
-                    "Could not truncate file {0} to size {1}",
-                    fileName, size, e);
+        int attemptCount = 0;
+        while (true) {
+            try {
+                writeCount.incrementAndGet();
+                file.truncate(size);
+                fileSize = Math.min(fileSize, size);
+                return;
+            } catch (IOException e) {
+                if (++attemptCount == 10) {
+                    throw DataUtils.newIllegalStateException(
+                            DataUtils.ERROR_WRITING_FAILED,
+                            "Could not truncate file {0} to size {1}",
+                            fileName, size, e);
+                }
+                System.gc();
+                Thread.yield();
+            }
         }
     }
 

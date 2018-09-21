@@ -143,3 +143,11 @@ SELECT LAG(VALUE) OVER (ORDER BY ID RANGE CURRENT ROW) FROM TEST;
 
 DROP TABLE TEST;
 > ok
+
+SELECT C, SUM(I) S, LEAD(SUM(I)) OVER (ORDER /**/ BY SUM(I)) L FROM
+    VALUES (1, 1), (2, 1), (4, 2), (8, 2) T(I, C) GROUP BY C;
+> C S  L
+> - -- ----
+> 1 3  12
+> 2 12 null
+> rows: 2

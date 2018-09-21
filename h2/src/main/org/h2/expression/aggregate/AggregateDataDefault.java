@@ -129,8 +129,7 @@ class AggregateDataDefault extends AggregateData {
     @Override
     Value getValue(Database database, int dataType, boolean distinct) {
         if (distinct) {
-            count = 0;
-            groupDistinct(database, dataType);
+            return getDistinct(database, dataType);
         }
         Value v = null;
         switch (aggregateType) {
@@ -192,14 +191,15 @@ class AggregateDataDefault extends AggregateData {
         return a;
     }
 
-    private void groupDistinct(Database database, int dataType) {
+    private Value getDistinct(Database database, int dataType) {
         if (distinctValues == null) {
-            return;
+            return ValueNull.INSTANCE;
         }
-        count = 0;
+        AggregateDataDefault d = new AggregateDataDefault(aggregateType);
         for (Value v : distinctValues.keys()) {
-            add(database, dataType, false, v);
+            d.add(database, dataType, false, v);
         }
+        return d.getValue(database, dataType, false);
     }
 
 }

@@ -76,21 +76,26 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
             int rowIdColumn) {
         WindowFrame frame = over.getWindowFrame();
         if (frame == null || frame.isDefault()) {
+            // Aggregate all values before the current row (including)
             Object aggregateData = createAggregateData();
             for (Value[] row : ordered) {
+                // Collect values one by one
                 updateFromExpressions(session, aggregateData, row);
                 result.put(row[rowIdColumn].getInt(), getAggregatedValue(session, aggregateData));
             }
         } else if (frame.isFullPartition()) {
+            // Aggregate values from the whole partition
             Object aggregateData = createAggregateData();
             for (Value[] row : ordered) {
                 updateFromExpressions(session, aggregateData, row);
             }
+            // All rows have the same value
             Value value = getAggregatedValue(session, aggregateData);
             for (Value[] row : ordered) {
                 result.put(row[rowIdColumn].getInt(), value);
             }
         } else {
+            // All other types of frames (slow)
             int size = ordered.size();
             for (int i = 0; i < size; i++) {
                 Object aggregateData = createAggregateData();

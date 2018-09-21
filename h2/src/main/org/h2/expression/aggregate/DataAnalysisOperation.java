@@ -244,6 +244,16 @@ public abstract class DataAnalysisOperation extends Expression {
                 : getWindowResult(session, groupData);
     }
 
+    /**
+     * Returns result of this window function or window aggregate. This method
+     * is not used for plain aggregates.
+     *
+     * @param session
+     *            the session
+     * @param groupData
+     *            the group data
+     * @return result of this function
+     */
     private Value getWindowResult(Session session, SelectGroups groupData) {
         PartitionData partition;
         Object data;
@@ -251,15 +261,17 @@ public abstract class DataAnalysisOperation extends Expression {
         ValueArray key = over.getCurrentKey(session);
         partition = groupData.getWindowExprData(this, key);
         if (partition == null) {
+            // Window aggregates with FILTER clause may have no collected values
             data = forOrderBy ? new ArrayList<>() : createAggregateData();
             partition = new PartitionData(data);
             groupData.setWindowExprData(this, key, partition);
         } else {
             data = partition.getData();
         }
-        if (over.getOrderBy() != null || !isAggregate()) {
+        if (forOrderBy || !isAggregate()) {
             return getOrderedResult(session, groupData, partition, data);
         }
+        // Window aggregate without ORDER BY clause in window specification
         Value result = partition.getResult();
         if (result == null) {
             result = getAggregatedValue(session, data);

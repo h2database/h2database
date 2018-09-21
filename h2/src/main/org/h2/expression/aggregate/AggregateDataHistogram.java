@@ -54,7 +54,7 @@ class AggregateDataHistogram extends AggregateData {
     @Override
     Value getValue(Database database, int dataType) {
         if (distinctValues == null) {
-            return ValueArray.get(new Value[0]).convertTo(dataType);
+            return ValueArray.getEmpty().convertTo(dataType);
         }
         ValueArray[] values = new ValueArray[distinctValues.size()];
         int i = 0;

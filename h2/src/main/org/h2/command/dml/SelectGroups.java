@@ -64,12 +64,6 @@ public abstract class SelectGroups {
          */
         private Iterator<Entry<ValueArray, Object[]>> cursor;
 
-        /**
-         * The key for the default group.
-         */
-        // Can be static, but TestClearReferences complains about it
-        private final ValueArray defaultGroup = ValueArray.get(new Value[0]);
-
         Grouped(Session session, ArrayList<Expression> expressions, int[] groupIndex) {
             super(session, expressions);
             this.groupIndex = groupIndex;
@@ -86,7 +80,7 @@ public abstract class SelectGroups {
         @Override
         public void nextSource() {
             if (groupIndex == null) {
-                currentGroupsKey = defaultGroup;
+                currentGroupsKey = ValueArray.getEmpty();
             } else {
                 Value[] keyValues = new Value[groupIndex.length];
                 // update group
@@ -120,7 +114,7 @@ public abstract class SelectGroups {
         public void done() {
             super.done();
             if (groupIndex == null && groupByData.size() == 0) {
-                groupByData.put(defaultGroup, createRow());
+                groupByData.put(ValueArray.getEmpty(), createRow());
             }
             cursor = groupByData.entrySet().iterator();
         }
@@ -185,10 +179,9 @@ public abstract class SelectGroups {
         @Override
         public ValueArray next() {
             if (cursor.hasNext()) {
-                Object[] values = cursor.next();
-                currentGroupByExprData = values;
+                currentGroupByExprData = cursor.next();
                 currentGroupRowId++;
-                return ValueArray.get(new Value[0]);
+                return ValueArray.getEmpty();
             }
             return null;
         }

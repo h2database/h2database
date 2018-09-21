@@ -20,8 +20,7 @@ import org.h2.value.ValueNull;
  * <p>
  * NULL values are not collected. {@link #getValue(Database, int, boolean)}
  * method returns {@code null}. Use {@link #getArray()} for instances of this
- * class instead. Notice that subclasses like {@link AggregateDataMedian} may
- * override {@link #getValue(Database, int, boolean)} to return useful result.
+ * class instead.
  * </p>
  */
 class AggregateDataCollecting extends AggregateData {

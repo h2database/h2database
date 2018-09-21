@@ -41,9 +41,10 @@ import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 
 /**
- * Data stored while calculating a MEDIAN aggregate.
+ * MEDIAN aggregate.
  */
-class AggregateDataMedian extends AggregateDataCollecting {
+final class AggregateMedian {
+
     private static boolean isNullsLast(Index index) {
         IndexColumn ic = index.getIndexColumns()[0];
         int sortType = ic.sortType;
@@ -91,14 +92,34 @@ class AggregateDataMedian extends AggregateDataCollecting {
     }
 
     /**
-     * Get the result from the index.
+     * Get the median from the array of values.
+     *
+     * @param database the database
+     * @param array array with values
+     * @param dataType the data type
+     * @return the result
+     */
+    static Value median(Database database, Value[] array, int dataType) {
+        final CompareMode compareMode = database.getCompareMode();
+        Arrays.sort(array, compareMode);
+        int len = array.length;
+        int idx = len / 2;
+        Value v1 = array[idx];
+        if ((len & 1) == 1) {
+            return v1.convertTo(dataType);
+        }
+        return getMedian(array[idx - 1], v1, dataType, database.getMode(), compareMode);
+    }
+
+    /**
+     * Get the median from the index.
      *
      * @param session the session
      * @param on the expression
      * @param dataType the data type
      * @return the result
      */
-    static Value getResultFromIndex(Session session, Expression on, int dataType) {
+    static Value medianFromIndex(Session session, Expression on, int dataType) {
         Index index = getMedianColumnIndex(on);
         long count = index.getRowCount(session);
         if (count == 0) {
@@ -172,25 +193,9 @@ class AggregateDataMedian extends AggregateDataCollecting {
         return v;
     }
 
-    @Override
-    Value getValue(Database database, int dataType, boolean distinct) {
-        Value[] a = getArray();
-        if (a == null) {
-            return ValueNull.INSTANCE;
-        }
-        final CompareMode compareMode = database.getCompareMode();
-        Arrays.sort(a, compareMode);
-        int len = a.length;
-        int idx = len / 2;
-        Value v1 = a[idx];
-        if ((len & 1) == 1) {
-            return v1.convertTo(dataType);
-        }
-        return getMedian(a[idx - 1], v1, dataType, database.getMode(), compareMode);
-    }
-
     private static Value getMedian(Value v0, Value v1, int dataType, Mode databaseMode, CompareMode compareMode) {
-        if (v0.compareTo(v1, databaseMode, compareMode) == 0) {
+        int cmp = v0.compareTo(v1, databaseMode, compareMode);
+        if (cmp == 0) {
             return v0.convertTo(dataType);
         }
         switch (dataType) {
@@ -266,11 +271,14 @@ class AggregateDataMedian extends AggregateDataCollecting {
         case Value.INTERVAL_MINUTE_TO_SECOND:
             return IntervalUtils.intervalFromAbsolute(IntervalQualifier.valueOf(dataType - Value.INTERVAL_YEAR),
                     IntervalUtils.intervalToAbsolute((ValueInterval) v0)
-                    .add(IntervalUtils.intervalToAbsolute((ValueInterval) v1)).shiftRight(1));
+                            .add(IntervalUtils.intervalToAbsolute((ValueInterval) v1)).shiftRight(1));
         default:
-            // Just return first
-            return v0.convertTo(dataType);
+            // Just return smaller
+            return (cmp < 0 ? v0 : v1).convertTo(dataType);
         }
+    }
+
+    private AggregateMedian() {
     }
 
 }

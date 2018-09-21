@@ -402,7 +402,7 @@ public class Aggregate extends AbstractAggregate {
             return v;
         }
         case MEDIAN:
-            return AggregateDataMedian.getResultFromIndex(session, on, dataType);
+            return AggregateMedian.medianFromIndex(session, on, dataType);
         case ENVELOPE:
             return ((MVSpatialIndex) AggregateDataEnvelope.getGeometryColumnIndex(on)).getBounds(session);
         default:
@@ -458,6 +458,13 @@ public class Aggregate extends AbstractAggregate {
                 }
             }
             return ValueArray.get(array);
+        }
+        case MEDIAN: {
+            Value[] array = ((AggregateDataCollecting) data).getArray();
+            if (array == null) {
+                return ValueNull.INSTANCE;
+            }
+            return AggregateMedian.median(session.getDatabase(), array, dataType);
         }
         case MODE:
             if (orderByList != null) {
@@ -762,7 +769,7 @@ public class Aggregate extends AbstractAggregate {
                 if (distinct) {
                     return false;
                 }
-                return AggregateDataMedian.getMedianColumnIndex(on) != null;
+                return AggregateMedian.getMedianColumnIndex(on) != null;
             case ENVELOPE:
                 return AggregateDataEnvelope.getGeometryColumnIndex(on) != null;
             default:

@@ -26,6 +26,7 @@ abstract class AggregateData {
             return new AggregateDataSelectivity();
         case GROUP_CONCAT:
         case ARRAY_AGG:
+        case MEDIAN:
             return new AggregateDataCollecting();
         case COUNT_ALL:
             return new AggregateDataCountAll();
@@ -33,8 +34,6 @@ abstract class AggregateData {
             return new AggregateDataCount();
         case HISTOGRAM:
             return new AggregateDataHistogram();
-        case MEDIAN:
-            return new AggregateDataMedian();
         case MODE:
             return new AggregateDataMode();
         case ENVELOPE:

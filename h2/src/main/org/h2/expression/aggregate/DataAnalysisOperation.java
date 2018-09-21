@@ -225,7 +225,7 @@ public abstract class DataAnalysisOperation extends Expression {
                 if (ifExists) {
                     return null;
                 }
-                data = forOrderBy ? new ArrayList<>() : createAggregateData();
+                data = createAggregateData();
                 groupData.setCurrentGroupExprData(this, data);
             }
         }

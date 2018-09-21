@@ -175,11 +175,6 @@ public class WindowFunction extends DataAnalysisOperation {
     }
 
     @Override
-    protected void updateFromExpressions(Session session, Object aggregateData, Value[] array) {
-        throw DbException.getUnsupportedException("Window function");
-    }
-
-    @Override
     protected Object createAggregateData() {
         throw DbException.getUnsupportedException("Window function");
     }

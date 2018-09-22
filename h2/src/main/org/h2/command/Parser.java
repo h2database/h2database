@@ -6201,20 +6201,20 @@ public class Parser {
             } else if (readIf("MINVALUE")) {
                 options.setMinValue(readExpression());
             } else if (readIf("NOMINVALUE")) {
-                options.setMinValue(null);
+                options.setMinValue(ValueExpression.getNull());
             } else if (readIf("MAXVALUE")) {
                 options.setMaxValue(readExpression());
             } else if (readIf("NOMAXVALUE")) {
-                options.setMaxValue(null);
+                options.setMaxValue(ValueExpression.getNull());
             } else if (readIf("CYCLE")) {
                 options.setCycle(true);
             } else if (readIf("NOCYCLE")) {
                 options.setCycle(false);
             } else if (readIf("NO")) {
                 if (readIf("MINVALUE")) {
-                    options.setMinValue(null);
+                    options.setMinValue(ValueExpression.getNull());
                 } else if (readIf("MAXVALUE")) {
-                    options.setMaxValue(null);
+                    options.setMaxValue(ValueExpression.getNull());
                 } else if (readIf("CYCLE")) {
                     options.setCycle(false);
                 } else if (readIf("CACHE")) {

@@ -7,6 +7,8 @@ package org.h2.command.ddl;
 
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.expression.ValueExpression;
+import org.h2.schema.Sequence;
 
 /**
  * Sequence options.
@@ -45,7 +47,11 @@ public class SequenceOptions {
         this.increment = increment;
     }
 
-    public Long getMaxValue(Session session) {
+    public Long getMaxValue(Sequence sequence, Session session) {
+        if (maxValue == ValueExpression.getNull() && sequence != null) {
+            return Sequence.getDefaultMaxValue(getCurrentStart(sequence, session),
+                    increment != null ? getIncrement(session) : sequence.getIncrement());
+        }
         return getLong(session, maxValue);
     }
 
@@ -53,8 +59,16 @@ public class SequenceOptions {
         this.maxValue = maxValue;
     }
 
-    public Long getMinValue(Session session) {
+    public Long getMinValue(Sequence sequence, Session session) {
+        if (minValue == ValueExpression.getNull() && sequence != null) {
+            return Sequence.getDefaultMinValue(getCurrentStart(sequence, session),
+                    increment != null ? getIncrement(session) : sequence.getIncrement());
+        }
         return getLong(session, minValue);
+    }
+
+    public long getCurrentStart(Sequence sequence, Session session) {
+        return start != null ? getStartValue(session) : sequence.getCurrentValue() + sequence.getIncrement();
     }
 
     public void setMinValue(Expression minValue) {

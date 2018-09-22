@@ -54,8 +54,8 @@ public class CreateSequence extends SchemaCommand {
         }
         int id = getObjectId();
         Sequence sequence = new Sequence(getSchema(), id, sequenceName, options.getStartValue(session),
-                options.getIncrement(session), options.getCacheSize(session), options.getMinValue(session),
-                options.getMaxValue(session), Boolean.TRUE.equals(options.getCycle()), belongsToTable);
+                options.getIncrement(session), options.getCacheSize(session), options.getMinValue(null, session),
+                options.getMaxValue(null, session), Boolean.TRUE.equals(options.getCycle()), belongsToTable);
         db.addSchemaObject(session, sequence);
         return 0;
     }

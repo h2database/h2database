@@ -456,7 +456,7 @@ public class Column {
         } while (schema.findSequence(sequenceName) != null);
         Sequence seq = new Sequence(schema, id, sequenceName, autoIncrementOptions.getStartValue(session),
                 autoIncrementOptions.getIncrement(session), autoIncrementOptions.getCacheSize(session),
-                autoIncrementOptions.getMinValue(session), autoIncrementOptions.getMaxValue(session),
+                autoIncrementOptions.getMinValue(null, session), autoIncrementOptions.getMaxValue(null, session),
                 Boolean.TRUE.equals(autoIncrementOptions.getCycle()), true);
         seq.setTemporary(temporary);
         session.getDatabase().addSchemaObject(session, seq);

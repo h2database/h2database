@@ -4887,7 +4887,6 @@ public class Parser {
                 }
                 read(CLOSE_PAREN);
             }
-            column.setPrimaryKey(true);
             column.setAutoIncrement(true, start, increment);
         }
         if (readIf(ON)) {

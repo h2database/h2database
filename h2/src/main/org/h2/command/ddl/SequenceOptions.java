@@ -9,6 +9,8 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
 import org.h2.schema.Sequence;
+import org.h2.value.Value;
+import org.h2.value.ValueNull;
 
 /**
  * Sequence options.
@@ -28,7 +30,13 @@ public class SequenceOptions {
     private Expression cacheSize;
 
     private static Long getLong(Session session, Expression expr) {
-        return expr != null ? expr.optimize(session).getValue(session).getLong() : null;
+        if (expr != null) {
+            Value value = expr.optimize(session).getValue(session);
+            if (value != ValueNull.INSTANCE) {
+                return value.getLong();
+            }
+        }
+        return null;
     }
 
     public Long getStartValue(Session session) {

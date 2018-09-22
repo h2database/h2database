@@ -3,15 +3,13 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.command.dml;
+package org.h2.command.ddl;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
-import org.h2.command.ddl.SchemaCommand;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
-import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
@@ -19,21 +17,19 @@ import org.h2.table.Column;
 import org.h2.table.Table;
 
 /**
- * This class represents the statement
- * ALTER SEQUENCE
+ * This class represents the statement ALTER SEQUENCE.
  */
 public class AlterSequence extends SchemaCommand {
 
     private boolean ifExists;
+
     private Table table;
+
     private String sequenceName;
+
     private Sequence sequence;
-    private Expression start;
-    private Expression increment;
-    private Boolean cycle;
-    private Expression minValue;
-    private Expression maxValue;
-    private Expression cacheSize;
+
+    private SequenceOptions options;
 
     public AlterSequence(Session session, Schema schema) {
         super(session, schema);
@@ -47,6 +43,10 @@ public class AlterSequence extends SchemaCommand {
         this.sequenceName = sequenceName;
     }
 
+    public void setOptions(SequenceOptions options) {
+        this.options = options;
+    }
+
     @Override
     public boolean isTransactional() {
         return true;
@@ -58,30 +58,6 @@ public class AlterSequence extends SchemaCommand {
         if (sequence == null && !ifExists) {
             throw DbException.get(ErrorCode.SEQUENCE_NOT_FOUND_1, column.getSQL());
         }
-    }
-
-    public void setStartWith(Expression start) {
-        this.start = start;
-    }
-
-    public void setIncrement(Expression increment) {
-        this.increment = increment;
-    }
-
-    public void setCycle(Boolean cycle) {
-        this.cycle = cycle;
-    }
-
-    public void setMinValue(Expression minValue) {
-        this.minValue = minValue;
-    }
-
-    public void setMaxValue(Expression maxValue) {
-        this.maxValue = maxValue;
-    }
-
-    public void setCacheSize(Expression cacheSize) {
-        this.cacheSize = cacheSize;
     }
 
     @Override
@@ -99,30 +75,20 @@ public class AlterSequence extends SchemaCommand {
         if (table != null) {
             session.getUser().checkRight(table, Right.ALL);
         }
+        Boolean cycle = options.getCycle();
         if (cycle != null) {
             sequence.setCycle(cycle);
         }
-        if (cacheSize != null) {
-            long size = cacheSize.optimize(session).getValue(session).getLong();
-            sequence.setCacheSize(size);
+        Long cache = options.getCacheSize(session);
+        if (cache != null) {
+            sequence.setCacheSize(cache);
         }
-        if (start != null || minValue != null ||
-                maxValue != null || increment != null) {
-            Long startValue = getLong(start);
-            Long min = getLong(minValue);
-            Long max = getLong(maxValue);
-            Long inc = getLong(increment);
-            sequence.modify(startValue, min, max, inc);
+        if (options.isRangeSet()) {
+            sequence.modify(options.getStartValue(session), options.getMinValue(session), options.getMaxValue(session),
+                    options.getIncrement(session));
         }
         db.updateMeta(session, sequence);
         return 0;
-    }
-
-    private Long getLong(Expression expr) {
-        if (expr == null) {
-            return null;
-        }
-        return expr.optimize(session).getValue(session).getLong();
     }
 
     @Override

@@ -174,7 +174,7 @@ public class TestLob extends TestDb {
             return;
         }
         deleteDb("lob");
-        final String url = getURL("lob;lob_timeout=50", true);
+        final String url = getURL("lob;lob_timeout=200", true);
         Connection conn = getConnection(url);
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key, data clob)");
@@ -196,7 +196,7 @@ public class TestLob extends TestDb {
         stat.execute("delete from test");
         c1.getSubString(1, 3);
         // wait until it times out
-        Thread.sleep(100);
+        Thread.sleep(250);
         // start a new transaction, to be sure
         stat.execute("delete from test");
         assertThrows(SQLException.class, c1).getSubString(1, 3);

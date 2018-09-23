@@ -1043,7 +1043,7 @@ public class Select extends Query {
         if (havingIndex >= 0) {
             Expression expr = expressions.get(havingIndex);
             SelectListColumnResolver res = new SelectListColumnResolver(this);
-            expr.mapColumns(res, 0);
+            expr.mapColumns(res, 0, Expression.MAP_INITIAL);
         }
         checkInit = true;
     }
@@ -1448,10 +1448,10 @@ public class Select extends Query {
     @Override
     public void mapColumns(ColumnResolver resolver, int level) {
         for (Expression e : expressions) {
-            e.mapColumns(resolver, level);
+            e.mapColumns(resolver, level, Expression.MAP_INITIAL);
         }
         if (condition != null) {
-            condition.mapColumns(resolver, level);
+            condition.mapColumns(resolver, level, Expression.MAP_INITIAL);
         }
     }
 

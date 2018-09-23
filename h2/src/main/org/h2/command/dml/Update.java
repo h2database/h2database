@@ -216,15 +216,15 @@ public class Update extends Prepared {
     @Override
     public void prepare() {
         if (condition != null) {
-            condition.mapColumns(targetTableFilter, 0);
+            condition.mapColumns(targetTableFilter, 0, Expression.MAP_INITIAL);
             condition = condition.optimize(session);
             condition.createIndexConditions(session, targetTableFilter);
         }
         for (Column c : columns) {
             Expression e = expressionMap.get(c);
-            e.mapColumns(targetTableFilter, 0);
+            e.mapColumns(targetTableFilter, 0, Expression.MAP_INITIAL);
             if (sourceTableFilter!=null){
-                e.mapColumns(sourceTableFilter, 0);
+                e.mapColumns(sourceTableFilter, 0, Expression.MAP_INITIAL);
             }
             expressionMap.put(c, e.optimize(session));
         }

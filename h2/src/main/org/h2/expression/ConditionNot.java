@@ -37,8 +37,8 @@ public class ConditionNot extends Condition {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
-        condition.mapColumns(resolver, level);
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
+        condition.mapColumns(resolver, level, state);
     }
 
     @Override

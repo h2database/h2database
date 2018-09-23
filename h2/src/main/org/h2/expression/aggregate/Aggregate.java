@@ -512,19 +512,19 @@ public class Aggregate extends AbstractAggregate {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public void mapColumnsAnalysis(ColumnResolver resolver, int level, int innerState) {
         if (on != null) {
-            on.mapColumns(resolver, level);
+            on.mapColumns(resolver, level, innerState);
         }
         if (orderByList != null) {
             for (SelectOrderBy o : orderByList) {
-                o.expression.mapColumns(resolver, level);
+                o.expression.mapColumns(resolver, level, innerState);
             }
         }
         if (groupConcatSeparator != null) {
-            groupConcatSeparator.mapColumns(resolver, level);
+            groupConcatSeparator.mapColumns(resolver, level, innerState);
         }
-        super.mapColumns(resolver, level);
+        super.mapColumnsAnalysis(resolver, level, innerState);
     }
 
     @Override

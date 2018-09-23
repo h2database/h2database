@@ -48,11 +48,11 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public void mapColumnsAnalysis(ColumnResolver resolver, int level, int innerState) {
         if (filterCondition != null) {
-            filterCondition.mapColumns(resolver, level);
+            filterCondition.mapColumns(resolver, level, innerState);
         }
-        super.mapColumns(resolver, level);
+        super.mapColumnsAnalysis(resolver, level, innerState);
     }
 
     @Override

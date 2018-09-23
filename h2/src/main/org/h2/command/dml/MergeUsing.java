@@ -319,8 +319,8 @@ public class MergeUsing extends Prepared {
         onCondition.addFilterConditions(sourceTableFilter, true);
         onCondition.addFilterConditions(targetTableFilter, true);
 
-        onCondition.mapColumns(sourceTableFilter, 2);
-        onCondition.mapColumns(targetTableFilter, 1);
+        onCondition.mapColumns(sourceTableFilter, 2, Expression.MAP_INITIAL);
+        onCondition.mapColumns(targetTableFilter, 1, Expression.MAP_INITIAL);
 
         if (keys == null) {
             keys = buildColumnListFromOnCondition(targetTableFilter.getTable());

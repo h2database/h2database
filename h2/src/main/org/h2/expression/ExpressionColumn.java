@@ -79,7 +79,7 @@ public class ExpressionColumn extends Expression {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
         if (tableAlias != null && !database.equalsIdentifiers(
                 tableAlias, resolver.getTableAlias())) {
             return;

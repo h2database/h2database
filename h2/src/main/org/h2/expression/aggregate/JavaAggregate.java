@@ -110,11 +110,11 @@ public class JavaAggregate extends AbstractAggregate {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public void mapColumnsAnalysis(ColumnResolver resolver, int level, int innerState) {
         for (Expression arg : args) {
-            arg.mapColumns(resolver, level);
+            arg.mapColumns(resolver, level, innerState);
         }
-        super.mapColumns(resolver, level);
+        super.mapColumnsAnalysis(resolver, level, innerState);
     }
 
     @Override

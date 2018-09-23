@@ -249,10 +249,10 @@ public class IntervalOperation extends Expression {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
-        left.mapColumns(resolver, level);
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
+        left.mapColumns(resolver, level, state);
         if (right != null) {
-            right.mapColumns(resolver, level);
+            right.mapColumns(resolver, level, state);
         }
     }
 

@@ -24,6 +24,23 @@ import org.h2.value.ValueArray;
  */
 public abstract class Expression {
 
+    /**
+     * Initial state for {@link #mapColumns(ColumnResolver, int, int)}.
+     */
+    public static final int MAP_INITIAL = 0;
+
+    /**
+     * State for expressions inside a window function for
+     * {@link #mapColumns(ColumnResolver, int, int)}.
+     */
+    public static final int MAP_IN_WINDOW = 1;
+
+    /**
+     * State for expressions inside an aggregate for
+     * {@link #mapColumns(ColumnResolver, int, int)}.
+     */
+    public static final int MAP_IN_AGGREGATE = 2;
+
     private boolean addedToFilter;
 
     /**
@@ -47,8 +64,10 @@ public abstract class Expression {
      *
      * @param resolver the column resolver
      * @param level the subquery nesting level
+     * @param state current state for nesting checks, initial value is
+     *              {@link #MAP_INITIAL}
      */
-    public abstract void mapColumns(ColumnResolver resolver, int level);
+    public abstract void mapColumns(ColumnResolver resolver, int level, int state);
 
     /**
      * Try to optimize the expression.

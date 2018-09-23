@@ -133,9 +133,9 @@ public class Delete extends Prepared {
     @Override
     public void prepare() {
         if (condition != null) {
-            condition.mapColumns(targetTableFilter, 0);
+            condition.mapColumns(targetTableFilter, 0, Expression.MAP_INITIAL);
             if (sourceTableFilter != null) {
-                condition.mapColumns(sourceTableFilter, 0);
+                condition.mapColumns(sourceTableFilter, 0, Expression.MAP_INITIAL);
             }
             condition = condition.optimize(session);
             condition.createIndexConditions(session, targetTableFilter);

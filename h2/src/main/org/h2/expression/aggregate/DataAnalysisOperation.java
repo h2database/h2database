@@ -81,7 +81,22 @@ public abstract class DataAnalysisOperation extends Expression {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public final void mapColumns(ColumnResolver resolver, int level, int state) {
+        if (over != null) {
+            if (state != MAP_INITIAL) {
+                throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
+            }
+            state = MAP_IN_WINDOW;
+        } else {
+            if (state == MAP_IN_AGGREGATE) {
+                throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
+            }
+            state = MAP_IN_AGGREGATE;
+        }
+        mapColumnsAnalysis(resolver, level, state);
+    }
+
+    protected void mapColumnsAnalysis(ColumnResolver resolver, int level, int innerState) {
         if (over != null) {
             over.mapColumns(resolver, level);
         }
@@ -109,7 +124,7 @@ public abstract class DataAnalysisOperation extends Expression {
     }
 
     @Override
-    public void updateAggregate(Session session, int stage) {
+    public final void updateAggregate(Session session, int stage) {
         if (stage == Aggregate.STAGE_RESET) {
             updateGroupAggregates(session, Aggregate.STAGE_RESET);
             lastGroupRowId = 0;
@@ -122,10 +137,6 @@ public abstract class DataAnalysisOperation extends Expression {
             }
             return;
         }
-        // TODO aggregates: check nested MIN(MAX(ID)) and so on
-        // if (on != null) {
-        // on.updateAggregate();
-        // }
         SelectGroups groupData = select.getGroupDataIfCurrent(window);
         if (groupData == null) {
             // this is a different level (the enclosing query)

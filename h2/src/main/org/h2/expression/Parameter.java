@@ -71,7 +71,7 @@ public class Parameter extends Expression implements ParameterInterface {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
         // can't map
     }
 

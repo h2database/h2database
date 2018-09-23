@@ -37,8 +37,8 @@ public class UnaryOperation extends Expression {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
-        arg.mapColumns(resolver, level);
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
+        arg.mapColumns(resolver, level, state);
     }
 
     @Override

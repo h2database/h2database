@@ -54,7 +54,7 @@ public class ConditionExists extends Condition {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
         query.mapColumns(resolver, level + 1);
     }
 

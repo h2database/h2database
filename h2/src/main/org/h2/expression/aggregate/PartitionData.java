@@ -17,7 +17,7 @@ public final class PartitionData {
     /**
      * Aggregate data.
      */
-    private final Object data;
+    private Object data;
 
     /**
      * Evaluated result.
@@ -65,6 +65,7 @@ public final class PartitionData {
      */
     void setResult(Value result) {
         this.result = result;
+        data = null;
     }
 
     /**
@@ -84,6 +85,7 @@ public final class PartitionData {
      */
     void setOrderedResult(HashMap<Integer, Value> orderedResult) {
         this.orderedResult = orderedResult;
+        data = null;
     }
 
 }

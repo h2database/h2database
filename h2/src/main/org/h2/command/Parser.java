@@ -65,6 +65,7 @@ import org.h2.api.IntervalQualifier;
 import org.h2.api.Trigger;
 import org.h2.command.ddl.AlterIndexRename;
 import org.h2.command.ddl.AlterSchemaRename;
+import org.h2.command.ddl.AlterSequence;
 import org.h2.command.ddl.AlterTableAddConstraint;
 import org.h2.command.ddl.AlterTableAlterColumn;
 import org.h2.command.ddl.AlterTableDropConstraint;
@@ -108,9 +109,9 @@ import org.h2.command.ddl.DropView;
 import org.h2.command.ddl.GrantRevoke;
 import org.h2.command.ddl.PrepareProcedure;
 import org.h2.command.ddl.SchemaCommand;
+import org.h2.command.ddl.SequenceOptions;
 import org.h2.command.ddl.SetComment;
 import org.h2.command.ddl.TruncateTable;
-import org.h2.command.dml.AlterSequence;
 import org.h2.command.dml.AlterTableSet;
 import org.h2.command.dml.BackupCommand;
 import org.h2.command.dml.Call;
@@ -171,10 +172,10 @@ import org.h2.expression.UnaryOperation;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.Variable;
 import org.h2.expression.Wildcard;
-import org.h2.expression.aggregate.DataAnalysisOperation;
 import org.h2.expression.aggregate.AbstractAggregate;
 import org.h2.expression.aggregate.Aggregate;
 import org.h2.expression.aggregate.Aggregate.AggregateType;
+import org.h2.expression.aggregate.DataAnalysisOperation;
 import org.h2.expression.aggregate.JavaAggregate;
 import org.h2.expression.aggregate.Window;
 import org.h2.expression.aggregate.WindowFrame;
@@ -4875,20 +4876,12 @@ public class Parser {
             }
             read("AS");
             read("IDENTITY");
-            long start = 1, increment = 1;
+            SequenceOptions options = new SequenceOptions();
             if (readIf(OPEN_PAREN)) {
-                read("START");
-                readIf(WITH);
-                start = readLong();
-                readIf(COMMA);
-                if (readIf("INCREMENT")) {
-                    readIf("BY");
-                    increment = readLong();
-                }
+                parseSequenceOptions(options, null, true);
                 read(CLOSE_PAREN);
             }
-            column.setPrimaryKey(true);
-            column.setAutoIncrement(true, start, increment);
+            column.setAutoIncrementOptions(options);
         }
         if (readIf(ON)) {
             read("UPDATE");
@@ -4925,15 +4918,15 @@ public class Parser {
     }
 
     private void parseAutoIncrement(Column column) {
-        long start = 1, increment = 1;
+        SequenceOptions options = new SequenceOptions();
         if (readIf(OPEN_PAREN)) {
-            start = readLong();
+            options.setStartValue(ValueExpression.get(ValueLong.get(readLong())));
             if (readIf(COMMA)) {
-                increment = readLong();
+                options.setIncrement(ValueExpression.get(ValueLong.get(readLong())));
             }
             read(CLOSE_PAREN);
         }
-        column.setAutoIncrement(true, start, increment);
+        column.setAutoIncrementOptions(options);
     }
 
     private String readCommentIf() {
@@ -5666,49 +5659,9 @@ public class Parser {
         CreateSequence command = new CreateSequence(session, getSchema());
         command.setIfNotExists(ifNotExists);
         command.setSequenceName(sequenceName);
-        while (true) {
-            if (readIf("START")) {
-                readIf(WITH);
-                command.setStartWith(readExpression());
-            } else if (readIf("INCREMENT")) {
-                readIf("BY");
-                command.setIncrement(readExpression());
-            } else if (readIf("MINVALUE")) {
-                command.setMinValue(readExpression());
-            } else if (readIf("NOMINVALUE")) {
-                command.setMinValue(null);
-            } else if (readIf("MAXVALUE")) {
-                command.setMaxValue(readExpression());
-            } else if (readIf("NOMAXVALUE")) {
-                command.setMaxValue(null);
-            } else if (readIf("CYCLE")) {
-                command.setCycle(true);
-            } else if (readIf("NOCYCLE")) {
-                command.setCycle(false);
-            } else if (readIf("NO")) {
-                if (readIf("MINVALUE")) {
-                    command.setMinValue(null);
-                } else if (readIf("MAXVALUE")) {
-                    command.setMaxValue(null);
-                } else if (readIf("CYCLE")) {
-                    command.setCycle(false);
-                } else if (readIf("CACHE")) {
-                    command.setCacheSize(ValueExpression.get(ValueLong.get(1)));
-                } else {
-                    break;
-                }
-            } else if (readIf("CACHE")) {
-                command.setCacheSize(readExpression());
-            } else if (readIf("NOCACHE")) {
-                command.setCacheSize(ValueExpression.get(ValueLong.get(1)));
-            } else if (readIf("BELONGS_TO_TABLE")) {
-                command.setBelongsToTable(true);
-            } else if (readIf(ORDER)) {
-                // Oracle compatibility
-            } else {
-                break;
-            }
-        }
+        SequenceOptions options = new SequenceOptions();
+        parseSequenceOptions(options, command, true);
+        command.setOptions(options);
         return command;
     }
 
@@ -6231,46 +6184,60 @@ public class Parser {
         AlterSequence command = new AlterSequence(session, getSchema());
         command.setSequenceName(sequenceName);
         command.setIfExists(ifExists);
-        while (true) {
-            if (readIf("RESTART")) {
-                read(WITH);
-                command.setStartWith(readExpression());
+        SequenceOptions options = new SequenceOptions();
+        parseSequenceOptions(options, null, false);
+        command.setOptions(options);
+        return command;
+    }
+
+    private void parseSequenceOptions(SequenceOptions options, CreateSequence command, boolean forCreate) {
+        for (;;) {
+            if (readIf(forCreate ? "START" : "RESTART")) {
+                readIf(WITH);
+                options.setStartValue(readExpression());
             } else if (readIf("INCREMENT")) {
-                read("BY");
-                command.setIncrement(readExpression());
+                readIf("BY");
+                options.setIncrement(readExpression());
             } else if (readIf("MINVALUE")) {
-                command.setMinValue(readExpression());
+                options.setMinValue(readExpression());
             } else if (readIf("NOMINVALUE")) {
-                command.setMinValue(null);
+                options.setMinValue(ValueExpression.getNull());
             } else if (readIf("MAXVALUE")) {
-                command.setMaxValue(readExpression());
+                options.setMaxValue(readExpression());
             } else if (readIf("NOMAXVALUE")) {
-                command.setMaxValue(null);
+                options.setMaxValue(ValueExpression.getNull());
             } else if (readIf("CYCLE")) {
-                command.setCycle(true);
+                options.setCycle(true);
             } else if (readIf("NOCYCLE")) {
-                command.setCycle(false);
+                options.setCycle(false);
             } else if (readIf("NO")) {
                 if (readIf("MINVALUE")) {
-                    command.setMinValue(null);
+                    options.setMinValue(ValueExpression.getNull());
                 } else if (readIf("MAXVALUE")) {
-                    command.setMaxValue(null);
+                    options.setMaxValue(ValueExpression.getNull());
                 } else if (readIf("CYCLE")) {
-                    command.setCycle(false);
+                    options.setCycle(false);
                 } else if (readIf("CACHE")) {
-                    command.setCacheSize(ValueExpression.get(ValueLong.get(1)));
+                    options.setCacheSize(ValueExpression.get(ValueLong.get(1)));
                 } else {
                     break;
                 }
             } else if (readIf("CACHE")) {
-                command.setCacheSize(readExpression());
+                options.setCacheSize(readExpression());
             } else if (readIf("NOCACHE")) {
-                command.setCacheSize(ValueExpression.get(ValueLong.get(1)));
+                options.setCacheSize(ValueExpression.get(ValueLong.get(1)));
+            } else if (command != null) {
+                if (readIf("BELONGS_TO_TABLE")) {
+                    command.setBelongsToTable(true);
+                } else if (readIf(ORDER)) {
+                    // Oracle compatibility
+                } else {
+                    break;
+                }
             } else {
                 break;
             }
         }
-        return command;
     }
 
     private AlterUser parseAlterUser() {
@@ -7040,7 +7007,9 @@ public class Parser {
                 Expression start = readExpression();
                 AlterSequence command = new AlterSequence(session, schema);
                 command.setColumn(column);
-                command.setStartWith(start);
+                SequenceOptions options = new SequenceOptions();
+                options.setStartValue(start);
+                command.setOptions(options);
                 return commandIfTableExists(schema, tableName, ifTableExists, command);
             } else if (readIf("SELECTIVITY")) {
                 AlterTableAlterColumn command = new AlterTableAlterColumn(

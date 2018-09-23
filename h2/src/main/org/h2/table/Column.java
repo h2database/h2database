@@ -10,6 +10,7 @@ import java.util.Objects;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
+import org.h2.command.ddl.SequenceOptions;
 import org.h2.engine.Constants;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
@@ -77,9 +78,7 @@ public class Column {
     private Expression checkConstraint;
     private String checkConstraintSQL;
     private String originalSQL;
-    private boolean autoIncrement;
-    private long start;
-    private long increment;
+    private SequenceOptions autoIncrementOptions;
     private boolean convertNullToDefault;
     private Sequence sequence;
     private boolean isComputed;
@@ -440,7 +439,7 @@ public class Column {
      */
     public void convertAutoIncrementToSequence(Session session, Schema schema,
             int id, boolean temporary) {
-        if (!autoIncrement) {
+        if (autoIncrementOptions == null) {
             DbException.throwInternalError();
         }
         if ("IDENTITY".equals(originalSQL)) {
@@ -455,10 +454,13 @@ public class Column {
             s = StringUtils.toUpperEnglish(s.replace('-', '_'));
             sequenceName = "SYSTEM_SEQUENCE_" + s;
         } while (schema.findSequence(sequenceName) != null);
-        Sequence seq = new Sequence(schema, id, sequenceName, start, increment);
+        Sequence seq = new Sequence(schema, id, sequenceName, autoIncrementOptions.getStartValue(session),
+                autoIncrementOptions.getIncrement(session), autoIncrementOptions.getCacheSize(session),
+                autoIncrementOptions.getMinValue(null, session), autoIncrementOptions.getMaxValue(null, session),
+                Boolean.TRUE.equals(autoIncrementOptions.getCycle()), true);
         seq.setTemporary(temporary);
         session.getDatabase().addSchemaObject(session, seq);
-        setAutoIncrement(false, 0, 0);
+        setAutoIncrementOptions(null);
         SequenceValue seqValue = new SequenceValue(seq);
         setDefaultExpression(session, seqValue);
         setSequence(seq);
@@ -603,22 +605,19 @@ public class Column {
     }
 
     public boolean isAutoIncrement() {
-        return autoIncrement;
+        return autoIncrementOptions != null;
     }
 
     /**
-     * Set the autoincrement flag and related properties of this column.
+     * Set the autoincrement flag and related options of this column.
      *
-     * @param autoInc the new autoincrement flag
-     * @param start the sequence start value
-     * @param increment the sequence increment
+     * @param sequenceOptions
+     *            sequence options, or {@code null} to reset the flag
      */
-    public void setAutoIncrement(boolean autoInc, long start, long increment) {
-        this.autoIncrement = autoInc;
-        this.start = start;
-        this.increment = increment;
+    public void setAutoIncrementOptions(SequenceOptions sequenceOptions) {
+        this.autoIncrementOptions = sequenceOptions;
         this.nullable = false;
-        if (autoInc) {
+        if (sequenceOptions != null) {
             convertNullToDefault = true;
         }
     }
@@ -829,7 +828,7 @@ public class Column {
         if (primaryKey != newColumn.primaryKey) {
             return false;
         }
-        if (autoIncrement || newColumn.autoIncrement) {
+        if (autoIncrementOptions != null || newColumn.autoIncrementOptions != null) {
             return false;
         }
         if (checkConstraint != null || newColumn.checkConstraint != null) {

@@ -11,7 +11,6 @@ import java.util.Iterator;
 
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectGroups;
-import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
@@ -405,8 +404,7 @@ public class WindowFunction extends DataAnalysisOperation {
                 throw DbException.getSyntaxError(sql, sql.length() - 1);
             }
         }
-        ArrayList<SelectOrderBy> orderBy = over.getOrderBy();
-        if (orderBy == null || orderBy.isEmpty()) {
+        if (over.getOrderBy() == null) {
             switch (type) {
             case RANK:
             case DENSE_RANK:

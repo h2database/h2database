@@ -44,9 +44,9 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
         for (Expression e : args) {
-            e.mapColumns(resolver, level);
+            e.mapColumns(resolver, level, state);
         }
     }
 

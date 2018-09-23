@@ -40,9 +40,9 @@ public class ExpressionList extends Expression {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
         for (Expression e : list) {
-            e.mapColumns(resolver, level);
+            e.mapColumns(resolver, level, state);
         }
     }
 

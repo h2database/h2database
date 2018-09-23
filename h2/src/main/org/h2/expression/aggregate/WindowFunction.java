@@ -382,13 +382,13 @@ public class WindowFunction extends DataAnalysisOperation {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public void mapColumnsAnalysis(ColumnResolver resolver, int level, int innerState) {
         if (args != null) {
             for (Expression arg : args) {
-                arg.mapColumns(resolver, level);
+                arg.mapColumns(resolver, level, innerState);
             }
         }
-        super.mapColumns(resolver, level);
+        super.mapColumnsAnalysis(resolver, level, innerState);
     }
 
     @Override

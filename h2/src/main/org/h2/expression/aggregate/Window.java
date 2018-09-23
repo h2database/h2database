@@ -82,18 +82,18 @@ public final class Window {
      *            the column resolver
      * @param level
      *            the subquery nesting level
-     * @see Expression#mapColumns(ColumnResolver, int)
+     * @see Expression#mapColumns(ColumnResolver, int, int)
      */
     public void mapColumns(ColumnResolver resolver, int level) {
         resolveWindows(resolver);
         if (partitionBy != null) {
             for (Expression e : partitionBy) {
-                e.mapColumns(resolver, level);
+                e.mapColumns(resolver, level, Expression.MAP_IN_WINDOW);
             }
         }
         if (orderBy != null) {
             for (SelectOrderBy o : orderBy) {
-                o.expression.mapColumns(resolver, level);
+                o.expression.mapColumns(resolver, level, Expression.MAP_IN_WINDOW);
             }
         }
     }

@@ -38,7 +38,7 @@ public class Rownum extends Expression {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
         // nothing to do
     }
 

@@ -101,8 +101,8 @@ public class ConditionInSelect extends Condition {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
-        left.mapColumns(resolver, level);
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
+        left.mapColumns(resolver, level, state);
         query.mapColumns(resolver, level + 1);
         this.queryLevel = Math.max(level, this.queryLevel);
     }

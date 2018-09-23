@@ -2062,10 +2062,10 @@ public class Function extends Expression implements FunctionCall {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
         for (Expression e : args) {
             if (e != null) {
-                e.mapColumns(resolver, level);
+                e.mapColumns(resolver, level, state);
             }
         }
     }

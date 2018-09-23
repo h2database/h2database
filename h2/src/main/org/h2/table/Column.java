@@ -475,11 +475,11 @@ public class Column {
         if (defaultExpression != null || onUpdateExpression != null) {
             computeTableFilter = new TableFilter(session, table, null, false, null, 0, null);
             if (defaultExpression != null) {
-                defaultExpression.mapColumns(computeTableFilter, 0);
+                defaultExpression.mapColumns(computeTableFilter, 0, Expression.MAP_INITIAL);
                 defaultExpression = defaultExpression.optimize(session);
             }
             if (onUpdateExpression != null) {
-                onUpdateExpression.mapColumns(computeTableFilter, 0);
+                onUpdateExpression.mapColumns(computeTableFilter, 0, Expression.MAP_INITIAL);
                 onUpdateExpression = onUpdateExpression.optimize(session);
             }
         }
@@ -683,7 +683,7 @@ public class Column {
             if (name == null) {
                 name = "VALUE";
             }
-            expr.mapColumns(resolver, 0);
+            expr.mapColumns(resolver, 0, Expression.MAP_INITIAL);
             name = oldName;
         }
         expr = expr.optimize(session);

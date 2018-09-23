@@ -66,10 +66,10 @@ public class ConditionIn extends Condition {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
-        left.mapColumns(resolver, level);
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
+        left.mapColumns(resolver, level, state);
         for (Expression e : valueList) {
-            e.mapColumns(resolver, level);
+            e.mapColumns(resolver, level, state);
         }
         this.queryLevel = Math.max(level, this.queryLevel);
     }

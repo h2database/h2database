@@ -42,8 +42,8 @@ public class Alias extends Expression {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
-        expr.mapColumns(resolver, level);
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
+        expr.mapColumns(resolver, level, state);
     }
 
     @Override

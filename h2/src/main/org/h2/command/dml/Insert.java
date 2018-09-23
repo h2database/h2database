@@ -333,7 +333,7 @@ public class Insert extends Prepared implements ResultTarget {
                     Expression e = expr[i];
                     if (e != null) {
                         if(sourceTableFilter!=null){
-                            e.mapColumns(sourceTableFilter, 0);
+                            e.mapColumns(sourceTableFilter, 0, Expression.MAP_INITIAL);
                         }
                         e = e.optimize(session);
                         if (e instanceof Parameter) {

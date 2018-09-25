@@ -549,13 +549,15 @@ public class Database implements DataHandler {
                 if (store != null) {
                     store.closeImmediately();
                 }
-                if (pageStore != null) {
-                    try {
-                        pageStore.close();
-                    } catch (DbException e) {
-                        // ignore
+                synchronized(this) {
+                    if (pageStore != null) {
+                        try {
+                            pageStore.close();
+                        } catch (DbException e) {
+                            // ignore
+                        }
+                        pageStore = null;
                     }
-                    pageStore = null;
                 }
                 if (lock != null) {
                     stopServer();
@@ -2664,19 +2666,21 @@ public class Database implements DataHandler {
             }
             return null;
         }
-        if (pageStore == null) {
-            pageStore = new PageStore(this, databaseName +
-                    Constants.SUFFIX_PAGE_FILE, accessModeData, cacheSize);
-            if (pageSize != Constants.DEFAULT_PAGE_SIZE) {
-                pageStore.setPageSize(pageSize);
+        synchronized (this) {
+            if (pageStore == null) {
+                pageStore = new PageStore(this, databaseName +
+                        Constants.SUFFIX_PAGE_FILE, accessModeData, cacheSize);
+                if (pageSize != Constants.DEFAULT_PAGE_SIZE) {
+                    pageStore.setPageSize(pageSize);
+                }
+                if (!readOnly && fileLockMethod == FileLockMethod.FS) {
+                    pageStore.setLockFile(true);
+                }
+                pageStore.setLogMode(logMode);
+                pageStore.open();
             }
-            if (!readOnly && fileLockMethod == FileLockMethod.FS) {
-                pageStore.setLockFile(true);
-            }
-            pageStore.setLogMode(logMode);
-            pageStore.open();
+            return pageStore;
         }
-        return pageStore;
     }
 
     /**
@@ -2925,27 +2929,32 @@ public class Database implements DataHandler {
         if (log < 0 || log > 2) {
             throw DbException.getInvalidValueException("LOG", log);
         }
-        if (pageStore != null) {
-            if (log != PageStore.LOG_MODE_SYNC ||
-                    pageStore.getLogMode() != PageStore.LOG_MODE_SYNC) {
-                // write the log mode in the trace file when enabling or
-                // disabling a dangerous mode
-                trace.error(null, "log {0}", log);
-            }
-            this.logMode = log;
-            pageStore.setLogMode(log);
-        }
         if (store != null) {
             this.logMode = log;
+            return;
+        }
+        synchronized (this) {
+            if (pageStore != null) {
+                if (log != PageStore.LOG_MODE_SYNC ||
+                        pageStore.getLogMode() != PageStore.LOG_MODE_SYNC) {
+                    // write the log mode in the trace file when enabling or
+                    // disabling a dangerous mode
+                    trace.error(null, "log {0}", log);
+                }
+                this.logMode = log;
+                pageStore.setLogMode(log);
+            }
         }
     }
 
     public int getLogMode() {
-        if (pageStore != null) {
-            return pageStore.getLogMode();
-        }
         if (store != null) {
             return logMode;
+        }
+        synchronized (this) {
+            if (pageStore != null) {
+                return pageStore.getLogMode();
+            }
         }
         return PageStore.LOG_MODE_OFF;
     }

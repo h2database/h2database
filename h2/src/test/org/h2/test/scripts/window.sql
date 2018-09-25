@@ -63,24 +63,24 @@ INSERT INTO TEST VALUES
     (32, 3);
 > update count: 6
 
-SELECT ROW_NUMBER() OVER (ORDER BY CATEGORY), SUM(ID) FROM TEST GROUP BY CATEGORY HAVING SUM(ID) = 12;
+SELECT ROW_NUMBER() OVER (ORDER  /**/ BY CATEGORY), SUM(ID) FROM TEST GROUP BY CATEGORY HAVING SUM(ID) = 12;
 > ROW_NUMBER() OVER (ORDER BY CATEGORY) SUM(ID)
 > ------------------------------------- -------
 > 1                                     12
-> rows (ordered): 1
+> rows: 1
 
-SELECT ROW_NUMBER() OVER (ORDER BY CATEGORY), SUM(ID) FROM TEST GROUP BY CATEGORY HAVING CATEGORY = 2;
+SELECT ROW_NUMBER() OVER (ORDER  /**/ BY CATEGORY), SUM(ID) FROM TEST GROUP BY CATEGORY HAVING CATEGORY = 2;
 > ROW_NUMBER() OVER (ORDER BY CATEGORY) SUM(ID)
 > ------------------------------------- -------
 > 1                                     12
-> rows (ordered): 1
+> rows: 1
 
-SELECT ROW_NUMBER() OVER (ORDER BY CATEGORY), SUM(ID) FROM TEST GROUP BY CATEGORY HAVING CATEGORY > 1;
+SELECT ROW_NUMBER() OVER (ORDER /**/ BY CATEGORY), SUM(ID) FROM TEST GROUP BY CATEGORY HAVING CATEGORY > 1;
 > ROW_NUMBER() OVER (ORDER BY CATEGORY) SUM(ID)
 > ------------------------------------- -------
 > 1                                     12
 > 2                                     48
-> rows (ordered): 2
+> rows: 2
 
 DROP TABLE TEST;
 > ok
@@ -97,17 +97,17 @@ INSERT INTO TEST VALUES
     (32, FALSE);
 > update count: 6
 
-SELECT ROW_NUMBER() OVER (ORDER BY CATEGORY), SUM(ID) FROM TEST GROUP BY CATEGORY HAVING SUM(ID) = 12;
+SELECT ROW_NUMBER() OVER (ORDER /**/ BY CATEGORY), SUM(ID) FROM TEST GROUP BY CATEGORY HAVING SUM(ID) = 12;
 > ROW_NUMBER() OVER (ORDER BY CATEGORY) SUM(ID)
 > ------------------------------------- -------
 > 1                                     12
-> rows (ordered): 1
+> rows: 1
 
-SELECT ROW_NUMBER() OVER (ORDER BY CATEGORY), SUM(ID) FROM TEST GROUP BY CATEGORY HAVING CATEGORY;
+SELECT ROW_NUMBER() OVER (ORDER /**/ BY CATEGORY), SUM(ID) FROM TEST GROUP BY CATEGORY HAVING CATEGORY;
 > ROW_NUMBER() OVER (ORDER BY CATEGORY) SUM(ID)
 > ------------------------------------- -------
 > 1                                     12
-> rows (ordered): 1
+> rows: 1
 
 DROP TABLE TEST;
 > ok

@@ -131,6 +131,13 @@ public abstract class SelectGroups {
         }
 
         @Override
+        public void remove() {
+            cursor.remove();
+            currentGroupByExprData = null;
+            currentGroupRowId--;
+        }
+
+        @Override
         public void resetLazy() {
             super.resetLazy();
             currentGroupsKey = null;
@@ -373,6 +380,15 @@ public abstract class SelectGroups {
      * @return the key of the next group, or null
      */
     public abstract ValueArray next();
+
+    /**
+     * Removes the data for the current key.
+     *
+     * @see #next()
+     */
+    public void remove() {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Resets this group data for reuse in lazy mode.

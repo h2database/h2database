@@ -400,12 +400,16 @@ public class Select extends Query {
         initGroupData(columnCount);
         try {
             gatherGroup(columnCount, Aggregate.STAGE_GROUP);
-            while (groupData.next() != null) {
-                updateAgg(columnCount, Aggregate.STAGE_WINDOW);
-            }
-            groupData.done();
             try {
                 isGroupWindowStage2 = true;
+                while (groupData.next() != null) {
+                    if (havingIndex < 0 || expressions.get(havingIndex).getBooleanValue(session)) {
+                        updateAgg(columnCount, Aggregate.STAGE_WINDOW);
+                    } else {
+                        groupData.remove();
+                    }
+                }
+                groupData.done();
                 processGroupResult(columnCount, result, offset, quickOffset);
             } finally {
                 isGroupWindowStage2 = false;

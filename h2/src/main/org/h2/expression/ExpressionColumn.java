@@ -154,7 +154,6 @@ public class ExpressionColumn extends Expression {
 
     @Override
     public void updateAggregate(Session session, int stage) {
-        Value now = columnResolver.getValue(column);
         Select select = columnResolver.getSelect();
         if (select == null) {
             throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
@@ -166,9 +165,9 @@ public class ExpressionColumn extends Expression {
         }
         Value v = (Value) groupData.getCurrentGroupExprData(this);
         if (v == null) {
-            groupData.setCurrentGroupExprData(this, now);
-        } else {
-            if (!database.areEqual(now, v)) {
+            groupData.setCurrentGroupExprData(this, columnResolver.getValue(column));
+        } else if (!select.isGroupWindowStage2()) {
+            if (!database.areEqual(columnResolver.getValue(column), v)) {
                 throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
             }
         }

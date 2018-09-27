@@ -20,6 +20,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,7 +54,7 @@ public class TestScript extends TestDb {
     private LineNumberReader in;
     private PrintStream out;
     private final ArrayList<String[]> result = new ArrayList<>();
-    private String putBack;
+    private final ArrayDeque<String> putBack = new ArrayDeque<>();
     private StringBuilder errors;
 
     private Random random = new Random(1);
@@ -199,7 +200,7 @@ public class TestScript extends TestDb {
         in = null;
         out = null;
         result.clear();
-        putBack = null;
+        putBack.clear();
         errors = null;
 
         if (statements == null) {
@@ -224,16 +225,13 @@ public class TestScript extends TestDb {
     }
 
     private String readLine() throws IOException {
-        if (putBack != null) {
-            String s = putBack;
-            putBack = null;
-            return s;
-        }
-        while (true) {
-            String s = in.readLine();
-            if (s == null) {
-                return null;
-            }
+        String s = putBack.pollFirst();
+        return s != null ? s : readNextLine();
+    }
+
+    private String readNextLine() throws IOException {
+        String s;
+        while ((s = in.readLine()) != null) {
             if (s.startsWith("#")) {
                 int end = s.indexOf('#', 1);
                 if (end < 3) {
@@ -265,10 +263,15 @@ public class TestScript extends TestDb {
                 }
             }
             s = s.trim();
-            if (s.length() > 0) {
-                return s;
+            if (!s.isEmpty()) {
+                break;
             }
         }
+        return s;
+    }
+
+    public void putBack(String line) {
+        putBack.addLast(line);
     }
 
     private void testFile(String inFile, boolean allowReconnect) throws Exception {
@@ -448,7 +451,6 @@ public class TestScript extends TestDb {
     }
 
     private void writeResultSet(String sql, ResultSet rs) throws Exception {
-        boolean ordered = StringUtils.toLowerEnglish(sql).contains("order by");
         ResultSetMetaData meta = rs.getMetaData();
         int len = meta.getColumnCount();
         int[] max = new int[len];
@@ -474,7 +476,7 @@ public class TestScript extends TestDb {
         }
         rs.close();
         String line = readLine();
-        putBack = line;
+        putBack(line);
         if (line != null && line.startsWith(">> ")) {
             switch (result.size()) {
             case 0:
@@ -491,6 +493,22 @@ public class TestScript extends TestDb {
             default:
                 writeResult(sql, "<" + result.size() + " rows>", null, ">> ");
                 return;
+            }
+        }
+        boolean ordered;
+        for (;;) {
+            line = readNextLine();
+            if (line == null) {
+                addWriteResultError("<row count>", "<eof>");
+                return;
+            }
+            putBack(line);
+            if (line.startsWith("> rows: ")) {
+                ordered = false;
+                break;
+            } else if (line.startsWith("> rows (ordered): ")) {
+                ordered = true;
+                break;
             }
         }
         writeResult(sql, format(head, max), null);
@@ -575,7 +593,7 @@ public class TestScript extends TestDb {
             }
         } else {
             addWriteResultError("<nothing>", s);
-            putBack = compare;
+            putBack(compare);
         }
         write(s);
     }

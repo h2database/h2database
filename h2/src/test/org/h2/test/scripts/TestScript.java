@@ -558,8 +558,8 @@ public class TestScript extends TestDb {
                 break;
             }
         }
-        if (gotOrdered != null && ordered != null) {
-            if (ordered) {
+        if (gotOrdered != null) {
+            if (ordered == null || ordered) {
                 if (!gotOrdered) {
                     addWriteResultError("<ordered result set>", "<result set>");
                 }

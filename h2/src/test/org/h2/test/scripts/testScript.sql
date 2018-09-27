@@ -10,7 +10,7 @@ select * from test where id in (select id from test order by 'x');
 > ID
 > --
 > 1
-> rows (ordered): 1
+> rows: 1
 
 drop table test;
 > ok
@@ -63,7 +63,7 @@ AND studentID = 2;
 > SUM(POINTS)
 > -----------
 > 30
-> rows (ordered): 1
+> rows: 1
 
 SELECT eventID X FROM RESULTS
 WHERE studentID = 2
@@ -85,7 +85,7 @@ AND studentID = 2;
 > SUM(R.POINTS)
 > -------------
 > 30
-> rows (ordered): 1
+> rows: 1
 
 drop table results;
 > ok
@@ -97,7 +97,7 @@ create table test(id int, name varchar) as select 1, 'a';
 > ID
 > --
 > 1
-> rows (ordered): 1
+> rows: 1
 
 drop table test;
 > ok
@@ -162,7 +162,7 @@ select id from test where name in(null, null);
 select * from (select * from test order by name limit 1) where id < 10;
 > ID NAME
 > -- ----
-> rows (ordered): 0
+> rows: 0
 
 drop table test;
 > ok
@@ -335,7 +335,7 @@ select * from dual where x in (select x from dual group by x order by max(x));
 > X
 > -
 > 1
-> rows (ordered): 1
+> rows: 1
 
 create table test(d decimal(1, 2));
 > exception INVALID_VALUE_SCALE_PRECISION
@@ -742,7 +742,7 @@ select * from(select 1 from system_range(1, 2) group by sin(x) order by sin(x));
 > -
 > 1
 > 1
-> rows (ordered): 2
+> rows: 2
 
 create table parent as select 1 id, 2 x;
 > ok
@@ -1190,7 +1190,7 @@ drop table p;
 > X
 > -
 > 1
-> rows (ordered): 1
+> rows: 1
 
 create table test(a int, b int default 1);
 > ok
@@ -2813,7 +2813,7 @@ select rownum, * from (select * from test where id>1 order by id desc);
 > -------- -- ----
 > 1        3  33
 > 2        2  22
-> rows (ordered): 2
+> rows: 2
 
 update test set name='x' where rownum<2;
 > update count: 1
@@ -3289,7 +3289,7 @@ select select a from test order by id;
 > SELECT A FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ /* scanCount: 2 */ ORDER BY =ID /* index sorted */
 > -------------------------------------------------------------------------------------------------------
 > TRUE
-> rows (ordered): 1
+> rows: 1
 
 insert into test values(2, 'N');
 > update count: 1
@@ -6676,7 +6676,7 @@ SELECT GROUP_CONCAT(ID ORDER BY ID) FROM TEST;
 > GROUP_CONCAT(ID ORDER BY ID)
 > ----------------------------
 > 1,2,3,4,5,6,7,8,9
-> rows (ordered): 1
+> rows: 1
 
 SELECT STRING_AGG(ID,';') FROM TEST;
 > GROUP_CONCAT(ID SEPARATOR ';')
@@ -7945,9 +7945,9 @@ insert into test values (2014, 'execution'), (2015, 'execution'), (2016, 'execut
 select * from test where year in (select distinct year from test order by year desc limit 1 offset 0);
 > YEAR ACTION
 > ---- ---------
-> 2016 order
 > 2016 execution
-> rows (ordered): 2
+> 2016 order
+> rows: 2
 
 drop table test;
 > ok

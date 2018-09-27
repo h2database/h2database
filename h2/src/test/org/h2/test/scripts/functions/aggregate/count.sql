@@ -60,7 +60,7 @@ SELECT COUNT(ID) OVER (ORDER BY NAME) AS NR,
 > -- --
 > 1  3
 > 2  1
-> rows (ordered): 2
+> rows: 2
 
 SELECT NR FROM (SELECT COUNT(ID) OVER (ORDER BY NAME) AS NR,
     A.ID AS ID FROM (SELECT ID, NAME FROM TEST ORDER BY NAME) AS A)
@@ -82,7 +82,7 @@ SELECT I, V, COUNT(V) OVER W C, COUNT(DISTINCT V) OVER W D FROM
 > 5 2 5 2
 > 6 2 6 2
 > 7 3 7 3
-> rows (ordered): 7
+> rows: 7
 
 SELECT I, C, COUNT(I) OVER (PARTITION BY C) CNT FROM
     VALUES (1, 1), (2, 1), (3, 2), (4, 2), (5, 2) T(I, C);

@@ -80,7 +80,7 @@ SELECT
 > 6  21 21    21    36
 > 7  28 28    15    36
 > 8  36 36    8     36
-> rows (ordered): 8
+> rows: 8
 
 SELECT I, V, SUM(V) OVER W S, SUM(DISTINCT V) OVER W D FROM
     VALUES (1, 1), (2, 1), (3, 1), (4, 1), (5, 2), (6, 2), (7, 3) T(I, V)
@@ -94,4 +94,4 @@ SELECT I, V, SUM(V) OVER W S, SUM(DISTINCT V) OVER W D FROM
 > 5 2 6  3
 > 6 2 8  3
 > 7 3 11 6
-> rows (ordered): 7
+> rows: 7

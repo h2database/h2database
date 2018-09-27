@@ -27,7 +27,7 @@ SELECT *, ROW_NUMBER() OVER W1, ROW_NUMBER() OVER W2 FROM TEST
 > 2  3 1        2                                                     1
 > 3  2 2        1                                                     2
 > 4  1 2        2                                                     1
-> rows (ordered): 4
+> rows: 4
 
 SELECT *, LAST_VALUE(ID) OVER W FROM TEST
     WINDOW W AS (PARTITION BY CATEGORY ORDER BY ID RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE CURRENT ROW);
@@ -37,7 +37,7 @@ SELECT *, LAST_VALUE(ID) OVER W FROM TEST
 > 2  3 1        1
 > 3  2 2        4
 > 4  1 2        3
-> rows (ordered): 4
+> rows: 4
 
 DROP TABLE TEST;
 > ok
@@ -75,7 +75,7 @@ SELECT ROW_NUMBER() OVER (ORDER  /**/ BY CATEGORY), SUM(ID) FROM TEST GROUP BY C
 > 1                                     12
 > rows: 1
 
-SELECT ROW_NUMBER() OVER (ORDER /**/ BY CATEGORY), SUM(ID) FROM TEST GROUP BY CATEGORY HAVING CATEGORY > 1;
+SELECT ROW_NUMBER() OVER (ORDER BY CATEGORY), SUM(ID) FROM TEST GROUP BY CATEGORY HAVING CATEGORY > 1;
 > ROW_NUMBER() OVER (ORDER BY CATEGORY) SUM(ID)
 > ------------------------------------- -------
 > 1                                     12
@@ -97,13 +97,13 @@ INSERT INTO TEST VALUES
     (32, FALSE);
 > update count: 6
 
-SELECT ROW_NUMBER() OVER (ORDER /**/ BY CATEGORY), SUM(ID) FROM TEST GROUP BY CATEGORY HAVING SUM(ID) = 12;
+SELECT ROW_NUMBER() OVER (ORDER BY CATEGORY), SUM(ID) FROM TEST GROUP BY CATEGORY HAVING SUM(ID) = 12;
 > ROW_NUMBER() OVER (ORDER BY CATEGORY) SUM(ID)
 > ------------------------------------- -------
 > 1                                     12
 > rows: 1
 
-SELECT ROW_NUMBER() OVER (ORDER /**/ BY CATEGORY), SUM(ID) FROM TEST GROUP BY CATEGORY HAVING CATEGORY;
+SELECT ROW_NUMBER() OVER (ORDER BY CATEGORY), SUM(ID) FROM TEST GROUP BY CATEGORY HAVING CATEGORY;
 > ROW_NUMBER() OVER (ORDER BY CATEGORY) SUM(ID)
 > ------------------------------------- -------
 > 1                                     12

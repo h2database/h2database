@@ -41,7 +41,7 @@ SELECT *,
 > 7  3        32    7  0.0 1.0 7   7   7   0.75 0.78
 > 8  3        33    8  0.0 1.0 8   8   8   0.88 0.89
 > 9  4        41    9  0.0 1.0 9   9   9   1.0  1.0
-> rows (ordered): 9
+> rows: 9
 
 SELECT *,
     ROW_NUMBER() OVER (ORDER BY CATEGORY) RN,
@@ -61,7 +61,7 @@ SELECT *,
 > 7  3        32    7  6  3  0.63 0.89
 > 8  3        33    8  6  3  0.63 0.89
 > 9  4        41    9  9  4  1.0  1.0
-> rows (ordered): 9
+> rows: 9
 
 SELECT *,
     ROW_NUMBER() OVER (PARTITION BY CATEGORY ORDER BY ID) RN,
@@ -81,7 +81,7 @@ SELECT *,
 > 7  3        32    2  2  2  0.5 0.67
 > 8  3        33    3  3  3  1.0 1.0
 > 9  4        41    1  1  1  0.0 1.0
-> rows (ordered): 9
+> rows: 9
 
 SELECT
     ROW_NUMBER() OVER (ORDER BY CATEGORY) RN,
@@ -133,7 +133,7 @@ INSERT INTO TEST VALUES
     (4, 'b', 8);
 > update count: 4
 
-SELECT ROW_NUMBER() OVER (ORDER /**/ BY TYPE) RN, TYPE, SUM(CNT) SUM FROM TEST GROUP BY TYPE;
+SELECT ROW_NUMBER() OVER (ORDER BY TYPE) RN, TYPE, SUM(CNT) SUM FROM TEST GROUP BY TYPE;
 > RN TYPE SUM
 > -- ---- ---
 > 1  a    1

@@ -20,14 +20,20 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
 import org.h2.api.ErrorCode;
+import org.h2.command.CommandContainer;
+import org.h2.command.CommandInterface;
+import org.h2.command.Prepared;
+import org.h2.command.dml.Query;
 import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.jdbc.JdbcPreparedStatement;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -41,6 +47,12 @@ public class TestScript extends TestDb {
 
     private static final String BASE_DIR = "org/h2/test/scripts/";
 
+    private static final Field COMMAND;
+
+    private static final Field PREPARED;
+
+    private static boolean CHECK_ORDERING;
+
     /** If set to true, the test will exit at the first failure. */
     private boolean failFast;
     /** If set to a value the test will add all executed statements to this list */
@@ -53,10 +65,21 @@ public class TestScript extends TestDb {
     private LineNumberReader in;
     private PrintStream out;
     private final ArrayList<String[]> result = new ArrayList<>();
-    private String putBack;
+    private final ArrayDeque<String> putBack = new ArrayDeque<>();
     private StringBuilder errors;
 
     private Random random = new Random(1);
+
+    static {
+        try {
+            COMMAND = JdbcPreparedStatement.class.getDeclaredField("command");
+            COMMAND.setAccessible(true);
+            PREPARED = CommandContainer.class.getDeclaredField("prepared");
+            PREPARED.setAccessible(true);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * Run just this test.
@@ -64,6 +87,7 @@ public class TestScript extends TestDb {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
+        CHECK_ORDERING = true;
         TestBase.createCaller().init().test();
     }
 
@@ -199,7 +223,7 @@ public class TestScript extends TestDb {
         in = null;
         out = null;
         result.clear();
-        putBack = null;
+        putBack.clear();
         errors = null;
 
         if (statements == null) {
@@ -224,16 +248,13 @@ public class TestScript extends TestDb {
     }
 
     private String readLine() throws IOException {
-        if (putBack != null) {
-            String s = putBack;
-            putBack = null;
-            return s;
-        }
-        while (true) {
-            String s = in.readLine();
-            if (s == null) {
-                return null;
-            }
+        String s = putBack.pollFirst();
+        return s != null ? s : readNextLine();
+    }
+
+    private String readNextLine() throws IOException {
+        String s;
+        while ((s = in.readLine()) != null) {
             if (s.startsWith("#")) {
                 int end = s.indexOf('#', 1);
                 if (end < 3) {
@@ -265,10 +286,15 @@ public class TestScript extends TestDb {
                 }
             }
             s = s.trim();
-            if (s.length() > 0) {
-                return s;
+            if (!s.isEmpty()) {
+                break;
             }
         }
+        return s;
+    }
+
+    public void putBack(String line) {
+        putBack.addLast(line);
     }
 
     private void testFile(String inFile, boolean allowReconnect) throws Exception {
@@ -418,10 +444,20 @@ public class TestScript extends TestDb {
 
     private int processStatement(String sql) throws Exception {
         try {
-            if (stat.execute(sql)) {
-                writeResultSet(sql, stat.getResultSet());
+            boolean res;
+            Statement s;
+            if (/* TestScript */ CHECK_ORDERING || /* TestAll */ config.memory && !config.lazy && !config.networked) {
+                PreparedStatement prep = conn.prepareStatement(sql);
+                res = prep.execute();
+                s = prep;
             } else {
-                int count = stat.getUpdateCount();
+                res = stat.execute(sql);
+                s = stat;
+            }
+            if (res) {
+                writeResultSet(sql, s.getResultSet());
+            } else {
+                int count = s.getUpdateCount();
                 writeResult(sql, count < 1 ? "ok" : "update count: " + count, null);
             }
         } catch (SQLException e) {
@@ -448,7 +484,6 @@ public class TestScript extends TestDb {
     }
 
     private void writeResultSet(String sql, ResultSet rs) throws Exception {
-        boolean ordered = StringUtils.toLowerEnglish(sql).contains("order by");
         ResultSetMetaData meta = rs.getMetaData();
         int len = meta.getColumnCount();
         int[] max = new int[len];
@@ -472,9 +507,20 @@ public class TestScript extends TestDb {
             }
             head[i] = label;
         }
+        Boolean gotOrdered = null;
+        Statement st = rs.getStatement();
+        if (st instanceof JdbcPreparedStatement) {
+            CommandInterface ci = (CommandInterface) COMMAND.get(st);
+            if (ci instanceof CommandContainer) {
+                Prepared p = (Prepared) PREPARED.get(ci);
+                if (p instanceof Query) {
+                    gotOrdered = ((Query) p).hasOrder();
+                }
+            }
+        }
         rs.close();
         String line = readLine();
-        putBack = line;
+        putBack(line);
         if (line != null && line.startsWith(">> ")) {
             switch (result.size()) {
             case 0:
@@ -493,20 +539,52 @@ public class TestScript extends TestDb {
                 return;
             }
         }
+        Boolean ordered;
+        for (;;) {
+            line = readNextLine();
+            if (line == null) {
+                addWriteResultError("<row count>", "<eof>");
+                return;
+            }
+            putBack(line);
+            if (line.startsWith("> rows: ")) {
+                ordered = false;
+                break;
+            } else if (line.startsWith("> rows (ordered): ")) {
+                ordered = true;
+                break;
+            } else if (line.startsWith("> rows (partially ordered): ")) {
+                ordered = null;
+                break;
+            }
+        }
+        if (gotOrdered != null) {
+            if (ordered == null || ordered) {
+                if (!gotOrdered) {
+                    addWriteResultError("<ordered result set>", "<result set>");
+                }
+            } else {
+                if (gotOrdered) {
+                    addWriteResultError("<result set>", "<ordered result set>");
+                }
+            }
+        }
         writeResult(sql, format(head, max), null);
         writeResult(sql, format(null, max), null);
         String[] array = new String[result.size()];
         for (int i = 0; i < result.size(); i++) {
             array[i] = format(result.get(i), max);
         }
-        if (!ordered) {
+        if (!Boolean.TRUE.equals(ordered)) {
             sort(array);
         }
         int i = 0;
         for (; i < array.length; i++) {
             writeResult(sql, array[i], null);
         }
-        writeResult(sql, (ordered ? "rows (ordered): " : "rows: ") + i, null);
+        writeResult(sql,
+                (ordered != null ? ordered ? "rows (ordered): " : "rows: " : "rows (partially ordered): ") + i,
+                null);
     }
 
     private static String format(String[] row, int[] max) {
@@ -575,7 +653,7 @@ public class TestScript extends TestDb {
             }
         } else {
             addWriteResultError("<nothing>", s);
-            putBack = compare;
+            putBack(compare);
         }
         write(s);
     }

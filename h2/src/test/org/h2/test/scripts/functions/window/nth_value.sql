@@ -44,7 +44,7 @@ SELECT *,
 > 4  1        13    null  null    12       13   13     13
 > 5  1        null  null  null    12       null null   13
 > 6  1        13    null  null    12       13   13     13
-> rows (ordered): 6
+> rows: 6
 
 SELECT *,
     FIRST_VALUE(VALUE) OVER (ORDER BY ID) FIRST,
@@ -59,7 +59,7 @@ SELECT *,
 > 2  1        12    12    12      12       12   12     12
 > 3  1        null  12    12      12       null null   12
 > 4  1        13    12    12      12       13   13     13
-> rows (ordered): 3
+> rows: 3
 
 SELECT *,
     NTH_VALUE(VALUE, 2) OVER (ORDER BY ID) NTH,
@@ -80,7 +80,7 @@ SELECT *,
 > 4  1        13    12   12     null   12    12       null     13     13        12
 > 5  1        null  12   12     13     12    12       13       13     13        12
 > 6  1        13    12   12     null   12    12       null     13     13        13
-> rows (ordered): 6
+> rows: 6
 
 SELECT *,
     NTH_VALUE(VALUE, 2) OVER(ORDER BY ID) F,
@@ -92,7 +92,7 @@ SELECT *,
     NTH_VALUE(VALUE, 2) FROM LAST OVER(ORDER BY ID RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) L_U_C,
     NTH_VALUE(VALUE, 2) FROM LAST OVER(ORDER BY ID RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) L_C_U,
     NTH_VALUE(VALUE, 2) FROM LAST OVER(ORDER BY ID RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) L_U_U
-    FROM TEST;
+    FROM TEST ORDER BY ID;
 > ID CATEGORY VALUE F    F_U_C F_C_U F_U_U L    L_U_C L_C_U L_U_U
 > -- -------- ----- ---- ----- ----- ----- ---- ----- ----- -----
 > 1  1        null  null null  12    12    null null  41    41
@@ -117,7 +117,7 @@ SELECT *,
     FIRST_VALUE(VALUE) OVER (PARTITION BY CATEGORY ORDER BY ID) FIRST,
     LAST_VALUE(VALUE) OVER (PARTITION BY CATEGORY ORDER BY ID) LAST,
     NTH_VALUE(VALUE, 2) OVER (PARTITION BY CATEGORY ORDER BY ID) NTH
-    FROM TEST;
+    FROM TEST ORDER BY ID;
 > ID CATEGORY VALUE FIRST LAST NTH
 > -- -------- ----- ----- ---- ----
 > 1  1        null  null  null null
@@ -144,7 +144,7 @@ SELECT ID, CATEGORY,
 > 1  1        null null
 > 2  1        1    null
 > 3  1        1    1
-> rows (ordered): 3
+> rows: 3
 
 DROP TABLE TEST;
 > ok

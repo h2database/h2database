@@ -950,10 +950,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     /**
-     * Get the number of entries, as a integer. Integer.MAX_VALUE is returned if
-     * there are more than this entries.
+     * Get the number of entries, as a integer. {@link Integer#MAX_VALUE} is
+     * returned if there are more than this entries.
      *
      * @return the number of entries, as an integer
+     * @see #sizeAsLong()
      */
     @Override
     public final int size() {

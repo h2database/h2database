@@ -13,6 +13,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -235,6 +236,7 @@ public class TestTransactionStore extends TestBase {
 
         Random r = new Random(1);
         for (int i = 0; i < size * 3; i++) {
+            assertEquals("op: " + i, size, map1.size());
             assertEquals("op: " + i, size, (int) map1.sizeAsLong());
             // keep the first 10%, and add 10%
             int k = size / 10 + r.nextInt(size);
@@ -507,6 +509,7 @@ public class TestTransactionStore extends TestBase {
         Transaction tx, tx2;
         TransactionMap<String, String> m, m2;
         Iterator<String> it, it2;
+        Iterator<Entry<String, String>> entryIt;
 
         tx = ts.begin();
         m = tx.openMap("test");
@@ -531,6 +534,15 @@ public class TestTransactionStore extends TestBase {
         assertTrue(it.hasNext());
         assertEquals("3", it.next());
         assertFalse(it.hasNext());
+
+        entryIt = m.entrySet().iterator();
+        assertTrue(entryIt.hasNext());
+        assertEquals("1", entryIt.next().getKey());
+        assertTrue(entryIt.hasNext());
+        assertEquals("2", entryIt.next().getKey());
+        assertTrue(entryIt.hasNext());
+        assertEquals("3", entryIt.next().getKey());
+        assertFalse(entryIt.hasNext());
 
         it2 = m2.keyIterator(null);
         assertTrue(it2.hasNext());

@@ -22,6 +22,13 @@ import java.util.Set;
 /**
  * A map that supports transactions.
  *
+ * <p>
+ * <b>Methods of this class may be changed at any time without notice.</b> If
+ * you use this class directly make sure that your application or library
+ * requires exactly the same version of MVStore or H2 jar as the version that
+ * you use during its development and build.
+ * </p>
+ *
  * @param <K> the key type
  * @param <V> the value type
  */
@@ -192,6 +199,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      *
      * @param key the key
      * @throws IllegalStateException if a lock timeout occurs
+     * @throws ClassCastException if type of the specified key is not compatible with this map
      */
     @Override
     public V remove(Object key) {
@@ -362,6 +370,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      *
      * @param key the key
      * @return the value or null
+     * @throws ClassCastException if type of the specified key is not compatible with this map
      */
     @Override
     @SuppressWarnings("unchecked")
@@ -390,6 +399,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      *
      * @param key the key
      * @return true if the map contains an entry for this key
+     * @throws ClassCastException if type of the specified key is not compatible with this map
      */
     @Override
     public boolean containsKey(Object key) {

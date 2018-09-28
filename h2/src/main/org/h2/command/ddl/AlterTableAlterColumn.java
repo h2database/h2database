@@ -297,7 +297,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             checkViews(table, newTable);
         } catch (DbException e) {
             execute("DROP TABLE " + newTable.getName(), true);
-            throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, e, getSQL(), e.getMessage());
+            throw e;
         }
         String tableName = table.getName();
         ArrayList<TableView> dependentViews = new ArrayList<>(table.getDependentViews());
@@ -547,7 +547,11 @@ public class AlterTableAlterColumn extends CommandWithColumns {
                 // check if the query is still valid
                 // do not execute, not even with limit 1, because that could
                 // have side effects or take a very long time
-                session.prepare(sql);
+                try {
+                    session.prepare(sql);
+                } catch (DbException e) {
+                    throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1, e, view.getSQL());
+                }
                 checkViewsAreValid(view);
             }
         }

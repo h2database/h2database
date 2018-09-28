@@ -73,7 +73,7 @@ public class TestViewAlterTable extends TestDb {
         stat.execute("create table test(id identity, name varchar) " +
                 "as select x, 'Hello'");
         stat.execute("create view test_view as select * from test");
-        assertThrows(ErrorCode.VIEW_IS_INVALID_2, stat).
+        assertThrows(ErrorCode.COLUMN_IS_REFERENCED_1, stat).
                 execute("alter table test drop name");
         ResultSet rs = stat.executeQuery("select * from test_view");
         assertTrue(rs.next());
@@ -83,7 +83,7 @@ public class TestViewAlterTable extends TestDb {
         // nested
         createTestData();
         // should throw exception because V1 uses column A
-        assertThrows(ErrorCode.VIEW_IS_INVALID_2, stat).
+        assertThrows(ErrorCode.COLUMN_IS_REFERENCED_1, stat).
                 execute("alter table test drop column a");
         stat.execute("drop table test cascade");
     }

@@ -7491,6 +7491,14 @@ public class Parser {
                 if (readIf("AUTO_INCREMENT")) {
                     parseAutoIncrement(column);
                 }
+                if (database.getMode().useIdentityAsAutoIncrement) {
+                    if (readIf("NOT")) {
+                        read("NULL");
+                    }
+                    if (readIf("IDENTITY")) {
+                        parseAutoIncrement(column);
+                    }
+                }
                 if (affinity) {
                     CreateIndex idx = createAffinityIndex(schema, tableName, cols);
                     command.addConstraintCommand(idx);

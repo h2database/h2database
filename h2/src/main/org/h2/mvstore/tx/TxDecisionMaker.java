@@ -12,7 +12,7 @@ import org.h2.mvstore.MVMap;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-public abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
+abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
     private final int            mapId;
     private final Object         key;
     final Object                 value;

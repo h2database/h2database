@@ -12,18 +12,27 @@ import org.h2.mvstore.Page;
 import org.h2.mvstore.type.DataType;
 
 import java.util.AbstractMap;
+import java.util.AbstractSet;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 /**
  * A map that supports transactions.
  *
+ * <p>
+ * <b>Methods of this class may be changed at any time without notice.</b> If
+ * you use this class directly make sure that your application or library
+ * requires exactly the same version of MVStore or H2 jar as the version that
+ * you use during its development and build.
+ * </p>
+ *
  * @param <K> the key type
  * @param <V> the value type
  */
-public class TransactionMap<K, V> {
+public class TransactionMap<K, V> extends AbstractMap<K, V> {
 
     /**
      * The map used for writing (the latest version).
@@ -51,6 +60,19 @@ public class TransactionMap<K, V> {
      */
     public TransactionMap<K, V> getInstance(Transaction transaction) {
         return new TransactionMap<>(transaction, map);
+    }
+
+    /**
+     * Get the number of entries, as a integer. {@link Integer#MAX_VALUE} is
+     * returned if there are more than this entries.
+     *
+     * @return the number of entries, as an integer
+     * @see #sizeAsLong()
+     */
+    @Override
+    public final int size() {
+        long size = sizeAsLong();
+        return size > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) size;
     }
 
     /**
@@ -177,8 +199,10 @@ public class TransactionMap<K, V> {
      *
      * @param key the key
      * @throws IllegalStateException if a lock timeout occurs
+     * @throws ClassCastException if type of the specified key is not compatible with this map
      */
-    public V remove(K key) {
+    @Override
+    public V remove(Object key) {
         return set(key, (V)null);
     }
 
@@ -193,6 +217,7 @@ public class TransactionMap<K, V> {
      * @return the old value
      * @throws IllegalStateException if a lock timeout occurs
      */
+    @Override
     public V put(K key, V value) {
         DataUtils.checkArgument(value != null, "The value may not be null");
         return set(key, value);
@@ -207,6 +232,7 @@ public class TransactionMap<K, V> {
      * @param value the new value (not null)
      * @return the old value
      */
+    // Do not add @Override, code should be compatible with Java 7
     public V putIfAbsent(K key, V value) {
         DataUtils.checkArgument(value != null, "The value may not be null");
         TxDecisionMaker decisionMaker = new TxDecisionMaker.PutIfAbsentDecisionMaker(map.getId(), key, value,
@@ -245,12 +271,12 @@ public class TransactionMap<K, V> {
         return result;
     }
 
-    private V set(K key, V value) {
+    private V set(Object key, V value) {
         TxDecisionMaker decisionMaker = new TxDecisionMaker.PutDecisionMaker(map.getId(), key, value, transaction);
         return set(key, decisionMaker);
     }
 
-    private V set(K key, TxDecisionMaker decisionMaker) {
+    private V set(Object key, TxDecisionMaker decisionMaker) {
         TransactionStore store = transaction.store;
         Transaction blockingTransaction;
         long sequenceNumWhenStarted;
@@ -262,7 +288,9 @@ public class TransactionMap<K, V> {
             // since TxDecisionMaker has it embedded,
             // MVRTreeMap has weird traversal logic based on it,
             // and any non-null value will do
-            result = map.put(key, VersionedValue.DUMMY, decisionMaker);
+            @SuppressWarnings("unchecked")
+            K k = (K) key;
+            result = map.put(k, VersionedValue.DUMMY, decisionMaker);
 
             MVMap.Decision decision = decisionMaker.getDecision();
             assert decision != null;
@@ -342,9 +370,11 @@ public class TransactionMap<K, V> {
      *
      * @param key the key
      * @return the value or null
+     * @throws ClassCastException if type of the specified key is not compatible with this map
      */
+    @Override
     @SuppressWarnings("unchecked")
-    public V get(K key) {
+    public V get(Object key) {
         VersionedValue data = map.get(key);
         if (data == null) {
             // doesn't exist or deleted by a committed transaction
@@ -369,8 +399,10 @@ public class TransactionMap<K, V> {
      *
      * @param key the key
      * @return true if the map contains an entry for this key
+     * @throws ClassCastException if type of the specified key is not compatible with this map
      */
-    public boolean containsKey(K key) {
+    @Override
+    public boolean containsKey(Object key) {
         return get(key) != null;
     }
 
@@ -403,9 +435,32 @@ public class TransactionMap<K, V> {
     /**
      * Clear the map.
      */
+    @Override
     public void clear() {
         // TODO truncate transactionally?
         map.clear();
+    }
+
+    @Override
+    public Set<Entry<K, V>> entrySet() {
+        return new AbstractSet<Entry<K, V>>() {
+
+            @Override
+            public Iterator<Entry<K, V>> iterator() {
+                return entryIterator(null, null);
+            }
+
+            @Override
+            public int size() {
+                return TransactionMap.this.size();
+            }
+
+            @Override
+            public boolean contains(Object o) {
+                return TransactionMap.this.containsKey(o);
+            }
+
+        };
     }
 
     /**
@@ -693,4 +748,5 @@ public class TransactionMap<K, V> {
                     "Removal is not supported");
         }
     }
+
 }

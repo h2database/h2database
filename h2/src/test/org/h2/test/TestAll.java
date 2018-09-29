@@ -30,6 +30,7 @@ import org.h2.test.db.TestCheckpoint;
 import org.h2.test.db.TestCluster;
 import org.h2.test.db.TestCompatibility;
 import org.h2.test.db.TestCompatibilityOracle;
+import org.h2.test.db.TestCompatibilitySQLServer;
 import org.h2.test.db.TestCsv;
 import org.h2.test.db.TestDateStorage;
 import org.h2.test.db.TestDeadlock;
@@ -745,6 +746,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestCheckpoint());
         addTest(new TestCompatibility());
         addTest(new TestCompatibilityOracle());
+        addTest(new TestCompatibilitySQLServer());
         addTest(new TestCsv());
         addTest(new TestDeadlock());
         if (vmlens) {

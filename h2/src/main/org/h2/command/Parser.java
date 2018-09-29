@@ -1802,6 +1802,11 @@ public class Parser {
                 }
             }
         }
+
+        if (database.getMode().discardWithTableHints) {
+            discardWithTableHints();
+        }
+
         // inherit alias for CTE as views from table name
         if (table.isView() && table.isTableExpression() && alias == null) {
             alias = table.getName();
@@ -1853,6 +1858,34 @@ public class Parser {
             return derivedColumnNames;
         }
         return null;
+    }
+
+    private void discardWithTableHints() {
+        if (readIf("WITH")) {
+            read(OPEN_PAREN);
+            if (!readIf(CLOSE_PAREN)) {
+                do {
+                    discardTableHint();
+                } while (readIfMore(true));
+            }
+        }
+    }
+
+    private void discardTableHint() {
+        if (readIf("INDEX")) {
+            if (readIf(OPEN_PAREN)) {
+                do {
+                    readExpression();
+                } while (readIf(COMMA));
+                read(CLOSE_PAREN);
+            } else if (readIf(EQUAL)){
+                readExpression();
+            } else {
+                throw getSyntaxError();
+            }
+        } else {
+            readExpression();
+        }
     }
 
     private Prepared parseTruncate() {

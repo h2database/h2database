@@ -210,7 +210,7 @@
     <directory>src/test</directory>
       <includes>
         <include>org/h2/test/scripts/testSimple.in.txt</include>
-        <include>org/h2/test/scripts/testScript.sql</include>
+        <include>org/h2/test/scripts/**/*.sql</include>
         <include>org/h2/samples/newsfeed.sql</include>
         <include>org/h2/samples/optimizations.sql</include>
       </includes>

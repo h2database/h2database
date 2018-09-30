@@ -1861,13 +1861,11 @@ public class Parser {
     }
 
     private void discardWithTableHints() {
-        if (readIf("WITH")) {
+        if (readIf(WITH)) {
             read(OPEN_PAREN);
-            if (!readIf(CLOSE_PAREN)) {
-                do {
-                    discardTableHint();
-                } while (readIfMore(true));
-            }
+            do {
+                discardTableHint();
+            } while (readIfMore(true));
         }
     }
 
@@ -1876,12 +1874,10 @@ public class Parser {
             if (readIf(OPEN_PAREN)) {
                 do {
                     readExpression();
-                } while (readIf(COMMA));
-                read(CLOSE_PAREN);
-            } else if (readIf(EQUAL)){
-                readExpression();
+                } while (readIfMore(true));
             } else {
-                throw getSyntaxError();
+                read(EQUAL);
+                readExpression();
             }
         } else {
             readExpression();
@@ -7492,8 +7488,9 @@ public class Parser {
                     parseAutoIncrement(column);
                 }
                 if (database.getMode().useIdentityAsAutoIncrement) {
-                    if (readIf("NOT")) {
-                        read("NULL");
+                    if (readIf(NOT)) {
+                        read(NULL);
+                        column.setNullable(false);
                     }
                     if (readIf("IDENTITY")) {
                         parseAutoIncrement(column);

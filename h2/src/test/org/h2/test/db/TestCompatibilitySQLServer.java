@@ -1,3 +1,8 @@
+/*
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ */
 package org.h2.test.db;
 
 import org.h2.test.TestBase;
@@ -25,35 +30,45 @@ public class TestCompatibilitySQLServer extends TestDb {
 
     @Override
     public void test() throws Exception {
-        testDiscardTableHints();
-        testUseIdentityAsAutoIncrementAlias();
-    }
-
-    private void testDiscardTableHints() throws SQLException {
         deleteDb("sqlserver");
 
-        Connection conn = getConnection("sqlserver;MODE=MSSQLServer");
-        Statement stat = conn.createStatement();
+        final Connection conn = getConnection("sqlserver;MODE=MSSQLServer");
+        try {
+            testDiscardTableHints(conn);
+            testUseIdentityAsAutoIncrementAlias(conn);
+        } finally {
+            conn.close();
+            deleteDb("sqlserver");
+        }
+    }
+
+    private void testDiscardTableHints(Connection conn) throws SQLException {
+        final Statement stat = conn.createStatement();
 
         stat.execute("create table parent(id int primary key, name varchar(255))");
-        stat.execute("create table child(id int primary key, parent_id int, name varchar(255), foreign key (parent_id) references public.parent(id))");
+        stat.execute("create table child(" +
+                            "id int primary key, " +
+                            "parent_id int, " +
+                            "name varchar(255), " +
+                            "foreign key (parent_id) references public.parent(id))");
 
-        assertSupportedSyntax(stat, "select * from parent");
-        assertSupportedSyntax(stat, "select * from parent with(nolock)");
-        assertSupportedSyntax(stat, "select * from parent with(nolock, index = id)");
-        assertSupportedSyntax(stat, "select * from parent with(nolock, index(id, name))");
+        stat.execute("select * from parent");
+        stat.execute("select * from parent with(nolock)");
+        stat.execute("select * from parent with(nolock, index = id)");
+        stat.execute("select * from parent with(nolock, index(id, name))");
 
-        assertSupportedSyntax(stat, "select * from parent p join child ch on ch.parent_id = p.id");
-        assertSupportedSyntax(stat, "select * from parent p with(nolock) join child ch with(nolock) on ch.parent_id = p.id");
-        assertSupportedSyntax(stat, "select * from parent p with(nolock) join child ch with(nolock, index = id) on ch.parent_id = p.id");
-        assertSupportedSyntax(stat, "select * from parent p with(nolock) join child ch with(nolock, index(id, name)) on ch.parent_id = p.id");
+        stat.execute("select * from parent p " +
+                            "join child ch on ch.parent_id = p.id");
+        stat.execute("select * from parent p with(nolock) " +
+                            "join child ch with(nolock) on ch.parent_id = p.id");
+        stat.execute("select * from parent p with(nolock) " +
+                            "join child ch with(nolock, index = id) on ch.parent_id = p.id");
+        stat.execute("select * from parent p with(nolock) " +
+                            "join child ch with(nolock, index(id, name)) on ch.parent_id = p.id");
     }
 
-    private void testUseIdentityAsAutoIncrementAlias() throws SQLException {
-        deleteDb("sqlserver");
-
-        Connection conn = getConnection("sqlserver;MODE=MSSQLServer");
-        Statement stat = conn.createStatement();
+    private void testUseIdentityAsAutoIncrementAlias(Connection conn) throws SQLException {
+        final Statement stat = conn.createStatement();
 
         stat.execute("create table test(id int primary key identity, expected_id int)");
         stat.execute("insert into test (expected_id) VALUES (1), (2), (3)");
@@ -63,14 +78,7 @@ public class TestCompatibilitySQLServer extends TestDb {
             assertEquals(results.getInt("expected_id"), results.getInt("id"));
         }
 
-        assertSupportedSyntax(stat, "create table test2 (id int primary key not null identity)");
+        stat.execute("create table test2 (id int primary key not null identity)");
     }
 
-    private void assertSupportedSyntax(Statement stat, String sql) {
-        try {
-            stat.execute(sql);
-        } catch (SQLException ex) {
-            fail("Failed to execute SQL statement: " + sql);
-        }
-    }
 }

@@ -1097,6 +1097,8 @@ or the SQL statement <code>SET MODE MSSQLServer</code>.
 </li><li>Text can be concatenated using '+'.
 </li><li>MONEY data type is treated like NUMERIC(19, 4) data type. SMALLMONEY data type is treated like NUMERIC(10, 4)
     data type.
+</li><li><code>IDENTITY</code> can be used for automatic id generation on column level.
+</li><li>Table hints are discarded. Example: <code>SELECT * FROM table WITH (NOLOCK)</code>.
 </li></ul>
 
 <h3>MySQL Compatibility Mode</h3>

@@ -798,3 +798,5 @@ pointzm pointz pointm dimensionality redefine forum measures
 mpg casted pzm mls constrained subtypes complains
 ranks rno dro rko precede cume reopens preceding unbounded rightly itr lag maximal tiles tile ntile signify
 partitioned
+
+discard enhancements nolock

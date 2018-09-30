@@ -1802,6 +1802,11 @@ public class Parser {
                 }
             }
         }
+
+        if (database.getMode().discardWithTableHints) {
+            discardWithTableHints();
+        }
+
         // inherit alias for CTE as views from table name
         if (table.isView() && table.isTableExpression() && alias == null) {
             alias = table.getName();
@@ -1853,6 +1858,30 @@ public class Parser {
             return derivedColumnNames;
         }
         return null;
+    }
+
+    private void discardWithTableHints() {
+        if (readIf(WITH)) {
+            read(OPEN_PAREN);
+            do {
+                discardTableHint();
+            } while (readIfMore(true));
+        }
+    }
+
+    private void discardTableHint() {
+        if (readIf("INDEX")) {
+            if (readIf(OPEN_PAREN)) {
+                do {
+                    readExpression();
+                } while (readIfMore(true));
+            } else {
+                read(EQUAL);
+                readExpression();
+            }
+        } else {
+            readExpression();
+        }
     }
 
     private Prepared parseTruncate() {
@@ -7457,6 +7486,15 @@ public class Parser {
                 command.addConstraintCommand(pk);
                 if (readIf("AUTO_INCREMENT")) {
                     parseAutoIncrement(column);
+                }
+                if (database.getMode().useIdentityAsAutoIncrement) {
+                    if (readIf(NOT)) {
+                        read(NULL);
+                        column.setNullable(false);
+                    }
+                    if (readIf("IDENTITY")) {
+                        parseAutoIncrement(column);
+                    }
                 }
                 if (affinity) {
                     CreateIndex idx = createAffinityIndex(schema, tableName, cols);

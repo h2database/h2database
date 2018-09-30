@@ -188,6 +188,16 @@ public class Mode {
     public boolean allowDB2TimestampFormat;
 
     /**
+     * Discard SQLServer table hints (e.g. "SELECT * FROM table WITH (NOLOCK)")
+     */
+    public boolean discardWithTableHints;
+
+    /**
+     * Use "IDENTITY" as an alias for "auto_increment" (SQLServer style)
+     */
+    public boolean useIdentityAsAutoIncrement;
+
+    /**
      * Convert (VAR)CHAR to VAR(BINARY) and vice versa with UTF-8 encoding instead of HEX.
      */
     public boolean charToBinaryInUtf8;
@@ -256,6 +266,8 @@ public class Mode {
         mode.allowPlusForStringConcat = true;
         mode.swapConvertFunctionParameters = true;
         mode.supportPoundSymbolForColumnNames = true;
+        mode.discardWithTableHints = true;
+        mode.useIdentityAsAutoIncrement = true;
         // MS SQL Server does not support client info properties. See
         // https://msdn.microsoft.com/en-Us/library/dd571296%28v=sql.110%29.aspx
         mode.supportedClientInfoPropertiesRegEx = null;

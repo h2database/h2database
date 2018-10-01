@@ -25,10 +25,10 @@ abstract class AggregateData {
     static AggregateData create(AggregateType aggregateType, boolean distinct) {
         switch (aggregateType) {
         case COUNT_ALL:
-            return new AggregateDataCountAll();
+            return new AggregateDataCount(true);
         case COUNT:
             if (!distinct) {
-                return new AggregateDataCount();
+                return new AggregateDataCount(false);
             }
             break;
         case GROUP_CONCAT:

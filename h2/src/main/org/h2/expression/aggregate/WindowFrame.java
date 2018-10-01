@@ -179,7 +179,12 @@ public final class WindowFrame {
     public static Iterator<Value[]> iterator(WindowFrame frame, Session session, ArrayList<Value[]> orderedRows,
             SortOrder sortOrder, int currentRow, boolean reverse) {
         return frame != null ? frame.iterator(session, orderedRows, sortOrder, currentRow, reverse)
-                : reverse ? new PlainReverseItr(orderedRows, 0, currentRow) : new PlainItr(orderedRows, 0, currentRow);
+                : plainIterator(orderedRows, 0, currentRow, reverse);
+    }
+
+    private static Itr plainIterator(ArrayList<Value[]> orderedRows, int startIndex, int endIndex, boolean reverse) {
+        return reverse ? new PlainReverseItr(orderedRows, startIndex, endIndex)
+                : new PlainItr(orderedRows, startIndex, endIndex);
     }
 
     private static int toGroupStart(ArrayList<Value[]> orderedRows, SortOrder sortOrder, int offset, int minOffset) {
@@ -317,11 +322,9 @@ public final class WindowFrame {
         if (endIndex >= size) {
             endIndex = size - 1;
         }
-        if (exclusion != WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
-            return complexIterator(orderedRows, sortOrder, currentRow, startIndex, endIndex, reverse);
-        }
-        return reverse ? new PlainReverseItr(orderedRows, startIndex, endIndex)
-                : new PlainItr(orderedRows, startIndex, endIndex);
+        return exclusion != WindowFrameExclusion.EXCLUDE_NO_OTHERS
+                ? complexIterator(orderedRows, sortOrder, currentRow, startIndex, endIndex, reverse)
+                : plainIterator(orderedRows, startIndex, endIndex, reverse);
     }
 
     private int getIndex(Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder, int currentRow,

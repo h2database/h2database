@@ -471,8 +471,7 @@ public final class WindowFrame {
 
     private Iterator<Value[]> complexIterator(ArrayList<Value[]> orderedRows, SortOrder sortOrder, int currentRow,
             int startIndex, int endIndex, boolean reverse) {
-        int size = orderedRows.size();
-        BitSet set = new BitSet(size);
+        BitSet set = new BitSet(endIndex + 1);
         set.set(startIndex, endIndex + 1);
         switch (exclusion) {
         case EXCLUDE_CURRENT_ROW:

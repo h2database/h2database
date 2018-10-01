@@ -39,11 +39,11 @@ public final class WindowFrame {
 
     }
 
-    private static final class PlainItr extends Itr {
+    private static class PlainItr extends Itr {
 
-        private final int endIndex;
+        final int endIndex;
 
-        private int cursor;
+        int cursor;
 
         PlainItr(ArrayList<Value[]> orderedRows, int startIndex, int endIndex) {
             super(orderedRows);
@@ -66,11 +66,11 @@ public final class WindowFrame {
 
     }
 
-    private static final class PlainReverseItr extends Itr {
+    private static class PlainReverseItr extends Itr {
 
-        private final int startIndex;
+        final int startIndex;
 
-        private int cursor;
+        int cursor;
 
         PlainReverseItr(ArrayList<Value[]> orderedRows, int startIndex, int endIndex) {
             super(orderedRows);
@@ -89,6 +89,50 @@ public final class WindowFrame {
                 throw new NoSuchElementException();
             }
             return orderedRows.get(cursor--);
+        }
+
+    }
+
+    private static final class BiItr extends PlainItr {
+
+        private final int endIndex1, startIndex2;
+
+        BiItr(ArrayList<Value[]> orderedRows, int startIndex1, int endIndex1, int startIndex2, int endIndex2) {
+            super(orderedRows, startIndex1, endIndex2);
+            this.endIndex1 = endIndex1;
+            this.startIndex2 = startIndex2;
+        }
+
+        @Override
+        public Value[] next() {
+            if (cursor > endIndex) {
+                throw new NoSuchElementException();
+            }
+            Value[] r = orderedRows.get(cursor);
+            cursor = cursor != endIndex1 ? cursor + 1 : startIndex2;
+            return r;
+        }
+
+    }
+
+    private static final class BiReverseItr extends PlainReverseItr {
+
+        private final int endIndex1, startIndex2;
+
+        BiReverseItr(ArrayList<Value[]> orderedRows, int startIndex1, int endIndex1, int startIndex2, int endIndex2) {
+            super(orderedRows, startIndex1, endIndex2);
+            this.endIndex1 = endIndex1;
+            this.startIndex2 = startIndex2;
+        }
+
+        @Override
+        public Value[] next() {
+            if (cursor < startIndex) {
+                throw new NoSuchElementException();
+            }
+            Value[] r = orderedRows.get(cursor);
+            cursor = cursor != startIndex2 ? cursor - 1 : endIndex1;
+            return r;
         }
 
     }
@@ -182,9 +226,19 @@ public final class WindowFrame {
                 : plainIterator(orderedRows, 0, currentRow, reverse);
     }
 
-    private static Itr plainIterator(ArrayList<Value[]> orderedRows, int startIndex, int endIndex, boolean reverse) {
+    private static Iterator<Value[]> plainIterator(ArrayList<Value[]> orderedRows, int startIndex, int endIndex,
+            boolean reverse) {
+        if (endIndex < startIndex) {
+            return Collections.emptyIterator();
+        }
         return reverse ? new PlainReverseItr(orderedRows, startIndex, endIndex)
                 : new PlainItr(orderedRows, startIndex, endIndex);
+    }
+
+    private static Iterator<Value[]> biIterator(ArrayList<Value[]> orderedRows, int startIndex1, int endIndex1,
+            int startIndex2, int endIndex2, boolean reverse) {
+        return reverse ? new BiReverseItr(orderedRows, startIndex1, endIndex1, startIndex2, endIndex2)
+                : new BiItr(orderedRows, startIndex1, endIndex1, startIndex2, endIndex2);
     }
 
     private static int toGroupStart(ArrayList<Value[]> orderedRows, SortOrder sortOrder, int offset, int minOffset) {
@@ -471,22 +525,31 @@ public final class WindowFrame {
 
     private Iterator<Value[]> complexIterator(ArrayList<Value[]> orderedRows, SortOrder sortOrder, int currentRow,
             int startIndex, int endIndex, boolean reverse) {
-        BitSet set = new BitSet(endIndex + 1);
-        set.set(startIndex, endIndex + 1);
         if (exclusion == WindowFrameExclusion.EXCLUDE_CURRENT_ROW) {
-            set.clear(currentRow);
+            if (currentRow < startIndex || currentRow > endIndex) {
+                // Nothing to do
+            } else if (currentRow == startIndex) {
+                startIndex++;
+            } else if (currentRow == endIndex) {
+                endIndex--;
+            } else {
+                return biIterator(orderedRows, startIndex, currentRow - 1, currentRow + 1, endIndex, reverse);
+            }
+            return plainIterator(orderedRows, startIndex, endIndex, reverse);
         } else {
+            BitSet set = new BitSet(endIndex + 1);
+            set.set(startIndex, endIndex + 1);
             int exStart = toGroupStart(orderedRows, sortOrder, currentRow, startIndex);
             int exEnd = toGroupEnd(orderedRows, sortOrder, currentRow, endIndex);
             set.clear(exStart, exEnd + 1);
             if (exclusion == WindowFrameExclusion.EXCLUDE_TIES) {
                 set.set(currentRow);
             }
+            if (set.isEmpty()) {
+                return Collections.emptyIterator();
+            }
+            return reverse ? new BitSetReverseItr(orderedRows, set) : new BitSetItr(orderedRows, set);
         }
-        if (set.isEmpty()) {
-            return Collections.emptyIterator();
-        }
-        return reverse ? new BitSetReverseItr(orderedRows, set) : new BitSetItr(orderedRows, set);
     }
 
     /**

@@ -653,7 +653,9 @@ public class TestScript extends TestDb {
             }
         } else {
             addWriteResultError("<nothing>", s);
-            putBack(compare);
+            if (compare != null) {
+                putBack(compare);
+            }
         }
         write(s);
     }

@@ -430,5 +430,33 @@ SELECT *, ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN 1 FOLLOWING AND 2 FOL
 > 8  4     null
 > rows: 8
 
+SELECT ID, VALUE, ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING EXCLUDE CURRENT ROW) A
+    FROM TEST;
+> ID VALUE A
+> -- ----- ------------
+> 1  1     null
+> 2  1     null
+> 3  2     (1, 2)
+> 4  2     (1, 2)
+> 5  3     (1, 2, 3, 4)
+> 6  3     (1, 2, 3, 4)
+> 7  4     (3, 4, 5, 6)
+> 8  4     (3, 4, 5, 6)
+> rows: 8
+
+SELECT ID, VALUE, ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN 1 FOLLOWING AND 1 FOLLOWING EXCLUDE CURRENT ROW) A
+    FROM TEST;
+> ID VALUE A
+> -- ----- ------
+> 1  1     (3, 4)
+> 2  1     (3, 4)
+> 3  2     (5, 6)
+> 4  2     (5, 6)
+> 5  3     (7, 8)
+> 6  3     (7, 8)
+> 7  4     null
+> 8  4     null
+> rows: 8
+
 DROP TABLE TEST;
 > ok

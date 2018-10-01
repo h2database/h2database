@@ -6,6 +6,8 @@
 package org.h2.expression;
 
 import static org.h2.util.DateTimeUtils.NANOS_PER_DAY;
+import static org.h2.util.DateTimeUtils.NANOS_PER_HOUR;
+import static org.h2.util.DateTimeUtils.NANOS_PER_MINUTE;
 import static org.h2.util.DateTimeUtils.absoluteDayFromDateValue;
 import static org.h2.util.DateTimeUtils.dateAndTimeFromValue;
 import static org.h2.util.DateTimeUtils.dateTimeToValue;
@@ -168,8 +170,8 @@ public class IntervalOperation extends Expression {
                 if (negative) {
                     diff = -diff;
                 }
-                return ValueInterval.from(IntervalQualifier.HOUR_TO_SECOND, negative, diff / 3_600_000_000_000L,
-                        diff % 3_600_000_000_000L);
+                return ValueInterval.from(IntervalQualifier.HOUR_TO_SECOND, negative, diff / NANOS_PER_HOUR,
+                        diff % NANOS_PER_HOUR);
             } else if (lType == Value.DATE && rType == Value.DATE) {
                 long diff = absoluteDayFromDateValue(((ValueDate) l).getDateValue())
                         - absoluteDayFromDateValue(((ValueDate) r).getDateValue());
@@ -184,7 +186,7 @@ public class IntervalOperation extends Expression {
                     l = l.convertTo(Value.TIMESTAMP_TZ);
                     r = r.convertTo(Value.TIMESTAMP_TZ);
                     diff = diff.add(BigInteger.valueOf((((ValueTimestampTimeZone) r).getTimeZoneOffsetMins()
-                            - ((ValueTimestampTimeZone) l).getTimeZoneOffsetMins()) * 60_000_000_000L));
+                            - ((ValueTimestampTimeZone) l).getTimeZoneOffsetMins()) * NANOS_PER_MINUTE));
                 }
                 return IntervalUtils.intervalFromAbsolute(IntervalQualifier.DAY_TO_SECOND, diff);
             }

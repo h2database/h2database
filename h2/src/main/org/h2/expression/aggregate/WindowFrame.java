@@ -538,13 +538,23 @@ public final class WindowFrame {
         } else {
             int exStart = toGroupStart(orderedRows, sortOrder, currentRow, startIndex);
             int exEnd = toGroupEnd(orderedRows, sortOrder, currentRow, endIndex);
-            if (exEnd < startIndex || exStart > endIndex) {
+            boolean includeCurrentRow = exclusion == WindowFrameExclusion.EXCLUDE_TIES;
+            if (includeCurrentRow) {
+                if (currentRow == exStart) {
+                    exStart++;
+                    includeCurrentRow = false;
+                } else if (currentRow == exEnd) {
+                    exEnd--;
+                    includeCurrentRow = false;
+                }
+            }
+            if (exStart > exEnd || exEnd < startIndex || exStart > endIndex) {
                 // Nothing to do
             } else {
                 BitSet set = new BitSet(endIndex + 1);
                 set.set(startIndex, endIndex + 1);
                 set.clear(exStart, exEnd + 1);
-                if (exclusion == WindowFrameExclusion.EXCLUDE_TIES) {
+                if (includeCurrentRow) {
                     set.set(currentRow);
                 }
                 if (set.isEmpty()) {

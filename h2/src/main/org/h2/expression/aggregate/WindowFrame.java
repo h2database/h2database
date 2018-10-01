@@ -473,21 +473,15 @@ public final class WindowFrame {
             int startIndex, int endIndex, boolean reverse) {
         BitSet set = new BitSet(endIndex + 1);
         set.set(startIndex, endIndex + 1);
-        switch (exclusion) {
-        case EXCLUDE_CURRENT_ROW:
+        if (exclusion == WindowFrameExclusion.EXCLUDE_CURRENT_ROW) {
             set.clear(currentRow);
-            break;
-        case EXCLUDE_GROUP:
-        case EXCLUDE_TIES: {
+        } else {
             int exStart = toGroupStart(orderedRows, sortOrder, currentRow, startIndex);
             int exEnd = toGroupEnd(orderedRows, sortOrder, currentRow, endIndex);
             set.clear(exStart, exEnd + 1);
             if (exclusion == WindowFrameExclusion.EXCLUDE_TIES) {
                 set.set(currentRow);
             }
-        }
-        //$FALL-THROUGH$
-        default:
         }
         if (set.isEmpty()) {
             return Collections.emptyIterator();

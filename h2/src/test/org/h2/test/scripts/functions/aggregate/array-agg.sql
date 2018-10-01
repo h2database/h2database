@@ -384,6 +384,40 @@ SELECT *,
 > 8  9     (4, 5, 6, 7, 8) (7, 8)
 > rows: 8
 
+SELECT ID, VALUE,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE ROWS BETWEEN 2 PRECEDING AND 2 FOLLOWING EXCLUDE GROUP) G,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE ROWS BETWEEN 2 PRECEDING AND 2 FOLLOWING EXCLUDE TIES) T
+    FROM TEST;
+> ID VALUE G            T
+> -- ----- ------------ ---------------
+> 1  1     (3)          (1, 3)
+> 2  1     (3, 4)       (2, 3, 4)
+> 3  5     (1, 2, 4, 5) (1, 2, 3, 4, 5)
+> 4  8     (2, 3)       (2, 3, 4)
+> 5  8     (3, 7)       (3, 5, 7)
+> 6  8     (7, 8)       (6, 7, 8)
+> 7  9     (5, 6)       (5, 6, 7)
+> 8  9     (6)          (6, 8)
+> rows: 8
+
+SELECT ID, VALUE, ARRAY_AGG(ID) OVER(ORDER BY VALUE ROWS BETWEEN 1 FOLLOWING AND 2 FOLLOWING EXCLUDE GROUP) G
+  FROM TEST ORDER BY ID FETCH FIRST 3 ROWS ONLY;
+> ID VALUE G
+> -- ----- ------
+> 1  1     (3)
+> 2  1     (3, 4)
+> 3  5     (4, 5)
+> rows (ordered): 3
+
+SELECT ID, VALUE, ARRAY_AGG(ID) OVER(ORDER BY VALUE ROWS BETWEEN 2 PRECEDING AND 1 PRECEDING EXCLUDE GROUP) G
+  FROM TEST ORDER BY ID FETCH FIRST 3 ROWS ONLY;
+> ID VALUE G
+> -- ----- ------
+> 1  1     null
+> 2  1     null
+> 3  5     (1, 2)
+> rows (ordered): 3
+
 SELECT *, ARRAY_AGG(ID) OVER (ORDER BY ID RANGE BETWEEN CURRENT ROW AND 1 PRECEDING) FROM TEST;
 > exception SYNTAX_ERROR_1
 

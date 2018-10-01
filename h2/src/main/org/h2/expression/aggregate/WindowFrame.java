@@ -535,21 +535,25 @@ public final class WindowFrame {
             } else {
                 return biIterator(orderedRows, startIndex, currentRow - 1, currentRow + 1, endIndex, reverse);
             }
-            return plainIterator(orderedRows, startIndex, endIndex, reverse);
         } else {
-            BitSet set = new BitSet(endIndex + 1);
-            set.set(startIndex, endIndex + 1);
             int exStart = toGroupStart(orderedRows, sortOrder, currentRow, startIndex);
             int exEnd = toGroupEnd(orderedRows, sortOrder, currentRow, endIndex);
-            set.clear(exStart, exEnd + 1);
-            if (exclusion == WindowFrameExclusion.EXCLUDE_TIES) {
-                set.set(currentRow);
+            if (exEnd < startIndex || exStart > endIndex) {
+                // Nothing to do
+            } else {
+                BitSet set = new BitSet(endIndex + 1);
+                set.set(startIndex, endIndex + 1);
+                set.clear(exStart, exEnd + 1);
+                if (exclusion == WindowFrameExclusion.EXCLUDE_TIES) {
+                    set.set(currentRow);
+                }
+                if (set.isEmpty()) {
+                    return Collections.emptyIterator();
+                }
+                return reverse ? new BitSetReverseItr(orderedRows, set) : new BitSetItr(orderedRows, set);
             }
-            if (set.isEmpty()) {
-                return Collections.emptyIterator();
-            }
-            return reverse ? new BitSetReverseItr(orderedRows, set) : new BitSetItr(orderedRows, set);
         }
+        return plainIterator(orderedRows, startIndex, endIndex, reverse);
     }
 
     /**

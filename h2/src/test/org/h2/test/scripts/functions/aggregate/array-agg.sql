@@ -449,6 +449,26 @@ SELECT ID, VALUE, ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN 2 PRECEDING A
 > 8  9     (4, 5, 6)
 > rows: 8
 
+SELECT ID, VALUE,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) CP,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) CF,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) RP,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) RF,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) GP,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) GF
+    FROM TEST;
+> ID VALUE CP                       CF                       RP                       RF                       GP                       GF
+> -- ----- ------------------------ ------------------------ ------------------------ ------------------------ ------------------------ ------------------------
+> 1  1     (1)                      (1, 2, 3, 4, 5, 6, 7, 8) (1, 2)                   (1, 2, 3, 4, 5, 6, 7, 8) (1, 2)                   (1, 2, 3, 4, 5, 6, 7, 8)
+> 2  1     (1, 2)                   (2, 3, 4, 5, 6, 7, 8)    (1, 2)                   (1, 2, 3, 4, 5, 6, 7, 8) (1, 2)                   (1, 2, 3, 4, 5, 6, 7, 8)
+> 3  5     (1, 2, 3)                (3, 4, 5, 6, 7, 8)       (1, 2, 3)                (3, 4, 5, 6, 7, 8)       (1, 2, 3)                (3, 4, 5, 6, 7, 8)
+> 4  8     (1, 2, 3, 4)             (4, 5, 6, 7, 8)          (1, 2, 3, 4, 5, 6)       (4, 5, 6, 7, 8)          (1, 2, 3, 4, 5, 6)       (4, 5, 6, 7, 8)
+> 5  8     (1, 2, 3, 4, 5)          (5, 6, 7, 8)             (1, 2, 3, 4, 5, 6)       (4, 5, 6, 7, 8)          (1, 2, 3, 4, 5, 6)       (4, 5, 6, 7, 8)
+> 6  8     (1, 2, 3, 4, 5, 6)       (6, 7, 8)                (1, 2, 3, 4, 5, 6)       (4, 5, 6, 7, 8)          (1, 2, 3, 4, 5, 6)       (4, 5, 6, 7, 8)
+> 7  9     (1, 2, 3, 4, 5, 6, 7)    (7, 8)                   (1, 2, 3, 4, 5, 6, 7, 8) (7, 8)                   (1, 2, 3, 4, 5, 6, 7, 8) (7, 8)
+> 8  9     (1, 2, 3, 4, 5, 6, 7, 8) (8)                      (1, 2, 3, 4, 5, 6, 7, 8) (7, 8)                   (1, 2, 3, 4, 5, 6, 7, 8) (7, 8)
+> rows: 8
+
 SELECT *, ARRAY_AGG(ID) OVER (ORDER BY ID RANGE BETWEEN CURRENT ROW AND 1 PRECEDING) FROM TEST;
 > exception SYNTAX_ERROR_1
 
@@ -521,6 +541,26 @@ SELECT ID, VALUE, ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN 1 FOLLOWING A
 > 6  3     (7, 8)
 > 7  4     null
 > 8  4     null
+> rows: 8
+
+SELECT ID, VALUE,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) CP,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) CF,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) RP,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) RF,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) GP,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) GF
+    FROM TEST;
+> ID VALUE CP                       CF                       RP                       RF                       GP                       GF
+> -- ----- ------------------------ ------------------------ ------------------------ ------------------------ ------------------------ ------------------------
+> 1  1     (1)                      (1, 2, 3, 4, 5, 6, 7, 8) (1, 2)                   (1, 2, 3, 4, 5, 6, 7, 8) (1, 2)                   (1, 2, 3, 4, 5, 6, 7, 8)
+> 2  1     (1, 2)                   (2, 3, 4, 5, 6, 7, 8)    (1, 2)                   (1, 2, 3, 4, 5, 6, 7, 8) (1, 2)                   (1, 2, 3, 4, 5, 6, 7, 8)
+> 3  2     (1, 2, 3)                (3, 4, 5, 6, 7, 8)       (1, 2, 3, 4)             (3, 4, 5, 6, 7, 8)       (1, 2, 3, 4)             (3, 4, 5, 6, 7, 8)
+> 4  2     (1, 2, 3, 4)             (4, 5, 6, 7, 8)          (1, 2, 3, 4)             (3, 4, 5, 6, 7, 8)       (1, 2, 3, 4)             (3, 4, 5, 6, 7, 8)
+> 5  3     (1, 2, 3, 4, 5)          (5, 6, 7, 8)             (1, 2, 3, 4, 5, 6)       (5, 6, 7, 8)             (1, 2, 3, 4, 5, 6)       (5, 6, 7, 8)
+> 6  3     (1, 2, 3, 4, 5, 6)       (6, 7, 8)                (1, 2, 3, 4, 5, 6)       (5, 6, 7, 8)             (1, 2, 3, 4, 5, 6)       (5, 6, 7, 8)
+> 7  4     (1, 2, 3, 4, 5, 6, 7)    (7, 8)                   (1, 2, 3, 4, 5, 6, 7, 8) (7, 8)                   (1, 2, 3, 4, 5, 6, 7, 8) (7, 8)
+> 8  4     (1, 2, 3, 4, 5, 6, 7, 8) (8)                      (1, 2, 3, 4, 5, 6, 7, 8) (7, 8)                   (1, 2, 3, 4, 5, 6, 7, 8) (7, 8)
 > rows: 8
 
 DROP TABLE TEST;

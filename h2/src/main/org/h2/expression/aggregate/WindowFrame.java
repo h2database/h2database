@@ -352,7 +352,8 @@ public final class WindowFrame {
             int currentRow, boolean reverse) {
         int startIndex = getIndex(session, orderedRows, sortOrder, currentRow, starting, false);
         int endIndex = following != null ? getIndex(session, orderedRows, sortOrder, currentRow, following, true)
-                : currentRow;
+                : units == WindowFrameUnits.ROWS ? currentRow
+                        : toGroupEnd(orderedRows, sortOrder, currentRow, orderedRows.size() - 1);
         if (endIndex < startIndex) {
             return Collections.emptyIterator();
         }
@@ -442,7 +443,18 @@ public final class WindowFrame {
             }
             break;
         case CURRENT_ROW:
-            index = currentRow;
+            switch (units) {
+            case ROWS:
+                index = currentRow;
+                break;
+            case GROUPS:
+            case RANGE:
+                index = forFollowing ? toGroupEnd(orderedRows, sortOrder, currentRow, last)
+                        : toGroupStart(orderedRows, sortOrder, currentRow, 0);
+                break;
+            default:
+                throw DbException.getUnsupportedException("units=" + units);
+            }
             break;
         case FOLLOWING:
             switch (units) {

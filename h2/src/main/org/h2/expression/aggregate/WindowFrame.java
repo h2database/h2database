@@ -6,7 +6,6 @@
 package org.h2.expression.aggregate;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -28,6 +27,8 @@ public final class WindowFrame {
 
         final ArrayList<Value[]> orderedRows;
 
+        int cursor;
+
         Itr(ArrayList<Value[]> orderedRows) {
             this.orderedRows = orderedRows;
         }
@@ -42,8 +43,6 @@ public final class WindowFrame {
     private static class PlainItr extends Itr {
 
         final int endIndex;
-
-        int cursor;
 
         PlainItr(ArrayList<Value[]> orderedRows, int startIndex, int endIndex) {
             super(orderedRows);
@@ -69,8 +68,6 @@ public final class WindowFrame {
     private static class PlainReverseItr extends Itr {
 
         final int startIndex;
-
-        int cursor;
 
         PlainReverseItr(ArrayList<Value[]> orderedRows, int startIndex, int endIndex) {
             super(orderedRows);
@@ -179,62 +176,6 @@ public final class WindowFrame {
             Value[] r = orderedRows.get(cursor);
             cursor = cursor != start1 ? cursor != start2 ? cursor - 1 : end2 : end1;
             return r;
-        }
-
-    }
-
-    private static abstract class AbstractBitSetItr extends Itr {
-
-        final BitSet set;
-
-        int cursor;
-
-        AbstractBitSetItr(ArrayList<Value[]> orderedRows, BitSet set) {
-            super(orderedRows);
-            this.set = set;
-        }
-
-        @Override
-        public final boolean hasNext() {
-            return cursor >= 0;
-        }
-
-    }
-
-    private static final class BitSetItr extends AbstractBitSetItr {
-
-        BitSetItr(ArrayList<Value[]> orderedRows, BitSet set) {
-            super(orderedRows, set);
-            cursor = set.nextSetBit(0);
-        }
-
-        @Override
-        public Value[] next() {
-            if (cursor < 0) {
-                throw new NoSuchElementException();
-            }
-            Value[] result = orderedRows.get(cursor);
-            cursor = set.nextSetBit(cursor + 1);
-            return result;
-        }
-
-    }
-
-    private static final class BitSetReverseItr extends AbstractBitSetItr {
-
-        BitSetReverseItr(ArrayList<Value[]> orderedRows, BitSet set) {
-            super(orderedRows, set);
-            cursor = set.length() - 1;
-        }
-
-        @Override
-        public Value[] next() {
-            if (cursor < 0) {
-                throw new NoSuchElementException();
-            }
-            Value[] result = orderedRows.get(cursor);
-            cursor = set.previousSetBit(cursor - 1);
-            return result;
         }
 
     }
@@ -619,13 +560,13 @@ public final class WindowFrame {
                     }
                 }
             } else {
-                BitSet set = new BitSet(endIndex + 1);
-                set.set(startIndex, endIndex + 1);
-                set.clear(exStart, exEnd + 1);
-                if (set.isEmpty()) {
-                    return Collections.emptyIterator();
+                if (startIndex >= exStart) {
+                    startIndex = exEnd + 1;
+                } else if (endIndex <= exEnd) {
+                    endIndex = exStart - 1;
+                } else {
+                    return biIterator(orderedRows, startIndex, exStart - 1, exEnd + 1, endIndex, reverse);
                 }
-                return reverse ? new BitSetReverseItr(orderedRows, set) : new BitSetItr(orderedRows, set);
             }
         }
         return plainIterator(orderedRows, startIndex, endIndex, reverse);

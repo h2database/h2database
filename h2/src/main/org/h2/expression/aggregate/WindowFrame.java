@@ -521,7 +521,7 @@ public final class WindowFrame {
             int startIndex, int endIndex, boolean reverse) {
         if (exclusion == WindowFrameExclusion.EXCLUDE_CURRENT_ROW) {
             if (currentRow < startIndex || currentRow > endIndex) {
-                // Nothing to do
+                // Nothing to exclude
             } else if (currentRow == startIndex) {
                 startIndex++;
             } else if (currentRow == endIndex) {
@@ -530,10 +530,13 @@ public final class WindowFrame {
                 return biIterator(orderedRows, startIndex, currentRow - 1, currentRow + 1, endIndex, reverse);
             }
         } else {
+            // Do not include previous rows if they are not in the range
             int exStart = toGroupStart(orderedRows, sortOrder, currentRow, startIndex);
+            // Do not include next rows if they are not in the range
             int exEnd = toGroupEnd(orderedRows, sortOrder, currentRow, endIndex);
             boolean includeCurrentRow = exclusion == WindowFrameExclusion.EXCLUDE_TIES;
             if (includeCurrentRow) {
+                // Simplify exclusion if possible
                 if (currentRow == exStart) {
                     exStart++;
                     includeCurrentRow = false;
@@ -543,7 +546,7 @@ public final class WindowFrame {
                 }
             }
             if (exStart > exEnd || exEnd < startIndex || exStart > endIndex) {
-                // Nothing to do
+                // Empty range or nothing to exclude
             } else if (includeCurrentRow) {
                 if (startIndex == exStart) {
                     if (endIndex == exEnd) {

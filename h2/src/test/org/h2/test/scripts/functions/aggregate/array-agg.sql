@@ -351,6 +351,23 @@ SELECT *, ARRAY_AGG(ID) OVER (ORDER BY ID RANGE BETWEEN 1 FOLLOWING AND 2 FOLLOW
 > rows: 4
 
 SELECT *,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN 0 PRECEDING AND 0 FOLLOWING) N,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN 0 PRECEDING AND 0 FOLLOWING EXCLUDE TIES) T,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN 1 PRECEDING AND 0 FOLLOWING EXCLUDE TIES) T1
+    FROM TEST;
+> ID VALUE N         T   T1
+> -- ----- --------- --- ------------
+> 1  1     (1, 2)    (1) (1)
+> 2  1     (1, 2)    (2) (2)
+> 3  5     (3)       (3) (1, 2, 3)
+> 4  8     (4, 5, 6) (4) (3, 4)
+> 5  8     (4, 5, 6) (5) (3, 5)
+> 6  8     (4, 5, 6) (6) (3, 6)
+> 7  9     (7, 8)    (7) (4, 5, 6, 7)
+> 8  9     (7, 8)    (8) (4, 5, 6, 8)
+> rows: 8
+
+SELECT *,
     ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING) U_P,
     ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN 2 PRECEDING AND 1 PRECEDING) P,
     ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN 1 FOLLOWING AND 2 FOLLOWING) F,
@@ -382,6 +399,54 @@ SELECT *,
 > 6  8     (3, 4, 5, 6)    (4, 5, 6, 7, 8)
 > 7  9     (4, 5, 6, 7, 8) (7, 8)
 > 8  9     (4, 5, 6, 7, 8) (7, 8)
+> rows: 8
+
+SELECT ID, VALUE,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE ROWS BETWEEN 2 PRECEDING AND 2 FOLLOWING EXCLUDE GROUP) G,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE ROWS BETWEEN 2 PRECEDING AND 2 FOLLOWING EXCLUDE TIES) T
+    FROM TEST;
+> ID VALUE G            T
+> -- ----- ------------ ---------------
+> 1  1     (3)          (1, 3)
+> 2  1     (3, 4)       (2, 3, 4)
+> 3  5     (1, 2, 4, 5) (1, 2, 3, 4, 5)
+> 4  8     (2, 3)       (2, 3, 4)
+> 5  8     (3, 7)       (3, 5, 7)
+> 6  8     (7, 8)       (6, 7, 8)
+> 7  9     (5, 6)       (5, 6, 7)
+> 8  9     (6)          (6, 8)
+> rows: 8
+
+SELECT ID, VALUE, ARRAY_AGG(ID) OVER(ORDER BY VALUE ROWS BETWEEN 1 FOLLOWING AND 2 FOLLOWING EXCLUDE GROUP) G
+    FROM TEST ORDER BY ID FETCH FIRST 3 ROWS ONLY;
+> ID VALUE G
+> -- ----- ------
+> 1  1     (3)
+> 2  1     (3, 4)
+> 3  5     (4, 5)
+> rows (ordered): 3
+
+SELECT ID, VALUE, ARRAY_AGG(ID) OVER(ORDER BY VALUE ROWS BETWEEN 2 PRECEDING AND 1 PRECEDING EXCLUDE GROUP) G
+    FROM TEST ORDER BY ID FETCH FIRST 3 ROWS ONLY;
+> ID VALUE G
+> -- ----- ------
+> 1  1     null
+> 2  1     null
+> 3  5     (1, 2)
+> rows (ordered): 3
+
+SELECT ID, VALUE, ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING) A
+    FROM TEST;
+> ID VALUE A
+> -- ----- ---------
+> 1  1     null
+> 2  1     null
+> 3  5     null
+> 4  8     null
+> 5  8     null
+> 6  8     null
+> 7  9     (4, 5, 6)
+> 8  9     (4, 5, 6)
 > rows: 8
 
 SELECT *, ARRAY_AGG(ID) OVER (ORDER BY ID RANGE BETWEEN CURRENT ROW AND 1 PRECEDING) FROM TEST;
@@ -424,6 +489,34 @@ SELECT *, ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN 1 FOLLOWING AND 2 FOL
 > 2  1     (3, 4, 5, 6)
 > 3  2     (5, 6, 7, 8)
 > 4  2     (5, 6, 7, 8)
+> 5  3     (7, 8)
+> 6  3     (7, 8)
+> 7  4     null
+> 8  4     null
+> rows: 8
+
+SELECT ID, VALUE, ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING EXCLUDE CURRENT ROW) A
+    FROM TEST;
+> ID VALUE A
+> -- ----- ------------
+> 1  1     null
+> 2  1     null
+> 3  2     (1, 2)
+> 4  2     (1, 2)
+> 5  3     (1, 2, 3, 4)
+> 6  3     (1, 2, 3, 4)
+> 7  4     (3, 4, 5, 6)
+> 8  4     (3, 4, 5, 6)
+> rows: 8
+
+SELECT ID, VALUE, ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN 1 FOLLOWING AND 1 FOLLOWING EXCLUDE CURRENT ROW) A
+    FROM TEST;
+> ID VALUE A
+> -- ----- ------
+> 1  1     (3, 4)
+> 2  1     (3, 4)
+> 3  2     (5, 6)
+> 4  2     (5, 6)
 > 5  3     (7, 8)
 > 6  3     (7, 8)
 > 7  4     null

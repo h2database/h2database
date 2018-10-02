@@ -11,14 +11,21 @@ import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 
 /**
- * Data stored while calculating an aggregate.
+ * Data stored while calculating a COUNT aggregate.
  */
 class AggregateDataCount extends AggregateData {
+
+    private final boolean all;
+
     private long count;
+
+    AggregateDataCount(boolean all) {
+        this.all = all;
+    }
 
     @Override
     void add(Database database, int dataType, Value v) {
-        if (v != ValueNull.INSTANCE) {
+        if (all || v != ValueNull.INSTANCE) {
             count++;
         }
     }

@@ -435,6 +435,20 @@ SELECT ID, VALUE, ARRAY_AGG(ID) OVER(ORDER BY VALUE ROWS BETWEEN 2 PRECEDING AND
 > 3  5     (1, 2)
 > rows (ordered): 3
 
+SELECT ID, VALUE, ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING) A
+    FROM TEST;
+> ID VALUE A
+> -- ----- ---------
+> 1  1     null
+> 2  1     null
+> 3  5     null
+> 4  8     null
+> 5  8     null
+> 6  8     null
+> 7  9     (4, 5, 6)
+> 8  9     (4, 5, 6)
+> rows: 8
+
 SELECT *, ARRAY_AGG(ID) OVER (ORDER BY ID RANGE BETWEEN CURRENT ROW AND 1 PRECEDING) FROM TEST;
 > exception SYNTAX_ERROR_1
 

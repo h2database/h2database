@@ -192,8 +192,8 @@ public final class WindowFrame {
      * Returns iterator for the specified frame, or default iterator if frame is
      * null.
      *
-     * @param frame
-     *            window frame, or null
+     * @param over
+     *            window
      * @param session
      *            the session
      * @param orderedRows
@@ -207,10 +207,16 @@ public final class WindowFrame {
      *
      * @return iterator
      */
-    public static Iterator<Value[]> iterator(WindowFrame frame, Session session, ArrayList<Value[]> orderedRows,
+    public static Iterator<Value[]> iterator(Window over, Session session, ArrayList<Value[]> orderedRows,
             SortOrder sortOrder, int currentRow, boolean reverse) {
-        return frame != null ? frame.iterator(session, orderedRows, sortOrder, currentRow, reverse)
-                : plainIterator(orderedRows, 0, currentRow, reverse);
+        WindowFrame frame = over.getWindowFrame();
+        if (frame != null) {
+            return frame.iterator(session, orderedRows, sortOrder, currentRow, reverse);
+        }
+        int endIndex = orderedRows.size() - 1;
+        return plainIterator(orderedRows, 0,
+                over.getOrderBy() == null ? endIndex : toGroupEnd(orderedRows, sortOrder, currentRow, endIndex),
+                reverse);
     }
 
     private static Iterator<Value[]> plainIterator(ArrayList<Value[]> orderedRows, int startIndex, int endIndex,
@@ -315,16 +321,6 @@ public final class WindowFrame {
     }
 
     /**
-     * Returns whether window frame specification can be omitted.
-     *
-     * @return whether window frame specification can be omitted
-     */
-    public boolean isDefault() {
-        return starting.getType() == WindowFrameBoundType.UNBOUNDED_PRECEDING && following == null
-                && exclusion == WindowFrameExclusion.EXCLUDE_NO_OTHERS;
-    }
-
-    /**
      * Returns whether window frame specification contains all rows in
      * partition.
      *
@@ -356,7 +352,8 @@ public final class WindowFrame {
             int currentRow, boolean reverse) {
         int startIndex = getIndex(session, orderedRows, sortOrder, currentRow, starting, false);
         int endIndex = following != null ? getIndex(session, orderedRows, sortOrder, currentRow, following, true)
-                : currentRow;
+                : units == WindowFrameUnits.ROWS ? currentRow
+                        : toGroupEnd(orderedRows, sortOrder, currentRow, orderedRows.size() - 1);
         if (endIndex < startIndex) {
             return Collections.emptyIterator();
         }
@@ -446,7 +443,18 @@ public final class WindowFrame {
             }
             break;
         case CURRENT_ROW:
-            index = currentRow;
+            switch (units) {
+            case ROWS:
+                index = currentRow;
+                break;
+            case GROUPS:
+            case RANGE:
+                index = forFollowing ? toGroupEnd(orderedRows, sortOrder, currentRow, last)
+                        : toGroupStart(orderedRows, sortOrder, currentRow, 0);
+                break;
+            default:
+                throw DbException.getUnsupportedException("units=" + units);
+            }
             break;
         case FOLLOWING:
             switch (units) {

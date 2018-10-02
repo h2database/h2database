@@ -94,3 +94,13 @@ SELECT I, C, COUNT(I) OVER (PARTITION BY C) CNT FROM
 > 4 2 3
 > 5 2 3
 > rows: 5
+
+SELECT X, COUNT(*) OVER (ORDER BY X) C FROM VALUES (1), (1), (2), (2), (3) V(X);
+> X C
+> - -
+> 1 2
+> 1 2
+> 2 4
+> 2 4
+> 3 5
+> rows: 5

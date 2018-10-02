@@ -224,7 +224,7 @@ public final class Window {
             }
         }
         appendOrderBy(builder, orderBy);
-        if (frame != null && !frame.isDefault()) {
+        if (frame != null) {
             if (builder.charAt(builder.length() - 1) != '(') {
                 builder.append(' ');
             }

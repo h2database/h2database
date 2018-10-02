@@ -192,8 +192,8 @@ public final class WindowFrame {
      * Returns iterator for the specified frame, or default iterator if frame is
      * null.
      *
-     * @param frame
-     *            window frame, or null
+     * @param over
+     *            window
      * @param session
      *            the session
      * @param orderedRows
@@ -207,10 +207,16 @@ public final class WindowFrame {
      *
      * @return iterator
      */
-    public static Iterator<Value[]> iterator(WindowFrame frame, Session session, ArrayList<Value[]> orderedRows,
+    public static Iterator<Value[]> iterator(Window over, Session session, ArrayList<Value[]> orderedRows,
             SortOrder sortOrder, int currentRow, boolean reverse) {
-        return frame != null ? frame.iterator(session, orderedRows, sortOrder, currentRow, reverse)
-                : plainIterator(orderedRows, 0, currentRow, reverse);
+        WindowFrame frame = over.getWindowFrame();
+        if (frame != null) {
+            return frame.iterator(session, orderedRows, sortOrder, currentRow, reverse);
+        }
+        int endIndex = orderedRows.size() - 1;
+        return plainIterator(orderedRows, 0,
+                over.getOrderBy() == null ? endIndex : toGroupEnd(orderedRows, sortOrder, currentRow, endIndex),
+                reverse);
     }
 
     private static Iterator<Value[]> plainIterator(ArrayList<Value[]> orderedRows, int startIndex, int endIndex,
@@ -312,16 +318,6 @@ public final class WindowFrame {
                 f = following != null ? following.getType() : WindowFrameBoundType.CURRENT_ROW;
         return s != WindowFrameBoundType.UNBOUNDED_FOLLOWING && f != WindowFrameBoundType.UNBOUNDED_PRECEDING
                 && s.compareTo(f) <= 0;
-    }
-
-    /**
-     * Returns whether window frame specification can be omitted.
-     *
-     * @return whether window frame specification can be omitted
-     */
-    public boolean isDefault() {
-        return starting.getType() == WindowFrameBoundType.UNBOUNDED_PRECEDING && following == null
-                && exclusion == WindowFrameExclusion.EXCLUDE_NO_OTHERS;
     }
 
     /**

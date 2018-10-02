@@ -219,3 +219,13 @@ SELECT ID, CATEGORY,
 
 DROP TABLE TEST;
 > ok
+
+SELECT I, X, LAST_VALUE(I) OVER (ORDER BY X) L FROM VALUES (1, 1), (2, 1), (3, 2), (4, 2), (5, 3) V(I, X);
+> I X L
+> - - -
+> 1 1 2
+> 2 1 2
+> 3 2 4
+> 4 2 4
+> 5 3 5
+> rows: 5

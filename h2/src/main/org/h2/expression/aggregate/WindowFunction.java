@@ -345,17 +345,16 @@ public class WindowFunction extends DataAnalysisOperation {
     private void getNth(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered, int rowIdColumn) {
         int size = ordered.size();
         for (int i = 0; i < size; i++) {
-            WindowFrame frame = over.getWindowFrame();
             Value[] row = ordered.get(i);
             int rowId = row[rowIdColumn].getInt();
             Value v;
             switch (type) {
             case FIRST_VALUE:
-                v = getNthValue(WindowFrame.iterator(frame, session, ordered, getOverOrderBySort(), i, false), 0,
+                v = getNthValue(WindowFrame.iterator(over, session, ordered, getOverOrderBySort(), i, false), 0,
                         ignoreNulls);
                 break;
             case LAST_VALUE:
-                v = getNthValue(WindowFrame.iterator(frame, session, ordered, getOverOrderBySort(), i, true), 0,
+                v = getNthValue(WindowFrame.iterator(over, session, ordered, getOverOrderBySort(), i, true), 0,
                         ignoreNulls);
                 break;
             case NTH_VALUE: {
@@ -364,7 +363,7 @@ public class WindowFunction extends DataAnalysisOperation {
                     throw DbException.getInvalidValueException("nth row", n);
                 }
                 n--;
-                Iterator<Value[]> iter = WindowFrame.iterator(frame, session, ordered, getOverOrderBySort(), i,
+                Iterator<Value[]> iter = WindowFrame.iterator(over, session, ordered, getOverOrderBySort(), i,
                         fromLast);
                 v = getNthValue(iter, n, ignoreNulls);
                 break;

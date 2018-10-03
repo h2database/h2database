@@ -228,9 +228,4 @@ public class ValueTime extends Value {
         return ValueTime.fromNanos((long) (nanos / v.getDouble()));
     }
 
-    @Override
-    public int getSignum() {
-        return (int) (-nanos >>> 63);
-    }
-
 }

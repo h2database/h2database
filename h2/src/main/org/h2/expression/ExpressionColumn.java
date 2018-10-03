@@ -317,9 +317,15 @@ public class ExpressionColumn extends Expression {
             }
             return true;
         case ExpressionVisitor.GET_COLUMNS1:
+            if (column == null) {
+                throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, getSQL());
+            }
             visitor.addColumn1(column);
             return true;
         case ExpressionVisitor.GET_COLUMNS2:
+            if (column == null) {
+                throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, getSQL());
+            }
             visitor.addColumn2(column);
             return true;
         default:

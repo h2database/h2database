@@ -6,9 +6,7 @@
 package org.h2.command.dml;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
@@ -19,7 +17,6 @@ import org.h2.engine.Session;
 import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
-import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
@@ -103,7 +100,6 @@ public class MergeUsing extends Prepared {
     private Table targetTable;
     private TableFilter targetTableFilter;
     private Column[] columns;
-    private Column[] keys;
     private final ArrayList<Expression[]> valuesExpressionList = Utils.newSmallArrayList();
     private Query query;
 
@@ -214,59 +210,35 @@ public class MergeUsing extends Prepared {
             }
         } else {
             if (insertCommand != null) {
-                int count = insertCommand.update();
-                if (!isTargetRowFound()) {
-                    throw DbException.get(ErrorCode.GENERAL_ERROR_1,
-                            "Expected to find key after row inserted, but none found. "
-                                    + "Insert does not match ON condition.:"
-                                    + targetTable.getSQL() + ":source row="
-                                    + Arrays.asList(sourceRow.getValueList()));
-                }
-                countUpdatedRows += count;
+                countUpdatedRows += insertCommand.update();
             }
         }
     }
 
     private boolean isTargetRowFound() {
+        boolean matched = false;
         try (ResultInterface rows = targetMatchQuery.query(0)) {
-            if (!rows.next()) {
-                return false;
-            }
-            Value targetRowId = rows.currentRow()[0];
-            Integer number = targetRowidsRemembered.get(targetRowId);
-            // throw and exception if we have processed this _ROWID_ before...
-            if (number != null) {
-                throw DbException.get(ErrorCode.DUPLICATE_KEY_1,
-                        "Merge using ON column expression, " +
-                        "duplicate _ROWID_ target record already updated, deleted or inserted:_ROWID_="
-                                + targetRowId + ":in:"
-                                + targetTableFilter.getTable()
-                                + ":conflicting source row number:"
-                                + number);
-            }
-            // remember the source column values we have used before (they
-            // are the effective ON clause keys
-            // and should not be repeated
-            targetRowidsRemembered.put(targetRowId, sourceQueryRowNumber);
-            if (rows.next()) {
-                int rowCount;
-                if (rows.isLazy()) {
-                    for (rowCount = 2; rows.next(); rowCount++) {
-                    }
-                } else {
-                    rowCount = rows.getRowCount();
+            while (rows.next()) {
+                Value targetRowId = rows.currentRow()[0];
+                Integer number = targetRowidsRemembered.get(targetRowId);
+                // throw and exception if we have processed this _ROWID_ before...
+                if (number != null) {
+                    throw DbException.get(ErrorCode.DUPLICATE_KEY_1,
+                            "Merge using ON column expression, " +
+                            "duplicate _ROWID_ target record already updated, deleted or inserted:_ROWID_="
+                                    + targetRowId + ":in:"
+                                    + targetTableFilter.getTable()
+                                    + ":conflicting source row number:"
+                                    + number);
                 }
-                throw DbException.get(ErrorCode.DUPLICATE_KEY_1,
-                        "Duplicate key updated "
-                                + rowCount
-                                + " rows at once, only 1 expected:_ROWID_="
-                                + targetRowId + ":in:"
-                                + targetTableFilter.getTable()
-                                + ":conflicting source row number:"
-                                + targetRowidsRemembered.get(targetRowId));
+                // remember the source column values we have used before (they
+                // are the effective ON clause keys
+                // and should not be repeated
+                targetRowidsRemembered.put(targetRowId, sourceQueryRowNumber);
+                matched = true;
             }
-            return true;
         }
+        return matched;
     }
 
     // Use the regular merge syntax as our plan SQL
@@ -278,17 +250,7 @@ public class MergeUsing extends Prepared {
             buff.appendExceptFirst(", ");
             buff.append(c.getSQL());
         }
-        buff.append(')');
-        if (keys != null) {
-            buff.append(" KEY(");
-            buff.resetCount();
-            for (Column c : keys) {
-                buff.appendExceptFirst(", ");
-                buff.append(c.getSQL());
-            }
-            buff.append(')');
-        }
-        buff.append('\n');
+        buff.append(')').append('\n');
         if (!valuesExpressionList.isEmpty()) {
             buff.append("VALUES ");
             int row = 0;
@@ -321,15 +283,6 @@ public class MergeUsing extends Prepared {
 
         onCondition.mapColumns(sourceTableFilter, 2, Expression.MAP_INITIAL);
         onCondition.mapColumns(targetTableFilter, 1, Expression.MAP_INITIAL);
-
-        if (keys == null) {
-            keys = buildColumnListFromOnCondition(targetTableFilter.getTable());
-        }
-        if (keys.length == 0) {
-            throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1,
-                    "No references to target columns found in ON clause:"
-                            + targetTableFilter.toString());
-        }
 
         // only do the optimize now - before we have already gathered the
         // unoptimized column data
@@ -390,13 +343,6 @@ public class MergeUsing extends Prepared {
         targetMatchQuery.addCondition(onCondition);
         targetMatchQuery.init();
         targetMatchQuery.prepare();
-    }
-
-    private Column[] buildColumnListFromOnCondition(Table table) {
-        HashSet<Column> columns = new HashSet<>();
-        ExpressionVisitor visitor = ExpressionVisitor.getColumnsVisitor(columns, table);
-        onCondition.isEverything(visitor);
-        return columns.toArray(new Column[0]);
     }
 
     private Expression appendOnCondition(Update updateCommand) {

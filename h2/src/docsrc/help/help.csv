@@ -3810,21 +3810,21 @@ This method returns a double.
 FLOOR(A)
 "
 
-"Functions (Numeric)","LOG","
-{ LOG | LN } (numeric)
+"Functions (Numeric)","LN","
+{LN|LOG}(numeric)
 ","
-See also Java ""Math.log"".
+Calculates the natural (base e) logarithm as a double value.
 In the PostgreSQL mode, LOG(x) is base 10.
-This method returns a double.
+See also Java ""Math.log"".
 ","
-LOG(A)
+LN(A)
 "
 
 "Functions (Numeric)","LOG10","
 LOG10(numeric)
 ","
+Calculates the base 10 logarithm as a double value.
 See also Java ""Math.log10"".
-This method returns a double.
 ","
 LOG10(A)
 "

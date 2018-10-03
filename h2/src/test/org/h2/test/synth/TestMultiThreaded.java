@@ -135,7 +135,7 @@ public class TestMultiThreaded extends TestDb {
     @Override
     public void test() throws Exception {
         deleteDb("multiThreaded");
-        int size = getSize(2, 4);
+        int size = getSize(2, 20);
         Connection[] connList = new Connection[size];
         for (int i = 0; i < size; i++) {
             connList[i] = getConnection("multiThreaded;MULTI_THREADED=1");
@@ -175,7 +175,7 @@ public class TestMultiThreaded extends TestDb {
             }
             deleteDb("multiThreaded");
         }
-        
+
         boolean success = true;
         for (int i = 0; i < size; i++) {
             Processor p = processors[i];

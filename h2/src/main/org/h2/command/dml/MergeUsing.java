@@ -219,45 +219,29 @@ public class MergeUsing extends Prepared {
     }
 
     private boolean isTargetRowFound() {
+        boolean matched = false;
         try (ResultInterface rows = targetMatchQuery.query(0)) {
-            if (!rows.next()) {
-                return false;
-            }
-            Value targetRowId = rows.currentRow()[0];
-            Integer number = targetRowidsRemembered.get(targetRowId);
-            // throw and exception if we have processed this _ROWID_ before...
-            if (number != null) {
-                throw DbException.get(ErrorCode.DUPLICATE_KEY_1,
-                        "Merge using ON column expression, " +
-                        "duplicate _ROWID_ target record already updated, deleted or inserted:_ROWID_="
-                                + targetRowId + ":in:"
-                                + targetTableFilter.getTable()
-                                + ":conflicting source row number:"
-                                + number);
-            }
-            // remember the source column values we have used before (they
-            // are the effective ON clause keys
-            // and should not be repeated
-            targetRowidsRemembered.put(targetRowId, sourceQueryRowNumber);
-            if (rows.next()) {
-                int rowCount;
-                if (rows.isLazy()) {
-                    for (rowCount = 2; rows.next(); rowCount++) {
-                    }
-                } else {
-                    rowCount = rows.getRowCount();
+            while (rows.next()) {
+                Value targetRowId = rows.currentRow()[0];
+                Integer number = targetRowidsRemembered.get(targetRowId);
+                // throw and exception if we have processed this _ROWID_ before...
+                if (number != null) {
+                    throw DbException.get(ErrorCode.DUPLICATE_KEY_1,
+                            "Merge using ON column expression, " +
+                            "duplicate _ROWID_ target record already updated, deleted or inserted:_ROWID_="
+                                    + targetRowId + ":in:"
+                                    + targetTableFilter.getTable()
+                                    + ":conflicting source row number:"
+                                    + number);
                 }
-                throw DbException.get(ErrorCode.DUPLICATE_KEY_1,
-                        "Duplicate key updated "
-                                + rowCount
-                                + " rows at once, only 1 expected:_ROWID_="
-                                + targetRowId + ":in:"
-                                + targetTableFilter.getTable()
-                                + ":conflicting source row number:"
-                                + targetRowidsRemembered.get(targetRowId));
+                // remember the source column values we have used before (they
+                // are the effective ON clause keys
+                // and should not be repeated
+                targetRowidsRemembered.put(targetRowId, sourceQueryRowNumber);
+                matched = true;
             }
-            return true;
         }
+        return matched;
     }
 
     // Use the regular merge syntax as our plan SQL

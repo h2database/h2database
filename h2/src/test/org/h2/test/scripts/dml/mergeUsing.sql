@@ -233,5 +233,18 @@ SELECT * FROM TEST;
 > 3  30
 > rows: 3
 
+MERGE INTO TEST USING (SELECT 1) ON (ID = ID)
+    WHEN MATCHED THEN UPDATE SET VALUE = 40
+    WHEN NOT MATCHED THEN INSERT VALUES (4, 40);
+> update count: 3
+
+SELECT * FROM TEST;
+> ID VALUE
+> -- -----
+> 1  40
+> 2  40
+> 3  40
+> rows: 3
+
 DROP TABLE TEST;
 > ok

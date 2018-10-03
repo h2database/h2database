@@ -196,18 +196,6 @@ public class TestMergeUsing extends TestDb implements Trigger {
                 "SELECT 1 AS ID, 'Marcy'||X||X UNION ALL SELECT 1 AS ID, 'Marcy2'",
                 2);
 
-        // Duplicate key updated 3 rows at once, only 1 expected
-        testMergeUsingException(
-                "CREATE TABLE PARENT AS (SELECT 1 AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3) );"
-                        + "CREATE TABLE SOURCE AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3)  );",
-                "MERGE INTO PARENT USING SOURCE ON (PARENT.ID = SOURCE.ID) WHEN MATCHED THEN " +
-                "UPDATE SET PARENT.NAME = SOURCE.NAME||SOURCE.ID WHERE PARENT.ID = 2 " +
-                "DELETE WHERE PARENT.ID = 1 WHEN NOT MATCHED THEN " +
-                "INSERT (ID, NAME) VALUES (SOURCE.ID, SOURCE.NAME)",
-                GATHER_ORDERED_RESULTS_SQL,
-                "SELECT X AS ID, 'Marcy'||X||X AS NAME FROM SYSTEM_RANGE(2,2) UNION ALL " +
-                "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(3,3)",
-                3, "Duplicate key updated 3 rows at once, only 1 expected");
         // Missing target columns in ON expression
         testMergeUsingException(
                 "CREATE TABLE PARENT AS (SELECT 1 AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3) );"
@@ -220,18 +208,6 @@ public class TestMergeUsing extends TestDb implements Trigger {
                 "SELECT X AS ID, 'Marcy'||X||X AS NAME FROM SYSTEM_RANGE(2,2) UNION ALL " +
                 "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(3,3)",
                 3, "No references to target columns found in ON clause");
-        // Missing source columns in ON expression
-        testMergeUsingException(
-                "CREATE TABLE PARENT AS (SELECT 1 AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3) );"
-                        + "CREATE TABLE SOURCE AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3)  );",
-                "MERGE INTO PARENT USING SOURCE ON (PARENT.ID = 1) WHEN MATCHED THEN " +
-                "UPDATE SET PARENT.NAME = SOURCE.NAME||SOURCE.ID WHERE PARENT.ID = 2 " +
-                "DELETE WHERE PARENT.ID = 1 WHEN NOT MATCHED THEN " +
-                "INSERT (ID, NAME) VALUES (SOURCE.ID, SOURCE.NAME)",
-                GATHER_ORDERED_RESULTS_SQL,
-                "SELECT X AS ID, 'Marcy'||X||X AS NAME FROM SYSTEM_RANGE(2,2) UNION ALL " +
-                "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(3,3)",
-                3, "Duplicate key updated 3 rows at once, only 1 expected");
         // One insert, one update one delete happens, target table missing PK,
         // triggers update all NAME fields
         triggerTestingUpdateCount = 0;

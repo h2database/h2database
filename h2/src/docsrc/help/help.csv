@@ -3604,7 +3604,7 @@ ENVELOPE(X)
 "
 
 "Functions (Numeric)","ABS","
-ABS (numeric|interval)
+ABS(numeric|interval)
 ","
 Returns the absolute value of a specified value.
 The returned value is of the same data type as the parameter.
@@ -3939,9 +3939,9 @@ CALL SECURE_RAND(16)
 "
 
 "Functions (Numeric)","SIGN","
-SIGN ( { numeric } )
+SIGN(numeric|interval)
 ","
-Returns -1 if the value is smaller 0, 0 if zero, and otherwise 1.
+Returns -1 if the value is smaller than 0, 0 if zero, and otherwise 1.
 ","
 SIGN(VALUE)
 "

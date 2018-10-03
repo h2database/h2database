@@ -196,25 +196,6 @@ public class TestMergeUsing extends TestDb implements Trigger {
                 "SELECT 1 AS ID, 'Marcy'||X||X UNION ALL SELECT 1 AS ID, 'Marcy2'",
                 2);
 
-        // Multiple update on same row: SQL standard says duplicate or repeated
-        // updates in same statement should cause errors -but because first row
-        // is updated, delete then insert it's considered different
-        // One insert, one update one delete happens (on same row, which is
-        // okay), then another update (which is illegal)target table missing PK,
-        // no source or target alias
-        testMergeUsingException(
-                "CREATE TABLE PARENT AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,1) );"
-                        + "CREATE TABLE SOURCE AS (SELECT 1 AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3)  );",
-                "MERGE INTO PARENT USING SOURCE ON (PARENT.ID = SOURCE.ID) WHEN MATCHED THEN " +
-                "UPDATE SET PARENT.NAME = SOURCE.NAME||SOURCE.ID WHERE PARENT.ID = 2 " +
-                "DELETE WHERE PARENT.ID = 1 WHEN NOT MATCHED THEN " +
-                "INSERT (ID, NAME) VALUES (SOURCE.ID, SOURCE.NAME)",
-                GATHER_ORDERED_RESULTS_SQL,
-                "SELECT 1 AS ID, 'Marcy'||X||X UNION ALL SELECT 1 AS ID, 'Marcy2'",
-                3,
-                "Unique index or primary key violation: \"Merge using " +
-                "ON column expression, duplicate _ROWID_ target record " +
-                "already updated, deleted or inserted:_ROWID_=2:in:PUBLIC.PARENT:conflicting source row number:2");
         // Duplicate key updated 3 rows at once, only 1 expected
         testMergeUsingException(
                 "CREATE TABLE PARENT AS (SELECT 1 AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3) );"
@@ -251,18 +232,6 @@ public class TestMergeUsing extends TestDb implements Trigger {
                 "SELECT X AS ID, 'Marcy'||X||X AS NAME FROM SYSTEM_RANGE(2,2) UNION ALL " +
                 "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(3,3)",
                 3, "Duplicate key updated 3 rows at once, only 1 expected");
-        // Insert does not insert correct values with respect to ON condition
-        // (inserts ID value above 100, instead)
-        testMergeUsingException(
-                "CREATE TABLE PARENT AS (SELECT 1 AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(4,4) );"
-                        + "CREATE TABLE SOURCE AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3)  );",
-                "MERGE INTO PARENT USING SOURCE ON (PARENT.ID = SOURCE.ID) WHEN MATCHED THEN " +
-                "UPDATE SET PARENT.NAME = SOURCE.NAME||SOURCE.ID WHERE PARENT.ID = 2 " +
-                "DELETE WHERE PARENT.ID = 1 WHEN NOT MATCHED THEN " +
-                "INSERT (ID, NAME) VALUES (SOURCE.ID+100, SOURCE.NAME)",
-                GATHER_ORDERED_RESULTS_SQL,
-                "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(4,4)", 1,
-                "Expected to find key after row inserted, but none found. Insert does not match ON condition.");
         // One insert, one update one delete happens, target table missing PK,
         // triggers update all NAME fields
         triggerTestingUpdateCount = 0;

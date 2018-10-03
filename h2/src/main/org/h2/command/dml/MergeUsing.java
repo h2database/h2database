@@ -6,7 +6,6 @@
 package org.h2.command.dml;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -214,15 +213,7 @@ public class MergeUsing extends Prepared {
             }
         } else {
             if (insertCommand != null) {
-                int count = insertCommand.update();
-                if (!isTargetRowFound()) {
-                    throw DbException.get(ErrorCode.GENERAL_ERROR_1,
-                            "Expected to find key after row inserted, but none found. "
-                                    + "Insert does not match ON condition.:"
-                                    + targetTable.getSQL() + ":source row="
-                                    + Arrays.asList(sourceRow.getValueList()));
-                }
-                countUpdatedRows += count;
+                countUpdatedRows += insertCommand.update();
             }
         }
     }

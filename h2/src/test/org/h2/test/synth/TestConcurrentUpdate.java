@@ -100,18 +100,17 @@ public class TestConcurrentUpdate extends TestDb {
                 t.execute();
             }
             // test 2 seconds
-            for (int i = 0; i < 200; i++) {
-                Thread.sleep(10);
-                for (Task t : tasks) {
-                    if (t.isFinished()) {
-                        i = 1000;
-                        break;
-                    }
+            Thread.sleep(2000);
+            boolean success = true;
+            for (Task t : tasks) {
+                t.join();
+                Throwable exception = t.getException();
+                if (exception != null) {
+                    logError("", exception);
+                    success = false;
                 }
             }
-            for (Task t : tasks) {
-                t.get();
-            }
+            assert success;
         }
     }
 }

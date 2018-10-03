@@ -344,6 +344,10 @@ public abstract class Query extends Prepared {
         if (!cacheableChecked) {
             long max = getMaxDataModificationId();
             noCache = max == Long.MAX_VALUE;
+            if (!isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR) ||
+                    !isEverything(ExpressionVisitor.INDEPENDENT_VISITOR)) {
+                noCache = true;
+            }
             cacheableChecked = true;
         }
         if (noCache) {
@@ -356,18 +360,10 @@ public abstract class Query extends Prepared {
                 return false;
             }
         }
-        if (!isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR) ||
-                !isEverything(ExpressionVisitor.INDEPENDENT_VISITOR)) {
-            return false;
-        }
-        if (db.getModificationDataId() > lastEval &&
-                getMaxDataModificationId() > lastEval) {
-            return false;
-        }
-        return true;
+        return getMaxDataModificationId() <= lastEval;
     }
 
-    public final Value[] getParameterValues() {
+    private  Value[] getParameterValues() {
         ArrayList<Parameter> list = getParameters();
         if (list == null) {
             return new Value[0];

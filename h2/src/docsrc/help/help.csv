@@ -2564,6 +2564,18 @@ W1
 [windowFrame])
 ","
 A window specification for a window, window function or aggregate.
+
+If name of an existing window is specified its clauses are used by default.
+
+Optional window partition clause separates rows into independent partitions.
+Each partition is processed separately.
+If this clause is not present there is one implicit partition with all rows.
+
+Optional window order clause specifies order of rows in the partition.
+If some rows have the same order position they are considered as a group of rows in optional window frame clause.
+
+Optional window frame clause specifies which rows are processed by a window function,
+see its documentation for a more details.
 ","
 ()
 (W1 ORDER BY ID)
@@ -2579,8 +2591,33 @@ ROWS|RANGE|GROUP
 ","
 A window frame clause.
 May be specified only for aggregates and FIRST_VALUE(), LAST_VALUE(), and NTH_VALUE() window functions.
+
+If this clause is not specified for an aggregate or window function that supports this clause
+the default window frame depends on window order clause.
+If window order clause is also not specified
+the default window frame contains all the rows in the partition.
+If window order clause is specified
+the default window frame contains all preceding rows and all rows from the current group.
+
+Window frame unit determines how rows or groups of rows are selected and counted.
+If ROWS is specified rows are not grouped in any way and relative numbers of rows are used in bounds.
+If RANGE is specified rows are grouped according window order clause,
+preceding and following values mean the difference between value in the current row and in the target rows,
+and CURRENT ROW in bound specification means current group of rows.
+If GROUPS is specified rows are grouped according window order clause,
+preceding and following values means relative number of groups of rows,
+and CURRENT ROW in bound specification means current group of rows.
+
+If only window frame preceding clause is specified it is treated as
+BETWEEN windowFramePreceding AND CURRENT ROW
+
+Optional window frame exclusion clause specifies rows that should be excluded from the frame.
+EXCLUDE CURRENT ROW excludes only the current row regardless the window frame unit.
+EXCLUDE GROUP excludes the whole current group of rows, including the current row.
+EXCLUDE TIES excludes the current group of rows, but not the current row.
+EXCLUDE NO OTHERS is default and it does not exclude anything.
 ","
-RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE GROUP
+ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE TIES
 "
 
 "Other Grammar","Window frame preceding","
@@ -5135,6 +5172,7 @@ H2VERSION()
 ROW_NUMBER() OVER windowNameOrSpecification
 ","
 Returns the number of the current row starting with 1.
+Window frame clause is not allowed for this function.
 
 Window functions are currently experimental in H2 and should be used with caution.
 They also may require a lot of memory for large queries.
@@ -5151,6 +5189,8 @@ Returns the rank of the current row.
 The rank of a row is the number of rows that precede this row plus 1.
 If two or more rows have the same values in ORDER BY columns, these rows get the same rank from the first row with the same values.
 It means that gaps in ranks are possible.
+This function requires window order clause.
+Window frame clause is not allowed for this function.
 
 Window functions are currently experimental in H2 and should be used with caution.
 They also may require a lot of memory for large queries.
@@ -5166,6 +5206,8 @@ Returns the dense rank of the current row.
 The rank of a row is the number of groups of rows with the same values in ORDER BY columns that precede group with this row plus 1.
 If two or more rows have the same values in ORDER BY columns, these rows get the same rank.
 Gaps in ranks are not possible.
+This function requires window order clause.
+Window frame clause is not allowed for this function.
 
 Window functions are currently experimental in H2 and should be used with caution.
 They also may require a lot of memory for large queries.
@@ -5180,6 +5222,7 @@ PERCENT_RANK() OVER windowNameOrSpecification
 Returns the relative rank of the current row.
 The relative rank is calculated as (RANK - 1) / (NR - 1),
 where RANK is a rank of the row and NR is a number of rows in window partition with this row.
+Window frame clause is not allowed for this function.
 
 Window functions are currently experimental in H2 and should be used with caution.
 They also may require a lot of memory for large queries.
@@ -5195,6 +5238,7 @@ Returns the relative rank of the current row.
 The relative rank is calculated as NP / NR
 where NP is a number of rows that precede the current row or have the same values in ORDER BY columns
 and NR is a number of rows in window partition with this row.
+Window frame clause is not allowed for this function.
 
 Window functions are currently experimental in H2 and should be used with caution.
 They also may require a lot of memory for large queries.
@@ -5211,6 +5255,8 @@ Number of groups should be a positive integer value.
 NTILE returns the 1-based number of the group to which the current row belongs.
 First groups will have more rows if number of rows is not divisible by number of groups.
 For example, if 5 rows are distributed into 2 groups this function returns 1 for the first 3 row and 2 for the last 2 rows.
+This function requires window order clause.
+Window frame clause is not allowed for this function.
 
 Window functions are currently experimental in H2 and should be used with caution.
 They also may require a lot of memory for large queries.
@@ -5229,6 +5275,8 @@ If IGNORE NULLS is specified rows with null values in selected expression are sk
 If number of considered rows is less than specified relative number this function returns NULL
 or the specified default value, if any.
 If offset is 0 the value from the current row is returned unconditionally.
+This function requires window order clause.
+Window frame clause is not allowed for this function.
 
 Window functions are currently experimental in H2 and should be used with caution.
 They also may require a lot of memory for large queries.
@@ -5249,6 +5297,8 @@ If IGNORE NULLS is specified rows with null values in selected expression are sk
 If number of considered rows is less than specified relative number this function returns NULL
 or the specified default value, if any.
 If offset is 0 the value from the current row is returned unconditionally.
+This function requires window order clause.
+Window frame clause is not allowed for this function.
 
 Window functions are currently experimental in H2 and should be used with caution.
 They also may require a lot of memory for large queries.
@@ -5280,7 +5330,8 @@ OVER windowNameOrSpecification
 Returns the last value in a window.
 If IGNORE NULLS is specified null values are skipped and the function returns last non-null value before them, if any;
 if there is no non-null value it returns NULL.
-Note that the last value is actually a value in the current row if window frame is not specified.
+Note that the last value is actually a value in the current group of rows
+if window order clause is specified and window frame clause is not specified.
 
 Window functions are currently experimental in H2 and should be used with caution.
 They also may require a lot of memory for large queries.
@@ -5301,7 +5352,8 @@ Relative row number must be positive.
 If FROM LAST is specified rows a counted backwards from the last row.
 If IGNORE NULLS is specified rows with null values in selected expression are skipped.
 If number of considered rows is less than specified relative number this function returns NULL.
-Note that the last row is actually a current row if window frame is not specified.
+Note that the last row is actually a last row in the current group of rows
+if window order clause is specified and window frame clause is not specified.
 
 Window functions are currently experimental in H2 and should be used with caution.
 They also may require a lot of memory for large queries.

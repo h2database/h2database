@@ -797,6 +797,6 @@ xym normalizes coord setz xyzm geometrycollection multipolygon mixup rings polyg
 pointzm pointz pointm dimensionality redefine forum measures
 mpg casted pzm mls constrained subtypes complains
 ranks rno dro rko precede cume reopens preceding unbounded rightly itr lag maximal tiles tile ntile signify
-partitioned tri
+partitioned tri partitions
 
-discard enhancements nolock
+discard enhancements nolock surefire logarithm

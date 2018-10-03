@@ -230,12 +230,7 @@ public class ValueTime extends Value {
 
     @Override
     public int getSignum() {
-        return Long.signum(nanos);
-    }
-
-    @Override
-    public Value negate() {
-        return ValueTime.fromNanos(-nanos);
+        return (int) (-nanos >>> 63);
     }
 
 }

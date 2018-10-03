@@ -3604,11 +3604,17 @@ ENVELOPE(X)
 "
 
 "Functions (Numeric)","ABS","
-ABS ( { numeric } )
+ABS (numeric|interval)
 ","
-See also Java ""Math.abs"".
-Please note that ""Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE"" and ""Math.abs(Long.MIN_VALUE) == Long.MIN_VALUE"".
+Returns the absolute value of a specified value.
 The returned value is of the same data type as the parameter.
+
+Note that TINYINT, SMALLINT, INT, and BIGINT data types cannot represent absolute values
+of their minimum negative values, because they have more negative values than positive.
+For example, for INT data type allowed values are from -2147483648 to 2147483647.
+ABS(-2147483648) should be 2147483648, but this value is not allowed for this data type.
+It leads to an exception.
+To avoid it cast argument of this function to a higher data type.
 ","
 ABS(ID)
 "

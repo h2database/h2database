@@ -19,8 +19,8 @@ import org.h2.util.Task;
  */
 public class TestConcurrentUpdate extends TestDb {
 
-    private static final int THREADS = 3;
-    private static final int ROW_COUNT = 10;
+    private static final int THREADS = 10;
+    private static final int ROW_COUNT = 3;
 
     /**
      * Run just this test.

@@ -738,6 +738,11 @@ public class MVTable extends TableBase {
         primaryIndex.lockRows(session, rowsForUpdate);
     }
 
+    @Override
+    public Row lockRow(Session session, Row row) {
+        return primaryIndex.lockRow(session, row);
+    }
+
     private void analyzeIfRequired(Session session) {
         if (changesUntilAnalyze != null) {
             if (changesUntilAnalyze.decrementAndGet() == 0) {

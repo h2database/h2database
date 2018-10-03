@@ -84,7 +84,12 @@ public class Delete extends Prepared {
                         done = table.fireBeforeRow(session, row, null);
                     }
                     if (!done) {
-                        rows.add(row);
+                        if (table.isMVStore()) {
+                            done = table.lockRow(session, row) == null;
+                        }
+                        if (!done) {
+                            rows.add(row);
+                        }
                     }
                     count++;
                     if (limitRows >= 0 && count >= limitRows) {

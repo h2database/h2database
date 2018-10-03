@@ -206,11 +206,22 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
             super(mapId, key, null, transaction);
         }
 
+        @Override
+        public MVMap.Decision decide(VersionedValue existingValue, VersionedValue providedValue) {
+            MVMap.Decision decision = super.decide(existingValue, providedValue);
+            if (existingValue == null) {
+                assert decision == MVMap.Decision.PUT;
+                decision = setDecision(MVMap.Decision.REMOVE);
+            }
+            return decision;
+        }
+
         @SuppressWarnings("unchecked")
         @Override
         public VersionedValue selectValue(VersionedValue existingValue, VersionedValue providedValue) {
-            assert existingValue != null;   // otherwise, what's there to lock?
-            return VersionedValue.getInstance(undoKey, existingValue.value, existingValue.getCommittedValue());
+            return VersionedValue.getInstance(undoKey,
+                    existingValue == null ? null : existingValue.value,
+                    existingValue == null ? null : existingValue.getCommittedValue());
         }
     }
 }

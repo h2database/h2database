@@ -1496,20 +1496,14 @@ public class Parser {
         command.setOnCondition(condition);
 
         read("WHEN");
-        boolean matched = readIf("MATCHED");
-        if (matched) {
-            parseWhenMatched(command);
-        } else {
-            parseWhenNotMatched(command);
-        }
-        if (readIf("WHEN")) {
+        do {
+            boolean matched = readIf("MATCHED");
             if (matched) {
-                parseWhenNotMatched(command);
-            } else {
-                read("MATCHED");
                 parseWhenMatched(command);
+            } else {
+                parseWhenNotMatched(command);
             }
-        }
+        } while (readIf("WHEN"));
 
         setSQL(command, "MERGE", start);
         return command;
@@ -1518,25 +1512,27 @@ public class Parser {
     private void parseWhenMatched(MergeUsing command) {
         read("THEN");
         int startMatched = lastParseIndex;
-        boolean ok = false;
+        Update updateCommand = null;
         if (readIf("UPDATE")) {
-            Update updateCommand = new Update(session);
+            updateCommand = new Update(session);
             TableFilter filter = command.getTargetTableFilter();
             updateCommand.setTableFilter(filter);
             parseUpdateSetClause(updateCommand, filter, startMatched);
-            command.setUpdateCommand(updateCommand);
-            ok = true;
         }
         startMatched = lastParseIndex;
+        Delete deleteCommand = null;
         if (readIf("DELETE")) {
-            Delete deleteCommand = new Delete(session);
+            deleteCommand = new Delete(session);
             TableFilter filter = command.getTargetTableFilter();
             deleteCommand.setTableFilter(filter);
             parseDeleteGivenTable(deleteCommand, null, startMatched);
-            command.setDeleteCommand(deleteCommand);
-            ok = true;
         }
-        if (!ok) {
+        if (updateCommand != null || deleteCommand != null) {
+            MergeUsing.WhenMatched when = new MergeUsing.WhenMatched(command);
+            when.setUpdateCommand(updateCommand);
+            when.setDeleteCommand(deleteCommand);
+            command.addWhen(when);
+        } else {
             throw getSyntaxError();
         }
     }
@@ -1549,7 +1545,9 @@ public class Parser {
             Insert insertCommand = new Insert(session);
             insertCommand.setTable(command.getTargetTable());
             parseInsertGivenTable(insertCommand, command.getTargetTable());
-            command.setInsertCommand(insertCommand);
+            MergeUsing.WhenNotMatched when = new MergeUsing.WhenNotMatched(command);
+            when.setInsertCommand(insertCommand);
+            command.addWhen(when);
         } else {
             throw getSyntaxError();
         }

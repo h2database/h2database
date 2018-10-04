@@ -49,7 +49,7 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
             // because a tree root has definitely been changed.
             logIt(existingValue.value == null ? null : VersionedValue.getInstance(existingValue.value));
             decision = MVMap.Decision.PUT;
-        } else if (fetchTransaction(blockingId) != null) {
+        } else if (getBlockingTransaction() != null) {
             // this entry comes from a different transaction, and this
             // transaction is not committed yet
             // should wait on blockingTransaction that was determined earlier
@@ -106,11 +106,17 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
     }
 
     final boolean isCommitted(int transactionId) {
-        return transaction.store.committingTransactions.get().get(transactionId);
-    }
+        Transaction blockingTx;
+        boolean result;
+        do {
+            blockingTx = transaction.store.getTransaction(transactionId);
+            result = transaction.store.committingTransactions.get().get(transactionId);
+        } while (blockingTx != transaction.store.getTransaction(transactionId));
 
-    final Transaction fetchTransaction(int transactionId) {
-        return (blockingTransaction = transaction.store.getTransaction(transactionId));
+        if (!result) {
+            blockingTransaction = blockingTx;
+        }
+        return result;
     }
 
     final MVMap.Decision setDecision(MVMap.Decision d) {
@@ -167,7 +173,7 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
                     // and therefore will be committed soon
                     logIt(null);
                     return setDecision(MVMap.Decision.PUT);
-                } else if (fetchTransaction(blockingId) != null) {
+                } else if (getBlockingTransaction() != null) {
                     // this entry comes from a different transaction, and this
                     // transaction is not committed yet
                     // should wait on blockingTransaction that was determined

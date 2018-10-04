@@ -175,7 +175,7 @@ public class Transaction {
      * @param status to be set
      * @return transaction state as it was before status change
      */
-    long setStatus(int status) {
+    private long setStatus(int status) {
         while (true) {
             long currentState = statusAndLogId.get();
             long logId = getLogId(currentState);
@@ -486,8 +486,10 @@ public class Transaction {
                             "Transaction %d attempts to update map <%s> entry with key <%s>"
                                     + " modified by transaction %s%n",
                             transactionId, blockingMap.getName(), blockingKey, toWaitFor));
-                    throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTIONS_DEADLOCK,
-                            details.toString());
+                    if (isDeadlocked(toWaitFor)) {
+                        throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTIONS_DEADLOCK,
+                                details.toString());
+                    }
                 }
             }
         }
@@ -515,8 +517,10 @@ public class Transaction {
 
     private synchronized boolean waitForThisToEnd(int millis) {
         long until = System.currentTimeMillis() + millis;
+        long state;
         int status;
-        while((status = getStatus()) != STATUS_CLOSED && status != STATUS_ROLLING_BACK) {
+        while((status = getStatus(state = statusAndLogId.get())) != STATUS_CLOSED
+                && status != STATUS_ROLLED_BACK && !hasRollback(state)) {
             long dur = until - System.currentTimeMillis();
             if(dur <= 0) {
                 return false;

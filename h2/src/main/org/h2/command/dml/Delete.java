@@ -5,6 +5,8 @@
  */
 package org.h2.command.dml;
 
+import java.util.HashSet;
+
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
@@ -40,6 +42,8 @@ public class Delete extends Prepared {
      */
     private TableFilter sourceTableFilter;
 
+    private HashSet<Long> keysFilter;
+
     public Delete(Session session) {
         super(session);
     }
@@ -54,6 +58,15 @@ public class Delete extends Prepared {
 
     public Expression getCondition() {
         return this.condition;
+    }
+
+    /**
+     * Sets the keys filter.
+     *
+     * @param keysFilter the keys filter
+     */
+    public void setKeysFilter(HashSet<Long> keysFilter) {
+        this.keysFilter = keysFilter;
     }
 
     @Override
@@ -79,16 +92,18 @@ public class Delete extends Prepared {
                 setCurrentRowNumber(rows.size() + 1);
                 if (condition == null || condition.getBooleanValue(session)) {
                     Row row = targetTableFilter.get();
-                    boolean done = false;
-                    if (table.fireRow()) {
-                        done = table.fireBeforeRow(session, row, null);
-                    }
-                    if (!done) {
-                        rows.add(row);
-                    }
-                    count++;
-                    if (limitRows >= 0 && count >= limitRows) {
-                        break;
+                    if (keysFilter == null || keysFilter.contains(row.getKey())) {
+                        boolean done = false;
+                        if (table.fireRow()) {
+                            done = table.fireBeforeRow(session, row, null);
+                        }
+                        if (!done) {
+                            rows.add(row);
+                        }
+                        count++;
+                        if (limitRows >= 0 && count >= limitRows) {
+                            break;
+                        }
                     }
                 }
             }

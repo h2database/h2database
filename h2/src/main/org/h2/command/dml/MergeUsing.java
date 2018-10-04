@@ -7,6 +7,7 @@ package org.h2.command.dml;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
@@ -113,6 +114,7 @@ public class MergeUsing extends Prepared {
     private int countUpdatedRows;
     private Select targetMatchQuery;
     private final HashMap<Value, Integer> targetRowidsRemembered = new HashMap<>();
+    private final HashSet<Long> updatedKeys = new HashSet<>();
     private int sourceQueryRowNumber;
 
 
@@ -142,7 +144,8 @@ public class MergeUsing extends Prepared {
         sourceQueryRowNumber = 0;
         checkRights();
         setCurrentRowNumber(0);
-
+        // Just to be sure
+        updatedKeys.clear();
         // process source select query data for row creation
         ResultInterface rows = query.query(0);
         targetTable.fire(session, evaluateTriggerMasks(), true);
@@ -207,6 +210,7 @@ public class MergeUsing extends Prepared {
             // allowed together
             if (deleteCommand != null) {
                 countUpdatedRows += deleteCommand.update();
+                updatedKeys.clear();
             }
         } else {
             if (insertCommand != null) {
@@ -328,6 +332,10 @@ public class MergeUsing extends Prepared {
             deleteCommand.setSourceTableFilter(sourceTableFilter);
             deleteCommand.setCondition(appendOnCondition(deleteCommand));
             deleteCommand.prepare();
+            if (updateCommand != null) {
+                updateCommand.setUpdatedKeysCollector(updatedKeys);
+                deleteCommand.setKeysFilter(updatedKeys);
+            }
         }
         if (insertCommand != null) {
             insertCommand.setSourceTableFilter(sourceTableFilter);

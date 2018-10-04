@@ -259,5 +259,28 @@ SELECT * FROM TEST;
 > 3  50
 > rows: 3
 
+MERGE INTO TEST USING (SELECT 1) ON 1 = 1
+    WHEN MATCHED THEN UPDATE SET VALUE = 60 WHERE ID = 3 DELETE WHERE ID = 2;
+> update count: 1
+
+SELECT * FROM TEST;
+> ID VALUE
+> -- -----
+> 1  50
+> 2  50
+> 3  60
+> rows: 3
+
+MERGE INTO TEST USING (SELECT 1) ON 1 = 1
+    WHEN MATCHED THEN DELETE WHERE ID = 2;
+> update count: 1
+
+SELECT * FROM TEST;
+> ID VALUE
+> -- -----
+> 1  50
+> 3  60
+> rows: 2
+
 DROP TABLE TEST;
 > ok

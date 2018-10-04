@@ -41,8 +41,19 @@ public class MergeUsing extends Prepared {
 
         final MergeUsing mergeUsing;
 
+        Expression andCondition;
+
         When(MergeUsing mergeUsing) {
             this.mergeUsing = mergeUsing;
+        }
+
+        /**
+         * Sets the specified AND condition.
+         *
+         * @param andCondition AND condition to set
+         */
+        public void setAndCondition(Expression andCondition) {
+            this.andCondition = andCondition;
         }
 
         void reset() {
@@ -51,7 +62,12 @@ public class MergeUsing extends Prepared {
 
         abstract int merge();
 
-        abstract void prepare();
+        void prepare() {
+            if (andCondition != null) {
+                andCondition.mapColumns(mergeUsing.sourceTableFilter, 2, Expression.MAP_INITIAL);
+                andCondition.mapColumns(mergeUsing.targetTableFilter, 1, Expression.MAP_INITIAL);
+            }
+        }
 
         abstract int evaluateTriggerMasks();
 
@@ -109,14 +125,21 @@ public class MergeUsing extends Prepared {
 
         @Override
         void prepare() {
+            super.prepare();
             if (updateCommand != null) {
                 updateCommand.setSourceTableFilter(mergeUsing.sourceTableFilter);
-                updateCommand.setCondition(appendOnCondition(updateCommand));
+                updateCommand.setCondition(appendCondition(updateCommand, mergeUsing.onCondition));
+                if (andCondition != null) {
+                    updateCommand.setCondition(appendCondition(updateCommand, andCondition));
+                }
                 updateCommand.prepare();
             }
             if (deleteCommand != null) {
                 deleteCommand.setSourceTableFilter(mergeUsing.sourceTableFilter);
-                deleteCommand.setCondition(appendOnCondition(deleteCommand));
+                deleteCommand.setCondition(appendCondition(deleteCommand, mergeUsing.onCondition));
+                if (andCondition != null) {
+                    deleteCommand.setCondition(appendCondition(deleteCommand, andCondition));
+                }
                 deleteCommand.prepare();
                 if (updateCommand != null) {
                     updateCommand.setUpdatedKeysCollector(updatedKeys);
@@ -148,18 +171,14 @@ public class MergeUsing extends Prepared {
             }
         }
 
-        private Expression appendOnCondition(Update updateCommand) {
-            if (updateCommand.getCondition() == null) {
-                return mergeUsing.onCondition;
-            }
-            return new ConditionAndOr(ConditionAndOr.AND, updateCommand.getCondition(), mergeUsing.onCondition);
+        private static Expression appendCondition(Update updateCommand, Expression condition) {
+            Expression c = updateCommand.getCondition();
+            return c == null ? condition : new ConditionAndOr(ConditionAndOr.AND, c, condition);
         }
 
-        private Expression appendOnCondition(Delete deleteCommand) {
-            if (deleteCommand.getCondition() == null) {
-                return mergeUsing.onCondition;
-            }
-            return new ConditionAndOr(ConditionAndOr.AND, deleteCommand.getCondition(), mergeUsing.onCondition);
+        private static Expression appendCondition(Delete deleteCommand, Expression condition) {
+            Expression c = deleteCommand.getCondition();
+            return c == null ? condition : new ConditionAndOr(ConditionAndOr.AND, c, condition);
         }
 
     }
@@ -182,11 +201,13 @@ public class MergeUsing extends Prepared {
 
         @Override
         int merge() {
-            return insertCommand.update();
+            return andCondition == null || andCondition.getBooleanValue(mergeUsing.getSession()) ?
+                    insertCommand.update() : 0;
         }
 
         @Override
         void prepare() {
+            super.prepare();
             insertCommand.setSourceTableFilter(mergeUsing.sourceTableFilter);
             insertCommand.prepare();
         }
@@ -205,7 +226,7 @@ public class MergeUsing extends Prepared {
 
     // Merge fields
     Table targetTable;
-    private TableFilter targetTableFilter;
+    TableFilter targetTableFilter;
     private Query query;
 
     // MergeUsing fields

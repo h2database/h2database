@@ -1510,6 +1510,7 @@ public class Parser {
     }
 
     private void parseWhenMatched(MergeUsing command) {
+        Expression and = readIf("AND") ? readExpression() : null;
         read("THEN");
         int startMatched = lastParseIndex;
         Update updateCommand = null;
@@ -1529,6 +1530,7 @@ public class Parser {
         }
         if (updateCommand != null || deleteCommand != null) {
             MergeUsing.WhenMatched when = new MergeUsing.WhenMatched(command);
+            when.setAndCondition(and);
             when.setUpdateCommand(updateCommand);
             when.setDeleteCommand(deleteCommand);
             command.addWhen(when);
@@ -1540,12 +1542,14 @@ public class Parser {
     private void parseWhenNotMatched(MergeUsing command) {
         read(NOT);
         read("MATCHED");
+        Expression and = readIf("AND") ? readExpression() : null;
         read("THEN");
         if (readIf("INSERT")) {
             Insert insertCommand = new Insert(session);
             insertCommand.setTable(command.getTargetTable());
             parseInsertGivenTable(insertCommand, command.getTargetTable());
             MergeUsing.WhenNotMatched when = new MergeUsing.WhenNotMatched(command);
+            when.setAndCondition(and);
             when.setInsertCommand(insertCommand);
             command.addWhen(when);
         } else {

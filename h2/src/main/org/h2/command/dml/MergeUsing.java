@@ -318,6 +318,7 @@ public class MergeUsing extends Prepared {
 
         // Prepare each of the sub-commands ready to aid in the MERGE
         // collaboration
+        targetTableFilter.doneWithIndexConditions();
         if (updateCommand != null) {
             updateCommand.setSourceTableFilter(sourceTableFilter);
             updateCommand.setCondition(appendOnCondition(updateCommand));

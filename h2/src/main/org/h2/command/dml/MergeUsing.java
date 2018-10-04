@@ -253,15 +253,11 @@ public class MergeUsing extends Prepared {
         // clear list of source table keys & rowids we have processed already
         targetRowidsRemembered.clear();
 
-        if (targetTableFilter != null) {
-            targetTableFilter.startQuery(session);
-            targetTableFilter.reset();
-        }
+        targetTableFilter.startQuery(session);
+        targetTableFilter.reset();
 
-        if (sourceTableFilter != null) {
-            sourceTableFilter.startQuery(session);
-            sourceTableFilter.reset();
-        }
+        sourceTableFilter.startQuery(session);
+        sourceTableFilter.reset();
 
         sourceQueryRowNumber = 0;
         checkRights();

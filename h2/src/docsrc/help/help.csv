@@ -149,22 +149,22 @@ If statement doesn't need a source table a DUAL table can be substituted.
 ","
 MERGE INTO TARGET_TABLE AS T USING SOURCE_TABLE AS S
     ON T.ID = S.ID
-    WHEN MATCHED THEN
-        UPDATE SET T.COL1 = S.COL1 WHERE T.COL2<>'FINAL'
-    WHEN MATCHED THEN
-        DELETE WHERE T.COL2='FINAL'
+    WHEN MATCHED AND T.COL2 <> 'FINAL' THEN
+        UPDATE SET T.COL1 = S.COL1
+    WHEN MATCHED AND T.COL2 = 'FINAL' THEN
+        DELETE
     WHEN NOT MATCHED THEN
-        INSERT (ID,COL1,COL2) VALUES(S.ID,S.COL1,S.COL2)
+        INSERT (ID, COL1, COL2) VALUES(S.ID, S.COL1, S.COL2)
 MERGE INTO TARGET_TABLE AS T USING (SELECT * FROM SOURCE_TABLE) AS S
     ON T.ID = S.ID
-    WHEN MATCHED THEN
-        UPDATE SET T.COL1 = S.COL1 WHERE T.COL2<>'FINAL'
-    WHEN MATCHED THEN
-        DELETE WHERE T.COL2='FINAL'
+    WHEN MATCHED AND T.COL2 <> 'FINAL' THEN
+        UPDATE SET T.COL1 = S.COL1
+    WHEN MATCHED AND T.COL2 = 'FINAL' THEN
+        DELETE
     WHEN NOT MATCHED THEN
-        INSERT (ID,COL1,COL2) VALUES(S.ID,S.COL1,S.COL2)
+        INSERT VALUES (S.ID, S.COL1, S.COL2)
 MERGE INTO TARGET_TABLE USING DUAL ON ID = 1
-    WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (1, 'Test')
+    WHEN NOT MATCHED THEN INSERT VALUES (1, 'Test')
     WHEN MATCHED THEN UPDATE SET NAME = 'Test'
 "
 
@@ -2380,15 +2380,15 @@ WHEN MATCHED THEN DELETE
 "
 
 "Other Grammar","Merge when matched clause","
-WHEN MATCHED THEN
-[ UPDATE SET setClauseList ]
-[ DELETE deleteSearchCondition ]
+WHEN MATCHED [ AND expression ] THEN
+UPDATE SET setClauseList
+    | DELETE
+    | {UPDATE SET setClauseList [ WHERE expression ] DELETE deleteSearchCondition}
 ","
 WHEN MATCHED clause for MERGE USING command.
-UPDATE, DELETE, or both should be specified.
 
 If both UPDATE and DELETE are specified, DELETE can delete only rows that were updated,
-WHERE condition can be used to specify which updated rows should be deleted.
+WHERE condition in DELETE clause can be used to specify which updated rows should be deleted.
 This condition checks values in updated row.
 ","
 WHEN MATCHED THEN UPDATE SET VALUE = S.VALUE
@@ -2396,7 +2396,7 @@ WHEN MATCHED THEN DELETE
 "
 
 "Other Grammar","Merge when not matched clause","
-WHEN NOT MATCHED THEN INSERT insertColumnsAndSource
+WHEN NOT MATCHED [ AND expression ] THEN INSERT insertColumnsAndSource
 ","
 WHEN NOT MATCHED clause for MERGE USING command.
 ","

@@ -23,7 +23,6 @@ import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.RowImpl;
-import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.StatementBuilder;
@@ -207,8 +206,6 @@ public class MergeUsing extends Prepared {
     // Merge fields
     Table targetTable;
     private TableFilter targetTableFilter;
-    private Column[] columns;
-    private final ArrayList<Expression[]> valuesExpressionList = Utils.newSmallArrayList();
     private Query query;
 
     // MergeUsing fields
@@ -327,38 +324,11 @@ public class MergeUsing extends Prepared {
         return matched;
     }
 
-    // Use the regular merge syntax as our plan SQL
     @Override
     public String getPlanSQL() {
         StatementBuilder buff = new StatementBuilder("MERGE INTO ");
-        buff.append(targetTable.getSQL()).append('(');
-        for (Column c : columns) {
-            buff.appendExceptFirst(", ");
-            buff.append(c.getSQL());
-        }
-        buff.append(')').append('\n');
-        if (!valuesExpressionList.isEmpty()) {
-            buff.append("VALUES ");
-            int row = 0;
-            for (Expression[] expr : valuesExpressionList) {
-                if (row++ > 0) {
-                    buff.append(", ");
-                }
-                buff.append('(');
-                buff.resetCount();
-                for (Expression e : expr) {
-                    buff.appendExceptFirst(", ");
-                    if (e == null) {
-                        buff.append("DEFAULT");
-                    } else {
-                        buff.append(e.getSQL());
-                    }
-                }
-                buff.append(')');
-            }
-        } else {
-            buff.append(query.getPlanSQL());
-        }
+        buff.append(targetTable.getSQL()).append('\n').append("USING ").append(query.getPlanSQL());
+        // TODO add aliases and WHEN clauses to make plan SQL more like original SQL
         return buff.toString();
     }
 
@@ -376,31 +346,7 @@ public class MergeUsing extends Prepared {
         onCondition.createIndexConditions(session, sourceTableFilter);
         onCondition.createIndexConditions(session, targetTableFilter);
 
-        if (columns == null) {
-            if (!valuesExpressionList.isEmpty()
-                    && valuesExpressionList.get(0).length == 0) {
-                // special case where table is used as a sequence
-                columns = new Column[0];
-            } else {
-                columns = targetTable.getColumns();
-            }
-        }
-        if (!valuesExpressionList.isEmpty()) {
-            for (Expression[] expr : valuesExpressionList) {
-                if (expr.length != columns.length) {
-                    throw DbException
-                            .get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
-                }
-                for (int i = 0; i < expr.length; i++) {
-                    Expression e = expr[i];
-                    if (e != null) {
-                        expr[i] = e.optimize(session);
-                    }
-                }
-            }
-        } else {
-            query.prepare();
-        }
+        query.prepare();
 
         // Prepare each of the sub-commands ready to aid in the MERGE
         // collaboration

@@ -234,11 +234,7 @@ public class TestScript extends TestDb {
         stat = conn.createStatement();
         out = new PrintStream(new FileOutputStream(outFile));
         errors = new StringBuilder();
-        testFile(BASE_DIR + scriptFileName,
-                !scriptFileName.equals("functions/numeric/rand.sql") &&
-                !scriptFileName.equals("functions/system/set.sql") &&
-                !scriptFileName.equals("ddl/createAlias.sql") &&
-                !scriptFileName.equals("ddl/dropSchema.sql"));
+        testFile(BASE_DIR + scriptFileName);
         conn.close();
         out.close();
         if (errors.length() > 0) {
@@ -297,7 +293,7 @@ public class TestScript extends TestDb {
         putBack.addLast(line);
     }
 
-    private void testFile(String inFile, boolean allowReconnect) throws Exception {
+    private void testFile(String inFile) throws Exception {
         InputStream is = getClass().getClassLoader().getResourceAsStream(inFile);
         if (is == null) {
             throw new IOException("could not find " + inFile);
@@ -305,11 +301,8 @@ public class TestScript extends TestDb {
         fileName = inFile;
         in = new LineNumberReader(new InputStreamReader(is, StandardCharsets.UTF_8));
         StringBuilder buff = new StringBuilder();
-        while (true) {
-            String sql = readLine();
-            if (sql == null) {
-                break;
-            }
+        boolean allowReconnect = true;
+        for (String sql; (sql = readLine()) != null;) {
             if (sql.startsWith("--")) {
                 write(sql);
             } else if (sql.startsWith(">")) {
@@ -320,12 +313,24 @@ public class TestScript extends TestDb {
                 sql = buff.toString();
                 buff.setLength(0);
                 process(sql, allowReconnect);
-            } else if (sql.equals("@reconnect")) {
+            } else if (sql.startsWith("@")) {
                 if (buff.length() > 0) {
                     addWriteResultError("<command>", sql);
                 } else {
-                    if (!config.memory) {
-                        reconnect(conn.getAutoCommit());
+                    switch (sql) {
+                    case "@reconnect":
+                        if (!config.memory) {
+                            reconnect(conn.getAutoCommit());
+                        }
+                        break;
+                    case "@reconnect on":
+                        allowReconnect = true;
+                        break;
+                    case "@reconnect off":
+                        allowReconnect = false;
+                        break;
+                    default:
+                        addWriteResultError("<command>", sql);
                     }
                 }
             } else {

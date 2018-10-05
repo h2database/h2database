@@ -3,6 +3,8 @@
 -- Initial Developer: H2 Group
 --
 
+@reconnect off
+
 CREATE SCHEMA TEST_SCHEMA;
 > ok
 

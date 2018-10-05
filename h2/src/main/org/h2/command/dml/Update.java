@@ -177,10 +177,15 @@ public class Update extends Prepared {
                         done = table.fireBeforeRow(session, oldRow, newRow);
                     }
                     if (!done) {
-                        rows.add(oldRow);
-                        rows.add(newRow);
-                        if (updatedKeysCollector != null) {
-                            updatedKeysCollector.add(key);
+                        if (table.isMVStore()) {
+                            done = table.lockRow(session, oldRow) == null;
+                        }
+                        if (!done) {
+                            rows.add(oldRow);
+                            rows.add(newRow);
+                            if (updatedKeysCollector != null) {
+                                updatedKeysCollector.add(key);
+                            }
                         }
                     }
                     count++;

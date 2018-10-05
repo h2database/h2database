@@ -1116,11 +1116,11 @@ public class Parser {
         int start = lastParseIndex;
         TableFilter filter = readSimpleTableFilter(0, null);
         command.setTableFilter(filter);
-        parseUpdateSetClause(command, filter, start);
+        parseUpdateSetClause(command, filter, start, true);
         return command;
     }
 
-    private void parseUpdateSetClause(Update command, TableFilter filter, int start) {
+    private void parseUpdateSetClause(Update command, TableFilter filter, int start, boolean allowExtensions) {
         read("SET");
         if (readIf(OPEN_PAREN)) {
             ArrayList<Column> columns = Utils.newSmallArrayList();
@@ -1154,15 +1154,17 @@ public class Parser {
             Expression condition = readExpression();
             command.setCondition(condition);
         }
-        if (readIf(ORDER)) {
-            // for MySQL compatibility
-            // (this syntax is supported, but ignored)
-            read("BY");
-            parseSimpleOrderList();
-        }
-        if (readIf(LIMIT)) {
-            Expression limit = readTerm().optimize(session);
-            command.setLimit(limit);
+        if (allowExtensions) {
+            if (readIf(ORDER)) {
+                // for MySQL compatibility
+                // (this syntax is supported, but ignored)
+                read("BY");
+                parseSimpleOrderList();
+            }
+            if (readIf(LIMIT)) {
+                Expression limit = readTerm().optimize(session);
+                command.setLimit(limit);
+            }
         }
         setSQL(command, "UPDATE", start);
     }
@@ -1513,7 +1515,7 @@ public class Parser {
             updateCommand = new Update(session);
             TableFilter filter = command.getTargetTableFilter();
             updateCommand.setTableFilter(filter);
-            parseUpdateSetClause(updateCommand, filter, startMatched);
+            parseUpdateSetClause(updateCommand, filter, startMatched, false);
             startMatched = lastParseIndex;
         }
         Delete deleteCommand = null;

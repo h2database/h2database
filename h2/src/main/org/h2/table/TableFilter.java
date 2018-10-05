@@ -83,6 +83,11 @@ public class TableFilter implements ColumnResolver {
     private final ArrayList<IndexCondition> indexConditions = Utils.newSmallArrayList();
 
     /**
+     * Whether new window conditions should not be accepted.
+     */
+    private boolean doneWithIndexConditions;
+
+    /**
      * Additional conditions that can't be used for index lookup, but for row
      * filter for this table (ID=ID, NAME LIKE '%X%')
      */
@@ -627,7 +632,16 @@ public class TableFilter implements ColumnResolver {
      * @param condition the index condition
      */
     public void addIndexCondition(IndexCondition condition) {
-        indexConditions.add(condition);
+        if (!doneWithIndexConditions) {
+            indexConditions.add(condition);
+        }
+    }
+
+    /**
+     * Used to reject all additional index conditions.
+     */
+    public void doneWithIndexConditions() {
+        this.doneWithIndexConditions = true;
     }
 
     /**

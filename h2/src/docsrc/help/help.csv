@@ -2518,8 +2518,8 @@ START WITH 1
 "
 
 "Other Grammar","Set clause list","
-{ { columnName = { DEFAULT | expression } } [,...] } |
-    { ( columnName [,...] ) = ( select ) }
+{ { columnName = { DEFAULT | expression } } [,...] }
+    | { ( columnName [,...] ) = ( select ) }
 ","
 List of SET clauses.
 ","

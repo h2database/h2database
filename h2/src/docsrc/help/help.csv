@@ -82,7 +82,7 @@ UPDATE PERSON P SET NAME=(SELECT A.NAME FROM ADDRESS A WHERE A.ID=P.ID);
 "
 
 "Commands (DML)","DELETE","
-DELETE [ TOP term ] FROM tableName deleteSearchCondition
+DELETE [ TOP term ] FROM tableName [ WHERE expression ] [ LIMIT term ]
 ","
 Deletes rows form a table.
 If TOP or LIMIT is specified, at most the specified number of rows are deleted (no limit if null or smaller than zero).
@@ -2275,14 +2275,6 @@ SELECT CAST(0 AS DOUBLE)
 SELECT -1.4e-10
 "
 
-"Other Grammar","Delete search condition","
-[ WHERE expression ] [ LIMIT term ]
-","
-Search condition for DELETE statement.
-","
-WHERE ID = 2
-"
-
 "Other Grammar","Digit","
 0-9
 ","
@@ -2383,7 +2375,7 @@ WHEN MATCHED THEN DELETE
 WHEN MATCHED [ AND expression ] THEN
 UPDATE SET setClauseList
     | DELETE
-    | {UPDATE SET setClauseList [ WHERE expression ] DELETE deleteSearchCondition}
+    | {UPDATE SET setClauseList [ WHERE expression ] DELETE [ WHERE expression ]}
 ","
 WHEN MATCHED clause for MERGE USING command.
 

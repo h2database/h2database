@@ -1197,20 +1197,15 @@ public class Parser {
         }
         TableFilter filter = readSimpleTableFilter(0, null);
         command.setTableFilter(filter);
-        parseDeleteGivenTable(command, limit, start);
-        return command;
-    }
-
-    private void parseDeleteGivenTable(Delete command, Expression limit, int start) {
         if (readIf(WHERE)) {
-            Expression condition = readExpression();
-            command.setCondition(condition);
+            command.setCondition(readExpression());
         }
-        if (readIf(LIMIT) && limit == null) {
+        if (limit == null && readIf(LIMIT)) {
             limit = readTerm().optimize(session);
         }
         command.setLimit(limit);
         setSQL(command, "DELETE", start);
+        return command;
     }
 
     private IndexColumn[] parseIndexColumnList() {
@@ -1519,14 +1514,16 @@ public class Parser {
             TableFilter filter = command.getTargetTableFilter();
             updateCommand.setTableFilter(filter);
             parseUpdateSetClause(updateCommand, filter, startMatched);
+            startMatched = lastParseIndex;
         }
-        startMatched = lastParseIndex;
         Delete deleteCommand = null;
         if (readIf("DELETE")) {
             deleteCommand = new Delete(session);
-            TableFilter filter = command.getTargetTableFilter();
-            deleteCommand.setTableFilter(filter);
-            parseDeleteGivenTable(deleteCommand, null, startMatched);
+            deleteCommand.setTableFilter(command.getTargetTableFilter());
+            if (readIf(WHERE)) {
+                deleteCommand.setCondition(readExpression());
+            }
+            setSQL(deleteCommand, "DELETE", startMatched);
         }
         if (updateCommand != null || deleteCommand != null) {
             MergeUsing.WhenMatched when = new MergeUsing.WhenMatched(command);

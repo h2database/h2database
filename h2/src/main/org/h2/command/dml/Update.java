@@ -7,6 +7,7 @@ package org.h2.command.dml;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Objects;
 
 import org.h2.api.ErrorCode;
@@ -53,6 +54,8 @@ public class Update extends Prepared {
     private final ArrayList<Column> columns = Utils.newSmallArrayList();
     private final HashMap<Column, Expression> expressionMap  = new HashMap<>();
 
+    private HashSet<Long> updatedKeysCollector;
+
     public Update(Session session) {
         super(session);
     }
@@ -86,6 +89,15 @@ public class Update extends Prepared {
             Parameter p = (Parameter) expression;
             p.setColumn(column);
         }
+    }
+
+    /**
+     * Sets the collector of updated keys.
+     *
+     * @param updatedKeysCollector the collector of updated keys
+     */
+    public void setUpdatedKeysCollector(HashSet<Long> updatedKeysCollector) {
+        this.updatedKeysCollector = updatedKeysCollector;
     }
 
     @Override
@@ -135,7 +147,8 @@ public class Update extends Prepared {
                         }
                         newRow.setValue(i, newValue);
                     }
-                    newRow.setKey(oldRow.getKey());
+                    long key = oldRow.getKey();
+                    newRow.setKey(key);
                     if (setOnUpdate || updateToCurrentValuesReturnsZero) {
                         setOnUpdate = false;
                         for (int i = 0; i < columnCount; i++) {
@@ -166,6 +179,9 @@ public class Update extends Prepared {
                     if (!done) {
                         rows.add(oldRow);
                         rows.add(newRow);
+                        if (updatedKeysCollector != null) {
+                            updatedKeysCollector.add(key);
+                        }
                     }
                     count++;
                 }

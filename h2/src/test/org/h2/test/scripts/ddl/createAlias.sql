@@ -12,6 +12,8 @@ create alias "MIN" for "java.lang.Integer.parseInt(java.lang.String)";
 create alias "CAST" for "java.lang.Integer.parseInt(java.lang.String)";
 > exception FUNCTION_ALIAS_ALREADY_EXISTS_1
 
+@reconnect off
+
 --- function alias ---------------------------------------------------------------------------------------------
 CREATE ALIAS MY_SQRT FOR "java.lang.Math.sqrt";
 > ok

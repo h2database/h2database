@@ -2,6 +2,9 @@
 -- and the EPL 1.0 (http://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
+
+@reconnect off
+
 -- Try a custom column naming rules setup
 
 SET COLUMN_NAME_RULES=MAX_IDENTIFIER_LENGTH = 30;

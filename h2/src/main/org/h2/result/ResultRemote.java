@@ -281,9 +281,4 @@ public class ResultRemote implements ResultInterface {
         return result == null;
     }
 
-    @Override
-    public boolean containsDistinct(Value[] values) {
-        // We should never do this on remote result.
-        throw DbException.throwInternalError();
-    }
 }

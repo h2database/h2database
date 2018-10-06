@@ -202,11 +202,4 @@ public interface ResultInterface extends AutoCloseable {
      */
     ResultInterface createShallowCopy(SessionInterface targetSession);
 
-    /**
-     * Check if this result set contains the given row.
-     *
-     * @param values the row
-     * @return true if the row exists
-     */
-    boolean containsDistinct(Value[] values);
 }

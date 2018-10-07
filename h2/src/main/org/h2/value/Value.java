@@ -14,23 +14,21 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.sql.Types;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
+import org.h2.result.ResultInterface;
+import org.h2.result.SimpleResult;
 import org.h2.store.DataHandler;
-import org.h2.tools.SimpleResultSet;
 import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IntervalUtils;
 import org.h2.util.JdbcUtils;
-import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -1290,12 +1288,10 @@ public abstract class Value {
     }
 
     private ValueResultSet convertToResultSet() {
-        String s = getString();
-        SimpleResultSet rs = new SimpleResultSet();
-        rs.setAutoClose(false);
-        rs.addColumn("X", Types.VARCHAR, s.length(), 0);
-        rs.addRow(s);
-        return ValueResultSet.get(rs);
+        SimpleResult result = new SimpleResult();
+        result.addColumn("X", "X", getType(), getPrecision(), getScale(), getDisplaySize());
+        result.addRow(this);
+        return ValueResultSet.get(result);
     }
 
     private DbException getDataConversionError(int targetType) {
@@ -1535,12 +1531,16 @@ public abstract class Value {
         return this;
     }
 
-    public ResultSet getResultSet() {
-        SimpleResultSet rs = new SimpleResultSet();
-        rs.setAutoClose(false);
-        rs.addColumn("X", DataType.convertTypeToSQLType(getType()),
-                MathUtils.convertLongToInt(getPrecision()), getScale());
-        rs.addRow(getObject());
+    /**
+     * Returns result for result set value, or single-row result with this value
+     * in column X for other values.
+     *
+     * @return result
+     */
+    public ResultInterface getResult() {
+        SimpleResult rs = new SimpleResult();
+        rs.addColumn("X", "X", getType(), getPrecision(), getScale(), getDisplaySize());
+        rs.addRow(this);
         return rs;
     }
 

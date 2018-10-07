@@ -125,8 +125,6 @@ public class TestMetaData extends TestDb {
         assertEquals(DataType.TYPE_RESULT_SET, rsMeta.getColumnType(1));
         rs.next();
         assertTrue(rs.getObject(1) instanceof java.sql.ResultSet);
-        assertEquals("org.h2.tools.SimpleResultSet",
-                rs.getObject(1).getClass().getName());
         stat.executeUpdate("drop alias x");
 
         rs = stat.executeQuery("select 1 from dual");

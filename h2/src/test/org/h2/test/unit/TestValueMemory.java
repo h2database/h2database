@@ -16,12 +16,12 @@ import java.util.Random;
 import org.h2.api.IntervalQualifier;
 import org.h2.api.JavaObjectSerializer;
 import org.h2.engine.Constants;
+import org.h2.result.SimpleResult;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.LobStorageFrontend;
 import org.h2.test.TestBase;
 import org.h2.test.utils.MemoryFootprint;
-import org.h2.tools.SimpleResultSet;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
@@ -217,7 +217,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
             return ValueArray.get(list);
         }
         case Value.RESULT_SET:
-            return ValueResultSet.get(new SimpleResultSet());
+            return ValueResultSet.get(new SimpleResult());
         case Value.JAVA_OBJECT:
             return ValueJavaObject.getNoCopy(null, randomBytes(random.nextInt(100)), this);
         case Value.UUID:

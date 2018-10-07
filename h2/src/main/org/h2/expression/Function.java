@@ -1532,8 +1532,7 @@ public class Function extends Expression implements FunctionCall {
             String[] columns = StringUtils.arraySplit(columnList,
                     fieldSeparator, true);
             try {
-                result = ValueResultSet.get(csv.read(fileName,
-                        columns, charset));
+                result = ValueResultSet.get(session, csv.read(fileName, columns, charset), Integer.MAX_VALUE);
             } catch (SQLException e) {
                 throw DbException.convert(e);
             }
@@ -1545,7 +1544,7 @@ public class Function extends Expression implements FunctionCall {
             ResultSet rs = LinkSchema.linkSchema(conn, v0.getString(),
                     v1.getString(), v2.getString(), v3.getString(),
                     v4.getString(), v5.getString());
-            result = ValueResultSet.get(rs);
+            result = ValueResultSet.get(session, rs, Integer.MAX_VALUE);
             break;
         }
         case CSVWRITE: {
@@ -2679,7 +2678,7 @@ public class Function extends Expression implements FunctionCall {
             ValueResultSet x;
             try {
                 rs = csv.read(fileName, columns, charset);
-                x = ValueResultSet.getCopy(rs, 0);
+                x = ValueResultSet.get(session, rs, 0);
             } catch (SQLException e) {
                 throw DbException.convert(e);
             } finally {

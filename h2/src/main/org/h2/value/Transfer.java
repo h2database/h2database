@@ -14,19 +14,17 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.message.DbException;
+import org.h2.result.ResultInterface;
+import org.h2.result.SimpleResult;
 import org.h2.security.SHA256;
 import org.h2.store.Data;
 import org.h2.store.DataReader;
-import org.h2.tools.SimpleResultSet;
 import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
@@ -479,31 +477,23 @@ public class Transfer {
             break;
         }
         case Value.RESULT_SET: {
-            try {
-                ResultSet rs = ((ValueResultSet) v).getResultSet();
-                rs.beforeFirst();
-                ResultSetMetaData meta = rs.getMetaData();
-                int columnCount = meta.getColumnCount();
-                writeInt(columnCount);
-                for (int i = 0; i < columnCount; i++) {
-                    writeString(meta.getColumnName(i + 1));
-                    writeInt(meta.getColumnType(i + 1));
-                    writeInt(meta.getPrecision(i + 1));
-                    writeInt(meta.getScale(i + 1));
-                }
-                while (rs.next()) {
-                    writeBoolean(true);
-                    for (int i = 0; i < columnCount; i++) {
-                        int t = DataType.getValueTypeFromResultSet(meta, i + 1);
-                        Value val = DataType.readValue(session, rs, i + 1, t);
-                        writeValue(val);
-                    }
-                }
-                writeBoolean(false);
-                rs.beforeFirst();
-            } catch (SQLException e) {
-                throw DbException.convertToIOException(e);
+            ResultInterface result = ((ValueResultSet) v).getResult();
+            int columnCount = result.getVisibleColumnCount();
+            writeInt(columnCount);
+            for (int i = 0; i < columnCount; i++) {
+                writeString(result.getColumnName(i));
+                writeInt(result.getColumnType(i));
+                writeInt(MathUtils.convertLongToInt(result.getColumnPrecision(i)));
+                writeInt(result.getColumnScale(i));
             }
+            while (result.next()) {
+                writeBoolean(true);
+                Value[] row = result.currentRow();
+                for (int i = 0; i < columnCount; i++) {
+                    writeValue(row[i]);
+                }
+            }
+            writeBoolean(false);
             break;
         }
         case Value.GEOMETRY:
@@ -684,16 +674,17 @@ public class Transfer {
             return ValueArray.get(componentType, list);
         }
         case Value.RESULT_SET: {
-            SimpleResultSet rs = new SimpleResultSet();
-            rs.setAutoClose(false);
+            SimpleResult rs = new SimpleResult();
             int columns = readInt();
             for (int i = 0; i < columns; i++) {
-                rs.addColumn(readString(), readInt(), readInt(), readInt());
+                String name = readString();
+                rs.addColumn(name, name, DataType.convertSQLTypeToValueType(readInt()), readInt(), readInt(),
+                        Integer.MAX_VALUE);
             }
             while (readBoolean()) {
-                Object[] o = new Object[columns];
+                Value[] o = new Value[columns];
                 for (int i = 0; i < columns; i++) {
-                    o[i] = readValue().getObject();
+                    o[i] = readValue();
                 }
                 rs.addRow(o);
             }

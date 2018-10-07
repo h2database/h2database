@@ -481,10 +481,19 @@ public class Transfer {
             int columnCount = result.getVisibleColumnCount();
             writeInt(columnCount);
             for (int i = 0; i < columnCount; i++) {
-                writeString(result.getColumnName(i));
-                writeInt(result.getColumnType(i));
-                writeInt(MathUtils.convertLongToInt(result.getColumnPrecision(i)));
-                writeInt(result.getColumnScale(i));
+                if (version >= Constants.TCP_PROTOCOL_VERSION_18) {
+                    writeString(result.getAlias(i));
+                    writeString(result.getColumnName(i));
+                    writeInt(result.getColumnType(i));
+                    writeLong(result.getColumnPrecision(i));
+                    writeInt(result.getColumnScale(i));
+                    writeInt(result.getDisplaySize(i));
+                } else {
+                    writeString(result.getColumnName(i));
+                    writeInt(DataType.getDataType(result.getColumnType(i)).sqlType);
+                    writeInt(MathUtils.convertLongToInt(result.getColumnPrecision(i)));
+                    writeInt(result.getColumnScale(i));
+                }
             }
             while (result.next()) {
                 writeBoolean(true);
@@ -677,9 +686,13 @@ public class Transfer {
             SimpleResult rs = new SimpleResult();
             int columns = readInt();
             for (int i = 0; i < columns; i++) {
-                String name = readString();
-                rs.addColumn(name, name, DataType.convertSQLTypeToValueType(readInt()), readInt(), readInt(),
-                        Integer.MAX_VALUE);
+                if (version >= Constants.TCP_PROTOCOL_VERSION_18) {
+                    rs.addColumn(readString(), readString(), readInt(), readLong(), readInt(), readInt());
+                } else {
+                    String name = readString();
+                    rs.addColumn(name, name, DataType.convertSQLTypeToValueType(readInt()), readInt(), readInt(),
+                            Integer.MAX_VALUE);
+                }
             }
             while (readBoolean()) {
                 Value[] o = new Value[columns];

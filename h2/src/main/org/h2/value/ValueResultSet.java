@@ -53,7 +53,8 @@ public class ValueResultSet extends Value {
             for (int i = 0; i < columnCount; i++) {
                 String alias = meta.getColumnLabel(i + 1);
                 String name = meta.getColumnName(i + 1);
-                int columnType = DataType.convertSQLTypeToValueType(meta.getColumnType(i + 1));
+                int columnType = DataType.convertSQLTypeToValueType(meta.getColumnType(i + 1),
+                        meta.getColumnTypeName(i + 1));
                 int precision = meta.getPrecision(i + 1);
                 int scale = meta.getScale(i + 1);
                 int displaySize = meta.getColumnDisplaySize(i + 1);

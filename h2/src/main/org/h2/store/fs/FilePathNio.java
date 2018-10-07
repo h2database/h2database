@@ -5,6 +5,8 @@
  */
 package org.h2.store.fs;
 
+import org.h2.engine.Constants;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -76,7 +78,39 @@ class FileNio extends FileBase {
 
     @Override
     public int write(ByteBuffer src, long position) throws IOException {
-        return channel.write(src, position);
+        if(src.isDirect()){
+            return channel.write(src, position);
+        }
+
+        // Write page by page(or in the unit of a few pages) for avoiding to allocate direct buffer poorly
+        // in "sun.nio.ch.FileChannelImpl" of java.nio.channels.FileChannel and "sun.nio.ch.IOUtil".
+        // Please see the issue "https://github.com/h2database/h2database/issues/1502".
+        // @since 2018-10-07 little-pan
+        final int unitSize = Constants.DEFAULT_PAGE_SIZE;
+        final FileChannel file = channel;
+        final long pos = position;
+        int off = 0;
+        for(; src.hasRemaining(); ) {
+            final ByteBuffer unitBuffer;
+            final int rem = src.remaining();
+            if(rem > unitSize){
+                final int lim = src.limit();
+                try {
+                    src.limit(src.position() + unitSize);
+                    unitBuffer = src.slice();
+                }finally {
+                    src.limit(lim);
+                }
+            }else{
+                unitBuffer = src.slice();
+            }
+            for(;unitBuffer.hasRemaining();){
+                final int len = file.write(unitBuffer, pos + off);
+                off += len;
+                src.position(src.position() + len);
+            }
+        }
+        return off;
     }
 
     @Override

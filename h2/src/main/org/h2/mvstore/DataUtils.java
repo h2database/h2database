@@ -433,38 +433,9 @@ public final class DataUtils {
     public static void writeFully(FileChannel file, long pos, ByteBuffer src) {
         try {
             int off = 0;
-            if(src.isDirect()){
-                do {
-                    int len = file.write(src, pos + off);
-                    off += len;
-                } while (src.remaining() > 0);
-                return;
-            }
-
-            // Write page by page(or in the unit of a few pages) for avoiding to allocate direct buffer poorly
-            // in "sun.nio.ch.FileChannelImpl" of java.nio.channels.FileChannel and "sun.nio.ch.IOUtil".
-            // Please see the issue "https://github.com/h2database/h2database/issues/1502".
-            // @since 2018-10-07 little-pan
-            final int unitSize = MVStore.BLOCK_SIZE;
             do {
-                final ByteBuffer unitBuffer;
-                final int rem = src.remaining();
-                if(rem > unitSize){
-                    final int lim = src.limit();
-                    try {
-                        src.limit(src.position() + unitSize);
-                        unitBuffer = src.slice();
-                    }finally {
-                        src.limit(lim);
-                    }
-                }else{
-                    unitBuffer = src.slice();
-                }
-                for(;unitBuffer.hasRemaining();){
-                    final int len = file.write(unitBuffer, pos + off);
-                    off += len;
-                    src.position(src.position() + len);
-                }
+                int len = file.write(src, pos + off);
+                off += len;
             } while (src.remaining() > 0);
         } catch (IOException e) {
             throw newIllegalStateException(

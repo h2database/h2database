@@ -17,7 +17,8 @@ public class FunctionCursorResultSet extends AbstractFunctionCursor {
 
     private final ResultInterface result;
 
-    FunctionCursorResultSet(FunctionIndex index, SearchRow first, SearchRow last, Session session, ResultInterface result) {
+    FunctionCursorResultSet(FunctionIndex index, SearchRow first, SearchRow last, Session session,
+            ResultInterface result) {
         super(index, first, last, session);
         this.result = result;
     }

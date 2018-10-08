@@ -1092,26 +1092,26 @@ public class Data {
         }
         case Value.RESULT_SET: {
             int len = 1;
-             ResultInterface result = ((ValueResultSet) v).getResult();
-             int columnCount = result.getVisibleColumnCount();
-             len += getVarIntLen(columnCount);
-             for (int i = 0; i < columnCount; i++) {
-                 len += getStringLen(result.getAlias(i));
-                 len += getStringLen(result.getColumnName(i));
-                 len += getVarIntLen(result.getColumnType(i));
-                 len += getVarLongLen(result.getColumnPrecision(i));
-                 len += getVarIntLen(result.getColumnScale(i));
-                 len += getVarIntLen(result.getDisplaySize(i));
-             }
-             while (result.next()) {
-                 len++;
-                 Value[] row = result.currentRow();
-                 for (int i = 0; i < columnCount; i++) {
-                     Value val = row[i];
-                     len += getValueLen(val, handler);
-                 }
-             }
-             len++;
+            ResultInterface result = ((ValueResultSet) v).getResult();
+            int columnCount = result.getVisibleColumnCount();
+            len += getVarIntLen(columnCount);
+            for (int i = 0; i < columnCount; i++) {
+                len += getStringLen(result.getAlias(i));
+                len += getStringLen(result.getColumnName(i));
+                len += getVarIntLen(result.getColumnType(i));
+                len += getVarLongLen(result.getColumnPrecision(i));
+                len += getVarIntLen(result.getColumnScale(i));
+                len += getVarIntLen(result.getDisplaySize(i));
+            }
+            while (result.next()) {
+                len++;
+                Value[] row = result.currentRow();
+                for (int i = 0; i < columnCount; i++) {
+                    Value val = row[i];
+                    len += getValueLen(val, handler);
+                }
+            }
+            len++;
             return len;
         }
         case Value.INTERVAL_YEAR:

@@ -903,8 +903,9 @@ public class MVTable extends TableBase {
     // Field lastModificationId can not be just a volatile, because window of opportunity
     // between reading database's modification id and storing this value in the field
     // could be exploited by another thread.
-    // Second thread may do the same with possibly bigger (already advanced) modification id,
-    // and when first thread finally updates the field, it will result in lastModificationId jumping back.
+    // Second thread may do the same with possibly bigger (already advanced)
+    // modification id, and when first thread finally updates the field, it will
+    // result in lastModificationId jumping back.
     // This is, of course, unacceptable.
     private void syncLastModificationIdWithDatabase() {
         long nextModificationDataId = database.getNextModificationDataId();

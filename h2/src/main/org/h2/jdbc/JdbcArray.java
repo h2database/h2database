@@ -18,13 +18,14 @@ import org.h2.result.SimpleResult;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueLong;
+import org.h2.value.ValueNull;
 
 /**
  * Represents an ARRAY value.
  */
 public class JdbcArray extends TraceObject implements Array {
 
-    private ValueArray value;
+    private Value value;
     private final JdbcConnection conn;
 
     /**
@@ -33,7 +34,7 @@ public class JdbcArray extends TraceObject implements Array {
     public JdbcArray(JdbcConnection conn, Value value, int id) {
         setTrace(conn.getSession().getTrace(), TraceObject.ARRAY, id);
         this.conn = conn;
-        this.value = (ValueArray) value.convertTo(Value.ARRAY);
+        this.value = value.convertTo(Value.ARRAY);
     }
 
     /**
@@ -259,10 +260,12 @@ public class JdbcArray extends TraceObject implements Array {
         rs.addColumn("INDEX", "INDEX", Value.LONG, 0, 0, ValueLong.DISPLAY_SIZE);
         // TODO array result set: there are multiple data types possible
         rs.addColumn("VALUE", "VALUE", Value.NULL, 0, 0, 15);
-        Value[] values = value.getList();
-        count = checkRange(index, count, values.length);
-        for (int i = (int) index; i < index + count; i++) {
-            rs.addRow(ValueLong.get(i), values[i - 1]);
+        if (value != ValueNull.INSTANCE) {
+            Value[] values = ((ValueArray) value).getList();
+            count = checkRange(index, count, values.length);
+            for (int i = (int) index; i < index + count; i++) {
+                rs.addRow(ValueLong.get(i), values[i - 1]);
+            }
         }
         return new JdbcResultSet(conn, null, null, rs, id, false, true, false);
     }
@@ -279,7 +282,10 @@ public class JdbcArray extends TraceObject implements Array {
     }
 
     private Object[] get(long index, int count) {
-        Value[] values = value.getList();
+        if (value == ValueNull.INSTANCE) {
+            return null;
+        }
+        Value[] values = ((ValueArray) value).getList();
         count = checkRange(index, count, values.length);
         Object[] a = new Object[count];
         for (int i = 0, j = (int) index - 1; i < count; i++, j++) {

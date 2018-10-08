@@ -77,7 +77,7 @@ public class SimpleResult implements ResultInterface {
 
     private final ArrayList<Value[]> rows;
 
-    private int rowId = -1;
+    private int rowId;
 
     /**
      * Creates new instance of simple result.
@@ -121,9 +121,9 @@ public class SimpleResult implements ResultInterface {
 
     @Override
     public boolean next() {
-        if (rowId < rows.size() - 1) {
-            rowId++;
-            return true;
+        int count = rows.size();
+        if (rowId < count) {
+            return ++rowId < count;
         }
         return false;
     }
@@ -150,7 +150,7 @@ public class SimpleResult implements ResultInterface {
 
     @Override
     public boolean hasNext() {
-        return rowId < rows.size();
+        return rowId < rows.size() - 1;
     }
 
     @Override

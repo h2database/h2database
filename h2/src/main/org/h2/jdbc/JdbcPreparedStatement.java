@@ -1236,6 +1236,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
         try {
             super.close();
             batchParameters = null;
+            batchIdentities = null;
             if (command != null) {
                 command.close();
                 command = null;
@@ -1312,6 +1313,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (isDebugEnabled()) {
                 debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "getGeneratedKeys()");
             }
+            checkClosed();
             generatedKeys = new JdbcResultSet(conn, this, null, batchIdentities.getResult(), id, false, true, false);
         }
         return super.getGeneratedKeys();

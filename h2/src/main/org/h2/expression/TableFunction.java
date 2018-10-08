@@ -13,10 +13,7 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.table.Column;
-import org.h2.tools.SimpleResultSet;
-import org.h2.util.MathUtils;
 import org.h2.util.StatementBuilder;
-import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
@@ -124,33 +121,7 @@ public class TableFunction extends Function {
             }
         }
         result.done();
-        return ValueResultSet.get(getSimpleResultSet(result,
-                Integer.MAX_VALUE));
-    }
-
-    private static SimpleResultSet getSimpleResultSet(LocalResult rs,
-            int maxrows) {
-        int columnCount = rs.getVisibleColumnCount();
-        SimpleResultSet simple = new SimpleResultSet();
-        simple.setAutoClose(false);
-        for (int i = 0; i < columnCount; i++) {
-            String name = rs.getColumnName(i);
-            DataType dataType = DataType.getDataType(rs.getColumnType(i));
-            int sqlType = dataType.sqlType;
-            String sqlTypeName = dataType.name;
-            int precision = MathUtils.convertLongToInt(rs.getColumnPrecision(i));
-            int scale = rs.getColumnScale(i);
-            simple.addColumn(name, sqlType, sqlTypeName, precision, scale);
-        }
-        rs.reset();
-        for (int i = 0; i < maxrows && rs.next(); i++) {
-            Object[] list = new Object[columnCount];
-            for (int j = 0; j < columnCount; j++) {
-                list[j] = rs.currentRow()[j].getObject();
-            }
-            simple.addRow(list);
-        }
-        return simple;
+        return ValueResultSet.get(result, Integer.MAX_VALUE);
     }
 
     public long getRowCount() {
@@ -159,8 +130,7 @@ public class TableFunction extends Function {
 
     @Override
     public Expression[] getExpressionColumns(Session session) {
-        return getExpressionColumns(session,
-                getTable(session, getArgs(), true, false).getResultSet());
+        return getExpressionColumns(session, getTable(session, getArgs(), true, false).getResult());
     }
 
 }

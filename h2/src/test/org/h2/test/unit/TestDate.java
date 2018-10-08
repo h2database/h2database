@@ -22,7 +22,6 @@ import org.h2.util.DateTimeUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDouble;
-import org.h2.value.ValueInt;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 

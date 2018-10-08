@@ -8,16 +8,15 @@ package org.h2.test.unit;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Time;
-import java.sql.Types;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.api.JavaObjectSerializer;
+import org.h2.result.SimpleResult;
 import org.h2.store.Data;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.LobStorageBackend;
 import org.h2.test.TestBase;
-import org.h2.tools.SimpleResultSet;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
 import org.h2.value.CompareMode;
@@ -208,13 +207,12 @@ public class TestDataPage extends TestBase implements DataHandler {
         testValue(ValueArray.get(new Value[] { ValueBoolean.TRUE,
                 ValueInt.get(10) }));
 
-        SimpleResultSet rs = new SimpleResultSet();
-        rs.setAutoClose(false);
-        rs.addColumn("ID", Types.INTEGER, 0, 0);
-        rs.addColumn("NAME", Types.VARCHAR, 255, 0);
-        rs.addRow(1, "Hello");
-        rs.addRow(2, "World");
-        rs.addRow(3, "Peace");
+        SimpleResult rs = new SimpleResult();
+        rs.addColumn("ID", "ID", Value.INT, 0, 0, ValueInt.DISPLAY_SIZE);
+        rs.addColumn("NAME", "NAME", Value.STRING, 255, 0, 255);
+        rs.addRow(ValueInt.get(1), ValueString.get("Hello"));
+        rs.addRow(ValueInt.get(2), ValueString.get("World"));
+        rs.addRow(ValueInt.get(3), ValueString.get("Peace"));
         testValue(ValueResultSet.get(rs));
     }
 

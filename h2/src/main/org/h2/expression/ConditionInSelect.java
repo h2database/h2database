@@ -11,6 +11,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
+import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -43,8 +44,10 @@ public class ConditionInSelect extends Condition {
     @Override
     public Value getValue(Session session) {
         query.setSession(session);
+        // We need a LocalResult
+        query.setNeverLazy(true);
         query.setDistinctIfPossible();
-        ResultInterface rows = query.query(0);
+        LocalResult rows = (LocalResult) query.query(0);
         Value l = left.getValue(session);
         if (!rows.hasNext()) {
             return ValueBoolean.get(all);

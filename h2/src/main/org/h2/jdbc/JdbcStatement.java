@@ -19,7 +19,7 @@ import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultWithGeneratedKeys;
-import org.h2.tools.SimpleResultSet;
+import org.h2.result.SimpleResult;
 import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -866,21 +866,20 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     @Override
     public ResultSet getGeneratedKeys() throws SQLException {
         try {
-            int id = getNextId(TraceObject.RESULT_SET);
+            int id = generatedKeys != null ? generatedKeys.getTraceId() : getNextId(TraceObject.RESULT_SET);
             if (isDebugEnabled()) {
                 debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "getGeneratedKeys()");
             }
             checkClosed();
-            if (!conn.scopeGeneratedKeys()) {
-                if (generatedKeys != null) {
-                    return generatedKeys;
-                }
-                if (session.isSupportsGeneratedKeys()) {
-                    return new SimpleResultSet();
+            if (generatedKeys == null) {
+                if (!conn.scopeGeneratedKeys() && session.isSupportsGeneratedKeys()) {
+                    generatedKeys = new JdbcResultSet(conn, this, null, new SimpleResult(), id, false, true, false);
+                } else {
+                    // Compatibility mode or an old server, so use SCOPE_IDENTITY()
+                    generatedKeys = conn.getGeneratedKeys(this, id);
                 }
             }
-            // Compatibility mode or an old server, so use SCOPE_IDENTITY()
-            return conn.getGeneratedKeys(this, id);
+            return generatedKeys;
         } catch (Exception e) {
             throw logAndConvert(e);
         }

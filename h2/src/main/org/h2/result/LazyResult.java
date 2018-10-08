@@ -185,11 +185,4 @@ public abstract class LazyResult implements ResultInterface {
         return null;
     }
 
-    @Override
-    public boolean containsDistinct(Value[] values) {
-        // We have to make sure that we do not allow lazy
-        // evaluation when this call is needed:
-        // WHERE x IN (SELECT ...).
-        throw DbException.throwInternalError();
-    }
 }

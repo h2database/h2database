@@ -13,22 +13,20 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Arrays;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
-import org.h2.tools.SimpleResultSet;
+import org.h2.result.ResultInterface;
+import org.h2.result.SimpleResult;
 import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
-import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -630,31 +628,26 @@ public class Data {
         }
         case Value.RESULT_SET: {
             writeByte((byte) type);
-            try {
-                ResultSet rs = ((ValueResultSet) v).getResultSet();
-                rs.beforeFirst();
-                ResultSetMetaData meta = rs.getMetaData();
-                int columnCount = meta.getColumnCount();
-                writeVarInt(columnCount);
-                for (int i = 0; i < columnCount; i++) {
-                    writeString(meta.getColumnName(i + 1));
-                    writeVarInt(meta.getColumnType(i + 1));
-                    writeVarInt(meta.getPrecision(i + 1));
-                    writeVarInt(meta.getScale(i + 1));
-                }
-                while (rs.next()) {
-                    writeByte((byte) 1);
-                    for (int i = 0; i < columnCount; i++) {
-                        int t = DataType.getValueTypeFromResultSet(meta, i + 1);
-                        Value val = DataType.readValue(null, rs, i + 1, t);
-                        writeValue(val);
-                    }
-                }
-                writeByte((byte) 0);
-                rs.beforeFirst();
-            } catch (SQLException e) {
-                throw DbException.convert(e);
+            ResultInterface result = ((ValueResultSet) v).getResult();
+            result.reset();
+            int columnCount = result.getVisibleColumnCount();
+            writeVarInt(columnCount);
+            for (int i = 0; i < columnCount; i++) {
+                writeString(result.getAlias(i));
+                writeString(result.getColumnName(i));
+                writeVarInt(result.getColumnType(i));
+                writeVarLong(result.getColumnPrecision(i));
+                writeVarInt(result.getColumnScale(i));
+                writeVarInt(result.getDisplaySize(i));
             }
+            while (result.next()) {
+                writeByte((byte) 1);
+                Value[] row = result.currentRow();
+                for (int i = 0; i < columnCount; i++) {
+                    writeValue(row[i]);
+                }
+            }
+            writeByte((byte) 0);
             break;
         }
         case Value.INTERVAL_YEAR:
@@ -864,16 +857,15 @@ public class Data {
             return ValueArray.get(list);
         }
         case Value.RESULT_SET: {
-            SimpleResultSet rs = new SimpleResultSet();
-            rs.setAutoClose(false);
+            SimpleResult rs = new SimpleResult();
             int columns = readVarInt();
             for (int i = 0; i < columns; i++) {
-                rs.addColumn(readString(), readVarInt(), readVarInt(), readVarInt());
+                rs.addColumn(readString(), readString(), readVarInt(), readVarLong(), readVarInt(), readVarInt());
             }
             while (readByte() != 0) {
-                Object[] o = new Object[columns];
+                Value[] o = new Value[columns];
                 for (int i = 0; i < columns; i++) {
-                    o[i] = readValue().getObject();
+                    o[i] = readValue();
                 }
                 rs.addRow(o);
             }
@@ -1100,31 +1092,26 @@ public class Data {
         }
         case Value.RESULT_SET: {
             int len = 1;
-            try {
-                ResultSet rs = ((ValueResultSet) v).getResultSet();
-                rs.beforeFirst();
-                ResultSetMetaData meta = rs.getMetaData();
-                int columnCount = meta.getColumnCount();
-                len += getVarIntLen(columnCount);
-                for (int i = 0; i < columnCount; i++) {
-                    len += getStringLen(meta.getColumnName(i + 1));
-                    len += getVarIntLen(meta.getColumnType(i + 1));
-                    len += getVarIntLen(meta.getPrecision(i + 1));
-                    len += getVarIntLen(meta.getScale(i + 1));
-                }
-                while (rs.next()) {
-                    len++;
-                    for (int i = 0; i < columnCount; i++) {
-                        int t = DataType.getValueTypeFromResultSet(meta, i + 1);
-                        Value val = DataType.readValue(null, rs, i + 1, t);
-                        len += getValueLen(val, handler);
-                    }
-                }
-                len++;
-                rs.beforeFirst();
-            } catch (SQLException e) {
-                throw DbException.convert(e);
+            ResultInterface result = ((ValueResultSet) v).getResult();
+            int columnCount = result.getVisibleColumnCount();
+            len += getVarIntLen(columnCount);
+            for (int i = 0; i < columnCount; i++) {
+                len += getStringLen(result.getAlias(i));
+                len += getStringLen(result.getColumnName(i));
+                len += getVarIntLen(result.getColumnType(i));
+                len += getVarLongLen(result.getColumnPrecision(i));
+                len += getVarIntLen(result.getColumnScale(i));
+                len += getVarIntLen(result.getDisplaySize(i));
             }
+            while (result.next()) {
+                len++;
+                Value[] row = result.currentRow();
+                for (int i = 0; i < columnCount; i++) {
+                    Value val = row[i];
+                    len += getValueLen(val, handler);
+                }
+            }
+            len++;
             return len;
         }
         case Value.INTERVAL_YEAR:

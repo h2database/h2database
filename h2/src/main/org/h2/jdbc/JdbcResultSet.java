@@ -84,7 +84,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     private final boolean closeStatement;
     private final boolean scrollable;
     private final boolean updatable;
-    private ResultInterface result;
+    ResultInterface result;
     private JdbcConnection conn;
     private JdbcStatement stat;
     private int columnCount;

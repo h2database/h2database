@@ -8,9 +8,6 @@ package org.h2.mvstore.db;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
 import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
@@ -22,9 +19,10 @@ import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.rtree.SpatialDataType;
 import org.h2.mvstore.rtree.SpatialKey;
 import org.h2.mvstore.type.DataType;
+import org.h2.result.ResultInterface;
+import org.h2.result.SimpleResult;
 import org.h2.result.SortOrder;
 import org.h2.store.DataHandler;
-import org.h2.tools.SimpleResultSet;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
@@ -405,33 +403,25 @@ public class ValueDataType implements DataType {
         }
         case Value.RESULT_SET: {
             buff.put((byte) type);
-            try {
-                ResultSet rs = ((ValueResultSet) v).getResultSet();
-                rs.beforeFirst();
-                ResultSetMetaData meta = rs.getMetaData();
-                int columnCount = meta.getColumnCount();
-                buff.putVarInt(columnCount);
-                for (int i = 0; i < columnCount; i++) {
-                    writeString(buff, meta.getColumnName(i + 1));
-                    buff.putVarInt(meta.getColumnType(i + 1)).
-                        putVarInt(meta.getPrecision(i + 1)).
-                        putVarInt(meta.getScale(i + 1));
-                }
-                while (rs.next()) {
-                    buff.put((byte) 1);
-                    for (int i = 0; i < columnCount; i++) {
-                        int t = org.h2.value.DataType.
-                                getValueTypeFromResultSet(meta, i + 1);
-                        Value val = org.h2.value.DataType.readValue(
-                                null, rs, i + 1, t);
-                        writeValue(buff, val);
-                    }
-                }
-                buff.put((byte) 0);
-                rs.beforeFirst();
-            } catch (SQLException e) {
-                throw DbException.convert(e);
+            ResultInterface result = ((ValueResultSet) v).getResult();
+            int columnCount = result.getVisibleColumnCount();
+            buff.putVarInt(columnCount);
+            for (int i = 0; i < columnCount; i++) {
+                writeString(buff, result.getAlias(i));
+                writeString(buff, result.getColumnName(i));
+                buff.putVarInt(result.getColumnType(i)).
+                    putVarLong(result.getColumnPrecision(i)).
+                    putVarInt(result.getColumnScale(i)).
+                    putVarInt(result.getDisplaySize(i));
             }
+            while (result.next()) {
+                buff.put((byte) 1);
+                Value[] row = result.currentRow();
+                for (int i = 0; i < columnCount; i++) {
+                    writeValue(buff, row[i]);
+                }
+            }
+            buff.put((byte) 0);
             break;
         }
         case Value.GEOMETRY: {
@@ -629,19 +619,16 @@ public class ValueDataType implements DataType {
             return ValueArray.get(list);
         }
         case Value.RESULT_SET: {
-            SimpleResultSet rs = new SimpleResultSet();
-            rs.setAutoClose(false);
+            SimpleResult rs = new SimpleResult();
             int columns = readVarInt(buff);
             for (int i = 0; i < columns; i++) {
-                rs.addColumn(readString(buff),
-                        readVarInt(buff),
-                        readVarInt(buff),
+                rs.addColumn(readString(buff), readString(buff), readVarInt(buff), readVarLong(buff), readVarInt(buff),
                         readVarInt(buff));
             }
             while (buff.get() != 0) {
-                Object[] o = new Object[columns];
+                Value[] o = new Value[columns];
                 for (int i = 0; i < columns; i++) {
-                    o[i] = ((Value) readValue(buff)).getObject();
+                    o[i] = (Value) readValue(buff);
                 }
                 rs.addRow(o);
             }

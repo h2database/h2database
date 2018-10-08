@@ -13,6 +13,7 @@ import java.sql.RowIdLifetime;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Arrays;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.h2.engine.Constants;
@@ -23,9 +24,11 @@ import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
-import org.h2.tools.SimpleResultSet;
+import org.h2.result.SimpleResult;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.value.ValueInt;
+import org.h2.value.ValueString;
 
 /**
  * Represents the meta data for a database.
@@ -3179,13 +3182,22 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public ResultSet getClientInfoProperties() throws SQLException {
         Properties clientInfo = conn.getClientInfo();
-        SimpleResultSet result = new SimpleResultSet();
-        result.addColumn("Name", Types.VARCHAR, 0, 0);
-        result.addColumn("Value", Types.VARCHAR, 0, 0);
-        for (Object key : clientInfo.keySet()) {
-            result.addRow(key, clientInfo.get(key));
+        SimpleResult result = new SimpleResult();
+        result.addColumn("NAME", "NAME", Types.VARCHAR, 0, 0, Integer.MAX_VALUE);
+        result.addColumn("MAX_LEN", "MAX_LEN", Types.INTEGER, 0, 0, ValueInt.DISPLAY_SIZE);
+        result.addColumn("DEFAULT_VALUE", "DEFAULT_VALUE", Types.VARCHAR, 0, 0, Integer.MAX_VALUE);
+        result.addColumn("DESCRIPTION", "DESCRIPTION", Types.VARCHAR, 0, 0, Integer.MAX_VALUE);
+        // Non-standard column
+        result.addColumn("VALUE", "VALUE", Types.VARCHAR, 0, 0, Integer.MAX_VALUE);
+        for (Entry<Object, Object> entry : clientInfo.entrySet()) {
+            result.addRow(ValueString.get((String) entry.getKey()), ValueInt.get(Integer.MAX_VALUE),
+                    ValueString.EMPTY, ValueString.EMPTY, ValueString.get((String) entry.getValue()));
         }
-        return result;
+        int id = getNextId(TraceObject.RESULT_SET);
+        if (isDebugEnabled()) {
+            debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "getClientInfoProperties()");
+        }
+        return new JdbcResultSet(conn, null, null, result, id, false, true, false);
     }
 
     /**

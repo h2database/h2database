@@ -53,6 +53,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueBytes;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueResultSet;
 import org.h2.value.ValueString;
 
 /**
@@ -1591,7 +1592,7 @@ public class JdbcConnection extends TraceObject
     /**
      * INTERNAL
      */
-    ResultSet getGeneratedKeys(JdbcStatement stat, int id) {
+    JdbcResultSet getGeneratedKeys(JdbcStatement stat, int id) {
         getGeneratedKeys = prepareCommand(
                 "SELECT SCOPE_IDENTITY() "
                         + "WHERE SCOPE_IDENTITY() IS NOT NULL",
@@ -2061,6 +2062,10 @@ public class JdbcConnection extends TraceObject
                         session.getDataHandler());
             }
             break;
+        case Value.RESULT_SET: {
+            int id = getNextId(TraceObject.RESULT_SET);
+            return new JdbcResultSet(this, null, null, ((ValueResultSet) v).getResult(), id, false, true, false);
+        }
         case Value.BYTE:
         case Value.SHORT:
             if (!SysProperties.OLD_RESULT_SET_GET_OBJECT) {

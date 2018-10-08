@@ -173,7 +173,7 @@ public class JavaFunction extends Expression implements FunctionCall {
         switch (getType()) {
         case Value.RESULT_SET:
             ValueResultSet rs = getValueForColumnList(session, getArgs());
-            return getExpressionColumns(session, rs.getResultSet());
+            return getExpressionColumns(session, rs.getResult());
         case Value.ARRAY:
             return getExpressionColumns(session, (ValueArray) getValue(session));
         }

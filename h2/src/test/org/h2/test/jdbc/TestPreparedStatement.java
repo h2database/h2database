@@ -198,6 +198,7 @@ public class TestPreparedStatement extends TestDb {
         testParameterMetaData(conn);
         testColumnMetaDataWithEquals(conn);
         testColumnMetaDataWithIn(conn);
+        testValueResultSet(conn);
         conn.close();
         testPreparedStatementWithLiteralsNone();
         testPreparedStatementWithIndexedParameterAndLiteralsNone();
@@ -1698,4 +1699,18 @@ public class TestPreparedStatement extends TestDb {
                 ps.getParameterMetaData().getParameterType(1));
         stmt.execute("DROP TABLE TEST");
     }
+
+    private void testValueResultSet(Connection conn) throws SQLException {
+        for (int i = 0; i < 2; i++) {
+            try (PreparedStatement stmt = conn.prepareStatement("SELECT TABLE(X INT = (1))")) {
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                    try (ResultSet rs2 = (ResultSet) rs.getObject(1)) {
+                        assertEquals(1, rs2.getMetaData().getColumnCount());
+                    }
+                }
+            }
+        }
+    }
+
 }

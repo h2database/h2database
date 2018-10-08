@@ -1592,7 +1592,7 @@ public class JdbcConnection extends TraceObject
     /**
      * INTERNAL
      */
-    ResultSet getGeneratedKeys(JdbcStatement stat, int id) {
+    JdbcResultSet getGeneratedKeys(JdbcStatement stat, int id) {
         getGeneratedKeys = prepareCommand(
                 "SELECT SCOPE_IDENTITY() "
                         + "WHERE SCOPE_IDENTITY() IS NOT NULL",

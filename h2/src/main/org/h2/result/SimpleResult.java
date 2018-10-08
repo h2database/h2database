@@ -17,7 +17,7 @@ import org.h2.value.Value;
  */
 public class SimpleResult implements ResultInterface {
 
-    private static final class Column {
+    static final class Column {
 
         final String alias;
 
@@ -33,12 +33,42 @@ public class SimpleResult implements ResultInterface {
 
         Column(String alias, String columnName, int columnType, long columnPrecision, int columnScale,
                 int displaySize) {
+            if (alias == null || columnName == null) {
+                throw new NullPointerException();
+            }
             this.alias = alias;
             this.columnName = columnName;
             this.columnType = columnType;
             this.columnPrecision = columnPrecision;
             this.columnScale = columnScale;
             this.displaySize = displaySize;
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + alias.hashCode();
+            result = prime * result + columnName.hashCode();
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null || getClass() != obj.getClass())
+                return false;
+            Column other = (Column) obj;
+            return alias.equals(other.alias) && columnName.equals(other.columnName);
+        }
+
+        @Override
+        public String toString() {
+            if (alias.equals(columnName)) {
+                return columnName;
+            }
+            return columnName + ' ' + alias;
         }
 
     }
@@ -66,8 +96,12 @@ public class SimpleResult implements ResultInterface {
 
     public void addColumn(String alias, String columnName, int columnType, long columnPrecision, int columnScale,
             int displaySize) {
+        addColumn(new Column(alias, columnName, columnType, columnPrecision, columnScale, displaySize));
+    }
+
+    void addColumn(Column column) {
         assert rows.isEmpty();
-        columns.add(new Column(alias, columnName, columnType, columnPrecision, columnScale, displaySize));
+        columns.add(column);
     }
 
     public void addRow(Value... values) {

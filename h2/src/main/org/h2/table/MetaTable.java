@@ -165,6 +165,9 @@ public class MetaTable extends Table {
                     "TABLE_NAME",
                     "COLUMN_NAME",
                     "ORDINAL_POSITION INT",
+                    "DOMAIN_CATALOG",
+                    "DOMAIN_SCHEMA",
+                    "DOMAIN_NAME",
                     "COLUMN_DEFAULT",
                     "IS_NULLABLE",
                     "DATA_TYPE INT",
@@ -843,6 +846,7 @@ public class MetaTable extends Table {
                 String collation = database.getCompareMode().getName();
                 for (int j = 0; j < cols.length; j++) {
                     Column c = cols[j];
+                    UserDataType domain = c.getUserDataType();
                     DataType dataType = c.getDataType();
                     ValueInt precision = ValueInt.get(c.getPrecisionAsInt());
                     ValueInt scale = ValueInt.get(c.getScale());
@@ -876,6 +880,12 @@ public class MetaTable extends Table {
                             identifier(c.getName()),
                             // ORDINAL_POSITION
                             ValueInt.get(j + 1),
+                            // DOMAIN_CATALOG
+                            domain != null ? catalog : null,
+                            // DOMAIN_SCHEMA
+                            domain != null ? Constants.SCHEMA_MAIN : null,
+                            // DOMAIN_NAME
+                            domain != null ? domain.getName() : null,
                             // COLUMN_DEFAULT
                             c.getDefaultSQL(),
                             // IS_NULLABLE

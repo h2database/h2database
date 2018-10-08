@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.Arrays;
 import org.h2.engine.SessionInterface;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
@@ -91,12 +92,7 @@ public class ValueResultSet extends Value {
         }
         result.reset();
         for (int i = 0; i < maxrows && result.next(); i++) {
-            Value[] list = new Value[columnCount];
-            for (int j = 0; j < columnCount; j++) {
-                Value[] row = result.currentRow();
-                list[j] = row[j];
-            }
-            simple.addRow(list);
+            simple.addRow(Arrays.copyOf(result.currentRow(), columnCount));
         }
         return new ValueResultSet(simple);
     }
@@ -141,7 +137,7 @@ public class ValueResultSet extends Value {
 
     @Override
     public int compareTypeSafe(Value v, CompareMode mode) {
-        return this == v ? 0 : super.toString().compareTo(v.toString());
+        return this == v ? 0 : getString().compareTo(v.getString());
     }
 
     @Override

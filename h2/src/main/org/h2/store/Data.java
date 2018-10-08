@@ -27,7 +27,6 @@ import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
-import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -634,10 +633,12 @@ public class Data {
             int columnCount = result.getVisibleColumnCount();
             writeVarInt(columnCount);
             for (int i = 0; i < columnCount; i++) {
+                writeString(result.getAlias(i));
                 writeString(result.getColumnName(i));
-                writeVarInt(DataType.getDataType(result.getColumnType(i)).sqlType);
-                writeVarInt(MathUtils.convertLongToInt(result.getColumnPrecision(i)));
+                writeVarInt(result.getColumnType(i));
+                writeVarLong(result.getColumnPrecision(i));
                 writeVarInt(result.getColumnScale(i));
+                writeVarInt(result.getDisplaySize(i));
             }
             while (result.next()) {
                 writeByte((byte) 1);
@@ -859,9 +860,7 @@ public class Data {
             SimpleResult rs = new SimpleResult();
             int columns = readVarInt();
             for (int i = 0; i < columns; i++) {
-                String name = readString();
-                rs.addColumn(name, name, DataType.convertSQLTypeToValueType(readVarInt()), readVarInt(), readVarInt(),
-                        Integer.MAX_VALUE);
+                rs.addColumn(readString(), readString(), readVarInt(), readVarLong(), readVarInt(), readVarInt());
             }
             while (readByte() != 0) {
                 Value[] o = new Value[columns];
@@ -1097,10 +1096,12 @@ public class Data {
              int columnCount = result.getVisibleColumnCount();
              len += getVarIntLen(columnCount);
              for (int i = 0; i < columnCount; i++) {
+                 len += getStringLen(result.getAlias(i));
                  len += getStringLen(result.getColumnName(i));
-                 len += getVarIntLen(DataType.getDataType(result.getColumnType(i)).sqlType);
-                 len += getVarIntLen(MathUtils.convertLongToInt(result.getColumnPrecision(i)));
+                 len += getVarIntLen(result.getColumnType(i));
+                 len += getVarLongLen(result.getColumnPrecision(i));
                  len += getVarIntLen(result.getColumnScale(i));
+                 len += getVarIntLen(result.getDisplaySize(i));
              }
              while (result.next()) {
                  len++;

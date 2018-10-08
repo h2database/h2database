@@ -24,7 +24,6 @@ import org.h2.result.SimpleResult;
 import org.h2.result.SortOrder;
 import org.h2.store.DataHandler;
 import org.h2.util.JdbcUtils;
-import org.h2.util.MathUtils;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
@@ -408,10 +407,12 @@ public class ValueDataType implements DataType {
             int columnCount = result.getVisibleColumnCount();
             buff.putVarInt(columnCount);
             for (int i = 0; i < columnCount; i++) {
+                writeString(buff, result.getAlias(i));
                 writeString(buff, result.getColumnName(i));
-                buff.putVarInt(org.h2.value.DataType.getDataType(result.getColumnType(i)).sqlType).
-                    putVarInt(MathUtils.convertLongToInt(result.getColumnPrecision(i))).
-                    putVarInt(result.getColumnScale(i));
+                buff.putVarInt(result.getColumnType(i)).
+                    putVarLong(result.getColumnPrecision(i)).
+                    putVarInt(result.getColumnScale(i)).
+                    putVarInt(result.getDisplaySize(i));
             }
             while (result.next()) {
                 buff.put((byte) 1);
@@ -621,9 +622,8 @@ public class ValueDataType implements DataType {
             SimpleResult rs = new SimpleResult();
             int columns = readVarInt(buff);
             for (int i = 0; i < columns; i++) {
-                String name = readString(buff);
-                rs.addColumn(name, name, org.h2.value.DataType.convertSQLTypeToValueType(readVarInt(buff)),
-                        readVarInt(buff), readVarInt(buff), Integer.MAX_VALUE);
+                rs.addColumn(readString(buff), readString(buff), readVarInt(buff), readVarLong(buff), readVarInt(buff),
+                        readVarInt(buff));
             }
             while (buff.get() != 0) {
                 Value[] o = new Value[columns];

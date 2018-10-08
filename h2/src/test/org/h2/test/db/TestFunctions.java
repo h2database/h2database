@@ -963,7 +963,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertEquals(0, ((Integer) array[0]).intValue());
         assertEquals("Hello", (String) array[1]);
         assertThrows(ErrorCode.INVALID_VALUE_2, a).getArray(1, -1);
-        assertThrows(ErrorCode.INVALID_VALUE_2, a).getArray(1, 3);
+        assertEquals(2, ((Object[]) a.getArray(1, 3)).length);
         assertEquals(0, ((Object[]) a.getArray(1, 0)).length);
         assertEquals(0, ((Object[]) a.getArray(2, 0)).length);
         assertThrows(ErrorCode.INVALID_VALUE_2, a).getArray(0, 0);

@@ -893,14 +893,14 @@ public class Select extends Query {
             String schemaName = expr.getSchemaName();
             String tableAlias = expr.getTableAlias();
             Wildcard w = (Wildcard) expr;
-            ArrayList<ExpressionColumn> exceptColumns = w.getExceptColumns();
+            boolean hasExceptColumns = w.getExceptColumns() != null;
             HashMap<Column, ExpressionColumn> exceptTableColumns = null;
             if (tableAlias == null) {
-                if (exceptColumns != null) {
+                if (hasExceptColumns) {
                     for (TableFilter filter : filters) {
                         w.mapColumns(filter, 1, Expression.MAP_INITIAL);
                     }
-                    exceptTableColumns = mapExceptColumns(exceptColumns);
+                    exceptTableColumns = w.mapExceptColumns();
                 }
                 expressions.remove(i);
                 for (TableFilter filter : filters) {
@@ -912,9 +912,9 @@ public class Select extends Query {
                 for (TableFilter f : filters) {
                     if (db.equalsIdentifiers(tableAlias, f.getTableAlias())) {
                         if (schemaName == null || db.equalsIdentifiers(schemaName, f.getSchemaName())) {
-                            if (exceptColumns != null) {
+                            if (hasExceptColumns) {
                                 w.mapColumns(f, 1, Expression.MAP_INITIAL);
-                                exceptTableColumns = mapExceptColumns(exceptColumns);
+                                exceptTableColumns = w.mapExceptColumns();
                             }
                             filter = f;
                             break;
@@ -929,20 +929,6 @@ public class Select extends Query {
                 i--;
             }
         }
-    }
-
-    public HashMap<Column, ExpressionColumn> mapExceptColumns(ArrayList<ExpressionColumn> exceptColumns) {
-        HashMap<Column, ExpressionColumn> exceptTableColumns = new HashMap<>();
-        for (ExpressionColumn ec : exceptColumns) {
-            Column column = ec.getColumn();
-            if (column == null) {
-                throw ec.getColumnException(ErrorCode.COLUMN_NOT_FOUND_1);
-            }
-            if (exceptTableColumns.put(column, ec) != null) {
-                throw ec.getColumnException(ErrorCode.DUPLICATE_COLUMN_NAME_1);
-            }
-        }
-        return exceptTableColumns;
     }
 
     private int expandColumnList(TableFilter filter, int index, HashMap<Column, ExpressionColumn> except) {

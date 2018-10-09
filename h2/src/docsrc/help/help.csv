@@ -2497,7 +2497,7 @@ COMPRESSION LZF
 "
 
 "Other Grammar","Select Expression","
-* | expression [ [ AS ] columnAlias ] | tableAlias.*
+wildcardExpression | expression [ [ AS ] columnAlias ]
 ","
 An expression in a SELECT statement.
 ","
@@ -2566,6 +2566,16 @@ A list of rows that can be used like a table.
 The column list of the resulting table is C1, C2, and so on.
 ","
 SELECT * FROM (VALUES(1, 'Hello'), (2, 'World')) AS V;
+"
+
+"Other Grammar","Wildcard expression","
+{* | tableAlias.*} [EXCEPT ([tableAlias.]columnName, [,...])]
+","
+A wildcard expression in a SELECT statement.
+A wildcard expression represents all visible columns. Some columns can be excluded with optional EXCEPT clause.
+","
+*
+* EXCEPT (DATA)
 "
 
 "Other Grammar","Window name or specification","

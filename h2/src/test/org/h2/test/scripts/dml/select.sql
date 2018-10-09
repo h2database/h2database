@@ -329,3 +329,81 @@ SELECT * FROM TEST ORDER BY ?, ? FETCH FIRST ROW ONLY;
 
 DROP TABLE TEST;
 > ok
+
+CREATE TABLE TEST1(A INT, B INT, C INT) AS SELECT 1, 2, 3;
+> ok
+
+CREATE TABLE TEST2(A INT, D INT) AS SELECT 4, 5;
+> ok
+
+SELECT * FROM TEST1, TEST2;
+> A B C A D
+> - - - - -
+> 1 2 3 4 5
+> rows: 1
+
+SELECT * EXCEPT (A) FROM TEST1;
+> B C
+> - -
+> 2 3
+> rows: 1
+
+SELECT * EXCEPT (TEST1.A) FROM TEST1;
+> B C
+> - -
+> 2 3
+> rows: 1
+
+SELECT * EXCEPT (PUBLIC.TEST1.A) FROM TEST1;
+> B C
+> - -
+> 2 3
+> rows: 1
+
+SELECT * EXCEPT (SCRIPT.PUBLIC.TEST1.A) FROM TEST1;
+> B C
+> - -
+> 2 3
+> rows: 1
+
+SELECT * EXCEPT (Z) FROM TEST1;
+> exception COLUMN_NOT_FOUND_1
+
+SELECT * EXCEPT (B, TEST1.B) FROM TEST1;
+> exception DUPLICATE_COLUMN_NAME_1
+
+SELECT * EXCEPT (A) FROM TEST1, TEST2;
+> exception AMBIGUOUS_COLUMN_NAME_1
+
+SELECT * EXCEPT (TEST1.A, B, TEST2.D) FROM TEST1, TEST2;
+> C A
+> - -
+> 3 4
+> rows: 1
+
+SELECT TEST1.*, TEST2.* FROM TEST1, TEST2;
+> A B C A D
+> - - - - -
+> 1 2 3 4 5
+> rows: 1
+
+SELECT TEST1.* EXCEPT (A), TEST2.* EXCEPT (A) FROM TEST1, TEST2;
+> B C D
+> - - -
+> 2 3 5
+> rows: 1
+
+SELECT TEST1.* EXCEPT (A), TEST2.* EXCEPT (D) FROM TEST1, TEST2;
+> B C A
+> - - -
+> 2 3 4
+> rows: 1
+
+SELECT * EXCEPT (T1.A, T2.D) FROM TEST1 T1, TEST2 T2;
+> B C A
+> - - -
+> 2 3 4
+> rows: 1
+
+DROP TABLE TEST1, TEST2;
+> ok

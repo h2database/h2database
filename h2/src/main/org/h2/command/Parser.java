@@ -2593,7 +2593,7 @@ public class Parser {
         ArrayList<Expression> expressions = Utils.newSmallArrayList();
         do {
             if (readIf(ASTERISK)) {
-                expressions.add(new Wildcard(null, null));
+                expressions.add(parseWildcard(null, null));
             } else {
                 Expression expr = readExpression();
                 if (readIf("AS") || currentTokenType == IDENTIFIER) {
@@ -3506,7 +3506,7 @@ public class Parser {
     private Expression readWildcardOrSequenceValue(String schema,
             String objectName) {
         if (readIf(ASTERISK)) {
-            return new Wildcard(schema, objectName);
+            return parseWildcard(schema, objectName);
         }
         if (schema == null) {
             schema = session.getCurrentSchemaName();
@@ -3529,6 +3529,38 @@ public class Parser {
             }
         }
         return null;
+    }
+
+    private Wildcard parseWildcard(String schema, String objectName) {
+        Wildcard wildcard = new Wildcard(schema, objectName);
+        if (readIf(EXCEPT)) {
+            read(OPEN_PAREN);
+            ArrayList<ExpressionColumn> exceptColumns = Utils.newSmallArrayList();
+            do {
+                String s = null, t = null;
+                String name = readColumnIdentifier();
+                if (readIf(DOT)) {
+                    t = name;
+                    name = readColumnIdentifier();
+                    if (readIf(DOT)) {
+                        s = t;
+                        t = name;
+                        name = readColumnIdentifier();
+                        if (readIf(DOT)) {
+                            if (!equalsToken(database.getShortName(), s)) {
+                                throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_1, s);
+                            }
+                            s = t;
+                            t = name;
+                            name = readColumnIdentifier();
+                        }
+                    }
+                }
+                exceptColumns.add(new ExpressionColumn(database, s, t, name));
+            } while (readIfMore(true));
+            wildcard.setExceptColumns(exceptColumns);
+        }
+        return wildcard;
     }
 
     private Expression readTermObjectDot(String objectName) {

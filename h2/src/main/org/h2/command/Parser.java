@@ -78,6 +78,7 @@ import org.h2.command.ddl.Analyze;
 import org.h2.command.ddl.CommandWithColumns;
 import org.h2.command.ddl.CreateAggregate;
 import org.h2.command.ddl.CreateConstant;
+import org.h2.command.ddl.CreateDomain;
 import org.h2.command.ddl.CreateFunctionAlias;
 import org.h2.command.ddl.CreateIndex;
 import org.h2.command.ddl.CreateLinkedTable;
@@ -88,13 +89,13 @@ import org.h2.command.ddl.CreateSynonym;
 import org.h2.command.ddl.CreateTable;
 import org.h2.command.ddl.CreateTrigger;
 import org.h2.command.ddl.CreateUser;
-import org.h2.command.ddl.CreateUserDataType;
 import org.h2.command.ddl.CreateView;
 import org.h2.command.ddl.DeallocateProcedure;
 import org.h2.command.ddl.DefineCommand;
 import org.h2.command.ddl.DropAggregate;
 import org.h2.command.ddl.DropConstant;
 import org.h2.command.ddl.DropDatabase;
+import org.h2.command.ddl.DropDomain;
 import org.h2.command.ddl.DropFunctionAlias;
 import org.h2.command.ddl.DropIndex;
 import org.h2.command.ddl.DropRole;
@@ -104,7 +105,6 @@ import org.h2.command.ddl.DropSynonym;
 import org.h2.command.ddl.DropTable;
 import org.h2.command.ddl.DropTrigger;
 import org.h2.command.ddl.DropUser;
-import org.h2.command.ddl.DropUserDataType;
 import org.h2.command.ddl.DropView;
 import org.h2.command.ddl.GrantRevoke;
 import org.h2.command.ddl.PrepareProcedure;
@@ -137,6 +137,7 @@ import org.h2.constraint.ConstraintActionType;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
+import org.h2.engine.Domain;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.Mode;
 import org.h2.engine.Mode.ModeEnum;
@@ -145,7 +146,6 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.User;
 import org.h2.engine.UserAggregate;
-import org.h2.engine.UserDataType;
 import org.h2.expression.Alias;
 import org.h2.expression.BinaryOperation;
 import org.h2.expression.BinaryOperation.OpType;
@@ -1940,7 +1940,7 @@ public class Parser {
         } else if (readIf("USER")) {
             type = DbObject.USER;
         } else if (readIf("DOMAIN")) {
-            type = DbObject.USER_DATATYPE;
+            type = DbObject.DOMAIN;
         } else {
             throw getSyntaxError();
         }
@@ -2098,7 +2098,7 @@ public class Parser {
             }
             return command;
         } else if (readIf("DOMAIN") || readIf("TYPE") || readIf("DATATYPE")) {
-            return parseDropUserDataType();
+            return parseDropDomain();
         } else if (readIf("AGGREGATE")) {
             return parseDropAggregate();
         } else if (readIf("SYNONYM")) {
@@ -2113,9 +2113,9 @@ public class Parser {
         throw getSyntaxError();
     }
 
-    private DropUserDataType parseDropUserDataType() {
+    private DropDomain parseDropDomain() {
         boolean ifExists = readIfExists(false);
-        DropUserDataType command = new DropUserDataType(session);
+        DropDomain command = new DropDomain(session);
         command.setTypeName(readUniqueIdentifier());
         ifExists = readIfExists(ifExists);
         command.setIfExists(ifExists);
@@ -5122,12 +5122,12 @@ public class Parser {
         if (!identifiersToUpper) {
             original = StringUtils.toUpperEnglish(original);
         }
-        UserDataType userDataType = database.findUserDataType(original);
-        if (userDataType != null) {
-            templateColumn = userDataType.getColumn();
+        Domain domain = database.findDomain(original);
+        if (domain != null) {
+            templateColumn = domain.getColumn();
             dataType = DataType.getDataType(templateColumn.getType());
             comment = templateColumn.getComment();
-            original = forTable ? userDataType.getSQL() : templateColumn.getOriginalSQL();
+            original = forTable ? domain.getSQL() : templateColumn.getOriginalSQL();
             precision = templateColumn.getPrecision();
             displaySize = templateColumn.getDisplaySize();
             scale = templateColumn.getScale();
@@ -5344,7 +5344,7 @@ public class Parser {
         column.setComment(comment);
         column.setOriginalSQL(original);
         if (forTable) {
-            column.setUserDataType(userDataType);
+            column.setDomain(domain);
         }
         return column;
     }
@@ -5373,7 +5373,7 @@ public class Parser {
         } else if (readIf("CONSTANT")) {
             return parseCreateConstant();
         } else if (readIf("DOMAIN") || readIf("TYPE") || readIf("DATATYPE")) {
-            return parseCreateUserDataType();
+            return parseCreateDomain();
         } else if (readIf("AGGREGATE")) {
             return parseCreateAggregate(force);
         } else if (readIf("LINKED")) {
@@ -5741,9 +5741,9 @@ public class Parser {
         return command;
     }
 
-    private CreateUserDataType parseCreateUserDataType() {
+    private CreateDomain parseCreateDomain() {
         boolean ifNotExists = readIfNotExists();
-        CreateUserDataType command = new CreateUserDataType(session);
+        CreateDomain command = new CreateDomain(session);
         command.setTypeName(readUniqueIdentifier());
         read("AS");
         Column col = parseColumnForTable("VALUE", true, false);

@@ -12,9 +12,9 @@ import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.ddl.SequenceOptions;
 import org.h2.engine.Constants;
+import org.h2.engine.Domain;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
-import org.h2.engine.UserDataType;
 import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
@@ -88,7 +88,7 @@ public class Column {
     private String comment;
     private boolean primaryKey;
     private boolean visible = true;
-    private UserDataType userDataType;
+    private Domain domain;
 
     public Column(String name, int type) {
         this(name, type, -1, -1, -1, null);
@@ -311,12 +311,12 @@ public class Column {
         visible = b;
     }
 
-    public UserDataType getUserDataType() {
-        return userDataType;
+    public Domain getDomain() {
+        return domain;
     }
 
-    public void setUserDataType(UserDataType userDataType) {
-        this.userDataType = userDataType;
+    public void setDomain(Domain domain) {
+        this.domain = domain;
     }
 
     /**
@@ -563,7 +563,7 @@ public class Column {
         }
         if (!nullable) {
             buff.append(" NOT NULL");
-        } else if (userDataType != null && !userDataType.getColumn().isNullable()) {
+        } else if (domain != null && !domain.getColumn().isNullable()) {
             buff.append(" NULL");
         }
         if (convertNullToDefault) {

@@ -556,8 +556,8 @@ public class DbException extends RuntimeException {
         case CONSTANT_NOT_FOUND_1:
         case LITERALS_ARE_NOT_ALLOWED:
         case CANNOT_DROP_TABLE_1:
-        case USER_DATA_TYPE_ALREADY_EXISTS_1:
-        case USER_DATA_TYPE_NOT_FOUND_1:
+        case DOMAIN_ALREADY_EXISTS_1:
+        case DOMAIN_NOT_FOUND_1:
         case WITH_TIES_WITHOUT_ORDER_BY:
         case CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS:
         case TRANSACTION_NOT_FOUND_1:

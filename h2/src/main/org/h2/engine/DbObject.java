@@ -75,9 +75,9 @@ public interface DbObject {
     int CONSTANT = 11;
 
     /**
-     * This object is a user data type (domain).
+     * This object is a domain.
      */
-    int USER_DATATYPE = 12;
+    int DOMAIN = 12;
 
     /**
      * This object is a comment.

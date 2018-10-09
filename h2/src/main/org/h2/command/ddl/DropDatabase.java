@@ -135,7 +135,7 @@ public class DropDatabase extends DefineCommand {
         ArrayList<DbObject> dbObjects = new ArrayList<>();
         dbObjects.addAll(db.getAllRights());
         dbObjects.addAll(db.getAllAggregates());
-        dbObjects.addAll(db.getAllUserDataTypes());
+        dbObjects.addAll(db.getAllDomains());
         for (DbObject obj : dbObjects) {
             String sql = obj.getCreateSQL();
             // the role PUBLIC must not be dropped

@@ -757,7 +757,7 @@ drop table parent, child;
 > ok
 
 create domain integer as varchar;
-> exception USER_DATA_TYPE_ALREADY_EXISTS_1
+> exception DOMAIN_ALREADY_EXISTS_1
 
 create domain int as varchar;
 > ok

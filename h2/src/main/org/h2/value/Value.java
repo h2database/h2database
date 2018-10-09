@@ -140,6 +140,7 @@ public abstract class Value {
      * The value type for RESULT_SET values.
      */
     public static final int RESULT_SET = 18;
+
     /**
      * The value type for JAVA_OBJECT values.
      */
@@ -245,14 +246,13 @@ public abstract class Value {
     public static final int TYPE_COUNT = INTERVAL_MINUTE_TO_SECOND + 1;
 
     private static SoftReference<Value[]> softCache;
-    private static final BigDecimal MAX_LONG_DECIMAL =
-            BigDecimal.valueOf(Long.MAX_VALUE);
+
+    private static final BigDecimal MAX_LONG_DECIMAL = BigDecimal.valueOf(Long.MAX_VALUE);
 
     /**
      * The smallest Long value, as a BigDecimal.
      */
-    public static final BigDecimal MIN_LONG_DECIMAL =
-            BigDecimal.valueOf(Long.MIN_VALUE);
+    public static final BigDecimal MIN_LONG_DECIMAL = BigDecimal.valueOf(Long.MIN_VALUE);
 
     /**
      * Check the range of the parameters.

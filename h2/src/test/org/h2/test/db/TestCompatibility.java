@@ -119,7 +119,7 @@ public class TestCompatibility extends TestDb {
         }
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key) as select 1");
-        assertThrows(ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1, stat).
+        assertThrows(ErrorCode.DOMAIN_ALREADY_EXISTS_1, stat).
                 execute("create domain int as varchar");
         conn.close();
         conn = getConnection("compatibility");

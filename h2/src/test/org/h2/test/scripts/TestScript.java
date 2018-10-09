@@ -621,7 +621,8 @@ public class TestScript extends TestDb {
     static {
         try {
             for (Field field : ErrorCode.class.getDeclaredFields()) {
-                if (field.getModifiers() == (Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL)) {
+                if (field.getModifiers() == (Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL)
+                        && field.getAnnotation(Deprecated.class) == null) {
                     ERROR_CODE_TO_NAME.put(field.getInt(null), field.getName());
                 }
             }

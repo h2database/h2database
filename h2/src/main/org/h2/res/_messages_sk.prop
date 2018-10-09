@@ -149,8 +149,8 @@
 90116=Písmená (literals) tohto druhu nie sú povolené
 90117=Vzdialené pripojenia na tento server nie sú povolené, pozrite -tcpAllowOthers
 90118=Nemôžem zmazať tabuľku {0}
-90119=Používateľský dátový typ {0} už existuje
-90120=Používateľský dátový typ {0} nenájdený
+90119=Doména {0} už existuje
+90120=Doména {0} nenájdený
 90121=Databáza už je zatvorená (na zamedzenie automatického zatvárania pri ukončení VM, pridajte ";DB_CLOSE_ON_EXIT=FALSE" do DB URL)
 90122=#The WITH TIES clause is not allowed without a corresponding ORDER BY clause.
 90123=Nemožno miešať indexované a neindexované parametre

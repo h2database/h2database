@@ -9,8 +9,8 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.ConstraintActionType;
 import org.h2.engine.Database;
+import org.h2.engine.Domain;
 import org.h2.engine.Session;
-import org.h2.engine.UserDataType;
 import org.h2.message.DbException;
 import org.h2.table.Column;
 import org.h2.table.Table;
@@ -19,13 +19,13 @@ import org.h2.table.Table;
  * This class represents the statement
  * DROP DOMAIN
  */
-public class DropUserDataType extends DefineCommand {
+public class DropDomain extends DefineCommand {
 
     private String typeName;
     private boolean ifExists;
     private ConstraintActionType dropAction;
 
-    public DropUserDataType(Session session) {
+    public DropDomain(Session session) {
         super(session);
         dropAction = session.getDatabase().getSettings().dropRestrict ?
                 ConstraintActionType.RESTRICT : ConstraintActionType.CASCADE;
@@ -44,22 +44,22 @@ public class DropUserDataType extends DefineCommand {
         session.getUser().checkAdmin();
         session.commit(true);
         Database db = session.getDatabase();
-        UserDataType type = db.findUserDataType(typeName);
+        Domain type = db.findDomain(typeName);
         if (type == null) {
             if (!ifExists) {
-                throw DbException.get(ErrorCode.USER_DATA_TYPE_NOT_FOUND_1, typeName);
+                throw DbException.get(ErrorCode.DOMAIN_NOT_FOUND_1, typeName);
             }
         } else {
             for (Table t : db.getAllTablesAndViews(false)) {
                 boolean modified = false;
                 for (Column c : t.getColumns()) {
-                    UserDataType udt = c.getUserDataType();
-                    if (udt != null && udt.getName().equals(typeName)) {
+                    Domain domain = c.getDomain();
+                    if (domain != null && domain.getName().equals(typeName)) {
                         if (dropAction == ConstraintActionType.RESTRICT) {
                             throw DbException.get(ErrorCode.CANNOT_DROP_2, typeName, t.getCreateSQL());
                         }
                         c.setOriginalSQL(type.getColumn().getOriginalSQL());
-                        c.setUserDataType(null);
+                        c.setDomain(null);
                         modified = true;
                     }
                 }

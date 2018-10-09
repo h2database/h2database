@@ -29,6 +29,7 @@ import org.h2.engine.Comment;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
+import org.h2.engine.Domain;
 import org.h2.engine.Right;
 import org.h2.engine.Role;
 import org.h2.engine.Session;
@@ -36,7 +37,6 @@ import org.h2.engine.Setting;
 import org.h2.engine.SysProperties;
 import org.h2.engine.User;
 import org.h2.engine.UserAggregate;
-import org.h2.engine.UserDataType;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.index.Cursor;
@@ -187,7 +187,7 @@ public class ScriptCommand extends ScriptBase {
                 }
                 add(schema.getCreateSQL(), false);
             }
-            for (UserDataType datatype : db.getAllUserDataTypes()) {
+            for (Domain datatype : db.getAllDomains()) {
                 if (drop) {
                     add(datatype.getDropSQL(), false);
                 }

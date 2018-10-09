@@ -149,8 +149,8 @@
 90116=Les littérals de ce type ne sont pas permis
 90117=Les connexions à distance à ce serveur ne sont pas autorisées, voir -tcpAllowOthers
 90118=Impossible de supprimer la table {0}
-90119=Le type de données utilisateur {0} existe déjà
-90120=Type de données utilisateur {0} non trouvé
+90119=Le domaine {0} existe déjà
+90120=Le domaine {0} non trouvé
 90121=La base de données est déjà fermée (pour désactiver la fermeture automatique à l''arrêt de la VM, ajoutez "; DB_CLOSE_ON_EXIT = FALSE" à l''URL db)
 90122=#The WITH TIES clause is not allowed without a corresponding ORDER BY clause.
 90123=Impossible de mélanger des paramètres indexés et non-indexés

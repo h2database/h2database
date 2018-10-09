@@ -71,13 +71,15 @@ public class ValueInterval extends Value {
 
     /**
      * Returns display size for the specified qualifier, precision and
+     * fractional seconds precision.
      *
      * @param type
      *            the value type
      * @param precision
      *            leading field precision
      * @param scale
-     *            fractional seconds precision
+     *            fractional seconds precision. Ignored if specified type of
+     *            interval does not have seconds.
      */
     public static int getDisplaySize(int type, int precision, int scale) {
         switch (type) {

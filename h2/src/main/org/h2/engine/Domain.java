@@ -11,13 +11,13 @@ import org.h2.table.Column;
 import org.h2.table.Table;
 
 /**
- * Represents a domain (user-defined data type).
+ * Represents a domain.
  */
-public class UserDataType extends DbObjectBase {
+public class Domain extends DbObjectBase {
 
     private Column column;
 
-    public UserDataType(Database database, int id, String name) {
+    public Domain(Database database, int id, String name) {
         super(database, id, name, Trace.DATABASE);
     }
 
@@ -42,7 +42,7 @@ public class UserDataType extends DbObjectBase {
 
     @Override
     public int getType() {
-        return DbObject.USER_DATATYPE;
+        return DbObject.DOMAIN;
     }
 
     @Override

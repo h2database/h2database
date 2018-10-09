@@ -892,40 +892,53 @@ public class Select extends Query {
             }
             String schemaName = expr.getSchemaName();
             String tableAlias = expr.getTableAlias();
+            Wildcard w = (Wildcard) expr;
+            boolean hasExceptColumns = w.getExceptColumns() != null;
+            HashMap<Column, ExpressionColumn> exceptTableColumns = null;
             if (tableAlias == null) {
+                if (hasExceptColumns) {
+                    for (TableFilter filter : filters) {
+                        w.mapColumns(filter, 1, Expression.MAP_INITIAL);
+                    }
+                    exceptTableColumns = w.mapExceptColumns();
+                }
                 expressions.remove(i);
                 for (TableFilter filter : filters) {
-                    i = expandColumnList(filter, i);
+                    i = expandColumnList(filter, i, exceptTableColumns);
                 }
                 i--;
             } else {
                 TableFilter filter = null;
                 for (TableFilter f : filters) {
                     if (db.equalsIdentifiers(tableAlias, f.getTableAlias())) {
-                        if (schemaName == null ||
-                                db.equalsIdentifiers(schemaName,
-                                        f.getSchemaName())) {
+                        if (schemaName == null || db.equalsIdentifiers(schemaName, f.getSchemaName())) {
+                            if (hasExceptColumns) {
+                                w.mapColumns(f, 1, Expression.MAP_INITIAL);
+                                exceptTableColumns = w.mapExceptColumns();
+                            }
                             filter = f;
                             break;
                         }
                     }
                 }
                 if (filter == null) {
-                    throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1,
-                            tableAlias);
+                    throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableAlias);
                 }
                 expressions.remove(i);
-                i = expandColumnList(filter, i);
+                i = expandColumnList(filter, i, exceptTableColumns);
                 i--;
             }
         }
     }
 
-    private int expandColumnList(TableFilter filter, int index) {
+    private int expandColumnList(TableFilter filter, int index, HashMap<Column, ExpressionColumn> except) {
         Table t = filter.getTable();
         String alias = filter.getTableAlias();
         Column[] columns = t.getColumns();
         for (Column c : columns) {
+            if (except != null && except.remove(c) != null) {
+                continue;
+            }
             if (!c.getVisible()) {
                 continue;
             }

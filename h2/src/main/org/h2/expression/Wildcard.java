@@ -5,9 +5,13 @@
  */
 package org.h2.expression;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
+import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
@@ -22,9 +26,39 @@ public class Wildcard extends Expression {
     private final String schema;
     private final String table;
 
+    private ArrayList<ExpressionColumn> exceptColumns;
+
     public Wildcard(String schema, String table) {
         this.schema = schema;
         this.table = table;
+    }
+
+    public ArrayList<ExpressionColumn> getExceptColumns() {
+        return exceptColumns;
+    }
+
+    public void setExceptColumns(ArrayList<ExpressionColumn> exceptColumns) {
+        this.exceptColumns = exceptColumns;
+    }
+
+    /**
+     * Returns map of excluded table columns to expression columns and validates
+     * that all columns are resolved and not duplicated.
+     *
+     * @return map of excluded table columns to expression columns
+     */
+    public HashMap<Column, ExpressionColumn> mapExceptColumns() {
+        HashMap<Column, ExpressionColumn> exceptTableColumns = new HashMap<>();
+        for (ExpressionColumn ec : exceptColumns) {
+            Column column = ec.getColumn();
+            if (column == null) {
+                throw ec.getColumnException(ErrorCode.COLUMN_NOT_FOUND_1);
+            }
+            if (exceptTableColumns.put(column, ec) != null) {
+                throw ec.getColumnException(ErrorCode.DUPLICATE_COLUMN_NAME_1);
+            }
+        }
+        return exceptTableColumns;
     }
 
     @Override
@@ -44,7 +78,11 @@ public class Wildcard extends Expression {
 
     @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
-        throw DbException.get(ErrorCode.SYNTAX_ERROR_1, table);
+        if (exceptColumns != null) {
+            for (ExpressionColumn column : exceptColumns) {
+                column.mapColumns(resolver, level, state);
+            }
+        }
     }
 
     @Override
@@ -84,10 +122,23 @@ public class Wildcard extends Expression {
 
     @Override
     public String getSQL() {
-        if (table == null) {
-            return "*";
+        StringBuilder builder = new StringBuilder();
+        if (table != null) {
+            builder.append(StringUtils.quoteIdentifier(table)).append('.');
         }
-        return StringUtils.quoteIdentifier(table) + ".*";
+        builder.append('*');
+        if (exceptColumns != null) {
+            builder.append(" EXCEPT (");
+            for (int i = 0; i < exceptColumns.size(); i++) {
+                if (i > 0) {
+                    builder.append(", ");
+                }
+                ExpressionColumn ec = exceptColumns.get(i);
+                builder.append(ec.getSQL());
+            }
+            builder.append(')');
+        }
+        return builder.toString();
     }
 
     @Override

@@ -140,16 +140,20 @@ public class ExpressionColumn extends Expression {
                     return constant.getValue();
                 }
             }
-            String name = columnName;
-            if (tableAlias != null) {
-                name = tableAlias + "." + name;
-                if (schemaName != null) {
-                    name = schemaName + "." + name;
-                }
-            }
-            throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, name);
+            throw getColumnException(ErrorCode.COLUMN_NOT_FOUND_1);
         }
         return columnResolver.optimize(this, column);
+    }
+
+    public DbException getColumnException(int code) {
+        String name = columnName;
+        if (tableAlias != null) {
+            name = tableAlias + '.' + name;
+            if (schemaName != null) {
+                name = schemaName + '.' + name;
+            }
+        }
+        return DbException.get(code, name);
     }
 
     @Override

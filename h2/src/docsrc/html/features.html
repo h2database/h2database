@@ -937,6 +937,9 @@ The initial lock timeout (that is the timeout used for new connections) can be s
 To avoid deadlocks, ensure that all transactions lock the tables in the same order
 (for example in alphabetical order), and avoid upgrading read locks to write locks.
 Both can be achieved using explicitly locking tables using <code>SELECT ... FOR UPDATE</code>.
+</p><p>
+Note that delete, insert and update operations issue table level locks with PageStore engine,
+but does not issue them with default MVStore engine.
 </p>
 
 <h2 id="database_file_layout">Database File Layout</h2>

@@ -313,11 +313,8 @@ Only when the change is committed, the new value is visible by other connections
 database waits until it can apply the change, but at most until the lock timeout expires.
 </p>
 <p>
-This feature is only available with the default MVStore storage engine.
-Changing the lock mode with it (<code>LOCK_MODE</code>) has no effect.
-</p>
-<p>
-MVCC is not used when using the PageStore storage engine.
+This feature is only available with the default MVStore storage engine,
+it is not used when using the PageStore storage engine.
 </p>
 
 <h2 id="clustering">Clustering / High Availability</h2>

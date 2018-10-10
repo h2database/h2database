@@ -135,7 +135,7 @@ public class ConditionInConstantSet extends Condition {
             return false;
         }
         switch (visitor.getType()) {
-        case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
+        case ExpressionVisitor.OPTIMIZABLE_AGGREGATE:
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.READONLY:
         case ExpressionVisitor.INDEPENDENT:

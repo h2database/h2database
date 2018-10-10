@@ -227,7 +227,7 @@ public abstract class DataAnalysisOperation extends Expression {
         }
         switch (visitor.getType()) {
         case ExpressionVisitor.QUERY_COMPARABLE:
-        case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
+        case ExpressionVisitor.OPTIMIZABLE_AGGREGATE:
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.INDEPENDENT:
             return false;

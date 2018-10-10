@@ -11,11 +11,12 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 import java.util.concurrent.atomic.AtomicLong;
+
 import org.h2.mvstore.cache.FilePathCache;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FilePathDisk;
 import org.h2.store.fs.FilePathEncrypt;
-import org.h2.store.fs.FilePathNio;
+import org.h2.store.fs.FilePathNioAsync;
 
 /**
  * The default storage mechanism of the MVStore. This implementation persists
@@ -134,9 +135,14 @@ public class FileStore {
         // if no explicit scheme was specified, NIO is used
         if (p instanceof FilePathDisk &&
                 !fileName.startsWith(p.getScheme() + ":")) {
+            // Change "nio:" to "nioAsync:" fs for solving two issues:
+            // 1. FileChannel closed by application thread interrupted.
+            // 2. FileChannel poor allocation of direct buffer issue. Please see the
+            //issue "https://github.com/h2database/h2database/issues/1502".
+            // @since 2018-10-10 little-pan
             // ensure the NIO file system is registered
-            FilePathNio.class.getName();
-            fileName = "nio:" + fileName;
+            FilePathNioAsync.class.getName();
+            fileName = "nioAsync:" + fileName;
         }
         this.fileName = fileName;
         FilePath f = FilePath.get(fileName);

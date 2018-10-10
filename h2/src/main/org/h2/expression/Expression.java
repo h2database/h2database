@@ -272,15 +272,6 @@ public abstract class Expression {
     }
 
     /**
-     * Only returns true if the expression is a wildcard.
-     *
-     * @return if this expression is a wildcard
-     */
-    public boolean isWildcard() {
-        return false;
-    }
-
-    /**
      * Returns the main expression, skipping aliases.
      *
      * @return the expression

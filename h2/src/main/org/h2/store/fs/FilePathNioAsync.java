@@ -84,18 +84,19 @@ class FileNioAsync extends FileBase {
     private final FileChannel channel;
     
     FileNioAsync(String fileName, String mode) throws IOException {
+        RandomAccessFile raf = null;
         boolean failed = true;
         try {
             this.name = fileName;
-            this.file = new RandomAccessFile(fileName, mode);
+            this.file = raf = new RandomAccessFile(fileName, mode);
             this.channel = file.getChannel();
             failed = false;
         } finally {
             if(failed){
                 readPool.shutdown();
                 writePool.shutdown();
-                if(this.file != null){
-                    this.file.close();
+                if(raf != null){
+                    raf.close();
                 }
             }
         }

@@ -62,11 +62,6 @@ public class Wildcard extends Expression {
     }
 
     @Override
-    public boolean isWildcard() {
-        return true;
-    }
-
-    @Override
     public Value getValue(Session session) {
         throw DbException.throwInternalError(toString());
     }

@@ -781,7 +781,7 @@ public class Aggregate extends AbstractAggregate {
         if (filterCondition != null && !filterCondition.isEverything(visitor)) {
             return false;
         }
-        if (visitor.getType() == ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL) {
+        if (visitor.getType() == ExpressionVisitor.OPTIMIZABLE_AGGREGATE) {
             switch (type) {
             case COUNT:
                 if (!distinct && on.getNullable() == Column.NOT_NULLABLE) {

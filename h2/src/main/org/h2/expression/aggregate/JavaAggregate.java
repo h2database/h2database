@@ -93,7 +93,7 @@ public class JavaAggregate extends AbstractAggregate {
         case ExpressionVisitor.DETERMINISTIC:
             // TODO optimization: some functions are deterministic, but we don't
             // know (no setting for that)
-        case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
+        case ExpressionVisitor.OPTIMIZABLE_AGGREGATE:
             // user defined aggregate functions can not be optimized
             return false;
         case ExpressionVisitor.GET_DEPENDENCIES:

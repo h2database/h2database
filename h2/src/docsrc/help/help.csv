@@ -2641,7 +2641,7 @@ preceding and following values means relative number of groups of rows,
 and CURRENT ROW in bound specification means current group of rows.
 
 If only window frame preceding clause is specified it is treated as
-BETWEEN windowFramePreceding AND CURRENT ROW
+BETWEEN windowFramePreceding AND CURRENT ROW.
 
 Optional window frame exclusion clause specifies rows that should be excluded from the frame.
 EXCLUDE CURRENT ROW excludes only the current row regardless the window frame unit.
@@ -5260,6 +5260,7 @@ PERCENT_RANK() OVER windowNameOrSpecification
 Returns the relative rank of the current row.
 The relative rank is calculated as (RANK - 1) / (NR - 1),
 where RANK is a rank of the row and NR is a number of rows in window partition with this row.
+Note that result is always 0 if window order clause is not specified.
 Window frame clause is not allowed for this function.
 
 Window functions are currently experimental in H2 and should be used with caution.
@@ -5276,6 +5277,7 @@ Returns the relative rank of the current row.
 The relative rank is calculated as NP / NR
 where NP is a number of rows that precede the current row or have the same values in ORDER BY columns
 and NR is a number of rows in window partition with this row.
+Note that result is always 1 if window order clause is not specified.
 Window frame clause is not allowed for this function.
 
 Window functions are currently experimental in H2 and should be used with caution.

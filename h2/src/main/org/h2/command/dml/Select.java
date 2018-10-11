@@ -882,17 +882,16 @@ public class Select extends Query {
     }
 
     private void expandColumnList() {
-        Database db = session.getDatabase();
-
         // the expressions may change within the loop
-        for (int i = 0; i < expressions.size(); i++) {
+        for (int i = 0; i < expressions.size();) {
             Expression expr = expressions.get(i);
-            if (!expr.isWildcard()) {
+            if (!(expr instanceof Wildcard)) {
+                i++;
                 continue;
             }
-            String schemaName = expr.getSchemaName();
-            String tableAlias = expr.getTableAlias();
+            expressions.remove(i);
             Wildcard w = (Wildcard) expr;
+            String tableAlias = w.getTableAlias();
             boolean hasExceptColumns = w.getExceptColumns() != null;
             HashMap<Column, ExpressionColumn> exceptTableColumns = null;
             if (tableAlias == null) {
@@ -902,12 +901,12 @@ public class Select extends Query {
                     }
                     exceptTableColumns = w.mapExceptColumns();
                 }
-                expressions.remove(i);
                 for (TableFilter filter : filters) {
                     i = expandColumnList(filter, i, exceptTableColumns);
                 }
-                i--;
             } else {
+                Database db = session.getDatabase();
+                String schemaName = w.getSchemaName();
                 TableFilter filter = null;
                 for (TableFilter f : filters) {
                     if (db.equalsIdentifiers(tableAlias, f.getTableAlias())) {
@@ -924,18 +923,14 @@ public class Select extends Query {
                 if (filter == null) {
                     throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableAlias);
                 }
-                expressions.remove(i);
                 i = expandColumnList(filter, i, exceptTableColumns);
-                i--;
             }
         }
     }
 
     private int expandColumnList(TableFilter filter, int index, HashMap<Column, ExpressionColumn> except) {
-        Table t = filter.getTable();
         String alias = filter.getTableAlias();
-        Column[] columns = t.getColumns();
-        for (Column c : columns) {
+        for (Column c : filter.getTable().getColumns()) {
             if (except != null && except.remove(c) != null) {
                 continue;
             }

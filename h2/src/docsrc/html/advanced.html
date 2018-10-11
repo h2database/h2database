@@ -273,10 +273,21 @@ When using the isolation level 'serializable', dirty reads, non-repeatable reads
 </li>
 </ul>
 
-<h3>Table Level Locking</h3>
+<h3 id="mvcc">Multi-Version Concurrency Control (MVCC)</h3>
 <p>
-The database allows multiple concurrent connections to the same database.
-To make sure all connections only see consistent data, table level locking is used by default.
+With default MVStore engine delete, insert and update operations only issue a shared lock on the table.
+An exclusive lock is still used when adding or removing columns,
+when dropping the table, and when using <code>SELECT ... FOR UPDATE</code>.
+Connections only 'see' committed data, and own changes. That means, if connection A updates
+a row but doesn't commit this change yet, connection B will see the old value.
+Only when the change is committed, the new value is visible by other connections
+(read committed). If multiple connections concurrently try to update the same row, the
+database waits until it can apply the change, but at most until the lock timeout expires.
+</p>
+
+<h3>Table Level Locking (PageStore engine)</h3>
+<p>
+With PageStore engine to make sure all connections only see consistent data, table level locking is used.
 This mechanism does not allow high concurrency, but is very fast.
 Shared locks and exclusive locks are supported.
 Before reading from a table, the database tries to add a shared lock to the table
@@ -298,26 +309,6 @@ lock commits and it is then possible to get the lock. If this is not possible be
 the other connection does not release the lock for some time, the unsuccessful
 connection will get a lock timeout exception. The lock timeout can be set individually
 for each connection.
-</p>
-
-<h2 id="mvcc">Multi-Version Concurrency Control (MVCC)</h2>
-<p>
-The MVCC feature allows higher concurrency than using (table level or row level) locks.
-Delete, insert and update operations will only issue a shared lock on the table.
-An exclusive lock is still used when adding or removing columns,
-when dropping the table, and when using <code>SELECT ... FOR UPDATE</code>.
-Connections only 'see' committed data, and own changes. That means, if connection A updates
-a row but doesn't commit this change yet, connection B will see the old value.
-Only when the change is committed, the new value is visible by other connections
-(read committed). If multiple connections concurrently try to update the same row, the
-database waits until it can apply the change, but at most until the lock timeout expires.
-</p>
-<p>
-This feature is only available with the default MVStore storage engine.
-Changing the lock mode with it (<code>LOCK_MODE</code>) has no effect.
-</p>
-<p>
-MVCC is not used when using the PageStore storage engine.
 </p>
 
 <h2 id="clustering">Clustering / High Availability</h2>

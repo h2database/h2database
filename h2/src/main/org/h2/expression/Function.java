@@ -2735,7 +2735,7 @@ public class Function extends Expression implements FunctionCall {
         case ExpressionVisitor.GET_DEPENDENCIES:
         case ExpressionVisitor.INDEPENDENT:
         case ExpressionVisitor.NOT_FROM_RESOLVER:
-        case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
+        case ExpressionVisitor.OPTIMIZABLE_AGGREGATE:
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
         case ExpressionVisitor.GET_COLUMNS1:
         case ExpressionVisitor.GET_COLUMNS2:

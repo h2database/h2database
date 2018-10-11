@@ -75,7 +75,8 @@ public abstract class FilePath {
                     "org.h2.store.fs.FilePathNio",
                     "org.h2.store.fs.FilePathNioMapped",
                     "org.h2.store.fs.FilePathZip",
-                    "org.h2.store.fs.FilePathRetryOnInterrupt"
+                    "org.h2.store.fs.FilePathRetryOnInterrupt",
+                    "org.h2.store.fs.FilePathNioAsync"
             }) {
                 try {
                     FilePath p = (FilePath) Class.forName(c).getDeclaredConstructor().newInstance();
@@ -251,7 +252,6 @@ public abstract class FilePath {
      * @param inTempDir if the file should be stored in the temporary directory
      * @return the name of the created file
      */
-    @SuppressWarnings("unused")
     public FilePath createTempFile(String suffix, boolean deleteOnExit,
             boolean inTempDir) throws IOException {
         while (true) {

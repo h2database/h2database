@@ -9,10 +9,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Database;
+import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -29,6 +31,8 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.util.ValueHashMap;
+import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -445,33 +449,10 @@ public class Aggregate extends AbstractAggregate {
                 return d.getValue(db, dataType);
             }
             break;
-        case GROUP_CONCAT: {
-            Value[] array = ((AggregateDataCollecting) data).getArray();
-            if (array == null) {
-                return ValueNull.INSTANCE;
-            }
-            if (orderByList != null || distinct) {
-                sortWithOrderBy(array);
-            }
-            StatementBuilder buff = new StatementBuilder();
-            String sep = groupConcatSeparator == null ? "," : groupConcatSeparator.getValue(session).getString();
-            for (Value val : array) {
-                String s;
-                if (val.getType() == Value.ARRAY) {
-                    s = ((ValueArray) val).getList()[0].getString();
-                } else {
-                    s = val.getString();
-                }
-                if (s == null) {
-                    continue;
-                }
-                if (sep != null) {
-                    buff.appendExceptFirst(sep);
-                }
-                buff.append(s);
-            }
-            return ValueString.get(buff.toString());
-        }
+        case HISTOGRAM:
+            return getHistogram(session, data);
+        case GROUP_CONCAT:
+            return getGroupConcat(session, data);
         case ARRAY_AGG: {
             Value[] array = ((AggregateDataCollecting) data).getArray();
             if (array == null) {
@@ -495,15 +476,104 @@ public class Aggregate extends AbstractAggregate {
             return AggregateMedian.median(session.getDatabase(), array, dataType);
         }
         case MODE:
-            if (orderByList != null) {
-                return ((AggregateDataMode) data).getOrderedValue(session.getDatabase(), dataType,
-                        (orderByList.get(0).sortType & SortOrder.DESCENDING) != 0);
-            }
-            //$FALL-THROUGH$
+            return getMode(session, data);
         default:
             // Avoid compiler warning
         }
         return data.getValue(session.getDatabase(), dataType);
+    }
+
+    private Value getGroupConcat(Session session, AggregateData data) {
+        Value[] array = ((AggregateDataCollecting) data).getArray();
+        if (array == null) {
+            return ValueNull.INSTANCE;
+        }
+        if (orderByList != null || distinct) {
+            sortWithOrderBy(array);
+        }
+        StatementBuilder buff = new StatementBuilder();
+        String sep = groupConcatSeparator == null ? "," : groupConcatSeparator.getValue(session).getString();
+        for (Value val : array) {
+            String s;
+            if (val.getType() == Value.ARRAY) {
+                s = ((ValueArray) val).getList()[0].getString();
+            } else {
+                s = val.getString();
+            }
+            if (s == null) {
+                continue;
+            }
+            if (sep != null) {
+                buff.appendExceptFirst(sep);
+            }
+            buff.append(s);
+        }
+        return ValueString.get(buff.toString());
+    }
+
+    private Value getHistogram(Session session, AggregateData data) {
+        ValueHashMap<LongDataCounter> distinctValues = ((AggregateDataDistinctWithCounts) data).getValues();
+        if (distinctValues == null) {
+            return ValueArray.getEmpty();
+        }
+        ValueArray[] values = new ValueArray[distinctValues.size()];
+        int i = 0;
+        for (Entry<Value, LongDataCounter> entry : distinctValues.entries()) {
+            LongDataCounter d = entry.getValue();
+            values[i] = ValueArray.get(new Value[] { entry.getKey(), ValueLong.get(distinct ? 1L : d.count) });
+            i++;
+        }
+        Database db = session.getDatabase();
+        final Mode mode = db.getMode();
+        final CompareMode compareMode = db.getCompareMode();
+        Arrays.sort(values, new Comparator<ValueArray>() {
+            @Override
+            public int compare(ValueArray v1, ValueArray v2) {
+                Value a1 = v1.getList()[0];
+                Value a2 = v2.getList()[0];
+                return a1.compareTo(a2, mode, compareMode);
+            }
+        });
+        return ValueArray.get(values);
+    }
+
+    private Value getMode(Session session, AggregateData data) {
+        Value v = ValueNull.INSTANCE;
+        ValueHashMap<LongDataCounter> distinctValues = ((AggregateDataDistinctWithCounts) data).getValues();
+        if (distinctValues == null) {
+            return v;
+        }
+        long count = 0L;
+        if (orderByList != null) {
+            boolean desc = (orderByList.get(0).sortType & SortOrder.DESCENDING) != 0;
+            for (Entry<Value, LongDataCounter> entry : distinctValues.entries()) {
+                long c = entry.getValue().count;
+                if (c > count) {
+                    v = entry.getKey();
+                    count = c;
+                } else if (c == count) {
+                    Value v2 = entry.getKey();
+                    int cmp = session.getDatabase().compareTypeSafe(v, v2);
+                    if (desc) {
+                        if (cmp >= 0) {
+                            continue;
+                        }
+                    } else if (cmp <= 0) {
+                        continue;
+                    }
+                    v = v2;
+                }
+            }
+        } else {
+            for (Entry<Value, LongDataCounter> entry : distinctValues.entries()) {
+                long c = entry.getValue().count;
+                if (c > count) {
+                    v = entry.getKey();
+                    count = c;
+                }
+            }
+        }
+        return v.convertTo(dataType);
     }
 
     @Override

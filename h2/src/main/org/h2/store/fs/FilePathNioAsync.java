@@ -26,9 +26,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  * pools to handle read/write operations for two intents:
  * </p>
  * <p>
- * 1. Protects {@link java.nio.channels.FileChannel} from closed by application thread interrupted.<br />
- * 2. Solves the JDK poor allocation of direct buffer in {@link java.nio.channels.FileChannel}.<br />
- * Please see the <a href="https://github.com/h2database/h2database/issues/1502" target="_blank">issue 1502</a> .
+ * 1. Protects {@link java.nio.channels.FileChannel} from closed by application thread interrupted.Please see
+ * the <a href="https://github.com/h2database/h2database/issues/227" target="_blank">issue 227</a>.<br />
+ * 2. Solves the JDK poor allocation of direct buffer in {@link java.nio.channels.FileChannel}. Please see 
+ * the <a href="https://github.com/h2database/h2database/issues/1502" target="_blank">issue 1502</a>.<br/>
  * </p>
  * 
  * @since 2018-10-10
@@ -36,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class FilePathNioAsync extends FilePathWrapper {
     
-    final static String SCHEME = "nioAsync";
+    static final String SCHEME = "nioAsync";
 
     @Override
     public FileChannel open(String mode) throws IOException {
@@ -55,18 +56,23 @@ public class FilePathNioAsync extends FilePathWrapper {
  */
 class FileNioAsync extends FileBase {
     
-    final static ExecutorService readPool;
-    final static ExecutorService writePool;
+    // The life-cycle of read/write pool is the same as FileStore, for the motivation:
+    // In some environments such as Apache tomcat, applications can be unloaded or reloaded.
+    // And most of the time, the read/write pool is long-running.
+    // @since 2018-10-11 little-pan
+    final ExecutorService readPool;
+    final ExecutorService writePool;
     
-    static {
-        final int nThreads = Runtime.getRuntime().availableProcessors();
-        final String pfx = FilePathNioAsync.SCHEME + "-";
-        readPool = Executors.newFixedThreadPool(nThreads, new AioThreadFactory(pfx + "r"));
+    {
+        final int processors = Math.min(9, Runtime.getRuntime().availableProcessors()<<1);
+        final String pfx = "H2 " + FilePathNioAsync.SCHEME + "-";
+        readPool = Executors.newFixedThreadPool(processors, new AsyncThreadFactory(pfx + "r"));
         boolean failed = true;
         try {
-            writePool = Executors.newFixedThreadPool(nThreads, new AioThreadFactory(pfx + "w"));
+            // Only one write thread per H2 MVStore, controlled by storeLock.
+            writePool = Executors.newSingleThreadExecutor(new AsyncThreadFactory(pfx + "w"));
             failed = false;
-        }finally{
+        } finally {
             if(failed){
                 readPool.shutdownNow();
             }
@@ -78,15 +84,29 @@ class FileNioAsync extends FileBase {
     private final FileChannel channel;
     
     FileNioAsync(String fileName, String mode) throws IOException {
-        this.name = fileName;
-        this.file = new RandomAccessFile(fileName, mode);
-        this.channel = file.getChannel();
+        boolean failed = true;
+        try {
+            this.name = fileName;
+            this.file = new RandomAccessFile(fileName, mode);
+            this.channel = file.getChannel();
+            failed = false;
+        } finally {
+            if(failed){
+                readPool.shutdown();
+                writePool.shutdown();
+                if(this.file != null){
+                    this.file.close();
+                }
+            }
+        }
     }
 
     @Override
     public void implCloseChannel() throws IOException {
         channel.close();
         file.close();
+        readPool.shutdown();
+        writePool.shutdown();
     }
 
     @Override
@@ -227,12 +247,23 @@ class FileNioAsync extends FileBase {
      */
     static <V> V submit(ExecutorService executor, Callable<V> call) throws IOException {
         final Future<V> f = executor.submit(call);
-        for(;;){
+        for(boolean interrupted = false;;){
             try {
-                return f.get();
+                final V result = f.get();
+                // I-1. Keep the interrupted status.
+                // @since 2018-10-11 little-pan
+                if(interrupted){
+                    Thread.currentThread().interrupt();
+                }
+                return result;
             } catch (InterruptedException e) {
+                interrupted = true;
                 continue;
             } catch (ExecutionException e) {
+                // I-2
+                if(interrupted){
+                    Thread.currentThread().interrupt();
+                }
                 final Throwable cause = e.getCause();
                 if(cause instanceof IOException){
                     throw (IOException)cause;
@@ -247,12 +278,12 @@ class FileNioAsync extends FileBase {
     
 }
 
-class AioThreadFactory implements ThreadFactory {
+class AsyncThreadFactory implements ThreadFactory {
     
     final AtomicInteger counter = new AtomicInteger(0);
     final String name;
     
-    public AioThreadFactory(final String name){
+    public AsyncThreadFactory(final String name){
         this.name = name;
     }
 

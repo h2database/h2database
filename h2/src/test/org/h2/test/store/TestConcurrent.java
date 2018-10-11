@@ -91,7 +91,7 @@ public class TestConcurrent extends TestMVStore {
         try {
             MVMap<Integer, byte[]> map = s.openMap("data");
             task.execute();
-            for (int i = 0; i < 1000 && !task.isFinished(); i++) {
+            for (int i = 0; i < 1000 && !task.isFinished() && !Thread.interrupted(); i++) {
                 map.get(i % 1000);
                 map.put(i % 1000, new byte[1024]);
                 s.commit();

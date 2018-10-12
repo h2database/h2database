@@ -3699,120 +3699,8 @@ public class Parser {
                     r = readCase();
                 } else if (readIf(OPEN_PAREN)) {
                     r = readFunction(null, name);
-                } else if (equalsToken("CURRENT_USER", name)) {
-                    r = readFunctionWithoutParameters("USER");
-                } else if (equalsToken("CURRENT_TIMESTAMP", name)) {
-                    r = readFunctionWithoutParameters("CURRENT_TIMESTAMP");
-                } else if (equalsToken("LOCALTIMESTAMP", name)) {
-                    r = readFunctionWithoutParameters("LOCALTIMESTAMP");
-                } else if (equalsToken("SYSDATE", name)) {
-                    r = readFunctionWithoutParameters("CURRENT_TIMESTAMP");
-                } else if (equalsToken("SYSTIMESTAMP", name)) {
-                    r = readFunctionWithoutParameters("CURRENT_TIMESTAMP");
-                } else if (equalsToken("CURRENT_DATE", name)) {
-                    r = readFunctionWithoutParameters("CURRENT_DATE");
-                } else if (equalsToken("TODAY", name)) {
-                    r = readFunctionWithoutParameters("CURRENT_DATE");
-                } else if (equalsToken("CURRENT_TIME", name)) {
-                    r = readFunctionWithoutParameters("CURRENT_TIME");
-                } else if (equalsToken("LOCALTIME", name)) {
-                    r = readFunctionWithoutParameters("LOCALTIME");
-                } else if (equalsToken("SYSTIME", name)) {
-                    r = readFunctionWithoutParameters("CURRENT_TIME");
-                } else if (database.getMode().getEnum() == ModeEnum.DB2 && equalsToken("CURRENT", name)) {
-                    r = parseDB2SpecialRegisters(name);
-                } else if (equalsToken("NEXT", name) && readIf("VALUE")) {
-                    read(FOR);
-                    Sequence sequence = readSequence();
-                    r = new SequenceValue(sequence);
-                } else if (equalsToken("TIME", name)) {
-                    boolean without = readIf("WITHOUT");
-                    if (without) {
-                        read("TIME");
-                        read("ZONE");
-                    }
-                    if (currentTokenType != VALUE
-                            || currentValue.getType() != Value.STRING) {
-                        if (without) {
-                            throw getSyntaxError();
-                        }
-                        r = new ExpressionColumn(database, null, null, name);
-                    } else {
-                        String time = currentValue.getString();
-                        read();
-                        r = ValueExpression.get(ValueTime.parse(time));
-                    }
-                } else if (equalsToken("TIMESTAMP", name)) {
-                    if (readIf(WITH)) {
-                        read("TIME");
-                        read("ZONE");
-                        if (currentTokenType != VALUE
-                                || currentValue.getType() != Value.STRING) {
-                            throw getSyntaxError();
-                        }
-                        String timestamp = currentValue.getString();
-                        read();
-                        r = ValueExpression.get(ValueTimestampTimeZone.parse(timestamp));
-                    } else {
-                        boolean without = readIf("WITHOUT");
-                        if (without) {
-                            read("TIME");
-                            read("ZONE");
-                        }
-                        if (currentTokenType != VALUE
-                                || currentValue.getType() != Value.STRING) {
-                            if (without) {
-                                throw getSyntaxError();
-                            }
-                            r = new ExpressionColumn(database, null, null, name);
-                        } else {
-                            String timestamp = currentValue.getString();
-                            read();
-                            r = ValueExpression.get(ValueTimestamp.parse(timestamp, database.getMode()));
-                        }
-                    }
-                } else if (equalsToken("INTERVAL", name)) {
-                    r = readInterval();
-                } else if (currentTokenType == VALUE &&
-                        currentValue.getType() == Value.STRING) {
-                    if (equalsToken("DATE", name) ||
-                            equalsToken("D", name)) {
-                        String date = currentValue.getString();
-                        read();
-                        r = ValueExpression.get(ValueDate.parse(date));
-                    } else if (equalsToken("T", name)) {
-                        String time = currentValue.getString();
-                        read();
-                        r = ValueExpression.get(ValueTime.parse(time));
-                    } else if (equalsToken("TS", name)) {
-                        String timestamp = currentValue.getString();
-                        read();
-                        r = ValueExpression
-                                .get(ValueTimestamp.parse(timestamp, database.getMode()));
-                    } else if (equalsToken("X", name)) {
-                        read();
-                        byte[] buffer = StringUtils
-                                .convertHexToBytes(currentValue.getString());
-                        r = ValueExpression.get(ValueBytes.getNoCopy(buffer));
-                    } else if (equalsToken("E", name)) {
-                        String text = currentValue.getString();
-                        // the PostgreSQL ODBC driver uses
-                        // LIKE E'PROJECT\\_DATA' instead of LIKE
-                        // 'PROJECT\_DATA'
-                        // N: SQL-92 "National Language" strings
-                        text = StringUtils.replaceAll(text, "\\\\", "\\");
-                        read();
-                        r = ValueExpression.get(ValueString.get(text));
-                    } else if (equalsToken("N", name)) {
-                        // SQL-92 "National Language" strings
-                        String text = currentValue.getString();
-                        read();
-                        r = ValueExpression.get(ValueString.get(text));
-                    } else {
-                        r = new ExpressionColumn(database, null, null, name);
-                    }
                 } else {
-                    r = new ExpressionColumn(database, null, null, name);
+                    r = readTermWithIdentifier(name);
                 }
             }
             break;
@@ -3892,10 +3780,7 @@ public class Parser {
         if (readIf(OPEN_BRACKET)) {
             Function function = Function.getFunction(database, "ARRAY_GET");
             function.setParameter(0, r);
-            r = readExpression();
-            r = new BinaryOperation(OpType.PLUS, r, ValueExpression.get(ValueInt
-                    .get(1)));
-            function.setParameter(1, r);
+            function.setParameter(1, readExpression());
             r = function;
             read(CLOSE_BRACKET);
         }
@@ -3922,6 +3807,162 @@ public class Parser {
             }
         }
         return r;
+    }
+
+    private Expression readTermWithIdentifier(String name) {
+        // Unquoted identifier is never empty
+        char ch = name.charAt(0);
+        switch (ch) {
+        case 'A':
+        case 'a':
+            if (equalsToken("ARRAY", name)) {
+                read(OPEN_BRACKET);
+                ArrayList<Expression> list = Utils.newSmallArrayList();
+                if (!readIf(CLOSE_BRACKET)) {
+                    list.add(readExpression());
+                    while (readIf(COMMA)) {
+                        list.add(readExpression());
+                    }
+                    read(CLOSE_BRACKET);
+                }
+                return new ExpressionList(list.toArray(new Expression[0]));
+            }
+            break;
+        case 'C':
+        case 'c':
+            if (equalsToken("CURRENT_DATE", name)) {
+                return readFunctionWithoutParameters("CURRENT_DATE");
+            } else if (equalsToken("CURRENT_TIME", name)) {
+                return readFunctionWithoutParameters("CURRENT_TIME");
+            } else if (equalsToken("CURRENT_TIMESTAMP", name)) {
+                return readFunctionWithoutParameters("CURRENT_TIMESTAMP");
+            } else if (equalsToken("CURRENT_USER", name)) {
+                return readFunctionWithoutParameters("USER");
+            } else if (database.getMode().getEnum() == ModeEnum.DB2 && equalsToken("CURRENT", name)) {
+                return parseDB2SpecialRegisters(name);
+            }
+            break;
+        case 'D':
+        case 'd':
+            if (currentTokenType == VALUE && currentValue.getType() == Value.STRING &&
+                    (equalsToken("DATE", name) || equalsToken("D", name))) {
+                String date = currentValue.getString();
+                read();
+                return ValueExpression.get(ValueDate.parse(date));
+            }
+            break;
+        case 'E':
+        case 'e':
+            if (currentTokenType == VALUE && currentValue.getType() == Value.STRING && equalsToken("E", name)) {
+                String text = currentValue.getString();
+                // the PostgreSQL ODBC driver uses
+                // LIKE E'PROJECT\\_DATA' instead of LIKE
+                // 'PROJECT\_DATA'
+                // N: SQL-92 "National Language" strings
+                text = StringUtils.replaceAll(text, "\\\\", "\\");
+                read();
+                return ValueExpression.get(ValueString.get(text));
+            }
+            break;
+        case 'I':
+        case 'i':
+            if (equalsToken("INTERVAL", name)) {
+                return readInterval();
+            }
+            break;
+        case 'L':
+        case 'l':
+            if (equalsToken("LOCALTIME", name)) {
+                return readFunctionWithoutParameters("LOCALTIME");
+            } else if (equalsToken("LOCALTIMESTAMP", name)) {
+                return readFunctionWithoutParameters("LOCALTIMESTAMP");
+            }
+            break;
+        case 'N':
+        case 'n':
+            if (equalsToken("NEXT", name) && readIf("VALUE")) {
+                read(FOR);
+                return new SequenceValue(readSequence());
+            } else if (currentTokenType == VALUE && currentValue.getType() == Value.STRING && equalsToken("N", name)) {
+                // SQL-92 "National Language" strings
+                String text = currentValue.getString();
+                read();
+                return ValueExpression.get(ValueString.get(text));
+            }
+            break;
+        case 'S':
+        case 's':
+            if (equalsToken("SYSDATE", name)) {
+                return readFunctionWithoutParameters("CURRENT_TIMESTAMP");
+            } else if (equalsToken("SYSTIME", name)) {
+                return readFunctionWithoutParameters("CURRENT_TIME");
+            } else if (equalsToken("SYSTIMESTAMP", name)) {
+                return readFunctionWithoutParameters("CURRENT_TIMESTAMP");
+            }
+            break;
+        case 'T':
+        case 't':
+            if (equalsToken("TIME", name)) {
+                boolean without = readIf("WITHOUT");
+                if (without) {
+                    read("TIME");
+                    read("ZONE");
+                }
+                if (currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
+                    String time = currentValue.getString();
+                    read();
+                    return ValueExpression.get(ValueTime.parse(time));
+                } else if (without) {
+                    throw getSyntaxError();
+                }
+            } else if (equalsToken("TIMESTAMP", name)) {
+                if (readIf(WITH)) {
+                    read("TIME");
+                    read("ZONE");
+                    if (currentTokenType != VALUE || currentValue.getType() != Value.STRING) {
+                        throw getSyntaxError();
+                    }
+                    String timestamp = currentValue.getString();
+                    read();
+                    return ValueExpression.get(ValueTimestampTimeZone.parse(timestamp));
+                } else {
+                    boolean without = readIf("WITHOUT");
+                    if (without) {
+                        read("TIME");
+                        read("ZONE");
+                    }
+                    if (currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
+                        String timestamp = currentValue.getString();
+                        read();
+                        return ValueExpression.get(ValueTimestamp.parse(timestamp, database.getMode()));
+                    } else if (without) {
+                        throw getSyntaxError();
+                    }
+                }
+            } else if (equalsToken("TODAY", name)) {
+                return readFunctionWithoutParameters("CURRENT_DATE");
+            } else if (currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
+                if (equalsToken("T", name)) {
+                    String time = currentValue.getString();
+                    read();
+                    return ValueExpression.get(ValueTime.parse(time));
+                } else if (equalsToken("TS", name)) {
+                    String timestamp = currentValue.getString();
+                    read();
+                    return ValueExpression.get(ValueTimestamp.parse(timestamp, database.getMode()));
+                }
+            }
+            break;
+        case 'X':
+        case 'x':
+            if (currentTokenType == VALUE && currentValue.getType() == Value.STRING && equalsToken("X", name)) {
+                byte[] buffer = StringUtils.convertHexToBytes(currentValue.getString());
+                read();
+                return ValueExpression.get(ValueBytes.getNoCopy(buffer));
+            }
+            break;
+        }
+        return new ExpressionColumn(database, null, null, name);
     }
 
     private Expression readInterval() {

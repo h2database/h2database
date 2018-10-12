@@ -2022,11 +2022,21 @@ ID=1 AND NAME='Hi'
 "
 
 "Other Grammar","Array","
-( [ expression, [ expression [,...] ] ] )
+ARRAY '[' [ expression, [,...] ] ']'
+    | ( [ expression, [ expression [,...] ] ] )
 ","
-An array of values. An empty array is '()'. Trailing commas are ignored.
-An array with one element must contain a comma to be parsed as an array.
+An array of values.
+
+The array can be declared with standard ARRAY[] syntax or with H2 syntax.
+
+With standard syntax trailing comma is not allowed.
+
+With H2 syntax an empty array is '()'. Trailing comma is ignored.
+An array with one element must contain a trailing comma to be parsed as an array.
 ","
+ARRAY[1, 2]
+ARRAY[1]
+ARRAY[]
 (1, 2)
 (1, )
 ()

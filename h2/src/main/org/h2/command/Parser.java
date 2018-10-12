@@ -3813,6 +3813,21 @@ public class Parser {
         // Unquoted identifier is never empty
         char ch = name.charAt(0);
         switch (ch) {
+        case 'A':
+        case 'a':
+            if (equalsToken("ARRAY", name)) {
+                read(OPEN_BRACKET);
+                ArrayList<Expression> list = Utils.newSmallArrayList();
+                if (!readIf(CLOSE_BRACKET)) {
+                    list.add(readExpression());
+                    while (readIf(COMMA)) {
+                        list.add(readExpression());
+                    }
+                    read(CLOSE_BRACKET);
+                }
+                return new ExpressionList(list.toArray(new Expression[0]));
+            }
+            break;
         case 'C':
         case 'c':
             if (equalsToken("CURRENT_DATE", name)) {

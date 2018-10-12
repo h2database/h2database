@@ -14,3 +14,12 @@ SELECT (10, 20, 30)[0];
 
 SELECT (10, 20, 30)[4];
 >> null
+
+SELECT ARRAY[];
+>> ()
+
+SELECT ARRAY[10];
+>> (10)
+
+SELECT ARRAY[10, 20, 30];
+>> (10, 20, 30)

@@ -3892,10 +3892,7 @@ public class Parser {
         if (readIf(OPEN_BRACKET)) {
             Function function = Function.getFunction(database, "ARRAY_GET");
             function.setParameter(0, r);
-            r = readExpression();
-            r = new BinaryOperation(OpType.PLUS, r, ValueExpression.get(ValueInt
-                    .get(1)));
-            function.setParameter(1, r);
+            function.setParameter(1, readExpression());
             r = function;
             read(CLOSE_BRACKET);
         }

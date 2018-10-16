@@ -130,6 +130,14 @@ public class Insert extends Prepared implements ResultTarget {
     public int update() {
         Index index = null;
         if (sortedInsertMode) {
+            if (!session.getDatabase().isMVStore()) {
+                /*
+                 * Take exclusive lock, otherwise two different inserts running at
+                 * the same time, the second might accidentally get
+                 * sorted-insert-mode.
+                 */
+                table.lock(session, /* exclusive */true, /* forceLockEvenInMvcc */true);
+            }
             index = table.getScanIndex(session);
             index.setSortedInsertMode(true);
         }

@@ -395,6 +395,7 @@ public class Transaction {
         try {
             store.rollbackTo(this, logId, savepointId);
         } finally {
+            notifyAllWaitingTransactions();
             long expectedState = composeState(STATUS_ROLLING_BACK, logId, hasRollback(lastState));
             long newState = composeState(STATUS_OPEN, savepointId, true);
             if (!statusAndLogId.compareAndSet(expectedState, newState)) {
@@ -404,7 +405,6 @@ public class Transaction {
                                 "while rollback to savepoint was in progress",
                         transactionId);
             }
-            notifyAllWaitingTransactions();
         }
     }
 
@@ -412,14 +412,26 @@ public class Transaction {
      * Roll the transaction back. Afterwards, this transaction is closed.
      */
     public void rollback() {
+        Throwable ex = null;
         try {
             long lastState = setStatus(STATUS_ROLLED_BACK);
             long logId = getLogId(lastState);
             if (logId > 0) {
                 store.rollbackTo(this, logId, 0);
             }
+        } catch (Throwable e) {
+            ex = e;
+            throw e;
         } finally {
-            store.endTransaction(this, true);
+            try {
+                store.endTransaction(this, true);
+            } catch (Throwable e) {
+                if (ex == null) {
+                    throw e;
+                } else {
+                    ex.addSuppressed(e);
+                }
+            }
         }
     }
 

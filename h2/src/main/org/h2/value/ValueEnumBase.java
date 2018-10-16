@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import org.h2.engine.Mode;
+import org.h2.util.StringUtils;
 
 /**
  * Base implementation of the ENUM data type.
@@ -94,7 +95,7 @@ public class ValueEnumBase extends Value {
 
     @Override
     public String getSQL() {
-        return getString();
+        return StringUtils.quoteStringSQL(label);
     }
 
     @Override

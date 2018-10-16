@@ -168,9 +168,12 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
                     }
                     logIt(existingValue);
                     return setDecision(MVMap.Decision.PUT);
-                } else if (isCommitted(blockingId) && existingValue.value == null) {
+                } else if (isCommitted(blockingId)) {
                     // entry belongs to a committing transaction
                     // and therefore will be committed soon
+                    if(existingValue.value != null) {
+                        return setDecision(MVMap.Decision.ABORT);
+                    }
                     logIt(null);
                     return setDecision(MVMap.Decision.PUT);
                 } else if (getBlockingTransaction() != null) {

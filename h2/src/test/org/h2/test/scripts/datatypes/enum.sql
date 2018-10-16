@@ -277,3 +277,12 @@ DROP TABLE TEST;
 
 SELECT CAST (2 AS ENUM('a', 'b', 'c', 'd'));
 >> c
+
+CREATE TABLE TEST(E ENUM('a', 'b'));
+> ok
+
+EXPLAIN SELECT * FROM TEST WHERE E = 'a';
+>> SELECT TEST.E FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ WHERE E = 'a'
+
+DROP TABLE TEST;
+> ok

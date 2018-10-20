@@ -2030,8 +2030,14 @@ public class ErrorCode {
      */
     public static final int AUTHENTICATOR_NOT_AVAILABLE = 90144;
 
+    /**
+     * The error with code <code>90145</code> is thrown when
+     * the class name of the Lucene analyzer provided by the user
+     * via a system property doesn't exist.
+     */
+    public static final int LUCENE_ANALYZER_DOES_NOT_EXIST_1 = 90145;
 
-    // next is 90145
+    // next is 90146
 
     private ErrorCode() {
         // utility class

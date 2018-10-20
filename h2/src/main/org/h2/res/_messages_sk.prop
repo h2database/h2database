@@ -175,6 +175,7 @@
 90142=#Step size must not be zero
 90143=#Row {1} not found in primary index {0}
 90144=#Authenticator not enabled on database {0}
+90145=#Lucene analyzer {0} does not exist or is not valid
 HY000=Všeobecná chyba: {0}
 HY004=Neznámy dátový typ: {0}
 HYC00=Vlastnosť nie je podporovaná: {0}

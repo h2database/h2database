@@ -175,6 +175,7 @@
 90142=Schrittgrösse darf nicht 0 sein
 90143=#Row {1} not found in primary index {0}
 90144=#Authenticator not enabled on database {0}
+90145=Lucene Analyzer {0} existiert nicht oder ist nicht korrekt
 HY000=Allgemeiner Fehler: {0}
 HY004=Unbekannter Datentyp: {0}
 HYC00=Dieses Feature wird nicht unterstützt: {0}

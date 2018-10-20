@@ -175,6 +175,7 @@
 90142=ステップサイズに0は指定できません
 90143=#Row {1} not found in primary index {0}
 90144=#Authenticator not enabled on database {0}
+90145=#Lucene analyzer {0} does not exist or is not valid
 HY000=一般エラー: {0}
 HY004=不明なデータ型: {0}
 HYC00=機能はサポートされていません: {0}

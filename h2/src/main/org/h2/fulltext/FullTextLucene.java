@@ -5,18 +5,6 @@
  */
 package org.h2.fulltext;
 
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.DateTools;
@@ -38,16 +26,30 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
+import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
 import org.h2.engine.Session;
 import org.h2.expression.ExpressionColumn;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
+
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 
 /**
  * This class implements the full text search based on Apache Lucene.
@@ -60,6 +62,11 @@ public class FullTextLucene extends FullText {
      */
     protected static final boolean STORE_DOCUMENT_TEXT_IN_INDEX =
             Utils.getProperty("h2.storeDocumentTextInIndex", false);
+    /**
+     * System property that allows to the user to customize the Lucene {@link Analyzer}
+     * that will be used for normalizing the index data and the user input.
+     */
+    protected static final String LUCENE_ANALYZER = "h2.luceneAnalyzer";
 
     private static final HashMap<String, IndexAccess> INDEX_ACCESS = new HashMap<>();
     private static final String TRIGGER_PREFIX = "FTL_";
@@ -299,7 +306,7 @@ public class FullTextLucene extends FullText {
                 try {
                     Directory indexDir = path.startsWith(IN_MEMORY_PREFIX) ?
                             new RAMDirectory() : FSDirectory.open(Paths.get(path));
-                    Analyzer analyzer = new StandardAnalyzer();
+                    Analyzer analyzer = createAnalyzer();
                     IndexWriterConfig conf = new IndexWriterConfig(analyzer);
                     conf.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
                     IndexWriter writer = new IndexWriter(indexDir, conf);
@@ -315,6 +322,18 @@ public class FullTextLucene extends FullText {
                 break;
             }
             return access;
+        }
+    }
+
+    private static Analyzer createAnalyzer() {
+        String analyzerClassName = Utils.getProperty(LUCENE_ANALYZER, null);
+        if (analyzerClassName == null) {
+            return new StandardAnalyzer();
+        }
+        try {
+            return (Analyzer) Class.forName(analyzerClassName).getConstructor().newInstance();
+        } catch (Exception e) {
+            throw DbException.get(ErrorCode.LUCENE_ANALYZER_DOES_NOT_EXIST_1, e, analyzerClassName);
         }
     }
 

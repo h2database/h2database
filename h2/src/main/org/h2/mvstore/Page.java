@@ -131,7 +131,7 @@ public abstract class Page implements Cloneable
         memory = source.memory;
     }
 
-    Page(MVMap<?, ?> map, Object keys[]) {
+    Page(MVMap<?, ?> map, Object[] keys) {
         this.map = map;
         this.keys = keys;
     }
@@ -143,37 +143,46 @@ public abstract class Page implements Cloneable
      * @return the new page
      */
     static Page createEmptyLeaf(MVMap<?, ?> map) {
-        Page page = new Leaf(map, EMPTY_OBJECT_ARRAY, EMPTY_OBJECT_ARRAY);
-        page.initMemoryAccount(PAGE_LEAF_MEMORY);
-        return page;
+        return createLeaf(map, EMPTY_OBJECT_ARRAY, EMPTY_OBJECT_ARRAY, PAGE_LEAF_MEMORY);
     }
 
-    public static Page createEmptyNode(MVMap<?, ?> map) {
-        Page page = new NonLeaf(map, EMPTY_OBJECT_ARRAY, SINGLE_EMPTY, 0);
-        page.initMemoryAccount(PAGE_NODE_MEMORY +
-                                MEMORY_POINTER + PAGE_MEMORY_CHILD); // there is always one child
-        return page;
+    static Page createEmptyNode(MVMap<?, ?> map) {
+        return createNode(map, EMPTY_OBJECT_ARRAY, SINGLE_EMPTY, 0,
+                            PAGE_NODE_MEMORY + MEMORY_POINTER + PAGE_MEMORY_CHILD); // there is always one child
     }
 
     /**
-     * Create a new page. The arrays are not cloned.
+     * Create a new non-leaf page. The arrays are not cloned.
      *
      * @param map the map
      * @param keys the keys
-     * @param values the values
      * @param children the child page positions
      * @param totalCount the total number of keys
      * @param memory the memory used in bytes
      * @return the page
      */
-    public static Page create(MVMap<?, ?> map,
-            Object[] keys, Object[] values, PageReference[] children,
-            long totalCount, int memory) {
+    public static Page createNode(MVMap<?, ?> map, Object[] keys, PageReference[] children,
+                                    long totalCount, int memory) {
         assert keys != null;
-        Page p = children == null ? new Leaf(map, keys, values) :
-                                    new NonLeaf(map, keys, children, totalCount);
-        p.initMemoryAccount(memory);
-        return p;
+        Page page = new NonLeaf(map, keys, children, totalCount);
+        page.initMemoryAccount(memory);
+        return page;
+    }
+
+    /**
+     * Create a new leaf page. The arrays are not cloned.
+     *
+     * @param map the map
+     * @param keys the keys
+     * @param values the values
+     * @param memory the memory used in bytes
+     * @return the page
+     */
+    public static Page createLeaf(MVMap<?, ?> map, Object[] keys, Object[] values, int memory) {
+        assert keys != null;
+        Page page = new Leaf(map, keys, values);
+        page.initMemoryAccount(memory);
+        return page;
     }
 
     private void initMemoryAccount(int memoryCount) {
@@ -532,8 +541,8 @@ public abstract class Page implements Cloneable
 
     final Object[] splitKeys(int aCount, int bCount) {
         assert aCount + bCount <= getKeyCount();
-        Object aKeys[] = createKeyStorage(aCount);
-        Object bKeys[] = createKeyStorage(bCount);
+        Object[] aKeys = createKeyStorage(aCount);
+        Object[] bKeys = createKeyStorage(bCount);
         System.arraycopy(keys, 0, aKeys, 0, aCount);
         System.arraycopy(keys, getKeyCount() - bCount, bKeys, 0, bCount);
         keys = aKeys;
@@ -639,7 +648,7 @@ public abstract class Page implements Cloneable
             Object old = getKey(index);
             addMemory(-MEMORY_POINTER - keyType.getMemory(old));
         }
-        Object newKeys[] = new Object[keyCount - 1];
+        Object[] newKeys = new Object[keyCount - 1];
         DataUtils.copyExcept(keys, newKeys, keyCount, index);
         keys = newKeys;
     }
@@ -873,7 +882,7 @@ public abstract class Page implements Cloneable
         memory += mem;
     }
 
-    protected final void recalculateMemory() {
+    final void recalculateMemory() {
         assert isPersistent();
         memory = calculateMemory();
     }
@@ -1005,13 +1014,13 @@ public abstract class Page implements Cloneable
             super(map);
         }
 
-        private NonLeaf(MVMap<?, ?> map, NonLeaf source, PageReference children[], long totalCount) {
+        private NonLeaf(MVMap<?, ?> map, NonLeaf source, PageReference[] children, long totalCount) {
             super(map, source);
             this.children = children;
             this.totalCount = totalCount;
         }
 
-        NonLeaf(MVMap<?, ?> map, Object keys[], PageReference children[], long totalCount) {
+        NonLeaf(MVMap<?, ?> map, Object[] keys, PageReference[] children, long totalCount) {
             super(map, keys);
             this.children = children;
             this.totalCount = totalCount;
@@ -1058,11 +1067,10 @@ public abstract class Page implements Cloneable
         }
 
         @Override
-        @SuppressWarnings("SuspiciousSystemArraycopy")
         public Page split(int at) {
             assert !isSaved();
             int b = getKeyCount() - at;
-            Object bKeys[] = splitKeys(at, b - 1);
+            Object[] bKeys = splitKeys(at, b - 1);
             PageReference[] aChildren = new PageReference[at + 1];
             PageReference[] bChildren = new PageReference[b];
             System.arraycopy(children, 0, aChildren, 0, at + 1);
@@ -1078,7 +1086,7 @@ public abstract class Page implements Cloneable
             for (PageReference x : bChildren) {
                 t += x.count;
             }
-            Page newPage = create(map, bKeys, null, bChildren, t, 0);
+            Page newPage = createNode(map, bKeys, bChildren, t, 0);
             if(isPersistent()) {
                 recalculateMemory();
             }
@@ -1132,7 +1140,7 @@ public abstract class Page implements Cloneable
             int childCount = getRawChildPageCount();
             insertKey(index, key);
 
-            PageReference newChildren[] = new PageReference[childCount + 1];
+            PageReference[] newChildren = new PageReference[childCount + 1];
             DataUtils.copyWithGap(children, newChildren, childCount, index);
             children = newChildren;
             children[index] = new PageReference(childPage);
@@ -1151,7 +1159,7 @@ public abstract class Page implements Cloneable
                 addMemory(-MEMORY_POINTER - PAGE_MEMORY_CHILD);
             }
             totalCount -= children[index].count;
-            PageReference newChildren[] = new PageReference[childCount - 1];
+            PageReference[] newChildren = new PageReference[childCount - 1];
             DataUtils.copyExcept(children, newChildren, childCount, index);
             children = newChildren;
         }
@@ -1190,7 +1198,7 @@ public abstract class Page implements Cloneable
         protected void readPayLoad(ByteBuffer buff) {
             int keyCount = getKeyCount();
             children = new PageReference[keyCount + 1];
-            long p[] = new long[keyCount + 1];
+            long[] p = new long[keyCount + 1];
             for (int i = 0; i <= keyCount; i++) {
                 p[i] = buff.getLong();
             }
@@ -1282,7 +1290,7 @@ public abstract class Page implements Cloneable
         /**
          * The storage for values.
          */
-        private Object values[];
+        private Object[] values;
 
         Leaf(MVMap<?, ?> map) {
             super(map);
@@ -1293,7 +1301,7 @@ public abstract class Page implements Cloneable
             this.values = source.values;
         }
 
-        Leaf(MVMap<?, ?> map, Object keys[], Object values[]) {
+        Leaf(MVMap<?, ?> map, Object[] keys, Object[] values) {
             super(map, keys);
             this.values = values;
         }
@@ -1327,19 +1335,18 @@ public abstract class Page implements Cloneable
         }
 
         @Override
-        @SuppressWarnings("SuspiciousSystemArraycopy")
         public Page split(int at) {
             assert !isSaved();
             int b = getKeyCount() - at;
-            Object bKeys[] = splitKeys(at, b);
-            Object bValues[] = createValueStorage(b);
+            Object[] bKeys = splitKeys(at, b);
+            Object[] bValues = createValueStorage(b);
             if(values != null) {
-                Object aValues[] = createValueStorage(at);
+                Object[] aValues = createValueStorage(at);
                 System.arraycopy(values, 0, aValues, 0, at);
                 System.arraycopy(values, at, bValues, 0, b);
                 values = aValues;
             }
-            Page newPage = create(map, bKeys, bValues, null, b, 0);
+            Page newPage = createLeaf(map, bKeys, bValues, 0);
             if(isPersistent()) {
                 recalculateMemory();
             }
@@ -1384,7 +1391,7 @@ public abstract class Page implements Cloneable
             insertKey(index, key);
 
             if(values != null) {
-                Object newValues[] = createValueStorage(keyCount + 1);
+                Object[] newValues = createValueStorage(keyCount + 1);
                 DataUtils.copyWithGap(values, newValues, keyCount, index);
                 values = newValues;
                 setValueInternal(index, value);
@@ -1407,7 +1414,7 @@ public abstract class Page implements Cloneable
                     Object old = getValue(index);
                     addMemory(-MEMORY_POINTER - map.getValueType().getMemory(old));
                 }
-                Object newValues[] = createValueStorage(keyCount - 1);
+                Object[] newValues = createValueStorage(keyCount - 1);
                 DataUtils.copyExcept(values, newValues, keyCount, index);
                 values = newValues;
             }

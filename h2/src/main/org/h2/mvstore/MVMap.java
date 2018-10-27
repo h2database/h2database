@@ -993,7 +993,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param memory the number of bytes used for this page
      */
     protected final void removePage(long pos, int memory) {
-        store.removePage(this, pos, memory);
+        store.removePage(pos, memory);
     }
 
     /**
@@ -1190,10 +1190,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         int attempt = 0;
         int keyCount;
         while((keyCount = rootReference.getAppendCounter()) > 0) {
-            Page page = Page.create(this,
+            Page page = Page.createLeaf(this,
                     Arrays.copyOf(keysBuffer, keyCount),
                     Arrays.copyOf(valuesBuffer, keyCount),
-                    null, keyCount, 0);
+                    0);
             CursorPos pos = rootReference.root.getAppendCursorPos(null);
             assert page.map == this;
             assert pos != null;
@@ -1215,7 +1215,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                         Page.PageReference children[] = new Page.PageReference[] {
                                                             new Page.PageReference(p),
                                                             new Page.PageReference(page)};
-                        p = Page.create(this, keys, null, children, p.getTotalCount() + page.getTotalCount(), 0);
+                        p = Page.createNode(this, keys, children, p.getTotalCount() + page.getTotalCount(), 0);
                     }
                     break;
                 }
@@ -1784,7 +1784,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                                             new Page.PageReference(p),
                                             new Page.PageReference(split)
                                     };
-                                    p = Page.create(this, keys, null, children, totalCount, 0);
+                                    p = Page.createNode(this, keys, children, totalCount, 0);
                                     break;
                                 }
                                 Page c = p;

@@ -374,7 +374,7 @@ public class Build extends BuildBase {
                 "e6b3f5d1b33ed24da7eef0a72f8062bd4652700c", offline);
         downloadOrVerify("ext/lucene-queryparser-5.5.5.jar",
                 "org/apache/lucene", "lucene-queryparser", "5.5.5",
-                "f32d05577e57e413e4731f8b2aabbce00a1e1cb8", offline);
+                "6c965eb5838a2ba58b0de0fd860a420dcda11937", offline);
         downloadOrVerify("ext/lucene-queries-5.5.5.jar",
                 "org/apache/lucene", "lucene-queries", "5.5.5",
                 "d99719e7c58c149113f897bca301f1d68cbf3241", offline);

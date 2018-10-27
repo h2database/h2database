@@ -22,9 +22,9 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -303,6 +303,8 @@ public class MVStore {
     private long lastTimeAbsolute;
 
     private long lastFreeUnusedChunks;
+
+    private final ExecutorService executorService = new ForkJoinPool();
 
     /**
      * Create and open the store.
@@ -940,6 +942,11 @@ public class MVStore {
             return;
         }
         stopBackgroundThread();
+        if (shrinkIfPossible) {
+            executorService.shutdown();
+        } else {
+            executorService.shutdownNow();
+        }
         closed = true;
         storeLock.lock();
         try {
@@ -1342,48 +1349,41 @@ public class MVStore {
     }
 
     private Set<Integer> collectReferencedChunks() {
-        final ThreadPoolExecutor executorService = new ThreadPoolExecutor(10, 10, 10L, TimeUnit.SECONDS,
-                new ArrayBlockingQueue<Runnable>(keysPerPage + 1));
-        final AtomicInteger executingThreadCounter = new AtomicInteger(0);
-        try {
-            ChunkIdsCollector collector = new ChunkIdsCollector(meta.getId());
-            Set<Long> inspectedRoots = new HashSet<>();
-            long pos = lastChunk.metaRootPos;
-            inspectedRoots.add(pos);
-            collector.visit(pos, executorService, executingThreadCounter);
-            long oldestVersionToKeep = getOldestVersionToKeep();
-            MVMap.RootReference rootReference = meta.getRoot();
-            do {
-                Page rootPage = rootReference.root;
-                pos = rootPage.getPos();
-                if (!rootPage.isSaved()) {
-                    collector.setMapId(meta.getId());
-                    collector.visit(rootPage, executorService, executingThreadCounter);
-                } else if (inspectedRoots.add(pos)) {
-                    collector.setMapId(meta.getId());
-                    collector.visit(pos, executorService, executingThreadCounter);
-                }
+        ChunkIdsCollector collector = new ChunkIdsCollector(meta.getId());
+        Set<Long> inspectedRoots = new HashSet<>();
+        long pos = lastChunk.metaRootPos;
+        inspectedRoots.add(pos);
+        collector.visit(pos, executorService);
+        long oldestVersionToKeep = getOldestVersionToKeep();
+        MVMap.RootReference rootReference = meta.getRoot();
+        do {
+            Page rootPage = rootReference.root;
+            pos = rootPage.getPos();
+            if (!rootPage.isSaved()) {
+                collector.setMapId(meta.getId());
+                collector.visit(rootPage, executorService);
+            } else if (inspectedRoots.add(pos)) {
+                collector.setMapId(meta.getId());
+                collector.visit(pos, executorService);
+            }
 
-                for (Cursor<String, String> c = new Cursor<>(rootPage, "root."); c.hasNext();) {
-                    String key = c.next();
-                    assert key != null;
-                    if (!key.startsWith("root.")) {
-                        break;
-                    }
-                    pos = DataUtils.parseHexLong(c.getValue());
-                    if (DataUtils.isPageSaved(pos) && inspectedRoots.add(pos)) {
-                        // to allow for something like "root.tmp.123" to be
-                        // processed
-                        int mapId = DataUtils.parseHexInt(key.substring(key.lastIndexOf('.') + 1));
-                        collector.setMapId(mapId);
-                        collector.visit(pos, executorService, executingThreadCounter);
-                    }
+            for (Cursor<String, String> c = new Cursor<>(rootPage, "root."); c.hasNext();) {
+                String key = c.next();
+                assert key != null;
+                if (!key.startsWith("root.")) {
+                    break;
                 }
-            } while (rootReference.version >= oldestVersionToKeep && (rootReference = rootReference.previous) != null);
-            return collector.getReferenced();
-        } finally {
-            executorService.shutdownNow();
-        }
+                pos = DataUtils.parseHexLong(c.getValue());
+                if (DataUtils.isPageSaved(pos) && inspectedRoots.add(pos)) {
+                    // to allow for something like "root.tmp.123" to be
+                    // processed
+                    int mapId = DataUtils.parseHexInt(key.substring(key.lastIndexOf('.') + 1));
+                    collector.setMapId(mapId);
+                    collector.visit(pos, executorService);
+                }
+            }
+        } while (rootReference.version >= oldestVersionToKeep && (rootReference = rootReference.previous) != null);
+        return collector.getReferenced();
     }
 
     final class ChunkIdsCollector {
@@ -1417,7 +1417,7 @@ public class MVStore {
             return set;
         }
 
-        public void visit(Page page, ThreadPoolExecutor executorService, AtomicInteger executingThreadCounter) {
+        public void visit(Page page, ExecutorService executorService) {
             long pos = page.getPos();
             if (DataUtils.isPageSaved(pos)) {
                 registerChunk(DataUtils.getPageChunkId(pos));
@@ -1430,9 +1430,9 @@ public class MVStore {
             for (int i = 0; i < count; i++) {
                 Page childPage = page.getChildPageIfLoaded(i);
                 if (childPage != null) {
-                    childCollector.visit(childPage, executorService, executingThreadCounter);
+                    childCollector.visit(childPage, executorService);
                 } else {
-                    childCollector.visit(page.getChildPagePos(i), executorService, executingThreadCounter);
+                    childCollector.visit(page.getChildPagePos(i), executorService);
                 }
             }
             // and cache resulting set of chunk ids
@@ -1442,7 +1442,7 @@ public class MVStore {
             }
         }
 
-        public void visit(long pos, ThreadPoolExecutor executorService, AtomicInteger executingThreadCounter) {
+        public void visit(long pos, ExecutorService executorService) {
             if (!DataUtils.isPageSaved(pos)) {
                 return;
             }
@@ -1461,7 +1461,7 @@ public class MVStore {
                 Page page;
                 if (cache != null && (page = cache.get(pos)) != null) {
                     // there is a full page in cache, use it
-                    childCollector.visit(page, executorService, executingThreadCounter);
+                    childCollector.visit(page, executorService);
                 } else {
                     // page was not cached: read the data
                     Chunk chunk = getChunk(pos);
@@ -1473,7 +1473,7 @@ public class MVStore {
                     }
                     long maxPos = (chunk.block + chunk.len) * BLOCK_SIZE;
                     Page.readChildrenPositions(fileStore, pos, filePos, maxPos,
-                            childCollector, executorService, executingThreadCounter);
+                            childCollector, executorService);
                 }
                 // and cache resulting set of chunk ids
                 if (cacheChunkRef != null) {

@@ -14,9 +14,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.compress.Compressor;
 import org.h2.message.DbException;
 import org.h2.mvstore.type.DataType;
@@ -253,10 +252,10 @@ public abstract class Page implements Cloneable
      * @param filePos the position in the file
      * @param maxPos the maximum position (the end of the chunk)
      * @param collector to report child pages positions to
+     * @param executorService to use far parallel processing
      */
     static void readChildrenPositions(FileStore fileStore, long pos, long filePos, long maxPos,
-            final MVStore.ChunkIdsCollector collector, final ThreadPoolExecutor executorService,
-            final AtomicInteger executingThreadCounter) {
+            final MVStore.ChunkIdsCollector collector, final ExecutorService executorService) {
         ByteBuffer buff;
         int maxLength = DataUtils.getPageMaxLength(pos);
         if (maxLength == DataUtils.PAGE_LARGE) {
@@ -300,37 +299,17 @@ public abstract class Page implements Cloneable
             throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
                     "Position {0} expected to be a non-leaf", pos);
         }
-        /**
-         * The logic here is a little awkward. We want to (a) execute reads in parallel, but (b)
-         * limit the number of threads we create. This is complicated by (a) the algorithm is
-         * recursive and needs to wait for children before returning up the call-stack, (b) checking
-         * the size of the thread-pool is not reliable.
-         */
+
         final List<Future<?>> futures = new ArrayList<>(len);
         for (int i = 0; i <= len; i++) {
             final long childPagePos = buff.getLong();
-            for (;;) {
-                int counter = executingThreadCounter.get();
-                if (counter >= executorService.getMaximumPoolSize()) {
-                    collector.visit(childPagePos, executorService, executingThreadCounter);
-                    break;
-                } else {
-                    if (executingThreadCounter.compareAndSet(counter, counter + 1)) {
-                        Future<?> f = executorService.submit(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    collector.visit(childPagePos, executorService, executingThreadCounter);
-                                } finally {
-                                    executingThreadCounter.decrementAndGet();
-                                }
-                            }
-                        });
-                        futures.add(f);
-                        break;
-                    }
+            Future<?> f = executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    collector.visit(childPagePos, executorService);
                 }
-            }
+            });
+            futures.add(f);
         }
         for (Future<?> f : futures) {
             try {

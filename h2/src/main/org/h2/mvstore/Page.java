@@ -218,37 +218,17 @@ public abstract class Page implements Cloneable
     /**
      * Read a page.
      *
-     * @param fileStore the file store
+     * @param buff ByteBuffer containing serialized page info
      * @param pos the position
      * @param map the map
-     * @param filePos the position in the file
-     * @param maxPos the maximum position (the end of the chunk)
      * @return the page
      */
-    static Page read(FileStore fileStore, long pos, MVMap<?, ?> map,
-            long filePos, long maxPos) {
-        ByteBuffer buff;
-        int maxLength = DataUtils.getPageMaxLength(pos);
-        if (maxLength == DataUtils.PAGE_LARGE) {
-            buff = fileStore.readFully(filePos, 128);
-            maxLength = buff.getInt();
-            // read the first bytes again
-        }
-        maxLength = (int) Math.min(maxPos - filePos, maxLength);
-        int length = maxLength;
-        if (length < 0) {
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_FILE_CORRUPT,
-                    "Illegal page length {0} reading at {1}; max pos {2} ",
-                    length, filePos, maxPos);
-        }
-        buff = fileStore.readFully(filePos, length);
+    static Page read(ByteBuffer buff, long pos, MVMap<?, ?> map) {
         boolean leaf = (DataUtils.getPageType(pos) & 1) == PAGE_TYPE_LEAF;
         Page p = leaf ? new Leaf(map) : new NonLeaf(map);
         p.pos = pos;
         int chunkId = DataUtils.getPageChunkId(pos);
-        int offset = DataUtils.getPageOffset(pos);
-        p.read(buff, chunkId, offset, maxLength);
+        p.read(buff, chunkId);
         return p;
     }
 
@@ -256,52 +236,14 @@ public abstract class Page implements Cloneable
      * Read an inner node page from the buffer, but ignore the keys and
      * values.
      *
-     * @param fileStore the file store
+     * @param buff ByteBuffer containing serialized page info
      * @param pos the position
-     * @param filePos the position in the file
-     * @param maxPos the maximum position (the end of the chunk)
      * @param collector to report child pages positions to
      * @param executorService to use far parallel processing
      */
-    static void readChildrenPositions(FileStore fileStore, long pos, long filePos, long maxPos,
-            final MVStore.ChunkIdsCollector collector, final ExecutorService executorService) {
-        ByteBuffer buff;
-        int maxLength = DataUtils.getPageMaxLength(pos);
-        if (maxLength == DataUtils.PAGE_LARGE) {
-            buff = fileStore.readFully(filePos, 128);
-            maxLength = buff.getInt();
-            // read the first bytes again
-        }
-        maxLength = (int) Math.min(maxPos - filePos, maxLength);
-        int length = maxLength;
-        if (length < 0) {
-            throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
-                    "Illegal page length {0} reading at {1}; max pos {2} ", length, filePos, maxPos);
-        }
-        buff = fileStore.readFully(filePos, length);
-        int chunkId = DataUtils.getPageChunkId(pos);
-        int offset = DataUtils.getPageOffset(pos);
-        int start = buff.position();
-        int pageLength = buff.getInt();
-        if (pageLength > maxLength) {
-            throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
-                    "File corrupted in chunk {0}, expected page length =< {1}, got {2}", chunkId, maxLength,
-                    pageLength);
-        }
-        buff.limit(start + pageLength);
-        short check = buff.getShort();
-        int m = DataUtils.readVarInt(buff);
-        int mapId = collector.getMapId();
-        if (m != mapId) {
-            throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
-                    "File corrupted in chunk {0}, expected map id {1}, got {2}", chunkId, mapId, m);
-        }
-        int checkTest = DataUtils.getCheckValue(chunkId) ^ DataUtils.getCheckValue(offset)
-                ^ DataUtils.getCheckValue(pageLength);
-        if (check != (short) checkTest) {
-            throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
-                    "File corrupted in chunk {0}, expected check value {1}, got {2}", chunkId, checkTest, check);
-        }
+    static void readChildrenPositions(ByteBuffer buff, long pos,
+                                        final MVStore.ChunkIdsCollector collector,
+                                        final ExecutorService executorService) {
         int len = DataUtils.readVarInt(buff);
         int type = buff.get();
         if ((type & 1) != DataUtils.PAGE_TYPE_NODE) {
@@ -484,7 +426,7 @@ public abstract class Page implements Cloneable
      * @param key the key
      * @return the value or null
      */
-    public int binarySearch(Object key) {
+    int binarySearch(Object key) {
         int low = 0, high = keys.length - 1;
         // the cached index minus one, so that
         // for the first time (when cachedCompare is 0),
@@ -637,36 +579,9 @@ public abstract class Page implements Cloneable
      *
      * @param buff the buffer
      * @param chunkId the chunk id
-     * @param offset the offset within the chunk
-     * @param maxLength the maximum length
      */
-    private void read(ByteBuffer buff, int chunkId, int offset, int maxLength) {
-        int start = buff.position();
-        int pageLength = buff.getInt();
-        if (pageLength > maxLength || pageLength < 4) {
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_FILE_CORRUPT,
-                    "File corrupted in chunk {0}, expected page length 4..{1}, got {2}",
-                    chunkId, maxLength, pageLength);
-        }
-        buff.limit(start + pageLength);
-        short check = buff.getShort();
-        int mapId = DataUtils.readVarInt(buff);
-        if (mapId != map.getId()) {
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_FILE_CORRUPT,
-                    "File corrupted in chunk {0}, expected map id {1}, got {2}",
-                    chunkId, map.getId(), mapId);
-        }
-        int checkTest = DataUtils.getCheckValue(chunkId)
-                ^ DataUtils.getCheckValue(offset)
-                ^ DataUtils.getCheckValue(pageLength);
-        if (check != (short) checkTest) {
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_FILE_CORRUPT,
-                    "File corrupted in chunk {0}, expected check value {1}, got {2}",
-                    chunkId, checkTest, check);
-        }
+    private void read(ByteBuffer buff, int chunkId) {
+        int pageLength = buff.remaining() + 4;  // size of int, since we've read page length already
         int len = DataUtils.readVarInt(buff);
         keys = new Object[len];
         int type = buff.get();
@@ -689,7 +604,7 @@ public abstract class Page implements Cloneable
                 compressor = map.getStore().getCompressorFast();
             }
             int lenAdd = DataUtils.readVarInt(buff);
-            int compLen = pageLength + start - buff.position();
+            int compLen = buff.remaining();
             byte[] comp = Utils.newBytes(compLen);
             buff.get(comp);
             int l = compLen + lenAdd;
@@ -701,7 +616,7 @@ public abstract class Page implements Cloneable
         if (isLeaf()) {
             readPayLoad(buff);
         }
-        diskSpaceUsed = maxLength;
+        diskSpaceUsed = pageLength;
         recalculateMemory();
     }
 

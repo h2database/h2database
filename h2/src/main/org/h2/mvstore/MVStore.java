@@ -1412,9 +1412,7 @@ public class MVStore {
         }
 
         public Set<Integer> getReferenced() {
-            Set<Integer> set = new HashSet<>();
-            set.addAll(referencedChunks.keySet());
-            return set;
+            return new HashSet<>(referencedChunks.keySet());
         }
 
         public void visit(Page page, ExecutorService executorService) {
@@ -1426,7 +1424,8 @@ public class MVStore {
             if (count == 0) {
                 return;
             }
-            final ChunkIdsCollector childCollector = new ChunkIdsCollector(this);
+            ChunkIdsCollector childCollector = DataUtils.isPageSaved(pos) && cacheChunkRef != null ?
+                                                        new ChunkIdsCollector(this) : this;
             for (int i = 0; i < count; i++) {
                 Page childPage = page.getChildPageIfLoaded(i);
                 if (childPage != null) {
@@ -1436,7 +1435,7 @@ public class MVStore {
                 }
             }
             // and cache resulting set of chunk ids
-            if (DataUtils.isPageSaved(pos) && cacheChunkRef != null) {
+            if (childCollector != this) {
                 int[] chunkIds = childCollector.getChunkIds();
                 cacheChunkRef.put(pos, chunkIds, Constants.MEMORY_ARRAY + 4 * chunkIds.length);
             }
@@ -1450,7 +1449,7 @@ public class MVStore {
             if (DataUtils.getPageType(pos) == DataUtils.PAGE_TYPE_LEAF) {
                 return;
             }
-            int chunkIds[];
+            int[] chunkIds;
             if (cacheChunkRef != null && (chunkIds = cacheChunkRef.get(pos)) != null) {
                 // there is a cached set of chunk ids for this position
                 for (int chunkId : chunkIds) {
@@ -1490,7 +1489,7 @@ public class MVStore {
         }
 
         private int[] getChunkIds() {
-            int chunkIds[] = new int[referencedChunks.size()];
+            int[] chunkIds = new int[referencedChunks.size()];
             int index = 0;
             for (Integer chunkId : referencedChunks.keySet()) {
                 chunkIds[index++] = chunkId;
@@ -2070,11 +2069,10 @@ public class MVStore {
     /**
      * Remove a page.
      *
-     * @param map the map the page belongs to
      * @param pos the position of the page
      * @param memory the memory usage
      */
-    void removePage(MVMap<?, ?> map, long pos, int memory) {
+    void removePage(long pos, int memory) {
         // we need to keep temporary pages,
         // to support reading old versions and rollback
         if (!DataUtils.isPageSaved(pos)) {
@@ -2086,19 +2084,6 @@ public class MVStore {
             return;
         }
 
-        // This could result in a cache miss if the operation is rolled back,
-        // but we don't optimize for rollback.
-        // We could also keep the page in the cache, as somebody
-        // could still read it (reading the old version).
-/*
-        if (cache != null) {
-            if (DataUtils.getPageType(pos) == DataUtils.PAGE_TYPE_LEAF) {
-                // keep nodes in the cache, because they are still used for
-                // garbage collection
-                cache.remove(pos);
-            }
-        }
-*/
         int chunkId = DataUtils.getPageChunkId(pos);
         // synchronize, because pages could be freed concurrently
         synchronized (freedPageSpace) {

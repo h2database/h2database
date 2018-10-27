@@ -1479,11 +1479,7 @@ public class MVStore {
                     childCollector.visit(page.getChildPagePos(i), executorService, executingThreadCounter);
                 }
             }
-            // and cache resulting set of chunk ids
-            if (childCollector != this) {
-                int[] chunkIds = childCollector.getChunkIds();
-                cacheChunkRef.put(pos, chunkIds, Constants.MEMORY_ARRAY + 4 * chunkIds.length);
-            }
+            cacheCollectedChunkIds(pos, childCollector);
         }
 
         public void visit(long pos, ThreadPoolExecutor executorService, AtomicInteger executingThreadCounter) {
@@ -1501,7 +1497,7 @@ public class MVStore {
                     registerChunk(chunkId);
                 }
             } else {
-                final ChunkIdsCollector childCollector = new ChunkIdsCollector(this);
+                ChunkIdsCollector childCollector = cacheChunkRef != null ? new ChunkIdsCollector(this) : this;
                 Page page;
                 if (cache != null && (page = cache.get(pos)) != null) {
                     // there is a full page in cache, use it
@@ -1511,11 +1507,7 @@ public class MVStore {
                     ByteBuffer buff = readBufferForPage(pos, getMapId());
                     Page.readChildrenPositions(buff, pos, childCollector, executorService, executingThreadCounter);
                 }
-                // and cache resulting set of chunk ids
-                if (cacheChunkRef != null) {
-                    chunkIds = childCollector.getChunkIds();
-                    cacheChunkRef.put(pos, chunkIds, Constants.MEMORY_ARRAY + 4 * chunkIds.length);
-                }
+                cacheCollectedChunkIds(pos, childCollector);
             }
         }
 
@@ -1525,13 +1517,15 @@ public class MVStore {
             }
         }
 
-        private int[] getChunkIds() {
-            int[] chunkIds = new int[referencedChunks.size()];
-            int index = 0;
-            for (Integer chunkId : referencedChunks.keySet()) {
-                chunkIds[index++] = chunkId;
+        private void cacheCollectedChunkIds(long pos, ChunkIdsCollector childCollector) {
+            if (childCollector != this) {
+                int[] chunkIds = new int[childCollector.referencedChunks.size()];
+                int index = 0;
+                for (Integer chunkId : childCollector.referencedChunks.keySet()) {
+                    chunkIds[index++] = chunkId;
+                }
+                cacheChunkRef.put(pos, chunkIds, Constants.MEMORY_ARRAY + 4 * chunkIds.length);
             }
-            return chunkIds;
         }
     }
 

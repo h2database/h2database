@@ -368,7 +368,7 @@ public class Build extends BuildBase {
                 "3cd63d075497751784b2fa84be59432f4905bf7c", offline);
         downloadOrVerify("ext/lucene-core-5.5.5.jar",
                 "org/apache/lucene", "lucene-core", "5.5.5",
-                "d9e58b36578571bb85e55e26ea5834036915dfdf", offline);
+                "c34bcd9274859dc07cfed2a935aaca90c4f4b861", offline);
         downloadOrVerify("ext/lucene-analyzers-common-5.5.5.jar",
                 "org/apache/lucene", "lucene-analyzers-common", "5.5.5",
                 "e6b3f5d1b33ed24da7eef0a72f8062bd4652700c", offline);
@@ -907,7 +907,6 @@ public class Build extends BuildBase {
         downloadOrVerify(true);
         if (filesMissing) {
             println("Required files are missing");
-            println("Both Lucene 2 and 3 are supported using -Dlucene=x (x=2 or 3)");
         } else {
             jar();
         }

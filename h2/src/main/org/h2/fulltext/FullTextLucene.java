@@ -25,6 +25,7 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexFormatTooOldException;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -294,7 +295,7 @@ public class FullTextLucene extends FullText {
         String path = getIndexPath(conn);
         synchronized (INDEX_ACCESS) {
             IndexAccess access = INDEX_ACCESS.get(path);
-            if (access == null) {
+            while (access == null) {
                 try {
                     Directory indexDir = path.startsWith(IN_MEMORY_PREFIX) ?
                             new RAMDirectory() : FSDirectory.open(Paths.get(path));
@@ -304,10 +305,14 @@ public class FullTextLucene extends FullText {
                     IndexWriter writer = new IndexWriter(indexDir, conf);
                     //see http://wiki.apache.org/lucene-java/NearRealtimeSearch
                     access = new IndexAccess(writer);
+                } catch (IndexFormatTooOldException e) {
+                    reindex(conn);
+                    continue;
                 } catch (IOException e) {
                     throw convertException(e);
                 }
                 INDEX_ACCESS.put(path, access);
+                break;
             }
             return access;
         }

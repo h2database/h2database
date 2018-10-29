@@ -187,8 +187,6 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/lucene-core-5.5.5.jar" +
             File.pathSeparator + "ext/lucene-analyzers-common-5.5.5.jar" +
             File.pathSeparator + "ext/lucene-queryparser-5.5.5.jar" +
-            File.pathSeparator + "ext/lucene-queries-5.5.5.jar" +
-            File.pathSeparator + "ext/lucene-sandbox-5.5.5.jar" +
             File.pathSeparator + "ext/h2mig_pagestore_addon.jar" +
             File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
             File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
@@ -270,8 +268,6 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-core-5.5.5.jar" +
                 File.pathSeparator + "ext/lucene-analyzers-common-5.5.5.jar" +
                 File.pathSeparator + "ext/lucene-queryparser-5.5.5.jar" +
-                File.pathSeparator + "ext/lucene-queries-5.5.5.jar" +
-                File.pathSeparator + "ext/lucene-sandbox-5.5.5.jar" +
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
@@ -375,12 +371,6 @@ public class Build extends BuildBase {
         downloadOrVerify("ext/lucene-queryparser-5.5.5.jar",
                 "org/apache/lucene", "lucene-queryparser", "5.5.5",
                 "6c965eb5838a2ba58b0de0fd860a420dcda11937", offline);
-        downloadOrVerify("ext/lucene-queries-5.5.5.jar",
-                "org/apache/lucene", "lucene-queries", "5.5.5",
-                "d99719e7c58c149113f897bca301f1d68cbf3241", offline);
-        downloadOrVerify("ext/lucene-sandbox-5.5.5.jar",
-                "org/apache/lucene", "lucene-sandbox", "5.5.5",
-                "d145d959109257c47151be43b211213dff455f47", offline);
         downloadOrVerify("ext/slf4j-api-1.6.0.jar",
                 "org/slf4j", "slf4j-api", "1.6.0",
                 "b353147a7d51fcfcd818d8aa6784839783db0915", offline);
@@ -649,8 +639,6 @@ public class Build extends BuildBase {
                 "ext/lucene-core-5.5.5.jar" +
                 File.pathSeparator + "ext/lucene-analyzers-common-5.5.5.jar" +
                 File.pathSeparator + "ext/lucene-queryparser-5.5.5.jar" +
-                File.pathSeparator + "ext/lucene-queries-5.5.5.jar" +
-                File.pathSeparator + "ext/lucene-sandbox-5.5.5.jar" +
                 File.pathSeparator + "ext/jts-core-1.15.0.jar",
                 "-docletpath", "bin" + File.pathSeparator + "temp",
                 "-doclet", "org.h2.build.doclet.Doclet");
@@ -677,8 +665,6 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-core-5.5.5.jar" +
                 File.pathSeparator + "ext/lucene-analyzers-common-5.5.5.jar" +
                 File.pathSeparator + "ext/lucene-queryparser-5.5.5.jar" +
-                File.pathSeparator + "ext/lucene-queries-5.5.5.jar" +
-                File.pathSeparator + "ext/lucene-sandbox-5.5.5.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
                 File.pathSeparator + "ext/jts-core-1.15.0.jar",
@@ -695,8 +681,6 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-core-5.5.5.jar" +
                 File.pathSeparator + "ext/lucene-analyzers-common-5.5.5.jar" +
                 File.pathSeparator + "ext/lucene-queryparser-5.5.5.jar" +
-                File.pathSeparator + "ext/lucene-queries-5.5.5.jar" +
-                File.pathSeparator + "ext/lucene-sandbox-5.5.5.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
                 File.pathSeparator + "ext/jts-core-1.15.0.jar",
@@ -714,8 +698,6 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-core-5.5.5.jar" +
                 File.pathSeparator + "ext/lucene-analyzers-common-5.5.5.jar" +
                 File.pathSeparator + "ext/lucene-queryparser-5.5.5.jar" +
-                File.pathSeparator + "ext/lucene-queries-5.5.5.jar" +
-                File.pathSeparator + "ext/lucene-sandbox-5.5.5.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
                 File.pathSeparator + "ext/jts-core-1.15.0.jar",
@@ -974,8 +956,6 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-core-5.5.5.jar" +
                 File.pathSeparator + "ext/lucene-analyzers-common-5.5.5.jar" +
                 File.pathSeparator + "ext/lucene-queryparser-5.5.5.jar" +
-                File.pathSeparator + "ext/lucene-queries-5.5.5.jar" +
-                File.pathSeparator + "ext/lucene-sandbox-5.5.5.jar" +
                 File.pathSeparator + "ext/h2mig_pagestore_addon.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +

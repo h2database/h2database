@@ -32,11 +32,17 @@ CALL SLEEP(10);
 INSERT INTO TEST(T) VALUES (CURRENT_TIMESTAMP(9));
 > update count: 1
 
+CALL SLEEP(10);
+>> null
+
 COMMIT;
 > ok
 
 INSERT INTO TEST(T) VALUES (CURRENT_TIMESTAMP(9));
 > update count: 1
+
+CALL SLEEP(10);
+>> null
 
 COMMIT;
 > ok
@@ -64,6 +70,9 @@ CALL SLEEP(10);
 
 INSERT INTO TEST(T) VALUES (CURRENT_TIMESTAMP(9));
 > update count: 1
+
+CALL SLEEP(10);
+>> null
 
 COMMIT;
 > ok

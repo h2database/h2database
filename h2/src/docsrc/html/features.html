@@ -1056,6 +1056,7 @@ or the SQL statement <code>SET MODE DB2</code>.
     results in the other value.
 </li><li>Support the pseudo-table SYSIBM.SYSDUMMY1.
 </li><li>Timestamps with dash between date and time are supported.
+</li><li>Datetime value functions return the same value within a command.
 </li></ul>
 
 <h3>Derby Compatibility Mode</h3>
@@ -1071,6 +1072,7 @@ or the SQL statement <code>SET MODE Derby</code>.
 </li><li>Concatenating <code>NULL</code> with another value
     results in the other value.
 </li><li>Support the pseudo-table SYSIBM.SYSDUMMY1.
+</li><li>Datetime value functions return the same value within a command.
 </li></ul>
 
 <h3>HSQLDB Compatibility Mode</h3>
@@ -1086,6 +1088,7 @@ or the SQL statement <code>SET MODE HSQLDB</code>.
 </li><li>For unique indexes, <code>NULL</code> is distinct.
     That means only one row with <code>NULL</code> in one of the columns is allowed.
 </li><li>Text can be concatenated using '+'.
+</li><li>Datetime value functions return the same value within a command.
 </li></ul>
 
 <h3>MS SQL Server Compatibility Mode</h3>
@@ -1106,6 +1109,7 @@ or the SQL statement <code>SET MODE MSSQLServer</code>.
     data type.
 </li><li><code>IDENTITY</code> can be used for automatic id generation on column level.
 </li><li>Table hints are discarded. Example: <code>SELECT * FROM table WITH (NOLOCK)</code>.
+</li><li>Datetime value functions return the same value within a command.
 </li></ul>
 
 <h3>MySQL Compatibility Mode</h3>
@@ -1128,6 +1132,7 @@ or the SQL statement <code>SET MODE MySQL</code>. Use this mode for compatibilit
 </li><li>ON DUPLICATE KEY UPDATE is supported in INSERT statements.
 </li><li>INSERT IGNORE is partially supported and may be used to skip rows with duplicate keys if ON DUPLICATE KEY UPDATE is not specified.
 </li><li>REGEXP_REPLACE() uses \ for back-references for compatibility with MariaDB.
+</li><li>Datetime value functions return the same value within a command.
 </li></ul>
 <p>
 Text comparison in MySQL is case insensitive by default, while in H2 it is case sensitive (as in most other databases).
@@ -1152,6 +1157,7 @@ or the SQL statement <code>SET MODE Oracle</code>.
 </li><li>Empty strings are treated like <code>NULL</code> values.
 </li><li>REGEXP_REPLACE() uses \ for back-references.
 </li><li>DATE data type is treated like TIMESTAMP(0) data type.
+</li><li>Datetime value functions return the same value within a command.
 </li></ul>
 
 <h3>PostgreSQL Compatibility Mode</h3>
@@ -1170,6 +1176,7 @@ or the SQL statement <code>SET MODE PostgreSQL</code>.
 </li><li>REGEXP_REPLACE() uses \ for back-references.
 </li><li>Fixed-width strings are padded with spaces.
 </li><li>MONEY data type is treated like NUMERIC(19, 2) data type.
+</li><li>Datetime value functions return the same value within a transaction.
 </li></ul>
 
 <h3>Ignite Compatibility Mode</h3>
@@ -1181,6 +1188,7 @@ or the SQL statement <code>SET MODE Ignite</code>.
     <code>INDEX(..)</code> or <code>KEY(..)</code>.
     Example: <code>create table test(id int primary key, name varchar(255), key idx_name(name));</code>
 </li><li>AFFINITY KEY and SHARD KEY keywords may be used in index definition.
+</li><li>Datetime value functions return the same value within a transaction.
 </li></ul>
 
 <h2 id="auto_reconnect">Auto-Reconnect</h2>

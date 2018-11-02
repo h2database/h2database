@@ -4496,7 +4496,8 @@ CALL TRANSLATE('Hello world', 'eo', 'EO')
 { CURRENT_DATE [ () ] | CURDATE() | SYSDATE | TODAY }
 ","
 Returns the current date.
-This method always returns the same value within a transaction.
+These methods always return the same value within a transaction (default)
+or within a command depending on database mode.
 ","
 CURRENT_DATE()
 "
@@ -4509,7 +4510,8 @@ If fractional seconds precision is specified it should be from 0 to 9, 0 is defa
 The specified value can be used only to limit precision of a result.
 The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.
 Higher precision is not available before Java 9.
-These methods always return the same value within a transaction.
+These methods always return the same value within a transaction (default)
+or within a command depending on database mode.
 ","
 CURRENT_TIME()
 "
@@ -4523,7 +4525,8 @@ If fractional seconds precision is specified it should be from 0 to 9, 6 is defa
 The specified value can be used only to limit precision of a result.
 The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.
 Higher precision is not available before Java 9.
-This method always returns the same value within a transaction.
+This method always returns the same value within a transaction (default)
+or within a command depending on database mode.
 ","
 CURRENT_TIMESTAMP()
 "
@@ -4536,7 +4539,8 @@ If fractional seconds precision is specified it should be from 0 to 9, 6 is defa
 The specified value can be used only to limit precision of a result.
 The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.
 Higher precision is not available before Java 9.
-These methods always return the same value within a transaction.
+These methods always return the same value within a transaction (default)
+or within a command depending on database mode.
 ","
 LOCALTIMESTAMP()
 "

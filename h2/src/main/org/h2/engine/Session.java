@@ -117,7 +117,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private boolean closed;
     private final long sessionStart = System.currentTimeMillis();
     private ValueTimestampTimeZone transactionStart;
-    private long currentCommandStart;
+    private ValueTimestampTimeZone currentCommandStart;
     private HashMap<String, Value> variables;
     private HashSet<ResultInterface> temporaryResults;
     private int queryTimeout;
@@ -1205,8 +1205,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      * Wait for some time if this session is throttled (slowed down).
      */
     public void throttle() {
-        if (currentCommandStart == 0) {
-            currentCommandStart = System.currentTimeMillis();
+        if (currentCommandStart == null) {
+            currentCommandStart = CurrentTimestamp.get();
         }
         if (throttleNs == 0) {
             return;
@@ -1246,10 +1246,14 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (command != null && !command.isQuery()) {
             getGeneratedKeys().clear(generatedKeysRequest);
         }
-        if (queryTimeout > 0 && command != null) {
-            currentCommandStart = System.currentTimeMillis();
-            long now = System.nanoTime();
-            cancelAtNs = now + TimeUnit.MILLISECONDS.toNanos(queryTimeout);
+        if (command != null) {
+            if (queryTimeout > 0) {
+                currentCommandStart = CurrentTimestamp.get();
+                long now = System.nanoTime();
+                cancelAtNs = now + TimeUnit.MILLISECONDS.toNanos(queryTimeout);
+            } else {
+                currentCommandStart = null;
+            }
         }
         state = command == null ? State.SLEEP : State.RUNNING;
     }
@@ -1285,7 +1289,10 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         return currentCommand;
     }
 
-    public long getCurrentCommandStart() {
+    public ValueTimestampTimeZone getCurrentCommandStart() {
+        if (currentCommandStart == null) {
+            currentCommandStart = CurrentTimestamp.get();
+        }
         return currentCommandStart;
     }
 

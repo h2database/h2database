@@ -1848,14 +1848,9 @@ public class MetaTable extends Table {
             break;
         }
         case SESSIONS: {
-            long now = System.currentTimeMillis();
             for (Session s : database.getSessions(false)) {
                 if (admin || s == session) {
                     Command command = s.getCurrentCommand();
-                    long start = s.getCurrentCommandStart();
-                    if (start == 0) {
-                        start = now;
-                    }
                     int blockingSessionId = s.getBlockingSessionId();
                     add(rows,
                             // ID
@@ -1867,7 +1862,7 @@ public class MetaTable extends Table {
                             // STATEMENT
                             command == null ? null : command.toString(),
                             // STATEMENT_START
-                            DateTimeUtils.timestampTimeZoneFromMillis(start),
+                            command == null ? null : s.getCurrentCommandStart(),
                             // CONTAINS_UNCOMMITTED
                             ValueBoolean.get(s.containsUncommitted()),
                             // STATE

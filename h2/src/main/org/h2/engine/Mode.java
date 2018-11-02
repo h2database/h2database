@@ -203,6 +203,13 @@ public class Mode {
     public boolean charToBinaryInUtf8;
 
     /**
+     * If {@code true}, datetime value function return the same value within a
+     * transaction, if {@code false} datetime value functions return the same
+     * value within a command.
+     */
+    public boolean dateTimeValueWithinTransaction;
+
+    /**
      * An optional Set of hidden/disallowed column types.
      * Certain DBMSs don't support all column types provided by H2, such as
      * "NUMBER" when using PostgreSQL mode.
@@ -221,6 +228,7 @@ public class Mode {
     static {
         Mode mode = new Mode(ModeEnum.REGULAR);
         mode.nullConcatIsNull = true;
+        mode.dateTimeValueWithinTransaction = true;
         add(mode);
 
         mode = new Mode(ModeEnum.DB2);
@@ -345,12 +353,14 @@ public class Mode {
         dt.sqlType = Types.NUMERIC;
         dt.name = "MONEY";
         mode.typeByNameMap.put("MONEY", dt);
+        mode.dateTimeValueWithinTransaction = true;
         add(mode);
 
         mode = new Mode(ModeEnum.Ignite);
         mode.nullConcatIsNull = true;
         mode.allowAffinityKey = true;
         mode.indexDefinitionInCreateTable = true;
+        mode.dateTimeValueWithinTransaction = true;
         add(mode);
     }
 

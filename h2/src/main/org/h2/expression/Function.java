@@ -831,22 +831,28 @@ public class Function extends Expression implements FunctionCall {
         }
         case CURDATE:
         case CURRENT_DATE: {
-            result = session.getTransactionStart().convertTo(Value.DATE);
+            result = (database.getMode().dateTimeValueWithinTransaction ? session.getTransactionStart()
+                    : session.getCurrentCommandStart()).convertTo(Value.DATE);
             break;
         }
         case CURTIME:
         case CURRENT_TIME: {
-            ValueTime vt = (ValueTime) session.getTransactionStart().convertTo(Value.TIME);
+            ValueTime vt = (ValueTime) (database.getMode().dateTimeValueWithinTransaction
+                    ? session.getTransactionStart()
+                    : session.getCurrentCommandStart()).convertTo(Value.TIME);
             result = vt.convertScale(false, v0 == null ? 0 : v0.getInt());
             break;
         }
         case LOCALTIMESTAMP: {
-            Value vt = session.getTransactionStart().convertTo(Value.TIMESTAMP);
+            Value vt = (database.getMode().dateTimeValueWithinTransaction ? session.getTransactionStart()
+                    : session.getCurrentCommandStart()).convertTo(Value.TIMESTAMP);
             result = vt.convertScale(false, v0 == null ? 6 : v0.getInt());
             break;
         }
         case CURRENT_TIMESTAMP: {
-            ValueTimestampTimeZone vt = session.getTransactionStart();
+            ValueTimestampTimeZone vt = database.getMode().dateTimeValueWithinTransaction
+                    ? session.getTransactionStart()
+                    : session.getCurrentCommandStart();
             result = vt.convertScale(false, v0 == null ? 6 : v0.getInt());
             break;
         }

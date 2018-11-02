@@ -250,15 +250,12 @@ public class DatabaseInfo implements DatabaseInfoMBean {
                     append('\n');
             Command command = session.getCurrentCommand();
             if (command != null) {
-                buff.append("statement: ").
-                        append(session.getCurrentCommand()).
-                        append('\n');
-                long commandStart = session.getCurrentCommandStart();
-                if (commandStart != 0) {
-                    buff.append("started: ").append(
-                            new Timestamp(commandStart)).
-                            append('\n');
-                }
+                buff.append("statement: ")
+                        .append(command)
+                        .append('\n')
+                        .append("started: ")
+                        .append(session.getCurrentCommandStart().getString())
+                        .append('\n');
             }
             Table[] t = session.getLocks();
             if (t.length > 0) {

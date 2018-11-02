@@ -362,13 +362,13 @@ public class Column {
                     if (dt.decimal) {
                         value = ValueInt.get(0).convertTo(type);
                     } else if (dt.type == Value.TIMESTAMP) {
-                        value = session.getTransactionStart().convertTo(Value.TIMESTAMP);
+                        value = session.getCurrentCommandStart().convertTo(Value.TIMESTAMP);
                     } else if (dt.type == Value.TIMESTAMP_TZ) {
-                        value = session.getTransactionStart();
+                        value = session.getCurrentCommandStart();
                     } else if (dt.type == Value.TIME) {
                         value = ValueTime.fromNanos(0);
                     } else if (dt.type == Value.DATE) {
-                        value = session.getTransactionStart().convertTo(Value.DATE);
+                        value = session.getCurrentCommandStart().convertTo(Value.DATE);
                     } else {
                         value = ValueString.get("").convertTo(type);
                     }

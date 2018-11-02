@@ -431,8 +431,9 @@ public class FullTextLucene extends FullText {
                 int maxResults = (limit == 0 ? 100 : limit) + offset;
                 TopDocs docs = searcher.search(query, maxResults);
                 if (limit == 0) {
-                    // TopDocs.totalHits is long now (https://issues.apache.org/jira/browse/LUCENE-7872)
-                    // but in this context it's save to cast
+                    // TopDocs.totalHits is long now
+                    // (https://issues.apache.org/jira/browse/LUCENE-7872)
+                    // but in this context it's safe to cast
                     limit = (int)docs.totalHits;
                 }
                 for (int i = 0, len = docs.scoreDocs.length; i < limit

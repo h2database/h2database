@@ -38,11 +38,13 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
+import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
 import org.h2.engine.Session;
 import org.h2.expression.ExpressionColumn;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.StatementBuilder;
@@ -74,6 +76,17 @@ public class FullTextLucene extends FullText {
      * within this class and not related to the database URL.
      */
     private static final String IN_MEMORY_PREFIX = "mem:";
+
+    private static final java.lang.reflect.Field TOTAL_HITS;
+
+    static {
+        try {
+            TOTAL_HITS = TopDocs.class.getField("totalHits");
+        } catch (ReflectiveOperationException e) {
+            throw DbException.get(ErrorCode.GENERAL_ERROR_1, e,
+                    "Field org.apache.lucene.search.TopDocs.totalHits is not found");
+        }
+    }
 
     /**
      * Initializes full text search functionality for this database. This adds
@@ -434,7 +447,7 @@ public class FullTextLucene extends FullText {
                     // TopDocs.totalHits is long now
                     // (https://issues.apache.org/jira/browse/LUCENE-7872)
                     // but in this context it's safe to cast
-                    limit = (int)docs.totalHits;
+                    limit = (int) TOTAL_HITS.getLong(docs);
                 }
                 for (int i = 0, len = docs.scoreDocs.length; i < limit
                         && i + offset < docs.totalHits

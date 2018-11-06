@@ -785,7 +785,7 @@ public class TableFilter implements ColumnResolver {
                     // otherwise the nesting is unclear
                     buff.append("1=1");
                 } else {
-                    buff.append(StringUtils.unEnclose(joinCondition.getSQL()));
+                    joinCondition.getUnenclosedSQL(buff);
                 }
             }
             return buff.toString();
@@ -851,7 +851,7 @@ public class TableFilter implements ColumnResolver {
                 // unclear
                 buff.append("1=1");
             } else {
-                buff.append(StringUtils.unEnclose(joinCondition.getSQL()));
+                joinCondition.getUnenclosedSQL(buff);
             }
         }
         if (filterCondition != null) {

@@ -11,7 +11,6 @@ import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 
@@ -124,6 +123,25 @@ public abstract class Expression {
      * @return the specified string builder
      */
     public abstract StringBuilder getSQL(StringBuilder builder);
+
+    /**
+     * Appends the SQL statement of this expression to the specified builder.
+     * This may not always be the original SQL statement, specially after
+     * optimization. Enclosing '(' and ')' are removed.
+     *
+     * @param builder
+     *            string builder
+     * @return the specified string builder
+     */
+    public StringBuilder getUnenclosedSQL(StringBuilder builder) {
+        int first = builder.length();
+        int last = getSQL(builder).length() - 1;
+        if (last > first && builder.charAt(first) == '(' && builder.charAt(last) == ')') {
+            builder.setLength(last);
+            builder.deleteCharAt(first);
+        }
+        return builder;
+    }
 
     /**
      * Update an aggregate value. This method is called at statement execution
@@ -281,7 +299,7 @@ public abstract class Expression {
      * @return the alias name
      */
     public String getAlias() {
-        return StringUtils.unEnclose(getSQL());
+        return getUnenclosedSQL(new StringBuilder()).toString();
     }
 
     /**

@@ -28,7 +28,6 @@ import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.StatementBuilder;
-import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -226,11 +225,12 @@ public class Update extends Prepared {
             e.getSQL(buff.builder());
         }
         if (condition != null) {
-            buff.append("\nWHERE ").append(StringUtils.unEnclose(condition.getSQL()));
+            buff.append("\nWHERE ");
+            condition.getUnenclosedSQL(buff.builder());
         }
         if (limitExpr != null) {
-            buff.append("\nLIMIT ").append(
-                    StringUtils.unEnclose(limitExpr.getSQL()));
+            buff.append("\nLIMIT ");
+            limitExpr.getUnenclosedSQL(buff.builder());
         }
         return buff.toString();
     }

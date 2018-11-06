@@ -20,7 +20,6 @@ import org.h2.result.RowList;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -140,12 +139,12 @@ public class Delete extends Prepared {
         buff.append("DELETE ");
         buff.append("FROM ").append(targetTableFilter.getPlanSQL(false));
         if (condition != null) {
-            buff.append("\nWHERE ").append(StringUtils.unEnclose(
-                    condition.getSQL()));
+            buff.append("\nWHERE ");
+            condition.getUnenclosedSQL(buff);
         }
         if (limitExpr != null) {
-            buff.append("\nLIMIT (").append(StringUtils.unEnclose(
-                    limitExpr.getSQL())).append(')');
+            buff.append("\nLIMIT (");
+            limitExpr.getUnenclosedSQL(buff).append(')');
         }
         return buff.toString();
     }

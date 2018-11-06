@@ -15,7 +15,6 @@ import org.h2.message.DbException;
 import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 
@@ -220,7 +219,7 @@ public final class Window {
                 if (i > 0) {
                     builder.append(", ");
                 }
-                builder.append(StringUtils.unEnclose(partitionBy.get(i).getSQL()));
+                partitionBy.get(i).getUnenclosedSQL(builder);
             }
         }
         appendOrderBy(builder, orderBy);

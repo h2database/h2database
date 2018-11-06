@@ -1360,8 +1360,8 @@ public class Select extends Query {
             }
         }
         if (condition != null) {
-            buff.append("\nWHERE ").append(
-                    StringUtils.unEnclose(condition.getSQL()));
+            buff.append("\nWHERE ");
+            condition.getUnenclosedSQL(buff.builder());
         }
         if (groupIndex != null) {
             buff.append("\nGROUP BY ");
@@ -1370,7 +1370,7 @@ public class Select extends Query {
                 Expression g = exprList[gi];
                 g = g.getNonAliasExpression();
                 buff.appendExceptFirst(", ");
-                buff.append(StringUtils.unEnclose(g.getSQL()));
+                g.getUnenclosedSQL(buff.builder());
             }
         }
         if (group != null) {
@@ -1378,7 +1378,7 @@ public class Select extends Query {
             buff.resetCount();
             for (Expression g : group) {
                 buff.appendExceptFirst(", ");
-                buff.append(StringUtils.unEnclose(g.getSQL()));
+                g.getUnenclosedSQL(buff.builder());
             }
         }
         if (having != null) {
@@ -1386,12 +1386,12 @@ public class Select extends Query {
             // in this case the query is not run directly, just getPlanSQL is
             // called
             Expression h = having;
-            buff.append("\nHAVING ").append(
-                    StringUtils.unEnclose(h.getSQL()));
+            buff.append("\nHAVING ");
+            h.getUnenclosedSQL(buff.builder());
         } else if (havingIndex >= 0) {
             Expression h = exprList[havingIndex];
-            buff.append("\nHAVING ").append(
-                    StringUtils.unEnclose(h.getSQL()));
+            buff.append("\nHAVING ");
+            h.getUnenclosedSQL(buff.builder());
         }
         if (sort != null) {
             buff.append("\nORDER BY ").append(
@@ -1407,8 +1407,8 @@ public class Select extends Query {
         }
         appendLimitToSQL(buff.builder());
         if (sampleSizeExpr != null) {
-            buff.append("\nSAMPLE_SIZE ").append(
-                    StringUtils.unEnclose(sampleSizeExpr.getSQL()));
+            buff.append("\nSAMPLE_SIZE ");
+            sampleSizeExpr.getUnenclosedSQL(buff.builder());
         }
         if (isForUpdate) {
             buff.append("\nFOR UPDATE");

@@ -35,7 +35,7 @@
 57014=Befehl wurde abgebrochen oder das Session-Timeout ist abgelaufen
 90000=Funktion {0} muss Zeilen zurückgeben
 90001=Methode nicht zulässig für eine Abfrage. Erlaubt sind execute oder executeQuery, nicht jedoch executeUpdate
-90002=Methode nur zulässig for eine Abfrage. Erlaubt sind execute oder executeUpdate, nicht jedoch executeQuery
+90002=Methode nur zulässig für eine Abfrage. Erlaubt sind execute oder executeUpdate, nicht jedoch executeQuery
 90003=Hexadezimal Zahl mit einer ungeraden Anzahl Zeichen: {0}
 90004=Hexadezimal Zahl enthält unerlaubtes Zeichen: {0}
 90006=Die Sequenz {0} hat keine freien Nummern mehr

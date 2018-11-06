@@ -6,7 +6,7 @@ package org.h2.util;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 
@@ -124,26 +124,31 @@ public class ColumnNamer {
     }
 
     private boolean isAllowableColumnName(String proposedName) {
-
         // check null
         if (proposedName == null) {
             return false;
         }
         // check size limits
-        if (proposedName.length() > configuration.getMaxIdentiferLength() || proposedName.length() == 0) {
+        int length = proposedName.length();
+        if (length > configuration.getMaxIdentiferLength() || length == 0) {
             return false;
         }
-        Matcher match = configuration.getCompiledRegularExpressionMatchAllowed().matcher(proposedName);
-        return match.matches();
+        Pattern allowed = configuration.getCompiledRegularExpressionMatchAllowed();
+        return allowed == null || allowed.matcher(proposedName).matches();
     }
 
     private String fixColumnName(String proposedName) {
-        Matcher match = configuration.getCompiledRegularExpressionMatchDisallowed().matcher(proposedName);
-        proposedName = match.replaceAll("");
+        Pattern disallowed = configuration.getCompiledRegularExpressionMatchDisallowed();
+        if (disallowed == null) {
+            proposedName = StringUtils.replaceAll(proposedName, "\u0000", "");
+        } else {
+            proposedName = disallowed.matcher(proposedName).replaceAll("");
+        }
 
         // check size limits - then truncate
-        if (proposedName.length() > configuration.getMaxIdentiferLength()) {
-            proposedName = proposedName.substring(0, configuration.getMaxIdentiferLength());
+        int length = proposedName.length(), maxLength = configuration.getMaxIdentiferLength();
+        if (length > maxLength) {
+            proposedName = proposedName.substring(0, maxLength);
         }
 
         return proposedName;

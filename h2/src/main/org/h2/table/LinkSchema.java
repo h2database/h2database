@@ -71,19 +71,13 @@ public class LinkSchema {
                     append(StringUtils.quoteIdentifier(targetSchema)).
                     append('.').
                     append(StringUtils.quoteIdentifier(table)).
-                    append('(').
-                    append(StringUtils.quoteStringSQL(driver)).
-                    append(", ").
-                    append(StringUtils.quoteStringSQL(url)).
-                    append(", ").
-                    append(StringUtils.quoteStringSQL(user)).
-                    append(", ").
-                    append(StringUtils.quoteStringSQL(password)).
-                    append(", ").
-                    append(StringUtils.quoteStringSQL(sourceSchema)).
-                    append(", ").
-                    append(StringUtils.quoteStringSQL(table)).
-                    append(')');
+                    append('(');
+                StringUtils.quoteStringSQL(buff, driver).append(", ");
+                StringUtils.quoteStringSQL(buff, url).append(", ");
+                StringUtils.quoteStringSQL(buff, user).append(", ");
+                StringUtils.quoteStringSQL(buff, password).append(", ");
+                StringUtils.quoteStringSQL(buff, sourceSchema).append(", ");
+                StringUtils.quoteStringSQL(buff, table).append(')');
                 stat.execute(buff.toString());
                 result.addRow(table);
             }

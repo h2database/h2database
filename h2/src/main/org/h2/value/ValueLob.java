@@ -572,7 +572,7 @@ public class ValueLob extends Value {
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
         if (valueType == Value.CLOB) {
-            builder.append(StringUtils.quoteStringSQL(getString()));
+            StringUtils.quoteStringSQL(builder, getString());
         } else {
             builder.append("X'").append(StringUtils.convertBytesToHex(getBytes())).append('\'');
         }

@@ -108,7 +108,8 @@ public abstract class TableBase extends Table {
         }
         buff.append(getSQL());
         if (comment != null) {
-            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ");
+            StringUtils.quoteStringSQL(buff.builder(), comment);
         }
         buff.append("(\n    ");
         for (Column column : columns) {

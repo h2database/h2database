@@ -52,7 +52,8 @@ public class ConstraintUnique extends Constraint {
         }
         buff.append(quotedName);
         if (comment != null) {
-            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ");
+            StringUtils.quoteStringSQL(buff.builder(), comment);
         }
         buff.append(' ').append(getConstraintType().getSqlName()).append('(');
         for (IndexColumn c : columns) {

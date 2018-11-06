@@ -87,7 +87,8 @@ public class ConstraintReferential extends Constraint {
         }
         buff.append(quotedName);
         if (comment != null) {
-            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ");
+            StringUtils.quoteStringSQL(buff.builder(), comment);
         }
         IndexColumn[] cols = columns;
         IndexColumn[] refCols = refColumns;

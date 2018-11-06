@@ -159,7 +159,8 @@ public class User extends RightOwner {
         StringBuilder buff = new StringBuilder("CREATE USER IF NOT EXISTS ");
         buff.append(getSQL());
         if (comment != null) {
-            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ");
+            StringUtils.quoteStringSQL(buff, comment);
         }
         if (password) {
             buff.append(" SALT '").

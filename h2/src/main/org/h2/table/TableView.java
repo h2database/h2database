@@ -348,7 +348,8 @@ public class TableView extends Table {
         }
         buff.append(quotedName);
         if (comment != null) {
-            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ");
+            StringUtils.quoteStringSQL(buff.builder(), comment);
         }
         if (columns != null && columns.length > 0) {
             buff.append('(');

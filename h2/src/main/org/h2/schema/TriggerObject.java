@@ -347,7 +347,8 @@ public class TriggerObject extends SchemaObjectBase {
         if (triggerClassName != null) {
             buff.append(" CALL ").append(Parser.quoteIdentifier(triggerClassName));
         } else {
-            buff.append(" AS ").append(StringUtils.quoteStringSQL(triggerSource));
+            buff.append(" AS ");
+            StringUtils.quoteStringSQL(buff, triggerSource);
         }
         return buff.toString();
     }

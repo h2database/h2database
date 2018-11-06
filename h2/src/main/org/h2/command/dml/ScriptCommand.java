@@ -490,7 +490,7 @@ public class ScriptCommand extends ScriptBase {
                     if (len == 0) {
                         break;
                     }
-                    buff.append(StringUtils.quoteStringSQL(new String(chars, 0, len))).
+                    StringUtils.quoteStringSQL(buff, new String(chars, 0, len)).
                         append(", NULL)");
                     String sql = buff.toString();
                     add(sql, true);

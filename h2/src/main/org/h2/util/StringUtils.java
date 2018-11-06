@@ -121,22 +121,40 @@ public class StringUtils {
         if (s == null) {
             return "NULL";
         }
+        return quoteStringSQL(new StringBuilder(s.length() + 2), s).toString();
+    }
+
+    /**
+     * Convert a string to a SQL literal. Null is converted to NULL. The text is
+     * enclosed in single quotes. If there are any special characters, the
+     * method STRINGDECODE is used.
+     *
+     * @param builder
+     *            string builder to append result to
+     * @param s the text to convert.
+     * @return the specified string builder
+     */
+    public static StringBuilder quoteStringSQL(StringBuilder builder, String s) {
+        if (s == null) {
+            return builder.append("NULL");
+        }
+        int builderLength = builder.length();
         int length = s.length();
-        StringBuilder buff = new StringBuilder(length + 2);
-        buff.append('\'');
+        builder.append('\'');
         for (int i = 0; i < length; i++) {
             char c = s.charAt(i);
             if (c == '\'') {
-                buff.append(c);
+                builder.append(c);
             } else if (c < ' ' || c > 127) {
                 // need to start from the beginning because maybe there was a \
                 // that was not quoted
-                return "STRINGDECODE(" + quoteStringSQL(javaEncode(s)) + ")";
+                builder.setLength(builderLength);
+                builder.append("STRINGDECODE(");
+                return quoteStringSQL(builder, javaEncode(s)).append(')');
             }
-            buff.append(c);
+            builder.append(c);
         }
-        buff.append('\'');
-        return buff.toString();
+        return builder.append('\'');
     }
 
     /**
@@ -321,7 +339,9 @@ public class StringUtils {
         if (s == null) {
             return "null";
         }
-        return "\"" + javaEncode(s) + "\"";
+        StringBuilder builder = new StringBuilder(s.length() + 2).append('"');
+        javaEncode(s, builder);
+        return builder.append('"').toString();
     }
 
     /**

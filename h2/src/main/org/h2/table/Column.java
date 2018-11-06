@@ -573,7 +573,8 @@ public class Column {
             buff.append(" SELECTIVITY ").append(selectivity);
         }
         if (comment != null) {
-            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ");
+            StringUtils.quoteStringSQL(buff, comment);
         }
         if (checkConstraint != null) {
             buff.append(" CHECK ").append(checkConstraintSQL);

@@ -372,19 +372,15 @@ public class TableLink extends Table {
         }
         buff.append("LINKED TABLE ").append(getSQL());
         if (comment != null) {
-            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ");
+            StringUtils.quoteStringSQL(buff, comment);
         }
-        buff.append('(').
-            append(StringUtils.quoteStringSQL(driver)).
-            append(", ").
-            append(StringUtils.quoteStringSQL(url)).
-            append(", ").
-            append(StringUtils.quoteStringSQL(user)).
-            append(", ").
-            append(StringUtils.quoteStringSQL(password)).
-            append(", ").
-            append(StringUtils.quoteStringSQL(originalTable)).
-            append(')');
+        buff.append('(');
+        StringUtils.quoteStringSQL(buff, driver).append(", ");
+        StringUtils.quoteStringSQL(buff, url).append(", ");
+        StringUtils.quoteStringSQL(buff, user).append(", ");
+        StringUtils.quoteStringSQL(buff, password).append(", ");
+        StringUtils.quoteStringSQL(buff, originalTable).append(')');
         if (emitUpdates) {
             buff.append(" EMIT UPDATES");
         }

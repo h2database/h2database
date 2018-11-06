@@ -146,11 +146,6 @@ public class ValueLong extends Value {
     }
 
     @Override
-    public String getSQL() {
-        return Long.toString(value);
-    }
-
-    @Override
     public StringBuilder getSQL(StringBuilder builder) {
         return builder.append(value);
     }

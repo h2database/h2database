@@ -174,7 +174,7 @@ public class Column {
                         getCreateSQL();
                 throw DbException.get(
                         ErrorCode.DATA_CONVERSION_ERROR_1, e,
-                        v.getSQL() + " (" + target + ")");
+                        v.getTraceSQL() + " (" + target + ")");
             }
             throw e;
         }

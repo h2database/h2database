@@ -417,7 +417,7 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private String getSQL(String column, Value v) {
+    private void getSQL(StringBuilder builder, String column, Value v) {
         if (v instanceof ValueLob) {
             ValueLob lob = (ValueLob) v;
             byte[] small = lob.getSmall();
@@ -428,7 +428,8 @@ public class Recover extends Tool implements DataHandler {
                     dumpLob(file, true);
                     file += ".comp";
                 }
-                return "READ_" + type + "('" + file + ".txt')";
+                builder.append("READ_").append(type).append("('").append(file).append(".txt')");
+                return;
             }
         } else if (v instanceof ValueLobDb) {
             ValueLobDb lob = (ValueLobDb) v;
@@ -437,25 +438,25 @@ public class Recover extends Tool implements DataHandler {
                 int type = lob.getType();
                 long id = lob.getLobId();
                 long precision = lob.getPrecision();
-                String m;
                 String columnType;
                 if (type == Value.BLOB) {
                     columnType = "BLOB";
-                    m = "READ_BLOB";
+                    builder.append("READ_BLOB");
                 } else {
                     columnType = "CLOB";
-                    m = "READ_CLOB";
+                    builder.append("READ_CLOB");
                 }
                 if (lobMaps) {
-                    m += "_MAP";
+                    builder.append("_MAP");
                 } else {
-                    m += "_DB";
+                    builder.append("_DB");
                 }
                 columnTypeMap.put(column, columnType);
-                return m + "(" + id + ", " + precision + ")";
+                builder.append('(').append(id).append(", ").append(precision).append(')');
+                return;
             }
         }
-        return v.getSQL();
+        v.getSQL(builder);
     }
 
     private void setDatabaseName(String name) {
@@ -666,9 +667,11 @@ public class Recover extends Tool implements DataHandler {
                     if (!init) {
                         setStorage(Integer.parseInt(tableId));
                         // init the column types
+                        StringBuilder builder = new StringBuilder();
                         for (valueId = 0; valueId < recordLength; valueId++) {
                             String columnName = storageName + "." + valueId;
-                            getSQL(columnName, values[valueId]);
+                            builder.setLength(0);
+                            getSQL(builder, columnName, values[valueId]);
                         }
                         createTemporaryTable(writer);
                         init = true;
@@ -681,7 +684,7 @@ public class Recover extends Tool implements DataHandler {
                             buff.append(", ");
                         }
                         String columnName = storageName + "." + valueId;
-                        buff.append(getSQL(columnName, values[valueId]));
+                        getSQL(buff, columnName, values[valueId]);
                     }
                     buff.append(");");
                     writer.println(buff.toString());
@@ -1497,7 +1500,7 @@ public class Recover extends Tool implements DataHandler {
                     sb.append(", ");
                 }
                 String columnName = storageName + "." + valueId;
-                sb.append(getSQL(columnName, v));
+                getSQL(sb, columnName, v);
             } catch (Exception e) {
                 writeDataError(writer, "exception " + e, s.getBytes());
             } catch (OutOfMemoryError e) {

@@ -337,11 +337,6 @@ public class TestCustomDataTypesHandler extends TestDb {
         }
 
         @Override
-        public String getSQL() {
-            return val.toString();
-        }
-
-        @Override
         public StringBuilder getSQL(StringBuilder builder) {
             return builder.append(val.toString());
         }

@@ -1485,7 +1485,7 @@ public abstract class Value {
      * @return the SQL expression
      */
     public String getTraceSQL() {
-        return getSQL();
+        return getSQL(new StringBuilder()).toString();
     }
 
     @Override

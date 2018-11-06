@@ -34,11 +34,6 @@ public class ValueString extends Value {
     }
 
     @Override
-    public String getSQL() {
-        return StringUtils.quoteStringSQL(value);
-    }
-
-    @Override
     public StringBuilder getSQL(StringBuilder builder) {
         return builder.append(StringUtils.quoteStringSQL(value));
     }

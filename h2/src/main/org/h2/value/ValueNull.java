@@ -49,11 +49,6 @@ public class ValueNull extends Value {
     }
 
     @Override
-    public String getSQL() {
-        return "NULL";
-    }
-
-    @Override
     public StringBuilder getSQL(StringBuilder builder) {
         return builder.append("NULL");
     }

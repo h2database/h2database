@@ -117,11 +117,6 @@ public class ValueDecimal extends Value {
     }
 
     @Override
-    public String getSQL() {
-        return getString();
-    }
-
-    @Override
     public StringBuilder getSQL(StringBuilder builder) {
         return builder.append(getString());
     }

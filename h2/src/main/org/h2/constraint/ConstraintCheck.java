@@ -58,8 +58,8 @@ public class ConstraintCheck extends Constraint {
         if (comment != null) {
             buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
         }
-        buff.append(" CHECK").append(StringUtils.enclose(expr.getSQL()))
-                .append(" NOCHECK");
+        buff.append(" CHECK(");
+        expr.getUnenclosedSQL(buff).append(") NOCHECK");
         return buff.toString();
     }
 

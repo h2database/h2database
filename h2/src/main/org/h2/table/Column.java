@@ -546,20 +546,17 @@ public class Column {
         }
 
         if (defaultExpression != null) {
-            String sql = defaultExpression.getSQL();
-            if (sql != null) {
-                if (isComputed) {
-                    buff.append(" AS ").append(sql);
-                } else if (defaultExpression != null) {
-                    buff.append(" DEFAULT ").append(sql);
-                }
+            if (isComputed) {
+                buff.append(" AS ");
+                defaultExpression.getSQL(buff);
+            } else if (defaultExpression != null) {
+                buff.append(" DEFAULT ");
+                defaultExpression.getSQL(buff);
             }
         }
         if (onUpdateExpression != null) {
-            String sql = onUpdateExpression.getSQL();
-            if (sql != null) {
-                buff.append(" ON UPDATE ").append(sql);
-            }
+            buff.append(" ON UPDATE ");
+            onUpdateExpression.getSQL(buff);
         }
         if (!nullable) {
             buff.append(" NOT NULL");

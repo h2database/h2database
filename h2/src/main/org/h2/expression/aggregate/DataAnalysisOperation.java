@@ -351,7 +351,8 @@ public abstract class DataAnalysisOperation extends Expression {
 
     protected StringBuilder appendTailConditions(StringBuilder builder) {
         if (over != null) {
-            builder.append(' ').append(over.getSQL());
+            builder.append(' ');
+            over.getSQL(builder);
         }
         return builder;
     }

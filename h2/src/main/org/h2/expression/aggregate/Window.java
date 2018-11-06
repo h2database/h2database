@@ -203,16 +203,15 @@ public final class Window {
     }
 
     /**
-     * Returns SQL representation.
+     * Appends SQL representation to the specified builder.
      *
-     * @return SQL representation.
-     * @see Expression#getSQL()
+     * @param builder
+     *            string builder
+     * @return the specified string builder
+     * @see Expression#getSQL(StringBuilder)
      */
-    public String getSQL() {
-        if (partitionBy == null && orderBy == null && frame == null) {
-            return "OVER ()";
-        }
-        StringBuilder builder = new StringBuilder().append("OVER (");
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append("OVER (");
         if (partitionBy != null) {
             builder.append("PARTITION BY ");
             for (int i = 0; i < partitionBy.size(); i++) {
@@ -227,9 +226,9 @@ public final class Window {
             if (builder.charAt(builder.length() - 1) != '(') {
                 builder.append(' ');
             }
-            builder.append(frame.getSQL());
+            frame.getSQL(builder);
         }
-        return builder.append(')').toString();
+        return builder.append(')');
     }
 
     /**
@@ -256,7 +255,7 @@ public final class Window {
 
     @Override
     public String toString() {
-        return getSQL();
+        return getSQL(new StringBuilder()).toString();
     }
 
 }

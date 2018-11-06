@@ -827,7 +827,8 @@ public class Aggregate extends AbstractAggregate {
             builder.append("(DISTINCT ");
             on.getSQL(builder).append(')');
         } else {
-            builder.append(StringUtils.enclose(on.getSQL()));
+            builder.append('(');
+            on.getUnenclosedSQL(builder).append(')');
         }
         return appendTailConditions(builder);
     }

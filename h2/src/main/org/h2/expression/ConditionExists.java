@@ -41,8 +41,10 @@ public class ConditionExists extends Condition {
     }
 
     @Override
-    public String getSQL() {
-        return "EXISTS(\n" + StringUtils.indent(query.getPlanSQL(), 4, false) + ")";
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append("EXISTS(\n");
+        builder.append(StringUtils.indent(query.getPlanSQL(), 4, false));
+        return builder.append(')');
     }
 
     @Override

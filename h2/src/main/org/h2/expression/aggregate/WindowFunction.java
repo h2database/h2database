@@ -515,15 +515,15 @@ public class WindowFunction extends DataAnalysisOperation {
     }
 
     @Override
-    public String getSQL() {
+    public StringBuilder getSQL(StringBuilder builder) {
         String name = type.getSQL();
-        StringBuilder builder = new StringBuilder().append(name).append('(');
+        builder.append(name).append('(');
         if (args != null) {
             for (int i = 0, numArgs = args.length; i < numArgs; i++) {
                 if (i > 0) {
                     builder.append(", ");
                 }
-                builder.append(args[i].getSQL());
+                args[i].getSQL(builder);
             }
         }
         builder.append(')');
@@ -542,7 +542,7 @@ public class WindowFunction extends DataAnalysisOperation {
             default:
             }
         }
-        return appendTailConditions(builder).toString();
+        return appendTailConditions(builder);
     }
 
     @Override

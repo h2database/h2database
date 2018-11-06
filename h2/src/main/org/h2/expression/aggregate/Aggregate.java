@@ -729,39 +729,40 @@ public class Aggregate extends AbstractAggregate {
         return displaySize;
     }
 
-    private String getSQLGroupConcat() {
-        StringBuilder buff = new StringBuilder("GROUP_CONCAT(");
+    private StringBuilder getSQLGroupConcat(StringBuilder builder) {
+        builder.append("GROUP_CONCAT(");
         if (distinct) {
-            buff.append("DISTINCT ");
+            builder.append("DISTINCT ");
         }
-        buff.append(on.getSQL());
-        Window.appendOrderBy(buff, orderByList);
+        on.getSQL(builder);
+        Window.appendOrderBy(builder, orderByList);
         if (groupConcatSeparator != null) {
-            buff.append(" SEPARATOR ").append(groupConcatSeparator.getSQL());
+            builder.append(" SEPARATOR ");
+            groupConcatSeparator.getSQL(builder);
         }
-        buff.append(')');
-        return appendTailConditions(buff).toString();
+        builder.append(')');
+        return appendTailConditions(builder);
     }
 
-    private String getSQLArrayAggregate() {
-        StringBuilder buff = new StringBuilder("ARRAY_AGG(");
+    private StringBuilder getSQLArrayAggregate(StringBuilder builder) {
+        builder.append("ARRAY_AGG(");
         if (distinct) {
-            buff.append("DISTINCT ");
+            builder.append("DISTINCT ");
         }
-        buff.append(on.getSQL());
-        Window.appendOrderBy(buff, orderByList);
-        buff.append(')');
-        return appendTailConditions(buff).toString();
+        on.getSQL(builder);
+        Window.appendOrderBy(builder, orderByList);
+        builder.append(')');
+        return appendTailConditions(builder);
     }
 
     @Override
-    public String getSQL() {
+    public StringBuilder getSQL(StringBuilder builder) {
         String text;
         switch (type) {
         case GROUP_CONCAT:
-            return getSQLGroupConcat();
+            return getSQLGroupConcat(builder);
         case COUNT_ALL:
-            return appendTailConditions(new StringBuilder().append("COUNT(*)")).toString();
+            return appendTailConditions(builder.append("COUNT(*)"));
         case COUNT:
             text = "COUNT";
             break;
@@ -811,7 +812,7 @@ public class Aggregate extends AbstractAggregate {
             text = "MEDIAN";
             break;
         case ARRAY_AGG:
-            return getSQLArrayAggregate();
+            return getSQLArrayAggregate(builder);
         case MODE:
             text = "MODE";
             break;
@@ -821,13 +822,14 @@ public class Aggregate extends AbstractAggregate {
         default:
             throw DbException.throwInternalError("type=" + type);
         }
-        StringBuilder builder = new StringBuilder().append(text);
+        builder.append(text);
         if (distinct) {
-            builder.append("(DISTINCT ").append(on.getSQL()).append(')');
+            builder.append("(DISTINCT ");
+            on.getSQL(builder).append(')');
         } else {
             builder.append(StringUtils.enclose(on.getSQL()));
         }
-        return appendTailConditions(builder).toString();
+        return appendTailConditions(builder);
     }
 
     private Index getMinMaxColumnIndex() {

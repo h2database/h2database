@@ -42,19 +42,20 @@ public class ConditionAndOr extends Condition {
     }
 
     @Override
-    public String getSQL() {
-        String sql;
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append('(');
+        left.getSQL(builder);
         switch (andOrType) {
         case AND:
-            sql = left.getSQL() + "\n    AND " + right.getSQL();
+            builder.append("\n    AND ");
             break;
         case OR:
-            sql = left.getSQL() + "\n    OR " + right.getSQL();
+            builder.append("\n    OR ");
             break;
         default:
             throw DbException.throwInternalError("andOrType=" + andOrType);
         }
-        return "(" + sql + ")";
+        return right.getSQL(builder).append(')');
     }
 
     @Override

@@ -9,7 +9,6 @@ import org.h2.engine.Session;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 
@@ -85,16 +84,18 @@ public class ExpressionList extends Expression {
     }
 
     @Override
-    public String getSQL() {
-        StatementBuilder buff = new StatementBuilder("(");
-        for (Expression e: list) {
-            buff.appendExceptFirst(", ");
-            buff.append(e.getSQL());
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append('(');
+        for (int i = 0; i < list.length; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            list[i].getSQL(builder);
         }
         if (list.length == 1) {
-            buff.append(',');
+            builder.append(',');
         }
-        return buff.append(')').toString();
+        return builder.append(')');
     }
 
     @Override

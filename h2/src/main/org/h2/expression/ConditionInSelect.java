@@ -129,23 +129,21 @@ public class ConditionInSelect extends Condition {
     }
 
     @Override
-    public String getSQL() {
-        StringBuilder buff = new StringBuilder();
-        buff.append('(').append(left.getSQL()).append(' ');
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append('(');
+        left.getSQL(builder).append(' ');
         if (all) {
-            buff.append(Comparison.getCompareOperator(compareType)).
+            builder.append(Comparison.getCompareOperator(compareType)).
                 append(" ALL");
         } else {
             if (compareType == Comparison.EQUAL) {
-                buff.append("IN");
+                builder.append("IN");
             } else {
-                buff.append(Comparison.getCompareOperator(compareType)).
+                builder.append(Comparison.getCompareOperator(compareType)).
                     append(" ANY");
             }
         }
-        buff.append("(\n").append(StringUtils.indent(query.getPlanSQL(), 4, false)).
-            append("))");
-        return buff.toString();
+        return builder.append("(\n").append(StringUtils.indent(query.getPlanSQL(), 4, false)).append("))");
     }
 
     @Override

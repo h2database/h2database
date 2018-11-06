@@ -62,7 +62,8 @@ public class WindowFrameBound {
      */
     public String getSQL(boolean following) {
         if (type == WindowFrameBoundType.PRECEDING || type == WindowFrameBoundType.FOLLOWING) {
-            return value.getSQL() + ' ' + type.getSQL();
+            StringBuilder builder = new StringBuilder();
+            return value.getSQL(builder).append(' ').append(type.getSQL()).toString();
         }
         return type.getSQL();
     }

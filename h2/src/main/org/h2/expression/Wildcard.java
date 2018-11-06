@@ -116,8 +116,7 @@ public class Wildcard extends Expression {
     }
 
     @Override
-    public String getSQL() {
-        StringBuilder builder = new StringBuilder();
+    public StringBuilder getSQL(StringBuilder builder) {
         if (table != null) {
             builder.append(StringUtils.quoteIdentifier(table)).append('.');
         }
@@ -128,12 +127,11 @@ public class Wildcard extends Expression {
                 if (i > 0) {
                     builder.append(", ");
                 }
-                ExpressionColumn ec = exceptColumns.get(i);
-                builder.append(ec.getSQL());
+                exceptColumns.get(i).getSQL(builder);
             }
             builder.append(')');
         }
-        return builder.toString();
+        return builder;
     }
 
     @Override

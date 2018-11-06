@@ -422,7 +422,7 @@ public abstract class Prepared {
         for (Expression e : list) {
             buff.appendExceptFirst(", ");
             if (e != null) {
-                buff.append(e.getSQL());
+                e.getSQL(buff.builder());
             }
         }
         return buff.toString();

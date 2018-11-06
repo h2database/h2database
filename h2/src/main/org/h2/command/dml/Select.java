@@ -1327,7 +1327,7 @@ public class Select extends Query {
                 buff.append(" ON(");
                 for (Expression distinctExpression: distinctExpressions) {
                     buff.appendExceptFirst(", ");
-                    buff.append(distinctExpression.getSQL());
+                    distinctExpression.getSQL(buff.builder());
                 }
                 buff.append(')');
                 buff.resetCount();

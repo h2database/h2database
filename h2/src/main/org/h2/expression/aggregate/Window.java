@@ -49,7 +49,7 @@ public final class Window {
                 if (i > 0) {
                     builder.append(", ");
                 }
-                builder.append(o.expression.getSQL());
+                o.expression.getSQL(builder);
                 SortOrder.typeToString(builder, o.sortType);
             }
         }

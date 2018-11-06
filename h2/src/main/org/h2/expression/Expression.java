@@ -110,7 +110,22 @@ public abstract class Expression {
      *
      * @return the SQL statement
      */
-    public abstract String getSQL();
+    public String getSQL() {
+        StringBuilder builder = new StringBuilder();
+        getSQL(builder);
+        return builder.toString();
+    }
+
+    /**
+     * Appends the SQL statement of this expression to the specified builder.
+     * This may not always be the original SQL statement, specially after
+     * optimization.
+     *
+     * @param builder
+     *            string builder
+     * @return the specified string builder
+     */
+    public abstract StringBuilder getSQL(StringBuilder builder);
 
     /**
      * Update an aggregate value. This method is called at statement execution

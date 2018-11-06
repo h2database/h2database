@@ -30,8 +30,8 @@ public class Parameter extends Expression implements ParameterInterface {
     }
 
     @Override
-    public String getSQL() {
-        return "?" + (index + 1);
+    public StringBuilder getSQL(StringBuilder builder) {
+        return builder.append('?').append(index + 1);
     }
 
     @Override

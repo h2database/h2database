@@ -11,7 +11,6 @@ import org.h2.engine.FunctionAlias;
 import org.h2.engine.Session;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.StatementBuilder;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -89,21 +88,22 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     @Override
-    public String getSQL() {
-        StatementBuilder buff = new StatementBuilder();
+    public StringBuilder getSQL(StringBuilder builder) {
         // TODO always append the schema once FUNCTIONS_IN_SCHEMA is enabled
         if (functionAlias.getDatabase().getSettings().functionsInSchema ||
                 !functionAlias.getSchema().getName().equals(Constants.SCHEMA_MAIN)) {
-            buff.append(
+            builder.append(
                     Parser.quoteIdentifier(functionAlias.getSchema().getName()))
                     .append('.');
         }
-        buff.append(Parser.quoteIdentifier(functionAlias.getName())).append('(');
-        for (Expression e : args) {
-            buff.appendExceptFirst(", ");
-            buff.append(e.getSQL());
+        builder.append(Parser.quoteIdentifier(functionAlias.getName())).append('(');
+        for (int i = 0; i < args.length; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            args[i].getSQL(builder);
         }
-        return buff.append(')').toString();
+        return builder.append(')');
     }
 
     @Override

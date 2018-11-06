@@ -140,8 +140,10 @@ public class ConditionInParameter extends Condition {
     }
 
     @Override
-    public String getSQL() {
-        return '(' + left.getSQL() + " = ANY(" + parameter.getSQL() + "))";
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append('(');
+        left.getSQL(builder).append(" = ANY(");
+        return parameter.getSQL(builder).append("))");
     }
 
     @Override

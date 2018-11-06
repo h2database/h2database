@@ -50,7 +50,6 @@ import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.ToChar;
 import org.h2.util.ToDateParser;
@@ -2582,36 +2581,41 @@ public class Function extends Expression implements FunctionCall {
     }
 
     @Override
-    public String getSQL() {
-        StatementBuilder buff = new StatementBuilder(info.name);
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append(info.name);
         if (info.type == CASE) {
             if (args[0] != null) {
-                buff.append(' ').append(args[0].getSQL());
+                builder.append(' ');
+                args[0].getSQL(builder);
             }
             for (int i = 1, len = args.length - 1; i < len; i += 2) {
-                buff.append(" WHEN ").append(args[i].getSQL());
-                buff.append(" THEN ").append(args[i + 1].getSQL());
+                builder.append(" WHEN ");
+                args[i].getSQL(builder);
+                builder.append(" THEN ");
+                args[i + 1].getSQL(builder);
             }
             if (args.length % 2 == 0) {
-                buff.append(" ELSE ").append(args[args.length - 1].getSQL());
+                builder.append(" ELSE ");
+                args[args.length - 1].getSQL(builder);
             }
-            return buff.append(" END").toString();
+            return builder.append(" END");
         }
-        buff.append('(');
+        builder.append('(');
         switch (info.type) {
         case CAST: {
-            buff.append(args[0].getSQL()).append(" AS ").
+            args[0].getSQL(builder).append(" AS ").
                 append(new Column(null, dataType, precision,
                         scale, displaySize, extTypeInfo).getCreateSQL());
             break;
         }
         case CONVERT: {
             if (database.getMode().swapConvertFunctionParameters) {
-                buff.append(new Column(null, dataType, precision,
+                builder.append(new Column(null, dataType, precision,
                         scale, displaySize).getCreateSQL()).
-                    append(',').append(args[0].getSQL());
+                    append(',');
+                args[0].getSQL(builder);
             } else {
-                buff.append(args[0].getSQL()).append(',').
+                args[0].getSQL(builder).append(',').
                     append(new Column(null, dataType, precision,
                         scale, displaySize).getCreateSQL());
             }
@@ -2619,17 +2623,20 @@ public class Function extends Expression implements FunctionCall {
         }
         case EXTRACT: {
             ValueString v = (ValueString) ((ValueExpression) args[0]).getValue(null);
-            buff.append(v.getString()).append(" FROM ").append(args[1].getSQL());
+            builder.append(v.getString()).append(" FROM ");
+            args[1].getSQL(builder);
             break;
         }
         default: {
-            for (Expression e : args) {
-                buff.appendExceptFirst(", ");
-                buff.append(e.getSQL());
+            for (int i = 0; i < args.length; i++) {
+                if (i > 0) {
+                    builder.append(", ");
+                }
+                args[i].getSQL(builder);
             }
         }
         }
-        return buff.append(')').toString();
+        return builder.append(')');
     }
 
     @Override

@@ -143,6 +143,16 @@ public class ValueExpression extends Expression {
     }
 
     @Override
+    public StringBuilder getSQL(StringBuilder builder) {
+        if (this == DEFAULT) {
+            builder.append("DEFAULT");
+        } else {
+            builder.append(value.getSQL());
+        }
+        return builder;
+    }
+
+    @Override
     public void updateAggregate(Session session, int stage) {
         // nothing to do
     }

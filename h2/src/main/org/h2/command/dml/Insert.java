@@ -421,7 +421,8 @@ public class Insert extends Prepared implements ResultTarget {
         for (Column column : duplicateKeyAssignmentMap.keySet()) {
             buff.appendExceptFirst(", ");
             Expression ex = duplicateKeyAssignmentMap.get(column);
-            buff.append(column.getSQL()).append('=').append(ex.getSQL());
+            buff.append(column.getSQL()).append('=');
+            ex.getSQL(buff.builder());
         }
         buff.append(" WHERE ");
         Index foundIndex = (Index) de.getSource();
@@ -429,7 +430,7 @@ public class Insert extends Prepared implements ResultTarget {
             throw DbException.getUnsupportedException(
                     "Unable to apply ON DUPLICATE KEY UPDATE, no index found!");
         }
-        buff.append(prepareUpdateCondition(foundIndex, row).getSQL());
+        prepareUpdateCondition(foundIndex, row).getSQL(buff.builder());
         String sql = buff.toString();
         Update command = (Update) session.prepare(sql);
         command.setUpdateToCurrentValuesReturnsZero(true);

@@ -202,7 +202,7 @@ public class IndexCondition {
             buff.append(" IN(");
             for (Expression e : expressionList) {
                 buff.appendExceptFirst(", ");
-                buff.append(e.getSQL());
+                e.getSQL(buff.builder());
             }
             buff.append(')');
             break;
@@ -218,7 +218,7 @@ public class IndexCondition {
             DbException.throwInternalError("type=" + compareType);
         }
         if (expression != null) {
-            buff.append(expression.getSQL());
+            expression.getSQL(buff.builder());
         }
         return buff.toString();
     }

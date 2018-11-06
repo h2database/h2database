@@ -11,7 +11,6 @@ import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
@@ -152,14 +151,16 @@ public class ConditionIn extends Condition {
     }
 
     @Override
-    public String getSQL() {
-        StatementBuilder buff = new StatementBuilder("(");
-        buff.append(left.getSQL()).append(" IN(");
-        for (Expression e : valueList) {
-            buff.appendExceptFirst(", ");
-            buff.append(e.getSQL());
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append('(');
+        left.getSQL(builder).append(" IN(");
+        for (int i = 0; i < valueList.size(); i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            valueList.get(i).getSQL(builder);
         }
-        return buff.append("))").toString();
+        return builder.append("))");
     }
 
     @Override

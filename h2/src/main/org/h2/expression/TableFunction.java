@@ -52,7 +52,8 @@ public class TableFunction extends Function {
         int i = 0;
         for (Expression e : args) {
             buff.appendExceptFirst(", ");
-            buff.append(columnList[i++].getCreateSQL()).append('=').append(e.getSQL());
+            buff.append(columnList[i++].getCreateSQL()).append('=');
+            e.getSQL(buff.builder());
         }
         return buff.append(')').toString();
     }

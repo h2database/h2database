@@ -222,7 +222,8 @@ public class Update extends Prepared {
         for (Column c : columns) {
             Expression e = expressionMap.get(c);
             buff.appendExceptFirst(",\n    ");
-            buff.append(c.getName()).append(" = ").append(e.getSQL());
+            buff.append(c.getName()).append(" = ");
+            e.getSQL(buff.builder());
         }
         if (condition != null) {
             buff.append("\nWHERE ").append(StringUtils.unEnclose(condition.getSQL()));

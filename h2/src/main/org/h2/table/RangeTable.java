@@ -72,11 +72,15 @@ public class RangeTable extends Table {
 
     @Override
     public String getSQL() {
-        String sql = NAME + "(" + min.getSQL() + ", " + max.getSQL();
+        StringBuilder builder = new StringBuilder();
+        builder.append(NAME).append('(');
+        min.getSQL(builder).append(", ");
+        max.getSQL(builder);
         if (step != null) {
-            sql += ", " + step.getSQL();
+            builder.append(", ");
+            step.getSQL(builder);
         }
-        return sql + ")";
+        return builder.append(')').toString();
     }
 
     @Override

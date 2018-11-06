@@ -47,8 +47,8 @@ public class ValueStringIgnoreCase extends ValueString {
     }
 
     @Override
-    public String getSQL() {
-        return "CAST(" + StringUtils.quoteStringSQL(value) + " AS VARCHAR_IGNORECASE)";
+    public StringBuilder getSQL(StringBuilder builder) {
+        return builder.append("CAST(").append(StringUtils.quoteStringSQL(value)).append(" AS VARCHAR_IGNORECASE)");
     }
 
     /**

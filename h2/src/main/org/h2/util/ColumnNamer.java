@@ -57,56 +57,43 @@ public class ColumnNamer {
      */
     public String getColumnName(Expression columnExp, int indexOfColumn, String columnNameOverride) {
         // try a name from the column name override
-        String columnName = null;
-        if (columnNameOverride != null) {
-            columnName = columnNameOverride;
-            if (!isAllowableColumnName(columnName)) {
-                columnName = fixColumnName(columnName);
-            }
-            if (!isAllowableColumnName(columnName)) {
-                columnName = null;
-            }
-        }
-        // try a name from the column alias
-        if (columnName == null && columnExp.getAlias() != null && !DEFAULT_COLUMN_NAME.equals(columnExp.getAlias())) {
-            columnName = columnExp.getAlias();
-            if (!isAllowableColumnName(columnName)) {
-                columnName = fixColumnName(columnName);
-            }
-            if (!isAllowableColumnName(columnName)) {
-                columnName = null;
-            }
-        }
-        // try a name derived from the column expression SQL
-        if (columnName == null && columnExp.getColumnName() != null
-                && !DEFAULT_COLUMN_NAME.equals(columnExp.getColumnName())) {
-            columnName = columnExp.getColumnName();
-            if (!isAllowableColumnName(columnName)) {
-                columnName = fixColumnName(columnName);
-            }
-            if (!isAllowableColumnName(columnName)) {
-                columnName = null;
-            }
-        }
-        // try a name derived from the column expression plan SQL
-        if (columnName == null && columnExp.getSQL() != null && !DEFAULT_COLUMN_NAME.equals(columnExp.getSQL())) {
-            columnName = columnExp.getSQL();
-            if (!isAllowableColumnName(columnName)) {
-                columnName = fixColumnName(columnName);
-            }
-            if (!isAllowableColumnName(columnName)) {
-                columnName = null;
-            }
-        }
-        // go with a innocuous default name pattern
+        String columnName = getColumnName(columnNameOverride, null);
         if (columnName == null) {
-            columnName = configuration.getDefaultColumnNamePattern()
-                    .replace("$$", Integer.toString(indexOfColumn + 1));
+            // try a name from the column alias
+            columnName = getColumnName(columnExp.getAlias(), DEFAULT_COLUMN_NAME);
+            if (columnName == null) {
+                // try a name derived from the column expression SQL
+                columnName = getColumnName(columnExp.getColumnName(), DEFAULT_COLUMN_NAME);
+                if (columnName == null) {
+                    // try a name derived from the column expression plan SQL
+                    columnName = getColumnName(columnExp.getSQL(), DEFAULT_COLUMN_NAME);
+                    // go with a innocuous default name pattern
+                    if (columnName == null) {
+                        columnName = configuration.getDefaultColumnNamePattern()
+                                .replace("$$", Integer.toString(indexOfColumn + 1));
+                    }
+                }
+            }
         }
         if (existingColumnNames.contains(columnName) && configuration.isGenerateUniqueColumnNames()) {
             columnName = generateUniqueName(columnName);
         }
         existingColumnNames.add(columnName);
+        return columnName;
+    }
+
+    private String getColumnName(String proposedName, String disallowedName) {
+        String columnName = null;
+        if (proposedName != null && !proposedName.equals(disallowedName)) {
+            if (isAllowableColumnName(proposedName)) {
+                columnName = proposedName;
+            } else {
+                proposedName = fixColumnName(proposedName);
+                if (isAllowableColumnName(proposedName)) {
+                    columnName = proposedName;
+                }
+            }
+        }
         return columnName;
     }
 

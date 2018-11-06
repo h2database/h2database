@@ -462,14 +462,20 @@ public class ValueLobDb extends Value {
 
     @Override
     public String getSQL() {
-        String s;
         if (valueType == Value.CLOB) {
-            s = getString();
-            return StringUtils.quoteStringSQL(s);
+            return StringUtils.quoteStringSQL(getString());
         }
-        byte[] buff = getBytes();
-        s = StringUtils.convertBytesToHex(buff);
-        return "X'" + s + "'";
+        return "X'" + StringUtils.convertBytesToHex(getBytes()) + '\'';
+    }
+
+    @Override
+    public StringBuilder getSQL(StringBuilder builder) {
+        if (valueType == Value.CLOB) {
+            builder.append(StringUtils.quoteStringSQL(getString()));
+        } else {
+            builder.append("X'").append(StringUtils.convertBytesToHex(getBytes())).append('\'');
+        }
+        return builder;
     }
 
     @Override

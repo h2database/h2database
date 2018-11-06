@@ -422,10 +422,10 @@ public class ScriptCommand extends ScriptBase {
                         id = writeLobStream(v);
                         buff.append("SYSTEM_COMBINE_BLOB(").append(id).append(')');
                     } else {
-                        buff.append(v.getSQL());
+                        v.getSQL(buff.builder());
                     }
                 } else {
-                    buff.append(v.getSQL());
+                    v.getSQL(buff.builder());
                 }
             }
             buff.append(')');

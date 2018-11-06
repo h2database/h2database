@@ -1511,18 +1511,17 @@ public class DateTimeUtils {
     /**
      * Formats timestamp with time zone as string.
      *
+     * @param buff the target string builder
      * @param dateValue the year-month-day bit field
      * @param timeNanos nanoseconds since midnight
      * @param timeZoneOffsetMins the time zone offset in minutes
-     * @return formatted string
      */
-    public static String timestampTimeZoneToString(long dateValue, long timeNanos, short timeZoneOffsetMins) {
-        StringBuilder buff = new StringBuilder(ValueTimestampTimeZone.MAXIMUM_PRECISION);
+    public static void appendTimestampTimeZone(StringBuilder buff, long dateValue, long timeNanos,
+            short timeZoneOffsetMins) {
         appendDate(buff, dateValue);
         buff.append(' ');
         appendTime(buff, timeNanos);
         appendTimeZone(buff, timeZoneOffsetMins);
-        return buff.toString();
     }
 
     /**

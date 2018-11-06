@@ -510,7 +510,8 @@ public class TableLink extends Table {
                             int i = 1;
                             for (Value v : params) {
                                 buff.appendExceptFirst(", ");
-                                buff.append(i++).append(": ").append(v.getSQL());
+                                buff.append(i++).append(": ");
+                                v.getSQL(buff.builder());
                             }
                             buff.append('}');
                         }

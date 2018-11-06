@@ -147,7 +147,7 @@ public class ValueExpression extends Expression {
         if (this == DEFAULT) {
             builder.append("DEFAULT");
         } else {
-            builder.append(value.getSQL());
+            value.getSQL(builder);
         }
         return builder;
     }

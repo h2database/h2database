@@ -99,6 +99,11 @@ public class ValueEnumBase extends Value {
     }
 
     @Override
+    public StringBuilder getSQL(StringBuilder builder) {
+        return builder.append(StringUtils.quoteStringSQL(label));
+    }
+
+    @Override
     public String getString() {
         return label;
     }

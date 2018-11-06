@@ -188,8 +188,12 @@ public class ValueTimestamp extends Value {
     }
 
     @Override
-    public String getSQL() {
-        return "TIMESTAMP '" + getString() + "'";
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append("TIMESTAMP '");
+        DateTimeUtils.appendDate(builder, dateValue);
+        builder.append(' ');
+        DateTimeUtils.appendTime(builder, timeNanos);
+        return builder.append('\'');
     }
 
     @Override

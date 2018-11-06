@@ -111,9 +111,7 @@ public abstract class Expression {
      * @return the SQL statement
      */
     public String getSQL() {
-        StringBuilder builder = new StringBuilder();
-        getSQL(builder);
-        return builder.toString();
+        return getSQL(new StringBuilder()).toString();
     }
 
     /**

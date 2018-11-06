@@ -39,6 +39,11 @@ public class ValueString extends Value {
     }
 
     @Override
+    public StringBuilder getSQL(StringBuilder builder) {
+        return builder.append(StringUtils.quoteStringSQL(value));
+    }
+
+    @Override
     public boolean equals(Object other) {
         return other instanceof ValueString
                 && value.equals(((ValueString) other).value);

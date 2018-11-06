@@ -98,8 +98,10 @@ public class ValueDate extends Value {
     }
 
     @Override
-    public String getSQL() {
-        return "DATE '" + getString() + "'";
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append("DATE '");
+        DateTimeUtils.appendDate(builder, dateValue);
+        return builder.append('\'');
     }
 
     @Override

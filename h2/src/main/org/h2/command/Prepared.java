@@ -405,7 +405,7 @@ public abstract class Prepared {
         for (Value v : values) {
             buff.appendExceptFirst(", ");
             if (v != null) {
-                buff.append(v.getSQL());
+                v.getSQL(buff.builder());
             }
         }
         return buff.toString();

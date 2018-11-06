@@ -155,16 +155,19 @@ public class ValueArray extends Value {
     }
 
     @Override
-    public String getSQL() {
-        StatementBuilder buff = new StatementBuilder("(");
-        for (Value v : values) {
-            buff.appendExceptFirst(", ");
-            buff.append(v.getSQL());
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append('(');
+        int length = values.length;
+        for (int i = 0; i < length; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            values[i].getSQL(builder);
         }
-        if (values.length == 1) {
-            buff.append(',');
+        if (length == 1) {
+            builder.append(',');
         }
-        return buff.append(')').toString();
+        return builder.append(')');
     }
 
     @Override

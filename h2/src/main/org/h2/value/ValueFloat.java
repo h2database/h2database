@@ -98,10 +98,23 @@ public class ValueFloat extends Value {
         } else if (value == Float.NEGATIVE_INFINITY) {
             return "(-POWER(0, -1))";
         } else if (Float.isNaN(value)) {
-            // NaN
             return "SQRT(-1)";
         }
-        return getString();
+        return Float.toString(value);
+    }
+
+    @Override
+    public StringBuilder getSQL(StringBuilder builder) {
+        if (value == Float.POSITIVE_INFINITY) {
+            builder.append("POWER(0, -1)");
+        } else if (value == Float.NEGATIVE_INFINITY) {
+            builder.append("(-POWER(0, -1))");
+        } else if (Float.isNaN(value)) {
+            builder.append("SQRT(-1)");
+        } else {
+            builder.append(value);
+        }
+        return builder;
     }
 
     @Override

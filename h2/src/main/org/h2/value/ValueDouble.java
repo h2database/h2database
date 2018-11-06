@@ -104,6 +104,20 @@ public class ValueDouble extends Value {
     }
 
     @Override
+    public StringBuilder getSQL(StringBuilder builder) {
+        if (value == Double.POSITIVE_INFINITY) {
+            builder.append("POWER(0, -1)");
+        } else if (value == Double.NEGATIVE_INFINITY) {
+            builder.append("(-POWER(0, -1))");
+        } else if (Double.isNaN(value)) {
+            builder.append("SQRT(-1)");
+        } else {
+            builder.append(value);
+        }
+        return builder;
+    }
+
+    @Override
     public int getType() {
         return Value.DOUBLE;
     }

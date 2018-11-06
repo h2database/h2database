@@ -991,7 +991,7 @@ public class Recover extends Tool implements DataHandler {
                                     append(" VALUES(");
                             for (int i = 0; i < row.getColumnCount(); i++) {
                                 buff.appendExceptFirst(", ");
-                                buff.append(row.getValue(i).getSQL());
+                                row.getValue(i).getSQL(buff.builder());
                             }
                             buff.append(");");
                             writer.println(buff.toString());

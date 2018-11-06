@@ -126,8 +126,9 @@ public class ValueUuid extends Value {
     }
 
     @Override
-    public String getSQL() {
-        return StringUtils.quoteStringSQL(getString());
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append('\'');
+        return addString(builder).append('\'');
     }
 
     @Override
@@ -149,17 +150,20 @@ public class ValueUuid extends Value {
 
     @Override
     public String getString() {
-        StringBuilder buff = new StringBuilder(36);
-        appendHex(buff, high >> 32, 4);
-        buff.append('-');
-        appendHex(buff, high >> 16, 2);
-        buff.append('-');
-        appendHex(buff, high, 2);
-        buff.append('-');
-        appendHex(buff, low >> 48, 2);
-        buff.append('-');
-        appendHex(buff, low, 6);
-        return buff.toString();
+        return addString(new StringBuilder(36)).toString();
+    }
+
+    private StringBuilder addString(StringBuilder builder) {
+        appendHex(builder, high >> 32, 4);
+        builder.append('-');
+        appendHex(builder, high >> 16, 2);
+        builder.append('-');
+        appendHex(builder, high, 2);
+        builder.append('-');
+        appendHex(builder, low >> 48, 2);
+        builder.append('-');
+        appendHex(builder, low, 6);
+        return builder;
     }
 
     @Override

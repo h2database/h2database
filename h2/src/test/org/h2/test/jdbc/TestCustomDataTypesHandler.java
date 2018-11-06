@@ -342,6 +342,11 @@ public class TestCustomDataTypesHandler extends TestDb {
         }
 
         @Override
+        public StringBuilder getSQL(StringBuilder builder) {
+            return builder.append(val.toString());
+        }
+
+        @Override
         public int getType() {
             return TestOnlyCustomDataTypesHandler.COMPLEX_DATA_TYPE_ID;
         }

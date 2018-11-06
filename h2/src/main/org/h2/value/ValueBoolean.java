@@ -51,6 +51,11 @@ public class ValueBoolean extends Value {
     }
 
     @Override
+    public StringBuilder getSQL(StringBuilder builder) {
+        return builder.append(getString());
+    }
+
+    @Override
     public String getString() {
         return value ? "TRUE" : "FALSE";
     }

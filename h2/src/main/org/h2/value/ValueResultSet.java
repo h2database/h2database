@@ -171,6 +171,11 @@ public class ValueResultSet extends Value {
     }
 
     @Override
+    public StringBuilder getSQL(StringBuilder builder) {
+        return builder;
+    }
+
+    @Override
     public Value convertPrecision(long precision, boolean force) {
         if (!force) {
             return this;

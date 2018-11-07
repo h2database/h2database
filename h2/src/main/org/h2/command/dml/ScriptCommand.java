@@ -471,7 +471,7 @@ public class ScriptCommand extends ScriptBase {
                     if (len <= 0) {
                         break;
                     }
-                    buff.append(StringUtils.convertBytesToHex(bytes, len)).append("')");
+                    StringUtils.convertBytesToHex(buff, bytes, len).append("')");
                     String sql = buff.toString();
                     add(sql, true);
                 }

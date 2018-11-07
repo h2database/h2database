@@ -1058,6 +1058,34 @@ public class StringUtils {
     }
 
     /**
+     * Convert a byte array to a hex encoded string and appends it to a specified string builder.
+     *
+     * @param builder string builder to append to
+     * @param value the byte array
+     * @return the hex encoded string
+     */
+    public static StringBuilder convertBytesToHex(StringBuilder builder, byte[] value) {
+        return convertBytesToHex(builder, value, value.length);
+    }
+
+    /**
+     * Convert a byte array to a hex encoded string and appends it to a specified string builder.
+     *
+     * @param builder string builder to append to
+     * @param value the byte array
+     * @param len the number of bytes to encode
+     * @return the hex encoded string
+     */
+    public static StringBuilder convertBytesToHex(StringBuilder builder, byte[] value, int len) {
+        char[] hex = HEX;
+        for (int i = 0; i < len; i++) {
+            int c = value[i] & 0xff;
+            builder.append(hex[c >>> 4]).append(hex[c & 0xf]);
+        }
+        return builder;
+    }
+
+    /**
      * Check if this string is a decimal number.
      *
      * @param s the string

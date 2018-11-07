@@ -732,10 +732,11 @@ public class Recover extends Tool implements DataHandler {
             try {
                 for (int seq = 0;; seq++) {
                     int l = IOUtils.readFully(in, block, block.length);
-                    String x = StringUtils.convertBytesToHex(block, l);
                     if (l > 0) {
-                        writer.println("INSERT INTO INFORMATION_SCHEMA.LOB_BLOCKS " +
-                                "VALUES(" + lobId + ", " + seq + ", '" + x + "');");
+                        writer.print("INSERT INTO INFORMATION_SCHEMA.LOB_BLOCKS " +
+                                "VALUES(" + lobId + ", " + seq + ", '");
+                        writer.print(StringUtils.convertBytesToHex(block, l));
+                        writer.println("');");
                     }
                     if (l != len) {
                         break;
@@ -1446,12 +1447,12 @@ public class Recover extends Tool implements DataHandler {
                             byte[] salt = MathUtils.secureRandomBytes(Constants.SALT_LEN);
                             byte[] passwordHash = SHA256.getHashWithSalt(
                                     userPasswordHash, salt);
-                            StringBuilder buff = new StringBuilder();
-                            buff.append("SALT '").
-                                append(StringUtils.convertBytesToHex(salt)).
-                                append("' HASH '").
-                                append(StringUtils.convertBytesToHex(passwordHash)).
-                                append('\'');
+                            StringBuilder buff = new StringBuilder()
+                                    .append("SALT '");
+                            StringUtils.convertBytesToHex(buff, salt)
+                                    .append("' HASH '");
+                            StringUtils.convertBytesToHex(buff, passwordHash)
+                                    .append('\'');
                             byte[] replacement = buff.toString().getBytes();
                             System.arraycopy(replacement, 0, s.getBytes(),
                                     saltIndex, replacement.length);

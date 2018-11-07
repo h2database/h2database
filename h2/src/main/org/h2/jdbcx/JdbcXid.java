@@ -44,8 +44,15 @@ public class JdbcXid extends TraceObject implements Xid {
      * INTERNAL
      */
     public static String toString(Xid xid) {
-        return PREFIX + '_' + xid.getFormatId() + '_' + StringUtils.convertBytesToHex(xid.getBranchQualifier()) + '_'
-                + StringUtils.convertBytesToHex(xid.getGlobalTransactionId());
+        StringBuilder builder = new StringBuilder()
+                .append(PREFIX)
+                .append('_')
+                .append(xid.getFormatId())
+                .append('_');
+        StringUtils.convertBytesToHex(builder, xid.getBranchQualifier())
+                .append('_');
+        StringUtils.convertBytesToHex(builder, xid.getGlobalTransactionId());
+        return builder.toString();
     }
 
     /**

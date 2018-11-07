@@ -465,7 +465,8 @@ public class ValueLobDb extends Value {
         if (valueType == Value.CLOB) {
             StringUtils.quoteStringSQL(builder, getString());
         } else {
-            builder.append("X'").append(StringUtils.convertBytesToHex(getBytes())).append('\'');
+            builder.append("X'");
+            StringUtils.convertBytesToHex(builder, getBytes()).append('\'');
         }
         return builder;
     }

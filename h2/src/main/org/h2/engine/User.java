@@ -163,10 +163,10 @@ public class User extends RightOwner {
             StringUtils.quoteStringSQL(buff, comment);
         }
         if (password) {
-            buff.append(" SALT '").
-                append(StringUtils.convertBytesToHex(salt)).
-                append("' HASH '").
-                append(StringUtils.convertBytesToHex(passwordHash)).
+            buff.append(" SALT '");
+            StringUtils.convertBytesToHex(buff, salt).
+                append("' HASH '");
+            StringUtils.convertBytesToHex(buff, passwordHash).
                 append('\'');
         } else {
             buff.append(" PASSWORD ''");

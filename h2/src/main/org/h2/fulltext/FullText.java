@@ -514,7 +514,10 @@ public class FullText {
             if (data instanceof UUID) {
                 return "'" + data.toString() + "'";
             }
-            return "'" + StringUtils.convertBytesToHex((byte[]) data) + "'";
+            byte[] bytes = (byte[]) data;
+            StringBuilder builder = new StringBuilder(bytes.length * 2 + 2).append('\'');
+            StringUtils.convertBytesToHex(builder, bytes).append('\'');
+            return builder.toString();
         case Types.CLOB:
         case Types.JAVA_OBJECT:
         case Types.OTHER:

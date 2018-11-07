@@ -791,7 +791,8 @@ public class TableFilter implements ColumnResolver {
             return builder;
         }
         if (table.isView() && ((TableView) table).isRecursive()) {
-            builder.append(table.getSchema().getSQL()).append('.').append(Parser.quoteIdentifier(table.getName()));
+            builder.append(table.getSchema().getSQL()).append('.');
+            Parser.quoteIdentifier(builder, table.getName());
         } else {
             builder.append(table.getSQL());
         }
@@ -799,7 +800,8 @@ public class TableFilter implements ColumnResolver {
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, table.getName(), "not compiled");
         }
         if (alias != null) {
-            builder.append(' ').append(Parser.quoteIdentifier(alias));
+            builder.append(' ');
+            Parser.quoteIdentifier(builder, alias);
         }
         if (indexHints != null) {
             builder.append(" USE INDEX (");
@@ -810,7 +812,7 @@ public class TableFilter implements ColumnResolver {
                 } else {
                     first = false;
                 }
-                builder.append(Parser.quoteIdentifier(index));
+                Parser.quoteIdentifier(builder, index);
             }
             builder.append(")");
         }

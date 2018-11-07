@@ -92,11 +92,9 @@ public class JavaFunction extends Expression implements FunctionCall {
         // TODO always append the schema once FUNCTIONS_IN_SCHEMA is enabled
         if (functionAlias.getDatabase().getSettings().functionsInSchema ||
                 !functionAlias.getSchema().getName().equals(Constants.SCHEMA_MAIN)) {
-            builder.append(
-                    Parser.quoteIdentifier(functionAlias.getSchema().getName()))
-                    .append('.');
+            Parser.quoteIdentifier(builder, functionAlias.getSchema().getName()).append('.');
         }
-        builder.append(Parser.quoteIdentifier(functionAlias.getName())).append('(');
+        Parser.quoteIdentifier(builder, functionAlias.getName()).append('(');
         for (int i = 0; i < args.length; i++) {
             if (i > 0) {
                 builder.append(", ");

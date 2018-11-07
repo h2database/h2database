@@ -58,17 +58,27 @@ public class ExpressionColumn extends Expression {
     public StringBuilder getSQL(StringBuilder builder) {
         boolean quote = database.getSettings().databaseToUpper;
         if (schemaName != null) {
-            String s = quote ? Parser.quoteIdentifier(schemaName) : schemaName;
-            builder.append(s).append('.');
+            if (quote) {
+                Parser.quoteIdentifier(builder, schemaName);
+            } else {
+                builder.append(schemaName);
+            }
+            builder.append('.');
         }
         if (tableAlias != null) {
-            String a = quote ? Parser.quoteIdentifier(tableAlias) : tableAlias;
-            builder.append(a).append('.');
+            if (quote) {
+                Parser.quoteIdentifier(builder, tableAlias);
+            } else {
+                builder.append(tableAlias);
+            }
+            builder.append('.');
         }
         if (column != null) {
             builder.append(column.getSQL());
+        } else if (quote) {
+            Parser.quoteIdentifier(builder, columnName);
         } else {
-            builder.append(quote ? Parser.quoteIdentifier(columnName) : columnName);
+            builder.append(columnName);
         }
         return builder;
     }

@@ -772,13 +772,13 @@ public class FullText {
                 if(!multiThread) {
                     buff.append(", ROLLBACK");
                 }
-                buff.append(" ON ").
-                        append(StringUtils.quoteIdentifier(schema)).
-                        append('.').
-                        append(StringUtils.quoteIdentifier(table)).
+                buff.append(" ON ");
+                StringUtils.quoteIdentifier(buff, schema).
+                        append('.');
+                StringUtils.quoteIdentifier(buff, table).
                         append(" FOR EACH ROW CALL \"").
                         append(FullText.FullTextTrigger.class.getName()).
-                        append('\"');
+                        append('"');
                 stat.execute(buff.toString());
             }
         }
@@ -1145,7 +1145,7 @@ public class FullText {
             StatementBuilder buff = new StatementBuilder();
             for (int columnIndex : index.keys) {
                 buff.appendExceptFirst(" AND ");
-                buff.append(StringUtils.quoteIdentifier(index.columns[columnIndex]));
+                StringUtils.quoteIdentifier(buff.builder(), index.columns[columnIndex]);
                 Object o = row[columnIndex];
                 if (o == null) {
                     buff.append(" IS NULL");

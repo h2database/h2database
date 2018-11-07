@@ -392,7 +392,7 @@ public class ScriptCommand extends ScriptBase {
         buff.append(table.getSQL()).append('(');
         for (Column col : columns) {
             buff.appendExceptFirst(", ");
-            buff.append(Parser.quoteIdentifier(col.getName()));
+            Parser.quoteIdentifier(buff.builder(), col.getName());
         }
         buff.append(") VALUES");
         if (!simple) {

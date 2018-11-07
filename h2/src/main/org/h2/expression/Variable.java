@@ -42,7 +42,8 @@ public class Variable extends Expression {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
-        return builder.append('@').append(Parser.quoteIdentifier(name));
+        builder.append('@');
+        return Parser.quoteIdentifier(builder, name);
     }
 
     @Override

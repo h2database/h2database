@@ -568,7 +568,7 @@ public class ConstraintReferential extends Constraint {
         buff.resetCount();
         for (IndexColumn c : columns) {
             buff.appendExceptFirst(" , ");
-            buff.append(Parser.quoteIdentifier(c.column.getName())).append("=?");
+            Parser.quoteIdentifier(buff.builder(), c.column.getName()).append("=?");
         }
     }
 
@@ -577,7 +577,7 @@ public class ConstraintReferential extends Constraint {
         buff.resetCount();
         for (IndexColumn c : columns) {
             buff.appendExceptFirst(" AND ");
-            buff.append(Parser.quoteIdentifier(c.column.getName())).append("=?");
+            Parser.quoteIdentifier(buff.builder(), c.column.getName()).append("=?");
         }
     }
 

@@ -496,7 +496,7 @@ public class Column {
     private String getCreateSQL(boolean includeName) {
         StringBuilder buff = new StringBuilder();
         if (includeName && name != null) {
-            buff.append(Parser.quoteIdentifier(name)).append(' ');
+            Parser.quoteIdentifier(buff, name).append(' ');
         }
         if (originalSQL != null) {
             buff.append(originalSQL);

@@ -79,7 +79,8 @@ public class Alias extends Expression {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
-        return expr.getSQL(builder).append(" AS ").append(Parser.quoteIdentifier(alias));
+        expr.getSQL(builder).append(" AS ");
+        return Parser.quoteIdentifier(builder, alias);
     }
 
     @Override

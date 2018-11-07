@@ -7718,6 +7718,24 @@ public class Parser {
         return StringUtils.quoteIdentifier(s);
     }
 
+    /**
+     * Add double quotes around an identifier if required and appends it to the
+     * specified string builder.
+     *
+     * @param builder string builder to append to
+     * @param s the identifier
+     * @return the specified builder
+     */
+    public static StringBuilder quoteIdentifier(StringBuilder builder, String s) {
+        if (s == null) {
+            return builder.append("\"\"");
+        }
+        if (ParserUtil.isSimpleIdentifier(s)) {
+            return builder.append(s);
+        }
+        return StringUtils.quoteIdentifier(builder, s);
+    }
+
     public void setLiteralsChecked(boolean literalsChecked) {
         this.literalsChecked = literalsChecked;
     }

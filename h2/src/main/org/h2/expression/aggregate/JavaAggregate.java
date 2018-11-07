@@ -68,7 +68,7 @@ public class JavaAggregate extends AbstractAggregate {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
-        builder.append(Parser.quoteIdentifier(userAggregate.getName())).append('(');
+        Parser.quoteIdentifier(builder, userAggregate.getName()).append('(');
         for (int i = 0; i < args.length; i++) {
             if (i > 0) {
                 builder.append(", ");

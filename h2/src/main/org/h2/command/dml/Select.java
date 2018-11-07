@@ -1308,7 +1308,8 @@ public class Select extends Query {
                     // views.
                 } else {
                     buff.append("WITH RECURSIVE ")
-                            .append(t.getSchema().getSQL()).append('.').append(Parser.quoteIdentifier(t.getName()))
+                            .append(t.getSchema().getSQL()).append('.');
+                    Parser.quoteIdentifier(buff.builder(), t.getName())
                             .append('(');
                     buff.resetCount();
                     for (Column c : t.getColumns()) {

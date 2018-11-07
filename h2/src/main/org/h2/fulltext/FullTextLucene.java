@@ -281,19 +281,19 @@ public class FullTextLucene extends FullText {
                 StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
         stat.execute("DROP TRIGGER IF EXISTS " + trigger);
         if (create) {
-            StringBuilder buff = new StringBuilder(
+            StringBuilder builder = new StringBuilder(
                     "CREATE TRIGGER IF NOT EXISTS ");
             // the trigger is also called on rollback because transaction
             // rollback will not undo the changes in the Lucene index
-            buff.append(trigger).
-                append(" AFTER INSERT, UPDATE, DELETE, ROLLBACK ON ").
-                append(StringUtils.quoteIdentifier(schema)).
-                append('.').
-                append(StringUtils.quoteIdentifier(table)).
+            builder.append(trigger).
+                append(" AFTER INSERT, UPDATE, DELETE, ROLLBACK ON ");
+            StringUtils.quoteIdentifier(builder, schema).
+                append('.');
+            StringUtils.quoteIdentifier(builder, table).
                 append(" FOR EACH ROW CALL \"").
                 append(FullTextLucene.FullTextTrigger.class.getName()).
                 append('\"');
-            stat.execute(buff.toString());
+            stat.execute(builder.toString());
         }
     }
 
@@ -679,22 +679,25 @@ public class FullTextLucene extends FullText {
         }
 
         private String getQuery(Object[] row) throws SQLException {
-            StatementBuilder buff = new StatementBuilder();
+            StringBuilder builder = new StringBuilder();
             if (schema != null) {
-                buff.append(StringUtils.quoteIdentifier(schema)).append('.');
+                StringUtils.quoteIdentifier(builder, schema).append('.');
             }
-            buff.append(StringUtils.quoteIdentifier(table)).append(" WHERE ");
-            for (int columnIndex : keys) {
-                buff.appendExceptFirst(" AND ");
-                buff.append(StringUtils.quoteIdentifier(columns[columnIndex]));
+            StringUtils.quoteIdentifier(builder, table).append(" WHERE ");
+            for (int i = 0, length = keys.length; i < length; i++) {
+                if (i > 0) {
+                    builder.append(" AND ");
+                }
+                int columnIndex = keys[i];
+                StringUtils.quoteIdentifier(builder, columns[columnIndex]);
                 Object o = row[columnIndex];
                 if (o == null) {
-                    buff.append(" IS NULL");
+                    builder.append(" IS NULL");
                 } else {
-                    buff.append('=').append(FullText.quoteSQL(o, columnTypes[columnIndex]));
+                    builder.append('=').append(FullText.quoteSQL(o, columnTypes[columnIndex]));
                 }
             }
-            return buff.toString();
+            return builder.toString();
         }
     }
 

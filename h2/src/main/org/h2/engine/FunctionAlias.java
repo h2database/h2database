@@ -226,8 +226,8 @@ public class FunctionAlias extends SchemaObjectBase {
             buff.append(" AS ");
             StringUtils.quoteStringSQL(buff, source);
         } else {
-            buff.append(" FOR ").append(Parser.quoteIdentifier(
-                    className + "." + methodName));
+            buff.append(" FOR ");
+            Parser.quoteIdentifier(buff, className + "." + methodName);
         }
         return buff.toString();
     }

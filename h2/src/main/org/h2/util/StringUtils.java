@@ -759,17 +759,28 @@ public class StringUtils {
      * @return the double quoted text
      */
     public static String quoteIdentifier(String s) {
-        int length = s.length();
-        StringBuilder buff = new StringBuilder(length + 2);
-        buff.append('\"');
-        for (int i = 0; i < length; i++) {
+        return quoteIdentifier(new StringBuilder(s.length() + 2), s).toString();
+    }
+
+    /**
+     * Enclose a string with double quotes and append it to the specified
+     * string builder. A double quote inside the string is escaped using a
+     * double quote.
+     *
+     * @param builder string builder to append to
+     * @param s the text
+     * @return the specified builder
+     */
+    public static StringBuilder quoteIdentifier(StringBuilder builder, String s) {
+        builder.append('"');
+        for (int i = 0, length = s.length(); i < length; i++) {
             char c = s.charAt(i);
             if (c == '"') {
-                buff.append(c);
+                builder.append(c);
             }
-            buff.append(c);
+            builder.append(c);
         }
-        return buff.append('\"').toString();
+        return builder.append('"');
     }
 
     /**

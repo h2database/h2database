@@ -118,7 +118,7 @@ public class Wildcard extends Expression {
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
         if (table != null) {
-            builder.append(StringUtils.quoteIdentifier(table)).append('.');
+            StringUtils.quoteIdentifier(builder, table).append('.');
         }
         builder.append('*');
         if (exceptColumns != null) {

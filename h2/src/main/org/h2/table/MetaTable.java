@@ -1918,7 +1918,7 @@ public class MetaTable extends Table {
                         "SET SCHEMA_SEARCH_PATH ");
                 for (String p : path) {
                     buff.appendExceptFirst(", ");
-                    buff.append(StringUtils.quoteIdentifier(p));
+                    StringUtils.quoteIdentifier(buff.builder(), p);
                 }
                 add(rows,
                         // KEY
@@ -1933,7 +1933,7 @@ public class MetaTable extends Table {
                         // KEY
                         "SCHEMA",
                         // SQL
-                        "SET SCHEMA " + StringUtils.quoteIdentifier(schema)
+                        StringUtils.quoteIdentifier(new StringBuilder("SET SCHEMA "), schema).toString()
                 );
             }
             break;

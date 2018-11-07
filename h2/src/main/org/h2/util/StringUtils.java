@@ -388,19 +388,6 @@ public class StringUtils {
     }
 
     /**
-     * Enclose a string with '(' and ')' if this is not yet done.
-     *
-     * @param s the string
-     * @return the enclosed string
-     */
-    public static String enclose(String s) {
-        if (s.startsWith("(")) {
-            return s;
-        }
-        return "(" + s + ")";
-    }
-
-    /**
      * Remove enclosing '(' and ')' if this text is enclosed.
      *
      * @param s the potentially enclosed string

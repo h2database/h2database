@@ -872,7 +872,7 @@ public class StringUtils {
     }
 
     /**
-     * Trim a character from a substring. Equivalent of
+     * Trim a whitespace from a substring. Equivalent of
      * {@code substring(beginIndex).trim()}.
      *
      * @param s the string
@@ -884,7 +884,7 @@ public class StringUtils {
     }
 
     /**
-     * Trim a character from a substring. Equivalent of
+     * Trim a whitespace from a substring. Equivalent of
      * {@code substring(beginIndex, endIndex).trim()}.
      *
      * @param s the string
@@ -900,6 +900,27 @@ public class StringUtils {
             endIndex--;
         }
         return s.substring(beginIndex, endIndex);
+    }
+
+    /**
+     * Trim a whitespace from a substring and append it to a specified string
+     * builder. Equivalent of
+     * {@code builder.append(substring(beginIndex, endIndex).trim())}.
+     *
+     * @param builder string builder to append to
+     * @param s the string
+     * @param beginIndex start index of substring (inclusive)
+     * @param endIndex end index of substring (exclusive)
+     * @return the specified builder
+     */
+    public static StringBuilder trimSubstring(StringBuilder builder, String s, int beginIndex, int endIndex) {
+        while (beginIndex < endIndex && s.charAt(beginIndex) <= ' ') {
+            beginIndex++;
+        }
+        while (beginIndex < endIndex && s.charAt(endIndex - 1) <= ' ') {
+            endIndex--;
+        }
+        return builder.append(s, beginIndex, endIndex);
     }
 
     /**

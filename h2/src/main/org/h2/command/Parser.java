@@ -2687,9 +2687,14 @@ public class Parser {
     }
 
     private void setSQL(Prepared command, String start, int startIndex) {
-        String sql = StringUtils.trimSubstring(originalSQL, startIndex, lastParseIndex);
+        int endIndex = lastParseIndex;
+        String sql;
         if (start != null) {
-            sql = start + " " + sql;
+            StringBuilder builder = new StringBuilder(start.length() + endIndex - startIndex + 1)
+                    .append(start).append(' ');
+            sql = StringUtils.trimSubstring(builder, originalSQL, startIndex, endIndex).toString();
+        } else {
+            sql = StringUtils.trimSubstring(originalSQL, startIndex, endIndex);
         }
         command.setSQL(sql);
     }

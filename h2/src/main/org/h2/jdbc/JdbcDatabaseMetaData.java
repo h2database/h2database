@@ -1624,9 +1624,10 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                     int spaceIndex = f.indexOf(' ');
                     if (spaceIndex >= 0) {
                         // remove 'Function' from 'INSERT Function'
-                        f = StringUtils.trimSubstring(f, 0, spaceIndex);
+                        StringUtils.trimSubstring(buff.builder(), f, 0, spaceIndex);
+                    } else {
+                        buff.append(f);
                     }
-                    buff.append(f);
                 }
             }
             rs.close();

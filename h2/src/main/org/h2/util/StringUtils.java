@@ -560,49 +560,49 @@ public class StringUtils {
      */
     public static String xmlNode(String name, String attributes,
             String content, boolean indent) {
-        String start = attributes == null ? name : name + attributes;
+        StringBuilder builder = new StringBuilder();
+        builder.append('<').append(name);
+        if (attributes != null) {
+            builder.append(attributes);
+        }
         if (content == null) {
-            return "<" + start + "/>\n";
+            builder.append("/>\n");
+            return builder.toString();
         }
+        builder.append('>');
         if (indent && content.indexOf('\n') >= 0) {
-            content = "\n" + indent(content);
+            builder.append('\n');
+            indent(builder, content, 4, true);
+        } else {
+            builder.append(content);
         }
-        return "<" + start + ">" + content + "</" + name + ">\n";
+        builder.append("</").append(name).append(">\n");
+        return builder.toString();
     }
 
     /**
-     * Indents a string with 4 spaces.
+     * Indents a string with spaces and appends it to a specified builder.
      *
-     * @param s the string
-     * @return the indented string
-     */
-    public static String indent(String s) {
-        return indent(s, 4, true);
-    }
-
-    /**
-     * Indents a string with spaces.
-     *
+     * @param builder string builder to append to
      * @param s the string
      * @param spaces the number of spaces
      * @param newline append a newline if there is none
-     * @return the indented string
+     * @return the specified string builder
      */
-    public static String indent(String s, int spaces, boolean newline) {
-        StringBuilder buff = new StringBuilder(s.length() + spaces);
-        for (int i = 0; i < s.length();) {
+    public static StringBuilder indent(StringBuilder builder, String s, int spaces, boolean newline) {
+        for (int i = 0, length = s.length(); i < length;) {
             for (int j = 0; j < spaces; j++) {
-                buff.append(' ');
+                builder.append(' ');
             }
             int n = s.indexOf('\n', i);
-            n = n < 0 ? s.length() : n + 1;
-            buff.append(s, i, n);
+            n = n < 0 ? length : n + 1;
+            builder.append(s, i, n);
             i = n;
         }
         if (newline && !s.endsWith("\n")) {
-            buff.append('\n');
+            builder.append('\n');
         }
-        return buff.toString();
+        return builder;
     }
 
     /**
@@ -625,7 +625,8 @@ public class StringUtils {
         // must have a space at the beginning and at the end,
         // otherwise the data must not contain '-' as the first/last character
         if (data.indexOf('\n') >= 0) {
-            return "<!--\n" + indent(data) + "-->\n";
+            StringBuilder builder = new StringBuilder(data.length() + 18).append("<!--\n");
+            return indent(builder, data, 4, true).append("-->\n").toString();
         }
         return "<!-- " + data + " -->\n";
     }

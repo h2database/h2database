@@ -143,7 +143,8 @@ public class ConditionInSelect extends Condition {
                     append(" ANY");
             }
         }
-        return builder.append("(\n").append(StringUtils.indent(query.getPlanSQL(), 4, false)).append("))");
+        builder.append("(\n");
+        return StringUtils.indent(builder, query.getPlanSQL(), 4, false).append("))");
     }
 
     @Override

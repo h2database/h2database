@@ -774,7 +774,7 @@ public class TableFilter implements ColumnResolver {
             if (enclose) {
                 buff.append("(\n");
             }
-            buff.append(StringUtils.indent(nested, 4, false));
+            StringUtils.indent(buff, nested, 4, false);
             if (enclose) {
                 buff.append(')');
             }
@@ -842,7 +842,7 @@ public class TableFilter implements ColumnResolver {
             if (plan.indexOf('\n') >= 0) {
                 plan += "\n";
             }
-            buff.append(StringUtils.indent("/* " + plan + " */", 4, false));
+            StringUtils.indent(buff, "/* " + plan + " */", 4, false);
         }
         if (isJoin) {
             buff.append("\n    ON ");
@@ -858,7 +858,7 @@ public class TableFilter implements ColumnResolver {
             buff.append('\n');
             String condition = StringUtils.unEnclose(filterCondition.getSQL());
             condition = "/* WHERE " + StringUtils.quoteRemarkSQL(condition) + "\n*/";
-            buff.append(StringUtils.indent(condition, 4, false));
+            StringUtils.indent(buff, condition, 4, false);
         }
         if (scanCount > 0) {
             buff.append("\n    /* scanCount: ").append(scanCount).append(" */");

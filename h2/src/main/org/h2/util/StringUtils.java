@@ -149,8 +149,9 @@ public class StringUtils {
                 // need to start from the beginning because maybe there was a \
                 // that was not quoted
                 builder.setLength(builderLength);
-                builder.append("STRINGDECODE(");
-                return quoteStringSQL(builder, javaEncode(s)).append(')');
+                builder.append("STRINGDECODE('");
+                javaEncode(s, builder, true);
+                return builder.append("')");
             }
             builder.append(c);
         }
@@ -167,11 +168,11 @@ public class StringUtils {
      */
     public static String javaEncode(String s) {
         StringBuilder buff = new StringBuilder(s.length());
-        javaEncode(s, buff);
+        javaEncode(s, buff, false);
         return buff.toString();
     }
 
-    public static void javaEncode(String s, StringBuilder buff) {
+    public static void javaEncode(String s, StringBuilder buff, boolean forSQL) {
         int length = s.length();
         for (int i = 0; i < length; i++) {
             char c = s.charAt(i);
@@ -201,27 +202,31 @@ public class StringUtils {
                 // double quote
                 buff.append("\\\"");
                 break;
+            case '\'':
+                // quote:
+                if (forSQL) {
+                    buff.append('\'');
+                }
+                buff.append('\'');
+                break;
             case '\\':
                 // backslash
                 buff.append("\\\\");
                 break;
             default:
-                int ch = c & 0xffff;
-                if (ch >= ' ' && (ch < 0x80)) {
+                if (c >= ' ' && (c < 0x80)) {
                     buff.append(c);
                 // not supported in properties files
-                // } else if (ch < 0xff) {
+                // } else if (c < 0xff) {
                 // buff.append("\\");
                 // // make sure it's three characters (0x200 is octal 1000)
-                // buff.append(Integer.toOctalString(0x200 | ch).substring(1));
+                // buff.append(Integer.toOctalString(0x200 | c).substring(1));
                 } else {
-                    buff.append("\\u");
-                    String hex = Integer.toHexString(ch);
-                    // make sure it's four characters
-                    for (int len = hex.length(); len < 4; len++) {
-                        buff.append('0');
-                    }
-                    buff.append(hex);
+                    buff.append("\\u")
+                            .append(HEX[c >>> 12])
+                            .append(HEX[c >>> 8 & 0xf])
+                            .append(HEX[c >>> 4 & 0xf])
+                            .append(HEX[c & 0xf]);
                 }
             }
         }
@@ -340,7 +345,7 @@ public class StringUtils {
             return "null";
         }
         StringBuilder builder = new StringBuilder(s.length() + 2).append('"');
-        javaEncode(s, builder);
+        javaEncode(s, builder, false);
         return builder.append('"').toString();
     }
 

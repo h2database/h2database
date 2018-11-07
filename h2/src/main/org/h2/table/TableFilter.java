@@ -747,75 +747,75 @@ public class TableFilter implements ColumnResolver {
     }
 
     /**
-     * Get the query execution plan text to use for this table filter.
+     * Get the query execution plan text to use for this table filter and append
+     * it to the specified builder.
      *
+     * @param builder string builder to append to
      * @param isJoin if this is a joined table
-     * @return the SQL statement snippet
+     * @return the specified builder
      */
-    public String getPlanSQL(boolean isJoin) {
-        StringBuilder buff = new StringBuilder();
+    public StringBuilder getPlanSQL(StringBuilder builder, boolean isJoin) {
         if (isJoin) {
             if (joinOuter) {
-                buff.append("LEFT OUTER JOIN ");
+                builder.append("LEFT OUTER JOIN ");
             } else {
-                buff.append("INNER JOIN ");
+                builder.append("INNER JOIN ");
             }
         }
         if (nestedJoin != null) {
             StringBuilder buffNested = new StringBuilder();
             TableFilter n = nestedJoin;
             do {
-                buffNested.append(n.getPlanSQL(n != nestedJoin));
-                buffNested.append('\n');
+                n.getPlanSQL(buffNested, n != nestedJoin).append('\n');
                 n = n.getJoin();
             } while (n != null);
             String nested = buffNested.toString();
             boolean enclose = !nested.startsWith("(");
             if (enclose) {
-                buff.append("(\n");
+                builder.append("(\n");
             }
-            StringUtils.indent(buff, nested, 4, false);
+            StringUtils.indent(builder, nested, 4, false);
             if (enclose) {
-                buff.append(')');
+                builder.append(')');
             }
             if (isJoin) {
-                buff.append(" ON ");
+                builder.append(" ON ");
                 if (joinCondition == null) {
                     // need to have a ON expression,
                     // otherwise the nesting is unclear
-                    buff.append("1=1");
+                    builder.append("1=1");
                 } else {
-                    joinCondition.getUnenclosedSQL(buff);
+                    joinCondition.getUnenclosedSQL(builder);
                 }
             }
-            return buff.toString();
+            return builder;
         }
         if (table.isView() && ((TableView) table).isRecursive()) {
-            buff.append(table.getSchema().getSQL()).append('.').append(Parser.quoteIdentifier(table.getName()));
+            builder.append(table.getSchema().getSQL()).append('.').append(Parser.quoteIdentifier(table.getName()));
         } else {
-            buff.append(table.getSQL());
+            builder.append(table.getSQL());
         }
         if (table.isView() && ((TableView) table).isInvalid()) {
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, table.getName(), "not compiled");
         }
         if (alias != null) {
-            buff.append(' ').append(Parser.quoteIdentifier(alias));
+            builder.append(' ').append(Parser.quoteIdentifier(alias));
         }
         if (indexHints != null) {
-            buff.append(" USE INDEX (");
+            builder.append(" USE INDEX (");
             boolean first = true;
             for (String index : indexHints.getAllowedIndexes()) {
                 if (!first) {
-                    buff.append(", ");
+                    builder.append(", ");
                 } else {
                     first = false;
                 }
-                buff.append(Parser.quoteIdentifier(index));
+                builder.append(Parser.quoteIdentifier(index));
             }
-            buff.append(")");
+            builder.append(")");
         }
         if (index != null) {
-            buff.append('\n');
+            builder.append('\n');
             StatementBuilder planBuff = new StatementBuilder();
             if (joinBatch != null) {
                 IndexLookupBatch lookupBatch = joinBatch.getLookupBatch(joinFilterId);
@@ -842,28 +842,28 @@ public class TableFilter implements ColumnResolver {
             if (plan.indexOf('\n') >= 0) {
                 plan += "\n";
             }
-            StringUtils.indent(buff, "/* " + plan + " */", 4, false);
+            StringUtils.indent(builder, "/* " + plan + " */", 4, false);
         }
         if (isJoin) {
-            buff.append("\n    ON ");
+            builder.append("\n    ON ");
             if (joinCondition == null) {
                 // need to have a ON expression, otherwise the nesting is
                 // unclear
-                buff.append("1=1");
+                builder.append("1=1");
             } else {
-                joinCondition.getUnenclosedSQL(buff);
+                joinCondition.getUnenclosedSQL(builder);
             }
         }
         if (filterCondition != null) {
-            buff.append('\n');
+            builder.append('\n');
             String condition = StringUtils.unEnclose(filterCondition.getSQL());
             condition = "/* WHERE " + StringUtils.quoteRemarkSQL(condition) + "\n*/";
-            StringUtils.indent(buff, condition, 4, false);
+            StringUtils.indent(builder, condition, 4, false);
         }
         if (scanCount > 0) {
-            buff.append("\n    /* scanCount: ").append(scanCount).append(" */");
+            builder.append("\n    /* scanCount: ").append(scanCount).append(" */");
         }
-        return buff.toString();
+        return builder;
     }
 
     /**

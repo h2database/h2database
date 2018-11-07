@@ -136,8 +136,8 @@ public class Delete extends Prepared {
     @Override
     public String getPlanSQL() {
         StringBuilder buff = new StringBuilder();
-        buff.append("DELETE ");
-        buff.append("FROM ").append(targetTableFilter.getPlanSQL(false));
+        buff.append("DELETE FROM ");
+        targetTableFilter.getPlanSQL(buff, false);
         if (condition != null) {
             buff.append("\nWHERE ");
             condition.getUnenclosedSQL(buff);

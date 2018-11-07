@@ -30,7 +30,6 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.StatementBuilder;
-import org.h2.util.StringUtils;
 import org.h2.util.ValueHashMap;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;

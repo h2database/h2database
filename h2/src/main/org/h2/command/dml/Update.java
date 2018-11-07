@@ -27,7 +27,6 @@ import org.h2.table.Column;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.StatementBuilder;
 import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -216,23 +215,25 @@ public class Update extends Prepared {
 
     @Override
     public String getPlanSQL() {
-        StatementBuilder buff = new StatementBuilder("UPDATE ");
-        buff.append(targetTableFilter.getPlanSQL(false)).append("\nSET\n    ");
-        for (Column c : columns) {
-            Expression e = expressionMap.get(c);
-            buff.appendExceptFirst(",\n    ");
-            buff.append(c.getName()).append(" = ");
-            e.getSQL(buff.builder());
+        StringBuilder builder = new StringBuilder("UPDATE ");
+        targetTableFilter.getPlanSQL(builder, false).append("\nSET\n    ");
+        for (int i = 0, size = columns.size(); i < size; i++) {
+            if (i > 0) {
+                builder.append(",\n    ");
+            }
+            Column c = columns.get(i);
+            builder.append(c.getName()).append(" = ");
+            expressionMap.get(c).getSQL(builder);
         }
         if (condition != null) {
-            buff.append("\nWHERE ");
-            condition.getUnenclosedSQL(buff.builder());
+            builder.append("\nWHERE ");
+            condition.getUnenclosedSQL(builder);
         }
         if (limitExpr != null) {
-            buff.append("\nLIMIT ");
-            limitExpr.getUnenclosedSQL(buff.builder());
+            builder.append("\nLIMIT ");
+            limitExpr.getUnenclosedSQL(builder);
         }
-        return buff.toString();
+        return builder.toString();
     }
 
     @Override

@@ -1345,7 +1345,7 @@ public class Select extends Query {
             int i = 0;
             do {
                 buff.appendExceptFirst("\n");
-                buff.append(filter.getPlanSQL(i++ > 0));
+                filter.getPlanSQL(buff.builder(), i++ > 0);
                 filter = filter.getJoin();
             } while (filter != null);
         } else {
@@ -1354,7 +1354,7 @@ public class Select extends Query {
             for (TableFilter f : topFilters) {
                 do {
                     buff.appendExceptFirst("\n");
-                    buff.append(f.getPlanSQL(i++ > 0));
+                    f.getPlanSQL(buff.builder(), i++ > 0);
                     f = f.getJoin();
                 } while (f != null);
             }

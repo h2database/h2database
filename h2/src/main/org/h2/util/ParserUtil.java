@@ -241,7 +241,7 @@ public class ParserUtil {
         if (s.length() == 0) {
             return false;
         }
-        return getSaveTokenType(s, false) != IDENTIFIER;
+        return getSaveTokenType(s, false, 0, s.length(), false) != IDENTIFIER;
     }
 
     /**
@@ -266,182 +266,198 @@ public class ParserUtil {
                 return false;
             }
         }
-        return getSaveTokenType(s, true) == IDENTIFIER;
+        return getSaveTokenType(s, false, 0, s.length(), true) == IDENTIFIER;
     }
 
     /**
      * Get the token type.
      *
-     * @param s the token
+     * @param s the string with token
+     * @param ignoreCase true if case should be ignored, false if only upper case
+     *            tokens are detected as keywords
+     * @param start start index of token
+     * @param end index of token
      * @param additionalKeywords whether TOP, INTERSECTS, and "current data /
      *                           time" functions are keywords
      * @return the token type
      */
-    public static int getSaveTokenType(String s, boolean additionalKeywords) {
+    public static int getSaveTokenType(String s, boolean ignoreCase, int start, int end, boolean additionalKeywords) {
         /*
          * JdbcDatabaseMetaData.getSQLKeywords() and tests should be updated when new
          * non-SQL:2003 keywords are introduced here.
          */
-        switch (s.charAt(0)) {
+        char c = s.charAt(start);
+        if (ignoreCase && c >= 'a') {
+            c -= 32;
+        }
+        switch (c) {
         case 'A':
-            if ("ALL".equals(s)) {
+            if (eq("ALL", s, ignoreCase, start, end)) {
                 return ALL;
             }
             return IDENTIFIER;
         case 'C':
-            if ("CHECK".equals(s)) {
+            if (eq("CHECK", s, ignoreCase, start, end)) {
                 return CHECK;
-            } else if ("CONSTRAINT".equals(s)) {
+            } else if (eq("CONSTRAINT", s, ignoreCase, start, end)) {
                 return CONSTRAINT;
-            } else if ("CROSS".equals(s)) {
+            } else if (eq("CROSS", s, ignoreCase, start, end)) {
                 return CROSS;
             }
             if (additionalKeywords) {
-                if ("CURRENT_DATE".equals(s) || "CURRENT_TIME".equals(s) || "CURRENT_TIMESTAMP".equals(s)) {
+                if (eq("CURRENT_DATE", s, ignoreCase, start, end) || eq("CURRENT_TIME", s, ignoreCase, start, end)
+                        || eq("CURRENT_TIMESTAMP", s, ignoreCase, start, end)) {
                     return KEYWORD;
                 }
             }
             return IDENTIFIER;
         case 'D':
-            if ("DISTINCT".equals(s)) {
+            if (eq("DISTINCT", s, ignoreCase, start, end)) {
                 return DISTINCT;
             }
             return IDENTIFIER;
         case 'E':
-            if ("EXCEPT".equals(s)) {
+            if (eq("EXCEPT", s, ignoreCase, start, end)) {
                 return EXCEPT;
-            } else if ("EXISTS".equals(s)) {
+            } else if (eq("EXISTS", s, ignoreCase, start, end)) {
                 return EXISTS;
             }
             return IDENTIFIER;
         case 'F':
-            if ("FETCH".equals(s)) {
+            if (eq("FETCH", s, ignoreCase, start, end)) {
                 return FETCH;
-            } else if ("FROM".equals(s)) {
+            } else if (eq("FROM", s, ignoreCase, start, end)) {
                 return FROM;
-            } else if ("FOR".equals(s)) {
+            } else if (eq("FOR", s, ignoreCase, start, end)) {
                 return FOR;
-            } else if ("FOREIGN".equals(s)) {
+            } else if (eq("FOREIGN", s, ignoreCase, start, end)) {
                 return FOREIGN;
-            } else if ("FULL".equals(s)) {
+            } else if (eq("FULL", s, ignoreCase, start, end)) {
                 return FULL;
-            } else if ("FALSE".equals(s)) {
+            } else if (eq("FALSE", s, ignoreCase, start, end)) {
                 return FALSE;
             }
             return IDENTIFIER;
         case 'G':
-            if ("GROUP".equals(s)) {
+            if (eq("GROUP", s, ignoreCase, start, end)) {
                 return GROUP;
             }
             return IDENTIFIER;
         case 'H':
-            if ("HAVING".equals(s)) {
+            if (eq("HAVING", s, ignoreCase, start, end)) {
                 return HAVING;
             }
             return IDENTIFIER;
         case 'I':
-            if ("INNER".equals(s)) {
+            if (eq("INNER", s, ignoreCase, start, end)) {
                 return INNER;
-            } else if ("INTERSECT".equals(s)) {
+            } else if (eq("INTERSECT", s, ignoreCase, start, end)) {
                 return INTERSECT;
-            } else if ("IS".equals(s)) {
+            } else if (eq("IS", s, ignoreCase, start, end)) {
                 return IS;
             }
             if (additionalKeywords) {
-                if ("INTERSECTS".equals(s)) {
+                if (eq("INTERSECTS", s, ignoreCase, start, end)) {
                     return KEYWORD;
                 }
             }
             return IDENTIFIER;
         case 'J':
-            if ("JOIN".equals(s)) {
+            if (eq("JOIN", s, ignoreCase, start, end)) {
                 return JOIN;
             }
             return IDENTIFIER;
         case 'L':
-            if ("LIMIT".equals(s)) {
+            if (eq("LIMIT", s, ignoreCase, start, end)) {
                 return LIMIT;
-            } else if ("LIKE".equals(s)) {
+            } else if (eq("LIKE", s, ignoreCase, start, end)) {
                 return LIKE;
             }
             if (additionalKeywords) {
-                if ("LOCALTIME".equals(s) || "LOCALTIMESTAMP".equals(s)) {
+                if (eq("LOCALTIME", s, ignoreCase, start, end) || eq("LOCALTIMESTAMP", s, ignoreCase, start, end)) {
                     return KEYWORD;
                 }
             }
             return IDENTIFIER;
         case 'M':
-            if ("MINUS".equals(s)) {
+            if (eq("MINUS", s, ignoreCase, start, end)) {
                 return MINUS;
             }
             return IDENTIFIER;
         case 'N':
-            if ("NOT".equals(s)) {
+            if (eq("NOT", s, ignoreCase, start, end)) {
                 return NOT;
-            } else if ("NATURAL".equals(s)) {
+            } else if (eq("NATURAL", s, ignoreCase, start, end)) {
                 return NATURAL;
-            } else if ("NULL".equals(s)) {
+            } else if (eq("NULL", s, ignoreCase, start, end)) {
                 return NULL;
             }
             return IDENTIFIER;
         case 'O':
-            if ("OFFSET".equals(s)) {
+            if (eq("OFFSET", s, ignoreCase, start, end)) {
                 return OFFSET;
-            } else if ("ON".equals(s)) {
+            } else if (eq("ON", s, ignoreCase, start, end)) {
                 return ON;
-            } else if ("ORDER".equals(s)) {
+            } else if (eq("ORDER", s, ignoreCase, start, end)) {
                 return ORDER;
             }
             return IDENTIFIER;
         case 'P':
-            if ("PRIMARY".equals(s)) {
+            if (eq("PRIMARY", s, ignoreCase, start, end)) {
                 return PRIMARY;
             }
             return IDENTIFIER;
         case 'R':
-            if ("ROWNUM".equals(s)) {
+            if (eq("ROWNUM", s, ignoreCase, start, end)) {
                 return ROWNUM;
             }
             return IDENTIFIER;
         case 'S':
-            if ("SELECT".equals(s)) {
+            if (eq("SELECT", s, ignoreCase, start, end)) {
                 return SELECT;
             }
             if (additionalKeywords) {
-                if ("SYSDATE".equals(s) || "SYSTIME".equals(s) || "SYSTIMESTAMP".equals(s)) {
+                if (eq("SYSDATE", s, ignoreCase, start, end) || eq("SYSTIME", s, ignoreCase, start, end)
+                        || eq("SYSTIMESTAMP", s, ignoreCase, start, end)) {
                     return KEYWORD;
                 }
             }
             return IDENTIFIER;
         case 'T':
-            if ("TRUE".equals(s)) {
+            if (eq("TRUE", s, ignoreCase, start, end)) {
                 return TRUE;
             }
             if (additionalKeywords) {
-                if ("TODAY".equals(s) || "TOP".equals(s)) {
+                if (eq("TODAY", s, ignoreCase, start, end) || eq("TOP", s, ignoreCase, start, end)) {
                     return KEYWORD;
                 }
             }
             return IDENTIFIER;
         case 'U':
-            if ("UNIQUE".equals(s)) {
+            if (eq("UNIQUE", s, ignoreCase, start, end)) {
                 return UNIQUE;
-            } else if ("UNION".equals(s)) {
+            } else if (eq("UNION", s, ignoreCase, start, end)) {
                 return UNION;
             }
             return IDENTIFIER;
         case 'W':
-            if ("WHERE".equals(s)) {
+            if (eq("WHERE", s, ignoreCase, start, end)) {
                 return WHERE;
-            } else if ("WINDOW".equals(s)) {
+            } else if (eq("WINDOW", s, ignoreCase, start, end)) {
                 return WINDOW;
-            } else if ("WITH".equals(s)) {
+            } else if (eq("WITH", s, ignoreCase, start, end)) {
                 return WITH;
             }
             return IDENTIFIER;
         default:
             return IDENTIFIER;
         }
+    }
+
+    private static boolean eq(String expected, String s, boolean ignoreCase, int start, int end) {
+        int len = expected.length();
+        // First letter was already checked
+        return end - start == len && expected.regionMatches(ignoreCase, 1, s, start + 1, len - 1);
     }
 
 }

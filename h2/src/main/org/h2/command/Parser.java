@@ -4338,9 +4338,12 @@ public class Parser {
                 }
                 i++;
             }
-            currentToken = StringUtils.cache(sqlCommand.substring(
-                    start, i));
-            currentTokenType = getTokenType(currentToken);
+            currentTokenType = ParserUtil.getSaveTokenType(sqlCommand, !identifiersToUpper, start, i, false);
+            if (currentTokenType == IDENTIFIER) {
+                currentToken = StringUtils.cache(sqlCommand.substring(start, i));
+            } else {
+                currentToken = TOKENS[currentTokenType];
+            }
             parseIndex = i;
             return;
         case CHAR_QUOTED: {
@@ -4894,18 +4897,6 @@ public class Parser {
             break;
         }
         throw getSyntaxError();
-    }
-
-    private int getTokenType(String s) {
-        int len = s.length();
-        if (len == 0) {
-            throw getSyntaxError();
-        }
-        if (!identifiersToUpper) {
-            // if not yet converted to uppercase, do it now
-            s = StringUtils.toUpperEnglish(s);
-        }
-        return ParserUtil.getSaveTokenType(s, false);
     }
 
     private boolean isKeyword(String s) {

@@ -182,10 +182,6 @@ public class Transaction {
             int currentStatus = getStatus(currentState);
             boolean valid;
             switch (status) {
-                case STATUS_OPEN:
-                    valid = currentStatus == STATUS_CLOSED ||
-                            currentStatus == STATUS_ROLLING_BACK;
-                    break;
                 case STATUS_ROLLING_BACK:
                     valid = currentStatus == STATUS_OPEN;
                     break;
@@ -207,6 +203,7 @@ public class Transaction {
                     valid = currentStatus == STATUS_COMMITTED ||
                             currentStatus == STATUS_ROLLED_BACK;
                     break;
+                case STATUS_OPEN:
                 default:
                     valid = false;
                     break;

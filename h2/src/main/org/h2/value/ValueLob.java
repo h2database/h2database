@@ -275,7 +275,7 @@ public class ValueLob extends Value {
 
     private static int getNewObjectId(DataHandler h) {
         String path = h.getDatabasePath();
-        if ((path != null) && (path.length() == 0)) {
+        if (path != null && path.isEmpty()) {
             path = new File(Utils.getProperty("java.io.tmpdir", "."),
                     SysProperties.PREFIX_TEMP_FILE).getAbsolutePath();
         }

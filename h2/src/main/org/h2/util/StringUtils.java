@@ -777,7 +777,7 @@ public class StringUtils {
      * @return true if it is null or empty
      */
     public static boolean isNullOrEmpty(String s) {
-        return s == null || s.length() == 0;
+        return s == null || s.isEmpty();
     }
 
     /**
@@ -810,7 +810,7 @@ public class StringUtils {
             return string;
         }
         char paddingChar;
-        if (padding == null || padding.length() == 0) {
+        if (padding == null || padding.isEmpty()) {
             paddingChar = ' ';
         } else {
             paddingChar = padding.charAt(0);
@@ -941,7 +941,7 @@ public class StringUtils {
         }
         if (s == null) {
             return s;
-        } else if (s.length() == 0) {
+        } else if (s.isEmpty()) {
             return "";
         }
         int hash = s.hashCode();
@@ -1151,7 +1151,7 @@ public class StringUtils {
      * @return the escaped pattern
      */
     public static String escapeMetaDataPattern(String pattern) {
-        if (pattern == null || pattern.length() == 0) {
+        if (pattern == null || pattern.isEmpty()) {
             return pattern;
         }
         return replaceAll(pattern, "\\", "\\\\");

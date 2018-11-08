@@ -240,14 +240,15 @@ public class PageParser {
         if (s == null) {
             return null;
         }
+        int length = s.length();
         if (convertBreakAndSpace) {
-            if (s.length() == 0) {
+            if (length == 0) {
                 return "&nbsp;";
             }
         }
-        StringBuilder buff = new StringBuilder(s.length());
+        StringBuilder buff = new StringBuilder(length);
         boolean convertSpace = true;
-        for (int i = 0; i < s.length(); i++) {
+        for (int i = 0; i < length; i++) {
             char c = s.charAt(i);
             if (c == ' ' || c == '\t') {
                 // convert tabs into spaces
@@ -312,11 +313,12 @@ public class PageParser {
         if (s == null) {
             return null;
         }
-        if (s.length() == 0) {
+        int length = s.length();
+        if (length == 0) {
             return "";
         }
-        StringBuilder buff = new StringBuilder(s.length());
-        for (int i = 0; i < s.length(); i++) {
+        StringBuilder buff = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
             char c = s.charAt(i);
             switch (c) {
             case '"':

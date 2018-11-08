@@ -681,7 +681,7 @@ public class Function extends Expression implements FunctionCall {
             // string
         case ASCII: {
             String s = v0.getString();
-            if (s.length() == 0) {
+            if (s.isEmpty()) {
                 result = ValueNull.INSTANCE;
             } else {
                 result = ValueInt.get(s.charAt(0));
@@ -2710,19 +2710,17 @@ public class Function extends Expression implements FunctionCall {
             String fieldDelimiter, String escapeCharacter) {
         if (fieldSeparator != null) {
             csv.setFieldSeparatorWrite(fieldSeparator);
-            if (fieldSeparator.length() > 0) {
+            if (!fieldSeparator.isEmpty()) {
                 char fs = fieldSeparator.charAt(0);
                 csv.setFieldSeparatorRead(fs);
             }
         }
         if (fieldDelimiter != null) {
-            char fd = fieldDelimiter.length() == 0 ?
-                    0 : fieldDelimiter.charAt(0);
+            char fd = fieldDelimiter.isEmpty() ? 0 : fieldDelimiter.charAt(0);
             csv.setFieldDelimiter(fd);
         }
         if (escapeCharacter != null) {
-            char ec = escapeCharacter.length() == 0 ?
-                    0 : escapeCharacter.charAt(0);
+            char ec = escapeCharacter.isEmpty() ? 0 : escapeCharacter.charAt(0);
             csv.setEscapeCharacter(ec);
         }
     }

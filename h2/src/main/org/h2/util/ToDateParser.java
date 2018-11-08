@@ -249,7 +249,7 @@ public class ToDateParser {
     }
 
     private boolean hasToParseData() {
-        return formatStr.length() > 0;
+        return !formatStr.isEmpty();
     }
 
     private void removeFirstChar() {

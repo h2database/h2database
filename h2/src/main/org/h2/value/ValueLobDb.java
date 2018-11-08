@@ -176,7 +176,7 @@ public class ValueLobDb extends Value {
     private static String createTempLobFileName(DataHandler handler)
             throws IOException {
         String path = handler.getDatabasePath();
-        if (path.length() == 0) {
+        if (path.isEmpty()) {
             path = SysProperties.PREFIX_TEMP_FILE;
         }
         return FileUtils.createTempFile(path, Constants.SUFFIX_TEMP_FILE, true, true);

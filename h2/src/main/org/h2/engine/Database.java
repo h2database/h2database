@@ -642,7 +642,7 @@ public class Database implements DataHandler {
                 n = tokenizer.nextToken();
             }
         }
-        if (n == null || n.length() == 0) {
+        if (n == null || n.isEmpty()) {
             n = "unnamed";
         }
         return dbSettings.databaseToUpper ? StringUtils.toUpperEnglish(n) : n;
@@ -2274,7 +2274,7 @@ public class Database implements DataHandler {
     }
 
     public void setEventListenerClass(String className) {
-        if (className == null || className.length() == 0) {
+        if (className == null || className.isEmpty()) {
             eventListener = null;
         } else {
             try {

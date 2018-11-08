@@ -51,7 +51,7 @@ public class FilePathZip extends FilePath {
     public boolean exists() {
         try {
             String entryName = getEntryName();
-            if (entryName.length() == 0) {
+            if (entryName.isEmpty()) {
                 return true;
             }
             try (ZipFile file = openZipFile()) {
@@ -88,7 +88,7 @@ public class FilePathZip extends FilePath {
     public boolean isDirectory() {
         try {
             String entryName = getEntryName();
-            if (entryName.length() == 0) {
+            if (entryName.isEmpty()) {
                 return true;
             }
             try (ZipFile file = openZipFile()) {

@@ -167,7 +167,7 @@ class WebSession {
             return;
         }
         sql = sql.trim();
-        if (sql.length() == 0) {
+        if (sql.isEmpty()) {
             return;
         }
         if (commandHistory.size() > MAX_HISTORY) {

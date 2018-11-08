@@ -155,7 +155,7 @@ public class NetUtils {
      */
     private static InetAddress getBindAddress() throws UnknownHostException {
         String host = SysProperties.BIND_ADDRESS;
-        if (host == null || host.length() == 0) {
+        if (host == null || host.isEmpty()) {
             return null;
         }
         synchronized (NetUtils.class) {

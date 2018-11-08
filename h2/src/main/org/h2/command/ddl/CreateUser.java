@@ -74,7 +74,7 @@ public class CreateUser extends DefineCommand {
         char[] passwordChars = pwd == null ? new char[0] : pwd.toCharArray();
         byte[] userPasswordHash;
         String userName = user.getName();
-        if (userName.length() == 0 && passwordChars.length == 0) {
+        if (userName.isEmpty() && passwordChars.length == 0) {
             userPasswordHash = new byte[0];
         } else {
             userPasswordHash = SHA256.getKeyPasswordHash(userName, passwordChars);

@@ -238,10 +238,11 @@ public class ParserUtil {
      * @return true if it is a keyword
      */
     public static boolean isKeyword(String s) {
-        if (s.length() == 0) {
+        int length = s.length();
+        if (length == 0) {
             return false;
         }
-        return getSaveTokenType(s, false, 0, s.length(), false) != IDENTIFIER;
+        return getSaveTokenType(s, false, 0, length, false) != IDENTIFIER;
     }
 
     /**
@@ -252,7 +253,8 @@ public class ParserUtil {
      * @throws NullPointerException if s is {@code null}
      */
     public static boolean isSimpleIdentifier(String s) {
-        if (s.length() == 0) {
+        int length = s.length();
+        if (length == 0) {
             return false;
         }
         char c = s.charAt(0);
@@ -260,13 +262,13 @@ public class ParserUtil {
         if ((UPPER_OR_OTHER_LETTER >>> Character.getType(c) & 1) == 0 && c != '_') {
             return false;
         }
-        for (int i = 1, length = s.length(); i < length; i++) {
+        for (int i = 1; i < length; i++) {
             c = s.charAt(i);
             if ((UPPER_OR_OTHER_LETTER_OR_DIGIT >>> Character.getType(c) & 1) == 0 && c != '_') {
                 return false;
             }
         }
-        return getSaveTokenType(s, false, 0, s.length(), true) == IDENTIFIER;
+        return getSaveTokenType(s, false, 0, length, true) == IDENTIFIER;
     }
 
     /**

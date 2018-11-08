@@ -72,7 +72,7 @@ public class CompareLike extends Condition {
     }
 
     private static Character getEscapeChar(String s) {
-        return s == null || s.length() == 0 ? null : s.charAt(0);
+        return s == null || s.isEmpty() ? null : s.charAt(0);
     }
 
     @Override

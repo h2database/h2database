@@ -220,7 +220,7 @@ public class Shell extends Tool implements Runnable {
                     break;
                 }
                 String trimmed = line.trim();
-                if (trimmed.length() == 0) {
+                if (trimmed.isEmpty()) {
                     continue;
                 }
                 boolean end = trimmed.endsWith(";");
@@ -366,7 +366,7 @@ public class Shell extends Tool implements Runnable {
         println("[Enter]   Hide");
         print("Password  ");
         String password = readLine();
-        if (password.length() == 0) {
+        if (password.isEmpty()) {
             password = readPassword();
         }
         conn = JdbcUtils.getConnection(driver, url, user, password);
@@ -433,7 +433,7 @@ public class Shell extends Tool implements Runnable {
 
     private String readLine(String defaultValue) throws IOException {
         String s = readLine();
-        return s.length() == 0 ? defaultValue : s;
+        return s.isEmpty() ? defaultValue : s;
     }
 
     private String readLine() throws IOException {

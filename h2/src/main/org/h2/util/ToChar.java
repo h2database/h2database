@@ -362,13 +362,14 @@ public class ToChar {
         }
         int i = idx + 1;
         boolean allZeroes = true;
-        for (; i < numberStr.length(); i++) {
+        int length = numberStr.length();
+        for (; i < length; i++) {
             if (numberStr.charAt(i) != '0') {
                 allZeroes = false;
                 break;
             }
         }
-        final char[] zeroes = new char[allZeroes ? numberStr.length() - idx - 1: i - 1 - idx];
+        final char[] zeroes = new char[allZeroes ? length - idx - 1: i - 1 - idx];
         Arrays.fill(zeroes, '0');
         return String.valueOf(zeroes);
     }
@@ -688,7 +689,7 @@ public class ToChar {
         StringBuilder output = new StringBuilder();
         boolean fillMode = true;
 
-        for (int i = 0; i < format.length();) {
+        for (int i = 0, length = format.length(); i < length;) {
 
             Capitalization cap;
 

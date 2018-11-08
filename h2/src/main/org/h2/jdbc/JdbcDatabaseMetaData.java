@@ -3093,14 +3093,14 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     }
 
     private static String getSchemaPattern(String pattern) {
-        return pattern == null ? "%" : pattern.length() == 0 ?
+        return pattern == null ? "%" : pattern.isEmpty() ?
                 Constants.SCHEMA_MAIN : pattern;
     }
 
     private static String getCatalogPattern(String catalogPattern) {
         // Workaround for OpenOffice: getColumns is called with "" as the
         // catalog
-        return catalogPattern == null || catalogPattern.length() == 0 ?
+        return catalogPattern == null || catalogPattern.isEmpty() ?
                 "%" : catalogPattern;
     }
 

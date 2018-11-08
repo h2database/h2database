@@ -289,8 +289,12 @@ public class ParserUtil {
          * non-SQL:2003 keywords are introduced here.
          */
         char c = s.charAt(start);
-        if (ignoreCase && c >= 'a') {
-            c -= 32;
+        if (ignoreCase) {
+            /*
+             * Convert a-z to A-Z. This method is safe, because only A-Z
+             * characters are considered below.
+             */
+            c &= 0xffdf;
         }
         switch (c) {
         case 'A':

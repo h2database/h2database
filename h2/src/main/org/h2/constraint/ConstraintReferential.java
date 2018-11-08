@@ -567,7 +567,7 @@ public class ConstraintReferential extends Constraint {
         buff.append("UPDATE ").append(table.getSQL()).append(" SET ");
         buff.resetCount();
         for (IndexColumn c : columns) {
-            buff.appendExceptFirst(" , ");
+            buff.appendExceptFirst(", ");
             Parser.quoteIdentifier(buff.builder(), c.column.getName()).append("=?");
         }
     }

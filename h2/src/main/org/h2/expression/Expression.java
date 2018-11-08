@@ -5,6 +5,8 @@
  */
 package org.h2.expression;
 
+import java.util.List;
+
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.result.ResultInterface;
@@ -37,6 +39,24 @@ public abstract class Expression {
     public static final int MAP_IN_AGGREGATE = 2;
 
     private boolean addedToFilter;
+
+    public static void writeExpressions(StringBuilder builder, List<? extends Expression> expressions) {
+        for (int i = 0, length = expressions.size(); i < length; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            expressions.get(i).getSQL(builder);
+        }
+    }
+
+    public static void writeExpressions(StringBuilder builder, Expression[] expressions) {
+        for (int i = 0, length = expressions.length; i < length; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            expressions[i].getSQL(builder);
+        }
+    }
 
     /**
      * Return the resulting value for the current row.

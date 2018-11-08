@@ -519,12 +519,7 @@ public class WindowFunction extends DataAnalysisOperation {
         String name = type.getSQL();
         builder.append(name).append('(');
         if (args != null) {
-            for (int i = 0, numArgs = args.length; i < numArgs; i++) {
-                if (i > 0) {
-                    builder.append(", ");
-                }
-                args[i].getSQL(builder);
-            }
+            writeExpressions(builder, args);
         }
         builder.append(')');
         if (fromLast && type == WindowFunctionType.NTH_VALUE) {

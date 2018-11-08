@@ -154,12 +154,7 @@ public class ConditionIn extends Condition {
     public StringBuilder getSQL(StringBuilder builder) {
         builder.append('(');
         left.getSQL(builder).append(" IN(");
-        for (int i = 0; i < valueList.size(); i++) {
-            if (i > 0) {
-                builder.append(", ");
-            }
-            valueList.get(i).getSQL(builder);
-        }
+        writeExpressions(builder, valueList);
         return builder.append("))");
     }
 

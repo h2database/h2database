@@ -116,12 +116,7 @@ public class ConditionInConstantSet extends Condition {
     public StringBuilder getSQL(StringBuilder builder) {
         builder.append('(');
         left.getSQL(builder).append(" IN(");
-        for (int i = 0, s = valueList.size(); i < s; i++) {
-            if (i > 0) {
-                builder.append(", ");
-            }
-            valueList.get(i).getSQL(builder);
-        }
+        writeExpressions(builder, valueList);
         return builder.append("))");
     }
 

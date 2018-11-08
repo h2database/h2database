@@ -86,12 +86,7 @@ public class ExpressionList extends Expression {
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
         builder.append('(');
-        for (int i = 0; i < list.length; i++) {
-            if (i > 0) {
-                builder.append(", ");
-            }
-            list[i].getSQL(builder);
-        }
+        writeExpressions(builder, list);
         if (list.length == 1) {
             builder.append(',');
         }

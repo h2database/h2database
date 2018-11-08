@@ -123,12 +123,7 @@ public class Wildcard extends Expression {
         builder.append('*');
         if (exceptColumns != null) {
             builder.append(" EXCEPT (");
-            for (int i = 0; i < exceptColumns.size(); i++) {
-                if (i > 0) {
-                    builder.append(", ");
-                }
-                exceptColumns.get(i).getSQL(builder);
-            }
+            writeExpressions(builder, exceptColumns);
             builder.append(')');
         }
         return builder;

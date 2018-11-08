@@ -95,12 +95,7 @@ public class JavaFunction extends Expression implements FunctionCall {
             Parser.quoteIdentifier(builder, functionAlias.getSchema().getName()).append('.');
         }
         Parser.quoteIdentifier(builder, functionAlias.getName()).append('(');
-        for (int i = 0; i < args.length; i++) {
-            if (i > 0) {
-                builder.append(", ");
-            }
-            args[i].getSQL(builder);
-        }
+        writeExpressions(builder, this.args);
         return builder.append(')');
     }
 

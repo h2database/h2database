@@ -2627,14 +2627,8 @@ public class Function extends Expression implements FunctionCall {
             args[1].getSQL(builder);
             break;
         }
-        default: {
-            for (int i = 0; i < args.length; i++) {
-                if (i > 0) {
-                    builder.append(", ");
-                }
-                args[i].getSQL(builder);
-            }
-        }
+        default:
+            writeExpressions(builder, args);
         }
         return builder.append(')');
     }

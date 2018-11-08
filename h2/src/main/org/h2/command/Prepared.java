@@ -418,14 +418,9 @@ public abstract class Prepared {
      * @return the SQL snippet
      */
     protected static String getSQL(Expression[] list) {
-        StatementBuilder buff = new StatementBuilder();
-        for (Expression e : list) {
-            buff.appendExceptFirst(", ");
-            if (e != null) {
-                e.getSQL(buff.builder());
-            }
-        }
-        return buff.toString();
+        StringBuilder builder = new StringBuilder();
+        Expression.writeExpressions(builder, list);
+        return builder.toString();
     }
 
     /**

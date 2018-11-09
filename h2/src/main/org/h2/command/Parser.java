@@ -2846,6 +2846,9 @@ public class Parser {
                         Comparison.BIGGER_EQUAL, high, r);
                 r = new ConditionAndOr(ConditionAndOr.AND, condLow, condHigh);
             } else {
+                if (not) {
+                    throw getSyntaxError();
+                }
                 int compareType = getCompareType(currentTokenType);
                 if (compareType < 0) {
                     break;

@@ -79,8 +79,9 @@ public class ValueBytes extends Value {
     }
 
     @Override
-    public String getSQL() {
-        return "X'" + StringUtils.convertBytesToHex(getBytesNoCopy()) + "'";
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append("X'");
+        return StringUtils.convertBytesToHex(builder, getBytesNoCopy()).append('\'');
     }
 
     @Override

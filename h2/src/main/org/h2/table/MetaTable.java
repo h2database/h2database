@@ -1896,11 +1896,12 @@ public class MetaTable extends Table {
         case SESSION_STATE: {
             for (String name : session.getVariableNames()) {
                 Value v = session.getVariable(name);
+                StringBuilder builder = new StringBuilder().append("SET @").append(name).append(' ');
+                v.getSQL(builder);
                 add(rows,
                         // KEY
                         "@" + name,
-                        // SQL
-                        "SET @" + name + " " + v.getSQL()
+                        builder.toString()
                 );
             }
             for (Table table : session.getLocalTempTables()) {
@@ -1917,7 +1918,7 @@ public class MetaTable extends Table {
                         "SET SCHEMA_SEARCH_PATH ");
                 for (String p : path) {
                     buff.appendExceptFirst(", ");
-                    buff.append(StringUtils.quoteIdentifier(p));
+                    StringUtils.quoteIdentifier(buff.builder(), p);
                 }
                 add(rows,
                         // KEY
@@ -1932,7 +1933,7 @@ public class MetaTable extends Table {
                         // KEY
                         "SCHEMA",
                         // SQL
-                        "SET SCHEMA " + StringUtils.quoteIdentifier(schema)
+                        StringUtils.quoteIdentifier(new StringBuilder("SET SCHEMA "), schema).toString()
                 );
             }
             break;

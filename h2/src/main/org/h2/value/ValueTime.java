@@ -138,8 +138,10 @@ public class ValueTime extends Value {
     }
 
     @Override
-    public String getSQL() {
-        return "TIME '" + getString() + "'";
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append("TIME '");
+        DateTimeUtils.appendTime(builder, nanos);
+        return builder.append('\'');
     }
 
     @Override

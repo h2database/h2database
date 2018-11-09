@@ -47,13 +47,13 @@ public class ValueStringFixed extends ValueString {
     }
 
     private static String rightPadWithSpaces(String s, int length) {
-        int pad = length - s.length();
-        if (pad <= 0) {
+        int used = s.length();
+        if (length <= used) {
             return s;
         }
         char[] res = new char[length];
-        s.getChars(0, s.length(), res, 0);
-        Arrays.fill(res, s.length(), length, ' ');
+        s.getChars(0, used, res, 0);
+        Arrays.fill(res, used, length, ' ');
         return new String(res);
     }
 
@@ -109,11 +109,12 @@ public class ValueStringFixed extends ValueString {
             // Default behaviour of H2
             s = trimRight(s);
         }
-        if (s.length() == 0) {
+        int length = s.length();
+        if (length == 0) {
             return EMPTY;
         }
         ValueStringFixed obj = new ValueStringFixed(StringUtils.cache(s));
-        if (s.length() > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
+        if (length > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
             return obj;
         }
         return (ValueStringFixed) Value.cache(obj);

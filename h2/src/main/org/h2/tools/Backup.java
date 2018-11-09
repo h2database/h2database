@@ -108,7 +108,7 @@ public class Backup extends Tool {
     private void process(String zipFileName, String directory, String db,
             boolean quiet) throws SQLException {
         List<String> list;
-        boolean allFiles = db != null && db.length() == 0;
+        boolean allFiles = db != null && db.isEmpty();
         if (allFiles) {
             list = FileUtils.newDirectoryStream(directory);
         } else {

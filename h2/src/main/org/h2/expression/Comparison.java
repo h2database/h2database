@@ -126,23 +126,25 @@ public class Comparison extends Condition {
     }
 
     @Override
-    public String getSQL() {
-        String sql;
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append('(');
         switch (compareType) {
         case IS_NULL:
-            sql = left.getSQL() + " IS NULL";
+            left.getSQL(builder).append(" IS NULL");
             break;
         case IS_NOT_NULL:
-            sql = left.getSQL() + " IS NOT NULL";
+            left.getSQL(builder).append(" IS NOT NULL");
             break;
         case SPATIAL_INTERSECTS:
-            sql = "INTERSECTS(" + left.getSQL() + ", " + right.getSQL() + ")";
+            builder.append("INTERSECTS(");
+            left.getSQL(builder).append(", ");
+            right.getSQL(builder).append(')');
             break;
         default:
-            sql = left.getSQL() + " " + getCompareOperator(compareType) +
-                    " " + right.getSQL();
+            left.getSQL(builder).append(' ').append(getCompareOperator(compareType)).append(' ');
+            right.getSQL(builder);
         }
-        return "(" + sql + ")";
+        return builder.append(')');
     }
 
     /**

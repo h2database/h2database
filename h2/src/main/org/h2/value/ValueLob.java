@@ -275,7 +275,7 @@ public class ValueLob extends Value {
 
     private static int getNewObjectId(DataHandler h) {
         String path = h.getDatabasePath();
-        if ((path != null) && (path.length() == 0)) {
+        if (path != null && path.isEmpty()) {
             path = new File(Utils.getProperty("java.io.tmpdir", "."),
                     SysProperties.PREFIX_TEMP_FILE).getAbsolutePath();
         }
@@ -570,15 +570,14 @@ public class ValueLob extends Value {
     }
 
     @Override
-    public String getSQL() {
-        String s;
+    public StringBuilder getSQL(StringBuilder builder) {
         if (valueType == Value.CLOB) {
-            s = getString();
-            return StringUtils.quoteStringSQL(s);
+            StringUtils.quoteStringSQL(builder, getString());
+        } else {
+            builder.append("X'");
+            StringUtils.convertBytesToHex(builder, getBytes()).append('\'');
         }
-        byte[] buff = getBytes();
-        s = StringUtils.convertBytesToHex(buff);
-        return "X'" + s + "'";
+        return builder;
     }
 
     @Override

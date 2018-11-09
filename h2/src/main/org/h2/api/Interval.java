@@ -628,7 +628,8 @@ public final class Interval {
 
     @Override
     public String toString() {
-        return IntervalUtils.intervalToString(qualifier, negative, leading, remaining);
+        return IntervalUtils.appendInterval(new StringBuilder(), getQualifier(), negative, leading, remaining)
+                .toString();
     }
 
 }

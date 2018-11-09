@@ -47,8 +47,9 @@ public class ValueStringIgnoreCase extends ValueString {
     }
 
     @Override
-    public String getSQL() {
-        return "CAST(" + StringUtils.quoteStringSQL(value) + " AS VARCHAR_IGNORECASE)";
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append("CAST(");
+        return StringUtils.quoteStringSQL(builder, value).append(" AS VARCHAR_IGNORECASE)");
     }
 
     /**
@@ -59,11 +60,12 @@ public class ValueStringIgnoreCase extends ValueString {
      * @return the value
      */
     public static ValueStringIgnoreCase get(String s) {
-        if (s.length() == 0) {
+        int length = s.length();
+        if (length == 0) {
             return EMPTY;
         }
         ValueStringIgnoreCase obj = new ValueStringIgnoreCase(StringUtils.cache(s));
-        if (s.length() > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
+        if (length > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
             return obj;
         }
         ValueStringIgnoreCase cache = (ValueStringIgnoreCase) Value.cache(obj);

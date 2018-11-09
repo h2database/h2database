@@ -584,23 +584,27 @@ public final class WindowFrame {
     }
 
     /**
-     * Returns SQL representation.
+     * Append SQL representation to the specified builder.
      *
-     * @return SQL representation.
-     * @see org.h2.expression.Expression#getSQL()
+     * @param builder
+     *            string builder
+     * @return the specified string builder
+     * @see org.h2.expression.Expression#getSQL(StringBuilder)
      */
-    public String getSQL() {
-        StringBuilder builder = new StringBuilder();
+    public StringBuilder getSQL(StringBuilder builder) {
         builder.append(units.getSQL());
         if (following == null) {
-            builder.append(' ').append(starting.getSQL(false));
+            builder.append(' ');
+            starting.getSQL(builder, false);
         } else {
-            builder.append(" BETWEEN ").append(starting.getSQL(false)).append(" AND ").append(following.getSQL(true));
+            builder.append(" BETWEEN ");
+            starting.getSQL(builder, false).append(" AND ");
+            following.getSQL(builder, true);
         }
         if (exclusion != WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
             builder.append(' ').append(exclusion.getSQL());
         }
-        return builder.toString();
+        return builder;
     }
 
 }

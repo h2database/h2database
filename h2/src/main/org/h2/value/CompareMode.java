@@ -222,12 +222,13 @@ public class CompareMode implements Comparator<Value> {
         } else if (name.startsWith(CHARSET)) {
             return new CharsetCollator(Charset.forName(name.substring(CHARSET.length())));
         }
-        if (name.length() == 2) {
+        int length = name.length();
+        if (length == 2) {
             Locale locale = new Locale(StringUtils.toLowerEnglish(name), "");
             if (compareLocaleNames(locale, name)) {
                 result = Collator.getInstance(locale);
             }
-        } else if (name.length() == 5) {
+        } else if (length == 5) {
             // LL_CC (language_country)
             int idx = name.indexOf('_');
             if (idx >= 0) {

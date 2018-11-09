@@ -15,7 +15,6 @@ import org.h2.message.DbException;
 import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 
@@ -49,7 +48,7 @@ public final class Window {
                 if (i > 0) {
                     builder.append(", ");
                 }
-                builder.append(o.expression.getSQL());
+                o.expression.getSQL(builder);
                 SortOrder.typeToString(builder, o.sortType);
             }
         }
@@ -204,23 +203,22 @@ public final class Window {
     }
 
     /**
-     * Returns SQL representation.
+     * Appends SQL representation to the specified builder.
      *
-     * @return SQL representation.
-     * @see Expression#getSQL()
+     * @param builder
+     *            string builder
+     * @return the specified string builder
+     * @see Expression#getSQL(StringBuilder)
      */
-    public String getSQL() {
-        if (partitionBy == null && orderBy == null && frame == null) {
-            return "OVER ()";
-        }
-        StringBuilder builder = new StringBuilder().append("OVER (");
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append("OVER (");
         if (partitionBy != null) {
             builder.append("PARTITION BY ");
             for (int i = 0; i < partitionBy.size(); i++) {
                 if (i > 0) {
                     builder.append(", ");
                 }
-                builder.append(StringUtils.unEnclose(partitionBy.get(i).getSQL()));
+                partitionBy.get(i).getUnenclosedSQL(builder);
             }
         }
         appendOrderBy(builder, orderBy);
@@ -228,9 +226,9 @@ public final class Window {
             if (builder.charAt(builder.length() - 1) != '(') {
                 builder.append(' ');
             }
-            builder.append(frame.getSQL());
+            frame.getSQL(builder);
         }
-        return builder.append(')').toString();
+        return builder.append(')');
     }
 
     /**
@@ -257,7 +255,7 @@ public final class Window {
 
     @Override
     public String toString() {
-        return getSQL();
+        return getSQL(new StringBuilder()).toString();
     }
 
 }

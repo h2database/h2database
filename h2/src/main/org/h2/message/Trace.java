@@ -301,8 +301,8 @@ public class Trace {
             buff.append(' ');
         }
         buff.append("*/");
-        StringUtils.javaEncode(sql, buff);
-        StringUtils.javaEncode(params, buff);
+        StringUtils.javaEncode(sql, buff, false);
+        StringUtils.javaEncode(params, buff, false);
         buff.append(';');
         sql = buff.toString();
         traceWriter.write(TraceSystem.INFO, module, sql, null);

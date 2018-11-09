@@ -161,7 +161,7 @@ public class UpdatableRow {
         for (int i = 0; i < columnCount; i++) {
             buff.appendExceptFirst(",");
             String col = result.getColumnName(i);
-            buff.append(StringUtils.quoteIdentifier(col));
+            StringUtils.quoteIdentifier(buff.builder(), col);
             if (set) {
                 buff.append("=? ");
             }
@@ -173,7 +173,7 @@ public class UpdatableRow {
         buff.resetCount();
         for (String k : key) {
             buff.appendExceptFirst(" AND ");
-            buff.append(StringUtils.quoteIdentifier(k)).append("=?");
+            StringUtils.quoteIdentifier(buff.builder(), k).append("=?");
         }
     }
 
@@ -204,11 +204,11 @@ public class UpdatableRow {
 //        return rs.getInt(1) == 0;
 //    }
 
-    private void appendTableName(StatementBuilder buff) {
+    private void appendTableName(StringBuilder builder) {
         if (schemaName != null && schemaName.length() > 0) {
-            buff.append(StringUtils.quoteIdentifier(schemaName)).append('.');
+            StringUtils.quoteIdentifier(builder, schemaName).append('.');
         }
-        buff.append(StringUtils.quoteIdentifier(tableName));
+        StringUtils.quoteIdentifier(builder, tableName);
     }
 
     /**
@@ -221,7 +221,7 @@ public class UpdatableRow {
         StatementBuilder buff = new StatementBuilder("SELECT ");
         appendColumnList(buff, false);
         buff.append(" FROM ");
-        appendTableName(buff);
+        appendTableName(buff.builder());
         appendKeyCondition(buff);
         PreparedStatement prep = conn.prepareStatement(buff.toString());
         setKey(prep, 1, row);
@@ -245,7 +245,7 @@ public class UpdatableRow {
      */
     public void deleteRow(Value[] current) throws SQLException {
         StatementBuilder buff = new StatementBuilder("DELETE FROM ");
-        appendTableName(buff);
+        appendTableName(buff.builder());
         appendKeyCondition(buff);
         PreparedStatement prep = conn.prepareStatement(buff.toString());
         setKey(prep, 1, current);
@@ -265,7 +265,7 @@ public class UpdatableRow {
      */
     public void updateRow(Value[] current, Value[] updateRow) throws SQLException {
         StatementBuilder buff = new StatementBuilder("UPDATE ");
-        appendTableName(buff);
+        appendTableName(buff.builder());
         buff.append(" SET ");
         appendColumnList(buff, true);
         // TODO updatable result set: we could add all current values to the
@@ -297,7 +297,7 @@ public class UpdatableRow {
      */
     public void insertRow(Value[] row) throws SQLException {
         StatementBuilder buff = new StatementBuilder("INSERT INTO ");
-        appendTableName(buff);
+        appendTableName(buff.builder());
         buff.append('(');
         appendColumnList(buff, false);
         buff.append(")VALUES(");

@@ -651,7 +651,7 @@ class ToDateTokenizer {
          * @return the list of tokens, or {@code null}
          */
         static List<FormatTokenEnum> getTokensInQuestion(String formatStr) {
-            if (formatStr != null && formatStr.length() > 0) {
+            if (formatStr != null && !formatStr.isEmpty()) {
                 char key = Character.toUpperCase(formatStr.charAt(0));
                 if (key >= 'A' && key <= 'Y') {
                     List<FormatTokenEnum>[] tokens = TOKENS;

@@ -55,23 +55,32 @@ public class ExpressionColumn extends Expression {
     }
 
     @Override
-    public String getSQL() {
-        String sql;
+    public StringBuilder getSQL(StringBuilder builder) {
         boolean quote = database.getSettings().databaseToUpper;
-        if (column != null) {
-            sql = column.getSQL();
-        } else {
-            sql = quote ? Parser.quoteIdentifier(columnName) : columnName;
+        if (schemaName != null) {
+            if (quote) {
+                Parser.quoteIdentifier(builder, schemaName);
+            } else {
+                builder.append(schemaName);
+            }
+            builder.append('.');
         }
         if (tableAlias != null) {
-            String a = quote ? Parser.quoteIdentifier(tableAlias) : tableAlias;
-            sql = a + "." + sql;
+            if (quote) {
+                Parser.quoteIdentifier(builder, tableAlias);
+            } else {
+                builder.append(tableAlias);
+            }
+            builder.append('.');
         }
-        if (schemaName != null) {
-            String s = quote ? Parser.quoteIdentifier(schemaName) : schemaName;
-            sql = s + "." + sql;
+        if (column != null) {
+            builder.append(column.getSQL());
+        } else if (quote) {
+            Parser.quoteIdentifier(builder, columnName);
+        } else {
+            builder.append(columnName);
         }
-        return sql;
+        return builder;
     }
 
     public TableFilter getTableFilter() {

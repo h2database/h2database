@@ -52,7 +52,7 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
             }
             result.append('\'');
             String s = enumerators[i];
-            for (int j = 0; j < s.length(); j++) {
+            for (int j = 0, length = s.length(); j < length; j++) {
                 char c = s.charAt(j);
                 if (c == '\'') {
                     result.append('\'');

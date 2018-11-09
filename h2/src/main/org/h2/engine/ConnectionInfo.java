@@ -252,7 +252,7 @@ public class ConnectionInfo implements Cloneable {
             url = url.substring(0, idx);
             String[] list = StringUtils.arraySplit(settings, ';', false);
             for (String setting : list) {
-                if (setting.length() == 0) {
+                if (setting.isEmpty()) {
                     continue;
                 }
                 int equal = setting.indexOf('=');
@@ -326,7 +326,7 @@ public class ConnectionInfo implements Cloneable {
         if (passwordHash) {
             return StringUtils.convertHexToBytes(new String(password));
         }
-        if (userName.length() == 0 && password.length == 0) {
+        if (userName.isEmpty() && password.length == 0) {
             return new byte[0];
         }
         return SHA256.getKeyPasswordHash(userName, password);
@@ -643,7 +643,7 @@ public class ConnectionInfo implements Cloneable {
 
     private static String remapURL(String url) {
         String urlMap = SysProperties.URL_MAP;
-        if (urlMap != null && urlMap.length() > 0) {
+        if (urlMap != null && !urlMap.isEmpty()) {
             try {
                 SortedProperties prop;
                 prop = SortedProperties.loadProperties(urlMap);
@@ -653,7 +653,7 @@ public class ConnectionInfo implements Cloneable {
                     prop.store(urlMap);
                 } else {
                     url2 = url2.trim();
-                    if (url2.length() > 0) {
+                    if (!url2.isEmpty()) {
                         return url2;
                     }
                 }

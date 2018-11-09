@@ -52,19 +52,21 @@ public class WindowFrameBound {
     }
 
     /**
-     * Returns SQL representation.
+     * Appends SQL representation to the specified builder.
      *
+     * @param builder
+     *            string builder
      * @param following
      *            if false return SQL for starting clause, if true return SQL
      *            for following clause
-     * @return SQL representation.
-     * @see Expression#getSQL()
+     * @return the specified string builder
+     * @see Expression#getSQL(StringBuilder)
      */
-    public String getSQL(boolean following) {
+    public StringBuilder getSQL(StringBuilder builder, boolean following) {
         if (type == WindowFrameBoundType.PRECEDING || type == WindowFrameBoundType.FOLLOWING) {
-            return value.getSQL() + ' ' + type.getSQL();
+            value.getSQL(builder).append(' ');
         }
-        return type.getSQL();
+        return builder.append(type.getSQL());
     }
 
 }

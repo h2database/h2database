@@ -113,8 +113,10 @@ public class IntervalOperation extends Expression {
     }
 
     @Override
-    public String getSQL() {
-        return '(' + left.getSQL() + ' ' + getOperationToken() + ' ' + right.getSQL() + ')';
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append('(');
+        left.getSQL(builder).append(' ').append(getOperationToken()).append(' ');
+        return right.getSQL(builder).append(')');
     }
 
     private char getOperationToken() {

@@ -281,14 +281,22 @@ public class TestStringUtils extends TestBase {
     }
 
     private void testTrimSubstring() {
-        assertEquals("", StringUtils.trimSubstring("", 0, 0));
-        assertEquals("", StringUtils.trimSubstring("    ", 0, 0));
-        assertEquals("", StringUtils.trimSubstring("    ", 4, 4));
-        assertEquals("select", StringUtils.trimSubstring(" select  from", 1, 7));
-        assertEquals("a b", StringUtils.trimSubstring(" a b ", 1, 4));
+        testTrimSubstringImpl("", "", 0, 0);
+        testTrimSubstringImpl("", "    ", 0, 0);
+        testTrimSubstringImpl("", "    ", 4, 4);
+        testTrimSubstringImpl("select", " select  from", 1, 7);
+        testTrimSubstringImpl("a b", " a b ", 1, 4);
+        testTrimSubstringImpl("a b", " a b ", 1, 5);
+        testTrimSubstringImpl("b", " a b ", 2, 5);
         new AssertThrows(StringIndexOutOfBoundsException.class) { @Override
             public void test() { StringUtils.trimSubstring(" with (", 1, 8); }
         };
+    }
+
+    private void testTrimSubstringImpl(String expected, String string, int startIndex, int endIndex) {
+        assertEquals(expected, StringUtils.trimSubstring(string, startIndex, endIndex));
+        assertEquals(expected, StringUtils
+                .trimSubstring(new StringBuilder(endIndex - startIndex), string, startIndex, endIndex).toString());
     }
 
 }

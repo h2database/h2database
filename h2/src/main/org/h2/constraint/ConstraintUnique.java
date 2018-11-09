@@ -52,12 +52,13 @@ public class ConstraintUnique extends Constraint {
         }
         buff.append(quotedName);
         if (comment != null) {
-            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ");
+            StringUtils.quoteStringSQL(buff.builder(), comment);
         }
         buff.append(' ').append(getConstraintType().getSqlName()).append('(');
         for (IndexColumn c : columns) {
             buff.appendExceptFirst(", ");
-            buff.append(Parser.quoteIdentifier(c.column.getName()));
+            Parser.quoteIdentifier(buff.builder(), c.column.getName());
         }
         buff.append(')');
         if (internalIndex && indexOwner && forTable == this.table) {

@@ -15,7 +15,6 @@ import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.StatementBuilder;
 import org.h2.value.ExtTypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
@@ -114,14 +113,11 @@ public class ConditionInConstantSet extends Condition {
     }
 
     @Override
-    public String getSQL() {
-        StatementBuilder buff = new StatementBuilder("(");
-        buff.append(left.getSQL()).append(" IN(");
-        for (Expression e : valueList) {
-            buff.appendExceptFirst(", ");
-            buff.append(e.getSQL());
-        }
-        return buff.append("))").toString();
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append('(');
+        left.getSQL(builder).append(" IN(");
+        writeExpressions(builder, valueList);
+        return builder.append("))");
     }
 
     @Override

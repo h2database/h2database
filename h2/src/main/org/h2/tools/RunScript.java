@@ -205,7 +205,7 @@ public class RunScript extends Tool {
                 break;
             }
             String trim = sql.trim();
-            if (trim.length() == 0) {
+            if (trim.isEmpty()) {
                 continue;
             }
             if (trim.startsWith("@") && StringUtils.toUpperEnglish(trim).

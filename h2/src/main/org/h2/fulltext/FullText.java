@@ -514,7 +514,10 @@ public class FullText {
             if (data instanceof UUID) {
                 return "'" + data.toString() + "'";
             }
-            return "'" + StringUtils.convertBytesToHex((byte[]) data) + "'";
+            byte[] bytes = (byte[]) data;
+            StringBuilder builder = new StringBuilder(bytes.length * 2 + 2).append('\'');
+            StringUtils.convertBytesToHex(builder, bytes).append('\'');
+            return builder.toString();
         case Types.CLOB:
         case Types.JAVA_OBJECT:
         case Types.OTHER:
@@ -769,13 +772,13 @@ public class FullText {
                 if(!multiThread) {
                     buff.append(", ROLLBACK");
                 }
-                buff.append(" ON ").
-                        append(StringUtils.quoteIdentifier(schema)).
-                        append('.').
-                        append(StringUtils.quoteIdentifier(table)).
+                buff.append(" ON ");
+                StringUtils.quoteIdentifier(buff, schema).
+                        append('.');
+                StringUtils.quoteIdentifier(buff, table).
                         append(" FOR EACH ROW CALL \"").
                         append(FullText.FullTextTrigger.class.getName()).
-                        append('\"');
+                        append('"');
                 stat.execute(buff.toString());
             }
         }
@@ -1142,7 +1145,7 @@ public class FullText {
             StatementBuilder buff = new StatementBuilder();
             for (int columnIndex : index.keys) {
                 buff.appendExceptFirst(" AND ");
-                buff.append(StringUtils.quoteIdentifier(index.columns[columnIndex]));
+                StringUtils.quoteIdentifier(buff.builder(), index.columns[columnIndex]);
                 Object o = row[columnIndex];
                 if (o == null) {
                     buff.append(" IS NULL");

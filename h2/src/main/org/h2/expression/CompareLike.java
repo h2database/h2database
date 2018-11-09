@@ -72,21 +72,24 @@ public class CompareLike extends Condition {
     }
 
     private static Character getEscapeChar(String s) {
-        return s == null || s.length() == 0 ? null : s.charAt(0);
+        return s == null || s.isEmpty() ? null : s.charAt(0);
     }
 
     @Override
-    public String getSQL() {
-        String sql;
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append('(');
         if (regexp) {
-            sql = left.getSQL() + " REGEXP " + right.getSQL();
+            left.getSQL(builder).append(" REGEXP ");
+            right.getSQL(builder);
         } else {
-            sql = left.getSQL() + " LIKE " + right.getSQL();
+            left.getSQL(builder).append(" LIKE ");
+            right.getSQL(builder);
             if (escape != null) {
-                sql += " ESCAPE " + escape.getSQL();
+                builder.append(" ESCAPE ");
+                escape.getSQL(builder);
             }
         }
-        return "(" + sql + ")";
+        return builder.append(')');
     }
 
     @Override

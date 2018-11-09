@@ -68,10 +68,12 @@ public class BinaryOperation extends Expression {
     }
 
     @Override
-    public String getSQL() {
+    public StringBuilder getSQL(StringBuilder builder) {
         // don't remove the space, otherwise it might end up some thing like
         // --1 which is a line remark
-        return '(' + left.getSQL() + ' ' + getOperationToken() + ' ' + right.getSQL() + ')';
+        builder.append('(');
+        left.getSQL(builder).append(' ').append(getOperationToken()).append(' ');
+        return right.getSQL(builder).append(')');
     }
 
     private String getOperationToken() {

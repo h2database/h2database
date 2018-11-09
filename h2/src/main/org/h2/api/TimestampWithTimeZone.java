@@ -7,6 +7,7 @@ package org.h2.api;
 
 import java.io.Serializable;
 import org.h2.util.DateTimeUtils;
+import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * How we expose "TIMESTAMP WITH TIME ZONE" in our ResultSets.
@@ -109,7 +110,9 @@ public class TimestampWithTimeZone implements Serializable, Cloneable {
 
     @Override
     public String toString() {
-        return DateTimeUtils.timestampTimeZoneToString(dateValue, timeNanos, timeZoneOffsetMins);
+        StringBuilder builder = new StringBuilder(ValueTimestampTimeZone.MAXIMUM_PRECISION);
+        DateTimeUtils.appendTimestampTimeZone(builder, dateValue, timeNanos, timeZoneOffsetMins);
+        return builder.toString();
     }
 
     @Override

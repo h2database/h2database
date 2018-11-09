@@ -348,7 +348,8 @@ public class TableView extends Table {
         }
         buff.append(quotedName);
         if (comment != null) {
-            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ");
+            StringUtils.quoteStringSQL(buff.builder(), comment);
         }
         if (columns != null && columns.length > 0) {
             buff.append('(');
@@ -467,7 +468,8 @@ public class TableView extends Table {
     @Override
     public String getSQL() {
         if (isTemporary() && querySQL != null) {
-            return "(\n" + StringUtils.indent(querySQL) + ")";
+            StringBuilder builder = new StringBuilder(querySQL.length() + 16).append("(\n");
+            return StringUtils.indent(builder, querySQL, 4, true).append(')').toString();
         }
         return super.getSQL();
     }

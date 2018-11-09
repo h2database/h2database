@@ -13,7 +13,6 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.table.Column;
-import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
@@ -46,15 +45,16 @@ public class TableFunction extends Function {
     }
 
     @Override
-    public String getSQL() {
-        StatementBuilder buff = new StatementBuilder(getName());
-        buff.append('(');
-        int i = 0;
-        for (Expression e : args) {
-            buff.appendExceptFirst(", ");
-            buff.append(columnList[i++].getCreateSQL()).append('=').append(e.getSQL());
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append(getName()).append('(');
+        for (int i = 0; i < args.length; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            builder.append(columnList[i].getCreateSQL()).append('=');
+            args[i].getSQL(builder);
         }
-        return buff.append(')').toString();
+        return builder.append(')');
     }
 
 

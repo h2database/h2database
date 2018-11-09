@@ -228,7 +228,7 @@ public class Csv implements SimpleRowSource {
         for (int i = 0; i < columnNames.length; i++) {
             StringBuilder buff = new StringBuilder();
             String n = columnNames[i];
-            if (n == null || n.length() == 0) {
+            if (n == null || n.isEmpty()) {
                 buff.append('C').append(i + 1);
             } else {
                 buff.append(n);
@@ -350,7 +350,7 @@ public class Csv implements SimpleRowSource {
                     list.add(v);
                 }
             } else {
-                if (v.length() == 0) {
+                if (v.isEmpty()) {
                     v = "COLUMN" + list.size();
                 } else if (!caseSensitiveColumnNames && isSimpleColumnName(v)) {
                     v = StringUtils.toUpperEnglish(v);
@@ -827,13 +827,13 @@ public class Csv implements SimpleRowSource {
         String charset = null;
         String[] keyValuePairs = StringUtils.arraySplit(options, ' ', false);
         for (String pair : keyValuePairs) {
-            if (pair.length() == 0) {
+            if (pair.isEmpty()) {
                 continue;
             }
             int index = pair.indexOf('=');
             String key = StringUtils.trim(pair.substring(0, index), true, true, " ");
             String value = pair.substring(index + 1);
-            char ch = value.length() == 0 ? 0 : value.charAt(0);
+            char ch = value.isEmpty() ? 0 : value.charAt(0);
             if (isParam(key, "escape", "esc", "escapeCharacter")) {
                 setEscapeCharacter(ch);
             } else if (isParam(key, "fieldDelimiter", "fieldDelim")) {

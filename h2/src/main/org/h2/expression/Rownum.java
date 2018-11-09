@@ -73,6 +73,11 @@ public class Rownum extends Expression {
     }
 
     @Override
+    public StringBuilder getSQL(StringBuilder builder) {
+        return builder.append("ROWNUM()");
+    }
+
+    @Override
     public void updateAggregate(Session session, int stage) {
         // nothing to do
     }

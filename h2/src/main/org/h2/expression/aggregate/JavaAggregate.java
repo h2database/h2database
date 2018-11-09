@@ -17,7 +17,6 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.StatementBuilder;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -68,15 +67,11 @@ public class JavaAggregate extends AbstractAggregate {
     }
 
     @Override
-    public String getSQL() {
-        StatementBuilder buff = new StatementBuilder();
-        buff.append(Parser.quoteIdentifier(userAggregate.getName())).append('(');
-        for (Expression e : args) {
-            buff.appendExceptFirst(", ");
-            buff.append(e.getSQL());
-        }
-        buff.append(')');
-        return appendTailConditions(buff.builder()).toString();
+    public StringBuilder getSQL(StringBuilder builder) {
+        Parser.quoteIdentifier(builder, userAggregate.getName()).append('(');
+        writeExpressions(builder, args);
+        builder.append(')');
+        return appendTailConditions(builder);
     }
 
     @Override

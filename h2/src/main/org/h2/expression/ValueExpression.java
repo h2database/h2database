@@ -135,11 +135,13 @@ public class ValueExpression extends Expression {
     }
 
     @Override
-    public String getSQL() {
+    public StringBuilder getSQL(StringBuilder builder) {
         if (this == DEFAULT) {
-            return "DEFAULT";
+            builder.append("DEFAULT");
+        } else {
+            value.getSQL(builder);
         }
-        return value.getSQL();
+        return builder;
     }
 
     @Override

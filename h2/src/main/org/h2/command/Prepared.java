@@ -405,7 +405,7 @@ public abstract class Prepared {
         for (Value v : values) {
             buff.appendExceptFirst(", ");
             if (v != null) {
-                buff.append(v.getSQL());
+                v.getSQL(buff.builder());
             }
         }
         return buff.toString();
@@ -418,14 +418,9 @@ public abstract class Prepared {
      * @return the SQL snippet
      */
     protected static String getSQL(Expression[] list) {
-        StatementBuilder buff = new StatementBuilder();
-        for (Expression e : list) {
-            buff.appendExceptFirst(", ");
-            if (e != null) {
-                buff.append(e.getSQL());
-            }
-        }
-        return buff.toString();
+        StringBuilder builder = new StringBuilder();
+        Expression.writeExpressions(builder, list);
+        return builder.toString();
     }
 
     /**

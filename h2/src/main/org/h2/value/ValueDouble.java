@@ -92,15 +92,17 @@ public class ValueDouble extends Value {
     }
 
     @Override
-    public String getSQL() {
+    public StringBuilder getSQL(StringBuilder builder) {
         if (value == Double.POSITIVE_INFINITY) {
-            return "POWER(0, -1)";
+            builder.append("POWER(0, -1)");
         } else if (value == Double.NEGATIVE_INFINITY) {
-            return "(-POWER(0, -1))";
+            builder.append("(-POWER(0, -1))");
         } else if (Double.isNaN(value)) {
-            return "SQRT(-1)";
+            builder.append("SQRT(-1)");
+        } else {
+            builder.append(value);
         }
-        return getString();
+        return builder;
     }
 
     @Override

@@ -228,7 +228,7 @@ public class Replace extends Prepared {
                     if (e == null) {
                         buff.append("DEFAULT");
                     } else {
-                        buff.append(e.getSQL());
+                        e.getSQL(buff.builder());
                     }
                 }
                 buff.append(')');

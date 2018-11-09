@@ -2687,9 +2687,14 @@ public class Parser {
     }
 
     private void setSQL(Prepared command, String start, int startIndex) {
-        String sql = StringUtils.trimSubstring(originalSQL, startIndex, lastParseIndex);
+        int endIndex = lastParseIndex;
+        String sql;
         if (start != null) {
-            sql = start + " " + sql;
+            StringBuilder builder = new StringBuilder(start.length() + endIndex - startIndex + 1)
+                    .append(start).append(' ');
+            sql = StringUtils.trimSubstring(builder, originalSQL, startIndex, endIndex).toString();
+        } else {
+            sql = StringUtils.trimSubstring(originalSQL, startIndex, endIndex);
         }
         command.setSQL(sql);
     }
@@ -2743,16 +2748,13 @@ public class Parser {
             // special case: NOT NULL is not part of an expression (as in CREATE
             // TABLE TEST(ID INT DEFAULT 0 NOT NULL))
             int backup = parseIndex;
-            boolean not = false;
-            if (readIf(NOT)) {
-                not = true;
-                if (isToken(NULL)) {
-                    // this really only works for NOT NULL!
-                    parseIndex = backup;
-                    currentToken = "NOT";
-                    currentTokenType = NOT;
-                    break;
-                }
+            boolean not = readIf(NOT);
+            if (not && isToken(NULL)) {
+                // this really only works for NOT NULL!
+                parseIndex = backup;
+                currentToken = "NOT";
+                currentTokenType = NOT;
+                break;
             }
             if (readIf(LIKE)) {
                 Expression b = readConcat();
@@ -2841,6 +2843,9 @@ public class Parser {
                         Comparison.BIGGER_EQUAL, high, r);
                 r = new ConditionAndOr(ConditionAndOr.AND, condLow, condHigh);
             } else {
+                if (not) {
+                    throw getSyntaxError();
+                }
                 int compareType = getCompareType(currentTokenType);
                 if (compareType < 0) {
                     break;
@@ -4333,9 +4338,12 @@ public class Parser {
                 }
                 i++;
             }
-            currentToken = StringUtils.cache(sqlCommand.substring(
-                    start, i));
-            currentTokenType = getTokenType(currentToken);
+            currentTokenType = ParserUtil.getSaveTokenType(sqlCommand, !identifiersToUpper, start, i, false);
+            if (currentTokenType == IDENTIFIER) {
+                currentToken = StringUtils.cache(sqlCommand.substring(start, i));
+            } else {
+                currentToken = TOKENS[currentTokenType];
+            }
             parseIndex = i;
             return;
         case CHAR_QUOTED: {
@@ -4452,8 +4460,7 @@ public class Parser {
             }
             currentToken = "'";
             checkLiterals(true);
-            currentValue = ValueString.get(StringUtils.cache(result),
-                    database.getMode().treatEmptyStringsAsNull);
+            currentValue = ValueString.get(result, database.getMode().treatEmptyStringsAsNull);
             parseIndex = i;
             currentTokenType = VALUE;
             return;
@@ -4466,8 +4473,7 @@ public class Parser {
             String result = sqlCommand.substring(begin, i);
             currentToken = "'";
             checkLiterals(true);
-            currentValue = ValueString.get(StringUtils.cache(result),
-                    database.getMode().treatEmptyStringsAsNull);
+            currentValue = ValueString.get(result, database.getMode().treatEmptyStringsAsNull);
             parseIndex = i;
             currentTokenType = VALUE;
             return;
@@ -4889,18 +4895,6 @@ public class Parser {
             break;
         }
         throw getSyntaxError();
-    }
-
-    private int getTokenType(String s) {
-        int len = s.length();
-        if (len == 0) {
-            throw getSyntaxError();
-        }
-        if (!identifiersToUpper) {
-            // if not yet converted to uppercase, do it now
-            s = StringUtils.toUpperEnglish(s);
-        }
-        return ParserUtil.getSaveTokenType(s, false);
     }
 
     private boolean isKeyword(String s) {
@@ -7711,6 +7705,24 @@ public class Parser {
             return s;
         }
         return StringUtils.quoteIdentifier(s);
+    }
+
+    /**
+     * Add double quotes around an identifier if required and appends it to the
+     * specified string builder.
+     *
+     * @param builder string builder to append to
+     * @param s the identifier
+     * @return the specified builder
+     */
+    public static StringBuilder quoteIdentifier(StringBuilder builder, String s) {
+        if (s == null) {
+            return builder.append("\"\"");
+        }
+        if (ParserUtil.isSimpleIdentifier(s)) {
+            return builder.append(s);
+        }
+        return StringUtils.quoteIdentifier(builder, s);
     }
 
     public void setLiteralsChecked(boolean literalsChecked) {

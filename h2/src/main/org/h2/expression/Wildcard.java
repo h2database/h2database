@@ -116,24 +116,17 @@ public class Wildcard extends Expression {
     }
 
     @Override
-    public String getSQL() {
-        StringBuilder builder = new StringBuilder();
+    public StringBuilder getSQL(StringBuilder builder) {
         if (table != null) {
-            builder.append(StringUtils.quoteIdentifier(table)).append('.');
+            StringUtils.quoteIdentifier(builder, table).append('.');
         }
         builder.append('*');
         if (exceptColumns != null) {
             builder.append(" EXCEPT (");
-            for (int i = 0; i < exceptColumns.size(); i++) {
-                if (i > 0) {
-                    builder.append(", ");
-                }
-                ExpressionColumn ec = exceptColumns.get(i);
-                builder.append(ec.getSQL());
-            }
+            writeExpressions(builder, exceptColumns);
             builder.append(')');
         }
-        return builder.toString();
+        return builder;
     }
 
     @Override

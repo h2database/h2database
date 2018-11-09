@@ -1308,7 +1308,8 @@ public class Select extends Query {
                     // views.
                 } else {
                     buff.append("WITH RECURSIVE ")
-                            .append(t.getSchema().getSQL()).append('.').append(Parser.quoteIdentifier(t.getName()))
+                            .append(t.getSchema().getSQL()).append('.');
+                    Parser.quoteIdentifier(buff.builder(), t.getName())
                             .append('(');
                     buff.resetCount();
                     for (Column c : t.getColumns()) {
@@ -1327,7 +1328,7 @@ public class Select extends Query {
                 buff.append(" ON(");
                 for (Expression distinctExpression: distinctExpressions) {
                     buff.appendExceptFirst(", ");
-                    buff.append(distinctExpression.getSQL());
+                    distinctExpression.getSQL(buff.builder());
                 }
                 buff.append(')');
                 buff.resetCount();
@@ -1336,7 +1337,7 @@ public class Select extends Query {
         for (int i = 0; i < visibleColumnCount; i++) {
             buff.appendExceptFirst(",");
             buff.append('\n');
-            buff.append(StringUtils.indent(exprList[i].getSQL(), 4, false));
+            StringUtils.indent(buff.builder(), exprList[i].getSQL(), 4, false);
         }
         buff.append("\nFROM ");
         TableFilter filter = topTableFilter;
@@ -1345,7 +1346,7 @@ public class Select extends Query {
             int i = 0;
             do {
                 buff.appendExceptFirst("\n");
-                buff.append(filter.getPlanSQL(i++ > 0));
+                filter.getPlanSQL(buff.builder(), i++ > 0);
                 filter = filter.getJoin();
             } while (filter != null);
         } else {
@@ -1354,14 +1355,14 @@ public class Select extends Query {
             for (TableFilter f : topFilters) {
                 do {
                     buff.appendExceptFirst("\n");
-                    buff.append(f.getPlanSQL(i++ > 0));
+                    f.getPlanSQL(buff.builder(), i++ > 0);
                     f = f.getJoin();
                 } while (f != null);
             }
         }
         if (condition != null) {
-            buff.append("\nWHERE ").append(
-                    StringUtils.unEnclose(condition.getSQL()));
+            buff.append("\nWHERE ");
+            condition.getUnenclosedSQL(buff.builder());
         }
         if (groupIndex != null) {
             buff.append("\nGROUP BY ");
@@ -1370,7 +1371,7 @@ public class Select extends Query {
                 Expression g = exprList[gi];
                 g = g.getNonAliasExpression();
                 buff.appendExceptFirst(", ");
-                buff.append(StringUtils.unEnclose(g.getSQL()));
+                g.getUnenclosedSQL(buff.builder());
             }
         }
         if (group != null) {
@@ -1378,7 +1379,7 @@ public class Select extends Query {
             buff.resetCount();
             for (Expression g : group) {
                 buff.appendExceptFirst(", ");
-                buff.append(StringUtils.unEnclose(g.getSQL()));
+                g.getUnenclosedSQL(buff.builder());
             }
         }
         if (having != null) {
@@ -1386,12 +1387,12 @@ public class Select extends Query {
             // in this case the query is not run directly, just getPlanSQL is
             // called
             Expression h = having;
-            buff.append("\nHAVING ").append(
-                    StringUtils.unEnclose(h.getSQL()));
+            buff.append("\nHAVING ");
+            h.getUnenclosedSQL(buff.builder());
         } else if (havingIndex >= 0) {
             Expression h = exprList[havingIndex];
-            buff.append("\nHAVING ").append(
-                    StringUtils.unEnclose(h.getSQL()));
+            buff.append("\nHAVING ");
+            h.getUnenclosedSQL(buff.builder());
         }
         if (sort != null) {
             buff.append("\nORDER BY ").append(
@@ -1407,8 +1408,8 @@ public class Select extends Query {
         }
         appendLimitToSQL(buff.builder());
         if (sampleSizeExpr != null) {
-            buff.append("\nSAMPLE_SIZE ").append(
-                    StringUtils.unEnclose(sampleSizeExpr.getSQL()));
+            buff.append("\nSAMPLE_SIZE ");
+            sampleSizeExpr.getUnenclosedSQL(buff.builder());
         }
         if (isForUpdate) {
             buff.append("\nFOR UPDATE");

@@ -138,8 +138,8 @@ public class ValueInterval extends Value {
     }
 
     @Override
-    public String getSQL() {
-        return getString();
+    public StringBuilder getSQL(StringBuilder builder) {
+        return IntervalUtils.appendInterval(builder, getQualifier(), negative, leading, remaining);
     }
 
     @Override
@@ -211,7 +211,8 @@ public class ValueInterval extends Value {
 
     @Override
     public String getString() {
-        return IntervalUtils.intervalToString(getQualifier(), negative, leading, remaining);
+        return IntervalUtils.appendInterval(new StringBuilder(), getQualifier(), negative, leading, remaining)
+                .toString();
     }
 
     @Override

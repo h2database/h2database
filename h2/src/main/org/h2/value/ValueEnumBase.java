@@ -94,8 +94,8 @@ public class ValueEnumBase extends Value {
     }
 
     @Override
-    public String getSQL() {
-        return StringUtils.quoteStringSQL(label);
+    public StringBuilder getSQL(StringBuilder builder) {
+        return StringUtils.quoteStringSQL(builder, label);
     }
 
     @Override

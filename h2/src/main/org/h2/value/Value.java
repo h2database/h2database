@@ -275,7 +275,18 @@ public abstract class Value {
      *
      * @return the SQL expression
      */
-    public abstract String getSQL();
+    public String getSQL() {
+        return getSQL(new StringBuilder()).toString();
+    }
+
+    /**
+     * Appends the SQL expression for this value to the specified builder.
+     *
+     * @param builder
+     *            string builder
+     * @return the specified string builder
+     */
+    public abstract StringBuilder getSQL(StringBuilder builder);
 
     /**
      * Get the value type.
@@ -1474,7 +1485,7 @@ public abstract class Value {
      * @return the SQL expression
      */
     public String getTraceSQL() {
-        return getSQL();
+        return getSQL(new StringBuilder()).toString();
     }
 
     @Override

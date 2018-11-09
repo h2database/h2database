@@ -33,9 +33,10 @@ public class SelectOrderBy {
     public String getSQL() {
         StringBuilder buff = new StringBuilder();
         if (expression != null) {
-            buff.append('=').append(expression.getSQL());
+            buff.append('=');
+            expression.getSQL(buff);
         } else {
-            buff.append(columnIndexExpr.getSQL());
+            columnIndexExpr.getSQL(buff);
         }
         SortOrder.typeToString(buff, sortType);
         return buff.toString();

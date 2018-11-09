@@ -166,8 +166,8 @@ public class ValueResultSet extends Value {
     }
 
     @Override
-    public String getSQL() {
-        return "";
+    public StringBuilder getSQL(StringBuilder builder) {
+        return builder;
     }
 
     @Override

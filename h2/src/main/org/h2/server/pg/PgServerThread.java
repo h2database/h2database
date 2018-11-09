@@ -180,7 +180,7 @@ public class PgServerThread implements Runnable {
                         " (" + (version >> 16) + "." + (version & 0xff) + ")");
                 while (true) {
                     String param = readString();
-                    if (param.length() == 0) {
+                    if (param.isEmpty()) {
                         break;
                     }
                     String value = readString();

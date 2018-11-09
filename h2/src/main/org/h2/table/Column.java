@@ -174,7 +174,7 @@ public class Column {
                         getCreateSQL();
                 throw DbException.get(
                         ErrorCode.DATA_CONVERSION_ERROR_1, e,
-                        v.getSQL() + " (" + target + ")");
+                        v.getTraceSQL() + " (" + target + ")");
             }
             throw e;
         }
@@ -496,7 +496,7 @@ public class Column {
     private String getCreateSQL(boolean includeName) {
         StringBuilder buff = new StringBuilder();
         if (includeName && name != null) {
-            buff.append(Parser.quoteIdentifier(name)).append(' ');
+            Parser.quoteIdentifier(buff, name).append(' ');
         }
         if (originalSQL != null) {
             buff.append(originalSQL);
@@ -546,20 +546,17 @@ public class Column {
         }
 
         if (defaultExpression != null) {
-            String sql = defaultExpression.getSQL();
-            if (sql != null) {
-                if (isComputed) {
-                    buff.append(" AS ").append(sql);
-                } else if (defaultExpression != null) {
-                    buff.append(" DEFAULT ").append(sql);
-                }
+            if (isComputed) {
+                buff.append(" AS ");
+                defaultExpression.getSQL(buff);
+            } else if (defaultExpression != null) {
+                buff.append(" DEFAULT ");
+                defaultExpression.getSQL(buff);
             }
         }
         if (onUpdateExpression != null) {
-            String sql = onUpdateExpression.getSQL();
-            if (sql != null) {
-                buff.append(" ON UPDATE ").append(sql);
-            }
+            buff.append(" ON UPDATE ");
+            onUpdateExpression.getSQL(buff);
         }
         if (!nullable) {
             buff.append(" NOT NULL");
@@ -576,7 +573,8 @@ public class Column {
             buff.append(" SELECTIVITY ").append(selectivity);
         }
         if (comment != null) {
-            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ");
+            StringUtils.quoteStringSQL(buff, comment);
         }
         if (checkConstraint != null) {
             buff.append(" CHECK ").append(checkConstraintSQL);

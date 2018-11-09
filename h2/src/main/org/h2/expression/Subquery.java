@@ -89,8 +89,8 @@ public class Subquery extends Expression {
     }
 
     @Override
-    public String getSQL() {
-        return "(" + query.getPlanSQL() + ")";
+    public StringBuilder getSQL(StringBuilder builder) {
+        return builder.append('(').append(query.getPlanSQL()).append(')');
     }
 
     @Override

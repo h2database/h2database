@@ -65,8 +65,9 @@ public class ConditionNot extends Condition {
     }
 
     @Override
-    public String getSQL() {
-        return "(NOT " + condition.getSQL() + ")";
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append("(NOT ");
+        return condition.getSQL(builder).append(')');
     }
 
     @Override

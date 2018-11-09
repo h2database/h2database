@@ -92,16 +92,17 @@ public class ValueFloat extends Value {
     }
 
     @Override
-    public String getSQL() {
+    public StringBuilder getSQL(StringBuilder builder) {
         if (value == Float.POSITIVE_INFINITY) {
-            return "POWER(0, -1)";
+            builder.append("POWER(0, -1)");
         } else if (value == Float.NEGATIVE_INFINITY) {
-            return "(-POWER(0, -1))";
+            builder.append("(-POWER(0, -1))");
         } else if (Float.isNaN(value)) {
-            // NaN
-            return "SQRT(-1)";
+            builder.append("SQRT(-1)");
+        } else {
+            builder.append(value);
         }
-        return getString();
+        return builder;
     }
 
     @Override

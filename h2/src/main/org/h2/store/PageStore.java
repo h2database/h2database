@@ -2028,7 +2028,7 @@ public class PageStore implements CacheWriter {
         backupLevel += start ? 1 : -1;
     }
 
-    public synchronized void setMaxMemory(int size) {
+    public synchronized void setMaxCacheMemory(int size) {
         cache.setMaxMemory(size);
     }
 

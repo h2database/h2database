@@ -154,7 +154,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                         new Page.PageReference(split),
                         Page.PageReference.EMPTY
                 };
-                p = Page.create(this, keys, null, children, totalCount, 0);
+                p = Page.createNode(this, keys, children, totalCount, 0);
                 if(store.getFileStore() != null) {
                     store.registerUnsavedPage(p.getMemory());
                 }

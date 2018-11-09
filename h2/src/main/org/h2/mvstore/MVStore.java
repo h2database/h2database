@@ -164,7 +164,8 @@ public class MVStore {
 
     private volatile boolean closed;
 
-    final FileStore fileStore;
+    private final FileStore fileStore;
+
     private final boolean fileStoreIsProvided;
 
     private final int pageSplitSize;
@@ -970,31 +971,75 @@ public class MVStore {
         }
     }
 
+    ByteBuffer readBufferForPage(long pos, int expectedMapId) {
+        Chunk c = getChunk(pos);
+        long filePos = c.block * BLOCK_SIZE;
+        filePos += DataUtils.getPageOffset(pos);
+        if (filePos < 0) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_FILE_CORRUPT,
+                    "Negative position {0}; p={1}, c={2}", filePos, pos, c.toString());
+        }
+        long maxPos = (c.block + c.len) * BLOCK_SIZE;
+
+        ByteBuffer buff;
+        int maxLength = DataUtils.getPageMaxLength(pos);
+        if (maxLength == DataUtils.PAGE_LARGE) {
+            buff = fileStore.readFully(filePos, 128);
+            maxLength = buff.getInt();
+            // read the first bytes again
+        }
+        maxLength = (int) Math.min(maxPos - filePos, maxLength);
+        int length = maxLength;
+        if (length < 0) {
+            throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
+                    "Illegal page length {0} reading at {1}; max pos {2} ", length, filePos, maxPos);
+        }
+        buff = fileStore.readFully(filePos, length);
+        int chunkId = DataUtils.getPageChunkId(pos);
+        int offset = DataUtils.getPageOffset(pos);
+        int start = buff.position();
+        int remaining = buff.remaining();
+        int pageLength = buff.getInt();
+        if (pageLength > remaining || pageLength < 4) {
+            throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
+                    "File corrupted in chunk {0}, expected page length 4..{1}, got {2}", chunkId, remaining,
+                    pageLength);
+        }
+        buff.limit(start + pageLength);
+
+        short check = buff.getShort();
+        int mapId = DataUtils.readVarInt(buff);
+        if (mapId != expectedMapId) {
+            throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
+                    "File corrupted in chunk {0}, expected map id {1}, got {2}", chunkId, expectedMapId, mapId);
+        }
+        int checkTest = DataUtils.getCheckValue(chunkId)
+                ^ DataUtils.getCheckValue(offset)
+                ^ DataUtils.getCheckValue(pageLength);
+        if (check != (short) checkTest) {
+            throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
+                    "File corrupted in chunk {0}, expected check value {1}, got {2}", chunkId, checkTest, check);
+        }
+        return buff;
+    }
+
     /**
      * Get the chunk for the given position.
      *
      * @param pos the position
      * @return the chunk
      */
-    Chunk getChunk(long pos) {
-        Chunk c = getChunkIfFound(pos);
-        if (c == null) {
-            int chunkId = DataUtils.getPageChunkId(pos);
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_CHUNK_NOT_FOUND,
-                    "Chunk {0} not found", chunkId);
-        }
-        return c;
-    }
-
-    private Chunk getChunkIfFound(long pos) {
+    private Chunk getChunk(long pos) {
         int chunkId = DataUtils.getPageChunkId(pos);
         Chunk c = chunks.get(chunkId);
         if (c == null) {
             checkOpen();
             String s = meta.get(Chunk.getMetaKey(chunkId));
             if (s == null) {
-                return null;
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_CHUNK_NOT_FOUND,
+                        "Chunk {0} not found", chunkId);
             }
             c = Chunk.fromString(s);
             if (c.block == Long.MAX_VALUE) {
@@ -1412,9 +1457,7 @@ public class MVStore {
         }
 
         public Set<Integer> getReferenced() {
-            Set<Integer> set = new HashSet<>();
-            set.addAll(referencedChunks.keySet());
-            return set;
+            return new HashSet<>(referencedChunks.keySet());
         }
 
         public void visit(Page page, ThreadPoolExecutor executorService, AtomicInteger executingThreadCounter) {
@@ -1426,7 +1469,8 @@ public class MVStore {
             if (count == 0) {
                 return;
             }
-            final ChunkIdsCollector childCollector = new ChunkIdsCollector(this);
+            ChunkIdsCollector childCollector = DataUtils.isPageSaved(pos) && cacheChunkRef != null ?
+                                                        new ChunkIdsCollector(this) : this;
             for (int i = 0; i < count; i++) {
                 Page childPage = page.getChildPageIfLoaded(i);
                 if (childPage != null) {
@@ -1435,11 +1479,7 @@ public class MVStore {
                     childCollector.visit(page.getChildPagePos(i), executorService, executingThreadCounter);
                 }
             }
-            // and cache resulting set of chunk ids
-            if (DataUtils.isPageSaved(pos) && cacheChunkRef != null) {
-                int[] chunkIds = childCollector.getChunkIds();
-                cacheChunkRef.put(pos, chunkIds, Constants.MEMORY_ARRAY + 4 * chunkIds.length);
-            }
+            cacheCollectedChunkIds(pos, childCollector);
         }
 
         public void visit(long pos, ThreadPoolExecutor executorService, AtomicInteger executingThreadCounter) {
@@ -1450,36 +1490,24 @@ public class MVStore {
             if (DataUtils.getPageType(pos) == DataUtils.PAGE_TYPE_LEAF) {
                 return;
             }
-            int chunkIds[];
+            int[] chunkIds;
             if (cacheChunkRef != null && (chunkIds = cacheChunkRef.get(pos)) != null) {
                 // there is a cached set of chunk ids for this position
                 for (int chunkId : chunkIds) {
                     registerChunk(chunkId);
                 }
             } else {
-                final ChunkIdsCollector childCollector = new ChunkIdsCollector(this);
+                ChunkIdsCollector childCollector = cacheChunkRef != null ? new ChunkIdsCollector(this) : this;
                 Page page;
                 if (cache != null && (page = cache.get(pos)) != null) {
                     // there is a full page in cache, use it
                     childCollector.visit(page, executorService, executingThreadCounter);
                 } else {
                     // page was not cached: read the data
-                    Chunk chunk = getChunk(pos);
-                    long filePos = chunk.block * BLOCK_SIZE;
-                    filePos += DataUtils.getPageOffset(pos);
-                    if (filePos < 0) {
-                        throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
-                                "Negative position {0}; p={1}, c={2}", filePos, pos, chunk.toString());
-                    }
-                    long maxPos = (chunk.block + chunk.len) * BLOCK_SIZE;
-                    Page.readChildrenPositions(fileStore, pos, filePos, maxPos,
-                            childCollector, executorService, executingThreadCounter);
+                    ByteBuffer buff = readBufferForPage(pos, getMapId());
+                    Page.readChildrenPositions(buff, pos, childCollector, executorService, executingThreadCounter);
                 }
-                // and cache resulting set of chunk ids
-                if (cacheChunkRef != null) {
-                    chunkIds = childCollector.getChunkIds();
-                    cacheChunkRef.put(pos, chunkIds, Constants.MEMORY_ARRAY + 4 * chunkIds.length);
-                }
+                cacheCollectedChunkIds(pos, childCollector);
             }
         }
 
@@ -1489,13 +1517,15 @@ public class MVStore {
             }
         }
 
-        private int[] getChunkIds() {
-            int chunkIds[] = new int[referencedChunks.size()];
-            int index = 0;
-            for (Integer chunkId : referencedChunks.keySet()) {
-                chunkIds[index++] = chunkId;
+        private void cacheCollectedChunkIds(long pos, ChunkIdsCollector childCollector) {
+            if (childCollector != this) {
+                int[] chunkIds = new int[childCollector.referencedChunks.size()];
+                int index = 0;
+                for (Integer chunkId : childCollector.referencedChunks.keySet()) {
+                    chunkIds[index++] = chunkId;
+                }
+                cacheChunkRef.put(pos, chunkIds, Constants.MEMORY_ARRAY + 4 * chunkIds.length);
             }
-            return chunkIds;
         }
     }
 
@@ -2052,16 +2082,8 @@ public class MVStore {
         }
         Page p = cache == null ? null : cache.get(pos);
         if (p == null) {
-            Chunk c = getChunk(pos);
-            long filePos = c.block * BLOCK_SIZE;
-            filePos += DataUtils.getPageOffset(pos);
-            if (filePos < 0) {
-                throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_FILE_CORRUPT,
-                        "Negative position {0}; p={1}, c={2}", filePos, pos, c.toString());
-            }
-            long maxPos = (c.block + c.len) * BLOCK_SIZE;
-            p = Page.read(fileStore, pos, map, filePos, maxPos);
+            ByteBuffer buff = readBufferForPage(pos, map.getId());
+            p = Page.read(buff, pos, map);
             cachePage(p);
         }
         return p;
@@ -2070,11 +2092,10 @@ public class MVStore {
     /**
      * Remove a page.
      *
-     * @param map the map the page belongs to
      * @param pos the position of the page
      * @param memory the memory usage
      */
-    void removePage(MVMap<?, ?> map, long pos, int memory) {
+    void removePage(long pos, int memory) {
         // we need to keep temporary pages,
         // to support reading old versions and rollback
         if (!DataUtils.isPageSaved(pos)) {
@@ -2086,19 +2107,6 @@ public class MVStore {
             return;
         }
 
-        // This could result in a cache miss if the operation is rolled back,
-        // but we don't optimize for rollback.
-        // We could also keep the page in the cache, as somebody
-        // could still read it (reading the old version).
-/*
-        if (cache != null) {
-            if (DataUtils.getPageType(pos) == DataUtils.PAGE_TYPE_LEAF) {
-                // keep nodes in the cache, because they are still used for
-                // garbage collection
-                cache.remove(pos);
-            }
-        }
-*/
         int chunkId = DataUtils.getPageChunkId(pos);
         // synchronize, because pages could be freed concurrently
         synchronized (freedPageSpace) {
@@ -2541,13 +2549,12 @@ public class MVStore {
         String oldName = getMapName(id);
         if (oldName != null && !oldName.equals(newName)) {
             String idHexStr = Integer.toHexString(id);
+            // at first create a new name as an "alias"
+            String existingIdHexStr = meta.putIfAbsent("name." + newName, idHexStr);
             // we need to cope with the case of previously unfinished rename
-            String existingIdHexStr = meta.get("name." + newName);
             DataUtils.checkArgument(
                     existingIdHexStr == null || existingIdHexStr.equals(idHexStr),
                     "A map named {0} already exists", newName);
-            // at first create a new name as an "alias"
-            meta.put("name." + newName, idHexStr);
             // switch roles of a new and old names - old one is an alias now
             meta.put(MVMap.getMapKey(id), map.asString(newName));
             // get rid of the old name completely

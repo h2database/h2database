@@ -4493,17 +4493,17 @@ CALL TRANSLATE('Hello world', 'eo', 'EO')
 "
 
 "Functions (Time and Date)","CURRENT_DATE","
-{ CURRENT_DATE [ () ] | CURDATE() | SYSDATE | TODAY }
+{ CURRENT_DATE | CURDATE() | SYSDATE | TODAY }
 ","
 Returns the current date.
 These methods always return the same value within a transaction (default)
 or within a command depending on database mode.
 ","
-CURRENT_DATE()
+CURRENT_DATE
 "
 
 "Functions (Time and Date)","CURRENT_TIME","
-{ CURRENT_TIME [ ( [ int ] ) ] | LOCALTIME [ ( [ int ] ) ] | CURTIME() }
+{ CURRENT_TIME [ (int) ] | LOCALTIME [ (int) ] | CURTIME([ int ]) }
 ","
 Returns the current time.
 If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
@@ -4513,11 +4513,13 @@ Higher precision is not available before Java 9.
 These methods always return the same value within a transaction (default)
 or within a command depending on database mode.
 ","
-CURRENT_TIME()
+CURRENT_TIME
+LOCALTIME
+LOCALTIME(9)
 "
 
 "Functions (Time and Date)","CURRENT_TIMESTAMP","
-CURRENT_TIMESTAMP [ ( [ int ] ) ]
+CURRENT_TIMESTAMP [ (int) ]
 ","
 Returns the current timestamp with time zone.
 Time zone offset is set to a current time zone offset
@@ -4528,11 +4530,12 @@ Higher precision is not available before Java 9.
 This method always returns the same value within a transaction (default)
 or within a command depending on database mode.
 ","
-CURRENT_TIMESTAMP()
+CURRENT_TIMESTAMP
+CURRENT_TIMESTAMP(9)
 "
 
 "Functions (Time and Date)","LOCALTIMESTAMP","
-{ LOCALTIMESTAMP [ ( [ int ] ) ] | NOW( [ int ] ) }
+{ LOCALTIMESTAMP [ (int) ] | NOW( [ int ] ) }
 ","
 Returns the current timestamp.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
@@ -4542,7 +4545,8 @@ Higher precision is not available before Java 9.
 These methods always return the same value within a transaction (default)
 or within a command depending on database mode.
 ","
-LOCALTIMESTAMP()
+LOCALTIMESTAMP
+LOCALTIMESTAMP(9)
 "
 
 "Functions (Time and Date)","DATEADD","

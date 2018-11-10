@@ -99,14 +99,14 @@ public class Function extends Expression implements FunctionCall {
             LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94, /* 95 */
             TO_DATE = 96, TO_TIMESTAMP = 97, ADD_MONTHS = 98, TO_TIMESTAMP_TZ = 99;
 
-    public static final int CURDATE = 100, CURTIME = 101, DATE_ADD = 102,
-            DATE_DIFF = 103, DAY_NAME = 104, DAY_OF_MONTH = 105,
-            DAY_OF_WEEK = 106, DAY_OF_YEAR = 107, HOUR = 108, MINUTE = 109,
-            MONTH = 110, MONTH_NAME = 111, LOCALTIMESTAMP = 112, QUARTER = 113,
-            SECOND = 114, WEEK = 115, YEAR = 116, CURRENT_DATE = 117,
-            CURRENT_TIME = 118, CURRENT_TIMESTAMP = 119, EXTRACT = 120,
-            FORMATDATETIME = 121, PARSEDATETIME = 122, ISO_YEAR = 123,
-            ISO_WEEK = 124, ISO_DAY_OF_WEEK = 125, DATE_TRUNC = 132;
+    public static final int CURRENT_DATE = 100, CURRENT_TIME = 101, LOCALTIME = 102,
+            CURRENT_TIMESTAMP = 103, LOCALTIMESTAMP = 104,
+            DATE_ADD = 105, DATE_DIFF = 106, DAY_NAME = 107, DAY_OF_MONTH = 108,
+            DAY_OF_WEEK = 109, DAY_OF_YEAR = 110, HOUR = 111, MINUTE = 112,
+            MONTH = 113, MONTH_NAME = 114, QUARTER = 115,
+            SECOND = 116, WEEK = 117, YEAR = 118, EXTRACT = 119,
+            FORMATDATETIME = 120, PARSEDATETIME = 121, ISO_YEAR = 122,
+            ISO_WEEK = 123, ISO_DAY_OF_WEEK = 124, DATE_TRUNC = 125;
 
     /**
      * Pseudo functions for DATEADD, DATEDIFF, and EXTRACT.
@@ -284,34 +284,27 @@ public class Function extends Expression implements FunctionCall {
         addFunction("REGEXP_LIKE", REGEXP_LIKE, VAR_ARGS, Value.BOOLEAN);
 
         // date
-        addFunctionNotDeterministic("CURRENT_DATE", CURRENT_DATE,
-                0, Value.DATE);
-        addFunctionNotDeterministic("CURDATE", CURDATE,
-                0, Value.DATE);
-        addFunctionNotDeterministic("TODAY", CURRENT_DATE,
-                0, Value.DATE);
+        addFunctionNotDeterministic("CURRENT_DATE", CURRENT_DATE, 0, Value.DATE, false);
+        addFunctionNotDeterministic("CURDATE", CURRENT_DATE, 0, Value.DATE);
+        addFunctionNotDeterministic("SYSDATE", CURRENT_DATE, 0, Value.DATE, false);
+        addFunctionNotDeterministic("TODAY", CURRENT_DATE, 0, Value.DATE, false);
+
+        addFunctionNotDeterministic("CURRENT_TIME", CURRENT_TIME, VAR_ARGS, Value.TIME);
+
+        addFunctionNotDeterministic("LOCALTIME", LOCALTIME, VAR_ARGS, Value.TIME, false);
+        addFunctionNotDeterministic("SYSTIME", LOCALTIME, 0, Value.TIME, false);
+        addFunctionNotDeterministic("CURTIME", LOCALTIME, VAR_ARGS, Value.TIME);
+
+        addFunctionNotDeterministic("CURRENT_TIMESTAMP", CURRENT_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP_TZ, false);
+        addFunctionNotDeterministic("SYSTIMESTAMP", CURRENT_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP_TZ, false);
+
+        addFunctionNotDeterministic("LOCALTIMESTAMP", LOCALTIMESTAMP, VAR_ARGS, Value.TIMESTAMP, false);
+        addFunctionNotDeterministic("NOW", LOCALTIMESTAMP, VAR_ARGS, Value.TIMESTAMP);
+
         addFunction("TO_DATE", TO_DATE, VAR_ARGS, Value.TIMESTAMP);
         addFunction("TO_TIMESTAMP", TO_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP);
         addFunction("ADD_MONTHS", ADD_MONTHS, 2, Value.TIMESTAMP);
         addFunction("TO_TIMESTAMP_TZ", TO_TIMESTAMP_TZ, VAR_ARGS, Value.TIMESTAMP_TZ);
-        addFunctionNotDeterministic("CURRENT_TIME", CURRENT_TIME,
-                VAR_ARGS, Value.TIME);
-        addFunctionNotDeterministic("LOCALTIME", CURRENT_TIME,
-                VAR_ARGS, Value.TIME);
-        addFunctionNotDeterministic("SYSTIME", CURRENT_TIME,
-                0, Value.TIME);
-        addFunctionNotDeterministic("CURTIME", CURTIME,
-                0, Value.TIME);
-        addFunctionNotDeterministic("CURRENT_TIMESTAMP", CURRENT_TIMESTAMP,
-                VAR_ARGS, Value.TIMESTAMP_TZ);
-        addFunctionNotDeterministic("SYSDATE", CURRENT_TIMESTAMP,
-                VAR_ARGS, Value.TIMESTAMP_TZ);
-        addFunctionNotDeterministic("SYSTIMESTAMP", CURRENT_TIMESTAMP,
-                VAR_ARGS, Value.TIMESTAMP_TZ);
-        addFunctionNotDeterministic("LOCALTIMESTAMP", LOCALTIMESTAMP,
-                VAR_ARGS, Value.TIMESTAMP);
-        addFunctionNotDeterministic("NOW", LOCALTIMESTAMP,
-                VAR_ARGS, Value.TIMESTAMP);
         addFunction("DATEADD", DATE_ADD,
                 3, Value.TIMESTAMP);
         addFunction("TIMESTAMPADD", DATE_ADD,
@@ -422,9 +415,9 @@ public class Function extends Expression implements FunctionCall {
                 2, Value.NULL);
         addFunctionWithNull("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN);
         addFunction("CSVREAD", CSVREAD,
-                VAR_ARGS, Value.RESULT_SET, false, false, false);
+                VAR_ARGS, Value.RESULT_SET, false, false, false, true);
         addFunction("CSVWRITE", CSVWRITE,
-                VAR_ARGS, Value.INT, false, false, true);
+                VAR_ARGS, Value.INT, false, false, true, true);
         addFunctionNotDeterministic("MEMORY_FREE", MEMORY_FREE,
                 0, Value.INT);
         addFunctionNotDeterministic("MEMORY_USED", MEMORY_USED,
@@ -446,11 +439,11 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("CANCEL_SESSION", CANCEL_SESSION,
                 1, Value.BOOLEAN);
         addFunction("SET", SET,
-                2, Value.NULL, false, false, true);
+                2, Value.NULL, false, false, true, true);
         addFunction("FILE_READ", FILE_READ,
-                VAR_ARGS, Value.NULL, false, false, true);
+                VAR_ARGS, Value.NULL, false, false, true, true);
         addFunction("FILE_WRITE", FILE_WRITE,
-                2, Value.LONG, false, false, true);
+                2, Value.LONG, false, false, true, true);
         addFunctionNotDeterministic("TRANSACTION_ID", TRANSACTION_ID,
                 0, Value.STRING);
         addFunctionWithNull("DECODE", DECODE,
@@ -468,7 +461,7 @@ public class Function extends Expression implements FunctionCall {
                 VAR_ARGS, Value.RESULT_SET);
 
         // ON DUPLICATE KEY VALUES function
-        addFunction("VALUES", VALUES, 1, Value.NULL, false, true, false);
+        addFunction("VALUES", VALUES, 1, Value.NULL, false, true, false, true);
     }
 
     /**
@@ -489,24 +482,29 @@ public class Function extends Expression implements FunctionCall {
 
     private static void addFunction(String name, int type, int parameterCount,
             int returnDataType, boolean nullIfParameterIsNull, boolean deterministic,
-            boolean bufferResultSetToLocalTemp) {
+            boolean bufferResultSetToLocalTemp, boolean requireParentheses) {
         FUNCTIONS.put(name, new FunctionInfo(name, type, parameterCount, returnDataType, nullIfParameterIsNull,
-                deterministic, bufferResultSetToLocalTemp));
+                deterministic, bufferResultSetToLocalTemp, requireParentheses));
     }
 
     private static void addFunctionNotDeterministic(String name, int type,
             int parameterCount, int returnDataType) {
-        addFunction(name, type, parameterCount, returnDataType, true, false, true);
+        addFunctionNotDeterministic(name, type, parameterCount, returnDataType, true);
+    }
+
+    private static void addFunctionNotDeterministic(String name, int type,
+            int parameterCount, int returnDataType, boolean requireParentheses) {
+        addFunction(name, type, parameterCount, returnDataType, true, false, true, requireParentheses);
     }
 
     private static void addFunction(String name, int type, int parameterCount,
             int returnDataType) {
-        addFunction(name, type, parameterCount, returnDataType, true, true, true);
+        addFunction(name, type, parameterCount, returnDataType, true, true, true, true);
     }
 
     private static void addFunctionWithNull(String name, int type,
             int parameterCount, int returnDataType) {
-        addFunction(name, type, parameterCount, returnDataType, false, true, true);
+        addFunction(name, type, parameterCount, returnDataType, false, true, true, true);
     }
 
     /**
@@ -801,6 +799,32 @@ public class Function extends Expression implements FunctionCall {
             result = ValueString.get(StringUtils.xmlStartDoc(),
                     database.getMode().treatEmptyStringsAsNull);
             break;
+        case CURRENT_DATE: {
+            result = (database.getMode().dateTimeValueWithinTransaction ? session.getTransactionStart()
+                    : session.getCurrentCommandStart()).convertTo(Value.DATE);
+            break;
+        }
+        case CURRENT_TIME:
+        case LOCALTIME: {
+            ValueTime vt = (ValueTime) (database.getMode().dateTimeValueWithinTransaction
+                    ? session.getTransactionStart()
+                    : session.getCurrentCommandStart()).convertTo(Value.TIME);
+            result = vt.convertScale(false, v0 == null ? 0 : v0.getInt());
+            break;
+        }
+        case CURRENT_TIMESTAMP: {
+            ValueTimestampTimeZone vt = database.getMode().dateTimeValueWithinTransaction
+                    ? session.getTransactionStart()
+                    : session.getCurrentCommandStart();
+            result = vt.convertScale(false, v0 == null ? 6 : v0.getInt());
+            break;
+        }
+        case LOCALTIMESTAMP: {
+            Value vt = (database.getMode().dateTimeValueWithinTransaction ? session.getTransactionStart()
+                    : session.getCurrentCommandStart()).convertTo(Value.TIMESTAMP);
+            result = vt.convertScale(false, v0 == null ? 6 : v0.getInt());
+            break;
+        }
         case DAY_NAME: {
             int dayOfWeek = DateTimeUtils.getSundayDayOfWeek(DateTimeUtils.dateAndTimeFromValue(v0)[0]);
             result = ValueString.get(DateTimeFunctions.getMonthsAndWeeks(1)[dayOfWeek],
@@ -826,33 +850,6 @@ public class Function extends Expression implements FunctionCall {
             int month = DateTimeUtils.monthFromDateValue(DateTimeUtils.dateAndTimeFromValue(v0)[0]);
             result = ValueString.get(DateTimeFunctions.getMonthsAndWeeks(0)[month - 1],
                     database.getMode().treatEmptyStringsAsNull);
-            break;
-        }
-        case CURDATE:
-        case CURRENT_DATE: {
-            result = (database.getMode().dateTimeValueWithinTransaction ? session.getTransactionStart()
-                    : session.getCurrentCommandStart()).convertTo(Value.DATE);
-            break;
-        }
-        case CURTIME:
-        case CURRENT_TIME: {
-            ValueTime vt = (ValueTime) (database.getMode().dateTimeValueWithinTransaction
-                    ? session.getTransactionStart()
-                    : session.getCurrentCommandStart()).convertTo(Value.TIME);
-            result = vt.convertScale(false, v0 == null ? 0 : v0.getInt());
-            break;
-        }
-        case LOCALTIMESTAMP: {
-            Value vt = (database.getMode().dateTimeValueWithinTransaction ? session.getTransactionStart()
-                    : session.getCurrentCommandStart()).convertTo(Value.TIMESTAMP);
-            result = vt.convertScale(false, v0 == null ? 6 : v0.getInt());
-            break;
-        }
-        case CURRENT_TIMESTAMP: {
-            ValueTimestampTimeZone vt = database.getMode().dateTimeValueWithinTransaction
-                    ? session.getTransactionStart()
-                    : session.getCurrentCommandStart();
-            result = vt.convertScale(false, v0 == null ? 6 : v0.getInt());
             break;
         }
         case DATABASE:
@@ -2089,9 +2086,10 @@ public class Function extends Expression implements FunctionCall {
         case GREATEST:
             min = 1;
             break;
-        case LOCALTIMESTAMP:
         case CURRENT_TIME:
+        case LOCALTIME:
         case CURRENT_TIMESTAMP:
+        case LOCALTIMESTAMP:
         case RAND:
             max = 1;
             break;
@@ -2600,7 +2598,10 @@ public class Function extends Expression implements FunctionCall {
             }
             return builder.append(" END");
         }
-        builder.append('(');
+        boolean addParentheses = args.length > 0 || info.requireParentheses;
+        if (addParentheses) {
+            builder.append('(');
+        }
         switch (info.type) {
         case CAST: {
             args[0].getSQL(builder).append(" AS ").
@@ -2630,7 +2631,10 @@ public class Function extends Expression implements FunctionCall {
         default:
             writeExpressions(builder, args);
         }
-        return builder.append(')');
+        if (addParentheses) {
+            builder.append(')');
+        }
+        return builder;
     }
 
     @Override

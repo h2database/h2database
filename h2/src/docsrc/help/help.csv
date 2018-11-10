@@ -2976,6 +2976,7 @@ If fractional seconds precision is specified it should be from 0 to 9, 0 is defa
 Mapped to ""java.sql.Time"". When converted to a ""java.sql.Date"", the date is set to ""1970-01-01"".
 ""java.time.LocalTime"" is also supported on Java 8 and later versions.
 Use ""java.time.LocalTime"" or ""String"" instead of ""java.sql.Time"" when non-zero precision is needed.
+Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up.
 ","
 TIME
 TIME(9)
@@ -3004,6 +3005,7 @@ Fractional seconds precision of SMALLDATETIME is always 0 and cannot be specifie
 
 Mapped to ""java.sql.Timestamp"" (""java.util.Date"" may be used too).
 ""java.time.LocalDateTime"" is also supported on Java 8 and later versions.
+Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up.
 ","
 TIMESTAMP
 TIMESTAMP(9)
@@ -3023,6 +3025,7 @@ Values of this data type are compared by UTC values. It means that ""2010-01-01 
 
 Conversion to ""TIMESTAMP"" uses time zone offset to get UTC time and converts it to local time using the system time zone.
 Conversion from ""TIMESTAMP"" does the same operations in reverse and sets time zone offset to offset of the system time zone.
+Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up.
 ","
 TIMESTAMP WITH TIME ZONE
 TIMESTAMP(9) WITH TIME ZONE

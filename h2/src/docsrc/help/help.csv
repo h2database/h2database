@@ -2975,9 +2975,10 @@ If fractional seconds precision is specified it should be from 0 to 9, 0 is defa
 
 Mapped to ""java.sql.Time"". When converted to a ""java.sql.Date"", the date is set to ""1970-01-01"".
 ""java.time.LocalTime"" is also supported on Java 8 and later versions.
-Resolution of ""java.sql.Time"" is limited to milliseconds, use ""String"" or ""java.time.LocalTime"" if you need nanosecond resolution.
+Use ""java.time.LocalTime"" or ""String"" instead of ""java.sql.Time"" when non-zero precision is needed.
 ","
 TIME
+TIME(9)
 "
 
 "Data Types","DATE Type","
@@ -3005,6 +3006,7 @@ Mapped to ""java.sql.Timestamp"" (""java.util.Date"" may be used too).
 ""java.time.LocalDateTime"" is also supported on Java 8 and later versions.
 ","
 TIMESTAMP
+TIMESTAMP(9)
 "
 
 "Data Types","TIMESTAMP WITH TIME ZONE Type","
@@ -3023,6 +3025,7 @@ Conversion to ""TIMESTAMP"" uses time zone offset to get UTC time and converts i
 Conversion from ""TIMESTAMP"" does the same operations in reverse and sets time zone offset to offset of the system time zone.
 ","
 TIMESTAMP WITH TIME ZONE
+TIMESTAMP(9) WITH TIME ZONE
 "
 
 "Data Types","BINARY Type","

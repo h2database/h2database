@@ -336,9 +336,7 @@ public class Aggregate extends AbstractAggregate {
                     array[i + 1] = o.expression.getValue(session);
                 }
             } else {
-                for (int i = 1; i <= size; i++) {
-                    array[i] = remembered[i];
-                }
+                System.arraycopy(remembered, 1, array, 1, size);
             }
             v = ValueArray.get(array);
         }

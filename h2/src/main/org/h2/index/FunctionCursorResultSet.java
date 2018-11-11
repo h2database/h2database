@@ -30,9 +30,7 @@ public class FunctionCursorResultSet extends AbstractFunctionCursor {
             int columnCount = result.getVisibleColumnCount();
             Value[] currentRow = result.currentRow();
             values = new Value[columnCount];
-            for (int i = 0; i < columnCount; i++) {
-                values[i] = currentRow[i];
-            }
+            System.arraycopy(currentRow, 0, values, 0, columnCount);
         } else {
             values = null;
         }

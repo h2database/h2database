@@ -2976,7 +2976,8 @@ If fractional seconds precision is specified it should be from 0 to 9, 0 is defa
 Mapped to ""java.sql.Time"". When converted to a ""java.sql.Date"", the date is set to ""1970-01-01"".
 ""java.time.LocalTime"" is also supported on Java 8 and later versions.
 Use ""java.time.LocalTime"" or ""String"" instead of ""java.sql.Time"" when non-zero precision is needed.
-Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up.
+Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up;
+if result of rounding is higher than maximum supported value 23:59:59.999999999 it is saturated to 23:59:59.999999999.
 ","
 TIME
 TIME(9)

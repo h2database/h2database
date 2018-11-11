@@ -10,6 +10,8 @@ import org.h2.result.ResultInterface;
 import org.h2.result.SearchRow;
 import org.h2.value.Value;
 
+import java.util.Arrays;
+
 /**
  * A cursor for a function that returns a JDBC result set.
  */
@@ -29,8 +31,7 @@ public class FunctionCursorResultSet extends AbstractFunctionCursor {
         if (result != null && result.next()) {
             int columnCount = result.getVisibleColumnCount();
             Value[] currentRow = result.currentRow();
-            values = new Value[columnCount];
-            System.arraycopy(currentRow, 0, values, 0, columnCount);
+            values = Arrays.copyOf(currentRow, columnCount);
         } else {
             values = null;
         }

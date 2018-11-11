@@ -19,7 +19,7 @@ FROM tableExpression [,...] [ WHERE expression ]
 ","
 Selects data from a table or multiple tables.
 GROUP BY groups the the result by the given expression(s).
-HAVING filter rows after grouping.
+HAVING filters rows after grouping.
 ORDER BY sorts the result by the given column(s) or expression(s).
 UNION combines the result of this query with the results of another query.
 
@@ -4529,7 +4529,7 @@ LOCALTIME(9)
 CURRENT_TIMESTAMP [ (int) ]
 ","
 Returns the current timestamp with time zone.
-Time zone offset is set to a current time zone offset
+Time zone offset is set to a current time zone offset.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 The specified value can be used only to limit precision of a result.
 The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.

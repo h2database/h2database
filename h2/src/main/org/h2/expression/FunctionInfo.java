@@ -46,6 +46,11 @@ public final class FunctionInfo {
     final boolean bufferResultSetToLocalTemp;
 
     /**
+     * Should the no-arg function require parentheses.
+     */
+    final boolean requireParentheses;
+
+    /**
      * Creates new instance of built-in function information.
      *
      * @param name
@@ -65,9 +70,11 @@ public final class FunctionInfo {
      * @param bufferResultSetToLocalTemp
      *            should the return value ResultSet be buffered in a local
      *            temporary file?
+     * @param requireParentheses
+     *            should the no-arg function require parentheses
      */
     public FunctionInfo(String name, int type, int parameterCount, int returnDataType, boolean nullIfParameterIsNull,
-            boolean deterministic, boolean bufferResultSetToLocalTemp) {
+            boolean deterministic, boolean bufferResultSetToLocalTemp, boolean requireParentheses) {
         this.name = name;
         this.type = type;
         this.parameterCount = parameterCount;
@@ -75,10 +82,12 @@ public final class FunctionInfo {
         this.nullIfParameterIsNull = nullIfParameterIsNull;
         this.deterministic = deterministic;
         this.bufferResultSetToLocalTemp = bufferResultSetToLocalTemp;
+        this.requireParentheses = requireParentheses;
     }
 
     /**
-     * Creates a copy of built-in function information with a different name.
+     * Creates a copy of built-in function information with a different name. A
+     * copy will require parentheses.
      *
      * @param source
      *            the source information
@@ -93,6 +102,7 @@ public final class FunctionInfo {
         nullIfParameterIsNull = source.nullIfParameterIsNull;
         deterministic = source.deterministic;
         bufferResultSetToLocalTemp = source.bufferResultSetToLocalTemp;
+        requireParentheses = true;
     }
 
 }

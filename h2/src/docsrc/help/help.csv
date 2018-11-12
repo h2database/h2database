@@ -19,7 +19,7 @@ FROM tableExpression [,...] [ WHERE expression ]
 ","
 Selects data from a table or multiple tables.
 GROUP BY groups the the result by the given expression(s).
-HAVING filter rows after grouping.
+HAVING filters rows after grouping.
 ORDER BY sorts the result by the given column(s) or expression(s).
 UNION combines the result of this query with the results of another query.
 
@@ -2975,9 +2975,12 @@ If fractional seconds precision is specified it should be from 0 to 9, 0 is defa
 
 Mapped to ""java.sql.Time"". When converted to a ""java.sql.Date"", the date is set to ""1970-01-01"".
 ""java.time.LocalTime"" is also supported on Java 8 and later versions.
-Resolution of ""java.sql.Time"" is limited to milliseconds, use ""String"" or ""java.time.LocalTime"" if you need nanosecond resolution.
+Use ""java.time.LocalTime"" or ""String"" instead of ""java.sql.Time"" when non-zero precision is needed.
+Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up;
+if result of rounding is higher than maximum supported value 23:59:59.999999999 it is saturated to 23:59:59.999999999.
 ","
 TIME
+TIME(9)
 "
 
 "Data Types","DATE Type","
@@ -3003,8 +3006,10 @@ Fractional seconds precision of SMALLDATETIME is always 0 and cannot be specifie
 
 Mapped to ""java.sql.Timestamp"" (""java.util.Date"" may be used too).
 ""java.time.LocalDateTime"" is also supported on Java 8 and later versions.
+Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up.
 ","
 TIMESTAMP
+TIMESTAMP(9)
 "
 
 "Data Types","TIMESTAMP WITH TIME ZONE Type","
@@ -3021,8 +3026,10 @@ Values of this data type are compared by UTC values. It means that ""2010-01-01 
 
 Conversion to ""TIMESTAMP"" uses time zone offset to get UTC time and converts it to local time using the system time zone.
 Conversion from ""TIMESTAMP"" does the same operations in reverse and sets time zone offset to offset of the system time zone.
+Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up.
 ","
 TIMESTAMP WITH TIME ZONE
+TIMESTAMP(9) WITH TIME ZONE
 "
 
 "Data Types","BINARY Type","
@@ -4493,17 +4500,17 @@ CALL TRANSLATE('Hello world', 'eo', 'EO')
 "
 
 "Functions (Time and Date)","CURRENT_DATE","
-{ CURRENT_DATE [ () ] | CURDATE() | SYSDATE | TODAY }
+{ CURRENT_DATE | CURDATE() | SYSDATE | TODAY }
 ","
 Returns the current date.
 These methods always return the same value within a transaction (default)
 or within a command depending on database mode.
 ","
-CURRENT_DATE()
+CURRENT_DATE
 "
 
 "Functions (Time and Date)","CURRENT_TIME","
-{ CURRENT_TIME [ ( [ int ] ) ] | LOCALTIME [ ( [ int ] ) ] | CURTIME() }
+{ CURRENT_TIME [ (int) ] | LOCALTIME [ (int) ] | CURTIME([ int ]) }
 ","
 Returns the current time.
 If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
@@ -4513,14 +4520,16 @@ Higher precision is not available before Java 9.
 These methods always return the same value within a transaction (default)
 or within a command depending on database mode.
 ","
-CURRENT_TIME()
+CURRENT_TIME
+LOCALTIME
+LOCALTIME(9)
 "
 
 "Functions (Time and Date)","CURRENT_TIMESTAMP","
-CURRENT_TIMESTAMP [ ( [ int ] ) ]
+CURRENT_TIMESTAMP [ (int) ]
 ","
 Returns the current timestamp with time zone.
-Time zone offset is set to a current time zone offset
+Time zone offset is set to a current time zone offset.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 The specified value can be used only to limit precision of a result.
 The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.
@@ -4528,11 +4537,12 @@ Higher precision is not available before Java 9.
 This method always returns the same value within a transaction (default)
 or within a command depending on database mode.
 ","
-CURRENT_TIMESTAMP()
+CURRENT_TIMESTAMP
+CURRENT_TIMESTAMP(9)
 "
 
 "Functions (Time and Date)","LOCALTIMESTAMP","
-{ LOCALTIMESTAMP [ ( [ int ] ) ] | NOW( [ int ] ) }
+{ LOCALTIMESTAMP [ (int) ] | NOW( [ int ] ) }
 ","
 Returns the current timestamp.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
@@ -4542,7 +4552,8 @@ Higher precision is not available before Java 9.
 These methods always return the same value within a transaction (default)
 or within a command depending on database mode.
 ","
-LOCALTIMESTAMP()
+LOCALTIMESTAMP
+LOCALTIMESTAMP(9)
 "
 
 "Functions (Time and Date)","DATEADD","

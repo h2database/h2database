@@ -47,7 +47,8 @@ public class TestConcurrent extends TestMVStore {
     @Override
     public void test() throws Exception {
         FileUtils.createDirectories(getBaseDir());
-        testInterruptReopen();
+        testInterruptReopenAsync();
+        testInterruptReopenRetryNIO();
         testConcurrentSaveCompact();
         testConcurrentDataType();
         testConcurrentAutoCommitAndChange();
@@ -64,8 +65,16 @@ public class TestConcurrent extends TestMVStore {
         testConcurrentRead();
     }
 
-    private void testInterruptReopen() {
-        String fileName = "retry:nio:" + getBaseDir() + "/" + getTestName();
+    private void testInterruptReopenAsync() {
+        testInterruptReopen("async:");
+    }
+
+    private void testInterruptReopenRetryNIO() {
+        testInterruptReopen("retry:nio:");
+    }
+
+    private void testInterruptReopen(String prefix) {
+        String fileName = prefix + getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         final MVStore s = new MVStore.Builder().
                 fileName(fileName).

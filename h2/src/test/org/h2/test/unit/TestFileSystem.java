@@ -83,6 +83,7 @@ public class TestFileSystem extends TestDb {
         String f = "split:10:" + getBaseDir() + "/fs";
         FileUtils.toRealPath(f);
         testFileSystem(getBaseDir() + "/fs");
+        testFileSystem("async:" + getBaseDir() + "/fs");
         testFileSystem("memFS:");
         testFileSystem("memLZF:");
         testFileSystem("nioMemFS:");

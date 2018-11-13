@@ -15,6 +15,7 @@ import java.nio.file.OpenOption;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
  * This file system stores files on disk and uses
@@ -81,6 +82,23 @@ class FileAsync extends FileBase {
 
     private long position;
 
+    private static <T> T complete(Future<T> future) throws IOException {
+        boolean interrupted = false;
+        for (;;) {
+            try {
+                T result = future.get();
+                if (interrupted) {
+                    Thread.currentThread().interrupt();
+                }
+                return result;
+            } catch (InterruptedException e) {
+                interrupted = true;
+            } catch (ExecutionException e) {
+                throw new IOException(e.getCause());
+            }
+        }
+    }
+
     FileAsync(String fileName, String mode) throws IOException {
         this.name = fileName;
         OpenOption[] options;
@@ -120,14 +138,9 @@ class FileAsync extends FileBase {
 
     @Override
     public int read(ByteBuffer dst) throws IOException {
-        int read;
-        try {
-            read = channel.read(dst, position).get();
-            if (read > 0) {
-                position += read;
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            throw new IOException(e);
+        int read = complete(channel.read(dst, position));
+        if (read > 0) {
+            position += read;
         }
         return read;
     }
@@ -140,21 +153,15 @@ class FileAsync extends FileBase {
 
     @Override
     public int read(ByteBuffer dst, long position) throws IOException {
-        try {
-            return channel.read(dst, position).get();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new IOException(e);
-        }
+        return complete(channel.read(dst, position));
     }
 
     @Override
     public int write(ByteBuffer src, long position) throws IOException {
         try {
-            return channel.write(src, position).get();
+            return complete(channel.write(src, position));
         } catch (NonWritableChannelException e) {
             throw new IOException("read only");
-        } catch (InterruptedException | ExecutionException e) {
-            throw new IOException(e);
         }
     }
 
@@ -174,16 +181,14 @@ class FileAsync extends FileBase {
 
     @Override
     public int write(ByteBuffer src) throws IOException {
-        int read;
+        int written;
         try {
-            read = channel.write(src, position).get();
-            position += read;
+            written = complete(channel.write(src, position));
+            position += written;
         } catch (NonWritableChannelException e) {
             throw new IOException("read only");
-        } catch (InterruptedException | ExecutionException e) {
-            throw new IOException(e);
         }
-        return read;
+        return written;
     }
 
     @Override

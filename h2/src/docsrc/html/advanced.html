@@ -1550,6 +1550,7 @@ The following file systems are included:
 </li><li><code>nioMapped:</code> file system that uses memory mapped files (faster in some operating systems).
     Please note that there currently is a file size limitation of 2 GB when using this file system.
     To work around this limitation, combine it with the split file system: <code>split:nioMapped:test</code>.
+</li><li><code>async:</code> experimental file system that uses <code>AsynchronousFileChannel</code> instead of <code>RandomAccessFile</code> (faster in some operating systems).
 </li><li><code>memFS:</code> in-memory file system (slower than mem; experimental; mainly used for testing the database engine itself).
 </li><li><code>memLZF:</code> compressing in-memory file system (slower than memFS but uses less memory; experimental; mainly used for testing the database engine itself).
 </li><li><code>nioMemFS:</code> stores data outside of the VM's heap - useful for large memory DBs without incurring GC costs.

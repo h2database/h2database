@@ -147,6 +147,9 @@ class FileAsync extends FileBase {
 
     @Override
     public FileChannel position(long pos) throws IOException {
+        if (pos < 0) {
+            throw new IllegalArgumentException();
+        }
         position = pos;
         return this;
     }
@@ -168,7 +171,7 @@ class FileAsync extends FileBase {
     @Override
     public FileChannel truncate(long newLength) throws IOException {
         channel.truncate(newLength);
-        if (position < newLength) {
+        if (newLength < position) {
             position = newLength;
         }
         return this;

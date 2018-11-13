@@ -1564,8 +1564,9 @@ The following file systems are included:
     The default value is 1%.
 </li></ul>
 <p>
-As an example, to use the the <code>nio</code> file system, use the following database URL:
-<code>jdbc:h2:nio:~/test</code>.
+As an example, to use the the <code>nio</code> file system with PageStore storage engine,
+use the following database URL: <code>jdbc:h2:nio:~/test;MV_STORE=FALSE</code>.
+With MVStore storage engine nio file system is used by default.
 </p>
 <p>
 To register a new file system, extend the classes <code>org.h2.store.fs.FilePath, FileBase</code>,

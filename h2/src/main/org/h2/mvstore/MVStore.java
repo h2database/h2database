@@ -305,8 +305,6 @@ public class MVStore {
 
     private long lastFreeUnusedChunks;
 
-    private final ThreadPoolExecutor executorService;
-
     /**
      * Create and open the store.
      *
@@ -355,8 +353,6 @@ public class MVStore {
         }
         pageSplitSize = pgSplitSize;
         keysPerPage = DataUtils.getConfigParam(config, "keysPerPage", 48);
-        executorService = new ThreadPoolExecutor(10, 10, 10L, TimeUnit.SECONDS,
-                                            new ArrayBlockingQueue<Runnable>(keysPerPage + 1));
         backgroundExceptionHandler =
                 (UncaughtExceptionHandler)config.get("backgroundExceptionHandler");
         meta = new MVMap<>(this);
@@ -945,11 +941,6 @@ public class MVStore {
             return;
         }
         stopBackgroundThread();
-        if (shrinkIfPossible) {
-            executorService.shutdown();
-        } else {
-            executorService.shutdownNow();
-        }
         closed = true;
         storeLock.lock();
         try {
@@ -1395,36 +1386,49 @@ public class MVStore {
         }
     }
 
+    /**
+     * Collect ids for chunks that are no longer in use.
+     * @param fast if true, simplified version is used, which assumes that recent chunks
+     *            are still in-use and do not scan recent versions of the store.
+     *            Also is this case only oldest available version of the store is scanned.
+     */
     private Set<Integer> collectReferencedChunks(boolean fast) {
         assert lastChunk != null;
+        final ThreadPoolExecutor executorService = new ThreadPoolExecutor(10, 10, 10L, TimeUnit.SECONDS,
+                new ArrayBlockingQueue<Runnable>(keysPerPage + 1));
         final AtomicInteger executingThreadCounter = new AtomicInteger(0);
-        ChunkIdsCollector collector = new ChunkIdsCollector(meta.getId());
-        long oldestVersionToKeep = getOldestVersionToKeep();
-        MVMap.RootReference rootReference = meta.getRoot();
-        if (fast) {
-            MVMap.RootReference previous;
-            while (rootReference.version >= oldestVersionToKeep && (previous = rootReference.previous) != null) {
-                rootReference = previous;
-            }
-            inspectVersion(rootReference, collector, executingThreadCounter, null);
+        try {
+            ChunkIdsCollector collector = new ChunkIdsCollector(meta.getId());
+            long oldestVersionToKeep = getOldestVersionToKeep();
+            MVMap.RootReference rootReference = meta.getRoot();
+            if (fast) {
+                MVMap.RootReference previous;
+                while (rootReference.version >= oldestVersionToKeep && (previous = rootReference.previous) != null) {
+                    rootReference = previous;
+                }
+                inspectVersion(rootReference, collector, executorService, executingThreadCounter, null);
 
-            Page rootPage = rootReference.root;
-            long pos = rootPage.getPos();
-            assert rootPage.isSaved();
-            int chunkId = DataUtils.getPageChunkId(pos);
-            while (++chunkId <= lastChunk.id) {
-                collector.registerChunk(chunkId);
+                Page rootPage = rootReference.root;
+                long pos = rootPage.getPos();
+                assert rootPage.isSaved();
+                int chunkId = DataUtils.getPageChunkId(pos);
+                while (++chunkId <= lastChunk.id) {
+                    collector.registerChunk(chunkId);
+                }
+            } else {
+                Set<Long> inspectedRoots = new HashSet<>();
+                do {
+                    inspectVersion(rootReference, collector, executorService, executingThreadCounter, inspectedRoots);
+                } while (rootReference.version >= oldestVersionToKeep && (rootReference = rootReference.previous) != null);
             }
-        } else {
-            Set<Long> inspectedRoots = new HashSet<>();
-            do {
-                inspectVersion(rootReference, collector, executingThreadCounter, inspectedRoots);
-            } while (rootReference.version >= oldestVersionToKeep && (rootReference = rootReference.previous) != null);
+            return collector.getReferenced();
+        } finally {
+            executorService.shutdownNow();
         }
-        return collector.getReferenced();
     }
 
     private void inspectVersion(MVMap.RootReference rootReference, ChunkIdsCollector collector,
+                                ThreadPoolExecutor executorService,
                                 AtomicInteger executingThreadCounter,
                                 Set<Long> inspectedRoots) {
         Page rootPage = rootReference.root;

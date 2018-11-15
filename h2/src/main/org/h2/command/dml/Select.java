@@ -442,14 +442,12 @@ public class Select extends Query {
         int rowNumber = 0;
         setCurrentRowNumber(0);
         int sampleSize = getSampleSizeValue(session);
-        ArrayList<Row> forUpdateRows = this.isForUpdateMvcc ? Utils.<Row>newSmallArrayList() : null;
+        ArrayList<Row>[] forUpdateRows = initForUpdateRows();
         while (topTableFilter.next()) {
             setCurrentRowNumber(rowNumber + 1);
             if (isConditionMet()) {
                 rowNumber++;
-                if (forUpdateRows != null) {
-                    topTableFilter.lockRowAdd(forUpdateRows);
-                }
+                addForUpdateRow(forUpdateRows);
                 groupData.nextSource();
                 updateAgg(columnCount, stage);
                 if (sampleSize > 0 && rowNumber >= sampleSize) {
@@ -457,9 +455,7 @@ public class Select extends Query {
                 }
             }
         }
-        if (forUpdateRows != null) {
-            topTableFilter.lockRows(forUpdateRows);
-        }
+        lockForUpdateRows(forUpdateRows);
         groupData.done();
     }
 
@@ -634,7 +630,7 @@ public class Select extends Query {
                 limitRows = Long.MAX_VALUE;
             }
         }
-        ArrayList<Row> forUpdateRows = this.isForUpdateMvcc ? Utils.<Row>newSmallArrayList() : null;
+        ArrayList<Row>[] forUpdateRows = initForUpdateRows();
         int sampleSize = getSampleSizeValue(session);
         LazyResultQueryFlat lazyResult = new LazyResultQueryFlat(expressionArray,
                 sampleSize, columnCount);
@@ -647,9 +643,7 @@ public class Select extends Query {
         }
         Value[] row = null;
         while (result.getRowCount() < limitRows && lazyResult.next()) {
-            if (forUpdateRows != null) {
-                topTableFilter.lockRowAdd(forUpdateRows);
-            }
+            addForUpdateRow(forUpdateRows);
             row = lazyResult.currentRow();
             result.addRow(row);
         }
@@ -660,17 +654,44 @@ public class Select extends Query {
                 if (sort.compare(expected, row) != 0) {
                     break;
                 }
-                if (forUpdateRows != null) {
-                    topTableFilter.lockRowAdd(forUpdateRows);
-                }
+                addForUpdateRow(forUpdateRows);
                 result.addRow(row);
             }
             result.limitsWereApplied();
         }
-        if (forUpdateRows != null) {
-            topTableFilter.lockRows(forUpdateRows);
-        }
+        lockForUpdateRows(forUpdateRows);
         return null;
+    }
+
+    private ArrayList<Row>[] initForUpdateRows() {
+        if (!this.isForUpdateMvcc) {
+            return null;
+        }
+        int count = filters.size();
+        @SuppressWarnings("unchecked")
+        ArrayList<Row>[] rows = new ArrayList[count];
+        for (int i = 0; i < count; i++) {
+            rows[i] = Utils.<Row>newSmallArrayList();
+        }
+        return rows;
+    }
+
+    private void addForUpdateRow(ArrayList<Row>[] forUpdateRows) {
+        if (forUpdateRows != null) {
+            int count = filters.size();
+            for (int i = 0; i < count; i++) {
+                filters.get(i).lockRowAdd(forUpdateRows[i]);
+            }
+        }
+    }
+
+    private void lockForUpdateRows(ArrayList<Row>[] forUpdateRows) {
+        if (forUpdateRows != null) {
+            int count = filters.size();
+            for (int i = 0; i < count; i++) {
+                filters.get(i).lockRows(forUpdateRows[i]);
+            }
+        }
     }
 
     private static void skipOffset(LazyResultSelect lazyResult, long offset, boolean quickOffset) {
@@ -770,12 +791,6 @@ public class Select extends Query {
         topTableFilter.startQuery(session);
         topTableFilter.reset();
         boolean exclusive = isForUpdate && !isForUpdateMvcc;
-        if (isForUpdateMvcc) {
-            if (topTableFilter.getJoin() != null) {
-                throw DbException.getUnsupportedException(
-                        "MVCC=TRUE && FOR UPDATE && JOIN");
-            }
-        }
         topTableFilter.lock(session, exclusive, exclusive);
         ResultTarget to = result != null ? result : target;
         lazy &= to == null;
@@ -1453,8 +1468,7 @@ public class Select extends Query {
             throw DbException.get(ErrorCode.FOR_UPDATE_IS_NOT_ALLOWED_IN_DISTICT_OR_GROUPED_SELECT);
         }
         this.isForUpdate = b;
-        if (session.getDatabase().getSettings().selectForUpdateMvcc &&
-                session.getDatabase().isMVStore()) {
+        if (session.getDatabase().isMVStore()) {
             isForUpdateMvcc = b;
         }
     }

@@ -39,10 +39,10 @@ Multiple set operators (UNION, INTERSECT, MINUS, EXCEPT) are evaluated
 from left to right. For compatibility with other databases and future versions
 of H2 please use parentheses.
 
-If FOR UPDATE is specified, the tables are locked for writing. When using
-MVCC, only the selected rows are locked as in an UPDATE statement.
-In this case, aggregate, GROUP BY, DISTINCT queries or joins
-are not allowed in this case.
+If FOR UPDATE is specified, the tables or rows are locked for writing.
+This clause is not allowed in DISTINCT queries and in queries with non-window aggregates, GROUP BY, or HAVING clauses.
+When using default MVStore engine only the selected rows are locked as in an UPDATE statement.
+With PageStore engine the whole tables are locked.
 ","
 SELECT * FROM TEST;
 SELECT * FROM TEST ORDER BY NAME;

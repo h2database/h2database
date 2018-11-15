@@ -297,14 +297,6 @@ public class DbSettings extends SettingsBase {
     public final boolean rowId = get("ROWID", true);
 
     /**
-     * Database setting <code>SELECT_FOR_UPDATE_MVCC</code>
-     * (default: true).<br />
-     * If set, SELECT .. FOR UPDATE queries lock only the selected rows when
-     * using MVCC.
-     */
-    public final boolean selectForUpdateMvcc = get("SELECT_FOR_UPDATE_MVCC", true);
-
-    /**
      * Database setting <code>SHARE_LINKED_CONNECTIONS</code>
      * (default: true).<br />
      * Linked connections should be shared, that means connections to the same

@@ -162,6 +162,12 @@ public class TestTransaction extends TestDb {
         stat.execute("insert into test values(1, 'Hello'), (2, 'World')");
         stat.execute("insert into test2 values(1, 'A'), (2, 'B')");
         conn.commit();
+        testConcurrentSelectForUpdateImpl(conn, "*");
+        testConcurrentSelectForUpdateImpl(conn, "*, count(*) over ()");
+        conn.close();
+    }
+
+    private void testConcurrentSelectForUpdateImpl(Connection conn, String expressions) throws SQLException {
         Connection conn2;
         PreparedStatement prep;
         prep = conn.prepareStatement("select * from test for update");
@@ -169,11 +175,12 @@ public class TestTransaction extends TestDb {
         conn2 = getConnection("transaction");
         conn2.setAutoCommit(false);
         assertThrows(ErrorCode.LOCK_TIMEOUT_1, conn2.createStatement()).
-                execute("select * from test for update");
+                execute("select " + expressions + " from test for update");
         conn2.close();
         conn.commit();
 
-        prep = conn.prepareStatement("select * from test join test2 on test.id = test2.id for update");
+        prep = conn.prepareStatement("select " + expressions
+                + " from test join test2 on test.id = test2.id for update");
         prep.execute();
         conn2 = getConnection("transaction");
         conn2.setAutoCommit(false);
@@ -183,7 +190,6 @@ public class TestTransaction extends TestDb {
                 execute("select * from test2 for update");
         conn2.close();
         conn.commit();
-        conn.close();
     }
 
     private void testForUpdate() throws SQLException {

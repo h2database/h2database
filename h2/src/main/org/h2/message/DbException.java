@@ -566,7 +566,7 @@ public class DbException extends RuntimeException {
         case CAN_ONLY_ASSIGN_TO_VARIABLE_1:
         case PUBLIC_STATIC_JAVA_METHOD_NOT_FOUND_1:
         case JAVA_OBJECT_SERIALIZER_CHANGE_WITH_DATA_TABLE:
-        case FOR_UPDATE_IS_NOT_ALLOWED_IN_DISTICT_OR_GROUPED_SELECT:
+        case FOR_UPDATE_IS_NOT_ALLOWED_IN_DISTINCT_OR_GROUPED_SELECT:
             return new JdbcSQLSyntaxErrorException(message, sql, state, errorCode, cause, stackTrace);
         case HEX_STRING_ODD_1:
         case HEX_STRING_WRONG_1:

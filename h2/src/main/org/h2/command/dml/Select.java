@@ -1465,7 +1465,7 @@ public class Select extends Query {
     @Override
     public void setForUpdate(boolean b) {
         if (b && (isAnyDistinct() || isGroupQuery)) {
-            throw DbException.get(ErrorCode.FOR_UPDATE_IS_NOT_ALLOWED_IN_DISTICT_OR_GROUPED_SELECT);
+            throw DbException.get(ErrorCode.FOR_UPDATE_IS_NOT_ALLOWED_IN_DISTINCT_OR_GROUPED_SELECT);
         }
         this.isForUpdate = b;
         if (session.getDatabase().isMVStore()) {

@@ -2040,7 +2040,7 @@ public class ErrorCode {
      * SELECT MAX(VALUE) FOR UPDATE;
      * </pre>
      */
-    public static final int FOR_UPDATE_IS_NOT_ALLOWED_IN_DISTICT_OR_GROUPED_SELECT = 90145;
+    public static final int FOR_UPDATE_IS_NOT_ALLOWED_IN_DISTINCT_OR_GROUPED_SELECT = 90145;
 
 
     // next is 90146

@@ -1419,7 +1419,8 @@ public class MVStore {
                 Set<Long> inspectedRoots = new HashSet<>();
                 do {
                     inspectVersion(rootReference, collector, executorService, executingThreadCounter, inspectedRoots);
-                } while (rootReference.version >= oldestVersionToKeep && (rootReference = rootReference.previous) != null);
+                } while (rootReference.version >= oldestVersionToKeep
+                        && (rootReference = rootReference.previous) != null);
             }
             return collector.getReferenced();
         } finally {

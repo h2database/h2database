@@ -280,7 +280,7 @@ public class TestCases extends TestDb {
         stat.execute("create table test(id int primary key)");
         assertThrows(ErrorCode.COLUMN_IS_REFERENCED_1, stat).
                 execute("alter table test alter column id " +
-                        "set default ifnull((select max(id) from test for update)+1, 0)");
+                        "set default ifnull((select max(id) from test)+1, 0)");
         stat.execute("drop table test");
         conn.close();
     }

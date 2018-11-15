@@ -442,16 +442,23 @@ public class Select extends Query {
         int rowNumber = 0;
         setCurrentRowNumber(0);
         int sampleSize = getSampleSizeValue(session);
+        ArrayList<Row> forUpdateRows = this.isForUpdateMvcc ? Utils.<Row>newSmallArrayList() : null;
         while (topTableFilter.next()) {
             setCurrentRowNumber(rowNumber + 1);
             if (isConditionMet()) {
                 rowNumber++;
+                if (forUpdateRows != null) {
+                    topTableFilter.lockRowAdd(forUpdateRows);
+                }
                 groupData.nextSource();
                 updateAgg(columnCount, stage);
                 if (sampleSize > 0 && rowNumber >= sampleSize) {
                     break;
                 }
             }
+        }
+        if (forUpdateRows != null) {
+            topTableFilter.lockRows(forUpdateRows);
         }
         groupData.done();
     }
@@ -764,16 +771,7 @@ public class Select extends Query {
         topTableFilter.reset();
         boolean exclusive = isForUpdate && !isForUpdateMvcc;
         if (isForUpdateMvcc) {
-            if (isGroupQuery) {
-                throw DbException.getUnsupportedException(
-                        "MVCC=TRUE && FOR UPDATE && GROUP");
-            } else if (isAnyDistinct()) {
-                throw DbException.getUnsupportedException(
-                        "MVCC=TRUE && FOR UPDATE && DISTINCT");
-            } else if (isQuickAggregateQuery) {
-                throw DbException.getUnsupportedException(
-                        "MVCC=TRUE && FOR UPDATE && AGGREGATE");
-            } else if (topTableFilter.getJoin() != null) {
+            if (topTableFilter.getJoin() != null) {
                 throw DbException.getUnsupportedException(
                         "MVCC=TRUE && FOR UPDATE && JOIN");
             }
@@ -1451,6 +1449,9 @@ public class Select extends Query {
 
     @Override
     public void setForUpdate(boolean b) {
+        if (b && (isAnyDistinct() || isGroupQuery)) {
+            throw DbException.get(ErrorCode.FOR_UPDATE_IS_NOT_ALLOWED_IN_DISTICT_OR_GROUPED_SELECT);
+        }
         this.isForUpdate = b;
         if (session.getDatabase().getSettings().selectForUpdateMvcc &&
                 session.getDatabase().isMVStore()) {

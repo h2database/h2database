@@ -175,6 +175,7 @@
 90142=#Step size must not be zero
 90143=#Row {1} not found in primary index {0}
 90144=#Authenticator not enabled on database {0}
+90145=#FOR UPDATE is not allowed in DISTINCT or grouped select
 HY000=Błąd ogólny: {0}
 HY004=Nieznany typ danych: {0}
 HYC00=Cecha nie jest wspierana: {0}

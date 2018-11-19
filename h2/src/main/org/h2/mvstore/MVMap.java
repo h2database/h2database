@@ -1065,7 +1065,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     final boolean hasChangesSince(long version) {
         RootReference rootReference = getRoot();
-        return !rootReference.root.isSaved() || getVersion(rootReference) > version;
+        return !rootReference.root.isComplete() || getVersion(rootReference) > version;
     }
 
     public boolean isSingleWriter() {

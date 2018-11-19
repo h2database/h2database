@@ -1370,6 +1370,10 @@ public class Function extends Expression implements FunctionCall {
             }
             String regexpMode = v3 == null || v3.getString() == null ? "" :
                     v3.getString();
+            if(database.getMode().getEnum().equals(Mode.ModeEnum.PostgreSQL)) {
+                // PostgreSQL doesn't do global replaces without a 'g' flag, but H2 does
+                regexpMode = regexpMode.replaceAll("g", "");
+            }
             int flags = makeRegexpFlags(regexpMode);
             try {
                 result = ValueString.get(

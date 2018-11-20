@@ -17,6 +17,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -1350,50 +1351,11 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case REGEXP_REPLACE: {
+            String input = v0.getString();
             String regexp = v1.getString();
             String replacement = v2.getString();
-            if (database.getMode().regexpReplaceBackslashReferences) {
-                if ((replacement.indexOf('\\') >= 0) || (replacement.indexOf('$') >= 0)) {
-                    StringBuilder sb = new StringBuilder();
-                    for (int i = 0; i < replacement.length(); i++) {
-                        char c = replacement.charAt(i);
-                        if (c == '$') {
-                            sb.append('\\');
-                        } else if (c == '\\' && ++i < replacement.length()) {
-                            c = replacement.charAt(i);
-                            sb.append(c >= '0' && c <= '9' ? '$' : '\\');
-                        }
-                        sb.append(c);
-                    }
-                    replacement = sb.toString();
-                }
-            }
-            String regexpMode = v3 == null || v3.getString() == null ? "" :
-                    v3.getString();
-            boolean isInPostgreSqlMode = Mode.ModeEnum.PostgreSQL.equals(database.getMode().getEnum());
-            int flags = makeRegexpFlags(regexpMode, isInPostgreSqlMode);
-            try {
-                if(isInPostgreSqlMode && !regexpMode.contains("g")) {
-                  result = ValueString.get(
-                    Pattern.compile(regexp, flags).matcher(v0.getString())
-                      .replaceFirst(replacement),
-                    database.getMode().treatEmptyStringsAsNull);
-                } else {
-                  result = ValueString.get(
-                    Pattern.compile(regexp, flags).matcher(v0.getString())
-                      .replaceAll(replacement),
-                    database.getMode().treatEmptyStringsAsNull);
-                }
-            } catch (StringIndexOutOfBoundsException e) {
-                throw DbException.get(
-                        ErrorCode.LIKE_ESCAPE_ERROR_1, e, replacement);
-            } catch (PatternSyntaxException e) {
-                throw DbException.get(
-                        ErrorCode.LIKE_ESCAPE_ERROR_1, e, regexp);
-            } catch (IllegalArgumentException e) {
-                throw DbException.get(
-                        ErrorCode.LIKE_ESCAPE_ERROR_1, e, replacement);
-            }
+            String regexpMode = v3 != null ? v3.getString() : null;
+            result = regexpReplace(input, regexp, replacement, regexpMode);
             break;
         }
         case RPAD:
@@ -1656,8 +1618,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         case REGEXP_LIKE: {
             String regexp = v1.getString();
-            String regexpMode = v2 == null || v2.getString() == null ? "" :
-                    v2.getString();
+            String regexpMode = v2 != null ? v2.getString() : null;
             int flags = makeRegexpFlags(regexpMode, false);
             try {
                 result = ValueBoolean.get(Pattern.compile(regexp, flags)
@@ -2038,6 +1999,40 @@ public class Function extends Expression implements FunctionCall {
             }
         }
         return md;
+    }
+
+    private Value regexpReplace(String input, String regexp, String replacement, String regexpMode) {
+        Mode mode = database.getMode();
+        if (mode.regexpReplaceBackslashReferences) {
+            if ((replacement.indexOf('\\') >= 0) || (replacement.indexOf('$') >= 0)) {
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < replacement.length(); i++) {
+                    char c = replacement.charAt(i);
+                    if (c == '$') {
+                        sb.append('\\');
+                    } else if (c == '\\' && ++i < replacement.length()) {
+                        c = replacement.charAt(i);
+                        sb.append(c >= '0' && c <= '9' ? '$' : '\\');
+                    }
+                    sb.append(c);
+                }
+                replacement = sb.toString();
+            }
+        }
+        boolean isInPostgreSqlMode = Mode.ModeEnum.PostgreSQL.equals(mode.getEnum());
+        int flags = makeRegexpFlags(regexpMode, isInPostgreSqlMode);
+        try {
+            Matcher matcher = Pattern.compile(regexp, flags).matcher(input);
+            return ValueString.get(isInPostgreSqlMode && (regexpMode == null || regexpMode.indexOf('g') < 0) ?
+                    matcher.replaceFirst(replacement) : matcher.replaceAll(replacement),
+                    mode.treatEmptyStringsAsNull);
+        } catch (StringIndexOutOfBoundsException e) {
+            throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, replacement);
+        } catch (PatternSyntaxException e) {
+            throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, regexp);
+        } catch (IllegalArgumentException e) {
+            throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, replacement);
+        }
     }
 
     private static int makeRegexpFlags(String stringFlags, boolean ignoreGlobalFlag) {

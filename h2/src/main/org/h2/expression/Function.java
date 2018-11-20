@@ -1370,12 +1370,20 @@ public class Function extends Expression implements FunctionCall {
             }
             String regexpMode = v3 == null || v3.getString() == null ? "" :
                     v3.getString();
-            int flags = makeRegexpFlags(regexpMode);
+            boolean isInPostgreSqlMode = Mode.ModeEnum.PostgreSQL.equals(database.getMode().getEnum());
+            int flags = makeRegexpFlags(regexpMode, isInPostgreSqlMode);
             try {
-                result = ValueString.get(
-                        Pattern.compile(regexp, flags).matcher(v0.getString())
-                                .replaceAll(replacement),
-                        database.getMode().treatEmptyStringsAsNull);
+                if(isInPostgreSqlMode && !regexpMode.contains("g")) {
+                  result = ValueString.get(
+                    Pattern.compile(regexp, flags).matcher(v0.getString())
+                      .replaceFirst(replacement),
+                    database.getMode().treatEmptyStringsAsNull);
+                } else {
+                  result = ValueString.get(
+                    Pattern.compile(regexp, flags).matcher(v0.getString())
+                      .replaceAll(replacement),
+                    database.getMode().treatEmptyStringsAsNull);
+                }
             } catch (StringIndexOutOfBoundsException e) {
                 throw DbException.get(
                         ErrorCode.LIKE_ESCAPE_ERROR_1, e, replacement);
@@ -1650,7 +1658,7 @@ public class Function extends Expression implements FunctionCall {
             String regexp = v1.getString();
             String regexpMode = v2 == null || v2.getString() == null ? "" :
                     v2.getString();
-            int flags = makeRegexpFlags(regexpMode);
+            int flags = makeRegexpFlags(regexpMode, false);
             try {
                 result = ValueBoolean.get(Pattern.compile(regexp, flags)
                         .matcher(v0.getString()).find());
@@ -2032,7 +2040,7 @@ public class Function extends Expression implements FunctionCall {
         return md;
     }
 
-    private static int makeRegexpFlags(String stringFlags) {
+    private static int makeRegexpFlags(String stringFlags, boolean ignoreGlobalFlag) {
         int flags = Pattern.UNICODE_CASE;
         if (stringFlags != null) {
             for (int i = 0; i < stringFlags.length(); ++i) {
@@ -2049,6 +2057,11 @@ public class Function extends Expression implements FunctionCall {
                     case 'm':
                         flags |= Pattern.MULTILINE;
                         break;
+                    case 'g':
+                        if (ignoreGlobalFlag) {
+                            break;
+                        }
+                    //$FALL-THROUGH$
                     default:
                         throw DbException.get(ErrorCode.INVALID_VALUE_2, stringFlags);
                 }

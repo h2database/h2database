@@ -950,7 +950,12 @@ or the SQL statement <code>SET MODE PostgreSQL</code>.
 </li><li>The system columns <code>CTID</code> and
     <code>OID</code> are supported.
 </li><li>LOG(x) is base 10 in this mode.
-</li><li>REGEXP_REPLACE() uses \ for back-references.
+</li><li>REGEXP_REPLACE():
+    <ul>
+    <li>Uses \ for back-references</li>
+    <li>Will not throw an exception when the <code>flagsString</code> parameter contains a 'g'</li>
+    <li>In the absence of the 'g' flag in the <code>flagsString</code> parameter, only the first-matched substring will be replaced</li>
+    </ul>
 </li><li>Fixed-width strings are padded with spaces.
 </li><li>MONEY data type is treated like NUMERIC(19, 2) data type.
 </li><li>Datetime value functions return the same value within a transaction.

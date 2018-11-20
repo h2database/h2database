@@ -1370,9 +1370,10 @@ public class Function extends Expression implements FunctionCall {
             }
             String regexpMode = v3 == null || v3.getString() == null ? "" :
                     v3.getString();
-            int flags = makeRegexpFlags(regexpMode, Mode.ModeEnum.PostgreSQL.equals(database.getMode().getEnum()));
+            boolean isInPostgreSqlMode = Mode.ModeEnum.PostgreSQL.equals(database.getMode().getEnum())
+            int flags = makeRegexpFlags(regexpMode, isInPostgreSqlMode);
             try {
-                if(Mode.ModeEnum.PostgreSQL.equals(database.getMode().getEnum()) && !regexpMode.contains("g")) {
+                if(isInPostgreSqlMode && !regexpMode.contains("g")) {
                   result = ValueString.get(
                     Pattern.compile(regexp, flags).matcher(v0.getString())
                       .replaceFirst(replacement),
@@ -2060,6 +2061,7 @@ public class Function extends Expression implements FunctionCall {
                         if (ignoreGlobalFlag) {
                             break;
                         }
+                    //$FALL-THROUGH$
                     default:
                         throw DbException.get(ErrorCode.INVALID_VALUE_2, stringFlags);
                 }

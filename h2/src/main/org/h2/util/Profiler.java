@@ -166,7 +166,7 @@ public class Profiler implements Runnable {
                     }
                     continue;
                 }
-                try (Reader reader = new InputStreamReader(new FileInputStream(arg), "CP1252")) {
+                try (Reader reader = new InputStreamReader(new FileInputStream(arg))) {
                     LineNumberReader r = new LineNumberReader(reader);
                     while (true) {
                         String line = r.readLine();
@@ -177,7 +177,7 @@ public class Profiler implements Runnable {
                         }
                     }
                 }
-                try (Reader reader = new InputStreamReader(new FileInputStream(arg), "CP1252")) {
+                try (Reader reader = new InputStreamReader(new FileInputStream(arg))) {
                     LineNumberReader r = new LineNumberReader(reader);
                     processList(readStackTrace(r));
                 }

@@ -8,6 +8,7 @@ package org.h2.test.scripts;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -46,8 +47,7 @@ public class TestScriptSimple extends TestDb {
         reconnect();
         String inFile = "org/h2/test/scripts/testSimple.in.txt";
         InputStream is = getClass().getClassLoader().getResourceAsStream(inFile);
-        LineNumberReader lineReader = new LineNumberReader(
-                new InputStreamReader(is, "Cp1252"));
+        LineNumberReader lineReader = new LineNumberReader(new InputStreamReader(is, StandardCharsets.UTF_8));
         try (ScriptReader reader = new ScriptReader(lineReader)) {
             while (true) {
                 String sql = reader.readStatement();

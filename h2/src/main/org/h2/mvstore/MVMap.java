@@ -1065,7 +1065,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     final boolean hasChangesSince(long version) {
         RootReference rootReference = getRoot();
-        return !rootReference.root.isComplete() || getVersion(rootReference) > version;
+        Page root = rootReference.root;
+        return !root.isSaved() && root.getTotalCount() > 0 ||
+                getVersion(rootReference) > version;
     }
 
     public boolean isSingleWriter() {
@@ -1195,7 +1197,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return potentially updated RootReference
      */
     private RootReference flushAppendBuffer(RootReference rootReference) {
-        beforeWrite();
         int attempt = 0;
         int keyCount;
         while((keyCount = rootReference.getAppendCounter()) > 0) {
@@ -1285,6 +1286,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             RootReference rootReference = getRootInternal();
             int appendCounter = rootReference.getAppendCounter();
             if (appendCounter >= keysPerPage) {
+                beforeWrite();
                 rootReference = flushAppendBuffer(rootReference);
                 appendCounter = rootReference.getAppendCounter();
                 assert appendCounter < keysPerPage;

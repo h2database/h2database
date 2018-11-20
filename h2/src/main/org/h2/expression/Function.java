@@ -1370,7 +1370,7 @@ public class Function extends Expression implements FunctionCall {
             }
             String regexpMode = v3 == null || v3.getString() == null ? "" :
                     v3.getString();
-            boolean isInPostgreSqlMode = Mode.ModeEnum.PostgreSQL.equals(database.getMode().getEnum())
+            boolean isInPostgreSqlMode = Mode.ModeEnum.PostgreSQL.equals(database.getMode().getEnum());
             int flags = makeRegexpFlags(regexpMode, isInPostgreSqlMode);
             try {
                 if(isInPostgreSqlMode && !regexpMode.contains("g")) {

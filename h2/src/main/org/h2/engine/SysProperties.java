@@ -5,6 +5,8 @@
  */
 package org.h2.engine;
 
+import java.io.File;
+
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
 
@@ -42,11 +44,10 @@ public class SysProperties {
     public static final String H2_BROWSER = "h2.browser";
 
     /**
-     * System property <code>file.separator</code> (default: /).<br />
-     * It is usually set by the system, and used to build absolute file names.
+     * System property <code>file.separator</code>.<br />
+     * It is set by the system, and used to build absolute file names.
      */
-    public static final String FILE_SEPARATOR =
-            Utils.getProperty("file.separator", "/");
+    public static final String FILE_SEPARATOR = File.separator;
 
     /**
      * System property <code>line.separator</code> (default: \n).<br />

@@ -42,14 +42,6 @@ public class SysProperties {
     public static final String H2_BROWSER = "h2.browser";
 
     /**
-     * System property <code>file.encoding</code> (default: Cp1252).<br />
-     * It is usually set by the system and is the default encoding used for the
-     * RunScript and CSV tool.
-     */
-    public static final String FILE_ENCODING =
-            Utils.getProperty("file.encoding", "Cp1252");
-
-    /**
      * System property <code>file.separator</code> (default: /).<br />
      * It is usually set by the system, and used to build absolute file names.
      */

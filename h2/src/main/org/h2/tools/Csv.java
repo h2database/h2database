@@ -44,7 +44,7 @@ public class Csv implements SimpleRowSource {
 
     private String[] columnNames;
 
-    private String characterSet = SysProperties.FILE_ENCODING;
+    private String characterSet;
     private char escapeCharacter = '\"';
     private char fieldDelimiter = '\"';
     private char fieldSeparatorRead = ',';
@@ -136,7 +136,6 @@ public class Csv implements SimpleRowSource {
      * @param rs the result set - the result set must be positioned before the
      *          first row.
      * @param charset the charset or null to use the system default charset
-     *          (see system property file.encoding)
      * @return the number of rows written
      */
     public int write(String outputFileName, ResultSet rs, String charset)
@@ -184,7 +183,6 @@ public class Csv implements SimpleRowSource {
      * @param colNames or null if the column names should be read from the CSV
      *          file
      * @param charset the charset or null to use the system default charset
-     *          (see system property file.encoding)
      * @return the result set
      */
     public ResultSet read(String inputFileName, String[] colNames,
@@ -246,9 +244,7 @@ public class Csv implements SimpleRowSource {
 
     private void init(String newFileName, String charset) {
         this.fileName = newFileName;
-        if (charset != null) {
-            this.characterSet = charset;
-        }
+        this.characterSet = charset;
     }
 
     private void initWrite() throws IOException {
@@ -256,7 +252,8 @@ public class Csv implements SimpleRowSource {
             try {
                 OutputStream out = FileUtils.newOutputStream(fileName, false);
                 out = new BufferedOutputStream(out, Constants.IO_BUFFER_SIZE);
-                output = new BufferedWriter(new OutputStreamWriter(out, characterSet));
+                output = new BufferedWriter(characterSet != null ?
+                        new OutputStreamWriter(out, characterSet) : new OutputStreamWriter(out));
             } catch (Exception e) {
                 close();
                 throw DbException.convertToIOException(e);
@@ -314,7 +311,7 @@ public class Csv implements SimpleRowSource {
             try {
                 InputStream in = FileUtils.newInputStream(fileName);
                 in = new BufferedInputStream(in, Constants.IO_BUFFER_SIZE);
-                input = new InputStreamReader(in, characterSet);
+                input = characterSet != null ? new InputStreamReader(in, characterSet) : new InputStreamReader(in);
             } catch (IOException e) {
                 close();
                 throw e;

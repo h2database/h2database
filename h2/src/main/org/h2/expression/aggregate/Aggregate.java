@@ -155,21 +155,6 @@ public class Aggregate extends AbstractAggregate {
         ENVELOPE,
     }
 
-    /**
-     * Reset stage. Used to reset internal data to its initial state.
-     */
-    public static final int STAGE_RESET = 0;
-
-    /**
-     * Group stage, used for explicit or implicit GROUP BY operation.
-     */
-    public static final int STAGE_GROUP = 1;
-
-    /**
-     * Window processing stage.
-     */
-    public static final int STAGE_WINDOW = 2;
-
     private static final HashMap<String, AggregateType> AGGREGATES = new HashMap<>(64);
 
     private final AggregateType type;

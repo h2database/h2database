@@ -16,7 +16,6 @@ import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
-import org.h2.expression.aggregate.Aggregate;
 import org.h2.message.DbException;
 import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
@@ -29,6 +28,21 @@ import org.h2.value.ValueInt;
  * functions.
  */
 public abstract class DataAnalysisOperation extends Expression {
+
+    /**
+     * Reset stage. Used to reset internal data to its initial state.
+     */
+    public static final int STAGE_RESET = 0;
+
+    /**
+     * Group stage, used for explicit or implicit GROUP BY operation.
+     */
+    public static final int STAGE_GROUP = 1;
+
+    /**
+     * Window processing stage.
+     */
+    public static final int STAGE_WINDOW = 2;
 
     protected final Select select;
 
@@ -126,12 +140,12 @@ public abstract class DataAnalysisOperation extends Expression {
 
     @Override
     public final void updateAggregate(Session session, int stage) {
-        if (stage == Aggregate.STAGE_RESET) {
-            updateGroupAggregates(session, Aggregate.STAGE_RESET);
+        if (stage == STAGE_RESET) {
+            updateGroupAggregates(session, STAGE_RESET);
             lastGroupRowId = 0;
             return;
         }
-        boolean window = stage == Aggregate.STAGE_WINDOW;
+        boolean window = stage == STAGE_WINDOW;
         if (window != (over != null)) {
             if (!window && select.isWindowQuery()) {
                 updateGroupAggregates(session, stage);

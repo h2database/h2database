@@ -130,7 +130,7 @@ MVStore:
 /**
  * A persistent storage for maps.
  */
-public class MVStore {
+public class MVStore implements AutoCloseable {
 
     /**
      * The block size (physical sector size) of the disk. The store header is
@@ -1326,9 +1326,7 @@ public class MVStore {
             shrinkFileIfPossible(1);
         }
         for (Page p : changed) {
-            if (p.getTotalCount() > 0) {
-                p.writeEnd();
-            }
+            p.writeEnd();
         }
         metaRoot.writeEnd();
 
@@ -1346,7 +1344,7 @@ public class MVStore {
      */
     private void freeUnusedIfNeeded(long time) {
         int freeDelay = retentionTime / 5;
-        if (time >= lastFreeUnusedChunks + freeDelay) {
+        if (time - lastFreeUnusedChunks >= freeDelay) {
             // set early in case it fails (out of memory or so)
             lastFreeUnusedChunks = time;
             freeUnusedChunks(true);
@@ -1391,6 +1389,7 @@ public class MVStore {
      * @param fast if true, simplified version is used, which assumes that recent chunks
      *            are still in-use and do not scan recent versions of the store.
      *            Also is this case only oldest available version of the store is scanned.
+     * @return set of chunk ids in-use, or null if all chunks should be considered in-use
      */
     private Set<Integer> collectReferencedChunks(boolean fast) {
         assert lastChunk != null;
@@ -1428,6 +1427,15 @@ public class MVStore {
         }
     }
 
+    /**
+     * Scans all map of a particular store version and marks visited chunks as in-use.
+     * @param rootReference of the meta map of the version
+     * @param collector to report visited chunks to
+     * @param executorService to use for parallel processing
+     * @param executingThreadCounter counter for threads already in use
+     * @param inspectedRoots set of page positions for map's roots already inspected
+     *                      or null if not to be used
+     */
     private void inspectVersion(MVMap.RootReference rootReference, ChunkIdsCollector collector,
                                 ThreadPoolExecutor executorService,
                                 AtomicInteger executingThreadCounter,
@@ -1443,17 +1451,17 @@ public class MVStore {
         }
         for (Cursor<String, String> c = new Cursor<>(rootPage, "root."); c.hasNext(); ) {
             String key = c.next();
-            assert key != null;
             if (!key.startsWith("root.")) {
                 break;
             }
             pos = DataUtils.parseHexLong(c.getValue());
-            assert DataUtils.isPageSaved(pos);
-            if (inspectedRoots == null || inspectedRoots.add(pos)) {
-                // to allow for something like "root.tmp.123" to be processed
-                int mapId = DataUtils.parseHexInt(key.substring(key.lastIndexOf('.') + 1));
-                collector.setMapId(mapId);
-                collector.visit(pos, executorService, executingThreadCounter);
+            if (DataUtils.isPageSaved(pos)) {
+                if (inspectedRoots == null || inspectedRoots.add(pos)) {
+                    // to allow for something like "root.tmp.123" to be processed
+                    int mapId = DataUtils.parseHexInt(key.substring(key.lastIndexOf('.') + 1));
+                    collector.setMapId(mapId);
+                    collector.visit(pos, executorService, executingThreadCounter);
+                }
             }
         }
     }
@@ -1641,11 +1649,11 @@ public class MVStore {
                 }
                 freedPageSpace.clear();
             }
-            for (Chunk c : modified) {
-                meta.put(Chunk.getMetaKey(c.id), c.asString());
-            }
             if (modified.isEmpty()) {
                 break;
+            }
+            for (Chunk c : modified) {
+                meta.put(Chunk.getMetaKey(c.id), c.asString());
             }
             markMetaChanged();
         }

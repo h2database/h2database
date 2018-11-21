@@ -3,7 +3,7 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.expression.aggregate;
+package org.h2.expression.analysis;
 
 import java.util.ArrayList;
 
@@ -32,12 +32,14 @@ public final class Window {
     private String parent;
 
     /**
+     * Appends ORDER BY clause to the specified builder.
+     *
      * @param builder
      *            string builder
      * @param orderBy
      *            ORDER BY clause, or null
      */
-    static void appendOrderBy(StringBuilder builder, ArrayList<SelectOrderBy> orderBy) {
+    public static void appendOrderBy(StringBuilder builder, ArrayList<SelectOrderBy> orderBy) {
         if (orderBy != null && !orderBy.isEmpty()) {
             if (builder.charAt(builder.length() - 1) != '(') {
                 builder.append(' ');

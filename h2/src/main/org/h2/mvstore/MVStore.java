@@ -1538,7 +1538,7 @@ public class MVStore {
             }
         }
 
-        private void registerChunk(int chunkId) {
+        void registerChunk(int chunkId) {
             if (referencedChunks.put(chunkId, 1) == null && parent != null) {
                 parent.registerChunk(chunkId);
             }

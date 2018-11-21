@@ -305,15 +305,7 @@ public class Insert extends Prepared implements ResultTarget {
                     buff.append(",\n");
                 }
                 buff.append('(');
-                buff.resetCount();
-                for (Expression e : expr) {
-                    buff.appendExceptFirst(", ");
-                    if (e == null) {
-                        buff.append("DEFAULT");
-                    } else {
-                        e.getSQL(buff.builder());
-                    }
-                }
+                Expression.writeExpressions(buff.builder(), expr);
                 buff.append(')');
             }
         } else {

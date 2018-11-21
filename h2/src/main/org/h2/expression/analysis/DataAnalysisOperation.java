@@ -3,7 +3,7 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.expression.aggregate;
+package org.h2.expression.analysis;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,6 +29,21 @@ import org.h2.value.ValueInt;
  */
 public abstract class DataAnalysisOperation extends Expression {
 
+    /**
+     * Reset stage. Used to reset internal data to its initial state.
+     */
+    public static final int STAGE_RESET = 0;
+
+    /**
+     * Group stage, used for explicit or implicit GROUP BY operation.
+     */
+    public static final int STAGE_GROUP = 1;
+
+    /**
+     * Window processing stage.
+     */
+    public static final int STAGE_WINDOW = 2;
+
     protected final Select select;
 
     protected Window over;
@@ -49,7 +64,7 @@ public abstract class DataAnalysisOperation extends Expression {
         return new SortOrder(session.getDatabase(), index, sortType, null);
     }
 
-    DataAnalysisOperation(Select select) {
+    protected DataAnalysisOperation(Select select) {
         this.select = select;
     }
 
@@ -76,7 +91,7 @@ public abstract class DataAnalysisOperation extends Expression {
      *
      * @return the sort order for OVER clause
      */
-    SortOrder getOverOrderBySort() {
+    protected SortOrder getOverOrderBySort() {
         return overOrderBySort;
     }
 
@@ -125,12 +140,12 @@ public abstract class DataAnalysisOperation extends Expression {
 
     @Override
     public final void updateAggregate(Session session, int stage) {
-        if (stage == Aggregate.STAGE_RESET) {
-            updateGroupAggregates(session, Aggregate.STAGE_RESET);
+        if (stage == STAGE_RESET) {
+            updateGroupAggregates(session, STAGE_RESET);
             lastGroupRowId = 0;
             return;
         }
-        boolean window = stage == Aggregate.STAGE_WINDOW;
+        boolean window = stage == STAGE_WINDOW;
         if (window != (over != null)) {
             if (!window && select.isWindowQuery()) {
                 updateGroupAggregates(session, stage);

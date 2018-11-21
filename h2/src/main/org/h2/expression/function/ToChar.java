@@ -3,7 +3,7 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: Daniel Gredler
  */
-package org.h2.util;
+package org.h2.expression.function;
 
 import java.math.BigDecimal;
 import java.text.DateFormatSymbols;
@@ -17,6 +17,8 @@ import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
+import org.h2.util.DateTimeUtils;
+import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueTimestampTimeZone;
 

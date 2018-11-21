@@ -25,8 +25,8 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.Wildcard;
-import org.h2.expression.aggregate.Aggregate;
-import org.h2.expression.aggregate.Window;
+import org.h2.expression.analysis.DataAnalysisOperation;
+import org.h2.expression.analysis.Window;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -389,7 +389,7 @@ public class Select extends Query {
     private void queryWindow(int columnCount, LocalResult result, long offset, boolean quickOffset) {
         initGroupData(columnCount);
         try {
-            gatherGroup(columnCount, Aggregate.STAGE_WINDOW);
+            gatherGroup(columnCount, DataAnalysisOperation.STAGE_WINDOW);
             processGroupResult(columnCount, result, offset, quickOffset);
         } finally {
             groupData.reset();
@@ -399,12 +399,12 @@ public class Select extends Query {
     private void queryGroupWindow(int columnCount, LocalResult result, long offset, boolean quickOffset) {
         initGroupData(columnCount);
         try {
-            gatherGroup(columnCount, Aggregate.STAGE_GROUP);
+            gatherGroup(columnCount, DataAnalysisOperation.STAGE_GROUP);
             try {
                 isGroupWindowStage2 = true;
                 while (groupData.next() != null) {
                     if (havingIndex < 0 || expressions.get(havingIndex).getBooleanValue(session)) {
-                        updateAgg(columnCount, Aggregate.STAGE_WINDOW);
+                        updateAgg(columnCount, DataAnalysisOperation.STAGE_WINDOW);
                     } else {
                         groupData.remove();
                     }
@@ -422,7 +422,7 @@ public class Select extends Query {
     private void queryGroup(int columnCount, LocalResult result, long offset, boolean quickOffset) {
         initGroupData(columnCount);
         try {
-            gatherGroup(columnCount, Aggregate.STAGE_GROUP);
+            gatherGroup(columnCount, DataAnalysisOperation.STAGE_GROUP);
             processGroupResult(columnCount, result, offset, quickOffset);
         } finally {
             groupData.reset();
@@ -433,7 +433,7 @@ public class Select extends Query {
         if (groupData == null) {
             groupData = SelectGroups.getInstance(session, expressions, isGroupQuery, groupIndex);
         } else {
-            updateAgg(columnCount, Aggregate.STAGE_RESET);
+            updateAgg(columnCount, DataAnalysisOperation.STAGE_RESET);
         }
         groupData.reset();
     }
@@ -1742,7 +1742,7 @@ public class Select extends Query {
                 groupData = SelectGroups.getInstance(getSession(), Select.this.expressions, isGroupQuery, groupIndex);
             } else {
                 // TODO is this branch possible?
-                updateAgg(columnCount, Aggregate.STAGE_RESET);
+                updateAgg(columnCount, DataAnalysisOperation.STAGE_RESET);
                 groupData.resetLazy();
             }
         }
@@ -1778,7 +1778,7 @@ public class Select extends Query {
                         groupData.nextLazyGroup();
                     }
                     groupData.nextLazyRow();
-                    updateAgg(columnCount, Aggregate.STAGE_GROUP);
+                    updateAgg(columnCount, DataAnalysisOperation.STAGE_GROUP);
                     if (row != null) {
                         return row;
                     }

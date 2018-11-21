@@ -3,41 +3,38 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.expression.aggregate;
+package org.h2.expression.analysis;
 
 /**
- * Window frame bound type.
+ * Window frame exclusion clause.
  */
-public enum WindowFrameBoundType {
+public enum WindowFrameExclusion {
 
     /**
-     * UNBOUNDED PRECEDING clause.
+     * EXCLUDE CURRENT ROW exclusion clause.
      */
-    UNBOUNDED_PRECEDING("UNBOUNDED PRECEDING"),
+    EXCLUDE_CURRENT_ROW("EXCLUDE CURRENT ROW"),
 
     /**
-     * PRECEDING clause.
+     * EXCLUDE GROUP exclusion clause.
      */
-    PRECEDING("PRECEDING"),
+    EXCLUDE_GROUP("EXCLUDE GROUP"),
 
     /**
-     * CURRENT_ROW clause.
+     * EXCLUDE TIES exclusion clause.
      */
-    CURRENT_ROW("CURRENT_ROW"),
+    EXCLUDE_TIES("EXCLUDE TIES"),
 
     /**
-     * FOLLOWING clause.
+     * EXCLUDE NO OTHERS exclusion clause.
      */
-    FOLLOWING("FOLLOWING"),
+    EXCLUDE_NO_OTHERS("EXCLUDE NO OTHERS"),
 
-    /**
-     * UNBOUNDED FOLLOWING clause.
-     */
-    UNBOUNDED_FOLLOWING("UNBOUNDED FOLLOWING");
+    ;
 
     private final String sql;
 
-    private WindowFrameBoundType(String sql) {
+    private WindowFrameExclusion(String sql) {
         this.sql = sql;
     }
 

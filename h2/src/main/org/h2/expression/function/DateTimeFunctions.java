@@ -3,30 +3,30 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.util;
+package org.h2.expression.function;
 
-import static org.h2.expression.Function.CENTURY;
-import static org.h2.expression.Function.DAY_OF_MONTH;
-import static org.h2.expression.Function.DAY_OF_WEEK;
-import static org.h2.expression.Function.DAY_OF_YEAR;
-import static org.h2.expression.Function.DECADE;
-import static org.h2.expression.Function.EPOCH;
-import static org.h2.expression.Function.HOUR;
-import static org.h2.expression.Function.ISO_DAY_OF_WEEK;
-import static org.h2.expression.Function.ISO_WEEK;
-import static org.h2.expression.Function.ISO_YEAR;
-import static org.h2.expression.Function.MICROSECOND;
-import static org.h2.expression.Function.MILLENNIUM;
-import static org.h2.expression.Function.MILLISECOND;
-import static org.h2.expression.Function.MINUTE;
-import static org.h2.expression.Function.MONTH;
-import static org.h2.expression.Function.NANOSECOND;
-import static org.h2.expression.Function.QUARTER;
-import static org.h2.expression.Function.SECOND;
-import static org.h2.expression.Function.TIMEZONE_HOUR;
-import static org.h2.expression.Function.TIMEZONE_MINUTE;
-import static org.h2.expression.Function.WEEK;
-import static org.h2.expression.Function.YEAR;
+import static org.h2.expression.function.Function.CENTURY;
+import static org.h2.expression.function.Function.DAY_OF_MONTH;
+import static org.h2.expression.function.Function.DAY_OF_WEEK;
+import static org.h2.expression.function.Function.DAY_OF_YEAR;
+import static org.h2.expression.function.Function.DECADE;
+import static org.h2.expression.function.Function.EPOCH;
+import static org.h2.expression.function.Function.HOUR;
+import static org.h2.expression.function.Function.ISO_DAY_OF_WEEK;
+import static org.h2.expression.function.Function.ISO_WEEK;
+import static org.h2.expression.function.Function.ISO_YEAR;
+import static org.h2.expression.function.Function.MICROSECOND;
+import static org.h2.expression.function.Function.MILLENNIUM;
+import static org.h2.expression.function.Function.MILLISECOND;
+import static org.h2.expression.function.Function.MINUTE;
+import static org.h2.expression.function.Function.MONTH;
+import static org.h2.expression.function.Function.NANOSECOND;
+import static org.h2.expression.function.Function.QUARTER;
+import static org.h2.expression.function.Function.SECOND;
+import static org.h2.expression.function.Function.TIMEZONE_HOUR;
+import static org.h2.expression.function.Function.TIMEZONE_MINUTE;
+import static org.h2.expression.function.Function.WEEK;
+import static org.h2.expression.function.Function.YEAR;
 import static org.h2.util.DateTimeUtils.MILLIS_PER_DAY;
 import static org.h2.util.DateTimeUtils.NANOS_PER_DAY;
 import static org.h2.util.DateTimeUtils.NANOS_PER_HOUR;
@@ -43,8 +43,10 @@ import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
-import org.h2.expression.Function;
 import org.h2.message.DbException;
+import org.h2.util.DateTimeUtils;
+import org.h2.util.IntervalUtils;
+import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDecimal;

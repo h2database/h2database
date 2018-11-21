@@ -207,4 +207,20 @@ public class ConditionIn extends Condition {
         }
         return null;
     }
+
+    @Override
+    public int getSubexpressionCount() {
+        return 1 + valueList.size();
+    }
+
+    @Override
+    public Expression getSubexpression(int index) {
+        if (index == 0) {
+            return left;
+        } else if (index > 0 && index <= valueList.size()) {
+            return valueList.get(index - 1);
+        }
+        throw new IndexOutOfBoundsException();
+    }
+
 }

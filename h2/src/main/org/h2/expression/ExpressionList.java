@@ -132,4 +132,14 @@ public class ExpressionList extends Expression {
         return expr;
     }
 
+    @Override
+    public int getSubexpressionCount() {
+        return list.length;
+    }
+
+    @Override
+    public Expression getSubexpression(int index) {
+        return list[index];
+    }
+
 }

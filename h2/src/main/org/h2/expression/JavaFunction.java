@@ -178,4 +178,14 @@ public class JavaFunction extends Expression implements FunctionCall {
         return functionAlias.isBufferResultSetToLocalTemp();
     }
 
+    @Override
+    public int getSubexpressionCount() {
+        return args.length;
+    }
+
+    @Override
+    public Expression getSubexpression(int index) {
+        return args[index];
+    }
+
 }

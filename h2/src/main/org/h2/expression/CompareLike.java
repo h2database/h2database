@@ -517,4 +517,26 @@ public class CompareLike extends Condition {
         return left.getCost() + right.getCost() + 3;
     }
 
+    @Override
+    public int getSubexpressionCount() {
+        return escape == null ? 2 : 3;
+    }
+
+    @Override
+    public Expression getSubexpression(int index) {
+        switch (index) {
+        case 0:
+            return left;
+        case 1:
+            return right;
+        case 2:
+            if (escape != null) {
+                return escape;
+            }
+            //$FALL-THROUGH$
+        default:
+            throw new IndexOutOfBoundsException();
+        }
+    }
+
 }

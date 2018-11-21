@@ -3,7 +3,7 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: Daniel Gredler
  */
-package org.h2.util;
+package org.h2.expression.function;
 
 import static java.lang.String.format;
 import java.util.ArrayList;

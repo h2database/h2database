@@ -54,7 +54,12 @@ public abstract class Expression {
             if (i > 0) {
                 builder.append(", ");
             }
-            expressions[i].getSQL(builder);
+            Expression e = expressions[i];
+            if (e == null) {
+                builder.append("DEFAULT");
+            } else {
+                e.getSQL(builder);
+            }
         }
     }
 

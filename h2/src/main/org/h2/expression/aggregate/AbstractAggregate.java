@@ -14,6 +14,8 @@ import org.h2.command.dml.SelectGroups;
 import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.expression.analysis.DataAnalysisOperation;
+import org.h2.expression.analysis.WindowFrame;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;

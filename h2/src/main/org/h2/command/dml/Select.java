@@ -26,7 +26,7 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.Wildcard;
 import org.h2.expression.aggregate.Aggregate;
-import org.h2.expression.aggregate.Window;
+import org.h2.expression.analysis.Window;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;

@@ -19,6 +19,7 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.analysis.Window;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.message.DbException;

@@ -3,7 +3,7 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.expression.aggregate;
+package org.h2.expression.analysis;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,6 +16,7 @@ import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.aggregate.Aggregate;
 import org.h2.message.DbException;
 import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
@@ -49,7 +50,7 @@ public abstract class DataAnalysisOperation extends Expression {
         return new SortOrder(session.getDatabase(), index, sortType, null);
     }
 
-    DataAnalysisOperation(Select select) {
+    protected DataAnalysisOperation(Select select) {
         this.select = select;
     }
 
@@ -76,7 +77,7 @@ public abstract class DataAnalysisOperation extends Expression {
      *
      * @return the sort order for OVER clause
      */
-    SortOrder getOverOrderBySort() {
+    protected SortOrder getOverOrderBySort() {
         return overOrderBySort;
     }
 

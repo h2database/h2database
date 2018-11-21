@@ -531,7 +531,7 @@ CREATE AGGREGATE [ IF NOT EXISTS ] newAggregateName FOR className
 ","
 Creates a new user-defined aggregate function. The method name must be the full
 qualified class name. The class must implement the interface
-""org.h2.api.AggregateFunction"".
+""org.h2.api.Aggregate"" or ""org.h2.api.AggregateFunction"".
 
 Admin rights are required to execute this command.
 This command commits an open transaction in this connection.

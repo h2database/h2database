@@ -3444,26 +3444,26 @@ Aggregates are only allowed in select statements.
 BIT_OR(ID)
 "
 
-"Functions (Aggregate)","BOOL_AND","
-BOOL_AND(boolean)
+"Functions (Aggregate)","EVERY","
+{EVERY|BOOL_AND}(boolean)
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Returns true if all expressions are true.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
-BOOL_AND(ID>10)
+EVERY(ID>10)
 "
 
-"Functions (Aggregate)","BOOL_OR","
-BOOL_OR(boolean)
+"Functions (Aggregate)","ANY","
+{ANY|SOME|BOOL_OR}(boolean)
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Returns true if any expression is true.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
-BOOL_OR(NAME LIKE 'W%')
+ANY(NAME LIKE 'W%')
 "
 
 "Functions (Aggregate)","COUNT","

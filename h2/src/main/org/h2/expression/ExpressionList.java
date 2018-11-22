@@ -133,6 +133,16 @@ public class ExpressionList extends Expression {
     }
 
     @Override
+    public boolean isConstant() {
+        for (Expression e : list) {
+            if (!e.isConstant()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
     public int getSubexpressionCount() {
         return list.length;
     }

@@ -16,6 +16,7 @@ import org.h2.expression.ValueExpression;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.TableFunction;
 import org.h2.index.IndexCondition;
+import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
@@ -109,6 +110,19 @@ public class ConditionIn extends Condition {
                         }
                     }
                 }
+                if (tf.isConstant()) {
+                    boolean allValuesNull = true;
+                    ResultInterface ri = right.getValue(session).getResult();
+                    ArrayList<Expression> list = new ArrayList<>(ri.getRowCount());
+                    while (ri.next()) {
+                        Value v = ri.currentRow()[0];
+                        if (v != ValueNull.INSTANCE) {
+                            allValuesNull = false;
+                        }
+                        list.add(ValueExpression.get(v));
+                    }
+                    return optimize2(session, constant, true, allValuesNull, list);
+                }
                 return this;
             }
         }
@@ -129,11 +143,16 @@ public class ConditionIn extends Condition {
             }
             valueList.set(i, e);
         }
+        return optimize2(session, constant, allValuesConstant, allValuesNull, valueList);
+    }
+
+    private Expression optimize2(Session session, boolean constant, boolean allValuesConstant, boolean allValuesNull,
+            ArrayList<Expression> values) {
         if (constant && allValuesConstant) {
             return ValueExpression.get(getValue(session));
         }
-        if (size == 1) {
-            return new Comparison(session, Comparison.EQUAL, left, valueList.get(0)).optimize(session);
+        if (values.size() == 1) {
+            return new Comparison(session, Comparison.EQUAL, left, values.get(0)).optimize(session);
         }
         if (allValuesConstant && !allValuesNull) {
             int leftType = left.getType();
@@ -143,7 +162,7 @@ public class ConditionIn extends Condition {
             if (leftType == Value.ENUM && !(left instanceof ExpressionColumn)) {
                 return this;
             }
-            Expression expr = new ConditionInConstantSet(session, left, valueList);
+            Expression expr = new ConditionInConstantSet(session, left, values);
             expr = expr.optimize(session);
             return expr;
         }

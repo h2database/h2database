@@ -146,4 +146,14 @@ public class TableFunction extends Function {
         return getExpressionColumns(session, getValueForColumnList(session, null).getResult());
     }
 
+    @Override
+    public boolean isConstant() {
+        for (Expression e : args) {
+            if (!e.isConstant()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 }

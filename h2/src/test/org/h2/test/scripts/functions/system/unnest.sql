@@ -48,8 +48,8 @@ SELECT 4 IN(UNNEST(ARRAY[1, 2, 3]));
 >> FALSE
 
 SELECT X, X IN(UNNEST(ARRAY[2, 4])) FROM SYSTEM_RANGE(1, 5);
-> X X IN(UNNEST((2, 4)))
-> - --------------------
+> X X IN(2, 4)
+> - ----------
 > 1 FALSE
 > 2 TRUE
 > 3 FALSE

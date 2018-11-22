@@ -54,7 +54,15 @@ public class ConditionIn extends Condition {
         }
         boolean result = false;
         boolean hasNull = false;
-        for (Expression e : valueList) {
+        int size = valueList.size();
+        if (size == 1) {
+            Expression e = valueList.get(0);
+            if (e instanceof TableFunction) {
+                return ConditionInParameter.getValue(database, l, e.getValue(session));
+            }
+        }
+        for (int i = 0; i < size; i++) {
+            Expression e = valueList.get(i);
             Value r = e.getValue(session);
             if (r == ValueNull.INSTANCE) {
                 hasNull = true;
@@ -87,9 +95,25 @@ public class ConditionIn extends Condition {
         if (constant && left == ValueExpression.getNull()) {
             return left;
         }
+        int size = valueList.size();
+        if (size == 1) {
+            Expression right = valueList.get(0);
+            if (right instanceof TableFunction) {
+                TableFunction tf = (TableFunction) right;
+                if (tf.getFunctionType() == Function.UNNEST) {
+                    Expression[] args = tf.getArgs();
+                    if (args.length == 1) {
+                        Expression arg = args[0];
+                        if (arg instanceof Parameter) {
+                            return new ConditionInParameter(database, left, (Parameter) arg);
+                        }
+                    }
+                }
+                return this;
+            }
+        }
         boolean allValuesConstant = true;
         boolean allValuesNull = true;
-        int size = valueList.size();
         for (int i = 0; i < size; i++) {
             Expression e = valueList.get(i);
             e = e.optimize(session);
@@ -109,22 +133,7 @@ public class ConditionIn extends Condition {
             return ValueExpression.get(getValue(session));
         }
         if (size == 1) {
-            Expression right = valueList.get(0);
-            if (right instanceof TableFunction) {
-                TableFunction tf = (TableFunction) right;
-                if (tf.getFunctionType() == Function.UNNEST) {
-                    Expression[] args = tf.getArgs();
-                    if (args.length == 1) {
-                        Expression arg = args[0];
-                        if (arg instanceof Parameter) {
-                            return new ConditionInParameter(database, left, (Parameter) arg);
-                        }
-                    }
-                }
-            }
-            Expression expr = new Comparison(session, Comparison.EQUAL, left, right);
-            expr = expr.optimize(session);
-            return expr;
+            return new Comparison(session, Comparison.EQUAL, left, valueList.get(0)).optimize(session);
         }
         if (allValuesConstant && !allValuesNull) {
             int leftType = left.getType();

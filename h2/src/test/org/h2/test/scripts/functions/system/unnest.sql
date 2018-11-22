@@ -40,3 +40,49 @@ EXPLAIN SELECT * FROM UNNEST(ARRAY[1]);
 
 EXPLAIN SELECT * FROM UNNEST(ARRAY[1]) WITH ORDINALITY;
 >> SELECT UNNEST.C1, UNNEST.NORD FROM UNNEST((1,)) WITH ORDINALITY /* function */
+
+SELECT 1 IN(UNNEST(ARRAY[1, 2, 3]));
+>> TRUE
+
+SELECT 4 IN(UNNEST(ARRAY[1, 2, 3]));
+>> FALSE
+
+SELECT X, X IN(UNNEST(ARRAY[2, 4])) FROM SYSTEM_RANGE(1, 5);
+> X X IN(UNNEST((2, 4)))
+> - --------------------
+> 1 FALSE
+> 2 TRUE
+> 3 FALSE
+> 4 TRUE
+> 5 FALSE
+> rows: 5
+
+SELECT X, X IN(UNNEST(?)) FROM SYSTEM_RANGE(1, 5);
+{
+2
+> X X IN(UNNEST(?1))
+> - ----------------
+> 1 FALSE
+> 2 TRUE
+> 3 FALSE
+> 4 FALSE
+> 5 FALSE
+> rows: 5
+};
+> update count: 0
+
+CREATE TABLE TEST(A INT, B ARRAY);
+> ok
+
+INSERT INTO TEST VALUES (2, ARRAY[2, 4]), (3, ARRAY[2, 5]);
+> update count: 2
+
+SELECT A, B, A IN(UNNEST(B)) FROM TEST;
+> A B      A IN(UNNEST(B))
+> - ------ ---------------
+> 2 (2, 4) TRUE
+> 3 (2, 5) FALSE
+> rows: 2
+
+DROP TABLE TEST;
+> ok

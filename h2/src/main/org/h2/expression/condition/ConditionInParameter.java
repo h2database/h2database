@@ -15,6 +15,7 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
 import org.h2.index.IndexCondition;
+import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
@@ -64,6 +65,41 @@ public class ConditionInParameter extends Condition {
 
     private final Parameter parameter;
 
+    static Value getValue(Database database, Value l, Value value) {
+        boolean result = false;
+        boolean hasNull = false;
+        if (value == ValueNull.INSTANCE) {
+            hasNull = true;
+        } else if (value.getType() == Value.RESULT_SET) {
+            for (ResultInterface ri = value.getResult(); ri.next();) {
+                Value r = ri.currentRow()[0];
+                if (r == ValueNull.INSTANCE) {
+                    hasNull = true;
+                } else {
+                    result = Comparison.compareNotNull(database, l, r, Comparison.EQUAL);
+                    if (result) {
+                        break;
+                    }
+                }
+            }
+        } else {
+            for (Value r : ((ValueArray) value.convertTo(Value.ARRAY)).getList()) {
+                if (r == ValueNull.INSTANCE) {
+                    hasNull = true;
+                } else {
+                    result = Comparison.compareNotNull(database, l, r, Comparison.EQUAL);
+                    if (result) {
+                        break;
+                    }
+                }
+            }
+        }
+        if (!result && hasNull) {
+            return ValueNull.INSTANCE;
+        }
+        return ValueBoolean.get(result);
+    }
+
     /**
      * Create a new {@code IN(UNNEST(?))} condition.
      *
@@ -86,27 +122,7 @@ public class ConditionInParameter extends Condition {
         if (l == ValueNull.INSTANCE) {
             return l;
         }
-        boolean result = false;
-        boolean hasNull = false;
-        Value value = parameter.getValue(session);
-        if (value == ValueNull.INSTANCE) {
-            hasNull = true;
-        } else {
-            for (Value r : ((ValueArray) value.convertTo(Value.ARRAY)).getList()) {
-                if (r == ValueNull.INSTANCE) {
-                    hasNull = true;
-                } else {
-                    result = Comparison.compareNotNull(database, l, r, Comparison.EQUAL);
-                    if (result) {
-                        break;
-                    }
-                }
-            }
-        }
-        if (!result && hasNull) {
-            return ValueNull.INSTANCE;
-        }
-        return ValueBoolean.get(result);
+        return getValue(database, l, parameter.getValue(session));
     }
 
     @Override

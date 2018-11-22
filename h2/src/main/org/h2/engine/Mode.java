@@ -210,6 +210,12 @@ public class Mode {
     public boolean dateTimeValueWithinTransaction;
 
     /**
+     * If {@code true}, ANY and SOME after comparison operators are parsed as
+     * array comparison operators.
+     */
+    public boolean anyAndSomeAreComparisons;
+
+    /**
      * An optional Set of hidden/disallowed column types.
      * Certain DBMSs don't support all column types provided by H2, such as
      * "NUMBER" when using PostgreSQL mode.
@@ -354,6 +360,7 @@ public class Mode {
         dt.name = "MONEY";
         mode.typeByNameMap.put("MONEY", dt);
         mode.dateTimeValueWithinTransaction = true;
+        mode.anyAndSomeAreComparisons = true;
         add(mode);
 
         mode = new Mode(ModeEnum.Ignite);

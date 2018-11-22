@@ -1642,6 +1642,7 @@ public class TestPreparedStatement extends TestDb {
         anyParameterCheck(ps, 300, new int[] {30});
         anyParameterCheck(ps, -5, new int[0]);
         // Test expression = ANY(?)
+        conn.createStatement().execute("SET MODE PostgreSQL");
         ps = conn.prepareStatement("SELECT ID FROM TEST WHERE VALUE = ANY(?)");
         assertThrows(ErrorCode.PARAMETER_NOT_SET_1, ps).executeQuery();
         anyParameterCheck(ps, values, expected);

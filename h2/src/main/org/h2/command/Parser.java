@@ -3406,6 +3406,23 @@ public class Parser {
             tf.setColumns(columns);
             break;
         }
+        case Function.UNNEST: {
+            ArrayList<Column> columns = Utils.newSmallArrayList();
+            if (!readIf(CLOSE_PAREN)) {
+                int i = 0;
+                do {
+                    function.setParameter(i++, readExpression());
+                    columns.add(new Column("C" + i, Value.NULL));
+                } while (readIfMore(true));
+            }
+            if (readIf(WITH)) {
+                read("ORDINALITY");
+                columns.add(new Column("NORD", Value.INT));
+            }
+            TableFunction tf = (TableFunction) function;
+            tf.setColumns(columns);
+            break;
+        }
         default:
             if (!readIf(CLOSE_PAREN)) {
                 int i = 0;

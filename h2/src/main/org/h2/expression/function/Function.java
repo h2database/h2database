@@ -134,7 +134,8 @@ public class Function extends Expression implements FunctionCall {
             ARRAY_LENGTH = 217, LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220,
             CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
-            NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230, FILE_WRITE = 232;
+            NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230, FILE_WRITE = 232,
+            UNNEST = 233;
 
     public static final int REGEXP_LIKE = 240;
 
@@ -459,10 +460,9 @@ public class Function extends Expression implements FunctionCall {
         addFunction("H2VERSION", H2VERSION, 0, Value.STRING);
 
         // TableFunction
-        addFunctionWithNull("TABLE", TABLE,
-                VAR_ARGS, Value.RESULT_SET);
-        addFunctionWithNull("TABLE_DISTINCT", TABLE_DISTINCT,
-                VAR_ARGS, Value.RESULT_SET);
+        addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
+        addFunctionWithNull("TABLE_DISTINCT", TABLE_DISTINCT, VAR_ARGS, Value.RESULT_SET);
+        addFunctionWithNull("UNNEST", UNNEST, VAR_ARGS, Value.RESULT_SET);
 
         // ON DUPLICATE KEY VALUES function
         addFunction("VALUES", VALUES, 1, Value.NULL, false, true, false, true);
@@ -538,6 +538,7 @@ public class Function extends Expression implements FunctionCall {
         switch (info.type) {
         case TABLE:
         case TABLE_DISTINCT:
+        case UNNEST:
             return new TableFunction(database, info, Long.MAX_VALUE);
         default:
             return new Function(database, info);

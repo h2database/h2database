@@ -5215,6 +5215,18 @@ The method returns a value with the same data type as the first parameter.
 CALL TRUNCATE_VALUE(X, 10, TRUE);
 "
 
+"Functions (System)","UNNEST","
+UNNEST(array, [,...]) [WITH ORDINALITY]
+","
+Returns the result set.
+Number of columns is equal to number of arguments,
+plus one additional column with row number if WITH ORDINALITY is specified.
+Number of rows is equal to length of longest specified array.
+If multiple arguments are specified and they have different length, cells with missing values will contain null values.
+","
+SELECT * FROM UNNEST(ARRAY['a', 'b', 'c']);
+"
+
 "Functions (System)","USER","
 { USER | CURRENT_USER } ()
 ","

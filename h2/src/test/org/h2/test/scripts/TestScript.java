@@ -194,7 +194,7 @@ public class TestScript extends TestDb {
                 "ifnull", "least", "link-schema", "lock-mode", "lock-timeout",
                 "memory-free", "memory-used", "nextval", "nullif", "nvl2",
                 "readonly", "rownum", "schema", "scope-identity", "session-id",
-                "set", "table", "transaction-id", "truncate-value", "user" }) {
+                "set", "table", "transaction-id", "truncate-value", "unnest", "user" }) {
             testScript("functions/system/" + s + ".sql");
         }
         for (String s : new String[] { "add_months", "current_date", "current_timestamp",

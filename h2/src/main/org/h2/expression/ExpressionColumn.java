@@ -12,6 +12,7 @@ import org.h2.command.dml.SelectGroups;
 import org.h2.command.dml.SelectListColumnResolver;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.expression.condition.Comparison;
 import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
 import org.h2.schema.Constant;

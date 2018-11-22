@@ -3,11 +3,16 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.expression;
+package org.h2.expression.condition;
 
 import java.util.ArrayList;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.expression.Expression;
+import org.h2.expression.ExpressionColumn;
+import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.Parameter;
+import org.h2.expression.ValueExpression;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.TableFunction;
 import org.h2.index.IndexCondition;

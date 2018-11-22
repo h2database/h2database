@@ -8,6 +8,8 @@ package org.h2.expression;
 import java.util.ArrayList;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.expression.function.Function;
+import org.h2.expression.function.TableFunction;
 import org.h2.index.IndexCondition;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -103,6 +105,18 @@ public class ConditionIn extends Condition {
         }
         if (size == 1) {
             Expression right = valueList.get(0);
+            if (right instanceof TableFunction) {
+                TableFunction tf = (TableFunction) right;
+                if (tf.getFunctionType() == Function.UNNEST) {
+                    Expression[] args = tf.getArgs();
+                    if (args.length == 1) {
+                        Expression arg = args[0];
+                        if (arg instanceof Parameter) {
+                            return new ConditionInParameter(database, left, (Parameter) arg);
+                        }
+                    }
+                }
+            }
             Expression expr = new Comparison(session, Comparison.EQUAL, left, right);
             expr = expr.optimize(session);
             return expr;

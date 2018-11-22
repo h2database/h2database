@@ -18,7 +18,7 @@ import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
 
 /**
- * A condition with parameter as {@code = ANY(?)}.
+ * A condition with parameter as {@code IN(UNNEST(?))}.
  */
 public class ConditionInParameter extends Condition {
     private static final class ParameterList extends AbstractList<Expression> {
@@ -60,12 +60,12 @@ public class ConditionInParameter extends Condition {
     private final Parameter parameter;
 
     /**
-     * Create a new {@code = ANY(?)} condition.
+     * Create a new {@code IN(UNNEST(?))} condition.
      *
      * @param database
      *            the database
      * @param left
-     *            the expression before {@code = ANY(?)}
+     *            the expression before {@code IN(UNNEST(?))}
      * @param parameter
      *            parameter
      */
@@ -84,8 +84,10 @@ public class ConditionInParameter extends Condition {
         boolean result = false;
         boolean hasNull = false;
         Value value = parameter.getValue(session);
-        if (value instanceof ValueArray) {
-            for (Value r : ((ValueArray) value).getList()) {
+        if (value == ValueNull.INSTANCE) {
+            hasNull = true;
+        } else {
+            for (Value r : ((ValueArray) value.convertTo(Value.ARRAY)).getList()) {
                 if (r == ValueNull.INSTANCE) {
                     hasNull = true;
                 } else {
@@ -94,12 +96,6 @@ public class ConditionInParameter extends Condition {
                         break;
                     }
                 }
-            }
-        } else {
-            if (value == ValueNull.INSTANCE) {
-                hasNull = true;
-            } else {
-                result = Comparison.compareNotNull(database, l, value, Comparison.EQUAL);
             }
         }
         if (!result && hasNull) {
@@ -142,8 +138,8 @@ public class ConditionInParameter extends Condition {
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
         builder.append('(');
-        left.getSQL(builder).append(" = ANY(");
-        return parameter.getSQL(builder).append("))");
+        left.getSQL(builder).append(" IN(UNNEST(");
+        return parameter.getSQL(builder).append(")))");
     }
 
     @Override

@@ -17,6 +17,7 @@ import org.h2.result.LocalResult;
 import org.h2.table.Column;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
+import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 
@@ -24,19 +25,17 @@ import org.h2.value.ValueResultSet;
  * Implementation of the functions TABLE(..) and TABLE_DISTINCT(..).
  */
 public class TableFunction extends Function {
-    private final boolean distinct;
     private final long rowCount;
-    private Column[] columnList;
+    private Column[] columns;
 
     TableFunction(Database database, FunctionInfo info, long rowCount) {
         super(database, info);
-        distinct = info.type == Function.TABLE_DISTINCT;
         this.rowCount = rowCount;
     }
 
     @Override
     public Value getValue(Session session) {
-        return getTable(session, args, false, distinct);
+        return getTable(session, false);
     }
 
     @Override
@@ -48,52 +47,60 @@ public class TableFunction extends Function {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
+        if (info.type == UNNEST) {
+            super.getSQL(builder);
+            if (args.length < columns.length) {
+                builder.append(" WITH ORDINALITY");
+            }
+            return builder;
+        }
         builder.append(getName()).append('(');
         for (int i = 0; i < args.length; i++) {
             if (i > 0) {
                 builder.append(", ");
             }
-            builder.append(columnList[i].getCreateSQL()).append('=');
+            builder.append(columns[i].getCreateSQL()).append('=');
             args[i].getSQL(builder);
         }
         return builder.append(')');
     }
 
-
-    @Override
-    public String getName() {
-        return distinct ? "TABLE_DISTINCT" : "TABLE";
-    }
-
     @Override
     public ValueResultSet getValueForColumnList(Session session,
             Expression[] nullArgs) {
-        return getTable(session, args, true, false);
+        return getTable(session, true);
     }
 
     public void setColumns(ArrayList<Column> columns) {
-        this.columnList = columns.toArray(new Column[0]);
+        this.columns = columns.toArray(new Column[0]);
     }
 
-    private ValueResultSet getTable(Session session, Expression[] argList,
-            boolean onlyColumnList, boolean distinctRows) {
-        int len = columnList.length;
-        Expression[] header = new Expression[len];
+    private ValueResultSet getTable(Session session, boolean onlyColumnList) {
+        int totalColumns = columns.length;
+        Expression[] header = new Expression[totalColumns];
         Database db = session.getDatabase();
-        for (int i = 0; i < len; i++) {
-            Column c = columnList[i];
+        for (int i = 0; i < totalColumns; i++) {
+            Column c = columns[i];
             ExpressionColumn col = new ExpressionColumn(db, c);
             header[i] = col;
         }
-        LocalResult result = db.getResultFactory().create(session, header, len);
-        if (distinctRows) {
+        LocalResult result = db.getResultFactory().create(session, header, totalColumns);
+        if (!onlyColumnList && info.type == TABLE_DISTINCT) {
             result.setDistinct();
         }
         if (!onlyColumnList) {
+            int len = totalColumns;
+            boolean unnest = info.type == UNNEST, addNumber = false;
+            if (unnest) {
+                len = args.length;
+                if (len < totalColumns) {
+                    addNumber = true;
+                }
+            }
             Value[][] list = new Value[len][];
             int rows = 0;
             for (int i = 0; i < len; i++) {
-                Value v = argList[i].getValue(session);
+                Value v = args[i].getValue(session);
                 if (v == ValueNull.INSTANCE) {
                     list[i] = new Value[0];
                 } else {
@@ -104,20 +111,24 @@ public class TableFunction extends Function {
                 }
             }
             for (int row = 0; row < rows; row++) {
-                Value[] r = new Value[len];
+                Value[] r = new Value[totalColumns];
                 for (int j = 0; j < len; j++) {
                     Value[] l = list[j];
                     Value v;
                     if (l.length <= row) {
                         v = ValueNull.INSTANCE;
                     } else {
-                        Column c = columnList[j];
+                        Column c = columns[j];
                         v = l[row];
-                        v = c.convert(v);
-                        v = v.convertPrecision(c.getPrecision(), false);
-                        v = v.convertScale(true, c.getScale());
+                        if (!unnest) {
+                            v = c.convert(v).convertPrecision(c.getPrecision(), false)
+                                    .convertScale(true, c.getScale());
+                        }
                     }
                     r[j] = v;
+                }
+                if (addNumber) {
+                    r[len] = ValueInt.get(row + 1);
                 }
                 result.addRow(r);
             }
@@ -132,7 +143,17 @@ public class TableFunction extends Function {
 
     @Override
     public Expression[] getExpressionColumns(Session session) {
-        return getExpressionColumns(session, getTable(session, getArgs(), true, false).getResult());
+        return getExpressionColumns(session, getValueForColumnList(session, null).getResult());
+    }
+
+    @Override
+    public boolean isConstant() {
+        for (Expression e : args) {
+            if (!e.isConstant()) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

@@ -149,14 +149,6 @@ import org.h2.engine.UserAggregate;
 import org.h2.expression.Alias;
 import org.h2.expression.BinaryOperation;
 import org.h2.expression.BinaryOperation.OpType;
-import org.h2.expression.CompareLike;
-import org.h2.expression.Comparison;
-import org.h2.expression.ConditionAndOr;
-import org.h2.expression.ConditionExists;
-import org.h2.expression.ConditionIn;
-import org.h2.expression.ConditionInParameter;
-import org.h2.expression.ConditionInSelect;
-import org.h2.expression.ConditionNot;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionList;
@@ -181,6 +173,14 @@ import org.h2.expression.analysis.WindowFrameExclusion;
 import org.h2.expression.analysis.WindowFrameUnits;
 import org.h2.expression.analysis.WindowFunction;
 import org.h2.expression.analysis.WindowFunctionType;
+import org.h2.expression.condition.CompareLike;
+import org.h2.expression.condition.Comparison;
+import org.h2.expression.condition.ConditionAndOr;
+import org.h2.expression.condition.ConditionExists;
+import org.h2.expression.condition.ConditionIn;
+import org.h2.expression.condition.ConditionInParameter;
+import org.h2.expression.condition.ConditionInSelect;
+import org.h2.expression.condition.ConditionNot;
 import org.h2.expression.function.DateTimeFunctions;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionCall;
@@ -2857,7 +2857,7 @@ public class Parser {
                     r = new ConditionInSelect(database, r, query, true,
                             compareType);
                     read(CLOSE_PAREN);
-                } else if (readIf("ANY") || readIf("SOME")) {
+                } else if (database.getMode().anyAndSomeAreComparisons && (readIf("ANY") || readIf("SOME"))) {
                     read(OPEN_PAREN);
                     if (currentTokenType == PARAMETER && compareType == 0) {
                         Parameter p = readParameter();
@@ -3402,6 +3402,23 @@ public class Parser {
                 function.setParameter(i, readExpression());
                 i++;
             } while (readIfMore(true));
+            TableFunction tf = (TableFunction) function;
+            tf.setColumns(columns);
+            break;
+        }
+        case Function.UNNEST: {
+            ArrayList<Column> columns = Utils.newSmallArrayList();
+            if (!readIf(CLOSE_PAREN)) {
+                int i = 0;
+                do {
+                    function.setParameter(i++, readExpression());
+                    columns.add(new Column("C" + i, Value.NULL));
+                } while (readIfMore(true));
+            }
+            if (readIf(WITH)) {
+                read("ORDINALITY");
+                columns.add(new Column("NORD", Value.INT));
+            }
             TableFunction tf = (TableFunction) function;
             tf.setColumns(columns);
             break;

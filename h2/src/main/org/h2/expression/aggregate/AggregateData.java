@@ -40,8 +40,8 @@ abstract class AggregateData {
         case MAX:
         case BIT_OR:
         case BIT_AND:
-        case BOOL_OR:
-        case BOOL_AND:
+        case ANY:
+        case EVERY:
             return new AggregateDataDefault(aggregateType);
         case SUM:
         case AVG:

@@ -3,13 +3,19 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.expression;
+package org.h2.expression.condition;
 
 import java.util.AbstractList;
 
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.expression.Expression;
+import org.h2.expression.ExpressionColumn;
+import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.Parameter;
+import org.h2.expression.ValueExpression;
 import org.h2.index.IndexCondition;
+import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
@@ -18,7 +24,7 @@ import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
 
 /**
- * A condition with parameter as {@code = ANY(?)}.
+ * A condition with parameter as {@code IN(UNNEST(?))}.
  */
 public class ConditionInParameter extends Condition {
     private static final class ParameterList extends AbstractList<Expression> {
@@ -59,13 +65,48 @@ public class ConditionInParameter extends Condition {
 
     private final Parameter parameter;
 
+    static Value getValue(Database database, Value l, Value value) {
+        boolean result = false;
+        boolean hasNull = false;
+        if (value == ValueNull.INSTANCE) {
+            hasNull = true;
+        } else if (value.getType() == Value.RESULT_SET) {
+            for (ResultInterface ri = value.getResult(); ri.next();) {
+                Value r = ri.currentRow()[0];
+                if (r == ValueNull.INSTANCE) {
+                    hasNull = true;
+                } else {
+                    result = Comparison.compareNotNull(database, l, r, Comparison.EQUAL);
+                    if (result) {
+                        break;
+                    }
+                }
+            }
+        } else {
+            for (Value r : ((ValueArray) value.convertTo(Value.ARRAY)).getList()) {
+                if (r == ValueNull.INSTANCE) {
+                    hasNull = true;
+                } else {
+                    result = Comparison.compareNotNull(database, l, r, Comparison.EQUAL);
+                    if (result) {
+                        break;
+                    }
+                }
+            }
+        }
+        if (!result && hasNull) {
+            return ValueNull.INSTANCE;
+        }
+        return ValueBoolean.get(result);
+    }
+
     /**
-     * Create a new {@code = ANY(?)} condition.
+     * Create a new {@code IN(UNNEST(?))} condition.
      *
      * @param database
      *            the database
      * @param left
-     *            the expression before {@code = ANY(?)}
+     *            the expression before {@code IN(UNNEST(?))}
      * @param parameter
      *            parameter
      */
@@ -81,31 +122,7 @@ public class ConditionInParameter extends Condition {
         if (l == ValueNull.INSTANCE) {
             return l;
         }
-        boolean result = false;
-        boolean hasNull = false;
-        Value value = parameter.getValue(session);
-        if (value instanceof ValueArray) {
-            for (Value r : ((ValueArray) value).getList()) {
-                if (r == ValueNull.INSTANCE) {
-                    hasNull = true;
-                } else {
-                    result = Comparison.compareNotNull(database, l, r, Comparison.EQUAL);
-                    if (result) {
-                        break;
-                    }
-                }
-            }
-        } else {
-            if (value == ValueNull.INSTANCE) {
-                hasNull = true;
-            } else {
-                result = Comparison.compareNotNull(database, l, value, Comparison.EQUAL);
-            }
-        }
-        if (!result && hasNull) {
-            return ValueNull.INSTANCE;
-        }
-        return ValueBoolean.get(result);
+        return getValue(database, l, parameter.getValue(session));
     }
 
     @Override
@@ -142,8 +159,8 @@ public class ConditionInParameter extends Condition {
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
         builder.append('(');
-        left.getSQL(builder).append(" = ANY(");
-        return parameter.getSQL(builder).append("))");
+        left.getSQL(builder).append(" IN(UNNEST(");
+        return parameter.getSQL(builder).append(")))");
     }
 
     @Override

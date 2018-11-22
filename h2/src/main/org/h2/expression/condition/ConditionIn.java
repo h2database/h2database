@@ -3,12 +3,20 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.expression;
+package org.h2.expression.condition;
 
 import java.util.ArrayList;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.expression.Expression;
+import org.h2.expression.ExpressionColumn;
+import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.Parameter;
+import org.h2.expression.ValueExpression;
+import org.h2.expression.function.Function;
+import org.h2.expression.function.TableFunction;
 import org.h2.index.IndexCondition;
+import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
@@ -47,7 +55,15 @@ public class ConditionIn extends Condition {
         }
         boolean result = false;
         boolean hasNull = false;
-        for (Expression e : valueList) {
+        int size = valueList.size();
+        if (size == 1) {
+            Expression e = valueList.get(0);
+            if (e instanceof TableFunction) {
+                return ConditionInParameter.getValue(database, l, e.getValue(session));
+            }
+        }
+        for (int i = 0; i < size; i++) {
+            Expression e = valueList.get(i);
             Value r = e.getValue(session);
             if (r == ValueNull.INSTANCE) {
                 hasNull = true;
@@ -80,9 +96,38 @@ public class ConditionIn extends Condition {
         if (constant && left == ValueExpression.getNull()) {
             return left;
         }
+        int size = valueList.size();
+        if (size == 1) {
+            Expression right = valueList.get(0);
+            if (right instanceof TableFunction) {
+                TableFunction tf = (TableFunction) right;
+                if (tf.getFunctionType() == Function.UNNEST) {
+                    Expression[] args = tf.getArgs();
+                    if (args.length == 1) {
+                        Expression arg = args[0];
+                        if (arg instanceof Parameter) {
+                            return new ConditionInParameter(database, left, (Parameter) arg);
+                        }
+                    }
+                }
+                if (tf.isConstant()) {
+                    boolean allValuesNull = true;
+                    ResultInterface ri = right.getValue(session).getResult();
+                    ArrayList<Expression> list = new ArrayList<>(ri.getRowCount());
+                    while (ri.next()) {
+                        Value v = ri.currentRow()[0];
+                        if (v != ValueNull.INSTANCE) {
+                            allValuesNull = false;
+                        }
+                        list.add(ValueExpression.get(v));
+                    }
+                    return optimize2(session, constant, true, allValuesNull, list);
+                }
+                return this;
+            }
+        }
         boolean allValuesConstant = true;
         boolean allValuesNull = true;
-        int size = valueList.size();
         for (int i = 0; i < size; i++) {
             Expression e = valueList.get(i);
             e = e.optimize(session);
@@ -98,14 +143,16 @@ public class ConditionIn extends Condition {
             }
             valueList.set(i, e);
         }
+        return optimize2(session, constant, allValuesConstant, allValuesNull, valueList);
+    }
+
+    private Expression optimize2(Session session, boolean constant, boolean allValuesConstant, boolean allValuesNull,
+            ArrayList<Expression> values) {
         if (constant && allValuesConstant) {
             return ValueExpression.get(getValue(session));
         }
-        if (size == 1) {
-            Expression right = valueList.get(0);
-            Expression expr = new Comparison(session, Comparison.EQUAL, left, right);
-            expr = expr.optimize(session);
-            return expr;
+        if (values.size() == 1) {
+            return new Comparison(session, Comparison.EQUAL, left, values.get(0)).optimize(session);
         }
         if (allValuesConstant && !allValuesNull) {
             int leftType = left.getType();
@@ -115,7 +162,7 @@ public class ConditionIn extends Condition {
             if (leftType == Value.ENUM && !(left instanceof ExpressionColumn)) {
                 return this;
             }
-            Expression expr = new ConditionInConstantSet(session, left, valueList);
+            Expression expr = new ConditionInConstantSet(session, left, values);
             expr = expr.optimize(session);
             return expr;
         }

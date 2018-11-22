@@ -936,7 +936,7 @@ public abstract class Page implements Cloneable
             super(map);
         }
 
-        private NonLeaf(MVMap<?, ?> map, NonLeaf source, PageReference[] children, long totalCount) {
+        NonLeaf(MVMap<?, ?> map, NonLeaf source, PageReference[] children, long totalCount) {
             super(map, source);
             this.children = children;
             this.totalCount = totalCount;

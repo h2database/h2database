@@ -155,8 +155,7 @@ public class ConditionAndOr extends Condition {
                 }
             }
         }
-        // TODO optimization: convert ((A=1 AND B=2) OR (A=1 AND B=3)) to
-        // (A=1 AND (B=2 OR B=3))
+
         if (andOrType == OR &&
                 session.getDatabase().getSettings().optimizeOr) {
             // try to add conditions (A=B AND B=1: add A=1)
@@ -196,6 +195,14 @@ public class ConditionAndOr extends Condition {
                         getAdditional(session, (Comparison) left);
                 if (added != null) {
                     return added.optimize(session);
+                }
+            } else if (left instanceof ConditionAndOr &&
+                    right instanceof ConditionAndOr ){
+                ConditionAndOr condAORight = (ConditionAndOr)right;
+                ConditionAndOr condAORLeft = (ConditionAndOr)left;
+                Expression reduced = optimizeConditionAndOr(condAORLeft,condAORight);
+                if(reduced != null){
+                    return reduced.optimize(session);
                 }
             }
         }
@@ -297,6 +304,42 @@ public class ConditionAndOr extends Condition {
             return right;
         default:
             throw new IndexOutOfBoundsException();
+        }
+    }
+
+    /**
+     * Optimize query according to the given condition. Example:
+     * (A AND B) OR (C AND B), the new condition (A OR C) AND B is returned
+     *
+     * @param left the session
+     * @param right the second condition
+     * @return null or the third condition
+     */
+    private Expression optimizeConditionAndOr(ConditionAndOr left, ConditionAndOr right){
+        if(left.andOrType == AND && right.andOrType == AND){
+            Expression commonExpression;
+            Expression combinedExpression;
+            if(left.getSubexpression(0).getSQL().equals(right.getSubexpression(0).getSQL())){
+                commonExpression = left.getSubexpression(0);
+                combinedExpression = new ConditionAndOr(OR,left.getSubexpression(1),right.getSubexpression(1));
+                return new ConditionAndOr(AND,commonExpression,combinedExpression);
+            }else if(left.getSubexpression(0).getSQL().equals(right.getSubexpression(1).getSQL())){
+                commonExpression = left.getSubexpression(0);
+                combinedExpression = new ConditionAndOr(OR,left.getSubexpression(1),right.getSubexpression(0));
+                return new ConditionAndOr(AND,commonExpression,combinedExpression);
+            }else if(left.getSubexpression(1).getSQL().equals(right.getSubexpression(0).getSQL())){
+                commonExpression = left.getSubexpression(1);
+                combinedExpression = new ConditionAndOr(OR,left.getSubexpression(0),right.getSubexpression(1));
+                return new ConditionAndOr(AND,commonExpression,combinedExpression);
+            }else if(left.getSubexpression(1).getSQL().equals(right.getSubexpression(1).getSQL())){
+                commonExpression = left.getSubexpression(1);
+                combinedExpression = new ConditionAndOr(OR,left.getSubexpression(0),right.getSubexpression(0));
+                return new ConditionAndOr(AND,commonExpression,combinedExpression);
+            }else {
+                return null;
+            }
+        }else {
+            return null;
         }
     }
 

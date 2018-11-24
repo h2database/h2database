@@ -33,7 +33,6 @@ public class ConditionInSelect extends Condition {
     private final Query query;
     private final boolean all;
     private final int compareType;
-    private int queryLevel;
 
     public ConditionInSelect(Database database, Expression left, Query query,
             boolean all, int compareType) {
@@ -110,7 +109,6 @@ public class ConditionInSelect extends Condition {
     public void mapColumns(ColumnResolver resolver, int level, int state) {
         left.mapColumns(resolver, level, state);
         query.mapColumns(resolver, level + 1);
-        this.queryLevel = Math.max(level, this.queryLevel);
     }
 
     @Override

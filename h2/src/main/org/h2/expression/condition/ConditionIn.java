@@ -31,7 +31,6 @@ public class ConditionIn extends Condition {
     private final Database database;
     private Expression left;
     private final ArrayList<Expression> valueList;
-    private int queryLevel;
 
     /**
      * Create a new IN(..) condition.
@@ -86,7 +85,6 @@ public class ConditionIn extends Condition {
         for (Expression e : valueList) {
             e.mapColumns(resolver, level, state);
         }
-        this.queryLevel = Math.max(level, this.queryLevel);
     }
 
     @Override

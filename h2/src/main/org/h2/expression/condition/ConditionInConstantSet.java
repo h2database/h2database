@@ -33,7 +33,6 @@ import org.h2.value.ValueNull;
 public class ConditionInConstantSet extends Condition {
 
     private Expression left;
-    private int queryLevel;
     private final ArrayList<Expression> valueList;
     private final TreeSet<Value> valueSet;
     private final int type;
@@ -87,7 +86,6 @@ public class ConditionInConstantSet extends Condition {
     @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
         left.mapColumns(resolver, level, state);
-        this.queryLevel = Math.max(level, this.queryLevel);
     }
 
     @Override

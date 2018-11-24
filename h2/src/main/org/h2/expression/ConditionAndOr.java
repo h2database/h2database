@@ -320,7 +320,7 @@ public class ConditionAndOr extends Condition {
             return null;
         }
         Expression commonExpressionLeft = left.getSubexpression(0);
-        Expression commonExpressionRight = right.getSubexpression(0);
+        Expression commonExpressionRight = left.getSubexpression(1);
         Expression combinedExpression;
         if (left.getSubexpression(0).getSQL().equals(right.getSubexpression(0).getSQL())) {
             combinedExpression = new ConditionAndOr(OR, left.getSubexpression(1), right.getSubexpression(1));

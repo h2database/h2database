@@ -20,10 +20,10 @@ import java.math.BigInteger;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.Session;
+import org.h2.expression.function.DateTimeFunctions;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.DateTimeFunctions;
 import org.h2.util.IntervalUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -312,22 +312,21 @@ public class IntervalOperation extends Expression {
         return left.getCost() + 1 + right.getCost();
     }
 
-    /**
-     * Get the left sub-expression of this operation.
-     *
-     * @return the left sub-expression
-     */
-    public Expression getLeftSubExpression() {
-        return left;
+    @Override
+    public int getSubexpressionCount() {
+        return 2;
     }
 
-    /**
-     * Get the right sub-expression of this operation.
-     *
-     * @return the right sub-expression
-     */
-    public Expression getRightSubExpression() {
-        return right;
+    @Override
+    public Expression getSubexpression(int index) {
+        switch (index) {
+        case 0:
+            return left;
+        case 1:
+            return right;
+        default:
+            throw new IndexOutOfBoundsException();
+        }
     }
 
 }

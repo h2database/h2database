@@ -19,6 +19,7 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.analysis.Window;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.message.DbException;
@@ -104,14 +105,14 @@ public class Aggregate extends AbstractAggregate {
         VAR_SAMP,
 
         /**
-         * The aggregate type for BOOL_OR(expression).
+         * The aggregate type for ANY(expression).
          */
-        BOOL_OR,
+        ANY,
 
         /**
-         * The aggregate type for BOOL_AND(expression).
+         * The aggregate type for EVERY(expression).
          */
-        BOOL_AND,
+        EVERY,
 
         /**
          * The aggregate type for BOOL_OR(expression).
@@ -153,21 +154,6 @@ public class Aggregate extends AbstractAggregate {
          */
         ENVELOPE,
     }
-
-    /**
-     * Reset stage. Used to reset internal data to its initial state.
-     */
-    public static final int STAGE_RESET = 0;
-
-    /**
-     * Group stage, used for explicit or implicit GROUP BY operation.
-     */
-    public static final int STAGE_GROUP = 1;
-
-    /**
-     * Window processing stage.
-     */
-    public static final int STAGE_WINDOW = 2;
 
     private static final HashMap<String, AggregateType> AGGREGATES = new HashMap<>(64);
 
@@ -223,12 +209,13 @@ public class Aggregate extends AbstractAggregate {
         addAggregate("VAR_SAMP", AggregateType.VAR_SAMP);
         addAggregate("VAR", AggregateType.VAR_SAMP);
         addAggregate("VARIANCE", AggregateType.VAR_SAMP);
-        addAggregate("BOOL_OR", AggregateType.BOOL_OR);
-        // HSQLDB compatibility, but conflicts with x > EVERY(...)
-        addAggregate("SOME", AggregateType.BOOL_OR);
-        addAggregate("BOOL_AND", AggregateType.BOOL_AND);
-        // HSQLDB compatibility, but conflicts with x > SOME(...)
-        addAggregate("EVERY", AggregateType.BOOL_AND);
+        addAggregate("ANY", AggregateType.ANY);
+        addAggregate("SOME", AggregateType.ANY);
+        // PostgreSQL compatibility
+        addAggregate("BOOL_OR", AggregateType.ANY);
+        addAggregate("EVERY", AggregateType.EVERY);
+        // PostgreSQL compatibility
+        addAggregate("BOOL_AND", AggregateType.EVERY);
         addAggregate("SELECTIVITY", AggregateType.SELECTIVITY);
         addAggregate("HISTOGRAM", AggregateType.HISTOGRAM);
         addAggregate("BIT_OR", AggregateType.BIT_OR);
@@ -666,8 +653,8 @@ public class Aggregate extends AbstractAggregate {
             displaySize = ValueDouble.DISPLAY_SIZE;
             scale = 0;
             break;
-        case BOOL_AND:
-        case BOOL_OR:
+        case EVERY:
+        case ANY:
             dataType = Value.BOOLEAN;
             precision = ValueBoolean.PRECISION;
             displaySize = ValueBoolean.DISPLAY_SIZE;
@@ -793,11 +780,11 @@ public class Aggregate extends AbstractAggregate {
         case VAR_SAMP:
             text = "VAR_SAMP";
             break;
-        case BOOL_AND:
-            text = "BOOL_AND";
+        case EVERY:
+            text = "EVERY";
             break;
-        case BOOL_OR:
-            text = "BOOL_OR";
+        case ANY:
+            text = "ANY";
             break;
         case BIT_AND:
             text = "BIT_AND";

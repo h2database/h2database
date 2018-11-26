@@ -180,7 +180,8 @@ Areas considered experimental are:
 <li>The PostgreSQL server
 </li><li>Clustering (there are cases were transaction isolation can be broken
     due to timing issues, for example one session overtaking another session).
-</li><li>Multi-threading within the engine using <code>SET MULTI_THREADED=1</code>.
+</li><li>Multi-threading within the old PageStore engine using <code>SET MULTI_THREADED=1</code>.
+    Default MVStore engine is multi-threaded by default.
 </li><li>Compatibility modes for other databases (only some features are implemented).
 </li><li>The soft reference cache (<code>CACHE_TYPE=SOFT_LRU</code>). It might not improve performance,
     and out of memory issues have been reported.

@@ -813,6 +813,12 @@ public abstract class Page implements Cloneable
         return mem;
     }
 
+    public boolean isComplete() {
+        return true;
+    }
+
+    public void setComplete() {}
+
     /**
      * Remove the page.
      */
@@ -883,14 +889,13 @@ public abstract class Page implements Cloneable
 
         void clearPageReference() {
             if (page != null) {
-                if (!page.isSaved()) {
-                    throw DataUtils.newIllegalStateException(
-                            DataUtils.ERROR_INTERNAL, "Page not written");
-                }
                 page.writeEnd();
-                assert pos == page.getPos();
-                assert count == page.getTotalCount();
-                page = null;
+                assert page.isSaved() || !page.isComplete();
+                if (page.isSaved()) {
+                    assert pos == page.getPos();
+                    assert count == page.getTotalCount() : count + " != " + page.getTotalCount();
+                    page = null;
+                }
             }
         }
 
@@ -900,7 +905,7 @@ public abstract class Page implements Cloneable
 
         void resetPos() {
             Page p = page;
-            if (p != null) {
+            if (p != null && p.isSaved()) {
                 pos = p.getPos();
                 assert count == p.getTotalCount();
             }
@@ -910,12 +915,12 @@ public abstract class Page implements Cloneable
         public String toString() {
             return "Cnt:" + count + ", pos:" + DataUtils.getPageChunkId(pos) +
                     "-" + DataUtils.getPageOffset(pos) + ":" + DataUtils.getPageMaxLength(pos) +
-                    (DataUtils.getPageType(pos) == 0 ? " leaf" : " node") + ", " + page;
+                    (page == null ? DataUtils.getPageType(pos) == 0 : page.isLeaf() ? " leaf" : " node") + ", " + page;
         }
     }
 
 
-    private static final class NonLeaf extends Page
+    private static class NonLeaf extends Page
     {
         /**
          * The child page references.
@@ -931,7 +936,7 @@ public abstract class Page implements Cloneable
             super(map);
         }
 
-        private NonLeaf(MVMap<?, ?> map, NonLeaf source, PageReference[] children, long totalCount) {
+        NonLeaf(MVMap<?, ?> map, NonLeaf source, PageReference[] children, long totalCount) {
             super(map, source);
             this.children = children;
             this.totalCount = totalCount;
@@ -950,10 +955,7 @@ public abstract class Page implements Cloneable
 
         @Override
         public Page copy(MVMap<?, ?> map) {
-            // replace child pages with empty pages
-            PageReference[] children = new PageReference[this.children.length];
-            Arrays.fill(children, PageReference.EMPTY);
-            return new NonLeaf(map, this, children, 0);
+            return new IncompleteNonLeaf(map, this);
         }
 
         @Override
@@ -1012,7 +1014,7 @@ public abstract class Page implements Cloneable
 
         @Override
         public long getTotalCount() {
-            assert totalCount == calculateTotalCount() :
+            assert !isComplete() || totalCount == calculateTotalCount() :
                         "Total count: " + totalCount + " != " + calculateTotalCount();
             return totalCount;
         }
@@ -1024,6 +1026,10 @@ public abstract class Page implements Cloneable
                 check += children[i].count;
             }
             return check;
+        }
+
+        protected void recalculateTotalCount() {
+            totalCount = calculateTotalCount();
         }
 
         @Override
@@ -1150,19 +1156,23 @@ public abstract class Page implements Cloneable
         void writeUnsavedRecursive(Chunk chunk, WriteBuffer buff) {
             if (!isSaved()) {
                 int patch = write(chunk, buff);
-                int len = getRawChildPageCount();
-                for (int i = 0; i < len; i++) {
-                    PageReference ref = children[i];
-                    Page p = ref.getPage();
-                    if (p != null) {
-                        p.writeUnsavedRecursive(chunk, buff);
-                        ref.resetPos();
-                    }
-                }
+                writeChildrenRecursive(chunk, buff);
                 int old = buff.position();
                 buff.position(patch);
                 writeChildren(buff, false);
                 buff.position(old);
+            }
+        }
+
+        void writeChildrenRecursive(Chunk chunk, WriteBuffer buff) {
+            int len = getRawChildPageCount();
+            for (int i = 0; i < len; i++) {
+                PageReference ref = children[i];
+                Page p = ref.getPage();
+                if (p != null) {
+                    p.writeUnsavedRecursive(chunk, buff);
+                    ref.resetPos();
+                }
             }
         }
 
@@ -1199,6 +1209,48 @@ public abstract class Page implements Cloneable
                 }
             }
         }
+    }
+
+
+    private static class IncompleteNonLeaf extends NonLeaf {
+
+        private boolean complete;
+
+        IncompleteNonLeaf(MVMap<?, ?> map, NonLeaf source) {
+            super(map, source, constructEmptyPageRefs(source.getRawChildPageCount()), source.getTotalCount());
+        }
+
+        private static PageReference[] constructEmptyPageRefs(int size) {
+            // replace child pages with empty pages
+            PageReference[] children = new PageReference[size];
+            Arrays.fill(children, PageReference.EMPTY);
+            return children;
+        }
+
+        @Override
+        void writeUnsavedRecursive(Chunk chunk, WriteBuffer buff) {
+            if (complete) {
+                super.writeUnsavedRecursive(chunk, buff);
+            } else if (!isSaved()) {
+                writeChildrenRecursive(chunk, buff);
+            }
+        }
+
+        public boolean isComplete() {
+            return complete;
+        }
+
+        public void setComplete() {
+            recalculateTotalCount();
+            complete = true;
+        }
+
+        @Override
+        public void dump(StringBuilder buff) {
+            super.dump(buff);
+            buff.append(", complete:").append(complete);
+        }
+
     }
 
 

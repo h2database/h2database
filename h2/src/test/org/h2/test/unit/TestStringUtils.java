@@ -10,10 +10,10 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Date;
 import java.util.Random;
+import org.h2.expression.function.DateTimeFunctions;
 import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
-import org.h2.util.DateTimeFunctions;
 import org.h2.util.StringUtils;
 
 /**

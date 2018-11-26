@@ -18,12 +18,12 @@ import org.h2.engine.Mode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
-import org.h2.expression.Comparison;
-import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
+import org.h2.expression.condition.Comparison;
+import org.h2.expression.condition.ConditionAndOr;
 import org.h2.index.Index;
 import org.h2.index.PageDataIndex;
 import org.h2.message.DbException;
@@ -305,15 +305,7 @@ public class Insert extends Prepared implements ResultTarget {
                     buff.append(",\n");
                 }
                 buff.append('(');
-                buff.resetCount();
-                for (Expression e : expr) {
-                    buff.appendExceptFirst(", ");
-                    if (e == null) {
-                        buff.append("DEFAULT");
-                    } else {
-                        e.getSQL(buff.builder());
-                    }
-                }
+                Expression.writeExpressions(buff.builder(), expr);
                 buff.append(')');
             }
         } else {

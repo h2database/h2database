@@ -8,6 +8,7 @@ package org.h2.expression;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.expression.IntervalOperation.IntervalOpType;
+import org.h2.expression.function.Function;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;

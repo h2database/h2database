@@ -220,7 +220,7 @@ public class ExpressionVisitor {
      * @param resolver the resolver
      * @return the new visitor
      */
-    static ExpressionVisitor getNotFromResolverVisitor(ColumnResolver resolver) {
+    public static ExpressionVisitor getNotFromResolverVisitor(ColumnResolver resolver) {
         return new ExpressionVisitor(NOT_FROM_RESOLVER, 0, null, null, null,
                 resolver, null, null);
     }

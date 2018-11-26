@@ -161,8 +161,8 @@ public class TestScript extends TestDb {
         for (String s : new String[] { "help" }) {
             testScript("other/" + s + ".sql");
         }
-        for (String s : new String[] { "array-agg", "avg", "bit-and", "bit-or", "count", "envelope",
-                "group-concat", "histogram", "max", "median", "min", "mode", "selectivity", "stddev-pop",
+        for (String s : new String[] { "any", "array-agg", "avg", "bit-and", "bit-or", "count", "envelope",
+                "every", "group-concat", "histogram", "max", "median", "min", "mode", "selectivity", "stddev-pop",
                 "stddev-samp", "sum", "var-pop", "var-samp" }) {
             testScript("functions/aggregate/" + s + ".sql");
         }
@@ -194,7 +194,7 @@ public class TestScript extends TestDb {
                 "ifnull", "least", "link-schema", "lock-mode", "lock-timeout",
                 "memory-free", "memory-used", "nextval", "nullif", "nvl2",
                 "readonly", "rownum", "schema", "scope-identity", "session-id",
-                "set", "table", "transaction-id", "truncate-value", "user" }) {
+                "set", "table", "transaction-id", "truncate-value", "unnest", "user" }) {
             testScript("functions/system/" + s + ".sql");
         }
         for (String s : new String[] { "add_months", "current_date", "current_timestamp",

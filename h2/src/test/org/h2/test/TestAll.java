@@ -133,6 +133,7 @@ import org.h2.test.store.TestCacheLIRS;
 import org.h2.test.store.TestCacheLongKeyLIRS;
 import org.h2.test.store.TestConcurrent;
 import org.h2.test.store.TestDataUtils;
+import org.h2.test.store.TestDefrag;
 import org.h2.test.store.TestFreeSpace;
 import org.h2.test.store.TestKillProcessWhileWriting;
 import org.h2.test.store.TestMVRTree;
@@ -922,6 +923,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestFileLockSerialized());
         addTest(new TestFileLockProcess());
         addTest(new TestFileSystem());
+        addTest(new TestDefrag());
         addTest(new TestTools());
         addTest(new TestSampleApps());
 

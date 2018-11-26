@@ -132,4 +132,24 @@ public class ExpressionList extends Expression {
         return expr;
     }
 
+    @Override
+    public boolean isConstant() {
+        for (Expression e : list) {
+            if (!e.isConstant()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public int getSubexpressionCount() {
+        return list.length;
+    }
+
+    @Override
+    public Expression getSubexpression(int index) {
+        return list[index];
+    }
+
 }

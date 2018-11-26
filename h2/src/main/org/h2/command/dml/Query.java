@@ -19,9 +19,9 @@ import org.h2.expression.Alias;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
-import org.h2.expression.Function;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
+import org.h2.expression.function.FunctionCall;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
@@ -555,8 +555,8 @@ public abstract class Query extends Prepared {
             }
         }
         int count = expr.getSubexpressionCount();
-        if (expr instanceof Function) {
-            if (!((Function) expr).isDeterministic()) {
+        if (expr instanceof FunctionCall) {
+            if (!((FunctionCall) expr).isDeterministic()) {
                 return false;
             }
         } else if (count <= 0) {

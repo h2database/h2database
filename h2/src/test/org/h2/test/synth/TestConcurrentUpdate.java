@@ -45,7 +45,7 @@ public class TestConcurrentUpdate extends TestDb {
     @Override
     public void test() throws Exception {
         deleteDb("concurrent");
-        final String url = getURL("concurrent", true);
+        final String url = getURL("concurrent;LOCK_TIMEOUT=2000", true);
         try (Connection conn = getConnection(url)) {
             Statement stat = conn.createStatement();
             stat.execute("create table test(id int primary key, name varchar)");

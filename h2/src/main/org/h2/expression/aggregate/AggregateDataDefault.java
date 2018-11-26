@@ -83,7 +83,7 @@ class AggregateDataDefault extends AggregateData {
             }
             break;
         }
-        case BOOL_AND:
+        case EVERY:
             v = v.convertTo(Value.BOOLEAN);
             if (value == null) {
                 value = v;
@@ -91,7 +91,7 @@ class AggregateDataDefault extends AggregateData {
                 value = ValueBoolean.get(value.getBoolean() && v.getBoolean());
             }
             break;
-        case BOOL_OR:
+        case ANY:
             v = v.convertTo(Value.BOOLEAN);
             if (value == null) {
                 value = v;
@@ -127,8 +127,8 @@ class AggregateDataDefault extends AggregateData {
         case MAX:
         case BIT_OR:
         case BIT_AND:
-        case BOOL_OR:
-        case BOOL_AND:
+        case ANY:
+        case EVERY:
             v = value;
             break;
         case AVG:

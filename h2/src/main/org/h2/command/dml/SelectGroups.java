@@ -14,8 +14,8 @@ import java.util.Map.Entry;
 
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.expression.aggregate.DataAnalysisOperation;
-import org.h2.expression.aggregate.PartitionData;
+import org.h2.expression.analysis.DataAnalysisOperation;
+import org.h2.expression.analysis.PartitionData;
 import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;

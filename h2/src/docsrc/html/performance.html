@@ -490,7 +490,7 @@ Instead, use a prepared statement with arrays as in the following example:
 </p>
 <pre>
 PreparedStatement prep = conn.prepareStatement(
-    "SELECT * FROM TEST WHERE ID = ANY(?)");
+    "SELECT * FROM TEST WHERE ID IN(UNNEST(?))");
 prep.setObject(1, new Object[] { "1", "2" });
 ResultSet rs = prep.executeQuery();
 </pre>

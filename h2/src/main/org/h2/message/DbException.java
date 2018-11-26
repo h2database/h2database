@@ -556,15 +556,17 @@ public class DbException extends RuntimeException {
         case CONSTANT_NOT_FOUND_1:
         case LITERALS_ARE_NOT_ALLOWED:
         case CANNOT_DROP_TABLE_1:
-        case USER_DATA_TYPE_ALREADY_EXISTS_1:
-        case USER_DATA_TYPE_NOT_FOUND_1:
+        case DOMAIN_ALREADY_EXISTS_1:
+        case DOMAIN_NOT_FOUND_1:
         case WITH_TIES_WITHOUT_ORDER_BY:
         case CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS:
         case TRANSACTION_NOT_FOUND_1:
         case AGGREGATE_NOT_FOUND_1:
+        case WINDOW_NOT_FOUND_1:
         case CAN_ONLY_ASSIGN_TO_VARIABLE_1:
         case PUBLIC_STATIC_JAVA_METHOD_NOT_FOUND_1:
         case JAVA_OBJECT_SERIALIZER_CHANGE_WITH_DATA_TABLE:
+        case FOR_UPDATE_IS_NOT_ALLOWED_IN_DISTINCT_OR_GROUPED_SELECT:
             return new JdbcSQLSyntaxErrorException(message, sql, state, errorCode, cause, stackTrace);
         case HEX_STRING_ODD_1:
         case HEX_STRING_WRONG_1:

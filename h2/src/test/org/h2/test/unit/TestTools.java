@@ -244,11 +244,11 @@ public class TestTools extends TestDb {
         assertTrue(rs.getMetaData().isSearchable(1));
         assertTrue(rs.getMetaData().isSigned(1));
         assertFalse(rs.getMetaData().isWritable(1));
-        assertEquals(null, rs.getMetaData().getCatalogName(1));
+        assertEquals("", rs.getMetaData().getCatalogName(1));
         assertEquals(null, rs.getMetaData().getColumnClassName(1));
         assertEquals("NULL", rs.getMetaData().getColumnTypeName(1));
-        assertEquals(null, rs.getMetaData().getSchemaName(1));
-        assertEquals(null, rs.getMetaData().getTableName(1));
+        assertEquals("", rs.getMetaData().getSchemaName(1));
+        assertEquals("", rs.getMetaData().getTableName(1));
         assertEquals(ResultSet.HOLD_CURSORS_OVER_COMMIT, rs.getHoldability());
         assertEquals(1, rs.getColumnCount());
 

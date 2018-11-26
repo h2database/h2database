@@ -175,17 +175,13 @@ public class Transaction {
      * @param status to be set
      * @return transaction state as it was before status change
      */
-    long setStatus(int status) {
+    private long setStatus(int status) {
         while (true) {
             long currentState = statusAndLogId.get();
             long logId = getLogId(currentState);
             int currentStatus = getStatus(currentState);
             boolean valid;
             switch (status) {
-                case STATUS_OPEN:
-                    valid = currentStatus == STATUS_CLOSED ||
-                            currentStatus == STATUS_ROLLING_BACK;
-                    break;
                 case STATUS_ROLLING_BACK:
                     valid = currentStatus == STATUS_OPEN;
                     break;
@@ -207,6 +203,7 @@ public class Transaction {
                     valid = currentStatus == STATUS_COMMITTED ||
                             currentStatus == STATUS_ROLLED_BACK;
                     break;
+                case STATUS_OPEN:
                 default:
                     valid = false;
                     break;
@@ -395,6 +392,7 @@ public class Transaction {
         try {
             store.rollbackTo(this, logId, savepointId);
         } finally {
+            notifyAllWaitingTransactions();
             long expectedState = composeState(STATUS_ROLLING_BACK, logId, hasRollback(lastState));
             long newState = composeState(STATUS_OPEN, savepointId, true);
             if (!statusAndLogId.compareAndSet(expectedState, newState)) {
@@ -404,7 +402,6 @@ public class Transaction {
                                 "while rollback to savepoint was in progress",
                         transactionId);
             }
-            notifyAllWaitingTransactions();
         }
     }
 
@@ -412,14 +409,26 @@ public class Transaction {
      * Roll the transaction back. Afterwards, this transaction is closed.
      */
     public void rollback() {
+        Throwable ex = null;
         try {
             long lastState = setStatus(STATUS_ROLLED_BACK);
             long logId = getLogId(lastState);
             if (logId > 0) {
                 store.rollbackTo(this, logId, 0);
             }
+        } catch (Throwable e) {
+            ex = e;
+            throw e;
         } finally {
-            store.endTransaction(this, true);
+            try {
+                store.endTransaction(this, true);
+            } catch (Throwable e) {
+                if (ex == null) {
+                    throw e;
+                } else {
+                    ex.addSuppressed(e);
+                }
+            }
         }
     }
 
@@ -486,8 +495,10 @@ public class Transaction {
                             "Transaction %d attempts to update map <%s> entry with key <%s>"
                                     + " modified by transaction %s%n",
                             transactionId, blockingMap.getName(), blockingKey, toWaitFor));
-                    throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTIONS_DEADLOCK,
-                            details.toString());
+                    if (isDeadlocked(toWaitFor)) {
+                        throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTIONS_DEADLOCK,
+                                details.toString());
+                    }
                 }
             }
         }
@@ -515,8 +526,10 @@ public class Transaction {
 
     private synchronized boolean waitForThisToEnd(int millis) {
         long until = System.currentTimeMillis() + millis;
+        long state;
         int status;
-        while((status = getStatus()) != STATUS_CLOSED && status != STATUS_ROLLING_BACK) {
+        while((status = getStatus(state = statusAndLogId.get())) != STATUS_CLOSED
+                && status != STATUS_ROLLED_BACK && !hasRollback(state)) {
             long dur = until - System.currentTimeMillis();
             if(dur <= 0) {
                 return false;

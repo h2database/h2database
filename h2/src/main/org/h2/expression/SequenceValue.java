@@ -37,7 +37,7 @@ public class SequenceValue extends Expression {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
         // nothing to do
     }
 
@@ -67,8 +67,9 @@ public class SequenceValue extends Expression {
     }
 
     @Override
-    public String getSQL() {
-        return "(NEXT VALUE FOR " + sequence.getSQL() +")";
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append("(NEXT VALUE FOR ");
+        return builder.append(sequence.getSQL()).append(')');
     }
 
     @Override
@@ -80,7 +81,7 @@ public class SequenceValue extends Expression {
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
         case ExpressionVisitor.EVALUATABLE:
-        case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
+        case ExpressionVisitor.OPTIMIZABLE_AGGREGATE:
         case ExpressionVisitor.NOT_FROM_RESOLVER:
         case ExpressionVisitor.GET_COLUMNS1:
         case ExpressionVisitor.GET_COLUMNS2:

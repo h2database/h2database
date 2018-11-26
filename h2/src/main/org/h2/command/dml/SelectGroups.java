@@ -14,6 +14,9 @@ import java.util.Map.Entry;
 
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.expression.analysis.DataAnalysisOperation;
+import org.h2.expression.analysis.PartitionData;
+import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 
@@ -61,12 +64,6 @@ public abstract class SelectGroups {
          */
         private Iterator<Entry<ValueArray, Object[]>> cursor;
 
-        /**
-         * The key for the default group.
-         */
-        // Can be static, but TestClearReferences complains about it
-        private final ValueArray defaultGroup = ValueArray.get(new Value[0]);
-
         Grouped(Session session, ArrayList<Expression> expressions, int[] groupIndex) {
             super(session, expressions);
             this.groupIndex = groupIndex;
@@ -83,7 +80,7 @@ public abstract class SelectGroups {
         @Override
         public void nextSource() {
             if (groupIndex == null) {
-                currentGroupsKey = defaultGroup;
+                currentGroupsKey = ValueArray.getEmpty();
             } else {
                 Value[] keyValues = new Value[groupIndex.length];
                 // update group
@@ -96,7 +93,7 @@ public abstract class SelectGroups {
             }
             Object[] values = groupByData.get(currentGroupsKey);
             if (values == null) {
-                values = new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())];
+                values = createRow();
                 groupByData.put(currentGroupsKey, values);
             }
             currentGroupByExprData = values;
@@ -117,8 +114,7 @@ public abstract class SelectGroups {
         public void done() {
             super.done();
             if (groupIndex == null && groupByData.size() == 0) {
-                groupByData.put(defaultGroup,
-                        new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())]);
+                groupByData.put(ValueArray.getEmpty(), createRow());
             }
             cursor = groupByData.entrySet().iterator();
         }
@@ -132,6 +128,13 @@ public abstract class SelectGroups {
                 return entry.getKey();
             }
             return null;
+        }
+
+        @Override
+        public void remove() {
+            cursor.remove();
+            currentGroupByExprData = null;
+            currentGroupRowId--;
         }
 
         @Override
@@ -163,7 +166,7 @@ public abstract class SelectGroups {
 
         @Override
         public void nextSource() {
-            Object[] values = new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())];
+            Object[] values = createRow();
             rows.add(values);
             currentGroupByExprData = values;
             currentGroupRowId++;
@@ -183,10 +186,9 @@ public abstract class SelectGroups {
         @Override
         public ValueArray next() {
             if (cursor.hasNext()) {
-                Object[] values = cursor.next();
-                currentGroupByExprData = values;
+                currentGroupByExprData = cursor.next();
                 currentGroupRowId++;
-                return ValueArray.get(new Value[0]);
+                return ValueArray.getEmpty();
             }
             return null;
         }
@@ -205,12 +207,17 @@ public abstract class SelectGroups {
      * Maps an expression object to an index, to use in accessing the Object[]
      * pointed to by groupByData.
      */
-    final HashMap<Expression, Integer> exprToIndexInGroupByData = new HashMap<>();
+    private final HashMap<Expression, Integer> exprToIndexInGroupByData = new HashMap<>();
 
     /**
-     * Maps an expression object to its data.
+     * Maps an window expression object to its data.
      */
-    private final HashMap<Expression, Object> windowData = new HashMap<>();
+    private final HashMap<DataAnalysisOperation, PartitionData> windowData = new HashMap<>();
+
+    /**
+     * Maps an partitioned window expression object to its data.
+     */
+    private final HashMap<DataAnalysisOperation, ValueHashMap<PartitionData>> windowPartitionData = new HashMap<>();
 
     /**
      * The id of the current group.
@@ -251,14 +258,9 @@ public abstract class SelectGroups {
      *
      * @param expr
      *            expression
-     * @param window
-     *            true if expression is a window expression
      * @return expression data or null
      */
-    public Object getCurrentGroupExprData(Expression expr, boolean window) {
-        if (window) {
-            return windowData.get(expr);
-        }
+    public final Object getCurrentGroupExprData(Expression expr) {
         Integer index = exprToIndexInGroupByData.get(expr);
         if (index == null) {
             return null;
@@ -273,15 +275,8 @@ public abstract class SelectGroups {
      *            expression
      * @param object
      *            expression data to set
-     * @param window
-     *            true if expression is a window expression
      */
-    public void setCurrentGroupExprData(Expression expr, Object obj, boolean window) {
-        if (window) {
-            Object old = windowData.put(expr, obj);
-            assert old == null;
-            return;
-        }
+    public final void setCurrentGroupExprData(Expression expr, Object obj) {
         Integer index = exprToIndexInGroupByData.get(expr);
         if (index != null) {
             assert currentGroupByExprData[index] == null;
@@ -295,6 +290,52 @@ public abstract class SelectGroups {
             updateCurrentGroupExprData();
         }
         currentGroupByExprData[index] = obj;
+    }
+
+    final Object[] createRow() {
+        return new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())];
+    }
+
+    /**
+     * Get the window data for the specified expression.
+     *
+     * @param expr
+     *            expression
+     * @param partitionKey
+     *            a key of partition
+     * @return expression data or null
+     */
+    public final PartitionData getWindowExprData(DataAnalysisOperation expr, Value partitionKey) {
+        if (partitionKey == null) {
+            return windowData.get(expr);
+        } else {
+            ValueHashMap<PartitionData> map = windowPartitionData.get(expr);
+            return map != null ? map.get(partitionKey) : null;
+        }
+    }
+
+    /**
+     * Set the window data for the specified expression.
+     *
+     * @param expr
+     *            expression
+     * @param partitionKey
+     *            a key of partition
+     * @param object
+     *            window expression data to set
+     */
+    public final void setWindowExprData(DataAnalysisOperation expr, Value partitionKey, PartitionData obj) {
+        if (partitionKey == null) {
+            Object old = windowData.put(expr, obj);
+            assert old == null;
+        } else {
+            ValueHashMap<PartitionData> map = windowPartitionData.get(expr);
+            if (map == null) {
+                map = new ValueHashMap<>();
+                windowPartitionData.put(expr, map);
+            }
+            map.put(partitionKey, obj);
+        }
     }
 
     abstract void updateCurrentGroupExprData();
@@ -316,6 +357,7 @@ public abstract class SelectGroups {
         currentGroupByExprData = null;
         exprToIndexInGroupByData.clear();
         windowData.clear();
+        windowPartitionData.clear();
         currentGroupRowId = 0;
     }
 
@@ -338,6 +380,15 @@ public abstract class SelectGroups {
      * @return the key of the next group, or null
      */
     public abstract ValueArray next();
+
+    /**
+     * Removes the data for the current key.
+     *
+     * @see #next()
+     */
+    public void remove() {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Resets this group data for reuse in lazy mode.

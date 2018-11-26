@@ -42,6 +42,14 @@ public interface LocalResult extends ResultInterface, ResultTarget {
     public void setDistinct(int[] distinctIndexes);
 
     /**
+     * Check if this result set contains the given row.
+     *
+     * @param values the row
+     * @return true if the row exists
+     */
+    boolean containsDistinct(Value[] values);
+
+    /**
      * Remove the row from the result set if it exists.
      *
      * @param values the row

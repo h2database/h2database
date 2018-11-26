@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import org.h2.engine.Session;
-import org.h2.expression.Comparison;
+import org.h2.expression.condition.Comparison;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;

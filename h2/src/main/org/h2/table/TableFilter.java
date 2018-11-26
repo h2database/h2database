@@ -15,10 +15,10 @@ import org.h2.command.dml.Select;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
-import org.h2.expression.Comparison;
-import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
+import org.h2.expression.condition.Comparison;
+import org.h2.expression.condition.ConditionAndOr;
 import org.h2.index.Index;
 import org.h2.index.IndexCondition;
 import org.h2.index.IndexCursor;
@@ -81,6 +81,11 @@ public class TableFilter implements ColumnResolver {
      * The index conditions used for direct index lookup (start or end).
      */
     private final ArrayList<IndexCondition> indexConditions = Utils.newSmallArrayList();
+
+    /**
+     * Whether new window conditions should not be accepted.
+     */
+    private boolean doneWithIndexConditions;
 
     /**
      * Additional conditions that can't be used for index lookup, but for row
@@ -627,7 +632,16 @@ public class TableFilter implements ColumnResolver {
      * @param condition the index condition
      */
     public void addIndexCondition(IndexCondition condition) {
-        indexConditions.add(condition);
+        if (!doneWithIndexConditions) {
+            indexConditions.add(condition);
+        }
+    }
+
+    /**
+     * Used to reject all additional index conditions.
+     */
+    public void doneWithIndexConditions() {
+        this.doneWithIndexConditions = true;
     }
 
     /**
@@ -663,7 +677,7 @@ public class TableFilter implements ColumnResolver {
      */
     public void addJoin(TableFilter filter, boolean outer, Expression on) {
         if (on != null) {
-            on.mapColumns(this, 0);
+            on.mapColumns(this, 0, Expression.MAP_INITIAL);
             TableFilterVisitor visitor = new MapColumnsVisitor(on);
             visit(visitor);
             filter.visit(visitor);
@@ -697,11 +711,11 @@ public class TableFilter implements ColumnResolver {
      * @param on the condition
      */
     public void mapAndAddFilter(Expression on) {
-        on.mapColumns(this, 0);
+        on.mapColumns(this, 0, Expression.MAP_INITIAL);
         addFilterCondition(on, true);
         on.createIndexConditions(session, this);
         if (nestedJoin != null) {
-            on.mapColumns(nestedJoin, 0);
+            on.mapColumns(nestedJoin, 0, Expression.MAP_INITIAL);
             on.createIndexConditions(session, nestedJoin);
         }
         if (join != null) {
@@ -733,75 +747,77 @@ public class TableFilter implements ColumnResolver {
     }
 
     /**
-     * Get the query execution plan text to use for this table filter.
+     * Get the query execution plan text to use for this table filter and append
+     * it to the specified builder.
      *
+     * @param builder string builder to append to
      * @param isJoin if this is a joined table
-     * @return the SQL statement snippet
+     * @return the specified builder
      */
-    public String getPlanSQL(boolean isJoin) {
-        StringBuilder buff = new StringBuilder();
+    public StringBuilder getPlanSQL(StringBuilder builder, boolean isJoin) {
         if (isJoin) {
             if (joinOuter) {
-                buff.append("LEFT OUTER JOIN ");
+                builder.append("LEFT OUTER JOIN ");
             } else {
-                buff.append("INNER JOIN ");
+                builder.append("INNER JOIN ");
             }
         }
         if (nestedJoin != null) {
             StringBuilder buffNested = new StringBuilder();
             TableFilter n = nestedJoin;
             do {
-                buffNested.append(n.getPlanSQL(n != nestedJoin));
-                buffNested.append('\n');
+                n.getPlanSQL(buffNested, n != nestedJoin).append('\n');
                 n = n.getJoin();
             } while (n != null);
             String nested = buffNested.toString();
             boolean enclose = !nested.startsWith("(");
             if (enclose) {
-                buff.append("(\n");
+                builder.append("(\n");
             }
-            buff.append(StringUtils.indent(nested, 4, false));
+            StringUtils.indent(builder, nested, 4, false);
             if (enclose) {
-                buff.append(')');
+                builder.append(')');
             }
             if (isJoin) {
-                buff.append(" ON ");
+                builder.append(" ON ");
                 if (joinCondition == null) {
                     // need to have a ON expression,
                     // otherwise the nesting is unclear
-                    buff.append("1=1");
+                    builder.append("1=1");
                 } else {
-                    buff.append(StringUtils.unEnclose(joinCondition.getSQL()));
+                    joinCondition.getUnenclosedSQL(builder);
                 }
             }
-            return buff.toString();
+            return builder;
         }
         if (table.isView() && ((TableView) table).isRecursive()) {
-            buff.append(table.getSchema().getSQL()).append('.').append(Parser.quoteIdentifier(table.getName()));
+            builder.append(table.getSchema().getSQL()).append('.');
+            Parser.quoteIdentifier(builder, table.getName());
         } else {
-            buff.append(table.getSQL());
+            builder.append(table.getSQL());
         }
         if (table.isView() && ((TableView) table).isInvalid()) {
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, table.getName(), "not compiled");
         }
         if (alias != null) {
-            buff.append(' ').append(Parser.quoteIdentifier(alias));
+            builder.append(' ');
+            Parser.quoteIdentifier(builder, alias);
         }
         if (indexHints != null) {
-            buff.append(" USE INDEX (");
+            builder.append(" USE INDEX (");
             boolean first = true;
             for (String index : indexHints.getAllowedIndexes()) {
                 if (!first) {
-                    buff.append(", ");
+                    builder.append(", ");
                 } else {
                     first = false;
                 }
-                buff.append(Parser.quoteIdentifier(index));
+                Parser.quoteIdentifier(builder, index);
             }
-            buff.append(")");
+            builder.append(")");
         }
         if (index != null) {
-            buff.append('\n');
+            builder.append('\n');
             StatementBuilder planBuff = new StatementBuilder();
             if (joinBatch != null) {
                 IndexLookupBatch lookupBatch = joinBatch.getLookupBatch(joinFilterId);
@@ -828,28 +844,28 @@ public class TableFilter implements ColumnResolver {
             if (plan.indexOf('\n') >= 0) {
                 plan += "\n";
             }
-            buff.append(StringUtils.indent("/* " + plan + " */", 4, false));
+            StringUtils.indent(builder, "/* " + plan + " */", 4, false);
         }
         if (isJoin) {
-            buff.append("\n    ON ");
+            builder.append("\n    ON ");
             if (joinCondition == null) {
                 // need to have a ON expression, otherwise the nesting is
                 // unclear
-                buff.append("1=1");
+                builder.append("1=1");
             } else {
-                buff.append(StringUtils.unEnclose(joinCondition.getSQL()));
+                joinCondition.getUnenclosedSQL(builder);
             }
         }
         if (filterCondition != null) {
-            buff.append('\n');
+            builder.append('\n');
             String condition = StringUtils.unEnclose(filterCondition.getSQL());
             condition = "/* WHERE " + StringUtils.quoteRemarkSQL(condition) + "\n*/";
-            buff.append(StringUtils.indent(condition, 4, false));
+            StringUtils.indent(builder, condition, 4, false);
         }
         if (scanCount > 0) {
-            buff.append("\n    /* scanCount: ").append(scanCount).append(" */");
+            builder.append("\n    /* scanCount: ").append(scanCount).append(" */");
         }
-        return buff.toString();
+        return builder;
     }
 
     /**
@@ -1219,7 +1235,7 @@ public class TableFilter implements ColumnResolver {
 
         @Override
         public void accept(TableFilter f) {
-            on.mapColumns(f, 0);
+            on.mapColumns(f, 0, Expression.MAP_INITIAL);
         }
     }
 

@@ -60,35 +60,35 @@ SHOW TABLES;
 > TABLE_NAME TABLE_SCHEMA
 > ---------- ------------
 > TEST_P     PUBLIC
-> rows: 1
+> rows (ordered): 1
 
 SHOW TABLES FROM PUBLIC;
 > TABLE_NAME TABLE_SCHEMA
 > ---------- ------------
 > TEST_P     PUBLIC
-> rows: 1
+> rows (ordered): 1
 
 SHOW TABLES FROM SCH;
 > TABLE_NAME TABLE_SCHEMA
 > ---------- ------------
 > TEST_S     SCH
-> rows: 1
+> rows (ordered): 1
 
 SHOW COLUMNS FROM TEST_P;
 > FIELD TYPE         NULL KEY DEFAULT
 > ----- ------------ ---- --- -------
 > ID_P  INTEGER(10)  NO   PRI NULL
-> N_P   INTEGER(10)  YES      1
 > U_P   VARCHAR(255) YES  UNI NULL
-> rows: 3
+> N_P   INTEGER(10)  YES      1
+> rows (ordered): 3
 
 SHOW COLUMNS FROM TEST_S FROM SCH;
 > FIELD TYPE         NULL KEY DEFAULT
 > ----- ------------ ---- --- -------
 > ID_S  INTEGER(10)  NO   PRI NULL
-> N_S   INTEGER(10)  YES      1
 > U_S   VARCHAR(255) YES  UNI NULL
-> rows: 3
+> N_S   INTEGER(10)  YES      1
+> rows (ordered): 3
 
 SHOW DATABASES;
 > SCHEMA_NAME

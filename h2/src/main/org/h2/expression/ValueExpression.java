@@ -6,6 +6,7 @@
 package org.h2.expression;
 
 import org.h2.engine.Session;
+import org.h2.expression.condition.Comparison;
 import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
@@ -95,7 +96,7 @@ public class ValueExpression extends Expression {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
         // nothing to do
     }
 
@@ -135,11 +136,13 @@ public class ValueExpression extends Expression {
     }
 
     @Override
-    public String getSQL() {
+    public StringBuilder getSQL(StringBuilder builder) {
         if (this == DEFAULT) {
-            return "DEFAULT";
+            builder.append("DEFAULT");
+        } else {
+            value.getSQL(builder);
         }
-        return value.getSQL();
+        return builder;
     }
 
     @Override
@@ -150,7 +153,7 @@ public class ValueExpression extends Expression {
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
-        case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
+        case ExpressionVisitor.OPTIMIZABLE_AGGREGATE:
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.READONLY:
         case ExpressionVisitor.INDEPENDENT:

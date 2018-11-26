@@ -30,6 +30,7 @@ import org.h2.test.db.TestCheckpoint;
 import org.h2.test.db.TestCluster;
 import org.h2.test.db.TestCompatibility;
 import org.h2.test.db.TestCompatibilityOracle;
+import org.h2.test.db.TestCompatibilitySQLServer;
 import org.h2.test.db.TestCsv;
 import org.h2.test.db.TestDateStorage;
 import org.h2.test.db.TestDeadlock;
@@ -132,6 +133,7 @@ import org.h2.test.store.TestCacheLIRS;
 import org.h2.test.store.TestCacheLongKeyLIRS;
 import org.h2.test.store.TestConcurrent;
 import org.h2.test.store.TestDataUtils;
+import org.h2.test.store.TestDefrag;
 import org.h2.test.store.TestFreeSpace;
 import org.h2.test.store.TestKillProcessWhileWriting;
 import org.h2.test.store.TestMVRTree;
@@ -745,6 +747,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestCheckpoint());
         addTest(new TestCompatibility());
         addTest(new TestCompatibilityOracle());
+        addTest(new TestCompatibilitySQLServer());
         addTest(new TestCsv());
         addTest(new TestDeadlock());
         if (vmlens) {
@@ -920,6 +923,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestFileLockSerialized());
         addTest(new TestFileLockProcess());
         addTest(new TestFileSystem());
+        addTest(new TestDefrag());
         addTest(new TestTools());
         addTest(new TestSampleApps());
 

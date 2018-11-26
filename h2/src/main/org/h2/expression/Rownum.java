@@ -38,7 +38,7 @@ public class Rownum extends Expression {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
         // nothing to do
     }
 
@@ -73,6 +73,11 @@ public class Rownum extends Expression {
     }
 
     @Override
+    public StringBuilder getSQL(StringBuilder builder) {
+        return builder.append("ROWNUM()");
+    }
+
+    @Override
     public void updateAggregate(Session session, int stage) {
         // nothing to do
     }
@@ -81,7 +86,7 @@ public class Rownum extends Expression {
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
         case ExpressionVisitor.QUERY_COMPARABLE:
-        case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
+        case ExpressionVisitor.OPTIMIZABLE_AGGREGATE:
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.INDEPENDENT:
             return false;

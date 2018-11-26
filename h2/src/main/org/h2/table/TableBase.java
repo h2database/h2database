@@ -108,7 +108,8 @@ public abstract class TableBase extends Table {
         }
         buff.append(getSQL());
         if (comment != null) {
-            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ");
+            StringUtils.quoteStringSQL(buff.builder(), comment);
         }
         buff.append("(\n    ");
         for (Column column : columns) {
@@ -124,7 +125,7 @@ public abstract class TableBase extends Table {
             }
             if (d == null || !tableEngine.endsWith(d)) {
                 buff.append("\nENGINE ");
-                buff.append(StringUtils.quoteIdentifier(tableEngine));
+                StringUtils.quoteIdentifier(buff.builder(), tableEngine);
             }
         }
         if (!tableEngineParams.isEmpty()) {
@@ -132,7 +133,7 @@ public abstract class TableBase extends Table {
             buff.resetCount();
             for (String parameter : tableEngineParams) {
                 buff.appendExceptFirst(", ");
-                buff.append(StringUtils.quoteIdentifier(parameter));
+                StringUtils.quoteIdentifier(buff.builder(), parameter);
             }
         }
         if (!isPersistIndexes() && !isPersistData()) {

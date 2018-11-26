@@ -5,17 +5,14 @@
  */
 package org.h2.expression;
 
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
+import java.util.List;
+
 import org.h2.engine.Database;
 import org.h2.engine.Session;
-import org.h2.message.DbException;
+import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.StringUtils;
-import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 
@@ -24,7 +21,47 @@ import org.h2.value.ValueArray;
  */
 public abstract class Expression {
 
+    /**
+     * Initial state for {@link #mapColumns(ColumnResolver, int, int)}.
+     */
+    public static final int MAP_INITIAL = 0;
+
+    /**
+     * State for expressions inside a window function for
+     * {@link #mapColumns(ColumnResolver, int, int)}.
+     */
+    public static final int MAP_IN_WINDOW = 1;
+
+    /**
+     * State for expressions inside an aggregate for
+     * {@link #mapColumns(ColumnResolver, int, int)}.
+     */
+    public static final int MAP_IN_AGGREGATE = 2;
+
     private boolean addedToFilter;
+
+    public static void writeExpressions(StringBuilder builder, List<? extends Expression> expressions) {
+        for (int i = 0, length = expressions.size(); i < length; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            expressions.get(i).getSQL(builder);
+        }
+    }
+
+    public static void writeExpressions(StringBuilder builder, Expression[] expressions) {
+        for (int i = 0, length = expressions.length; i < length; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            Expression e = expressions[i];
+            if (e == null) {
+                builder.append("DEFAULT");
+            } else {
+                e.getSQL(builder);
+            }
+        }
+    }
 
     /**
      * Return the resulting value for the current row.
@@ -47,8 +84,10 @@ public abstract class Expression {
      *
      * @param resolver the column resolver
      * @param level the subquery nesting level
+     * @param state current state for nesting checks, initial value is
+     *              {@link #MAP_INITIAL}
      */
-    public abstract void mapColumns(ColumnResolver resolver, int level);
+    public abstract void mapColumns(ColumnResolver resolver, int level, int state);
 
     /**
      * Try to optimize the expression.
@@ -95,7 +134,39 @@ public abstract class Expression {
      *
      * @return the SQL statement
      */
-    public abstract String getSQL();
+    public String getSQL() {
+        return getSQL(new StringBuilder()).toString();
+    }
+
+    /**
+     * Appends the SQL statement of this expression to the specified builder.
+     * This may not always be the original SQL statement, specially after
+     * optimization.
+     *
+     * @param builder
+     *            string builder
+     * @return the specified string builder
+     */
+    public abstract StringBuilder getSQL(StringBuilder builder);
+
+    /**
+     * Appends the SQL statement of this expression to the specified builder.
+     * This may not always be the original SQL statement, specially after
+     * optimization. Enclosing '(' and ')' are removed.
+     *
+     * @param builder
+     *            string builder
+     * @return the specified string builder
+     */
+    public StringBuilder getUnenclosedSQL(StringBuilder builder) {
+        int first = builder.length();
+        int last = getSQL(builder).length() - 1;
+        if (last > first && builder.charAt(first) == '(' && builder.charAt(last) == ')') {
+            builder.setLength(last);
+            builder.deleteCharAt(first);
+        }
+        return builder;
+    }
 
     /**
      * Update an aggregate value. This method is called at statement execution
@@ -253,16 +324,7 @@ public abstract class Expression {
      * @return the alias name
      */
     public String getAlias() {
-        return StringUtils.unEnclose(getSQL());
-    }
-
-    /**
-     * Only returns true if the expression is a wildcard.
-     *
-     * @return if this expression is a wildcard
-     */
-    public boolean isWildcard() {
-        return false;
+        return getUnenclosedSQL(new StringBuilder()).toString();
     }
 
     /**
@@ -316,7 +378,7 @@ public abstract class Expression {
      * @param value the value to extract columns from
      * @return array of expression columns
      */
-    static Expression[] getExpressionColumns(Session session, ValueArray value) {
+    protected static Expression[] getExpressionColumns(Session session, ValueArray value) {
         Value[] list = value.getList();
         ExpressionColumn[] expr = new ExpressionColumn[list.length];
         for (int i = 0, len = list.length; i < len; i++) {
@@ -333,29 +395,24 @@ public abstract class Expression {
      * Extracts expression columns from the given result set.
      *
      * @param session the session
-     * @param rs the result set
+     * @param result the result
      * @return an array of expression columns
      */
-    public static Expression[] getExpressionColumns(Session session, ResultSet rs) {
-        try {
-            ResultSetMetaData meta = rs.getMetaData();
-            int columnCount = meta.getColumnCount();
-            Expression[] expressions = new Expression[columnCount];
-            Database db = session == null ? null : session.getDatabase();
-            for (int i = 0; i < columnCount; i++) {
-                String name = meta.getColumnLabel(i + 1);
-                int type = DataType.getValueTypeFromResultSet(meta, i + 1);
-                int precision = meta.getPrecision(i + 1);
-                int scale = meta.getScale(i + 1);
-                int displaySize = meta.getColumnDisplaySize(i + 1);
-                Column col = new Column(name, type, precision, scale, displaySize);
-                Expression expr = new ExpressionColumn(db, col);
-                expressions[i] = expr;
-            }
-            return expressions;
-        } catch (SQLException e) {
-            throw DbException.convert(e);
+    public static Expression[] getExpressionColumns(Session session, ResultInterface result) {
+        int columnCount = result.getVisibleColumnCount();
+        Expression[] expressions = new Expression[columnCount];
+        Database db = session == null ? null : session.getDatabase();
+        for (int i = 0; i < columnCount; i++) {
+            String name = result.getColumnName(i);
+            int type = result.getColumnType(i);
+            long precision = result.getColumnPrecision(i);
+            int scale = result.getColumnScale(i);
+            int displaySize = result.getDisplaySize(i);
+            Column col = new Column(name, type, precision, scale, displaySize);
+            Expression expr = new ExpressionColumn(db, col);
+            expressions[i] = expr;
         }
+        return expressions;
     }
 
     /**

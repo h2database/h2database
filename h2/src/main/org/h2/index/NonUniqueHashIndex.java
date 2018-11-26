@@ -45,7 +45,7 @@ public class NonUniqueHashIndex extends BaseIndex {
     }
 
     private void reset() {
-        rows = ValueHashMap.newInstance();
+        rows = new ValueHashMap<>();
         rowCount = 0;
     }
 

@@ -52,7 +52,7 @@ public class Comment extends DbObjectBase {
             return "TRIGGER";
         case DbObject.USER:
             return "USER";
-        case DbObject.USER_DATATYPE:
+        case DbObject.DOMAIN:
             return "DOMAIN";
         default:
             // not supported by parser, but required when trying to find a
@@ -74,7 +74,7 @@ public class Comment extends DbObjectBase {
         if (commentText == null) {
             buff.append("NULL");
         } else {
-            buff.append(StringUtils.quoteStringSQL(commentText));
+            StringUtils.quoteStringSQL(buff, commentText);
         }
         return buff.toString();
     }

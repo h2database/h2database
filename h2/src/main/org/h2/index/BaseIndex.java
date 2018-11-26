@@ -410,7 +410,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         buff.append(quotedName);
         buff.append(" ON ").append(targetTable.getSQL());
         if (comment != null) {
-            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ");
+            StringUtils.quoteStringSQL(buff, comment);
         }
         buff.append('(').append(getColumnListSQL()).append(')');
         return buff.toString();

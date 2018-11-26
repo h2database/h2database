@@ -147,7 +147,7 @@ public class LocalResultImpl implements LocalResult {
     public void setDistinct() {
         assert distinctIndexes == null;
         distinct = true;
-        distinctRows = ValueHashMap.newInstance();
+        distinctRows = new ValueHashMap<>();
     }
 
     /**
@@ -159,7 +159,7 @@ public class LocalResultImpl implements LocalResult {
     public void setDistinct(int[] distinctIndexes) {
         assert !distinct;
         this.distinctIndexes = distinctIndexes;
-        distinctRows = ValueHashMap.newInstance();
+        distinctRows = new ValueHashMap<>();
     }
 
     /**
@@ -202,7 +202,7 @@ public class LocalResultImpl implements LocalResult {
             return external.contains(values);
         }
         if (distinctRows == null) {
-            distinctRows = ValueHashMap.newInstance();
+            distinctRows = new ValueHashMap<>();
             for (Value[] row : rows) {
                 ValueArray array = getArrayOfDistinct(row);
                 distinctRows.put(array, array.getList());

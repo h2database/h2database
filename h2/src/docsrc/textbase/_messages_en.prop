@@ -149,8 +149,8 @@
 90116=Literals of this kind are not allowed
 90117=Remote connections to this server are not allowed, see -tcpAllowOthers
 90118=Cannot drop table {0}
-90119=User data type {0} already exists
-90120=User data type {0} not found
+90119=Domain {0} already exists
+90120=Domain {0} not found
 90121=Database is already closed (to disable automatic closing at VM shutdown, add ";DB_CLOSE_ON_EXIT=FALSE" to the db URL)
 90122=The WITH TIES clause is not allowed without a corresponding ORDER BY clause.
 90123=Cannot mix indexed and non-indexed parameters
@@ -166,7 +166,7 @@
 90133=Cannot change the setting {0} when the database is already open
 90134=Access to the class {0} is denied
 90135=The database is open in exclusive mode; can not open additional connections
-90136=Unsupported outer join condition: {0}
+90136=Window not found: {0}
 90137=Can only assign to a variable, not to: {0}
 90138=Invalid database name: {0}
 90139=The public static Java method was not found: {0}
@@ -175,6 +175,7 @@
 90142=Step size must not be zero
 90143=Row {1} not found in primary index {0}
 90144=Authenticator not enabled on database {0}
+90145=FOR UPDATE is not allowed in DISTINCT or grouped select
 HY000=General error: {0}
 HY004=Unknown data type: {0}
 HYC00=Feature not supported: {0}

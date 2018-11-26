@@ -268,9 +268,10 @@ public class ValueGeometry extends Value {
     }
 
     @Override
-    public String getSQL() {
+    public StringBuilder getSQL(StringBuilder builder) {
         // Using bytes is faster than converting to EWKT.
-        return "X'" + StringUtils.convertBytesToHex(getBytesNoCopy()) + "'::Geometry";
+        builder.append("X'");
+        return StringUtils.convertBytesToHex(builder, getBytesNoCopy()).append("'::Geometry");
     }
 
     @Override

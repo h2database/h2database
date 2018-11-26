@@ -17,7 +17,7 @@ select group_concat(v order by v asc separator '-'),
 > GROUP_CONCAT(V ORDER BY V SEPARATOR '-') GROUP_CONCAT(V ORDER BY V DESC SEPARATOR '-') FILTER (WHERE (V >= '4'))
 > ---------------------------------------- -----------------------------------------------------------------------
 > 2-3-4-5-6-7-8-9                          9-8-7-6-5-4
-> rows (ordered): 1
+> rows: 1
 
 create index test_idx on test(v);
 > ok
@@ -28,7 +28,7 @@ select group_concat(v order by v asc separator '-'),
 > GROUP_CONCAT(V ORDER BY V SEPARATOR '-') GROUP_CONCAT(V ORDER BY V DESC SEPARATOR '-') FILTER (WHERE (V >= '4'))
 > ---------------------------------------- -----------------------------------------------------------------------
 > 2-3-4-5-6-7-8-9                          9-8-7-6-5-4
-> rows (ordered): 1
+> rows: 1
 
 select group_concat(v order by v asc separator '-'),
     group_concat(v order by v desc separator '-') filter (where v >= '4')
@@ -36,7 +36,7 @@ select group_concat(v order by v asc separator '-'),
 > GROUP_CONCAT(V ORDER BY V SEPARATOR '-') GROUP_CONCAT(V ORDER BY V DESC SEPARATOR '-') FILTER (WHERE (V >= '4'))
 > ---------------------------------------- -----------------------------------------------------------------------
 > 1-2-3-4-5-6-7-8-9                        9-8-7-6-5-4
-> rows (ordered): 1
+> rows: 1
 
 drop table test;
 > ok
@@ -63,7 +63,7 @@ select group_concat(distinct v order by v desc) from test;
 > GROUP_CONCAT(DISTINCT V ORDER BY V DESC)
 > ----------------------------------------
 > 9,8,7,3,2,-1
-> rows (ordered): 1
+> rows: 1
 
 drop table test;
 > ok

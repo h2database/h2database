@@ -19,8 +19,8 @@ import org.h2.util.Task;
  */
 public class TestConcurrentUpdate extends TestDb {
 
-    private static final int THREADS = 3;
-    private static final int ROW_COUNT = 10;
+    private static final int THREADS = 10;
+    private static final int ROW_COUNT = 3;
 
     /**
      * Run just this test.
@@ -45,7 +45,7 @@ public class TestConcurrentUpdate extends TestDb {
     @Override
     public void test() throws Exception {
         deleteDb("concurrent");
-        final String url = getURL("concurrent", true);
+        final String url = getURL("concurrent;LOCK_TIMEOUT=2000", true);
         try (Connection conn = getConnection(url)) {
             Statement stat = conn.createStatement();
             stat.execute("create table test(id int primary key, name varchar)");
@@ -100,18 +100,17 @@ public class TestConcurrentUpdate extends TestDb {
                 t.execute();
             }
             // test 2 seconds
-            for (int i = 0; i < 200; i++) {
-                Thread.sleep(10);
-                for (Task t : tasks) {
-                    if (t.isFinished()) {
-                        i = 1000;
-                        break;
-                    }
+            Thread.sleep(2000);
+            boolean success = true;
+            for (Task t : tasks) {
+                t.join();
+                Throwable exception = t.getException();
+                if (exception != null) {
+                    logError("", exception);
+                    success = false;
                 }
             }
-            for (Task t : tasks) {
-                t.get();
-            }
+            assert success;
         }
     }
 }

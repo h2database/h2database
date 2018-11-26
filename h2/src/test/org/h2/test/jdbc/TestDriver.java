@@ -41,7 +41,7 @@ public class TestDriver extends TestDb {
         prop.put("password", getPassword());
         prop.put("max_compact_time", "1234");
         prop.put("unknown", "1234");
-        String url = getURL("driver", true);
+        String url = getURL("jdbc:h2:mem:driver", true);
         Connection conn = DriverManager.getConnection(url, prop);
         ResultSet rs;
         rs = conn.createStatement().executeQuery(

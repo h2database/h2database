@@ -12,8 +12,6 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.table.Column;
 import org.h2.table.TableFilter;
-import org.h2.util.StatementBuilder;
-import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -118,18 +116,21 @@ public class SortOrder implements Comparator<Value[]> {
      * @return the SQL snippet
      */
     public String getSQL(Expression[] list, int visible) {
-        StatementBuilder buff = new StatementBuilder();
+        StringBuilder builder = new StringBuilder();
         int i = 0;
         for (int idx : queryColumnIndexes) {
-            buff.appendExceptFirst(", ");
-            if (idx < visible) {
-                buff.append(idx + 1);
-            } else {
-                buff.append('=').append(StringUtils.unEnclose(list[idx].getSQL()));
+            if (i > 0) {
+                builder.append(", ");
             }
-            typeToString(buff.builder(), sortTypes[i++]);
+            if (idx < visible) {
+                builder.append(idx + 1);
+            } else {
+                builder.append('=');
+                list[idx].getUnenclosedSQL(builder);
+            }
+            typeToString(builder, sortTypes[i++]);
         }
-        return buff.toString();
+        return builder.toString();
     }
 
     /**

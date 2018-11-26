@@ -29,6 +29,7 @@ import org.h2.engine.Comment;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
+import org.h2.engine.Domain;
 import org.h2.engine.Right;
 import org.h2.engine.Role;
 import org.h2.engine.Session;
@@ -36,7 +37,6 @@ import org.h2.engine.Setting;
 import org.h2.engine.SysProperties;
 import org.h2.engine.User;
 import org.h2.engine.UserAggregate;
-import org.h2.engine.UserDataType;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.index.Cursor;
@@ -187,7 +187,7 @@ public class ScriptCommand extends ScriptBase {
                 }
                 add(schema.getCreateSQL(), false);
             }
-            for (UserDataType datatype : db.getAllUserDataTypes()) {
+            for (Domain datatype : db.getAllDomains()) {
                 if (drop) {
                     add(datatype.getDropSQL(), false);
                 }
@@ -392,7 +392,7 @@ public class ScriptCommand extends ScriptBase {
         buff.append(table.getSQL()).append('(');
         for (Column col : columns) {
             buff.appendExceptFirst(", ");
-            buff.append(Parser.quoteIdentifier(col.getName()));
+            Parser.quoteIdentifier(buff.builder(), col.getName());
         }
         buff.append(") VALUES");
         if (!simple) {
@@ -422,10 +422,10 @@ public class ScriptCommand extends ScriptBase {
                         id = writeLobStream(v);
                         buff.append("SYSTEM_COMBINE_BLOB(").append(id).append(')');
                     } else {
-                        buff.append(v.getSQL());
+                        v.getSQL(buff.builder());
                     }
                 } else {
-                    buff.append(v.getSQL());
+                    v.getSQL(buff.builder());
                 }
             }
             buff.append(')');
@@ -471,7 +471,7 @@ public class ScriptCommand extends ScriptBase {
                     if (len <= 0) {
                         break;
                     }
-                    buff.append(StringUtils.convertBytesToHex(bytes, len)).append("')");
+                    StringUtils.convertBytesToHex(buff, bytes, len).append("')");
                     String sql = buff.toString();
                     add(sql, true);
                 }
@@ -490,7 +490,7 @@ public class ScriptCommand extends ScriptBase {
                     if (len == 0) {
                         break;
                     }
-                    buff.append(StringUtils.quoteStringSQL(new String(chars, 0, len))).
+                    StringUtils.quoteStringSQL(buff, new String(chars, 0, len)).
                         append(", NULL)");
                     String sql = buff.toString();
                     add(sql, true);

@@ -22,7 +22,6 @@ import org.h2.util.DateTimeUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDouble;
-import org.h2.value.ValueInt;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 
@@ -135,9 +134,6 @@ public class TestDate extends TestBase {
         assertEquals("1970-01-01", t1.getDate().toString());
         assertEquals("TIME '11:11:11'", t1.getSQL());
         assertEquals("TIME '11:11:11'", t1.toString());
-        assertEquals(1, t1.getSignum());
-        assertEquals(0, t1.multiply(ValueInt.get(0)).getSignum());
-        assertEquals(0, t1.subtract(t1).getSignum());
         assertEquals("05:35:35.5", t1.multiply(ValueDouble.get(0.5)).getString());
         assertEquals("22:22:22", t1.divide(ValueDouble.get(0.5)).getString());
         assertEquals(Value.TIME, t1.getType());

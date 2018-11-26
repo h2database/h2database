@@ -1984,14 +1984,14 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     }
 
     /**
-     * Returns null.
+     * Returns empty string.
      *
      * @param columnIndex (1,2,...)
-     * @return null
+     * @return empty string
      */
     @Override
     public String getCatalogName(int columnIndex) {
-        return null;
+        return "";
     }
 
     /**
@@ -2040,25 +2040,25 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     }
 
     /**
-     * Returns null.
+     * Returns empty string.
      *
      * @param columnIndex (1,2,...)
-     * @return null
+     * @return empty string
      */
     @Override
     public String getSchemaName(int columnIndex) {
-        return null;
+        return "";
     }
 
     /**
-     * Returns null.
+     * Returns empty string.
      *
      * @param columnIndex (1,2,...)
-     * @return null
+     * @return empty string
      */
     @Override
     public String getTableName(int columnIndex) {
-        return null;
+        return "";
     }
 
     // ---- unsupported / result set -----------------------------------

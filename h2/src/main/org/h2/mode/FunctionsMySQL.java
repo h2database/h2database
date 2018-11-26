@@ -14,9 +14,9 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.expression.Function;
-import org.h2.expression.FunctionInfo;
 import org.h2.expression.ValueExpression;
+import org.h2.expression.function.Function;
+import org.h2.expression.function.FunctionInfo;
 import org.h2.message.DbException;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
@@ -38,11 +38,11 @@ public class FunctionsMySQL extends FunctionsBase {
 
     static {
         FUNCTIONS.put("UNIX_TIMESTAMP", new FunctionInfo("UNIX_TIMESTAMP", UNIX_TIMESTAMP,
-                VAR_ARGS, Value.INT, false, false, false));
+                VAR_ARGS, Value.INT, false, false, false, true));
         FUNCTIONS.put("FROM_UNIXTIME", new FunctionInfo("FROM_UNIXTIME", FROM_UNIXTIME,
-                VAR_ARGS, Value.STRING, false, true, false));
+                VAR_ARGS, Value.STRING, false, true, false, true));
         FUNCTIONS.put("DATE", new FunctionInfo("DATE", DATE,
-                1, Value.DATE, false, true, false));
+                1, Value.DATE, false, true, false, true));
     }
 
     /**

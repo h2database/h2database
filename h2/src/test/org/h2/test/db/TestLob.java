@@ -23,6 +23,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import org.h2.api.ErrorCode;
@@ -33,6 +34,7 @@ import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.tools.Recover;
+import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
@@ -114,6 +116,7 @@ public class TestLob extends TestDb {
         testLob(true);
         testJavaObject();
         testLobGrowth();
+        testLobInValueResultSet();
         deleteDb("lob");
     }
 
@@ -174,7 +177,7 @@ public class TestLob extends TestDb {
             return;
         }
         deleteDb("lob");
-        final String url = getURL("lob;lob_timeout=50", true);
+        final String url = getURL("lob;lob_timeout=200", true);
         Connection conn = getConnection(url);
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key, data clob)");
@@ -196,7 +199,7 @@ public class TestLob extends TestDb {
         stat.execute("delete from test");
         c1.getSubString(1, 3);
         // wait until it times out
-        Thread.sleep(100);
+        Thread.sleep(250);
         // start a new transaction, to be sure
         stat.execute("delete from test");
         assertThrows(SQLException.class, c1).getSubString(1, 3);
@@ -1720,4 +1723,42 @@ public class TestLob extends TestDb {
         conn.createStatement().execute("drop table test");
         conn.close();
     }
+
+    private void testLobInValueResultSet() throws SQLException {
+        deleteDb("lob");
+        JdbcConnection conn = (JdbcConnection) getConnection("lob");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE ALIAS VRS FOR \"" + getClass().getName() + ".testLobInValueResultSetGet\"");
+        ResultSet rs = stat.executeQuery("SELECT VRS()");
+        assertTrue(rs.next());
+        ResultSet rs2 = (ResultSet) rs.getObject(1);
+        assertFalse(rs.next());
+        assertTrue(rs2.next());
+        Clob clob = rs2.getClob(1);
+        assertFalse(rs2.next());
+        assertEquals(MORE_THAN_128_CHARS, clob.getSubString(1, Integer.MAX_VALUE));
+        conn.close();
+    }
+
+    /**
+     * This method is called via reflection from the database.
+     *
+     * @param conn connection
+     * @return the result set
+     * @throws SQLException on exception
+     */
+    public static SimpleResultSet testLobInValueResultSetGet(Connection conn) throws SQLException {
+        final Clob c = conn.createClob();
+        c.setString(1, MORE_THAN_128_CHARS);
+        SimpleResultSet rs = new SimpleResultSet() {
+            @Override
+            public Object getObject(int columnIndex) throws SQLException {
+                return c;
+            }
+        };
+        rs.addColumn("L", Types.CLOB, 1000, 0);
+        rs.addRow(MORE_THAN_128_CHARS);
+        return rs;
+    }
+
 }

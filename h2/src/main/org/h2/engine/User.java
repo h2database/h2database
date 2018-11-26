@@ -159,13 +159,14 @@ public class User extends RightOwner {
         StringBuilder buff = new StringBuilder("CREATE USER IF NOT EXISTS ");
         buff.append(getSQL());
         if (comment != null) {
-            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ");
+            StringUtils.quoteStringSQL(buff, comment);
         }
         if (password) {
-            buff.append(" SALT '").
-                append(StringUtils.convertBytesToHex(salt)).
-                append("' HASH '").
-                append(StringUtils.convertBytesToHex(passwordHash)).
+            buff.append(" SALT '");
+            StringUtils.convertBytesToHex(buff, salt).
+                append("' HASH '");
+            StringUtils.convertBytesToHex(buff, passwordHash).
                 append('\'');
         } else {
             buff.append(" PASSWORD ''");

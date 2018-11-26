@@ -11,10 +11,10 @@ import java.util.HashSet;
 import java.util.List;
 import org.h2.command.dml.Query;
 import org.h2.engine.Session;
-import org.h2.expression.Comparison;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.condition.Comparison;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.table.Column;
@@ -177,50 +177,47 @@ public class IndexCondition {
         if (compareType == Comparison.FALSE) {
             return "FALSE";
         }
-        StatementBuilder buff = new StatementBuilder();
-        buff.append(column.getSQL());
+        StringBuilder builder = new StringBuilder();
+        builder.append(column.getSQL());
         switch (compareType) {
         case Comparison.EQUAL:
-            buff.append(" = ");
+            builder.append(" = ");
             break;
         case Comparison.EQUAL_NULL_SAFE:
-            buff.append(" IS ");
+            builder.append(" IS ");
             break;
         case Comparison.BIGGER_EQUAL:
-            buff.append(" >= ");
+            builder.append(" >= ");
             break;
         case Comparison.BIGGER:
-            buff.append(" > ");
+            builder.append(" > ");
             break;
         case Comparison.SMALLER_EQUAL:
-            buff.append(" <= ");
+            builder.append(" <= ");
             break;
         case Comparison.SMALLER:
-            buff.append(" < ");
+            builder.append(" < ");
             break;
         case Comparison.IN_LIST:
-            buff.append(" IN(");
-            for (Expression e : expressionList) {
-                buff.appendExceptFirst(", ");
-                buff.append(e.getSQL());
-            }
-            buff.append(')');
+            builder.append(" IN(");
+            Expression.writeExpressions(builder, expressionList);
+            builder.append(')');
             break;
         case Comparison.IN_QUERY:
-            buff.append(" IN(");
-            buff.append(expressionQuery.getPlanSQL());
-            buff.append(')');
+            builder.append(" IN(");
+            builder.append(expressionQuery.getPlanSQL());
+            builder.append(')');
             break;
         case Comparison.SPATIAL_INTERSECTS:
-            buff.append(" && ");
+            builder.append(" && ");
             break;
         default:
             DbException.throwInternalError("type=" + compareType);
         }
         if (expression != null) {
-            buff.append(expression.getSQL());
+            expression.getSQL(builder);
         }
-        return buff.toString();
+        return builder.toString();
     }
 
     /**

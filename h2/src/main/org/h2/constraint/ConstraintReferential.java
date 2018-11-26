@@ -87,7 +87,8 @@ public class ConstraintReferential extends Constraint {
         }
         buff.append(quotedName);
         if (comment != null) {
-            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ");
+            StringUtils.quoteStringSQL(buff.builder(), comment);
         }
         IndexColumn[] cols = columns;
         IndexColumn[] refCols = refColumns;
@@ -566,8 +567,8 @@ public class ConstraintReferential extends Constraint {
         buff.append("UPDATE ").append(table.getSQL()).append(" SET ");
         buff.resetCount();
         for (IndexColumn c : columns) {
-            buff.appendExceptFirst(" , ");
-            buff.append(Parser.quoteIdentifier(c.column.getName())).append("=?");
+            buff.appendExceptFirst(", ");
+            Parser.quoteIdentifier(buff.builder(), c.column.getName()).append("=?");
         }
     }
 
@@ -576,7 +577,7 @@ public class ConstraintReferential extends Constraint {
         buff.resetCount();
         for (IndexColumn c : columns) {
             buff.appendExceptFirst(" AND ");
-            buff.append(Parser.quoteIdentifier(c.column.getName())).append("=?");
+            Parser.quoteIdentifier(buff.builder(), c.column.getName()).append("=?");
         }
     }
 

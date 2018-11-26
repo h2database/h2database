@@ -8,6 +8,7 @@ package org.h2.expression;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.expression.IntervalOperation.IntervalOpType;
+import org.h2.expression.function.Function;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -68,10 +69,12 @@ public class BinaryOperation extends Expression {
     }
 
     @Override
-    public String getSQL() {
+    public StringBuilder getSQL(StringBuilder builder) {
         // don't remove the space, otherwise it might end up some thing like
         // --1 which is a line remark
-        return '(' + left.getSQL() + ' ' + getOperationToken() + ' ' + right.getSQL() + ')';
+        builder.append('(');
+        left.getSQL(builder).append(' ').append(getOperationToken()).append(' ');
+        return right.getSQL(builder).append(')');
     }
 
     private String getOperationToken() {
@@ -150,9 +153,9 @@ public class BinaryOperation extends Expression {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
-        left.mapColumns(resolver, level);
-        right.mapColumns(resolver, level);
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
+        left.mapColumns(resolver, level, state);
+        right.mapColumns(resolver, level, state);
     }
 
     @Override

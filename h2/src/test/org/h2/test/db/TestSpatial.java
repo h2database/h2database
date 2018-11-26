@@ -717,6 +717,11 @@ public class TestSpatial extends TestDb {
             assertEquals("geometry",
                     columnMeta.getString("TYPE_NAME").toLowerCase());
             assertFalse(columnMeta.next());
+
+            ResultSet rs = stat.executeQuery("select point_table(1, 1)");
+            assertTrue(rs.next());
+            ResultSet rs2 = (ResultSet) rs.getObject(1);
+            assertEquals("GEOMETRY", rs2.getMetaData().getColumnTypeName(1));
         }
         deleteDb("spatial");
     }

@@ -312,8 +312,9 @@ public class TraceObject {
         if (x == null) {
             return "null";
         }
-        return "org.h2.util.StringUtils.convertHexToBytes(\"" +
-                StringUtils.convertBytesToHex(x) + "\")";
+        StringBuilder builder = new StringBuilder(x.length * 2 + 45)
+                .append("org.h2.util.StringUtils.convertHexToBytes(\"");
+        return StringUtils.convertBytesToHex(builder, x).append("\")").toString();
     }
 
     /**

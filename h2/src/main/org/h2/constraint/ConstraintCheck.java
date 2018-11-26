@@ -56,15 +56,18 @@ public class ConstraintCheck extends Constraint {
         }
         buff.append(quotedName);
         if (comment != null) {
-            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ");
+            StringUtils.quoteStringSQL(buff, comment);
         }
-        buff.append(" CHECK").append(StringUtils.enclose(expr.getSQL()))
-                .append(" NOCHECK");
+        buff.append(" CHECK(");
+        expr.getUnenclosedSQL(buff).append(") NOCHECK");
         return buff.toString();
     }
 
     private String getShortDescription() {
-        return getName() + ": " + expr.getSQL();
+        StringBuilder builder = new StringBuilder().append(getName()).append(": ");
+        expr.getSQL(builder);
+        return builder.toString();
     }
 
     @Override
@@ -140,8 +143,11 @@ public class ConstraintCheck extends Constraint {
             // don't check at startup
             return;
         }
-        String sql = "SELECT 1 FROM " + filter.getTable().getSQL() +
-                " WHERE NOT(" + expr.getSQL() + ")";
+        StringBuilder builder = new StringBuilder().append("SELECT 1 FROM ")
+                .append(filter.getTable().getSQL())
+                .append(" WHERE NOT(");
+        expr.getSQL(builder).append(')');
+        String sql = builder.toString();
         ResultInterface r = session.prepare(sql).query(1);
         if (r.next()) {
             throw DbException.get(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, getName());

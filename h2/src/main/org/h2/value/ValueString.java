@@ -34,8 +34,8 @@ public class ValueString extends Value {
     }
 
     @Override
-    public String getSQL() {
-        return StringUtils.quoteStringSQL(value);
+    public StringBuilder getSQL(StringBuilder builder) {
+        return StringUtils.quoteStringSQL(builder, value);
     }
 
     @Override

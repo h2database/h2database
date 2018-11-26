@@ -175,12 +175,16 @@ public class ValueTimestampTimeZone extends Value {
 
     @Override
     public String getString() {
-        return DateTimeUtils.timestampTimeZoneToString(dateValue, timeNanos, timeZoneOffsetMins);
+        StringBuilder builder = new StringBuilder(ValueTimestampTimeZone.MAXIMUM_PRECISION);
+        DateTimeUtils.appendTimestampTimeZone(builder, dateValue, timeNanos, timeZoneOffsetMins);
+        return builder.toString();
     }
 
     @Override
-    public String getSQL() {
-        return "TIMESTAMP WITH TIME ZONE '" + getString() + "'";
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append("TIMESTAMP WITH TIME ZONE '");
+        DateTimeUtils.appendTimestampTimeZone(builder, dateValue, timeNanos, timeZoneOffsetMins);
+        return builder.append('\'');
     }
 
     @Override

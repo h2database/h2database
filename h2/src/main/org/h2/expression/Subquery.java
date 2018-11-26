@@ -58,7 +58,7 @@ public class Subquery extends Expression {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
         query.mapColumns(resolver, level + 1);
     }
 
@@ -89,8 +89,8 @@ public class Subquery extends Expression {
     }
 
     @Override
-    public String getSQL() {
-        return "(" + query.getPlanSQL() + ")";
+    public StringBuilder getSQL(StringBuilder builder) {
+        return builder.append('(').append(query.getPlanSQL()).append(')');
     }
 
     @Override

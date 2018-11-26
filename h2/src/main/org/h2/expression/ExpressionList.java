@@ -9,7 +9,6 @@ import org.h2.engine.Session;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 
@@ -40,9 +39,9 @@ public class ExpressionList extends Expression {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
         for (Expression e : list) {
-            e.mapColumns(resolver, level);
+            e.mapColumns(resolver, level, state);
         }
     }
 
@@ -85,16 +84,13 @@ public class ExpressionList extends Expression {
     }
 
     @Override
-    public String getSQL() {
-        StatementBuilder buff = new StatementBuilder("(");
-        for (Expression e: list) {
-            buff.appendExceptFirst(", ");
-            buff.append(e.getSQL());
-        }
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append('(');
+        writeExpressions(builder, list);
         if (list.length == 1) {
-            buff.append(',');
+            builder.append(',');
         }
-        return buff.append(')').toString();
+        return builder.append(')');
     }
 
     @Override
@@ -134,6 +130,26 @@ public class ExpressionList extends Expression {
             expr[i] = new ExpressionColumn(session.getDatabase(), col);
         }
         return expr;
+    }
+
+    @Override
+    public boolean isConstant() {
+        for (Expression e : list) {
+            if (!e.isConstant()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public int getSubexpressionCount() {
+        return list.length;
+    }
+
+    @Override
+    public Expression getSubexpression(int index) {
+        return list[index];
     }
 
 }

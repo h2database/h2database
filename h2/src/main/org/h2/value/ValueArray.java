@@ -20,6 +20,11 @@ import org.h2.util.StatementBuilder;
  */
 public class ValueArray extends Value {
 
+    /**
+     * Empty array.
+     */
+    private static final Object EMPTY = get(new Value[0]);
+
     private final Class<?> componentType;
     private final Value[] values;
     private int hash;
@@ -50,6 +55,15 @@ public class ValueArray extends Value {
      */
     public static ValueArray get(Class<?> componentType, Value[] list) {
         return new ValueArray(componentType, list);
+    }
+
+    /**
+     * Returns empty array.
+     *
+     * @return empty array
+     */
+    public static ValueArray getEmpty() {
+        return (ValueArray) EMPTY;
     }
 
     @Override
@@ -141,16 +155,19 @@ public class ValueArray extends Value {
     }
 
     @Override
-    public String getSQL() {
-        StatementBuilder buff = new StatementBuilder("(");
-        for (Value v : values) {
-            buff.appendExceptFirst(", ");
-            buff.append(v.getSQL());
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append('(');
+        int length = values.length;
+        for (int i = 0; i < length; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            values[i].getSQL(builder);
         }
-        if (values.length == 1) {
-            buff.append(',');
+        if (length == 1) {
+            builder.append(',');
         }
-        return buff.append(')').toString();
+        return builder.append(')');
     }
 
     @Override

@@ -28,6 +28,8 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
+import org.h2.result.ResultInterface;
+import org.h2.result.SimpleResult;
 import org.h2.store.DataHandler;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -41,6 +43,7 @@ import org.h2.value.ValueBytes;
 import org.h2.value.ValueDecimal;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueFloat;
+import org.h2.value.ValueInt;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueLobDb;
 import org.h2.value.ValueNull;
@@ -200,12 +203,14 @@ public class TestValue extends TestDb {
         assertEquals(32, v.convertPrecision(10, false).getBytes()[9]);
         assertEquals(10, v.convertPrecision(10, true).getPrecision());
 
-        ResultSet rs = new SimpleResultSet();
+        SimpleResult rs = new SimpleResult();
+        rs.addColumn("X", "X", Value.INT, 0, 0, ValueInt.DISPLAY_SIZE);
+        rs.addRow(ValueInt.get(1));
         v = ValueResultSet.get(rs);
         assertEquals(Integer.MAX_VALUE, v.getPrecision());
         assertEquals(Integer.MAX_VALUE, v.convertPrecision(10, false).getPrecision());
-        assertTrue(rs == v.convertPrecision(10, false).getObject());
-        assertFalse(rs == v.convertPrecision(10, true).getObject());
+        assertEquals(1, v.convertPrecision(10, false).getResult().getRowCount());
+        assertEquals(0, v.convertPrecision(10, true).getResult().getRowCount());
         assertEquals(Integer.MAX_VALUE, v.convertPrecision(10, true).getPrecision());
 
         v = ValueString.get(spaces);
@@ -225,35 +230,52 @@ public class TestValue extends TestDb {
         rs.addRow(2, "World");
         rs.addRow(3, "Peace");
 
-        ValueResultSet v;
-        v = ValueResultSet.get(rs);
-        assertTrue(rs == v.getObject());
-
-        v = ValueResultSet.getCopy(rs, 2);
-        assertEquals(0, v.hashCode());
-        assertEquals(Integer.MAX_VALUE, v.getDisplaySize());
-        assertEquals(Integer.MAX_VALUE, v.getPrecision());
-        assertEquals(0, v.getScale());
-        assertEquals("", v.getSQL());
-        assertEquals(Value.RESULT_SET, v.getType());
-        assertEquals("((1, Hello), (2, World))", v.getString());
+        testValueResultSetTest(ValueResultSet.get(null, rs, Integer.MAX_VALUE), Integer.MAX_VALUE, true);
         rs.beforeFirst();
-        ValueResultSet v2 = ValueResultSet.getCopy(rs, 2);
-        assertTrue(v.equals(v));
-        assertFalse(v.equals(v2));
-        rs.beforeFirst();
+        testValueResultSetTest(ValueResultSet.get(null, rs, 2), 2, true);
 
-        ResultSet rs2 = v.getResultSet();
-        rs2.next();
-        rs.next();
-        assertEquals(rs.getInt(1), rs2.getInt(1));
-        assertEquals(rs.getString(2), rs2.getString(2));
-        rs2.next();
-        rs.next();
-        assertEquals(rs.getInt(1), rs2.getInt(1));
-        assertEquals(rs.getString(2), rs2.getString(2));
-        assertFalse(rs2.next());
-        assertTrue(rs.next());
+        SimpleResult result = new SimpleResult();
+        result.addColumn("ID", "ID", Value.INT, 0, 0, ValueInt.DISPLAY_SIZE);
+        result.addColumn("NAME", "NAME", Value.STRING, 255, 0, 255);
+        result.addRow(ValueInt.get(1), ValueString.get("Hello"));
+        result.addRow(ValueInt.get(2), ValueString.get("World"));
+        result.addRow(ValueInt.get(3), ValueString.get("Peace"));
+
+        ValueResultSet v = ValueResultSet.get(result);
+        testValueResultSetTest(v, Integer.MAX_VALUE, false);
+
+        testValueResultSetTest(ValueResultSet.get(v.getResult(), Integer.MAX_VALUE), Integer.MAX_VALUE, false);
+        testValueResultSetTest(ValueResultSet.get(v.getResult(), 2), 2, false);
+    }
+
+    private void testValueResultSetTest(ValueResultSet v, int count, boolean fromSimple) {
+        ResultInterface res = v.getResult();
+        assertEquals(2, res.getVisibleColumnCount());
+        assertEquals("ID", res.getAlias(0));
+        assertEquals("ID", res.getColumnName(0));
+        assertEquals(Value.INT, res.getColumnType(0));
+        assertEquals(0, res.getColumnPrecision(0));
+        assertEquals(0, res.getColumnScale(0));
+        assertEquals(fromSimple ? 15 : ValueInt.DISPLAY_SIZE, res.getDisplaySize(0));
+        assertEquals("NAME", res.getAlias(1));
+        assertEquals("NAME", res.getColumnName(1));
+        assertEquals(Value.STRING, res.getColumnType(1));
+        assertEquals(255, res.getColumnPrecision(1));
+        assertEquals(0, res.getColumnScale(1));
+        assertEquals(fromSimple ? 15 : 255, res.getDisplaySize(1));
+        if (count >= 1) {
+            assertTrue(res.next());
+            assertEquals(new Value[] {ValueInt.get(1), ValueString.get("Hello")}, res.currentRow());
+            if (count >= 2) {
+                assertTrue(res.next());
+                assertEquals(new Value[] {ValueInt.get(2), ValueString.get("World")}, res.currentRow());
+                if (count >= 3) {
+                    assertTrue(res.next());
+                    assertEquals(new Value[] {ValueInt.get(3), ValueString.get("Peace")}, res.currentRow());
+                }
+            }
+        }
+        assertFalse(res.next());
     }
 
     private void testDataType() {

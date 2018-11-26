@@ -1748,7 +1748,13 @@ public class ErrorCode {
      * CREATE DOMAIN EMAIL AS VARCHAR CHECK LOCATE('@', VALUE) > 0;
      * </pre>
      */
-    public static final int USER_DATA_TYPE_ALREADY_EXISTS_1 = 90119;
+    public static final int DOMAIN_ALREADY_EXISTS_1 = 90119;
+
+    /**
+     * Deprecated since 1.4.198. Use {@link #DOMAIN_ALREADY_EXISTS_1} instead.
+     */
+    @Deprecated
+    public static final int USER_DATA_TYPE_ALREADY_EXISTS_1 = DOMAIN_ALREADY_EXISTS_1;
 
     /**
      * The error with code <code>90120</code> is thrown when
@@ -1758,7 +1764,13 @@ public class ErrorCode {
      * DROP DOMAIN UNKNOWN;
      * </pre>
      */
-    public static final int USER_DATA_TYPE_NOT_FOUND_1 = 90120;
+    public static final int DOMAIN_NOT_FOUND_1 = 90120;
+
+    /**
+     * Deprecated since 1.4.198. Use {@link #DOMAIN_NOT_FOUND_1} instead.
+     */
+    @Deprecated
+    public static final int USER_DATA_TYPE_NOT_FOUND_1 = DOMAIN_NOT_FOUND_1;
 
     /**
      * The error with code <code>90121</code> is thrown when
@@ -1927,6 +1939,16 @@ public class ErrorCode {
     public static final int DATABASE_IS_IN_EXCLUSIVE_MODE = 90135;
 
     /**
+     * The error with code <code>90136</code> is thrown when
+     * trying to reference a window that does not exist.
+     * Example:
+     * <pre>
+     * SELECT LEAD(X) OVER W FROM TEST;
+     * </pre>
+     */
+    public static final int WINDOW_NOT_FOUND_1 = 90136;
+
+    /**
      * The error with code <code>90137</code> is thrown when
      * trying to assign a value to something that is not a variable.
      * <pre>
@@ -2008,8 +2030,20 @@ public class ErrorCode {
      */
     public static final int AUTHENTICATOR_NOT_AVAILABLE = 90144;
 
+    /**
+     * The error with code <code>90145</code> is thrown when trying to execute a
+     * SELECT statement with non-window aggregates, DISTINCT, GROUP BY, or
+     * HAVING clauses together with FOR UPDATE clause.
+     *
+     * <pre>
+     * SELECT DISTINCT NAME FOR UPDATE;
+     * SELECT MAX(VALUE) FOR UPDATE;
+     * </pre>
+     */
+    public static final int FOR_UPDATE_IS_NOT_ALLOWED_IN_DISTINCT_OR_GROUPED_SELECT = 90145;
 
-    // next are 90136, 90145
+
+    // next is 90146
 
     private ErrorCode() {
         // utility class

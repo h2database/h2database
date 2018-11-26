@@ -12,7 +12,7 @@ import org.h2.mvstore.MVMap;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-public abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
+abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
     private final int            mapId;
     private final Object         key;
     final Object                 value;
@@ -49,7 +49,7 @@ public abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue
             // because a tree root has definitely been changed.
             logIt(existingValue.value == null ? null : VersionedValue.getInstance(existingValue.value));
             decision = MVMap.Decision.PUT;
-        } else if (fetchTransaction(blockingId) != null) {
+        } else if (getBlockingTransaction() != null) {
             // this entry comes from a different transaction, and this
             // transaction is not committed yet
             // should wait on blockingTransaction that was determined earlier
@@ -106,11 +106,17 @@ public abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue
     }
 
     final boolean isCommitted(int transactionId) {
-        return transaction.store.committingTransactions.get().get(transactionId);
-    }
+        Transaction blockingTx;
+        boolean result;
+        do {
+            blockingTx = transaction.store.getTransaction(transactionId);
+            result = transaction.store.committingTransactions.get().get(transactionId);
+        } while (blockingTx != transaction.store.getTransaction(transactionId));
 
-    final Transaction fetchTransaction(int transactionId) {
-        return (blockingTransaction = transaction.store.getTransaction(transactionId));
+        if (!result) {
+            blockingTransaction = blockingTx;
+        }
+        return result;
     }
 
     final MVMap.Decision setDecision(MVMap.Decision d) {
@@ -162,12 +168,15 @@ public abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue
                     }
                     logIt(existingValue);
                     return setDecision(MVMap.Decision.PUT);
-                } else if (isCommitted(blockingId) && existingValue.value == null) {
+                } else if (isCommitted(blockingId)) {
                     // entry belongs to a committing transaction
                     // and therefore will be committed soon
+                    if(existingValue.value != null) {
+                        return setDecision(MVMap.Decision.ABORT);
+                    }
                     logIt(null);
                     return setDecision(MVMap.Decision.PUT);
-                } else if (fetchTransaction(blockingId) != null) {
+                } else if (getBlockingTransaction() != null) {
                     // this entry comes from a different transaction, and this
                     // transaction is not committed yet
                     // should wait on blockingTransaction that was determined
@@ -206,11 +215,22 @@ public abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue
             super(mapId, key, null, transaction);
         }
 
+        @Override
+        public MVMap.Decision decide(VersionedValue existingValue, VersionedValue providedValue) {
+            MVMap.Decision decision = super.decide(existingValue, providedValue);
+            if (existingValue == null) {
+                assert decision == MVMap.Decision.PUT;
+                decision = setDecision(MVMap.Decision.REMOVE);
+            }
+            return decision;
+        }
+
         @SuppressWarnings("unchecked")
         @Override
         public VersionedValue selectValue(VersionedValue existingValue, VersionedValue providedValue) {
-            assert existingValue != null;   // otherwise, what's there to lock?
-            return VersionedValue.getInstance(undoKey, existingValue.value, existingValue.getCommittedValue());
+            return VersionedValue.getInstance(undoKey,
+                    existingValue == null ? null : existingValue.value,
+                    existingValue == null ? null : existingValue.getCommittedValue());
         }
     }
 }

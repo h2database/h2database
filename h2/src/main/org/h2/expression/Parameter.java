@@ -7,6 +7,7 @@ package org.h2.expression;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Session;
+import org.h2.expression.condition.Comparison;
 import org.h2.message.DbException;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
@@ -30,8 +31,8 @@ public class Parameter extends Expression implements ParameterInterface {
     }
 
     @Override
-    public String getSQL() {
-        return "?" + (index + 1);
+    public StringBuilder getSQL(StringBuilder builder) {
+        return builder.append('?').append(index + 1);
     }
 
     @Override
@@ -71,7 +72,7 @@ public class Parameter extends Expression implements ParameterInterface {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
         // can't map
     }
 
@@ -156,7 +157,7 @@ public class Parameter extends Expression implements ParameterInterface {
         case ExpressionVisitor.NOT_FROM_RESOLVER:
         case ExpressionVisitor.QUERY_COMPARABLE:
         case ExpressionVisitor.GET_DEPENDENCIES:
-        case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
+        case ExpressionVisitor.OPTIMIZABLE_AGGREGATE:
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.READONLY:
         case ExpressionVisitor.GET_COLUMNS1:

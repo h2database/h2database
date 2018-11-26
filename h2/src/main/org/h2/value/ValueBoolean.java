@@ -46,8 +46,8 @@ public class ValueBoolean extends Value {
     }
 
     @Override
-    public String getSQL() {
-        return getString();
+    public StringBuilder getSQL(StringBuilder builder) {
+        return builder.append(getString());
     }
 
     @Override

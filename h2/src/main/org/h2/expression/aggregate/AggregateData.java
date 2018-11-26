@@ -5,8 +5,10 @@
  */
 package org.h2.expression.aggregate;
 
+import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.expression.aggregate.Aggregate.AggregateType;
+import org.h2.message.DbException;
 import org.h2.value.Value;
 
 /**
@@ -18,30 +20,51 @@ abstract class AggregateData {
      * Create an AggregateData object of the correct sub-type.
      *
      * @param aggregateType the type of the aggregate operation
+     * @param distinct if the calculation should be distinct
      * @return the aggregate data object of the specified type
      */
-    static AggregateData create(AggregateType aggregateType) {
+    static AggregateData create(AggregateType aggregateType, boolean distinct) {
         switch (aggregateType) {
-        case SELECTIVITY:
-            return new AggregateDataSelectivity();
+        case COUNT_ALL:
+            return new AggregateDataCount(true);
+        case COUNT:
+            if (!distinct) {
+                return new AggregateDataCount(false);
+            }
+            break;
         case GROUP_CONCAT:
         case ARRAY_AGG:
-            return new AggregateDataCollecting();
-        case COUNT_ALL:
-            return new AggregateDataCountAll();
-        case COUNT:
-            return new AggregateDataCount();
-        case HISTOGRAM:
-            return new AggregateDataHistogram();
         case MEDIAN:
-            return new AggregateDataMedian();
+            break;
+        case MIN:
+        case MAX:
+        case BIT_OR:
+        case BIT_AND:
+        case ANY:
+        case EVERY:
+            return new AggregateDataDefault(aggregateType);
+        case SUM:
+        case AVG:
+        case STDDEV_POP:
+        case STDDEV_SAMP:
+        case VAR_POP:
+        case VAR_SAMP:
+            if (!distinct) {
+                return new AggregateDataDefault(aggregateType);
+            }
+            break;
+        case SELECTIVITY:
+            return new AggregateDataSelectivity(distinct);
+        case HISTOGRAM:
+            return new AggregateDataDistinctWithCounts(false, Constants.SELECTIVITY_DISTINCT_COUNT);
         case MODE:
-            return new AggregateDataMode();
+            return new AggregateDataDistinctWithCounts(true, Integer.MAX_VALUE);
         case ENVELOPE:
             return new AggregateDataEnvelope();
         default:
-            return new AggregateDataDefault(aggregateType);
+            throw DbException.throwInternalError("type=" + aggregateType);
         }
+        return new AggregateDataCollecting(distinct);
     }
 
     /**
@@ -49,18 +72,16 @@ abstract class AggregateData {
      *
      * @param database the database
      * @param dataType the datatype of the computed result
-     * @param distinct if the calculation should be distinct
      * @param v the value
      */
-    abstract void add(Database database, int dataType, boolean distinct, Value v);
+    abstract void add(Database database, int dataType, Value v);
 
     /**
      * Get the aggregate result.
      *
      * @param database the database
      * @param dataType the datatype of the computed result
-     * @param distinct if distinct is used
      * @return the value
      */
-    abstract Value getValue(Database database, int dataType, boolean distinct);
+    abstract Value getValue(Database database, int dataType);
 }

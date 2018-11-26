@@ -383,8 +383,11 @@ public class IntervalUtils {
     }
 
     /**
-     * Formats interval as a string.
+     * Formats interval as a string and appends it to a specified string
+     * builder.
      *
+     * @param buff
+     *            string builder to append to
      * @param qualifier
      *            qualifier of the interval
      * @param negative
@@ -393,12 +396,11 @@ public class IntervalUtils {
      *            the value of leading field
      * @param remaining
      *            the value of all remaining fields
-     * @return string representation of the specified interval
+     * @return the specified string builder
      */
-    public static String intervalToString(IntervalQualifier qualifier, boolean negative, long leading, long remaining)
-    {
-        StringBuilder buff = new StringBuilder().append("INTERVAL ");
-        buff.append('\'');
+    public static StringBuilder appendInterval(StringBuilder buff, IntervalQualifier qualifier, boolean negative,
+            long leading, long remaining) {
+        buff.append("INTERVAL '");
         if (negative) {
             buff.append('-');
         }
@@ -453,8 +455,7 @@ public class IntervalUtils {
             appendSecondsWithNanos(buff, remaining);
             break;
         }
-        buff.append("' ").append(qualifier);
-        return buff.toString();
+        return buff.append("' ").append(qualifier);
     }
 
     private static void appendSecondsWithNanos(StringBuilder buff, long nanos) {

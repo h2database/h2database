@@ -38,7 +38,6 @@ import org.h2.jdbc.JdbcClob;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcLob;
 import org.h2.message.DbException;
-import org.h2.tools.SimpleResultSet;
 import org.h2.util.JdbcUtils;
 import org.h2.util.LocalDateTimeUtils;
 import org.h2.util.Utils;
@@ -779,7 +778,7 @@ public class DataType {
                 if (x == null) {
                     return ValueNull.INSTANCE;
                 }
-                return ValueResultSet.get(x);
+                return ValueResultSet.get(session, x, Integer.MAX_VALUE);
             }
             case Value.GEOMETRY: {
                 Object x = rs.getObject(columnIndex);
@@ -1252,10 +1251,7 @@ public class DataType {
                 throw DbException.convert(e);
             }
         } else if (x instanceof ResultSet) {
-            if (x instanceof SimpleResultSet) {
-                return ValueResultSet.get((ResultSet) x);
-            }
-            return ValueResultSet.getCopy((ResultSet) x, Integer.MAX_VALUE);
+            return ValueResultSet.get(session, (ResultSet) x, Integer.MAX_VALUE);
         } else if (x instanceof UUID) {
             return ValueUuid.get((UUID) x);
         }

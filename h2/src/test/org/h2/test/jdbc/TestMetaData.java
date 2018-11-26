@@ -125,8 +125,6 @@ public class TestMetaData extends TestDb {
         assertEquals(DataType.TYPE_RESULT_SET, rsMeta.getColumnType(1));
         rs.next();
         assertTrue(rs.getObject(1) instanceof java.sql.ResultSet);
-        assertEquals("org.h2.tools.SimpleResultSet",
-                rs.getObject(1).getClass().getName());
         stat.executeUpdate("drop alias x");
 
         rs = stat.executeQuery("select 1 from dual");
@@ -1255,6 +1253,12 @@ public class TestMetaData extends TestDb {
         assertNull(conn.getClientInfo("xxx"));
         DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs = meta.getClientInfoProperties();
+        ResultSetMetaData rsMeta = rs.getMetaData();
+        assertEquals("NAME", rsMeta.getColumnName(1));
+        assertEquals("MAX_LEN", rsMeta.getColumnName(2));
+        assertEquals("DEFAULT_VALUE", rsMeta.getColumnName(3));
+        assertEquals("DESCRIPTION", rsMeta.getColumnName(4));
+        assertEquals("VALUE", rsMeta.getColumnName(5));
         int count = 0;
         while (rs.next()) {
             count++;
@@ -1266,6 +1270,7 @@ public class TestMetaData extends TestDb {
             // numServers
             assertEquals(1, count);
         }
+        rs.close();
         conn.close();
         deleteDb("metaData");
     }

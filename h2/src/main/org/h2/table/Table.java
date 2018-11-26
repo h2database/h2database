@@ -184,12 +184,24 @@ public abstract class Table extends SchemaObjectBase {
      */
     public void lockRows(Session session, Iterable<Row> rowsForUpdate) {
         for (Row row : rowsForUpdate) {
-            Row newRow = row.getCopy();
-            removeRow(session, row);
-            session.log(this, UndoLogRecord.DELETE, row);
-            addRow(session, newRow);
-            session.log(this, UndoLogRecord.INSERT, newRow);
+            lockRow(session, row);
         }
+    }
+
+    /**
+     * Locks row, preventing any updated to it, except from the session specified.
+     *
+     * @param session the session
+     * @param row to lock
+     * @return locked row, or null if row does not exist anymore
+     */
+    public Row lockRow(Session session, Row row) {
+        Row newRow = row.getCopy();
+        removeRow(session, row);
+        session.log(this, UndoLogRecord.DELETE, row);
+        addRow(session, newRow);
+        session.log(this, UndoLogRecord.INSERT, newRow);
+        return row;
     }
 
     /**

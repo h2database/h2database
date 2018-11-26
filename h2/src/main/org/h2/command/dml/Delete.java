@@ -5,6 +5,8 @@
  */
 package org.h2.command.dml;
 
+import java.util.HashSet;
+
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
@@ -18,7 +20,6 @@ import org.h2.result.RowList;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -40,6 +41,8 @@ public class Delete extends Prepared {
      */
     private TableFilter sourceTableFilter;
 
+    private HashSet<Long> keysFilter;
+
     public Delete(Session session) {
         super(session);
     }
@@ -54,6 +57,15 @@ public class Delete extends Prepared {
 
     public Expression getCondition() {
         return this.condition;
+    }
+
+    /**
+     * Sets the keys filter.
+     *
+     * @param keysFilter the keys filter
+     */
+    public void setKeysFilter(HashSet<Long> keysFilter) {
+        this.keysFilter = keysFilter;
     }
 
     @Override
@@ -79,16 +91,23 @@ public class Delete extends Prepared {
                 setCurrentRowNumber(rows.size() + 1);
                 if (condition == null || condition.getBooleanValue(session)) {
                     Row row = targetTableFilter.get();
-                    boolean done = false;
-                    if (table.fireRow()) {
-                        done = table.fireBeforeRow(session, row, null);
-                    }
-                    if (!done) {
-                        rows.add(row);
-                    }
-                    count++;
-                    if (limitRows >= 0 && count >= limitRows) {
-                        break;
+                    if (keysFilter == null || keysFilter.contains(row.getKey())) {
+                        boolean done = false;
+                        if (table.fireRow()) {
+                            done = table.fireBeforeRow(session, row, null);
+                        }
+                        if (!done) {
+                            if (table.isMVStore()) {
+                                done = table.lockRow(session, row) == null;
+                            }
+                            if (!done) {
+                                rows.add(row);
+                            }
+                        }
+                        count++;
+                        if (limitRows >= 0 && count >= limitRows) {
+                            break;
+                        }
                     }
                 }
             }
@@ -117,15 +136,15 @@ public class Delete extends Prepared {
     @Override
     public String getPlanSQL() {
         StringBuilder buff = new StringBuilder();
-        buff.append("DELETE ");
-        buff.append("FROM ").append(targetTableFilter.getPlanSQL(false));
+        buff.append("DELETE FROM ");
+        targetTableFilter.getPlanSQL(buff, false);
         if (condition != null) {
-            buff.append("\nWHERE ").append(StringUtils.unEnclose(
-                    condition.getSQL()));
+            buff.append("\nWHERE ");
+            condition.getUnenclosedSQL(buff);
         }
         if (limitExpr != null) {
-            buff.append("\nLIMIT (").append(StringUtils.unEnclose(
-                    limitExpr.getSQL())).append(')');
+            buff.append("\nLIMIT (");
+            limitExpr.getUnenclosedSQL(buff).append(')');
         }
         return buff.toString();
     }
@@ -133,9 +152,9 @@ public class Delete extends Prepared {
     @Override
     public void prepare() {
         if (condition != null) {
-            condition.mapColumns(targetTableFilter, 0);
+            condition.mapColumns(targetTableFilter, 0, Expression.MAP_INITIAL);
             if (sourceTableFilter != null) {
-                condition.mapColumns(sourceTableFilter, 0);
+                condition.mapColumns(sourceTableFilter, 0, Expression.MAP_INITIAL);
             }
             condition = condition.optimize(session);
             condition.createIndexConditions(session, targetTableFilter);

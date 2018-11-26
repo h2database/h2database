@@ -11,3 +11,9 @@ select * from test where id = (1, 2);
 
 drop table test;
 > ok
+
+SELECT 1 + 2 NOT;
+> exception SYNTAX_ERROR_2
+
+SELECT 1 NOT > 2;
+> exception SYNTAX_ERROR_2

@@ -18,12 +18,12 @@ import org.h2.engine.Mode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
-import org.h2.expression.Comparison;
-import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
+import org.h2.expression.condition.Comparison;
+import org.h2.expression.condition.ConditionAndOr;
 import org.h2.index.Index;
 import org.h2.index.PageDataIndex;
 import org.h2.message.DbException;
@@ -130,6 +130,14 @@ public class Insert extends Prepared implements ResultTarget {
     public int update() {
         Index index = null;
         if (sortedInsertMode) {
+            if (!session.getDatabase().isMVStore()) {
+                /*
+                 * Take exclusive lock, otherwise two different inserts running at
+                 * the same time, the second might accidentally get
+                 * sorted-insert-mode.
+                 */
+                table.lock(session, /* exclusive */true, /* forceLockEvenInMvcc */true);
+            }
             index = table.getScanIndex(session);
             index.setSortedInsertMode(true);
         }
@@ -297,15 +305,7 @@ public class Insert extends Prepared implements ResultTarget {
                     buff.append(",\n");
                 }
                 buff.append('(');
-                buff.resetCount();
-                for (Expression e : expr) {
-                    buff.appendExceptFirst(", ");
-                    if (e == null) {
-                        buff.append("DEFAULT");
-                    } else {
-                        buff.append(e.getSQL());
-                    }
-                }
+                Expression.writeExpressions(buff.builder(), expr);
                 buff.append(')');
             }
         } else {
@@ -333,7 +333,7 @@ public class Insert extends Prepared implements ResultTarget {
                     Expression e = expr[i];
                     if (e != null) {
                         if(sourceTableFilter!=null){
-                            e.mapColumns(sourceTableFilter, 0);
+                            e.mapColumns(sourceTableFilter, 0, Expression.MAP_INITIAL);
                         }
                         e = e.optimize(session);
                         if (e instanceof Parameter) {
@@ -421,7 +421,8 @@ public class Insert extends Prepared implements ResultTarget {
         for (Column column : duplicateKeyAssignmentMap.keySet()) {
             buff.appendExceptFirst(", ");
             Expression ex = duplicateKeyAssignmentMap.get(column);
-            buff.append(column.getSQL()).append('=').append(ex.getSQL());
+            buff.append(column.getSQL()).append('=');
+            ex.getSQL(buff.builder());
         }
         buff.append(" WHERE ");
         Index foundIndex = (Index) de.getSource();
@@ -429,7 +430,7 @@ public class Insert extends Prepared implements ResultTarget {
             throw DbException.getUnsupportedException(
                     "Unable to apply ON DUPLICATE KEY UPDATE, no index found!");
         }
-        buff.append(prepareUpdateCondition(foundIndex, row).getSQL());
+        prepareUpdateCondition(foundIndex, row).getSQL(buff.builder());
         String sql = buff.toString();
         Update command = (Update) session.prepare(sql);
         command.setUpdateToCurrentValuesReturnsZero(true);

@@ -21,8 +21,6 @@ Features
 
 <a href="#feature_list">
     Feature List</a><br />
-<a href="#comparison">
-    Comparison to Other Database Engines</a><br />
 <a href="#products_work_with">
     H2 in Use</a><br />
 <a href="#connection_modes">
@@ -159,227 +157,6 @@ encrypted using the AES-128 encryption algorithm
 </li><li>Uses a checksum for each record and log entry for data integrity
 </li><li>Well tested (high code coverage, randomized stress tests)
 </li></ul>
-
-<h2 id="comparison">Comparison to Other Database Engines</h2>
-<p>
-This comparison is based on
-H2 1.3,
-<a href="http://db.apache.org/derby">Apache Derby version 10.8</a>,
-<a href="http://hsqldb.org">HSQLDB 2.2</a>,
-<a href="https://www.mysql.com/">MySQL 5.5</a>,
-<a href="https://www.postgresql.org/">PostgreSQL 9.0</a>.
-</p>
-<table class="main">
-<tr>
-<th>Feature</th>
-<th>H2</th>
-<th>Derby</th>
-<th>HSQLDB</th>
-<th>MySQL</th>
-<th>PostgreSQL</th>
-</tr><tr>
-<td>Pure Java</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareN">No</td>
-</tr><tr>
-<td>Embedded Mode (Java)</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareN">No</td>
-</tr><tr>
-<td>In-Memory Mode</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareN">No</td>
-</tr><tr>
-</tr><tr>
-<td>Explain Plan</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes *12</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Built-in Clustering / Replication</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Encrypted Database</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes *10</td>
-<td class="compareY">Yes *10</td>
-<td class="compareN">No</td>
-<td class="compareN">No</td>
-</tr><tr>
-<td>Linked Tables</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareY">Partially *1</td>
-<td class="compareY">Partially *2</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>ODBC Driver</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Fulltext Search</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Domains (User-Defined Types)</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Files per Database</td>
-<td class="compareY">Few</td>
-<td class="compareN">Many</td>
-<td class="compareY">Few</td>
-<td class="compareN">Many</td>
-<td class="compareN">Many</td>
-</tr><tr>
-<td>Row Level Locking</td>
-<td class="compareY">Yes *9</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes *9</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Multi Version Concurrency</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Multi-Threaded Processing</td>
-<td class="compareN">No *11</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Role Based Security</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes *3</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Updatable Result Sets</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes *7</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Sequences</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Limit and Offset</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes *13</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Window Functions</td>
-<td class="compareN">No *15</td>
-<td class="compareN">No *15</td>
-<td class="compareN">No</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Temporary Tables</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes *4</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Information Schema</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No *8</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Computed Columns</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes *6</td>
-</tr><tr>
-<td>Case Insensitive Columns</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes *14</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes *6</td>
-</tr><tr>
-<td>Custom Aggregate Functions</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>CLOB/BLOB Compression</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareN">No</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Footprint (jar/dll size)</td>
-<td>~1.5 MB *5</td>
-<td>~3 MB</td>
-<td>~1.5 MB</td>
-<td>~4 MB</td>
-<td>~6 MB</td>
-</tr>
-</table>
-<p>
-*1 HSQLDB supports text tables.<br />
-*2 MySQL supports linked MySQL tables under the name 'federated tables'.<br />
-*3 Derby support for roles based security and password checking as an option.<br />
-*4 Derby only supports global temporary tables.<br />
-*5 The default H2 jar file contains debug information, jar files for other databases do not.<br />
-*6 PostgreSQL supports functional indexes.<br />
-*7 Derby only supports updatable result sets if the query is not sorted.<br />
-*8 Derby doesn't support standard compliant information schema tables.<br />
-*9 When using MVCC (multi version concurrency).<br />
-*10 Derby and HSQLDB
-    <a href="https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Electronic_Codebook_(ECB)">don't hide data patterns well</a>.<br />
-*11 The MULTI_THREADED option is not enabled by default, and with version 1.3.x not supported when using MVCC.<br />
-*12 Derby doesn't support the <code>EXPLAIN</code> statement, but it supports runtime statistics and retrieving statement execution plans.<br />
-*13 Derby doesn't support the syntax <code>LIMIT .. [OFFSET ..]</code>, however it supports <code>FETCH FIRST .. ROW[S] ONLY</code>.<br />
-*14 Using collations.
-*15 Derby and H2 support <code>ROW_NUMBER() OVER()</code>.
-</p>
 
 <h2 id="products_work_with">H2 in Use</h2>
 <p>
@@ -858,10 +635,14 @@ This database synchronizes access to the same connection, but other databases ma
 To get higher concurrency, you need to use multiple connections.
 </p>
 <p>
-By default, requests to the same database are synchronized.
-That means an application can use multiple threads that access the same database
-at the same time, however if one thread executes a long running query, the other threads need to wait.
-To enable concurrent database usage, see the setting <code>MULTI_THREADED</code>.
+An application can use multiple threads that access the same database at the same time.
+With default MVStore engine threads that use different connections can use the database concurrently.
+With PageStore engine requests to the same database are synchronized,
+that means that if one thread executes a long running query, the other threads need to wait.
+Concurrent database usage may be enabled for PageStore or disabled for MVStore
+with <code>MULTI_THREADED</code> setting.
+Note that multi-threaded mode for PageStore engine is not tested well and has some issues;
+it should be used with caution.
 </p>
 
 <h3>Locking, Lock-Timeout, Deadlocks</h3>
@@ -933,6 +714,9 @@ The initial lock timeout (that is the timeout used for new connections) can be s
 To avoid deadlocks, ensure that all transactions lock the tables in the same order
 (for example in alphabetical order), and avoid upgrading read locks to write locks.
 Both can be achieved using explicitly locking tables using <code>SELECT ... FOR UPDATE</code>.
+</p><p>
+Note that delete, insert and update operations issue table level locks with PageStore engine,
+but does not issue them with default MVStore engine.
 </p>
 
 <h2 id="database_file_layout">Database File Layout</h2>
@@ -1049,6 +833,7 @@ or the SQL statement <code>SET MODE DB2</code>.
     results in the other value.
 </li><li>Support the pseudo-table SYSIBM.SYSDUMMY1.
 </li><li>Timestamps with dash between date and time are supported.
+</li><li>Datetime value functions return the same value within a command.
 </li></ul>
 
 <h3>Derby Compatibility Mode</h3>
@@ -1064,6 +849,7 @@ or the SQL statement <code>SET MODE Derby</code>.
 </li><li>Concatenating <code>NULL</code> with another value
     results in the other value.
 </li><li>Support the pseudo-table SYSIBM.SYSDUMMY1.
+</li><li>Datetime value functions return the same value within a command.
 </li></ul>
 
 <h3>HSQLDB Compatibility Mode</h3>
@@ -1079,6 +865,7 @@ or the SQL statement <code>SET MODE HSQLDB</code>.
 </li><li>For unique indexes, <code>NULL</code> is distinct.
     That means only one row with <code>NULL</code> in one of the columns is allowed.
 </li><li>Text can be concatenated using '+'.
+</li><li>Datetime value functions return the same value within a command.
 </li></ul>
 
 <h3>MS SQL Server Compatibility Mode</h3>
@@ -1097,6 +884,9 @@ or the SQL statement <code>SET MODE MSSQLServer</code>.
 </li><li>Text can be concatenated using '+'.
 </li><li>MONEY data type is treated like NUMERIC(19, 4) data type. SMALLMONEY data type is treated like NUMERIC(10, 4)
     data type.
+</li><li><code>IDENTITY</code> can be used for automatic id generation on column level.
+</li><li>Table hints are discarded. Example: <code>SELECT * FROM table WITH (NOLOCK)</code>.
+</li><li>Datetime value functions return the same value within a command.
 </li></ul>
 
 <h3>MySQL Compatibility Mode</h3>
@@ -1119,6 +909,7 @@ or the SQL statement <code>SET MODE MySQL</code>. Use this mode for compatibilit
 </li><li>ON DUPLICATE KEY UPDATE is supported in INSERT statements.
 </li><li>INSERT IGNORE is partially supported and may be used to skip rows with duplicate keys if ON DUPLICATE KEY UPDATE is not specified.
 </li><li>REGEXP_REPLACE() uses \ for back-references for compatibility with MariaDB.
+</li><li>Datetime value functions return the same value within a command.
 </li></ul>
 <p>
 Text comparison in MySQL is case insensitive by default, while in H2 it is case sensitive (as in most other databases).
@@ -1143,6 +934,7 @@ or the SQL statement <code>SET MODE Oracle</code>.
 </li><li>Empty strings are treated like <code>NULL</code> values.
 </li><li>REGEXP_REPLACE() uses \ for back-references.
 </li><li>DATE data type is treated like TIMESTAMP(0) data type.
+</li><li>Datetime value functions return the same value within a command.
 </li></ul>
 
 <h3>PostgreSQL Compatibility Mode</h3>
@@ -1158,9 +950,16 @@ or the SQL statement <code>SET MODE PostgreSQL</code>.
 </li><li>The system columns <code>CTID</code> and
     <code>OID</code> are supported.
 </li><li>LOG(x) is base 10 in this mode.
-</li><li>REGEXP_REPLACE() uses \ for back-references.
+</li><li>REGEXP_REPLACE():
+    <ul>
+    <li>uses \ for back-references;</li>
+    <li>does not throw an exception when the <code>flagsString</code> parameter contains a 'g';</li>
+    <li>replaces only the first matched substring in the absence of the 'g' flag in the <code>flagsString</code> parameter.</li>
+    </ul>
 </li><li>Fixed-width strings are padded with spaces.
 </li><li>MONEY data type is treated like NUMERIC(19, 2) data type.
+</li><li>Datetime value functions return the same value within a transaction.
+</li><li>ANY and SOME after comparison operators are parsed as array comparison operators.
 </li></ul>
 
 <h3>Ignite Compatibility Mode</h3>
@@ -1172,6 +971,7 @@ or the SQL statement <code>SET MODE Ignite</code>.
     <code>INDEX(..)</code> or <code>KEY(..)</code>.
     Example: <code>create table test(id int primary key, name varchar(255), key idx_name(name));</code>
 </li><li>AFFINITY KEY and SHARD KEY keywords may be used in index definition.
+</li><li>Datetime value functions return the same value within a transaction.
 </li></ul>
 
 <h2 id="auto_reconnect">Auto-Reconnect</h2>

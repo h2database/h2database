@@ -31,11 +31,11 @@ import org.h2.command.CommandInterface;
 import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
+import org.h2.result.MergedResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultWithGeneratedKeys;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.MergedResultSet;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -63,7 +63,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
     protected CommandInterface command;
     private final String sqlStatement;
     private ArrayList<Value[]> batchParameters;
-    private MergedResultSet batchIdentities;
+    private MergedResult batchIdentities;
     private HashMap<String, Integer> cachedColumnLabelMap;
     private final Object generatedKeysRequest;
 
@@ -1236,6 +1236,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
         try {
             super.close();
             batchParameters = null;
+            batchIdentities = null;
             if (command != null) {
                 command.close();
                 command = null;
@@ -1259,7 +1260,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                 // Empty batch is allowed, see JDK-4639504 and other issues
                 batchParameters = Utils.newSmallArrayList();
             }
-            batchIdentities = new MergedResultSet();
+            batchIdentities = new MergedResult();
             int size = batchParameters.size();
             int[] result = new int[size];
             boolean error = false;
@@ -1279,7 +1280,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                         result[i] = executeUpdateInternal();
                         // Cannot use own implementation, it returns batch identities
                         ResultSet rs = super.getGeneratedKeys();
-                        batchIdentities.add(rs);
+                        batchIdentities.add(((JdbcResultSet) rs).result);
                     } catch (Exception re) {
                         SQLException e = logAndConvert(re);
                         if (next == null) {
@@ -1308,7 +1309,12 @@ public class JdbcPreparedStatement extends JdbcStatement implements
     @Override
     public ResultSet getGeneratedKeys() throws SQLException {
         if (batchIdentities != null) {
-            return batchIdentities.getResult();
+            int id = getNextId(TraceObject.RESULT_SET);
+            if (isDebugEnabled()) {
+                debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "getGeneratedKeys()");
+            }
+            checkClosed();
+            generatedKeys = new JdbcResultSet(conn, this, null, batchIdentities.getResult(), id, false, true, false);
         }
         return super.getGeneratedKeys();
     }

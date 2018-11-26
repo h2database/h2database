@@ -33,10 +33,10 @@ public class ExpressionVisitor {
             new ExpressionVisitor(INDEPENDENT);
 
     /**
-     * Are all aggregates MIN(column), MAX(column), or COUNT(*) for the given
-     * table (getTable)?
+     * Are all aggregates MIN(column), MAX(column), COUNT(*), MEDIAN(column),
+     * ENVELOPE(count) for the given table (getTable)?
      */
-    public static final int OPTIMIZABLE_MIN_MAX_COUNT_ALL = 1;
+    public static final int OPTIMIZABLE_AGGREGATE = 1;
 
     /**
      * Does the expression return the same results for the same parameters?
@@ -209,7 +209,7 @@ public class ExpressionVisitor {
      * @return the new visitor
      */
     public static ExpressionVisitor getOptimizableVisitor(Table table) {
-        return new ExpressionVisitor(OPTIMIZABLE_MIN_MAX_COUNT_ALL, 0, null,
+        return new ExpressionVisitor(OPTIMIZABLE_AGGREGATE, 0, null,
                 null, table, null, null, null);
     }
 
@@ -220,7 +220,7 @@ public class ExpressionVisitor {
      * @param resolver the resolver
      * @return the new visitor
      */
-    static ExpressionVisitor getNotFromResolverVisitor(ColumnResolver resolver) {
+    public static ExpressionVisitor getNotFromResolverVisitor(ColumnResolver resolver) {
         return new ExpressionVisitor(NOT_FROM_RESOLVER, 0, null, null, null,
                 resolver, null, null);
     }

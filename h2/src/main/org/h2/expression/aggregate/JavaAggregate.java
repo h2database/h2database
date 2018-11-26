@@ -17,7 +17,6 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.StatementBuilder;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -68,15 +67,11 @@ public class JavaAggregate extends AbstractAggregate {
     }
 
     @Override
-    public String getSQL() {
-        StatementBuilder buff = new StatementBuilder();
-        buff.append(Parser.quoteIdentifier(userAggregate.getName())).append('(');
-        for (Expression e : args) {
-            buff.appendExceptFirst(", ");
-            buff.append(e.getSQL());
-        }
-        buff.append(')');
-        return appendTailConditions(buff.builder()).toString();
+    public StringBuilder getSQL(StringBuilder builder) {
+        Parser.quoteIdentifier(builder, userAggregate.getName()).append('(');
+        writeExpressions(builder, args);
+        builder.append(')');
+        return appendTailConditions(builder);
     }
 
     @Override
@@ -86,11 +81,14 @@ public class JavaAggregate extends AbstractAggregate {
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
+        if (!super.isEverything(visitor)) {
+            return false;
+        }
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
             // TODO optimization: some functions are deterministic, but we don't
             // know (no setting for that)
-        case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
+        case ExpressionVisitor.OPTIMIZABLE_AGGREGATE:
             // user defined aggregate functions can not be optimized
             return false;
         case ExpressionVisitor.GET_DEPENDENCIES:
@@ -107,11 +105,11 @@ public class JavaAggregate extends AbstractAggregate {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public void mapColumnsAnalysis(ColumnResolver resolver, int level, int innerState) {
         for (Expression arg : args) {
-            arg.mapColumns(resolver, level);
+            arg.mapColumns(resolver, level, innerState);
         }
-        super.mapColumns(resolver, level);
+        super.mapColumnsAnalysis(resolver, level, innerState);
     }
 
     @Override
@@ -131,9 +129,6 @@ public class JavaAggregate extends AbstractAggregate {
             dataType = aggregate.getInternalType(argTypes);
         } catch (SQLException e) {
             throw DbException.convert(e);
-        }
-        if (filterCondition != null) {
-            filterCondition = filterCondition.optimize(session);
         }
         return this;
     }
@@ -209,7 +204,7 @@ public class JavaAggregate extends AbstractAggregate {
                     arg = arg.convertTo(argTypes[i]);
                     argValues[i] = arg;
                 }
-                data.add(session.getDatabase(), dataType, true, args.length == 1 ? arg : ValueArray.get(argValues));
+                data.add(session.getDatabase(), dataType, args.length == 1 ? arg : ValueArray.get(argValues));
             } else {
                 Aggregate agg = (Aggregate) aggregateData;
                 Object[] argValues = new Object[args.length];
@@ -229,6 +224,7 @@ public class JavaAggregate extends AbstractAggregate {
 
     @Override
     protected void updateGroupAggregates(Session session, int stage) {
+        super.updateGroupAggregates(session, stage);
         for (Expression expr : args) {
             expr.updateAggregate(session, stage);
         }
@@ -253,7 +249,7 @@ public class JavaAggregate extends AbstractAggregate {
 
     @Override
     protected Object createAggregateData() {
-        return distinct ? new AggregateDataCollecting() : getInstance();
+        return distinct ? new AggregateDataCollecting(true) : getInstance();
     }
 
 }

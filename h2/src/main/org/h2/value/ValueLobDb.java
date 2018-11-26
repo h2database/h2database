@@ -176,7 +176,7 @@ public class ValueLobDb extends Value {
     private static String createTempLobFileName(DataHandler handler)
             throws IOException {
         String path = handler.getDatabasePath();
-        if (path.length() == 0) {
+        if (path.isEmpty()) {
             path = SysProperties.PREFIX_TEMP_FILE;
         }
         return FileUtils.createTempFile(path, Constants.SUFFIX_TEMP_FILE, true, true);
@@ -461,15 +461,14 @@ public class ValueLobDb extends Value {
     }
 
     @Override
-    public String getSQL() {
-        String s;
+    public StringBuilder getSQL(StringBuilder builder) {
         if (valueType == Value.CLOB) {
-            s = getString();
-            return StringUtils.quoteStringSQL(s);
+            StringUtils.quoteStringSQL(builder, getString());
+        } else {
+            builder.append("X'");
+            StringUtils.convertBytesToHex(builder, getBytes()).append('\'');
         }
-        byte[] buff = getBytes();
-        s = StringUtils.convertBytesToHex(buff);
-        return "X'" + s + "'";
+        return builder;
     }
 
     @Override

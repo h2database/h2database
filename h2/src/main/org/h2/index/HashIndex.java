@@ -40,7 +40,7 @@ public class HashIndex extends BaseIndex {
     }
 
     private void reset() {
-        rows = ValueHashMap.newInstance();
+        rows = new ValueHashMap<>();
     }
 
     @Override

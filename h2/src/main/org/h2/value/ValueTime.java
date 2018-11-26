@@ -138,8 +138,10 @@ public class ValueTime extends Value {
     }
 
     @Override
-    public String getSQL() {
-        return "TIME '" + getString() + "'";
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append("TIME '");
+        DateTimeUtils.appendTime(builder, nanos);
+        return builder.append('\'');
     }
 
     @Override
@@ -226,16 +228,6 @@ public class ValueTime extends Value {
     @Override
     public Value divide(Value v) {
         return ValueTime.fromNanos((long) (nanos / v.getDouble()));
-    }
-
-    @Override
-    public int getSignum() {
-        return Long.signum(nanos);
-    }
-
-    @Override
-    public Value negate() {
-        return ValueTime.fromNanos(-nanos);
     }
 
 }

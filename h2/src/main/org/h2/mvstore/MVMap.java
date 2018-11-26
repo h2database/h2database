@@ -391,6 +391,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *
      * @param key the key
      * @return the value, or null if not found
+     * @throws ClassCastException if type of the specified key is not compatible with this map
      */
     @Override
     public final V get(Object key) {
@@ -403,6 +404,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param p the root of a snapshot
      * @param key the key
      * @return the value, or null if not found
+     * @throws ClassCastException if type of the specified key is not compatible with this map
      */
     @SuppressWarnings("unchecked")
     public V get(Page p, Object key) {
@@ -445,6 +447,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *
      * @param key the key (may not be null)
      * @return the old value if the key existed, or null otherwise
+     * @throws ClassCastException if type of the specified key is not compatible with this map
      */
     @Override
     @SuppressWarnings("unchecked")
@@ -950,10 +953,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     /**
-     * Get the number of entries, as a integer. Integer.MAX_VALUE is returned if
-     * there are more than this entries.
+     * Get the number of entries, as a integer. {@link Integer#MAX_VALUE} is
+     * returned if there are more than this entries.
      *
      * @return the number of entries, as an integer
+     * @see #sizeAsLong()
      */
     @Override
     public final int size() {
@@ -989,7 +993,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param memory the number of bytes used for this page
      */
     protected final void removePage(long pos, int memory) {
-        store.removePage(this, pos, memory);
+        store.removePage(pos, memory);
     }
 
     /**
@@ -1049,7 +1053,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return version
      */
     public final long getVersion() {
-        RootReference rootReference = getRoot();
+        return getVersion(getRoot());
+    }
+
+    private long getVersion(RootReference rootReference) {
         RootReference previous = rootReference.previous;
         return previous == null || previous.root != rootReference.root ||
                 previous.appendCounter != rootReference.appendCounter ?
@@ -1057,7 +1064,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     final boolean hasChangesSince(long version) {
-        return getVersion() > version;
+        RootReference rootReference = getRoot();
+        Page root = rootReference.root;
+        return !root.isSaved() && root.getTotalCount() > 0 ||
+                getVersion(rootReference) > version;
     }
 
     public boolean isSingleWriter() {
@@ -1149,28 +1159,33 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         MVStore.TxCounter txCounter = store.registerVersionUsage();
         try {
             beforeWrite();
-            setRoot(copy(sourceMap.getRootPage()));
+            copy(sourceMap.getRootPage(), null, 0);
         } finally {
             store.deregisterVersionUsage(txCounter);
         }
     }
 
-    private Page copy(Page source) {
+    private Page copy(Page source, Page parent, int index) {
         Page target = source.copy(this);
-        store.registerUnsavedPage(target.getMemory());
+        if (parent == null) {
+            setRoot(target);
+        } else {
+            parent.setChild(index, target);
+        }
         if (!source.isLeaf()) {
             for (int i = 0; i < getChildPageCount(target); i++) {
                 if (source.getChildPagePos(i) != 0) {
                     // position 0 means no child
                     // (for example the last entry of an r-tree node)
                     // (the MVMap is also used for r-trees for compacting)
-                    Page child = copy(source.getChildPage(i));
-                    target.setChild(i, child);
+                    copy(source.getChildPage(i), target, i);
                 }
             }
-
-            setRoot(target);
-            beforeWrite();
+            target.setComplete();
+        }
+        store.registerUnsavedPage(target.getMemory());
+        if (store.isSaveNeeded()) {
+            store.commit();
         }
         return target;
     }
@@ -1182,14 +1197,13 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return potentially updated RootReference
      */
     private RootReference flushAppendBuffer(RootReference rootReference) {
-        beforeWrite();
         int attempt = 0;
         int keyCount;
         while((keyCount = rootReference.getAppendCounter()) > 0) {
-            Page page = Page.create(this,
+            Page page = Page.createLeaf(this,
                     Arrays.copyOf(keysBuffer, keyCount),
                     Arrays.copyOf(valuesBuffer, keyCount),
-                    null, keyCount, 0);
+                    0);
             CursorPos pos = rootReference.root.getAppendCursorPos(null);
             assert page.map == this;
             assert pos != null;
@@ -1211,7 +1225,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                         Page.PageReference children[] = new Page.PageReference[] {
                                                             new Page.PageReference(p),
                                                             new Page.PageReference(page)};
-                        p = Page.create(this, keys, null, children, p.getTotalCount() + page.getTotalCount(), 0);
+                        p = Page.createNode(this, keys, children, p.getTotalCount() + page.getTotalCount(), 0);
                     }
                     break;
                 }
@@ -1272,6 +1286,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             RootReference rootReference = getRootInternal();
             int appendCounter = rootReference.getAppendCounter();
             if (appendCounter >= keysPerPage) {
+                beforeWrite();
                 rootReference = flushAppendBuffer(rootReference);
                 appendCounter = rootReference.getAppendCounter();
                 assert appendCounter < keysPerPage;
@@ -1780,7 +1795,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                                             new Page.PageReference(p),
                                             new Page.PageReference(split)
                                     };
-                                    p = Page.create(this, keys, null, children, totalCount, 0);
+                                    p = Page.createNode(this, keys, children, totalCount, 0);
                                     break;
                                 }
                                 Page c = p;

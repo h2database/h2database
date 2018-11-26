@@ -49,12 +49,13 @@ public class CompareModeIcu4J extends CompareMode {
                     "com.ibm.icu.text.Collator");
             Method getInstanceMethod = collatorClass.getMethod(
                     "getInstance", Locale.class);
-            if (name.length() == 2) {
+            int length = name.length();
+            if (length == 2) {
                 Locale locale = new Locale(StringUtils.toLowerEnglish(name), "");
                 if (compareLocaleNames(locale, name)) {
                     result = (Comparator<String>) getInstanceMethod.invoke(null, locale);
                 }
-            } else if (name.length() == 5) {
+            } else if (length == 5) {
                 // LL_CC (language_country)
                 int idx = name.indexOf('_');
                 if (idx >= 0) {

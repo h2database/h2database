@@ -90,6 +90,8 @@ public class GenerateDoc {
                 help + "= 'Functions (Time and Date)' ORDER BY ID", true, false);
         map("functionsSystem",
                 help + "= 'Functions (System)' ORDER BY ID", true, false);
+        map("functionsWindow",
+                help + "= 'Functions (Window)' ORDER BY ID", true, false);
         map("dataTypes",
                 help + "LIKE 'Data Types%' ORDER BY SECTION, ID", true, true);
         map("intervalDataTypes",
@@ -176,6 +178,7 @@ public class GenerateDoc {
                     text = StringUtils.replaceAll(text,
                             "<br />", " ");
                     text = addCode(text);
+                    text = addLinks(text);
                     map.put("text", text);
                 }
 
@@ -252,4 +255,42 @@ public class GenerateDoc {
         s = StringUtils.replaceAll(s, "<code>GB</code>", "GB");
         return s;
     }
+
+    private static String addLinks(String text) {
+        int start = nextLink(text, 0);
+        if (start < 0) {
+            return text;
+        }
+        StringBuilder buff = new StringBuilder(text.length());
+        int len = text.length();
+        int offset = 0;
+        do {
+            int end = start + 7;
+            for (; end < len && !Character.isWhitespace(text.charAt(end)); end++) {
+                // Nothing to do
+            }
+            buff.append(text, offset, start) //
+                    .append("<a href=\"").append(text, start, end).append("\">") //
+                    .append(text, start, end) //
+                    .append("</a>");
+            offset = end;
+        } while ((start = nextLink(text, offset)) >= 0);
+        return buff.append(text, offset, len).toString();
+    }
+
+    private static int nextLink(String text, int i) {
+        int found = -1;
+        found = findLink(text, i, "http://", found);
+        found = findLink(text, i, "https://", found);
+        return found;
+    }
+
+    private static int findLink(String text, int offset, String prefix, int found) {
+        int idx = text.indexOf(prefix, offset);
+        if (idx >= 0 && (found < 0 || idx < found)) {
+            found = idx;
+        }
+        return found;
+    }
+
 }

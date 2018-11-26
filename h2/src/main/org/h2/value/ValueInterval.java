@@ -5,6 +5,11 @@
  */
 package org.h2.value;
 
+import static org.h2.util.DateTimeUtils.NANOS_PER_DAY;
+import static org.h2.util.DateTimeUtils.NANOS_PER_HOUR;
+import static org.h2.util.DateTimeUtils.NANOS_PER_MINUTE;
+import static org.h2.util.DateTimeUtils.NANOS_PER_SECOND;
+
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
@@ -66,13 +71,15 @@ public class ValueInterval extends Value {
 
     /**
      * Returns display size for the specified qualifier, precision and
+     * fractional seconds precision.
      *
      * @param type
      *            the value type
      * @param precision
      *            leading field precision
      * @param scale
-     *            fractional seconds precision
+     *            fractional seconds precision. Ignored if specified type of
+     *            interval does not have seconds.
      */
     public static int getDisplaySize(int type, int precision, int scale) {
         switch (type) {
@@ -131,8 +138,8 @@ public class ValueInterval extends Value {
     }
 
     @Override
-    public String getSQL() {
-        return getString();
+    public StringBuilder getSQL(StringBuilder builder) {
+        return IntervalUtils.appendInterval(builder, getQualifier(), negative, leading, remaining);
     }
 
     @Override
@@ -169,28 +176,28 @@ public class ValueInterval extends Value {
         }
         long l = leading;
         switch (type) {
-        case Value.INTERVAL_SECOND:
-            if (r >= 1_000_000_000) {
+        case INTERVAL_SECOND:
+            if (r >= NANOS_PER_SECOND) {
                 l++;
-                r -= 1_000_000_000;
+                r -= NANOS_PER_SECOND;
             }
             break;
-        case Value.INTERVAL_DAY_TO_SECOND:
-            if (r >= DateTimeUtils.NANOS_PER_DAY) {
+        case INTERVAL_DAY_TO_SECOND:
+            if (r >= NANOS_PER_DAY) {
                 l++;
-                r -= DateTimeUtils.NANOS_PER_DAY;
+                r -= NANOS_PER_DAY;
             }
             break;
-        case Value.INTERVAL_HOUR_TO_SECOND:
-            if (r >= 3_600_000_000_000L) {
+        case INTERVAL_HOUR_TO_SECOND:
+            if (r >= NANOS_PER_HOUR) {
                 l++;
-                r -= 3_600_000_000_000L;
+                r -= NANOS_PER_HOUR;
             }
             break;
-        case Value.INTERVAL_MINUTE_TO_SECOND:
-            if (r >= 60_000_000_000L) {
+        case INTERVAL_MINUTE_TO_SECOND:
+            if (r >= NANOS_PER_MINUTE) {
                 l++;
-                r -= 60_000_000_000L;
+                r -= NANOS_PER_MINUTE;
             }
             break;
         }
@@ -204,7 +211,8 @@ public class ValueInterval extends Value {
 
     @Override
     public String getString() {
-        return IntervalUtils.intervalToString(getQualifier(), negative, leading, remaining);
+        return IntervalUtils.appendInterval(new StringBuilder(), getQualifier(), negative, leading, remaining)
+                .toString();
     }
 
     @Override

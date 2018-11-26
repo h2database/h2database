@@ -46,6 +46,8 @@ import org.h2.api.Aggregate;
 import org.h2.api.AggregateFunction;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
+import org.h2.expression.function.ToDateParser;
+import org.h2.expression.function.ToChar.Capitalization;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -55,8 +57,6 @@ import org.h2.tools.SimpleResultSet;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
-import org.h2.util.ToChar.Capitalization;
-import org.h2.util.ToDateParser;
 import org.h2.value.Value;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
@@ -440,7 +440,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         stat.execute("create alias dynamic deterministic for \"" +
                 getClass().getName() + ".dynamic\"");
         setCount(0);
-        rs = stat.executeQuery("call dynamic(('a', 1))[0]");
+        rs = stat.executeQuery("call dynamic(('a', 1))[1]");
         rs.next();
         String a = rs.getString(1);
         assertEquals("a1", a);
@@ -963,7 +963,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertEquals(0, ((Integer) array[0]).intValue());
         assertEquals("Hello", (String) array[1]);
         assertThrows(ErrorCode.INVALID_VALUE_2, a).getArray(1, -1);
-        assertThrows(ErrorCode.INVALID_VALUE_2, a).getArray(1, 3);
+        assertEquals(2, ((Object[]) a.getArray(1, 3)).length);
         assertEquals(0, ((Object[]) a.getArray(1, 0)).length);
         assertEquals(0, ((Object[]) a.getArray(2, 0)).length);
         assertThrows(ErrorCode.INVALID_VALUE_2, a).getArray(0, 0);

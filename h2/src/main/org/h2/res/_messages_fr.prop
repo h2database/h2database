@@ -149,8 +149,8 @@
 90116=Les littérals de ce type ne sont pas permis
 90117=Les connexions à distance à ce serveur ne sont pas autorisées, voir -tcpAllowOthers
 90118=Impossible de supprimer la table {0}
-90119=Le type de données utilisateur {0} existe déjà
-90120=Type de données utilisateur {0} non trouvé
+90119=Le domaine {0} existe déjà
+90120=Le domaine {0} non trouvé
 90121=La base de données est déjà fermée (pour désactiver la fermeture automatique à l''arrêt de la VM, ajoutez "; DB_CLOSE_ON_EXIT = FALSE" à l''URL db)
 90122=#The WITH TIES clause is not allowed without a corresponding ORDER BY clause.
 90123=Impossible de mélanger des paramètres indexés et non-indexés
@@ -166,7 +166,7 @@
 90133=Impossible de changer le paramétrage {0} lorsque la base de données est déjà ouverte
 90134=L''accès à la classe {0} est interdit
 90135=La base de données est ouverte en mode exclusif; impossible d''ouvrir des connexions additionnelles
-90136=Condition de jointure extérieure non prise en charge: {0}
+90136=#Window not found: {0}
 90137=Peut seulement être assigné à une variable, pas à: {0}
 90138=Nom de la base de données invalide: {0}
 90139=La méthode Java public static n''a pas été trouvée: {0}
@@ -175,6 +175,7 @@
 90142=La taille de l''étape ne doit pas être de 0
 90143=#Row {1} not found in primary index {0}
 90144=#Authenticator not enabled on database {0}
+90145=#FOR UPDATE is not allowed in DISTINCT or grouped select
 HY000=Erreur générale: {0}
 HY004=Type de données inconnu: {0}
 HYC00=Fonctionnalité non supportée: {0}

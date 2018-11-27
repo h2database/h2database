@@ -2620,6 +2620,7 @@ public class Parser {
         Select command = new Select(session);
         int start = lastParseIndex;
         Select oldSelect = currentSelect;
+        Prepared oldPrepared = currentPrepared;
         currentSelect = command;
         currentPrepared = command;
         if (fromFirst) {
@@ -2676,6 +2677,7 @@ public class Parser {
         }
         command.setParameterList(parameters);
         currentSelect = oldSelect;
+        currentPrepared = oldPrepared;
         setSQL(command, "SELECT", start);
         return command;
     }

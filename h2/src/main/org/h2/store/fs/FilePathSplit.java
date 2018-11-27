@@ -186,6 +186,8 @@ public class FilePathSplit extends FilePathWrapper {
             FilePath o = getBase(i);
             if (o.exists()) {
                 o.moveTo(newName.getBase(i), atomicReplace);
+            } else if (newName.getBase(i).exists()) {
+                newName.getBase(i).delete();
             } else {
                 break;
             }

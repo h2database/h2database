@@ -31,7 +31,6 @@ public class ConditionIn extends Condition {
     private final Database database;
     private Expression left;
     private final ArrayList<Expression> valueList;
-    private int queryLevel;
 
     /**
      * Create a new IN(..) condition.
@@ -53,8 +52,6 @@ public class ConditionIn extends Condition {
         if (l == ValueNull.INSTANCE) {
             return l;
         }
-        boolean result = false;
-        boolean hasNull = false;
         int size = valueList.size();
         if (size == 1) {
             Expression e = valueList.get(0);
@@ -62,6 +59,8 @@ public class ConditionIn extends Condition {
                 return ConditionInParameter.getValue(database, l, e.getValue(session));
             }
         }
+        boolean result = false;
+        boolean hasNull = false;
         for (int i = 0; i < size; i++) {
             Expression e = valueList.get(i);
             Value r = e.getValue(session);
@@ -86,7 +85,6 @@ public class ConditionIn extends Condition {
         for (Expression e : valueList) {
             e.mapColumns(resolver, level, state);
         }
-        this.queryLevel = Math.max(level, this.queryLevel);
     }
 
     @Override

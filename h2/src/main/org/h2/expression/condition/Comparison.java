@@ -6,7 +6,6 @@
 package org.h2.expression.condition;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -575,23 +574,25 @@ public class Comparison extends Condition {
                 }
             } else {
                 // a=b OR a=c
-                Database db = session.getDatabase();
                 if (rc && r2c && l.equals(l2)) {
-                    return new ConditionIn(db, left,
-                            new ArrayList<>(Arrays.asList(right, other.right)));
+                    return getConditionIn(session, left, right, other.right);
                 } else if (rc && l2c && l.equals(r2)) {
-                    return new ConditionIn(db, left,
-                            new ArrayList<>(Arrays.asList(right, other.left)));
+                    return getConditionIn(session, left, right, other.left);
                 } else if (lc && r2c && r.equals(l2)) {
-                    return new ConditionIn(db, right,
-                            new ArrayList<>(Arrays.asList(left, other.right)));
+                    return getConditionIn(session, right, left, other.right);
                 } else if (lc && l2c && r.equals(r2)) {
-                    return new ConditionIn(db, right,
-                            new ArrayList<>(Arrays.asList(left, other.left)));
+                    return getConditionIn(session, right, left, other.left);
                 }
             }
         }
         return null;
+    }
+
+    private static ConditionIn getConditionIn(Session session, Expression left, Expression value1, Expression value2) {
+        ArrayList<Expression> right = new ArrayList<>(2);
+        right.add(value1);
+        right.add(value2);
+        return new ConditionIn(session.getDatabase(), left, right);
     }
 
     @Override

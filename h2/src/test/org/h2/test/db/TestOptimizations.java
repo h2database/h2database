@@ -84,6 +84,7 @@ public class TestOptimizations extends TestDb {
         testOrderedIndexes();
         testIndexUseDespiteNullsFirst();
         testConvertOrToIn();
+        testConditionAndOrDistributiveLaw();
         deleteDb("optimizations");
     }
 
@@ -1175,6 +1176,32 @@ public class TestOptimizations extends TestDb {
         rs = stat.executeQuery("EXPLAIN ANALYZE SELECT MAX(id) FROM table_b GROUP BY table_a_id");
         rs.next();
         assertContains(rs.getString(1), "/* PUBLIC.TABLE_B_IDX");
+        conn.close();
+    }
+
+    private void testConditionAndOrDistributiveLaw() throws SQLException {
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE IF NOT EXISTS TABLE_A (" +
+                "id int(10) NOT NULL AUTO_INCREMENT, " +
+                "name VARCHAR(30) NOT NULL," +
+                "occupation VARCHAR(20)," +
+                "age int(10)," +
+                "salary int(10)," +
+                "PRIMARY KEY(id))");
+        stat.execute("INSERT INTO TABLE_A (name,occupation,age,salary) VALUES" +
+                "('mark', 'doctor',25,5000)," +
+                "('kevin', 'artist',20,4000)," +
+                "('isuru', 'engineer',25,5000)," +
+                "('josaph', 'businessman',30,7000)," +
+                "('sajeewa', 'analyst',24,5000)," +
+                "('randil', 'engineer',25,5000)," +
+                "('ashan', 'developer',24,5000)");
+        ResultSet rs = stat.executeQuery("SELECT * FROM TABLE_A WHERE (salary = 5000 AND name = 'isuru') OR" +
+                "(age = 25 AND name = 'isuru') ");
+        rs.next();
+        assertTrue("engineer".equals(rs.getString("occupation")));
         conn.close();
     }
 }

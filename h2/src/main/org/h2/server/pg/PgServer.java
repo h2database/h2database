@@ -79,7 +79,7 @@ public class PgServer implements Service {
     private String baseDir;
     private boolean allowOthers;
     private boolean isDaemon;
-    private boolean ifExists;
+    private boolean ifExists = true;
     private String key, keyDatabase;
 
     @Override
@@ -100,6 +100,8 @@ public class PgServer implements Service {
                 isDaemon = true;
             } else if (Tool.isOption(a, "-ifExists")) {
                 ifExists = true;
+            } else if (Tool.isOption(a, "-ifNotExists")) {
+                ifExists = false;
             } else if (Tool.isOption(a, "-key")) {
                 key = args[++i];
                 keyDatabase = args[++i];

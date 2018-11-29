@@ -63,7 +63,7 @@ public class TcpServer implements Service {
     private String baseDir;
     private boolean allowOthers;
     private boolean isDaemon;
-    private boolean ifExists;
+    private boolean ifExists = true;
     private Connection managementDb;
     private PreparedStatement managementDbAdd;
     private PreparedStatement managementDbRemove;
@@ -187,6 +187,8 @@ public class TcpServer implements Service {
                 isDaemon = true;
             } else if (Tool.isOption(a, "-ifExists")) {
                 ifExists = true;
+            } else if (Tool.isOption(a, "-ifNotExists")) {
+                ifExists = false;
             }
         }
         org.h2.Driver.load();

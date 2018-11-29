@@ -264,7 +264,8 @@ public class TestWeb extends TestDb {
                 getUser(), getPassword());
         Server server = new Server();
         server.setOut(new PrintStream(new ByteArrayOutputStream()));
-        server.runTool("-ifExists", "-web", "-webPort", "8182",
+        // -ifExists is the default
+        server.runTool("-web", "-webPort", "8182",
                 "-properties", "null", "-tcp", "-tcpPort", "9101");
         try {
             String url = "http://localhost:8182";
@@ -288,6 +289,7 @@ public class TestWeb extends TestDb {
             server.shutdown();
             conn.close();
         }
+
     }
 
     private void testWebApp() throws Exception {

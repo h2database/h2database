@@ -164,7 +164,7 @@ public class WebServer implements Service {
     private String url;
     private ShutdownHandler shutdownHandler;
     private Thread listenerThread;
-    private boolean ifExists;
+    private boolean ifExists = true;
     private boolean trace;
     private TranslateThread translateThread;
     private boolean allowChunked = true;
@@ -294,6 +294,8 @@ public class WebServer implements Service {
                 SysProperties.setBaseDir(baseDir);
             } else if (Tool.isOption(a, "-ifExists")) {
                 ifExists = true;
+            } else if (Tool.isOption(a, "-ifNotExists")) {
+                ifExists = false;
             } else if (Tool.isOption(a, "-properties")) {
                 // already set
                 i++;

@@ -1308,7 +1308,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         int attempt = 0;
         boolean success;
         do {
-            RootReference rootReference = getRoot();
+            RootReference rootReference = getRootInternal();
             int appendCounter = rootReference.getAppendCounter();
             if (appendCounter > 0) {
                 RootReference updatedRootReference = new RootReference(rootReference, appendCounter - 1, ++attempt);

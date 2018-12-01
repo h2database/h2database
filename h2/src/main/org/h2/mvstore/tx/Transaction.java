@@ -60,7 +60,7 @@ public class Transaction {
      */
     private static final int STATUS_ROLLED_BACK  = 5;
 
-    private static final String STATUS_NAMES[] = {
+    private static final String[] STATUS_NAMES = {
             "CLOSED", "OPEN", "PREPARED", "COMMITTED", "ROLLING_BACK", "ROLLED_BACK"
     };
     static final int LOG_ID_BITS = 40;
@@ -90,7 +90,7 @@ public class Transaction {
     /**
      * This is really a transaction identity, because it's not re-used.
      */
-    public final long sequenceNum;
+    final long sequenceNum;
 
     /*
      * Transaction state is an atomic composite field:
@@ -236,7 +236,8 @@ public class Transaction {
     }
 
     public int getBlockerId() {
-        return blockingTransaction == null ? 0 : blockingTransaction.ownerId;
+        Transaction blocker = this.blockingTransaction;
+        return blocker == null ? 0 : blocker.ownerId;
     }
 
     /**
@@ -389,19 +390,23 @@ public class Transaction {
     public void rollbackToSavepoint(long savepointId) {
         long lastState = setStatus(STATUS_ROLLING_BACK);
         long logId = getLogId(lastState);
+        boolean success;
         try {
             store.rollbackTo(this, logId, savepointId);
         } finally {
             notifyAllWaitingTransactions();
             long expectedState = composeState(STATUS_ROLLING_BACK, logId, hasRollback(lastState));
             long newState = composeState(STATUS_OPEN, savepointId, true);
-            if (!statusAndLogId.compareAndSet(expectedState, newState)) {
-                throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_TRANSACTION_ILLEGAL_STATE,
-                        "Transaction {0} concurrently modified " +
-                                "while rollback to savepoint was in progress",
-                        transactionId);
-            }
+            do {
+                success = statusAndLogId.compareAndSet(expectedState, newState);
+            } while (!success && statusAndLogId.get() == expectedState);
+        }
+        // this is moved outside of finally block to avert masking original exception, if any
+        if (!success) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_TRANSACTION_ILLEGAL_STATE,
+                    "Transaction {0} concurrently modified while rollback to savepoint was in progress",
+                    transactionId);
         }
     }
 
@@ -556,8 +561,15 @@ public class Transaction {
 
     @Override
     public String toString() {
-        long state = statusAndLogId.get();
-        return transactionId + "(" + sequenceNum + ") " + STATUS_NAMES[getStatus(state)] + " " + getLogId(state);
+        return transactionId + "(" + sequenceNum + ") " + stateToString();
+    }
+
+    private String stateToString() {
+        return stateToString(statusAndLogId.get());
+    }
+
+    private static String stateToString(long state) {
+        return STATUS_NAMES[getStatus(state)] + (hasRollback(state) ? "" : "!") + " " + getLogId(state);
     }
 
 

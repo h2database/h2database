@@ -45,7 +45,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
     /**
      * The transaction which is used for this map.
      */
-    final Transaction transaction;
+    private final Transaction transaction;
 
     TransactionMap(Transaction transaction, MVMap<K, VersionedValue> map) {
         this.transaction = transaction;
@@ -297,16 +297,12 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             assert decision != MVMap.Decision.REPEAT;
             blockingTransaction = decisionMaker.getBlockingTransaction();
             if (decision != MVMap.Decision.ABORT || blockingTransaction == null) {
-                transaction.blockingMap = null;
-                transaction.blockingKey = null;
                 @SuppressWarnings("unchecked")
                 V res = result == null ? null : (V) result.value;
                 return res;
             }
             decisionMaker.reset();
-            transaction.blockingMap = map;
-            transaction.blockingKey = key;
-        } while (blockingTransaction.sequenceNum > sequenceNumWhenStarted || transaction.waitFor(blockingTransaction));
+        } while (blockingTransaction.sequenceNum > sequenceNumWhenStarted || transaction.waitFor(blockingTransaction, map, key));
 
         throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTION_LOCKED,
                 "Map entry <{0}> with key <{1}> and value {2} is locked by tx {3} and can not be updated by tx {4}"
@@ -668,8 +664,8 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         private final boolean includeAllUncommitted;
         private X current;
 
-        protected TMIterator(TransactionMap<K,?> transactionMap, K from, K to, boolean includeAllUncommitted) {
-            Transaction transaction = transactionMap.transaction;
+        TMIterator(TransactionMap<K,?> transactionMap, K from, K to, boolean includeAllUncommitted) {
+            Transaction transaction = transactionMap.getTransaction();
             this.transactionId = transaction.transactionId;
             TransactionStore store = transaction.store;
             MVMap<K, VersionedValue> map = transactionMap.map;

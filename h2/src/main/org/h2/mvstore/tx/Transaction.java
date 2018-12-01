@@ -137,12 +137,12 @@ public class Transaction {
     /**
      * Map on which this transaction is blocked.
      */
-    MVMap<?,VersionedValue> blockingMap;
+    private MVMap<?,VersionedValue> blockingMap;
 
     /**
      * Key in blockingMap on which this transaction is blocked.
      */
-    Object blockingKey;
+    private Object blockingKey;
 
 
     Transaction(TransactionStore store, int transactionId, long sequenceNum, int status,
@@ -482,7 +482,10 @@ public class Transaction {
         notifyAll();
     }
 
-    public boolean waitFor(Transaction toWaitFor) {
+    public boolean waitFor(Transaction toWaitFor, MVMap<?,VersionedValue> map, Object key) {
+        blockingTransaction = toWaitFor;
+        blockingMap = map;
+        blockingKey = key;
         if (isDeadlocked(toWaitFor)) {
             StringBuilder details = new StringBuilder(
                     String.format("Transaction %d has been chosen as a deadlock victim. Details:%n", transactionId));
@@ -503,7 +506,6 @@ public class Transaction {
             }
         }
 
-        blockingTransaction = toWaitFor;
         try {
             return toWaitFor.waitForThisToEnd(timeoutMillis);
         } finally {

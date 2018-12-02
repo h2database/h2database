@@ -54,7 +54,7 @@ public class FilePathDisk extends FilePath {
                 }
                 URL resource = this.getClass().getResource(fileName);
                 if (resource != null) {
-                    return Files.size(Paths.get(this.getClass().getResource(fileName).toURI()));
+                    return Files.size(Paths.get(resource.toURI()));
                 } else {
                     return 0;
                 }

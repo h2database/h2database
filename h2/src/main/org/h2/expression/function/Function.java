@@ -1417,6 +1417,10 @@ public class Function extends Expression implements FunctionCall {
         case TRANSLATE: {
             String matching = v1.getString();
             String replacement = v2.getString();
+            if( Mode.ModeEnum.DB2.equals(database.getMode().getEnum())){
+                matching = v2.getString();
+                replacement = v1.getString();
+            }
             result = ValueString.get(
                     translate(v0.getString(), matching, replacement),
                     database.getMode().treatEmptyStringsAsNull);

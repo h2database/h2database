@@ -18,6 +18,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.NonWritableChannelException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,6 +45,23 @@ public class FilePathDisk extends FilePath {
 
     @Override
     public long size() {
+        if (name.startsWith(CLASSPATH_PREFIX)) {
+            try {
+                String fileName = name.substring(CLASSPATH_PREFIX.length());
+                // Force absolute resolution in Class.getResource
+                if (!fileName.startsWith("/")) {
+                    fileName = "/" + fileName;
+                }
+                URL resource = this.getClass().getResource(fileName);
+                if (resource != null) {
+                    return Files.size(Paths.get(resource.toURI()));
+                } else {
+                    return 0;
+                }
+            } catch (Exception e) {
+                return 0;
+            }
+        }
         return new File(name).length();
     }
 

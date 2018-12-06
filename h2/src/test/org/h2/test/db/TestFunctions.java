@@ -648,8 +648,14 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         InputStreamReader r = new InputStreamReader(FileUtils.newInputStream(fileName));
         String ps2 = IOUtils.readStringAndClose(r, -1);
         assertEquals(ps, ps2);
-        conn.close();
         FileUtils.delete(fileName);
+        // Test classpath prefix using this test class as input
+        fileName = "/" + this.getClass().getName().replaceAll("\\.", "/") + ".class";
+        rs = stat.executeQuery("SELECT LENGTH(FILE_READ('classpath:" + fileName + "')) LEN");
+        rs.next();
+        int fileSize = rs.getInt(1);
+        assertTrue(fileSize > 0);
+        conn.close();
     }
 
 

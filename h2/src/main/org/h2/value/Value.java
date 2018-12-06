@@ -1405,7 +1405,7 @@ public abstract class Value {
         return (short) x;
     }
 
-    private static int convertToInt(long x, Object column) {
+    public static int convertToInt(long x, Object column) {
         if (x > Integer.MAX_VALUE || x < Integer.MIN_VALUE) {
             throw DbException.get(
                     ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), getColumnName(column));

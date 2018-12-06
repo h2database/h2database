@@ -2539,7 +2539,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
     }
 
     private void testTranslateDB2() throws SQLException {
-        Connection conn = getConnection("functions:MODE=DB2");
+        Connection conn = getConnection("functions;MODE=DB2");
         Statement stat = conn.createStatement();
 
         String createSQL = "CREATE TABLE testTranslate(id BIGINT, " +

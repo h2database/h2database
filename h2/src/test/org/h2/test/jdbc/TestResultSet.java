@@ -1589,11 +1589,23 @@ public class TestResultSet extends TestDb {
         }
         trace("Test INTERVAL 8");
         ResultSet rs;
+        Object expected;
+
+        rs = stat.executeQuery("CALL INTERVAL '1-2' YEAR TO MONTH");
+        rs.next();
+        assertEquals("INTERVAL '1-2' YEAR TO MONTH", rs.getString(1));
+        try {
+            expected = LocalDateTimeUtils.PERIOD.getMethod("of", int.class, int.class, int.class)
+                    .invoke(null, 1, 2, 0);
+        } catch (ReflectiveOperationException ex) {
+            throw new RuntimeException(ex);
+        }
+        assertEquals(expected, rs.getObject(1, LocalDateTimeUtils.PERIOD));
+        assertThrows(ErrorCode.DATA_CONVERSION_ERROR_1, rs).getObject(1, LocalDateTimeUtils.DURATION);
 
         rs = stat.executeQuery("CALL INTERVAL '-3.1' SECOND");
         rs.next();
         assertEquals("INTERVAL '-3.1' SECOND", rs.getString(1));
-        Object expected;
         try {
             expected = LocalDateTimeUtils.DURATION.getMethod("ofSeconds", long.class, long.class)
                     .invoke(null, -4, 900_000_000);
@@ -1601,10 +1613,7 @@ public class TestResultSet extends TestDb {
             throw new RuntimeException(ex);
         }
         assertEquals(expected, rs.getObject(1, LocalDateTimeUtils.DURATION));
-
-        rs = stat.executeQuery("CALL INTERVAL '1-2' YEAR TO MONTH");
-        rs.next();
-        assertThrows(ErrorCode.DATA_CONVERSION_ERROR_1, rs).getObject(1, LocalDateTimeUtils.DURATION);
+        assertThrows(ErrorCode.DATA_CONVERSION_ERROR_1, rs).getObject(1, LocalDateTimeUtils.PERIOD);
     }
 
     private void testBlob() throws SQLException {

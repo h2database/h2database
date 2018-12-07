@@ -210,6 +210,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
             if (tryAdditional) {
                 while (i < len && masks[columns[i].getColumnId()] != 0) {
                     i++;
+                    rowsCost--;
                 }
             }
             // Increase cost of indexes with additional unused columns

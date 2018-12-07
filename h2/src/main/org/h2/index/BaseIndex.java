@@ -169,6 +169,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         long rowsCost = rowCount;
         if (masks != null) {
             int i = 0, len = columns.length;
+            boolean tryAdditional = false;
             while (i < len) {
                 Column column = columns[i++];
                 int index = column.getColumnId();
@@ -187,12 +188,15 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
                     rowsCost = 2 + Math.max(rowCount / distinctRows, 1);
                 } else if ((mask & IndexCondition.RANGE) == IndexCondition.RANGE) {
                     rowsCost = 2 + rowsCost / 4;
+                    tryAdditional = true;
                     break;
                 } else if ((mask & IndexCondition.START) == IndexCondition.START) {
                     rowsCost = 2 + rowsCost / 3;
+                    tryAdditional = true;
                     break;
                 } else if ((mask & IndexCondition.END) == IndexCondition.END) {
                     rowsCost = rowsCost / 3;
+                    tryAdditional = true;
                     break;
                 } else {
                     if (mask == 0) {
@@ -200,6 +204,12 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
                         i--;
                     }
                     break;
+                }
+            }
+            // Some additional columns can still be used
+            if (tryAdditional) {
+                while (i < len && masks[columns[i].getColumnId()] != 0) {
+                    i++;
                 }
             }
             // Increase cost of indexes with additional unused columns

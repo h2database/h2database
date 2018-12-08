@@ -274,9 +274,7 @@ public class BuildBase {
             } catch (InvocationTargetException e) {
                 throw e.getCause();
             }
-        } catch (Error e) {
-            throw e;
-        } catch (RuntimeException e) {
+        } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable e) {
             throw new RuntimeException(e);

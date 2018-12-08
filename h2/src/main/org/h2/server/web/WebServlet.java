@@ -63,12 +63,10 @@ public class WebServlet extends HttpServlet {
         try {
             InetAddress address = InetAddress.getByName(addr);
             return address.isLoopbackAddress();
-        } catch (UnknownHostException e) {
+        } catch (UnknownHostException | NoClassDefFoundError e) {
             return false;
-        } catch (NoClassDefFoundError e) {
-            // Google App Engine does not allow java.net.InetAddress
-            return false;
-        }
+        } // Google App Engine does not allow java.net.InetAddress
+
     }
 
     private String getAllowedFile(HttpServletRequest req, String requestedFile) {

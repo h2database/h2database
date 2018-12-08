@@ -114,9 +114,7 @@ public class TestClassLoaderLeak extends TestBase {
             if (c == null) {
                 try {
                     c = findClass(name);
-                } catch (SecurityException e) {
-                    return super.loadClass(name, resolve);
-                } catch (ClassNotFoundException e) {
+                } catch (SecurityException | ClassNotFoundException e) {
                     return super.loadClass(name, resolve);
                 }
                 if (resolve) {

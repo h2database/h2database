@@ -80,9 +80,7 @@ class Statement {
                 player.assign(assignVariable, obj);
             }
             return obj;
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
+        } catch (IllegalArgumentException | IllegalAccessException e) {
             e.printStackTrace();
         } catch (InvocationTargetException e) {
             Throwable t = e.getTargetException();

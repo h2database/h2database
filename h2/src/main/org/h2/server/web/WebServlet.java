@@ -64,8 +64,9 @@ public class WebServlet extends HttpServlet {
             InetAddress address = InetAddress.getByName(addr);
             return address.isLoopbackAddress();
         } catch (UnknownHostException | NoClassDefFoundError e) {
+            // Google App Engine does not allow java.net.InetAddress
             return false;
-        } // Google App Engine does not allow java.net.InetAddress
+        }
 
     }
 

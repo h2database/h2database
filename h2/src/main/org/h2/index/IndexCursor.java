@@ -251,12 +251,6 @@ public class IndexCursor implements Cursor {
         if (comp == 0) {
             return a;
         }
-        if (a == ValueNull.INSTANCE || b == ValueNull.INSTANCE) {
-            if (session.getDatabase().getSettings().optimizeIsNull) {
-                // column IS NULL AND column <op> <not null> is always false
-                return null;
-            }
-        }
         return (comp > 0) == bigger ? a : b;
     }
 

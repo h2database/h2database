@@ -47,7 +47,8 @@ public class ValueDate extends Value {
      * @return the value
      */
     public static ValueDate get(Date date) {
-        return fromDateValue(DateTimeUtils.dateValueFromDate(date.getTime()));
+        long ms = date.getTime();
+        return fromDateValue(DateTimeUtils.dateValueFromDate(ms + DateTimeUtils.getTimeZoneOffset(ms)));
     }
 
     /**
@@ -58,7 +59,7 @@ public class ValueDate extends Value {
      * @return the value
      */
     public static ValueDate fromMillis(long ms) {
-        return fromDateValue(DateTimeUtils.dateValueFromDate(ms));
+        return fromDateValue(DateTimeUtils.dateValueFromDate(ms + DateTimeUtils.getTimeZoneOffset(ms)));
     }
 
     /**

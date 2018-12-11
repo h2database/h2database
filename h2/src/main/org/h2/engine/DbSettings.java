@@ -207,12 +207,6 @@ public class DbSettings extends SettingsBase {
     public final boolean optimizeInSelect = get("OPTIMIZE_IN_SELECT", true);
 
     /**
-     * Database setting <code>OPTIMIZE_IS_NULL</code> (default: false).<br />
-     * Use an index for condition of the form columnName IS NULL.
-     */
-    public final boolean optimizeIsNull = get("OPTIMIZE_IS_NULL", true);
-
-    /**
      * Database setting <code>OPTIMIZE_OR</code> (default: true).<br />
      * Convert (C=? OR C=?) to (C IN(?, ?)).
      */

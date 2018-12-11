@@ -89,8 +89,9 @@ public class ValueTimestamp extends Value {
     public static ValueTimestamp get(Timestamp timestamp) {
         long ms = timestamp.getTime();
         long nanos = timestamp.getNanos() % 1_000_000;
-        long dateValue = DateTimeUtils.dateValueFromDate(ms);
-        nanos += DateTimeUtils.nanosFromDate(ms);
+        ms += DateTimeUtils.getTimeZoneOffset(ms);
+        long dateValue = DateTimeUtils.dateValueFromLocalMillis(ms);
+        nanos += DateTimeUtils.nanosFromLocalMillis(ms);
         return fromDateValueAndNanos(dateValue, nanos);
     }
 
@@ -102,8 +103,9 @@ public class ValueTimestamp extends Value {
      * @return the value
      */
     public static ValueTimestamp fromMillisNanos(long ms, int nanos) {
-        long dateValue = DateTimeUtils.dateValueFromDate(ms);
-        long timeNanos = nanos + DateTimeUtils.nanosFromDate(ms);
+        ms += DateTimeUtils.getTimeZoneOffset(ms);
+        long dateValue = DateTimeUtils.dateValueFromLocalMillis(ms);
+        long timeNanos = nanos + DateTimeUtils.nanosFromLocalMillis(ms);
         return fromDateValueAndNanos(dateValue, timeNanos);
     }
 
@@ -114,8 +116,9 @@ public class ValueTimestamp extends Value {
      * @return the value
      */
     public static ValueTimestamp fromMillis(long ms) {
-        long dateValue = DateTimeUtils.dateValueFromDate(ms);
-        long nanos = DateTimeUtils.nanosFromDate(ms);
+        ms += DateTimeUtils.getTimeZoneOffset(ms);
+        long dateValue = DateTimeUtils.dateValueFromLocalMillis(ms);
+        long nanos = DateTimeUtils.nanosFromLocalMillis(ms);
         return fromDateValueAndNanos(dateValue, nanos);
     }
 

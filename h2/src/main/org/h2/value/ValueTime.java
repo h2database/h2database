@@ -84,7 +84,8 @@ public class ValueTime extends Value {
      * @return the value
      */
     public static ValueTime get(Time time) {
-        return fromNanos(DateTimeUtils.nanosFromDate(time.getTime()));
+        long ms = time.getTime();
+        return fromNanos(DateTimeUtils.nanosFromLocalMillis(ms + DateTimeUtils.getTimeZoneOffset(ms)));
     }
 
     /**
@@ -95,7 +96,7 @@ public class ValueTime extends Value {
      * @return the value
      */
     public static ValueTime fromMillis(long ms) {
-        return fromNanos(DateTimeUtils.nanosFromDate(ms));
+        return fromNanos(DateTimeUtils.nanosFromLocalMillis(ms + DateTimeUtils.getTimeZoneOffset(ms)));
     }
 
     /**

@@ -242,8 +242,9 @@ public class StringUtils {
      */
     public static String addAsterisk(String s, int index) {
         if (s != null) {
-            index = Math.min(index, s.length());
-            s = s.substring(0, index) + "[*]" + s.substring(index);
+            int len = s.length();
+            index = Math.min(index, len);
+            s = new StringBuilder(len + 3).append(s, 0, index).append("[*]").append(s, index, len).toString();
         }
         return s;
     }

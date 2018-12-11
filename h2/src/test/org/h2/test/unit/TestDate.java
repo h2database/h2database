@@ -462,8 +462,10 @@ public class TestDate extends TestBase {
         // test for bug on Java 1.8.0_60 in "Europe/Moscow" timezone.
         // Doesn't affect most other timezones
         long millis = 1407437460000L;
-        long result1 = DateTimeUtils.nanosFromDate(DateTimeUtils.getTimeUTCWithoutDst(millis));
-        long result2 = DateTimeUtils.nanosFromDate(DateTimeUtils.getTimeUTCWithoutDst(millis));
+        long ms = DateTimeUtils.getTimeUTCWithoutDst(millis);
+        ms += DateTimeUtils.getTimeZoneOffset(ms);
+        long result1 = DateTimeUtils.nanosFromLocalMillis(ms);
+        long result2 = DateTimeUtils.nanosFromLocalMillis(ms);
         assertEquals(result1, result2);
     }
 

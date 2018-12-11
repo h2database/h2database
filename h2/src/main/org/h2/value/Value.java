@@ -1043,7 +1043,9 @@ public abstract class Value {
             ValueTimestampTimeZone ts = (ValueTimestampTimeZone) this;
             long dateValue = ts.getDateValue(), timeNanos = ts.getTimeNanos();
             long millis = DateTimeUtils.getMillis(dateValue, timeNanos, ts.getTimeZoneOffsetMins());
-            return ValueTime.fromNanos(DateTimeUtils.nanosFromDate(millis) + timeNanos % 1_000_000);
+            return ValueTime.fromNanos(
+                    DateTimeUtils.nanosFromLocalMillis(millis + DateTimeUtils.getTimeZoneOffset(millis))
+                            + timeNanos % 1_000_000);
         }
         case ENUM:
             throw getDataConversionError(TIME);

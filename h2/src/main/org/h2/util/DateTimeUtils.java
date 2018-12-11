@@ -570,8 +570,8 @@ public class DateTimeUtils {
                 } else {
                     long millis = convertDateTimeValueToMillis(tz, dateValue, nanos / 1_000_000);
                     millis += getTimeZoneOffset(millis);
-                    dateValue = dateValueFromDate(millis);
-                    nanos = nanos % 1_000_000 + nanosFromDate(millis);
+                    dateValue = dateValueFromLocalMillis(millis);
+                    nanos = nanos % 1_000_000 + nanosFromLocalMillis(millis);
                 }
             }
         }
@@ -1126,7 +1126,7 @@ public class DateTimeUtils {
      * @param ms the milliseconds
      * @return the date value
      */
-    public static long dateValueFromDate(long ms) {
+    public static long dateValueFromLocalMillis(long ms) {
         long absoluteDay = ms / MILLIS_PER_DAY;
         // Round toward negative infinity
         if (ms < 0 && (absoluteDay * MILLIS_PER_DAY != ms)) {
@@ -1157,7 +1157,7 @@ public class DateTimeUtils {
      * @param ms the milliseconds
      * @return the nanoseconds
      */
-    public static long nanosFromDate(long ms) {
+    public static long nanosFromLocalMillis(long ms) {
         long absoluteDay = ms / MILLIS_PER_DAY;
         // Round toward negative infinity
         if (ms < 0 && (absoluteDay * MILLIS_PER_DAY != ms)) {

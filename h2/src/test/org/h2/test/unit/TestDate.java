@@ -464,8 +464,8 @@ public class TestDate extends TestBase {
         long millis = 1407437460000L;
         long ms = DateTimeUtils.getTimeUTCWithoutDst(millis);
         ms += DateTimeUtils.getTimeZoneOffset(ms);
-        long result1 = DateTimeUtils.nanosFromDate(ms);
-        long result2 = DateTimeUtils.nanosFromDate(ms);
+        long result1 = DateTimeUtils.nanosFromLocalMillis(ms);
+        long result2 = DateTimeUtils.nanosFromLocalMillis(ms);
         assertEquals(result1, result2);
     }
 

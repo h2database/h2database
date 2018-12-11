@@ -33,7 +33,6 @@ import org.h2.value.ValueNull;
  */
 public class IndexCursor implements Cursor {
 
-    private Session session;
     private final TableFilter tableFilter;
     private Index index;
     private Table table;
@@ -75,7 +74,6 @@ public class IndexCursor implements Cursor {
      * @param indexConditions Index conditions.
      */
     public void prepare(Session s, ArrayList<IndexCondition> indexConditions) {
-        this.session = s;
         alwaysFalse = false;
         start = end = null;
         inList = null;
@@ -141,14 +139,6 @@ public class IndexCursor implements Cursor {
                     inColumn = null;
                     inList = null;
                     inResult = null;
-                }
-                if (!session.getDatabase().getSettings().optimizeIsNull) {
-                    if (isStart && isEnd) {
-                        if (v == ValueNull.INSTANCE) {
-                            // join on a column=NULL is always false
-                            alwaysFalse = true;
-                        }
-                    }
                 }
             }
         }
@@ -239,13 +229,11 @@ public class IndexCursor implements Cursor {
         } else if (b == null) {
             return a;
         }
-        if (session.getDatabase().getSettings().optimizeIsNull) {
-            // IS NULL must be checked later
-            if (a == ValueNull.INSTANCE) {
-                return b;
-            } else if (b == ValueNull.INSTANCE) {
-                return a;
-            }
+        // IS NULL must be checked later
+        if (a == ValueNull.INSTANCE) {
+            return b;
+        } else if (b == ValueNull.INSTANCE) {
+            return a;
         }
         int comp = table.getDatabase().compare(a, b);
         if (comp == 0) {

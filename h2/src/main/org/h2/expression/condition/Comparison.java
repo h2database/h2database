@@ -397,12 +397,8 @@ public class Comparison extends Condition {
             if (l != null) {
                 switch (compareType) {
                 case IS_NULL:
-                    if (session.getDatabase().getSettings().optimizeIsNull) {
-                        filter.addIndexCondition(
-                                IndexCondition.get(
-                                        Comparison.EQUAL_NULL_SAFE, l,
-                                        ValueExpression.getNull()));
-                    }
+                    filter.addIndexCondition(
+                            IndexCondition.get(Comparison.EQUAL_NULL_SAFE, l, ValueExpression.getNull()));
                 }
             }
             return;

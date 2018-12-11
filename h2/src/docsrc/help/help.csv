@@ -4816,10 +4816,12 @@ When converting a number to binary, the number of bytes matches the precision.
 When converting a string to binary, it is hex encoded (every byte two characters);
 a hex string can be converted to a number by first converting it to binary.
 If a direct conversion is not possible, the value is first converted to a string.
+Note that some data types may need explicitly specified precision to avoid overflow or rounding.
 ","
 CAST(NAME AS INT);
 CAST(65535 AS BINARY);
 CAST(CAST('FFFF' AS BINARY) AS INT);
+CAST(TIMESTAMP '2010-01-01 10:40:00.123456' AS TIME(6))
 "
 
 "Functions (System)","COALESCE","

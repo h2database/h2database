@@ -235,14 +235,16 @@ public class ParserUtil {
      * Checks if this string is a SQL keyword.
      *
      * @param s the token to check
+     * @param ignoreCase true if case should be ignored, false if only upper case
+     *            tokens are detected as keywords
      * @return true if it is a keyword
      */
-    public static boolean isKeyword(String s) {
+    public static boolean isKeyword(String s, boolean ignoreCase) {
         int length = s.length();
         if (length == 0) {
             return false;
         }
-        return getSaveTokenType(s, false, 0, length, false) != IDENTIFIER;
+        return getSaveTokenType(s, ignoreCase, 0, length, false) != IDENTIFIER;
     }
 
     /**
@@ -278,7 +280,7 @@ public class ParserUtil {
      * @param ignoreCase true if case should be ignored, false if only upper case
      *            tokens are detected as keywords
      * @param start start index of token
-     * @param end index of token
+     * @param end index of token, exclusive; must be greater than start index
      * @param additionalKeywords whether TOP, INTERSECTS, and "current data /
      *                           time" functions are keywords
      * @return the token type

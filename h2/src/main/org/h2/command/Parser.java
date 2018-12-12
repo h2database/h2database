@@ -4925,11 +4925,7 @@ public class Parser {
     }
 
     private boolean isKeyword(String s) {
-        if (!identifiersToUpper) {
-            // if not yet converted to uppercase, do it now
-            s = StringUtils.toUpperEnglish(s);
-        }
-        return ParserUtil.isKeyword(s);
+        return ParserUtil.isKeyword(s, !identifiersToUpper);
     }
 
     private Column parseColumnForTable(String columnName,

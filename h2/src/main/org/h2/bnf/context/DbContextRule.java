@@ -154,7 +154,7 @@ public class DbContextRule implements Rule {
                 break;
             }
             String alias = up.substring(0, i);
-            if (ParserUtil.isKeyword(alias)) {
+            if (ParserUtil.isKeyword(alias, false)) {
                 break;
             }
             s = s.substring(alias.length());
@@ -301,7 +301,7 @@ public class DbContextRule implements Rule {
             return s;
         }
         String alias = up.substring(0, i);
-        if ("SET".equals(alias) || ParserUtil.isKeyword(alias)) {
+        if ("SET".equals(alias) || ParserUtil.isKeyword(alias, false)) {
             return s;
         }
         if (newAlias) {

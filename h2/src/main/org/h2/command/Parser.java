@@ -4146,6 +4146,14 @@ public class Parser {
         return i;
     }
 
+    private long readNonNegativeLong() {
+        long v = readLong();
+        if (v < 0) {
+            throw DbException.getInvalidValueException("non-negative long", v);
+        }
+        return v;
+    }
+
     private long readLong() {
         boolean minus = false;
         if (currentTokenType == MINUS_SIGN) {
@@ -5302,7 +5310,7 @@ public class Parser {
                 }
             } else if (readIf(OPEN_PAREN)) {
                 if (!readIf("MAX")) {
-                    long p = readLong();
+                    long p = readNonNegativeLong();
                     if (readIf("K")) {
                         p *= 1024;
                     } else if (readIf("M")) {

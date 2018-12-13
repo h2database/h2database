@@ -3118,7 +3118,7 @@ CHAR(10)
 "Data Types","BLOB Type","
 { BLOB | BINARY LARGE OBJECT
     | TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE | OID }
-[ ( precisionInt ) ]
+[ ( precisionInt [K|M|G|T|P]) ]
 ","
 Like BINARY, but intended for very large values such as files or images. Unlike
 when using BINARY, large objects are not kept fully in-memory. Use
@@ -3128,12 +3128,13 @@ Advanced / Large Objects.
 Mapped to ""java.sql.Blob"" (""java.io.InputStream"" is also supported).
 ","
 BLOB
+BLOB(10K)
 "
 
 "Data Types","CLOB Type","
 { CLOB | CHARACTER LARGE OBJECT
     | TINYTEXT | TEXT | MEDIUMTEXT | LONGTEXT | NTEXT | NCLOB }
-[ ( precisionInt ) ]
+[ ( precisionInt [K|M|G|T|P] [CHARACTERS|OCTETS]) ]
 ","
 CLOB is like VARCHAR, but intended for very large values. Unlike when using
 VARCHAR, large CLOB objects are not kept fully in-memory; instead, they are streamed.
@@ -3145,9 +3146,12 @@ VARCHAR should be used for text with relatively short average size (for example
 shorter than 200 characters). Short CLOB values are stored inline, but there is
 an overhead compared to VARCHAR.
 
+Precision, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
+
 Mapped to ""java.sql.Clob"" (""java.io.Reader"" is also supported).
 ","
 CLOB
+CLOB(10K)
 "
 
 "Data Types","UUID Type","

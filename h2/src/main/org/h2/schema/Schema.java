@@ -270,7 +270,7 @@ public class Schema extends DbObjectBase {
      * @param obj the object to add
      */
     public void add(SchemaObject obj) {
-        if (SysProperties.CHECK && obj.getSchema() != this) {
+        if (obj.getSchema() != this) {
             DbException.throwInternalError("wrong schema");
         }
         String name = obj.getName();

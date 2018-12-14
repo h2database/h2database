@@ -208,7 +208,7 @@ public class ValueLob extends Value {
 
     private static String getFileName(DataHandler handler, int tableId,
             int objectId) {
-        if (SysProperties.CHECK && tableId == 0 && objectId == 0) {
+        if (tableId == 0 && objectId == 0) {
             DbException.throwInternalError("0 LOB");
         }
         String table = tableId < 0 ? ".temp" : ".t" + tableId;

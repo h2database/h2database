@@ -968,10 +968,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     private void unlockAll() {
-        if (SysProperties.CHECK) {
-            if (undoLog != null && undoLog.size() > 0) {
-                DbException.throwInternalError();
-            }
+        if (undoLog != null && undoLog.size() > 0) {
+            DbException.throwInternalError();
         }
         if (!locks.isEmpty()) {
             for (Table t : locks) {
@@ -1349,7 +1347,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      */
     public void removeAtCommit(Value v) {
         final String key = v.toString();
-        if (SysProperties.CHECK && !v.isLinkedToTable()) {
+        if (!v.isLinkedToTable()) {
             DbException.throwInternalError(key);
         }
         if (removeLobMap == null) {

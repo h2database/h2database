@@ -14,7 +14,6 @@ import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.command.dml.Select;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
-import org.h2.engine.SysProperties;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.condition.Comparison;
@@ -321,13 +320,13 @@ public class TableFilter implements ColumnResolver {
             }
         }
         if (nestedJoin != null) {
-            if (SysProperties.CHECK && nestedJoin == this) {
+            if (nestedJoin == this) {
                 DbException.throwInternalError("self join");
             }
             nestedJoin.prepare();
         }
         if (join != null) {
-            if (SysProperties.CHECK && join == this) {
+            if (join == this) {
                 DbException.throwInternalError("self join");
             }
             join.prepare();

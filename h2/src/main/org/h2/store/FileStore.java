@@ -273,8 +273,7 @@ public class FileStore {
      * @param len the number of bytes to read
      */
     public void readFully(byte[] b, int off, int len) {
-        if (SysProperties.CHECK &&
-                (len < 0 || len % Constants.FILE_BLOCK_SIZE != 0)) {
+        if (len < 0 || len % Constants.FILE_BLOCK_SIZE != 0) {
             DbException.throwInternalError(
                     "unaligned read " + name + " len " + len);
         }
@@ -293,8 +292,7 @@ public class FileStore {
      * @param pos the location
      */
     public void seek(long pos) {
-        if (SysProperties.CHECK &&
-                pos % Constants.FILE_BLOCK_SIZE != 0) {
+        if (pos % Constants.FILE_BLOCK_SIZE != 0) {
             DbException.throwInternalError(
                     "unaligned seek " + name + " pos " + pos);
         }
@@ -327,8 +325,7 @@ public class FileStore {
      * @param len the number of bytes to write
      */
     public void write(byte[] b, int off, int len) {
-        if (SysProperties.CHECK && (len < 0 ||
-                len % Constants.FILE_BLOCK_SIZE != 0)) {
+        if (len < 0 || len % Constants.FILE_BLOCK_SIZE != 0) {
             DbException.throwInternalError(
                     "unaligned write " + name + " len " + len);
         }
@@ -350,7 +347,7 @@ public class FileStore {
      * @param newLength the new file size
      */
     public void setLength(long newLength) {
-        if (SysProperties.CHECK && newLength % Constants.FILE_BLOCK_SIZE != 0) {
+        if (newLength % Constants.FILE_BLOCK_SIZE != 0) {
             DbException.throwInternalError(
                     "unaligned setLength " + name + " pos " + newLength);
         }

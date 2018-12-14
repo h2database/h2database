@@ -6,7 +6,6 @@
 package org.h2.expression.condition;
 
 import org.h2.engine.Session;
-import org.h2.engine.SysProperties;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ValueExpression;
@@ -39,7 +38,7 @@ public class ConditionAndOr extends Condition {
         this.andOrType = andOrType;
         this.left = left;
         this.right = right;
-        if (SysProperties.CHECK && (left == null || right == null)) {
+        if (left == null || right == null) {
             DbException.throwInternalError(left + " " + right);
         }
     }

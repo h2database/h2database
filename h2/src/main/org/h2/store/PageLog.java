@@ -14,7 +14,6 @@ import java.util.HashMap;
 import org.h2.api.ErrorCode;
 import org.h2.compress.CompressLZF;
 import org.h2.engine.Session;
-import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
@@ -498,10 +497,8 @@ public class PageLog {
         if (trace.isDebugEnabled()) {
             trace.debug("log undo " + pageId);
         }
-        if (SysProperties.CHECK) {
-            if (page == null) {
-                DbException.throwInternalError("Undo entry not written");
-            }
+        if (page == null) {
+            DbException.throwInternalError("Undo entry not written");
         }
         undo.set(pageId);
         undoAll.set(pageId);

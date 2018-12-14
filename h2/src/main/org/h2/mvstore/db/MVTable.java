@@ -609,7 +609,7 @@ public class MVTable extends TableBase {
         } else {
             addRowsToIndex(session, buffer, index);
         }
-        if (SysProperties.CHECK && remaining != 0) {
+        if (remaining != 0) {
             DbException.throwInternalError("rowcount remaining=" + remaining +
                     " " + getName());
         }
@@ -636,7 +636,7 @@ public class MVTable extends TableBase {
             remaining--;
         }
         addRowsToIndex(session, buffer, index);
-        if (SysProperties.CHECK && remaining != 0) {
+        if (remaining != 0) {
             DbException.throwInternalError("rowcount remaining=" + remaining +
                     " " + getName());
         }

@@ -99,7 +99,7 @@ public class ConnectionInfo implements Cloneable {
         HashSet<String> set = new HashSet<>(128);
         set.addAll(SetTypes.getTypes());
         for (String key : connectionTime) {
-            if (!set.add(key) && SysProperties.CHECK) {
+            if (!set.add(key)) {
                 DbException.throwInternalError(key);
             }
         }

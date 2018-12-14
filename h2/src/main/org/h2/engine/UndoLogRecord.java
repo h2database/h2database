@@ -196,10 +196,8 @@ public class UndoLogRecord {
         }
         int oldOp = operation;
         load(buff, log);
-        if (SysProperties.CHECK) {
-            if (operation != oldOp) {
-                DbException.throwInternalError("operation=" + operation + " op=" + oldOp);
-            }
+        if (operation != oldOp) {
+            DbException.throwInternalError("operation=" + operation + " op=" + oldOp);
         }
     }
 

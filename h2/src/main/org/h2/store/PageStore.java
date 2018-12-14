@@ -717,8 +717,7 @@ public class PageStore implements CacheWriter {
             try {
                 p.moveTo(pageStoreSession, free);
             } finally {
-                changeCount++;
-                if (SysProperties.CHECK && changeCount < 0) {
+                if (++changeCount < 0) {
                     throw DbException.throwInternalError(
                             "changeCount has wrapped");
                 }
@@ -1670,10 +1669,8 @@ public class PageStore implements CacheWriter {
         metaRootPageId.put(id, rootPageId);
         if (type == META_TYPE_DATA_INDEX) {
             CreateTableData data = new CreateTableData();
-            if (SysProperties.CHECK) {
-                if (columns == null) {
-                    throw DbException.throwInternalError(row.toString());
-                }
+            if (columns == null) {
+                throw DbException.throwInternalError(row.toString());
             }
             for (int i = 0, len = columns.length; i < len; i++) {
                 Column col = new Column("C" + i, Value.INT);
@@ -1980,8 +1977,7 @@ public class PageStore implements CacheWriter {
      * Increment the change count. To be done after the operation has finished.
      */
     public void incrementChangeCount() {
-        changeCount++;
-        if (SysProperties.CHECK && changeCount < 0) {
+        if (++changeCount < 0) {
             throw DbException.throwInternalError("changeCount has wrapped");
         }
     }

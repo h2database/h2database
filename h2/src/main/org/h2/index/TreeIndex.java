@@ -7,7 +7,6 @@ package org.h2.index;
 
 import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Session;
-import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -205,7 +204,7 @@ public class TreeIndex extends BaseIndex {
                 x.left = d.left;
             }
 
-            if (SysProperties.CHECK && x.right == null) {
+            if (x.right == null) {
                 DbException.throwInternalError("tree corrupted");
             }
             x.right.parent = x;

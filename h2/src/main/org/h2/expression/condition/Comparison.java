@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
-import org.h2.engine.SysProperties;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
@@ -229,7 +228,7 @@ public class Comparison extends Condition {
                 return ValueExpression.get(getValue(session));
             }
         } else {
-            if (SysProperties.CHECK && (left == null || right == null)) {
+            if (left == null || right == null) {
                 DbException.throwInternalError(left + " " + right);
             }
             if (left == ValueExpression.getNull() ||

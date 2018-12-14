@@ -129,7 +129,7 @@ public abstract class DbObjectBase implements DbObject {
      * used.
      */
     protected void invalidate() {
-        if (SysProperties.CHECK && id == -1) {
+        if (id == -1) {
             throw DbException.throwInternalError();
         }
         setModified();

@@ -433,14 +433,10 @@ public class StringUtils {
             } else if (ch == '%') {
                 buff[j++] = (byte) Integer.parseInt(encoded.substring(i + 1, i + 3), 16);
                 i += 2;
-            } else {
-                if (SysProperties.CHECK) {
-                    if (ch > 127 || ch < ' ') {
-                        throw new IllegalArgumentException(
-                                "Unexpected char " + (int) ch + " decoding " + encoded);
-                    }
-                }
+            } else if (ch <= 127 && ch >= ' ') {
                 buff[j++] = (byte) ch;
+            } else {
+                throw new IllegalArgumentException("Unexpected char " + (int) ch + " decoding " + encoded);
             }
         }
         return new String(buff, 0, j, StandardCharsets.UTF_8);

@@ -16,7 +16,6 @@ import org.h2.command.Parser;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
-import org.h2.engine.SysProperties;
 import org.h2.expression.Alias;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -963,7 +962,7 @@ public class Select extends Query {
 
     @Override
     public void init() {
-        if (SysProperties.CHECK && checkInit) {
+        if (checkInit) {
             DbException.throwInternalError();
         }
         expandColumnList();
@@ -1079,7 +1078,7 @@ public class Select extends Query {
             // sometimes a subquery is prepared twice (CREATE TABLE AS SELECT)
             return;
         }
-        if (SysProperties.CHECK && !checkInit) {
+        if (!checkInit) {
             DbException.throwInternalError("not initialized");
         }
         if (orderList != null) {

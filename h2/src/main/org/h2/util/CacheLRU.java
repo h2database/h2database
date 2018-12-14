@@ -131,11 +131,8 @@ public class CacheLRU implements Cache {
         if (old == null) {
             put(rec);
         } else {
-            if (SysProperties.CHECK) {
-                if (old != rec) {
-                    DbException.throwInternalError("old!=record pos:" + pos +
-                            " old:" + old + " new:" + rec);
-                }
+            if (old != rec) {
+                DbException.throwInternalError("old!=record pos:" + pos + " old:" + old + " new:" + rec);
             }
             if (!fifo) {
                 removeFromLinkedList(rec);
@@ -190,7 +187,7 @@ public class CacheLRU implements Cache {
                     break;
                 }
             }
-            if (SysProperties.CHECK && check == head) {
+            if (check == head) {
                 DbException.throwInternalError("try to remove head");
             }
             // we are not allowed to remove it if the log is not yet written
@@ -230,17 +227,15 @@ public class CacheLRU implements Cache {
             for (i = 0; i < size; i++) {
                 CacheObject rec = changed.get(i);
                 remove(rec.getPos());
-                if (SysProperties.CHECK) {
-                    if (rec.cacheNext != null) {
-                        throw DbException.throwInternalError();
-                    }
+                if (rec.cacheNext != null) {
+                    throw DbException.throwInternalError();
                 }
             }
         }
     }
 
     private void addToFront(CacheObject rec) {
-        if (SysProperties.CHECK && rec == head) {
+        if (rec == head) {
             DbException.throwInternalError("try to move head");
         }
         rec.cacheNext = head;
@@ -250,7 +245,7 @@ public class CacheLRU implements Cache {
     }
 
     private void removeFromLinkedList(CacheObject rec) {
-        if (SysProperties.CHECK && rec == head) {
+        if (rec == head) {
             DbException.throwInternalError("try to remove head");
         }
         rec.cachePrevious.cacheNext = rec.cacheNext;

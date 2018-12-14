@@ -5,7 +5,6 @@
  */
 package org.h2.security;
 
-import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.Bits;
 
@@ -47,10 +46,8 @@ public class XTEA implements BlockCipher {
 
     @Override
     public void encrypt(byte[] bytes, int off, int len) {
-        if (SysProperties.CHECK) {
-            if (len % ALIGN != 0) {
-                DbException.throwInternalError("unaligned len " + len);
-            }
+        if (len % ALIGN != 0) {
+            DbException.throwInternalError("unaligned len " + len);
         }
         for (int i = off; i < off + len; i += 8) {
             encryptBlock(bytes, bytes, i);
@@ -59,10 +56,8 @@ public class XTEA implements BlockCipher {
 
     @Override
     public void decrypt(byte[] bytes, int off, int len) {
-        if (SysProperties.CHECK) {
-            if (len % ALIGN != 0) {
-                DbException.throwInternalError("unaligned len " + len);
-            }
+        if (len % ALIGN != 0) {
+            DbException.throwInternalError("unaligned len " + len);
         }
         for (int i = off; i < off + len; i += 8) {
             decryptBlock(bytes, bytes, i);

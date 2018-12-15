@@ -144,6 +144,11 @@ public class Transaction {
      */
     private Object blockingKey;
 
+    /**
+     * Whether other transaction(s) are waiting for this to close.
+     */
+    private volatile boolean notificationRequested;
+
 
     Transaction(TransactionStore store, int transactionId, long sequenceNum, int status,
                 String name, long logId, int timeoutMillis, int ownerId,
@@ -394,7 +399,9 @@ public class Transaction {
         try {
             store.rollbackTo(this, logId, savepointId);
         } finally {
-            notifyAllWaitingTransactions();
+            if (notificationRequested) {
+                notifyAllWaitingTransactions();
+            }
             long expectedState = composeState(STATUS_ROLLING_BACK, logId, hasRollback(lastState));
             long newState = composeState(STATUS_OPEN, savepointId, true);
             do {
@@ -478,7 +485,7 @@ public class Transaction {
     void closeIt() {
         long lastState = setStatus(STATUS_CLOSED);
         store.store.deregisterVersionUsage(txCounter);
-        if(hasChanges(lastState) || hasRollback(lastState)) {
+        if((hasChanges(lastState) || hasRollback(lastState)) && notificationRequested) {
             notifyAllWaitingTransactions();
         }
     }
@@ -533,6 +540,7 @@ public class Transaction {
 
     private synchronized boolean waitForThisToEnd(int millis) {
         long until = System.currentTimeMillis() + millis;
+        notificationRequested = true;
         long state;
         int status;
         while((status = getStatus(state = statusAndLogId.get())) != STATUS_CLOSED

@@ -26,6 +26,15 @@ select sum(v), sum(v) filter (where v >= 4) from test where v <= 10;
 > 55     49
 > rows: 1
 
+insert into test values (1), (2), (8);
+> update count: 3
+
+select sum(v), sum(all v), sum(distinct v) from test;
+> SUM(V) SUM(V) SUM(DISTINCT V)
+> ------ ------ ---------------
+> 89     89     78
+> rows: 1
+
 drop table test;
 > ok
 

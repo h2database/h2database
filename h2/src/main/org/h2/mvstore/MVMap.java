@@ -48,8 +48,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     private final DataType valueType;
     private final int keysPerPage;
     private final boolean singleWriter;
-    private final K keysBuffer[];
-    private final V valuesBuffer[];
+    private final K[] keysBuffer;
+    private final V[] valuesBuffer;
 
 
     /**
@@ -618,16 +618,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 return 0;
             }
             assert p.getKeyCount() > 0;
-            @SuppressWarnings("unchecked")
-            K key = (K) p.getKey(0);
-            V value = get(key);
-            if (value != null) {
-                if (isClosed()) {
-                    return 0;
-                }
-                replace(key, value, value);
-            }
-            return 1;
+            return rewritePage(p) ? 0 : 1;
         }
         int writtenPageCount = 0;
         for (int i = 0; i < getChildPageCount(p); i++) {
@@ -657,19 +648,26 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 while (!p2.isLeaf()) {
                     p2 = p2.getChildPage(0);
                 }
-                @SuppressWarnings("unchecked")
-                K key = (K) p2.getKey(0);
-                V value = get(key);
-                if (value != null) {
-                    if (isClosed()) {
-                        return 0;
-                    }
-                    replace(key, value, value);
+                if (rewritePage(p2)) {
+                    return 0;
                 }
                 writtenPageCount++;
             }
         }
         return writtenPageCount;
+    }
+
+    private boolean rewritePage(Page p) {
+        @SuppressWarnings("unchecked")
+        K key = (K) p.getKey(0);
+        V value = get(key);
+        if (value != null) {
+            if (isClosed()) {
+                return true;
+            }
+            replace(key, value, value);
+        }
+        return false;
     }
 
     /**
@@ -1221,8 +1219,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                     if (p.getKeyCount() == 0) {
                         p = page;
                     } else {
-                        Object keys[] = new Object[] { key };
-                        Page.PageReference children[] = new Page.PageReference[] {
+                        Object[] keys = new Object[] { key };
+                        Page.PageReference[] children = new Page.PageReference[] {
                                                             new Page.PageReference(p),
                                                             new Page.PageReference(page)};
                         p = Page.createNode(this, keys, children, p.getTotalCount() + page.getTotalCount(), 0);

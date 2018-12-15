@@ -941,15 +941,13 @@ public class StringUtils {
         } else if (s.isEmpty()) {
             return "";
         }
-        int hash = s.hashCode();
         String[] cache = getCache();
         if (cache != null) {
+            int hash = s.hashCode();
             int index = hash & (SysProperties.OBJECT_CACHE_SIZE - 1);
             String cached = cache[index];
-            if (cached != null) {
-                if (s.equals(cached)) {
-                    return cached;
-                }
+            if (s.equals(cached)) {
+                return cached;
             }
             cache[index] = s;
         }

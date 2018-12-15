@@ -2949,7 +2949,7 @@ public class Parser {
             if (readIf(ASTERISK)) {
                 r = new Aggregate(AggregateType.COUNT_ALL, null, currentSelect, false);
             } else {
-                boolean distinct = readIf(DISTINCT);
+                boolean distinct = readDistinctAgg();
                 Expression on = readExpression();
                 if (on instanceof Wildcard && !distinct) {
                     // PostgreSQL compatibility: count(t.*)
@@ -2960,7 +2960,7 @@ public class Parser {
             }
             break;
         case GROUP_CONCAT: {
-            boolean distinct = readIf(DISTINCT);
+            boolean distinct = readDistinctAgg();
             if (equalsToken("GROUP_CONCAT", aggregateName)) {
                 r = new Aggregate(AggregateType.GROUP_CONCAT, readExpression(), currentSelect, distinct);
                 if (readIf(ORDER)) {
@@ -2985,7 +2985,7 @@ public class Parser {
             break;
         }
         case ARRAY_AGG: {
-            boolean distinct = readIf(DISTINCT);
+            boolean distinct = readDistinctAgg();
             r = new Aggregate(AggregateType.ARRAY_AGG, readExpression(), currentSelect, distinct);
             if (readIf(ORDER)) {
                 read("BY");
@@ -3020,7 +3020,7 @@ public class Parser {
             break;
         }
         default:
-            boolean distinct = readIf(DISTINCT);
+            boolean distinct = readDistinctAgg();
             r = new Aggregate(aggregateType, readExpression(), currentSelect, distinct);
             break;
         }
@@ -3078,7 +3078,7 @@ public class Parser {
     }
 
     private JavaAggregate readJavaAggregate(UserAggregate aggregate) {
-        boolean distinct = readIf(DISTINCT);
+        boolean distinct = readDistinctAgg();
         ArrayList<Expression> params = Utils.newSmallArrayList();
         do {
             params.add(readExpression());
@@ -3087,6 +3087,14 @@ public class Parser {
         JavaAggregate agg = new JavaAggregate(aggregate, list, currentSelect, distinct);
         readFilterAndOver(agg);
         return agg;
+    }
+
+    private boolean readDistinctAgg() {
+        if (readIf(DISTINCT)) {
+            return true;
+        }
+        readIf(ALL);
+        return false;
     }
 
     private void readFilterAndOver(AbstractAggregate aggregate) {

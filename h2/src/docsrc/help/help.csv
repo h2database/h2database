@@ -3418,7 +3418,7 @@ INTERVAL MINUTE TO SECOND
 "
 
 "Functions (Aggregate)","AVG","
-AVG ( [ DISTINCT ] { numeric } )
+AVG ( [ DISTINCT|ALL ] { numeric } )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 The average (mean) value.
@@ -3474,7 +3474,7 @@ ANY(NAME LIKE 'W%')
 "
 
 "Functions (Aggregate)","COUNT","
-COUNT( { * | { [ DISTINCT ] expression } } )
+COUNT( { * | { [ DISTINCT|ALL ] expression } } )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 The count of all row, or of the non-null values.
@@ -3486,7 +3486,7 @@ COUNT(*)
 "
 
 "Functions (Aggregate)","GROUP_CONCAT","
-GROUP_CONCAT ( [ DISTINCT ] string
+GROUP_CONCAT ( [ DISTINCT|ALL ] string
 [ ORDER BY { expression [ ASC | DESC ] } [,...] ]
 [ SEPARATOR expression ] )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
@@ -3501,7 +3501,7 @@ GROUP_CONCAT(NAME ORDER BY ID SEPARATOR ', ')
 "
 
 "Functions (Aggregate)","ARRAY_AGG","
-ARRAY_AGG ( [ DISTINCT ] string
+ARRAY_AGG ( [ DISTINCT|ALL ] string
 [ ORDER BY { expression [ ASC | DESC ] } [,...] ] )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
@@ -3538,7 +3538,7 @@ MIN(NAME)
 "
 
 "Functions (Aggregate)","SUM","
-SUM( [ DISTINCT ] { numeric } )
+SUM( [ DISTINCT|ALL ] { numeric } )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 The sum of all values.
@@ -3564,7 +3564,7 @@ SELECT SELECTIVITY(FIRSTNAME), SELECTIVITY(NAME) FROM TEST WHERE ROWNUM()<20000
 "
 
 "Functions (Aggregate)","STDDEV_POP","
-STDDEV_POP( [ DISTINCT ] numeric )
+STDDEV_POP( [ DISTINCT|ALL ] numeric )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 The population standard deviation.
@@ -3576,7 +3576,7 @@ STDDEV_POP(X)
 "
 
 "Functions (Aggregate)","STDDEV_SAMP","
-STDDEV_SAMP( [ DISTINCT ] numeric )
+STDDEV_SAMP( [ DISTINCT|ALL ] numeric )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 The sample standard deviation.
@@ -3588,7 +3588,7 @@ STDDEV(X)
 "
 
 "Functions (Aggregate)","VAR_POP","
-VAR_POP( [ DISTINCT ] numeric )
+VAR_POP( [ DISTINCT|ALL ] numeric )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 The population variance (square of the population standard deviation).
@@ -3600,7 +3600,7 @@ VAR_POP(X)
 "
 
 "Functions (Aggregate)","VAR_SAMP","
-VAR_SAMP( [ DISTINCT ] numeric )
+VAR_SAMP( [ DISTINCT|ALL ] numeric )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 The sample variance (square of the sample standard deviation).
@@ -3612,7 +3612,7 @@ VAR_SAMP(X)
 "
 
 "Functions (Aggregate)","MEDIAN","
-MEDIAN( [ DISTINCT ] value )
+MEDIAN( [ DISTINCT|ALL ] value )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 The value separating the higher half of a values from the lower half.

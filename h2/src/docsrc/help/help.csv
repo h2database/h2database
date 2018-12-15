@@ -3672,7 +3672,8 @@ ABS(-2147483648) should be 2147483648, but this value is not allowed for this da
 It leads to an exception.
 To avoid it cast argument of this function to a higher data type.
 ","
-ABS(ID)
+ABS(VALUE)
+ABS(CAST(VALUE AS BIGINT))
 "
 
 "Functions (Numeric)","ACOS","

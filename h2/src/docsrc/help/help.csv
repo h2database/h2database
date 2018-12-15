@@ -4756,10 +4756,10 @@ ISO_YEAR(CREATED)
 "Functions (System)","ARRAY_GET","
 ARRAY_GET(arrayExpression, indexExpression)
 ","
-Returns one element of an array.
+Returns element at the specified 1-based index from an array.
 Returns NULL if there is no such element or array is NULL.
 ","
-CALL ARRAY_GET(('Hello', 'World'), 2)
+CALL ARRAY_GET(ARRAY['Hello', 'World'], 2)
 "
 
 "Functions (System)","ARRAY_LENGTH","
@@ -4768,7 +4768,7 @@ ARRAY_LENGTH(arrayExpression)
 Returns the length of an array.
 Returns NULL if the specified array is NULL.
 ","
-CALL ARRAY_LENGTH(('Hello', 'World'))
+CALL ARRAY_LENGTH(ARRAY['Hello', 'World'])
 "
 
 "Functions (System)","ARRAY_CONTAINS","
@@ -4777,7 +4777,7 @@ ARRAY_CONTAINS(arrayExpression, value)
 Returns a boolean TRUE if the array contains the value or FALSE if it does not contain it.
 Returns NULL if the specified array is NULL.
 ","
-CALL ARRAY_CONTAINS(('Hello', 'World'), 'Hello')
+CALL ARRAY_CONTAINS(ARRAY['Hello', 'World'], 'Hello')
 "
 
 "Functions (System)","AUTOCOMMIT","

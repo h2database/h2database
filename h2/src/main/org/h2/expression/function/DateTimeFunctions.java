@@ -642,7 +642,6 @@ public final class DateTimeFunctions {
                 v = IntervalUtils.monthsFromInterval(qualifier, negative, leading, remaining);
                 break;
             case DAY_OF_MONTH:
-            case DAY_OF_WEEK:
             case DAY_OF_YEAR:
                 v = IntervalUtils.daysFromInterval(qualifier, negative, leading, remaining);
                 break;

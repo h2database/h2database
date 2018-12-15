@@ -4600,7 +4600,7 @@ DAYNAME(CREATED)
 "
 
 "Functions (Time and Date)","DAY_OF_MONTH","
-DAY_OF_MONTH(dateAndTime)
+DAY_OF_MONTH(dateAndTime|interval)
 ","
 Returns the day of the month (1-31).
 ","
@@ -4624,7 +4624,7 @@ ISO_DAY_OF_WEEK(CREATED)
 "
 
 "Functions (Time and Date)","DAY_OF_YEAR","
-DAY_OF_YEAR(dateAndTime)
+DAY_OF_YEAR(dateAndTime|interval)
 ","
 Returns the day of the year (1-366).
 ","
@@ -4658,7 +4658,7 @@ CALL FORMATDATETIME(TIMESTAMP '2001-02-03 04:05:06',
 "
 
 "Functions (Time and Date)","HOUR","
-HOUR(dateAndTime)
+HOUR(dateAndTime|interval)
 ","
 Returns the hour (0-23) from a date/time value.
 ","
@@ -4666,7 +4666,7 @@ HOUR(CREATED)
 "
 
 "Functions (Time and Date)","MINUTE","
-MINUTE(dateAndTime)
+MINUTE(dateAndTime|interval)
 ","
 Returns the minute (0-59) from a date/time value.
 ","
@@ -4674,7 +4674,7 @@ MINUTE(CREATED)
 "
 
 "Functions (Time and Date)","MONTH","
-MONTH(dateAndTime)
+MONTH(dateAndTime|interval)
 ","
 Returns the month (1-12) from a date/time value.
 ","
@@ -4715,7 +4715,7 @@ SECOND(dateAndTime)
 ","
 Returns the second (0-59) from a date/time value.
 ","
-SECOND(CREATED)
+SECOND(CREATED|interval)
 "
 
 "Functions (Time and Date)","WEEK","
@@ -4739,7 +4739,7 @@ ISO_WEEK(CREATED)
 "
 
 "Functions (Time and Date)","YEAR","
-YEAR(dateAndTime)
+YEAR(dateAndTime|interval)
 ","
 Returns the year from a date/time value.
 ","

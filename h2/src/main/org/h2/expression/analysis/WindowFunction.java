@@ -18,7 +18,7 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueDouble;
-import org.h2.value.ValueInt;
+import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 
 /**
@@ -184,7 +184,7 @@ public class WindowFunction extends DataAnalysisOperation {
         switch (type) {
         case ROW_NUMBER:
             for (int i = 0, size = ordered.size(); i < size;) {
-                result.put(ordered.get(i)[rowIdColumn].getInt(), ValueInt.get(++i));
+                result.put(ordered.get(i)[rowIdColumn].getInt(), ValueLong.get(++i));
             }
             break;
         case RANK:
@@ -231,7 +231,7 @@ public class WindowFunction extends DataAnalysisOperation {
                 int nm = number - 1;
                 v = nm == 0 ? ValueDouble.ZERO : ValueDouble.get((double) nm / (size - 1));
             } else {
-                v = ValueInt.get(number);
+                v = ValueLong.get(number);
             }
             result.put(row[rowIdColumn].getInt(), v);
         }
@@ -260,20 +260,20 @@ public class WindowFunction extends DataAnalysisOperation {
         int size = orderedData.size();
         for (int i = 0; i < size; i++) {
             Value[] array = orderedData.get(i);
-            int buckets = array[0].getInt();
+            long buckets = array[0].getLong();
             if (buckets <= 0) {
                 throw DbException.getInvalidValueException("number of tiles", buckets);
             }
-            int perTile = size / buckets;
-            int numLarger = size - perTile * buckets;
-            int largerGroup = numLarger * (perTile + 1);
-            int v;
+            long perTile = size / buckets;
+            long numLarger = size - perTile * buckets;
+            long largerGroup = numLarger * (perTile + 1);
+            long v;
             if (i >= largerGroup) {
                 v = (i - largerGroup) / perTile + numLarger + 1;
             } else {
                 v = i / (perTile + 1) + 1;
             }
-            result.put(orderedData.get(i)[last].getInt(), ValueInt.get(v));
+            result.put(orderedData.get(i)[last].getInt(), ValueLong.get(v));
         }
     }
 
@@ -441,7 +441,7 @@ public class WindowFunction extends DataAnalysisOperation {
         case RANK:
         case DENSE_RANK:
         case NTILE:
-            return Value.INT;
+            return Value.LONG;
         case PERCENT_RANK:
         case CUME_DIST:
             return Value.DOUBLE;
@@ -477,7 +477,7 @@ public class WindowFunction extends DataAnalysisOperation {
         case RANK:
         case DENSE_RANK:
         case NTILE:
-            return ValueInt.PRECISION;
+            return ValueLong.PRECISION;
         case PERCENT_RANK:
         case CUME_DIST:
             return ValueDouble.PRECISION;
@@ -499,7 +499,7 @@ public class WindowFunction extends DataAnalysisOperation {
         case RANK:
         case DENSE_RANK:
         case NTILE:
-            return ValueInt.DISPLAY_SIZE;
+            return ValueLong.DISPLAY_SIZE;
         case PERCENT_RANK:
         case CUME_DIST:
             return ValueDouble.DISPLAY_SIZE;

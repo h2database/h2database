@@ -5335,10 +5335,10 @@ SELECT CUME_DIST() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
 "
 
 "Functions (Window)","NTILE","
-NTILE(int) OVER windowNameOrSpecification
+NTILE(long) OVER windowNameOrSpecification
 ","
 Distributes the rows into a specified number of groups.
-Number of groups should be a positive integer value.
+Number of groups should be a positive long value.
 NTILE returns the 1-based number of the group to which the current row belongs.
 First groups will have more rows if number of rows is not divisible by number of groups.
 For example, if 5 rows are distributed into 2 groups this function returns 1 for the first 3 row and 2 for the last 2 rows.

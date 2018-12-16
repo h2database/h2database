@@ -11,7 +11,7 @@ import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
-import org.h2.value.ValueInt;
+import org.h2.value.ValueLong;
 
 /**
  * Represents the ROWNUM function.
@@ -29,7 +29,7 @@ public class Rownum extends Expression {
 
     @Override
     public Value getValue(Session session) {
-        return ValueInt.get(prepared.getCurrentRowNumber());
+        return ValueLong.get(prepared.getCurrentRowNumber());
     }
 
     @Override
@@ -59,12 +59,12 @@ public class Rownum extends Expression {
 
     @Override
     public long getPrecision() {
-        return ValueInt.PRECISION;
+        return ValueLong.PRECISION;
     }
 
     @Override
     public int getDisplaySize() {
-        return ValueInt.DISPLAY_SIZE;
+        return ValueLong.DISPLAY_SIZE;
     }
 
     @Override

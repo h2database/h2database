@@ -34,7 +34,7 @@ public class Rownum extends Expression {
 
     @Override
     public int getType() {
-        return Value.INT;
+        return Value.LONG;
     }
 
     @Override

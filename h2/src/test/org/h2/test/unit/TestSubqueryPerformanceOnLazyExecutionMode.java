@@ -7,9 +7,9 @@ package org.h2.test.unit;
 
 import org.h2.command.dml.SetTypes;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,7 +18,7 @@ import java.sql.Statement;
 /**
  * Test subquery performance with lazy query execution mode {@link SetTypes#LAZY_QUERY_EXECUTION}.
  */
-public class TestSubqueryPerformanceOnLazyExecutionMode extends TestBase {
+public class TestSubqueryPerformanceOnLazyExecutionMode extends TestDb {
     /** Rows count. */
     private static final int ROWS = 5000;
 
@@ -31,15 +31,14 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-
     @Override
     public void test() throws Exception {
-        Class.forName("org.h2.Driver");
-        try (Connection conn = DriverManager.getConnection("jdbc:h2:mem:")) {
+        deleteDb("lazySubq");
+        try (Connection conn = getConnection("lazySubq")) {
             try (Statement stmt = conn.createStatement()) {
-                stmt.execute("CREATE TABLE ONE(X INTEGER , Y INTEGER )");
+                stmt.execute("CREATE TABLE one (x INTEGER, y INTEGER )");
 
-                try (PreparedStatement prep = conn.prepareStatement("insert into one values(?,?)")) {
+                try (PreparedStatement prep = conn.prepareStatement("insert into one values (?,?)")) {
                     for (int row = 0; row < ROWS; row++) {
                         prep.setInt(1, row / 100);
                         prep.setInt(2, row);
@@ -51,6 +50,9 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestBase {
                 testSubqueryInJoin(stmt);
             }
         }
+        finally {
+            deleteDb("lazySubq");
+        }
     }
 
     public void testSubqueryInCondition(Statement stmt) throws Exception {
@@ -61,7 +63,7 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestBase {
 
         assertTrue("Lazy execution too slow. lazy time: "
                         + tLazy + ", not lazy time: " + tNotLazy,
-                tNotLazy * 2 > tLazy);
+                tNotLazy * 5 > tLazy);
     }
 
     public void testSubqueryInJoin(Statement stmt) throws Exception {
@@ -74,7 +76,7 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestBase {
 
         assertTrue("Lazy execution too slow. lazy time: "
                         + tLazy + ", not lazy time: " + tNotLazy,
-                tNotLazy * 2 > tLazy);
+                tNotLazy * 5 > tLazy);
     }
 
     /**

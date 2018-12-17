@@ -1056,7 +1056,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return getVersion(getRoot());
     }
 
-    private long getVersion(RootReference rootReference) {
+    private static long getVersion(RootReference rootReference) {
         RootReference previous = rootReference.previous;
         return previous == null || previous.root != rootReference.root ||
                 previous.appendCounter != rootReference.appendCounter ?

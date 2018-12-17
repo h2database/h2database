@@ -1236,10 +1236,12 @@ public abstract class Page implements Cloneable
             }
         }
 
+        @Override
         public boolean isComplete() {
             return complete;
         }
 
+        @Override
         public void setComplete() {
             recalculateTotalCount();
             complete = true;

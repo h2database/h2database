@@ -102,7 +102,7 @@ public class TestLIRSMemoryConsumption extends TestDb {
         return 2560;
     }
 
-    private long getMemUsedKb() {
+    private static long getMemUsedKb() {
         Runtime rt = Runtime.getRuntime();
         long memory = Long.MAX_VALUE;
         for (int i = 0; i < 8; i++) {

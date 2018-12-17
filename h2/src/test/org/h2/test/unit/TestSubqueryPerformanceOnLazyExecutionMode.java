@@ -7,7 +7,6 @@ package org.h2.test.unit;
 
 import org.h2.command.dml.SetTypes;
 import org.h2.test.TestBase;
-import org.junit.Assert;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -60,7 +59,7 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestBase {
         long tNotLazy = executeAndCheckResult(stmt, sql, false);
         long tLazy = executeAndCheckResult(stmt, sql, true);
 
-        Assert.assertTrue("Lazy execution too slow. lazy time: "
+        assertTrue("Lazy execution too slow. lazy time: "
                         + tLazy + ", not lazy time: " + tNotLazy,
                 tNotLazy * 2 > tLazy);
     }
@@ -73,7 +72,7 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestBase {
         long tNotLazy = executeAndCheckResult(stmt, sql, false);
         long tLazy = executeAndCheckResult(stmt, sql, true);
 
-        Assert.assertTrue("Lazy execution too slow. lazy time: "
+        assertTrue("Lazy execution too slow. lazy time: "
                         + tLazy + ", not lazy time: " + tNotLazy,
                 tNotLazy * 2 > tLazy);
     }
@@ -92,7 +91,7 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestBase {
         long t0 = System.currentTimeMillis();
         try (ResultSet rs = stmt.executeQuery(sql)) {
             rs.next();
-            Assert.assertEquals(ROWS, rs.getInt(1));
+            assertEquals(ROWS, rs.getInt(1));
         }
 
         return System.currentTimeMillis() - t0;

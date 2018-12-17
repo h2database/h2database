@@ -22,7 +22,8 @@ import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 
 /**
- * Implementation of the functions TABLE(..) and TABLE_DISTINCT(..).
+ * Implementation of the functions TABLE(..), TABLE_DISTINCT(..), and
+ * UNNEST(..).
  */
 public class TableFunction extends Function {
     private final long rowCount;

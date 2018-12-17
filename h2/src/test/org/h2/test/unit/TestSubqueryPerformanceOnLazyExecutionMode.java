@@ -21,6 +21,8 @@ import java.sql.Statement;
 public class TestSubqueryPerformanceOnLazyExecutionMode extends TestDb {
     /** Rows count. */
     private static final int ROWS = 5000;
+    /** Test repeats when unexpected failure. */
+    private static final int FAIL_REPEATS = 5;
 
     /**
      * Run just this test.
@@ -37,7 +39,6 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestDb {
         try (Connection conn = getConnection("lazySubq")) {
             try (Statement stmt = conn.createStatement()) {
                 stmt.execute("CREATE TABLE one (x INTEGER, y INTEGER )");
-
                 try (PreparedStatement prep = conn.prepareStatement("insert into one values (?,?)")) {
                     for (int row = 0; row < ROWS; row++) {
                         prep.setInt(1, row / 100);
@@ -48,6 +49,8 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestDb {
 
                 testSubqueryInCondition(stmt);
                 testSubqueryInJoin(stmt);
+                testSubqueryInJoinFirst(stmt);
+                testJoinTwoSubqueries(stmt);
             }
         }
         finally {
@@ -58,12 +61,7 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestDb {
     public void testSubqueryInCondition(Statement stmt) throws Exception {
         String sql = "SELECT COUNT (*) FROM one WHERE x IN (SELECT y FROM one WHERE y < 50)";
 
-        long tNotLazy = executeAndCheckResult(stmt, sql, false);
-        long tLazy = executeAndCheckResult(stmt, sql, true);
-
-        assertTrue("Lazy execution too slow. lazy time: "
-                        + tLazy + ", not lazy time: " + tNotLazy,
-                tNotLazy * 5 > tLazy);
+        checkExecutionTime(stmt, sql);
     }
 
     public void testSubqueryInJoin(Statement stmt) throws Exception {
@@ -71,12 +69,59 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestDb {
                 "SELECT COUNT (one.x) FROM one " +
                 "JOIN (SELECT y AS val FROM one WHERE y < 50) AS subq ON subq.val=one.x";
 
-        long tNotLazy = executeAndCheckResult(stmt, sql, false);
-        long tLazy = executeAndCheckResult(stmt, sql, true);
+        checkExecutionTime(stmt, sql);
+    }
 
-        assertTrue("Lazy execution too slow. lazy time: "
-                        + tLazy + ", not lazy time: " + tNotLazy,
-                tNotLazy * 5 > tLazy);
+    public void testSubqueryInJoinFirst(Statement stmt) throws Exception {
+        String sql =
+                "SELECT COUNT (one.x) FROM " +
+                        "(SELECT y AS val FROM one WHERE y < 50) AS subq " +
+                        "JOIN one ON subq.val=one.x";
+
+        checkExecutionTime(stmt, sql);
+    }
+
+    public void testJoinTwoSubqueries(Statement stmt) throws Exception {
+        String sql =
+                "SELECT COUNT (one_sub.x) FROM " +
+                        "(SELECT y AS val FROM one WHERE y < 50) AS subq " +
+                        "JOIN (SELECT x FROM one) AS one_sub ON subq.val=one_sub.x";
+
+        checkExecutionTime(stmt, sql);
+    }
+
+    /**
+     * Compare execution time when lazy execution mode is disabled and enabled.
+     * The execution time must be almost the same.
+     */
+    private void checkExecutionTime(Statement stmt, String sql) throws Exception {
+        long totalNotLazy = 0;
+        long totalLazy = 0;
+
+        int successCnt = 0;
+        int failCnt = 0;
+
+        for (int i = 0; i < FAIL_REPEATS; ++i) {
+            long tNotLazy = executeAndCheckResult(stmt, sql, false);
+            long tLazy = executeAndCheckResult(stmt, sql, true);
+
+            totalNotLazy += tNotLazy;
+            totalLazy += tLazy;
+
+            if (tNotLazy * 2 > tLazy) {
+                successCnt++;
+                if (i == 0) {
+                    break;
+                }
+            } else {
+                failCnt++;
+            }
+        }
+
+        if (failCnt > successCnt) {
+           fail("Lazy execution too slow. Avg lazy time: "
+                            + (totalLazy / FAIL_REPEATS) + ", avg not lazy time: " + (totalNotLazy / FAIL_REPEATS));
+        }
     }
 
     /**

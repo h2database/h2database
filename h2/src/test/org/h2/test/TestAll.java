@@ -927,6 +927,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestDefrag());
         addTest(new TestTools());
         addTest(new TestSampleApps());
+        addTest(new TestSubqueryPerformanceOnLazyExecutionMode());
 
         runAddedTests(1);
     }
@@ -989,7 +990,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestUtils());
         addTest(new TestValueHashMap());
         addTest(new TestLocalResultFactory());
-        addTest(new TestSubqueryPerformanceOnLazyExecutionMode());
 
         runAddedTests();
 

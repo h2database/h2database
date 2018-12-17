@@ -285,7 +285,6 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             return findRecursive(first, last);
         }
         setupQueryParameters(session, first, last, intersection);
-        query.setNeverLazy(true);
         ResultInterface result = query.query(0);
         return new ViewCursor(this, result, first, last);
     }

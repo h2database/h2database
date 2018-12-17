@@ -438,7 +438,7 @@ public class Select extends Query {
     }
 
     private void gatherGroup(int columnCount, int stage) {
-        int rowNumber = 0;
+        long rowNumber = 0;
         setCurrentRowNumber(0);
         int sampleSize = getSampleSizeValue(session);
         ArrayList<Row>[] forUpdateRows = initForUpdateRows();
@@ -583,7 +583,7 @@ public class Select extends Query {
                 limitRows = Long.MAX_VALUE;
             }
         }
-        int rowNumber = 0;
+        long rowNumber = 0;
         setCurrentRowNumber(0);
         Index index = topTableFilter.getIndex();
         SearchRow first = null;
@@ -1665,7 +1665,7 @@ public class Select extends Query {
      */
     private abstract class LazyResultSelect extends LazyResult {
 
-        int rowNumber;
+        long rowNumber;
         int columnCount;
 
         LazyResultSelect(Expression[] expressions, int columnCount) {

@@ -870,17 +870,19 @@ public class Select extends Query {
     }
 
     private void disableLazyForJoinSubqueries(final TableFilter top) {
-        top.visit(new TableFilter.TableFilterVisitor() {
-            @Override
-            public void accept(TableFilter f) {
-                if (f != top && f.getTable().getTableType() == TableType.VIEW) {
-                    ViewIndex idx = (ViewIndex) f.getIndex();
-                    if (idx != null && idx.getQuery() != null) {
-                        idx.getQuery().setNeverLazy(true);
+        if (session.isLazyQueryExecution()) {
+            top.visit(new TableFilter.TableFilterVisitor() {
+                @Override
+                public void accept(TableFilter f) {
+                    if (f != top && f.getTable().getTableType() == TableType.VIEW) {
+                        ViewIndex idx = (ViewIndex) f.getIndex();
+                        if (idx != null && idx.getQuery() != null) {
+                            idx.getQuery().setNeverLazy(true);
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
     }
 
     /**

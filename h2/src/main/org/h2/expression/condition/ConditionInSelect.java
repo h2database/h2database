@@ -169,6 +169,9 @@ public class ConditionInSelect extends Condition {
         if (!session.getDatabase().getSettings().optimizeInList) {
             return;
         }
+        if (compareType != Comparison.EQUAL) {
+            return;
+        }
         if (!(left instanceof ExpressionColumn)) {
             return;
         }

@@ -12,6 +12,9 @@ import static org.h2.util.ParserUtil.ALL;
 import static org.h2.util.ParserUtil.CHECK;
 import static org.h2.util.ParserUtil.CONSTRAINT;
 import static org.h2.util.ParserUtil.CROSS;
+import static org.h2.util.ParserUtil.CURRENT_DATE;
+import static org.h2.util.ParserUtil.CURRENT_TIME;
+import static org.h2.util.ParserUtil.CURRENT_TIMESTAMP;
 import static org.h2.util.ParserUtil.DISTINCT;
 import static org.h2.util.ParserUtil.EXCEPT;
 import static org.h2.util.ParserUtil.EXISTS;
@@ -30,6 +33,8 @@ import static org.h2.util.ParserUtil.IS;
 import static org.h2.util.ParserUtil.JOIN;
 import static org.h2.util.ParserUtil.LIKE;
 import static org.h2.util.ParserUtil.LIMIT;
+import static org.h2.util.ParserUtil.LOCALTIME;
+import static org.h2.util.ParserUtil.LOCALTIMESTAMP;
 import static org.h2.util.ParserUtil.MINUS;
 import static org.h2.util.ParserUtil.NATURAL;
 import static org.h2.util.ParserUtil.NOT;
@@ -457,6 +462,10 @@ public class Parser {
             "LIKE",
             // LIMIT
             "LIMIT",
+            // LOCALTIME
+            "LOCALTIME",
+            // LOCALTIMESTAMP
+            "LOCALTIMESTAMP",
             // MINUS
             "MINUS",
             // NATURAL
@@ -3523,6 +3532,14 @@ public class Parser {
         }
     }
 
+    private Expression readKeywordFunction(String name) {
+        if (readIf(OPEN_PAREN)) {
+            return readFunction(null, name);
+        } else {
+            return readFunctionWithoutParameters(name);
+        }
+    }
+
     private Expression readFunctionWithoutParameters(String name) {
         if (database.isAllowBuiltinAliasOverride()) {
             FunctionAlias functionAlias = database.getSchema(session.getCurrentSchemaName()).findFunction(name);
@@ -3806,6 +3823,26 @@ public class Parser {
             r = ValueExpression.get(currentValue);
             read();
             break;
+        case CURRENT_DATE:
+            read();
+            r = readKeywordFunction("CURRENT_DATE");
+            break;
+        case CURRENT_TIME:
+            read();
+            r = readKeywordFunction("CURRENT_TIME");
+            break;
+        case CURRENT_TIMESTAMP:
+            read();
+            r = readKeywordFunction("CURRENT_TIMESTAMP");
+            break;
+        case LOCALTIME:
+            read();
+            r = readKeywordFunction("LOCALTIME");
+            break;
+        case LOCALTIMESTAMP:
+            read();
+            r = readKeywordFunction("LOCALTIMESTAMP");
+            break;
         default:
             throw getSyntaxError();
         }
@@ -3862,13 +3899,7 @@ public class Parser {
             break;
         case 'C':
         case 'c':
-            if (equalsToken("CURRENT_DATE", name)) {
-                return readFunctionWithoutParameters("CURRENT_DATE");
-            } else if (equalsToken("CURRENT_TIME", name)) {
-                return readFunctionWithoutParameters("CURRENT_TIME");
-            } else if (equalsToken("CURRENT_TIMESTAMP", name)) {
-                return readFunctionWithoutParameters("CURRENT_TIMESTAMP");
-            } else if (equalsToken("CURRENT_USER", name)) {
+            if (equalsToken("CURRENT_USER", name)) {
                 return readFunctionWithoutParameters("USER");
             } else if (database.getMode().getEnum() == ModeEnum.DB2 && equalsToken("CURRENT", name)) {
                 return parseDB2SpecialRegisters(name);
@@ -3900,14 +3931,6 @@ public class Parser {
         case 'i':
             if (equalsToken("INTERVAL", name)) {
                 return readInterval();
-            }
-            break;
-        case 'L':
-        case 'l':
-            if (equalsToken("LOCALTIME", name)) {
-                return readFunctionWithoutParameters("LOCALTIME");
-            } else if (equalsToken("LOCALTIMESTAMP", name)) {
-                return readFunctionWithoutParameters("LOCALTIMESTAMP");
             }
             break;
         case 'N':
@@ -4061,10 +4084,11 @@ public class Parser {
             if (readIf(WITH)) {
                 read("TIME");
                 read("ZONE");
-                return readFunctionWithoutParameters("CURRENT_TIMESTAMP");
+                return readKeywordFunction("CURRENT_TIMESTAMP");
             }
-            return readFunctionWithoutParameters("LOCALTIMESTAMP");
+            return readKeywordFunction("LOCALTIMESTAMP");
         } else if (readIf("TIME")) {
+            // Time with fractional seconds is not supported by DB2
             return readFunctionWithoutParameters("CURRENT_TIME");
         } else if (readIf("DATE")) {
             return readFunctionWithoutParameters("CURRENT_DATE");

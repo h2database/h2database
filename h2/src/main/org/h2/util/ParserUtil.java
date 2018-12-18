@@ -138,9 +138,19 @@ public class ParserUtil {
     public static final int LIMIT = LIKE + 1;
 
     /**
+     * The token "LOCALTIME".
+     */
+    public static final int LOCALTIME = LIMIT + 1;
+
+    /**
+     * The token "LOCALTIMESTAMP".
+     */
+    public static final int LOCALTIMESTAMP = LOCALTIME + 1;
+
+    /**
      * The token "MINUS".
      */
-    public static final int MINUS = LIMIT + 1;
+    public static final int MINUS = LOCALTIMESTAMP + 1;
 
     /**
      * The token "NATURAL".
@@ -311,12 +321,12 @@ public class ParserUtil {
                 return CONSTRAINT;
             } else if (eq("CROSS", s, ignoreCase, start, end)) {
                 return CROSS;
-            }
-            if (additionalKeywords) {
-                if (eq("CURRENT_DATE", s, ignoreCase, start, end) || eq("CURRENT_TIME", s, ignoreCase, start, end)
-                        || eq("CURRENT_TIMESTAMP", s, ignoreCase, start, end)) {
-                    return KEYWORD;
-                }
+            } else if (eq("CURRENT_DATE", s, ignoreCase, start, end)) {
+                return CURRENT_DATE;
+            } else if (eq("CURRENT_TIME", s, ignoreCase, start, end)) {
+                return CURRENT_TIME;
+            } else if (eq("CURRENT_TIMESTAMP", s, ignoreCase, start, end)) {
+                return CURRENT_TIMESTAMP;
             }
             return IDENTIFIER;
         case 'D':
@@ -380,11 +390,10 @@ public class ParserUtil {
                 return LIMIT;
             } else if (eq("LIKE", s, ignoreCase, start, end)) {
                 return LIKE;
-            }
-            if (additionalKeywords) {
-                if (eq("LOCALTIME", s, ignoreCase, start, end) || eq("LOCALTIMESTAMP", s, ignoreCase, start, end)) {
-                    return KEYWORD;
-                }
+            } else if (eq("LOCALTIME", s, ignoreCase, start, end)) {
+                return LOCALTIME;
+            } else if (eq("LOCALTIMESTAMP", s, ignoreCase, start, end)) {
+                return LOCALTIMESTAMP;
             }
             return IDENTIFIER;
         case 'M':

@@ -873,8 +873,9 @@ public class Select extends Query {
         for (; f != null; f = f.getJoin()) {
             if (f.getTable().getTableType() == TableType.VIEW) {
                 ViewIndex idx = (ViewIndex) f.getIndex();
-
-                idx.getQuery().setNeverLazy(true);
+                if (idx != null && idx.getQuery() != null) {
+                    idx.getQuery().setNeverLazy(true);
+                }
             }
         }
     }

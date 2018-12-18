@@ -58,13 +58,13 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestDb {
         }
     }
 
-    public void testSubqueryInCondition(Statement stmt) throws Exception {
+    private void testSubqueryInCondition(Statement stmt) throws Exception {
         String sql = "SELECT COUNT (*) FROM one WHERE x IN (SELECT y FROM one WHERE y < 50)";
 
         checkExecutionTime(stmt, sql);
     }
 
-    public void testSubqueryInJoin(Statement stmt) throws Exception {
+    private void testSubqueryInJoin(Statement stmt) throws Exception {
         String sql =
                 "SELECT COUNT (one.x) FROM one " +
                 "JOIN (SELECT y AS val FROM one WHERE y < 50) AS subq ON subq.val=one.x";
@@ -72,7 +72,7 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestDb {
         checkExecutionTime(stmt, sql);
     }
 
-    public void testSubqueryInJoinFirst(Statement stmt) throws Exception {
+    private void testSubqueryInJoinFirst(Statement stmt) throws Exception {
         String sql =
                 "SELECT COUNT (one.x) FROM " +
                         "(SELECT y AS val FROM one WHERE y < 50) AS subq " +
@@ -81,7 +81,7 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestDb {
         checkExecutionTime(stmt, sql);
     }
 
-    public void testJoinTwoSubqueries(Statement stmt) throws Exception {
+    private void testJoinTwoSubqueries(Statement stmt) throws Exception {
         String sql =
                 "SELECT COUNT (one_sub.x) FROM " +
                         "(SELECT y AS val FROM one WHERE y < 50) AS subq " +

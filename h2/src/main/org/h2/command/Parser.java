@@ -2868,7 +2868,7 @@ public class Parser {
                     r = new ConditionInSelect(database, r, query, true,
                             compareType);
                     read(CLOSE_PAREN);
-                } else if (database.getMode().anyAndSomeAreComparisons && (readIf("ANY") || readIf("SOME"))) {
+                } else if (readIf("ANY") || readIf("SOME")) {
                     read(OPEN_PAREN);
                     if (currentTokenType == PARAMETER && compareType == 0) {
                         Parameter p = readParameter();

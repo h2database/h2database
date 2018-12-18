@@ -3881,9 +3881,15 @@ public class Parser {
     private Expression readTermWithIdentifier(String name) {
         // Unquoted identifier is never empty
         char ch = name.charAt(0);
+        if (!identifiersToUpper) {
+            /*
+             * Convert a-z to A-Z. This method is safe, because only A-Z
+             * characters are considered below.
+             */
+            ch &= 0xffdf;
+        }
         switch (ch) {
         case 'A':
-        case 'a':
             if (equalsToken("ARRAY", name)) {
                 read(OPEN_BRACKET);
                 ArrayList<Expression> list = Utils.newSmallArrayList();
@@ -3898,7 +3904,6 @@ public class Parser {
             }
             break;
         case 'C':
-        case 'c':
             if (equalsToken("CURRENT_USER", name)) {
                 return readFunctionWithoutParameters("USER");
             } else if (database.getMode().getEnum() == ModeEnum.DB2 && equalsToken("CURRENT", name)) {
@@ -3906,7 +3911,6 @@ public class Parser {
             }
             break;
         case 'D':
-        case 'd':
             if (currentTokenType == VALUE && currentValue.getType() == Value.STRING &&
                     (equalsToken("DATE", name) || equalsToken("D", name))) {
                 String date = currentValue.getString();
@@ -3915,7 +3919,6 @@ public class Parser {
             }
             break;
         case 'E':
-        case 'e':
             if (currentTokenType == VALUE && currentValue.getType() == Value.STRING && equalsToken("E", name)) {
                 String text = currentValue.getString();
                 // the PostgreSQL ODBC driver uses
@@ -3928,13 +3931,11 @@ public class Parser {
             }
             break;
         case 'I':
-        case 'i':
             if (equalsToken("INTERVAL", name)) {
                 return readInterval();
             }
             break;
         case 'N':
-        case 'n':
             if (equalsToken("NEXT", name) && readIf("VALUE")) {
                 read(FOR);
                 return new SequenceValue(readSequence());
@@ -3946,7 +3947,6 @@ public class Parser {
             }
             break;
         case 'S':
-        case 's':
             if (equalsToken("SYSDATE", name)) {
                 return readFunctionWithoutParameters("CURRENT_TIMESTAMP");
             } else if (equalsToken("SYSTIME", name)) {
@@ -3956,7 +3956,6 @@ public class Parser {
             }
             break;
         case 'T':
-        case 't':
             if (equalsToken("TIME", name)) {
                 boolean without = readIf("WITHOUT");
                 if (without) {
@@ -4009,7 +4008,6 @@ public class Parser {
             }
             break;
         case 'X':
-        case 'x':
             if (currentTokenType == VALUE && currentValue.getType() == Value.STRING && equalsToken("X", name)) {
                 byte[] buffer = StringUtils.convertHexToBytes(currentValue.getString());
                 read();

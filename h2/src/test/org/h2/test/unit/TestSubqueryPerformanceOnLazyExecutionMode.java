@@ -51,6 +51,7 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestDb {
                 testSubqueryInJoin(stmt);
                 testSubqueryInJoinFirst(stmt);
                 testJoinTwoSubqueries(stmt);
+                testSubqueryInNestedJoin(stmt);
             }
         }
         finally {
@@ -75,8 +76,8 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestDb {
     private void testSubqueryInJoinFirst(Statement stmt) throws Exception {
         String sql =
                 "SELECT COUNT (one.x) FROM " +
-                        "(SELECT y AS val FROM one WHERE y < 50) AS subq " +
-                        "JOIN one ON subq.val=one.x";
+                "(SELECT y AS val FROM one WHERE y < 50) AS subq " +
+                "JOIN one ON subq.val=one.x";
 
         checkExecutionTime(stmt, sql);
     }
@@ -84,17 +85,32 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestDb {
     private void testJoinTwoSubqueries(Statement stmt) throws Exception {
         String sql =
                 "SELECT COUNT (one_sub.x) FROM " +
-                        "(SELECT y AS val FROM one WHERE y < 50) AS subq " +
-                        "JOIN (SELECT x FROM one) AS one_sub ON subq.val=one_sub.x";
+                "(SELECT y AS val FROM one WHERE y < 50) AS subq " +
+                "JOIN (SELECT x FROM one) AS one_sub ON subq.val=one_sub.x";
 
         checkExecutionTime(stmt, sql);
+    }
+
+    private void testSubqueryInNestedJoin(Statement stmt) throws Exception {
+        String sql =
+                "SELECT COUNT (one.x) FROM one " +
+                "LEFT JOIN (SELECT 1 AS val_1) AS subq0 " +
+                "JOIN (SELECT y AS val FROM one WHERE y < 30) AS subq1 ON subq0.val_1 < subq1.val " +
+                    "ON one.x = subq1.val " +
+                "WHERE one.x < 30";
+
+        checkExecutionTime(stmt, sql, 3000);
+    }
+
+    private void checkExecutionTime(Statement stmt, String sql) throws Exception {
+        checkExecutionTime(stmt, sql, ROWS);
     }
 
     /**
      * Compare execution time when lazy execution mode is disabled and enabled.
      * The execution time must be almost the same.
      */
-    private void checkExecutionTime(Statement stmt, String sql) throws Exception {
+    private void checkExecutionTime(Statement stmt, String sql, int expected) throws Exception {
         long totalNotLazy = 0;
         long totalLazy = 0;
 
@@ -102,8 +118,8 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestDb {
         int failCnt = 0;
 
         for (int i = 0; i < FAIL_REPEATS; ++i) {
-            long tNotLazy = executeAndCheckResult(stmt, sql, false);
-            long tLazy = executeAndCheckResult(stmt, sql, true);
+            long tLazy = executeAndCheckResult(stmt, sql, true, expected);
+            long tNotLazy = executeAndCheckResult(stmt, sql, false, expected);
 
             totalNotLazy += tNotLazy;
             totalLazy += tLazy;
@@ -127,7 +143,7 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestDb {
     /**
      * @return Time of the query execution.
      */
-    private long executeAndCheckResult(Statement stmt, String sql, boolean lazy) throws SQLException {
+    private long executeAndCheckResult(Statement stmt, String sql, boolean lazy, int expected) throws SQLException {
         if (lazy) {
             stmt.execute("SET LAZY_QUERY_EXECUTION 1");
         }
@@ -138,7 +154,7 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestDb {
         long t0 = System.currentTimeMillis();
         try (ResultSet rs = stmt.executeQuery(sql)) {
             rs.next();
-            assertEquals(ROWS, rs.getInt(1));
+            assertEquals(expected, rs.getInt(1));
         }
 
         return System.currentTimeMillis() - t0;

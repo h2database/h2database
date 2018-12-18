@@ -870,7 +870,7 @@ public class Select extends Query {
     }
 
     private void disableLazyForJoinSubqueries(TableFilter f) {
-        for (; f != null; f = f.getJoin()) {
+        for (; f != null; f = f.getJoin() != null ? f.getJoin() : f.getNestedJoin()) {
             if (f.getTable().getTableType() == TableType.VIEW) {
                 ViewIndex idx = (ViewIndex) f.getIndex();
                 if (idx != null && idx.getQuery() != null) {

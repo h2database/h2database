@@ -724,8 +724,7 @@ public class Select extends Query {
 
     @Override
     protected ResultInterface queryWithoutCache(int maxRows, ResultTarget target) {
-        disableLazyForJoinSubqueries(topTableFilter.getJoin());
-        disableLazyForJoinSubqueries(topTableFilter.getNestedJoin());
+        disableLazyForJoinSubqueries(topTableFilter);
 
         int limitRows = maxRows == 0 ? -1 : maxRows;
         if (limitExpr != null) {
@@ -870,17 +869,18 @@ public class Select extends Query {
         return null;
     }
 
-    private void disableLazyForJoinSubqueries(TableFilter f) {
-        if (f == null)
-            return;
-        if (f.getTable().getTableType() == TableType.VIEW) {
-            ViewIndex idx = (ViewIndex) f.getIndex();
-            if (idx != null && idx.getQuery() != null) {
-                idx.getQuery().setNeverLazy(true);
+    private void disableLazyForJoinSubqueries(final TableFilter top) {
+        top.visit(new TableFilter.TableFilterVisitor() {
+            @Override
+            public void accept(TableFilter f) {
+                if (f != top && f.getTable().getTableType() == TableType.VIEW) {
+                    ViewIndex idx = (ViewIndex) f.getIndex();
+                    if (idx != null && idx.getQuery() != null) {
+                        idx.getQuery().setNeverLazy(true);
+                    }
+                }
             }
-        }
-        disableLazyForJoinSubqueries(f.getJoin());
-        disableLazyForJoinSubqueries(f.getNestedJoin());
+        });
     }
 
     /**

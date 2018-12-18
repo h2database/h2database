@@ -42,7 +42,7 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
         String[] expectedRowData = new String[]{"|meat|null", "|fruit|3", "|veg|2"};
         String[] expectedColumnTypes = new String[]{"VARCHAR", numericName};
         String[] expectedColumnNames = new String[]{"VAL",
-                "SUM(SELECT\n" +
+                "SUM((SELECT\n" +
                 "    X\n" +
                 "FROM PUBLIC.\"\" BB\n" +
                 "    /* SELECT\n" +
@@ -61,7 +61,7 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
                 "    GROUP BY A: A IS A.VAL\n" +
                 "     */\n" +
                 "    /* scanCount: 1 */\n" +
-                "WHERE BB.A IS A.VAL)"};
+                "WHERE BB.A IS A.VAL))"};
 
         String setupSQL =
                 "DROP TABLE IF EXISTS A;                           "
@@ -92,7 +92,7 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
                 "GROUP BY a)                              \n" +
                 "SELECT                                   \n" +
                 "A.val,                                   \n" +
-                "sum(SELECT X FROM BB WHERE BB.a IS A.val)\n" +
+                "sum((SELECT X FROM BB WHERE BB.a IS A.val))\n" +
                 "FROM A                                   \n" + "GROUP BY A.val";
         int maxRetries = 3;
         int expectedNumberOfRows = expectedRowData.length;

@@ -1405,18 +1405,21 @@ public class Parser {
         return prep;
     }
 
-    private boolean isSelect() {
+    private boolean isSelectDeep() {
         int start = lastParseIndex;
         while (readIf(OPEN_PAREN)) {
             // need to read ahead, it could be a nested union:
             // ((select 1) union (select 1))
         }
-        boolean select = isToken(SELECT) || isToken(FROM) || isToken(WITH);
+        boolean select = isSelect();
         parseIndex = start;
         read();
         return select;
     }
 
+    private boolean isSelect() {
+        return isToken(SELECT) || isToken(FROM) || isToken(WITH);
+    }
 
     private Prepared parseMerge() {
         int start = lastParseIndex;
@@ -1431,7 +1434,7 @@ public class Parser {
         command.setTargetTableFilter(targetTableFilter);
         Table table = command.getTargetTable();
         if (readIf(OPEN_PAREN)) {
-            if (isSelect()) {
+            if (isSelectDeep()) {
                 command.setQuery(parseSelect());
                 read(CLOSE_PAREN);
                 return command;
@@ -1461,7 +1464,7 @@ public class Parser {
 
         if (readIf(OPEN_PAREN)) {
             /* a select query is supplied */
-            if (isSelect()) {
+            if (isSelectDeep()) {
                 command.setQuery(parseSelect());
                 read(CLOSE_PAREN);
             }
@@ -1616,7 +1619,7 @@ public class Parser {
     private Insert parseInsertGivenTable(Insert command, Table table) {
         Column[] columns = null;
         if (readIf(OPEN_PAREN)) {
-            if (isSelect()) {
+            if (isSelectDeep()) {
                 command.setQuery(parseSelect());
                 read(CLOSE_PAREN);
                 return command;
@@ -1669,7 +1672,7 @@ public class Parser {
         Table table = readTableOrView();
         command.setTable(table);
         if (readIf(OPEN_PAREN)) {
-            if (isSelect()) {
+            if (isSelectDeep()) {
                 command.setQuery(parseSelect());
                 read(CLOSE_PAREN);
                 return command;
@@ -1706,7 +1709,7 @@ public class Parser {
         Table table;
         String alias = null;
         label: if (readIf(OPEN_PAREN)) {
-            if (isSelect()) {
+            if (isSelectDeep()) {
                 Query query = parseSelectUnion();
                 read(CLOSE_PAREN);
                 query.setParameterList(new ArrayList<>(parameters));
@@ -2822,7 +2825,7 @@ public class Parser {
                     }
                     r = ValueExpression.get(ValueBoolean.FALSE);
                 } else {
-                    if (isSelect()) {
+                    if (isSelectDeep()) {
                         Query query = parseSelect();
                         r = new ConditionInSelect(database, r, query, false,
                                 Comparison.EQUAL);
@@ -2862,23 +2865,33 @@ public class Parser {
                     break;
                 }
                 read();
+                int start = lastParseIndex;
                 if (readIf(ALL)) {
                     read(OPEN_PAREN);
-                    Query query = parseSelect();
-                    r = new ConditionInSelect(database, r, query, true,
-                            compareType);
-                    read(CLOSE_PAREN);
+                    if (isSelect()) {
+                        Query query = parseSelect();
+                        r = new ConditionInSelect(database, r, query, true, compareType);
+                        read(CLOSE_PAREN);
+                    } else {
+                        parseIndex = start;
+                        read();
+                        r = new Comparison(session, compareType, r, readConcat());
+                    }
                 } else if (readIf("ANY") || readIf("SOME")) {
                     read(OPEN_PAREN);
                     if (currentTokenType == PARAMETER && compareType == 0) {
                         Parameter p = readParameter();
                         r = new ConditionInParameter(database, r, p);
-                    } else {
+                        read(CLOSE_PAREN);
+                    } else if (isSelect()) {
                         Query query = parseSelect();
-                        r = new ConditionInSelect(database, r, query, false,
-                                compareType);
+                        r = new ConditionInSelect(database, r, query, false, compareType);
+                        read(CLOSE_PAREN);
+                    } else {
+                        parseIndex = start;
+                        read();
+                        r = new Comparison(session, compareType, r, readConcat());
                     }
-                    read(CLOSE_PAREN);
                 } else {
                     r = new Comparison(session, compareType, r, readConcat());
                 }

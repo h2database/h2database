@@ -279,10 +279,6 @@ public class Column {
         return precision;
     }
 
-    public void setPrecision(long p) {
-        precision = p;
-    }
-
     public int getDisplaySize() {
         return displaySize;
     }
@@ -297,10 +293,6 @@ public class Column {
 
     public ExtTypeInfo getExtTypeInfo() {
         return extTypeInfo;
-    }
-
-    public void setExtTypeInfo(ExtTypeInfo extTypeInfo) {
-        this.extTypeInfo = extTypeInfo;
     }
 
     public boolean getVisible() {

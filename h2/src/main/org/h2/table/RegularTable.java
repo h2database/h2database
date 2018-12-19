@@ -257,7 +257,7 @@ public class RegularTable extends TableBase {
                     remaining--;
                 }
                 addRowsToIndex(session, buffer, index);
-                if (SysProperties.CHECK && remaining != 0) {
+                if (remaining != 0) {
                     DbException.throwInternalError("rowcount remaining=" +
                             remaining + " " + getName());
                 }

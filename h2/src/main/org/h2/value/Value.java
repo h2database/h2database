@@ -11,6 +11,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -1043,7 +1044,9 @@ public abstract class Value {
             ValueTimestampTimeZone ts = (ValueTimestampTimeZone) this;
             long dateValue = ts.getDateValue(), timeNanos = ts.getTimeNanos();
             long millis = DateTimeUtils.getMillis(dateValue, timeNanos, ts.getTimeZoneOffsetMins());
-            return ValueTime.fromNanos(DateTimeUtils.nanosFromDate(millis) + timeNanos % 1_000_000);
+            return ValueTime.fromNanos(
+                    DateTimeUtils.nanosFromLocalMillis(millis + DateTimeUtils.getTimeZoneOffset(millis))
+                            + timeNanos % 1_000_000);
         }
         case ENUM:
             throw getDataConversionError(TIME);
@@ -1405,7 +1408,7 @@ public abstract class Value {
         return (short) x;
     }
 
-    private static int convertToInt(long x, Object column) {
+    public static int convertToInt(long x, Object column) {
         if (x > Integer.MAX_VALUE || x < Integer.MIN_VALUE) {
             throw DbException.get(
                     ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), getColumnName(column));
@@ -1429,7 +1432,7 @@ public abstract class Value {
             throw DbException.get(
                     ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, x.toString(), getColumnName(column));
         }
-        return x.setScale(0, BigDecimal.ROUND_HALF_UP).longValue();
+        return x.setScale(0, RoundingMode.HALF_UP).longValue();
     }
 
     private static String getColumnName(Object column) {

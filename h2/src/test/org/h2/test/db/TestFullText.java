@@ -77,10 +77,7 @@ public class TestFullText extends TestDb {
                 testPerformance(true);
                 testReopen(true);
                 testDropIndex(true);
-            } catch (ClassNotFoundException e) {
-                println("Class not found, not tested: " + LUCENE_FULLTEXT_CLASS_NAME);
-                // ok
-            } catch (NoClassDefFoundError e) {
+            } catch (ClassNotFoundException | NoClassDefFoundError e) {
                 println("Class not found, not tested: " + LUCENE_FULLTEXT_CLASS_NAME);
                 // ok
             }

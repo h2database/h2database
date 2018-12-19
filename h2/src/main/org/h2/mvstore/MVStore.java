@@ -905,6 +905,7 @@ public class MVStore implements AutoCloseable {
     /**
      * Close the file and the store. Unsaved changes are written to disk first.
      */
+    @Override
     public void close() {
         if (closed) {
             return;

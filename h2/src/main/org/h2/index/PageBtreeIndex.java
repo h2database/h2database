@@ -176,7 +176,7 @@ public class PageBtreeIndex extends PageIndex {
 
     private Cursor find(Session session, SearchRow first, boolean bigger,
             SearchRow last) {
-        if (SysProperties.CHECK && store == null) {
+        if (store == null) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
         PageBtree root = getPage(rootPageId);

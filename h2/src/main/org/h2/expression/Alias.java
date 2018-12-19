@@ -111,7 +111,7 @@ public class Alias extends Expression {
     @Override
     public String getTableName() {
         if (aliasColumnName) {
-            return super.getTableName();
+            return null;
         }
         return expr.getTableName();
     }
@@ -119,7 +119,7 @@ public class Alias extends Expression {
     @Override
     public String getColumnName() {
         if (!(expr instanceof ExpressionColumn) || aliasColumnName) {
-            return super.getColumnName();
+            return alias;
         }
         return expr.getColumnName();
     }

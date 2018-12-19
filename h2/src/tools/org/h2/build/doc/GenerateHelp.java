@@ -66,7 +66,7 @@ public class GenerateHelp {
                 "Multiple-Licensed under the MPL 2.0,\n" +
                 "# and the EPL 1.0 " +
                 "(http://h2database.com/html/license.html).\n" +
-                "# Initial Developer: H2 Group)\n");
+                "# Initial Developer: H2 Group\n");
         csv = new Csv();
         csv.setLineSeparator("\n");
         csv.write(writer, rs2);

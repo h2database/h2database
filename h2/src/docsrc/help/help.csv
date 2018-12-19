@@ -2152,7 +2152,7 @@ ID<>2
 "
 
 "Other Grammar","Condition Right Hand Side","
-compare { { ALL ( select ) } | operand }
+compare { { { ALL | ANY | SOME } ( select ) } | operand }
     | IS [ NOT ] NULL
     | IS [ NOT ] [ DISTINCT FROM ] operand
     | BETWEEN operand AND operand
@@ -2161,6 +2161,18 @@ compare { { ALL ( select ) } | operand }
     | [ NOT ] REGEXP operand
 ","
 The right hand side of a condition.
+
+Quantified comparison predicate ALL returns TRUE if specified comparison operation between
+left size of condition and each row from a subquery returns TRUE, including case when there are no rows.
+ALL predicate returns FALSE if at least one such comparison returns FALSE.
+Otherwise it returns NULL.
+
+Quantified comparison predicates ANY and SOME return TRUE if specified comparison operation between
+left size of condition and at least one row from a subquery returns TRUE.
+ANY and SOME predicates return FALSE if all such comparisons return FALSE.
+Otherwise it returns NULL.
+Note that these predicates have priority over ANY and SOME aggregate functions with subquery on the right side.
+Use parentheses around aggregate function.
 
 The conditions ""IS [ NOT ]"" and ""IS [ NOT ] DISTINCT FROM"" are null-safe, meaning
 NULL is considered the same as NULL, and the condition never evaluates to NULL.
@@ -2179,6 +2191,8 @@ ILIKE does a case-insensitive compare.
 When comparing with REGEXP, regular expression matching is used.
 See Java ""Matcher.find"" for details.
 ","
+VALUE > 10
+A IS NOT DISTINCT FROM B
 LIKE 'Jo%'
 "
 
@@ -3118,7 +3132,7 @@ CHAR(10)
 "Data Types","BLOB Type","
 { BLOB | BINARY LARGE OBJECT
     | TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE | OID }
-[ ( precisionInt ) ]
+[ ( precisionInt [K|M|G|T|P]) ]
 ","
 Like BINARY, but intended for very large values such as files or images. Unlike
 when using BINARY, large objects are not kept fully in-memory. Use
@@ -3128,12 +3142,13 @@ Advanced / Large Objects.
 Mapped to ""java.sql.Blob"" (""java.io.InputStream"" is also supported).
 ","
 BLOB
+BLOB(10K)
 "
 
 "Data Types","CLOB Type","
 { CLOB | CHARACTER LARGE OBJECT
     | TINYTEXT | TEXT | MEDIUMTEXT | LONGTEXT | NTEXT | NCLOB }
-[ ( precisionInt ) ]
+[ ( precisionInt [K|M|G|T|P] [CHARACTERS|OCTETS]) ]
 ","
 CLOB is like VARCHAR, but intended for very large values. Unlike when using
 VARCHAR, large CLOB objects are not kept fully in-memory; instead, they are streamed.
@@ -3145,9 +3160,12 @@ VARCHAR should be used for text with relatively short average size (for example
 shorter than 200 characters). Short CLOB values are stored inline, but there is
 an overhead compared to VARCHAR.
 
+Precision, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
+
 Mapped to ""java.sql.Clob"" (""java.io.Reader"" is also supported).
 ","
 CLOB
+CLOB(10K)
 "
 
 "Data Types","UUID Type","
@@ -3260,6 +3278,7 @@ Interval data type.
 If precision is specified it should be from 1 to 18, 2 is default.
 
 Mapped to ""org.h2.api.Interval"".
+""java.time.Period"" is also supported on Java 8 and later versions.
 ","
 INTERVAL YEAR
 "
@@ -3271,6 +3290,7 @@ Interval data type.
 If precision is specified it should be from 1 to 18, 2 is default.
 
 Mapped to ""org.h2.api.Interval"".
+""java.time.Period"" is also supported on Java 8 and later versions.
 ","
 INTERVAL MONTH
 "
@@ -3331,6 +3351,7 @@ Interval data type.
 If leading field precision is specified it should be from 1 to 18, 2 is default.
 
 Mapped to ""org.h2.api.Interval"".
+""java.time.Period"" is also supported on Java 8 and later versions.
 ","
 INTERVAL YEAR TO MONTH
 "
@@ -3411,7 +3432,7 @@ INTERVAL MINUTE TO SECOND
 "
 
 "Functions (Aggregate)","AVG","
-AVG ( [ DISTINCT ] { numeric } )
+AVG ( [ DISTINCT|ALL ] { numeric } )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 The average (mean) value.
@@ -3462,12 +3483,17 @@ EVERY(ID>10)
 Returns true if any expression is true.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
+
+Note that if ANY or SOME aggregate function is placed on the right side of comparison operation
+and argument of this function is a subquery additional parentheses around aggregate function are required,
+otherwise it will be parsed as quantified comparison predicate.
 ","
 ANY(NAME LIKE 'W%')
+A = (ANY((SELECT B FROM T)))
 "
 
 "Functions (Aggregate)","COUNT","
-COUNT( { * | { [ DISTINCT ] expression } } )
+COUNT( { * | { [ DISTINCT|ALL ] expression } } )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 The count of all row, or of the non-null values.
@@ -3479,7 +3505,7 @@ COUNT(*)
 "
 
 "Functions (Aggregate)","GROUP_CONCAT","
-GROUP_CONCAT ( [ DISTINCT ] string
+GROUP_CONCAT ( [ DISTINCT|ALL ] string
 [ ORDER BY { expression [ ASC | DESC ] } [,...] ]
 [ SEPARATOR expression ] )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
@@ -3494,7 +3520,7 @@ GROUP_CONCAT(NAME ORDER BY ID SEPARATOR ', ')
 "
 
 "Functions (Aggregate)","ARRAY_AGG","
-ARRAY_AGG ( [ DISTINCT ] string
+ARRAY_AGG ( [ DISTINCT|ALL ] string
 [ ORDER BY { expression [ ASC | DESC ] } [,...] ] )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
@@ -3531,7 +3557,7 @@ MIN(NAME)
 "
 
 "Functions (Aggregate)","SUM","
-SUM( [ DISTINCT ] { numeric } )
+SUM( [ DISTINCT|ALL ] { numeric } )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 The sum of all values.
@@ -3557,7 +3583,7 @@ SELECT SELECTIVITY(FIRSTNAME), SELECTIVITY(NAME) FROM TEST WHERE ROWNUM()<20000
 "
 
 "Functions (Aggregate)","STDDEV_POP","
-STDDEV_POP( [ DISTINCT ] numeric )
+STDDEV_POP( [ DISTINCT|ALL ] numeric )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 The population standard deviation.
@@ -3569,7 +3595,7 @@ STDDEV_POP(X)
 "
 
 "Functions (Aggregate)","STDDEV_SAMP","
-STDDEV_SAMP( [ DISTINCT ] numeric )
+STDDEV_SAMP( [ DISTINCT|ALL ] numeric )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 The sample standard deviation.
@@ -3581,7 +3607,7 @@ STDDEV(X)
 "
 
 "Functions (Aggregate)","VAR_POP","
-VAR_POP( [ DISTINCT ] numeric )
+VAR_POP( [ DISTINCT|ALL ] numeric )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 The population variance (square of the population standard deviation).
@@ -3593,7 +3619,7 @@ VAR_POP(X)
 "
 
 "Functions (Aggregate)","VAR_SAMP","
-VAR_SAMP( [ DISTINCT ] numeric )
+VAR_SAMP( [ DISTINCT|ALL ] numeric )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 The sample variance (square of the sample standard deviation).
@@ -3605,7 +3631,7 @@ VAR_SAMP(X)
 "
 
 "Functions (Aggregate)","MEDIAN","
-MEDIAN( [ DISTINCT ] value )
+MEDIAN( [ DISTINCT|ALL ] value )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 The value separating the higher half of a values from the lower half.
@@ -3665,7 +3691,8 @@ ABS(-2147483648) should be 2147483648, but this value is not allowed for this da
 It leads to an exception.
 To avoid it cast argument of this function to a higher data type.
 ","
-ABS(ID)
+ABS(VALUE)
+ABS(CAST(VALUE AS BIGINT))
 "
 
 "Functions (Numeric)","ACOS","
@@ -4592,7 +4619,7 @@ DAYNAME(CREATED)
 "
 
 "Functions (Time and Date)","DAY_OF_MONTH","
-DAY_OF_MONTH(dateAndTime)
+DAY_OF_MONTH(dateAndTime|interval)
 ","
 Returns the day of the month (1-31).
 ","
@@ -4616,7 +4643,7 @@ ISO_DAY_OF_WEEK(CREATED)
 "
 
 "Functions (Time and Date)","DAY_OF_YEAR","
-DAY_OF_YEAR(dateAndTime)
+DAY_OF_YEAR(dateAndTime|interval)
 ","
 Returns the day of the year (1-366).
 ","
@@ -4650,7 +4677,7 @@ CALL FORMATDATETIME(TIMESTAMP '2001-02-03 04:05:06',
 "
 
 "Functions (Time and Date)","HOUR","
-HOUR(dateAndTime)
+HOUR(dateAndTime|interval)
 ","
 Returns the hour (0-23) from a date/time value.
 ","
@@ -4658,7 +4685,7 @@ HOUR(CREATED)
 "
 
 "Functions (Time and Date)","MINUTE","
-MINUTE(dateAndTime)
+MINUTE(dateAndTime|interval)
 ","
 Returns the minute (0-59) from a date/time value.
 ","
@@ -4666,7 +4693,7 @@ MINUTE(CREATED)
 "
 
 "Functions (Time and Date)","MONTH","
-MONTH(dateAndTime)
+MONTH(dateAndTime|interval)
 ","
 Returns the month (1-12) from a date/time value.
 ","
@@ -4707,7 +4734,7 @@ SECOND(dateAndTime)
 ","
 Returns the second (0-59) from a date/time value.
 ","
-SECOND(CREATED)
+SECOND(CREATED|interval)
 "
 
 "Functions (Time and Date)","WEEK","
@@ -4731,7 +4758,7 @@ ISO_WEEK(CREATED)
 "
 
 "Functions (Time and Date)","YEAR","
-YEAR(dateAndTime)
+YEAR(dateAndTime|interval)
 ","
 Returns the year from a date/time value.
 ","
@@ -4749,10 +4776,10 @@ ISO_YEAR(CREATED)
 "Functions (System)","ARRAY_GET","
 ARRAY_GET(arrayExpression, indexExpression)
 ","
-Returns one element of an array.
+Returns element at the specified 1-based index from an array.
 Returns NULL if there is no such element or array is NULL.
 ","
-CALL ARRAY_GET(('Hello', 'World'), 2)
+CALL ARRAY_GET(ARRAY['Hello', 'World'], 2)
 "
 
 "Functions (System)","ARRAY_LENGTH","
@@ -4761,7 +4788,7 @@ ARRAY_LENGTH(arrayExpression)
 Returns the length of an array.
 Returns NULL if the specified array is NULL.
 ","
-CALL ARRAY_LENGTH(('Hello', 'World'))
+CALL ARRAY_LENGTH(ARRAY['Hello', 'World'])
 "
 
 "Functions (System)","ARRAY_CONTAINS","
@@ -4770,7 +4797,7 @@ ARRAY_CONTAINS(arrayExpression, value)
 Returns a boolean TRUE if the array contains the value or FALSE if it does not contain it.
 Returns NULL if the specified array is NULL.
 ","
-CALL ARRAY_CONTAINS(('Hello', 'World'), 'Hello')
+CALL ARRAY_CONTAINS(ARRAY['Hello', 'World'], 'Hello')
 "
 
 "Functions (System)","AUTOCOMMIT","
@@ -4813,10 +4840,12 @@ When converting a number to binary, the number of bytes matches the precision.
 When converting a string to binary, it is hex encoded (every byte two characters);
 a hex string can be converted to a number by first converting it to binary.
 If a direct conversion is not possible, the value is first converted to a string.
+Note that some data types may need explicitly specified precision to avoid overflow or rounding.
 ","
 CAST(NAME AS INT);
 CAST(65535 AS BINARY);
 CAST(CAST('FFFF' AS BINARY) AS INT);
+CAST(TIMESTAMP '2010-01-01 10:40:00.123456' AS TIME(6))
 "
 
 "Functions (System)","COALESCE","
@@ -5129,7 +5158,7 @@ READONLY()
 ROWNUM()
 ","
 Returns the number of the current row.
-This method returns an integer value.
+This method returns a long value.
 It is supported for SELECT statements, as well as for DELETE and UPDATE.
 The first row has the row number 1, and is calculated before ordering and grouping the result set,
 but after evaluating index conditions (even when the index conditions are specified in an outer query).
@@ -5325,10 +5354,10 @@ SELECT CUME_DIST() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
 "
 
 "Functions (Window)","NTILE","
-NTILE(int) OVER windowNameOrSpecification
+NTILE(long) OVER windowNameOrSpecification
 ","
 Distributes the rows into a specified number of groups.
-Number of groups should be a positive integer value.
+Number of groups should be a positive long value.
 NTILE returns the 1-based number of the group to which the current row belongs.
 First groups will have more rows if number of rows is not divisible by number of groups.
 For example, if 5 rows are distributed into 2 groups this function returns 1 for the first 3 row and 2 for the last 2 rows.

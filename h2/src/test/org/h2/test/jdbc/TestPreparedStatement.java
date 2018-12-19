@@ -923,6 +923,23 @@ public class TestPreparedStatement extends TestDb {
             return;
         }
         PreparedStatement prep = conn.prepareStatement("SELECT ?");
+        testPeriod8(prep, 1, 2, "INTERVAL '1-2' YEAR TO MONTH");
+        testPeriod8(prep, -1, -2, "INTERVAL '-1-2' YEAR TO MONTH");
+        testPeriod8(prep, 1, -8, "INTERVAL '0-4' YEAR TO MONTH", 0, 4);
+        testPeriod8(prep, -1, 8, "INTERVAL '-0-4' YEAR TO MONTH", 0, -4);
+        testPeriod8(prep, 0, 0, "INTERVAL '0-0' YEAR TO MONTH");
+        testPeriod8(prep, 100, 0, "INTERVAL '100' YEAR");
+        testPeriod8(prep, -100, 0, "INTERVAL '-100' YEAR");
+        testPeriod8(prep, 0, 100, "INTERVAL '100' MONTH");
+        testPeriod8(prep, 0, -100, "INTERVAL '-100' MONTH");
+        Object period;
+        try {
+            Method method = LocalDateTimeUtils.PERIOD.getMethod("of", int.class, int.class, int.class);
+            period = method.invoke(null, 0, 0, 1);
+        } catch (ReflectiveOperationException ex) {
+            throw new RuntimeException(ex);
+        }
+        assertThrows(ErrorCode.INVALID_VALUE_2, prep).setObject(1, period);
         Object duration;
         try {
             duration = LocalDateTimeUtils.DURATION.getMethod("ofSeconds", long.class, long.class)
@@ -935,6 +952,28 @@ public class TestPreparedStatement extends TestDb {
         rs.next();
         assertEquals("INTERVAL '-3.1' SECOND", rs.getString(1));
         assertEquals(duration, rs.getObject(1, LocalDateTimeUtils.DURATION));
+    }
+
+    private void testPeriod8(PreparedStatement prep, int years, int months, String expectedString)
+            throws SQLException {
+        testPeriod8(prep, years, months, expectedString, years, months);
+    }
+
+    private void testPeriod8(PreparedStatement prep, int years, int months, String expectedString, int expYears,
+            int expMonths) throws SQLException {
+        Object period, expectedPeriod;
+        try {
+            Method method = LocalDateTimeUtils.PERIOD.getMethod("of", int.class, int.class, int.class);
+            period = method.invoke(null, years, months, 0);
+            expectedPeriod = method.invoke(null, expYears, expMonths, 0);
+        } catch (ReflectiveOperationException ex) {
+            throw new RuntimeException(ex);
+        }
+        prep.setObject(1, period);
+        ResultSet rs = prep.executeQuery();
+        rs.next();
+        assertEquals(expectedString, rs.getString(1));
+        assertEquals(expectedPeriod, rs.getObject(1, LocalDateTimeUtils.PERIOD));
     }
 
     private void testPreparedSubquery(Connection conn) throws SQLException {
@@ -1642,7 +1681,6 @@ public class TestPreparedStatement extends TestDb {
         anyParameterCheck(ps, 300, new int[] {30});
         anyParameterCheck(ps, -5, new int[0]);
         // Test expression = ANY(?)
-        conn.createStatement().execute("SET MODE PostgreSQL");
         ps = conn.prepareStatement("SELECT ID FROM TEST WHERE VALUE = ANY(?)");
         assertThrows(ErrorCode.PARAMETER_NOT_SET_1, ps).executeQuery();
         anyParameterCheck(ps, values, expected);

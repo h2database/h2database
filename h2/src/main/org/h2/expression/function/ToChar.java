@@ -6,6 +6,7 @@
 package org.h2.expression.function;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DateFormatSymbols;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -233,7 +234,7 @@ public class ToChar {
         int separator = findDecimalSeparator(format);
         int formatScale = calculateScale(format, separator);
         if (formatScale < number.scale()) {
-            number = number.setScale(formatScale, BigDecimal.ROUND_HALF_UP);
+            number = number.setScale(formatScale, RoundingMode.HALF_UP);
         }
 
         // any 9s to the left of the decimal separator but to the right of a
@@ -461,7 +462,7 @@ public class ToChar {
             }
         }
 
-        int i = number.setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
+        int i = number.setScale(0, RoundingMode.HALF_UP).intValue();
         String hex = Integer.toHexString(i);
         if (digits < hex.length()) {
             hex = StringUtils.pad("", digits + 1, "#", true);

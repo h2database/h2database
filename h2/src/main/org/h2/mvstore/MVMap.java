@@ -1056,7 +1056,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return getVersion(getRoot());
     }
 
-    private long getVersion(RootReference rootReference) {
+    private static long getVersion(RootReference rootReference) {
         RootReference previous = rootReference.previous;
         return previous == null || previous.root != rootReference.root ||
                 previous.appendCounter != rootReference.appendCounter ?
@@ -1308,7 +1308,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         int attempt = 0;
         boolean success;
         do {
-            RootReference rootReference = getRoot();
+            RootReference rootReference = getRootInternal();
             int appendCounter = rootReference.getAppendCounter();
             if (appendCounter > 0) {
                 RootReference updatedRootReference = new RootReference(rootReference, appendCounter - 1, ++attempt);

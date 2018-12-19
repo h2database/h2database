@@ -6,16 +6,16 @@
 package org.h2.expression.condition;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
-import org.h2.engine.SysProperties;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
+import org.h2.expression.aggregate.Aggregate;
+import org.h2.expression.aggregate.Aggregate.AggregateType;
 import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
 import org.h2.table.Column;
@@ -132,6 +132,7 @@ public class Comparison extends Condition {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
+        boolean encloseRight = false;
         builder.append('(');
         switch (compareType) {
         case IS_NULL:
@@ -145,9 +146,25 @@ public class Comparison extends Condition {
             left.getSQL(builder).append(", ");
             right.getSQL(builder).append(')');
             break;
+        case EQUAL:
+        case BIGGER_EQUAL:
+        case BIGGER:
+        case SMALLER_EQUAL:
+        case SMALLER:
+        case NOT_EQUAL:
+            if (right instanceof Aggregate && ((Aggregate) right).getAggregateType() == AggregateType.ANY) {
+                encloseRight = true;
+            }
+            //$FALL-THROUGH$
         default:
             left.getSQL(builder).append(' ').append(getCompareOperator(compareType)).append(' ');
+            if (encloseRight) {
+                builder.append('(');
+            }
             right.getSQL(builder);
+            if (encloseRight) {
+                builder.append(')');
+            }
         }
         return builder.append(')');
     }
@@ -230,7 +247,7 @@ public class Comparison extends Condition {
                 return ValueExpression.get(getValue(session));
             }
         } else {
-            if (SysProperties.CHECK && (left == null || right == null)) {
+            if (left == null || right == null) {
                 DbException.throwInternalError(left + " " + right);
             }
             if (left == ValueExpression.getNull() ||
@@ -398,12 +415,8 @@ public class Comparison extends Condition {
             if (l != null) {
                 switch (compareType) {
                 case IS_NULL:
-                    if (session.getDatabase().getSettings().optimizeIsNull) {
-                        filter.addIndexCondition(
-                                IndexCondition.get(
-                                        Comparison.EQUAL_NULL_SAFE, l,
-                                        ValueExpression.getNull()));
-                    }
+                    filter.addIndexCondition(
+                            IndexCondition.get(Comparison.EQUAL_NULL_SAFE, l, ValueExpression.getNull()));
                 }
             }
             return;
@@ -575,23 +588,25 @@ public class Comparison extends Condition {
                 }
             } else {
                 // a=b OR a=c
-                Database db = session.getDatabase();
                 if (rc && r2c && l.equals(l2)) {
-                    return new ConditionIn(db, left,
-                            new ArrayList<>(Arrays.asList(right, other.right)));
+                    return getConditionIn(session, left, right, other.right);
                 } else if (rc && l2c && l.equals(r2)) {
-                    return new ConditionIn(db, left,
-                            new ArrayList<>(Arrays.asList(right, other.left)));
+                    return getConditionIn(session, left, right, other.left);
                 } else if (lc && r2c && r.equals(l2)) {
-                    return new ConditionIn(db, right,
-                            new ArrayList<>(Arrays.asList(left, other.right)));
+                    return getConditionIn(session, right, left, other.right);
                 } else if (lc && l2c && r.equals(r2)) {
-                    return new ConditionIn(db, right,
-                            new ArrayList<>(Arrays.asList(left, other.left)));
+                    return getConditionIn(session, right, left, other.left);
                 }
             }
         }
         return null;
+    }
+
+    private static ConditionIn getConditionIn(Session session, Expression left, Expression value1, Expression value2) {
+        ArrayList<Expression> right = new ArrayList<>(2);
+        right.add(value1);
+        right.add(value2);
+        return new ConditionIn(session.getDatabase(), left, right);
     }
 
     @Override

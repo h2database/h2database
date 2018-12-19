@@ -122,16 +122,17 @@ public class DateTimeUtils {
     }
 
     /**
-     * Returns local time zone.
+     * Returns local time zone offset for a specified timestamp.
      *
-     * @return local time zone
+     * @param ms milliseconds since Epoch in UTC
+     * @return local time zone offset
      */
-    static TimeZone getTimeZone() {
+    public static int getTimeZoneOffset(long ms) {
         TimeZone tz = timeZone;
         if (tz == null) {
             timeZone = tz = TimeZone.getDefault();
         }
-        return tz;
+        return tz.getOffset(ms);
     }
 
     /**
@@ -568,8 +569,9 @@ public class DateTimeUtils {
                     }
                 } else {
                     long millis = convertDateTimeValueToMillis(tz, dateValue, nanos / 1_000_000);
-                    dateValue = dateValueFromDate(millis);
-                    nanos = nanos % 1_000_000 + nanosFromDate(millis);
+                    millis += getTimeZoneOffset(millis);
+                    dateValue = dateValueFromLocalMillis(millis);
+                    nanos = nanos % 1_000_000 + nanosFromLocalMillis(millis);
                 }
             }
         }
@@ -1119,14 +1121,12 @@ public class DateTimeUtils {
     }
 
     /**
-     * Convert a UTC datetime in millis to an encoded date in the default
-     * timezone.
+     * Convert a local datetime in millis to an encoded date.
      *
      * @param ms the milliseconds
      * @return the date value
      */
-    public static long dateValueFromDate(long ms) {
-        ms += getTimeZone().getOffset(ms);
+    public static long dateValueFromLocalMillis(long ms) {
         long absoluteDay = ms / MILLIS_PER_DAY;
         // Round toward negative infinity
         if (ms < 0 && (absoluteDay * MILLIS_PER_DAY != ms)) {
@@ -1152,14 +1152,12 @@ public class DateTimeUtils {
     }
 
     /**
-     * Convert a time in milliseconds in UTC to the nanoseconds since midnight
-     * (in the default timezone).
+     * Convert a time in milliseconds in local time to the nanoseconds since midnight.
      *
      * @param ms the milliseconds
      * @return the nanoseconds
      */
-    public static long nanosFromDate(long ms) {
-        ms += getTimeZone().getOffset(ms);
+    public static long nanosFromLocalMillis(long ms) {
         long absoluteDay = ms / MILLIS_PER_DAY;
         // Round toward negative infinity
         if (ms < 0 && (absoluteDay * MILLIS_PER_DAY != ms)) {
@@ -1236,7 +1234,7 @@ public class DateTimeUtils {
      * @return timestamp with time zone with specified value and current time zone
      */
     public static ValueTimestampTimeZone timestampTimeZoneFromMillis(long ms) {
-        int offset = getTimeZone().getOffset(ms);
+        int offset = getTimeZoneOffset(ms);
         ms += offset;
         long absoluteDay = ms / MILLIS_PER_DAY;
         // Round toward negative infinity

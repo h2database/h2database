@@ -17,6 +17,7 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
 import org.h2.table.TableView;
+import org.h2.util.MathUtils;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
@@ -60,7 +61,7 @@ public abstract class Prepared {
      * already read, {@code >0} if object is stored and its id is not yet read.
      */
     private int persistedObjectId;
-    private int currentRowNumber;
+    private long currentRowNumber;
     private int rowScanCount;
     /**
      * Common table expressions (CTE) in queries require us to create temporary views,
@@ -356,7 +357,7 @@ public abstract class Prepared {
      *
      * @param rowNumber the row number
      */
-    public void setCurrentRowNumber(int rowNumber) {
+    public void setCurrentRowNumber(long rowNumber) {
         if ((++rowScanCount & 127) == 0) {
             checkCanceled();
         }
@@ -369,7 +370,7 @@ public abstract class Prepared {
      *
      * @return the row number
      */
-    public int getCurrentRowNumber() {
+    public long getCurrentRowNumber() {
         return currentRowNumber;
     }
 
@@ -380,7 +381,9 @@ public abstract class Prepared {
         if ((currentRowNumber & 127) == 0) {
             session.getDatabase().setProgress(
                     DatabaseEventListener.STATE_STATEMENT_PROGRESS,
-                    sqlStatement, currentRowNumber, 0);
+                    sqlStatement,
+                    // TODO update interface
+                    MathUtils.convertLongToInt(currentRowNumber), 0);
         }
     }
 

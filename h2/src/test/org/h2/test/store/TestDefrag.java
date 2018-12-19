@@ -10,7 +10,6 @@ import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import java.io.File;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 

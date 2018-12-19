@@ -1076,10 +1076,8 @@ public class Database implements DataHandler {
             try {
                 Cursor cursor = metaIdIndex.find(session, r, r);
                 if (cursor.next()) {
-                    if (SysProperties.CHECK) {
-                        if (lockMode != Constants.LOCK_MODE_OFF && !wasLocked) {
-                            throw DbException.throwInternalError();
-                        }
+                    if (lockMode != Constants.LOCK_MODE_OFF && !wasLocked) {
+                        throw DbException.throwInternalError();
                     }
                     Row found = cursor.get();
                     meta.removeRow(session, found);
@@ -2780,7 +2778,7 @@ public class Database implements DataHandler {
         }
         long now = System.nanoTime();
         if (now > reconnectCheckNext + reconnectCheckDelayNs) {
-            if (SysProperties.CHECK && checkpointAllowed < 0) {
+            if (checkpointAllowed < 0) {
                 DbException.throwInternalError(Integer.toString(checkpointAllowed));
             }
             synchronized (reconnectSync) {
@@ -2849,8 +2847,7 @@ public class Database implements DataHandler {
         }
         synchronized (reconnectSync) {
             if (reconnectModified(true)) {
-                checkpointAllowed++;
-                if (SysProperties.CHECK && checkpointAllowed > 20) {
+                if (++checkpointAllowed > 20) {
                     throw DbException.throwInternalError(Integer.toString(checkpointAllowed));
                 }
                 return true;
@@ -2872,7 +2869,7 @@ public class Database implements DataHandler {
         synchronized (reconnectSync) {
             checkpointAllowed--;
         }
-        if (SysProperties.CHECK && checkpointAllowed < 0) {
+        if (checkpointAllowed < 0) {
             throw DbException.throwInternalError(Integer.toString(checkpointAllowed));
         }
     }

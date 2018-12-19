@@ -242,8 +242,9 @@ public class StringUtils {
      */
     public static String addAsterisk(String s, int index) {
         if (s != null) {
-            index = Math.min(index, s.length());
-            s = s.substring(0, index) + "[*]" + s.substring(index);
+            int len = s.length();
+            index = Math.min(index, len);
+            s = new StringBuilder(len + 3).append(s, 0, index).append("[*]").append(s, index, len).toString();
         }
         return s;
     }
@@ -432,14 +433,10 @@ public class StringUtils {
             } else if (ch == '%') {
                 buff[j++] = (byte) Integer.parseInt(encoded.substring(i + 1, i + 3), 16);
                 i += 2;
-            } else {
-                if (SysProperties.CHECK) {
-                    if (ch > 127 || ch < ' ') {
-                        throw new IllegalArgumentException(
-                                "Unexpected char " + (int) ch + " decoding " + encoded);
-                    }
-                }
+            } else if (ch <= 127 && ch >= ' ') {
                 buff[j++] = (byte) ch;
+            } else {
+                throw new IllegalArgumentException("Unexpected char " + (int) ch + " decoding " + encoded);
             }
         }
         return new String(buff, 0, j, StandardCharsets.UTF_8);
@@ -944,15 +941,13 @@ public class StringUtils {
         } else if (s.isEmpty()) {
             return "";
         }
-        int hash = s.hashCode();
         String[] cache = getCache();
         if (cache != null) {
+            int hash = s.hashCode();
             int index = hash & (SysProperties.OBJECT_CACHE_SIZE - 1);
             String cached = cache[index];
-            if (cached != null) {
-                if (s.equals(cached)) {
-                    return cached;
-                }
+            if (s.equals(cached)) {
+                return cached;
             }
             cache[index] = s;
         }

@@ -170,11 +170,7 @@ class FileNioMapped extends FileBase {
             dst.position(dst.position() + len);
             pos += len;
             return len;
-        } catch (IllegalArgumentException e) {
-            EOFException e2 = new EOFException("EOF");
-            e2.initCause(e);
-            throw e2;
-        } catch (BufferUnderflowException e) {
+        } catch (IllegalArgumentException | BufferUnderflowException e) {
             EOFException e2 = new EOFException("EOF");
             e2.initCause(e);
             throw e2;

@@ -486,11 +486,7 @@ public class FileLock implements Runnable {
                         save();
                     }
                     Thread.sleep(sleep);
-                } catch (OutOfMemoryError e) {
-                    // ignore
-                } catch (InterruptedException e) {
-                    // ignore
-                } catch (NullPointerException e) {
+                } catch (OutOfMemoryError | NullPointerException | InterruptedException e) {
                     // ignore
                 } catch (Exception e) {
                     trace.debug(e, "watchdog");

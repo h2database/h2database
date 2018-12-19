@@ -16,7 +16,6 @@ import org.h2.command.Parser;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
-import org.h2.engine.SysProperties;
 import org.h2.expression.Alias;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -30,6 +29,7 @@ import org.h2.expression.condition.ConditionAndOr;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
+import org.h2.index.ViewIndex;
 import org.h2.message.DbException;
 import org.h2.result.LazyResult;
 import org.h2.result.LocalResult;
@@ -44,6 +44,7 @@ import org.h2.table.IndexColumn;
 import org.h2.table.JoinBatch;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.util.ColumnNamer;
 import org.h2.util.StatementBuilder;
@@ -439,7 +440,7 @@ public class Select extends Query {
     }
 
     private void gatherGroup(int columnCount, int stage) {
-        int rowNumber = 0;
+        long rowNumber = 0;
         setCurrentRowNumber(0);
         int sampleSize = getSampleSizeValue(session);
         ArrayList<Row>[] forUpdateRows = initForUpdateRows();
@@ -584,7 +585,7 @@ public class Select extends Query {
                 limitRows = Long.MAX_VALUE;
             }
         }
-        int rowNumber = 0;
+        long rowNumber = 0;
         setCurrentRowNumber(0);
         Index index = topTableFilter.getIndex();
         SearchRow first = null;
@@ -723,6 +724,8 @@ public class Select extends Query {
 
     @Override
     protected ResultInterface queryWithoutCache(int maxRows, ResultTarget target) {
+        disableLazyForJoinSubqueries(topTableFilter);
+
         int limitRows = maxRows == 0 ? -1 : maxRows;
         if (limitExpr != null) {
             Value v = limitExpr.getValue(session);
@@ -866,6 +869,22 @@ public class Select extends Query {
         return null;
     }
 
+    private void disableLazyForJoinSubqueries(final TableFilter top) {
+        if (session.isLazyQueryExecution()) {
+            top.visit(new TableFilter.TableFilterVisitor() {
+                @Override
+                public void accept(TableFilter f) {
+                    if (f != top && f.getTable().getTableType() == TableType.VIEW) {
+                        ViewIndex idx = (ViewIndex) f.getIndex();
+                        if (idx != null && idx.getQuery() != null) {
+                            idx.getQuery().setNeverLazy(true);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
     /**
      * Reset the batch-join after the query result is closed.
      */
@@ -963,7 +982,7 @@ public class Select extends Query {
 
     @Override
     public void init() {
-        if (SysProperties.CHECK && checkInit) {
+        if (checkInit) {
             DbException.throwInternalError();
         }
         expandColumnList();
@@ -1079,7 +1098,7 @@ public class Select extends Query {
             // sometimes a subquery is prepared twice (CREATE TABLE AS SELECT)
             return;
         }
-        if (SysProperties.CHECK && !checkInit) {
+        if (!checkInit) {
             DbException.throwInternalError("not initialized");
         }
         if (orderList != null) {
@@ -1666,7 +1685,7 @@ public class Select extends Query {
      */
     private abstract class LazyResultSelect extends LazyResult {
 
-        int rowNumber;
+        long rowNumber;
         int columnCount;
 
         LazyResultSelect(Expression[] expressions, int columnCount) {

@@ -2030,11 +2030,9 @@ public class Function extends Expression implements FunctionCall {
             return ValueString.get(isInPostgreSqlMode && (regexpMode == null || regexpMode.indexOf('g') < 0) ?
                     matcher.replaceFirst(replacement) : matcher.replaceAll(replacement),
                     mode.treatEmptyStringsAsNull);
-        } catch (StringIndexOutOfBoundsException e) {
-            throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, replacement);
         } catch (PatternSyntaxException e) {
             throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, regexp);
-        } catch (IllegalArgumentException e) {
+        } catch (StringIndexOutOfBoundsException | IllegalArgumentException e) {
             throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, replacement);
         }
     }

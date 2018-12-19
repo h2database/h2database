@@ -5,7 +5,6 @@
  */
 package org.h2.expression.condition;
 
-import org.h2.api.ErrorCode;
 import org.h2.command.dml.Query;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -13,13 +12,13 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.index.IndexCondition;
-import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
+import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
 
@@ -33,7 +32,6 @@ public class ConditionInSelect extends Condition {
     private final Query query;
     private final boolean all;
     private final int compareType;
-    private int queryLevel;
 
     public ConditionInSelect(Database database, Expression left, Query query,
             boolean all, int compareType) {
@@ -64,16 +62,25 @@ public class ConditionInSelect extends Condition {
                 compareType != Comparison.EQUAL_NULL_SAFE)) {
             return getValueSlow(rows, l);
         }
-        int dataType = rows.getColumnType(0);
-        if (dataType == Value.NULL) {
-            return ValueBoolean.FALSE;
-        }
-        l = l.convertTo(dataType, database.getMode());
-        if (rows.containsDistinct(new Value[] { l })) {
-            return ValueBoolean.TRUE;
-        }
-        if (rows.containsDistinct(new Value[] { ValueNull.INSTANCE })) {
-            return ValueNull.INSTANCE;
+        int columnCount = query.getColumnCount();
+        if (columnCount != 1) {
+            l = l.convertTo(Value.ARRAY);
+            Value[] leftValue = ((ValueArray) l).getList();
+            if (columnCount == leftValue.length && rows.containsDistinct(leftValue)) {
+                return ValueBoolean.TRUE;
+            }
+        } else {
+            int dataType = rows.getColumnType(0);
+            if (dataType == Value.NULL) {
+                return ValueBoolean.FALSE;
+            }
+            l = l.convertTo(dataType, database.getMode());
+            if (rows.containsDistinct(new Value[] { l })) {
+                return ValueBoolean.TRUE;
+            }
+            if (rows.containsDistinct(new Value[] { ValueNull.INSTANCE })) {
+                return ValueNull.INSTANCE;
+            }
         }
         return ValueBoolean.FALSE;
     }
@@ -85,7 +92,8 @@ public class ConditionInSelect extends Condition {
         boolean result = all;
         while (rows.next()) {
             boolean value;
-            Value r = rows.currentRow()[0];
+            Value[] currentRow = rows.currentRow();
+            Value r = query.getColumnCount() == 1 ? currentRow[0] : org.h2.value.ValueArray.get(currentRow);
             if (r == ValueNull.INSTANCE) {
                 value = false;
                 hasNull = true;
@@ -110,7 +118,6 @@ public class ConditionInSelect extends Condition {
     public void mapColumns(ColumnResolver resolver, int level, int state) {
         left.mapColumns(resolver, level, state);
         query.mapColumns(resolver, level + 1);
-        this.queryLevel = Math.max(level, this.queryLevel);
     }
 
     @Override
@@ -118,9 +125,6 @@ public class ConditionInSelect extends Condition {
         left = left.optimize(session);
         query.setRandomAccessResult(true);
         session.optimizeQueryExpression(query);
-        if (query.getColumnCount() != 1) {
-            throw DbException.get(ErrorCode.SUBQUERY_IS_NOT_SINGLE_COLUMN);
-        }
         // Can not optimize: the data may change
         return this;
     }
@@ -169,6 +173,12 @@ public class ConditionInSelect extends Condition {
     @Override
     public void createIndexConditions(Session session, TableFilter filter) {
         if (!session.getDatabase().getSettings().optimizeInList) {
+            return;
+        }
+        if (compareType != Comparison.EQUAL) {
+            return;
+        }
+        if (query.getColumnCount() != 1) {
             return;
         }
         if (!(left instanceof ExpressionColumn)) {

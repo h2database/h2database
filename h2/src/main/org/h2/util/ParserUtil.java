@@ -138,9 +138,19 @@ public class ParserUtil {
     public static final int LIMIT = LIKE + 1;
 
     /**
+     * The token "LOCALTIME".
+     */
+    public static final int LOCALTIME = LIMIT + 1;
+
+    /**
+     * The token "LOCALTIMESTAMP".
+     */
+    public static final int LOCALTIMESTAMP = LOCALTIME + 1;
+
+    /**
      * The token "MINUS".
      */
-    public static final int MINUS = LIMIT + 1;
+    public static final int MINUS = LOCALTIMESTAMP + 1;
 
     /**
      * The token "NATURAL".
@@ -235,14 +245,16 @@ public class ParserUtil {
      * Checks if this string is a SQL keyword.
      *
      * @param s the token to check
+     * @param ignoreCase true if case should be ignored, false if only upper case
+     *            tokens are detected as keywords
      * @return true if it is a keyword
      */
-    public static boolean isKeyword(String s) {
+    public static boolean isKeyword(String s, boolean ignoreCase) {
         int length = s.length();
         if (length == 0) {
             return false;
         }
-        return getSaveTokenType(s, false, 0, length, false) != IDENTIFIER;
+        return getSaveTokenType(s, ignoreCase, 0, length, false) != IDENTIFIER;
     }
 
     /**
@@ -278,7 +290,7 @@ public class ParserUtil {
      * @param ignoreCase true if case should be ignored, false if only upper case
      *            tokens are detected as keywords
      * @param start start index of token
-     * @param end index of token
+     * @param end index of token, exclusive; must be greater than start index
      * @param additionalKeywords whether TOP, INTERSECTS, and "current data /
      *                           time" functions are keywords
      * @return the token type
@@ -309,12 +321,12 @@ public class ParserUtil {
                 return CONSTRAINT;
             } else if (eq("CROSS", s, ignoreCase, start, end)) {
                 return CROSS;
-            }
-            if (additionalKeywords) {
-                if (eq("CURRENT_DATE", s, ignoreCase, start, end) || eq("CURRENT_TIME", s, ignoreCase, start, end)
-                        || eq("CURRENT_TIMESTAMP", s, ignoreCase, start, end)) {
-                    return KEYWORD;
-                }
+            } else if (eq("CURRENT_DATE", s, ignoreCase, start, end)) {
+                return CURRENT_DATE;
+            } else if (eq("CURRENT_TIME", s, ignoreCase, start, end)) {
+                return CURRENT_TIME;
+            } else if (eq("CURRENT_TIMESTAMP", s, ignoreCase, start, end)) {
+                return CURRENT_TIMESTAMP;
             }
             return IDENTIFIER;
         case 'D':
@@ -378,11 +390,10 @@ public class ParserUtil {
                 return LIMIT;
             } else if (eq("LIKE", s, ignoreCase, start, end)) {
                 return LIKE;
-            }
-            if (additionalKeywords) {
-                if (eq("LOCALTIME", s, ignoreCase, start, end) || eq("LOCALTIMESTAMP", s, ignoreCase, start, end)) {
-                    return KEYWORD;
-                }
+            } else if (eq("LOCALTIME", s, ignoreCase, start, end)) {
+                return LOCALTIME;
+            } else if (eq("LOCALTIMESTAMP", s, ignoreCase, start, end)) {
+                return LOCALTIMESTAMP;
             }
             return IDENTIFIER;
         case 'M':

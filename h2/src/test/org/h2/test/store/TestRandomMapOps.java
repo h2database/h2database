@@ -51,9 +51,7 @@ public class TestRandomMapOps extends TestBase {
             try {
                 testOps(fileName, size, seed);
                 continue;
-            } catch (Exception e) {
-                ex = e;
-            } catch (AssertionError e) {
+            } catch (Exception | AssertionError e) {
                 ex = e;
             }
             if (op < best) {

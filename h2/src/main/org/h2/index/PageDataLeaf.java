@@ -10,7 +10,6 @@ import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
-import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.store.Data;
@@ -578,7 +577,7 @@ public class PageDataLeaf extends PageData {
      * @param overflow the new overflow page id
      */
     void setOverflow(int old, int overflow) {
-        if (SysProperties.CHECK && old != firstOverflowPageId) {
+        if (old != firstOverflowPageId) {
             DbException.throwInternalError("move " + this + " " + firstOverflowPageId);
         }
         index.getPageStore().logUndo(this, data);

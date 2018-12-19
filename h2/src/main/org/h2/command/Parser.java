@@ -12,6 +12,9 @@ import static org.h2.util.ParserUtil.ALL;
 import static org.h2.util.ParserUtil.CHECK;
 import static org.h2.util.ParserUtil.CONSTRAINT;
 import static org.h2.util.ParserUtil.CROSS;
+import static org.h2.util.ParserUtil.CURRENT_DATE;
+import static org.h2.util.ParserUtil.CURRENT_TIME;
+import static org.h2.util.ParserUtil.CURRENT_TIMESTAMP;
 import static org.h2.util.ParserUtil.DISTINCT;
 import static org.h2.util.ParserUtil.EXCEPT;
 import static org.h2.util.ParserUtil.EXISTS;
@@ -30,6 +33,8 @@ import static org.h2.util.ParserUtil.IS;
 import static org.h2.util.ParserUtil.JOIN;
 import static org.h2.util.ParserUtil.LIKE;
 import static org.h2.util.ParserUtil.LIMIT;
+import static org.h2.util.ParserUtil.LOCALTIME;
+import static org.h2.util.ParserUtil.LOCALTIMESTAMP;
 import static org.h2.util.ParserUtil.MINUS;
 import static org.h2.util.ParserUtil.NATURAL;
 import static org.h2.util.ParserUtil.NOT;
@@ -457,6 +462,10 @@ public class Parser {
             "LIKE",
             // LIMIT
             "LIMIT",
+            // LOCALTIME
+            "LOCALTIME",
+            // LOCALTIMESTAMP
+            "LOCALTIMESTAMP",
             // MINUS
             "MINUS",
             // NATURAL
@@ -1407,7 +1416,6 @@ public class Parser {
         read();
         return select;
     }
-
 
     private Prepared parseMerge() {
         int start = lastParseIndex;
@@ -2620,6 +2628,7 @@ public class Parser {
         Select command = new Select(session);
         int start = lastParseIndex;
         Select oldSelect = currentSelect;
+        Prepared oldPrepared = currentPrepared;
         currentSelect = command;
         currentPrepared = command;
         if (fromFirst) {
@@ -2676,6 +2685,7 @@ public class Parser {
         }
         command.setParameterList(parameters);
         currentSelect = oldSelect;
+        currentPrepared = oldPrepared;
         setSQL(command, "SELECT", start);
         return command;
     }
@@ -2851,23 +2861,33 @@ public class Parser {
                     break;
                 }
                 read();
+                int start = lastParseIndex;
                 if (readIf(ALL)) {
                     read(OPEN_PAREN);
-                    Query query = parseSelect();
-                    r = new ConditionInSelect(database, r, query, true,
-                            compareType);
-                    read(CLOSE_PAREN);
-                } else if (database.getMode().anyAndSomeAreComparisons && (readIf("ANY") || readIf("SOME"))) {
+                    if (isSelect()) {
+                        Query query = parseSelect();
+                        r = new ConditionInSelect(database, r, query, true, compareType);
+                        read(CLOSE_PAREN);
+                    } else {
+                        parseIndex = start;
+                        read();
+                        r = new Comparison(session, compareType, r, readConcat());
+                    }
+                } else if (readIf("ANY") || readIf("SOME")) {
                     read(OPEN_PAREN);
                     if (currentTokenType == PARAMETER && compareType == 0) {
                         Parameter p = readParameter();
                         r = new ConditionInParameter(database, r, p);
-                    } else {
+                        read(CLOSE_PAREN);
+                    } else if (isSelect()) {
                         Query query = parseSelect();
-                        r = new ConditionInSelect(database, r, query, false,
-                                compareType);
+                        r = new ConditionInSelect(database, r, query, false, compareType);
+                        read(CLOSE_PAREN);
+                    } else {
+                        parseIndex = start;
+                        read();
+                        r = new Comparison(session, compareType, r, readConcat());
                     }
-                    read(CLOSE_PAREN);
                 } else {
                     r = new Comparison(session, compareType, r, readConcat());
                 }
@@ -2947,7 +2967,7 @@ public class Parser {
             if (readIf(ASTERISK)) {
                 r = new Aggregate(AggregateType.COUNT_ALL, null, currentSelect, false);
             } else {
-                boolean distinct = readIf(DISTINCT);
+                boolean distinct = readDistinctAgg();
                 Expression on = readExpression();
                 if (on instanceof Wildcard && !distinct) {
                     // PostgreSQL compatibility: count(t.*)
@@ -2958,7 +2978,7 @@ public class Parser {
             }
             break;
         case GROUP_CONCAT: {
-            boolean distinct = readIf(DISTINCT);
+            boolean distinct = readDistinctAgg();
             if (equalsToken("GROUP_CONCAT", aggregateName)) {
                 r = new Aggregate(AggregateType.GROUP_CONCAT, readExpression(), currentSelect, distinct);
                 if (readIf(ORDER)) {
@@ -2983,7 +3003,7 @@ public class Parser {
             break;
         }
         case ARRAY_AGG: {
-            boolean distinct = readIf(DISTINCT);
+            boolean distinct = readDistinctAgg();
             r = new Aggregate(AggregateType.ARRAY_AGG, readExpression(), currentSelect, distinct);
             if (readIf(ORDER)) {
                 read("BY");
@@ -3018,7 +3038,7 @@ public class Parser {
             break;
         }
         default:
-            boolean distinct = readIf(DISTINCT);
+            boolean distinct = readDistinctAgg();
             r = new Aggregate(aggregateType, readExpression(), currentSelect, distinct);
             break;
         }
@@ -3076,7 +3096,7 @@ public class Parser {
     }
 
     private JavaAggregate readJavaAggregate(UserAggregate aggregate) {
-        boolean distinct = readIf(DISTINCT);
+        boolean distinct = readDistinctAgg();
         ArrayList<Expression> params = Utils.newSmallArrayList();
         do {
             params.add(readExpression());
@@ -3085,6 +3105,14 @@ public class Parser {
         JavaAggregate agg = new JavaAggregate(aggregate, list, currentSelect, distinct);
         readFilterAndOver(agg);
         return agg;
+    }
+
+    private boolean readDistinctAgg() {
+        if (readIf(DISTINCT)) {
+            return true;
+        }
+        readIf(ALL);
+        return false;
     }
 
     private void readFilterAndOver(AbstractAggregate aggregate) {
@@ -3513,6 +3541,14 @@ public class Parser {
         }
     }
 
+    private Expression readKeywordFunction(String name) {
+        if (readIf(OPEN_PAREN)) {
+            return readFunction(null, name);
+        } else {
+            return readFunctionWithoutParameters(name);
+        }
+    }
+
     private Expression readFunctionWithoutParameters(String name) {
         if (database.isAllowBuiltinAliasOverride()) {
             FunctionAlias functionAlias = database.getSchema(session.getCurrentSchemaName()).findFunction(name);
@@ -3796,6 +3832,26 @@ public class Parser {
             r = ValueExpression.get(currentValue);
             read();
             break;
+        case CURRENT_DATE:
+            read();
+            r = readKeywordFunction("CURRENT_DATE");
+            break;
+        case CURRENT_TIME:
+            read();
+            r = readKeywordFunction("CURRENT_TIME");
+            break;
+        case CURRENT_TIMESTAMP:
+            read();
+            r = readKeywordFunction("CURRENT_TIMESTAMP");
+            break;
+        case LOCALTIME:
+            read();
+            r = readKeywordFunction("LOCALTIME");
+            break;
+        case LOCALTIMESTAMP:
+            read();
+            r = readKeywordFunction("LOCALTIMESTAMP");
+            break;
         default:
             throw getSyntaxError();
         }
@@ -3834,9 +3890,15 @@ public class Parser {
     private Expression readTermWithIdentifier(String name) {
         // Unquoted identifier is never empty
         char ch = name.charAt(0);
+        if (!identifiersToUpper) {
+            /*
+             * Convert a-z to A-Z. This method is safe, because only A-Z
+             * characters are considered below.
+             */
+            ch &= 0xffdf;
+        }
         switch (ch) {
         case 'A':
-        case 'a':
             if (equalsToken("ARRAY", name)) {
                 read(OPEN_BRACKET);
                 ArrayList<Expression> list = Utils.newSmallArrayList();
@@ -3851,21 +3913,13 @@ public class Parser {
             }
             break;
         case 'C':
-        case 'c':
-            if (equalsToken("CURRENT_DATE", name)) {
-                return readFunctionWithoutParameters("CURRENT_DATE");
-            } else if (equalsToken("CURRENT_TIME", name)) {
-                return readFunctionWithoutParameters("CURRENT_TIME");
-            } else if (equalsToken("CURRENT_TIMESTAMP", name)) {
-                return readFunctionWithoutParameters("CURRENT_TIMESTAMP");
-            } else if (equalsToken("CURRENT_USER", name)) {
+            if (equalsToken("CURRENT_USER", name)) {
                 return readFunctionWithoutParameters("USER");
             } else if (database.getMode().getEnum() == ModeEnum.DB2 && equalsToken("CURRENT", name)) {
                 return parseDB2SpecialRegisters(name);
             }
             break;
         case 'D':
-        case 'd':
             if (currentTokenType == VALUE && currentValue.getType() == Value.STRING &&
                     (equalsToken("DATE", name) || equalsToken("D", name))) {
                 String date = currentValue.getString();
@@ -3874,7 +3928,6 @@ public class Parser {
             }
             break;
         case 'E':
-        case 'e':
             if (currentTokenType == VALUE && currentValue.getType() == Value.STRING && equalsToken("E", name)) {
                 String text = currentValue.getString();
                 // the PostgreSQL ODBC driver uses
@@ -3887,21 +3940,11 @@ public class Parser {
             }
             break;
         case 'I':
-        case 'i':
             if (equalsToken("INTERVAL", name)) {
                 return readInterval();
             }
             break;
-        case 'L':
-        case 'l':
-            if (equalsToken("LOCALTIME", name)) {
-                return readFunctionWithoutParameters("LOCALTIME");
-            } else if (equalsToken("LOCALTIMESTAMP", name)) {
-                return readFunctionWithoutParameters("LOCALTIMESTAMP");
-            }
-            break;
         case 'N':
-        case 'n':
             if (equalsToken("NEXT", name) && readIf("VALUE")) {
                 read(FOR);
                 return new SequenceValue(readSequence());
@@ -3913,7 +3956,6 @@ public class Parser {
             }
             break;
         case 'S':
-        case 's':
             if (equalsToken("SYSDATE", name)) {
                 return readFunctionWithoutParameters("CURRENT_TIMESTAMP");
             } else if (equalsToken("SYSTIME", name)) {
@@ -3923,7 +3965,6 @@ public class Parser {
             }
             break;
         case 'T':
-        case 't':
             if (equalsToken("TIME", name)) {
                 boolean without = readIf("WITHOUT");
                 if (without) {
@@ -3976,7 +4017,6 @@ public class Parser {
             }
             break;
         case 'X':
-        case 'x':
             if (currentTokenType == VALUE && currentValue.getType() == Value.STRING && equalsToken("X", name)) {
                 byte[] buffer = StringUtils.convertHexToBytes(currentValue.getString());
                 read();
@@ -4051,10 +4091,11 @@ public class Parser {
             if (readIf(WITH)) {
                 read("TIME");
                 read("ZONE");
-                return readFunctionWithoutParameters("CURRENT_TIMESTAMP");
+                return readKeywordFunction("CURRENT_TIMESTAMP");
             }
-            return readFunctionWithoutParameters("LOCALTIMESTAMP");
+            return readKeywordFunction("LOCALTIMESTAMP");
         } else if (readIf("TIME")) {
+            // Time with fractional seconds is not supported by DB2
             return readFunctionWithoutParameters("CURRENT_TIME");
         } else if (readIf("DATE")) {
             return readFunctionWithoutParameters("CURRENT_DATE");
@@ -4142,6 +4183,14 @@ public class Parser {
         int i = currentValue.getInt();
         read();
         return i;
+    }
+
+    private long readNonNegativeLong() {
+        long v = readLong();
+        if (v < 0) {
+            throw DbException.getInvalidValueException("non-negative long", v);
+        }
+        return v;
     }
 
     private long readLong() {
@@ -4915,11 +4964,7 @@ public class Parser {
     }
 
     private boolean isKeyword(String s) {
-        if (!identifiersToUpper) {
-            // if not yet converted to uppercase, do it now
-            s = StringUtils.toUpperEnglish(s);
-        }
-        return ParserUtil.isKeyword(s);
+        return ParserUtil.isKeyword(s, !identifiersToUpper);
     }
 
     private Column parseColumnForTable(String columnName,
@@ -5300,22 +5345,8 @@ public class Parser {
                 }
             } else if (readIf(OPEN_PAREN)) {
                 if (!readIf("MAX")) {
-                    long p = readLong();
-                    if (readIf("K")) {
-                        p *= 1024;
-                    } else if (readIf("M")) {
-                        p *= 1024 * 1024;
-                    } else if (readIf("G")) {
-                        p *= 1024 * 1024 * 1024;
-                    }
-                    if (p > Long.MAX_VALUE) {
-                        p = Long.MAX_VALUE;
-                    }
+                    long p = readPrecision();
                     original += "(" + p;
-                    // Oracle syntax
-                    if (!readIf("CHAR")) {
-                        readIf("BYTE");
-                    }
                     if (dataType.supportsScale) {
                         if (readIf(COMMA)) {
                             scale = readInt();
@@ -5431,6 +5462,48 @@ public class Parser {
             column.setDomain(domain);
         }
         return column;
+    }
+
+    private long readPrecision() {
+        long p = readNonNegativeLong();
+        if (currentTokenType == IDENTIFIER && !currentTokenQuoted && currentToken.length() == 1) {
+            long mul;
+            char ch = currentToken.charAt(0);
+            switch (identifiersToUpper ? ch : Character.toUpperCase(ch)) {
+            case 'K':
+                mul = 1L << 10;
+                break;
+            case 'M':
+                mul = 1L << 20;
+                break;
+            case 'G':
+                mul = 1L << 30;
+                break;
+            case 'T':
+                mul = 1L << 40;
+                break;
+            case 'P':
+                mul = 1L << 50;
+                break;
+            default:
+                throw getSyntaxError();
+            }
+            if (p > Long.MAX_VALUE / mul) {
+                throw DbException.getInvalidValueException("precision", p + currentToken);
+            }
+            p *= mul;
+            read();
+        }
+        if (currentTokenType == IDENTIFIER && !currentTokenQuoted) {
+            // Standard char length units
+            if (!readIf("CHARACTERS") && !readIf("OCTETS") &&
+                    // Oracle syntax
+                    !readIf("CHAR")) {
+                // Oracle syntax
+                readIf("BYTE");
+            }
+        }
+        return p;
     }
 
     private Prepared parseCreate() {
@@ -5936,7 +6009,14 @@ public class Parser {
 
     private CreateFunctionAlias parseCreateFunctionAlias(boolean force) {
         boolean ifNotExists = readIfNotExists();
-        String aliasName = readIdentifierWithSchema();
+        String aliasName;
+        if (currentTokenType != IDENTIFIER) {
+            aliasName = currentToken;
+            read();
+            schemaName = session.getCurrentSchemaName();
+        } else {
+            aliasName = readIdentifierWithSchema();
+        }
         final boolean newAliasSameNameAsBuiltin = Function.getFunction(database, aliasName) != null;
         if (database.isAllowBuiltinAliasOverride() && newAliasSameNameAsBuiltin) {
             // fine

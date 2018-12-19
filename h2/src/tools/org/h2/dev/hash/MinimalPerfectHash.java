@@ -499,9 +499,7 @@ public class MinimalPerfectHash<K> {
             for (ByteArrayOutputStream temp : outList) {
                 out.write(temp.toByteArray());
             }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
+        } catch (InterruptedException | IOException e) {
             throw new RuntimeException(e);
         }
     }

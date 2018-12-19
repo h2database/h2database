@@ -222,6 +222,7 @@ import org.h2.test.unit.TestSort;
 import org.h2.test.unit.TestStreams;
 import org.h2.test.unit.TestStringCache;
 import org.h2.test.unit.TestStringUtils;
+import org.h2.test.unit.TestSubqueryPerformanceOnLazyExecutionMode;
 import org.h2.test.unit.TestTimeStampWithTimeZone;
 import org.h2.test.unit.TestTools;
 import org.h2.test.unit.TestTraceSystem;
@@ -926,6 +927,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestDefrag());
         addTest(new TestTools());
         addTest(new TestSampleApps());
+        addTest(new TestSubqueryPerformanceOnLazyExecutionMode());
 
         runAddedTests(1);
     }

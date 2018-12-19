@@ -154,7 +154,7 @@ public class TestScript extends TestDb {
                 "dropDomain", "dropIndex", "dropSchema", "truncateTable" }) {
             testScript("ddl/" + s + ".sql");
         }
-        for (String s : new String[] { "error_reporting", "insertIgnore", "merge", "mergeUsing", "replace",
+        for (String s : new String[] { "delete", "error_reporting", "insertIgnore", "merge", "mergeUsing", "replace",
                 "script", "select", "show", "with" }) {
             testScript("dml/" + s + ".sql");
         }

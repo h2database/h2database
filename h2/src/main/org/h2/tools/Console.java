@@ -256,7 +256,7 @@ public class Console extends Tool implements ShutdownHandler {
     }
 
     /**
-     * Overriden by GUIConsole to show a window
+     * Overridden by GUIConsole to show a window
      */
     void show() {
     }

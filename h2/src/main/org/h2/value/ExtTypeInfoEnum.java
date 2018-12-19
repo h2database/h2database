@@ -132,6 +132,9 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
         return enumerators[ordinal];
     }
 
+    /**
+     * Get ValueEnum instance for an ordinal.
+     */
     public ValueEnum getValue(int ordinal) {
         if (ordinal < 0 || ordinal >= enumerators.length) {
             throw DbException.get(ErrorCode.ENUM_VALUE_NOT_PERMITTED, enumerators.toString(),
@@ -140,6 +143,9 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
         return new ValueEnum(this, enumerators[ordinal], ordinal);
     }
 
+    /**
+     * Get ValueEnum instance for a label string.
+     */
     public ValueEnum getValue(String label) {
         ValueEnum value = getValueOrNull(label);
         if (value == null) {

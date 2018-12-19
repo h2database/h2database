@@ -6941,7 +6941,7 @@ public class Parser {
     }
 
     /**
-     * Checks the table is the DUAL special table.
+     * Is this the Oracle DUAL table or the IBM/DB2 SYSIBM table?
      *
      * @param tableName table name.
      * @return {@code true} if the table is DUAL special table. Otherwise returns {@code false}.

@@ -295,7 +295,7 @@ public class TestWeb extends TestDb {
     private void testWebApp() throws Exception {
         Server server = new Server();
         server.setOut(new PrintStream(new ByteArrayOutputStream()));
-        server.runTool("-web", "-webPort", "8182",
+        server.runTool("-ifNotExists", "-web", "-webPort", "8182",
                 "-properties", "null", "-tcp", "-tcpPort", "9101");
         try {
             String url = "http://localhost:8182";

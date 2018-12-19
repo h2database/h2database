@@ -438,6 +438,9 @@ java org.h2.test.TestAll timer
 
     private Server server;
 
+    /**
+     * Used to print which tests were disabled.
+     */
     HashMap<Class<? extends TestBase>, Boolean> executedTests = new HashMap<>();
 
     /**

@@ -289,7 +289,7 @@ public class TestScript extends TestDb {
         return s;
     }
 
-    public void putBack(String line) {
+    private void putBack(String line) {
         putBack.addLast(line);
     }
 

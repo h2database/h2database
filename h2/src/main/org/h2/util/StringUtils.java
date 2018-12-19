@@ -172,6 +172,15 @@ public class StringUtils {
         return buff.toString();
     }
 
+    /**
+     * Convert a string to a Java literal using the correct escape sequences.
+     * The literal is not enclosed in double quotes. The result can be used in
+     * properties files or in Java source code.
+     * 
+     * @param s the text to convert
+     * @param buff the Java representation to return
+     * @param forSQL true if we embedding this inside a STRINGDECODE SQL command
+     */
     public static void javaEncode(String s, StringBuilder buff, boolean forSQL) {
         int length = s.length();
         for (int i = 0; i < length; i++) {

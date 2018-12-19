@@ -6830,7 +6830,12 @@ public class Parser {
         return command;
     }
 
-    /** Is this the Oracle DUAL table or the IBM/DB2 SYSIBM table? */
+    /**
+     * Is this the Oracle DUAL table or the IBM/DB2 SYSIBM table?
+     * 
+     * @param tableName the table name
+     * @return true if DUAL table
+     */
     boolean isDualTable(String tableName) {
         return ((schemaName == null || equalsToken(schemaName, "SYS")) && equalsToken("DUAL", tableName))
                 || (database.getMode().sysDummy1 && (schemaName == null || equalsToken(schemaName, "SYSIBM"))

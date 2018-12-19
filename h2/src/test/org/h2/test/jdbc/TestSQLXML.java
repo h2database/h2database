@@ -185,7 +185,7 @@ public class TestSQLXML extends TestDb {
         }
     }
 
-    void testSettersImpl(SQLXML sqlxml) throws SQLException {
+    private void testSettersImpl(SQLXML sqlxml) throws SQLException {
         PreparedStatement prep = conn.prepareStatement("UPDATE TEST SET X = ?");
         prep.setSQLXML(1, sqlxml);
         assertEquals(1, prep.executeUpdate());

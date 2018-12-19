@@ -255,6 +255,9 @@ public class Console extends Tool implements ShutdownHandler {
         }
     }
 
+    /**
+     * Overriden by GUIConsole to show a window
+     */
     void show() {
     }
 
@@ -287,6 +290,11 @@ public class Console extends Tool implements ShutdownHandler {
         }
     }
 
+    /**
+     * Open a new browser tab or window with the given URL.
+     *
+     * @param url the URL to open
+     */
     void openBrowser(String url) {
         try {
             Server.openBrowser(url);

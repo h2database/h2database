@@ -266,6 +266,15 @@ public class Aggregate extends AbstractAggregate {
         this.groupConcatSeparator = separator;
     }
 
+    /**
+     * Returns the type of this aggregate.
+     *
+     * @return the type of this aggregate
+     */
+    public AggregateType getAggregateType() {
+        return type;
+    }
+
     private void sortWithOrderBy(Value[] array) {
         final SortOrder sortOrder = orderBySort;
         if (sortOrder != null) {

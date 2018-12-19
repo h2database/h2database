@@ -14,6 +14,8 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
+import org.h2.expression.aggregate.Aggregate;
+import org.h2.expression.aggregate.Aggregate.AggregateType;
 import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
 import org.h2.table.Column;
@@ -130,6 +132,7 @@ public class Comparison extends Condition {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
+        boolean encloseRight = false;
         builder.append('(');
         switch (compareType) {
         case IS_NULL:
@@ -143,9 +146,25 @@ public class Comparison extends Condition {
             left.getSQL(builder).append(", ");
             right.getSQL(builder).append(')');
             break;
+        case EQUAL:
+        case BIGGER_EQUAL:
+        case BIGGER:
+        case SMALLER_EQUAL:
+        case SMALLER:
+        case NOT_EQUAL:
+            if (right instanceof Aggregate && ((Aggregate) right).getAggregateType() == AggregateType.ANY) {
+                encloseRight = true;
+            }
+            //$FALL-THROUGH$
         default:
             left.getSQL(builder).append(' ').append(getCompareOperator(compareType)).append(' ');
+            if (encloseRight) {
+                builder.append('(');
+            }
             right.getSQL(builder);
+            if (encloseRight) {
+                builder.append(')');
+            }
         }
         return builder.append(')');
     }

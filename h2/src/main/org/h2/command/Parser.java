@@ -1405,20 +1405,16 @@ public class Parser {
         return prep;
     }
 
-    private boolean isSelectDeep() {
+    private boolean isSelect() {
         int start = lastParseIndex;
         while (readIf(OPEN_PAREN)) {
             // need to read ahead, it could be a nested union:
             // ((select 1) union (select 1))
         }
-        boolean select = isSelect();
+        boolean select = isToken(SELECT) || isToken(FROM) || isToken(WITH);
         parseIndex = start;
         read();
         return select;
-    }
-
-    private boolean isSelect() {
-        return isToken(SELECT) || isToken(FROM) || isToken(WITH);
     }
 
     private Prepared parseMerge() {
@@ -1434,7 +1430,7 @@ public class Parser {
         command.setTargetTableFilter(targetTableFilter);
         Table table = command.getTargetTable();
         if (readIf(OPEN_PAREN)) {
-            if (isSelectDeep()) {
+            if (isSelect()) {
                 command.setQuery(parseSelect());
                 read(CLOSE_PAREN);
                 return command;
@@ -1464,7 +1460,7 @@ public class Parser {
 
         if (readIf(OPEN_PAREN)) {
             /* a select query is supplied */
-            if (isSelectDeep()) {
+            if (isSelect()) {
                 command.setQuery(parseSelect());
                 read(CLOSE_PAREN);
             }
@@ -1619,7 +1615,7 @@ public class Parser {
     private Insert parseInsertGivenTable(Insert command, Table table) {
         Column[] columns = null;
         if (readIf(OPEN_PAREN)) {
-            if (isSelectDeep()) {
+            if (isSelect()) {
                 command.setQuery(parseSelect());
                 read(CLOSE_PAREN);
                 return command;
@@ -1672,7 +1668,7 @@ public class Parser {
         Table table = readTableOrView();
         command.setTable(table);
         if (readIf(OPEN_PAREN)) {
-            if (isSelectDeep()) {
+            if (isSelect()) {
                 command.setQuery(parseSelect());
                 read(CLOSE_PAREN);
                 return command;
@@ -1709,7 +1705,7 @@ public class Parser {
         Table table;
         String alias = null;
         label: if (readIf(OPEN_PAREN)) {
-            if (isSelectDeep()) {
+            if (isSelect()) {
                 Query query = parseSelectUnion();
                 read(CLOSE_PAREN);
                 query.setParameterList(new ArrayList<>(parameters));
@@ -2825,7 +2821,7 @@ public class Parser {
                     }
                     r = ValueExpression.get(ValueBoolean.FALSE);
                 } else {
-                    if (isSelectDeep()) {
+                    if (isSelect()) {
                         Query query = parseSelect();
                         r = new ConditionInSelect(database, r, query, false,
                                 Comparison.EQUAL);

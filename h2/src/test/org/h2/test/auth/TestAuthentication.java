@@ -39,72 +39,19 @@ import org.h2.test.TestBase;
  */
 public class TestAuthentication extends TestBase {
 
+    private static final String REALM_NAME = "testRealm"; 
+    private static final String JAAS_CONFIG_NAME = "testJaasH2";
+    private static final String STATIC_ROLE_NAME = "staticRole"; 
+    private static final String EXTERNAL_USER = "user"; 
+
+    private String externalUserPassword;
+    private DefaultAuthenticator defaultAuthenticator;
+    private Session session;
+    private Database database;
+
     public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
     }
-
-    String externalUserPassword;
-
-
-    String getExternalUserPassword() {
-        if (externalUserPassword == null) {
-            externalUserPassword = UUID.randomUUID().toString();
-        }
-        return externalUserPassword;
-    }
-
-    String getRealmName() {
-        return "testRealm";
-    }
-
-    String getJaasConfigName() {
-        return "testJaasH2";
-    }
-
-    String getStaticRoleName() {
-        return "staticRole";
-    }
-
-    DefaultAuthenticator defaultAuthenticator;
-
-    void configureAuthentication(Database database) {
-        defaultAuthenticator = new DefaultAuthenticator(true);
-        defaultAuthenticator.setAllowUserRegistration(true);
-        defaultAuthenticator.setCreateMissingRoles(true);
-        defaultAuthenticator.addRealm(getRealmName(), new JaasCredentialsValidator(getJaasConfigName()));
-        defaultAuthenticator.addRealm(getRealmName() + "_STATIC",
-                new StaticUserCredentialsValidator("staticuser[0-9]", "staticpassword"));
-        defaultAuthenticator.setUserToRolesMappers(new AssignRealmNameRole("@%s"),
-                new StaticRolesMapper(getStaticRoleName()));
-        database.setAuthenticator(defaultAuthenticator);
-    }
-
-    void configureJaas() {
-        final Configuration innerConfiguration = Configuration.getConfiguration();
-        Configuration.setConfiguration(new Configuration() {
-            @Override
-            public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
-                if (name.equals(getJaasConfigName())) {
-                    HashMap<String, String> options = new HashMap<>();
-                    options.put("password", getExternalUserPassword());
-                    return new AppConfigurationEntry[] { new AppConfigurationEntry(MyLoginModule.class.getName(),
-                            LoginModuleControlFlag.REQUIRED, options) };
-                }
-                return innerConfiguration.getAppConfigurationEntry(name);
-            }
-        });
-    }
-
-    protected String getDatabaseURL() {
-        return "jdbc:h2:mem:" + getClass().getSimpleName();
-    }
-
-    protected String getExternalUser() {
-        return "user";
-    }
-
-    Session session;
-    Database database;
 
     @Override
     public void test() throws Exception {
@@ -127,7 +74,7 @@ public class TestAuthentication extends TestBase {
         }
     }
 
-    protected void allTests() throws Exception {
+    private void allTests() throws Exception {
         testInvalidPassword();
         testExternalUserWithoutRealm();
         testExternalUser();
@@ -140,19 +87,61 @@ public class TestAuthentication extends TestBase {
         testXmlConfig();
     }
 
-    protected void testInvalidPassword() throws Exception {
+    /**
+     * random user password
+     */
+    String getExternalUserPassword() {
+        if (externalUserPassword == null) {
+            externalUserPassword = UUID.randomUUID().toString();
+        }
+        return externalUserPassword;
+    }
+
+    private void configureAuthentication(Database database) {
+        defaultAuthenticator = new DefaultAuthenticator(true);
+        defaultAuthenticator.setAllowUserRegistration(true);
+        defaultAuthenticator.setCreateMissingRoles(true);
+        defaultAuthenticator.addRealm(REALM_NAME, new JaasCredentialsValidator(JAAS_CONFIG_NAME));
+        defaultAuthenticator.addRealm(REALM_NAME + "_STATIC",
+                new StaticUserCredentialsValidator("staticuser[0-9]", "staticpassword"));
+        defaultAuthenticator.setUserToRolesMappers(new AssignRealmNameRole("@%s"),
+                new StaticRolesMapper(STATIC_ROLE_NAME));
+        database.setAuthenticator(defaultAuthenticator);
+    }
+
+    private void configureJaas() {
+        final Configuration innerConfiguration = Configuration.getConfiguration();
+        Configuration.setConfiguration(new Configuration() {
+            @Override
+            public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
+                if (name.equals(JAAS_CONFIG_NAME)) {
+                    HashMap<String, String> options = new HashMap<>();
+                    options.put("password", getExternalUserPassword());
+                    return new AppConfigurationEntry[] { new AppConfigurationEntry(MyLoginModule.class.getName(),
+                            LoginModuleControlFlag.REQUIRED, options) };
+                }
+                return innerConfiguration.getAppConfigurationEntry(name);
+            }
+        });
+    }
+
+    private String getDatabaseURL() {
+        return "jdbc:h2:mem:" + getClass().getSimpleName();
+    }
+
+    private void testInvalidPassword() throws Exception {
         try {
             Connection wrongLoginConnection = DriverManager.getConnection(
-                    getDatabaseURL() + ";AUTHREALM=" + getRealmName().toUpperCase(), getExternalUser(), "");
+                    getDatabaseURL() + ";AUTHREALM=" + REALM_NAME.toUpperCase(), EXTERNAL_USER, "");
             wrongLoginConnection.close();
             throw new Exception("user should not be able to login with an invalid password");
         } catch (SQLException e) {
         }
     }
 
-    protected void testExternalUserWithoutRealm() throws Exception {
+    private void testExternalUserWithoutRealm() throws Exception {
         try {
-            Connection wrongLoginConnection = DriverManager.getConnection(getDatabaseURL(), getExternalUser(),
+            Connection wrongLoginConnection = DriverManager.getConnection(getDatabaseURL(), EXTERNAL_USER,
                     getExternalUserPassword());
             wrongLoginConnection.close();
             throw new Exception("user should not be able to login without a realm");
@@ -160,34 +149,34 @@ public class TestAuthentication extends TestBase {
         }
     }
 
-    protected void testExternalUser() throws Exception {
+    private void testExternalUser() throws Exception {
         Connection rightConnection = DriverManager.getConnection(
-                getDatabaseURL() + ";AUTHREALM=" + getRealmName().toUpperCase(), getExternalUser(),
+                getDatabaseURL() + ";AUTHREALM=" + REALM_NAME.toUpperCase(), EXTERNAL_USER,
                 getExternalUserPassword());
         try {
-            User user = session.getDatabase().findUser((getExternalUser() + "@" + getRealmName()).toUpperCase());
+            User user = session.getDatabase().findUser((EXTERNAL_USER + "@" + REALM_NAME).toUpperCase());
             assertNotNull(user);
         } finally {
             rightConnection.close();
         }
     }
 
-    protected void testDatasource() throws Exception {
+    private void testDatasource() throws Exception {
 
         DataSource dataSource = JdbcConnectionPool.create(
-                getDatabaseURL() + ";AUTHREALM=" + getRealmName().toUpperCase(), getExternalUser(),
+                getDatabaseURL() + ";AUTHREALM=" + REALM_NAME.toUpperCase(), EXTERNAL_USER,
                 getExternalUserPassword());
         Connection rightConnection = dataSource.getConnection();
         try {
-            User user = session.getDatabase().findUser((getExternalUser() + "@" + getRealmName()).toUpperCase());
+            User user = session.getDatabase().findUser((EXTERNAL_USER + "@" + REALM_NAME).toUpperCase());
             assertNotNull(user);
         } finally {
             rightConnection.close();
         }
     }
 
-    protected void testAssignRealNameRole() throws Exception {
-        String realmNameRoleName = "@" + getRealmName().toUpperCase();
+    private void testAssignRealNameRole() throws Exception {
+        String realmNameRoleName = "@" + REALM_NAME.toUpperCase();
         Role realmNameRole = database.findRole(realmNameRoleName);
         if (realmNameRole == null) {
             realmNameRole = new Role(database, database.allocateObjectId(), realmNameRoleName, false);
@@ -195,10 +184,10 @@ public class TestAuthentication extends TestBase {
             session.commit(false);
         }
         Connection rightConnection = DriverManager.getConnection(
-                getDatabaseURL() + ";AUTHREALM=" + getRealmName().toUpperCase(), getExternalUser(),
+                getDatabaseURL() + ";AUTHREALM=" + REALM_NAME.toUpperCase(), EXTERNAL_USER,
                 getExternalUserPassword());
         try {
-            User user = session.getDatabase().findUser((getExternalUser() + "@" + getRealmName()).toUpperCase());
+            User user = session.getDatabase().findUser((EXTERNAL_USER + "@" + REALM_NAME).toUpperCase());
             assertNotNull(user);
             assertTrue(user.isRoleGranted(realmNameRole));
         } finally {
@@ -206,14 +195,14 @@ public class TestAuthentication extends TestBase {
         }
     }
 
-    protected void testStaticRole() throws Exception {
+    private void testStaticRole() throws Exception {
         Connection rightConnection = DriverManager.getConnection(
-                getDatabaseURL() + ";AUTHREALM=" + getRealmName().toUpperCase(), getExternalUser(),
+                getDatabaseURL() + ";AUTHREALM=" + REALM_NAME.toUpperCase(), EXTERNAL_USER,
                 getExternalUserPassword());
         try {
-            User user = session.getDatabase().findUser((getExternalUser() + "@" + getRealmName()).toUpperCase());
+            User user = session.getDatabase().findUser((EXTERNAL_USER + "@" + REALM_NAME).toUpperCase());
             assertNotNull(user);
-            Role staticRole = session.getDatabase().findRole(getStaticRoleName());
+            Role staticRole = session.getDatabase().findRole(STATIC_ROLE_NAME);
             if (staticRole != null) {
                 assertTrue(user.isRoleGranted(staticRole));
             }
@@ -222,27 +211,27 @@ public class TestAuthentication extends TestBase {
         }
     }
 
-    protected void testUserRegistration() throws Exception {
+    private void testUserRegistration() throws Exception {
         boolean initialValueAllow = defaultAuthenticator.isAllowUserRegistration();
         defaultAuthenticator.setAllowUserRegistration(false);
         try {
             try {
                 Connection wrongLoginConnection = DriverManager.getConnection(
-                        getDatabaseURL() + ";AUTHREALM=" + getRealmName().toUpperCase(), "___" + getExternalUser(),
+                        getDatabaseURL() + ";AUTHREALM=" + REALM_NAME.toUpperCase(), "___" + EXTERNAL_USER,
                         "");
                 wrongLoginConnection.close();
                 throw new Exception(
                         "unregistered external users should not be able to login when allowUserRegistration=false");
             } catch (SQLException e) {
             }
-            String validUserName = "new_" + getExternalUser();
+            String validUserName = "new_" + EXTERNAL_USER;
             User validUser = new User(database, database.allocateObjectId(),
-                    (validUserName.toUpperCase() + "@" + getRealmName()).toUpperCase(), false);
+                    (validUserName.toUpperCase() + "@" + REALM_NAME).toUpperCase(), false);
             validUser.setUserPasswordHash(new byte[] {});
             database.addDatabaseObject(session, validUser);
             session.commit(false);
             Connection connectionWithRegisterUser = DriverManager.getConnection(
-                    getDatabaseURL() + ";AUTHREALM=" + getRealmName().toUpperCase(), validUserName,
+                    getDatabaseURL() + ";AUTHREALM=" + REALM_NAME.toUpperCase(), validUserName,
                     getExternalUserPassword());
             connectionWithRegisterUser.close();
         } finally {
@@ -250,20 +239,20 @@ public class TestAuthentication extends TestBase {
         }
     }
 
-    public void testStaticUserCredentials() throws Exception {
+    private void testStaticUserCredentials() throws Exception {
         String userName="STATICUSER3";
         Connection rightConnection = DriverManager.getConnection(
-                getDatabaseURL() + ";AUTHREALM=" + getRealmName().toUpperCase()+"_STATIC",userName,
+                getDatabaseURL() + ";AUTHREALM=" + REALM_NAME.toUpperCase()+"_STATIC",userName,
                 "staticpassword");
         try {
-            User user = session.getDatabase().findUser(userName+ "@" + getRealmName().toUpperCase()+"_STATIC");
+            User user = session.getDatabase().findUser(userName+ "@" + REALM_NAME.toUpperCase()+"_STATIC");
             assertNotNull(user);
         } finally {
             rightConnection.close();
         }
     }
 
-    protected void testSet() throws Exception{
+    private void testSet() throws Exception{
         Connection rightConnection = DriverManager.getConnection(
                 getDatabaseURL()+";AUTHENTICATOR=FALSE","DBA","");
         try {
@@ -279,7 +268,7 @@ public class TestAuthentication extends TestBase {
         testExternalUser();
     }
 
-    static final String TESTXML="<h2Auth allowUserRegistration=\"true\" createMissingRoles=\"false\">"
+    private static final String TESTXML="<h2Auth allowUserRegistration=\"true\" createMissingRoles=\"false\">"
             + "<realm name=\"ciao\" validatorClass=\"myclass\"/>"
             + "<realm name=\"miao\" validatorClass=\"myclass1\">"
             + "<property name=\"prop1\" value=\"value1\"/>"
@@ -289,7 +278,7 @@ public class TestAuthentication extends TestBase {
             + "</realm>"
             + "</h2Auth>";
 
-    protected void testXmlConfig() throws Exception {
+    private void testXmlConfig() throws Exception {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(TESTXML.getBytes());
         H2AuthConfig config = H2AuthConfigXml.parseFrom(inputStream);
         assertTrue(config.isAllowUserRegistration());

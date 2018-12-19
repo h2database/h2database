@@ -2162,6 +2162,18 @@ compare { { { ALL | ANY | SOME } ( select ) } | operand }
 ","
 The right hand side of a condition.
 
+Quantified comparison predicate ALL returns TRUE if specified comparison operation between
+left size of condition and each row from a subquery returns TRUE, including case when there are no rows.
+ALL predicate returns FALSE if at least one such comparison returns FALSE.
+Otherwise it returns NULL.
+
+Quantified comparison predicates ANY and SOME return TRUE if specified comparison operation between
+left size of condition and at least one value from a subquery returns TRUE.
+ANY and SOME predicates return FALSE if all such comparisons return FALSE.
+Otherwise it returns NULL.
+Note that these predicates have priority over ANY and SOME aggregate functions with subquery on the right side.
+Use parentheses around aggregate function.
+
 The conditions ""IS [ NOT ]"" and ""IS [ NOT ] DISTINCT FROM"" are null-safe, meaning
 NULL is considered the same as NULL, and the condition never evaluates to NULL.
 
@@ -2179,6 +2191,8 @@ ILIKE does a case-insensitive compare.
 When comparing with REGEXP, regular expression matching is used.
 See Java ""Matcher.find"" for details.
 ","
+VALUE > 10
+A IS NOT DISTINCT FROM B
 LIKE 'Jo%'
 "
 
@@ -3469,8 +3483,13 @@ EVERY(ID>10)
 Returns true if any expression is true.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
+
+Note that if ANY or SOME aggregate function is placed on the right side of comparison operation
+and argument of this function is a subquery additional parentheses around aggregate function are required,
+otherwise it will be parsed as quantified comparison predicate.
 ","
 ANY(NAME LIKE 'W%')
+A = (ANY((SELECT B FROM T)))
 "
 
 "Functions (Aggregate)","COUNT","

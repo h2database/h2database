@@ -135,8 +135,8 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestDb {
         }
 
         if (failCnt > successCnt) {
-           fail("Lazy execution too slow. Avg lazy time: "
-                            + (totalLazy / FAIL_REPEATS) + ", avg not lazy time: " + (totalNotLazy / FAIL_REPEATS));
+            fail("Lazy execution too slow. Avg lazy time: "
+                    + (totalLazy / FAIL_REPEATS) + ", avg not lazy time: " + (totalNotLazy / FAIL_REPEATS));
         }
     }
 

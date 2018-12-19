@@ -592,7 +592,7 @@ public class TestTools extends TestDb {
             result = runServer(1, new String[]{"-xy"});
             assertContains(result, "Starts the H2 Console");
             assertContains(result, "Feature not supported");
-            result = runServer(0, new String[]{"-tcp",
+            result = runServer(0, new String[]{"-ifNotExists", "-tcp",
                     "-tcpPort", "9001", "-tcpPassword", "abc"});
             assertContains(result, "tcp://");
             assertContains(result, ":9001");
@@ -613,7 +613,7 @@ public class TestTools extends TestDb {
         Connection conn;
 
         try {
-            result = runServer(0, new String[]{"-tcp",
+            result = runServer(0, new String[]{"-ifNotExists", "-tcp",
                     "-tcpAllowOthers", "-tcpPort", "9001", "-tcpPassword", "abcdef", "-tcpSSL"});
             assertContains(result, "ssl://");
             assertContains(result, ":9001");
@@ -629,7 +629,7 @@ public class TestTools extends TestDb {
             getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
 
             result = runServer(0, new String[]{
-                    "-web", "-webPort", "9002", "-webAllowOthers", "-webSSL",
+                    "-ifNotExists", "-web", "-webPort", "9002", "-webAllowOthers", "-webSSL",
                     "-pg", "-pgAllowOthers", "-pgPort", "9003",
                     "-tcp", "-tcpAllowOthers", "-tcpPort", "9006", "-tcpPassword", "abc"});
             Server stop = server;
@@ -1096,7 +1096,7 @@ public class TestTools extends TestDb {
         Connection conn;
         try {
             deleteDb("test");
-            Server tcpServer = Server.createTcpServer(
+            Server tcpServer = Server.createTcpServer("-ifNotExists", 
                             "-baseDir", getBaseDir(),
                             "-tcpAllowOthers").start();
             remainingServers.add(tcpServer);
@@ -1150,7 +1150,7 @@ public class TestTools extends TestDb {
             JdbcUtils.closeSilently(conn);
             // Test filesystem prefix and escape from baseDir
             deleteDb("testSplit");
-            server = Server.createTcpServer(
+            server = Server.createTcpServer("-ifNotExists", 
                             "-baseDir", getBaseDir(),
                             "-tcpAllowOthers").start();
             final int p = server.getPort();

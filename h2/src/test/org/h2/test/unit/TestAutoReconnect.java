@@ -94,7 +94,7 @@ public class TestAutoReconnect extends TestDb {
                 "AUTO_SERVER=TRUE;OPEN_NEW=TRUE";
             restart();
         } else {
-            server = Server.createTcpServer().start();
+            server = Server.createTcpServer("-ifNotExists").start();
             int port = server.getPort();
             url = "jdbc:h2:tcp://localhost:" + port + "/" + getBaseDir() + "/" + getTestName() + ";" +
                 "FILE_LOCK=SOCKET;AUTO_RECONNECT=TRUE";

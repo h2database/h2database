@@ -397,7 +397,7 @@ public abstract class Query extends Prepared {
         }
         fireBeforeSelectTriggers();
         if (noCache || !session.getDatabase().getOptimizeReuseResults() ||
-                session.isLazyQueryExecution()) {
+                (session.isLazyQueryExecution() && !neverLazy)) {
             return queryWithoutCacheLazyCheck(limit, target);
         }
         Value[] params = getParameterValues();

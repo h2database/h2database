@@ -2168,7 +2168,7 @@ ALL predicate returns FALSE if at least one such comparison returns FALSE.
 Otherwise it returns NULL.
 
 Quantified comparison predicates ANY and SOME return TRUE if specified comparison operation between
-left size of condition and at least one value from a subquery returns TRUE.
+left size of condition and at least one row from a subquery returns TRUE.
 ANY and SOME predicates return FALSE if all such comparisons return FALSE.
 Otherwise it returns NULL.
 Note that these predicates have priority over ANY and SOME aggregate functions with subquery on the right side.

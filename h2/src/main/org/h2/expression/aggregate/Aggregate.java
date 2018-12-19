@@ -19,6 +19,7 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.Subquery;
 import org.h2.expression.analysis.Window;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
@@ -263,6 +264,15 @@ public class Aggregate extends AbstractAggregate {
      */
     public void setGroupConcatSeparator(Expression separator) {
         this.groupConcatSeparator = separator;
+    }
+
+    /**
+     * Returns the type of this aggregate.
+     *
+     * @return the type of this aggregate
+     */
+    public AggregateType getAggregateType() {
+        return type;
     }
 
     private void sortWithOrderBy(Value[] array) {
@@ -812,7 +822,12 @@ public class Aggregate extends AbstractAggregate {
             on.getSQL(builder).append(')');
         } else {
             builder.append('(');
-            on.getUnenclosedSQL(builder).append(')');
+            if (on instanceof Subquery) {
+                on.getSQL(builder);
+            } else {
+                on.getUnenclosedSQL(builder);
+            }
+            builder.append(')');
         }
         return appendTailConditions(builder);
     }

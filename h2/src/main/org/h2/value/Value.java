@@ -11,6 +11,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -1431,7 +1432,7 @@ public abstract class Value {
             throw DbException.get(
                     ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, x.toString(), getColumnName(column));
         }
-        return x.setScale(0, BigDecimal.ROUND_HALF_UP).longValue();
+        return x.setScale(0, RoundingMode.HALF_UP).longValue();
     }
 
     private static String getColumnName(Object column) {

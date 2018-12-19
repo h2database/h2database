@@ -55,6 +55,9 @@ public class DbException extends RuntimeException {
 
     private static final Properties MESSAGES = new Properties();
 
+    /**
+     * SQL out of memory exception object.
+     */
     public static final SQLException SQL_OOME =
             new SQLException("OutOfMemoryError", "HY000", OUT_OF_MEMORY, new OutOfMemoryError());
     private static final DbException OOME = new DbException(SQL_OOME);
@@ -432,6 +435,7 @@ public class DbException extends RuntimeException {
      * @param errorCode the error code
      * @param cause the exception that was the reason for this exception
      * @param stackTrace the stack trace
+     * @return the database exception object
      */
     public static SQLException getJdbcSQLException(String message, String sql, String state, int errorCode,
             Throwable cause, String stackTrace) {

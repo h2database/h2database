@@ -50,6 +50,7 @@ public class TestLocalResultFactory extends TestBase {
      * Test local result factory.
      */
     public static class MyTestLocalResultFactory extends LocalResultFactory {
+        /** Number of times we get called. */
         static final AtomicInteger COUNTER = new AtomicInteger();
 
         @Override public LocalResult create(Session session, Expression[] expressions, int visibleColumnCount) {

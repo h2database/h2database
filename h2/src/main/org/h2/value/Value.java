@@ -1408,6 +1408,9 @@ public abstract class Value {
         return (short) x;
     }
 
+    /**
+     * Convert to integer, throwing exception if out of range.
+     */
     public static int convertToInt(long x, Object column) {
         if (x > Integer.MAX_VALUE || x < Integer.MIN_VALUE) {
             throw DbException.get(

@@ -154,6 +154,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *
      * @param key the key (may not be null)
      * @param value the value (may not be null)
+     * @param decisionMaker callback object for update logic
      * @return the old value if the key existed, or null otherwise
      */
     public final V put(K key, V value, DecisionMaker<? super V> decisionMaker) {
@@ -873,6 +874,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param oldRoot the old root reference, will use the current root reference,
      *                if null is specified
      * @param newRoot the new root page
+     * @param attemptUpdateCounter how many attempt (including current)
+     *                            were made to update root
+     * @return new RootReference or null if update failed
      */
     protected final boolean updateRoot(RootReference oldRoot, Page newRoot, int attemptUpdateCounter) {
         return setNewRoot(oldRoot, newRoot, attemptUpdateCounter, true) != null;

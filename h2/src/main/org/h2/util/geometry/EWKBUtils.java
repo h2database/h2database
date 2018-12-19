@@ -269,7 +269,7 @@ public final class EWKBUtils {
      *
      * @param ewkb
      *            source EWKB
-     * @param dimension
+     * @param dimensionSystem
      *            dimension system
      * @return canonical EWKB, may be the same as the source
      */

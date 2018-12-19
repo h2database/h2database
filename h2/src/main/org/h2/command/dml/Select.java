@@ -29,6 +29,7 @@ import org.h2.expression.condition.ConditionAndOr;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
+import org.h2.index.ViewIndex;
 import org.h2.message.DbException;
 import org.h2.result.LazyResult;
 import org.h2.result.LocalResult;
@@ -43,6 +44,7 @@ import org.h2.table.IndexColumn;
 import org.h2.table.JoinBatch;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.util.ColumnNamer;
 import org.h2.util.StatementBuilder;
@@ -722,6 +724,8 @@ public class Select extends Query {
 
     @Override
     protected ResultInterface queryWithoutCache(int maxRows, ResultTarget target) {
+        disableLazyForJoinSubqueries(topTableFilter);
+
         int limitRows = maxRows == 0 ? -1 : maxRows;
         if (limitExpr != null) {
             Value v = limitExpr.getValue(session);
@@ -863,6 +867,22 @@ public class Select extends Query {
             return result;
         }
         return null;
+    }
+
+    private void disableLazyForJoinSubqueries(final TableFilter top) {
+        if (session.isLazyQueryExecution()) {
+            top.visit(new TableFilter.TableFilterVisitor() {
+                @Override
+                public void accept(TableFilter f) {
+                    if (f != top && f.getTable().getTableType() == TableType.VIEW) {
+                        ViewIndex idx = (ViewIndex) f.getIndex();
+                        if (idx != null && idx.getQuery() != null) {
+                            idx.getQuery().setNeverLazy(true);
+                        }
+                    }
+                }
+            });
+        }
     }
 
     /**

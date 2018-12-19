@@ -11,17 +11,20 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
+import org.h2.value.ValueRow;
 
 /**
  * A list of expressions, as in (ID, NAME).
- * The result of this expression is an array.
+ * The result of this expression is a row or an array.
  */
 public class ExpressionList extends Expression {
 
     private final Expression[] list;
+    private final boolean isArray;
 
-    public ExpressionList(Expression[] list) {
+    public ExpressionList(Expression[] list, boolean isArray) {
         this.list = list;
+        this.isArray = isArray;
     }
 
     @Override
@@ -30,12 +33,12 @@ public class ExpressionList extends Expression {
         for (int i = 0; i < list.length; i++) {
             v[i] = list[i].getValue(session);
         }
-        return ValueArray.get(v);
+        return isArray ? ValueArray.get(v) : ValueRow.get(v);
     }
 
     @Override
     public int getType() {
-        return Value.ARRAY;
+        return isArray ? Value.ARRAY : Value.ROW;
     }
 
     @Override
@@ -85,12 +88,9 @@ public class ExpressionList extends Expression {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
-        builder.append('(');
+        builder.append(isArray ? "ARRAY [" : "ROW (");
         writeExpressions(builder, list);
-        if (list.length == 1) {
-            builder.append(',');
-        }
-        return builder.append(')');
+        return builder.append(isArray ? ']' : ')');
     }
 
     @Override

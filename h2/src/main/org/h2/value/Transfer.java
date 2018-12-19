@@ -471,6 +471,16 @@ public class Transfer {
             }
             break;
         }
+        case Value.ROW: {
+            ValueRow va = (ValueRow) v;
+            Value[] list = va.getList();
+            int len = list.length;
+            writeInt(len);
+            for (Value value : list) {
+                writeValue(value);
+            }
+            break;
+        }
         case Value.ENUM: {
             writeInt(v.getInt());
             writeString(v.getString());
@@ -681,6 +691,14 @@ public class Transfer {
                 list[i] = readValue();
             }
             return ValueArray.get(componentType, list);
+        }
+        case Value.ROW: {
+            int len = readInt();
+            Value[] list = new Value[len];
+            for (int i = 0; i < len; i++) {
+                list[i] = readValue();
+            }
+            return ValueRow.get(list);
         }
         case Value.RESULT_SET: {
             SimpleResult rs = new SimpleResult();

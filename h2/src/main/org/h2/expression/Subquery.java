@@ -14,8 +14,8 @@ import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueRow;
 
 /**
  * A query returning a single value.
@@ -42,7 +42,7 @@ public class Subquery extends Expression {
                 if (result.getVisibleColumnCount() == 1) {
                     v = values[0];
                 } else {
-                    v = ValueArray.get(values);
+                    v = ValueRow.get(values);
                 }
                 if (result.hasNext()) {
                     throw DbException.get(ErrorCode.SCALAR_SUBQUERY_CONTAINS_MORE_THAN_ONE_ROW);
@@ -109,7 +109,7 @@ public class Subquery extends Expression {
                 for (int i = 0; i < columnCount; i++) {
                     list[i] = expressions.get(i);
                 }
-                expression = new ExpressionList(list);
+                expression = new ExpressionList(list, false);
             }
         }
         return expression;

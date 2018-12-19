@@ -157,8 +157,8 @@ public class TestFullText extends TestDb {
         assertEquals("KEYS", rs.getMetaData().getColumnLabel(4));
         assertEquals("PUBLIC", rs.getString(1));
         assertEquals("TEST", rs.getString(2));
-        assertEquals("(ID)", rs.getString(3));
-        assertEquals("(1)", rs.getString(4));
+        assertEquals("[ID]", rs.getString(3));
+        assertEquals("[1]", rs.getString(4));
 
         rs = stat.executeQuery("SELECT * FROM FT_SEARCH('this', 0, 0)");
         assertFalse(rs.next());

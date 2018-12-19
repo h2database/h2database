@@ -43,6 +43,7 @@ import static org.h2.util.ParserUtil.OFFSET;
 import static org.h2.util.ParserUtil.ON;
 import static org.h2.util.ParserUtil.ORDER;
 import static org.h2.util.ParserUtil.PRIMARY;
+import static org.h2.util.ParserUtil.ROW;
 import static org.h2.util.ParserUtil.ROWNUM;
 import static org.h2.util.ParserUtil.SELECT;
 import static org.h2.util.ParserUtil.TRUE;
@@ -482,6 +483,8 @@ public class Parser {
             "ORDER",
             // PRIMARY
             "PRIMARY",
+            // ROW
+            "ROW",
             // ROWNUM
             "ROWNUM",
             // SELECT
@@ -2400,7 +2403,7 @@ public class Parser {
             if (readIf(OFFSET)) {
                 hasOffsetOrFetch = true;
                 command.setOffset(readExpression().optimize(session));
-                if (!readIf("ROW")) {
+                if (!readIf(ROW)) {
                     readIf("ROWS");
                 }
             }
@@ -2409,7 +2412,7 @@ public class Parser {
                 if (!readIf("FIRST")) {
                     read("NEXT");
                 }
-                if (readIf("ROW") || readIf("ROWS")) {
+                if (readIf(ROW) || readIf("ROWS")) {
                     command.setLimit(ValueExpression.get(ValueInt.get(1)));
                 } else {
                     Expression limit = readExpression().optimize(session);
@@ -2417,7 +2420,7 @@ public class Parser {
                     if (readIf("PERCENT")) {
                         command.setFetchPercent(true);
                     }
-                    if (!readIf("ROW")) {
+                    if (!readIf(ROW)) {
                         read("ROWS");
                     }
                 }
@@ -3198,7 +3201,7 @@ public class Parser {
         WindowFrameExclusion exclusion = WindowFrameExclusion.EXCLUDE_NO_OTHERS;
         if (readIf("EXCLUDE")) {
             if (readIf("CURRENT")) {
-                read("ROW");
+                read(ROW);
                 exclusion = WindowFrameExclusion.EXCLUDE_CURRENT_ROW;
             } else if (readIf(GROUP)) {
                 exclusion = WindowFrameExclusion.EXCLUDE_GROUP;
@@ -3222,7 +3225,7 @@ public class Parser {
             return new WindowFrameBound(WindowFrameBoundType.UNBOUNDED_PRECEDING, null);
         }
         if (readIf("CURRENT")) {
-            read("ROW");
+            read(ROW);
             return new WindowFrameBound(WindowFrameBoundType.CURRENT_ROW, null);
         }
         Expression value = readValueOrParameter();
@@ -3239,7 +3242,7 @@ public class Parser {
             return new WindowFrameBound(WindowFrameBoundType.UNBOUNDED_FOLLOWING, null);
         }
         if (readIf("CURRENT")) {
-            read("ROW");
+            read(ROW);
             return new WindowFrameBound(WindowFrameBoundType.CURRENT_ROW, null);
         }
         Expression value = readValueOrParameter();
@@ -3790,7 +3793,7 @@ public class Parser {
         case OPEN_PAREN:
             read();
             if (readIf(CLOSE_PAREN)) {
-                r = new ExpressionList(new Expression[0]);
+                r = new ExpressionList(new Expression[0], false);
             } else {
                 r = readExpression();
                 if (readIfMore(true)) {
@@ -3801,10 +3804,24 @@ public class Parser {
                             list.add(readExpression());
                         } while (readIfMore(false));
                     }
-                    r = new ExpressionList(list.toArray(new Expression[0]));
+                    r = new ExpressionList(list.toArray(new Expression[0]), false);
                 }
             }
             break;
+        case ROW: {
+            read();
+            read(OPEN_PAREN);
+            if (readIf(CLOSE_PAREN)) {
+                r = new ExpressionList(new Expression[0], false);
+            } else {
+                ArrayList<Expression> list = Utils.newSmallArrayList();
+                do {
+                    list.add(readExpression());
+                } while (readIfMore(true));
+                r = new ExpressionList(list.toArray(new Expression[0]), false);
+            }
+            break;
+        }
         case TRUE:
             read();
             r = ValueExpression.get(ValueBoolean.TRUE);
@@ -3909,7 +3926,7 @@ public class Parser {
                     }
                     read(CLOSE_BRACKET);
                 }
-                return new ExpressionList(list.toArray(new Expression[0]));
+                return new ExpressionList(list.toArray(new Expression[0]), true);
             }
             break;
         case 'C':
@@ -5790,7 +5807,7 @@ public class Parser {
             for (int j = 0; j < rowCount; j++) {
                 array[j] = rows.get(j).get(i);
             }
-            ExpressionList list = new ExpressionList(array);
+            ExpressionList list = new ExpressionList(array, false);
             tf.setParameter(i, list);
         }
         tf.setColumns(columns);
@@ -5964,7 +5981,7 @@ public class Parser {
         command.setTableName(tableName);
         if (readIf(FOR)) {
             read("EACH");
-            read("ROW");
+            read(ROW);
             command.setRowBased(true);
         } else {
             command.setRowBased(false);

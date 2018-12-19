@@ -188,9 +188,14 @@ public class ParserUtil {
     public static final int PRIMARY = ORDER + 1;
 
     /**
+     * The token "ROW".
+     */
+    public static final int ROW = PRIMARY + 1;
+
+    /**
      * The token "ROWNUM".
      */
-    public static final int ROWNUM = PRIMARY + 1;
+    public static final int ROWNUM = ROW + 1;
 
     /**
      * The token "SELECT".
@@ -425,7 +430,9 @@ public class ParserUtil {
             }
             return IDENTIFIER;
         case 'R':
-            if (eq("ROWNUM", s, ignoreCase, start, end)) {
+            if (eq("ROW", s, ignoreCase, start, end)) {
+                return ROW;
+            } else if (eq("ROWNUM", s, ignoreCase, start, end)) {
                 return ROWNUM;
             }
             return IDENTIFIER;

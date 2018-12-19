@@ -1496,7 +1496,7 @@ public abstract class Value extends VersionedValue {
     }
 
     /**
-     * Checks value by Integer type numeric range.
+     * Convert to integer, throwing exception if out of range.
      *
      * @param x integer value.
      * @param column Column info.

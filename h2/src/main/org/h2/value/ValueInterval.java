@@ -53,8 +53,8 @@ public class ValueInterval extends Value {
     private final long remaining;
 
     /**
-     * Creates interval value.
-     *
+     * Create a ValueInterval instance.
+     * 
      * @param qualifier
      *            qualifier
      * @param negative

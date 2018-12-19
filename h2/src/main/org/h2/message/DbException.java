@@ -56,7 +56,7 @@ public class DbException extends RuntimeException {
     private static final Properties MESSAGES = new Properties();
 
     /**
-     * Thrown when OOME exception is happened on handle error
+     * Thrown when OOME exception happens on handle error
      * inside {@link #convert(java.lang.Throwable)}.
      */
     public static final SQLException SQL_OOME =

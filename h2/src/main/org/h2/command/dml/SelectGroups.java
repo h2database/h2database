@@ -195,7 +195,7 @@ public abstract class SelectGroups {
     }
 
     /**
-     * The session.
+     * The database session.
      */
     final Session session;
 

@@ -39,6 +39,7 @@ public class SequenceOptions {
         return null;
     }
 
+    /** The first value to return. */
     public Long getStartValue(Session session) {
         return getLong(session, start);
     }
@@ -47,6 +48,7 @@ public class SequenceOptions {
         this.start = start;
     }
 
+    /** The increment count. */
     public Long getIncrement(Session session) {
         return getLong(session, increment);
     }
@@ -55,6 +57,7 @@ public class SequenceOptions {
         this.increment = increment;
     }
 
+    /** The maximum value. */
     public Long getMaxValue(Sequence sequence, Session session) {
         if (maxValue == ValueExpression.getNull() && sequence != null) {
             return Sequence.getDefaultMaxValue(getCurrentStart(sequence, session),
@@ -67,6 +70,7 @@ public class SequenceOptions {
         this.maxValue = maxValue;
     }
 
+    /** The minimum value. */
     public Long getMinValue(Sequence sequence, Session session) {
         if (minValue == ValueExpression.getNull() && sequence != null) {
             return Sequence.getDefaultMinValue(getCurrentStart(sequence, session),
@@ -91,6 +95,7 @@ public class SequenceOptions {
         this.cycle = cycle;
     }
 
+    /** The number of entries to pre-fetch. */
     public Long getCacheSize(Session session) {
         return getLong(session, cacheSize);
     }

@@ -102,6 +102,7 @@ public class Plan {
      * Calculate the cost of this query plan.
      *
      * @param session the session
+     * @param allColumnsSet calculates all columns on-demand
      * @return the cost
      */
     public double calculateCost(Session session, AllColumnsForPlan allColumnsSet) {

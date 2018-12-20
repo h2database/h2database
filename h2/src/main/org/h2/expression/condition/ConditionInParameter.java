@@ -66,38 +66,35 @@ public class ConditionInParameter extends Condition {
     private final Parameter parameter;
 
     static Value getValue(Database database, Value l, Value value) {
-        boolean result = false;
         boolean hasNull = false;
         if (value == ValueNull.INSTANCE) {
             hasNull = true;
         } else if (value.getType() == Value.RESULT_SET) {
             for (ResultInterface ri = value.getResult(); ri.next();) {
                 Value r = ri.currentRow()[0];
-                if (r == ValueNull.INSTANCE) {
+                Value cmp;
+                if (r == ValueNull.INSTANCE
+                        || (cmp = Comparison.compareNotNull(database, l, r, Comparison.EQUAL)) == ValueNull.INSTANCE) {
                     hasNull = true;
-                } else {
-                    result = Comparison.compareNotNull(database, l, r, Comparison.EQUAL);
-                    if (result) {
-                        break;
-                    }
+                } else if (cmp == ValueBoolean.TRUE) {
+                    return cmp;
                 }
             }
         } else {
             for (Value r : ((ValueArray) value.convertTo(Value.ARRAY)).getList()) {
-                if (r == ValueNull.INSTANCE) {
+                Value cmp;
+                if (r == ValueNull.INSTANCE
+                        || (cmp = Comparison.compareNotNull(database, l, r, Comparison.EQUAL)) == ValueNull.INSTANCE) {
                     hasNull = true;
-                } else {
-                    result = Comparison.compareNotNull(database, l, r, Comparison.EQUAL);
-                    if (result) {
-                        break;
-                    }
+                } else if (cmp == ValueBoolean.TRUE) {
+                    return cmp;
                 }
             }
         }
-        if (!result && hasNull) {
+        if (hasNull) {
             return ValueNull.INSTANCE;
         }
-        return ValueBoolean.get(result);
+        return ValueBoolean.FALSE;
     }
 
     /**

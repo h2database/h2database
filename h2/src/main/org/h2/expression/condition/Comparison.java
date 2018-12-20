@@ -294,7 +294,7 @@ public class Comparison extends Condition {
                 return ValueNull.INSTANCE;
             }
         }
-        return ValueBoolean.get(compareNotNull(database, l, r, compareType));
+        return compareNotNull(database, l, r, compareType);
     }
 
     /**
@@ -304,11 +304,9 @@ public class Comparison extends Condition {
      * @param l the first value
      * @param r the second value
      * @param compareType the compare type
-     * @return true if the comparison indicated by the comparison type evaluates
-     *         to true
+     * @return result of comparison, either TRUE, FALSE, or NULL
      */
-    static boolean compareNotNull(Database database, Value l, Value r,
-            int compareType) {
+    static Value compareNotNull(Database database, Value l, Value r, int compareType) {
         boolean result;
         switch (compareType) {
         case EQUAL:
@@ -340,7 +338,7 @@ public class Comparison extends Condition {
         default:
             throw DbException.throwInternalError("type=" + compareType);
         }
-        return result;
+        return ValueBoolean.get(result);
     }
 
     private int getReversedCompareType(int type) {

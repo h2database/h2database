@@ -21,6 +21,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueRow;
 
 /**
  * An 'in' condition with a subquery, as in WHERE ID IN(SELECT ...)
@@ -88,30 +89,37 @@ public class ConditionInSelect extends Condition {
     private Value getValueSlow(ResultInterface rows, Value l) {
         // this only returns the correct result if the result has at least one
         // row, and if l is not null
-        boolean hasNull = false;
-        boolean result = all;
-        while (rows.next()) {
-            boolean value;
-            Value[] currentRow = rows.currentRow();
-            Value r = query.getColumnCount() == 1 ? currentRow[0] : org.h2.value.ValueArray.get(currentRow);
-            if (r == ValueNull.INSTANCE) {
-                value = false;
-                hasNull = true;
-            } else {
-                value = Comparison.compareNotNull(database, l, r, compareType);
+        if (all) {
+            while (rows.next()) {
+                Value[] currentRow = rows.currentRow();
+                Value r = query.getColumnCount() == 1 ? currentRow[0] : ValueRow.get(currentRow);
+                Value cmp;
+                if (r == ValueNull.INSTANCE
+                        || (cmp = Comparison.compareNotNull(database, l, r, compareType)) == ValueNull.INSTANCE) {
+                    return ValueNull.INSTANCE;
+                } else if (cmp == ValueBoolean.FALSE) {
+                    return cmp;
+                }
             }
-            if (!value && all) {
-                result = false;
-                break;
-            } else if (value && !all) {
-                result = true;
-                break;
+            return ValueBoolean.TRUE;
+        } else {
+            boolean hasNull = false;
+            while (rows.next()) {
+                Value[] currentRow = rows.currentRow();
+                Value r = query.getColumnCount() == 1 ? currentRow[0] : ValueRow.get(currentRow);
+                Value cmp;
+                if (r == ValueNull.INSTANCE
+                        || (cmp = Comparison.compareNotNull(database, l, r, compareType)) == ValueNull.INSTANCE) {
+                    hasNull = true;
+                } else if (cmp == ValueBoolean.TRUE) {
+                    return cmp;
+                }
             }
+            if (hasNull) {
+                return ValueNull.INSTANCE;
+            }
+            return ValueBoolean.FALSE;
         }
-        if (!result && hasNull) {
-            return ValueNull.INSTANCE;
-        }
-        return ValueBoolean.get(result);
     }
 
     @Override

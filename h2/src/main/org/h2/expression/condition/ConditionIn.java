@@ -59,24 +59,22 @@ public class ConditionIn extends Condition {
                 return ConditionInParameter.getValue(database, l, e.getValue(session));
             }
         }
-        boolean result = false;
         boolean hasNull = false;
         for (int i = 0; i < size; i++) {
             Expression e = valueList.get(i);
             Value r = e.getValue(session);
-            if (r == ValueNull.INSTANCE) {
+            Value cmp;
+            if (r == ValueNull.INSTANCE
+                    || (cmp = Comparison.compareNotNull(database, l, r, Comparison.EQUAL)) == ValueNull.INSTANCE) {
                 hasNull = true;
-            } else {
-                result = Comparison.compareNotNull(database, l, r, Comparison.EQUAL);
-                if (result) {
-                    break;
-                }
+            } else if (cmp == ValueBoolean.TRUE) {
+                return cmp;
             }
         }
-        if (!result && hasNull) {
+        if (hasNull) {
             return ValueNull.INSTANCE;
         }
-        return ValueBoolean.get(result);
+        return ValueBoolean.FALSE;
     }
 
     @Override

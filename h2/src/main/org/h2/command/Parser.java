@@ -222,6 +222,7 @@ import org.h2.value.ExtTypeInfo;
 import org.h2.value.ExtTypeInfoEnum;
 import org.h2.value.ExtTypeInfoGeometry;
 import org.h2.value.Value;
+import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueBytes;
 import org.h2.value.ValueDate;
@@ -230,6 +231,7 @@ import org.h2.value.ValueInt;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueRow;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
@@ -3802,7 +3804,7 @@ public class Parser {
         case OPEN_PAREN:
             read();
             if (readIf(CLOSE_PAREN)) {
-                r = new ExpressionList(new Expression[0], false);
+                r = ValueExpression.get(ValueRow.getEmpty());
             } else {
                 r = readExpression();
                 if (readIfMore(true)) {
@@ -3817,27 +3819,30 @@ public class Parser {
                 }
             }
             break;
-        case ARRAY: {
+        case ARRAY:
             read();
             read(OPEN_BRACKET);
-            ArrayList<Expression> list = Utils.newSmallArrayList();
-            if (!readIf(CLOSE_BRACKET)) {
+            if (readIf(CLOSE_BRACKET)) {
+                r = ValueExpression.get(ValueArray.getEmpty());
+            } else {
+                ArrayList<Expression> list = Utils.newSmallArrayList();
                 list.add(readExpression());
                 while (readIf(COMMA)) {
                     list.add(readExpression());
                 }
                 read(CLOSE_BRACKET);
+                r = new ExpressionList(list.toArray(new Expression[0]), true);
             }
-            return new ExpressionList(list.toArray(new Expression[0]), true);
-        }
+            break;
         case INTERVAL:
             read();
-            return readInterval();
+            r = readInterval();
+            break;
         case ROW: {
             read();
             read(OPEN_PAREN);
             if (readIf(CLOSE_PAREN)) {
-                r = new ExpressionList(new Expression[0], false);
+                r = ValueExpression.get(ValueRow.getEmpty());
             } else {
                 ArrayList<Expression> list = Utils.newSmallArrayList();
                 do {

@@ -2023,23 +2023,12 @@ ID=1 AND NAME='Hi'
 
 "Other Grammar","Array","
 ARRAY '[' [ expression, [,...] ] ']'
-    | ( [ expression, [ expression [,...] ] ] )
 ","
 An array of values.
-
-The array can be declared with standard ARRAY[] syntax or with H2 syntax.
-
-With standard syntax trailing comma is not allowed.
-
-With H2 syntax an empty array is '()'. Trailing comma is ignored.
-An array with one element must contain a trailing comma to be parsed as an array.
 ","
 ARRAY[1, 2]
 ARRAY[1]
 ARRAY[]
-(1, 2)
-(1, )
-()
 "
 
 "Other Grammar","Boolean","
@@ -2518,6 +2507,16 @@ When using encryption, only DEFLATE and LZF are supported.
 LZF is faster but uses more space.
 ","
 COMPRESSION LZF
+"
+
+"Other Grammar","Row value expression","
+ROW (expression, [,...])
+    | ( [ expression, expression [,...] ] )
+","
+A row value expression.
+","
+ROW (1)
+(1, 2)
 "
 
 "Other Grammar","Select Expression","

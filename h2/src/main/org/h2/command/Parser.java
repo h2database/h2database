@@ -9,12 +9,15 @@
 package org.h2.command;
 
 import static org.h2.util.ParserUtil.ALL;
+import static org.h2.util.ParserUtil.ARRAY;
+import static org.h2.util.ParserUtil.CASE;
 import static org.h2.util.ParserUtil.CHECK;
 import static org.h2.util.ParserUtil.CONSTRAINT;
 import static org.h2.util.ParserUtil.CROSS;
 import static org.h2.util.ParserUtil.CURRENT_DATE;
 import static org.h2.util.ParserUtil.CURRENT_TIME;
 import static org.h2.util.ParserUtil.CURRENT_TIMESTAMP;
+import static org.h2.util.ParserUtil.CURRENT_USER;
 import static org.h2.util.ParserUtil.DISTINCT;
 import static org.h2.util.ParserUtil.EXCEPT;
 import static org.h2.util.ParserUtil.EXISTS;
@@ -27,8 +30,11 @@ import static org.h2.util.ParserUtil.FULL;
 import static org.h2.util.ParserUtil.GROUP;
 import static org.h2.util.ParserUtil.HAVING;
 import static org.h2.util.ParserUtil.IDENTIFIER;
+import static org.h2.util.ParserUtil.IF;
 import static org.h2.util.ParserUtil.INNER;
 import static org.h2.util.ParserUtil.INTERSECT;
+import static org.h2.util.ParserUtil.INTERSECTS;
+import static org.h2.util.ParserUtil.INTERVAL;
 import static org.h2.util.ParserUtil.IS;
 import static org.h2.util.ParserUtil.JOIN;
 import static org.h2.util.ParserUtil.LIKE;
@@ -43,11 +49,13 @@ import static org.h2.util.ParserUtil.OFFSET;
 import static org.h2.util.ParserUtil.ON;
 import static org.h2.util.ParserUtil.ORDER;
 import static org.h2.util.ParserUtil.PRIMARY;
+import static org.h2.util.ParserUtil.ROW;
 import static org.h2.util.ParserUtil.ROWNUM;
 import static org.h2.util.ParserUtil.SELECT;
 import static org.h2.util.ParserUtil.TRUE;
 import static org.h2.util.ParserUtil.UNION;
 import static org.h2.util.ParserUtil.UNIQUE;
+import static org.h2.util.ParserUtil.VALUES;
 import static org.h2.util.ParserUtil.WHERE;
 import static org.h2.util.ParserUtil.WINDOW;
 import static org.h2.util.ParserUtil.WITH;
@@ -218,6 +226,7 @@ import org.h2.value.ExtTypeInfo;
 import org.h2.value.ExtTypeInfoEnum;
 import org.h2.value.ExtTypeInfoGeometry;
 import org.h2.value.Value;
+import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueBytes;
 import org.h2.value.ValueDate;
@@ -226,6 +235,7 @@ import org.h2.value.ValueInt;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueRow;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
@@ -416,6 +426,10 @@ public class Parser {
             null,
             // ALL
             "ALL",
+            // ARRAY
+            "ARRAY",
+            // CASE
+            "CASE",
             // CHECK
             "CHECK",
             // CONSTRAINT
@@ -428,6 +442,8 @@ public class Parser {
             "CURRENT_TIME",
             // CURRENT_TIMESTAMP
             "CURRENT_TIMESTAMP",
+            // CURRENT_USER
+            "CURRENT_USER",
             // DISTINCT
             "DISTINCT",
             // EXCEPT
@@ -450,10 +466,16 @@ public class Parser {
             "GROUP",
             // HAVING
             "HAVING",
+            // IF
+            "IF",
             // INNER
             "INNER",
             // INTERSECT
             "INTERSECT",
+            // INTERSECTS
+            "INTERSECTS",
+            // INTERVAL
+            "INTERVAL",
             // IS
             "IS",
             // JOIN
@@ -482,6 +504,8 @@ public class Parser {
             "ORDER",
             // PRIMARY
             "PRIMARY",
+            // ROW
+            "ROW",
             // ROWNUM
             "ROWNUM",
             // SELECT
@@ -492,6 +516,8 @@ public class Parser {
             "UNION",
             // UNIQUE
             "UNIQUE",
+            // VALUES
+            "VALUES",
             // WHERE
             "WHERE",
             // WINDOW
@@ -721,6 +747,10 @@ public class Parser {
         case SELECT:
             c = parseSelect();
             break;
+        case VALUES:
+            read();
+            c = parseValues();
+            break;
         case WITH:
             read();
             c = parseWithStatementOrQuery();
@@ -853,11 +883,6 @@ public class Parser {
                     c = parseUse();
                 }
                 break;
-            case 'v':
-            case 'V':
-                if (readIf("VALUES")) {
-                    c = parseValues();
-                }
             }
         }
         if (c == null) {
@@ -1420,7 +1445,7 @@ public class Parser {
     private Prepared parseMerge() {
         int start = lastParseIndex;
         read("INTO");
-        List<String> excludeIdentifiers = Arrays.asList("USING", "KEY", "VALUES");
+        List<String> excludeIdentifiers = Arrays.asList("USING", "KEY");
         TableFilter targetTableFilter = readSimpleTableFilter(0, excludeIdentifiers);
         if (readIf("USING")) {
             return parseMergeUsing(targetTableFilter, start);
@@ -1443,7 +1468,7 @@ public class Parser {
             Column[] keys = parseColumnList(table);
             command.setKeys(keys);
         }
-        if (readIf("VALUES")) {
+        if (readIf(VALUES)) {
             do {
                 read(OPEN_PAREN);
                 command.addRow(parseValuesForInsert());
@@ -1630,10 +1655,10 @@ public class Parser {
             command.setSortedInsertMode(true);
         }
         if (readIf("DEFAULT")) {
-            read("VALUES");
+            read(VALUES);
             Expression[] expr = {};
             command.addRow(expr);
-        } else if (readIf("VALUES")) {
+        } else if (readIf(VALUES)) {
             read(OPEN_PAREN);
             do {
                 command.addRow(parseValuesForInsert());
@@ -1676,7 +1701,7 @@ public class Parser {
             Column[] columns = parseColumnList(table);
             command.setColumns(columns);
         }
-        if (readIf("VALUES")) {
+        if (readIf(VALUES)) {
             do {
                 read(OPEN_PAREN);
                 command.addRow(parseValuesForInsert());
@@ -1734,7 +1759,7 @@ public class Parser {
                 }
                 return top;
             }
-        } else if (readIf("VALUES")) {
+        } else if (readIf(VALUES)) {
             table = parseValuesTable(0).getTable();
         } else {
             String tableName = readIdentifierWithSchema(null);
@@ -1913,7 +1938,7 @@ public class Parser {
     }
 
     private boolean readIfExists(boolean ifExists) {
-        if (readIf("IF")) {
+        if (readIf(IF)) {
             read(EXISTS);
             ifExists = true;
         }
@@ -2400,7 +2425,7 @@ public class Parser {
             if (readIf(OFFSET)) {
                 hasOffsetOrFetch = true;
                 command.setOffset(readExpression().optimize(session));
-                if (!readIf("ROW")) {
+                if (!readIf(ROW)) {
                     readIf("ROWS");
                 }
             }
@@ -2409,7 +2434,7 @@ public class Parser {
                 if (!readIf("FIRST")) {
                     read("NEXT");
                 }
-                if (readIf("ROW") || readIf("ROWS")) {
+                if (readIf(ROW) || readIf("ROWS")) {
                     command.setLimit(ValueExpression.get(ValueInt.get(1)));
                 } else {
                     Expression limit = readExpression().optimize(session);
@@ -2417,7 +2442,7 @@ public class Parser {
                     if (readIf("PERCENT")) {
                         command.setFetchPercent(true);
                     }
-                    if (!readIf("ROW")) {
+                    if (!readIf(ROW)) {
                         read("ROWS");
                     }
                 }
@@ -2744,7 +2769,7 @@ public class Parser {
             read(CLOSE_PAREN);
             return new ConditionExists(query);
         }
-        if (readIf("INTERSECTS")) {
+        if (readIf(INTERSECTS)) {
             read(OPEN_PAREN);
             Expression r1 = readConcat();
             read(COMMA);
@@ -3198,7 +3223,7 @@ public class Parser {
         WindowFrameExclusion exclusion = WindowFrameExclusion.EXCLUDE_NO_OTHERS;
         if (readIf("EXCLUDE")) {
             if (readIf("CURRENT")) {
-                read("ROW");
+                read(ROW);
                 exclusion = WindowFrameExclusion.EXCLUDE_CURRENT_ROW;
             } else if (readIf(GROUP)) {
                 exclusion = WindowFrameExclusion.EXCLUDE_GROUP;
@@ -3222,7 +3247,7 @@ public class Parser {
             return new WindowFrameBound(WindowFrameBoundType.UNBOUNDED_PRECEDING, null);
         }
         if (readIf("CURRENT")) {
-            read("ROW");
+            read(ROW);
             return new WindowFrameBound(WindowFrameBoundType.CURRENT_ROW, null);
         }
         Expression value = readValueOrParameter();
@@ -3239,7 +3264,7 @@ public class Parser {
             return new WindowFrameBound(WindowFrameBoundType.UNBOUNDED_FOLLOWING, null);
         }
         if (readIf("CURRENT")) {
-            read("ROW");
+            read(ROW);
             return new WindowFrameBound(WindowFrameBoundType.CURRENT_ROW, null);
         }
         Expression value = readValueOrParameter();
@@ -3750,11 +3775,6 @@ public class Parser {
                 read();
                 if (readIf(DOT)) {
                     r = readTermObjectDot(name);
-                } else if (equalsToken("CASE", name)) {
-                    // CASE must be processed before (,
-                    // otherwise CASE(3) would be a function call, which it is
-                    // not
-                    r = readCase();
                 } else if (readIf(OPEN_PAREN)) {
                     r = readFunction(null, name);
                 } else {
@@ -3790,7 +3810,7 @@ public class Parser {
         case OPEN_PAREN:
             read();
             if (readIf(CLOSE_PAREN)) {
-                r = new ExpressionList(new Expression[0]);
+                r = ValueExpression.get(ValueRow.getEmpty());
             } else {
                 r = readExpression();
                 if (readIfMore(true)) {
@@ -3801,10 +3821,43 @@ public class Parser {
                             list.add(readExpression());
                         } while (readIfMore(false));
                     }
-                    r = new ExpressionList(list.toArray(new Expression[0]));
+                    r = new ExpressionList(list.toArray(new Expression[0]), false);
                 }
             }
             break;
+        case ARRAY:
+            read();
+            read(OPEN_BRACKET);
+            if (readIf(CLOSE_BRACKET)) {
+                r = ValueExpression.get(ValueArray.getEmpty());
+            } else {
+                ArrayList<Expression> list = Utils.newSmallArrayList();
+                list.add(readExpression());
+                while (readIf(COMMA)) {
+                    list.add(readExpression());
+                }
+                read(CLOSE_BRACKET);
+                r = new ExpressionList(list.toArray(new Expression[0]), true);
+            }
+            break;
+        case INTERVAL:
+            read();
+            r = readInterval();
+            break;
+        case ROW: {
+            read();
+            read(OPEN_PAREN);
+            if (readIf(CLOSE_PAREN)) {
+                r = ValueExpression.get(ValueRow.getEmpty());
+            } else {
+                ArrayList<Expression> list = Utils.newSmallArrayList();
+                do {
+                    list.add(readExpression());
+                } while (readIfMore(true));
+                r = new ExpressionList(list.toArray(new Expression[0]), false);
+            }
+            break;
+        }
         case TRUE:
             read();
             r = ValueExpression.get(ValueBoolean.TRUE);
@@ -3832,6 +3885,14 @@ public class Parser {
             r = ValueExpression.get(currentValue);
             read();
             break;
+        case VALUES:
+            read();
+            r = readKeywordFunction("VALUES");
+            break;
+        case CASE:
+            read();
+            r = readCase();
+            break;
         case CURRENT_DATE:
             read();
             r = readKeywordFunction("CURRENT_DATE");
@@ -3843,6 +3904,10 @@ public class Parser {
         case CURRENT_TIMESTAMP:
             read();
             r = readKeywordFunction("CURRENT_TIMESTAMP");
+            break;
+        case CURRENT_USER:
+            read();
+            r = readKeywordFunction("USER");
             break;
         case LOCALTIME:
             read();
@@ -3898,24 +3963,8 @@ public class Parser {
             ch &= 0xffdf;
         }
         switch (ch) {
-        case 'A':
-            if (equalsToken("ARRAY", name)) {
-                read(OPEN_BRACKET);
-                ArrayList<Expression> list = Utils.newSmallArrayList();
-                if (!readIf(CLOSE_BRACKET)) {
-                    list.add(readExpression());
-                    while (readIf(COMMA)) {
-                        list.add(readExpression());
-                    }
-                    read(CLOSE_BRACKET);
-                }
-                return new ExpressionList(list.toArray(new Expression[0]));
-            }
-            break;
         case 'C':
-            if (equalsToken("CURRENT_USER", name)) {
-                return readFunctionWithoutParameters("USER");
-            } else if (database.getMode().getEnum() == ModeEnum.DB2 && equalsToken("CURRENT", name)) {
+            if (database.getMode().getEnum() == ModeEnum.DB2 && equalsToken("CURRENT", name)) {
                 return parseDB2SpecialRegisters(name);
             }
             break;
@@ -3937,11 +3986,6 @@ public class Parser {
                 text = StringUtils.replaceAll(text, "\\\\", "\\");
                 read();
                 return ValueExpression.get(ValueString.get(text));
-            }
-            break;
-        case 'I':
-            if (equalsToken("INTERVAL", name)) {
-                return readInterval();
             }
             break;
         case 'N':
@@ -4106,13 +4150,13 @@ public class Parser {
 
     private Expression readCase() {
         if (readIf("END")) {
-            readIf("CASE");
+            readIf(CASE);
             return ValueExpression.getNull();
         }
         if (readIf("ELSE")) {
             Expression elsePart = readExpression().optimize(session);
             read("END");
-            readIf("CASE");
+            readIf(CASE);
             return elsePart;
         }
         int i;
@@ -4129,13 +4173,13 @@ public class Parser {
         } else {
             Expression expr = readExpression();
             if (readIf("END")) {
-                readIf("CASE");
+                readIf(CASE);
                 return ValueExpression.getNull();
             }
             if (readIf("ELSE")) {
                 Expression elsePart = readExpression().optimize(session);
                 read("END");
-                readIf("CASE");
+                readIf(CASE);
                 return elsePart;
             }
             function = Function.getFunction(database, "CASE");
@@ -5154,7 +5198,7 @@ public class Parser {
                 read("ZONE");
                 original = "TIMESTAMP WITHOUT TIME ZONE";
             }
-        } else if (readIf("INTERVAL")) {
+        } else if (readIf(INTERVAL)) {
             if (readIf("YEAR")) {
                 if (readIf(OPEN_PAREN)) {
                     originalPrecision = readNonNegativeInt();
@@ -5790,7 +5834,7 @@ public class Parser {
             for (int j = 0; j < rowCount; j++) {
                 array[j] = rows.get(j).get(i);
             }
-            ExpressionList list = new ExpressionList(array);
+            ExpressionList list = new ExpressionList(array, false);
             tf.setParameter(i, list);
         }
         tf.setColumns(columns);
@@ -5851,7 +5895,7 @@ public class Parser {
     }
 
     private boolean readIfNotExists() {
-        if (readIf("IF")) {
+        if (readIf(IF)) {
             read(NOT);
             read(EXISTS);
             return true;
@@ -5964,7 +6008,7 @@ public class Parser {
         command.setTableName(tableName);
         if (readIf(FOR)) {
             read("EACH");
-            read("ROW");
+            read(ROW);
             command.setRowBased(true);
         } else {
             command.setRowBased(false);

@@ -23,9 +23,19 @@ public class ParserUtil {
     public static final int ALL = IDENTIFIER + 1;
 
     /**
+     * The token "ARRAY".
+     */
+    public static final int ARRAY = ALL + 1;
+
+    /**
+     * The token "CASE".
+     */
+    public static final int CASE = ARRAY + 1;
+
+    /**
      * The token "CHECK".
      */
-    public static final int CHECK = ALL + 1;
+    public static final int CHECK = CASE + 1;
 
     /**
      * The token "CONSTRAINT".
@@ -53,9 +63,14 @@ public class ParserUtil {
     public static final int CURRENT_TIMESTAMP = CURRENT_TIME + 1;
 
     /**
+     * The token "CURRENT_USER".
+     */
+    public static final int CURRENT_USER = CURRENT_TIMESTAMP + 1;
+
+    /**
      * The token "DISTINCT".
      */
-    public static final int DISTINCT = CURRENT_TIMESTAMP + 1;
+    public static final int DISTINCT = CURRENT_USER + 1;
 
     /**
      * The token "EXCEPT".
@@ -108,9 +123,14 @@ public class ParserUtil {
     public static final int HAVING = GROUP + 1;
 
     /**
+     * The token "IF".
+     */
+    public static final int IF = HAVING + 1;
+
+    /**
      * The token "INNER".
      */
-    public static final int INNER = HAVING + 1;
+    public static final int INNER = IF + 1;
 
     /**
      * The token "INTERSECT".
@@ -118,9 +138,19 @@ public class ParserUtil {
     public static final int INTERSECT = INNER + 1;
 
     /**
+     * The token "INTERSECTS".
+     */
+    public static final int INTERSECTS = INTERSECT + 1;
+
+    /**
+     * The token "INTERVAL".
+     */
+    public static final int INTERVAL = INTERSECTS + 1;
+
+    /**
      * The token "IS".
      */
-    public static final int IS = INTERSECT + 1;
+    public static final int IS = INTERVAL + 1;
 
     /**
      * The token "JOIN".
@@ -188,9 +218,14 @@ public class ParserUtil {
     public static final int PRIMARY = ORDER + 1;
 
     /**
+     * The token "ROW".
+     */
+    public static final int ROW = PRIMARY + 1;
+
+    /**
      * The token "ROWNUM".
      */
-    public static final int ROWNUM = PRIMARY + 1;
+    public static final int ROWNUM = ROW + 1;
 
     /**
      * The token "SELECT".
@@ -213,9 +248,14 @@ public class ParserUtil {
     public static final int UNIQUE = UNION + 1;
 
     /**
+     * The token "VALUES".
+     */
+    public static final int VALUES = UNIQUE + 1;
+
+    /**
      * The token "WHERE".
      */
-    public static final int WHERE = UNIQUE + 1;
+    public static final int WHERE = VALUES + 1;
 
     /**
      * The token "WINDOW".
@@ -312,10 +352,14 @@ public class ParserUtil {
         case 'A':
             if (eq("ALL", s, ignoreCase, start, end)) {
                 return ALL;
+            } else if (eq("ARRAY", s, ignoreCase, start, end)) {
+                return ARRAY;
             }
             return IDENTIFIER;
         case 'C':
-            if (eq("CHECK", s, ignoreCase, start, end)) {
+            if (eq("CASE", s, ignoreCase, start, end)) {
+                return CASE;
+            } else if (eq("CHECK", s, ignoreCase, start, end)) {
                 return CHECK;
             } else if (eq("CONSTRAINT", s, ignoreCase, start, end)) {
                 return CONSTRAINT;
@@ -327,6 +371,8 @@ public class ParserUtil {
                 return CURRENT_TIME;
             } else if (eq("CURRENT_TIMESTAMP", s, ignoreCase, start, end)) {
                 return CURRENT_TIMESTAMP;
+            } else if (eq("CURRENT_USER", s, ignoreCase, start, end)) {
+                return CURRENT_USER;
             }
             return IDENTIFIER;
         case 'D':
@@ -367,17 +413,18 @@ public class ParserUtil {
             }
             return IDENTIFIER;
         case 'I':
-            if (eq("INNER", s, ignoreCase, start, end)) {
+            if (eq("IF", s, ignoreCase, start, end)) {
+                return IF;
+            } else if (eq("INNER", s, ignoreCase, start, end)) {
                 return INNER;
             } else if (eq("INTERSECT", s, ignoreCase, start, end)) {
                 return INTERSECT;
+            } else if (eq("INTERSECTS", s, ignoreCase, start, end)) {
+                return INTERSECTS;
+            } else if (eq("INTERVAL", s, ignoreCase, start, end)) {
+                return INTERVAL;
             } else if (eq("IS", s, ignoreCase, start, end)) {
                 return IS;
-            }
-            if (additionalKeywords) {
-                if (eq("INTERSECTS", s, ignoreCase, start, end)) {
-                    return KEYWORD;
-                }
             }
             return IDENTIFIER;
         case 'J':
@@ -425,7 +472,9 @@ public class ParserUtil {
             }
             return IDENTIFIER;
         case 'R':
-            if (eq("ROWNUM", s, ignoreCase, start, end)) {
+            if (eq("ROW", s, ignoreCase, start, end)) {
+                return ROW;
+            } else if (eq("ROWNUM", s, ignoreCase, start, end)) {
                 return ROWNUM;
             }
             return IDENTIFIER;
@@ -455,6 +504,11 @@ public class ParserUtil {
                 return UNIQUE;
             } else if (eq("UNION", s, ignoreCase, start, end)) {
                 return UNION;
+            }
+            return IDENTIFIER;
+        case 'V':
+            if (eq("VALUES", s, ignoreCase, start, end)) {
+                return VALUES;
             }
             return IDENTIFIER;
         case 'W':

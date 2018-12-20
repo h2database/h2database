@@ -32,7 +32,7 @@ drop table test;
 > ok
 
 explain select * from table(id int = (1, 2), name varchar=('Hello', 'World'));
->> SELECT TABLE.ID, TABLE.NAME FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World')) /* function */
+>> SELECT TABLE.ID, TABLE.NAME FROM TABLE(ID INT=ROW (1, 2), NAME VARCHAR=ROW ('Hello', 'World')) /* function */
 
 select * from table(id int=(1, 2), name varchar=('Hello', 'World')) x order by id;
 > ID NAME

@@ -242,9 +242,14 @@ public abstract class Value {
     public static final int INTERVAL_MINUTE_TO_SECOND = 38;
 
     /**
+     * The value type for ROW values.
+     */
+    public static final int ROW = 39;
+
+    /**
      * The number of value types.
      */
-    public static final int TYPE_COUNT = INTERVAL_MINUTE_TO_SECOND + 1;
+    public static final int TYPE_COUNT = ROW + 1;
 
     private static SoftReference<Value[]> softCache;
 
@@ -439,6 +444,8 @@ public abstract class Value {
             return 44_000;
         case ARRAY:
             return 50_000;
+        case ROW:
+            return 50_500;
         case RESULT_SET:
             return 51_000;
         case ENUM:
@@ -790,6 +797,8 @@ public abstract class Value {
                 return convertToIntervalDayTime(targetType);
             case ARRAY:
                 return convertToArray();
+            case ROW:
+                return convertToRow();
             case RESULT_SET:
                 return convertToResultSet();
             default:
@@ -1298,7 +1307,37 @@ public abstract class Value {
     }
 
     private ValueArray convertToArray() {
-        return ValueArray.get(new Value[] { ValueString.get(getString()) });
+        Value[] a;
+        switch (getType()) {
+        case ROW:
+            a = ((ValueRow) this).getList();
+            break;
+        case BLOB:
+        case CLOB:
+        case RESULT_SET:
+            a = new Value[] { ValueString.get(getString()) };
+            break;
+        default:
+            a = new Value[] { this };
+        }
+        return ValueArray.get(a);
+    }
+
+    private ValueRow convertToRow() {
+        Value[] a;
+        switch (getType()) {
+        case ARRAY:
+            a = ((ValueArray) this).getList();
+            break;
+        case BLOB:
+        case CLOB:
+        case RESULT_SET:
+            a = new Value[] { ValueString.get(getString()) };
+            break;
+        default:
+            a = new Value[] { this };
+        }
+        return ValueRow.get(a);
     }
 
     private ValueResultSet convertToResultSet() {

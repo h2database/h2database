@@ -70,6 +70,7 @@ import org.h2.value.ValueInt;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
+import org.h2.value.ValueRow;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
@@ -1038,10 +1039,10 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case ARRAY_GET: {
-            if (v0.getType() == Value.ARRAY) {
+            Value[] list = getArray(v0);
+            if (list != null) {
                 Value v1 = getNullOrValue(session, args, values, 1);
                 int element = v1.getInt();
-                Value[] list = ((ValueArray) v0).getList();
                 if (element < 1 || element > list.length) {
                     result = ValueNull.INSTANCE;
                 } else {
@@ -1053,8 +1054,8 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case ARRAY_LENGTH: {
-            if (v0.getType() == Value.ARRAY) {
-                Value[] list = ((ValueArray) v0).getList();
+            Value[] list = getArray(v0);
+            if (list != null) {
                 result = ValueInt.get(list.length);
             } else {
                 result = ValueNull.INSTANCE;
@@ -1063,9 +1064,9 @@ public class Function extends Expression implements FunctionCall {
         }
         case ARRAY_CONTAINS: {
             result = ValueBoolean.FALSE;
-            if (v0.getType() == Value.ARRAY) {
+            Value[] list = getArray(v0);
+            if (list != null) {
                 Value v1 = getNullOrValue(session, args, values, 1);
-                Value[] list = ((ValueArray) v0).getList();
                 for (Value v : list) {
                     if (database.areEqual(v, v1)) {
                         result = ValueBoolean.TRUE;
@@ -1089,6 +1090,19 @@ public class Function extends Expression implements FunctionCall {
             result = null;
         }
         return result;
+    }
+
+    private Value[] getArray(Value v0) {
+        int t = v0.getType();
+        Value[] list;
+        if (t == Value.ARRAY) {
+            list = ((ValueArray) v0).getList();
+        } else if (t == Value.ROW) {
+            list = ((ValueRow) v0).getList();
+        } else {
+            list = null;
+        }
+        return list;
     }
 
     private static boolean cancelStatement(Session session, int targetSessionId) {

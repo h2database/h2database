@@ -5,64 +5,51 @@
  */
 package org.h2.value;
 
-import java.lang.reflect.Array;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
 
+import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
+import org.h2.message.DbException;
 import org.h2.util.MathUtils;
 
 /**
- * Implementation of the ARRAY data type.
+ * Row value.
  */
-public class ValueArray extends Value {
+public class ValueRow extends Value {
 
     /**
-     * Empty array.
+     * Empty row.
      */
     private static final Object EMPTY = get(new Value[0]);
 
-    private final Class<?> componentType;
     private final Value[] values;
     private int hash;
 
-    private ValueArray(Class<?> componentType, Value[] list) {
-        this.componentType = componentType;
+    private ValueRow(Value[] list) {
         this.values = list;
     }
 
     /**
-     * Get or create a array value for the given value array.
+     * Get or create a row value for the given value array.
      * Do not clone the data.
      *
      * @param list the value array
      * @return the value
      */
-    public static ValueArray get(Value[] list) {
-        return new ValueArray(Object.class, list);
+    public static ValueRow get(Value[] list) {
+        return new ValueRow(list);
     }
 
     /**
-     * Get or create a array value for the given value array.
-     * Do not clone the data.
+     * Returns empty row.
      *
-     * @param componentType the array class (null for Object[])
-     * @param list the value array
-     * @return the value
+     * @return empty row
      */
-    public static ValueArray get(Class<?> componentType, Value[] list) {
-        return new ValueArray(componentType, list);
-    }
-
-    /**
-     * Returns empty array.
-     *
-     * @return empty array
-     */
-    public static ValueArray getEmpty() {
-        return (ValueArray) EMPTY;
+    public static ValueRow getEmpty() {
+        return (ValueRow) EMPTY;
     }
 
     @Override
@@ -84,11 +71,7 @@ public class ValueArray extends Value {
 
     @Override
     public int getType() {
-        return Value.ARRAY;
-    }
-
-    public Class<?> getComponentType() {
-        return componentType;
+        return Value.ROW;
     }
 
     @Override
@@ -102,25 +85,26 @@ public class ValueArray extends Value {
 
     @Override
     public String getString() {
-        StringBuilder builder = new StringBuilder().append('[');
+        StringBuilder builder = new StringBuilder("ROW (");
         for (int i = 0; i < values.length; i++) {
             if (i > 0) {
                 builder.append(", ");
             }
             builder.append(values[i].getString());
         }
-        return builder.append(']').toString();
+        return builder.append(')').toString();
     }
 
     @Override
     public int compareTypeSafe(Value o, CompareMode mode) {
-        ValueArray v = (ValueArray) o;
+        ValueRow v = (ValueRow) o;
         if (values == v.values) {
             return 0;
         }
-        int l = values.length;
-        int ol = v.values.length;
-        int len = Math.min(l, ol);
+        int len = values.length;
+        if (len != v.values.length) {
+            throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+        }
         for (int i = 0; i < len; i++) {
             Value v1 = values[i];
             Value v2 = v.values[i];
@@ -129,13 +113,13 @@ public class ValueArray extends Value {
                 return comp;
             }
         }
-        return Integer.compare(l, ol);
+        return 0;
     }
 
     @Override
     public Object getObject() {
         int len = values.length;
-        Object[] list = (Object[]) Array.newInstance(componentType, len);
+        Object[] list = new Object[len];
         for (int i = 0; i < len; i++) {
             final Value value = values[i];
             if (!SysProperties.OLD_RESULT_SET_GET_OBJECT) {
@@ -152,12 +136,12 @@ public class ValueArray extends Value {
 
     @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        prep.setArray(parameterIndex, prep.getConnection().createArrayOf("NULL", (Object[]) getObject()));
+        throw getUnsupportedExceptionForOperation("PreparedStatement.set");
     }
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
-        builder.append("ARRAY [");
+        builder.append("ROW (");
         int length = values.length;
         for (int i = 0; i < length; i++) {
             if (i > 0) {
@@ -165,12 +149,12 @@ public class ValueArray extends Value {
             }
             values[i].getSQL(builder);
         }
-        return builder.append(']');
+        return builder.append(')');
     }
 
     @Override
     public String getTraceSQL() {
-        StringBuilder builder = new StringBuilder("[");
+        StringBuilder builder = new StringBuilder("ROW (");
         for (int i = 0; i < values.length; i++) {
             if (i > 0) {
                 builder.append(", ");
@@ -178,7 +162,7 @@ public class ValueArray extends Value {
             Value v = values[i];
             builder.append(v == null ? "null" : v.getTraceSQL());
         }
-        return builder.append(']').toString();
+        return builder.append(')').toString();
     }
 
     @Override
@@ -192,10 +176,10 @@ public class ValueArray extends Value {
 
     @Override
     public boolean equals(Object other) {
-        if (!(other instanceof ValueArray)) {
+        if (!(other instanceof ValueRow)) {
             return false;
         }
-        ValueArray v = (ValueArray) other;
+        ValueRow v = (ValueRow) other;
         if (values == v.values) {
             return true;
         }
@@ -244,9 +228,9 @@ public class ValueArray extends Value {
             newValues[i] = v;
         }
         if (i < length) {
-            return get(componentType, Arrays.copyOf(newValues, i));
+            return get(Arrays.copyOf(newValues, i));
         }
-        return modified ? get(componentType, newValues) : this;
+        return modified ? get(newValues) : this;
     }
 
 }

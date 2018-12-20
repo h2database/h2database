@@ -170,7 +170,7 @@ public class TestValue extends TestDb {
         assertEquals(5, v.convertPrecision(5, true).getPrecision());
         v = ValueArray.get(new Value[]{ValueString.get(""), ValueString.get("")});
         assertEquals(0, v.getPrecision());
-        assertEquals("('')", v.convertPrecision(1, true).toString());
+        assertEquals("['']", v.convertPrecision(1, true).toString());
 
         v = ValueBytes.get(spaces.getBytes());
         assertEquals(100, v.getPrecision());

@@ -958,9 +958,9 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
 
-        stat.execute("CREATE ALIAS ARRAY FOR \"" +
+        stat.execute("CREATE ALIAS GET_ARRAY FOR \"" +
                 getClass().getName() + ".getArray\"");
-        rs = stat.executeQuery("CALL ARRAY()");
+        rs = stat.executeQuery("CALL GET_ARRAY()");
         assertEquals(1, rs.getMetaData().getColumnCount());
         rs.next();
         Array a = rs.getArray(1);

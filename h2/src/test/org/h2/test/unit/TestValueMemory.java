@@ -43,6 +43,7 @@ import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
+import org.h2.value.ValueRow;
 import org.h2.value.ValueShort;
 import org.h2.value.ValueString;
 import org.h2.value.ValueStringFixed;
@@ -208,14 +209,10 @@ public class TestValueMemory extends TestBase implements DataHandler {
             String s = randomString(len);
             return getLobStorage().createClob(new StringReader(s), len);
         }
-        case Value.ARRAY: {
-            int len = random.nextInt(20);
-            Value[] list = new Value[len];
-            for (int i = 0; i < list.length; i++) {
-                list[i] = create(Value.STRING);
-            }
-            return ValueArray.get(list);
-        }
+        case Value.ARRAY:
+            return ValueArray.get(createArray());
+        case Value.ROW:
+            return ValueRow.get(createArray());
         case Value.RESULT_SET:
             return ValueResultSet.get(new SimpleResult());
         case Value.JAVA_OBJECT:
@@ -252,6 +249,15 @@ public class TestValueMemory extends TestBase implements DataHandler {
         default:
             throw new AssertionError("type=" + type);
         }
+    }
+
+    private Value[] createArray() throws SQLException {
+        int len = random.nextInt(20);
+        Value[] list = new Value[len];
+        for (int i = 0; i < list.length; i++) {
+            list[i] = create(Value.STRING);
+        }
+        return list;
     }
 
     private byte[] randomBytes(int len) {

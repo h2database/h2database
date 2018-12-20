@@ -205,6 +205,7 @@ public class Comparison extends Condition {
         left = left.optimize(session);
         if (right != null) {
             right = right.optimize(session);
+            // TODO check row values too
             if (right.getType() == Value.ARRAY && left.getType() != Value.ARRAY) {
                 throw DbException.get(ErrorCode.COMPARING_ARRAY_TO_SCALAR);
             }

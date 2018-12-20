@@ -10,26 +10,21 @@ import java.sql.SQLException;
 import java.util.Arrays;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
-import org.h2.util.MathUtils;
 
 /**
  * Row value.
  */
-public class ValueRow extends Value {
+public class ValueRow extends ValueCollectionBase {
 
     /**
      * Empty row.
      */
     private static final Object EMPTY = get(new Value[0]);
 
-    private final Value[] values;
-    private int hash;
-
     private ValueRow(Value[] list) {
-        this.values = list;
+        super(list);
     }
 
     /**
@@ -52,19 +47,6 @@ public class ValueRow extends Value {
         return (ValueRow) EMPTY;
     }
 
-    @Override
-    public int hashCode() {
-        if (hash != 0) {
-            return hash;
-        }
-        int h = 1;
-        for (Value v : values) {
-            h = h * 31 + v.hashCode();
-        }
-        hash = h;
-        return h;
-    }
-
     public Value[] getList() {
         return values;
     }
@@ -72,15 +54,6 @@ public class ValueRow extends Value {
     @Override
     public int getType() {
         return Value.ROW;
-    }
-
-    @Override
-    public long getPrecision() {
-        long p = 0;
-        for (Value v : values) {
-            p += v.getPrecision();
-        }
-        return p;
     }
 
     @Override
@@ -166,15 +139,6 @@ public class ValueRow extends Value {
     }
 
     @Override
-    public int getDisplaySize() {
-        long size = 0;
-        for (Value v : values) {
-            size += v.getDisplaySize();
-        }
-        return MathUtils.convertLongToInt(size);
-    }
-
-    @Override
     public boolean equals(Object other) {
         if (!(other instanceof ValueRow)) {
             return false;
@@ -193,15 +157,6 @@ public class ValueRow extends Value {
             }
         }
         return true;
-    }
-
-    @Override
-    public int getMemory() {
-        int memory = 32;
-        for (Value v : values) {
-            memory += v.getMemory() + Constants.MEMORY_POINTER;
-        }
-        return memory;
     }
 
     @Override

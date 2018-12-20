@@ -3762,8 +3762,8 @@ public class Parser {
             break;
         case IDENTIFIER:
             String name = currentToken;
-            read();
             if (currentTokenQuoted) {
+                read();
                 if (readIf(OPEN_PAREN)) {
                     r = readFunction(null, name);
                 } else if (readIf(DOT)) {
@@ -3772,6 +3772,7 @@ public class Parser {
                     r = new ExpressionColumn(database, null, null, name);
                 }
             } else {
+                read();
                 if (readIf(DOT)) {
                     r = readTermObjectDot(name);
                 } else if (readIf(OPEN_PAREN)) {

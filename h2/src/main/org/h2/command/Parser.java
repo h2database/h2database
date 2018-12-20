@@ -9,6 +9,7 @@
 package org.h2.command;
 
 import static org.h2.util.ParserUtil.ALL;
+import static org.h2.util.ParserUtil.ARRAY;
 import static org.h2.util.ParserUtil.CHECK;
 import static org.h2.util.ParserUtil.CONSTRAINT;
 import static org.h2.util.ParserUtil.CROSS;
@@ -29,6 +30,8 @@ import static org.h2.util.ParserUtil.HAVING;
 import static org.h2.util.ParserUtil.IDENTIFIER;
 import static org.h2.util.ParserUtil.INNER;
 import static org.h2.util.ParserUtil.INTERSECT;
+import static org.h2.util.ParserUtil.INTERSECTS;
+import static org.h2.util.ParserUtil.INTERVAL;
 import static org.h2.util.ParserUtil.IS;
 import static org.h2.util.ParserUtil.JOIN;
 import static org.h2.util.ParserUtil.LIKE;
@@ -417,6 +420,8 @@ public class Parser {
             null,
             // ALL
             "ALL",
+            // ARRAY
+            "ARRAY",
             // CHECK
             "CHECK",
             // CONSTRAINT
@@ -455,6 +460,10 @@ public class Parser {
             "INNER",
             // INTERSECT
             "INTERSECT",
+            // INTERSECTS
+            "INTERSECTS",
+            // INTERVAL
+            "INTERVAL",
             // IS
             "IS",
             // JOIN
@@ -2747,7 +2756,7 @@ public class Parser {
             read(CLOSE_PAREN);
             return new ConditionExists(query);
         }
-        if (readIf("INTERSECTS")) {
+        if (readIf(INTERSECTS)) {
             read(OPEN_PAREN);
             Expression r1 = readConcat();
             read(COMMA);
@@ -3808,6 +3817,22 @@ public class Parser {
                 }
             }
             break;
+        case ARRAY: {
+            read();
+            read(OPEN_BRACKET);
+            ArrayList<Expression> list = Utils.newSmallArrayList();
+            if (!readIf(CLOSE_BRACKET)) {
+                list.add(readExpression());
+                while (readIf(COMMA)) {
+                    list.add(readExpression());
+                }
+                read(CLOSE_BRACKET);
+            }
+            return new ExpressionList(list.toArray(new Expression[0]), true);
+        }
+        case INTERVAL:
+            read();
+            return readInterval();
         case ROW: {
             read();
             read(OPEN_PAREN);
@@ -3915,20 +3940,6 @@ public class Parser {
             ch &= 0xffdf;
         }
         switch (ch) {
-        case 'A':
-            if (equalsToken("ARRAY", name)) {
-                read(OPEN_BRACKET);
-                ArrayList<Expression> list = Utils.newSmallArrayList();
-                if (!readIf(CLOSE_BRACKET)) {
-                    list.add(readExpression());
-                    while (readIf(COMMA)) {
-                        list.add(readExpression());
-                    }
-                    read(CLOSE_BRACKET);
-                }
-                return new ExpressionList(list.toArray(new Expression[0]), true);
-            }
-            break;
         case 'C':
             if (equalsToken("CURRENT_USER", name)) {
                 return readFunctionWithoutParameters("USER");
@@ -3954,11 +3965,6 @@ public class Parser {
                 text = StringUtils.replaceAll(text, "\\\\", "\\");
                 read();
                 return ValueExpression.get(ValueString.get(text));
-            }
-            break;
-        case 'I':
-            if (equalsToken("INTERVAL", name)) {
-                return readInterval();
             }
             break;
         case 'N':
@@ -5171,7 +5177,7 @@ public class Parser {
                 read("ZONE");
                 original = "TIMESTAMP WITHOUT TIME ZONE";
             }
-        } else if (readIf("INTERVAL")) {
+        } else if (readIf(INTERVAL)) {
             if (readIf("YEAR")) {
                 if (readIf(OPEN_PAREN)) {
                     originalPrecision = readNonNegativeInt();

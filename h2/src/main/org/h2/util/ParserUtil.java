@@ -23,9 +23,14 @@ public class ParserUtil {
     public static final int ALL = IDENTIFIER + 1;
 
     /**
+     * The token "ARRAY".
+     */
+    public static final int ARRAY = ALL + 1;
+
+    /**
      * The token "CHECK".
      */
-    public static final int CHECK = ALL + 1;
+    public static final int CHECK = ARRAY + 1;
 
     /**
      * The token "CONSTRAINT".
@@ -118,9 +123,19 @@ public class ParserUtil {
     public static final int INTERSECT = INNER + 1;
 
     /**
+     * The token "INTERSECTS".
+     */
+    public static final int INTERSECTS = INTERSECT + 1;
+
+    /**
+     * The token "INTERVAL".
+     */
+    public static final int INTERVAL = INTERSECTS + 1;
+
+    /**
      * The token "IS".
      */
-    public static final int IS = INTERSECT + 1;
+    public static final int IS = INTERVAL + 1;
 
     /**
      * The token "JOIN".
@@ -317,6 +332,8 @@ public class ParserUtil {
         case 'A':
             if (eq("ALL", s, ignoreCase, start, end)) {
                 return ALL;
+            } else if (eq("ARRAY", s, ignoreCase, start, end)) {
+                return ARRAY;
             }
             return IDENTIFIER;
         case 'C':
@@ -376,13 +393,12 @@ public class ParserUtil {
                 return INNER;
             } else if (eq("INTERSECT", s, ignoreCase, start, end)) {
                 return INTERSECT;
+            } else if (eq("INTERSECTS", s, ignoreCase, start, end)) {
+                return INTERSECTS;
+            } else if (eq("INTERVAL", s, ignoreCase, start, end)) {
+                return INTERVAL;
             } else if (eq("IS", s, ignoreCase, start, end)) {
                 return IS;
-            }
-            if (additionalKeywords) {
-                if (eq("INTERSECTS", s, ignoreCase, start, end)) {
-                    return KEYWORD;
-                }
             }
             return IDENTIFIER;
         case 'J':

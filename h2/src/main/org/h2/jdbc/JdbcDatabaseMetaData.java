@@ -1553,8 +1553,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * IF, INNER, INTERSECT, INTERSECTS, INTERVAL, IS, JOIN, LIKE,
      * LIMIT, LOCALTIME, LOCALTIMESTAMP, MINUS, NATURAL, NOT, NULL,
      * OFFSET, ON, ORDER, PRIMARY, ROW, ROWNUM, SELECT, SYSDATE,
-     * SYSTIME, SYSTIMESTAMP, TODAY, TOP, TRUE, UNION, UNIQUE, VALUES,
-     * WHERE, WINDOW, WITH
+     * SYSTIME, SYSTIMESTAMP, TABLE, TODAY, TOP, TRUE, UNION, UNIQUE,
+     * VALUES, WHERE, WINDOW, WITH
      * </pre>
      *
      * @return a list of additional the keywords

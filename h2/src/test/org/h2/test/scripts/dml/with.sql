@@ -130,3 +130,21 @@ WITH CTE_TEST AS (SELECT 1, 2) ((SELECT * FROM CTE_TEST));
 > - -
 > 1 2
 > rows: 1
+
+CREATE TABLE TEST(A INT, B INT) AS SELECT 1, 2;
+> ok
+
+WITH CTE_TEST AS (TABLE TEST) ((SELECT * FROM CTE_TEST));
+> A B
+> - -
+> 1 2
+> rows: 1
+
+WITH CTE_TEST AS (TABLE TEST) ((TABLE CTE_TEST));
+> A B
+> - -
+> 1 2
+> rows: 1
+
+DROP TABLE TEST;
+> ok

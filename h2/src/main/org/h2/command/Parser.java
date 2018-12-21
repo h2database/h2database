@@ -52,6 +52,7 @@ import static org.h2.util.ParserUtil.PRIMARY;
 import static org.h2.util.ParserUtil.ROW;
 import static org.h2.util.ParserUtil.ROWNUM;
 import static org.h2.util.ParserUtil.SELECT;
+import static org.h2.util.ParserUtil.TABLE;
 import static org.h2.util.ParserUtil.TRUE;
 import static org.h2.util.ParserUtil.UNION;
 import static org.h2.util.ParserUtil.UNIQUE;
@@ -251,7 +252,7 @@ import org.h2.value.ValueTimestampTimeZone;
 public class Parser {
 
     private static final String WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS =
-            "WITH statement supports only SELECT, CREATE TABLE, INSERT, UPDATE, MERGE or DELETE statements";
+            "WITH statement supports only SELECT, TABLE, CREATE TABLE, INSERT, UPDATE, MERGE or DELETE statements";
 
     // used during the tokenizer phase
     private static final int CHAR_END = 1, CHAR_VALUE = 2, CHAR_QUOTED = 3;
@@ -510,6 +511,8 @@ public class Parser {
             "ROWNUM",
             // SELECT
             "SELECT",
+            // TABLE
+            "TABLE",
             // TRUE
             "TRUE",
             // UNION
@@ -745,6 +748,7 @@ public class Parser {
         case OPEN_PAREN:
         case FROM:
         case SELECT:
+        case TABLE:
             c = parseSelect();
             break;
         case VALUES:
@@ -944,7 +948,7 @@ public class Parser {
 
     private Prepared parseAnalyze() {
         Analyze command = new Analyze(session);
-        if (readIf("TABLE")) {
+        if (readIf(TABLE)) {
             Table table = readTableOrView();
             command.setTable(table);
         }
@@ -1436,7 +1440,20 @@ public class Parser {
             // need to read ahead, it could be a nested union:
             // ((select 1) union (select 1))
         }
-        boolean select = isToken(SELECT) || isToken(FROM) || isToken(WITH);
+        boolean select;
+        switch (currentTokenType) {
+        case FROM:
+        case SELECT:
+        case WITH:
+            select = true;
+            break;
+        case TABLE:
+            read();
+            select = !readIf(OPEN_PAREN);
+            break;
+        default:
+            select = false;
+        }
         parseIndex = start;
         read();
         return select;
@@ -1761,6 +1778,9 @@ public class Parser {
             }
         } else if (readIf(VALUES)) {
             table = parseValuesTable(0).getTable();
+        } else if (readIf(TABLE)) {
+            read(OPEN_PAREN);
+            table = readTableFunction("TABLE", null, database.getSchema(Constants.SCHEMA_MAIN));
         } else {
             String tableName = readIdentifierWithSchema(null);
             Schema schema;
@@ -1801,15 +1821,7 @@ public class Parser {
                         table = new RangeTable(mainSchema, min, max, false);
                     }
                 } else {
-                    Expression expr = readFunction(schema, tableName);
-                    if (!(expr instanceof FunctionCall)) {
-                        throw getSyntaxError();
-                    }
-                    FunctionCall call = (FunctionCall) expr;
-                    if (!call.isDeterministic()) {
-                        recompileAlways = true;
-                    }
-                    table = new FunctionTable(mainSchema, session, expr, call);
+                    table = readTableFunction(tableName, schema, mainSchema);
                 }
             } else {
                 table = readTableOrView(tableName);
@@ -1851,6 +1863,18 @@ public class Parser {
             filter.setDerivedColumns(derivedColumnNames);
         }
         return filter;
+    }
+
+    private Table readTableFunction(String tableName, Schema schema, Schema mainSchema) {
+        Expression expr = readFunction(schema, tableName);
+        if (!(expr instanceof FunctionCall)) {
+            throw getSyntaxError();
+        }
+        FunctionCall call = (FunctionCall) expr;
+        if (!call.isDeterministic()) {
+            recompileAlways = true;
+        }
+        return new FunctionTable(mainSchema, session, expr, call);
     }
 
     private IndexHints parseIndexHints(Table table) {
@@ -1919,7 +1943,7 @@ public class Parser {
     }
 
     private Prepared parseTruncate() {
-        read("TABLE");
+        read(TABLE);
         Table table = readTableOrView();
         boolean restart;
         if (readIf("CONTINUE")) {
@@ -1949,7 +1973,7 @@ public class Parser {
         int type = 0;
         read(ON);
         boolean column = false;
-        if (readIf("TABLE") || readIf("VIEW")) {
+        if (readIf(TABLE) || readIf("VIEW")) {
             type = DbObject.TABLE_OR_VIEW;
         } else if (readIf("COLUMN")) {
             column = true;
@@ -2016,7 +2040,7 @@ public class Parser {
     }
 
     private Prepared parseDrop() {
-        if (readIf("TABLE")) {
+        if (readIf(TABLE)) {
             boolean ifExists = readIfExists(false);
             String tableName = readIdentifierWithSchema();
             DropTable command = new DropTable(session, getSchema());
@@ -2316,20 +2340,28 @@ public class Parser {
                 readIf(FOR);
             }
         }
-        if (isToken(SELECT) || isToken(FROM) || isToken(OPEN_PAREN) || isToken(WITH)) {
+        switch (currentTokenType) {
+        case FROM:
+        case SELECT:
+        case TABLE:
+        case WITH:
+        case OPEN_PAREN:
             Query query = parseSelect();
             query.setNeverLazy(true);
             command.setCommand(query);
-        } else if (readIf("DELETE")) {
-            command.setCommand(parseDelete());
-        } else if (readIf("UPDATE")) {
-            command.setCommand(parseUpdate());
-        } else if (readIf("INSERT")) {
-            command.setCommand(parseInsert());
-        } else if (readIf("MERGE")) {
-            command.setCommand(parseMerge());
-        } else {
-            throw getSyntaxError();
+            break;
+        default:
+            if (readIf("DELETE")) {
+                command.setCommand(parseDelete());
+            } else if (readIf("UPDATE")) {
+                command.setCommand(parseUpdate());
+            } else if (readIf("INSERT")) {
+                command.setCommand(parseInsert());
+            } else if (readIf("MERGE")) {
+                command.setCommand(parseMerge());
+            } else {
+                throw getSyntaxError();
+            }
         }
         return command;
     }
@@ -2647,6 +2679,18 @@ public class Parser {
             fromFirst = false;
         } else if (readIf(FROM)) {
             fromFirst = true;
+        } else if (readIf(TABLE)) {
+            int start = lastParseIndex;
+            Table table = readTableOrView();
+            Select command = new Select(session);
+            TableFilter filter = new TableFilter(session, table, null, rightsChecked,
+                    command, orderInFrom++, null);
+            command.addTableFilter(filter, true);
+            ArrayList<Expression> expressions = new ArrayList<>();
+            expressions.add(new Wildcard(null, null));
+            command.setExpressions(expressions);
+            setSQL(command, "SELECT", start);
+            return command;
         } else {
             throw getSyntaxError();
         }
@@ -3759,6 +3803,17 @@ public class Parser {
         case FROM:
         case WITH:
             r = new Subquery(parseSelect());
+            break;
+        case TABLE:
+            int index = lastParseIndex;
+            read();
+            if (readIf(OPEN_PAREN)) {
+                r = readFunction(null, "TABLE");
+            } else {
+                parseIndex = index;
+                read();
+                r = new Subquery(parseSelect());
+            }
             break;
         case IDENTIFIER:
             String name = currentToken;
@@ -5592,22 +5647,22 @@ public class Parser {
             if (readIf("LINKED")) {
                 return parseCreateLinkedTable(true, false, force);
             }
-            read("TABLE");
+            read(TABLE);
             return parseCreateTable(true, false, cached);
         } else if (readIf("GLOBAL")) {
             read("TEMPORARY");
             if (readIf("LINKED")) {
                 return parseCreateLinkedTable(true, true, force);
             }
-            read("TABLE");
+            read(TABLE);
             return parseCreateTable(true, true, cached);
         } else if (readIf("TEMP") || readIf("TEMPORARY")) {
             if (readIf("LINKED")) {
                 return parseCreateLinkedTable(true, true, force);
             }
-            read("TABLE");
+            read(TABLE);
             return parseCreateTable(true, true, cached);
-        } else if (readIf("TABLE")) {
+        } else if (readIf(TABLE)) {
             if (!cached && !memory) {
                 cached = database.getDefaultTableType() == Table.TYPE_CACHED;
             }
@@ -6110,10 +6165,17 @@ public class Parser {
             parentheses++;
         }
         if (isToken(SELECT)) {
-            Query query = parseSelectUnion();
-            query.setPrepareAlways(true);
-            query.setNeverLazy(true);
-            p = query;
+            p = parseWithQuery();
+        } else if (isToken(TABLE)) {
+            int index = lastParseIndex;
+            read();
+            if (!isToken(OPEN_PAREN)) {
+                parseIndex = index;
+                read();
+                p = parseWithQuery();
+            } else {
+                throw DbException.get(ErrorCode.SYNTAX_ERROR_1, WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS);
+            }
         } else if (readIf("INSERT")) {
             p = parseInsert();
             p.setPrepareAlways(true);
@@ -6127,7 +6189,7 @@ public class Parser {
             p = parseDelete();
             p.setPrepareAlways(true);
         } else if (readIf("CREATE")) {
-            if (!isToken("TABLE")) {
+            if (!isToken(TABLE)) {
                 throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
                         WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS);
 
@@ -6148,6 +6210,13 @@ public class Parser {
             p.setCteCleanups(viewsCreated);
         }
         return p;
+    }
+
+    private Prepared parseWithQuery() {
+        Query query = parseSelectUnion();
+        query.setPrepareAlways(true);
+        query.setNeverLazy(true);
+        return query;
     }
 
     private TableView parseSingleCommonTableExpression(boolean isTemporary) {
@@ -6328,7 +6397,7 @@ public class Parser {
     }
 
     private Prepared parseAlter() {
-        if (readIf("TABLE")) {
+        if (readIf(TABLE)) {
             return parseAlterTable();
         } else if (readIf("USER")) {
             return parseAlterUser();
@@ -6864,7 +6933,7 @@ public class Parser {
                 schemaNames.add(readUniqueIdentifier());
             } while (readIf(COMMA));
             command.setSchemaNames(schemaNames);
-        } else if (readIf("TABLE")) {
+        } else if (readIf(TABLE)) {
             ArrayList<Table> tables = Utils.newSmallArrayList();
             do {
                 tables.add(readTableOrView());
@@ -7506,7 +7575,7 @@ public class Parser {
 
     private CreateLinkedTable parseCreateLinkedTable(boolean temp,
             boolean globalTemp, boolean force) {
-        read("TABLE");
+        read(TABLE);
         boolean ifNotExists = readIfNotExists();
         String tableName = readIdentifierWithSchema();
         CreateLinkedTable command = new CreateLinkedTable(session, getSchema());

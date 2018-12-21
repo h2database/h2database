@@ -238,6 +238,19 @@ Lists the schemas, tables, or the columns of a table.
 SHOW TABLES
 "
 
+"Commands (DML)","Explicit TABLE","
+TABLE [schemaName.]tableName
+","
+Selects data from a table.
+
+This command is an equivalent to SELECT * FROM TABLE.
+
+FROM, WHERE, GROUP BY, HAVING, and WINDOW clauses from the SELECT command are not allowed.
+","
+TABLE TEST;
+TABLE TEST ORDER BY ID FETCH FIRST ROW ONLY;
+"
+
 "Commands (DML)","WITH","
 WITH [ RECURSIVE ] { name [( columnName [,...] )] AS ( select ) [,...] }
 { select | insert | update | merge | delete | createTable }

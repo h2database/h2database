@@ -110,8 +110,8 @@ public class FullText {
         stat.execute("CREATE SCHEMA IF NOT EXISTS " + SCHEMA);
         stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA +
                 ".INDEXES(ID INT AUTO_INCREMENT PRIMARY KEY, " +
-                "SCHEMA VARCHAR, TABLE VARCHAR, COLUMNS VARCHAR, " +
-                "UNIQUE(SCHEMA, TABLE))");
+                "SCHEMA VARCHAR, \"TABLE\" VARCHAR, COLUMNS VARCHAR, " +
+                "UNIQUE(SCHEMA, \"TABLE\"))");
         stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA +
                 ".WORDS(ID INT AUTO_INCREMENT PRIMARY KEY, " +
                 "NAME VARCHAR, UNIQUE(NAME))");
@@ -176,7 +176,7 @@ public class FullText {
             String table, String columnList) throws SQLException {
         init(conn);
         PreparedStatement prep = conn.prepareStatement("INSERT INTO " + SCHEMA
-                + ".INDEXES(SCHEMA, TABLE, COLUMNS) VALUES(?, ?, ?)");
+                + ".INDEXES(SCHEMA, \"TABLE\", COLUMNS) VALUES(?, ?, ?)");
         prep.setString(1, schema);
         prep.setString(2, table);
         prep.setString(3, columnList);
@@ -221,7 +221,7 @@ public class FullText {
             throws SQLException {
         init(conn);
         PreparedStatement prep = conn.prepareStatement("SELECT ID FROM " + SCHEMA
-                + ".INDEXES WHERE SCHEMA=? AND TABLE=?");
+                + ".INDEXES WHERE SCHEMA=? AND \"TABLE\"=?");
         prep.setString(1, schema);
         prep.setString(2, table);
         ResultSet rs = prep.executeQuery();
@@ -929,7 +929,7 @@ public class FullText {
             ArrayList<String> indexList = Utils.newSmallArrayList();
             PreparedStatement prep = conn.prepareStatement(
                     "SELECT ID, COLUMNS FROM " + SCHEMA + ".INDEXES" +
-                    " WHERE SCHEMA=? AND TABLE=?");
+                    " WHERE SCHEMA=? AND \"TABLE\"=?");
             prep.setString(1, schemaName);
             prep.setString(2, tableName);
             rs = prep.executeQuery();

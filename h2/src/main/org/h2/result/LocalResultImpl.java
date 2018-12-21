@@ -128,6 +128,7 @@ public class LocalResultImpl implements LocalResult {
         copy.offset = 0;
         copy.limit = -1;
         copy.external = e2;
+        copy.containsNull = containsNull;
         return copy;
     }
 

@@ -665,6 +665,8 @@ public class IntervalUtils {
     }
 
     /**
+     * Returns years value of interval, if any.
+     *
      * @param qualifier
      *            qualifier
      * @param negative
@@ -688,6 +690,8 @@ public class IntervalUtils {
     }
 
     /**
+     * Returns months value of interval, if any.
+     *
      * @param qualifier
      *            qualifier
      * @param negative
@@ -715,6 +719,8 @@ public class IntervalUtils {
     }
 
     /**
+     * Returns days value of interval, if any.
+     *
      * @param qualifier
      *            qualifier
      * @param negative
@@ -723,7 +729,7 @@ public class IntervalUtils {
      *            value of leading field
      * @param remaining
      *            values of all remaining fields
-     * @return months, or 0
+     * @return days, or 0
      */
     public static long daysFromInterval(IntervalQualifier qualifier, boolean negative, long leading, long remaining) {
         switch (qualifier) {
@@ -742,6 +748,8 @@ public class IntervalUtils {
     }
 
     /**
+     * Returns hours value of interval, if any.
+     *
      * @param qualifier
      *            qualifier
      * @param negative
@@ -779,6 +787,8 @@ public class IntervalUtils {
     }
 
     /**
+     * Returns minutes value of interval, if any.
+     *
      * @param qualifier
      *            qualifier
      * @param negative
@@ -819,6 +829,8 @@ public class IntervalUtils {
     }
 
     /**
+     * Returns nanoseconds value of interval, if any.
+     *
      * @param qualifier
      *            qualifier
      * @param negative

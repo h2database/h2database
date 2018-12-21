@@ -52,8 +52,14 @@ public abstract class Query extends Prepared {
      */
     Expression[] expressionArray;
 
+    /**
+     * Describes one element of the ORDER BY clause of a query.
+     */
     ArrayList<SelectOrderBy> orderList;
 
+    /**
+     *  A sort order represents an ORDER BY clause in a query.
+     */
     SortOrder sort;
 
     /**
@@ -397,7 +403,7 @@ public abstract class Query extends Prepared {
         }
         fireBeforeSelectTriggers();
         if (noCache || !session.getDatabase().getOptimizeReuseResults() ||
-                (session.isLazyQueryExecution() && !neverLazy)) {
+                (session.isLazyQueryExecution() /* && !neverLazy*/)) {
             return queryWithoutCacheLazyCheck(limit, target);
         }
         Value[] params = getParameterValues();
@@ -459,6 +465,18 @@ public abstract class Query extends Prepared {
         }
     }
 
+    /**
+     * Initialize the order or distinct expression.
+     *
+     * @param session the session
+     * @param expressions the select list expressions
+     * @param expressionSQL the select list SQL snippets
+     * @param e the expression.
+     * @param visible the number of visible columns in the select list
+     * @param mustBeInResult all order by expressions must be in the select list
+     * @param filters the table filters1
+     * @return index on the expression in the {@link #expressions} list.
+     */
     static int initExpression(Session session, ArrayList<Expression> expressions,
             ArrayList<String> expressionSQL, Expression e, int visible, boolean mustBeInResult,
             ArrayList<TableFilter> filters) {
@@ -690,6 +708,11 @@ public abstract class Query extends Prepared {
         return visitor.getMaxDataModificationId();
     }
 
+    /**
+     * Appends query limits info to the plan.
+     *
+     * @param buff sl plan string builder.
+     */
     void appendLimitToSQL(StringBuilder buff) {
         if (offsetExpr != null) {
             String count = StringUtils.unEnclose(offsetExpr.getSQL());

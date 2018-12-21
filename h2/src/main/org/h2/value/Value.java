@@ -1347,6 +1347,12 @@ public abstract class Value {
         return ValueResultSet.get(result);
     }
 
+    /**
+     * Creates new instance of the DbException for data conversion error.
+     *
+     * @param targetType Target data type.
+     * @return instance of the DbException.
+     */
     DbException getDataConversionError(int targetType) {
         DataType from = DataType.getDataType(getType());
         DataType to = DataType.getDataType(targetType);
@@ -1489,6 +1495,13 @@ public abstract class Value {
         return (short) x;
     }
 
+    /**
+     * Checks value by Integer type numeric range.
+     *
+     * @param x integer value.
+     * @param column Column info.
+     * @return x
+     */
     public static int convertToInt(long x, Object column) {
         if (x > Integer.MAX_VALUE || x < Integer.MIN_VALUE) {
             throw DbException.get(

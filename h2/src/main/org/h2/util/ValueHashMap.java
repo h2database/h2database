@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
+
 import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -35,7 +37,14 @@ import org.h2.value.ValueNull;
  */
 public class ValueHashMap<V> extends HashBase {
 
+    /**
+     * Keys array.
+     */
     Value[] keys;
+
+    /**
+     * Values array.
+     */
     V[] values;
 
     @Override
@@ -202,6 +211,11 @@ public class ValueHashMap<V> extends HashBase {
         }
     }
 
+    /**
+     * Gets all map's entries.
+     *
+     * @return all map's entries.
+     */
     public Iterable<Map.Entry<Value, V>> entries() {
         return new EntryIterable();
     }

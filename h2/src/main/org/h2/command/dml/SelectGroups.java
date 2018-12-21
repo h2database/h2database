@@ -194,8 +194,14 @@ public abstract class SelectGroups {
         }
     }
 
+    /**
+     * H2 session.
+     */
     final Session session;
 
+    /**
+     * The query's column list, including invisible expressions such as order by expressions.
+     */
     final ArrayList<Expression> expressions;
 
     /**
@@ -235,6 +241,7 @@ public abstract class SelectGroups {
      *            is this query is a group query
      * @param groupIndex
      *            the indexes of group expressions, or null
+     * @return new instance of the grouped data.
      */
     public static SelectGroups getInstance(Session session, ArrayList<Expression> expressions, boolean isGroupQuery,
             int[] groupIndex) {
@@ -247,7 +254,10 @@ public abstract class SelectGroups {
     }
 
     /**
-     * Is there currently a group-by active
+     * Is there currently a group-by active.
+     *
+     * @return {@code true} if there is currently a group-by active,
+     *          otherwise returns {@code false}.
      */
     public boolean isCurrentGroup() {
         return currentGroupByExprData != null;
@@ -273,7 +283,7 @@ public abstract class SelectGroups {
      *
      * @param expr
      *            expression
-     * @param object
+     * @param obj
      *            expression data to set
      */
     public final void setCurrentGroupExprData(Expression expr, Object obj) {
@@ -292,6 +302,11 @@ public abstract class SelectGroups {
         currentGroupByExprData[index] = obj;
     }
 
+    /**
+     * Creates new object arrays to holds group-by data.
+     *
+     * @return new object array to holds group-by data.
+     */
     final Object[] createRow() {
         return new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())];
     }
@@ -321,7 +336,7 @@ public abstract class SelectGroups {
      *            expression
      * @param partitionKey
      *            a key of partition
-     * @param object
+     * @param obj
      *            window expression data to set
      */
     public final void setWindowExprData(DataAnalysisOperation expr, Value partitionKey, PartitionData obj) {
@@ -338,6 +353,10 @@ public abstract class SelectGroups {
         }
     }
 
+    /**
+     * Update group-by data specified by implementation.
+     * The
+     */
     abstract void updateCurrentGroupExprData();
 
     /**
@@ -412,4 +431,10 @@ public abstract class SelectGroups {
         currentGroupRowId++;
     }
 
+    /**
+     * @return Expressions.
+     */
+    public ArrayList<Expression> expressions() {
+        return expressions;
+    }
 }

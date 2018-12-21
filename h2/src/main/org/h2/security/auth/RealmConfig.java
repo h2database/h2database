@@ -14,6 +14,8 @@ import java.util.List;
 public class RealmConfig implements HasConfigProperties {
 
     private String name;
+    private String validatorClass;
+    private List<PropertyConfig> properties;
 
     public String getName() {
         return name;
@@ -23,7 +25,6 @@ public class RealmConfig implements HasConfigProperties {
         this.name = name;
     }
 
-    String validatorClass;
 
     public String getValidatorClass() {
         return validatorClass;
@@ -32,8 +33,6 @@ public class RealmConfig implements HasConfigProperties {
     public void setValidatorClass(String validatorClass) {
         this.validatorClass = validatorClass;
     }
-
-    List<PropertyConfig> properties;
 
     @Override
     public List<PropertyConfig> getProperties() {

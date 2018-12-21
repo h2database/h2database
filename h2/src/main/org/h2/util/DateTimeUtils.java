@@ -457,6 +457,14 @@ public class DateTimeUtils {
         return ((((hour * 60L) + minute) * 60) + second) * NANOS_PER_SECOND + nanos;
     }
 
+    /**
+     * Parse nanoseconds.
+     *
+     * @param s String to parse.
+     * @param start Begin position at the string to read.
+     * @param end End position at the string to read.
+     * @return Parsed nanoseconds.
+     */
     static int parseNanos(String s, int start, int end) {
         if (start >= end) {
             throw new IllegalArgumentException(s);
@@ -1230,6 +1238,8 @@ public class DateTimeUtils {
     }
 
     /**
+     * Creates the instance of the {@link ValueTimestampTimeZone} from milliseconds.
+     *
      * @param ms milliseconds since 1970-01-01 (UTC)
      * @return timestamp with time zone with specified value and current time zone
      */
@@ -1473,6 +1483,11 @@ public class DateTimeUtils {
         }
     }
 
+    /**
+     * Skip trailing zeroes.
+     *
+     * @param buff String buffer.
+     */
     static void stripTrailingZeroes(StringBuilder buff) {
         int i = buff.length() - 1;
         if (buff.charAt(i) == '0') {

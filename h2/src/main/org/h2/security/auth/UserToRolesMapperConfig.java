@@ -10,21 +10,31 @@ import java.util.List;
 
 /**
  * Configuration for class that maps users to their roles.
+ *
+ * @see org.h2.api.UserToRolesMapper
  */
 public class UserToRolesMapperConfig implements HasConfigProperties {
 
     private String className;
-
     private List<PropertyConfig> properties;
 
+    /**
+     * @return Mapper class name.
+     */
     public String getClassName() {
         return className;
     }
 
+    /**
+     * @param className mapper class name.
+     */
     public void setClassName(String className) {
         this.className = className;
     }
 
+    /**
+     * @return Mapper properties.
+     */
     @Override
     public List<PropertyConfig> getProperties() {
         if (properties == null) {

@@ -483,7 +483,7 @@ public class TestValue extends TestDb {
         return lob1.compareTypeSafe(lob2, null);
     }
 
-    static Value createLob(DataHandler dh, int type, byte[] bytes) {
+    private static Value createLob(DataHandler dh, int type, byte[] bytes) {
         if (dh == null) {
             return ValueLobDb.createSmallLob(type, bytes);
         }

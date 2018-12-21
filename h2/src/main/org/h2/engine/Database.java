@@ -1123,6 +1123,11 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Release IDs.
+     *
+     * @param idsToRelease IDs to release.
+     */
     void releaseDatabaseObjectIds(BitSet idsToRelease) {
         synchronized (objectIds) {
             objectIds.andNot(idsToRelease);

@@ -577,7 +577,7 @@ public class Transaction {
     }
 
     private static String stateToString(long state) {
-        return STATUS_NAMES[getStatus(state)] + (hasRollback(state) ? "" : "!") + " " + getLogId(state);
+        return STATUS_NAMES[getStatus(state)] + (hasRollback(state) ? "<" : "") + " " + getLogId(state);
     }
 
 

@@ -12,7 +12,7 @@ import org.h2.message.DbException;
 import org.h2.util.MathUtils;
 
 /**
- * Base class for collection values.
+ * Base class for ARRAY and ROW values.
  */
 abstract class ValueCollectionBase extends Value {
 
@@ -64,7 +64,7 @@ abstract class ValueCollectionBase extends Value {
         int leftType = l.getType();
         int rightType = v.getType();
         if (rightType != ARRAY && rightType != ROW) {
-            throw getDataConversionError(leftType);
+            throw v.getDataConversionError(leftType);
         }
         ValueCollectionBase r = (ValueCollectionBase) v;
         Value[] leftArray = l.values, rightArray = r.values;

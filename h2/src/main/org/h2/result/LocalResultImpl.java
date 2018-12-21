@@ -220,12 +220,12 @@ public class LocalResultImpl implements LocalResult {
         if (r == null) {
             r = false;
             reset();
-            while (next()) {
+            loop: while (next()) {
                 Value[] row = currentRow;
                 for (int i = 0; i < visibleColumnCount; i++) {
                     if (row[i].containsNull()) {
                         r = true;
-                        break;
+                        break loop;
                     }
                 }
             }

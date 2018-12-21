@@ -2689,7 +2689,7 @@ public class Parser {
             ArrayList<Expression> expressions = new ArrayList<>();
             expressions.add(new Wildcard(null, null));
             command.setExpressions(expressions);
-            setSQL(command, "SELECT", start);
+            setSQL(command, "TABLE", start);
             return command;
         } else {
             throw getSyntaxError();

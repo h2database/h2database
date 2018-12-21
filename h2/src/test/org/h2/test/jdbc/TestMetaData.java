@@ -176,7 +176,7 @@ public class TestMetaData extends TestDb {
 
         Statement stat = conn.createStatement();
         stat.execute("create table a(x array)");
-        stat.execute("insert into a values((1, 2))");
+        stat.execute("insert into a values(ARRAY[1, 2])");
         rs = stat.executeQuery("SELECT x[1] FROM a");
         ResultSetMetaData rsMeta = rs.getMetaData();
         assertEquals(Types.NULL, rsMeta.getColumnType(1));

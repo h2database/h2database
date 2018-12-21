@@ -440,7 +440,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         stat.execute("create alias dynamic deterministic for \"" +
                 getClass().getName() + ".dynamic\"");
         setCount(0);
-        rs = stat.executeQuery("call dynamic(('a', 1))[1]");
+        rs = stat.executeQuery("call dynamic(ARRAY['a', 1])[1]");
         rs.next();
         String a = rs.getString(1);
         assertEquals("a1", a);

@@ -2542,11 +2542,13 @@ START WITH 1
 
 "Other Grammar","Set clause list","
 { { columnName = { DEFAULT | expression } } [,...] }
-    | { ( columnName [,...] ) = ( select ) }
+    | { ( columnName [,...] ) = {rowValueExpression|(select)} }
 ","
 List of SET clauses.
 ","
 NAME = 'Test', VALUE = 2
+(A, B) = (1, 2)
+(A, B) = (SELECT X, Y FROM OTHER T2 WHERE T1.ID = T2.ID)
 "
 
 "Other Grammar","String","

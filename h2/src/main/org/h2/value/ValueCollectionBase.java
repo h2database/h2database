@@ -14,7 +14,7 @@ import org.h2.util.MathUtils;
 /**
  * Base class for ARRAY and ROW values.
  */
-abstract class ValueCollectionBase extends Value {
+public abstract class ValueCollectionBase extends Value {
 
     final Value[] values;
 
@@ -22,6 +22,10 @@ abstract class ValueCollectionBase extends Value {
 
     ValueCollectionBase(Value[] values) {
         this.values = values;
+    }
+
+    public Value[] getList() {
+        return values;
     }
 
     @Override

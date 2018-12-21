@@ -5211,11 +5211,13 @@ SELECT X, SET(@I, IFNULL(@I, 0)+X) RUNNING_TOTAL FROM SYSTEM_RANGE(1, 10)
 "
 
 "Functions (System)","TABLE","
-{ TABLE | TABLE_DISTINCT } ( { name dataType = expression } [,...] )
+{ TABLE | TABLE_DISTINCT }
+( { name dataType = array|rowValueExpression } [,...] )
 ","
 Returns the result set. TABLE_DISTINCT removes duplicate rows.
 ","
-SELECT * FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World'))
+SELECT * FROM TABLE(VALUE INT = ARRAY[1, 2]);
+SELECT * FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World'));
 "
 
 "Functions (System)","TRANSACTION_ID","

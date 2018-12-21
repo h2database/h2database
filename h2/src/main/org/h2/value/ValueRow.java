@@ -47,10 +47,6 @@ public class ValueRow extends ValueCollectionBase {
         return (ValueRow) EMPTY;
     }
 
-    public Value[] getList() {
-        return values;
-    }
-
     @Override
     public int getType() {
         return Value.ROW;

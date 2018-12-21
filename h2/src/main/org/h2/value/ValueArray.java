@@ -61,10 +61,6 @@ public class ValueArray extends ValueCollectionBase {
         return (ValueArray) EMPTY;
     }
 
-    public Value[] getList() {
-        return values;
-    }
-
     @Override
     public int getType() {
         return Value.ARRAY;

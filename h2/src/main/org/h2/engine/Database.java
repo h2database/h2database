@@ -428,12 +428,9 @@ public class Database implements DataHandler {
      * Compare two values with the current comparison mode. The values may have
      * different data types including NULL.
      *
-     * @param v the other value
-     * @param databaseMode the database mode
-     * @param compareMode the compare mode
      * @param a the first value
      * @param b the second value
-     * @param forEquality perform only check for equality (= or <>)
+     * @param forEquality perform only check for equality (= or &lt;&gt;)
      * @return 0 if both values are equal, -1 if the first value is smaller, 1
      *         if the second value is larger, {@link Integer#MIN_VALUE} if order
      *         is not defined due to NULL comparison

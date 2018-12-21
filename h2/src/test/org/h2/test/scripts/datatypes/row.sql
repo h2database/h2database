@@ -8,3 +8,66 @@ SELECT ROW (10);
 
 SELECT (10, 20, 30);
 >> ROW (10, 20, 30)
+
+SELECT (1, NULL) IS NOT DISTINCT FROM (1, NULL);
+>> TRUE
+
+SELECT (1, NULL) IS DISTINCT FROM ROW (1, NULL);
+>> FALSE
+
+SELECT (1, NULL) = (1, NULL);
+>> null
+
+SELECT (1, NULL) <> (1, NULL);
+>> null
+
+SELECT ROW (NULL) = (NULL, NULL);
+> exception COLUMN_COUNT_DOES_NOT_MATCH
+
+select (1, NULL, 2) = (1, NULL, 1);
+>> FALSE
+
+select (1, NULL, 2) <> (1, NULL, 1);
+>> TRUE
+
+SELECT (1, NULL) > (1, NULL);
+>> null
+
+SELECT (1, 2) > (1, NULL);
+>> null
+
+SELECT (1, 2, NULL) > (1, 1, NULL);
+>> TRUE
+
+SELECT (1, 1, NULL) > (1, 2, NULL);
+>> FALSE
+
+SELECT (1, 2, NULL) < (1, 1, NULL);
+>> FALSE
+
+SELECT (1, 1, NULL) <= (1, 1, NULL);
+>> null
+
+SELECT (1, 2) IN (SELECT 1, 2);
+>> TRUE
+
+SELECT (1, 2) IN (SELECT * FROM VALUES (1, 2), (1, NULL));
+>> TRUE
+
+SELECT (1, 2) IN (SELECT * FROM VALUES (1, 1), (1, NULL));
+>> null
+
+SELECT (1, 2) IN (SELECT * FROM VALUES (1, 1), (1, 3));
+>> FALSE
+
+SELECT (1, NULL) IN (SELECT 1, NULL);
+>> null
+
+SELECT (1, ARRAY[1]) IN (SELECT 1, ARRAY[1]);
+>> TRUE
+
+SELECT (1, ARRAY[1]) IN (SELECT 1, ARRAY[2]);
+>> FALSE
+
+SELECT (1, ARRAY[NULL]) IN (SELECT 1, ARRAY[NULL]);
+>> null

@@ -5,7 +5,10 @@
  */
 package org.h2.value;
 
+import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
+import org.h2.engine.Mode;
+import org.h2.message.DbException;
 import org.h2.util.MathUtils;
 
 /**
@@ -50,6 +53,65 @@ abstract class ValueCollectionBase extends Value {
             size += v.getDisplaySize();
         }
         return MathUtils.convertLongToInt(size);
+    }
+
+    @Override
+    public int compareWithNull(Value v, boolean forEquality, Mode databaseMode, CompareMode compareMode) {
+        if (v == ValueNull.INSTANCE) {
+            return Integer.MIN_VALUE;
+        }
+        ValueCollectionBase l = this;
+        int leftType = l.getType();
+        int rightType = v.getType();
+        if (rightType != ARRAY && rightType != ROW) {
+            throw getDataConversionError(leftType);
+        }
+        ValueCollectionBase r = (ValueCollectionBase) v;
+        Value[] leftArray = l.values, rightArray = r.values;
+        int leftLength = leftArray.length, rightLength = rightArray.length;
+        if (leftLength != rightLength) {
+            if (leftType == ROW || rightType == ROW) {
+                throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+            }
+            if (forEquality) {
+                return 1;
+            }
+        }
+        if (forEquality) {
+            boolean hasNull = false;
+            for (int i = 0; i < leftLength; i++) {
+                Value v1 = leftArray[i];
+                Value v2 = rightArray[i];
+                int comp = v1.compareWithNull(v2, forEquality, databaseMode, compareMode);
+                if (comp != 0) {
+                    if (comp != Integer.MIN_VALUE) {
+                        return comp;
+                    }
+                    hasNull = true;
+                }
+            }
+            return hasNull ? Integer.MIN_VALUE : 0;
+        }
+        int len = Math.min(leftLength, rightLength);
+        for (int i = 0; i < len; i++) {
+            Value v1 = leftArray[i];
+            Value v2 = rightArray[i];
+            int comp = v1.compareWithNull(v2, forEquality, databaseMode, compareMode);
+            if (comp != 0) {
+                return comp;
+            }
+        }
+        return Integer.compare(leftLength, rightLength);
+    }
+
+    @Override
+    public boolean containsNull() {
+        for (Value v : values) {
+            if (v.containsNull()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

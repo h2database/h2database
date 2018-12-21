@@ -67,14 +67,13 @@ public class ConditionInParameter extends Condition {
 
     static Value getValue(Database database, Value l, Value value) {
         boolean hasNull = false;
-        if (value == ValueNull.INSTANCE) {
+        if (value.containsNull()) {
             hasNull = true;
         } else if (value.getType() == Value.RESULT_SET) {
             for (ResultInterface ri = value.getResult(); ri.next();) {
                 Value r = ri.currentRow()[0];
-                Value cmp;
-                if (r == ValueNull.INSTANCE
-                        || (cmp = Comparison.compareNotNull(database, l, r, Comparison.EQUAL)) == ValueNull.INSTANCE) {
+                Value cmp = Comparison.compare(database, l, r, Comparison.EQUAL);
+                if (cmp == ValueNull.INSTANCE) {
                     hasNull = true;
                 } else if (cmp == ValueBoolean.TRUE) {
                     return cmp;
@@ -82,9 +81,8 @@ public class ConditionInParameter extends Condition {
             }
         } else {
             for (Value r : ((ValueArray) value.convertTo(Value.ARRAY)).getList()) {
-                Value cmp;
-                if (r == ValueNull.INSTANCE
-                        || (cmp = Comparison.compareNotNull(database, l, r, Comparison.EQUAL)) == ValueNull.INSTANCE) {
+                Value cmp = Comparison.compare(database, l, r, Comparison.EQUAL);
+                if (cmp == ValueNull.INSTANCE) {
                     hasNull = true;
                 } else if (cmp == ValueBoolean.TRUE) {
                     return cmp;

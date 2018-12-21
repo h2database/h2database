@@ -412,8 +412,8 @@ public class Database implements DataHandler {
     }
 
     /**
-     * Compare two values with the current comparison mode. The values may not
-     * be of the same type.
+     * Compare two values with the current comparison mode. The values may have
+     * different data types including NULL.
      *
      * @param a the first value
      * @param b the second value
@@ -422,6 +422,24 @@ public class Database implements DataHandler {
      */
     public int compare(Value a, Value b) {
         return a.compareTo(b, mode, compareMode);
+    }
+
+    /**
+     * Compare two values with the current comparison mode. The values may have
+     * different data types including NULL.
+     *
+     * @param v the other value
+     * @param databaseMode the database mode
+     * @param compareMode the compare mode
+     * @param a the first value
+     * @param b the second value
+     * @param forEquality perform only check for equality (= or <>)
+     * @return 0 if both values are equal, -1 if the first value is smaller, 1
+     *         if the second value is larger, {@link Integer#MIN_VALUE} if order
+     *         is not defined due to NULL comparison
+     */
+    public int compareWithNull(Value a, Value b, boolean forEquality) {
+        return a.compareWithNull(b, forEquality, mode, compareMode);
     }
 
     /**

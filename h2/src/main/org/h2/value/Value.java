@@ -1347,7 +1347,7 @@ public abstract class Value {
         return ValueResultSet.get(result);
     }
 
-    private DbException getDataConversionError(int targetType) {
+    DbException getDataConversionError(int targetType) {
         DataType from = DataType.getDataType(getType());
         DataType to = DataType.getDataType(targetType);
         throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, (from != null ? from.name : "type=" + getType())
@@ -1372,7 +1372,7 @@ public abstract class Value {
      * @param v the other value
      * @param databaseMode the database mode
      * @param compareMode the compare mode
-     * @return 0 if both values are equal, -1 if the other value is smaller, and
+     * @return 0 if both values are equal, -1 if this value is smaller, and
      *         1 otherwise
      */
     public final int compareTo(Value v, Mode databaseMode, CompareMode compareMode) {
@@ -1399,6 +1399,48 @@ public abstract class Value {
             }
         }
         return l.compareTypeSafe(v, compareMode);
+    }
+
+    /**
+     * Compare this value against another value using the specified compare
+     * mode.
+     *
+     * @param v the other value
+     * @param forEquality perform only check for equality
+     * @param databaseMode the database mode
+     * @param compareMode the compare mode
+     * @return 0 if both values are equal, -1 if this value is smaller, 1
+     *         if other value is larger, {@link Integer#MIN_VALUE} if order is
+     *         not defined due to NULL comparison
+     */
+    public int compareWithNull(Value v, boolean forEquality, Mode databaseMode, CompareMode compareMode) {
+        if (this == ValueNull.INSTANCE || v == ValueNull.INSTANCE) {
+            return Integer.MIN_VALUE;
+        }
+        Value l = this;
+        int leftType = l.getType();
+        int rightType = v.getType();
+        if (leftType != rightType || leftType == Value.ENUM) {
+            int dataType = Value.getHigherOrder(leftType, rightType);
+            if (dataType == Value.ENUM) {
+                ExtTypeInfoEnum enumerators = ExtTypeInfoEnum.getEnumeratorsForBinaryOperation(l, v);
+                l = l.convertToEnum(enumerators);
+                v = v.convertToEnum(enumerators);
+            } else {
+                l = l.convertTo(dataType, databaseMode);
+                v = v.convertTo(dataType, databaseMode);
+            }
+        }
+        return l.compareTypeSafe(v, compareMode);
+    }
+
+    /**
+     * Returns true if this value is NULL or contains NULL value.
+     *
+     * @return true if this value is NULL or contains NULL value
+     */
+    public boolean containsNull() {
+        return false;
     }
 
     public int getScale() {

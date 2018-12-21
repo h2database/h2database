@@ -18,7 +18,6 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueRow;
@@ -53,8 +52,8 @@ public class ConditionInSelect extends Condition {
         Value l = left.getValue(session);
         if (!rows.hasNext()) {
             return ValueBoolean.get(all);
-        } else if (l == ValueNull.INSTANCE) {
-            return l;
+        } else if (l.containsNull()) {
+            return ValueNull.INSTANCE;
         }
         if (!database.getSettings().optimizeInSelect) {
             return getValueSlow(rows, l);
@@ -65,8 +64,8 @@ public class ConditionInSelect extends Condition {
         }
         int columnCount = query.getColumnCount();
         if (columnCount != 1) {
-            l = l.convertTo(Value.ARRAY);
-            Value[] leftValue = ((ValueArray) l).getList();
+            l = l.convertTo(Value.ROW);
+            Value[] leftValue = ((ValueRow) l).getList();
             if (columnCount == leftValue.length && rows.containsDistinct(leftValue)) {
                 return ValueBoolean.TRUE;
             }
@@ -79,9 +78,9 @@ public class ConditionInSelect extends Condition {
             if (rows.containsDistinct(new Value[] { l })) {
                 return ValueBoolean.TRUE;
             }
-            if (rows.containsDistinct(new Value[] { ValueNull.INSTANCE })) {
-                return ValueNull.INSTANCE;
-            }
+        }
+        if (rows.containsNull()) {
+            return ValueNull.INSTANCE;
         }
         return ValueBoolean.FALSE;
     }
@@ -93,9 +92,8 @@ public class ConditionInSelect extends Condition {
             while (rows.next()) {
                 Value[] currentRow = rows.currentRow();
                 Value r = query.getColumnCount() == 1 ? currentRow[0] : ValueRow.get(currentRow);
-                Value cmp;
-                if (r == ValueNull.INSTANCE
-                        || (cmp = Comparison.compareNotNull(database, l, r, compareType)) == ValueNull.INSTANCE) {
+                Value cmp = Comparison.compare(database, l, r, compareType);
+                if (cmp == ValueNull.INSTANCE) {
                     return ValueNull.INSTANCE;
                 } else if (cmp == ValueBoolean.FALSE) {
                     return cmp;
@@ -107,9 +105,8 @@ public class ConditionInSelect extends Condition {
             while (rows.next()) {
                 Value[] currentRow = rows.currentRow();
                 Value r = query.getColumnCount() == 1 ? currentRow[0] : ValueRow.get(currentRow);
-                Value cmp;
-                if (r == ValueNull.INSTANCE
-                        || (cmp = Comparison.compareNotNull(database, l, r, compareType)) == ValueNull.INSTANCE) {
+                Value cmp = Comparison.compare(database, l, r, compareType);
+                if (cmp == ValueNull.INSTANCE) {
                     hasNull = true;
                 } else if (cmp == ValueBoolean.TRUE) {
                     return cmp;

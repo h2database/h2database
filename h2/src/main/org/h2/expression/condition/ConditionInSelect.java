@@ -97,18 +97,17 @@ public class ConditionInSelect extends Condition {
     private Value getValueSlow(ResultInterface rows, Value l) {
         // this only returns the correct result if the result has at least one
         // row, and if l is not null
+        boolean hasNull = false;
         if (all) {
             while (rows.next()) {
                 Value cmp = compare(l, rows);
                 if (cmp == ValueNull.INSTANCE) {
-                    return ValueNull.INSTANCE;
+                    hasNull = true;
                 } else if (cmp == ValueBoolean.FALSE) {
                     return cmp;
                 }
             }
-            return ValueBoolean.TRUE;
         } else {
-            boolean hasNull = false;
             while (rows.next()) {
                 Value cmp = compare(l, rows);
                 if (cmp == ValueNull.INSTANCE) {
@@ -117,11 +116,11 @@ public class ConditionInSelect extends Condition {
                     return cmp;
                 }
             }
-            if (hasNull) {
-                return ValueNull.INSTANCE;
-            }
-            return ValueBoolean.FALSE;
         }
+        if (hasNull) {
+            return ValueNull.INSTANCE;
+        }
+        return ValueBoolean.get(all);
     }
 
     private Value compare(Value l, ResultInterface rows) {

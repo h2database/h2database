@@ -339,15 +339,17 @@ public class TestOuterJoins extends TestDb {
                 "ON T2.B = T1.A", sql);
         rs = stat.executeQuery("select distinct t1.a, t2.a, t3.a from t1 " +
                 "right outer join t3 on t1.b=t3.a right outer join t2 on t2.b=t1.a");
-        // expected: 1  1       1; null    2       null
-        assertTrue(rs.next());
-        assertEquals("1", rs.getString(1));
-        assertEquals("1", rs.getString(2));
-        assertEquals("1", rs.getString(3));
+        // expected:
+        // null 2 null
+        // 1    1 1
         assertTrue(rs.next());
         assertEquals(null, rs.getString(1));
         assertEquals("2", rs.getString(2));
         assertEquals(null, rs.getString(3));
+        assertTrue(rs.next());
+        assertEquals("1", rs.getString(1));
+        assertEquals("1", rs.getString(2));
+        assertEquals("1", rs.getString(3));
         assertFalse(rs.next());
         stat.execute("drop table t1, t2, t3, t4");
 

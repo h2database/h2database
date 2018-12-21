@@ -144,6 +144,11 @@ public class ValueNull extends Value {
     }
 
     @Override
+    public boolean containsNull() {
+        return true;
+    }
+
+    @Override
     public long getPrecision() {
         return PRECISION;
     }

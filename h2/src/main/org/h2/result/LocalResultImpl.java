@@ -45,6 +45,7 @@ public class LocalResultImpl implements LocalResult {
     private int[] distinctIndexes;
     private boolean closed;
     private boolean containsLobs;
+    private Boolean containsNull;
 
     /**
      * Construct a local result object.
@@ -127,6 +128,7 @@ public class LocalResultImpl implements LocalResult {
         copy.offset = 0;
         copy.limit = -1;
         copy.external = e2;
+        copy.containsNull = containsNull;
         return copy;
     }
 
@@ -210,6 +212,27 @@ public class LocalResultImpl implements LocalResult {
         }
         ValueArray array = ValueArray.get(values);
         return distinctRows.get(array) != null;
+    }
+
+    @Override
+    public boolean containsNull() {
+        Boolean r = containsNull;
+        if (r == null) {
+            r = false;
+            reset();
+            loop: while (next()) {
+                Value[] row = currentRow;
+                for (int i = 0; i < visibleColumnCount; i++) {
+                    if (row[i].containsNull()) {
+                        r = true;
+                        break loop;
+                    }
+                }
+            }
+            reset();
+            containsNull = r;
+        }
+        return r;
     }
 
     @Override

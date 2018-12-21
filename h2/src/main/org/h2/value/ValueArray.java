@@ -10,14 +10,12 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
 
-import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
-import org.h2.util.MathUtils;
 
 /**
  * Implementation of the ARRAY data type.
  */
-public class ValueArray extends Value {
+public class ValueArray extends ValueCollectionBase {
 
     /**
      * Empty array.
@@ -25,12 +23,10 @@ public class ValueArray extends Value {
     private static final Object EMPTY = get(new Value[0]);
 
     private final Class<?> componentType;
-    private final Value[] values;
-    private int hash;
 
     private ValueArray(Class<?> componentType, Value[] list) {
+        super(list);
         this.componentType = componentType;
-        this.values = list;
     }
 
     /**
@@ -65,19 +61,6 @@ public class ValueArray extends Value {
         return (ValueArray) EMPTY;
     }
 
-    @Override
-    public int hashCode() {
-        if (hash != 0) {
-            return hash;
-        }
-        int h = 1;
-        for (Value v : values) {
-            h = h * 31 + v.hashCode();
-        }
-        hash = h;
-        return h;
-    }
-
     public Value[] getList() {
         return values;
     }
@@ -89,15 +72,6 @@ public class ValueArray extends Value {
 
     public Class<?> getComponentType() {
         return componentType;
-    }
-
-    @Override
-    public long getPrecision() {
-        long p = 0;
-        for (Value v : values) {
-            p += v.getPrecision();
-        }
-        return p;
     }
 
     @Override
@@ -182,15 +156,6 @@ public class ValueArray extends Value {
     }
 
     @Override
-    public int getDisplaySize() {
-        long size = 0;
-        for (Value v : values) {
-            size += v.getDisplaySize();
-        }
-        return MathUtils.convertLongToInt(size);
-    }
-
-    @Override
     public boolean equals(Object other) {
         if (!(other instanceof ValueArray)) {
             return false;
@@ -209,15 +174,6 @@ public class ValueArray extends Value {
             }
         }
         return true;
-    }
-
-    @Override
-    public int getMemory() {
-        int memory = 32;
-        for (Value v : values) {
-            memory += v.getMemory() + Constants.MEMORY_POINTER;
-        }
-        return memory;
     }
 
     @Override

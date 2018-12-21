@@ -3,7 +3,7 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.test.unit;
+package org.h2.test.db;
 
 import org.h2.command.dml.SetTypes;
 import org.h2.test.TestBase;
@@ -31,6 +31,11 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestDb {
      */
     public static void main(String[] a) throws Exception {
         TestBase.createCaller().init().test();
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return !config.travis;
     }
 
     @Override

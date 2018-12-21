@@ -99,9 +99,7 @@ public class ConditionInSelect extends Condition {
         // row, and if l is not null
         if (all) {
             while (rows.next()) {
-                Value[] currentRow = rows.currentRow();
-                Value r = query.getColumnCount() == 1 ? currentRow[0] : ValueRow.get(currentRow);
-                Value cmp = Comparison.compare(database, l, r, compareType);
+                Value cmp = compare(l, rows);
                 if (cmp == ValueNull.INSTANCE) {
                     return ValueNull.INSTANCE;
                 } else if (cmp == ValueBoolean.FALSE) {
@@ -112,9 +110,7 @@ public class ConditionInSelect extends Condition {
         } else {
             boolean hasNull = false;
             while (rows.next()) {
-                Value[] currentRow = rows.currentRow();
-                Value r = query.getColumnCount() == 1 ? currentRow[0] : ValueRow.get(currentRow);
-                Value cmp = Comparison.compare(database, l, r, compareType);
+                Value cmp = compare(l, rows);
                 if (cmp == ValueNull.INSTANCE) {
                     hasNull = true;
                 } else if (cmp == ValueBoolean.TRUE) {
@@ -126,6 +122,12 @@ public class ConditionInSelect extends Condition {
             }
             return ValueBoolean.FALSE;
         }
+    }
+
+    private Value compare(Value l, ResultInterface rows) {
+        Value[] currentRow = rows.currentRow();
+        Value r = l.getType() != Value.ROW && query.getColumnCount() == 1 ? currentRow[0] : ValueRow.get(currentRow);
+        return Comparison.compare(database, l, r, compareType);
     }
 
     @Override

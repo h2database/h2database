@@ -2542,11 +2542,13 @@ START WITH 1
 
 "Other Grammar","Set clause list","
 { { columnName = { DEFAULT | expression } } [,...] }
-    | { ( columnName [,...] ) = ( select ) }
+    | { ( columnName [,...] ) = {rowValueExpression|(select)} }
 ","
 List of SET clauses.
 ","
 NAME = 'Test', VALUE = 2
+(A, B) = (1, 2)
+(A, B) = (SELECT X, Y FROM OTHER T2 WHERE T1.ID = T2.ID)
 "
 
 "Other Grammar","String","
@@ -5211,11 +5213,13 @@ SELECT X, SET(@I, IFNULL(@I, 0)+X) RUNNING_TOTAL FROM SYSTEM_RANGE(1, 10)
 "
 
 "Functions (System)","TABLE","
-{ TABLE | TABLE_DISTINCT } ( { name dataType = expression } [,...] )
+{ TABLE | TABLE_DISTINCT }
+( { name dataType = array|rowValueExpression } [,...] )
 ","
 Returns the result set. TABLE_DISTINCT removes duplicate rows.
 ","
-SELECT * FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World'))
+SELECT * FROM TABLE(VALUE INT = ARRAY[1, 2]);
+SELECT * FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World'));
 "
 
 "Functions (System)","TRANSACTION_ID","

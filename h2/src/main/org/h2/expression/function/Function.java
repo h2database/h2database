@@ -61,16 +61,15 @@ import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.ExtTypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueBytes;
+import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
-import org.h2.value.ValueRow;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
@@ -1092,13 +1091,11 @@ public class Function extends Expression implements FunctionCall {
         return result;
     }
 
-    private Value[] getArray(Value v0) {
+    private static Value[] getArray(Value v0) {
         int t = v0.getType();
         Value[] list;
-        if (t == Value.ARRAY) {
-            list = ((ValueArray) v0).getList();
-        } else if (t == Value.ROW) {
-            list = ((ValueRow) v0).getList();
+        if (t == Value.ARRAY || t == Value.ROW) {
+            list = ((ValueCollectionBase) v0).getList();
         } else {
             list = null;
         }

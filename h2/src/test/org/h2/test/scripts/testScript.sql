@@ -1395,7 +1395,7 @@ drop table test;
 create table test(id int primary key, data array);
 > ok
 
-insert into test values(1, (1, 1)), (2, (1, 2)), (3, (1, 1, 1));
+insert into test values(1, ARRAY[1, 1]), (2, ARRAY[1, 2]), (3, ARRAY[1, 1, 1]);
 > update count: 3
 
 select * from test order by data;
@@ -2011,10 +2011,10 @@ select (1, 2);
 create table array_test(x array);
 > ok
 
-insert into array_test values((1, 2, 3)), ((2, 3, 4));
+insert into array_test values(ARRAY[1, 2, 3]), (ARRAY[2, 3, 4]);
 > update count: 2
 
-select * from array_test where x = (1, 2, 3);
+select * from array_test where x = ARRAY[1, 2, 3];
 > X
 > ---------
 > [1, 2, 3]

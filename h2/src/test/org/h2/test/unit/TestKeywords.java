@@ -41,7 +41,8 @@ public class TestKeywords extends TestBase {
         ClassReader r = new ClassReader(Parser.class.getResourceAsStream("Parser.class"));
         r.accept(new ClassVisitor(Opcodes.ASM6) {
             @Override
-            public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+            public FieldVisitor visitField(int access, String name, String descriptor, String signature,
+                    Object value) {
                 add(set, value);
                 return null;
             }

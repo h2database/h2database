@@ -16,7 +16,7 @@ import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.table.Column;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
+import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
@@ -105,8 +105,11 @@ public class TableFunction extends Function {
                 if (v == ValueNull.INSTANCE) {
                     list[i] = new Value[0];
                 } else {
-                    ValueArray array = (ValueArray) v.convertTo(Value.ARRAY);
-                    Value[] l = array.getList();
+                    int type = v.getType();
+                    if (type != Value.ARRAY && type != Value.ROW) {
+                        v = v.convertTo(Value.ARRAY);
+                    }
+                    Value[] l = ((ValueCollectionBase) v).getList();
                     list[i] = l;
                     rows = Math.max(rows, l.length);
                 }

@@ -243,7 +243,7 @@ TABLE [schemaName.]tableName
 ","
 Selects data from a table.
 
-This command is an equivalent to SELECT * FROM TABLE.
+This command is an equivalent to SELECT * FROM tableName.
 
 FROM, WHERE, GROUP BY, HAVING, and WINDOW clauses from the SELECT command are not allowed.
 ","
@@ -4551,9 +4551,10 @@ CURRENT_DATE
 "
 
 "Functions (Time and Date)","CURRENT_TIME","
-{ CURRENT_TIME [ (int) ] | LOCALTIME [ (int) ] | CURTIME([ int ]) }
+CURRENT_TIME [ (int) ]
 ","
 Returns the current time.
+The returned value does not have time zone information, because TIME WITH TIME ZONE data type is not supported in H2.
 If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
 The specified value can be used only to limit precision of a result.
 The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.
@@ -4562,8 +4563,7 @@ These methods always return the same value within a transaction (default)
 or within a command depending on database mode.
 ","
 CURRENT_TIME
-LOCALTIME
-LOCALTIME(9)
+CURRENT_TIME(9)
 "
 
 "Functions (Time and Date)","CURRENT_TIMESTAMP","
@@ -4582,10 +4582,25 @@ CURRENT_TIMESTAMP
 CURRENT_TIMESTAMP(9)
 "
 
+"Functions (Time and Date)","LOCALTIME","
+{ LOCALTIME [ (int) ] | CURTIME([ int ]) }
+","
+Returns the current time.
+If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
+The specified value can be used only to limit precision of a result.
+The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.
+Higher precision is not available before Java 9.
+These methods always return the same value within a transaction (default)
+or within a command depending on database mode.
+","
+LOCALTIME
+LOCALTIME(9)
+"
+
 "Functions (Time and Date)","LOCALTIMESTAMP","
 { LOCALTIMESTAMP [ (int) ] | NOW( [ int ] ) }
 ","
-Returns the current timestamp.
+Returns the current timestamp without time zone.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 The specified value can be used only to limit precision of a result.
 The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.

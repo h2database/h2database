@@ -4344,32 +4344,17 @@ public class Parser {
     // TODO: why does this function allow defaultSchemaName=null - which resets
     // the parser schemaName for everyone ?
     private String readIdentifierWithSchema(String defaultSchemaName) {
-        if (currentTokenType != IDENTIFIER) {
-            throw DbException.getSyntaxError(sqlCommand, parseIndex,
-                    "identifier");
-        }
-        String s = currentToken;
-        read();
+        String s = readColumnIdentifier();
         schemaName = defaultSchemaName;
         if (readIf(DOT)) {
             schemaName = s;
-            if (currentTokenType != IDENTIFIER) {
-                throw DbException.getSyntaxError(sqlCommand, parseIndex,
-                        "identifier");
-            }
-            s = currentToken;
-            read();
+            s = readColumnIdentifier();
         }
         if (currentTokenType == DOT) {
             if (equalsToken(schemaName, database.getShortName())) {
                 read();
                 schemaName = s;
-                if (currentTokenType != IDENTIFIER) {
-                    throw DbException.getSyntaxError(sqlCommand, parseIndex,
-                            "identifier");
-                }
-                s = currentToken;
-                read();
+                s = readColumnIdentifier();
             }
         }
         return s;
@@ -4389,8 +4374,17 @@ public class Parser {
 
     private String readColumnIdentifier() {
         if (currentTokenType != IDENTIFIER) {
-            throw DbException.getSyntaxError(sqlCommand, parseIndex,
-                    "identifier");
+            /*
+             * Sometimes a new keywords are introduced. During metadata
+             * initialization phase keywords are accepted as identifiers to
+             * allow migration from older versions.
+             *
+             * PageStore's LobStorageBackend also needs this in databases that
+             * were created in 1.4.197 and older versions.
+             */
+            if (!session.getDatabase().isStarting() || !isKeyword(currentToken)) {
+                throw DbException.getSyntaxError(sqlCommand, parseIndex, "identifier");
+            }
         }
         String s = currentToken;
         read();

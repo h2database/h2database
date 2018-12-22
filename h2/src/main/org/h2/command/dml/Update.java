@@ -222,7 +222,7 @@ public class Update extends Prepared {
                 builder.append(",\n    ");
             }
             Column c = columns.get(i);
-            builder.append(c.getName()).append(" = ");
+            builder.append(c.getSQL()).append(" = ");
             expressionMap.get(c).getSQL(builder);
         }
         if (condition != null) {

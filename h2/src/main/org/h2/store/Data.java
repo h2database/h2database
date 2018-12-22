@@ -75,6 +75,10 @@ public class Data {
      */
     private static final int LENGTH_LONG = 8;
 
+    /**
+     * Storage type for ValueRow.
+     */
+    private static final int ROW = 27;
     private static final int INT_0_15 = 32;
     private static final int LONG_0_7 = 48;
     private static final int DECIMAL_0_1 = 56;
@@ -92,7 +96,6 @@ public class Data {
     private static final int LOCAL_DATE = 133;
     private static final int LOCAL_TIMESTAMP = 134;
     private static final byte CUSTOM_DATA_TYPE = (byte)135;
-    private static final int ROW = 27;
 
     private static final long MILLIS_PER_MINUTE = 1000 * 60;
 
@@ -622,7 +625,7 @@ public class Data {
         }
         case Value.ARRAY:
         case Value.ROW: {
-            writeByte((byte) (type == Value.ARRAY ? Value.ARRAY : ROW));
+            writeByte((byte) (type == Value.ARRAY ? Value.ARRAY : /* Special storage type for ValueRow */ ROW));
             Value[] list = ((ValueCollectionBase) v).getList();
             writeVarInt(list.length);
             for (Value x : list) {
@@ -853,7 +856,8 @@ public class Data {
             }
         }
         case Value.ARRAY:
-        case ROW: {
+        case ROW: // Special storage type for ValueRow
+        {
             int len = readVarInt();
             Value[] list = new Value[len];
             for (int i = 0; i < len; i++) {

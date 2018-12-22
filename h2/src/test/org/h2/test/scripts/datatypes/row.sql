@@ -71,3 +71,11 @@ SELECT (1, ARRAY[1]) IN (SELECT 1, ARRAY[2]);
 
 SELECT (1, ARRAY[NULL]) IN (SELECT 1, ARRAY[NULL]);
 >> null
+
+-- The next tests should be at the of this file
+
+SET MAX_MEMORY_ROWS = 2;
+> ok
+
+SELECT (X, X) FROM SYSTEM_RANGE(1, 100000) ORDER BY -X FETCH FIRST ROW ONLY;
+>> ROW (100000, 100000)

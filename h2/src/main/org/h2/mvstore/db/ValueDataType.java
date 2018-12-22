@@ -59,6 +59,10 @@ import org.h2.value.ValueUuid;
  */
 public class ValueDataType implements DataType {
 
+    /**
+     * Storage type for ValueRow.
+     */
+    private static final int ROW = 27;
     private static final int INT_0_15 = 32;
     private static final int LONG_0_7 = 48;
     private static final int DECIMAL_0_1 = 56;
@@ -74,7 +78,6 @@ public class ValueDataType implements DataType {
     private static final int BYTES_0_31 = 100;
     private static final int SPATIAL_KEY_2D = 132;
     private static final int CUSTOM_DATA_TYPE = 133;
-    private static final int ROW = 27;
 
     final DataHandler handler;
     final CompareMode compareMode;
@@ -399,7 +402,8 @@ public class ValueDataType implements DataType {
         case Value.ARRAY:
         case Value.ROW: {
             Value[] list = ((ValueCollectionBase) v).getList();
-            buff.put((byte) (type == Value.ARRAY ? Value.ARRAY : ROW)).putVarInt(list.length);
+            buff.put((byte) (type == Value.ARRAY ? Value.ARRAY : /* Special storage type for ValueRow */ ROW))
+                    .putVarInt(list.length);
             for (Value x : list) {
                 writeValue(buff, x);
             }
@@ -615,7 +619,8 @@ public class ValueDataType implements DataType {
             }
         }
         case Value.ARRAY:
-        case ROW: {
+        case ROW: // Special storage type for ValueRow
+        {
             int len = readVarInt(buff);
             Value[] list = new Value[len];
             for (int i = 0; i < len; i++) {

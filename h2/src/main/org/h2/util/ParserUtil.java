@@ -233,9 +233,14 @@ public class ParserUtil {
     public static final int SELECT = ROWNUM + 1;
 
     /**
+     * The token "TABLE".
+     */
+    public static final int TABLE = SELECT + 1;
+
+    /**
      * The token "TRUE".
      */
-    public static final int TRUE = SELECT + 1;
+    public static final int TRUE = TABLE + 1;
 
     /**
      * The token "UNION".
@@ -490,7 +495,9 @@ public class ParserUtil {
             }
             return IDENTIFIER;
         case 'T':
-            if (eq("TRUE", s, ignoreCase, start, end)) {
+            if (eq("TABLE", s, ignoreCase, start, end)) {
+                return TABLE;
+            } else if (eq("TRUE", s, ignoreCase, start, end)) {
                 return TRUE;
             }
             if (additionalKeywords) {

@@ -31,11 +31,17 @@ SELECT * FROM (SELECT * FROM TEST) x ORDER BY id;
 drop table test;
 > ok
 
+call table(id int = (1));
+> ID
+> --
+> 1
+> rows: 1
+
 explain select * from table(id int = (1, 2), name varchar=('Hello', 'World'));
->> SELECT TABLE.ID, TABLE.NAME FROM TABLE(ID INT=ROW (1, 2), NAME VARCHAR=ROW ('Hello', 'World')) /* function */
+>> SELECT "TABLE".ID, "TABLE".NAME FROM TABLE(ID INT=ROW (1, 2), NAME VARCHAR=ROW ('Hello', 'World')) /* function */
 
 explain select * from table(id int = ARRAY[1, 2], name varchar=ARRAY['Hello', 'World']);
->> SELECT TABLE.ID, TABLE.NAME FROM TABLE(ID INT=ARRAY [1, 2], NAME VARCHAR=ARRAY ['Hello', 'World']) /* function */
+>> SELECT "TABLE".ID, "TABLE".NAME FROM TABLE(ID INT=ARRAY [1, 2], NAME VARCHAR=ARRAY ['Hello', 'World']) /* function */
 
 select * from table(id int=(1, 2), name varchar=('Hello', 'World')) x order by id;
 > ID NAME
@@ -43,3 +49,10 @@ select * from table(id int=(1, 2), name varchar=('Hello', 'World')) x order by i
 > 1  Hello
 > 2  World
 > rows (ordered): 2
+
+SELECT * FROM (TABLE(ID INT = (1, 2)));
+> ID
+> --
+> 1
+> 2
+> rows: 2

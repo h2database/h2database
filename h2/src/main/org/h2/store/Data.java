@@ -32,6 +32,7 @@ import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueByte;
 import org.h2.value.ValueBytes;
+import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDecimal;
 import org.h2.value.ValueDouble;
@@ -45,6 +46,7 @@ import org.h2.value.ValueLobDb;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
+import org.h2.value.ValueRow;
 import org.h2.value.ValueShort;
 import org.h2.value.ValueString;
 import org.h2.value.ValueStringFixed;
@@ -90,6 +92,7 @@ public class Data {
     private static final int LOCAL_DATE = 133;
     private static final int LOCAL_TIMESTAMP = 134;
     private static final byte CUSTOM_DATA_TYPE = (byte)135;
+    private static final int ROW = 27;
 
     private static final long MILLIS_PER_MINUTE = 1000 * 60;
 
@@ -617,9 +620,10 @@ public class Data {
             }
             break;
         }
-        case Value.ARRAY: {
-            writeByte((byte) type);
-            Value[] list = ((ValueArray) v).getList();
+        case Value.ARRAY:
+        case Value.ROW: {
+            writeByte((byte) (type == Value.ARRAY ? Value.ARRAY : ROW));
+            Value[] list = ((ValueCollectionBase) v).getList();
             writeVarInt(list.length);
             for (Value x : list) {
                 writeValue(x);
@@ -848,13 +852,14 @@ public class Data {
                         objectId, precision, compression);
             }
         }
-        case Value.ARRAY: {
+        case Value.ARRAY:
+        case ROW: {
             int len = readVarInt();
             Value[] list = new Value[len];
             for (int i = 0; i < len; i++) {
                 list[i] = readValue();
             }
-            return ValueArray.get(list);
+            return type == Value.ARRAY ? ValueArray.get(list) : ValueRow.get(list);
         }
         case Value.RESULT_SET: {
             SimpleResult rs = new SimpleResult();
@@ -1082,8 +1087,9 @@ public class Data {
             }
             return len;
         }
-        case Value.ARRAY: {
-            Value[] list = ((ValueArray) v).getList();
+        case Value.ARRAY:
+        case Value.ROW: {
+            Value[] list = ((ValueCollectionBase) v).getList();
             int len = 1 + getVarIntLen(list.length);
             for (Value x : list) {
                 len += getValueLen(x, handler);

@@ -104,7 +104,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         long undoLogSize;
         do {
             committingTransactions = store.committingTransactions.get();
-            mapRootReference = map.getRoot();
+            mapRootReference = map.flushAndGetRoot();
             BitSet opentransactions = store.openTransactions.get();
             undoLogRootReferences = new MVMap.RootReference[opentransactions.length()];
             undoLogSize = 0;
@@ -113,7 +113,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                 if (undoLog != null) {
                     MVMap.RootReference rootReference = undoLog.getRoot();
                     undoLogRootReferences[i] = rootReference;
-                    undoLogSize += rootReference.root.getTotalCount() + rootReference.getAppendCounter();
+                    undoLogSize += rootReference.getTotalCount();
                 }
             }
         } while(committingTransactions != store.committingTransactions.get() ||
@@ -124,7 +124,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         // should be considered as committed.
         // Subsequent processing uses this snapshot info only.
         Page mapRootPage = mapRootReference.root;
-        long size = mapRootPage.getTotalCount();
+        long size = mapRootReference.getTotalCount();
         // if we are looking at the map without any uncommitted values
         if (undoLogSize == 0) {
             return size;
@@ -238,6 +238,16 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         TxDecisionMaker decisionMaker = new TxDecisionMaker.PutIfAbsentDecisionMaker(map.getId(), key, value,
                 transaction);
         return set(key, decisionMaker);
+    }
+
+    /**
+     * Appends entry to uderlying map. This method may be used concurrently,
+     * but latest appended values are not guaranteed to be visible.
+     * @param key should be higher in map's order than any existing key
+     * @param value to be appended
+     */
+    public void append(K key, V value) {
+        map.append(key, VersionedValue.getInstance(transaction.log(map.getId(), key, null), value, null));
     }
 
     /**
@@ -678,7 +688,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             MVMap.RootReference mapRootReference;
             do {
                 committingTransactions = store.committingTransactions.get();
-                mapRootReference = map.getRoot();
+                mapRootReference = map.flushAndGetRoot();
             } while (committingTransactions != store.committingTransactions.get());
             // Now we have a snapshot, where mapRootReference points to state of the map
             // and committingTransactions mask tells us which of seemingly uncommitted changes

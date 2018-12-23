@@ -1820,7 +1820,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     private static Row getRowFromVersionedValue(MVTable table, long recKey,
                                                 VersionedValue versionedValue) {
-        Object value = versionedValue == null ? null : versionedValue.value;
+        Object value = versionedValue == null ? null : versionedValue.getCurrentValue();
         if (value == null) {
             return null;
         }

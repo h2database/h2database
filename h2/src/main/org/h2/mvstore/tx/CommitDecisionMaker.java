@@ -36,7 +36,7 @@ final class CommitDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
             // see TxDecisionMaker.decide()
 
             decision = MVMap.Decision.ABORT;
-        } else /* this is final undo log entry for this key */ if (existingValue.value == null) {
+        } else /* this is final undo log entry for this key */ if (existingValue.getCurrentValue() == null) {
             decision = MVMap.Decision.REMOVE;
         } else {
             decision = MVMap.Decision.PUT;
@@ -49,7 +49,7 @@ final class CommitDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
     public VersionedValue selectValue(VersionedValue existingValue, VersionedValue providedValue) {
         assert decision == MVMap.Decision.PUT;
         assert existingValue != null;
-        return VersionedValue.getInstance(existingValue.value);
+        return VersionedValue.getInstance(existingValue.getCurrentValue());
     }
 
     @Override

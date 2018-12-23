@@ -146,7 +146,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                     int txId = TransactionStore.getTransactionId(operationId);
                     boolean isVisible = txId == transaction.transactionId ||
                                             committingTransactions.get(txId);
-                    Object v = isVisible ? currentValue.value : currentValue.getCommittedValue();
+                    Object v = isVisible ? currentValue.getCurrentValue() : currentValue.getCommittedValue();
                     if (v == null) {
                         --size;
                     }
@@ -177,7 +177,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                                     int txId = TransactionStore.getTransactionId(operationId);
                                     boolean isVisible = txId == transaction.transactionId ||
                                             committingTransactions.get(txId);
-                                    Object v = isVisible ? currentValue.value : currentValue.getCommittedValue();
+                                    Object v = isVisible ? currentValue.getCurrentValue() : currentValue.getCommittedValue();
                                     if (v == null) {
                                         --size;
                                     }
@@ -267,7 +267,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         VersionedValue newValue = VersionedValue.getInstance(value);
         VersionedValue oldValue = map.put(key, newValue);
         @SuppressWarnings("unchecked")
-        V result = (V) (oldValue == null ? null : oldValue.value);
+        V result = (V) (oldValue == null ? null : oldValue.getCurrentValue());
         return result;
     }
 
@@ -290,7 +290,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             // and any non-null value will do
             @SuppressWarnings("unchecked")
             K k = (K) key;
-            result = map.put(k, VersionedValue.DUMMY, decisionMaker);
+            result = map.put(k, VersionedValue.VV_NULL, decisionMaker);
 
             MVMap.Decision decision = decisionMaker.getDecision();
             assert decision != null;
@@ -300,7 +300,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                 transaction.blockingMap = null;
                 transaction.blockingKey = null;
                 @SuppressWarnings("unchecked")
-                V res = result == null ? null : (V) result.value;
+                V res = result == null ? null : (V) result.getCurrentValue();
                 return res;
             }
             decisionMaker.reset();
@@ -383,12 +383,12 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         long id = data.getOperationId();
         if (id == 0) {
             // it is committed
-            return (V)data.value;
+            return (V)data.getCurrentValue();
         }
         int tx = TransactionStore.getTransactionId(id);
         if (tx == transaction.transactionId || transaction.store.committingTransactions.get().get(tx)) {
             // added by this transaction or another transaction which is committed by now
-            return (V)data.value;
+            return (V) data.getCurrentValue();
         } else {
             return (V) data.getCommittedValue();
         }
@@ -657,7 +657,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         @Override
         @SuppressWarnings("unchecked")
         protected Map.Entry<K, V> registerCurrent(K key, VersionedValue data) {
-            return new AbstractMap.SimpleImmutableEntry<>(key, (V) data.value);
+            return new AbstractMap.SimpleImmutableEntry<>(key, (V) data.getCurrentValue());
         }
     }
 
@@ -717,7 +717,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                         }
                     }
                 }
-                if (data != null && (data.value != null ||
+                if (data != null && (data.getCurrentValue() != null ||
                         includeAllUncommitted && transactionId !=
                                                     TransactionStore.getTransactionId(data.getOperationId()))) {
                     current = registerCurrent(key, data);

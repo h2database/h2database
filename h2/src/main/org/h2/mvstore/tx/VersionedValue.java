@@ -9,6 +9,7 @@ import org.h2.engine.Constants;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.DataType;
+import org.h2.value.ValueNull;
 import java.nio.ByteBuffer;
 
 /**
@@ -19,25 +20,18 @@ import java.nio.ByteBuffer;
  */
 public class VersionedValue {
 
-    public static final VersionedValue DUMMY = new VersionedValue(new Object());
-
-    /**
-     * The current value.
-     */
-    public final Object value;
+    static final VersionedValue VV_NULL = new VersionedValue();
 
     static VersionedValue getInstance(Object value) {
         assert value != null;
-        return new VersionedValue(value);
+        return value == ValueNull.INSTANCE ? VV_NULL : new Committed(value);
     }
 
     public static VersionedValue getInstance(long operationId, Object value, Object committedValue) {
         return new Uncommitted(operationId, value, committedValue);
     }
 
-    VersionedValue(Object value) {
-        this.value = value;
-    }
+    private VersionedValue() {}
 
     public boolean isCommitted() {
         return true;
@@ -47,16 +41,40 @@ public class VersionedValue {
         return 0L;
     }
 
+    public Object getCurrentValue() {
+        return ValueNull.INSTANCE;
+    }
+
     public Object getCommittedValue() {
-        return value;
+        return ValueNull.INSTANCE;
     }
 
-    @Override
-    public String toString() {
-        return String.valueOf(value);
+    private static class Committed extends VersionedValue
+    {
+        /**
+         * The current value.
+         */
+        public final Object value;
+
+        Committed(Object value) {
+            this.value = value;
+        }
+
+        public Object getCurrentValue() {
+            return value;
+        }
+
+        public Object getCommittedValue() {
+            return value;
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(value);
+        }
     }
 
-    private static class Uncommitted extends VersionedValue
+    private static class Uncommitted extends Committed
     {
         private final long   operationId;
         private final Object committedValue;
@@ -107,7 +125,7 @@ public class VersionedValue {
             if(obj == null) return 0;
             VersionedValue v = (VersionedValue) obj;
             int res = Constants.MEMORY_OBJECT + 8 + 2 * Constants.MEMORY_POINTER +
-                    getValMemory(v.value);
+                    getValMemory(v.getCurrentValue());
             if (v.getOperationId() != 0) {
                 res += getValMemory(v.getCommittedValue());
             }
@@ -131,7 +149,7 @@ public class VersionedValue {
             VersionedValue b = (VersionedValue) bObj;
             long comp = a.getOperationId() - b.getOperationId();
             if (comp == 0) {
-                return valueType.compare(a.value, b.value);
+                return valueType.compare(a.getCurrentValue(), b.getCurrentValue());
             }
             return Long.signum(comp);
         }
@@ -141,7 +159,7 @@ public class VersionedValue {
             if (buff.get() == 0) {
                 // fast path (no op ids or null entries)
                 for (int i = 0; i < len; i++) {
-                    obj[i] = new VersionedValue(valueType.read(buff));
+                    obj[i] = new Committed(valueType.read(buff));
                 }
             } else {
                 // slow path (some entries may be null)
@@ -155,7 +173,7 @@ public class VersionedValue {
         public Object read(ByteBuffer buff) {
             long operationId = DataUtils.readVarLong(buff);
             if (operationId == 0) {
-                return new VersionedValue(valueType.read(buff));
+                return new Committed(valueType.read(buff));
             } else {
                 byte flags = buff.get();
                 Object value = (flags & 1) != 0 ? valueType.read(buff) : null;
@@ -169,7 +187,7 @@ public class VersionedValue {
             boolean fastPath = true;
             for (int i = 0; i < len; i++) {
                 VersionedValue v = (VersionedValue) obj[i];
-                if (v.getOperationId() != 0 || v.value == null) {
+                if (v.getOperationId() != 0 || v.getCurrentValue() == null) {
                     fastPath = false;
                 }
             }
@@ -177,7 +195,7 @@ public class VersionedValue {
                 buff.put((byte) 0);
                 for (int i = 0; i < len; i++) {
                     VersionedValue v = (VersionedValue) obj[i];
-                    valueType.write(buff, v.value);
+                    valueType.write(buff, v.getCurrentValue());
                 }
             } else {
                 // slow path:
@@ -195,13 +213,13 @@ public class VersionedValue {
             long operationId = v.getOperationId();
             buff.putVarLong(operationId);
             if (operationId == 0) {
-                valueType.write(buff, v.value);
+                valueType.write(buff, v.getCurrentValue());
             } else {
                 Object committedValue = v.getCommittedValue();
-                int flags = (v.value == null ? 0 : 1) | (committedValue == null ? 0 : 2);
+                int flags = (v.getCurrentValue() == null ? 0 : 1) | (committedValue == null ? 0 : 2);
                 buff.put((byte) flags);
-                if (v.value != null) {
-                    valueType.write(buff, v.value);
+                if (v.getCurrentValue() != null) {
+                    valueType.write(buff, v.getCurrentValue());
                 }
                 if (committedValue != null) {
                     valueType.write(buff, committedValue);

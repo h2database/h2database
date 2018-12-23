@@ -453,7 +453,7 @@ public class TransactionStore {
                             // used by CommitDecisionMaker, MVRTreeMap has weird
                             // traversal logic based on it, and any non-null
                             // value will do, to signify update, not removal
-                            map.operate(key, VersionedValue.DUMMY, commitDecisionMaker);
+                            map.operate(key, VersionedValue.VV_NULL, commitDecisionMaker);
                         }
                     }
                     undoLog.clear();
@@ -640,7 +640,7 @@ public class TransactionStore {
                     MVMap<Object, VersionedValue> m = openMap(mapId);
                     if (m != null) { // could be null if map was removed later on
                         VersionedValue oldValue = (VersionedValue) op[2];
-                        current = new Change(m.getName(), op[1], oldValue == null ? null : oldValue.value);
+                        current = new Change(m.getName(), op[1], oldValue == null ? null : oldValue.getCurrentValue());
                         return;
                     }
                 }

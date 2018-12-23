@@ -670,16 +670,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     public void commit(boolean ddl) {
         checkCommitRollback();
 
-        int rowCount = getDatabase().getSettings().analyzeSample / 10;
-        if (tablesToAnalyze != null) {
-            for (Table table : tablesToAnalyze) {
-                Analyze.analyzeTable(this, table, rowCount, false);
-            }
-            // analyze can lock the meta
-            database.unlockMeta(this);
-        }
-        tablesToAnalyze = null;
-
         currentTransactionName = null;
         transactionStart = null;
         if (transaction != null) {
@@ -703,6 +693,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             // (create/drop table and so on)
             database.commit(this);
         }
+        analyzeTables();
         removeTemporaryLobs(true);
         if (undoLog != null && undoLog.size() > 0) {
             undoLog.clear();
@@ -718,6 +709,18 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         }
 
         endTransaction();
+    }
+
+    private void analyzeTables() {
+        int rowCount = getDatabase().getSettings().analyzeSample / 10;
+        if (tablesToAnalyze != null) {
+            for (Table table : tablesToAnalyze) {
+                Analyze.analyzeTable(this, table, rowCount, false);
+            }
+            // analyze can lock the meta
+            database.unlockMeta(this);
+        }
+        tablesToAnalyze = null;
     }
 
     private void removeTemporaryLobs(boolean onTimeout) {

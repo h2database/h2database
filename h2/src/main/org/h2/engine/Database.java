@@ -855,6 +855,8 @@ public class Database implements DataHandler {
                 lockMeta(systemSession);
                 addDatabaseObject(systemSession, setting);
             }
+            setSortSetting(SetTypes.BINARY_COLLATION, SysProperties.SORT_BINARY_UNSIGNED);
+            setSortSetting(SetTypes.UUID_COLLATION, SysProperties.SORT_UUID_UNSIGNED);
             // mark all ids used in the page store
             if (pageStore != null) {
                 BitSet f = pageStore.getObjectIds();
@@ -875,6 +877,15 @@ public class Database implements DataHandler {
         }
     }
 
+    private void setSortSetting(int type, boolean defValue) {
+        String name = SetTypes.getTypeName(type);
+        if (settings.get(name) == null) {
+            Setting setting = new Setting(this, allocateObjectId(), name);
+            setting.setStringValue(defValue ? CompareMode.UNSIGNED : CompareMode.SIGNED);
+            lockMeta(systemSession);
+            addDatabaseObject(systemSession, setting);
+        }
+    }
 
     private void handleUpgradeIssues() {
         if (store != null && !isReadOnly()) {

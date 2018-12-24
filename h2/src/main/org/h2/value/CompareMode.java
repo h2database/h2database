@@ -80,7 +80,8 @@ public class CompareMode implements Comparator<Value> {
     private final boolean binaryUnsigned;
 
     /**
-     * If true, sort UUID columns as if they contain unsigned bytes instead of Java-compatible sorting.
+     * If true, sort UUID columns as if they contain unsigned bytes instead of
+     * Java-compatible sorting.
      */
     private final boolean uuidUnsigned;
 

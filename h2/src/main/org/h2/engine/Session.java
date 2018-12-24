@@ -693,7 +693,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             // (create/drop table and so on)
             database.commit(this);
         }
-        analyzeTables();
         removeTemporaryLobs(true);
         if (undoLog != null && undoLog.size() > 0) {
             undoLog.clear();
@@ -708,18 +707,26 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             }
         }
 
+        if (tablesToAnalyze != null) {
+            if (database.isMVStore()) {
+                // table analysis will cause a new transaction(s) to be opened,
+                // so we need to commit afterwards whatever leftovers might be
+                analyzeTables();
+                commit(true);
+            } else {
+                analyzeTables();
+            }
+        }
         endTransaction();
     }
 
     private void analyzeTables() {
         int rowCount = getDatabase().getSettings().analyzeSample / 10;
-        if (tablesToAnalyze != null) {
-            for (Table table : tablesToAnalyze) {
-                Analyze.analyzeTable(this, table, rowCount, false);
-            }
-            // analyze can lock the meta
-            database.unlockMeta(this);
+        for (Table table : tablesToAnalyze) {
+            Analyze.analyzeTable(this, table, rowCount, false);
         }
+        // analyze can lock the meta
+        database.unlockMeta(this);
         tablesToAnalyze = null;
     }
 

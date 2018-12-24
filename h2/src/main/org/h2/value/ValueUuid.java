@@ -172,15 +172,30 @@ public class ValueUuid extends Value {
             return 0;
         }
         ValueUuid v = (ValueUuid) o;
-        if (high == v.high) {
-            return Long.compare(low, v.low);
+        long v1 = high, v2 = v.high;
+        if (v1 == v2) {
+            v1 = low;
+            v2 = v.low;
+            if (mode.isUuidUnsigned()) {
+                v1 += Long.MIN_VALUE;
+                v2 += Long.MIN_VALUE;
+            }
+            return Long.compare(v1, v2);
         }
-        return high > v.high ? 1 : -1;
+        if (mode.isUuidUnsigned()) {
+            v1 += Long.MIN_VALUE;
+            v2 += Long.MIN_VALUE;
+        }
+        return v1 > v2 ? 1 : -1;
     }
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof ValueUuid && compareTypeSafe((Value) other, null) == 0;
+        if (!(other instanceof ValueUuid)) {
+            return false;
+        }
+        ValueUuid v = (ValueUuid) other;
+        return high == v.high && low == v.low;
     }
 
     @Override

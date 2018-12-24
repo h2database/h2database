@@ -1689,8 +1689,12 @@ public class PageStore implements CacheWriter {
             if (options.length > 3) {
                 binaryUnsigned = Boolean.parseBoolean(options[3]);
             }
+            boolean uuidUnsigned = SysProperties.SORT_UUID_UNSIGNED;
+            if (options.length > 4) {
+                uuidUnsigned = Boolean.parseBoolean(options[4]);
+            }
             CompareMode mode = CompareMode.getInstance(
-                    options[0], Integer.parseInt(options[1]), binaryUnsigned);
+                    options[0], Integer.parseInt(options[1]), binaryUnsigned, uuidUnsigned);
             table.setCompareMode(mode);
             meta = table.getScanIndex(session);
         } else {
@@ -1775,21 +1779,22 @@ public class PageStore implements CacheWriter {
             }
             String columnList = buff.toString();
             CompareMode mode = table.getCompareMode();
-            String options = mode.getName()+ "," + mode.getStrength() + ",";
+            StringBuilder options = new StringBuilder().append(mode.getName()).append(',').append(mode.getStrength())
+                    .append(',');
             if (table.isTemporary()) {
-                options += "temp";
+                options.append("temp");
             }
-            options += ",";
+            options.append(',');
             if (index instanceof PageDelegateIndex) {
-                options += "d";
+                options.append('d');
             }
-            options += "," + mode.isBinaryUnsigned();
+            options.append(',').append(mode.isBinaryUnsigned()).append(',').append(mode.isUuidUnsigned());
             Row row = metaTable.getTemplateRow();
             row.setValue(0, ValueInt.get(index.getId()));
             row.setValue(1, ValueInt.get(type));
             row.setValue(2, ValueInt.get(table.getId()));
             row.setValue(3, ValueInt.get(index.getRootPageId()));
-            row.setValue(4, ValueString.get(options));
+            row.setValue(4, ValueString.get(options.toString()));
             row.setValue(5, ValueString.get(columnList));
             row.setKey(index.getId() + 1);
             metaIndex.add(session, row);

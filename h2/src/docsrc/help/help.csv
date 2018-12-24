@@ -1248,8 +1248,7 @@ SET CLUSTER ''
 "
 
 "Commands (Other)","SET BINARY_COLLATION","
-SET BINARY_COLLATION
-{ UNSIGNED | SIGNED } ] }
+SET BINARY_COLLATION { UNSIGNED | SIGNED }
 ","
 Sets the collation used for comparing BINARY columns, the default is SIGNED
 for version 1.3 and older, and UNSIGNED for version 1.4 and newer.
@@ -1263,8 +1262,7 @@ SET BINARY_COLLATION SIGNED
 "
 
 "Commands (Other)","SET BUILTIN_ALIAS_OVERRIDE","
-SET BUILTIN_ALIAS_OVERRIDE
-{ TRUE | FALSE } ] }
+SET BUILTIN_ALIAS_OVERRIDE { TRUE | FALSE }
 ","
 Allows the overriding of the builtin system date/time functions
 for unit testing purposes.
@@ -1435,7 +1433,6 @@ This setting can be appended to the database URL: ""jdbc:h2:test;JAVA_OBJECT_SER
 ","
 SET JAVA_OBJECT_SERIALIZER 'com.acme.SerializerClassName'
 "
-
 
 "Commands (Other)","SET LAZY_QUERY_EXECUTION","
 SET LAZY_QUERY_EXECUTION int
@@ -3206,7 +3203,6 @@ ARRAY
 An array of values.
 Mapped to ""java.lang.Object[]"" (arrays of any non-primitive type are also supported).
 
-
 Use a value list (1, 2) or ""PreparedStatement.setObject(.., new Object[] {..})"" to store values,
 and ""ResultSet.getObject(..)"" or ""ResultSet.getArray(..)"" to retrieve the values.
 ","
@@ -4377,7 +4373,6 @@ Later flags overrides first ones, for example 'ic' equivalent to case sensitive 
 REGEXP_LIKE('Hello    World', '[A-Z ]*', 'i')
 "
 
-
 "Functions (String)","REPEAT","
 REPEAT(string, int)
 ","
@@ -5517,4 +5512,3 @@ Contains all values from start to end (this is a dynamic table).
 ","
 SYSTEM_RANGE(0, 100)
 "
-

@@ -96,8 +96,8 @@ public class InPlaceStableMergeSort<T> {
         for (int i = from + 1; i <= to; i++) {
             T x = data[i];
             int ins = binarySearch(x, from, i - 1);
-            for (int j = i - 1; j >= ins; j--) {
-                data[j + 1] = data[j];
+            if (i - ins >= 0){
+                System.arraycopy(data, ins, data, ins + 1, i - ins);
             }
             data[ins] = x;
         }

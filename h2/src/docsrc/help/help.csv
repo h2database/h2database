@@ -1261,6 +1261,24 @@ This setting is persistent.
 SET BINARY_COLLATION SIGNED
 "
 
+"Commands (Other)","SET UUID_COLLATION","
+SET UUID_COLLATION { UNSIGNED | SIGNED }
+","
+Sets the collation used for comparing UUID columns, the default is SIGNED.
+This command can only be executed if there are no tables defined.
+
+SIGNED means signed comparison between first 64 bits of compared values treated as long values
+and if they are equal a signed comparison of the last 64 bits of compared values treated as long values.
+See also Java ""UUID.compareTo()"".
+UNSIGNED means RFC 4122 compatible unsigned comparison.
+
+Admin rights are required to execute this command.
+This command commits an open transaction in this connection.
+This setting is persistent.
+","
+SET UUID_COLLATION UNSIGNED
+"
+
 "Commands (Other)","SET BUILTIN_ALIAS_OVERRIDE","
 SET BUILTIN_ALIAS_OVERRIDE { TRUE | FALSE }
 ","

@@ -24,6 +24,14 @@ public class TestAnalyzeTableTx extends TestDb {
     }
 
     @Override
+    public boolean isEnabled() {
+        if (config.networked && config.big) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public void test() throws Exception {
         deleteDb(getTestName());
         Connection shared = getConnection(getTestName());

@@ -10,6 +10,7 @@ import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.Page;
 import org.h2.mvstore.type.DataType;
+import org.h2.value.VersionedValue;
 
 import java.util.AbstractMap;
 import java.util.AbstractSet;
@@ -264,7 +265,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      */
     public V putCommitted(K key, V value) {
         DataUtils.checkArgument(value != null, "The value may not be null");
-        VersionedValue newValue = VersionedValue.getInstance(value);
+        VersionedValue newValue = VersionedValueCommitted.getInstance(value);
         VersionedValue oldValue = map.put(key, newValue);
         @SuppressWarnings("unchecked")
         V result = (V) (oldValue == null ? null : oldValue.getCurrentValue());
@@ -712,7 +713,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                                 // current value comes from another uncommitted transaction
                                 // take committed value instead
                                 Object committedValue = data.getCommittedValue();
-                                data = committedValue == null ? null : VersionedValue.getInstance(committedValue);
+                                data = committedValue == null ? null : VersionedValueCommitted.getInstance(committedValue);
                             }
                         }
                     }

@@ -20,6 +20,7 @@ import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
 import org.h2.util.StringUtils;
+import org.h2.value.VersionedValue;
 
 /**
  * A store that supports concurrent MVCC read-committed transactions.
@@ -128,14 +129,14 @@ public class TransactionStore {
         this.timeoutMillis = timeoutMillis;
         preparedTransactions = store.openMap("openTransactions",
                 new MVMap.Builder<Integer, Object[]>());
-        DataType oldValueType = new VersionedValue.Type(dataType);
+        DataType oldValueType = new VersionedValueType(dataType);
         ArrayType undoLogValueType = new ArrayType(new DataType[]{
                 new ObjectDataType(), dataType, oldValueType
         });
         undoLogBuilder = new MVMap.Builder<Long, Object[]>()
                 .singleWriter()
                 .valueType(undoLogValueType);
-        DataType vt = new VersionedValue.Type(dataType);
+        DataType vt = new VersionedValueType(dataType);
         mapBuilder = new MVMap.Builder<Object, VersionedValue>()
                             .keyType(dataType).valueType(vt);
     }
@@ -494,7 +495,7 @@ public class TransactionStore {
         if (valueType == null) {
             valueType = new ObjectDataType();
         }
-        VersionedValue.Type vt = new VersionedValue.Type(valueType);
+        VersionedValueType vt = new VersionedValueType(valueType);
         MVMap<K, VersionedValue> map;
         MVMap.Builder<K, VersionedValue> builder =
                 new MVMap.Builder<K, VersionedValue>().

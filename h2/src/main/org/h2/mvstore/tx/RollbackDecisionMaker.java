@@ -6,6 +6,7 @@
 package org.h2.mvstore.tx;
 
 import org.h2.mvstore.MVMap;
+import org.h2.value.VersionedValue;
 
 /**
  * Class RollbackDecisionMaker process undo log record during transaction rollback.

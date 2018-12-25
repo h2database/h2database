@@ -6,6 +6,7 @@
 package org.h2.mvstore.tx;
 
 import org.h2.mvstore.MVMap;
+import org.h2.value.VersionedValue;
 
 /**
  * Class CommitDecisionMaker makes a decision during post-commit processing
@@ -49,7 +50,7 @@ final class CommitDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
     public VersionedValue selectValue(VersionedValue existingValue, VersionedValue providedValue) {
         assert decision == MVMap.Decision.PUT;
         assert existingValue != null;
-        return VersionedValue.getInstance(existingValue.getCurrentValue());
+        return VersionedValueCommitted.getInstance(existingValue.getCurrentValue());
     }
 
     @Override

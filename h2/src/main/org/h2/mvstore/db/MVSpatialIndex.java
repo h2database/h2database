@@ -28,7 +28,8 @@ import org.h2.mvstore.rtree.MVRTreeMap.RTreeCursor;
 import org.h2.mvstore.rtree.SpatialKey;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionMap;
-import org.h2.mvstore.tx.VersionedValue;
+import org.h2.mvstore.tx.VersionedValueType;
+import org.h2.value.VersionedValue;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -98,7 +99,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         }
         String mapName = "index." + getId();
         ValueDataType vt = new ValueDataType(db, null);
-        VersionedValue.Type valueType = new VersionedValue.Type(vt);
+        VersionedValueType valueType = new VersionedValueType(vt);
         MVRTreeMap.Builder<VersionedValue> mapBuilder =
                 new MVRTreeMap.Builder<VersionedValue>().
                 valueType(valueType);

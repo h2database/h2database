@@ -468,7 +468,7 @@ public class Transaction {
         if (status != STATUS_OPEN) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_TRANSACTION_ILLEGAL_STATE,
-                    "Transaction {0} has status {1}, not open", transactionId, status);
+                    "Transaction {0} has status {1}, not OPEN", transactionId, STATUS_NAMES[status]);
         }
     }
 

@@ -257,7 +257,12 @@ public class SetTypes {
      */
     public static final int LOCAL_RESULT_FACTORY = 49;
 
-    private static final int COUNT = LOCAL_RESULT_FACTORY + 1;
+    /**
+     * The type of a SET UUID_COLLATION statement.
+     */
+    public static final int UUID_COLLATION = 50;
+
+    private static final int COUNT = UUID_COLLATION + 1;
 
     private static final ArrayList<String> TYPES;
 
@@ -317,6 +322,7 @@ public class SetTypes {
         list.add(COLUMN_NAME_RULES, "COLUMN_NAME_RULES");
         list.add(AUTHENTICATOR, "AUTHENTICATOR");
         list.add(LOCAL_RESULT_FACTORY, "LOCAL_RESULT_FACTORY");
+        list.add(UUID_COLLATION, "UUID_COLLATION");
         TYPES = list;
     }
 

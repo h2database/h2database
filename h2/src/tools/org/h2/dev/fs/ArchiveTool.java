@@ -476,9 +476,7 @@ public class ArchiveTool {
                     if (last == null) {
                         last = c;
                     } else if (last.compareTo(c) == 0) {
-                        for (long x : c.idList) {
-                            last.idList.add(x);
-                        }
+                        last.idList.addAll(c.idList);
                     } else {
                         outPos += last.write(tempOut2, true);
                         last = c;
@@ -520,9 +518,7 @@ public class ArchiveTool {
             if (last == null) {
                 last = c;
             } else if (last.compareTo(c) == 0) {
-                for (long x : c.idList) {
-                    last.idList.add(x);
-                }
+                last.idList.addAll(c.idList);
             } else {
                 last.write(dataOut, false);
                 last = c;

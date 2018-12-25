@@ -21,6 +21,7 @@ import org.h2.test.auth.TestAuthentication;
 import org.h2.test.bench.TestPerformance;
 import org.h2.test.db.TestAlter;
 import org.h2.test.db.TestAlterSchemaRename;
+import org.h2.test.db.TestAnalyzeTableTx;
 import org.h2.test.db.TestAutoRecompile;
 import org.h2.test.db.TestBackup;
 import org.h2.test.db.TestBigDb;
@@ -845,6 +846,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestMvccMultiThreaded());
         addTest(new TestMvccMultiThreaded2());
         addTest(new TestRowLocks());
+        addTest(new TestAnalyzeTableTx());
 
         // synth
         addTest(new TestBtreeIndex());

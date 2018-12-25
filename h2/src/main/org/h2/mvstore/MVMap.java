@@ -822,6 +822,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
 
         RootReference previous = currentRoot;
+        int appendCounter = 0;
         long updateCounter = 1;
         long newVersion = INITIAL_VERSION;
         if(currentRoot != null) {
@@ -835,12 +836,13 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
             newVersion = currentRoot.version;
             previous = currentRoot.previous;
+            appendCounter = currentRoot.getAppendCounter();
             updateCounter += currentRoot.updateCounter;
             attemptUpdateCounter += currentRoot.updateAttemptCounter;
         }
 
-        RootReference updatedRootReference = new RootReference(newRootPage, newVersion, previous, updateCounter,
-                                                                attemptUpdateCounter);
+        RootReference updatedRootReference = new RootReference(newRootPage, newVersion, previous, appendCounter,
+                                                                updateCounter, attemptUpdateCounter);
         boolean success = root.compareAndSet(currentRoot, updatedRootReference);
         return success ? updatedRootReference : null;
     }
@@ -1416,14 +1418,14 @@ public class MVMap<K, V> extends AbstractMap<K, V>
          */
         public  final    byte          appendCounter;
 
-        RootReference(Page root, long version, RootReference previous, long updateCounter, long updateAttemptCounter) {
+        RootReference(Page root, long version, RootReference previous, int appendCounter, long updateCounter, long updateAttemptCounter) {
             this.root = root;
             this.version = version;
             this.previous = previous;
             this.updateCounter = updateCounter;
             this.updateAttemptCounter = updateAttemptCounter;
             this.lockedForUpdate = false;
-            this.appendCounter = 0;
+            this.appendCounter = (byte)appendCounter;
         }
 
         // This one is used for locking

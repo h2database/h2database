@@ -111,7 +111,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             for (int i = opentransactions.nextSetBit(0); i >= 0; i = opentransactions.nextSetBit(i+1)) {
                 MVMap<Long, Object[]> undoLog = store.undoLogs[i];
                 if (undoLog != null) {
-                    MVMap.RootReference rootReference = undoLog.getRoot();
+                    MVMap.RootReference rootReference = undoLog.flushAndGetRoot();
                     undoLogRootReferences[i] = rootReference;
                     undoLogSize += rootReference.getTotalCount();
                 }

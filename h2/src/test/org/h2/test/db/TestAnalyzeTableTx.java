@@ -25,7 +25,7 @@ public class TestAnalyzeTableTx extends TestDb {
 
     @Override
     public boolean isEnabled() {
-        if (config.networked && config.big) {
+        if (config.networked || config.big) {
             return false;
         }
         return true;

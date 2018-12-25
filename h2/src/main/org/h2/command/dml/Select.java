@@ -72,7 +72,7 @@ public class Select extends Query {
     /**
      * The main (top) table filter.
      */
-    private TableFilter topTableFilter;
+    TableFilter topTableFilter;
 
     private final ArrayList<TableFilter> filters = Utils.newSmallArrayList();
     private final ArrayList<TableFilter> topFilters = Utils.newSmallArrayList();
@@ -83,7 +83,7 @@ public class Select extends Query {
     /**
      * The visible columns (the ones required in the result).
      */
-    private int visibleColumnCount;
+    int visibleColumnCount;
 
     /**
      * {@code DISTINCT ON(...)} expressions.
@@ -98,17 +98,17 @@ public class Select extends Query {
     /**
      * The indexes of the group-by columns.
      */
-    private int[] groupIndex;
+    int[] groupIndex;
 
     /**
      * Whether a column in the expression list is part of a group-by.
      */
-    private boolean[] groupByExpression;
+    boolean[] groupByExpression;
 
-    private SelectGroups groupData;
+    SelectGroups groupData;
 
     private int havingIndex;
-    private boolean isGroupQuery;
+    boolean isGroupQuery;
     private boolean isGroupSortedQuery;
     private boolean isWindowQuery;
     private boolean isForUpdate, isForUpdateMvcc;

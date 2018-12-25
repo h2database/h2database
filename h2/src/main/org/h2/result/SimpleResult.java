@@ -19,17 +19,17 @@ public class SimpleResult implements ResultInterface {
 
     static final class Column {
 
-        private final String alias;
+        final String alias;
 
-        private final String columnName;
+        final String columnName;
 
-        private final int columnType;
+        final int columnType;
 
-        private final long columnPrecision;
+        final long columnPrecision;
 
-        private final int columnScale;
+        final int columnScale;
 
-        private final int displaySize;
+        final int displaySize;
 
         Column(String alias, String columnName, int columnType, long columnPrecision, int columnScale,
                 int displaySize) {

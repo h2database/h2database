@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Set;
-
 import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;

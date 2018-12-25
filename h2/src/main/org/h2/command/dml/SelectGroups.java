@@ -355,7 +355,6 @@ public abstract class SelectGroups {
 
     /**
      * Update group-by data specified by implementation.
-     * The
      */
     abstract void updateCurrentGroupExprData();
 

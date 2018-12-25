@@ -466,7 +466,7 @@ public abstract class Query extends Prepared {
     }
 
     /**
-     * Initialize the order or distinct expressions.
+     * Initialize the 'ORDER BY' or 'DISTINCT' expressions.
      *
      * @param session the session
      * @param expressions the select list expressions

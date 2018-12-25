@@ -55,6 +55,8 @@ public class H2AuthConfig {
     }
 
     /**
+     * Gets configuration of authentication realms.
+     *
      * @return configuration of authentication realms.
      */
     public List<RealmConfig> getRealms() {
@@ -65,6 +67,8 @@ public class H2AuthConfig {
     }
 
     /**
+     * Sets configuration of authentication realms.
+     *
      * @param realms configuration of authentication realms.
      */
     public void setRealms(List<RealmConfig> realms) {
@@ -72,6 +76,8 @@ public class H2AuthConfig {
     }
 
     /**
+     * Gets configuration of the mappers external users to database roles.
+     *
      * @return configuration of the mappers external users to database roles.
      */
     public List<UserToRolesMapperConfig> getUserToRolesMappers() {
@@ -82,6 +88,8 @@ public class H2AuthConfig {
     }
 
     /**
+     * Sets configuration of the mappers external users to database roles.
+     *
      * @param userToRolesMappers configuration of the mappers external users to database roles.
      */
     public void setUserToRolesMappers(List<UserToRolesMapperConfig> userToRolesMappers) {

@@ -6653,7 +6653,10 @@ public class Parser {
             return parseSetCollation();
         } else if (readIf("BINARY_COLLATION")) {
             readIfEqualOrTo();
-            return parseSetBinaryCollation();
+            return parseSetBinaryCollation(SetTypes.BINARY_COLLATION);
+        } else if (readIf("UUID_COLLATION")) {
+            readIfEqualOrTo();
+            return parseSetBinaryCollation(SetTypes.UUID_COLLATION);
         } else if (readIf("CLUSTER")) {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.CLUSTER);
@@ -6842,14 +6845,14 @@ public class Parser {
         return command;
     }
 
-    private Set parseSetBinaryCollation() {
+    private Set parseSetBinaryCollation(int type) {
         String name = readAliasIdentifier();
         if (equalsToken(name, CompareMode.UNSIGNED) || equalsToken(name, CompareMode.SIGNED)) {
-            Set command = new Set(session, SetTypes.BINARY_COLLATION);
+            Set command = new Set(session, type);
             command.setString(name);
             return command;
         }
-        throw DbException.getInvalidValueException("BINARY_COLLATION", name);
+        throw DbException.getInvalidValueException(SetTypes.getTypeName(type), name);
     }
 
     private Set parseSetJavaObjectSerializer() {

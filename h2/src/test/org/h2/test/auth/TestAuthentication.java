@@ -49,6 +49,8 @@ public class TestAuthentication extends TestBase {
             + "</realm>"
             + "</h2Auth>";
 
+    private static final String JAAS_CONFIG_NAME = "testJaasH2";
+
     private String externalUserPassword;
     private DefaultAuthenticator defaultAuthenticator;
     private Session session;
@@ -63,7 +65,12 @@ public class TestAuthentication extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    private String getExternalUserPassword() {
+    /**
+     * Gets external user password.
+     *
+     * @return external user password.
+     */
+    String getExternalUserPassword() {
         if (externalUserPassword == null) {
             externalUserPassword = UUID.randomUUID().toString();
         }
@@ -74,10 +81,6 @@ public class TestAuthentication extends TestBase {
         return "testRealm";
     }
 
-    private String getJaasConfigName() {
-        return "testJaasH2";
-    }
-
     private String getStaticRoleName() {
         return "staticRole";
     }
@@ -86,7 +89,7 @@ public class TestAuthentication extends TestBase {
         defaultAuthenticator = new DefaultAuthenticator(true);
         defaultAuthenticator.setAllowUserRegistration(true);
         defaultAuthenticator.setCreateMissingRoles(true);
-        defaultAuthenticator.addRealm(getRealmName(), new JaasCredentialsValidator(getJaasConfigName()));
+        defaultAuthenticator.addRealm(getRealmName(), new JaasCredentialsValidator(JAAS_CONFIG_NAME));
         defaultAuthenticator.addRealm(getRealmName() + "_STATIC",
                 new StaticUserCredentialsValidator("staticuser[0-9]", "staticpassword"));
         defaultAuthenticator.setUserToRolesMappers(new AssignRealmNameRole("@%s"),
@@ -99,7 +102,7 @@ public class TestAuthentication extends TestBase {
         Configuration.setConfiguration(new Configuration() {
             @Override
             public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
-                if (name.equals(getJaasConfigName())) {
+                if (name.equals(JAAS_CONFIG_NAME)) {
                     HashMap<String, String> options = new HashMap<>();
                     options.put("password", getExternalUserPassword());
                     return new AppConfigurationEntry[] { new AppConfigurationEntry(MyLoginModule.class.getName(),

@@ -17,19 +17,38 @@ public class RealmConfig implements HasConfigProperties {
     private String validatorClass;
     private List<PropertyConfig> properties;
 
+    /**
+     * Gets realm's name.
+     *
+     * @return realm's name.
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets realm's name.
+     *
+     * @param name realm's name.
+     */
     public void setName(String name) {
         this.name = name;
     }
 
-
+    /**
+     * Gets validator class name.
+     *
+     * @return validator class name.
+     */
     public String getValidatorClass() {
         return validatorClass;
     }
 
+    /**
+     * Sets validator class name.
+     *
+     * @param  validatorClass validator class name.
+     */
     public void setValidatorClass(String validatorClass) {
         this.validatorClass = validatorClass;
     }

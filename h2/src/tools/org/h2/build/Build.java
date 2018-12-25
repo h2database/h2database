@@ -686,9 +686,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-queryparser-5.5.5.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
-                File.pathSeparator + "ext/jts-core-1.15.0.jar" +
-                File.pathSeparator + "ext/asm-6.1.jar" +
-                File.pathSeparator + "ext/junit-4.12.jar",
+                File.pathSeparator + "ext/jts-core-1.15.0.jar",
                 "-subpackages", "org.h2.mvstore",
                 "-exclude", "org.h2.mvstore.db");
 

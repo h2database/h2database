@@ -9,7 +9,6 @@ import org.h2.engine.Constants;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.DataType;
-import org.h2.value.ValueNull;
 import java.nio.ByteBuffer;
 
 /**
@@ -20,18 +19,18 @@ import java.nio.ByteBuffer;
  */
 public class VersionedValue {
 
-    static final VersionedValue VV_NULL = new VersionedValue();
+    static final VersionedValue DUMMY = new VersionedValue();
 
     static VersionedValue getInstance(Object value) {
         assert value != null;
-        return value == ValueNull.INSTANCE ? VV_NULL : new Committed(value);
+        return value instanceof VersionedValue ? (VersionedValue)value : new Committed(value);
     }
 
     public static VersionedValue getInstance(long operationId, Object value, Object committedValue) {
         return new Uncommitted(operationId, value, committedValue);
     }
 
-    private VersionedValue() {}
+    protected VersionedValue() {}
 
     public boolean isCommitted() {
         return true;
@@ -42,11 +41,11 @@ public class VersionedValue {
     }
 
     public Object getCurrentValue() {
-        return ValueNull.INSTANCE;
+        return this;
     }
 
     public Object getCommittedValue() {
-        return ValueNull.INSTANCE;
+        return this;
     }
 
     private static class Committed extends VersionedValue
@@ -159,7 +158,7 @@ public class VersionedValue {
             if (buff.get() == 0) {
                 // fast path (no op ids or null entries)
                 for (int i = 0; i < len; i++) {
-                    obj[i] = new Committed(valueType.read(buff));
+                    obj[i] = getInstance(valueType.read(buff));
                 }
             } else {
                 // slow path (some entries may be null)
@@ -173,7 +172,7 @@ public class VersionedValue {
         public Object read(ByteBuffer buff) {
             long operationId = DataUtils.readVarLong(buff);
             if (operationId == 0) {
-                return new Committed(valueType.read(buff));
+                return getInstance(valueType.read(buff));
             } else {
                 byte flags = buff.get();
                 Object value = (flags & 1) != 0 ? valueType.read(buff) : null;

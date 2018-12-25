@@ -453,7 +453,7 @@ public class TransactionStore {
                             // used by CommitDecisionMaker, MVRTreeMap has weird
                             // traversal logic based on it, and any non-null
                             // value will do, to signify update, not removal
-                            map.operate(key, VersionedValue.VV_NULL, commitDecisionMaker);
+                            map.operate(key, VersionedValue.DUMMY, commitDecisionMaker);
                         }
                     }
                     undoLog.clear();

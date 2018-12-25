@@ -23,6 +23,7 @@ import org.h2.api.IntervalQualifier;
 import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
+import org.h2.mvstore.tx.VersionedValue;
 import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
 import org.h2.store.DataHandler;
@@ -40,7 +41,7 @@ import org.h2.util.StringUtils;
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
-public abstract class Value {
+public abstract class Value extends VersionedValue {
 
     /**
      * The data type is unknown at this time.

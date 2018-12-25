@@ -290,7 +290,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             // and any non-null value will do
             @SuppressWarnings("unchecked")
             K k = (K) key;
-            result = map.put(k, VersionedValue.VV_NULL, decisionMaker);
+            result = map.put(k, VersionedValue.DUMMY, decisionMaker);
 
             MVMap.Decision decision = decisionMaker.getDecision();
             assert decision != null;

@@ -108,6 +108,9 @@ public class Select extends Query {
     SelectGroups groupData;
 
     private int havingIndex;
+
+    private int[] groupByCopies;
+
     boolean isGroupQuery;
     private boolean isGroupSortedQuery;
     private boolean isWindowQuery;
@@ -462,7 +465,8 @@ public class Select extends Query {
 
     void updateAgg(int columnCount, int stage) {
         for (int i = 0; i < columnCount; i++) {
-            if (groupByExpression == null || !groupByExpression[i]) {
+            if ((groupByExpression == null || !groupByExpression[i])
+                    && (groupByCopies == null || groupByCopies[i] < 0)) {
                 Expression expr = expressions.get(i);
                 expr.updateAggregate(session, stage);
             }
@@ -479,6 +483,13 @@ public class Select extends Query {
             for (int j = 0; j < columnCount; j++) {
                 if (groupByExpression != null && groupByExpression[j]) {
                     continue;
+                }
+                if (groupByCopies != null) {
+                    int original = groupByCopies[j];
+                    if (original >= 0) {
+                        row[j] = row[original];
+                        continue;
+                    }
                 }
                 Expression expr = expressions.get(j);
                 row[j] = expr.getValue(session);
@@ -1047,7 +1058,7 @@ public class Select extends Query {
                 for (int j = 0; j < expSize; j++) {
                     String s2 = expressionSQL.get(j);
                     if (db.equalsIdentifiers(s2, sql)) {
-                        found = j;
+                        found = mergeGroupByExpressions(db, j, expressionSQL, false);
                         break;
                     }
                 }
@@ -1056,12 +1067,12 @@ public class Select extends Query {
                     for (int j = 0; j < expSize; j++) {
                         Expression e = expressions.get(j);
                         if (db.equalsIdentifiers(sql, e.getAlias())) {
-                            found = j;
+                            found = mergeGroupByExpressions(db, j, expressionSQL, true);
                             break;
                         }
                         sql = expr.getAlias();
                         if (db.equalsIdentifiers(sql, e.getAlias())) {
-                            found = j;
+                            found = mergeGroupByExpressions(db, j, expressionSQL, true);
                             break;
                         }
                     }
@@ -1073,6 +1084,14 @@ public class Select extends Query {
                 } else {
                     groupIndex[i] = found;
                 }
+            }
+            checkUsed: if (groupByCopies != null) {
+                for (int i : groupByCopies) {
+                    if (i >= 0) {
+                        break checkUsed;
+                    }
+                }
+                groupByCopies = null;
             }
             groupByExpression = new boolean[expressions.size()];
             for (int gi : groupIndex) {
@@ -1090,6 +1109,50 @@ public class Select extends Query {
             expr.mapColumns(res, 0, Expression.MAP_INITIAL);
         }
         checkInit = true;
+    }
+
+    private int mergeGroupByExpressions(Database db, int index, ArrayList<String> expressionSQL, boolean scanPrevious)
+    {
+        /*
+         * -1: uniqueness of expression is not known yet
+         *
+         * -2: expression that is used as a source for a copy or does not have
+         * copies
+         *
+         * >=0: expression is a copy of expression at this index
+         */
+        if (groupByCopies != null) {
+            int c = groupByCopies[index];
+            if (c >= 0) {
+                return c;
+            } else if (c == -2) {
+                return index;
+            }
+        } else {
+            groupByCopies = new int[expressionSQL.size()];
+            Arrays.fill(groupByCopies, -1);
+        }
+        String sql = expressionSQL.get(index);
+        if (scanPrevious) {
+            /*
+             * If expression was matched using an alias previous expressions may
+             * be identical.
+             */
+            for (int i = 0; i < index; i++) {
+                if (db.equalsIdentifiers(sql, expressionSQL.get(i))) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+        int l = expressionSQL.size();
+        for (int i = index + 1; i < l; i++) {
+            if (db.equalsIdentifiers(sql, expressionSQL.get(i))) {
+                groupByCopies[i] = index;
+            }
+        }
+        groupByCopies[index] = -2;
+        return index;
     }
 
     @Override

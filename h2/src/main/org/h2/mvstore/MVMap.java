@@ -1317,7 +1317,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return rootReference;
     }
 
-    private Page replacePage(CursorPos path, Page replacement, IntValueHolder unsavedMemoryHolder) {
+    private static Page replacePage(CursorPos path, Page replacement, IntValueHolder unsavedMemoryHolder) {
         int unsavedMemory = replacement.getMemory();
         while (path != null) {
             Page child = replacement;
@@ -1363,17 +1363,17 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     public void trimLast() {
         RootReference rootReference = getRoot();
         int appendCounter = rootReference.getAppendCounter();
-        boolean fallback = appendCounter == 0;
-        if (!fallback) {
+        boolean useRegularRemove = appendCounter == 0;
+        if (!useRegularRemove) {
             rootReference = lockRoot(rootReference, 1);
             appendCounter = rootReference.getAppendCounter();
-            fallback = appendCounter == 0;
-            if (!fallback) {
+            useRegularRemove = appendCounter == 0;
+            if (!useRegularRemove) {
                 --appendCounter;
             }
             unlockRoot(rootReference.root, appendCounter);
         }
-        if (fallback) {
+        if (useRegularRemove) {
             Page lastLeaf = rootReference.root.getAppendCursorPos(null).page;
             assert lastLeaf.isLeaf();
             assert lastLeaf.getKeyCount() > 0;
@@ -1751,6 +1751,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         public void reset() {}
     }
 
+    @SuppressWarnings("unchecked")
     public V operate(K key, V value, DecisionMaker<? super V> decisionMaker) {
         beforeWrite();
         IntValueHolder unsavedMemoryHolder = new IntValueHolder();
@@ -1773,7 +1774,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 int index = pos.index;
                 tip = pos;
                 pos = pos.parent;
-                //noinspection unchecked
                 result = index < 0 ? null : (V)p.getValue(index);
                 Decision decision = decisionMaker.decide(result, value);
 
@@ -1990,5 +1990,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     private static final class IntValueHolder {
         int value;
+
+        IntValueHolder() {}
     }
 }

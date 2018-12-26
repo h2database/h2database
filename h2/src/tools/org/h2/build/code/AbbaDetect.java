@@ -82,7 +82,7 @@ public class AbbaDetect {
     }
 
     private static String enable(String source) {
-        // the word synchronized within single line comments comments
+        // the word synchronized within single line comments
         source = source.replaceAll("(// .* synchronized )([^ ])", "$1 $2");
 
         source = source.replaceAll("synchronized \\((.*)\\(\\)\\)",

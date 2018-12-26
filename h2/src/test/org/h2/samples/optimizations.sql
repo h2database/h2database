@@ -7,7 +7,7 @@
 -------------------------------------------------------------------------------
 -- Optimize Count Star
 -------------------------------------------------------------------------------
--- This code snippet shows how to quickly get the the number of rows in a table.
+-- This code snippet shows how to quickly get the number of rows in a table.
 
 -- Initialize the data
 CREATE TABLE TEST(ID INT PRIMARY KEY);
@@ -118,7 +118,7 @@ INSERT INTO TEST SELECT X, MOD(X, 5), RAND()*100 FROM SYSTEM_RANGE(1, 1000);
 -- Create an index on the columns TYPE and VALUE
 CREATE INDEX IDX_TEST_TYPE_VALUE ON TEST(TYPE, VALUE);
 
--- Analyze to optimize the DISTINCT part of the query query
+-- Analyze to optimize the DISTINCT part of the query
 ANALYZE;
 
 -- Query the largest and smallest value - this is optimized

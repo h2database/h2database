@@ -236,7 +236,7 @@ For the query <code>SELECT ID AS X FROM TEST</code> the method
 return <code>X</code>. What's wrong?
 </p>
 <p>
-This is not a bug. According the the JDBC specification, the method
+This is not a bug. According the JDBC specification, the method
 <code>ResultSetMetaData.getColumnName()</code> should return the name of the column
 and not the alias name. If you need the alias name, use
 <a href="https://docs.oracle.com/javase/7/docs/api/java/sql/ResultSetMetaData.html#getColumnLabel(int)"><code>ResultSetMetaData.getColumnLabel()</code></a>.
@@ -256,7 +256,7 @@ For a table defined as <code>CREATE TABLE TEST(X FLOAT)</code> the method
 return a <code>java.lang.Float</code>. What's wrong?
 </p>
 <p>
-This is not a bug. According the the JDBC specification, the JDBC data type <code>FLOAT</code>
+This is not a bug. According the JDBC specification, the JDBC data type <code>FLOAT</code>
 is equivalent to <code>DOUBLE</code>, and both are mapped to <code>java.lang.Double</code>.
 See also
 <a href="https://docs.oracle.com/javase/1.5.0/docs/guide/jdbc/getstart/mapping.html#1055162">

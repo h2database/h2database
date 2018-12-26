@@ -189,7 +189,7 @@ public class PageStore implements CacheWriter {
     /**
      * The change count is something like a "micro-transaction-id".
      * It is used to ensure that changed pages are not written to the file
-     * before the the current operation is not finished. This is only a problem
+     * before the current operation is not finished. This is only a problem
      * when using a very small cache size. The value starts at 1 so that
      * pages with change count 0 can be evicted from the cache.
      */

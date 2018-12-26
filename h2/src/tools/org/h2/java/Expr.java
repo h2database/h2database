@@ -294,7 +294,7 @@ class OpExpr extends ExprBase {
             return "(((u" + left.getType() + ") " + left + ") >> " + right + ")";
         } else if (op.equals("+")) {
             if (left.getType().isObject() || right.getType().isObject()) {
-                // TODO convert primitive to to String, call toString
+                // TODO convert primitive to String, call toString
                 StringBuilder buff = new StringBuilder();
                 if (type.refCount) {
                     buff.append("ptr<java_lang_StringBuilder>(new java_lang_StringBuilder(");

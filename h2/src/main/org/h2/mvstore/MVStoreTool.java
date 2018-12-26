@@ -578,7 +578,7 @@ public class MVStoreTool {
     }
 
     /**
-     * Roll back to a given revision into a a file called *.temp.
+     * Roll back to a given revision into a file called *.temp.
      *
      * @param fileName the file name
      * @param targetVersion the version to roll back to (Long.MAX_VALUE for the

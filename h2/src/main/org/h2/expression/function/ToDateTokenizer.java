@@ -549,7 +549,7 @@ class ToDateTokenizer {
         YYY(PARSLET_YEAR),
         // 2-digit year
         YY(PARSLET_YEAR),
-        // Two-digit century with with sign (- = B.C.)
+        // Two-digit century with sign (- = B.C.)
         SCC(PARSLET_YEAR),
         // Two-digit century.
         CC(PARSLET_YEAR),

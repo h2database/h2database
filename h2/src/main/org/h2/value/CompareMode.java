@@ -114,7 +114,6 @@ public class CompareMode implements Comparator<Value> {
      *
      * @param name the collation name or null
      * @param strength the collation strength
-     * @param binaryUnsigned whether to compare binaries as unsigned
      * @param binaryUnsigned whether to compare UUIDs as unsigned
      * @return the compare mode
      */

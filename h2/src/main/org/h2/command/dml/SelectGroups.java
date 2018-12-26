@@ -431,6 +431,9 @@ public abstract class SelectGroups {
     }
 
     /**
+     * Gets the query's column list, including invisible expressions
+     * such as order by expressions.
+     *
      * @return Expressions.
      */
     public ArrayList<Expression> expressions() {

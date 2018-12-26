@@ -414,6 +414,13 @@ public abstract class Page implements Cloneable
         return copy(false);
     }
 
+    /**
+     * Create a copy of this page.
+     *
+     * @param countRemoval When {@code true} the current page is removed,
+     *                     when {@code false} just copy the page.
+     * @return a mutable copy of this page
+     */
     public final Page copy(boolean countRemoval) {
         Page newPage = clone();
         newPage.pos = 0;
@@ -795,10 +802,18 @@ public abstract class Page implements Cloneable
         return r;
     }
 
+    /**
+     * Increase estimated memory used in persistent case.
+     *
+     * @param mem additional memory size.
+     */
     final void addMemory(int mem) {
         memory += mem;
     }
 
+    /**
+     * Recalculate estimated memory used in persistent case.
+     */
     final void recalculateMemory() {
         assert isPersistent();
         memory = calculateMemory();

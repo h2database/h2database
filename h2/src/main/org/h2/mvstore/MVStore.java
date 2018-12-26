@@ -1387,7 +1387,7 @@ public class MVStore implements AutoCloseable {
     }
 
     /**
-     * Collect ids for chunks that are no longer in use.
+     * Collect ids for chunks that are in use.
      * @param fast if true, simplified version is used, which assumes that recent chunks
      *            are still in-use and do not scan recent versions of the store.
      *            Also is this case only oldest available version of the store is scanned.

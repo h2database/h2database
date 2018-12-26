@@ -440,6 +440,10 @@ java org.h2.test.TestAll timer
 
     private Server server;
 
+    /**
+     * The map of executed tests to detect not executed tests.
+     * Boolean value is 'false' for a disabled test.
+     */
     HashMap<Class<? extends TestBase>, Boolean> executedTests = new HashMap<>();
 
     /**

@@ -95,6 +95,7 @@ public class StreamStore {
      *
      * @param in the stream
      * @return the id (potentially an empty array)
+     * @throws IOException If an I/O error occurs
      */
     @SuppressWarnings("resource")
     public byte[] put(InputStream in) throws IOException {

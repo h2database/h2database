@@ -474,6 +474,7 @@ public class MVStore implements AutoCloseable {
      * does not yet exist. If a map with this name is already open, this map is
      * returned.
      *
+     * @param <M> the map type
      * @param <K> the key type
      * @param <V> the value type
      * @param name the name of the map

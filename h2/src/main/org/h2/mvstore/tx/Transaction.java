@@ -546,6 +546,8 @@ public class Transaction {
     /**
      * Remove the map.
      *
+     * @param <K> the key type
+     * @param <V> the value type
      * @param map the map
      */
     public <K, V> void removeMap(TransactionMap<K, V> map) {

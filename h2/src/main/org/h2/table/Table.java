@@ -656,6 +656,13 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
+    /**
+     * Create a new row for a table.
+     *
+     * @param data the values.
+     * @param memory whether the row is in memory.
+     * @return the created row.
+     */
     public Row createRow(Value[] data, int memory) {
         return database.createRow(data, memory);
     }

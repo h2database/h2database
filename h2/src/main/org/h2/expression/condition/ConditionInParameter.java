@@ -65,6 +65,14 @@ public class ConditionInParameter extends Condition {
 
     private final Parameter parameter;
 
+    /**
+     * Gets evaluated condition value.
+     *
+     * @param database database instance.
+     * @param l left value.
+     * @param value parameter value.
+     * @return Evaluated condition value.
+     */
     static Value getValue(Database database, Value l, Value value) {
         boolean hasNull = false;
         if (value.containsNull()) {

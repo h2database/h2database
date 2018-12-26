@@ -35,7 +35,14 @@ import org.h2.value.ValueNull;
  */
 public class ValueHashMap<V> extends HashBase {
 
+    /**
+     * Keys array.
+     */
     Value[] keys;
+
+    /**
+     * Values array.
+     */
     V[] values;
 
     @Override
@@ -202,6 +209,11 @@ public class ValueHashMap<V> extends HashBase {
         }
     }
 
+    /**
+     * Gets all map's entries.
+     *
+     * @return all map's entries.
+     */
     public Iterable<Map.Entry<Value, V>> entries() {
         return new EntryIterable();
     }

@@ -194,7 +194,7 @@ public class IndexCursor implements Cursor {
             row = table.getTemplateRow();
         } else if (row.getValue(columnId) != null) {
             // if an object needs to overlap with both a and b,
-            // then it needs to overlap with the the union of a and b
+            // then it needs to overlap with the union of a and b
             // (not the intersection)
             ValueGeometry vg = (ValueGeometry) row.getValue(columnId).
                     convertTo(Value.GEOMETRY);

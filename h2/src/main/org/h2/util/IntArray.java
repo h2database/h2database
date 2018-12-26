@@ -81,7 +81,7 @@ public class IntArray {
     }
 
     /**
-     * Ensure the the underlying array is large enough for the given number of
+     * Ensure the underlying array is large enough for the given number of
      * entries.
      *
      * @param minCapacity the minimum capacity

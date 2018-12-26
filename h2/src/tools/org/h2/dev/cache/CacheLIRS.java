@@ -24,7 +24,7 @@ import java.util.Set;
  * at most the specified amount of memory. The memory unit is not relevant,
  * however it is suggested to use bytes as the unit.
  * <p>
- * This class implements an approximation of the the LIRS replacement algorithm
+ * This class implements an approximation of the LIRS replacement algorithm
  * invented by Xiaodong Zhang and Song Jiang as described in
  * http://www.cse.ohio-state.edu/~zhang/lirs-sigmetrics-02.html with a few
  * smaller changes: An additional queue for non-resident entries is used, to

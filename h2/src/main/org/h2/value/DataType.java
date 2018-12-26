@@ -1328,7 +1328,7 @@ public class DataType {
     /**
      * Check whether a given object is a Geometry object.
      *
-     * @param x the the object
+     * @param x the object
      * @return true if it is a Geometry object
      */
     public static boolean isGeometry(Object x) {

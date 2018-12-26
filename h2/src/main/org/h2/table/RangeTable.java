@@ -19,7 +19,7 @@ import org.h2.value.Value;
 
 /**
  * The table SYSTEM_RANGE is a virtual table that generates incrementing numbers
- * with a given start end end point.
+ * with a given start end point.
  */
 public class RangeTable extends Table {
 

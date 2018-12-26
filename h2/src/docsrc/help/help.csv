@@ -18,7 +18,7 @@ FROM tableExpression [,...] [ WHERE expression ]
 [ FOR UPDATE ]
 ","
 Selects data from a table or multiple tables.
-GROUP BY groups the the result by the given expression(s).
+GROUP BY groups the result by the given expression(s).
 HAVING filters rows after grouping.
 ORDER BY sorts the result by the given column(s) or expression(s).
 UNION combines the result of this query with the results of another query.
@@ -1033,7 +1033,7 @@ CHECKPOINT
 "Commands (Other)","CHECKPOINT SYNC","
 CHECKPOINT SYNC
 ","
-Flushes the data to disk and and forces all system buffers be written
+Flushes the data to disk and forces all system buffers be written
 to the underlying device.
 
 Admin rights are required to execute this command.
@@ -4026,7 +4026,7 @@ ROUNDMAGIC(numeric)
 This function rounds numbers in a good way, but it is slow.
 It has a special handling for numbers around 0.
 Only numbers smaller or equal +/-1000000000000 are supported.
-The value is converted to a String internally, and then the last last 4 characters are checked.
+The value is converted to a String internally, and then the last 4 characters are checked.
 '000x' becomes '0000' and '999x' becomes '999999', which is rounded automatically.
 This method returns a double.
 ","
@@ -4643,7 +4643,7 @@ DATEADD('MONTH', 1, DATE '2001-01-31')
 "Functions (Time and Date)","DATEDIFF","
 { DATEDIFF | TIMESTAMPDIFF } (datetimeField, aDateAndTime, bDateAndTime)
 ","
-Returns the the number of crossed unit boundaries between two date/time values.
+Returns the number of crossed unit boundaries between two date/time values.
 This method returns a long.
 The datetimeField indicates the unit.
 Only TIMEZONE_HOUR and TIMEZONE_MINUTE fields use the time zone offset component.
@@ -5267,7 +5267,7 @@ SELECT * FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World'));
 TRANSACTION_ID()
 ","
 Returns the current transaction id for this session.
-This method returns NULL if there is no uncommitted change, or if the the database is not persisted.
+This method returns NULL if there is no uncommitted change, or if the database is not persisted.
 Otherwise a value of the following form is returned:
 ""logFileId-position-sessionId"".
 This method returns a string.

@@ -493,6 +493,16 @@ public abstract class Page implements Cloneable
         return bKeys;
     }
 
+    abstract void expand(int extraKeyCount, Object[] extraKeys, Object[] extraValues);
+
+    final void expandKeys(int extraKeyCount, Object[] extraKeys) {
+        int keyCount = getKeyCount();
+        Object[] newKeys = createKeyStorage(keyCount + extraKeyCount);
+        System.arraycopy(keys, 0, newKeys, 0, keyCount);
+        System.arraycopy(extraKeys, 0, newKeys, keyCount, extraKeyCount);
+        keys = newKeys;
+    }
+
     /**
      * Get the total number of key-value pairs, including child pages.
      *
@@ -1013,6 +1023,11 @@ public abstract class Page implements Cloneable
         }
 
         @Override
+        public void expand(int keyCount, Object[] extraKys, Object[] extraValues) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public long getTotalCount() {
             assert !isComplete() || totalCount == calculateTotalCount() :
                         "Total count: " + totalCount + " != " + calculateTotalCount();
@@ -1322,6 +1337,21 @@ public abstract class Page implements Cloneable
                 recalculateMemory();
             }
             return newPage;
+        }
+
+        @Override
+        public void expand(int extraKeyCount, Object[] extraKeys, Object[] extraValues) {
+            int keyCount = getKeyCount();
+            expandKeys(extraKeyCount, extraKeys);
+            if(values != null) {
+                Object[] newValues = createValueStorage(keyCount + extraKeyCount);
+                System.arraycopy(values, 0, newValues, 0, keyCount);
+                System.arraycopy(extraValues, 0, newValues, keyCount, extraKeyCount);
+                values = newValues;
+            }
+            if(isPersistent()) {
+                recalculateMemory();
+            }
         }
 
         @Override

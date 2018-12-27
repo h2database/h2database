@@ -34,7 +34,7 @@ import org.h2.mvstore.db.MVTable;
 import org.h2.mvstore.db.MVTableEngine;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionStore;
-import org.h2.mvstore.tx.VersionedValue;
+import org.h2.value.VersionedValue;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
@@ -1830,7 +1830,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     private static Row getRowFromVersionedValue(MVTable table, long recKey,
                                                 VersionedValue versionedValue) {
-        Object value = versionedValue == null ? null : versionedValue.value;
+        Object value = versionedValue == null ? null : versionedValue.getCurrentValue();
         if (value == null) {
             return null;
         }

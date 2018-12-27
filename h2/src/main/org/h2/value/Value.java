@@ -40,7 +40,7 @@ import org.h2.util.StringUtils;
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
-public abstract class Value {
+public abstract class Value extends VersionedValue {
 
     /**
      * The data type is unknown at this time.

@@ -563,7 +563,7 @@ public final class EWKTUtils {
      *
      * @param ewkb
      *            source EWKB
-     * @param dimension
+     * @param dimensionSystem
      *            dimension system
      * @return EWKT representation
      */
@@ -594,7 +594,7 @@ public final class EWKTUtils {
      *
      * @param ewkt
      *            source EWKT
-     * @param dimension
+     * @param dimensionSystem
      *            dimension system
      * @return EWKB representation
      */
@@ -608,7 +608,7 @@ public final class EWKTUtils {
     /**
      * Parses a EWKB.
      *
-     * @param source
+     * @param ewkt
      *            source EWKT
      * @param target
      *            output target

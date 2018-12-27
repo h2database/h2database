@@ -5,6 +5,7 @@
  */
 package org.h2.expression.condition;
 
+import org.h2.api.ErrorCode;
 import org.h2.command.dml.Query;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -12,15 +13,16 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.index.IndexCondition;
+import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueRow;
 
 /**
  * An 'in' condition with a subquery, as in WHERE ID IN(SELECT ...)
@@ -52,8 +54,8 @@ public class ConditionInSelect extends Condition {
         Value l = left.getValue(session);
         if (!rows.hasNext()) {
             return ValueBoolean.get(all);
-        } else if (l == ValueNull.INSTANCE) {
-            return l;
+        } else if (l.containsNull()) {
+            return ValueNull.INSTANCE;
         }
         if (!database.getSettings().optimizeInSelect) {
             return getValueSlow(rows, l);
@@ -64,8 +66,8 @@ public class ConditionInSelect extends Condition {
         }
         int columnCount = query.getColumnCount();
         if (columnCount != 1) {
-            l = l.convertTo(Value.ARRAY);
-            Value[] leftValue = ((ValueArray) l).getList();
+            l = l.convertTo(Value.ROW);
+            Value[] leftValue = ((ValueRow) l).getList();
             if (columnCount == leftValue.length && rows.containsDistinct(leftValue)) {
                 return ValueBoolean.TRUE;
             }
@@ -74,13 +76,20 @@ public class ConditionInSelect extends Condition {
             if (dataType == Value.NULL) {
                 return ValueBoolean.FALSE;
             }
+            if (l.getType() == Value.ROW) {
+                Value[] leftList = ((ValueRow) l).getList();
+                if (leftList.length != 1) {
+                    throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+                }
+                l = leftList[0];
+            }
             l = l.convertTo(dataType, database.getMode());
             if (rows.containsDistinct(new Value[] { l })) {
                 return ValueBoolean.TRUE;
             }
-            if (rows.containsDistinct(new Value[] { ValueNull.INSTANCE })) {
-                return ValueNull.INSTANCE;
-            }
+        }
+        if (rows.containsNull()) {
+            return ValueNull.INSTANCE;
         }
         return ValueBoolean.FALSE;
     }
@@ -89,29 +98,35 @@ public class ConditionInSelect extends Condition {
         // this only returns the correct result if the result has at least one
         // row, and if l is not null
         boolean hasNull = false;
-        boolean result = all;
-        while (rows.next()) {
-            boolean value;
-            Value[] currentRow = rows.currentRow();
-            Value r = query.getColumnCount() == 1 ? currentRow[0] : org.h2.value.ValueArray.get(currentRow);
-            if (r == ValueNull.INSTANCE) {
-                value = false;
-                hasNull = true;
-            } else {
-                value = Comparison.compareNotNull(database, l, r, compareType);
+        if (all) {
+            while (rows.next()) {
+                Value cmp = compare(l, rows);
+                if (cmp == ValueNull.INSTANCE) {
+                    hasNull = true;
+                } else if (cmp == ValueBoolean.FALSE) {
+                    return cmp;
+                }
             }
-            if (!value && all) {
-                result = false;
-                break;
-            } else if (value && !all) {
-                result = true;
-                break;
+        } else {
+            while (rows.next()) {
+                Value cmp = compare(l, rows);
+                if (cmp == ValueNull.INSTANCE) {
+                    hasNull = true;
+                } else if (cmp == ValueBoolean.TRUE) {
+                    return cmp;
+                }
             }
         }
-        if (!result && hasNull) {
+        if (hasNull) {
             return ValueNull.INSTANCE;
         }
-        return ValueBoolean.get(result);
+        return ValueBoolean.get(all);
+    }
+
+    private Value compare(Value l, ResultInterface rows) {
+        Value[] currentRow = rows.currentRow();
+        Value r = l.getType() != Value.ROW && query.getColumnCount() == 1 ? currentRow[0] : ValueRow.get(currentRow);
+        return Comparison.compare(database, l, r, compareType);
     }
 
     @Override

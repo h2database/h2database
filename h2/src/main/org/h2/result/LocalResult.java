@@ -50,6 +50,14 @@ public interface LocalResult extends ResultInterface, ResultTarget {
     boolean containsDistinct(Value[] values);
 
     /**
+     * Check if this result set contains a NULL value. This method may reset
+     * this result.
+     *
+     * @return true if there is a NULL value
+     */
+    boolean containsNull();
+
+    /**
      * Remove the row from the result set if it exists.
      *
      * @param values the row

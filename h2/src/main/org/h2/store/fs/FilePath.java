@@ -218,6 +218,7 @@ public abstract class FilePath {
      * @param append if true, the file will grow, if false, the file will be
      *            truncated first
      * @return the output stream
+     * @throws IOException If an I/O error occurs
      */
     public abstract OutputStream newOutputStream(boolean append) throws IOException;
 
@@ -226,6 +227,7 @@ public abstract class FilePath {
      *
      * @param mode the access mode. Supported are r, rw, rws, rwd
      * @return the file object
+     * @throws IOException If an I/O error occurs
      */
     public abstract FileChannel open(String mode) throws IOException;
 
@@ -233,6 +235,7 @@ public abstract class FilePath {
      * Create an input stream to read from the file.
      *
      * @return the input stream
+     * @throws IOException If an I/O error occurs
      */
     public abstract InputStream newInputStream() throws IOException;
 

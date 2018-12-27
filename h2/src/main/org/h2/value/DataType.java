@@ -773,6 +773,19 @@ public class DataType {
                     ValueInt.get(value);
                 break;
             }
+            case Value.ROW: {
+                Object[] list = (Object[]) rs.getObject(columnIndex);
+                if (list == null) {
+                    return ValueNull.INSTANCE;
+                }
+                int len = list.length;
+                Value[] values = new Value[len];
+                for (int i = 0; i < len; i++) {
+                    values[i] = DataType.convertToValue(session, list[i], Value.NULL);
+                }
+                v = ValueRow.get(values);
+                break;
+            }
             case Value.RESULT_SET: {
                 ResultSet x = (ResultSet) rs.getObject(columnIndex);
                 if (x == null) {

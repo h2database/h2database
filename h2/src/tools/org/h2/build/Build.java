@@ -163,9 +163,6 @@ public class Build extends BuildBase {
         downloadUsingMaven("ext/org.jacoco.report-0.8.0.jar",
                 "org.jacoco", "org.jacoco.report", "0.8.0",
                 "1bcab2a451f5a382bc674857c8f3f6d3fa52151d");
-        downloadUsingMaven("ext/asm-6.1.jar",
-                "org.ow2.asm", "asm", "6.1",
-                "94a0d17ba8eb24833cd54253ace9b053786a9571");
         downloadUsingMaven("ext/asm-commons-6.1.jar",
                 "org.ow2.asm", "asm-commons", "6.1",
                 "8a8d242d7ce00fc937a245fae5b65763d13f7cd1");
@@ -272,6 +269,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
                 File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+                File.pathSeparator + "ext/asm-6.1.jar" +
                 File.pathSeparator + javaToolsJar;
         FileList files;
         if (clientOnly) {
@@ -386,6 +384,9 @@ public class Build extends BuildBase {
         downloadOrVerify("ext/junit-4.12.jar",
                 "junit", "junit", "4.12",
                 "2973d150c0dc1fefe998f834810d68f278ea58ec", offline);
+        downloadUsingMaven("ext/asm-6.1.jar",
+                "org.ow2.asm", "asm", "6.1",
+                "94a0d17ba8eb24833cd54253ace9b053786a9571");
     }
 
     private void downloadOrVerify(String target, String group, String artifact,
@@ -667,7 +668,9 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-queryparser-5.5.5.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
-                File.pathSeparator + "ext/jts-core-1.15.0.jar",
+                File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+                File.pathSeparator + "ext/asm-6.1.jar" +
+                File.pathSeparator + "ext/junit-4.12.jar",
                 "-subpackages", "org.h2");
 
         mkdir("docs/javadocImpl3");
@@ -700,7 +703,9 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-queryparser-5.5.5.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
-                File.pathSeparator + "ext/jts-core-1.15.0.jar",
+                File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+                File.pathSeparator + "ext/asm-6.1.jar" +
+                File.pathSeparator + "ext/junit-4.12.jar",
                 "-subpackages", "org.h2",
                 "-package",
                 "-docletpath", "bin" + File.pathSeparator + "temp",
@@ -962,6 +967,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/jts-core-1.15.0.jar" +
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
+                File.pathSeparator + "ext/asm-6.1.jar" +
                 File.pathSeparator + javaToolsJar;
         int version = getJavaVersion();
         if (version >= 9) {

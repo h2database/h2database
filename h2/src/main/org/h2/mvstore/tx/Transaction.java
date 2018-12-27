@@ -9,6 +9,7 @@ import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.type.DataType;
+import org.h2.value.VersionedValue;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -456,7 +457,7 @@ public class Transaction {
         if (status != STATUS_OPEN) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_TRANSACTION_ILLEGAL_STATE,
-                    "Transaction {0} has status {1}, not open", transactionId, status);
+                    "Transaction {0} has status {1}, not OPEN", transactionId, STATUS_NAMES[status]);
         }
     }
 
@@ -546,6 +547,8 @@ public class Transaction {
     /**
      * Remove the map.
      *
+     * @param <K> the key type
+     * @param <V> the value type
      * @param map the map
      */
     public <K, V> void removeMap(TransactionMap<K, V> map) {

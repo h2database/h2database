@@ -31,6 +31,7 @@ import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueByte;
 import org.h2.value.ValueBytes;
+import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDecimal;
 import org.h2.value.ValueDouble;
@@ -43,6 +44,7 @@ import org.h2.value.ValueLobDb;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
+import org.h2.value.ValueRow;
 import org.h2.value.ValueShort;
 import org.h2.value.ValueString;
 import org.h2.value.ValueStringFixed;
@@ -57,6 +59,10 @@ import org.h2.value.ValueUuid;
  */
 public class ValueDataType implements DataType {
 
+    /**
+     * Storage type for ValueRow.
+     */
+    private static final int ROW = 27;
     private static final int INT_0_15 = 32;
     private static final int LONG_0_7 = 48;
     private static final int DECIMAL_0_1 = 56;
@@ -393,9 +399,11 @@ public class ValueDataType implements DataType {
             }
             break;
         }
-        case Value.ARRAY: {
-            Value[] list = ((ValueArray) v).getList();
-            buff.put((byte) type).putVarInt(list.length);
+        case Value.ARRAY:
+        case Value.ROW: {
+            Value[] list = ((ValueCollectionBase) v).getList();
+            buff.put((byte) (type == Value.ARRAY ? Value.ARRAY : /* Special storage type for ValueRow */ ROW))
+                    .putVarInt(list.length);
             for (Value x : list) {
                 writeValue(buff, x);
             }
@@ -610,13 +618,15 @@ public class ValueDataType implements DataType {
                         "lob type: " + smallLen);
             }
         }
-        case Value.ARRAY: {
+        case Value.ARRAY:
+        case ROW: // Special storage type for ValueRow
+        {
             int len = readVarInt(buff);
             Value[] list = new Value[len];
             for (int i = 0; i < len; i++) {
                 list[i] = (Value) readValue(buff);
             }
-            return ValueArray.get(list);
+            return type == Value.ARRAY ? ValueArray.get(list) : ValueRow.get(list);
         }
         case Value.RESULT_SET: {
             SimpleResult rs = new SimpleResult();

@@ -6,6 +6,7 @@
 package org.h2.mvstore.tx;
 
 import org.h2.mvstore.MVMap;
+import org.h2.value.VersionedValue;
 
 /**
  * Class TxDecisionMaker.
@@ -47,7 +48,7 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
             // We assume that we are looking at the final value for this transaction,
             // and if it's not the case, then it will fail later,
             // because a tree root has definitely been changed.
-            logIt(existingValue.value == null ? null : VersionedValue.getInstance(existingValue.value));
+            logIt(existingValue.getCurrentValue() == null ? null : VersionedValueCommitted.getInstance(existingValue.getCurrentValue()));
             decision = MVMap.Decision.PUT;
         } else if (getBlockingTransaction() != null) {
             // this entry comes from a different transaction, and this
@@ -63,7 +64,7 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
             // was written but not undo log), and will effectively roll it back
             // (just assume committed value and overwrite).
             Object committedValue = existingValue.getCommittedValue();
-            logIt(committedValue == null ? null : VersionedValue.getInstance(committedValue));
+            logIt(committedValue == null ? null : VersionedValueCommitted.getInstance(committedValue));
             decision = MVMap.Decision.PUT;
         } else {
             // transaction has been committed/rolled back and is closed by now, so
@@ -138,7 +139,7 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
         @SuppressWarnings("unchecked")
         @Override
         public final VersionedValue selectValue(VersionedValue existingValue, VersionedValue providedValue) {
-            return VersionedValue.getInstance(undoKey, value,
+            return VersionedValueUncommitted.getInstance(undoKey, value,
                                                 existingValue == null ? null : existingValue.getCommittedValue());
         }
     }
@@ -163,7 +164,7 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
                 if (id == 0 // entry is a committed one
                             // or it came from the same transaction
                         || isThisTransaction(blockingId = TransactionStore.getTransactionId(id))) {
-                    if(existingValue.value != null) {
+                    if(existingValue.getCurrentValue() != null) {
                         return setDecision(MVMap.Decision.ABORT);
                     }
                     logIt(existingValue);
@@ -171,7 +172,7 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
                 } else if (isCommitted(blockingId)) {
                     // entry belongs to a committing transaction
                     // and therefore will be committed soon
-                    if(existingValue.value != null) {
+                    if(existingValue.getCurrentValue() != null) {
                         return setDecision(MVMap.Decision.ABORT);
                     }
                     logIt(null);
@@ -228,8 +229,8 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
         @SuppressWarnings("unchecked")
         @Override
         public VersionedValue selectValue(VersionedValue existingValue, VersionedValue providedValue) {
-            return VersionedValue.getInstance(undoKey,
-                    existingValue == null ? null : existingValue.value,
+            return VersionedValueUncommitted.getInstance(undoKey,
+                    existingValue == null ? null : existingValue.getCurrentValue(),
                     existingValue == null ? null : existingValue.getCommittedValue());
         }
     }

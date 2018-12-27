@@ -35,6 +35,7 @@ public class ConditionInConstantSet extends Condition {
     private Expression left;
     private final ArrayList<Expression> valueList;
     private final TreeSet<Value> valueSet;
+    private boolean hasNull;
     private final int type;
     private ExtTypeInfo extTypeInfo;
 
@@ -58,27 +59,32 @@ public class ConditionInConstantSet extends Condition {
         if (type == Value.ENUM) {
             extTypeInfo = ((ExpressionColumn) left).getColumn().getExtTypeInfo();
             for (Expression expression : valueList) {
-                valueSet.add(extTypeInfo.cast(expression.getValue(session)));
+                add(extTypeInfo.cast(expression.getValue(session)));
             }
         } else {
             for (Expression expression : valueList) {
-                valueSet.add(expression.getValue(session).convertTo(type, mode));
+                add(expression.getValue(session).convertTo(type, mode));
             }
+        }
+    }
+
+    private void add(Value v) {
+        if (v.containsNull()) {
+            hasNull = true;
+        } else {
+            valueSet.add(v);
         }
     }
 
     @Override
     public Value getValue(Session session) {
         Value x = left.getValue(session);
-        if (x == ValueNull.INSTANCE) {
+        if (x.containsNull()) {
             return x;
         }
         boolean result = valueSet.contains(x);
-        if (!result) {
-            boolean setHasNull = valueSet.contains(ValueNull.INSTANCE);
-            if (setHasNull) {
-                return ValueNull.INSTANCE;
-            }
+        if (!result && hasNull) {
+            return ValueNull.INSTANCE;
         }
         return ValueBoolean.get(result);
     }
@@ -168,9 +174,9 @@ public class ConditionInConstantSet extends Condition {
             if (add.isConstant()) {
                 valueList.add(add);
                 if (type == Value.ENUM) {
-                    valueSet.add(add.getValue(session).convertToEnum(extTypeInfo));
+                    add(add.getValue(session).convertToEnum(extTypeInfo));
                 } else {
-                    valueSet.add(add.getValue(session).convertTo(type, session.getDatabase().getMode()));
+                    add(add.getValue(session).convertTo(type, session.getDatabase().getMode()));
                 }
                 return this;
             }

@@ -40,7 +40,7 @@ import org.h2.util.StringUtils;
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
-public abstract class Value {
+public abstract class Value extends VersionedValue {
 
     /**
      * The data type is unknown at this time.
@@ -242,9 +242,14 @@ public abstract class Value {
     public static final int INTERVAL_MINUTE_TO_SECOND = 38;
 
     /**
+     * The value type for ROW values.
+     */
+    public static final int ROW = 39;
+
+    /**
      * The number of value types.
      */
-    public static final int TYPE_COUNT = INTERVAL_MINUTE_TO_SECOND + 1;
+    public static final int TYPE_COUNT = ROW + 1;
 
     private static SoftReference<Value[]> softCache;
 
@@ -439,6 +444,8 @@ public abstract class Value {
             return 44_000;
         case ARRAY:
             return 50_000;
+        case ROW:
+            return 50_500;
         case RESULT_SET:
             return 51_000;
         case ENUM:
@@ -790,6 +797,8 @@ public abstract class Value {
                 return convertToIntervalDayTime(targetType);
             case ARRAY:
                 return convertToArray();
+            case ROW:
+                return convertToRow();
             case RESULT_SET:
                 return convertToResultSet();
             default:
@@ -1298,7 +1307,37 @@ public abstract class Value {
     }
 
     private ValueArray convertToArray() {
-        return ValueArray.get(new Value[] { ValueString.get(getString()) });
+        Value[] a;
+        switch (getType()) {
+        case ROW:
+            a = ((ValueRow) this).getList();
+            break;
+        case BLOB:
+        case CLOB:
+        case RESULT_SET:
+            a = new Value[] { ValueString.get(getString()) };
+            break;
+        default:
+            a = new Value[] { this };
+        }
+        return ValueArray.get(a);
+    }
+
+    private ValueRow convertToRow() {
+        Value[] a;
+        switch (getType()) {
+        case ARRAY:
+            a = ((ValueArray) this).getList();
+            break;
+        case BLOB:
+        case CLOB:
+        case RESULT_SET:
+            a = new Value[] { ValueString.get(getString()) };
+            break;
+        default:
+            a = new Value[] { this };
+        }
+        return ValueRow.get(a);
     }
 
     private ValueResultSet convertToResultSet() {
@@ -1308,7 +1347,13 @@ public abstract class Value {
         return ValueResultSet.get(result);
     }
 
-    private DbException getDataConversionError(int targetType) {
+    /**
+     * Creates new instance of the DbException for data conversion error.
+     *
+     * @param targetType Target data type.
+     * @return instance of the DbException.
+     */
+    DbException getDataConversionError(int targetType) {
         DataType from = DataType.getDataType(getType());
         DataType to = DataType.getDataType(targetType);
         throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, (from != null ? from.name : "type=" + getType())
@@ -1333,7 +1378,7 @@ public abstract class Value {
      * @param v the other value
      * @param databaseMode the database mode
      * @param compareMode the compare mode
-     * @return 0 if both values are equal, -1 if the other value is smaller, and
+     * @return 0 if both values are equal, -1 if this value is smaller, and
      *         1 otherwise
      */
     public final int compareTo(Value v, Mode databaseMode, CompareMode compareMode) {
@@ -1360,6 +1405,48 @@ public abstract class Value {
             }
         }
         return l.compareTypeSafe(v, compareMode);
+    }
+
+    /**
+     * Compare this value against another value using the specified compare
+     * mode.
+     *
+     * @param v the other value
+     * @param forEquality perform only check for equality
+     * @param databaseMode the database mode
+     * @param compareMode the compare mode
+     * @return 0 if both values are equal, -1 if this value is smaller, 1
+     *         if other value is larger, {@link Integer#MIN_VALUE} if order is
+     *         not defined due to NULL comparison
+     */
+    public int compareWithNull(Value v, boolean forEquality, Mode databaseMode, CompareMode compareMode) {
+        if (this == ValueNull.INSTANCE || v == ValueNull.INSTANCE) {
+            return Integer.MIN_VALUE;
+        }
+        Value l = this;
+        int leftType = l.getType();
+        int rightType = v.getType();
+        if (leftType != rightType || leftType == Value.ENUM) {
+            int dataType = Value.getHigherOrder(leftType, rightType);
+            if (dataType == Value.ENUM) {
+                ExtTypeInfoEnum enumerators = ExtTypeInfoEnum.getEnumeratorsForBinaryOperation(l, v);
+                l = l.convertToEnum(enumerators);
+                v = v.convertToEnum(enumerators);
+            } else {
+                l = l.convertTo(dataType, databaseMode);
+                v = v.convertTo(dataType, databaseMode);
+            }
+        }
+        return l.compareTypeSafe(v, compareMode);
+    }
+
+    /**
+     * Returns true if this value is NULL or contains NULL value.
+     *
+     * @return true if this value is NULL or contains NULL value
+     */
+    public boolean containsNull() {
+        return false;
     }
 
     public int getScale() {
@@ -1408,6 +1495,13 @@ public abstract class Value {
         return (short) x;
     }
 
+    /**
+     * Checks value by Integer type numeric range.
+     *
+     * @param x integer value.
+     * @param column Column info.
+     * @return x
+     */
     public static int convertToInt(long x, Object column) {
         if (x > Integer.MAX_VALUE || x < Integer.MIN_VALUE) {
             throw DbException.get(

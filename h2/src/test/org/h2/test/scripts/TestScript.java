@@ -144,7 +144,7 @@ public class TestScript extends TestDb {
 
         for (String s : new String[] { "array", "bigint", "binary", "blob",
                 "boolean", "char", "clob", "date", "decimal", decimal2, "double", "enum",
-                "geometry", "identity", "int", "interval", "other", "real", "smallint",
+                "geometry", "identity", "int", "interval", "other", "real", "row", "smallint",
                 "time", "timestamp-with-timezone", "timestamp", "tinyint",
                 "uuid", "varchar", "varchar-ignorecase" }) {
             testScript("datatypes/" + s + ".sql");
@@ -155,7 +155,7 @@ public class TestScript extends TestDb {
             testScript("ddl/" + s + ".sql");
         }
         for (String s : new String[] { "delete", "error_reporting", "insertIgnore", "merge", "mergeUsing", "replace",
-                "script", "select", "show", "with" }) {
+                "script", "select", "show", "table", "with" }) {
             testScript("dml/" + s + ".sql");
         }
         for (String s : new String[] { "help" }) {
@@ -289,7 +289,7 @@ public class TestScript extends TestDb {
         return s;
     }
 
-    public void putBack(String line) {
+    private void putBack(String line) {
         putBack.addLast(line);
     }
 

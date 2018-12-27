@@ -49,8 +49,8 @@ public class ConditionIn extends Condition {
     @Override
     public Value getValue(Session session) {
         Value l = left.getValue(session);
-        if (l == ValueNull.INSTANCE) {
-            return l;
+        if (l.containsNull()) {
+            return ValueNull.INSTANCE;
         }
         int size = valueList.size();
         if (size == 1) {
@@ -59,24 +59,21 @@ public class ConditionIn extends Condition {
                 return ConditionInParameter.getValue(database, l, e.getValue(session));
             }
         }
-        boolean result = false;
         boolean hasNull = false;
         for (int i = 0; i < size; i++) {
             Expression e = valueList.get(i);
             Value r = e.getValue(session);
-            if (r == ValueNull.INSTANCE) {
+            Value cmp = Comparison.compare(database, l, r, Comparison.EQUAL);
+            if (cmp == ValueNull.INSTANCE) {
                 hasNull = true;
-            } else {
-                result = Comparison.compareNotNull(database, l, r, Comparison.EQUAL);
-                if (result) {
-                    break;
-                }
+            } else if (cmp == ValueBoolean.TRUE) {
+                return cmp;
             }
         }
-        if (!result && hasNull) {
+        if (hasNull) {
             return ValueNull.INSTANCE;
         }
-        return ValueBoolean.get(result);
+        return ValueBoolean.FALSE;
     }
 
     @Override
@@ -114,7 +111,7 @@ public class ConditionIn extends Condition {
                     ArrayList<Expression> list = new ArrayList<>(ri.getRowCount());
                     while (ri.next()) {
                         Value v = ri.currentRow()[0];
-                        if (v != ValueNull.INSTANCE) {
+                        if (!v.containsNull()) {
                             allValuesNull = false;
                         }
                         list.add(ValueExpression.get(v));
@@ -129,7 +126,7 @@ public class ConditionIn extends Condition {
         for (int i = 0; i < size; i++) {
             Expression e = valueList.get(i);
             e = e.optimize(session);
-            if (e.isConstant() && e.getValue(session) != ValueNull.INSTANCE) {
+            if (e.isConstant() && !e.getValue(session).containsNull()) {
                 allValuesNull = false;
             }
             if (allValuesConstant && !e.isConstant()) {

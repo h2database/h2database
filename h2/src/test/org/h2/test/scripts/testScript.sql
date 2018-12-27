@@ -366,14 +366,14 @@ explain select -cast(0 as real), -cast(0 as double);
 
 select () empty;
 > EMPTY
-> -----
-> ()
+> ------
+> ROW ()
 > rows: 1
 
 select (1,) one_element;
 > ONE_ELEMENT
 > -----------
-> (1)
+> ROW (1)
 > rows: 1
 
 select (1) one;
@@ -1395,15 +1395,15 @@ drop table test;
 create table test(id int primary key, data array);
 > ok
 
-insert into test values(1, (1, 1)), (2, (1, 2)), (3, (1, 1, 1));
+insert into test values(1, ARRAY[1, 1]), (2, ARRAY[1, 2]), (3, ARRAY[1, 1, 1]);
 > update count: 3
 
 select * from test order by data;
 > ID DATA
 > -- ---------
-> 1  (1, 1)
-> 3  (1, 1, 1)
-> 2  (1, 2)
+> 1  [1, 1]
+> 3  [1, 1, 1]
+> 2  [1, 2]
 > rows (ordered): 3
 
 drop table test;
@@ -2003,21 +2003,21 @@ drop table people, cars;
 > ok
 
 select (1, 2);
-> 1, 2
-> ------
-> (1, 2)
+> ROW (1, 2)
+> ----------
+> ROW (1, 2)
 > rows: 1
 
 create table array_test(x array);
 > ok
 
-insert into array_test values((1, 2, 3)), ((2, 3, 4));
+insert into array_test values(ARRAY[1, 2, 3]), (ARRAY[2, 3, 4]);
 > update count: 2
 
-select * from array_test where x = (1, 2, 3);
+select * from array_test where x = ARRAY[1, 2, 3];
 > X
 > ---------
-> (1, 2, 3)
+> [1, 2, 3]
 > rows: 1
 
 drop table array_test;
@@ -3177,7 +3177,7 @@ drop table test;
 call select 1.0/3.0*3.0, 100.0/2.0, -25.0/100.0, 0.0/3.0, 6.9/2.0, 0.72179425150347250912311550800000 / 5314251955.21;
 > SELECT 0.999999999999999999999999990, 50, -0.25, 0, 3.45, 1.35822361752313607260107721120531135706133161972E-10 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */ /* scanCount: 2 */
 > -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> (0.999999999999999999999999990, 50, -0.25, 0, 3.45, 1.35822361752313607260107721120531135706133161972E-10)
+> ROW (0.999999999999999999999999990, 50, -0.25, 0, 3.45, 1.35822361752313607260107721120531135706133161972E-10)
 > rows: 1
 
 call (select x from dual where x is null);
@@ -3254,8 +3254,11 @@ select count(*) from test where id in ((select id from test));
 select count(*) from test where id = ((select id from test));
 > exception SCALAR_SUBQUERY_CONTAINS_MORE_THAN_ONE_ROW
 
-select count(*) from test where id = ((select id from test), 1);
+select count(*) from test where id = ARRAY [(select id from test), 1];
 > exception COMPARING_ARRAY_TO_SCALAR
+
+select count(*) from test where id = ((select id from test fetch first row only), 1);
+> exception COLUMN_COUNT_DOES_NOT_MATCH
 
 select (select id from test where 1=0) from test;
 > SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan: FALSE */ WHERE FALSE
@@ -4315,8 +4318,8 @@ update test set (id, name)=(select id+1, name || 'Ho' from test t1 where test.id
 > update count: 2
 
 explain update test set (id, name)=(id+1, name || 'Hi');
-#+mvStore#>> UPDATE PUBLIC.TEST /* PUBLIC.TEST.tableScan */ SET ID = ARRAY_GET(((ID + 1), (NAME || 'Hi')), 1), NAME = ARRAY_GET(((ID + 1), (NAME || 'Hi')), 2)
-#-mvStore#>> UPDATE PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ SET ID = ARRAY_GET(((ID + 1), (NAME || 'Hi')), 1), NAME = ARRAY_GET(((ID + 1), (NAME || 'Hi')), 2)
+#+mvStore#>> UPDATE PUBLIC.TEST /* PUBLIC.TEST.tableScan */ SET ID = ARRAY_GET(ROW ((ID + 1), (NAME || 'Hi')), 1), NAME = ARRAY_GET(ROW ((ID + 1), (NAME || 'Hi')), 2)
+#-mvStore#>> UPDATE PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ SET ID = ARRAY_GET(ROW ((ID + 1), (NAME || 'Hi')), 1), NAME = ARRAY_GET(ROW ((ID + 1), (NAME || 'Hi')), 2)
 
 explain update test set (id, name)=(select id+1, name || 'Ho' from test t1 where test.id=t1.id);
 #+mvStore#>> UPDATE PUBLIC.TEST /* PUBLIC.TEST.tableScan */ SET ID = ARRAY_GET((SELECT (ID + 1), (NAME || 'Ho') FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE TEST.ID = T1.ID), 1), NAME = ARRAY_GET((SELECT (ID + 1), (NAME || 'Ho') FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE TEST.ID = T1.ID), 2)

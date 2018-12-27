@@ -94,16 +94,36 @@ public class SimpleResult implements ResultInterface {
         this.rowId = -1;
     }
 
+    /**
+     * Add column to the result.
+     *
+     * @param alias Column's alias.
+     * @param columnName Column's name.
+     * @param columnType Column's type.
+     * @param columnPrecision Column's  precision.
+     * @param columnScale Column's scale.
+     * @param displaySize Column's display data size.
+     */
     public void addColumn(String alias, String columnName, int columnType, long columnPrecision, int columnScale,
             int displaySize) {
         addColumn(new Column(alias, columnName, columnType, columnPrecision, columnScale, displaySize));
     }
 
+    /**
+     * Add column to the result.
+     *
+     * @param column Column info.
+     */
     void addColumn(Column column) {
         assert rows.isEmpty();
         columns.add(column);
     }
 
+    /**
+     * Add row to result.
+     *
+     * @param values Row's values.
+     */
     public void addRow(Value... values) {
         assert values.length == columns.size();
         rows.add(values);

@@ -34,7 +34,7 @@ import org.h2.mvstore.db.MVTable;
 import org.h2.mvstore.db.MVTableEngine;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionStore;
-import org.h2.mvstore.tx.VersionedValue;
+import org.h2.value.VersionedValue;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
@@ -670,16 +670,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     public void commit(boolean ddl) {
         checkCommitRollback();
 
-        int rowCount = getDatabase().getSettings().analyzeSample / 10;
-        if (tablesToAnalyze != null) {
-            for (Table table : tablesToAnalyze) {
-                Analyze.analyzeTable(this, table, rowCount, false);
-            }
-            // analyze can lock the meta
-            database.unlockMeta(this);
-        }
-        tablesToAnalyze = null;
-
         currentTransactionName = null;
         transactionStart = null;
         if (transaction != null) {
@@ -717,7 +707,27 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             }
         }
 
+        if (tablesToAnalyze != null) {
+            if (database.isMVStore()) {
+                // table analysis will cause a new transaction(s) to be opened,
+                // so we need to commit afterwards whatever leftovers might be
+                analyzeTables();
+                commit(true);
+            } else {
+                analyzeTables();
+            }
+        }
         endTransaction();
+    }
+
+    private void analyzeTables() {
+        int rowCount = getDatabase().getSettings().analyzeSample / 10;
+        for (Table table : tablesToAnalyze) {
+            Analyze.analyzeTable(this, table, rowCount, false);
+        }
+        // analyze can lock the meta
+        database.unlockMeta(this);
+        tablesToAnalyze = null;
     }
 
     private void removeTemporaryLobs(boolean onTimeout) {
@@ -1820,7 +1830,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     private static Row getRowFromVersionedValue(MVTable table, long recKey,
                                                 VersionedValue versionedValue) {
-        Object value = versionedValue == null ? null : versionedValue.value;
+        Object value = versionedValue == null ? null : versionedValue.getCurrentValue();
         if (value == null) {
             return null;
         }

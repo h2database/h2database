@@ -61,9 +61,9 @@ import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.ExtTypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueBytes;
+import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInt;
@@ -1038,10 +1038,10 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case ARRAY_GET: {
-            if (v0.getType() == Value.ARRAY) {
+            Value[] list = getArray(v0);
+            if (list != null) {
                 Value v1 = getNullOrValue(session, args, values, 1);
                 int element = v1.getInt();
-                Value[] list = ((ValueArray) v0).getList();
                 if (element < 1 || element > list.length) {
                     result = ValueNull.INSTANCE;
                 } else {
@@ -1053,8 +1053,8 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case ARRAY_LENGTH: {
-            if (v0.getType() == Value.ARRAY) {
-                Value[] list = ((ValueArray) v0).getList();
+            Value[] list = getArray(v0);
+            if (list != null) {
                 result = ValueInt.get(list.length);
             } else {
                 result = ValueNull.INSTANCE;
@@ -1063,9 +1063,9 @@ public class Function extends Expression implements FunctionCall {
         }
         case ARRAY_CONTAINS: {
             result = ValueBoolean.FALSE;
-            if (v0.getType() == Value.ARRAY) {
+            Value[] list = getArray(v0);
+            if (list != null) {
                 Value v1 = getNullOrValue(session, args, values, 1);
-                Value[] list = ((ValueArray) v0).getList();
                 for (Value v : list) {
                     if (database.areEqual(v, v1)) {
                         result = ValueBoolean.TRUE;
@@ -1089,6 +1089,17 @@ public class Function extends Expression implements FunctionCall {
             result = null;
         }
         return result;
+    }
+
+    private static Value[] getArray(Value v0) {
+        int t = v0.getType();
+        Value[] list;
+        if (t == Value.ARRAY || t == Value.ROW) {
+            list = ((ValueCollectionBase) v0).getList();
+        } else {
+            list = null;
+        }
+        return list;
     }
 
     private static boolean cancelStatement(Session session, int targetSessionId) {

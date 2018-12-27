@@ -9,12 +9,15 @@
 package org.h2.command;
 
 import static org.h2.util.ParserUtil.ALL;
+import static org.h2.util.ParserUtil.ARRAY;
+import static org.h2.util.ParserUtil.CASE;
 import static org.h2.util.ParserUtil.CHECK;
 import static org.h2.util.ParserUtil.CONSTRAINT;
 import static org.h2.util.ParserUtil.CROSS;
 import static org.h2.util.ParserUtil.CURRENT_DATE;
 import static org.h2.util.ParserUtil.CURRENT_TIME;
 import static org.h2.util.ParserUtil.CURRENT_TIMESTAMP;
+import static org.h2.util.ParserUtil.CURRENT_USER;
 import static org.h2.util.ParserUtil.DISTINCT;
 import static org.h2.util.ParserUtil.EXCEPT;
 import static org.h2.util.ParserUtil.EXISTS;
@@ -27,8 +30,11 @@ import static org.h2.util.ParserUtil.FULL;
 import static org.h2.util.ParserUtil.GROUP;
 import static org.h2.util.ParserUtil.HAVING;
 import static org.h2.util.ParserUtil.IDENTIFIER;
+import static org.h2.util.ParserUtil.IF;
 import static org.h2.util.ParserUtil.INNER;
 import static org.h2.util.ParserUtil.INTERSECT;
+import static org.h2.util.ParserUtil.INTERSECTS;
+import static org.h2.util.ParserUtil.INTERVAL;
 import static org.h2.util.ParserUtil.IS;
 import static org.h2.util.ParserUtil.JOIN;
 import static org.h2.util.ParserUtil.LIKE;
@@ -43,11 +49,14 @@ import static org.h2.util.ParserUtil.OFFSET;
 import static org.h2.util.ParserUtil.ON;
 import static org.h2.util.ParserUtil.ORDER;
 import static org.h2.util.ParserUtil.PRIMARY;
+import static org.h2.util.ParserUtil.ROW;
 import static org.h2.util.ParserUtil.ROWNUM;
 import static org.h2.util.ParserUtil.SELECT;
+import static org.h2.util.ParserUtil.TABLE;
 import static org.h2.util.ParserUtil.TRUE;
 import static org.h2.util.ParserUtil.UNION;
 import static org.h2.util.ParserUtil.UNIQUE;
+import static org.h2.util.ParserUtil.VALUES;
 import static org.h2.util.ParserUtil.WHERE;
 import static org.h2.util.ParserUtil.WINDOW;
 import static org.h2.util.ParserUtil.WITH;
@@ -218,6 +227,7 @@ import org.h2.value.ExtTypeInfo;
 import org.h2.value.ExtTypeInfoEnum;
 import org.h2.value.ExtTypeInfoGeometry;
 import org.h2.value.Value;
+import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueBytes;
 import org.h2.value.ValueDate;
@@ -226,6 +236,7 @@ import org.h2.value.ValueInt;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueRow;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
@@ -241,7 +252,7 @@ import org.h2.value.ValueTimestampTimeZone;
 public class Parser {
 
     private static final String WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS =
-            "WITH statement supports only SELECT, CREATE TABLE, INSERT, UPDATE, MERGE or DELETE statements";
+            "WITH statement supports only SELECT, TABLE, CREATE TABLE, INSERT, UPDATE, MERGE or DELETE statements";
 
     // used during the tokenizer phase
     private static final int CHAR_END = 1, CHAR_VALUE = 2, CHAR_QUOTED = 3;
@@ -416,6 +427,10 @@ public class Parser {
             null,
             // ALL
             "ALL",
+            // ARRAY
+            "ARRAY",
+            // CASE
+            "CASE",
             // CHECK
             "CHECK",
             // CONSTRAINT
@@ -428,6 +443,8 @@ public class Parser {
             "CURRENT_TIME",
             // CURRENT_TIMESTAMP
             "CURRENT_TIMESTAMP",
+            // CURRENT_USER
+            "CURRENT_USER",
             // DISTINCT
             "DISTINCT",
             // EXCEPT
@@ -450,10 +467,16 @@ public class Parser {
             "GROUP",
             // HAVING
             "HAVING",
+            // IF
+            "IF",
             // INNER
             "INNER",
             // INTERSECT
             "INTERSECT",
+            // INTERSECTS
+            "INTERSECTS",
+            // INTERVAL
+            "INTERVAL",
             // IS
             "IS",
             // JOIN
@@ -482,16 +505,22 @@ public class Parser {
             "ORDER",
             // PRIMARY
             "PRIMARY",
+            // ROW
+            "ROW",
             // ROWNUM
             "ROWNUM",
             // SELECT
             "SELECT",
+            // TABLE
+            "TABLE",
             // TRUE
             "TRUE",
             // UNION
             "UNION",
             // UNIQUE
             "UNIQUE",
+            // VALUES
+            "VALUES",
             // WHERE
             "WHERE",
             // WINDOW
@@ -719,7 +748,12 @@ public class Parser {
         case OPEN_PAREN:
         case FROM:
         case SELECT:
+        case TABLE:
             c = parseSelect();
+            break;
+        case VALUES:
+            read();
+            c = parseValues();
             break;
         case WITH:
             read();
@@ -853,11 +887,6 @@ public class Parser {
                     c = parseUse();
                 }
                 break;
-            case 'v':
-            case 'V':
-                if (readIf("VALUES")) {
-                    c = parseValues();
-                }
             }
         }
         if (c == null) {
@@ -919,7 +948,7 @@ public class Parser {
 
     private Prepared parseAnalyze() {
         Analyze command = new Analyze(session);
-        if (readIf("TABLE")) {
+        if (readIf(TABLE)) {
             Table table = readTableOrView();
             command.setTable(table);
         }
@@ -1411,7 +1440,20 @@ public class Parser {
             // need to read ahead, it could be a nested union:
             // ((select 1) union (select 1))
         }
-        boolean select = isToken(SELECT) || isToken(FROM) || isToken(WITH);
+        boolean select;
+        switch (currentTokenType) {
+        case FROM:
+        case SELECT:
+        case WITH:
+            select = true;
+            break;
+        case TABLE:
+            read();
+            select = !readIf(OPEN_PAREN);
+            break;
+        default:
+            select = false;
+        }
         parseIndex = start;
         read();
         return select;
@@ -1420,7 +1462,7 @@ public class Parser {
     private Prepared parseMerge() {
         int start = lastParseIndex;
         read("INTO");
-        List<String> excludeIdentifiers = Arrays.asList("USING", "KEY", "VALUES");
+        List<String> excludeIdentifiers = Arrays.asList("USING", "KEY");
         TableFilter targetTableFilter = readSimpleTableFilter(0, excludeIdentifiers);
         if (readIf("USING")) {
             return parseMergeUsing(targetTableFilter, start);
@@ -1443,7 +1485,7 @@ public class Parser {
             Column[] keys = parseColumnList(table);
             command.setKeys(keys);
         }
-        if (readIf("VALUES")) {
+        if (readIf(VALUES)) {
             do {
                 read(OPEN_PAREN);
                 command.addRow(parseValuesForInsert());
@@ -1630,10 +1672,10 @@ public class Parser {
             command.setSortedInsertMode(true);
         }
         if (readIf("DEFAULT")) {
-            read("VALUES");
+            read(VALUES);
             Expression[] expr = {};
             command.addRow(expr);
-        } else if (readIf("VALUES")) {
+        } else if (readIf(VALUES)) {
             read(OPEN_PAREN);
             do {
                 command.addRow(parseValuesForInsert());
@@ -1676,7 +1718,7 @@ public class Parser {
             Column[] columns = parseColumnList(table);
             command.setColumns(columns);
         }
-        if (readIf("VALUES")) {
+        if (readIf(VALUES)) {
             do {
                 read(OPEN_PAREN);
                 command.addRow(parseValuesForInsert());
@@ -1734,8 +1776,11 @@ public class Parser {
                 }
                 return top;
             }
-        } else if (readIf("VALUES")) {
+        } else if (readIf(VALUES)) {
             table = parseValuesTable(0).getTable();
+        } else if (readIf(TABLE)) {
+            read(OPEN_PAREN);
+            table = readTableFunction("TABLE", null, database.getSchema(Constants.SCHEMA_MAIN));
         } else {
             String tableName = readIdentifierWithSchema(null);
             Schema schema;
@@ -1776,15 +1821,7 @@ public class Parser {
                         table = new RangeTable(mainSchema, min, max, false);
                     }
                 } else {
-                    Expression expr = readFunction(schema, tableName);
-                    if (!(expr instanceof FunctionCall)) {
-                        throw getSyntaxError();
-                    }
-                    FunctionCall call = (FunctionCall) expr;
-                    if (!call.isDeterministic()) {
-                        recompileAlways = true;
-                    }
-                    table = new FunctionTable(mainSchema, session, expr, call);
+                    table = readTableFunction(tableName, schema, mainSchema);
                 }
             } else {
                 table = readTableOrView(tableName);
@@ -1826,6 +1863,18 @@ public class Parser {
             filter.setDerivedColumns(derivedColumnNames);
         }
         return filter;
+    }
+
+    private Table readTableFunction(String tableName, Schema schema, Schema mainSchema) {
+        Expression expr = readFunction(schema, tableName);
+        if (!(expr instanceof FunctionCall)) {
+            throw getSyntaxError();
+        }
+        FunctionCall call = (FunctionCall) expr;
+        if (!call.isDeterministic()) {
+            recompileAlways = true;
+        }
+        return new FunctionTable(mainSchema, session, expr, call);
     }
 
     private IndexHints parseIndexHints(Table table) {
@@ -1894,7 +1943,7 @@ public class Parser {
     }
 
     private Prepared parseTruncate() {
-        read("TABLE");
+        read(TABLE);
         Table table = readTableOrView();
         boolean restart;
         if (readIf("CONTINUE")) {
@@ -1913,7 +1962,7 @@ public class Parser {
     }
 
     private boolean readIfExists(boolean ifExists) {
-        if (readIf("IF")) {
+        if (readIf(IF)) {
             read(EXISTS);
             ifExists = true;
         }
@@ -1924,7 +1973,7 @@ public class Parser {
         int type = 0;
         read(ON);
         boolean column = false;
-        if (readIf("TABLE") || readIf("VIEW")) {
+        if (readIf(TABLE) || readIf("VIEW")) {
             type = DbObject.TABLE_OR_VIEW;
         } else if (readIf("COLUMN")) {
             column = true;
@@ -1991,7 +2040,7 @@ public class Parser {
     }
 
     private Prepared parseDrop() {
-        if (readIf("TABLE")) {
+        if (readIf(TABLE)) {
             boolean ifExists = readIfExists(false);
             String tableName = readIdentifierWithSchema();
             DropTable command = new DropTable(session, getSchema());
@@ -2291,20 +2340,28 @@ public class Parser {
                 readIf(FOR);
             }
         }
-        if (isToken(SELECT) || isToken(FROM) || isToken(OPEN_PAREN) || isToken(WITH)) {
+        switch (currentTokenType) {
+        case FROM:
+        case SELECT:
+        case TABLE:
+        case WITH:
+        case OPEN_PAREN:
             Query query = parseSelect();
             query.setNeverLazy(true);
             command.setCommand(query);
-        } else if (readIf("DELETE")) {
-            command.setCommand(parseDelete());
-        } else if (readIf("UPDATE")) {
-            command.setCommand(parseUpdate());
-        } else if (readIf("INSERT")) {
-            command.setCommand(parseInsert());
-        } else if (readIf("MERGE")) {
-            command.setCommand(parseMerge());
-        } else {
-            throw getSyntaxError();
+            break;
+        default:
+            if (readIf("DELETE")) {
+                command.setCommand(parseDelete());
+            } else if (readIf("UPDATE")) {
+                command.setCommand(parseUpdate());
+            } else if (readIf("INSERT")) {
+                command.setCommand(parseInsert());
+            } else if (readIf("MERGE")) {
+                command.setCommand(parseMerge());
+            } else {
+                throw getSyntaxError();
+            }
         }
         return command;
     }
@@ -2400,7 +2457,7 @@ public class Parser {
             if (readIf(OFFSET)) {
                 hasOffsetOrFetch = true;
                 command.setOffset(readExpression().optimize(session));
-                if (!readIf("ROW")) {
+                if (!readIf(ROW)) {
                     readIf("ROWS");
                 }
             }
@@ -2409,7 +2466,7 @@ public class Parser {
                 if (!readIf("FIRST")) {
                     read("NEXT");
                 }
-                if (readIf("ROW") || readIf("ROWS")) {
+                if (readIf(ROW) || readIf("ROWS")) {
                     command.setLimit(ValueExpression.get(ValueInt.get(1)));
                 } else {
                     Expression limit = readExpression().optimize(session);
@@ -2417,7 +2474,7 @@ public class Parser {
                     if (readIf("PERCENT")) {
                         command.setFetchPercent(true);
                     }
-                    if (!readIf("ROW")) {
+                    if (!readIf(ROW)) {
                         read("ROWS");
                     }
                 }
@@ -2622,6 +2679,18 @@ public class Parser {
             fromFirst = false;
         } else if (readIf(FROM)) {
             fromFirst = true;
+        } else if (readIf(TABLE)) {
+            int start = lastParseIndex;
+            Table table = readTableOrView();
+            Select command = new Select(session);
+            TableFilter filter = new TableFilter(session, table, null, rightsChecked,
+                    command, orderInFrom++, null);
+            command.addTableFilter(filter, true);
+            ArrayList<Expression> expressions = new ArrayList<>();
+            expressions.add(new Wildcard(null, null));
+            command.setExpressions(expressions);
+            setSQL(command, "TABLE", start);
+            return command;
         } else {
             throw getSyntaxError();
         }
@@ -2744,7 +2813,7 @@ public class Parser {
             read(CLOSE_PAREN);
             return new ConditionExists(query);
         }
-        if (readIf("INTERSECTS")) {
+        if (readIf(INTERSECTS)) {
             read(OPEN_PAREN);
             Expression r1 = readConcat();
             read(COMMA);
@@ -3198,7 +3267,7 @@ public class Parser {
         WindowFrameExclusion exclusion = WindowFrameExclusion.EXCLUDE_NO_OTHERS;
         if (readIf("EXCLUDE")) {
             if (readIf("CURRENT")) {
-                read("ROW");
+                read(ROW);
                 exclusion = WindowFrameExclusion.EXCLUDE_CURRENT_ROW;
             } else if (readIf(GROUP)) {
                 exclusion = WindowFrameExclusion.EXCLUDE_GROUP;
@@ -3222,7 +3291,7 @@ public class Parser {
             return new WindowFrameBound(WindowFrameBoundType.UNBOUNDED_PRECEDING, null);
         }
         if (readIf("CURRENT")) {
-            read("ROW");
+            read(ROW);
             return new WindowFrameBound(WindowFrameBoundType.CURRENT_ROW, null);
         }
         Expression value = readValueOrParameter();
@@ -3239,7 +3308,7 @@ public class Parser {
             return new WindowFrameBound(WindowFrameBoundType.UNBOUNDED_FOLLOWING, null);
         }
         if (readIf("CURRENT")) {
-            read("ROW");
+            read(ROW);
             return new WindowFrameBound(WindowFrameBoundType.CURRENT_ROW, null);
         }
         Expression value = readValueOrParameter();
@@ -3735,6 +3804,17 @@ public class Parser {
         case WITH:
             r = new Subquery(parseSelect());
             break;
+        case TABLE:
+            int index = lastParseIndex;
+            read();
+            if (readIf(OPEN_PAREN)) {
+                r = readFunction(null, "TABLE");
+            } else {
+                parseIndex = index;
+                read();
+                r = new Subquery(parseSelect());
+            }
+            break;
         case IDENTIFIER:
             String name = currentToken;
             if (currentTokenQuoted) {
@@ -3750,11 +3830,6 @@ public class Parser {
                 read();
                 if (readIf(DOT)) {
                     r = readTermObjectDot(name);
-                } else if (equalsToken("CASE", name)) {
-                    // CASE must be processed before (,
-                    // otherwise CASE(3) would be a function call, which it is
-                    // not
-                    r = readCase();
                 } else if (readIf(OPEN_PAREN)) {
                     r = readFunction(null, name);
                 } else {
@@ -3790,7 +3865,7 @@ public class Parser {
         case OPEN_PAREN:
             read();
             if (readIf(CLOSE_PAREN)) {
-                r = new ExpressionList(new Expression[0]);
+                r = ValueExpression.get(ValueRow.getEmpty());
             } else {
                 r = readExpression();
                 if (readIfMore(true)) {
@@ -3801,10 +3876,43 @@ public class Parser {
                             list.add(readExpression());
                         } while (readIfMore(false));
                     }
-                    r = new ExpressionList(list.toArray(new Expression[0]));
+                    r = new ExpressionList(list.toArray(new Expression[0]), false);
                 }
             }
             break;
+        case ARRAY:
+            read();
+            read(OPEN_BRACKET);
+            if (readIf(CLOSE_BRACKET)) {
+                r = ValueExpression.get(ValueArray.getEmpty());
+            } else {
+                ArrayList<Expression> list = Utils.newSmallArrayList();
+                list.add(readExpression());
+                while (readIf(COMMA)) {
+                    list.add(readExpression());
+                }
+                read(CLOSE_BRACKET);
+                r = new ExpressionList(list.toArray(new Expression[0]), true);
+            }
+            break;
+        case INTERVAL:
+            read();
+            r = readInterval();
+            break;
+        case ROW: {
+            read();
+            read(OPEN_PAREN);
+            if (readIf(CLOSE_PAREN)) {
+                r = ValueExpression.get(ValueRow.getEmpty());
+            } else {
+                ArrayList<Expression> list = Utils.newSmallArrayList();
+                do {
+                    list.add(readExpression());
+                } while (readIfMore(true));
+                r = new ExpressionList(list.toArray(new Expression[0]), false);
+            }
+            break;
+        }
         case TRUE:
             read();
             r = ValueExpression.get(ValueBoolean.TRUE);
@@ -3832,6 +3940,14 @@ public class Parser {
             r = ValueExpression.get(currentValue);
             read();
             break;
+        case VALUES:
+            read();
+            r = readKeywordFunction("VALUES");
+            break;
+        case CASE:
+            read();
+            r = readCase();
+            break;
         case CURRENT_DATE:
             read();
             r = readKeywordFunction("CURRENT_DATE");
@@ -3843,6 +3959,10 @@ public class Parser {
         case CURRENT_TIMESTAMP:
             read();
             r = readKeywordFunction("CURRENT_TIMESTAMP");
+            break;
+        case CURRENT_USER:
+            read();
+            r = readKeywordFunction("USER");
             break;
         case LOCALTIME:
             read();
@@ -3898,24 +4018,8 @@ public class Parser {
             ch &= 0xffdf;
         }
         switch (ch) {
-        case 'A':
-            if (equalsToken("ARRAY", name)) {
-                read(OPEN_BRACKET);
-                ArrayList<Expression> list = Utils.newSmallArrayList();
-                if (!readIf(CLOSE_BRACKET)) {
-                    list.add(readExpression());
-                    while (readIf(COMMA)) {
-                        list.add(readExpression());
-                    }
-                    read(CLOSE_BRACKET);
-                }
-                return new ExpressionList(list.toArray(new Expression[0]));
-            }
-            break;
         case 'C':
-            if (equalsToken("CURRENT_USER", name)) {
-                return readFunctionWithoutParameters("USER");
-            } else if (database.getMode().getEnum() == ModeEnum.DB2 && equalsToken("CURRENT", name)) {
+            if (database.getMode().getEnum() == ModeEnum.DB2 && equalsToken("CURRENT", name)) {
                 return parseDB2SpecialRegisters(name);
             }
             break;
@@ -3937,11 +4041,6 @@ public class Parser {
                 text = StringUtils.replaceAll(text, "\\\\", "\\");
                 read();
                 return ValueExpression.get(ValueString.get(text));
-            }
-            break;
-        case 'I':
-            if (equalsToken("INTERVAL", name)) {
-                return readInterval();
             }
             break;
         case 'N':
@@ -4106,13 +4205,13 @@ public class Parser {
 
     private Expression readCase() {
         if (readIf("END")) {
-            readIf("CASE");
+            readIf(CASE);
             return ValueExpression.getNull();
         }
         if (readIf("ELSE")) {
             Expression elsePart = readExpression().optimize(session);
             read("END");
-            readIf("CASE");
+            readIf(CASE);
             return elsePart;
         }
         int i;
@@ -4129,13 +4228,13 @@ public class Parser {
         } else {
             Expression expr = readExpression();
             if (readIf("END")) {
-                readIf("CASE");
+                readIf(CASE);
                 return ValueExpression.getNull();
             }
             if (readIf("ELSE")) {
                 Expression elsePart = readExpression().optimize(session);
                 read("END");
-                readIf("CASE");
+                readIf(CASE);
                 return elsePart;
             }
             function = Function.getFunction(database, "CASE");
@@ -4245,32 +4344,17 @@ public class Parser {
     // TODO: why does this function allow defaultSchemaName=null - which resets
     // the parser schemaName for everyone ?
     private String readIdentifierWithSchema(String defaultSchemaName) {
-        if (currentTokenType != IDENTIFIER) {
-            throw DbException.getSyntaxError(sqlCommand, parseIndex,
-                    "identifier");
-        }
-        String s = currentToken;
-        read();
+        String s = readColumnIdentifier();
         schemaName = defaultSchemaName;
         if (readIf(DOT)) {
             schemaName = s;
-            if (currentTokenType != IDENTIFIER) {
-                throw DbException.getSyntaxError(sqlCommand, parseIndex,
-                        "identifier");
-            }
-            s = currentToken;
-            read();
+            s = readColumnIdentifier();
         }
         if (currentTokenType == DOT) {
             if (equalsToken(schemaName, database.getShortName())) {
                 read();
                 schemaName = s;
-                if (currentTokenType != IDENTIFIER) {
-                    throw DbException.getSyntaxError(sqlCommand, parseIndex,
-                            "identifier");
-                }
-                s = currentToken;
-                read();
+                s = readColumnIdentifier();
             }
         }
         return s;
@@ -4290,8 +4374,17 @@ public class Parser {
 
     private String readColumnIdentifier() {
         if (currentTokenType != IDENTIFIER) {
-            throw DbException.getSyntaxError(sqlCommand, parseIndex,
-                    "identifier");
+            /*
+             * Sometimes a new keywords are introduced. During metadata
+             * initialization phase keywords are accepted as identifiers to
+             * allow migration from older versions.
+             *
+             * PageStore's LobStorageBackend also needs this in databases that
+             * were created in 1.4.197 and older versions.
+             */
+            if (!session.getDatabase().isStarting() || !isKeyword(currentToken)) {
+                throw DbException.getSyntaxError(sqlCommand, parseIndex, "identifier");
+            }
         }
         String s = currentToken;
         read();
@@ -5154,7 +5247,7 @@ public class Parser {
                 read("ZONE");
                 original = "TIMESTAMP WITHOUT TIME ZONE";
             }
-        } else if (readIf("INTERVAL")) {
+        } else if (readIf(INTERVAL)) {
             if (readIf("YEAR")) {
                 if (readIf(OPEN_PAREN)) {
                     originalPrecision = readNonNegativeInt();
@@ -5548,22 +5641,22 @@ public class Parser {
             if (readIf("LINKED")) {
                 return parseCreateLinkedTable(true, false, force);
             }
-            read("TABLE");
+            read(TABLE);
             return parseCreateTable(true, false, cached);
         } else if (readIf("GLOBAL")) {
             read("TEMPORARY");
             if (readIf("LINKED")) {
                 return parseCreateLinkedTable(true, true, force);
             }
-            read("TABLE");
+            read(TABLE);
             return parseCreateTable(true, true, cached);
         } else if (readIf("TEMP") || readIf("TEMPORARY")) {
             if (readIf("LINKED")) {
                 return parseCreateLinkedTable(true, true, force);
             }
-            read("TABLE");
+            read(TABLE);
             return parseCreateTable(true, true, cached);
-        } else if (readIf("TABLE")) {
+        } else if (readIf(TABLE)) {
             if (!cached && !memory) {
                 cached = database.getDefaultTableType() == Table.TYPE_CACHED;
             }
@@ -5790,7 +5883,7 @@ public class Parser {
             for (int j = 0; j < rowCount; j++) {
                 array[j] = rows.get(j).get(i);
             }
-            ExpressionList list = new ExpressionList(array);
+            ExpressionList list = new ExpressionList(array, false);
             tf.setParameter(i, list);
         }
         tf.setColumns(columns);
@@ -5851,7 +5944,7 @@ public class Parser {
     }
 
     private boolean readIfNotExists() {
-        if (readIf("IF")) {
+        if (readIf(IF)) {
             read(NOT);
             read(EXISTS);
             return true;
@@ -5964,7 +6057,7 @@ public class Parser {
         command.setTableName(tableName);
         if (readIf(FOR)) {
             read("EACH");
-            read("ROW");
+            read(ROW);
             command.setRowBased(true);
         } else {
             command.setRowBased(false);
@@ -6066,10 +6159,17 @@ public class Parser {
             parentheses++;
         }
         if (isToken(SELECT)) {
-            Query query = parseSelectUnion();
-            query.setPrepareAlways(true);
-            query.setNeverLazy(true);
-            p = query;
+            p = parseWithQuery();
+        } else if (isToken(TABLE)) {
+            int index = lastParseIndex;
+            read();
+            if (!isToken(OPEN_PAREN)) {
+                parseIndex = index;
+                read();
+                p = parseWithQuery();
+            } else {
+                throw DbException.get(ErrorCode.SYNTAX_ERROR_1, WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS);
+            }
         } else if (readIf("INSERT")) {
             p = parseInsert();
             p.setPrepareAlways(true);
@@ -6083,7 +6183,7 @@ public class Parser {
             p = parseDelete();
             p.setPrepareAlways(true);
         } else if (readIf("CREATE")) {
-            if (!isToken("TABLE")) {
+            if (!isToken(TABLE)) {
                 throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
                         WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS);
 
@@ -6104,6 +6204,13 @@ public class Parser {
             p.setCteCleanups(viewsCreated);
         }
         return p;
+    }
+
+    private Prepared parseWithQuery() {
+        Query query = parseSelectUnion();
+        query.setPrepareAlways(true);
+        query.setNeverLazy(true);
+        return query;
     }
 
     private TableView parseSingleCommonTableExpression(boolean isTemporary) {
@@ -6284,7 +6391,7 @@ public class Parser {
     }
 
     private Prepared parseAlter() {
-        if (readIf("TABLE")) {
+        if (readIf(TABLE)) {
             return parseAlterTable();
         } else if (readIf("USER")) {
             return parseAlterUser();
@@ -6546,7 +6653,10 @@ public class Parser {
             return parseSetCollation();
         } else if (readIf("BINARY_COLLATION")) {
             readIfEqualOrTo();
-            return parseSetBinaryCollation();
+            return parseSetBinaryCollation(SetTypes.BINARY_COLLATION);
+        } else if (readIf("UUID_COLLATION")) {
+            readIfEqualOrTo();
+            return parseSetBinaryCollation(SetTypes.UUID_COLLATION);
         } else if (readIf("CLUSTER")) {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.CLUSTER);
@@ -6735,14 +6845,14 @@ public class Parser {
         return command;
     }
 
-    private Set parseSetBinaryCollation() {
+    private Set parseSetBinaryCollation(int type) {
         String name = readAliasIdentifier();
         if (equalsToken(name, CompareMode.UNSIGNED) || equalsToken(name, CompareMode.SIGNED)) {
-            Set command = new Set(session, SetTypes.BINARY_COLLATION);
+            Set command = new Set(session, type);
             command.setString(name);
             return command;
         }
-        throw DbException.getInvalidValueException("BINARY_COLLATION", name);
+        throw DbException.getInvalidValueException(SetTypes.getTypeName(type), name);
     }
 
     private Set parseSetJavaObjectSerializer() {
@@ -6820,7 +6930,7 @@ public class Parser {
                 schemaNames.add(readUniqueIdentifier());
             } while (readIf(COMMA));
             command.setSchemaNames(schemaNames);
-        } else if (readIf("TABLE")) {
+        } else if (readIf(TABLE)) {
             ArrayList<Table> tables = Utils.newSmallArrayList();
             do {
                 tables.add(readTableOrView());
@@ -6830,6 +6940,13 @@ public class Parser {
         return command;
     }
 
+    /**
+     * Checks the table is the DUAL special table.
+     *
+     * @param tableName table name.
+     * @return {@code true} if the table is DUAL special table. Otherwise returns {@code false}.
+     * @see <a href="https://en.wikipedia.org/wiki/DUAL_table">Wikipedia: DUAL table</a>
+     */
     boolean isDualTable(String tableName) {
         return ((schemaName == null || equalsToken(schemaName, "SYS")) && equalsToken("DUAL", tableName))
                 || (database.getMode().sysDummy1 && (schemaName == null || equalsToken(schemaName, "SYSIBM"))
@@ -7462,7 +7579,7 @@ public class Parser {
 
     private CreateLinkedTable parseCreateLinkedTable(boolean temp,
             boolean globalTemp, boolean force) {
-        read("TABLE");
+        read(TABLE);
         boolean ifNotExists = readIfNotExists();
         String tableName = readIdentifierWithSchema();
         CreateLinkedTable command = new CreateLinkedTable(session, getSchema());

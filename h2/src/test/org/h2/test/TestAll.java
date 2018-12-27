@@ -21,6 +21,7 @@ import org.h2.test.auth.TestAuthentication;
 import org.h2.test.bench.TestPerformance;
 import org.h2.test.db.TestAlter;
 import org.h2.test.db.TestAlterSchemaRename;
+import org.h2.test.db.TestAnalyzeTableTx;
 import org.h2.test.db.TestAutoRecompile;
 import org.h2.test.db.TestBackup;
 import org.h2.test.db.TestBigDb;
@@ -74,6 +75,7 @@ import org.h2.test.db.TestSetCollation;
 import org.h2.test.db.TestSpaceReuse;
 import org.h2.test.db.TestSpatial;
 import org.h2.test.db.TestSpeed;
+import org.h2.test.db.TestSubqueryPerformanceOnLazyExecutionMode;
 import org.h2.test.db.TestSynonymForTable;
 import org.h2.test.db.TestTableEngines;
 import org.h2.test.db.TestTempTables;
@@ -196,6 +198,7 @@ import org.h2.test.unit.TestIntIntHashMap;
 import org.h2.test.unit.TestIntPerfectHash;
 import org.h2.test.unit.TestInterval;
 import org.h2.test.unit.TestJmx;
+import org.h2.test.unit.TestKeywords;
 import org.h2.test.unit.TestLocalResultFactory;
 import org.h2.test.unit.TestLocale;
 import org.h2.test.unit.TestMathUtils;
@@ -222,7 +225,6 @@ import org.h2.test.unit.TestSort;
 import org.h2.test.unit.TestStreams;
 import org.h2.test.unit.TestStringCache;
 import org.h2.test.unit.TestStringUtils;
-import org.h2.test.unit.TestSubqueryPerformanceOnLazyExecutionMode;
 import org.h2.test.unit.TestTimeStampWithTimeZone;
 import org.h2.test.unit.TestTools;
 import org.h2.test.unit.TestTraceSystem;
@@ -438,6 +440,10 @@ java org.h2.test.TestAll timer
 
     private Server server;
 
+    /**
+     * The map of executed tests to detect not executed tests.
+     * Boolean value is 'false' for a disabled test.
+     */
     HashMap<Class<? extends TestBase>, Boolean> executedTests = new HashMap<>();
 
     /**
@@ -844,6 +850,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestMvccMultiThreaded());
         addTest(new TestMvccMultiThreaded2());
         addTest(new TestRowLocks());
+        addTest(new TestAnalyzeTableTx());
 
         // synth
         addTest(new TestBtreeIndex());
@@ -973,6 +980,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestIntArray());
         addTest(new TestIntIntHashMap());
         addTest(new TestIntPerfectHash());
+        addTest(new TestKeywords());
         addTest(new TestMathUtils());
         addTest(new TestMemoryUnmapper());
         addTest(new TestMode());

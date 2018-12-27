@@ -412,8 +412,8 @@ public class Database implements DataHandler {
     }
 
     /**
-     * Compare two values with the current comparison mode. The values may not
-     * be of the same type.
+     * Compare two values with the current comparison mode. The values may have
+     * different data types including NULL.
      *
      * @param a the first value
      * @param b the second value
@@ -422,6 +422,21 @@ public class Database implements DataHandler {
      */
     public int compare(Value a, Value b) {
         return a.compareTo(b, mode, compareMode);
+    }
+
+    /**
+     * Compare two values with the current comparison mode. The values may have
+     * different data types including NULL.
+     *
+     * @param a the first value
+     * @param b the second value
+     * @param forEquality perform only check for equality (= or &lt;&gt;)
+     * @return 0 if both values are equal, -1 if the first value is smaller, 1
+     *         if the second value is larger, {@link Integer#MIN_VALUE} if order
+     *         is not defined due to NULL comparison
+     */
+    public int compareWithNull(Value a, Value b, boolean forEquality) {
+        return a.compareWithNull(b, forEquality, mode, compareMode);
     }
 
     /**
@@ -840,6 +855,8 @@ public class Database implements DataHandler {
                 lockMeta(systemSession);
                 addDatabaseObject(systemSession, setting);
             }
+            setSortSetting(SetTypes.BINARY_COLLATION, SysProperties.SORT_BINARY_UNSIGNED, true);
+            setSortSetting(SetTypes.UUID_COLLATION, SysProperties.SORT_UUID_UNSIGNED, false);
             // mark all ids used in the page store
             if (pageStore != null) {
                 BitSet f = pageStore.getObjectIds();
@@ -860,6 +877,30 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Preserves a current default value of a sorting setting if it is not the
+     * same as default for older versions of H2 and if it was not modified by
+     * user.
+     *
+     * @param type
+     *            setting type
+     * @param defValue
+     *            current default value (may be modified via system properties)
+     * @param oldDefault
+     *            default value for old versions
+     */
+    private void setSortSetting(int type, boolean defValue, boolean oldDefault) {
+        if (defValue == oldDefault) {
+            return;
+        }
+        String name = SetTypes.getTypeName(type);
+        if (settings.get(name) == null) {
+            Setting setting = new Setting(this, allocateObjectId(), name);
+            setting.setStringValue(defValue ? CompareMode.UNSIGNED : CompareMode.SIGNED);
+            lockMeta(systemSession);
+            addDatabaseObject(systemSession, setting);
+        }
+    }
 
     private void handleUpgradeIssues() {
         if (store != null && !isReadOnly()) {

@@ -205,6 +205,7 @@ public class Comparison extends Condition {
         left = left.optimize(session);
         if (right != null) {
             right = right.optimize(session);
+            // TODO check row values too
             if (right.getType() == Value.ARRAY && left.getType() != Value.ARRAY) {
                 throw DbException.get(ErrorCode.COMPARING_ARRAY_TO_SCALAR);
             }
@@ -282,58 +283,101 @@ public class Comparison extends Condition {
             }
             return ValueBoolean.get(result);
         }
-        if (l == ValueNull.INSTANCE) {
-            if ((compareType & NULL_SAFE) == 0) {
-                return ValueNull.INSTANCE;
-            }
+        // Optimization: do not evaluate right if not necessary
+        if (l == ValueNull.INSTANCE && (compareType & NULL_SAFE) == 0) {
+            return ValueNull.INSTANCE;
         }
-        Value r = right.getValue(session);
-        if (r == ValueNull.INSTANCE) {
-            if ((compareType & NULL_SAFE) == 0) {
-                return ValueNull.INSTANCE;
-            }
-        }
-        return ValueBoolean.get(compareNotNull(database, l, r, compareType));
+        return compare(database, l, right.getValue(session), compareType);
     }
 
     /**
-     * Compare two values, given the values are not NULL.
+     * Compare two values.
      *
      * @param database the database
      * @param l the first value
      * @param r the second value
      * @param compareType the compare type
-     * @return true if the comparison indicated by the comparison type evaluates
-     *         to true
+     * @return result of comparison, either TRUE, FALSE, or NULL
      */
-    static boolean compareNotNull(Database database, Value l, Value r,
-            int compareType) {
-        boolean result;
+    static Value compare(Database database, Value l, Value r, int compareType) {
+        Value result;
         switch (compareType) {
-        case EQUAL:
+        case EQUAL: {
+            int cmp = database.compareWithNull(l, r, true);
+            if (cmp == 0) {
+                result = ValueBoolean.TRUE;
+            } else if (cmp == Integer.MIN_VALUE) {
+                result = ValueNull.INSTANCE;
+            } else {
+                result = ValueBoolean.FALSE;
+            }
+            break;
+        }
         case EQUAL_NULL_SAFE:
-            result = database.areEqual(l, r);
+            result = ValueBoolean.get(database.areEqual(l, r));
             break;
-        case NOT_EQUAL:
+        case NOT_EQUAL: {
+            int cmp = database.compareWithNull(l, r, true);
+            if (cmp == 0) {
+                result = ValueBoolean.FALSE;
+            } else if (cmp == Integer.MIN_VALUE) {
+                result = ValueNull.INSTANCE;
+            } else {
+                result = ValueBoolean.TRUE;
+            }
+            break;
+        }
         case NOT_EQUAL_NULL_SAFE:
-            result = !database.areEqual(l, r);
+            result = ValueBoolean.get(!database.areEqual(l, r));
             break;
-        case BIGGER_EQUAL:
-            result = database.compare(l, r) >= 0;
+        case BIGGER_EQUAL: {
+            int cmp = database.compareWithNull(l, r, false);
+            if (cmp >= 0) {
+                result = ValueBoolean.TRUE;
+            } else if (cmp == Integer.MIN_VALUE) {
+                result = ValueNull.INSTANCE;
+            } else {
+                result = ValueBoolean.FALSE;
+            }
             break;
-        case BIGGER:
-            result = database.compare(l, r) > 0;
+        }
+        case BIGGER: {
+            int cmp = database.compareWithNull(l, r, false);
+            if (cmp > 0) {
+                result = ValueBoolean.TRUE;
+            } else if (cmp == Integer.MIN_VALUE) {
+                result = ValueNull.INSTANCE;
+            } else {
+                result = ValueBoolean.FALSE;
+            }
             break;
-        case SMALLER_EQUAL:
-            result = database.compare(l, r) <= 0;
+        }
+        case SMALLER_EQUAL: {
+            int cmp = database.compareWithNull(l, r, false);
+            if (cmp == Integer.MIN_VALUE) {
+                result = ValueNull.INSTANCE;
+            } else {
+                result = ValueBoolean.get(cmp <= 0);
+            }
             break;
-        case SMALLER:
-            result = database.compare(l, r) < 0;
+        }
+        case SMALLER: {
+            int cmp = database.compareWithNull(l, r, false);
+            if (cmp == Integer.MIN_VALUE) {
+                result = ValueNull.INSTANCE;
+            } else {
+                result = ValueBoolean.get(cmp < 0);
+            }
             break;
+        }
         case SPATIAL_INTERSECTS: {
-            ValueGeometry lg = (ValueGeometry) l.convertTo(Value.GEOMETRY);
-            ValueGeometry rg = (ValueGeometry) r.convertTo(Value.GEOMETRY);
-            result = lg.intersectsBoundingBox(rg);
+            if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
+                result = ValueNull.INSTANCE;
+            } else {
+                ValueGeometry lg = (ValueGeometry) l.convertTo(Value.GEOMETRY);
+                ValueGeometry rg = (ValueGeometry) r.convertTo(Value.GEOMETRY);
+                result = ValueBoolean.get(lg.intersectsBoundingBox(rg));
+            }
             break;
         }
         default:

@@ -1860,7 +1860,7 @@ public class TestResultSet extends TestDb {
         assertEquals(Types.NULL, array.getBaseType());
         assertEquals("NULL", array.getBaseTypeName());
 
-        assertTrue(array.toString().endsWith(": (11, 12)"));
+        assertTrue(array.toString().endsWith(": [11, 12]"));
 
         // free
         array.free();

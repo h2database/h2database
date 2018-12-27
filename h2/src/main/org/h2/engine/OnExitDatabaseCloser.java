@@ -22,6 +22,11 @@ class OnExitDatabaseCloser extends Thread {
 
     private static boolean terminated;
 
+    /**
+     * Register database instance to close one on the JVM process shutdown.
+     *
+     * @param db Database instance.
+     */
     static synchronized void register(Database db) {
         if (terminated) {
             // Shutdown in progress
@@ -46,6 +51,11 @@ class OnExitDatabaseCloser extends Thread {
         }
     }
 
+    /**
+     * Unregister database instance.
+     *
+     * @param db Database instance.
+     */
     static synchronized void unregister(Database db) {
         if (terminated) {
             // Shutdown in progress, do nothing

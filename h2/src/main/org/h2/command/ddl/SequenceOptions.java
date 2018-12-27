@@ -43,7 +43,7 @@ public class SequenceOptions {
      * Gets start value.
      *
      * @param session The session to calculate the value.
-     * @return start value or null if value is not defined.
+     * @return start value or {@code null} if value is not defined.
      */
     public Long getStartValue(Session session) {
         return getLong(session, start);
@@ -62,7 +62,7 @@ public class SequenceOptions {
      * Gets increment value.
      *
      * @param session The session to calculate the value.
-     * @return increment value or null if value is not defined.
+     * @return increment value or {@code null} if value is not defined.
      */
     public Long getIncrement(Session session) {
         return getLong(session, increment);
@@ -128,7 +128,7 @@ public class SequenceOptions {
     /**
      * Gets cycle flag.
      *
-     * @return cycle flag value or null if value is not defined.
+     * @return cycle flag value or {@code null} if value is not defined.
      */
     public Boolean getCycle() {
         return cycle;
@@ -147,7 +147,7 @@ public class SequenceOptions {
      * Gets cache size.
      *
      * @param session The session to calculate the value.
-     * @return cache size or null if value is not defined.
+     * @return cache size or {@code null} if value is not defined.
      */
     public Long getCacheSize(Session session) {
         return getLong(session, cacheSize);

@@ -38,6 +38,13 @@ public class ConfigProperties {
         }
     }
 
+    /**
+     * Returns the string value of specified property.
+     *
+     * @param name property name.
+     * @param defaultValue default value.
+     * @return the string property value or {@code defaultValue} if the property is missing.
+     */
     public String getStringValue(String name, String defaultValue) {
         String result = properties.get(name);
         if (result == null) {
@@ -46,6 +53,13 @@ public class ConfigProperties {
         return result;
     }
 
+    /**
+     * Returns the string value of specified property.
+     *
+     * @param name property name.
+     * @return the string property value.
+     * @throws AuthConfigException if the property is missing.
+     */
     public String getStringValue(String name) {
         String result = properties.get(name);
         if (result == null) {
@@ -54,6 +68,13 @@ public class ConfigProperties {
         return result;
     }
 
+    /**
+     * Returns the integer value of specified property.
+     *
+     * @param name property name.
+     * @param defaultValue default value.
+     * @return the integer property value or {@code defaultValue} if the property is missing.
+     */
     public int getIntValue(String name, int defaultValue) {
         String result = properties.get(name);
         if (result == null) {
@@ -62,6 +83,13 @@ public class ConfigProperties {
         return Integer.parseInt(result);
     }
 
+    /**
+     * Returns the integer value of specified property.
+     *
+     * @param name property name.
+     * @return the integer property value.
+     * @throws AuthConfigException if the property is missing.
+     */
     public int getIntValue(String name) {
         String result = properties.get(name);
         if (result == null) {
@@ -70,6 +98,13 @@ public class ConfigProperties {
         return Integer.parseInt(result);
     }
 
+    /**
+     * Returns the boolean value of specified property.
+     *
+     * @param name property name.
+     * @param defaultValue default value.
+     * @return the boolean property value or {@code defaultValue} if the property is missing.
+     */
     public boolean getBooleanValue(String name, boolean defaultValue) {
         String result = properties.get(name);
         if (result == null) {

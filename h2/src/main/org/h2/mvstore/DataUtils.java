@@ -252,6 +252,7 @@ public final class DataUtils {
      *
      * @param out the output stream
      * @param x the value
+     * @throws IOException if some data could not be written
      */
     public static void writeVarInt(OutputStream out, int x) throws IOException {
         while ((x & ~0x7f) != 0) {
@@ -341,6 +342,7 @@ public final class DataUtils {
      *
      * @param out the output stream
      * @param x the value
+     * @throws IOException if some data could not be written
      */
     public static void writeVarLong(OutputStream out, long x)
             throws IOException {

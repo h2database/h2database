@@ -466,3 +466,46 @@ DROP TABLE TEST;
 
 SELECT 1 = ALL (SELECT * FROM VALUES (NULL), (1), (2), (NULL) ORDER BY 1);
 >> FALSE
+
+CREATE TABLE TEST(G INT, V INT);
+> ok
+
+INSERT INTO TEST VALUES (10, 1), (11, 2), (20, 4);
+> update count: 3
+
+SELECT G / 10 G1, G / 10 G2, SUM(T.V) S FROM TEST T GROUP BY G / 10, G / 10;
+> G1 G2 S
+> -- -- -
+> 1  1  3
+> 2  2  4
+> rows: 2
+
+
+SELECT G / 10 G1, G / 10 G2, SUM(T.V) S FROM TEST T GROUP BY G2;
+> G1 G2 S
+> -- -- -
+> 1  1  3
+> 2  2  4
+> rows: 2
+
+DROP TABLE TEST;
+> ok
+
+@reconnect off
+
+CALL RAND(0);
+>> 0.730967787376657
+
+SELECT RAND(), RAND() + 1, RAND() + 1, RAND() GROUP BY RAND() + 1;
+> RAND()             RAND() + 1         RAND() + 1         RAND()
+> ------------------ ------------------ ------------------ ------------------
+> 0.6374174253501083 1.2405364156714858 1.2405364156714858 0.5504370051176339
+> rows: 1
+
+SELECT RAND() A, RAND() + 1 B, RAND() + 1 C, RAND() D, RAND() + 2 E, RAND() + 3 F GROUP BY B, C, E, F;
+> A                  B                  C                  D                  E                  F
+> ------------------ ------------------ ------------------ ------------------ ------------------ ------------------
+> 0.8791825178724801 1.3332183994766498 1.3332183994766498 0.9412491794821144 2.3851891847407183 3.9848415401998087
+> rows: 1
+
+@reconnect on

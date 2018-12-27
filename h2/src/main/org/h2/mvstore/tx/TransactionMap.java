@@ -10,6 +10,7 @@ import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.Page;
 import org.h2.mvstore.type.DataType;
+import org.h2.value.VersionedValue;
 
 import java.util.AbstractMap;
 import java.util.AbstractSet;
@@ -146,7 +147,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                     int txId = TransactionStore.getTransactionId(operationId);
                     boolean isVisible = txId == transaction.transactionId ||
                                             committingTransactions.get(txId);
-                    Object v = isVisible ? currentValue.value : currentValue.getCommittedValue();
+                    Object v = isVisible ? currentValue.getCurrentValue() : currentValue.getCommittedValue();
                     if (v == null) {
                         --size;
                     }
@@ -177,7 +178,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                                     int txId = TransactionStore.getTransactionId(operationId);
                                     boolean isVisible = txId == transaction.transactionId ||
                                             committingTransactions.get(txId);
-                                    Object v = isVisible ? currentValue.value : currentValue.getCommittedValue();
+                                    Object v = isVisible ? currentValue.getCurrentValue() : currentValue.getCommittedValue();
                                     if (v == null) {
                                         --size;
                                     }
@@ -274,10 +275,10 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      */
     public V putCommitted(K key, V value) {
         DataUtils.checkArgument(value != null, "The value may not be null");
-        VersionedValue newValue = VersionedValue.getInstance(value);
+        VersionedValue newValue = VersionedValueCommitted.getInstance(value);
         VersionedValue oldValue = map.put(key, newValue);
         @SuppressWarnings("unchecked")
-        V result = (V) (oldValue == null ? null : oldValue.value);
+        V result = (V) (oldValue == null ? null : oldValue.getCurrentValue());
         return result;
     }
 
@@ -308,7 +309,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             blockingTransaction = decisionMaker.getBlockingTransaction();
             if (decision != MVMap.Decision.ABORT || blockingTransaction == null) {
                 @SuppressWarnings("unchecked")
-                V res = result == null ? null : (V) result.value;
+                V res = result == null ? null : (V) result.getCurrentValue();
                 return res;
             }
             decisionMaker.reset();
@@ -389,12 +390,12 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         long id = data.getOperationId();
         if (id == 0) {
             // it is committed
-            return (V)data.value;
+            return (V)data.getCurrentValue();
         }
         int tx = TransactionStore.getTransactionId(id);
         if (tx == transaction.transactionId || transaction.store.committingTransactions.get().get(tx)) {
             // added by this transaction or another transaction which is committed by now
-            return (V)data.value;
+            return (V) data.getCurrentValue();
         } else {
             return (V) data.getCommittedValue();
         }
@@ -663,7 +664,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         @Override
         @SuppressWarnings("unchecked")
         protected Map.Entry<K, V> registerCurrent(K key, VersionedValue data) {
-            return new AbstractMap.SimpleImmutableEntry<>(key, (V) data.value);
+            return new AbstractMap.SimpleImmutableEntry<>(key, (V) data.getCurrentValue());
         }
     }
 
@@ -718,12 +719,12 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                                 // current value comes from another uncommitted transaction
                                 // take committed value instead
                                 Object committedValue = data.getCommittedValue();
-                                data = committedValue == null ? null : VersionedValue.getInstance(committedValue);
+                                data = committedValue == null ? null : VersionedValueCommitted.getInstance(committedValue);
                             }
                         }
                     }
                 }
-                if (data != null && (data.value != null ||
+                if (data != null && (data.getCurrentValue() != null ||
                         includeAllUncommitted && transactionId !=
                                                     TransactionStore.getTransactionId(data.getOperationId()))) {
                     current = registerCurrent(key, data);

@@ -3606,7 +3606,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
      * Updates a column in the current or insert row.
      *
      * @param columnIndex (1,2,...)
-     * @param x the value
+     * @param xmlObject the value
      * @throws SQLException if the result set is closed or not updatable
      */
     @Override
@@ -3633,7 +3633,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
      * Updates a column in the current or insert row.
      *
      * @param columnLabel the column label
-     * @param x the value
+     * @param xmlObject the value
      * @throws SQLException if the result set is closed or not updatable
      */
     @Override

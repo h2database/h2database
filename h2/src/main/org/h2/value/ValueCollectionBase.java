@@ -16,6 +16,9 @@ import org.h2.util.MathUtils;
  */
 public abstract class ValueCollectionBase extends Value {
 
+    /**
+     * Values.
+     */
     final Value[] values;
 
     private int hash;

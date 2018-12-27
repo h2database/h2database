@@ -474,6 +474,7 @@ public class MVStore implements AutoCloseable {
      * does not yet exist. If a map with this name is already open, this map is
      * returned.
      *
+     * @param <M> the map type
      * @param <K> the key type
      * @param <V> the value type
      * @param name the name of the map
@@ -1386,7 +1387,7 @@ public class MVStore implements AutoCloseable {
     }
 
     /**
-     * Collect ids for chunks that are no longer in use.
+     * Collect ids for chunks that are in use.
      * @param fast if true, simplified version is used, which assumes that recent chunks
      *            are still in-use and do not scan recent versions of the store.
      *            Also is this case only oldest available version of the store is scanned.

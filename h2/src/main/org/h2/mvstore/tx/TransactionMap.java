@@ -248,7 +248,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      * @param value to be appended
      */
     public void append(K key, V value) {
-        map.append(key, VersionedValue.getInstance(transaction.log(map.getId(), key, null), value, null));
+        map.append(key, VersionedValueUncommitted.getInstance(transaction.log(map.getId(), key, null), value, null));
     }
 
     /**

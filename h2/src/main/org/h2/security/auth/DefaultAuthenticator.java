@@ -33,7 +33,7 @@ import org.xml.sax.SAXException;
  * Default authenticator implementation.
  * <p>
  * When client connectionInfo contains property AUTHREALM={realName} credentials
- * (typically user id and password) are validated by by
+ * (typically user id and password) are validated by
  * {@link org.h2.api.CredentialsValidator} configured for that realm.
  * </p>
  * <p>

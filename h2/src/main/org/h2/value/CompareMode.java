@@ -203,7 +203,7 @@ public class CompareMode implements Comparator<Value> {
     }
 
     /**
-     * Compare name name of the locale with the given name. The case of the name
+     * Compare name of the locale with the given name. The case of the name
      * is ignored.
      *
      * @param locale the locale

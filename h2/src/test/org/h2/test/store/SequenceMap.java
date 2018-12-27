@@ -12,7 +12,7 @@ import java.util.Set;
 import org.h2.mvstore.MVMap;
 
 /**
- * A custom map returning the keys and values values 1 .. 10.
+ * A custom map returning the keys and values 1 .. 10.
  */
 public class SequenceMap extends MVMap<Long, Long> {
 

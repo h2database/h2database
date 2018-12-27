@@ -2864,7 +2864,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
      * @param rowNumber the row number. 0 is not allowed, 1 means the first row,
      *            2 the second. -1 means the last row, -2 the row before the
      *            last row. If the value is too large, the position is moved
-     *            after the last row, if if the value is too small it is moved
+     *            after the last row, if the value is too small it is moved
      *            before the first row.
      * @return true if there is a row available, false if not
      * @throws SQLException if the result set is closed
@@ -2896,7 +2896,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
      *
      * @param rowCount 0 means don't do anything, 1 is the next row, -1 the
      *            previous. If the value is too large, the position is moved
-     *            after the last row, if if the value is too small it is moved
+     *            after the last row, if the value is too small it is moved
      *            before the first row.
      * @return true if there is a row available, false if not
      * @throws SQLException if the result set is closed

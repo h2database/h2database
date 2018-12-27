@@ -74,7 +74,7 @@ import java.nio.ByteBuffer;
  * </ul>
  *<p>
  * The first byte of the compressed stream is the control byte. For literal
- * runs, the highest three bits of the control byte are not set, the the lower
+ * runs, the highest three bits of the control byte are not set, the lower
  * bits are the literal run length, and the next bytes are data to copy directly
  * into the output. For back-references, the highest three bits of the control
  * byte are the back-reference length. If all three bits are set, then the

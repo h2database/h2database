@@ -817,7 +817,7 @@ public class Csv implements SimpleRowSource {
      * INTERNAL.
      * Parse and set the CSV options.
      *
-     * @param options the the options
+     * @param options the options
      * @return the character set
      */
     public String setOptions(String options) {

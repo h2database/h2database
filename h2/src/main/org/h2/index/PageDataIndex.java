@@ -179,7 +179,7 @@ public class PageDataIndex extends PageIndex {
     }
 
     /**
-     * Read an overflow page page.
+     * Read an overflow page.
      *
      * @param id the page id
      * @return the page

@@ -197,7 +197,7 @@ public class NetUtils {
             return true;
         }
         InetAddress localhost = InetAddress.getLocalHost();
-        // localhost.getCanonicalHostName() is very very slow
+        // localhost.getCanonicalHostName() is very slow
         String host = localhost.getHostAddress();
         for (InetAddress addr : InetAddress.getAllByName(host)) {
             if (test.equals(addr)) {

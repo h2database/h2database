@@ -1224,7 +1224,7 @@ public class Data {
      */
     public void writeVarInt(int x) {
         while ((x & ~0x7f) != 0) {
-            data[pos++] = (byte) (0x80 | (x & 0x7f));
+            data[pos++] = (byte) (x | 0x80);
             x >>>= 7;
         }
         data[pos++] = (byte) x;
@@ -1293,7 +1293,7 @@ public class Data {
      */
     public void writeVarLong(long x) {
         while ((x & ~0x7f) != 0) {
-            data[pos++] = (byte) ((x & 0x7f) | 0x80);
+            data[pos++] = (byte) (x | 0x80);
             x >>>= 7;
         }
         data[pos++] = (byte) x;

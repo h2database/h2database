@@ -256,7 +256,7 @@ public final class DataUtils {
      */
     public static void writeVarInt(OutputStream out, int x) throws IOException {
         while ((x & ~0x7f) != 0) {
-            out.write((byte) (0x80 | (x & 0x7f)));
+            out.write((byte) (x | 0x80));
             x >>>= 7;
         }
         out.write((byte) x);
@@ -270,7 +270,7 @@ public final class DataUtils {
      */
     public static void writeVarInt(ByteBuffer buff, int x) {
         while ((x & ~0x7f) != 0) {
-            buff.put((byte) (0x80 | (x & 0x7f)));
+            buff.put((byte) (x | 0x80));
             x >>>= 7;
         }
         buff.put((byte) x);
@@ -331,7 +331,7 @@ public final class DataUtils {
      */
     public static void writeVarLong(ByteBuffer buff, long x) {
         while ((x & ~0x7f) != 0) {
-            buff.put((byte) (0x80 | (x & 0x7f)));
+            buff.put((byte) (x | 0x80));
             x >>>= 7;
         }
         buff.put((byte) x);
@@ -347,7 +347,7 @@ public final class DataUtils {
     public static void writeVarLong(OutputStream out, long x)
             throws IOException {
         while ((x & ~0x7f) != 0) {
-            out.write((byte) (0x80 | (x & 0x7f)));
+            out.write((byte) (x | 0x80));
             x >>>= 7;
         }
         out.write((byte) x);

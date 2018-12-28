@@ -17,18 +17,26 @@ import org.h2.value.Value;
  */
 public class SimpleResult implements ResultInterface {
 
+    /**
+     *  Column info for the simple result.
+     */
     static final class Column {
-
+        /** Column alias. */
         final String alias;
 
+        /** Column name. */
         final String columnName;
 
+        /** Column type. */
         final int columnType;
 
+        /** Column precision. */
         final long columnPrecision;
 
+        /** Column scale. */
         final int columnScale;
 
+        /** Displayed size of the column. */
         final int displaySize;
 
         Column(String alias, String columnName, int columnType, long columnPrecision, int columnScale,

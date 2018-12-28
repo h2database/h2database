@@ -1401,7 +1401,7 @@ public class MVStore implements AutoCloseable {
         try {
             ChunkIdsCollector collector = new ChunkIdsCollector(meta.getId());
             long oldestVersionToKeep = getOldestVersionToKeep();
-            MVMap.RootReference rootReference = meta.getRoot();
+            MVMap.RootReference rootReference = meta.flushAndGetRoot();
             if (fast) {
                 MVMap.RootReference previous;
                 while (rootReference.version >= oldestVersionToKeep && (previous = rootReference.previous) != null) {

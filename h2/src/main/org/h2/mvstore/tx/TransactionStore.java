@@ -390,7 +390,7 @@ public class TransactionStore {
      */
     long addUndoLogRecord(int transactionId, long logId, Object[] undoLogRecord) {
         MVMap<Long, Object[]> undoLog = undoLogs[transactionId];
-        Long undoKey = getOperationId(transactionId, logId);
+        long undoKey = getOperationId(transactionId, logId);
         if (logId == 0 && !undoLog.isEmpty()) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_TOO_MANY_OPEN_TRANSACTIONS,

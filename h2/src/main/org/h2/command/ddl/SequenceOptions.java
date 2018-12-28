@@ -39,25 +39,51 @@ public class SequenceOptions {
         return null;
     }
 
-    /** The first value to return. */
+    /**
+     * Gets start value.
+     *
+     * @param session The session to calculate the value.
+     * @return start value or {@code null} if value is not defined.
+     */
     public Long getStartValue(Session session) {
         return getLong(session, start);
     }
 
+    /**
+     * Sets start value expression.
+     *
+     * @param start START WITH value expression.
+     */
     public void setStartValue(Expression start) {
         this.start = start;
     }
 
-    /** The increment count. */
+    /**
+     * Gets increment value.
+     *
+     * @param session The session to calculate the value.
+     * @return increment value or {@code null} if value is not defined.
+     */
     public Long getIncrement(Session session) {
         return getLong(session, increment);
     }
 
+    /**
+     * Sets increment value expression.
+     *
+     * @param increment INCREMENT BY value expression.
+     */
     public void setIncrement(Expression increment) {
         this.increment = increment;
     }
 
-    /** The maximum value. */
+    /**
+     * Gets max value.
+     *
+     * @param sequence the sequence to get default max value.
+     * @param session The session to calculate the value.
+     * @return max value when the MAXVALUE expression is set, otherwise returns default max value.
+     */
     public Long getMaxValue(Sequence sequence, Session session) {
         if (maxValue == ValueExpression.getNull() && sequence != null) {
             return Sequence.getDefaultMaxValue(getCurrentStart(sequence, session),
@@ -66,11 +92,22 @@ public class SequenceOptions {
         return getLong(session, maxValue);
     }
 
+    /**
+     * Sets max value expression.
+     *
+     * @param maxValue MAXVALUE expression.
+     */
     public void setMaxValue(Expression maxValue) {
         this.maxValue = maxValue;
     }
 
-    /** The minimum value. */
+    /**
+     * Gets min value.
+     *
+     * @param sequence the sequence to get default min value.
+     * @param session The session to calculate the value.
+     * @return max value when the MINVALUE expression is set, otherwise returns default min value.
+     */
     public Long getMinValue(Sequence sequence, Session session) {
         if (minValue == ValueExpression.getNull() && sequence != null) {
             return Sequence.getDefaultMinValue(getCurrentStart(sequence, session),
@@ -79,33 +116,57 @@ public class SequenceOptions {
         return getLong(session, minValue);
     }
 
-    public long getCurrentStart(Sequence sequence, Session session) {
-        return start != null ? getStartValue(session) : sequence.getCurrentValue() + sequence.getIncrement();
-    }
-
+    /**
+     * Sets min value expression.
+     *
+     * @param minValue MINVALUE expression.
+     */
     public void setMinValue(Expression minValue) {
         this.minValue = minValue;
     }
 
+    /**
+     * Gets cycle flag.
+     *
+     * @return cycle flag value or {@code null} if value is not defined.
+     */
     public Boolean getCycle() {
         return cycle;
     }
 
+    /**
+     * Sets cycle flag.
+     *
+     * @param cycle flag value.
+     */
     public void setCycle(Boolean cycle) {
         this.cycle = cycle;
     }
 
-    /** The number of entries to pre-fetch. */
+    /**
+     * Gets cache size.
+     *
+     * @param session The session to calculate the value.
+     * @return cache size or {@code null} if value is not defined.
+     */
     public Long getCacheSize(Session session) {
         return getLong(session, cacheSize);
     }
 
+    /**
+     * Sets cache size.
+     *
+     * @param cacheSize cache size.
+     */
     public void setCacheSize(Expression cacheSize) {
         this.cacheSize = cacheSize;
     }
 
-    protected boolean isRangeSet() {
+    boolean isRangeSet() {
         return start != null || minValue != null || maxValue != null || increment != null;
     }
 
+    private long getCurrentStart(Sequence sequence, Session session) {
+        return start != null ? getStartValue(session) : sequence.getCurrentValue() + sequence.getIncrement();
+    }
 }

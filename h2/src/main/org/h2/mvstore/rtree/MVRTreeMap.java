@@ -134,7 +134,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         int attempt = 0;
         while(true) {
             ++attempt;
-            RootReference rootReference = getRoot();
+            RootReference rootReference = flushAndGetRoot();
             Page p = rootReference.root.copy(true);
             V result = operate(p, key, value, decisionMaker);
             if (!p.isLeaf() && p.getTotalCount() == 0) {

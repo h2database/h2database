@@ -19,7 +19,7 @@ public class AuthenticationInfo {
 
     private String realm;
 
-    /*
+    /**
      * Can be used by authenticator to hold information.
      */
     Object nestedIdentity;
@@ -58,7 +58,7 @@ public class AuthenticationInfo {
     }
 
     /**
-     * Gets nested identity.
+     * Gets nested identity object that can be used by authenticator to hold information.
      *
      * @return nested identity object.
      */

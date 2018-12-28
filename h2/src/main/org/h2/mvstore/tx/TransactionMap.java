@@ -46,7 +46,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
     /**
      * The transaction which is used for this map.
      */
-    final Transaction transaction;
+    private final Transaction transaction;
 
     TransactionMap(Transaction transaction, MVMap<K, VersionedValue> map) {
         this.transaction = transaction;
@@ -105,16 +105,16 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         long undoLogSize;
         do {
             committingTransactions = store.committingTransactions.get();
-            mapRootReference = map.getRoot();
+            mapRootReference = map.flushAndGetRoot();
             BitSet opentransactions = store.openTransactions.get();
             undoLogRootReferences = new MVMap.RootReference[opentransactions.length()];
             undoLogSize = 0;
             for (int i = opentransactions.nextSetBit(0); i >= 0; i = opentransactions.nextSetBit(i+1)) {
                 MVMap<Long, Object[]> undoLog = store.undoLogs[i];
                 if (undoLog != null) {
-                    MVMap.RootReference rootReference = undoLog.getRoot();
+                    MVMap.RootReference rootReference = undoLog.flushAndGetRoot();
                     undoLogRootReferences[i] = rootReference;
-                    undoLogSize += rootReference.root.getTotalCount() + rootReference.getAppendCounter();
+                    undoLogSize += rootReference.getTotalCount();
                 }
             }
         } while(committingTransactions != store.committingTransactions.get() ||
@@ -125,7 +125,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         // should be considered as committed.
         // Subsequent processing uses this snapshot info only.
         Page mapRootPage = mapRootReference.root;
-        long size = mapRootPage.getTotalCount();
+        long size = mapRootReference.getTotalCount();
         // if we are looking at the map without any uncommitted values
         if (undoLogSize == 0) {
             return size;
@@ -242,6 +242,16 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
     }
 
     /**
+     * Appends entry to uderlying map. This method may be used concurrently,
+     * but latest appended values are not guaranteed to be visible.
+     * @param key should be higher in map's order than any existing key
+     * @param value to be appended
+     */
+    public void append(K key, V value) {
+        map.append(key, VersionedValueUncommitted.getInstance(transaction.log(map.getId(), key, null), value, null));
+    }
+
+    /**
      * Lock row for the given key.
      * <p>
      * If the row is locked, this method will retry until the row could be
@@ -298,16 +308,12 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             assert decision != MVMap.Decision.REPEAT;
             blockingTransaction = decisionMaker.getBlockingTransaction();
             if (decision != MVMap.Decision.ABORT || blockingTransaction == null) {
-                transaction.blockingMap = null;
-                transaction.blockingKey = null;
                 @SuppressWarnings("unchecked")
                 V res = result == null ? null : (V) result.getCurrentValue();
                 return res;
             }
             decisionMaker.reset();
-            transaction.blockingMap = map;
-            transaction.blockingKey = key;
-        } while (blockingTransaction.sequenceNum > sequenceNumWhenStarted || transaction.waitFor(blockingTransaction));
+        } while (blockingTransaction.sequenceNum > sequenceNumWhenStarted || transaction.waitFor(blockingTransaction, map, key));
 
         throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTION_LOCKED,
                 "Map entry <{0}> with key <{1}> and value {2} is locked by tx {3} and can not be updated by tx {4}"
@@ -669,8 +675,8 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         private final boolean includeAllUncommitted;
         private X current;
 
-        protected TMIterator(TransactionMap<K,?> transactionMap, K from, K to, boolean includeAllUncommitted) {
-            Transaction transaction = transactionMap.transaction;
+        TMIterator(TransactionMap<K,?> transactionMap, K from, K to, boolean includeAllUncommitted) {
+            Transaction transaction = transactionMap.getTransaction();
             this.transactionId = transaction.transactionId;
             TransactionStore store = transaction.store;
             MVMap<K, VersionedValue> map = transactionMap.map;
@@ -683,7 +689,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             MVMap.RootReference mapRootReference;
             do {
                 committingTransactions = store.committingTransactions.get();
-                mapRootReference = map.getRoot();
+                mapRootReference = map.flushAndGetRoot();
             } while (committingTransactions != store.committingTransactions.get());
             // Now we have a snapshot, where mapRootReference points to state of the map
             // and committingTransactions mask tells us which of seemingly uncommitted changes

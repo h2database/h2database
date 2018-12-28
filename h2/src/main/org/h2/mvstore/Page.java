@@ -414,6 +414,13 @@ public abstract class Page implements Cloneable
         return copy(false);
     }
 
+    /**
+     * Create a copy of this page.
+     *
+     * @param countRemoval When {@code true} the current page is removed,
+     *                     when {@code false} just copy the page.
+     * @return a mutable copy of this page
+     */
     public final Page copy(boolean countRemoval) {
         Page newPage = clone();
         newPage.pos = 0;
@@ -491,6 +498,16 @@ public abstract class Page implements Cloneable
         System.arraycopy(keys, getKeyCount() - bCount, bKeys, 0, bCount);
         keys = aKeys;
         return bKeys;
+    }
+
+    abstract void expand(int extraKeyCount, Object[] extraKeys, Object[] extraValues);
+
+    final void expandKeys(int extraKeyCount, Object[] extraKeys) {
+        int keyCount = getKeyCount();
+        Object[] newKeys = createKeyStorage(keyCount + extraKeyCount);
+        System.arraycopy(keys, 0, newKeys, 0, keyCount);
+        System.arraycopy(extraKeys, 0, newKeys, keyCount, extraKeyCount);
+        keys = newKeys;
     }
 
     /**
@@ -795,10 +812,18 @@ public abstract class Page implements Cloneable
         return r;
     }
 
+    /**
+     * Increase estimated memory used in persistent case.
+     *
+     * @param mem additional memory size.
+     */
     final void addMemory(int mem) {
         memory += mem;
     }
 
+    /**
+     * Recalculate estimated memory used in persistent case.
+     */
     final void recalculateMemory() {
         assert isPersistent();
         memory = calculateMemory();
@@ -1010,6 +1035,11 @@ public abstract class Page implements Cloneable
                 recalculateMemory();
             }
             return newPage;
+        }
+
+        @Override
+        public void expand(int keyCount, Object[] extraKys, Object[] extraValues) {
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -1322,6 +1352,21 @@ public abstract class Page implements Cloneable
                 recalculateMemory();
             }
             return newPage;
+        }
+
+        @Override
+        public void expand(int extraKeyCount, Object[] extraKeys, Object[] extraValues) {
+            int keyCount = getKeyCount();
+            expandKeys(extraKeyCount, extraKeys);
+            if(values != null) {
+                Object[] newValues = createValueStorage(keyCount + extraKeyCount);
+                System.arraycopy(values, 0, newValues, 0, keyCount);
+                System.arraycopy(extraValues, 0, newValues, keyCount, extraKeyCount);
+                values = newValues;
+            }
+            if(isPersistent()) {
+                recalculateMemory();
+            }
         }
 
         @Override

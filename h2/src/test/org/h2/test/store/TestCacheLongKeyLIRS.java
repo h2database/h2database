@@ -279,7 +279,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         verify(test, "mem: 4 stack: 2 3 4 6 cold: non-resident: 5 0");
         test.put(0,  0);
         test.put(1,  10);
-        // the the stack was not pruned, the following will fail
+        // the stack was not pruned, the following will fail
         verify(test, "mem: 5 stack: 1 0 2 3 4 cold: 1 non-resident: 6 5");
     }
 

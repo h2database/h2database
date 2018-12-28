@@ -813,7 +813,7 @@ public class Transfer {
     }
 
     /**
-     * Open a new new connection to the same address and port as this one.
+     * Open a new connection to the same address and port as this one.
      *
      * @return the new transfer object
      */

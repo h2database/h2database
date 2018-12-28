@@ -669,7 +669,7 @@ public class DbException extends RuntimeException {
      * @param s print writer
      */
     public static void printNextExceptions(SQLException e, PrintWriter s) {
-        // getNextException().printStackTrace(s) would be very very slow
+        // getNextException().printStackTrace(s) would be very slow
         // if many exceptions are joined
         int i = 0;
         while ((e = e.getNextException()) != null) {
@@ -688,7 +688,7 @@ public class DbException extends RuntimeException {
      * @param s print stream
      */
     public static void printNextExceptions(SQLException e, PrintStream s) {
-        // getNextException().printStackTrace(s) would be very very slow
+        // getNextException().printStackTrace(s) would be very slow
         // if many exceptions are joined
         int i = 0;
         while ((e = e.getNextException()) != null) {

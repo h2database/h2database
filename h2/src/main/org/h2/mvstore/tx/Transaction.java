@@ -61,7 +61,7 @@ public class Transaction {
      */
     private static final int STATUS_ROLLED_BACK  = 5;
 
-    private static final String STATUS_NAMES[] = {
+    private static final String[] STATUS_NAMES = {
             "CLOSED", "OPEN", "PREPARED", "COMMITTED", "ROLLING_BACK", "ROLLED_BACK"
     };
     static final int LOG_ID_BITS = 40;
@@ -91,7 +91,7 @@ public class Transaction {
     /**
      * This is really a transaction identity, because it's not re-used.
      */
-    public final long sequenceNum;
+    final long sequenceNum;
 
     /*
      * Transaction state is an atomic composite field:
@@ -138,12 +138,17 @@ public class Transaction {
     /**
      * Map on which this transaction is blocked.
      */
-    MVMap<?,VersionedValue> blockingMap;
+    private MVMap<?,VersionedValue> blockingMap;
 
     /**
      * Key in blockingMap on which this transaction is blocked.
      */
-    Object blockingKey;
+    private Object blockingKey;
+
+    /**
+     * Whether other transaction(s) are waiting for this to close.
+     */
+    private volatile boolean notificationRequested;
 
 
     Transaction(TransactionStore store, int transactionId, long sequenceNum, int status,
@@ -237,7 +242,8 @@ public class Transaction {
     }
 
     public int getBlockerId() {
-        return blockingTransaction == null ? 0 : blockingTransaction.ownerId;
+        Transaction blocker = this.blockingTransaction;
+        return blocker == null ? 0 : blocker.ownerId;
     }
 
     /**
@@ -390,19 +396,25 @@ public class Transaction {
     public void rollbackToSavepoint(long savepointId) {
         long lastState = setStatus(STATUS_ROLLING_BACK);
         long logId = getLogId(lastState);
+        boolean success;
         try {
             store.rollbackTo(this, logId, savepointId);
         } finally {
-            notifyAllWaitingTransactions();
+            if (notificationRequested) {
+                notifyAllWaitingTransactions();
+            }
             long expectedState = composeState(STATUS_ROLLING_BACK, logId, hasRollback(lastState));
             long newState = composeState(STATUS_OPEN, savepointId, true);
-            if (!statusAndLogId.compareAndSet(expectedState, newState)) {
-                throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_TRANSACTION_ILLEGAL_STATE,
-                        "Transaction {0} concurrently modified " +
-                                "while rollback to savepoint was in progress",
-                        transactionId);
-            }
+            do {
+                success = statusAndLogId.compareAndSet(expectedState, newState);
+            } while (!success && statusAndLogId.get() == expectedState);
+        }
+        // this is moved outside of finally block to avert masking original exception, if any
+        if (!success) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_TRANSACTION_ILLEGAL_STATE,
+                    "Transaction {0} concurrently modified while rollback to savepoint was in progress",
+                    transactionId);
         }
     }
 
@@ -474,7 +486,7 @@ public class Transaction {
     void closeIt() {
         long lastState = setStatus(STATUS_CLOSED);
         store.store.deregisterVersionUsage(txCounter);
-        if(hasChanges(lastState) || hasRollback(lastState)) {
+        if((hasChanges(lastState) || hasRollback(lastState)) && notificationRequested) {
             notifyAllWaitingTransactions();
         }
     }
@@ -483,7 +495,10 @@ public class Transaction {
         notifyAll();
     }
 
-    public boolean waitFor(Transaction toWaitFor) {
+    public boolean waitFor(Transaction toWaitFor, MVMap<?,VersionedValue> map, Object key) {
+        blockingTransaction = toWaitFor;
+        blockingMap = map;
+        blockingKey = key;
         if (isDeadlocked(toWaitFor)) {
             StringBuilder details = new StringBuilder(
                     String.format("Transaction %d has been chosen as a deadlock victim. Details:%n", transactionId));
@@ -504,7 +519,6 @@ public class Transaction {
             }
         }
 
-        blockingTransaction = toWaitFor;
         try {
             return toWaitFor.waitForThisToEnd(timeoutMillis);
         } finally {
@@ -527,6 +541,7 @@ public class Transaction {
 
     private synchronized boolean waitForThisToEnd(int millis) {
         long until = System.currentTimeMillis() + millis;
+        notificationRequested = true;
         long state;
         int status;
         while((status = getStatus(state = statusAndLogId.get())) != STATUS_CLOSED
@@ -557,8 +572,15 @@ public class Transaction {
 
     @Override
     public String toString() {
-        long state = statusAndLogId.get();
-        return transactionId + "(" + sequenceNum + ") " + STATUS_NAMES[getStatus(state)] + " " + getLogId(state);
+        return transactionId + "(" + sequenceNum + ") " + stateToString();
+    }
+
+    private String stateToString() {
+        return stateToString(statusAndLogId.get());
+    }
+
+    private static String stateToString(long state) {
+        return STATUS_NAMES[getStatus(state)] + (hasRollback(state) ? "<" : "") + " " + getLogId(state);
     }
 
 

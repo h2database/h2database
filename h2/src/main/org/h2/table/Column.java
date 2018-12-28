@@ -656,7 +656,7 @@ public class Column {
 
     /**
      * Add a check constraint expression to this column. An existing check
-     * constraint constraint is added using AND.
+     * constraint is added using AND.
      *
      * @param session the session
      * @param expr the (additional) constraint

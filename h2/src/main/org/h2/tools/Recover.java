@@ -165,7 +165,7 @@ public class Recover extends Tool implements DataHandler {
      * open the database and can be used even if the database files are
      * corrupted. A database can get corrupted if there is a bug in the database
      * engine or file system software, or if an application writes into the
-     * database file that doesn't understand the the file format, or if there is
+     * database file that doesn't understand the file format, or if there is
      * a hardware problem.
      *
      * @param args the command line arguments

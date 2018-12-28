@@ -2099,7 +2099,7 @@ public class Database implements DataHandler {
     /**
      * Check if this database is disk-based.
      *
-     * @return true if it is disk-based, false it it is in-memory only.
+     * @return true if it is disk-based, false if it is in-memory only.
      */
     public boolean isPersistent() {
         return persistent;

@@ -148,6 +148,13 @@ public class Sequence extends SchemaObjectBase {
             Math.abs(increment) + Long.MIN_VALUE <= maxValue - minValue + Long.MIN_VALUE;
     }
 
+    /**
+     * Calculates default min value.
+     *
+     * @param startValue the start value of the sequence.
+     * @param increment the increment of the sequence value.
+     * @return min value.
+     */
     public static long getDefaultMinValue(Long startValue, long increment) {
         long v = increment >= 0 ? 1 : Long.MIN_VALUE;
         if (startValue != null && increment >= 0 && startValue < v) {
@@ -156,6 +163,13 @@ public class Sequence extends SchemaObjectBase {
         return v;
     }
 
+    /**
+     * Calculates default max value.
+     *
+     * @param startValue the start value of the sequence.
+     * @param increment the increment of the sequence value.
+     * @return min value.
+     */
     public static long getDefaultMaxValue(Long startValue, long increment) {
         long v = increment >= 0 ? Long.MAX_VALUE : -1;
         if (startValue != null && increment < 0 && startValue > v) {

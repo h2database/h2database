@@ -307,7 +307,7 @@ public abstract class FilePath {
     /**
      * Convert a file to a path. This is similar to
      * <code>java.nio.file.spi.FileSystemProvider.getPath</code>, but may
-     * return an object even if the scheme doesn't match in case of the the
+     * return an object even if the scheme doesn't match in case of the
      * default file provider.
      *
      * @param path the path

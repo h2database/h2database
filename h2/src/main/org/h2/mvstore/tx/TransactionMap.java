@@ -242,7 +242,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
     }
 
     /**
-     * Appends entry to uderlying map. This method may be used concurrently,
+     * Appends entry to underlying map. This method may be used concurrently,
      * but latest appended values are not guaranteed to be visible.
      * @param key should be higher in map's order than any existing key
      * @param value to be appended

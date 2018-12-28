@@ -3187,7 +3187,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             if (index == null) {
                 throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnLabel);
             }
-            return index.intValue() + 1;
+            return index + 1;
         }
         for (int i = 0; i < columnCount; i++) {
             if (columnLabel.equalsIgnoreCase(result.getAlias(i))) {

@@ -161,7 +161,7 @@ public class FilePathSplit extends FilePathWrapper {
     }
 
     private long getDefaultMaxLength() {
-        return 1L << Integer.decode(parse(name)[0]).intValue();
+        return 1L << Integer.decode(parse(name)[0]);
     }
 
     private void closeAndThrow(int id, FileChannel[] array, FileChannel o,

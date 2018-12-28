@@ -596,7 +596,7 @@ public class ObjectDataType implements DataType {
                 return;
             }
             buff.put((byte) TYPE_BYTE);
-            buff.put(((Byte) obj).byteValue());
+            buff.put((Byte) obj);
         }
 
         @Override
@@ -637,7 +637,7 @@ public class ObjectDataType implements DataType {
                 return;
             }
             buff.put((byte) TYPE_CHAR);
-            buff.putChar(((Character) obj).charValue());
+            buff.putChar((Character) obj);
         }
 
         @Override
@@ -678,7 +678,7 @@ public class ObjectDataType implements DataType {
                 return;
             }
             buff.put((byte) TYPE_SHORT);
-            buff.putShort(((Short) obj).shortValue());
+            buff.putShort((Short) obj);
         }
 
         @Override

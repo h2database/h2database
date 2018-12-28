@@ -44,7 +44,7 @@ public class SmallMap {
             Iterator<Integer> it = map.keySet().iterator();
             while (it.hasNext()) {
                 Integer k = it.next();
-                if (k.intValue() + maxElements < lastId) {
+                if (k + maxElements < lastId) {
                     it.remove();
                 }
             }

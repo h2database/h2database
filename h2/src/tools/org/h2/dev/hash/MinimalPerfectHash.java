@@ -656,7 +656,7 @@ public class MinimalPerfectHash<K> {
             if (index == 0) {
                 return o.hashCode();
             } else if (index < 8) {
-                long x = o.longValue();
+                long x = o;
                 x += index;
                 x = ((x >>> 32) ^ x) * 0x45d9f3b;
                 x = ((x >>> 32) ^ x) * 0x45d9f3b;
@@ -664,7 +664,7 @@ public class MinimalPerfectHash<K> {
             }
             // get the lower or higher 32 bit depending on the index
             int shift = (index & 1) * 32;
-            return (int) (o.longValue() >>> shift);
+            return (int) (o >>> shift);
         }
 
     }

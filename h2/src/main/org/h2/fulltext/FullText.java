@@ -619,7 +619,7 @@ public class FullText {
             if (wId == null) {
                 continue;
             }
-            prepSelectMapByWordId.setInt(1, wId.intValue());
+            prepSelectMapByWordId.setInt(1, wId);
             ResultSet rs = prepSelectMapByWordId.executeQuery();
             while (rs.next()) {
                 Integer rId = rs.getInt(1);

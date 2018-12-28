@@ -77,11 +77,11 @@ public class TestAuthentication extends TestBase {
         return externalUserPassword;
     }
 
-    private String getRealmName() {
+    private static String getRealmName() {
         return "testRealm";
     }
 
-    private String getStaticRoleName() {
+    private static String getStaticRoleName() {
         return "staticRole";
     }
 
@@ -117,7 +117,7 @@ public class TestAuthentication extends TestBase {
         return "jdbc:h2:mem:" + getClass().getSimpleName();
     }
 
-    private String getExternalUser() {
+    private static String getExternalUser() {
         return "user";
     }
 

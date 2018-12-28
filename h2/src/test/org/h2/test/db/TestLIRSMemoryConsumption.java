@@ -92,12 +92,12 @@ public class TestLIRSMemoryConsumption extends TestDb {
         }
     }
 
-    private Object createValue(long key) {
+    private static Object createValue(long key) {
 //        return new Object();
         return new byte[2540];
     }
 
-    private int getValueSize(long key) {
+    private static int getValueSize(long key) {
 //        return 16;
         return 2560;
     }

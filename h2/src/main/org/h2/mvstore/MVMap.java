@@ -1939,7 +1939,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         if (notificationRequested) {
             synchronized (lock) {
                 notificationRequested = false;
-                lock.notifyAll();;
+                lock.notifyAll();
             }
         }
         return updatedRootReference;

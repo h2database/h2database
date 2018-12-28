@@ -27,10 +27,12 @@ class VersionedValueCommitted extends VersionedValue {
         return value instanceof VersionedValue ? (VersionedValue) value : new VersionedValueCommitted(value);
     }
 
+    @Override
     public Object getCurrentValue() {
         return value;
     }
 
+    @Override
     public Object getCommittedValue() {
         return value;
     }

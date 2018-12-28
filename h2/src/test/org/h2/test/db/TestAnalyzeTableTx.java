@@ -12,7 +12,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 public class TestAnalyzeTableTx extends TestDb {
-    static final int C = 10_000;
+    private static final int C = 10_000;
 
     /**
      * Run just this test.

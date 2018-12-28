@@ -328,7 +328,7 @@ public class IntervalUtils {
         return ValueInterval.from(qualifier, negative, leading, remaining);
     }
 
-    static ValueInterval parseInterval2(IntervalQualifier qualifier, String s, char ch, int max, boolean negative) {
+    private static ValueInterval parseInterval2(IntervalQualifier qualifier, String s, char ch, int max, boolean negative) {
         long leading;
         long remaining;
         int dash = s.indexOf(ch, 1);

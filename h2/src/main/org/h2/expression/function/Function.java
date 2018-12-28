@@ -1141,6 +1141,16 @@ public class Function extends Expression implements FunctionCall {
         return new Parser(session).parseTableName(tableName.getString());
     }
 
+    /**
+     * Get value transformed by expression, or null if i is out of range or
+     * the input value is null.
+     * 
+     * @param session database session
+     * @param args expressions
+     * @param values array of input values
+     * @param i index of value of transform
+     * @return value or null
+     */
     protected static Value getNullOrValue(Session session, Expression[] args,
             Value[] values, int i) {
         if (i >= args.length) {
@@ -1157,7 +1167,7 @@ public class Function extends Expression implements FunctionCall {
         return v;
     }
 
-    protected Value getValueWithArgs(Session session, Expression[] args) {
+    private Value getValueWithArgs(Session session, Expression[] args) {
         Value[] values = new Value[args.length];
         if (info.nullIfParameterIsNull) {
             for (int i = 0; i < args.length; i++) {

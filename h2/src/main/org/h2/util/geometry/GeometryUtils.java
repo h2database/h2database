@@ -167,7 +167,7 @@ public final class GeometryUtils {
          */
         private boolean set;
 
-        double minX, maxX, minY, maxY;
+        private double minX, maxX, minY, maxY;
 
         /**
          * Creates a new envelope calculation target.
@@ -295,7 +295,7 @@ public final class GeometryUtils {
          */
         private boolean set;
 
-        double minX, maxX, minY, maxY;
+        private double minX, maxX, minY, maxY;
 
         private boolean hasZ;
 
@@ -567,6 +567,11 @@ public final class GeometryUtils {
         return Double.isNaN(d) ? Double.NaN : d == 0d ? 0d : d;
     }
 
+    /**
+     * Throw exception if param is not finite value (ie. NaN/inf/etc)
+     * @param d double value
+     * @return same double value
+     */
     static double checkFinite(double d) {
         // Do not push this negation down, it will break NaN rejection
         if (!(Math.abs(d) <= Double.MAX_VALUE)) {

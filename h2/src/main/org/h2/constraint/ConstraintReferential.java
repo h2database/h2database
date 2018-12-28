@@ -471,6 +471,9 @@ public class ConstraintReferential extends Constraint {
         buildDeleteSQL();
     }
 
+    /**
+     * Update the constraint SQL when a referenced column is renamed.
+     */
     public void updateOnTableColumnRename() {
         if (deleteAction != null) {
             deleteSQL = null;

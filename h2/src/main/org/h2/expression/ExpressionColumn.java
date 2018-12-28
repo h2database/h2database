@@ -155,6 +155,11 @@ public class ExpressionColumn extends Expression {
         return columnResolver.optimize(this, column);
     }
 
+    /**
+     * Get exception to throw, with column and table info added
+     * @param code SQL error code
+     * @return DbException
+     */
     public DbException getColumnException(int code) {
         String name = columnName;
         if (tableAlias != null) {

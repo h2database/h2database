@@ -105,6 +105,9 @@ public class Select extends Query {
      */
     boolean[] groupByExpression;
 
+    /**
+     * Grouped data for aggregates.
+     */
     SelectGroups groupData;
 
     private int havingIndex;
@@ -161,6 +164,9 @@ public class Select extends Query {
         this.expressions = expressions;
     }
 
+    /**
+     * Sets a wildcard expression as in "SELECT * FROM TEST".
+     */
     public void setWildcard() {
         expressions = new ArrayList<>(1);
         expressions.add(new Wildcard(null, null));
@@ -201,7 +207,9 @@ public class Select extends Query {
     }
 
     /**
-     * Set the distinct expressions.
+     * Set the DISTINCT ON expressions.
+     * 
+     * @param distinctExpressions array of expressions
      */
     public void setDistinct(Expression[] distinctExpressions) {
         if (distinct) {

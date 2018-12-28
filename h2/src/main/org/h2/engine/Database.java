@@ -1149,6 +1149,10 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Mark some database ids as unused.
+     * @param idsToRelease the ids to release
+     */
     void releaseDatabaseObjectIds(BitSet idsToRelease) {
         synchronized (objectIds) {
             objectIds.andNot(idsToRelease);

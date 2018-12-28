@@ -294,10 +294,6 @@ public class MVStore implements AutoCloseable {
 
     private final int autoCompactFillRate;
     private long autoCompactLastFileOpCount;
-    /**
-     * Simple lock to ensure that no more than one compaction runs at any given time
-     */
-    private boolean compactInProgress;
 
     private volatile IllegalStateException panicException;
 
@@ -1964,19 +1960,16 @@ public class MVStore implements AutoCloseable {
         // it might go into deadlock with concurrent database closure
         // and attempt to stop this thread.
         try {
-            if (storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
+            if (!storeLock.isHeldByCurrentThread() &&
+                    storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
                 try {
-                    if (!compactInProgress) {
-                        compactInProgress = true;
-                        ArrayList<Chunk> old = findOldChunks(targetFillRate, write);
-                        if (old == null || old.isEmpty()) {
-                            return false;
-                        }
-                        compactRewrite(old);
-                        return true;
+                    ArrayList<Chunk> old = findOldChunks(targetFillRate, write);
+                    if (old == null || old.isEmpty()) {
+                        return false;
                     }
+                    compactRewrite(old);
+                    return true;
                 } finally {
-                    compactInProgress = false;
                     storeLock.unlock();
                 }
             }

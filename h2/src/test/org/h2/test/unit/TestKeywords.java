@@ -39,7 +39,7 @@ public class TestKeywords extends TestBase {
     public void test() throws Exception {
         final HashSet<String> set = new HashSet<>();
         ClassReader r = new ClassReader(Parser.class.getResourceAsStream("Parser.class"));
-        r.accept(new ClassVisitor(Opcodes.ASM6) {
+        r.accept(new ClassVisitor(Opcodes.ASM7) {
             @Override
             public FieldVisitor visitField(int access, String name, String descriptor, String signature,
                     Object value) {
@@ -50,7 +50,7 @@ public class TestKeywords extends TestBase {
             @Override
             public MethodVisitor visitMethod(int access, String name, String descriptor, String signature,
                     String[] exceptions) {
-                return new MethodVisitor(Opcodes.ASM6) {
+                return new MethodVisitor(Opcodes.ASM7) {
                     @Override
                     public void visitLdcInsn(Object value) {
                         add(set, value);

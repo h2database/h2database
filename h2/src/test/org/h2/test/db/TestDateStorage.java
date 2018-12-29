@@ -172,6 +172,15 @@ public class TestDateStorage extends TestDb {
         try {
             ArrayList<TimeZone> distinct = TestDate.getDistinctTimeZones();
             for (TimeZone tz : distinct) {
+                /*
+                 * Some OpenJDKs have unusable timezones with negative DST that
+                 * causes IAE in SimpleTimeZone().
+                 */
+                if (tz.getID().startsWith("SystemV/")) {
+                    if (tz.getDSTSavings() < 0) {
+                       continue;
+                    }
+                }
                 // println(tz.getID());
                 TimeZone.setDefault(tz);
                 DateTimeUtils.resetCalendar();

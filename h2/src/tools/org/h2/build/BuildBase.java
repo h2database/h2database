@@ -928,7 +928,7 @@ public class BuildBase {
      *
      * @return the Java version (7, 8, 9, 10, 11, etc)
      */
-    protected static int getJavaVersion() {
+    public static int getJavaVersion() {
         int version = 7;
         String v = getJavaSpecVersion();
         if (v != null) {

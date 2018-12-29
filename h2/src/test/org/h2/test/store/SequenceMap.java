@@ -47,7 +47,7 @@ public class SequenceMap extends MVMap<Long, Long> {
 
                     @Override
                     public Long next() {
-                        return Long.valueOf(x++);
+                        return x++;
                     }
 
                     @Override

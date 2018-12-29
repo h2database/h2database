@@ -79,7 +79,7 @@ public class HtmlConverter {
             int idx = token.indexOf(':');
             String key = token.substring(0, idx);
             int ch = Integer.parseInt(token.substring(idx + 1));
-            Character character = Character.valueOf((char) ch);
+            Character character = (char) ch;
             CHAR_MAP.put(key, character);
             CODE_MAP.put(character, key);
         }
@@ -157,7 +157,7 @@ public class HtmlConverter {
                         if (code < 0 || code > 0xffff) {
                             repl = null;
                         } else {
-                            repl = Character.valueOf((char) code);
+                            repl = (char) code;
                         }
                     } catch (NumberFormatException e) {
                         repl = null;
@@ -168,7 +168,7 @@ public class HtmlConverter {
                         if (code < 0 || code > 0xffff) {
                             repl = null;
                         } else {
-                            repl = Character.valueOf((char) code);
+                            repl = (char) code;
                         }
                     } catch (NumberFormatException e) {
                         repl = null;

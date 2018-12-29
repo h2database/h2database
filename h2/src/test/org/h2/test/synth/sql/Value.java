@@ -80,7 +80,7 @@ public class Value {
     }
 
     private static Long randomLong(TestSynth config) {
-        return Long.valueOf(config.random().getInt(1000));
+        return (long) config.random().getInt(1000);
     }
 
     private static Time randomTime(TestSynth config) {

@@ -1080,6 +1080,26 @@ public class StringUtils {
     }
 
     /**
+     * Appends specified number of trailing bytes from unsigned long value to a
+     * specified string builder.
+     *
+     * @param builder
+     *            string builder to append to
+     * @param x
+     *            value to append
+     * @param bytes
+     *            number of bytes to append
+     * @return the specified string builder
+     */
+    public static StringBuilder appendHex(StringBuilder builder, long x, int bytes) {
+        char[] hex = HEX;
+        for (int i = bytes * 8; i > 0;) {
+            builder.append(hex[(int) (x >> (i -= 4)) & 0xf]).append(hex[(int) (x >> (i -= 4)) & 0xf]);
+        }
+        return builder;
+    }
+
+    /**
      * Check if this string is a decimal number.
      *
      * @param s the string

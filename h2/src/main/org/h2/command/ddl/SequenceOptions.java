@@ -106,7 +106,7 @@ public class SequenceOptions {
      *
      * @param sequence the sequence to get default min value.
      * @param session The session to calculate the value.
-     * @return max value when the MINVALUE expression is set, otherwise returns default min value.
+     * @return min value when the MINVALUE expression is set, otherwise returns default min value.
      */
     public Long getMinValue(Sequence sequence, Session session) {
         if (minValue == ValueExpression.getNull() && sequence != null) {

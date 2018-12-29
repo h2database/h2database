@@ -141,29 +141,17 @@ public class ValueUuid extends Value {
         return PRECISION;
     }
 
-    private static void appendHex(StringBuilder buff, long x, int bytes) {
-        for (int i = bytes * 8 - 4; i >= 0; i -= 8) {
-            buff.append(Integer.toHexString((int) (x >> i) & 0xf)).
-                append(Integer.toHexString((int) (x >> (i - 4)) & 0xf));
-        }
-    }
-
     @Override
     public String getString() {
         return addString(new StringBuilder(36)).toString();
     }
 
     private StringBuilder addString(StringBuilder builder) {
-        appendHex(builder, high >> 32, 4);
-        builder.append('-');
-        appendHex(builder, high >> 16, 2);
-        builder.append('-');
-        appendHex(builder, high, 2);
-        builder.append('-');
-        appendHex(builder, low >> 48, 2);
-        builder.append('-');
-        appendHex(builder, low, 6);
-        return builder;
+        StringUtils.appendHex(builder, high >> 32, 4).append('-');
+        StringUtils.appendHex(builder, high >> 16, 2).append('-');
+        StringUtils.appendHex(builder, high, 2).append('-');
+        StringUtils.appendHex(builder, low >> 48, 2).append('-');
+        return StringUtils.appendHex(builder, low, 6);
     }
 
     @Override

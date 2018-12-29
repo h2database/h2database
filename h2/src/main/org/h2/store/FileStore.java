@@ -375,9 +375,9 @@ public class FileStore {
      * @return the file size
      */
     public long length() {
-        try {
-            long len = fileLength;
-            if (ASSERT) {
+        long len = fileLength;
+        if (ASSERT) {
+            try {
                 len = file.size();
                 if (len != fileLength) {
                     DbException.throwInternalError(
@@ -391,11 +391,11 @@ public class FileStore {
                     DbException.throwInternalError(
                             "unaligned file length " + name + " len " + len);
                 }
+            } catch (IOException e) {
+                throw DbException.convertIOException(e, name);
             }
-            return len;
-        } catch (IOException e) {
-            throw DbException.convertIOException(e, name);
         }
+        return len;
     }
 
     /**

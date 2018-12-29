@@ -614,7 +614,7 @@ public final class DateTimeFunctions {
         if (p == null) {
             throw DbException.getInvalidValueException("date part", part);
         }
-        return p.intValue();
+        return p;
     }
 
     /**

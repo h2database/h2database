@@ -308,7 +308,7 @@ public class PgServer implements Service {
     @SuppressWarnings("unused")
     public static String getIndexColumn(Connection conn, int indexId,
             Integer ordinalPosition, Boolean pretty) throws SQLException {
-        if (ordinalPosition == null || ordinalPosition.intValue() == 0) {
+        if (ordinalPosition == null || ordinalPosition == 0) {
             PreparedStatement prep = conn.prepareStatement(
                     "select sql from information_schema.indexes where id=?");
             prep.setInt(1, indexId);
@@ -322,7 +322,7 @@ public class PgServer implements Service {
                 "select column_name from information_schema.indexes " +
                 "where id=? and ordinal_position=?");
         prep.setInt(1, indexId);
-        prep.setInt(2, ordinalPosition.intValue());
+        prep.setInt(2, ordinalPosition);
         ResultSet rs = prep.executeQuery();
         if (rs.next()) {
             return rs.getString(1);

@@ -624,7 +624,7 @@ public class SysProperties {
         String s = Utils.getProperty(key, null);
         if (s != null) {
             try {
-                return Integer.decode(s).intValue();
+                return Integer.decode(s);
             } catch (NumberFormatException e) {
                 // ignore
             }

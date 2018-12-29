@@ -2375,10 +2375,10 @@ public class TestFunctions extends TestDb implements AggregateFunction {
                     sp != 1 || lp != 1 || byParam != 1) {
                 throw new AssertionError("params not 1/true");
             }
-            if (rowCount.intValue() >= 1) {
+            if (rowCount >= 1) {
                 rs.addRow(0, "Hello");
             }
-            if (rowCount.intValue() >= 2) {
+            if (rowCount >= 2) {
                 rs.addRow(1, "World");
             }
         }

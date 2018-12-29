@@ -145,7 +145,7 @@ public class Function {
         if (url.equals("jdbc:columnlist:connection")) {
             return rs;
         }
-        for (int s = size.intValue(), x = 0; x < s; x++) {
+        for (int s = size, x = 0; x < s; x++) {
             for (int y = 0; y < s; y++) {
                 rs.addRow(x, y);
             }

@@ -1196,23 +1196,23 @@ public class DataType {
         } else if (x instanceof Value) {
             return (Value) x;
         } else if (x instanceof Long) {
-            return ValueLong.get(((Long) x).longValue());
+            return ValueLong.get((Long) x);
         } else if (x instanceof Integer) {
-            return ValueInt.get(((Integer) x).intValue());
+            return ValueInt.get((Integer) x);
         } else if (x instanceof BigInteger) {
             return ValueDecimal.get(new BigDecimal((BigInteger) x));
         } else if (x instanceof BigDecimal) {
             return ValueDecimal.get((BigDecimal) x);
         } else if (x instanceof Boolean) {
-            return ValueBoolean.get(((Boolean) x).booleanValue());
+            return ValueBoolean.get((Boolean) x);
         } else if (x instanceof Byte) {
-            return ValueByte.get(((Byte) x).byteValue());
+            return ValueByte.get((Byte) x);
         } else if (x instanceof Short) {
-            return ValueShort.get(((Short) x).shortValue());
+            return ValueShort.get((Short) x);
         } else if (x instanceof Float) {
-            return ValueFloat.get(((Float) x).floatValue());
+            return ValueFloat.get((Float) x);
         } else if (x instanceof Double) {
-            return ValueDouble.get(((Double) x).doubleValue());
+            return ValueDouble.get((Double) x);
         } else if (x instanceof byte[]) {
             return ValueBytes.get((byte[]) x);
         } else if (x instanceof Date) {

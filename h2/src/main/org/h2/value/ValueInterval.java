@@ -54,7 +54,7 @@ public class ValueInterval extends Value {
 
     /**
      * Create a ValueInterval instance.
-     * 
+     *
      * @param qualifier
      *            qualifier
      * @param negative

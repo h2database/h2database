@@ -60,8 +60,8 @@ SELECT X, X IN(UNNEST(ARRAY[2, 4])) FROM SYSTEM_RANGE(1, 5);
 SELECT X, X IN(UNNEST(?)) FROM SYSTEM_RANGE(1, 5);
 {
 2
-> X X IN(UNNEST(?1))
-> - ----------------
+> X X = ANY(?1)
+> - -----------
 > 1 FALSE
 > 2 TRUE
 > 3 FALSE

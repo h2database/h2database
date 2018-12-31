@@ -24,7 +24,7 @@ import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
 
 /**
- * A condition with parameter as {@code IN(UNNEST(?))}.
+ * A condition with parameter as {@code = ANY(?)}.
  */
 public class ConditionInParameter extends Condition {
     private static final class ParameterList extends AbstractList<Expression> {
@@ -104,12 +104,12 @@ public class ConditionInParameter extends Condition {
     }
 
     /**
-     * Create a new {@code IN(UNNEST(?))} condition.
+     * Create a new {@code = ANY(?)} condition.
      *
      * @param database
      *            the database
      * @param left
-     *            the expression before {@code IN(UNNEST(?))}
+     *            the expression before {@code = ANY(?)}
      * @param parameter
      *            parameter
      */
@@ -162,8 +162,8 @@ public class ConditionInParameter extends Condition {
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
         builder.append('(');
-        left.getSQL(builder).append(" IN(UNNEST(");
-        return parameter.getSQL(builder).append(")))");
+        left.getSQL(builder).append(" = ANY(");
+        return parameter.getSQL(builder).append("))");
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -48,7 +48,8 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
             // We assume that we are looking at the final value for this transaction,
             // and if it's not the case, then it will fail later,
             // because a tree root has definitely been changed.
-            logIt(existingValue.getCurrentValue() == null ? null : VersionedValueCommitted.getInstance(existingValue.getCurrentValue()));
+            logIt(existingValue.getCurrentValue() == null ? null
+                    : VersionedValueCommitted.getInstance(existingValue.getCurrentValue()));
             decision = MVMap.Decision.PUT;
         } else if (getBlockingTransaction() != null) {
             // this entry comes from a different transaction, and this

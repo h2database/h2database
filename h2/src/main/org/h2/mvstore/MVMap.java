@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -1297,7 +1297,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 }
                 p = replacePage(pos, p, unsavedMemoryHolder);
 
-                RootReference updatedRootReference = new RootReference(rootReference, p, remainingBuffer, lockedForUpdate);
+                RootReference updatedRootReference = new RootReference(rootReference, p, remainingBuffer,
+                        lockedForUpdate);
                 if (root.compareAndSet(rootReference, updatedRootReference)) {
                     lockedRootReference = null;
                     while (tip != null) {
@@ -1422,7 +1423,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
          */
         public  final    byte          appendCounter;
 
-        RootReference(Page root, long version, RootReference previous, int appendCounter, long updateCounter, long updateAttemptCounter) {
+        RootReference(Page root, long version, RootReference previous, int appendCounter, long updateCounter,
+                long updateAttemptCounter) {
             this.root = root;
             this.version = version;
             this.previous = previous;

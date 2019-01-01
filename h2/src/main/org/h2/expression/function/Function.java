@@ -1167,7 +1167,14 @@ public class Function extends Expression implements FunctionCall {
         return v;
     }
 
-    private Value getValueWithArgs(Session session, Expression[] args) {
+    /**
+     * Evaluate SQL function given args.
+     * 
+     * @param session database session
+     * @param args arguments passed to function
+     * @return result of function
+     */
+    protected Value getValueWithArgs(Session session, Expression[] args) {
         Value[] values = new Value[args.length];
         if (info.nullIfParameterIsNull) {
             for (int i = 0; i < args.length; i++) {

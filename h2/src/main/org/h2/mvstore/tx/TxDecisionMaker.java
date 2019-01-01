@@ -48,7 +48,8 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
             // We assume that we are looking at the final value for this transaction,
             // and if it's not the case, then it will fail later,
             // because a tree root has definitely been changed.
-            logIt(existingValue.getCurrentValue() == null ? null : VersionedValueCommitted.getInstance(existingValue.getCurrentValue()));
+            logIt(existingValue.getCurrentValue() == null ? null
+                    : VersionedValueCommitted.getInstance(existingValue.getCurrentValue()));
             decision = MVMap.Decision.PUT;
         } else if (getBlockingTransaction() != null) {
             // this entry comes from a different transaction, and this

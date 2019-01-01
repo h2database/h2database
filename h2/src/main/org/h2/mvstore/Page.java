@@ -1038,7 +1038,7 @@ public abstract class Page implements Cloneable
         }
 
         @Override
-        public void expand(int keyCount, Object[] extraKys, Object[] extraValues) {
+        public void expand(int keyCount, Object[] extraKeys, Object[] extraValues) {
             throw new UnsupportedOperationException();
         }
 

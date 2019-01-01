@@ -1297,7 +1297,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 }
                 p = replacePage(pos, p, unsavedMemoryHolder);
 
-                RootReference updatedRootReference = new RootReference(rootReference, p, remainingBuffer, lockedForUpdate);
+                RootReference updatedRootReference = new RootReference(rootReference, p, remainingBuffer,
+                        lockedForUpdate);
                 if (root.compareAndSet(rootReference, updatedRootReference)) {
                     lockedRootReference = null;
                     while (tip != null) {
@@ -1422,7 +1423,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
          */
         public  final    byte          appendCounter;
 
-        RootReference(Page root, long version, RootReference previous, int appendCounter, long updateCounter, long updateAttemptCounter) {
+        RootReference(Page root, long version, RootReference previous, int appendCounter, long updateCounter,
+                long updateAttemptCounter) {
             this.root = root;
             this.version = version;
             this.previous = previous;

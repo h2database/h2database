@@ -178,7 +178,8 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                                     int txId = TransactionStore.getTransactionId(operationId);
                                     boolean isVisible = txId == transaction.transactionId ||
                                             committingTransactions.get(txId);
-                                    Object v = isVisible ? currentValue.getCurrentValue() : currentValue.getCommittedValue();
+                                    Object v = isVisible ? currentValue.getCurrentValue()
+                                            : currentValue.getCommittedValue();
                                     if (v == null) {
                                         --size;
                                     }
@@ -242,7 +243,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
     }
 
     /**
-     * Appends entry to uderlying map. This method may be used concurrently,
+     * Appends entry to underlying map. This method may be used concurrently,
      * but latest appended values are not guaranteed to be visible.
      * @param key should be higher in map's order than any existing key
      * @param value to be appended
@@ -313,7 +314,8 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                 return res;
             }
             decisionMaker.reset();
-        } while (blockingTransaction.sequenceNum > sequenceNumWhenStarted || transaction.waitFor(blockingTransaction, map, key));
+        } while (blockingTransaction.sequenceNum > sequenceNumWhenStarted
+                || transaction.waitFor(blockingTransaction, map, key));
 
         throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTION_LOCKED,
                 "Map entry <{0}> with key <{1}> and value {2} is locked by tx {3} and can not be updated by tx {4}"
@@ -719,7 +721,8 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                                 // current value comes from another uncommitted transaction
                                 // take committed value instead
                                 Object committedValue = data.getCommittedValue();
-                                data = committedValue == null ? null : VersionedValueCommitted.getInstance(committedValue);
+                                data = committedValue == null ? null
+                                        : VersionedValueCommitted.getInstance(committedValue);
                             }
                         }
                     }

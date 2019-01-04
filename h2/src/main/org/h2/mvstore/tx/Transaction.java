@@ -64,6 +64,10 @@ public class Transaction {
     private static final String[] STATUS_NAMES = {
             "CLOSED", "OPEN", "PREPARED", "COMMITTED", "ROLLING_BACK", "ROLLED_BACK"
     };
+    /**
+     * How many bits of the "operation id" we store in the transaction belong to the
+     * log id (the rest belong to the transaction id).
+     */
     static final int LOG_ID_BITS = 40;
     private static final int LOG_ID_BITS1 = LOG_ID_BITS + 1;
     private static final long LOG_ID_LIMIT = 1L << LOG_ID_BITS;

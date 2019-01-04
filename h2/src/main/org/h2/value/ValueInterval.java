@@ -53,8 +53,8 @@ public class ValueInterval extends Value {
     private final long remaining;
 
     /**
-     * Creates interval value.
-     *
+     * Create a ValueInterval instance.
+     * 
      * @param qualifier
      *            qualifier
      * @param negative
@@ -82,7 +82,7 @@ public class ValueInterval extends Value {
      * @param scale
      *            fractional seconds precision. Ignored if specified type of
      *            interval does not have seconds.
-     * @return displayed size.
+     * @return display size
      */
     public static int getDisplaySize(int type, int precision, int scale) {
         switch (type) {

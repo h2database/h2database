@@ -47,7 +47,7 @@ class Optimizer {
     private TableFilter topFilter;
     private double cost;
     private Random random;
-    final AllColumnsForPlan allColumnsSet;
+    private final AllColumnsForPlan allColumnsSet;
 
     Optimizer(TableFilter[] filters, Expression condition, Session session) {
         this.filters = filters;

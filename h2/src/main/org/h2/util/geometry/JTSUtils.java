@@ -56,6 +56,9 @@ public final class JTSUtils {
      */
     public static final boolean M_IS_SUPPORTED;
 
+    /**
+     * create(int,int,int) method from CoordinateSequenceFactory, if it exists
+     */
     static final Method CREATE;
 
     private static final Method GET_MEASURES;

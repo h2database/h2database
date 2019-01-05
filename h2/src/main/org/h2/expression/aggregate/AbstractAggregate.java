@@ -31,7 +31,7 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
     protected final boolean distinct;
 
     /**
-     * FILTER condition for aggregate/window
+     * FILTER condition for aggregate
      */
     protected Expression filterCondition;
 

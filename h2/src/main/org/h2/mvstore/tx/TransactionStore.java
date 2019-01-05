@@ -729,7 +729,7 @@ public class TransactionStore {
                         VersionedValue existingValue, VersionedValue restoredValue);
     }
 
-    private static RollbackListener ROLLBACK_LISTENER_NONE = new RollbackListener() {
+    private static final RollbackListener ROLLBACK_LISTENER_NONE = new RollbackListener() {
         @Override
         public void onRollback(MVMap<Object, VersionedValue> map, Object key,
                                 VersionedValue existingValue, VersionedValue restoredValue) {

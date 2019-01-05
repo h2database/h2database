@@ -50,7 +50,7 @@ public abstract class DataAnalysisOperation extends Expression {
     protected final Select select;
 
     /**
-     * Window clause / OVER
+     * OVER clause
      */
     protected Window over;
 
@@ -426,7 +426,7 @@ public abstract class DataAnalysisOperation extends Expression {
             ArrayList<Value[]> ordered, int rowIdColumn);
 
     /**
-     * Used to create SQL for the OVER part of the command.
+     * Used to create SQL for the OVER and FILTER clauses.
      * 
      * @param builder string builder
      * @return the builder object

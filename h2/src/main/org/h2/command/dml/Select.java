@@ -115,7 +115,8 @@ public class Select extends Query {
     private int[] groupByCopies;
 
     /**
-     * Whether this query contains aggregate functions.
+     * This flag is set when SELECT statement contains (non-window) aggregate
+     * functions, GROUP BY clause or HAVING clause.
      */
     boolean isGroupQuery;
     private boolean isGroupSortedQuery;
@@ -176,7 +177,8 @@ public class Select extends Query {
     }
 
     /**
-     * Called if this query contains aggregate functions.
+     * Set when SELECT statement contains (non-window) aggregate functions,
+     * GROUP BY clause or HAVING clause.
      */
     public void setGroupQuery() {
         isGroupQuery = true;
@@ -484,7 +486,7 @@ public class Select extends Query {
     /**
      * Update any aggregate expressions with the query stage.
      * @param columnCount number of columns
-     * @param stage stage of query (window or normal)
+     * @param stage see STAGE_RESET/STAGE_GROUP/STAGE_WINDOW in DataAnalysisOperation
      */
     void updateAgg(int columnCount, int stage) {
         for (int i = 0; i < columnCount; i++) {

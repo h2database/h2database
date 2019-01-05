@@ -44,14 +44,31 @@ public abstract class DataAnalysisOperation extends Expression {
      */
     public static final int STAGE_WINDOW = 2;
 
+    /**
+     * SELECT
+     */
     protected final Select select;
 
+    /**
+     * Window clause / OVER
+     */
     protected Window over;
 
+    /**
+     * Sort order for OVER
+     */
     protected SortOrder overOrderBySort;
 
     private int lastGroupRowId;
 
+    /**
+     * Create sort order.
+     * 
+     * @param session database session
+     * @param orderBy array of order by expressions
+     * @param offset index offset
+     * @return the SortOrder
+     */
     protected static SortOrder createOrder(Session session, ArrayList<SelectOrderBy> orderBy, int offset) {
         int size = orderBy.size();
         int[] index = new int[size];
@@ -111,6 +128,13 @@ public abstract class DataAnalysisOperation extends Expression {
         mapColumnsAnalysis(resolver, level, state);
     }
 
+    /**
+     * Map the columns of the resolver to expression columns.
+     *
+     * @param resolver the column resolver
+     * @param level the subquery nesting level
+     * @param innerState one of the Expression MAP_IN_* values
+     */
     protected void mapColumnsAnalysis(ColumnResolver resolver, int level, int innerState) {
         if (over != null) {
             over.mapColumns(resolver, level);
@@ -173,6 +197,13 @@ public abstract class DataAnalysisOperation extends Expression {
         updateAggregate(session, groupData, groupRowId);
     }
 
+    /**
+     * Update a row of an aggregate.
+     * 
+     * @param session the database session
+     * @param groupData data for the aggregate group
+     * @param groupRowId row id of group
+     */
     protected abstract void updateAggregate(Session session, SelectGroups groupData, int groupRowId);
 
     /**
@@ -207,6 +238,14 @@ public abstract class DataAnalysisOperation extends Expression {
      */
     protected abstract void rememberExpressions(Session session, Value[] array);
 
+    /**
+     * Get the aggregate data for a window clause.
+     * 
+     * @param session database session
+     * @param groupData aggregate group data
+     * @param forOrderBy true if this is for ORDER BY
+     * @return the aggregate data object, specific to each kind of aggregate.
+     */
     protected Object getWindowData(Session session, SelectGroups groupData, boolean forOrderBy) {
         Object data;
         Value key = over.getCurrentKey(session);
@@ -220,6 +259,13 @@ public abstract class DataAnalysisOperation extends Expression {
         return data;
     }
 
+    /**
+     * Get the aggregate group data object from the collector object.
+     * @param groupData the collector object
+     * @param ifExists if true, return null if object not found,
+     *                 if false, return new object if nothing found
+     * @return group data object
+     */
     protected Object getGroupData(SelectGroups groupData, boolean ifExists) {
         Object data;
         data = groupData.getCurrentGroupExprData(this);
@@ -233,6 +279,11 @@ public abstract class DataAnalysisOperation extends Expression {
         return data;
     }
 
+    /**
+     * Create aggregate data object specific to the subclass.
+     * 
+     * @return aggregate-specific data object.
+     */
     protected abstract Object createAggregateData();
 
     @Override
@@ -316,6 +367,14 @@ public abstract class DataAnalysisOperation extends Expression {
      */
     protected abstract Value getAggregatedValue(Session session, Object aggregateData);
 
+    /**
+     * Update a row of an ordered aggregate.
+     * 
+     * @param session the database session
+     * @param groupData data for the aggregate group
+     * @param groupRowId row id of group
+     * @param orderBy list of order by expressions
+     */
     protected void updateOrderedAggregate(Session session, SelectGroups groupData, int groupRowId,
             ArrayList<SelectOrderBy> orderBy) {
         int ne = getNumExpressions();
@@ -352,6 +411,8 @@ public abstract class DataAnalysisOperation extends Expression {
     }
 
     /**
+     * Returns result of this window function or window aggregate.
+     * 
      * @param session
      *            the session
      * @param result
@@ -364,6 +425,12 @@ public abstract class DataAnalysisOperation extends Expression {
     protected abstract void getOrderedResultLoop(Session session, HashMap<Integer, Value> result,
             ArrayList<Value[]> ordered, int rowIdColumn);
 
+    /**
+     * Used to create SQL for the OVER part of the command.
+     * 
+     * @param builder string builder
+     * @return the builder object
+     */
     protected StringBuilder appendTailConditions(StringBuilder builder) {
         if (over != null) {
             builder.append(' ');

@@ -97,6 +97,12 @@ public class MVTableEngine implements TableEngine {
         return store;
     }
 
+    /**
+     * Convert password from byte[] to char[].
+     * 
+     * @param key password as byte[]
+     * @return password as char[].
+     */
     static char[] decodePassword(byte[] key) {
         char[] password = new char[key.length / 2];
         for (int i = 0; i < password.length; i++) {
@@ -210,6 +216,12 @@ public class MVTableEngine implements TableEngine {
             return transactionStore;
         }
 
+        /**
+         * Get MVTable by table name.
+         * 
+         * @param tableName table name
+         * @return MVTable
+         */
         public MVTable getTable(String tableName) {
             return tableMap.get(tableName);
         }

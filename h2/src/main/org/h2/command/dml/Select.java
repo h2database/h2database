@@ -114,6 +114,9 @@ public class Select extends Query {
 
     private int[] groupByCopies;
 
+    /**
+     * Whether this query contains aggregate functions.
+     */
     boolean isGroupQuery;
     private boolean isGroupSortedQuery;
     private boolean isWindowQuery;
@@ -194,6 +197,12 @@ public class Select extends Query {
         return group;
     }
 
+    /**
+     * Get the group data if there is currently a group-by active.
+     *
+     * @param window is this a window function
+     * @return the grouped data
+     */
     public SelectGroups getGroupDataIfCurrent(boolean window) {
         return groupData != null && (window || groupData.isCurrentGroup()) ? groupData : null;
     }
@@ -471,6 +480,12 @@ public class Select extends Query {
         groupData.done();
     }
 
+
+    /**
+     * Update any aggregate expressions with the query stage.
+     * @param columnCount number of columns
+     * @param stage stage of query (window or normal)
+     */
     void updateAgg(int columnCount, int stage) {
         for (int i = 0; i < columnCount; i++) {
             if ((groupByExpression == null || !groupByExpression[i])

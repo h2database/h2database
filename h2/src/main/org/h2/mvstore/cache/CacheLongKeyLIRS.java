@@ -493,6 +493,9 @@ public class CacheLongKeyLIRS<V> {
         }
     }
 
+    /**
+     * Loop through segments, trimming the non resident queue.
+     */
     public void trimNonResidentQueue() {
         for (Segment<V> s : segments) {
             synchronized (s) {

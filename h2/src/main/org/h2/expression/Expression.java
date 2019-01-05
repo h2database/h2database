@@ -40,6 +40,12 @@ public abstract class Expression {
 
     private boolean addedToFilter;
 
+    /**
+     * Get the SQL snippet for a list of expressions.
+     * 
+     * @param builder the builder to append the SQL to
+     * @param expressions the list of expressions
+     */
     public static void writeExpressions(StringBuilder builder, List<? extends Expression> expressions) {
         for (int i = 0, length = expressions.size(); i < length; i++) {
             if (i > 0) {
@@ -49,6 +55,12 @@ public abstract class Expression {
         }
     }
 
+    /**
+     * Get the SQL snippet for an array of expressions.
+     * 
+     * @param builder the builder to append the SQL to
+     * @param expressions the list of expressions
+     */
     public static void writeExpressions(StringBuilder builder, Expression[] expressions) {
         for (int i = 0, length = expressions.length; i < length; i++) {
             if (i > 0) {

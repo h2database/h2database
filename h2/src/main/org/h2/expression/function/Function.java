@@ -1167,6 +1167,13 @@ public class Function extends Expression implements FunctionCall {
         return v;
     }
 
+    /**
+     * Return the resulting value for the given expression arguments.
+     *
+     * @param session the session
+     * @param args argument expressions
+     * @return the result
+     */
     protected Value getValueWithArgs(Session session, Expression[] args) {
         Value[] values = new Value[args.length];
         if (info.nullIfParameterIsNull) {

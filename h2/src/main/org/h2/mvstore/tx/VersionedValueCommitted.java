@@ -22,6 +22,11 @@ class VersionedValueCommitted extends VersionedValue {
         this.value = value;
     }
 
+    /**
+     * Either cast to VersionedValue, or wrap in VersionedValueCommitted
+     * @param value the object to cast/wrap
+     * @return VersionedValue instance
+     */
     static VersionedValue getInstance(Object value) {
         assert value != null;
         return value instanceof VersionedValue ? (VersionedValue) value : new VersionedValueCommitted(value);

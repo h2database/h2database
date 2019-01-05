@@ -1144,7 +1144,7 @@ public class Function extends Expression implements FunctionCall {
     /**
      * Get value transformed by expression, or null if i is out of range or
      * the input value is null.
-     * 
+     *
      * @param session database session
      * @param args expressions
      * @param values array of input values
@@ -1167,6 +1167,13 @@ public class Function extends Expression implements FunctionCall {
         return v;
     }
 
+    /**
+     * Return the resulting value for the given expression arguments.
+     *
+     * @param session the session
+     * @param args argument expressions
+     * @return the result
+     */
     protected Value getValueWithArgs(Session session, Expression[] args) {
         Value[] values = new Value[args.length];
         if (info.nullIfParameterIsNull) {

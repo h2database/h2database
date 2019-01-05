@@ -109,6 +109,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         this.singleWriter = singleWriter;
     }
 
+    /**
+     * Clone the current map.
+     * 
+     * @return clone of this.
+     */
     protected MVMap<K, V> cloneIt() {
         return new MVMap<>(this);
     }
@@ -786,6 +791,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return root.get();
     }
 
+    /**
+     * Get the root reference, flushing any current append buffer.
+     * 
+     * @return current root reference
+     */
     public RootReference flushAndGetRoot() {
         RootReference rootReference = getRoot();
         if (singleWriter && rootReference.getAppendCounter() > 0) {
@@ -799,6 +809,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         while (setNewRoot(null, rootPage, ++attempt, false) == null) {/**/}
     }
 
+    /**
+     * Set the initial root.
+     * 
+     * @param rootPage root page
+     * @param version initial version
+     */
     final void setInitialRoot(Page rootPage, long version) {
         root.set(new RootReference(rootPage, version));
     }
@@ -860,6 +876,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
     }
 
+    /**
+     * Roll the root back to the specified version.
+     * 
+     * @param version to rollback to
+     */
     void rollbackRoot(long version)
     {
         RootReference rootReference = flushAndGetRoot();
@@ -1071,6 +1092,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                     rootReference.version : previous.version;
     }
 
+    /**
+     * Does the root have changes since the specified version?
+     * 
+     * @param version root version
+     * @return true if has changes
+     */
     final boolean hasChangesSince(long version) {
         RootReference rootReference = getRoot();
         Page root = rootReference.root;
@@ -1144,10 +1171,20 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
     }
 
+    /**
+     * Create empty leaf node page.
+     * 
+     * @return new page
+     */
     public Page createEmptyLeaf() {
         return Page.createEmptyLeaf(this);
     }
 
+    /**
+     * Create empty internal node page.
+     * 
+     * @return new page
+     */
     protected Page createEmptyNode() {
         return Page.createEmptyNode(this);
     }
@@ -1601,6 +1638,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             return create(config);
         }
 
+        /**
+         * Create map from config.
+         * @param config config map
+         * @return new map
+         */
         protected abstract M create(Map<String, Object> config);
 
     }
@@ -1665,6 +1707,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     public abstract static class DecisionMaker<V>
     {
+        /**
+         * Decision maker for transaction rollback.
+         */
         public static final DecisionMaker<Object> DEFAULT = new DecisionMaker<Object>() {
             @Override
             public Decision decide(Object existingValue, Object providedValue) {
@@ -1677,6 +1722,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             }
         };
 
+        /**
+         * Decision maker for put().
+         */
         public static final DecisionMaker<Object> PUT = new DecisionMaker<Object>() {
             @Override
             public Decision decide(Object existingValue, Object providedValue) {
@@ -1689,6 +1737,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             }
         };
 
+        /**
+         * Decision maker for remove().
+         */
         public static final DecisionMaker<Object> REMOVE = new DecisionMaker<Object>() {
             @Override
             public Decision decide(Object existingValue, Object providedValue) {
@@ -1701,6 +1752,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             }
         };
 
+        /**
+         * Decision maker for putIfAbsent() key/value.
+         */
         static final DecisionMaker<Object> IF_ABSENT = new DecisionMaker<Object>() {
             @Override
             public Decision decide(Object existingValue, Object providedValue) {
@@ -1713,7 +1767,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             }
         };
 
-        static final DecisionMaker<Object> IF_PRESENT = new DecisionMaker<Object>() {
+        /**
+         * Decision maker for replace().
+         */
+        static final DecisionMaker<Object> IF_PRESENT= new DecisionMaker<Object>() {
             @Override
             public Decision decide(Object existingValue, Object providedValue) {
                 return existingValue != null ? Decision.PUT : Decision.ABORT;
@@ -1757,6 +1814,14 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         public void reset() {}
     }
 
+    /**
+     * Apply an operation to a key-value pair.
+     * 
+     * @param key key to operate on
+     * @param value new value
+     * @param decisionMaker command object to make choices during transaction.
+     * @return new value
+     */
     @SuppressWarnings("unchecked")
     public V operate(K key, V value, DecisionMaker<? super V> decisionMaker) {
         beforeWrite();

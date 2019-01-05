@@ -25,8 +25,14 @@ import org.h2.value.Value;
  */
 public abstract class AbstractAggregate extends DataAnalysisOperation {
 
+    /**
+     * is this a DISTINCT aggregate
+     */
     protected final boolean distinct;
 
+    /**
+     * FILTER condition for aggregate
+     */
     protected Expression filterCondition;
 
     AbstractAggregate(Select select, boolean distinct) {

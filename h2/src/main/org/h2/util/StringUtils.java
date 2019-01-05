@@ -176,7 +176,7 @@ public class StringUtils {
      * Convert a string to a Java literal using the correct escape sequences.
      * The literal is not enclosed in double quotes. The result can be used in
      * properties files or in Java source code.
-     * 
+     *
      * @param s the text to convert
      * @param buff the Java representation to return
      * @param forSQL true if we embedding this inside a STRINGDECODE SQL command

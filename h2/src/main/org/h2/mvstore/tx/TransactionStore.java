@@ -179,7 +179,7 @@ public class TransactionStore {
                                 assert committed || getTransactionId(lastUndoKey) == transactionId;
                                 long logId = lastUndoKey == null ? 0 : getLogId(lastUndoKey) + 1;
                                 registerTransaction(transactionId, status, name, logId, timeoutMillis, 0,
-                                        RollbackListener.NONE);
+                                        ROLLBACK_LISTENER_NONE);
                                 continue;
                             }
                         }
@@ -307,7 +307,7 @@ public class TransactionStore {
      * @return the transaction
      */
     public Transaction begin() {
-        return begin(RollbackListener.NONE, timeoutMillis, 0);
+        return begin(ROLLBACK_LISTENER_NONE, timeoutMillis, 0);
     }
 
     /**
@@ -387,6 +387,7 @@ public class TransactionStore {
      * @param transactionId id of the transaction
      * @param logId sequential number of the log record within transaction
      * @param undoLogRecord Object[mapId, key, previousValue]
+     * @return undo key
      */
     long addUndoLogRecord(int transactionId, long logId, Object[] undoLogRecord) {
         MVMap<Long, Object[]> undoLog = undoLogs[transactionId];
@@ -582,6 +583,12 @@ public class TransactionStore {
         return true;
     }
 
+    /**
+     * Get Transaction object for a transaction id.
+     *
+     * @param transactionId id for an open transaction
+     * @return Transaction object.
+     */
     Transaction getTransaction(int transactionId) {
         return transactions.get(transactionId);
     }
@@ -711,14 +718,6 @@ public class TransactionStore {
      */
     public interface RollbackListener {
 
-        RollbackListener NONE = new RollbackListener() {
-            @Override
-            public void onRollback(MVMap<Object, VersionedValue> map, Object key,
-                                    VersionedValue existingValue, VersionedValue restoredValue) {
-                // do nothing
-            }
-        };
-
         /**
          * Notified of a single map change (add/update/remove)
          * @param map modified
@@ -729,6 +728,14 @@ public class TransactionStore {
         void onRollback(MVMap<Object,VersionedValue> map, Object key,
                         VersionedValue existingValue, VersionedValue restoredValue);
     }
+
+    private static final RollbackListener ROLLBACK_LISTENER_NONE = new RollbackListener() {
+        @Override
+        public void onRollback(MVMap<Object, VersionedValue> map, Object key,
+                                VersionedValue existingValue, VersionedValue restoredValue) {
+            // do nothing
+        }
+    };
 
     /**
      * A data type that contains an array of objects with the specified data

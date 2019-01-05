@@ -23,6 +23,14 @@ class VersionedValueUncommitted extends VersionedValueCommitted {
         this.committedValue = committedValue;
     }
 
+    /**
+     * Create new VersionedValueUncommitted.
+     *
+     * @param operationId combined log/transaction id
+     * @param value value before commit
+     * @param committedValue value after commit
+     * @return VersionedValue instance
+     */
     static VersionedValue getInstance(long operationId, Object value, Object committedValue) {
         return new VersionedValueUncommitted(operationId, value, committedValue);
     }

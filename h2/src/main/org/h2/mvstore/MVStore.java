@@ -529,6 +529,14 @@ public class MVStore implements AutoCloseable {
         }
     }
 
+    /**
+     * Get map by id.
+     * 
+     * @param <K> the key type
+     * @param <V> the value type
+     * @param id map id
+     * @return Map
+     */
     public <K, V> MVMap<K,V> getMap(int id) {
         checkOpen();
         @SuppressWarnings("unchecked")
@@ -609,6 +617,12 @@ public class MVStore implements AutoCloseable {
         return meta.containsKey("name." + name);
     }
 
+    /**
+     * Check whether a given map exists and has data.
+     * 
+     * @param name the map name
+     * @return true if it exists and has data.
+     */
     public boolean hasData(String name) {
         return hasMap(name) && getRootPos(meta, getMapId(name)) != 0;
     }
@@ -969,6 +983,13 @@ public class MVStore implements AutoCloseable {
         }
     }
 
+    /**
+     * Read a page of data into a ByteBuffer.
+     * 
+     * @param pos page pos
+     * @param expectedMapId expected map id for the page
+     * @return ByteBuffer containing page data.
+     */
     ByteBuffer readBufferForPage(long pos, int expectedMapId) {
         Chunk c = getChunk(pos);
         long filePos = c.block * BLOCK_SIZE;
@@ -1493,6 +1514,13 @@ public class MVStore implements AutoCloseable {
             return new HashSet<>(referencedChunks.keySet());
         }
 
+        /**
+         * Visit a page on a chunk and collect ids for it and its children.
+         * 
+         * @param page the page to visit
+         * @param executorService the service to use when doing visit in parallel
+         * @param executingThreadCounter number of threads currently active
+         */
         public void visit(Page page, ThreadPoolExecutor executorService, AtomicInteger executingThreadCounter) {
             long pos = page.getPos();
             if (DataUtils.isPageSaved(pos)) {
@@ -1515,6 +1543,13 @@ public class MVStore implements AutoCloseable {
             cacheCollectedChunkIds(pos, childCollector);
         }
 
+        /**
+         * Visit a page on a chunk and collect ids for it and its children.
+         * 
+         * @param pos position of the page to visit
+         * @param executorService the service to use when doing visit in parallel
+         * @param executingThreadCounter number of threads currently active
+         */
         public void visit(long pos, ThreadPoolExecutor executorService, AtomicInteger executingThreadCounter) {
             if (!DataUtils.isPageSaved(pos)) {
                 return;
@@ -1544,6 +1579,11 @@ public class MVStore implements AutoCloseable {
             }
         }
 
+        /**
+         * Add chunk to list of referenced chunks.
+         * 
+         * @param chunkId chunk id
+         */
         void registerChunk(int chunkId) {
             if (referencedChunks.put(chunkId, 1) == null && parent != null) {
                 parent.registerChunk(chunkId);
@@ -2603,6 +2643,12 @@ public class MVStore implements AutoCloseable {
         removeMap(map, true);
     }
 
+    /**
+     * Remove a map.
+     * 
+     * @param map the map to remove
+     * @param delayed whether to delay deleting the metadata
+     */
     public void removeMap(MVMap<?, ?> map, boolean delayed) {
         storeLock.lock();
         try {
@@ -2637,6 +2683,11 @@ public class MVStore implements AutoCloseable {
         }
     }
 
+    /**
+     * Remove map by name.
+     * 
+     * @param name the map name
+     */
     public void removeMap(String name) {
         int id = getMapId(name);
         if(id > 0) {

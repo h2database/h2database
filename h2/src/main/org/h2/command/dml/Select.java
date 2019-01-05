@@ -114,6 +114,10 @@ public class Select extends Query {
 
     private int[] groupByCopies;
 
+    /**
+     * This flag is set when SELECT statement contains (non-window) aggregate
+     * functions, GROUP BY clause or HAVING clause.
+     */
     boolean isGroupQuery;
     private boolean isGroupSortedQuery;
     private boolean isWindowQuery;
@@ -173,7 +177,8 @@ public class Select extends Query {
     }
 
     /**
-     * Called if this query contains aggregate functions.
+     * Set when SELECT statement contains (non-window) aggregate functions,
+     * GROUP BY clause or HAVING clause.
      */
     public void setGroupQuery() {
         isGroupQuery = true;
@@ -194,6 +199,12 @@ public class Select extends Query {
         return group;
     }
 
+    /**
+     * Get the group data if there is currently a group-by active.
+     *
+     * @param window is this a window function
+     * @return the grouped data
+     */
     public SelectGroups getGroupDataIfCurrent(boolean window) {
         return groupData != null && (window || groupData.isCurrentGroup()) ? groupData : null;
     }
@@ -208,7 +219,7 @@ public class Select extends Query {
 
     /**
      * Set the DISTINCT ON expressions.
-     * 
+     *
      * @param distinctExpressions array of expressions
      */
     public void setDistinct(Expression[] distinctExpressions) {
@@ -471,6 +482,12 @@ public class Select extends Query {
         groupData.done();
     }
 
+
+    /**
+     * Update any aggregate expressions with the query stage.
+     * @param columnCount number of columns
+     * @param stage see STAGE_RESET/STAGE_GROUP/STAGE_WINDOW in DataAnalysisOperation
+     */
     void updateAgg(int columnCount, int stage) {
         for (int i = 0; i < columnCount; i++) {
             if ((groupByExpression == null || !groupByExpression[i])

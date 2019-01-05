@@ -99,7 +99,7 @@ public class MVTableEngine implements TableEngine {
 
     /**
      * Convert password from byte[] to char[].
-     * 
+     *
      * @param key password as byte[]
      * @return password as char[].
      */
@@ -218,7 +218,7 @@ public class MVTableEngine implements TableEngine {
 
         /**
          * Get MVTable by table name.
-         * 
+         *
          * @param tableName table name
          * @return MVTable
          */

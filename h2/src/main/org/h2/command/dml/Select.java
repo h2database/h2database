@@ -219,7 +219,7 @@ public class Select extends Query {
 
     /**
      * Set the DISTINCT ON expressions.
-     * 
+     *
      * @param distinctExpressions array of expressions
      */
     public void setDistinct(Expression[] distinctExpressions) {

@@ -585,7 +585,7 @@ public class TransactionStore {
 
     /**
      * Get Transaction object for a transaction id.
-     * 
+     *
      * @param transactionId id for an open transaction
      * @return Transaction object.
      */

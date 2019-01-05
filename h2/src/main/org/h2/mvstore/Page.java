@@ -404,7 +404,7 @@ public abstract class Page implements Cloneable
 
     /**
      * Dump debug data for this page.
-     * 
+     *
      * @param buff append buffer
      */
     protected void dump(StringBuilder buff) {
@@ -503,7 +503,7 @@ public abstract class Page implements Cloneable
 
     /**
      * Split the current keys array into two arrays.
-     * 
+     *
      * @param aCount size of the first array.
      * @param bCount size of the second array/
      * @return the second array.
@@ -522,7 +522,7 @@ public abstract class Page implements Cloneable
 
     /**
      * Expand the keys array.
-     * 
+     *
      * @param extraKeyCount number of extra key entries to create
      * @param extraKeys extra key values
      */
@@ -606,7 +606,7 @@ public abstract class Page implements Cloneable
 
     /**
      * Insert a key into the key array
-     * 
+     *
      * @param index index to insert at
      * @param key the key value
      */
@@ -785,14 +785,14 @@ public abstract class Page implements Cloneable
 
     /**
      * Write values that the buffer contains to the buff.
-     * 
+     *
      * @param buff the target buffer
      */
     protected abstract void writeValues(WriteBuffer buff);
 
     /**
      * Write page children to the buff.
-     * 
+     *
      * @param buff the target buffer
      * @param withCounts true if the descendant counts should be written
      */
@@ -877,7 +877,7 @@ public abstract class Page implements Cloneable
 
     /**
      * Calculate estimated memory used in persistent case.
-     * 
+     *
      * @return memory in bytes
      */
     protected int calculateMemory() {
@@ -920,7 +920,7 @@ public abstract class Page implements Cloneable
 
     /**
      * Create array for keys storage.
-     * 
+     *
      * @param size number of entries
      * @return values array
      */
@@ -931,7 +931,7 @@ public abstract class Page implements Cloneable
 
     /**
      * Create array for values storage.
-     * 
+     *
      * @param size number of entries
      * @return values array
      */

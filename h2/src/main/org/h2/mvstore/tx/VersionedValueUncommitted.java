@@ -25,7 +25,7 @@ class VersionedValueUncommitted extends VersionedValueCommitted {
 
     /**
      * Create new VersionedValueUncommitted.
-     * 
+     *
      * @param operationId combined log/transaction id
      * @param value value before commit
      * @param committedValue value after commit

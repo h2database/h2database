@@ -63,7 +63,7 @@ public abstract class DataAnalysisOperation extends Expression {
 
     /**
      * Create sort order.
-     * 
+     *
      * @param session database session
      * @param orderBy array of order by expressions
      * @param offset index offset
@@ -199,7 +199,7 @@ public abstract class DataAnalysisOperation extends Expression {
 
     /**
      * Update a row of an aggregate.
-     * 
+     *
      * @param session the database session
      * @param groupData data for the aggregate group
      * @param groupRowId row id of group
@@ -240,7 +240,7 @@ public abstract class DataAnalysisOperation extends Expression {
 
     /**
      * Get the aggregate data for a window clause.
-     * 
+     *
      * @param session database session
      * @param groupData aggregate group data
      * @param forOrderBy true if this is for ORDER BY
@@ -281,7 +281,7 @@ public abstract class DataAnalysisOperation extends Expression {
 
     /**
      * Create aggregate data object specific to the subclass.
-     * 
+     *
      * @return aggregate-specific data object.
      */
     protected abstract Object createAggregateData();
@@ -369,7 +369,7 @@ public abstract class DataAnalysisOperation extends Expression {
 
     /**
      * Update a row of an ordered aggregate.
-     * 
+     *
      * @param session the database session
      * @param groupData data for the aggregate group
      * @param groupRowId row id of group
@@ -412,7 +412,7 @@ public abstract class DataAnalysisOperation extends Expression {
 
     /**
      * Returns result of this window function or window aggregate.
-     * 
+     *
      * @param session
      *            the session
      * @param result
@@ -427,7 +427,7 @@ public abstract class DataAnalysisOperation extends Expression {
 
     /**
      * Used to create SQL for the OVER and FILTER clauses.
-     * 
+     *
      * @param builder string builder
      * @return the builder object
      */

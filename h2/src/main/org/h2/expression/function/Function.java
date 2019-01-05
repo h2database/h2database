@@ -1144,7 +1144,7 @@ public class Function extends Expression implements FunctionCall {
     /**
      * Get value transformed by expression, or null if i is out of range or
      * the input value is null.
-     * 
+     *
      * @param session database session
      * @param args expressions
      * @param values array of input values

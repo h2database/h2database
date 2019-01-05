@@ -42,7 +42,7 @@ public abstract class Expression {
 
     /**
      * Get the SQL snippet for a list of expressions.
-     * 
+     *
      * @param builder the builder to append the SQL to
      * @param expressions the list of expressions
      */
@@ -57,7 +57,7 @@ public abstract class Expression {
 
     /**
      * Get the SQL snippet for an array of expressions.
-     * 
+     *
      * @param builder the builder to append the SQL to
      * @param expressions the list of expressions
      */

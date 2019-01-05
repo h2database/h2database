@@ -211,7 +211,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     /**
      * Lock a set of rows.
-     * 
+     *
      * @param session database session
      * @param rowsForUpdate rows to lock
      */
@@ -225,7 +225,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     /**
      * Lock a single row.
-     * 
+     *
      * @param session database session
      * @param row to lock
      * @return row object if it exists

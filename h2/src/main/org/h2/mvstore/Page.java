@@ -137,7 +137,7 @@ public abstract class Page implements Cloneable
     }
 
     /**
-     * Create a new, empty page.
+     * Create a new, empty leaf page.
      *
      * @param map the map
      * @return the new page
@@ -146,6 +146,12 @@ public abstract class Page implements Cloneable
         return createLeaf(map, EMPTY_OBJECT_ARRAY, EMPTY_OBJECT_ARRAY, PAGE_LEAF_MEMORY);
     }
 
+    /**
+     * Create a new, empty internal node page.
+     *
+     * @param map the map
+     * @return the new page
+     */
     static Page createEmptyNode(MVMap<?, ?> map) {
         return createNode(map, EMPTY_OBJECT_ARRAY, SINGLE_EMPTY, 0,
                             PAGE_NODE_MEMORY + MEMORY_POINTER + PAGE_MEMORY_CHILD); // there is always one child
@@ -396,6 +402,11 @@ public abstract class Page implements Cloneable
         return buff.toString();
     }
 
+    /**
+     * Dump debug data for this page.
+     * 
+     * @param buff append buffer
+     */
     protected void dump(StringBuilder buff) {
         buff.append("id: ").append(System.identityHashCode(this)).append('\n');
         buff.append("pos: ").append(Long.toHexString(pos)).append('\n');
@@ -490,6 +501,13 @@ public abstract class Page implements Cloneable
      */
     abstract Page split(int at);
 
+    /**
+     * Split the current keys array into two arrays.
+     * 
+     * @param aCount size of the first array.
+     * @param bCount size of the second array/
+     * @return the second array.
+     */
     final Object[] splitKeys(int aCount, int bCount) {
         assert aCount + bCount <= getKeyCount();
         Object[] aKeys = createKeyStorage(aCount);
@@ -502,6 +520,12 @@ public abstract class Page implements Cloneable
 
     abstract void expand(int extraKeyCount, Object[] extraKeys, Object[] extraValues);
 
+    /**
+     * Expand the keys array.
+     * 
+     * @param extraKeyCount number of extra key entries to create
+     * @param extraKeys extra key values
+     */
     final void expandKeys(int extraKeyCount, Object[] extraKeys) {
         int keyCount = getKeyCount();
         Object[] newKeys = createKeyStorage(keyCount + extraKeyCount);
@@ -580,6 +604,12 @@ public abstract class Page implements Cloneable
      */
     public abstract void insertNode(int index, Object key, Page childPage);
 
+    /**
+     * Insert a key into the key array
+     * 
+     * @param index index to insert at
+     * @param key the key value
+     */
     final void insertKey(int index, Object key) {
         int keyCount = getKeyCount();
         assert index <= keyCount : index + " > " + keyCount;
@@ -660,6 +690,11 @@ public abstract class Page implements Cloneable
         recalculateMemory();
     }
 
+    /**
+     * Read the page payload from the buffer.
+     *
+     * @param buff the buffer
+     */
     protected abstract void readPayLoad(ByteBuffer buff);
 
     public final boolean isSaved() {
@@ -748,8 +783,19 @@ public abstract class Page implements Cloneable
         return typePos + 1;
     }
 
+    /**
+     * Write values that the buffer contains to the buff.
+     * 
+     * @param buff the target buffer
+     */
     protected abstract void writeValues(WriteBuffer buff);
 
+    /**
+     * Write page children to the buff.
+     * 
+     * @param buff the target buffer
+     * @param withCounts true if the descendant counts should be written
+     */
     protected abstract void writeChildren(WriteBuffer buff, boolean withCounts);
 
     /**
@@ -829,6 +875,11 @@ public abstract class Page implements Cloneable
         memory = calculateMemory();
     }
 
+    /**
+     * Calculate estimated memory used in persistent case.
+     * 
+     * @return memory in bytes
+     */
     protected int calculateMemory() {
         int mem = keys.length * MEMORY_POINTER;
         DataType keyType = map.getKeyType();
@@ -842,6 +893,9 @@ public abstract class Page implements Cloneable
         return true;
     }
 
+    /**
+     * Called when done with copying page.
+     */
     public void setComplete() {}
 
     /**
@@ -859,13 +913,28 @@ public abstract class Page implements Cloneable
 
     public abstract CursorPos getAppendCursorPos(CursorPos cursorPos);
 
+    /**
+     * Remove all page data recursively.
+     */
     public abstract void removeAllRecursive();
 
+    /**
+     * Create array for keys storage.
+     * 
+     * @param size number of entries
+     * @return values array
+     */
     private Object[] createKeyStorage(int size)
     {
         return new Object[size];
     }
 
+    /**
+     * Create array for values storage.
+     * 
+     * @param size number of entries
+     * @return values array
+     */
     final Object[] createValueStorage(int size)
     {
         return new Object[size];
@@ -876,6 +945,9 @@ public abstract class Page implements Cloneable
      */
     public static final class PageReference {
 
+        /**
+         * Singleton object used when arrays of PageReference have not yet been filled.
+         */
         public static final PageReference EMPTY = new PageReference(null, 0, 0);
 
         /**
@@ -928,6 +1000,9 @@ public abstract class Page implements Cloneable
             return pos;
         }
 
+        /**
+         * Re-acquire position from in-memory page.
+         */
         void resetPos() {
             Page p = page;
             if (p != null && p.isSaved()) {

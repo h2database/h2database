@@ -61,6 +61,13 @@ public class ValueArray extends ValueCollectionBase {
         return (ValueArray) EMPTY;
     }
 
+    /**
+     * Create an array value by concatenating this and the passed value.
+     *
+     * @param o an array to add.
+     * @return a new array.
+     * @throws IllegalArgumentException if {@link #getComponentType() component types} aren't equal.
+     */
     public Value concatenate(ValueArray o) {
         if (!this.getComponentType().equals(o.getComponentType()))
             throw new IllegalArgumentException(
@@ -70,6 +77,14 @@ public class ValueArray extends ValueCollectionBase {
         return ValueArray.get(this.getComponentType(), res);
     }
 
+
+    /**
+     * Create an array value by adding a new item at the end.
+     *
+     * @param item the value to add.
+     * @return a new array.
+     * @throws IllegalArgumentException if <code>item</code> is of the wrong {@link #getComponentType() type}.
+     */
     public Value append(Value item) {
         System.err.println("ValueArray.append( item ) getComponentType() " + getComponentType());
         if (item != ValueNull.INSTANCE && !this.getComponentType().isInstance(item.getObject()))

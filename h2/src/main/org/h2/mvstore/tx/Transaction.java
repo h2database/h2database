@@ -231,6 +231,11 @@ public class Transaction {
         }
     }
 
+    /**
+     * Determine if any database changes were made as part of this transaction.
+     *
+     * @return true if there are changes to commit, false otherwise
+     */
     public boolean hasChanges() {
         return hasChanges(statusAndLogId.get());
     }
@@ -259,11 +264,17 @@ public class Transaction {
         return getLogId();
     }
 
+    /**
+     * Mark an entry into a new SQL statement execution within this transaction.
+     */
     public void markStatementStart() {
         markStatementEnd();
         txCounter = store.store.registerVersionUsage();
     }
 
+    /**
+     * Mark an exit from SQL statement execution within this transaction.
+     */
     public void markStatementEnd() {
         MVStore.TxCounter counter = txCounter;
         if(counter != null) {
@@ -278,6 +289,8 @@ public class Transaction {
      * @param mapId the map id
      * @param key the key
      * @param oldValue the old value
+     *
+     * @return key for the newly added undo log entry
      */
     long log(int mapId, Object key, VersionedValue oldValue) {
         long currentState = statusAndLogId.getAndIncrement();
@@ -487,6 +500,9 @@ public class Transaction {
         }
     }
 
+    /**
+     * Transition this transaction into a closed state.
+     */
     void closeIt() {
         long lastState = setStatus(STATUS_CLOSED);
         store.store.deregisterVersionUsage(txCounter);
@@ -499,6 +515,15 @@ public class Transaction {
         notifyAll();
     }
 
+    /**
+     * Make this transaction to wait for the specified transaction to be closed,
+     * because both of them try to modify the same map entry.
+     *
+     * @param toWaitFor transaction to wait for
+     * @param map containing blocking entry
+     * @param key of the blocking entry
+     * @return true if other transaction was closed and this one can proceed, false if timed out
+     */
     public boolean waitFor(Transaction toWaitFor, MVMap<?,VersionedValue> map, Object key) {
         blockingTransaction = toWaitFor;
         blockingMap = map;

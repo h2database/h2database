@@ -503,7 +503,7 @@ public class MVStore implements AutoCloseable {
         return map;
     }
 
-    public <M extends MVMap<K, V>, K, V> M openMap(int id, MVMap.MapBuilder<M, K, V> builder) {
+    private <M extends MVMap<K, V>, K, V> M openMap(int id, MVMap.MapBuilder<M, K, V> builder) {
         storeLock.lock();
         try {
             @SuppressWarnings("unchecked")
@@ -531,7 +531,7 @@ public class MVStore implements AutoCloseable {
 
     /**
      * Get map by id.
-     * 
+     *
      * @param <K> the key type
      * @param <V> the value type
      * @param id map id
@@ -619,7 +619,7 @@ public class MVStore implements AutoCloseable {
 
     /**
      * Check whether a given map exists and has data.
-     * 
+     *
      * @param name the map name
      * @return true if it exists and has data.
      */
@@ -985,7 +985,7 @@ public class MVStore implements AutoCloseable {
 
     /**
      * Read a page of data into a ByteBuffer.
-     * 
+     *
      * @param pos page pos
      * @param expectedMapId expected map id for the page
      * @return ByteBuffer containing page data.
@@ -1516,7 +1516,7 @@ public class MVStore implements AutoCloseable {
 
         /**
          * Visit a page on a chunk and collect ids for it and its children.
-         * 
+         *
          * @param page the page to visit
          * @param executorService the service to use when doing visit in parallel
          * @param executingThreadCounter number of threads currently active
@@ -1545,7 +1545,7 @@ public class MVStore implements AutoCloseable {
 
         /**
          * Visit a page on a chunk and collect ids for it and its children.
-         * 
+         *
          * @param pos position of the page to visit
          * @param executorService the service to use when doing visit in parallel
          * @param executingThreadCounter number of threads currently active
@@ -1581,7 +1581,7 @@ public class MVStore implements AutoCloseable {
 
         /**
          * Add chunk to list of referenced chunks.
-         * 
+         *
          * @param chunkId chunk id
          */
         void registerChunk(int chunkId) {
@@ -2645,7 +2645,7 @@ public class MVStore implements AutoCloseable {
 
     /**
      * Remove a map.
-     * 
+     *
      * @param map the map to remove
      * @param delayed whether to delay deleting the metadata
      */
@@ -2685,7 +2685,7 @@ public class MVStore implements AutoCloseable {
 
     /**
      * Remove map by name.
-     * 
+     *
      * @param name the map name
      */
     public void removeMap(String name) {
@@ -2963,6 +2963,14 @@ public class MVStore implements AutoCloseable {
         return txCounter;
     }
 
+    /**
+     * De-register (close) completed operation (transaction).
+     * This will decrement usage counter for the corresponding version.
+     * If counter reaches zero, that version (and all unused after it)
+     * can be dropped immediately.
+     *
+     * @param txCounter to be decremented, obtained from registerVersionUsage()
+     */
     public void deregisterVersionUsage(TxCounter txCounter) {
         if(txCounter != null) {
             if(txCounter.counter.decrementAndGet() <= 0) {
@@ -3001,7 +3009,14 @@ public class MVStore implements AutoCloseable {
      * which are still operating on this version.
      */
     public static final class TxCounter {
+        /**
+         * Version of a store, this TxCounter is related to
+         */
         public final long version;
+
+        /**
+         * Counter of outstanding operation on this version of a store
+         */
         public final AtomicInteger counter = new AtomicInteger();
 
         TxCounter(long version) {

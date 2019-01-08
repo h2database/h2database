@@ -518,6 +518,14 @@ public abstract class Page implements Cloneable
         return bKeys;
     }
 
+    /**
+     * Append additional key/value mappings to this Page.
+     * New mappings suppose to be in correct key order.
+     *
+     * @param extraKeyCount number of mappings to be added
+     * @param extraKeys to be added
+     * @param extraValues to be added
+     */
     abstract void expand(int extraKeyCount, Object[] extraKeys, Object[] extraValues);
 
     /**
@@ -911,6 +919,12 @@ public abstract class Page implements Cloneable
         }
     }
 
+    /**
+     * Update given CursorPos chain to correspond to "append point" in a B-tree rooted at this Page.
+     *
+     * @param cursorPos to update, presumably pointing to this Page
+     * @return new head of the CursorPos chain
+     */
     public abstract CursorPos getAppendCursorPos(CursorPos cursorPos);
 
     /**
@@ -984,6 +998,11 @@ public abstract class Page implements Cloneable
             return page;
         }
 
+        /**
+         * Clear if necessary, reference to the actual child Page object,
+         * so it can be garbage collected if not actively used elsewhere.
+         * Reference is cleared only if corresponding page was already saved on a disk.
+         */
         void clearPageReference() {
             if (page != null) {
                 page.writeEnd();

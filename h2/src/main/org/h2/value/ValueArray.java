@@ -61,6 +61,25 @@ public class ValueArray extends ValueCollectionBase {
         return (ValueArray) EMPTY;
     }
 
+    public Value concatenate(ValueArray o) {
+        if (!this.getComponentType().equals(o.getComponentType()))
+            throw new IllegalArgumentException(
+                    "Expected component type " + this.getComponentType() + " but got " + o.getComponentType());
+        final Value[] res = Arrays.copyOf(this.values, this.values.length + o.values.length);
+        System.arraycopy(o.values, 0, res, this.values.length, o.values.length);
+        return ValueArray.get(this.getComponentType(), res);
+    }
+
+    public Value append(Value item) {
+        System.err.println("ValueArray.append( item ) getComponentType() " + getComponentType());
+        if (item != ValueNull.INSTANCE && !this.getComponentType().isInstance(item.getObject()))
+            throw new IllegalArgumentException(
+                    "Expected component type " + this.getComponentType() + " but got " + item.getClass());
+        final Value[] res = Arrays.copyOf(this.values, this.values.length + 1);
+        res[this.values.length] = item;
+        return ValueArray.get(this.getComponentType(), res);
+    }
+
     @Override
     public int getType() {
         return Value.ARRAY;

@@ -4842,6 +4842,34 @@ Returns NULL if the specified array is NULL.
 CALL ARRAY_CONTAINS(ARRAY['Hello', 'World'], 'Hello')
 "
 
+"Functions (System)","ARRAY_CAT","
+ARRAY_CAT(arrayExpression, arrayExpression)
+","
+Returns the concatenation of two arrays.
+Returns NULL if any parameter is NULL.
+","
+CALL ARRAY_CAT(ARRAY[1, 2], ARRAY[3, 4])
+"
+
+"Functions (System)","ARRAY_APPEND","
+ARRAY_APPEND(arrayExpression, value)
+","
+Append an element to the end of an array.
+Returns NULL if any parameter is NULL.
+","
+CALL ARRAY_APPEND(ARRAY[1, 2], 3)
+"
+
+"Functions (System)","ARRAY_SLICE","
+ARRAY_SLICE(arrayExpression, lowerBoundInt, upperBoundInt)
+","
+Returns elements from the array as specified by the lower and upper bound parameters.
+Both parameters are inclusive and the first element has index 1, i.e. ARRAY_SLICE(a, 2, 2) has only the second element.
+Returns NULL if any parameter is NULL or if an index is out of bounds.
+","
+CALL ARRAY_SLICE(ARRAY[1, 2, 3, 4], 1, 3)
+"
+
 "Functions (System)","AUTOCOMMIT","
 AUTOCOMMIT()
 ","

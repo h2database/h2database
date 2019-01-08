@@ -157,7 +157,7 @@ dateadd datediff datepart dates datestyle datetime datetimes datum david davide
 day daylight dayname dayofmonth dayofweek dayofyear days dba dbbench dbcp dbid
 dbms dbname dbo dbs dbserv dbsnmp dclassifier dcmpg dcmpl dconst ddiv ddl
 ddladmin deactivate deactivated deactivation dead deadlock deadlocked deadlocks
-deal dealing deallocate death debug debugging dec decade december decide decimal
+deal dealing deallocate death debug debugging dec decade december decide decided decimal
 decision deck declaration declarations declarative declaratory declare declared
 declaring decode decoded decoder decodes decoding decompile decompiler decompiles
 decompiling decompress decompressed decompresser decompression decoration

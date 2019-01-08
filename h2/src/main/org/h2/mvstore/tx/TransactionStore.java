@@ -102,6 +102,17 @@ public class TransactionStore {
     private static final int MAX_OPEN_TRANSACTIONS = 65535;
 
 
+    /**
+     * Generate a string used to name undo log map for a specific transaction.
+     * This name will contain transaction id and reflect the fact
+     * whether transaction is logically committed or not.
+     * This information might be used by recovery procedure after unclean shutdown
+     * (termination before transaction is fully committed).
+     *
+     * @param committed true if transaction is logically committed, false otherwise
+     * @param transactionId of the corresponding transaction
+     * @return undo log name
+     */
     public static String getUndoLogName(boolean committed, int transactionId) {
         return UNDO_LOG_NAME_PREFIX +
                 (committed ? UNDO_LOG_COMMITTED : UNDO_LOG_OPEN) +

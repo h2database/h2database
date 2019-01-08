@@ -111,7 +111,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     /**
      * Clone the current map.
-     * 
+     *
      * @return clone of this.
      */
     protected MVMap<K, V> cloneIt() {
@@ -793,7 +793,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     /**
      * Get the root reference, flushing any current append buffer.
-     * 
+     *
      * @return current root reference
      */
     public RootReference flushAndGetRoot() {
@@ -811,7 +811,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     /**
      * Set the initial root.
-     * 
+     *
      * @param rootPage root page
      * @param version initial version
      */
@@ -878,7 +878,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     /**
      * Roll the root back to the specified version.
-     * 
+     *
      * @param version to rollback to
      */
     void rollbackRoot(long version)
@@ -1094,7 +1094,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     /**
      * Does the root have changes since the specified version?
-     * 
+     *
      * @param version root version
      * @return true if has changes
      */
@@ -1103,10 +1103,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         Page root = rootReference.root;
         return !root.isSaved() && rootReference.getTotalCount() > 0 ||
                 getVersion(rootReference) > version;
-    }
-
-    public boolean isSingleWriter() {
-        return singleWriter;
     }
 
     /**
@@ -1173,7 +1169,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     /**
      * Create empty leaf node page.
-     * 
+     *
      * @return new page
      */
     public Page createEmptyLeaf() {
@@ -1182,7 +1178,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     /**
      * Create empty internal node page.
-     * 
+     *
      * @return new page
      */
     protected Page createEmptyNode() {
@@ -1816,7 +1812,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     /**
      * Apply an operation to a key-value pair.
-     * 
+     *
      * @param key key to operate on
      * @param value new value
      * @param decisionMaker command object to make choices during transaction.

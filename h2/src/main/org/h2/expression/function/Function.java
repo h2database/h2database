@@ -1580,17 +1580,24 @@ public class Function extends Expression implements FunctionCall {
             // https://www.postgresql.org/docs/current/arrays.html#ARRAYS-ACCESSING
             // For historical reasons postgreSQL ignore invalid indexes
             final boolean isPG = database.getMode().getEnum() == ModeEnum.PostgreSQL;
-            if (index1 < 0) {
+            if (index1 > index2) {
                 if (isPG)
-                    index1 = 0;
+                    result = ValueArray.get(array.getComponentType(), new Value[0]);
                 else
                     result = ValueNull.INSTANCE;
-            }
-            if (index2 > array.getList().length) {
-                if (isPG)
-                    index2 = array.getList().length;
-                else
-                    result = ValueNull.INSTANCE;
+            } else {
+                if (index1 < 0) {
+                    if (isPG)
+                        index1 = 0;
+                    else
+                        result = ValueNull.INSTANCE;
+                }
+                if (index2 > array.getList().length) {
+                    if (isPG)
+                        index2 = array.getList().length;
+                    else
+                        result = ValueNull.INSTANCE;
+                }
             }
             if (result == null)
                 result = ValueArray.get(array.getComponentType(), Arrays.copyOfRange(array.getList(), index1, index2));

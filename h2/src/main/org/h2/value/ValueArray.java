@@ -72,8 +72,8 @@ public class ValueArray extends ValueCollectionBase {
         if (!this.getComponentType().equals(o.getComponentType()))
             throw new IllegalArgumentException(
                     "Expected component type " + this.getComponentType() + " but got " + o.getComponentType());
-        final Value[] res = Arrays.copyOf(this.values, this.values.length + o.values.length);
-        System.arraycopy(o.values, 0, res, this.values.length, o.values.length);
+        final Value[] res = Arrays.copyOf(this.getList(), this.getList().length + o.getList().length);
+        System.arraycopy(o.getList(), 0, res, this.getList().length, o.getList().length);
         return ValueArray.get(this.getComponentType(), res);
     }
 
@@ -89,8 +89,8 @@ public class ValueArray extends ValueCollectionBase {
         if (item != ValueNull.INSTANCE && !this.getComponentType().isInstance(item.getObject()))
             throw new IllegalArgumentException(
                     "Expected component type " + this.getComponentType() + " but got " + item.getClass());
-        final Value[] res = Arrays.copyOf(this.values, this.values.length + 1);
-        res[this.values.length] = item;
+        final Value[] res = Arrays.copyOf(this.getList(), this.getList().length + 1);
+        res[this.getList().length] = item;
         return ValueArray.get(this.getComponentType(), res);
     }
 

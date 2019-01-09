@@ -10,7 +10,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
 
+import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
+import org.h2.message.DbException;
 
 /**
  * Implementation of the ARRAY data type.
@@ -66,11 +68,11 @@ public class ValueArray extends ValueCollectionBase {
      *
      * @param o an array to add.
      * @return a new array.
-     * @throws IllegalArgumentException if {@link #getComponentType() component types} aren't equal.
+     * @throws DbException if {@link #getComponentType() component types} aren't equal.
      */
     public Value concatenate(ValueArray o) {
         if (!this.getComponentType().equals(o.getComponentType()))
-            throw new IllegalArgumentException(
+            throw DbException.get(ErrorCode.GENERAL_ERROR_1,
                     "Expected component type " + this.getComponentType() + " but got " + o.getComponentType());
         final Value[] res = Arrays.copyOf(this.getList(), this.getList().length + o.getList().length);
         System.arraycopy(o.getList(), 0, res, this.getList().length, o.getList().length);
@@ -83,12 +85,12 @@ public class ValueArray extends ValueCollectionBase {
      *
      * @param item the value to add.
      * @return a new array.
-     * @throws IllegalArgumentException if <code>item</code> is of the wrong {@link #getComponentType() type}.
+     * @throws DbException if <code>item</code> is of the wrong {@link #getComponentType() type}.
      */
     public Value append(Value item) {
         if (item != ValueNull.INSTANCE && this.getComponentType() != Object.class
                 && !this.getComponentType().isInstance(item.getObject()))
-            throw new IllegalArgumentException(
+            throw DbException.get(ErrorCode.GENERAL_ERROR_1,
                     "Expected component type " + this.getComponentType() + " but got " + item.getClass());
         final Value[] res = Arrays.copyOf(this.getList(), this.getList().length + 1);
         res[this.getList().length] = item;

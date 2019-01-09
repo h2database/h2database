@@ -186,8 +186,8 @@ public class TestScript extends TestDb {
                 "xmlnode", "xmlstartdoc", "xmltext" }) {
             testScript("functions/string/" + s + ".sql");
         }
-        for (String s : new String[] { "array-contains", "array-get",
-                "array-length", "autocommit", "cancel-session", "casewhen",
+        for (String s : new String[] { "array-cat", "array-contains", "array-get",
+                "array-length","array-slice", "autocommit", "cancel-session", "casewhen",
                 "cast", "coalesce", "convert", "csvread", "csvwrite", "currval",
                 "database-path", "database", "decode", "disk-space-used",
                 "file-read", "file-write", "greatest", "h2version", "identity",

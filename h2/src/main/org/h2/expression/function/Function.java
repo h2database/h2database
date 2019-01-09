@@ -16,6 +16,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,6 +28,7 @@ import org.h2.command.Parser;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
+import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -61,6 +63,7 @@ import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.ExtTypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueBytes;
 import org.h2.value.ValueCollectionBase;
@@ -135,7 +138,7 @@ public class Function extends Expression implements FunctionCall {
             CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
             NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230, FILE_WRITE = 232,
-            UNNEST = 233;
+            UNNEST = 233, ARRAY_CONCAT = 234, ARRAY_APPEND = 235, ARRAY_SLICE = 236;
 
     public static final int REGEXP_LIKE = 240;
 
@@ -419,6 +422,9 @@ public class Function extends Expression implements FunctionCall {
         addFunction("ARRAY_GET", ARRAY_GET,
                 2, Value.NULL);
         addFunctionWithNull("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN);
+        addFunction("ARRAY_CAT", ARRAY_CONCAT, 2, Value.ARRAY);
+        addFunction("ARRAY_APPEND", ARRAY_APPEND, 2, Value.ARRAY);
+        addFunction("ARRAY_SLICE", ARRAY_SLICE, 3, Value.ARRAY);
         addFunction("CSVREAD", CSVREAD,
                 VAR_ARGS, Value.RESULT_SET, false, false, false, true);
         addFunction("CSVWRITE", CSVWRITE,
@@ -1540,6 +1546,61 @@ public class Function extends Expression implements FunctionCall {
             } catch (SQLException e) {
                 throw DbException.convert(e);
             }
+            break;
+        }
+        case ARRAY_CONCAT: {
+            final ValueArray array = (ValueArray) v0.convertTo(Value.ARRAY);
+            final ValueArray array2 = (ValueArray) v1.convertTo(Value.ARRAY);
+            if (!array.getComponentType().equals(array2.getComponentType()))
+                throw DbException.get(ErrorCode.GENERAL_ERROR_1, "Expected component type " + array.getComponentType()
+                        + " but got " + array2.getComponentType());
+            final Value[] res = Arrays.copyOf(array.getList(), array.getList().length + array2.getList().length);
+            System.arraycopy(array2.getList(), 0, res, array.getList().length, array2.getList().length);
+            result = ValueArray.get(array.getComponentType(), res);
+            break;
+        }
+        case ARRAY_APPEND: {
+            final ValueArray array = (ValueArray) v0.convertTo(Value.ARRAY);
+            if (v1 != ValueNull.INSTANCE && array.getComponentType() != Object.class
+                    && !array.getComponentType().isInstance(v1.getObject()))
+                throw DbException.get(ErrorCode.GENERAL_ERROR_1,
+                        "Expected component type " + array.getComponentType() + " but got " + v1.getClass());
+            final Value[] res = Arrays.copyOf(array.getList(), array.getList().length + 1);
+            res[array.getList().length] = v1;
+            result = ValueArray.get(array.getComponentType(), res);
+            break;
+        }
+        case ARRAY_SLICE: {
+            result = null;
+            final ValueArray array = (ValueArray) v0.convertTo(Value.ARRAY);
+            // SQL is 1-based
+            int index1 = v1.getInt() - 1;
+            // 1-based and inclusive as postgreSQL (-1+1)
+            int index2 = v2.getInt();
+            // https://www.postgresql.org/docs/current/arrays.html#ARRAYS-ACCESSING
+            // For historical reasons postgreSQL ignore invalid indexes
+            final boolean isPG = database.getMode().getEnum() == ModeEnum.PostgreSQL;
+            if (index1 > index2) {
+                if (isPG)
+                    result = ValueArray.get(array.getComponentType(), new Value[0]);
+                else
+                    result = ValueNull.INSTANCE;
+            } else {
+                if (index1 < 0) {
+                    if (isPG)
+                        index1 = 0;
+                    else
+                        result = ValueNull.INSTANCE;
+                }
+                if (index2 > array.getList().length) {
+                    if (isPG)
+                        index2 = array.getList().length;
+                    else
+                        result = ValueNull.INSTANCE;
+                }
+            }
+            if (result == null)
+                result = ValueArray.get(array.getComponentType(), Arrays.copyOfRange(array.getList(), index1, index2));
             break;
         }
         case LINK_SCHEMA: {

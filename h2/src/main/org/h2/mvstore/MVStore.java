@@ -28,6 +28,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import org.h2.compress.CompressDeflate;
 import org.h2.compress.CompressLZF;
@@ -178,9 +179,9 @@ public class MVStore implements AutoCloseable {
     private final ReentrantLock storeLock = new ReentrantLock(true);
 
     /**
-     * The background thread, if any.
+     * Reference to a background thread, which is expected to be running, if any.
      */
-    volatile BackgroundWriterThread backgroundWriterThread;
+    private final AtomicReference<BackgroundWriterThread> backgroundWriterThread = new AtomicReference<>();
 
     private volatile boolean reuseSpace = true;
 
@@ -269,7 +270,8 @@ public class MVStore implements AutoCloseable {
     private final AtomicLong oldestVersionToKeep = new AtomicLong();
 
     /**
-     * Collection of all versions used by currently open transactions.
+     * Ordered collection of all version usage counters for all versions starting
+     * from oldestVersionToKeep and up to current.
      */
     private final Deque<TxCounter> versions = new LinkedList<>();
 
@@ -960,7 +962,7 @@ public class MVStore implements AutoCloseable {
         while (!isClosed()) {
             if (state.compareAndSet(STATE_OPEN, STATE_STOPPING)) {
                 try {
-                    stopBackgroundThread();
+                    stopBackgroundThread(normalShutdown);
                     storeLock.lock();
                     try {
                         try {
@@ -2777,7 +2779,7 @@ public class MVStore implements AutoCloseable {
     private void handleException(Throwable ex) {
         if (backgroundExceptionHandler != null) {
             try {
-                backgroundExceptionHandler.uncaughtException(null, ex);
+                backgroundExceptionHandler.uncaughtException(Thread.currentThread(), ex);
             } catch(Throwable ignore) {
                 if (ex != ignore) { // OOME may be the same
                     ex.addSuppressed(ignore);
@@ -2838,24 +2840,28 @@ public class MVStore implements AutoCloseable {
         return state.get() <= STATE_STOPPING;
     }
 
-    private void stopBackgroundThread() {
-        BackgroundWriterThread t = backgroundWriterThread;
-        if (t == null) {
-            return;
-        }
-        backgroundWriterThread = null;
-        if (Thread.currentThread() == t) {
-            // within the thread itself - can not join
-            return;
-        }
-        synchronized (t.sync) {
-            t.sync.notifyAll();
-        }
+    private void stopBackgroundThread(boolean waitForIt) {
+        // Loop here is not strictly necessary, except for case of a spurious failure,
+        // which should not happen with non-weak flavour of CAS operation,
+        // but I've seen it, so just to be safe...
+        BackgroundWriterThread t;
+        while ((t = backgroundWriterThread.get()) != null &&
+                // if called from within the thread itself - can not join
+                t != Thread.currentThread()) {
+            if (backgroundWriterThread.compareAndSet(t, null)) {
+                synchronized (t.sync) {
+                    t.sync.notifyAll();
+                }
 
-        try {
-            t.join();
-        } catch (Exception e) {
-            // ignore
+                if (waitForIt) {
+                    try {
+                        t.join();
+                    } catch (Exception e) {
+                        // ignore
+                    }
+                }
+                break;
+            }
         }
     }
 
@@ -2878,16 +2884,21 @@ public class MVStore implements AutoCloseable {
         if (fileStore == null || fileStore.isReadOnly()) {
             return;
         }
-        stopBackgroundThread();
+        stopBackgroundThread(true);
         // start the background thread if needed
         if (millis > 0 && isOpen()) {
             int sleep = Math.max(1, millis / 10);
             BackgroundWriterThread t =
                     new BackgroundWriterThread(this, sleep,
                             fileStore.toString());
-            t.start();
-            backgroundWriterThread = t;
+            if (backgroundWriterThread.compareAndSet(null, t)) {
+                t.start();
+            }
         }
+    }
+
+    boolean isBackgroundThread() {
+        return Thread.currentThread() == backgroundWriterThread.get();
     }
 
     /**
@@ -3103,20 +3114,19 @@ public class MVStore implements AutoCloseable {
 
         @Override
         public void run() {
-            while (store.backgroundWriterThread != null) {
+            while (store.isBackgroundThread()) {
                 synchronized (sync) {
                     try {
                         sync.wait(sleep);
                     } catch (InterruptedException ignore) {
                     }
                 }
-                if (store.backgroundWriterThread == null) {
+                if (!store.isBackgroundThread()) {
                     break;
                 }
                 store.writeInBackground();
             }
         }
-
     }
 
     /**

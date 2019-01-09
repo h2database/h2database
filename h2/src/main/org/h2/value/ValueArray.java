@@ -10,9 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
 
-import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
-import org.h2.message.DbException;
 
 /**
  * Implementation of the ARRAY data type.

@@ -2811,6 +2811,13 @@ public class MVStore implements AutoCloseable {
         }
         int millis = 1;
         while (state != STATE_CLOSED) {
+            /*
+             * We need to wait for completion of close procedure. This is
+             * required because otherwise database may be closed too early while
+             * underlying storage still has unreleased resources. The quickly
+             * following connection attempts fail with The file is locked
+             * exception.
+             */
             try {
                 Thread.sleep(millis++);
             } catch (InterruptedException e) {

@@ -148,6 +148,27 @@ public class MVStore implements AutoCloseable {
     private static final int MARKED_FREE = 10_000_000;
 
     /**
+     * Storage is open.
+     */
+    private static final int STATE_OPEN = 0;
+
+    /**
+     * Storage is stopping now. Background writer thread finishes its work
+     * during this process.
+     */
+    private static final int STATE_STOPPING = 1;
+
+    /**
+     * Storage is closing now.
+     */
+    private static final int STATE_CLOSING = 2;
+
+    /**
+     * Storage is closed.
+     */
+    private static final int STATE_CLOSED = 3;
+
+    /**
      * Lock which governs access to major store operations: store(), close(), ...
      * It should used in a non-reentrant fashion.
      * It serves as a replacement for synchronized(this), except it allows for
@@ -162,7 +183,7 @@ public class MVStore implements AutoCloseable {
 
     private volatile boolean reuseSpace = true;
 
-    private volatile boolean closed;
+    private volatile int state;
 
     private final FileStore fileStore;
 
@@ -414,7 +435,7 @@ public class MVStore implements AutoCloseable {
     }
 
     private void panic(IllegalStateException e) {
-        if (!closed) {
+        if (state == STATE_OPEN) {
             handleException(e);
             panicException = e;
             closeImmediately();
@@ -918,7 +939,7 @@ public class MVStore implements AutoCloseable {
      */
     @Override
     public void close() {
-        if (closed) {
+        if (isClosed()) {
             return;
         }
         FileStore f = fileStore;
@@ -949,37 +970,42 @@ public class MVStore implements AutoCloseable {
     }
 
     private void closeStore(boolean shrinkIfPossible) {
-        if (closed) {
+        if (isClosed()) {
             return;
         }
-        stopBackgroundThread();
-        closed = true;
-        storeLock.lock();
+        state = STATE_STOPPING;
         try {
+            stopBackgroundThread();
+            state = STATE_CLOSING;
+            storeLock.lock();
             try {
-                if (fileStore != null && shrinkIfPossible) {
-                    shrinkFileIfPossible(0);
+                try {
+                    if (fileStore != null && shrinkIfPossible) {
+                        shrinkFileIfPossible(0);
+                    }
+                    // release memory early - this is important when called
+                    // because of out of memory
+                    if (cache != null) {
+                        cache.clear();
+                    }
+                    if (cacheChunkRef != null) {
+                        cacheChunkRef.clear();
+                    }
+                    for (MVMap<?, ?> m : new ArrayList<>(maps.values())) {
+                        m.close();
+                    }
+                    chunks.clear();
+                    maps.clear();
+                } finally {
+                    if (fileStore != null && !fileStoreIsProvided) {
+                        fileStore.close();
+                    }
                 }
-                // release memory early - this is important when called
-                // because of out of memory
-                if (cache != null) {
-                    cache.clear();
-                }
-                if (cacheChunkRef != null) {
-                    cacheChunkRef.clear();
-                }
-                for (MVMap<?, ?> m : new ArrayList<>(maps.values())) {
-                    m.close();
-                }
-                chunks.clear();
-                maps.clear();
             } finally {
-                if (fileStore != null && !fileStoreIsProvided) {
-                    fileStore.close();
-                }
+                storeLock.unlock();
             }
         } finally {
-            storeLock.unlock();
+            state = STATE_CLOSED;
         }
     }
 
@@ -1142,7 +1168,7 @@ public class MVStore implements AutoCloseable {
 
     private void store() {
         try {
-            if (!closed && hasUnsavedChangesInternal()) {
+            if (isOpenOrStopping() && hasUnsavedChangesInternal()) {
                 currentStoreVersion = currentVersion;
                 if (fileStore == null) {
                     lastStoredVersion = currentVersion;
@@ -1719,7 +1745,7 @@ public class MVStore implements AutoCloseable {
         if (savedPercent < minPercent) {
             return;
         }
-        if (!closed) {
+        if (isOpenOrStopping()) {
             sync();
         }
         fileStore.truncate(end);
@@ -2392,7 +2418,7 @@ public class MVStore implements AutoCloseable {
      * @param map the map
      */
     void beforeWrite(MVMap<?, ?> map) {
-        if (saveNeeded && fileStore != null && !closed) {
+        if (saveNeeded && fileStore != null && isOpenOrStopping()) {
             saveNeeded = false;
             // check again, because it could have been written by now
             if (unsavedMemory > autoCommitMemory && autoCommitMemory > 0) {
@@ -2599,7 +2625,7 @@ public class MVStore implements AutoCloseable {
     }
 
     private void checkOpen() {
-        if (closed) {
+        if (!isOpenOrStopping()) {
             throw DataUtils.newIllegalStateException(DataUtils.ERROR_CLOSED,
                     "This store is closed", panicException);
         }
@@ -2718,7 +2744,7 @@ public class MVStore implements AutoCloseable {
      */
     void writeInBackground() {
         try {
-            if (closed) {
+            if (!isOpenOrStopping()) {
                 return;
             }
 
@@ -2780,7 +2806,30 @@ public class MVStore implements AutoCloseable {
     }
 
     public boolean isClosed() {
-        return closed;
+        if (state == STATE_OPEN) {
+            return false;
+        }
+        int millis = 1;
+        while (state != STATE_CLOSED) {
+            /*
+             * We need to wait for completion of close procedure. This is
+             * required because otherwise database may be closed too early while
+             * underlying storage still has unreleased resources. The quickly
+             * following connection attempts fail with The file is locked
+             * exception.
+             */
+            try {
+                Thread.sleep(millis++);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        return true;
+    }
+
+    private boolean isOpenOrStopping() {
+        return state <= STATE_STOPPING;
     }
 
     private void stopBackgroundThread() {
@@ -2825,7 +2874,7 @@ public class MVStore implements AutoCloseable {
         }
         stopBackgroundThread();
         // start the background thread if needed
-        if (millis > 0) {
+        if (millis > 0 && state == STATE_OPEN) {
             int sleep = Math.max(1, millis / 10);
             BackgroundWriterThread t =
                     new BackgroundWriterThread(this, sleep,

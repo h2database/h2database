@@ -63,40 +63,6 @@ public class ValueArray extends ValueCollectionBase {
         return (ValueArray) EMPTY;
     }
 
-    /**
-     * Create an array value by concatenating this and the passed value.
-     *
-     * @param o an array to add.
-     * @return a new array.
-     * @throws DbException if {@link #getComponentType() component types} aren't equal.
-     */
-    public Value concatenate(ValueArray o) {
-        if (!this.getComponentType().equals(o.getComponentType()))
-            throw DbException.get(ErrorCode.GENERAL_ERROR_1,
-                    "Expected component type " + this.getComponentType() + " but got " + o.getComponentType());
-        final Value[] res = Arrays.copyOf(this.getList(), this.getList().length + o.getList().length);
-        System.arraycopy(o.getList(), 0, res, this.getList().length, o.getList().length);
-        return ValueArray.get(this.getComponentType(), res);
-    }
-
-
-    /**
-     * Create an array value by adding a new item at the end.
-     *
-     * @param item the value to add.
-     * @return a new array.
-     * @throws DbException if <code>item</code> is of the wrong {@link #getComponentType() type}.
-     */
-    public Value append(Value item) {
-        if (item != ValueNull.INSTANCE && this.getComponentType() != Object.class
-                && !this.getComponentType().isInstance(item.getObject()))
-            throw DbException.get(ErrorCode.GENERAL_ERROR_1,
-                    "Expected component type " + this.getComponentType() + " but got " + item.getClass());
-        final Value[] res = Arrays.copyOf(this.getList(), this.getList().length + 1);
-        res[this.getList().length] = item;
-        return ValueArray.get(this.getComponentType(), res);
-    }
-
     @Override
     public int getType() {
         return Value.ARRAY;

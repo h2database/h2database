@@ -383,31 +383,6 @@ public class TestValue extends TestDb {
         got = src.convertPrecision(0, true);
         assertEquals(exp, got);
         assertEquals(String.class, ((ValueArray) got).getComponentType());
-
-        // concat
-        // test here rather than in a script since we can't specify the componentType in SQL.
-        {
-            ValueArray stringArray_1 = ValueArray.get(String.class, new Value[] { ValueString.get("1") });
-            ValueArray stringArray_2 = ValueArray.get(String.class, new Value[] { ValueString.get("2") });
-            final ValueArray stringArray_1_2 = ValueArray.get(String.class,
-                    new Value[] { ValueString.get("1"), ValueString.get("2") });
-            assertEquals(stringArray_1_2, stringArray_1.append(stringArray_2.getList()[0]));
-            assertEquals(stringArray_1_2, stringArray_1.concatenate(stringArray_2));
-
-            ValueArray intArray = ValueArray.get(Integer.class, new Value[] { ValueInt.get(2) });
-            try {
-                stringArray_1.append(intArray.getList()[0]);
-                fail("Should have thrown since an int cannot be added to String[]");
-            } catch (IllegalArgumentException e) {
-                // OK
-            }
-            try {
-                stringArray_1.concatenate(intArray);
-                fail("Should have thrown since an int[] cannot be added to String[]");
-            } catch (IllegalArgumentException e) {
-                // OK
-            }
-        }
     }
 
     private void testUUID() {

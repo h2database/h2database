@@ -1551,12 +1551,23 @@ public class Function extends Expression implements FunctionCall {
         case ARRAY_CONCAT: {
             final ValueArray array = (ValueArray) v0.convertTo(Value.ARRAY);
             final ValueArray array2 = (ValueArray) v1.convertTo(Value.ARRAY);
-            result = array.concatenate(array2);
+            if (!array.getComponentType().equals(array2.getComponentType()))
+                throw DbException.get(ErrorCode.GENERAL_ERROR_1, "Expected component type " + array.getComponentType()
+                        + " but got " + array2.getComponentType());
+            final Value[] res = Arrays.copyOf(array.getList(), array.getList().length + array2.getList().length);
+            System.arraycopy(array2.getList(), 0, res, array.getList().length, array2.getList().length);
+            result = ValueArray.get(array.getComponentType(), res);
             break;
         }
         case ARRAY_APPEND: {
             final ValueArray array = (ValueArray) v0.convertTo(Value.ARRAY);
-            result = array.append(v1);
+            if (v1 != ValueNull.INSTANCE && array.getComponentType() != Object.class
+                    && !array.getComponentType().isInstance(v1.getObject()))
+                throw DbException.get(ErrorCode.GENERAL_ERROR_1,
+                        "Expected component type " + array.getComponentType() + " but got " + v1.getClass());
+            final Value[] res = Arrays.copyOf(array.getList(), array.getList().length + 1);
+            res[array.getList().length] = v1;
+            result = ValueArray.get(array.getComponentType(), res);
             break;
         }
         case ARRAY_SLICE: {

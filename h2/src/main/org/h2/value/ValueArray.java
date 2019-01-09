@@ -86,7 +86,8 @@ public class ValueArray extends ValueCollectionBase {
      * @throws IllegalArgumentException if <code>item</code> is of the wrong {@link #getComponentType() type}.
      */
     public Value append(Value item) {
-        if (item != ValueNull.INSTANCE && !this.getComponentType().isInstance(item.getObject()))
+        if (item != ValueNull.INSTANCE && this.getComponentType() != Object.class
+                && !this.getComponentType().isInstance(item.getObject()))
             throw new IllegalArgumentException(
                     "Expected component type " + this.getComponentType() + " but got " + item.getClass());
         final Value[] res = Arrays.copyOf(this.getList(), this.getList().length + 1);

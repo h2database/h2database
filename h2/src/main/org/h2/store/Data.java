@@ -956,20 +956,19 @@ public class Data {
      * @return the number of bytes required to store this value
      */
     public int getValueLen(Value v) {
-        return getValueLen(v, handler, storeLocalTime);
+        return getValueLen(v, storeLocalTime);
     }
 
     /**
      * Calculate the number of bytes required to encode the given value.
      *
      * @param v the value
-     * @param handler the data handler for lobs
      * @param storeLocalTime
      *            calculate size of DATE, TIME, and TIMESTAMP values with local
      *            time storage format
      * @return the number of bytes required to store this value
      */
-    public static int getValueLen(Value v, DataHandler handler, boolean storeLocalTime) {
+    public static int getValueLen(Value v, boolean storeLocalTime) {
         if (v == ValueNull.INSTANCE) {
             return 1;
         }
@@ -1149,7 +1148,7 @@ public class Data {
             Value[] list = ((ValueCollectionBase) v).getList();
             int len = 1 + getVarIntLen(list.length);
             for (Value x : list) {
-                len += getValueLen(x, handler, storeLocalTime);
+                len += getValueLen(x, storeLocalTime);
             }
             return len;
         }
@@ -1171,7 +1170,7 @@ public class Data {
                 Value[] row = result.currentRow();
                 for (int i = 0; i < columnCount; i++) {
                     Value val = row[i];
-                    len += getValueLen(val, handler, storeLocalTime);
+                    len += getValueLen(val, storeLocalTime);
                 }
             }
             len++;

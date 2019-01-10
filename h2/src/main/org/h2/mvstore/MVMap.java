@@ -139,11 +139,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     /**
-     * Initialize this map.
-     */
-    protected void init() {}
-
-    /**
      * Add or replace a key-value pair.
      *
      * @param key the key (may not be null)

@@ -376,7 +376,6 @@ public class MVStore implements AutoCloseable {
         backgroundExceptionHandler =
                 (UncaughtExceptionHandler)config.get("backgroundExceptionHandler");
         meta = new MVMap<>(this);
-        meta.init();
         if (this.fileStore != null) {
             retentionTime = this.fileStore.getDefaultRetentionTime();
             // 19 KB memory is about 1 KB storage
@@ -512,7 +511,6 @@ public class MVStore implements AutoCloseable {
             c.put("id", id);
             c.put("createVersion", currentVersion);
             map = builder.create(this, c);
-            map.init();
             String x = Integer.toHexString(id);
             meta.put(MVMap.getMapKey(id), map.asString(name));
             meta.put("name." + name, x);
@@ -542,7 +540,6 @@ public class MVStore implements AutoCloseable {
                 }
                 config.put("id", id);
                 map = builder.create(this, config);
-                map.init();
                 long root = getRootPos(meta, id);
                 map.setRootPos(root, lastStoredVersion);
                 maps.put(id, map);

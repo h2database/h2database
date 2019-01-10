@@ -21,6 +21,11 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Issue #1651: TIMESTAMP values near DST may be changed in MVStore database due to UTC-based PageStore format in some
+temporary storages
+</li>
+<li>PR #1650: Fix race in MVStore.close()
+</li>
 <li>Issue #1212: TestDiskFull: The file is locked
 </li>
 <li>PR #1648: Add functions ARRAY_CAT(), ARRAY_APPEND() and ARRAY_SLICE()

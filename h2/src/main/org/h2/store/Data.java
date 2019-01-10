@@ -114,9 +114,12 @@ public class Data {
      */
     private final DataHandler handler;
 
-    private Data(DataHandler handler, byte[] data) {
+    private final boolean storeLocalTime;
+
+    private Data(DataHandler handler, byte[] data, boolean storeLocalTime) {
         this.handler = handler;
         this.data = data;
+        this.storeLocalTime = storeLocalTime;
     }
 
     /**
@@ -298,7 +301,7 @@ public class Data {
      * @return the buffer
      */
     public static Data create(DataHandler handler, int capacity) {
-        return new Data(handler, new byte[capacity]);
+        return new Data(handler, new byte[capacity], false);
     }
 
     /**
@@ -310,7 +313,7 @@ public class Data {
      * @return the buffer
      */
     public static Data create(DataHandler handler, byte[] buff) {
-        return new Data(handler, buff);
+        return new Data(handler, buff, false);
     }
 
     /**
@@ -484,20 +487,48 @@ public class Data {
             break;
         }
         case Value.TIME:
-            writeByte((byte) type);
-            writeVarLong(DateTimeUtils.getTimeLocalWithoutDst(v.getTime()));
+            if (storeLocalTime) {
+                writeByte((byte) LOCAL_TIME);
+                ValueTime t = (ValueTime) v;
+                long nanos = t.getNanos();
+                long millis = nanos / 1_000_000;
+                nanos -= millis * 1_000_000;
+                writeVarLong(millis);
+                writeVarLong(nanos);
+            } else {
+                writeByte((byte) type);
+                writeVarLong(DateTimeUtils.getTimeLocalWithoutDst(v.getTime()));
+            }
             break;
         case Value.DATE: {
-            writeByte((byte) type);
-            long x = DateTimeUtils.getTimeLocalWithoutDst(v.getDate());
-            writeVarLong(x / MILLIS_PER_MINUTE);
+            if (storeLocalTime) {
+                writeByte((byte) LOCAL_DATE);
+                long x = ((ValueDate) v).getDateValue();
+                writeVarLong(x);
+            } else {
+                writeByte((byte) type);
+                long x = DateTimeUtils.getTimeLocalWithoutDst(v.getDate());
+                writeVarLong(x / MILLIS_PER_MINUTE);
+            }
             break;
         }
         case Value.TIMESTAMP: {
-            Timestamp ts = v.getTimestamp();
-            writeByte((byte) type);
-            writeVarLong(DateTimeUtils.getTimeLocalWithoutDst(ts));
-            writeVarInt(ts.getNanos() % 1_000_000);
+            if (storeLocalTime) {
+                writeByte((byte) LOCAL_TIMESTAMP);
+                ValueTimestamp ts = (ValueTimestamp) v;
+                long dateValue = ts.getDateValue();
+                writeVarLong(dateValue);
+                long nanos = ts.getTimeNanos();
+                long millis = nanos / 1_000_000;
+                nanos -= millis * 1_000_000;
+                writeVarLong(millis);
+                writeVarLong(nanos);
+            } else {
+                Timestamp ts = v.getTimestamp();
+                writeByte((byte) type);
+                writeVarLong(DateTimeUtils.getTimeLocalWithoutDst(ts));
+                writeVarInt(ts.getNanos() % 1_000_000);
+            }
             break;
         }
         case Value.TIMESTAMP_TZ: {
@@ -702,8 +733,8 @@ public class Data {
             }
             DbException.throwInternalError("type=" + v.getType());
         }
-        assert pos - start == getValueLen(v, handler)
-                : "value size error: got " + (pos - start) + " expected " + getValueLen(v, handler);
+        assert pos - start == getValueLen(v)
+                : "value size error: got " + (pos - start) + " expected " + getValueLen(v);
     }
 
     /**
@@ -925,7 +956,7 @@ public class Data {
      * @return the number of bytes required to store this value
      */
     public int getValueLen(Value v) {
-        return getValueLen(v, handler);
+        return getValueLen(v, handler, storeLocalTime);
     }
 
     /**
@@ -933,9 +964,12 @@ public class Data {
      *
      * @param v the value
      * @param handler the data handler for lobs
+     * @param storeLocalTime
+     *            calculate size of DATE, TIME, and TIMESTAMP values with local
+     *            time storage format
      * @return the number of bytes required to store this value
      */
-    public static int getValueLen(Value v, DataHandler handler) {
+    public static int getValueLen(Value v, DataHandler handler, boolean storeLocalTime) {
         if (v == ValueNull.INSTANCE) {
             return 1;
         }
@@ -1020,12 +1054,31 @@ public class Data {
             return 1 + getVarIntLen(scale) + getVarIntLen(bytes.length) + bytes.length;
         }
         case Value.TIME:
+            if (storeLocalTime) {
+                long nanos = ((ValueTime) v).getNanos();
+                long millis = nanos / 1_000_000;
+                nanos -= millis * 1_000_000;
+                return 1 + getVarLongLen(millis) + getVarLongLen(nanos);
+            }
             return 1 + getVarLongLen(DateTimeUtils.getTimeLocalWithoutDst(v.getTime()));
         case Value.DATE: {
+            if (storeLocalTime) {
+                long dateValue = ((ValueDate) v).getDateValue();
+                return 1 + getVarLongLen(dateValue);
+            }
             long x = DateTimeUtils.getTimeLocalWithoutDst(v.getDate());
             return 1 + getVarLongLen(x / MILLIS_PER_MINUTE);
         }
         case Value.TIMESTAMP: {
+            if (storeLocalTime) {
+                ValueTimestamp ts = (ValueTimestamp) v;
+                long dateValue = ts.getDateValue();
+                long nanos = ts.getTimeNanos();
+                long millis = nanos / 1_000_000;
+                nanos -= millis * 1_000_000;
+                return 1 + getVarLongLen(dateValue) + getVarLongLen(millis) +
+                        getVarLongLen(nanos);
+            }
             Timestamp ts = v.getTimestamp();
             return 1 + getVarLongLen(DateTimeUtils.getTimeLocalWithoutDst(ts)) +
                     getVarIntLen(ts.getNanos() % 1_000_000);
@@ -1096,7 +1149,7 @@ public class Data {
             Value[] list = ((ValueCollectionBase) v).getList();
             int len = 1 + getVarIntLen(list.length);
             for (Value x : list) {
-                len += getValueLen(x, handler);
+                len += getValueLen(x, handler, storeLocalTime);
             }
             return len;
         }
@@ -1118,7 +1171,7 @@ public class Data {
                 Value[] row = result.currentRow();
                 for (int i = 0; i < columnCount; i++) {
                     Value val = row[i];
-                    len += getValueLen(val, handler);
+                    len += getValueLen(val, handler, storeLocalTime);
                 }
             }
             len++;
@@ -1360,7 +1413,7 @@ public class Data {
     public static void copyString(Reader source, OutputStream target)
             throws IOException {
         char[] buff = new char[Constants.IO_BUFFER_SIZE];
-        Data d = new Data(null, new byte[3 * Constants.IO_BUFFER_SIZE]);
+        Data d = new Data(null, new byte[3 * Constants.IO_BUFFER_SIZE], false);
         while (true) {
             int l = source.read(buff);
             if (l < 0) {

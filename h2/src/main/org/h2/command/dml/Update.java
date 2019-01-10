@@ -199,7 +199,6 @@ public class Update extends Prepared {
             // the cached row is already updated - we need the old values
             table.updateRows(this, session, rows);
             if (table.fireRow()) {
-                rows.invalidateCache();
                 for (rows.reset(); rows.hasNext();) {
                     Row o = rows.next();
                     Row n = rows.next();

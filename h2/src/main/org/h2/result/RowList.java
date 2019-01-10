@@ -32,7 +32,6 @@ public class RowList {
     private final int maxMemory;
     private int memory;
     private boolean written;
-    private boolean readUncached;
 
     /**
      * Construct a new row list for this session.
@@ -170,9 +169,6 @@ public class RowList {
         int columnCount = buff.readInt();
         long key = buff.readLong();
         int version = buff.readInt();
-        if (readUncached) {
-            key = 0;
-        }
         boolean deleted = buff.readInt() == 1;
         Value[] values = new Value[columnCount];
         for (int i = 0; i < columnCount; i++) {
@@ -241,13 +237,6 @@ public class RowList {
      */
     public int size() {
         return size;
-    }
-
-    /**
-     * Do not use the cache.
-     */
-    public void invalidateCache() {
-        readUncached = true;
     }
 
     /**

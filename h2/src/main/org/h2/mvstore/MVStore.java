@@ -956,6 +956,9 @@ public class MVStore implements AutoCloseable {
     }
 
     private void closeStore(boolean normalShutdown) {
+        // If any other thead have already initiated closure procedure,
+        // isClosed() would wait until closure is done and then  we jump out of the loop.
+        // This is a subtle difference between !isClosed() and isOpen().
         while (!isClosed()) {
             if (state.compareAndSet(STATE_OPEN, STATE_STOPPING)) {
                 try {

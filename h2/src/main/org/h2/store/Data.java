@@ -298,10 +298,13 @@ public class Data {
      *
      * @param handler the data handler
      * @param capacity the initial capacity of the buffer
+     * @param storeLocalTime
+     *            store DATE, TIME, and TIMESTAMP values with local time storage
+     *            format
      * @return the buffer
      */
-    public static Data create(DataHandler handler, int capacity) {
-        return new Data(handler, new byte[capacity], false);
+    public static Data create(DataHandler handler, int capacity, boolean storeLocalTime) {
+        return new Data(handler, new byte[capacity], storeLocalTime);
     }
 
     /**
@@ -310,10 +313,13 @@ public class Data {
      *
      * @param handler the data handler
      * @param buff the data
+     * @param storeLocalTime
+     *            store DATE, TIME, and TIMESTAMP values with local time storage
+     *            format
      * @return the buffer
      */
-    public static Data create(DataHandler handler, byte[] buff) {
-        return new Data(handler, buff, false);
+    public static Data create(DataHandler handler, byte[] buff, boolean storeLocalTime) {
+        return new Data(handler, buff, storeLocalTime);
     }
 
     /**

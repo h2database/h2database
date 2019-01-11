@@ -76,7 +76,6 @@ public class Delete extends Prepared {
         session.getUser().checkRight(table, Right.DELETE);
         table.fire(session, Trigger.DELETE, true);
         table.lock(session, true, false);
-        RowList rows = new RowList(session);
         int limitRows = -1;
         if (limitExpr != null) {
             Value v = limitExpr.getValue(session);
@@ -84,7 +83,7 @@ public class Delete extends Prepared {
                 limitRows = v.getInt();
             }
         }
-        try {
+        try (RowList rows = new RowList(session)) {
             setCurrentRowNumber(0);
             int count = 0;
             while (limitRows != 0 && targetTableFilter.next()) {
@@ -128,8 +127,6 @@ public class Delete extends Prepared {
             }
             table.fire(session, Trigger.DELETE, false);
             return count;
-        } finally {
-            rows.close();
         }
     }
 

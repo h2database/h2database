@@ -250,14 +250,11 @@ public abstract class FilePath {
      * Create a new temporary file.
      *
      * @param suffix the suffix
-     * @param deleteOnExit if the file should be deleted when the virtual
-     *            machine exists
      * @param inTempDir if the file should be stored in the temporary directory
      * @return the name of the created file
      */
     @SuppressWarnings("unused")
-    public FilePath createTempFile(String suffix, boolean deleteOnExit,
-            boolean inTempDir) throws IOException {
+    public FilePath createTempFile(String suffix, boolean inTempDir) throws IOException {
         while (true) {
             FilePath p = getPath(name + getNextTempFileNamePart(false) + suffix);
             if (p.exists() || !p.createFile()) {

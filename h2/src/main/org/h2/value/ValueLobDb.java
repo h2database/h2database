@@ -179,7 +179,7 @@ public class ValueLobDb extends Value {
         if (path.isEmpty()) {
             path = SysProperties.PREFIX_TEMP_FILE;
         }
-        return FileUtils.createTempFile(path, Constants.SUFFIX_TEMP_FILE, true, true);
+        return FileUtils.createTempFile(path, Constants.SUFFIX_TEMP_FILE, true);
     }
 
     /**

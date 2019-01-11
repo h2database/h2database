@@ -370,7 +370,7 @@ public class TestFileSystem extends TestDb {
         new AssertThrows(IOException.class) {
             @Override
             public void test() throws IOException {
-                FileUtils.createTempFile(f, ".tmp", false, false);
+                FileUtils.createTempFile(f, ".tmp", false);
         }};
         final FileChannel channel = FileUtils.open(f, "r");
         new AssertThrows(IOException.class) {
@@ -670,7 +670,7 @@ public class TestFileSystem extends TestDb {
 
     private void testRandomAccess(String fsBase, int seed) throws Exception {
         StringBuilder buff = new StringBuilder();
-        String s = FileUtils.createTempFile(fsBase + "/tmp", ".tmp", false, false);
+        String s = FileUtils.createTempFile(fsBase + "/tmp", ".tmp", false);
         File file = new File(TestBase.BASE_TEST_DIR + "/tmp");
         file.getParentFile().mkdirs();
         file.delete();
@@ -784,7 +784,7 @@ public class TestFileSystem extends TestDb {
 
     private void testTempFile(String fsBase) throws Exception {
         int len = 10000;
-        String s = FileUtils.createTempFile(fsBase + "/tmp", ".tmp", false, false);
+        String s = FileUtils.createTempFile(fsBase + "/tmp", ".tmp", false);
         OutputStream out = FileUtils.newOutputStream(s, false);
         byte[] buffer = new byte[len];
         out.write(buffer);
@@ -804,7 +804,7 @@ public class TestFileSystem extends TestDb {
     }
 
     private void testConcurrent(String fsBase) throws Exception {
-        String s = FileUtils.createTempFile(fsBase + "/tmp", ".tmp", false, false);
+        String s = FileUtils.createTempFile(fsBase + "/tmp", ".tmp", false);
         File file = new File(TestBase.BASE_TEST_DIR + "/tmp");
         file.getParentFile().mkdirs();
         file.delete();

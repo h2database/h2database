@@ -381,8 +381,7 @@ public class FilePathDisk extends FilePath {
     }
 
     @Override
-    public FilePath createTempFile(String suffix, boolean deleteOnExit,
-            boolean inTempDir) throws IOException {
+    public FilePath createTempFile(String suffix, boolean inTempDir) throws IOException {
         String fileName = name + ".";
         String prefix = new File(fileName).getName();
         File dir;
@@ -398,15 +397,6 @@ public class FilePathDisk extends FilePath {
                 // in theory, the random number could collide
                 getNextTempFileNamePart(true);
                 continue;
-            }
-            if (deleteOnExit) {
-                try {
-                    f.deleteOnExit();
-                } catch (Throwable e) {
-                    // sometimes this throws a NullPointerException
-                    // at java.io.DeleteOnExitHook.add(DeleteOnExitHook.java:33)
-                    // we can ignore it
-                }
             }
             return get(f.getCanonicalPath());
         }

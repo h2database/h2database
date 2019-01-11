@@ -1410,12 +1410,27 @@ public class Database implements DataHandler {
      *            hook
      */
     void close(boolean fromShutdownHook) {
+        DbException b = backgroundException.getAndSet(null);
+        try {
+            closeImpl(fromShutdownHook);
+        } catch (Throwable t) {
+            if (b != null) {
+                t.addSuppressed(b);
+            }
+            throw t;
+        }
+        if (b != null) {
+            // wrap the exception, so we see it was thrown here
+            throw DbException.get(b.getErrorCode(), b, b.getMessage());
+        }
+    }
+
+    private void closeImpl(boolean fromShutdownHook) {
         try {
             synchronized (this) {
                 if (closing) {
                     return;
                 }
-                throwLastBackgroundException();
                 if (fileLockMethod == FileLockMethod.SERIALIZED &&
                         !reconnectChangePending) {
                     // another connection may have written something - don't write

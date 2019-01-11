@@ -143,6 +143,7 @@ public class UndoLog {
             if (file == null) {
                 String fileName = database.createTempFile();
                 file = database.openFile(fileName, "rw", false);
+                file.autoDelete();
                 file.setCheckedWriting(false);
                 file.setLength(FileStore.HEADER_LENGTH);
             }
@@ -160,7 +161,6 @@ public class UndoLog {
             storedEntries += records.size();
             memoryUndo = 0;
             records.clear();
-            file.autoDelete();
         }
     }
 

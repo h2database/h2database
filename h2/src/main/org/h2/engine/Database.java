@@ -1956,8 +1956,7 @@ public class Database implements DataHandler {
             if (!persistent) {
                 name = "memFS:" + name;
             }
-            return FileUtils.createTempFile(name,
-                    Constants.SUFFIX_TEMP_FILE, true, inTempDir);
+            return FileUtils.createTempFile(name, Constants.SUFFIX_TEMP_FILE, false, inTempDir);
         } catch (IOException e) {
             throw DbException.convertIOException(e, databaseName);
         }

@@ -73,7 +73,7 @@ public class Data {
     /**
      * The length of a long value.
      */
-    private static final int LENGTH_LONG = 8;
+    public static final int LENGTH_LONG = 8;
 
     /**
      * Storage type for ValueRow.

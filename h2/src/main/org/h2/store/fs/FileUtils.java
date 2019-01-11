@@ -335,15 +335,12 @@ public class FileUtils {
      * @param prefix the prefix of the file name (including directory name if
      *            required)
      * @param suffix the suffix
-     * @param deleteOnExit if the file should be deleted when the virtual
-     *            machine exists
      * @param inTempDir if the file should be stored in the temporary directory
      * @return the name of the created file
      */
     public static String createTempFile(String prefix, String suffix,
-            boolean deleteOnExit, boolean inTempDir) throws IOException {
-        return FilePath.get(prefix).createTempFile(
-                suffix, deleteOnExit, inTempDir).toString();
+            boolean inTempDir) throws IOException {
+        return FilePath.get(prefix).createTempFile(suffix, inTempDir).toString();
     }
 
     /**

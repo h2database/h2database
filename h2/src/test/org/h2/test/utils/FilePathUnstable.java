@@ -198,9 +198,8 @@ public class FilePathUnstable extends FilePathWrapper {
     }
 
     @Override
-    public FilePath createTempFile(String suffix, boolean deleteOnExit,
-            boolean inTempDir) throws IOException {
-        return super.createTempFile(suffix, deleteOnExit, inTempDir);
+    public FilePath createTempFile(String suffix, boolean inTempDir) throws IOException {
+        return super.createTempFile(suffix, inTempDir);
     }
 
     @Override

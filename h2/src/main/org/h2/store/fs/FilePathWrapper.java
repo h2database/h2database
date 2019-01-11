@@ -158,9 +158,8 @@ public abstract class FilePathWrapper extends FilePath {
     }
 
     @Override
-    public FilePath createTempFile(String suffix, boolean deleteOnExit,
-            boolean inTempDir) throws IOException {
-        return wrap(base.createTempFile(suffix, deleteOnExit, inTempDir));
+    public FilePath createTempFile(String suffix, boolean inTempDir) throws IOException {
+        return wrap(base.createTempFile(suffix, inTempDir));
     }
 
 }

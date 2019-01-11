@@ -20,7 +20,7 @@ import org.h2.value.Value;
  * A list of rows. If the list grows too large, it is buffered to disk
  * automatically.
  */
-public class RowList {
+public class RowList implements AutoCloseable {
 
     private final Session session;
     private final ArrayList<Row> list = Utils.newSmallArrayList();
@@ -104,7 +104,6 @@ public class RowList {
             writeRow(buff, r);
         }
         flushBuffer(buff);
-        file.autoDelete();
         list.clear();
         memory = 0;
     }
@@ -242,9 +241,9 @@ public class RowList {
     /**
      * Close the result list and delete the temporary file.
      */
+    @Override
     public void close() {
         if (file != null) {
-            file.autoDelete();
             file.closeAndDeleteSilently();
             file = null;
             rowBuff = null;

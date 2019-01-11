@@ -102,8 +102,7 @@ public class Update extends Prepared {
     public int update() {
         targetTableFilter.startQuery(session);
         targetTableFilter.reset();
-        RowList rows = new RowList(session);
-        try {
+        try (RowList rows = new RowList(session)) {
             Table table = targetTableFilter.getTable();
             session.getUser().checkRight(table, Right.UPDATE);
             table.fire(session, Trigger.UPDATE, true);
@@ -207,8 +206,6 @@ public class Update extends Prepared {
             }
             table.fire(session, Trigger.UPDATE, false);
             return count;
-        } finally {
-            rows.close();
         }
     }
 

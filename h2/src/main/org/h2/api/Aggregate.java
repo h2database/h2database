@@ -44,7 +44,9 @@ public interface Aggregate {
     void add(Object value) throws SQLException;
 
     /**
-     * This method returns the computed aggregate value.
+     * This method returns the computed aggregate value. This method must
+     * preserve previously added values and must be able to reevaluate result if
+     * more values were added since its previous invocation.
      *
      * @return the aggregated value
      */

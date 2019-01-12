@@ -186,11 +186,10 @@ public class FileStore {
      * Close this store.
      */
     public void close() {
-        if(file != null) {
+        if(file != null && file.isOpen()) {
             try {
-                if (fileLock != null) {
+                if (fileLock != null && fileLock.isValid()) {
                     fileLock.release();
-                    fileLock = null;
                 }
                 file.close();
                 freeSpace.clear();
@@ -199,6 +198,7 @@ public class FileStore {
                         DataUtils.ERROR_WRITING_FAILED,
                         "Closing failed for file {0}", fileName, e);
             } finally {
+                fileLock = null;
                 file = null;
             }
         }

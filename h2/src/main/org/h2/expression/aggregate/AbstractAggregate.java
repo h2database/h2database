@@ -16,6 +16,9 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.analysis.DataAnalysisOperation;
 import org.h2.expression.analysis.WindowFrame;
+import org.h2.expression.analysis.WindowFrameBound;
+import org.h2.expression.analysis.WindowFrameBoundType;
+import org.h2.expression.analysis.WindowFrameExclusion;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
@@ -84,12 +87,18 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
             int rowIdColumn) {
         WindowFrame frame = over.getWindowFrame();
         if (frame == null) {
-            if (over.getOrderBy() == null) {
+            assert over.getOrderBy() != null;
+            aggregateFastPartition(session, result, ordered, rowIdColumn);
+            return;
+        }
+        if (frame.getStarting().getType() == WindowFrameBoundType.UNBOUNDED_PRECEDING
+                && frame.getExclusion() == WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
+            WindowFrameBound following = frame.getFollowing();
+            if (following != null && following.getType() == WindowFrameBoundType.UNBOUNDED_FOLLOWING) {
                 aggregateWholePartition(session, result, ordered, rowIdColumn);
-                return;
+            } else {
+                aggregateFastPartition(session, result, ordered, rowIdColumn);
             }
-        } else if (frame.isFullPartition()) {
-            aggregateWholePartition(session, result, ordered, rowIdColumn);
             return;
         }
         // All other types of frames (slow)
@@ -99,6 +108,24 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
             for (Iterator<Value[]> iter = WindowFrame.iterator(over, session, ordered, getOverOrderBySort(), i,
                     false); iter.hasNext();) {
                 updateFromExpressions(session, aggregateData, iter.next());
+            }
+            result.put(ordered.get(i)[rowIdColumn].getInt(), getAggregatedValue(session, aggregateData));
+        }
+    }
+
+    private void aggregateFastPartition(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
+            int rowIdColumn) {
+        Object aggregateData = createAggregateData();
+        int size = ordered.size();
+        int lastIncludedRow = -1;
+        for (int i = 0; i < size; i++) {
+            int newLast = WindowFrame.getEndIndex(over, session, ordered, getOverOrderBySort(), i);
+            assert newLast >= lastIncludedRow;
+            if (newLast > lastIncludedRow) {
+                for (int j = lastIncludedRow + 1; j <= newLast; j++) {
+                    updateFromExpressions(session, aggregateData, ordered.get(j));
+                }
+                lastIncludedRow = newLast;
             }
             result.put(ordered.get(i)[rowIdColumn].getInt(), getAggregatedValue(session, aggregateData));
         }

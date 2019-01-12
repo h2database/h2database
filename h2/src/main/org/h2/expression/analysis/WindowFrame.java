@@ -219,6 +219,35 @@ public final class WindowFrame {
                 reverse);
     }
 
+    /**
+     * Returns end index for the specified frame, or default end index if frame
+     * is null.
+     *
+     * @param over
+     *            window
+     * @param session
+     *            the session
+     * @param orderedRows
+     *            ordered rows
+     * @param sortOrder
+     *            sort order
+     * @param currentRow
+     *            index of the current row
+     * @return end index
+     * @throws UnsupportedOperationException
+     *             if over is not null and its exclusion clause is not EXCLUDE
+     *             NO OTHERS
+     */
+    public static int getEndIndex(Window over, Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder,
+            int currentRow) {
+        WindowFrame frame = over.getWindowFrame();
+        if (frame != null) {
+            return frame.getEndIndex(session, orderedRows, sortOrder, currentRow);
+        }
+        int endIndex = orderedRows.size() - 1;
+        return over.getOrderBy() == null ? endIndex : toGroupEnd(orderedRows, sortOrder, currentRow, endIndex);
+    }
+
     private static Iterator<Value[]> plainIterator(ArrayList<Value[]> orderedRows, int startIndex, int endIndex,
             boolean reverse) {
         if (endIndex < startIndex) {
@@ -309,6 +338,42 @@ public final class WindowFrame {
     }
 
     /**
+     * Returns the units.
+     *
+     * @return the units
+     */
+    public WindowFrameUnits getUnits() {
+        return units;
+    }
+
+    /**
+     * Returns the starting clause.
+     *
+     * @return the starting clause
+     */
+    public WindowFrameBound getStarting() {
+        return starting;
+    }
+
+    /**
+     * Returns the following clause.
+     *
+     * @return the following clause, or null
+     */
+    public WindowFrameBound getFollowing() {
+        return following;
+    }
+
+    /**
+     * Returns the exclusion clause.
+     *
+     * @return the exclusion clause
+     */
+    public WindowFrameExclusion getExclusion() {
+        return exclusion;
+    }
+
+    /**
      * Checks validity of this frame.
      *
      * @return whether bounds of this frame valid
@@ -318,18 +383,6 @@ public final class WindowFrame {
                 f = following != null ? following.getType() : WindowFrameBoundType.CURRENT_ROW;
         return s != WindowFrameBoundType.UNBOUNDED_FOLLOWING && f != WindowFrameBoundType.UNBOUNDED_PRECEDING
                 && s.compareTo(f) <= 0;
-    }
-
-    /**
-     * Returns whether window frame specification contains all rows in
-     * partition.
-     *
-     * @return whether window frame specification contains all rows in partition
-     */
-    public boolean isFullPartition() {
-        return starting.getType() == WindowFrameBoundType.UNBOUNDED_PRECEDING && following != null
-                && following.getType() == WindowFrameBoundType.UNBOUNDED_FOLLOWING
-                && exclusion == WindowFrameExclusion.EXCLUDE_NO_OTHERS;
     }
 
     /**
@@ -345,7 +398,6 @@ public final class WindowFrame {
      *            index of the current row
      * @param reverse
      *            whether iterator should iterate in reverse order
-     *
      * @return iterator
      */
     public Iterator<Value[]> iterator(Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder,
@@ -370,6 +422,35 @@ public final class WindowFrame {
         return exclusion != WindowFrameExclusion.EXCLUDE_NO_OTHERS
                 ? complexIterator(orderedRows, sortOrder, currentRow, startIndex, endIndex, reverse)
                 : plainIterator(orderedRows, startIndex, endIndex, reverse);
+    }
+
+    /**
+     * Returns end index of this frame,
+     *
+     * @param session
+     *            the session
+     * @param orderedRows
+     *            ordered rows
+     * @param sortOrder
+     *            sort order
+     * @param currentRow
+     *            index of the current row
+     * @return end index
+     * @throws UnsupportedOperationException
+     *             if exclusion clause is not EXCLUDE NO OTHERS
+     */
+    private int getEndIndex(Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder, int currentRow) {
+        if (exclusion != WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
+            throw new UnsupportedOperationException();
+        }
+        int endIndex = following != null ? getIndex(session, orderedRows, sortOrder, currentRow, following, true)
+                : units == WindowFrameUnits.ROWS ? currentRow
+                        : toGroupEnd(orderedRows, sortOrder, currentRow, orderedRows.size() - 1);
+        int size = orderedRows.size();
+        if (endIndex >= size) {
+            endIndex = size - 1;
+        }
+        return endIndex;
     }
 
     private int getIndex(Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder, int currentRow,

@@ -16,6 +16,10 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.analysis.DataAnalysisOperation;
 import org.h2.expression.analysis.WindowFrame;
+import org.h2.expression.analysis.WindowFrameBound;
+import org.h2.expression.analysis.WindowFrameBoundType;
+import org.h2.expression.analysis.WindowFrameExclusion;
+import org.h2.expression.analysis.WindowFrameUnits;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
@@ -83,25 +87,67 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
     protected void getOrderedResultLoop(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
             int rowIdColumn) {
         WindowFrame frame = over.getWindowFrame();
+        /*
+         * With RANGE (default) or GROUPS units and EXCLUDE GROUP or EXCLUDE NO
+         * OTHERS (default) exclusion all rows in the group have the same value
+         * of window aggregate function.
+         */
+        boolean grouped = frame == null
+                || frame.getUnits() != WindowFrameUnits.ROWS && frame.getExclusion().isGroupOrNoOthers();
         if (frame == null) {
-            if (over.getOrderBy() == null) {
+            assert over.getOrderBy() != null;
+            aggregateFastPartition(session, result, ordered, rowIdColumn, grouped);
+            return;
+        }
+        if (frame.getStarting().getType() == WindowFrameBoundType.UNBOUNDED_PRECEDING
+                && frame.getExclusion() == WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
+            WindowFrameBound following = frame.getFollowing();
+            if (following != null && following.getType() == WindowFrameBoundType.UNBOUNDED_FOLLOWING) {
                 aggregateWholePartition(session, result, ordered, rowIdColumn);
-                return;
+            } else {
+                aggregateFastPartition(session, result, ordered, rowIdColumn, grouped);
             }
-        } else if (frame.isFullPartition()) {
-            aggregateWholePartition(session, result, ordered, rowIdColumn);
             return;
         }
         // All other types of frames (slow)
         int size = ordered.size();
-        for (int i = 0; i < size; i++) {
+        for (int i = 0; i < size;) {
             Object aggregateData = createAggregateData();
             for (Iterator<Value[]> iter = WindowFrame.iterator(over, session, ordered, getOverOrderBySort(), i,
                     false); iter.hasNext();) {
                 updateFromExpressions(session, aggregateData, iter.next());
             }
-            result.put(ordered.get(i)[rowIdColumn].getInt(), getAggregatedValue(session, aggregateData));
+            i = processGroup(session, result, ordered, rowIdColumn, i, size, aggregateData, grouped);
         }
+    }
+
+    private void aggregateFastPartition(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
+            int rowIdColumn, boolean grouped) {
+        Object aggregateData = createAggregateData();
+        int size = ordered.size();
+        int lastIncludedRow = -1;
+        for (int i = 0; i < size;) {
+            int newLast = WindowFrame.getEndIndex(over, session, ordered, getOverOrderBySort(), i);
+            assert newLast >= lastIncludedRow;
+            if (newLast > lastIncludedRow) {
+                for (int j = lastIncludedRow + 1; j <= newLast; j++) {
+                    updateFromExpressions(session, aggregateData, ordered.get(j));
+                }
+                lastIncludedRow = newLast;
+            }
+            i = processGroup(session, result, ordered, rowIdColumn, i, size, aggregateData, grouped);
+        }
+    }
+
+    private int processGroup(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
+            int rowIdColumn, int i, int size, Object aggregateData, boolean grouped) {
+        Value[] firstRowInGroup = ordered.get(i), currentRowInGroup = firstRowInGroup;
+        Value r = getAggregatedValue(session, aggregateData);
+        do {
+            result.put(currentRowInGroup[rowIdColumn].getInt(), r);
+        } while (++i < size && grouped
+                && overOrderBySort.compare(firstRowInGroup, currentRowInGroup = ordered.get(i)) == 0);
+        return i;
     }
 
     private void aggregateWholePartition(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,

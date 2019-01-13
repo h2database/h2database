@@ -121,6 +121,20 @@ SELECT
 > [5, 6] [5, 6] 6  c
 > rows (ordered): 6
 
+SELECT
+    ARRAY_AGG(ID ORDER BY ID) FILTER (WHERE ID < 3 OR ID > 4)
+    OVER (ORDER BY ID ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) A,
+    ID FROM TEST ORDER BY ID;
+> A      ID
+> ------ --
+> [1, 2] 1
+> [1, 2] 2
+> [2]    3
+> [5]    4
+> [5, 6] 5
+> [5, 6] 6
+> rows (ordered): 6
+
 SELECT ARRAY_AGG(SUM(ID)) OVER () FROM TEST;
 > ARRAY_AGG(SUM(ID)) OVER ()
 > --------------------------

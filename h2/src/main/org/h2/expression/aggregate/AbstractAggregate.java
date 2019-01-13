@@ -213,8 +213,8 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
 
     @Override
     protected void updateAggregate(Session session, SelectGroups groupData, int groupRowId) {
+        ArrayList<SelectOrderBy> orderBy;
         if (filterCondition == null || filterCondition.getBooleanValue(session)) {
-            ArrayList<SelectOrderBy> orderBy;
             if (over != null) {
                 if ((orderBy = over.getOrderBy()) != null) {
                     updateOrderedAggregate(session, groupData, groupRowId, orderBy);
@@ -224,6 +224,8 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
             } else {
                 updateAggregate(session, getGroupData(groupData, false));
             }
+        } else if (over != null && (orderBy = over.getOrderBy()) != null) {
+            updateOrderedAggregate(session, groupData, groupRowId, orderBy);
         }
     }
 

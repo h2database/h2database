@@ -345,7 +345,11 @@ public abstract class DataAnalysisOperation extends Expression {
             data = partition.getData();
         }
         if (forOrderBy || !isAggregate()) {
-            return getOrderedResult(session, groupData, partition, data);
+            Value result = getOrderedResult(session, groupData, partition, data);
+            if (result == null) {
+                return getAggregatedValue(session, null);
+            }
+            return result;
         }
         // Window aggregate without ORDER BY clause in window specification
         Value result = partition.getResult();
@@ -411,7 +415,8 @@ public abstract class DataAnalysisOperation extends Expression {
     }
 
     /**
-     * Returns result of this window function or window aggregate.
+     * Returns result of this window function or window aggregate. This method
+     * may not be called on window aggregate without window order clause.
      *
      * @param session
      *            the session

@@ -95,19 +95,25 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
         boolean grouped = frame == null
                 || frame.getUnits() != WindowFrameUnits.ROWS && frame.getExclusion().isGroupOrNoOthers();
         if (frame == null) {
-            assert over.getOrderBy() != null;
             aggregateFastPartition(session, result, ordered, rowIdColumn, grouped);
             return;
         }
-        if (frame.getStarting().getType() == WindowFrameBoundType.UNBOUNDED_PRECEDING
-                && frame.getExclusion() == WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
+        if (frame.getExclusion() == WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
             WindowFrameBound following = frame.getFollowing();
-            if (following != null && following.getType() == WindowFrameBoundType.UNBOUNDED_FOLLOWING) {
-                aggregateWholePartition(session, result, ordered, rowIdColumn);
-            } else {
-                aggregateFastPartition(session, result, ordered, rowIdColumn, grouped);
+            boolean unboundedFollowing = following != null
+                    && following.getType() == WindowFrameBoundType.UNBOUNDED_FOLLOWING;
+            if (frame.getStarting().getType() == WindowFrameBoundType.UNBOUNDED_PRECEDING) {
+                if (unboundedFollowing) {
+                    aggregateWholePartition(session, result, ordered, rowIdColumn);
+                } else {
+                    aggregateFastPartition(session, result, ordered, rowIdColumn, grouped);
+                }
+                return;
             }
-            return;
+            if (unboundedFollowing) {
+                aggregateFastPartitionInReverse(session, result, ordered, rowIdColumn, grouped);
+                return;
+            }
         }
         // All other types of frames (slow)
         int size = ordered.size();
@@ -117,7 +123,8 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
                     false); iter.hasNext();) {
                 updateFromExpressions(session, aggregateData, iter.next());
             }
-            i = processGroup(session, result, ordered, rowIdColumn, i, size, aggregateData, grouped);
+            Value r = getAggregatedValue(session, aggregateData);
+            i = processGroup(session, result, r, ordered, rowIdColumn, i, size, aggregateData, grouped);
         }
     }
 
@@ -126,6 +133,7 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
         Object aggregateData = createAggregateData();
         int size = ordered.size();
         int lastIncludedRow = -1;
+        Value r = null;
         for (int i = 0; i < size;) {
             int newLast = WindowFrame.getEndIndex(over, session, ordered, getOverOrderBySort(), i);
             assert newLast >= lastIncludedRow;
@@ -134,15 +142,42 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
                     updateFromExpressions(session, aggregateData, ordered.get(j));
                 }
                 lastIncludedRow = newLast;
+                r = getAggregatedValue(session, aggregateData);
+            } else if (r == null) {
+                r = getAggregatedValue(session, aggregateData);
             }
-            i = processGroup(session, result, ordered, rowIdColumn, i, size, aggregateData, grouped);
+            i = processGroup(session, result, r, ordered, rowIdColumn, i, size, aggregateData, grouped);
         }
     }
 
-    private int processGroup(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
+    private void aggregateFastPartitionInReverse(Session session, HashMap<Integer, Value> result,
+            ArrayList<Value[]> ordered, int rowIdColumn, boolean grouped) {
+        Object aggregateData = createAggregateData();
+        int firstIncludedRow = ordered.size();
+        Value r = null;
+        for (int i = firstIncludedRow - 1; i >= 0;) {
+            int newLast = over.getWindowFrame().getStartIndex(session, ordered, getOverOrderBySort(), i);
+            assert newLast <= firstIncludedRow;
+            if (newLast < firstIncludedRow) {
+                for (int j = firstIncludedRow - 1; j >= newLast; j--) {
+                    updateFromExpressions(session, aggregateData, ordered.get(j));
+                }
+                firstIncludedRow = newLast;
+                r = getAggregatedValue(session, aggregateData);
+            } else if (r == null) {
+                r = getAggregatedValue(session, aggregateData);
+            }
+            Value[] lastRowInGroup = ordered.get(i), currentRowInGroup = lastRowInGroup;
+            do {
+                result.put(currentRowInGroup[rowIdColumn].getInt(), r);
+            } while (--i >= 0 && grouped
+                    && overOrderBySort.compare(lastRowInGroup, currentRowInGroup = ordered.get(i)) == 0);
+        }
+    }
+
+    private int processGroup(Session session, HashMap<Integer, Value> result, Value r, ArrayList<Value[]> ordered,
             int rowIdColumn, int i, int size, Object aggregateData, boolean grouped) {
         Value[] firstRowInGroup = ordered.get(i), currentRowInGroup = firstRowInGroup;
-        Value r = getAggregatedValue(session, aggregateData);
         do {
             result.put(currentRowInGroup[rowIdColumn].getInt(), r);
         } while (++i < size && grouped
@@ -178,8 +213,8 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
 
     @Override
     protected void updateAggregate(Session session, SelectGroups groupData, int groupRowId) {
+        ArrayList<SelectOrderBy> orderBy;
         if (filterCondition == null || filterCondition.getBooleanValue(session)) {
-            ArrayList<SelectOrderBy> orderBy;
             if (over != null) {
                 if ((orderBy = over.getOrderBy()) != null) {
                     updateOrderedAggregate(session, groupData, groupRowId, orderBy);
@@ -189,6 +224,8 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
             } else {
                 updateAggregate(session, getGroupData(groupData, false));
             }
+        } else if (over != null && (orderBy = over.getOrderBy()) != null) {
+            updateOrderedAggregate(session, groupData, groupRowId, orderBy);
         }
     }
 

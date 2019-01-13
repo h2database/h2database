@@ -3542,6 +3542,8 @@ Concatenates strings with a separator.
 The default separator is a ',' (without space).
 This method returns a string.
 If no rows are selected, the result is NULL.
+If ORDER BY is not specified order of strings is not determined.
+Note that when this aggregate is used with OVER clause its ORDER BY subclause does not enforce exact order of strings.
 Aggregates are only allowed in select statements.
 ","
 GROUP_CONCAT(NAME ORDER BY ID SEPARATOR ', ')
@@ -3555,6 +3557,8 @@ ARRAY_AGG ( [ DISTINCT|ALL ] string
 Aggregate the value into an array.
 This method returns an array.
 If no rows are selected, the result is NULL.
+If ORDER BY is not specified order of values is not determined.
+Note that when this aggregate is used with OVER clause its ORDER BY subclause does not enforce exact order of values.
 Aggregates are only allowed in select statements.
 ","
 ARRAY_AGG(NAME ORDER BY ID)

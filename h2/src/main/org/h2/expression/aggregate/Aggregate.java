@@ -346,6 +346,9 @@ public class Aggregate extends AbstractAggregate {
         if (orderByList != null) {
             n += orderByList.size();
         }
+        if (filterCondition != null) {
+            n++;
+        }
         return n;
     }
 
@@ -360,13 +363,18 @@ public class Aggregate extends AbstractAggregate {
                 array[offset++] = o.expression.getValue(session);
             }
         }
+        if (filterCondition != null) {
+            array[offset] = ValueBoolean.get(filterCondition.getBooleanValue(session));
+        }
     }
 
     @Override
     protected void updateFromExpressions(Session session, Object aggregateData, Value[] array) {
-        AggregateData data = (AggregateData) aggregateData;
-        Value v = on == null ? null : array[0];
-        updateData(session, data, v, array);
+        if (filterCondition == null || array[getNumExpressions() - 1].getBoolean()) {
+            AggregateData data = (AggregateData) aggregateData;
+            Value v = on == null ? null : array[0];
+            updateData(session, data, v, array);
+        }
     }
 
     @Override

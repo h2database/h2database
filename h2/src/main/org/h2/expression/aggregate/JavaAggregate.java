@@ -20,6 +20,7 @@ import org.h2.table.TableFilter;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
+import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
 
 /**
@@ -232,19 +233,29 @@ public class JavaAggregate extends AbstractAggregate {
 
     @Override
     protected int getNumExpressions() {
-        return args.length;
+        int n = args.length;
+        if (filterCondition != null) {
+            n++;
+        }
+        return n;
     }
 
     @Override
     protected void rememberExpressions(Session session, Value[] array) {
-        for (int i = 0; i < args.length; i++) {
+        int length = args.length;
+        for (int i = 0; i < length; i++) {
             array[i] = args[i].getValue(session);
+        }
+        if (filterCondition != null) {
+            array[length] = ValueBoolean.get(filterCondition.getBooleanValue(session));
         }
     }
 
     @Override
     protected void updateFromExpressions(Session session, Object aggregateData, Value[] array) {
-        updateData(session, aggregateData, array);
+        if (filterCondition == null || array[getNumExpressions() - 1].getBoolean()) {
+            updateData(session, aggregateData, array);
+        }
     }
 
     @Override

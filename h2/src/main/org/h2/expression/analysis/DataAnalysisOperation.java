@@ -345,7 +345,11 @@ public abstract class DataAnalysisOperation extends Expression {
             data = partition.getData();
         }
         if (forOrderBy || !isAggregate()) {
-            return getOrderedResult(session, groupData, partition, data);
+            Value result = getOrderedResult(session, groupData, partition, data);
+            if (result == null) {
+                return getAggregatedValue(session, null);
+            }
+            return result;
         }
         // Window aggregate without ORDER BY clause in window specification
         Value result = partition.getResult();

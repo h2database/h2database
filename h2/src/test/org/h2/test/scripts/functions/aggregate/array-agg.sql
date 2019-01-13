@@ -107,15 +107,18 @@ SELECT ARRAY_AGG(ID ORDER BY ID) OVER (PARTITION BY NAME), NAME FROM TEST;
 > [4, 5, 6]                                          c
 > rows: 6
 
-SELECT ARRAY_AGG(ID ORDER BY ID) FILTER (WHERE ID < 3 OR ID > 4) OVER (PARTITION BY NAME), NAME FROM TEST ORDER BY NAME;
-> ARRAY_AGG(ID ORDER BY ID) FILTER (WHERE ((ID < 3) OR (ID > 4))) OVER (PARTITION BY NAME) NAME
-> ---------------------------------------------------------------------------------------- ----
-> [1, 2]                                                                                   a
-> [1, 2]                                                                                   a
-> null                                                                                     b
-> [5, 6]                                                                                   c
-> [5, 6]                                                                                   c
-> [5, 6]                                                                                   c
+SELECT
+    ARRAY_AGG(ID ORDER BY ID) FILTER (WHERE ID < 3 OR ID > 4) OVER (PARTITION BY NAME) A,
+    ARRAY_AGG(ID ORDER BY ID) FILTER (WHERE ID < 3 OR ID > 4) OVER (PARTITION BY NAME ORDER BY ID) AO,
+    ID, NAME FROM TEST ORDER BY ID;
+> A      AO     ID NAME
+> ------ ------ -- ----
+> [1, 2] [1]    1  a
+> [1, 2] [1, 2] 2  a
+> null   null   3  b
+> [5, 6] null   4  c
+> [5, 6] [5]    5  c
+> [5, 6] [5, 6] 6  c
 > rows (ordered): 6
 
 SELECT ARRAY_AGG(SUM(ID)) OVER () FROM TEST;

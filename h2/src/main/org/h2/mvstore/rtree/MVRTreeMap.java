@@ -13,6 +13,7 @@ import org.h2.mvstore.CursorPos;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.Page;
+import org.h2.mvstore.RootReference;
 import org.h2.mvstore.type.DataType;
 
 /**

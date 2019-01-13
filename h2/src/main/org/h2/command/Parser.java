@@ -1519,8 +1519,8 @@ public class Parser {
                     queryAlias, querySQLOutput[0],
                     columnTemplateList, false/* no recursion */,
                     false/* do not add to session */,
-                    true /* isTemporary */,
-                    session);
+                    true /* isTemporary */
+            );
             TableFilter sourceTableFilter = new TableFilter(session,
                     temporarySourceTableView, queryAlias,
                     rightsChecked, (Select) command.getQuery(), 0, null);
@@ -6254,7 +6254,6 @@ public class Parser {
             } else {
                 session.removeLocalTempTable(oldViewFound);
             }
-            oldViewFound = null;
         }
         /*
          * This table is created as a workaround because recursive table
@@ -6284,13 +6283,13 @@ public class Parser {
                 querySQLOutput[0], columnTemplateList,
                 true/* allowRecursiveQueryDetection */,
                 true/* add to session */,
-                isTemporary, session);
+                isTemporary);
     }
 
-    private TableView createCTEView(String cteViewName,  String querySQL,
-            List<Column> columnTemplateList, boolean allowRecursiveQueryDetection,
-            boolean addViewToSession, boolean isTemporary, Session targetSession) {
-        Database db = targetSession.getDatabase();
+    private TableView createCTEView(String cteViewName, String querySQL,
+                                    List<Column> columnTemplateList, boolean allowRecursiveQueryDetection,
+                                    boolean addViewToSession, boolean isTemporary) {
+        Database db = session.getDatabase();
         Schema schema = getSchemaWithDefault();
         int id = db.allocateObjectId();
         Column[] columnTemplateArray = columnTemplateList.toArray(new Column[0]);
@@ -6299,26 +6298,26 @@ public class Parser {
         // it twice - once without the flag set, and if we didn't see a recursive term,
         // then we just compile it again.
         TableView view;
-        synchronized (targetSession) {
+        synchronized (session) {
             view = new TableView(schema, id, cteViewName, querySQL,
-                    parameters, columnTemplateArray, targetSession,
+                    parameters, columnTemplateArray, session,
                     allowRecursiveQueryDetection, false /* literalsChecked */, true /* isTableExpression */,
                     isTemporary);
             if (!view.isRecursiveQueryDetected() && allowRecursiveQueryDetection) {
                 if (!isTemporary) {
-                    db.addSchemaObject(targetSession, view);
-                    view.lock(targetSession, true, true);
-                    db.removeSchemaObject(targetSession, view);
+                    db.addSchemaObject(session, view);
+                    view.lock(session, true, true);
+                    db.removeSchemaObject(session, view);
                 } else {
                     session.removeLocalTempTable(view);
                 }
                 view = new TableView(schema, id, cteViewName, querySQL, parameters,
-                        columnTemplateArray, targetSession,
+                        columnTemplateArray, session,
                         false/* assume recursive */, false /* literalsChecked */, true /* isTableExpression */,
                         isTemporary);
             }
             // both removeSchemaObject and removeLocalTempTable hold meta locks
-            db.unlockMeta(targetSession);
+            db.unlockMeta(session);
         }
         view.setTableExpression(true);
         view.setTemporary(isTemporary);
@@ -6326,11 +6325,11 @@ public class Parser {
         view.setOnCommitDrop(false);
         if (addViewToSession) {
             if (!isTemporary) {
-                db.addSchemaObject(targetSession, view);
-                view.unlock(targetSession);
-                db.unlockMeta(targetSession);
+                db.addSchemaObject(session, view);
+                view.unlock(session);
+                db.unlockMeta(session);
             } else {
-                targetSession.addLocalTempTable(view);
+                session.addLocalTempTable(view);
             }
         }
         return view;

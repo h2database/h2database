@@ -2845,19 +2845,20 @@ public class MVStore implements AutoCloseable {
         // which should not happen with non-weak flavour of CAS operation,
         // but I've seen it, so just to be safe...
         BackgroundWriterThread t;
-        while ((t = backgroundWriterThread.get()) != null &&
-                // if called from within the thread itself - can not join
-                t != Thread.currentThread()) {
+        while ((t = backgroundWriterThread.get()) != null) {
             if (backgroundWriterThread.compareAndSet(t, null)) {
-                synchronized (t.sync) {
-                    t.sync.notifyAll();
-                }
+                // if called from within the thread itself - can not join
+                if (t != Thread.currentThread()) {
+                    synchronized (t.sync) {
+                        t.sync.notifyAll();
+                    }
 
-                if (waitForIt) {
-                    try {
-                        t.join();
-                    } catch (Exception e) {
-                        // ignore
+                    if (waitForIt) {
+                        try {
+                            t.join();
+                        } catch (Exception e) {
+                            // ignore
+                        }
                     }
                 }
                 break;

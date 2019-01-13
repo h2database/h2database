@@ -21,8 +21,8 @@ import java.util.Random;
 public class BenchB implements Bench, Runnable {
 
     private static final int SCALE = 4;
-    private static final int BRANCHES = 1;
-    private static final int TELLERS = 10;
+    private static final int BRANCHES = 10;
+    private static final int TELLERS = 100;
     private static final int ACCOUNTS = 100000;
 
     private int threadCount = 10;

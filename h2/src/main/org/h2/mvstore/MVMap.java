@@ -995,15 +995,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the number of entries
      */
     public final long sizeAsLong() {
-        RootReference rootReference = getRoot();
-        return rootReference.root.getTotalCount() + rootReference.getAppendCounter();
+        return getRoot().getTotalCount();
     }
 
     @Override
     public boolean isEmpty() {
-        RootReference rootReference = getRoot();
-        Page rootPage = rootReference.root;
-        return rootPage.isLeaf() && rootPage.getKeyCount() == 0 && rootReference.getAppendCounter() == 0;
+        return sizeAsLong() == 0;
     }
 
     public final long getCreateVersion() {

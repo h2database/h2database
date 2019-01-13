@@ -204,7 +204,7 @@ public class TestScript extends TestDb {
                 "parsedatetime", "quarter", "second", "truncate", "week", "year", "date_trunc" }) {
             testScript("functions/timeanddate/" + s + ".sql");
         }
-        for (String s : new String[] { "lead", "nth_value", "ntile", "row_number" }) {
+        for (String s : new String[] { "lead", "nth_value", "ntile", "ratio_to_report", "row_number" }) {
             testScript("functions/window/" + s + ".sql");
         }
 

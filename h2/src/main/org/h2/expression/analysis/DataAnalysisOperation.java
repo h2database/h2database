@@ -411,7 +411,8 @@ public abstract class DataAnalysisOperation extends Expression {
     }
 
     /**
-     * Returns result of this window function or window aggregate.
+     * Returns result of this window function or window aggregate. This method
+     * may not be called on window aggregate without window order clause.
      *
      * @param session
      *            the session

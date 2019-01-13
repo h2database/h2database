@@ -95,7 +95,6 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
         boolean grouped = frame == null
                 || frame.getUnits() != WindowFrameUnits.ROWS && frame.getExclusion().isGroupOrNoOthers();
         if (frame == null) {
-            assert over.getOrderBy() != null;
             aggregateFastPartition(session, result, ordered, rowIdColumn, grouped);
             return;
         }

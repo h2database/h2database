@@ -98,15 +98,22 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
             aggregateFastPartition(session, result, ordered, rowIdColumn, grouped);
             return;
         }
-        if (frame.getStarting().getType() == WindowFrameBoundType.UNBOUNDED_PRECEDING
-                && frame.getExclusion() == WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
+        if (frame.getExclusion() == WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
             WindowFrameBound following = frame.getFollowing();
-            if (following != null && following.getType() == WindowFrameBoundType.UNBOUNDED_FOLLOWING) {
-                aggregateWholePartition(session, result, ordered, rowIdColumn);
-            } else {
-                aggregateFastPartition(session, result, ordered, rowIdColumn, grouped);
+            boolean unboundedFollowing = following != null
+                    && following.getType() == WindowFrameBoundType.UNBOUNDED_FOLLOWING;
+            if (frame.getStarting().getType() == WindowFrameBoundType.UNBOUNDED_PRECEDING) {
+                if (unboundedFollowing) {
+                    aggregateWholePartition(session, result, ordered, rowIdColumn);
+                } else {
+                    aggregateFastPartition(session, result, ordered, rowIdColumn, grouped);
+                }
+                return;
             }
-            return;
+            if (unboundedFollowing) {
+                aggregateFastPartitionInReverse(session, result, ordered, rowIdColumn, grouped);
+                return;
+            }
         }
         // All other types of frames (slow)
         int size = ordered.size();
@@ -135,6 +142,28 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
                 lastIncludedRow = newLast;
             }
             i = processGroup(session, result, ordered, rowIdColumn, i, size, aggregateData, grouped);
+        }
+    }
+
+    private void aggregateFastPartitionInReverse(Session session, HashMap<Integer, Value> result,
+            ArrayList<Value[]> ordered, int rowIdColumn, boolean grouped) {
+        Object aggregateData = createAggregateData();
+        int firstIncludedRow = ordered.size();
+        for (int i = firstIncludedRow - 1; i >= 0;) {
+            int newLast = over.getWindowFrame().getStartIndex(session, ordered, getOverOrderBySort(), i);
+            assert newLast <= firstIncludedRow;
+            if (newLast < firstIncludedRow) {
+                for (int j = firstIncludedRow - 1; j >= newLast; j--) {
+                    updateFromExpressions(session, aggregateData, ordered.get(j));
+                }
+                firstIncludedRow = newLast;
+            }
+            Value[] lastRowInGroup = ordered.get(i), currentRowInGroup = lastRowInGroup;
+            Value r = getAggregatedValue(session, aggregateData);
+            do {
+                result.put(currentRowInGroup[rowIdColumn].getInt(), r);
+            } while (--i >= 0 && grouped
+                    && overOrderBySort.compare(lastRowInGroup, currentRowInGroup = ordered.get(i)) == 0);
         }
     }
 

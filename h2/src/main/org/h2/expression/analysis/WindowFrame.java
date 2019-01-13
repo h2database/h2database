@@ -425,6 +425,32 @@ public final class WindowFrame {
     }
 
     /**
+     * Returns start index of this frame,
+     *
+     * @param session
+     *            the session
+     * @param orderedRows
+     *            ordered rows
+     * @param sortOrder
+     *            sort order
+     * @param currentRow
+     *            index of the current row
+     * @return start index
+     * @throws UnsupportedOperationException
+     *             if exclusion clause is not EXCLUDE NO OTHERS
+     */
+    public int getStartIndex(Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder, int currentRow) {
+        if (exclusion != WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
+            throw new UnsupportedOperationException();
+        }
+        int startIndex = getIndex(session, orderedRows, sortOrder, currentRow, starting, false);
+        if (startIndex < 0) {
+            startIndex = 0;
+        }
+        return startIndex;
+    }
+
+    /**
      * Returns end index of this frame,
      *
      * @param session

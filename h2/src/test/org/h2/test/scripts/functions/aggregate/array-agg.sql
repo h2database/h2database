@@ -311,6 +311,22 @@ SELECT *,
 > 8  9     [7, 8]    [9, 9]    [4, 5, 6, 7, 8] [8, 8, 8, 9, 9] [9, 9, 8, 8, 8] [4, 5, 6, 7, 8]    [8, 8, 8, 9, 9]
 > rows: 8
 
+SELECT *,
+    ARRAY_AGG(ID ORDER BY ID) OVER (ORDER BY VALUE RANGE BETWEEN 1 PRECEDING AND UNBOUNDED FOLLOWING) A1,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING) A2
+    FROM TEST;
+> ID VALUE A1                       A2
+> -- ----- ------------------------ ------------------------
+> 1  1     [1, 2, 3, 4, 5, 6, 7, 8] [1, 2]
+> 2  1     [1, 2, 3, 4, 5, 6, 7, 8] [1, 2]
+> 3  5     [3, 4, 5, 6, 7, 8]       [1, 2, 3]
+> 4  8     [4, 5, 6, 7, 8]          [1, 2, 3, 4, 5, 6, 7, 8]
+> 5  8     [4, 5, 6, 7, 8]          [1, 2, 3, 4, 5, 6, 7, 8]
+> 6  8     [4, 5, 6, 7, 8]          [1, 2, 3, 4, 5, 6, 7, 8]
+> 7  9     [4, 5, 6, 7, 8]          [1, 2, 3, 4, 5, 6, 7, 8]
+> 8  9     [4, 5, 6, 7, 8]          [1, 2, 3, 4, 5, 6, 7, 8]
+> rows: 8
+
 SELECT *, ARRAY_AGG(ID) OVER (ORDER BY VALUE ROWS -1 PRECEDING) FROM TEST;
 > exception INVALID_VALUE_2
 

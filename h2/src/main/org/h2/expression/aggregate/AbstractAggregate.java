@@ -123,7 +123,8 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
                     false); iter.hasNext();) {
                 updateFromExpressions(session, aggregateData, iter.next());
             }
-            i = processGroup(session, result, ordered, rowIdColumn, i, size, aggregateData, grouped);
+            Value r = getAggregatedValue(session, aggregateData);
+            i = processGroup(session, result, r, ordered, rowIdColumn, i, size, aggregateData, grouped);
         }
     }
 
@@ -132,6 +133,7 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
         Object aggregateData = createAggregateData();
         int size = ordered.size();
         int lastIncludedRow = -1;
+        Value r = null;
         for (int i = 0; i < size;) {
             int newLast = WindowFrame.getEndIndex(over, session, ordered, getOverOrderBySort(), i);
             assert newLast >= lastIncludedRow;
@@ -140,8 +142,11 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
                     updateFromExpressions(session, aggregateData, ordered.get(j));
                 }
                 lastIncludedRow = newLast;
+                r = getAggregatedValue(session, aggregateData);
+            } else if (r == null) {
+                r = getAggregatedValue(session, aggregateData);
             }
-            i = processGroup(session, result, ordered, rowIdColumn, i, size, aggregateData, grouped);
+            i = processGroup(session, result, r, ordered, rowIdColumn, i, size, aggregateData, grouped);
         }
     }
 
@@ -149,6 +154,7 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
             ArrayList<Value[]> ordered, int rowIdColumn, boolean grouped) {
         Object aggregateData = createAggregateData();
         int firstIncludedRow = ordered.size();
+        Value r = null;
         for (int i = firstIncludedRow - 1; i >= 0;) {
             int newLast = over.getWindowFrame().getStartIndex(session, ordered, getOverOrderBySort(), i);
             assert newLast <= firstIncludedRow;
@@ -157,9 +163,11 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
                     updateFromExpressions(session, aggregateData, ordered.get(j));
                 }
                 firstIncludedRow = newLast;
+                r = getAggregatedValue(session, aggregateData);
+            } else if (r == null) {
+                r = getAggregatedValue(session, aggregateData);
             }
             Value[] lastRowInGroup = ordered.get(i), currentRowInGroup = lastRowInGroup;
-            Value r = getAggregatedValue(session, aggregateData);
             do {
                 result.put(currentRowInGroup[rowIdColumn].getInt(), r);
             } while (--i >= 0 && grouped
@@ -167,10 +175,9 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
         }
     }
 
-    private int processGroup(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
+    private int processGroup(Session session, HashMap<Integer, Value> result, Value r, ArrayList<Value[]> ordered,
             int rowIdColumn, int i, int size, Object aggregateData, boolean grouped) {
         Value[] firstRowInGroup = ordered.get(i), currentRowInGroup = firstRowInGroup;
-        Value r = getAggregatedValue(session, aggregateData);
         do {
             result.put(currentRowInGroup[rowIdColumn].getInt(), r);
         } while (++i < size && grouped

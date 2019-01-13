@@ -296,7 +296,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             // (because the column to drop is referenced or so)
             checkViews(table, newTable);
         } catch (DbException e) {
-            execute("DROP TABLE " + newTable.getName(), true);
+            execute("DROP TABLE " + newTable.getSQL(), true);
             throw e;
         }
         String tableName = table.getName();

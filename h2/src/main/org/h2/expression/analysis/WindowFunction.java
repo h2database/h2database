@@ -48,6 +48,7 @@ public class WindowFunction extends DataAnalysisOperation {
         case LAG:
         case FIRST_VALUE:
         case LAST_VALUE:
+        case RATIO_TO_REPORT:
             return 1;
         case NTH_VALUE:
             return 2;
@@ -68,6 +69,7 @@ public class WindowFunction extends DataAnalysisOperation {
         case NTILE:
         case FIRST_VALUE:
         case LAST_VALUE:
+        case RATIO_TO_REPORT:
             return 1;
         case LEAD:
         case LAG:
@@ -206,6 +208,9 @@ public class WindowFunction extends DataAnalysisOperation {
         case LAST_VALUE:
         case NTH_VALUE:
             getNth(session, result, ordered, rowIdColumn);
+            break;
+        case RATIO_TO_REPORT:
+            getRatioToReport(session, result, ordered, rowIdColumn);
             break;
         default:
             throw DbException.throwInternalError("type=" + type);
@@ -375,6 +380,38 @@ public class WindowFunction extends DataAnalysisOperation {
         }
     }
 
+    private static void getRatioToReport(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
+            int rowIdColumn) {
+        int size = ordered.size();
+        Value value = null;
+        for (int i = 0; i < size; i++) {
+            Value v = ordered.get(i)[0];
+            if (v != ValueNull.INSTANCE) {
+                if (value == null) {
+                    value = v.convertTo(Value.DOUBLE);
+                } else {
+                    value = value.add(v.convertTo(Value.DOUBLE));
+                }
+            }
+        }
+        if (value != null && value.getSignum() == 0) {
+            value = null;
+        }
+        for (int i = 0; i < size; i++) {
+            Value[] row = ordered.get(i);
+            Value v;
+            if (value == null) {
+                v = ValueNull.INSTANCE;
+            } else {
+                v = row[0];
+                if (v != ValueNull.INSTANCE) {
+                    v = v.convertTo(Value.DOUBLE).divide(value);
+                }
+            }
+            result.put(row[rowIdColumn].getInt(), v);
+        }
+    }
+
     @Override
     protected Value getAggregatedValue(Session session, Object aggregateData) {
         throw DbException.getUnsupportedException("Window function");
@@ -444,6 +481,7 @@ public class WindowFunction extends DataAnalysisOperation {
             return Value.LONG;
         case PERCENT_RANK:
         case CUME_DIST:
+        case RATIO_TO_REPORT:
             return Value.DOUBLE;
         case LEAD:
         case LAG:
@@ -480,6 +518,7 @@ public class WindowFunction extends DataAnalysisOperation {
             return ValueLong.PRECISION;
         case PERCENT_RANK:
         case CUME_DIST:
+        case RATIO_TO_REPORT:
             return ValueDouble.PRECISION;
         case LEAD:
         case LAG:
@@ -502,6 +541,7 @@ public class WindowFunction extends DataAnalysisOperation {
             return ValueLong.DISPLAY_SIZE;
         case PERCENT_RANK:
         case CUME_DIST:
+        case RATIO_TO_REPORT:
             return ValueDouble.DISPLAY_SIZE;
         case LEAD:
         case LAG:

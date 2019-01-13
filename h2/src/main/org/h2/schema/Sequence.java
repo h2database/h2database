@@ -322,9 +322,9 @@ public class Sequence extends SchemaObjectBase {
             database.updateMeta(session, this);
         } finally {
             writeWithMargin = false;
-        }
-        if (!metaWasLocked) {
-            database.unlockMeta(session);
+            if (!metaWasLocked) {
+                database.unlockMeta(session);
+            }
         }
     }
 

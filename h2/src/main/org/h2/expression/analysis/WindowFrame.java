@@ -202,8 +202,6 @@ public final class WindowFrame {
      *            ordered rows
      * @param sortOrder
      *            sort order
-     * @param frameParametersOffset
-     *            offset of window frame parameters
      * @param currentRow
      *            index of the current row
      * @param reverse
@@ -211,10 +209,10 @@ public final class WindowFrame {
      * @return iterator
      */
     public static Iterator<Value[]> iterator(Window over, Session session, ArrayList<Value[]> orderedRows,
-            SortOrder sortOrder, int frameParametersOffset, int currentRow, boolean reverse) {
+            SortOrder sortOrder, int currentRow, boolean reverse) {
         WindowFrame frame = over.getWindowFrame();
         if (frame != null) {
-            return frame.iterator(session, orderedRows, sortOrder, frameParametersOffset, currentRow, reverse);
+            return frame.iterator(session, orderedRows, sortOrder, currentRow, reverse);
         }
         int endIndex = orderedRows.size() - 1;
         return plainIterator(orderedRows, 0,
@@ -232,8 +230,6 @@ public final class WindowFrame {
      *            the session
      * @param orderedRows
      *            ordered rows
-     * @param frameParametersOffset
-     *            offset of window frame parameters
      * @param sortOrder
      *            sort order
      * @param currentRow
@@ -243,11 +239,11 @@ public final class WindowFrame {
      *             if over is not null and its exclusion clause is not EXCLUDE
      *             NO OTHERS
      */
-    public static int getEndIndex(Window over, Session session, ArrayList<Value[]> orderedRows,
-            int frameParametersOffset, SortOrder sortOrder, int currentRow) {
+    public static int getEndIndex(Window over, Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder,
+            int currentRow) {
         WindowFrame frame = over.getWindowFrame();
         if (frame != null) {
-            return frame.getEndIndex(session, orderedRows, frameParametersOffset, sortOrder, currentRow);
+            return frame.getEndIndex(session, orderedRows, sortOrder, currentRow);
         }
         int endIndex = orderedRows.size() - 1;
         return over.getOrderBy() == null ? endIndex : toGroupEnd(orderedRows, sortOrder, currentRow, endIndex);
@@ -291,8 +287,8 @@ public final class WindowFrame {
         return offset;
     }
 
-    private static int getIntOffset(WindowFrameBound bound, Value[] values, int parameterOffset, Session session) {
-        Value v = bound.isVariable() ? values[parameterOffset] : bound.getValue().getValue(session);
+    private static int getIntOffset(WindowFrameBound bound, Value[] values, Session session) {
+        Value v = bound.isVariable() ? values[bound.getExpressionIndex()] : bound.getValue().getValue(session);
         int value = v.getInt();
         if (value < 0) {
             throw DbException.getInvalidValueException("unsigned", value);
@@ -301,20 +297,20 @@ public final class WindowFrame {
     }
 
     private static Value[] getCompareRow(Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder,
-            int currentRow, WindowFrameBound bound, int parameterOffset, boolean add) {
+            int currentRow, WindowFrameBound bound, boolean add) {
         int sortIndex = sortOrder.getQueryColumnIndexes()[0];
         OpType opType = add ^ (sortOrder.getSortTypes()[0] & SortOrder.DESCENDING) != 0 ? OpType.PLUS : OpType.MINUS;
         Value[] row = orderedRows.get(currentRow);
         Value[] newRow = row.clone();
         newRow[sortIndex] = new BinaryOperation(opType, //
                 ValueExpression.get(row[sortIndex]),
-                ValueExpression.get(getValueOffset(bound, orderedRows.get(currentRow), parameterOffset, session)))
+                ValueExpression.get(getValueOffset(bound, orderedRows.get(currentRow), session))) //
                         .optimize(session).getValue(session);
         return newRow;
     }
 
-    private static Value getValueOffset(WindowFrameBound bound, Value[] values, int parameterOffset, Session session) {
-        Value value = bound.isVariable() ? values[parameterOffset] : bound.getValue().getValue(session);
+    private static Value getValueOffset(WindowFrameBound bound, Value[] values, Session session) {
+        Value value = bound.isVariable() ? values[bound.getExpressionIndex()] : bound.getValue().getValue(session);
         if (value.getSignum() < 0) {
             throw DbException.getInvalidValueException("unsigned", value.getTraceSQL());
         }
@@ -463,8 +459,6 @@ public final class WindowFrame {
      *            ordered rows
      * @param sortOrder
      *            sort order
-     * @param frameParametersOffset
-     *            offset of window frame parameters
      * @param currentRow
      *            index of the current row
      * @param reverse
@@ -472,14 +466,9 @@ public final class WindowFrame {
      * @return iterator
      */
     public Iterator<Value[]> iterator(Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder,
-            int frameParametersOffset, int currentRow, boolean reverse) {
-        int followingOffset = frameParametersOffset;
-        if (starting.isVariable()) {
-            followingOffset++;
-        }
-        int startIndex = getIndex(session, orderedRows, sortOrder, currentRow, starting, frameParametersOffset, false);
-        int endIndex = following != null
-                ? getIndex(session, orderedRows, sortOrder, currentRow, following, followingOffset, true)
+            int currentRow, boolean reverse) {
+        int startIndex = getIndex(session, orderedRows, sortOrder, currentRow, starting, false);
+        int endIndex = following != null ? getIndex(session, orderedRows, sortOrder, currentRow, following, true)
                 : units == WindowFrameUnits.ROWS ? currentRow
                         : toGroupEnd(orderedRows, sortOrder, currentRow, orderedRows.size() - 1);
         if (endIndex < startIndex) {
@@ -507,8 +496,6 @@ public final class WindowFrame {
      *            the session
      * @param orderedRows
      *            ordered rows
-     * @param frameParametersOffset
-     *            offset of window frame parameters
      * @param sortOrder
      *            sort order
      * @param currentRow
@@ -517,12 +504,11 @@ public final class WindowFrame {
      * @throws UnsupportedOperationException
      *             if exclusion clause is not EXCLUDE NO OTHERS
      */
-    public int getStartIndex(Session session, ArrayList<Value[]> orderedRows, int frameParametersOffset,
-            SortOrder sortOrder, int currentRow) {
+    public int getStartIndex(Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder, int currentRow) {
         if (exclusion != WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
             throw new UnsupportedOperationException();
         }
-        int startIndex = getIndex(session, orderedRows, sortOrder, currentRow, starting, frameParametersOffset, false);
+        int startIndex = getIndex(session, orderedRows, sortOrder, currentRow, starting, false);
         if (startIndex < 0) {
             startIndex = 0;
         }
@@ -536,8 +522,6 @@ public final class WindowFrame {
      *            the session
      * @param orderedRows
      *            ordered rows
-     * @param frameParametersOffset
-     *            offset of window frame parameters
      * @param sortOrder
      *            sort order
      * @param currentRow
@@ -546,17 +530,11 @@ public final class WindowFrame {
      * @throws UnsupportedOperationException
      *             if exclusion clause is not EXCLUDE NO OTHERS
      */
-    private int getEndIndex(Session session, ArrayList<Value[]> orderedRows, int frameParametersOffset,
-            SortOrder sortOrder, int currentRow) {
+    private int getEndIndex(Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder, int currentRow) {
         if (exclusion != WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
             throw new UnsupportedOperationException();
         }
-        int followingOffset = frameParametersOffset;
-        if (starting.isVariable()) {
-            followingOffset++;
-        }
-        int endIndex = following != null
-                ? getIndex(session, orderedRows, sortOrder, currentRow, following, followingOffset, true)
+        int endIndex = following != null ? getIndex(session, orderedRows, sortOrder, currentRow, following, true)
                 : units == WindowFrameUnits.ROWS ? currentRow
                         : toGroupEnd(orderedRows, sortOrder, currentRow, orderedRows.size() - 1);
         int size = orderedRows.size();
@@ -567,7 +545,7 @@ public final class WindowFrame {
     }
 
     private int getIndex(Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder, int currentRow,
-            WindowFrameBound bound, int parameterOffset, boolean forFollowing) {
+            WindowFrameBound bound, boolean forFollowing) {
         int size = orderedRows.size();
         int last = size - 1;
         int index;
@@ -578,12 +556,12 @@ public final class WindowFrame {
         case PRECEDING:
             switch (units) {
             case ROWS: {
-                int value = getIntOffset(bound, orderedRows.get(currentRow), parameterOffset, session);
+                int value = getIntOffset(bound, orderedRows.get(currentRow), session);
                 index = value > currentRow ? -1 : currentRow - value;
                 break;
             }
             case GROUPS: {
-                int value = getIntOffset(bound, orderedRows.get(currentRow), parameterOffset, session);
+                int value = getIntOffset(bound, orderedRows.get(currentRow), session);
                 if (!forFollowing) {
                     index = toGroupStart(orderedRows, sortOrder, currentRow, 0);
                     while (value > 0 && index > 0) {
@@ -608,7 +586,7 @@ public final class WindowFrame {
             }
             case RANGE: {
                 index = currentRow;
-                Value[] row = getCompareRow(session, orderedRows, sortOrder, index, bound, parameterOffset, false);
+                Value[] row = getCompareRow(session, orderedRows, sortOrder, index, bound, false);
                 index = Collections.binarySearch(orderedRows, row, sortOrder);
                 if (index >= 0) {
                     if (!forFollowing) {
@@ -653,13 +631,13 @@ public final class WindowFrame {
         case FOLLOWING:
             switch (units) {
             case ROWS: {
-                int value = getIntOffset(bound, orderedRows.get(currentRow), parameterOffset, session);
+                int value = getIntOffset(bound, orderedRows.get(currentRow), session);
                 int rem = last - currentRow;
                 index = value > rem ? size : currentRow + value;
                 break;
             }
             case GROUPS: {
-                int value = getIntOffset(bound, orderedRows.get(currentRow), parameterOffset, session);
+                int value = getIntOffset(bound, orderedRows.get(currentRow), session);
                 if (forFollowing) {
                     index = toGroupEnd(orderedRows, sortOrder, currentRow, last);
                     while (value > 0 && index < last) {
@@ -684,7 +662,7 @@ public final class WindowFrame {
             }
             case RANGE: {
                 index = currentRow;
-                Value[] row = getCompareRow(session, orderedRows, sortOrder, index, bound, parameterOffset, true);
+                Value[] row = getCompareRow(session, orderedRows, sortOrder, index, bound, true);
                 index = Collections.binarySearch(orderedRows, row, sortOrder);
                 if (index >= 0) {
                     if (forFollowing) {

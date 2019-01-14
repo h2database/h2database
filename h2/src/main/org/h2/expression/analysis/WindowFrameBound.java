@@ -20,6 +20,8 @@ public class WindowFrameBound {
 
     private boolean isVariable;
 
+    private int expressionIndex = -1;
+
     /**
      * Creates new instance of window frame bound.
      *
@@ -63,6 +65,25 @@ public class WindowFrameBound {
      */
     public boolean isVariable() {
         return isVariable;
+    }
+
+    /**
+     * Returns the index of preserved expression.
+     *
+     * @return the index of preserved expression, or -1
+     */
+    public int getExpressionIndex() {
+        return expressionIndex;
+    }
+
+    /**
+     * Sets the index of preserved expression.
+     *
+     * @param expressionIndex
+     *            the index to set
+     */
+    void setExpressionIndex(int expressionIndex) {
+        this.expressionIndex = expressionIndex;
     }
 
     /**

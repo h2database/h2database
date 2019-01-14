@@ -161,12 +161,19 @@ public abstract class DataAnalysisOperation extends Expression {
             }
             WindowFrame frame = over.getWindowFrame();
             if (frame != null) {
+                int index = getNumExpressions();
+                if (orderBy != null) {
+                    index += orderBy.size();
+                }
                 int n = 0;
-                if (frame.getStarting().isVariable()) {
+                WindowFrameBound bound = frame.getStarting();
+                if (bound.isVariable()) {
+                    bound.setExpressionIndex(index);
                     n++;
                 }
-                WindowFrameBound following = frame.getFollowing();
-                if (following != null && following.isVariable()) {
+                bound = frame.getFollowing();
+                if (bound != null && bound.isVariable()) {
+                    bound.setExpressionIndex(index + n);
                     n++;
                 }
                 numFrameExpressions = n;
@@ -356,20 +363,6 @@ public abstract class DataAnalysisOperation extends Expression {
         }
         return over == null ? getAggregatedValue(session, getGroupData(groupData, true))
                 : getWindowResult(session, groupData);
-    }
-
-    /**
-     * Returns offset of window frame parameters.
-     *
-     * @return offset of window frame parameters
-     */
-    protected final int getWindowFrameParametersOffset() {
-        int frameParametersOffset = getNumExpressions();
-        ArrayList<SelectOrderBy> orderBy = over.getOrderBy();
-        if (orderBy != null) {
-            frameParametersOffset += orderBy.size();
-        }
-        return frameParametersOffset;
     }
 
     /**

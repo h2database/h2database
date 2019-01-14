@@ -3294,7 +3294,7 @@ public class Parser {
             read(ROW);
             return new WindowFrameBound(WindowFrameBoundType.CURRENT_ROW, null);
         }
-        Expression value = readValueOrParameter();
+        Expression value = readExpression();
         read("PRECEDING");
         return new WindowFrameBound(WindowFrameBoundType.PRECEDING, value);
     }
@@ -3311,22 +3311,12 @@ public class Parser {
             read(ROW);
             return new WindowFrameBound(WindowFrameBoundType.CURRENT_ROW, null);
         }
-        Expression value = readValueOrParameter();
+        Expression value = readExpression();
         if (readIf("PRECEDING")) {
             return new WindowFrameBound(WindowFrameBoundType.PRECEDING, value);
         }
         read("FOLLOWING");
         return new WindowFrameBound(WindowFrameBoundType.FOLLOWING, value);
-    }
-
-    private Expression readValueOrParameter() {
-        int index = parseIndex;
-        Expression value = readExpression();
-        if (!(value instanceof ValueExpression) && !(value instanceof Parameter)) {
-            parseIndex = index;
-            throw getSyntaxError();
-        }
-        return value;
     }
 
     private AggregateType getAggregateType(String name) {

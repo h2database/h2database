@@ -98,7 +98,9 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
             aggregateFastPartition(session, result, ordered, rowIdColumn, grouped);
             return;
         }
-        if (frame.getExclusion() == WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
+        if (frame.isVariableBounds()) {
+            grouped = false;
+        } else if (frame.getExclusion() == WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
             WindowFrameBound following = frame.getFollowing();
             boolean unboundedFollowing = following != null
                     && following.getType() == WindowFrameBoundType.UNBOUNDED_FOLLOWING;
@@ -117,10 +119,11 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
         }
         // All other types of frames (slow)
         int size = ordered.size();
+        int frameParametersOffset = getWindowFrameParametersOffset();
         for (int i = 0; i < size;) {
             Object aggregateData = createAggregateData();
-            for (Iterator<Value[]> iter = WindowFrame.iterator(over, session, ordered, getOverOrderBySort(), i,
-                    false); iter.hasNext();) {
+            for (Iterator<Value[]> iter = WindowFrame.iterator(over, session, ordered, getOverOrderBySort(),
+                    frameParametersOffset, i, false); iter.hasNext();) {
                 updateFromExpressions(session, aggregateData, iter.next());
             }
             Value r = getAggregatedValue(session, aggregateData);

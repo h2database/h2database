@@ -349,18 +349,19 @@ public class WindowFunction extends DataAnalysisOperation {
 
     private void getNth(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered, int rowIdColumn) {
         int size = ordered.size();
+        int frameParametersOffset = getWindowFrameParametersOffset();
         for (int i = 0; i < size; i++) {
             Value[] row = ordered.get(i);
             int rowId = row[rowIdColumn].getInt();
             Value v;
             switch (type) {
             case FIRST_VALUE:
-                v = getNthValue(WindowFrame.iterator(over, session, ordered, getOverOrderBySort(), i, false), 0,
-                        ignoreNulls);
+                v = getNthValue(WindowFrame.iterator(over, session, ordered, getOverOrderBySort(),
+                        frameParametersOffset, i, false), 0, ignoreNulls);
                 break;
             case LAST_VALUE:
-                v = getNthValue(WindowFrame.iterator(over, session, ordered, getOverOrderBySort(), i, true), 0,
-                        ignoreNulls);
+                v = getNthValue(WindowFrame.iterator(over, session, ordered, getOverOrderBySort(),
+                        frameParametersOffset, i, true), 0, ignoreNulls);
                 break;
             case NTH_VALUE: {
                 int n = row[1].getInt();
@@ -368,8 +369,8 @@ public class WindowFunction extends DataAnalysisOperation {
                     throw DbException.getInvalidValueException("nth row", n);
                 }
                 n--;
-                Iterator<Value[]> iter = WindowFrame.iterator(over, session, ordered, getOverOrderBySort(), i,
-                        fromLast);
+                Iterator<Value[]> iter = WindowFrame.iterator(over, session, ordered, getOverOrderBySort(),
+                        frameParametersOffset, i, fromLast);
                 v = getNthValue(iter, n, ignoreNulls);
                 break;
             }

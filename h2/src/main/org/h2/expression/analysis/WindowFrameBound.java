@@ -5,7 +5,9 @@
  */
 package org.h2.expression.analysis;
 
+import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.table.ColumnResolver;
 
 /**
  * Window frame bound.
@@ -14,7 +16,9 @@ public class WindowFrameBound {
 
     private final WindowFrameBoundType type;
 
-    private final Expression value;
+    private Expression value;
+
+    private boolean isVariable;
 
     /**
      * Creates new instance of window frame bound.
@@ -49,6 +53,62 @@ public class WindowFrameBound {
      */
     public Expression getValue() {
         return value;
+    }
+
+    /**
+     * Returns whether bound is defined with a variable. This method may be used
+     * only after {@link #optimize(Session)} invocation.
+     *
+     * @return whether bound is defined with a variable
+     */
+    public boolean isVariable() {
+        return isVariable;
+    }
+
+    /**
+     * Map the columns of the resolver to expression columns.
+     *
+     * @param resolver
+     *            the column resolver
+     * @param level
+     *            the subquery nesting level
+     * @param state
+     *            current state for nesting checks
+     */
+    void mapColumns(ColumnResolver resolver, int level, int state) {
+        if (value != null) {
+            value.mapColumns(resolver, level, state);
+        }
+    }
+
+    /**
+     * Try to optimize bound expression.
+     *
+     * @param session
+     *            the session
+     */
+    void optimize(Session session) {
+        if (value != null) {
+            value = value.optimize(session);
+            if (!value.isConstant()) {
+                isVariable = true;
+            }
+        }
+    }
+
+    /**
+     * Update an aggregate value.
+     *
+     * @param session
+     *            the session
+     * @param stage
+     *            select stage
+     * @see Expression#updateAggregate(Session, int)
+     */
+    void updateAggregate(Session session, int stage) {
+        if (value != null) {
+            value.updateAggregate(session, stage);
+        }
     }
 
     /**

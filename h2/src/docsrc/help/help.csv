@@ -3543,10 +3543,13 @@ The default separator is a ',' (without space).
 This method returns a string.
 If no rows are selected, the result is NULL.
 If ORDER BY is not specified order of strings is not determined.
-Note that when this aggregate is used with OVER clause its ORDER BY subclause does not enforce exact order of strings.
+When this aggregate is used with OVER clause that contains ORDER BY subclause
+it does not enforce exact order of strings.
+This aggregate needs additional own ORDER BY clause to make it deterministic.
 Aggregates are only allowed in select statements.
 ","
 GROUP_CONCAT(NAME ORDER BY ID SEPARATOR ', ')
+GROUP_CONCAT(ID ORDER BY ID SEPARATOR ', ') OVER (ORDER BY ID)
 "
 
 "Functions (Aggregate)","ARRAY_AGG","
@@ -3558,10 +3561,13 @@ Aggregate the value into an array.
 This method returns an array.
 If no rows are selected, the result is NULL.
 If ORDER BY is not specified order of values is not determined.
-Note that when this aggregate is used with OVER clause its ORDER BY subclause does not enforce exact order of values.
+When this aggregate is used with OVER clause that contains ORDER BY subclause
+it does not enforce exact order of values.
+This aggregate needs additional own ORDER BY clause to make it deterministic.
 Aggregates are only allowed in select statements.
 ","
 ARRAY_AGG(NAME ORDER BY ID)
+ARRAY_AGG(ID ORDER BY ID) OVER (ORDER BY ID)
 "
 
 "Functions (Aggregate)","MAX","

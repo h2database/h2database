@@ -614,5 +614,25 @@ SELECT ID, VALUE,
 > 8  4     [1, 2, 3, 4, 5, 6, 7, 8] [4, 5, 6, 7, 8]          [1, 2, 3, 4, 5, 6, 7, 8] [4, 5, 6, 7, 8]
 > rows: 8
 
+SELECT ID, VALUE,
+    ARRAY_AGG(ID ORDER BY ID) OVER
+        (PARTITION BY VALUE ORDER BY ID ROWS BETWEEN VALUE / 3 PRECEDING AND VALUE / 3 FOLLOWING) A,
+    ARRAY_AGG(ID ORDER BY ID) OVER
+        (PARTITION BY VALUE ORDER BY ID ROWS BETWEEN UNBOUNDED PRECEDING AND VALUE / 3 FOLLOWING) AP,
+    ARRAY_AGG(ID ORDER BY ID) OVER
+        (PARTITION BY VALUE ORDER BY ID ROWS BETWEEN VALUE / 3 PRECEDING AND UNBOUNDED FOLLOWING) AF
+    FROM TEST;
+> ID VALUE A      AP     AF
+> -- ----- ------ ------ ------
+> 1  1     [1]    [1]    [1, 2]
+> 2  1     [2]    [1, 2] [2]
+> 3  2     [3]    [3]    [3, 4]
+> 4  2     [4]    [3, 4] [4]
+> 5  3     [5, 6] [5, 6] [5, 6]
+> 6  3     [5, 6] [5, 6] [5, 6]
+> 7  4     [7, 8] [7, 8] [7, 8]
+> 8  4     [7, 8] [7, 8] [7, 8]
+> rows: 8
+
 DROP TABLE TEST;
 > ok

@@ -95,10 +95,15 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
         boolean grouped = frame == null
                 || frame.getUnits() != WindowFrameUnits.ROWS && frame.getExclusion().isGroupOrNoOthers();
         if (frame == null) {
-            aggregateFastPartition(session, result, ordered, rowIdColumn, grouped);
+            aggregateFastPartition(session, result, ordered, -1, rowIdColumn, grouped);
             return;
         }
-        if (frame.isVariableBounds()) {
+        int frameParametersOffset = getWindowFrameParametersOffset();
+        boolean variableBounds = frame.isVariableBounds();
+        if (variableBounds) {
+            variableBounds = checkVariableBounds(frame, ordered, frameParametersOffset);
+        }
+        if (variableBounds) {
             grouped = false;
         } else if (frame.getExclusion() == WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
             WindowFrameBound following = frame.getFollowing();
@@ -108,18 +113,17 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
                 if (unboundedFollowing) {
                     aggregateWholePartition(session, result, ordered, rowIdColumn);
                 } else {
-                    aggregateFastPartition(session, result, ordered, rowIdColumn, grouped);
+                    aggregateFastPartition(session, result, ordered, frameParametersOffset, rowIdColumn, grouped);
                 }
                 return;
             }
             if (unboundedFollowing) {
-                aggregateFastPartitionInReverse(session, result, ordered, rowIdColumn, grouped);
+                aggregateFastPartitionInReverse(session, result, ordered, frameParametersOffset, rowIdColumn, grouped);
                 return;
             }
         }
         // All other types of frames (slow)
         int size = ordered.size();
-        int frameParametersOffset = getWindowFrameParametersOffset();
         for (int i = 0; i < size;) {
             Object aggregateData = createAggregateData();
             for (Iterator<Value[]> iter = WindowFrame.iterator(over, session, ordered, getOverOrderBySort(),
@@ -131,14 +135,39 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
         }
     }
 
+    private static boolean checkVariableBounds(WindowFrame frame, ArrayList<Value[]> ordered,
+            int frameParametersOffset) {
+        int size = ordered.size();
+        int offset = frameParametersOffset;
+        if (frame.getStarting().isVariable()) {
+            Value v = ordered.get(0)[offset];
+            for (int i = 1; i < size; i++) {
+                if (!v.equals(ordered.get(i)[offset])) {
+                    return true;
+                }
+            }
+            offset++;
+        }
+        if (frame.getFollowing() != null && frame.getFollowing().isVariable()) {
+            Value v = ordered.get(0)[offset];
+            for (int i = 1; i < size; i++) {
+                if (!v.equals(ordered.get(i)[offset])) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private void aggregateFastPartition(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
-            int rowIdColumn, boolean grouped) {
+            int frameParametersOffset, int rowIdColumn, boolean grouped) {
         Object aggregateData = createAggregateData();
         int size = ordered.size();
         int lastIncludedRow = -1;
         Value r = null;
         for (int i = 0; i < size;) {
-            int newLast = WindowFrame.getEndIndex(over, session, ordered, getOverOrderBySort(), i);
+            int newLast = WindowFrame.getEndIndex(over, session, ordered, frameParametersOffset, getOverOrderBySort(),
+                    i);
             assert newLast >= lastIncludedRow;
             if (newLast > lastIncludedRow) {
                 for (int j = lastIncludedRow + 1; j <= newLast; j++) {
@@ -154,12 +183,13 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
     }
 
     private void aggregateFastPartitionInReverse(Session session, HashMap<Integer, Value> result,
-            ArrayList<Value[]> ordered, int rowIdColumn, boolean grouped) {
+            ArrayList<Value[]> ordered, int frameParametersOffset, int rowIdColumn, boolean grouped) {
         Object aggregateData = createAggregateData();
         int firstIncludedRow = ordered.size();
         Value r = null;
         for (int i = firstIncludedRow - 1; i >= 0;) {
-            int newLast = over.getWindowFrame().getStartIndex(session, ordered, getOverOrderBySort(), i);
+            int newLast = over.getWindowFrame().getStartIndex(session, ordered, frameParametersOffset,
+                    getOverOrderBySort(), i);
             assert newLast <= firstIncludedRow;
             if (newLast < firstIncludedRow) {
                 for (int j = firstIncludedRow - 1; j >= newLast; j--) {

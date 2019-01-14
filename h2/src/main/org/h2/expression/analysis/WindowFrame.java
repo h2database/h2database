@@ -232,6 +232,8 @@ public final class WindowFrame {
      *            the session
      * @param orderedRows
      *            ordered rows
+     * @param frameParametersOffset
+     *            offset of window frame parameters
      * @param sortOrder
      *            sort order
      * @param currentRow
@@ -241,11 +243,11 @@ public final class WindowFrame {
      *             if over is not null and its exclusion clause is not EXCLUDE
      *             NO OTHERS
      */
-    public static int getEndIndex(Window over, Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder,
-            int currentRow) {
+    public static int getEndIndex(Window over, Session session, ArrayList<Value[]> orderedRows,
+            int frameParametersOffset, SortOrder sortOrder, int currentRow) {
         WindowFrame frame = over.getWindowFrame();
         if (frame != null) {
-            return frame.getEndIndex(session, orderedRows, sortOrder, currentRow);
+            return frame.getEndIndex(session, orderedRows, frameParametersOffset, sortOrder, currentRow);
         }
         int endIndex = orderedRows.size() - 1;
         return over.getOrderBy() == null ? endIndex : toGroupEnd(orderedRows, sortOrder, currentRow, endIndex);
@@ -505,6 +507,8 @@ public final class WindowFrame {
      *            the session
      * @param orderedRows
      *            ordered rows
+     * @param frameParametersOffset
+     *            offset of window frame parameters
      * @param sortOrder
      *            sort order
      * @param currentRow
@@ -513,11 +517,12 @@ public final class WindowFrame {
      * @throws UnsupportedOperationException
      *             if exclusion clause is not EXCLUDE NO OTHERS
      */
-    public int getStartIndex(Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder, int currentRow) {
+    public int getStartIndex(Session session, ArrayList<Value[]> orderedRows, int frameParametersOffset,
+            SortOrder sortOrder, int currentRow) {
         if (exclusion != WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
             throw new UnsupportedOperationException();
         }
-        int startIndex = getIndex(session, orderedRows, sortOrder, currentRow, starting, -1, false);
+        int startIndex = getIndex(session, orderedRows, sortOrder, currentRow, starting, frameParametersOffset, false);
         if (startIndex < 0) {
             startIndex = 0;
         }
@@ -531,6 +536,8 @@ public final class WindowFrame {
      *            the session
      * @param orderedRows
      *            ordered rows
+     * @param frameParametersOffset
+     *            offset of window frame parameters
      * @param sortOrder
      *            sort order
      * @param currentRow
@@ -539,11 +546,17 @@ public final class WindowFrame {
      * @throws UnsupportedOperationException
      *             if exclusion clause is not EXCLUDE NO OTHERS
      */
-    private int getEndIndex(Session session, ArrayList<Value[]> orderedRows, SortOrder sortOrder, int currentRow) {
+    private int getEndIndex(Session session, ArrayList<Value[]> orderedRows, int frameParametersOffset,
+            SortOrder sortOrder, int currentRow) {
         if (exclusion != WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
             throw new UnsupportedOperationException();
         }
-        int endIndex = following != null ? getIndex(session, orderedRows, sortOrder, currentRow, following, -1, true)
+        int followingOffset = frameParametersOffset;
+        if (starting.isVariable()) {
+            followingOffset++;
+        }
+        int endIndex = following != null
+                ? getIndex(session, orderedRows, sortOrder, currentRow, following, followingOffset, true)
                 : units == WindowFrameUnits.ROWS ? currentRow
                         : toGroupEnd(orderedRows, sortOrder, currentRow, orderedRows.size() - 1);
         int size = orderedRows.size();

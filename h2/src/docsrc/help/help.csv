@@ -2709,7 +2709,7 @@ ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE TIES
 UNBOUNDED PRECEDING|value PRECEDING|CURRENT ROW
 ","
 A window frame preceding clause.
-If value is specified it should be non-negative value or parameter.
+If value is specified it should not be negative.
 ","
 UNBOUNDED PRECEDING
 1 PRECEDING
@@ -2721,7 +2721,7 @@ UNBOUNDED PRECEDING|value PRECEDING|CURRENT ROW
     |value FOLLOWING|UNBOUNDED FOLLOWING
 ","
 A window frame bound clause.
-If value is specified it should be non-negative value or parameter.
+If value is specified it should not be negative.
 ","
 UNBOUNDED PRECEDING
 UNBOUNDED FOLLOWING

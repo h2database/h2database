@@ -6,11 +6,15 @@
 package org.h2.mvstore;
 
 /**
- * Class RootReference.
+ * Class RootReference is an immutable structure to represent state of the MVMap as a whole
+ * (not related to a particular B-Tree node).
+ * Single structure would allow for non-blocking atomic state change.
+ * The most important part of it is a reference to the root node.
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-public final class RootReference {
+public final class RootReference
+{
     /**
      * The root page.
      */
@@ -30,25 +34,35 @@ public final class RootReference {
     /**
      * Counter for successful root updates.
      */
-    public final long updateCounter;
+    final long updateCounter;
     /**
      * Counter for attempted root updates.
      */
-    public final long updateAttemptCounter;
+    final long updateAttemptCounter;
     /**
      * Size of the occupied part of the append buffer.
      */
-    public final byte appendCounter;
+    final byte appendCounter;
 
-    RootReference(Page root, long version, RootReference previous, int appendCounter, long updateCounter,
-                  long updateAttemptCounter) {
+    // This one is used to set root initially and for r/o snapshots
+    RootReference(Page root, long version) {
         this.root = root;
         this.version = version;
-        this.previous = previous;
-        this.updateCounter = updateCounter;
-        this.updateAttemptCounter = updateAttemptCounter;
+        this.previous = null;
+        this.updateCounter = 1;
+        this.updateAttemptCounter = 1;
         this.lockedForUpdate = false;
-        this.appendCounter = (byte) appendCounter;
+        this.appendCounter = 0;
+    }
+
+    RootReference(RootReference r, Page root, long updateAttemptCounter) {
+        this.root = root;
+        this.version = r.version;
+        this.previous = r.previous;
+        this.updateCounter = r.updateCounter + 1;
+        this.updateAttemptCounter = r.updateAttemptCounter + updateAttemptCounter;
+        this.lockedForUpdate = false;
+        this.appendCounter = r.appendCounter;
     }
 
     // This one is used for locking
@@ -89,18 +103,7 @@ public final class RootReference {
         this.appendCounter = r.appendCounter;
     }
 
-    // This one is used for r/o snapshots
-    RootReference(Page root, long version) {
-        this.root = root;
-        this.version = version;
-        this.previous = null;
-        this.updateCounter = 1;
-        this.updateAttemptCounter = 1;
-        this.lockedForUpdate = false;
-        this.appendCounter = 0;
-    }
-
-    public int getAppendCounter() {
+    int getAppendCounter() {
         return appendCounter & 0xff;
     }
 

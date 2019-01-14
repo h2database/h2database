@@ -98,7 +98,13 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
             aggregateFastPartition(session, result, ordered, rowIdColumn, grouped);
             return;
         }
-        if (frame.getExclusion() == WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
+        boolean variableBounds = frame.isVariableBounds();
+        if (variableBounds) {
+            variableBounds = checkVariableBounds(frame, ordered);
+        }
+        if (variableBounds) {
+            grouped = false;
+        } else if (frame.getExclusion() == WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
             WindowFrameBound following = frame.getFollowing();
             boolean unboundedFollowing = following != null
                     && following.getType() == WindowFrameBoundType.UNBOUNDED_FOLLOWING;
@@ -126,6 +132,31 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
             Value r = getAggregatedValue(session, aggregateData);
             i = processGroup(session, result, r, ordered, rowIdColumn, i, size, aggregateData, grouped);
         }
+    }
+
+    private static boolean checkVariableBounds(WindowFrame frame, ArrayList<Value[]> ordered) {
+        int size = ordered.size();
+        WindowFrameBound bound = frame.getStarting();
+        if (bound.isVariable()) {
+            int offset = bound.getExpressionIndex();
+            Value v = ordered.get(0)[offset];
+            for (int i = 1; i < size; i++) {
+                if (!v.equals(ordered.get(i)[offset])) {
+                    return true;
+                }
+            }
+        }
+        bound = frame.getFollowing();
+        if (bound != null && bound.isVariable()) {
+            int offset = bound.getExpressionIndex();
+            Value v = ordered.get(0)[offset];
+            for (int i = 1; i < size; i++) {
+                if (!v.equals(ordered.get(i)[offset])) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void aggregateFastPartition(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,

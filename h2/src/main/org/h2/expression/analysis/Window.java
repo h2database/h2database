@@ -66,7 +66,7 @@ public final class Window {
      * @param orderBy
      *            ORDER BY clause, or null
      * @param frame
-     *            window frame clause
+     *            window frame clause, or null
      */
     public Window(String parent, ArrayList<Expression> partitionBy, ArrayList<SelectOrderBy> orderBy,
             WindowFrame frame) {
@@ -96,6 +96,9 @@ public final class Window {
             for (SelectOrderBy o : orderBy) {
                 o.expression.mapColumns(resolver, level, Expression.MAP_IN_WINDOW);
             }
+        }
+        if (frame != null) {
+            frame.mapColumns(resolver, level, Expression.MAP_IN_WINDOW);
         }
     }
 
@@ -135,6 +138,9 @@ public final class Window {
             for (SelectOrderBy o : orderBy) {
                 o.expression = o.expression.optimize(session);
             }
+        }
+        if (frame != null) {
+            frame.optimize(session);
         }
     }
 
@@ -252,6 +258,9 @@ public final class Window {
             for (SelectOrderBy o : orderBy) {
                 o.expression.updateAggregate(session, stage);
             }
+        }
+        if (frame != null) {
+            frame.updateAggregate(session, stage);
         }
     }
 

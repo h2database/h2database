@@ -12,10 +12,12 @@ import java.util.NoSuchElementException;
 
 import org.h2.engine.Session;
 import org.h2.expression.BinaryOperation;
+import org.h2.expression.Expression;
 import org.h2.expression.BinaryOperation.OpType;
 import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.result.SortOrder;
+import org.h2.table.ColumnResolver;
 import org.h2.value.Value;
 
 /**
@@ -204,7 +206,6 @@ public final class WindowFrame {
      *            index of the current row
      * @param reverse
      *            whether iterator should iterate in reverse order
-     *
      * @return iterator
      */
     public static Iterator<Value[]> iterator(Window over, Session session, ArrayList<Value[]> orderedRows,
@@ -286,8 +287,9 @@ public final class WindowFrame {
         return offset;
     }
 
-    private static int getIntOffset(WindowFrameBound bound, Session session) {
-        int value = bound.getValue().getValue(session).getInt();
+    private static int getIntOffset(WindowFrameBound bound, Value[] values, Session session) {
+        Value v = bound.isVariable() ? values[bound.getExpressionIndex()] : bound.getValue().getValue(session);
+        int value = v.getInt();
         if (value < 0) {
             throw DbException.getInvalidValueException("unsigned", value);
         }
@@ -301,13 +303,14 @@ public final class WindowFrame {
         Value[] row = orderedRows.get(currentRow);
         Value[] newRow = row.clone();
         newRow[sortIndex] = new BinaryOperation(opType, //
-                ValueExpression.get(row[sortIndex]), ValueExpression.get(getValueOffset(bound, session))) //
+                ValueExpression.get(row[sortIndex]),
+                ValueExpression.get(getValueOffset(bound, orderedRows.get(currentRow), session))) //
                         .optimize(session).getValue(session);
         return newRow;
     }
 
-    private static Value getValueOffset(WindowFrameBound bound, Session session) {
-        Value value = bound.getValue().getValue(session);
+    private static Value getValueOffset(WindowFrameBound bound, Value[] values, Session session) {
+        Value value = bound.isVariable() ? values[bound.getExpressionIndex()] : bound.getValue().getValue(session);
         if (value.getSignum() < 0) {
             throw DbException.getInvalidValueException("unsigned", value.getTraceSQL());
         }
@@ -383,6 +386,68 @@ public final class WindowFrame {
                 f = following != null ? following.getType() : WindowFrameBoundType.CURRENT_ROW;
         return s != WindowFrameBoundType.UNBOUNDED_FOLLOWING && f != WindowFrameBoundType.UNBOUNDED_PRECEDING
                 && s.compareTo(f) <= 0;
+    }
+
+    /**
+     * Check if bounds of this frame has variable expressions. This method may
+     * be used only after {@link #optimize(Session)} invocation.
+     *
+     * @return if bounds of this frame has variable expressions
+     */
+    public boolean isVariableBounds() {
+        if (starting.isVariable()) {
+            return true;
+        }
+        if (following != null && following.isVariable()) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Map the columns of the resolver to expression columns.
+     *
+     * @param resolver
+     *            the column resolver
+     * @param level
+     *            the subquery nesting level
+     * @param state
+     *            current state for nesting checks
+     */
+    void mapColumns(ColumnResolver resolver, int level, int state) {
+        starting.mapColumns(resolver, level, state);
+        if (following != null) {
+            following.mapColumns(resolver, level, state);
+        }
+    }
+
+    /**
+     * Try to optimize bound expressions.
+     *
+     * @param session
+     *            the session
+     */
+    void optimize(Session session) {
+        starting.optimize(session);
+        if (following != null) {
+            following.optimize(session);
+        }
+    }
+
+    /**
+     * Update an aggregate value.
+     *
+     * @param session
+     *            the session
+     * @param stage
+     *            select stage
+     * @see Expression#updateAggregate(Session, int)
+     */
+    void updateAggregate(Session session, int stage) {
+        starting.updateAggregate(session, stage);
+        if (following != null) {
+            following.updateAggregate(session, stage);
+        }
     }
 
     /**
@@ -491,12 +556,12 @@ public final class WindowFrame {
         case PRECEDING:
             switch (units) {
             case ROWS: {
-                int value = getIntOffset(bound, session);
+                int value = getIntOffset(bound, orderedRows.get(currentRow), session);
                 index = value > currentRow ? -1 : currentRow - value;
                 break;
             }
             case GROUPS: {
-                int value = getIntOffset(bound, session);
+                int value = getIntOffset(bound, orderedRows.get(currentRow), session);
                 if (!forFollowing) {
                     index = toGroupStart(orderedRows, sortOrder, currentRow, 0);
                     while (value > 0 && index > 0) {
@@ -566,13 +631,13 @@ public final class WindowFrame {
         case FOLLOWING:
             switch (units) {
             case ROWS: {
-                int value = getIntOffset(bound, session);
+                int value = getIntOffset(bound, orderedRows.get(currentRow), session);
                 int rem = last - currentRow;
                 index = value > rem ? size : currentRow + value;
                 break;
             }
             case GROUPS: {
-                int value = getIntOffset(bound, session);
+                int value = getIntOffset(bound, orderedRows.get(currentRow), session);
                 if (forFollowing) {
                     index = toGroupEnd(orderedRows, sortOrder, currentRow, last);
                     while (value > 0 && index < last) {

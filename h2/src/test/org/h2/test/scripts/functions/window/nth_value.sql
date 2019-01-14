@@ -252,3 +252,13 @@ SELECT I, X, LAST_VALUE(I) OVER (ORDER BY X) L FROM VALUES (1, 1), (2, 1), (3, 2
 > 4 2 4
 > 5 3 5
 > rows: 5
+
+SELECT A, MAX(B) M, FIRST_VALUE(A) OVER (ORDER BY A ROWS BETWEEN MAX(B) - 1 FOLLOWING AND UNBOUNDED FOLLOWING) F
+    FROM VALUES (1, 1), (1, 1), (2, 1), (2, 2), (3, 1) V(A, B)
+    GROUP BY A;
+> A M F
+> - - -
+> 1 1 1
+> 2 2 3
+> 3 1 3
+> rows: 3

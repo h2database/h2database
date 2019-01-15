@@ -293,7 +293,7 @@ public final class WindowFrame {
         Value v = bound.isVariable() ? values[bound.getExpressionIndex()] : bound.getValue().getValue(session);
         int value = v.getInt();
         if (v == ValueNull.INSTANCE || value < 0) {
-            throw DbException.get(ErrorCode.INVALID_PRECEDING_OR_FOLLOWING);
+            throw DbException.get(ErrorCode.INVALID_PRECEDING_OR_FOLLOWING_1, v.getTraceSQL());
         }
         return value;
     }
@@ -368,7 +368,8 @@ public final class WindowFrame {
             }
             break;
         default:
-            throw DbException.getInvalidValueException("ORDER BY value for RANGE frame", currentValue.getTraceSQL());
+            throw DbException.getInvalidValueException("unsupported type of sort key for RANGE units",
+                    currentValue.getTraceSQL());
         }
         Value[] newRow = row.clone();
         newRow[sortIndex] = newValue;
@@ -378,7 +379,7 @@ public final class WindowFrame {
     private static Value getValueOffset(WindowFrameBound bound, Value[] values, Session session) {
         Value value = bound.isVariable() ? values[bound.getExpressionIndex()] : bound.getValue().getValue(session);
         if (value == ValueNull.INSTANCE || value.getSignum() < 0) {
-            throw DbException.get(ErrorCode.INVALID_PRECEDING_OR_FOLLOWING);
+            throw DbException.get(ErrorCode.INVALID_PRECEDING_OR_FOLLOWING_1, value.getTraceSQL());
         }
         return value;
     }

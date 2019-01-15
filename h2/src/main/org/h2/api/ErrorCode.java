@@ -140,7 +140,7 @@ public class ErrorCode {
      * FIRST_VALUE(N) OVER(ORDER BY N ROWS -1 PRECEDING)
      * </pre>
      */
-    public static final int INVALID_PRECEDING_OR_FOLLOWING = 22013;
+    public static final int INVALID_PRECEDING_OR_FOLLOWING_1 = 22013;
 
     /**
      * The error with code <code>22018</code> is thrown when

@@ -196,7 +196,7 @@ public abstract class DataAnalysisOperation extends Expression {
 
     private DbException getSingleSortKeyException() {
         String sql = getSQL();
-        return DbException.getSyntaxError(sql, sql.length() - 1, "single sort key is required for RANGE units");
+        return DbException.getSyntaxError(sql, sql.length() - 1, "exactly one sort key is required for RANGE units");
     }
 
     @Override

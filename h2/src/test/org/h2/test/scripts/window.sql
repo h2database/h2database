@@ -115,8 +115,77 @@ SELECT SUM(ID) OVER (ORDER BY ID ROWS NULL PRECEDING) P FROM TEST;
 SELECT SUM(ID) OVER (ORDER BY ID RANGE NULL PRECEDING) P FROM TEST;
 > exception INVALID_VALUE_2
 
-SELECT SUM(V) OVER (ORDER BY V RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING) FROM VALUES (1), (NULL), (2) T(V);
-> exception INVALID_VALUE_2
+SELECT ARRAY_AGG(ID) OVER (ORDER BY V NULLS FIRST RANGE BETWEEN 1 PRECEDING AND UNBOUNDED FOLLOWING) A,
+    ID, V FROM VALUES (1, 1), (2, NULL), (3, 2) T(ID, V) ORDER BY V NULLS FIRST;
+> A         ID V
+> --------- -- ----
+> [3, 1, 2] 2  null
+> [3, 1]    1  1
+> [3, 1]    3  2
+> rows (ordered): 3
+
+SELECT ARRAY_AGG(ID) OVER (ORDER BY V NULLS LAST RANGE BETWEEN 1 PRECEDING AND UNBOUNDED FOLLOWING) A,
+    ID, V FROM VALUES (1, 1), (2, NULL), (3, 2) T(ID, V) ORDER BY V NULLS LAST;
+> A         ID V
+> --------- -- ----
+> [2, 3, 1] 1  1
+> [2, 3, 1] 3  2
+> [2]       2  null
+> rows (ordered): 3
+
+SELECT ARRAY_AGG(ID) OVER (ORDER BY V NULLS FIRST RANGE BETWEEN 1 FOLLOWING AND UNBOUNDED FOLLOWING) A,
+    ID, V FROM VALUES (1, 1), (2, NULL), (3, 2) T(ID, V) ORDER BY V NULLS FIRST;
+> A         ID V
+> --------- -- ----
+> [3, 1, 2] 2  null
+> [3]       1  1
+> null      3  2
+> rows (ordered): 3
+
+SELECT ARRAY_AGG(ID) OVER (ORDER BY V NULLS LAST RANGE BETWEEN 1 FOLLOWING AND UNBOUNDED FOLLOWING) A,
+    ID, V FROM VALUES (1, 1), (2, NULL), (3, 2) T(ID, V) ORDER BY V NULLS LAST;
+> A      ID V
+> ------ -- ----
+> [2, 3] 1  1
+> [2]    3  2
+> [2]    2  null
+> rows (ordered): 3
+
+SELECT ARRAY_AGG(ID) OVER (ORDER BY V NULLS FIRST RANGE BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING) A,
+    ID, V FROM VALUES (1, 1), (2, NULL), (3, 2) T(ID, V) ORDER BY V NULLS FIRST;
+> A         ID V
+> --------- -- ----
+> [2]       2  null
+> [2, 1, 3] 1  1
+> [2, 1, 3] 3  2
+> rows (ordered): 3
+
+SELECT ARRAY_AGG(ID) OVER (ORDER BY V NULLS LAST RANGE BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING) A,
+    ID, V FROM VALUES (1, 1), (2, NULL), (3, 2) T(ID, V) ORDER BY V NULLS LAST;
+> A         ID V
+> --------- -- ----
+> [1, 3]    1  1
+> [1, 3]    3  2
+> [1, 3, 2] 2  null
+> rows (ordered): 3
+
+SELECT ARRAY_AGG(ID) OVER (ORDER BY V NULLS FIRST RANGE BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING) A,
+    ID, V FROM VALUES (1, 1), (2, NULL), (3, 2) T(ID, V) ORDER BY V NULLS FIRST;
+> A      ID V
+> ------ -- ----
+> [2]    2  null
+> [2]    1  1
+> [2, 1] 3  2
+> rows (ordered): 3
+
+SELECT ARRAY_AGG(ID) OVER (ORDER BY V NULLS LAST RANGE BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING) A,
+    ID, V FROM VALUES (1, 1), (2, NULL), (3, 2) T(ID, V) ORDER BY V NULLS LAST;
+> A         ID V
+> --------- -- ----
+> null      1  1
+> [1]       3  2
+> [1, 3, 2] 2  null
+> rows (ordered): 3
 
 SELECT SUM(V) OVER (ORDER BY V RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING) FROM VALUES (TRUE) T(V);
 > exception INVALID_VALUE_2

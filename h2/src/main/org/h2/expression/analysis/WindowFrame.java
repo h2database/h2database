@@ -323,7 +323,12 @@ public final class WindowFrame {
         Value[] row = orderedRows.get(currentRow);
         Value currentValue = row[sortIndex];
         int type = currentValue.getType();
+        Value newValue;
+        Value range = getValueOffset(bound, orderedRows.get(currentRow), session);
         switch (type) {
+        case Value.NULL:
+            newValue = ValueNull.INSTANCE;
+            break;
         case Value.BYTE:
         case Value.SHORT:
         case Value.INT:
@@ -348,23 +353,22 @@ public final class WindowFrame {
         case Value.INTERVAL_HOUR_TO_MINUTE:
         case Value.INTERVAL_HOUR_TO_SECOND:
         case Value.INTERVAL_MINUTE_TO_SECOND:
+            OpType opType = add ^ (sortOrder.getSortTypes()[0] & SortOrder.DESCENDING) != 0 ? OpType.PLUS
+                    : OpType.MINUS;
+            try {
+                newValue = new BinaryOperation(opType, ValueExpression.get(currentValue), ValueExpression.get(range))
+                        .optimize(session).getValue(session).convertTo(type);
+            } catch (DbException ex) {
+                switch (ex.getErrorCode()) {
+                case ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1:
+                case ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2:
+                    return null;
+                }
+                throw ex;
+            }
             break;
         default:
             throw DbException.getInvalidValueException("ORDER BY value for RANGE frame", currentValue.getTraceSQL());
-        }
-        Value range = getValueOffset(bound, orderedRows.get(currentRow), session);
-        OpType opType = add ^ (sortOrder.getSortTypes()[0] & SortOrder.DESCENDING) != 0 ? OpType.PLUS : OpType.MINUS;
-        Value newValue;
-        try {
-            newValue = new BinaryOperation(opType, ValueExpression.get(currentValue), ValueExpression.get(range))
-                    .optimize(session).getValue(session).convertTo(type);
-        } catch (DbException ex) {
-            switch (ex.getErrorCode()) {
-            case ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1:
-            case ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2:
-                return null;
-            }
-            throw ex;
         }
         Value[] newRow = row.clone();
         newRow[sortIndex] = newValue;

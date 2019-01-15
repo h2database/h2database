@@ -19,6 +19,7 @@ import org.h2.message.DbException;
 import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
 import org.h2.value.Value;
+import org.h2.value.ValueNull;
 
 /**
  * Window frame clause.
@@ -290,8 +291,8 @@ public final class WindowFrame {
     private static int getIntOffset(WindowFrameBound bound, Value[] values, Session session) {
         Value v = bound.isVariable() ? values[bound.getExpressionIndex()] : bound.getValue().getValue(session);
         int value = v.getInt();
-        if (value < 0) {
-            throw DbException.getInvalidValueException("unsigned", value);
+        if (v == ValueNull.INSTANCE || value < 0) {
+            throw DbException.getInvalidValueException("unsigned range", v.getTraceSQL());
         }
         return value;
     }
@@ -302,17 +303,47 @@ public final class WindowFrame {
         OpType opType = add ^ (sortOrder.getSortTypes()[0] & SortOrder.DESCENDING) != 0 ? OpType.PLUS : OpType.MINUS;
         Value[] row = orderedRows.get(currentRow);
         Value[] newRow = row.clone();
-        newRow[sortIndex] = new BinaryOperation(opType, //
-                ValueExpression.get(row[sortIndex]),
-                ValueExpression.get(getValueOffset(bound, orderedRows.get(currentRow), session))) //
-                        .optimize(session).getValue(session);
+        Value currentValue = row[sortIndex];
+        switch (currentValue.getType()) {
+        case Value.BYTE:
+        case Value.SHORT:
+        case Value.INT:
+        case Value.LONG:
+        case Value.DECIMAL:
+        case Value.DOUBLE:
+        case Value.FLOAT:
+        case Value.TIME:
+        case Value.DATE:
+        case Value.TIMESTAMP:
+        case Value.TIMESTAMP_TZ:
+        case Value.INTERVAL_YEAR:
+        case Value.INTERVAL_MONTH:
+        case Value.INTERVAL_DAY:
+        case Value.INTERVAL_HOUR:
+        case Value.INTERVAL_MINUTE:
+        case Value.INTERVAL_SECOND:
+        case Value.INTERVAL_YEAR_TO_MONTH:
+        case Value.INTERVAL_DAY_TO_HOUR:
+        case Value.INTERVAL_DAY_TO_MINUTE:
+        case Value.INTERVAL_DAY_TO_SECOND:
+        case Value.INTERVAL_HOUR_TO_MINUTE:
+        case Value.INTERVAL_HOUR_TO_SECOND:
+        case Value.INTERVAL_MINUTE_TO_SECOND:
+            break;
+        default:
+            throw DbException.getInvalidValueException("ORDER BY value for RANGE frame", currentValue.getTraceSQL());
+        }
+        Value range = getValueOffset(bound, orderedRows.get(currentRow), session);
+        Value newValue = new BinaryOperation(opType, ValueExpression.get(currentValue), ValueExpression.get(range))
+                .optimize(session).getValue(session);
+        newRow[sortIndex] = newValue;
         return newRow;
     }
 
     private static Value getValueOffset(WindowFrameBound bound, Value[] values, Session session) {
         Value value = bound.isVariable() ? values[bound.getExpressionIndex()] : bound.getValue().getValue(session);
-        if (value.getSignum() < 0) {
-            throw DbException.getInvalidValueException("unsigned", value.getTraceSQL());
+        if (value == ValueNull.INSTANCE || value.getSignum() < 0) {
+            throw DbException.getInvalidValueException("unsigned range", value.getTraceSQL());
         }
         return value;
     }

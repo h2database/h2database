@@ -22,6 +22,7 @@ import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
 
 /**
@@ -229,7 +230,11 @@ public class FunctionsMySQL extends FunctionsBase {
                 result = v0;
                 break;
             default:
-                v0 = v0.convertTo(Value.TIMESTAMP);
+                try {
+                    v0 = v0.convertTo(Value.TIMESTAMP);
+                } catch (DbException ex) {
+                    v0 = ValueNull.INSTANCE;
+                }
                 //$FALL-THROUGH$
             case Value.TIMESTAMP:
             case Value.TIMESTAMP_TZ:

@@ -8,6 +8,7 @@
 22004=Numerischer Wert ausserhalb des Bereichs: {0} in Feld {1}
 22007=Kann {0} {1} nicht umwandeln
 22012=Division durch 0: {0}
+22013=#Invalid preceding of following size in window function
 22018=Datenumwandlungsfehler beim Umwandeln von {0}
 22025=Fehler in LIKE ESCAPE: {0}
 22030=Wert nicht erlaubt für Feld {0}: {1}

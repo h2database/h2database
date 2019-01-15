@@ -293,7 +293,7 @@ public final class WindowFrame {
         Value v = bound.isVariable() ? values[bound.getExpressionIndex()] : bound.getValue().getValue(session);
         int value = v.getInt();
         if (v == ValueNull.INSTANCE || value < 0) {
-            throw DbException.getInvalidValueException("unsigned range", v.getTraceSQL());
+            throw DbException.get(ErrorCode.INVALID_PRECEDING_OR_FOLLOWING);
         }
         return value;
     }
@@ -378,7 +378,7 @@ public final class WindowFrame {
     private static Value getValueOffset(WindowFrameBound bound, Value[] values, Session session) {
         Value value = bound.isVariable() ? values[bound.getExpressionIndex()] : bound.getValue().getValue(session);
         if (value == ValueNull.INSTANCE || value.getSignum() < 0) {
-            throw DbException.getInvalidValueException("unsigned range", value.getTraceSQL());
+            throw DbException.get(ErrorCode.INVALID_PRECEDING_OR_FOLLOWING);
         }
         return value;
     }

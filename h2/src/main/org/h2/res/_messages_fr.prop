@@ -8,6 +8,7 @@
 22004=#Numeric value out of range: {0} in column {1}
 22007=Impossible d''analyser {0} constante {1}
 22012=Division par zéro: {0}
+22013=#Invalid preceding of following size in window function
 22018=Erreur lors de la conversion de données {0}
 22025=Erreur dans LIKE ESCAPE: {0}
 22030=Valeur non permise pour la colonne {0}: {1}

@@ -58,6 +58,15 @@ public class WindowFrameBound {
     }
 
     /**
+     * Returns whether bound is defined as n PRECEDING or n FOLLOWING.
+     *
+     * @return whether bound is defined as n PRECEDING or n FOLLOWING
+     */
+    public boolean isParameterized() {
+        return type == WindowFrameBoundType.PRECEDING || type == WindowFrameBoundType.FOLLOWING;
+    }
+
+    /**
      * Returns whether bound is defined with a variable. This method may be used
      * only after {@link #optimize(Session)} invocation.
      *

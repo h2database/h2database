@@ -134,6 +134,15 @@ public class ErrorCode {
     public static final int DIVISION_BY_ZERO_1 = 22012;
 
     /**
+     * The error with code <code>22013</code> is thrown when preceding or
+     * following size in a window function is null or negative. Example:
+     * <pre>
+     * FIRST_VALUE(N) OVER(ORDER BY N ROWS -1 PRECEDING)
+     * </pre>
+     */
+    public static final int INVALID_PRECEDING_OR_FOLLOWING_1 = 22013;
+
+    /**
      * The error with code <code>22018</code> is thrown when
      * trying to convert a value to a data type where the conversion is
      * undefined, or when an error occurred trying to convert. Example:

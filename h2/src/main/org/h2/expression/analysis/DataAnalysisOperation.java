@@ -162,24 +162,41 @@ public abstract class DataAnalysisOperation extends Expression {
             WindowFrame frame = over.getWindowFrame();
             if (frame != null) {
                 int index = getNumExpressions();
+                int orderBySize = 0;
                 if (orderBy != null) {
-                    index += orderBy.size();
+                    orderBySize = orderBy.size();
+                    index += orderBySize;
                 }
                 int n = 0;
                 WindowFrameBound bound = frame.getStarting();
-                if (bound.isVariable()) {
-                    bound.setExpressionIndex(index);
-                    n++;
+                if (bound.isParameterized()) {
+                    if (orderBySize != 1) {
+                        throw getSingleSortKeyException();
+                    }
+                    if (bound.isVariable()) {
+                        bound.setExpressionIndex(index);
+                        n++;
+                    }
                 }
                 bound = frame.getFollowing();
-                if (bound != null && bound.isVariable()) {
-                    bound.setExpressionIndex(index + n);
-                    n++;
+                if (bound != null && bound.isParameterized()) {
+                    if (orderBySize != 1) {
+                        throw getSingleSortKeyException();
+                    }
+                    if (bound.isVariable()) {
+                        bound.setExpressionIndex(index + n);
+                        n++;
+                    }
                 }
                 numFrameExpressions = n;
             }
         }
         return this;
+    }
+
+    private DbException getSingleSortKeyException() {
+        String sql = getSQL();
+        return DbException.getSyntaxError(sql, sql.length() - 1, "exactly one sort key is required for RANGE units");
     }
 
     @Override

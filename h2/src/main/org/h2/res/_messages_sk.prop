@@ -8,6 +8,7 @@
 22004=#Numeric value out of range: {0} in column {1}
 22007=Nemožem rozobrať {0} konštantu {1}
 22012=Delenie nulou: {0}
+22013=#Invalid PRECEDING or FOLLOWING size in window function: {0}
 22018=Chyba konverzie dát pre {0}
 22025=Chyba v LIKE ESCAPE: {0}
 22030=#Value not permitted for column {0}: {1}

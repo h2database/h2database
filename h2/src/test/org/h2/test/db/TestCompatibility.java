@@ -312,16 +312,12 @@ public class TestCompatibility extends TestDb {
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello'), (2, 'World')");
         assertResult("0", stat, "SELECT UNIX_TIMESTAMP('1970-01-01 00:00:00Z')");
-        assertResult("1196418619", stat,
-                "SELECT UNIX_TIMESTAMP('2007-11-30 10:30:19Z')");
-        assertResult("1196418619", stat,
-                "SELECT UNIX_TIMESTAMP(FROM_UNIXTIME(1196418619))");
-        assertResult("2007 November", stat,
-                "SELECT FROM_UNIXTIME(1196300000, '%Y %M')");
-        assertResult("2003-12-31", stat,
-                "SELECT DATE('2003-12-31 11:02:03')");
-        assertResult("2003-12-31", stat,
-                "SELECT DATE('2003-12-31 11:02:03')");
+        assertResult("1196418619", stat, "SELECT UNIX_TIMESTAMP('2007-11-30 10:30:19Z')");
+        assertResult("1196418619", stat, "SELECT UNIX_TIMESTAMP(FROM_UNIXTIME(1196418619))");
+        assertResult("2007 November", stat, "SELECT FROM_UNIXTIME(1196300000, '%Y %M')");
+        assertResult("2003-12-31", stat, "SELECT DATE('2003-12-31 11:02:03')");
+        assertResult("2003-12-31", stat, "SELECT DATE('2003-12-31 11:02:03')");
+        assertResult(null, stat, "SELECT DATE('100')");
         // check the weird MySQL variant of DELETE
         stat.execute("DELETE TEST FROM TEST WHERE 1=2");
 

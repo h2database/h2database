@@ -4687,17 +4687,19 @@ public class Parser {
     private void readDecimal(int start, int i) {
         char[] chars = sqlCommandChars;
         int[] types = characterTypes;
+        boolean integer = true;
         // go until the first non-number
         while (true) {
             int t = types[i];
-            if (t != CHAR_DOT && t != CHAR_VALUE) {
+            if (t == CHAR_DOT) {
+                integer = false;
+            } else if (t != CHAR_VALUE) {
                 break;
             }
             i++;
         }
-        boolean containsE = false;
         if (chars[i] == 'E' || chars[i] == 'e') {
-            containsE = true;
+            integer = false;
             i++;
             if (chars[i] == '+' || chars[i] == '-') {
                 i++;
@@ -4710,11 +4712,10 @@ public class Parser {
             }
         }
         parseIndex = i;
-        String sub = sqlCommand.substring(start, i);
         checkLiterals(false);
         BigDecimal bd;
-        if (!containsE && sub.indexOf('.') < 0) {
-            BigInteger bi = new BigInteger(sub);
+        if (integer && i - start <= 19) {
+            BigInteger bi = new BigInteger(sqlCommand.substring(start, i));
             if (bi.compareTo(ValueLong.MAX_BI) <= 0) {
                 // parse constants like "10000000L"
                 if (chars[i] == 'L') {
@@ -4727,9 +4728,9 @@ public class Parser {
             bd = new BigDecimal(bi);
         } else {
             try {
-                bd = new BigDecimal(sub);
+                bd = new BigDecimal(sqlCommandChars, start, i - start);
             } catch (NumberFormatException e) {
-                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, sub);
+                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, sqlCommand.substring(start, i));
             }
         }
         currentValue = ValueDecimal.get(bd);

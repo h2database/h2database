@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
@@ -156,24 +155,26 @@ public class UpdatableRow {
         return index;
     }
 
-    private void appendColumnList(StatementBuilder buff, boolean set) {
-        buff.resetCount();
+    private void appendColumnList(StringBuilder builder, boolean set) {
         for (int i = 0; i < columnCount; i++) {
-            buff.appendExceptFirst(",");
+            if (i > 0) {
+                builder.append(',');
+            }
             String col = result.getColumnName(i);
-            StringUtils.quoteIdentifier(buff.builder(), col);
+            StringUtils.quoteIdentifier(builder, col);
             if (set) {
-                buff.append("=? ");
+                builder.append("=? ");
             }
         }
     }
 
-    private void appendKeyCondition(StatementBuilder buff) {
-        buff.append(" WHERE ");
-        buff.resetCount();
-        for (String k : key) {
-            buff.appendExceptFirst(" AND ");
-            StringUtils.quoteIdentifier(buff.builder(), k).append("=?");
+    private void appendKeyCondition(StringBuilder builder) {
+        builder.append(" WHERE ");
+        for (int i = 0; i < key.size(); i++) {
+            if (i > 0) {
+                builder.append(" AND ");
+            }
+            StringUtils.quoteIdentifier(builder, key.get(i)).append("=?");
         }
     }
 
@@ -218,12 +219,12 @@ public class UpdatableRow {
      * @return the row
      */
     public Value[] readRow(Value[] row) throws SQLException {
-        StatementBuilder buff = new StatementBuilder("SELECT ");
-        appendColumnList(buff, false);
-        buff.append(" FROM ");
-        appendTableName(buff.builder());
-        appendKeyCondition(buff);
-        PreparedStatement prep = conn.prepareStatement(buff.toString());
+        StringBuilder builder = new StringBuilder("SELECT ");
+        appendColumnList(builder, false);
+        builder.append(" FROM ");
+        appendTableName(builder);
+        appendKeyCondition(builder);
+        PreparedStatement prep = conn.prepareStatement(builder.toString());
         setKey(prep, 1, row);
         ResultSet rs = prep.executeQuery();
         if (!rs.next()) {
@@ -244,10 +245,10 @@ public class UpdatableRow {
      * @throws SQLException if this row has already been deleted
      */
     public void deleteRow(Value[] current) throws SQLException {
-        StatementBuilder buff = new StatementBuilder("DELETE FROM ");
-        appendTableName(buff.builder());
-        appendKeyCondition(buff);
-        PreparedStatement prep = conn.prepareStatement(buff.toString());
+        StringBuilder builder = new StringBuilder("DELETE FROM ");
+        appendTableName(builder);
+        appendKeyCondition(builder);
+        PreparedStatement prep = conn.prepareStatement(builder.toString());
         setKey(prep, 1, current);
         int count = prep.executeUpdate();
         if (count != 1) {
@@ -264,15 +265,15 @@ public class UpdatableRow {
      * @throws SQLException if the row has been deleted
      */
     public void updateRow(Value[] current, Value[] updateRow) throws SQLException {
-        StatementBuilder buff = new StatementBuilder("UPDATE ");
-        appendTableName(buff.builder());
-        buff.append(" SET ");
-        appendColumnList(buff, true);
+        StringBuilder builder = new StringBuilder("UPDATE ");
+        appendTableName(builder);
+        builder.append(" SET ");
+        appendColumnList(builder, true);
         // TODO updatable result set: we could add all current values to the
         // where clause
         // - like this optimistic ('no') locking is possible
-        appendKeyCondition(buff);
-        PreparedStatement prep = conn.prepareStatement(buff.toString());
+        appendKeyCondition(builder);
+        PreparedStatement prep = conn.prepareStatement(builder.toString());
         int j = 1;
         for (int i = 0; i < columnCount; i++) {
             Value v = updateRow[i];
@@ -296,23 +297,24 @@ public class UpdatableRow {
      * @throws SQLException if the row could not be inserted
      */
     public void insertRow(Value[] row) throws SQLException {
-        StatementBuilder buff = new StatementBuilder("INSERT INTO ");
-        appendTableName(buff.builder());
-        buff.append('(');
-        appendColumnList(buff, false);
-        buff.append(")VALUES(");
-        buff.resetCount();
+        StringBuilder builder = new StringBuilder("INSERT INTO ");
+        appendTableName(builder);
+        builder.append('(');
+        appendColumnList(builder, false);
+        builder.append(")VALUES(");
         for (int i = 0; i < columnCount; i++) {
-            buff.appendExceptFirst(",");
+            if (i > 0) {
+                builder.append(',');
+            }
             Value v = row[i];
             if (v == null) {
-                buff.append("DEFAULT");
+                builder.append("DEFAULT");
             } else {
-                buff.append('?');
+                builder.append('?');
             }
         }
-        buff.append(')');
-        PreparedStatement prep = conn.prepareStatement(buff.toString());
+        builder.append(')');
+        PreparedStatement prep = conn.prepareStatement(builder.toString());
         for (int i = 0, j = 0; i < columnCount; i++) {
             Value v = row[i];
             if (v != null) {

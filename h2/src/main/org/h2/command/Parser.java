@@ -4538,14 +4538,20 @@ public class Parser {
             parseIndex = i;
             return;
         case CHAR_VALUE:
-            if (c == '0' && chars[i] == 'X') {
+            if (c == '0' && (chars[i] == 'X' || chars[i] == 'x')) {
                 // hex number
                 long number = 0;
                 start += 2;
                 i++;
                 while (true) {
                     c = chars[i];
-                    if ((c < '0' || c > '9') && (c < 'A' || c > 'F')) {
+                    if (c >= '0' && c <= '9') {
+                        number = (number << 4) + c - '0';
+                    } else if (c >= 'A' && c <= 'F') {
+                        number = (number << 4) + c - ('A' - 10);
+                    } else if (c >= 'a' && c <= 'f') {
+                        number = (number << 4) + c - ('a' - 10);
+                    } else {
                         checkLiterals(false);
                         currentValue = ValueInt.get((int) number);
                         currentTokenType = VALUE;
@@ -4553,8 +4559,6 @@ public class Parser {
                         parseIndex = i;
                         return;
                     }
-                    number = (number << 4) + c -
-                            (c >= 'A' ? ('A' - 0xa) : ('0'));
                     if (number > Integer.MAX_VALUE) {
                         readHexDecimal(start, i);
                         return;
@@ -4563,12 +4567,19 @@ public class Parser {
                 }
             }
             long number = c - '0';
-            while (true) {
+            loop: while (true) {
                 c = chars[i];
                 if (c < '0' || c > '9') {
-                    if (c == '.' || c == 'E' || c == 'L') {
-                        readDecimal(start, i, c == 'L');
-                        break;
+                    switch (c) {
+                    case '.':
+                    case 'E':
+                    case 'e':
+                        readDecimal(start, i, false);
+                        break loop;
+                    case 'L':
+                    case 'l':
+                        readDecimal(start, i, true);
+                        break loop;
                     }
                     checkLiterals(false);
                     currentValue = ValueInt.get((int) number);
@@ -4702,10 +4713,11 @@ public class Parser {
             }
             i++;
         }
-        if (chars[i] == 'E' || chars[i] == 'e') {
+        char c = chars[i];
+        if (c == 'E' || c == 'e') {
             integer = false;
-            i++;
-            if (chars[i] == '+' || chars[i] == '-') {
+            c = chars[++i];
+            if (c == '+' || c == '-') {
                 i++;
             }
             if (types[i] != CHAR_VALUE) {
@@ -4722,7 +4734,8 @@ public class Parser {
             BigInteger bi = new BigInteger(sqlCommand.substring(start, i));
             if (bi.compareTo(ValueLong.MAX_BI) <= 0) {
                 // parse constants like "10000000L"
-                if (chars[i] == 'L') {
+                c = chars[i];
+                if (c == 'L' || c == 'l') {
                     parseIndex++;
                 }
                 currentValue = ValueLong.get(bi.longValue());

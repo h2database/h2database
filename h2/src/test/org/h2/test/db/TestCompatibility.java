@@ -110,6 +110,13 @@ public class TestCompatibility extends TestDb {
         stat.execute("select id from test t group by T.ID");
 
         stat.execute("drop table test");
+
+        rs = stat.executeQuery("select 1e10, 1000000000000000000000e10, 0xfAfBl");
+        assertTrue(rs.next());
+        assertEquals(1e10, rs.getDouble(1));
+        assertEquals(1000000000000000000000e10, rs.getDouble(2));
+        assertEquals(0xfafbL, rs.getLong(3));
+        assertFalse(rs.next());
         c.close();
     }
 

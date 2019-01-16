@@ -4567,7 +4567,7 @@ public class Parser {
                 c = chars[i];
                 if (c < '0' || c > '9') {
                     if (c == '.' || c == 'E' || c == 'L') {
-                        readDecimal(start, i);
+                        readDecimal(start, i, c == 'L');
                         break;
                     }
                     checkLiterals(false);
@@ -4579,7 +4579,7 @@ public class Parser {
                 }
                 number = number * 10 + (c - '0');
                 if (number > Integer.MAX_VALUE) {
-                    readDecimal(start, i);
+                    readDecimal(start, i, true);
                     break;
                 }
                 i++;
@@ -4592,7 +4592,7 @@ public class Parser {
                 parseIndex = i;
                 return;
             }
-            readDecimal(i - 1, i);
+            readDecimal(i - 1, i, false);
             return;
         case CHAR_STRING: {
             String result = null;
@@ -4689,10 +4689,9 @@ public class Parser {
         currentTokenType = VALUE;
     }
 
-    private void readDecimal(int start, int i) {
+    private void readDecimal(int start, int i, boolean integer) {
         char[] chars = sqlCommandChars;
         int[] types = characterTypes;
-        boolean integer = true;
         // go until the first non-number
         while (true) {
             int t = types[i];

@@ -38,7 +38,7 @@ public class LocalResultImpl implements LocalResult {
     private int offset;
     private int limit = -1;
     private boolean fetchPercent;
-    private boolean withTies;
+    private SortOrder withTiesSortOrder;
     private boolean limitsWereApplied;
     private ResultExternal external;
     private boolean distinct;
@@ -132,11 +132,6 @@ public class LocalResultImpl implements LocalResult {
         return copy;
     }
 
-    /**
-     * Set the sort order.
-     *
-     * @param sort the sort order
-     */
     @Override
     public void setSortOrder(SortOrder sort) {
         this.sort = sort;
@@ -365,8 +360,8 @@ public class LocalResultImpl implements LocalResult {
             if (isAnyDistinct()) {
                 rows = distinctRows.values();
             }
-            if (sort != null && limit != 0) {
-                boolean withLimit = limit > 0 && !withTies;
+            if (sort != null && limit != 0 && !limitsWereApplied) {
+                boolean withLimit = limit > 0 && withTiesSortOrder == null;
                 if (offset > 0 || withLimit) {
                     sort.sort(rows, offset, withLimit ? limit : rows.size());
                 } else {
@@ -412,9 +407,9 @@ public class LocalResultImpl implements LocalResult {
                 return;
             }
             int to = offset + limit;
-            if (withTies && sort != null) {
+            if (withTiesSortOrder != null) {
                 Value[] expected = rows.get(to - 1);
-                while (to < rows.size() && sort.compare(expected, rows.get(to)) == 0) {
+                while (to < rows.size() && withTiesSortOrder.compare(expected, rows.get(to)) == 0) {
                     to++;
                     rowCount++;
                 }
@@ -448,9 +443,9 @@ public class LocalResultImpl implements LocalResult {
                 addRowsToDisk();
             }
         }
-        if (withTies && sort != null && row != null) {
+        if (withTiesSortOrder != null && row != null) {
             Value[] expected = row;
-            while ((row = temp.next()) != null && sort.compare(expected, row) == 0) {
+            while ((row = temp.next()) != null && withTiesSortOrder.compare(expected, row) == 0) {
                 rows.add(row);
                 rowCount++;
                 if (rows.size() > maxMemoryRows) {
@@ -497,12 +492,10 @@ public class LocalResultImpl implements LocalResult {
         this.fetchPercent = fetchPercent;
     }
 
-    /**
-     * @param withTies whether tied rows should be included in result too
-     */
     @Override
-    public void setWithTies(boolean withTies) {
-        this.withTies = withTies;
+    public void setWithTies(SortOrder withTiesSortOrder) {
+        assert sort == null || sort == withTiesSortOrder;
+        this.withTiesSortOrder = withTiesSortOrder;
     }
 
     @Override

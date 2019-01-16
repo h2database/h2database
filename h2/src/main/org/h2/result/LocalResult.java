@@ -25,7 +25,10 @@ public interface LocalResult extends ResultInterface, ResultTarget {
     public void setMaxMemoryRows(int maxValue);
 
     /**
-     * @param sort Sort order.
+     * Sets sort order to be used by this result. When rows are presorted by the
+     * query this method should not be used.
+     *
+     * @param sort the sort order
      */
     public void setSortOrder(SortOrder sort);
 
@@ -82,9 +85,14 @@ public interface LocalResult extends ResultInterface, ResultTarget {
     public void setFetchPercent(boolean fetchPercent);
 
     /**
-     * @param withTies whether tied rows should be included in result too
+     * Enables inclusion of tied rows to result and sets the sort order for tied
+     * rows. The specified sort order must be the same as sort order if sort
+     * order was set. Passed value will be used if sort order was not set that
+     * is possible when rows are presorted.
+     *
+     * @param withTiesSortOrder the sort order for tied rows
      */
-    public void setWithTies(boolean withTies);
+    public void setWithTies(SortOrder withTiesSortOrder);
 
     /**
      * Set the offset of the first row to return.

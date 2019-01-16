@@ -5559,7 +5559,7 @@ OVER windowNameOrSpecification
 ","
 Returns the ratio of a value to the sum of all values.
 If argument is NULL or sum of all values is 0, then the value of function is NULL.
-Window frame clause is not allowed for this function.
+Window ordering and window frame clauses are not allowed for this function.
 
 Window functions are currently experimental in H2 and should be used with caution.
 They also may require a lot of memory for large queries.

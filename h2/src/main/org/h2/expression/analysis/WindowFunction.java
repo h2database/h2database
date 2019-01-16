@@ -451,6 +451,9 @@ public class WindowFunction extends DataAnalysisOperation {
                 throw DbException.getSyntaxError(sql, sql.length() - 1, "ORDER BY");
             default:
             }
+        } else if (type == WindowFunctionType.RATIO_TO_REPORT) {
+            String sql = getSQL();
+            throw DbException.getSyntaxError(sql, sql.length() - 1);
         }
         super.optimize(session);
         if (args != null) {

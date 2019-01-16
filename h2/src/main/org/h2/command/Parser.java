@@ -672,7 +672,12 @@ public class Parser {
             if (!hasMore && currentTokenType != END) {
                 throw getSyntaxError();
             }
-            p.prepare();
+            try {
+                p.prepare();
+            } catch (Throwable t) {
+                CommandContainer.clearCTE(session, p);
+                throw t;
+            }
             Command c = new CommandContainer(session, sql, p);
             if (hasMore) {
                 String remaining = originalSQL.substring(parseIndex);
@@ -6128,6 +6133,15 @@ public class Parser {
 
     private Prepared parseWith() {
         List<TableView> viewsCreated = new ArrayList<>();
+        try {
+            return parseWith1(viewsCreated);
+        } catch (Throwable t) {
+            CommandContainer.clearCTE(session, viewsCreated);
+            throw t;
+        }
+    }
+
+    private Prepared parseWith1(List<TableView> viewsCreated) {
         readIf("RECURSIVE");
 
         // This WITH statement is not a temporary view - it is part of a persistent view

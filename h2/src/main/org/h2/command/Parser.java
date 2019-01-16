@@ -672,7 +672,12 @@ public class Parser {
             if (!hasMore && currentTokenType != END) {
                 throw getSyntaxError();
             }
-            p.prepare();
+            try {
+                p.prepare();
+            } catch (Throwable t) {
+                CommandContainer.clearCTE(session, p);
+                throw t;
+            }
             Command c = new CommandContainer(session, sql, p);
             if (hasMore) {
                 String remaining = originalSQL.substring(parseIndex);
@@ -4533,14 +4538,20 @@ public class Parser {
             parseIndex = i;
             return;
         case CHAR_VALUE:
-            if (c == '0' && chars[i] == 'X') {
+            if (c == '0' && (chars[i] == 'X' || chars[i] == 'x')) {
                 // hex number
                 long number = 0;
                 start += 2;
                 i++;
                 while (true) {
                     c = chars[i];
-                    if ((c < '0' || c > '9') && (c < 'A' || c > 'F')) {
+                    if (c >= '0' && c <= '9') {
+                        number = (number << 4) + c - '0';
+                    } else if (c >= 'A' && c <= 'F') {
+                        number = (number << 4) + c - ('A' - 10);
+                    } else if (c >= 'a' && c <= 'f') {
+                        number = (number << 4) + c - ('a' - 10);
+                    } else {
                         checkLiterals(false);
                         currentValue = ValueInt.get((int) number);
                         currentTokenType = VALUE;
@@ -4548,8 +4559,6 @@ public class Parser {
                         parseIndex = i;
                         return;
                     }
-                    number = (number << 4) + c -
-                            (c >= 'A' ? ('A' - 0xa) : ('0'));
                     if (number > Integer.MAX_VALUE) {
                         readHexDecimal(start, i);
                         return;
@@ -4558,12 +4567,19 @@ public class Parser {
                 }
             }
             long number = c - '0';
-            while (true) {
+            loop: while (true) {
                 c = chars[i];
                 if (c < '0' || c > '9') {
-                    if (c == '.' || c == 'E' || c == 'L') {
-                        readDecimal(start, i);
-                        break;
+                    switch (c) {
+                    case '.':
+                    case 'E':
+                    case 'e':
+                        readDecimal(start, i, false);
+                        break loop;
+                    case 'L':
+                    case 'l':
+                        readDecimal(start, i, true);
+                        break loop;
                     }
                     checkLiterals(false);
                     currentValue = ValueInt.get((int) number);
@@ -4574,7 +4590,7 @@ public class Parser {
                 }
                 number = number * 10 + (c - '0');
                 if (number > Integer.MAX_VALUE) {
-                    readDecimal(start, i);
+                    readDecimal(start, i, true);
                     break;
                 }
                 i++;
@@ -4587,7 +4603,7 @@ public class Parser {
                 parseIndex = i;
                 return;
             }
-            readDecimal(i - 1, i);
+            readDecimal(i - 1, i, false);
             return;
         case CHAR_STRING: {
             String result = null;
@@ -4684,22 +4700,24 @@ public class Parser {
         currentTokenType = VALUE;
     }
 
-    private void readDecimal(int start, int i) {
+    private void readDecimal(int start, int i, boolean integer) {
         char[] chars = sqlCommandChars;
         int[] types = characterTypes;
         // go until the first non-number
         while (true) {
             int t = types[i];
-            if (t != CHAR_DOT && t != CHAR_VALUE) {
+            if (t == CHAR_DOT) {
+                integer = false;
+            } else if (t != CHAR_VALUE) {
                 break;
             }
             i++;
         }
-        boolean containsE = false;
-        if (chars[i] == 'E' || chars[i] == 'e') {
-            containsE = true;
-            i++;
-            if (chars[i] == '+' || chars[i] == '-') {
+        char c = chars[i];
+        if (c == 'E' || c == 'e') {
+            integer = false;
+            c = chars[++i];
+            if (c == '+' || c == '-') {
                 i++;
             }
             if (types[i] != CHAR_VALUE) {
@@ -4710,14 +4728,14 @@ public class Parser {
             }
         }
         parseIndex = i;
-        String sub = sqlCommand.substring(start, i);
         checkLiterals(false);
         BigDecimal bd;
-        if (!containsE && sub.indexOf('.') < 0) {
-            BigInteger bi = new BigInteger(sub);
+        if (integer && i - start <= 19) {
+            BigInteger bi = new BigInteger(sqlCommand.substring(start, i));
             if (bi.compareTo(ValueLong.MAX_BI) <= 0) {
                 // parse constants like "10000000L"
-                if (chars[i] == 'L') {
+                c = chars[i];
+                if (c == 'L' || c == 'l') {
                     parseIndex++;
                 }
                 currentValue = ValueLong.get(bi.longValue());
@@ -4727,9 +4745,9 @@ public class Parser {
             bd = new BigDecimal(bi);
         } else {
             try {
-                bd = new BigDecimal(sub);
+                bd = new BigDecimal(sqlCommandChars, start, i - start);
             } catch (NumberFormatException e) {
-                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, sub);
+                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, sqlCommand.substring(start, i));
             }
         }
         currentValue = ValueDecimal.get(bd);
@@ -6127,6 +6145,15 @@ public class Parser {
 
     private Prepared parseWith() {
         List<TableView> viewsCreated = new ArrayList<>();
+        try {
+            return parseWith1(viewsCreated);
+        } catch (Throwable t) {
+            CommandContainer.clearCTE(session, viewsCreated);
+            throw t;
+        }
+    }
+
+    private Prepared parseWith1(List<TableView> viewsCreated) {
         readIf("RECURSIVE");
 
         // This WITH statement is not a temporary view - it is part of a persistent view

@@ -25,7 +25,6 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.result.SimpleResult;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueString;
@@ -1616,25 +1615,27 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                     + "FROM INFORMATION_SCHEMA.HELP WHERE SECTION = ?");
             prep.setString(1, section);
             ResultSet rs = prep.executeQuery();
-            StatementBuilder buff = new StatementBuilder();
+            StringBuilder builder = new StringBuilder();
             while (rs.next()) {
                 String s = rs.getString(1).trim();
                 String[] array = StringUtils.arraySplit(s, ',', true);
                 for (String a : array) {
-                    buff.appendExceptFirst(",");
+                    if (builder.length() != 0) {
+                        builder.append(',');
+                    }
                     String f = a.trim();
                     int spaceIndex = f.indexOf(' ');
                     if (spaceIndex >= 0) {
                         // remove 'Function' from 'INSERT Function'
-                        StringUtils.trimSubstring(buff.builder(), f, 0, spaceIndex);
+                        StringUtils.trimSubstring(builder, f, 0, spaceIndex);
                     } else {
-                        buff.append(f);
+                        builder.append(f);
                     }
                 }
             }
             rs.close();
             prep.close();
-            return buff.toString();
+            return builder.toString();
         } catch (Exception e) {
             throw logAndConvert(e);
         }

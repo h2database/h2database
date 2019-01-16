@@ -774,7 +774,7 @@ public class Select extends Query {
         }
         boolean fetchPercent = this.fetchPercent;
         if (fetchPercent) {
-            // Need to check it row, because negative limit has special treatment later
+            // Need to check it now, because negative limit has special treatment later
             if (limitRows < 0 || limitRows > 100) {
                 throw DbException.getInvalidValueException("FETCH PERCENT", limitRows);
             }
@@ -803,7 +803,7 @@ public class Select extends Query {
         }
         // Do not add rows before OFFSET to result if possible
         boolean quickOffset = !fetchPercent;
-        if (sort != null && (!sortUsingIndex || isAnyDistinct() || withTies)) {
+        if (sort != null && (!sortUsingIndex || isAnyDistinct())) {
             result = createLocalResult(result);
             result.setSortOrder(sort);
             if (!sortUsingIndex) {
@@ -886,7 +886,9 @@ public class Select extends Query {
         if (limitRows >= 0) {
             result.setLimit(limitRows);
             result.setFetchPercent(fetchPercent);
-            result.setWithTies(withTies);
+            if (withTies) {
+                result.setWithTies(sort);
+            }
         }
         if (result != null) {
             result.done();

@@ -6,6 +6,7 @@
 package org.h2.command;
 
 import java.util.ArrayList;
+import java.util.List;
 import org.h2.api.DatabaseEventListener;
 import org.h2.command.dml.Explain;
 import org.h2.command.dml.Query;
@@ -26,6 +27,35 @@ public class CommandContainer extends Command {
     private Prepared prepared;
     private boolean readOnlyKnown;
     private boolean readOnly;
+
+    /**
+     * Clears CTE views for a specified statement.
+     *
+     * @param session the session
+     * @param prepared prepared statement
+     */
+    static void clearCTE(Session session, Prepared prepared) {
+        List<TableView> cteCleanups = prepared.getCteCleanups();
+        if (cteCleanups != null) {
+            clearCTE(session, cteCleanups);
+        }
+    }
+
+    /**
+     * Clears CTE views.
+     *
+     * @param session the session
+     * @param views list of view
+     */
+    static void clearCTE(Session session, List<TableView> views) {
+        for (TableView view : views) {
+            // check if view was previously deleted as their name is set to
+            // null
+            if (view.getName() != null) {
+                session.removeLocalTempTable(view);
+            }
+        }
+    }
 
     CommandContainer(Session session, String sql, Prepared prepared) {
         super(session, sql);
@@ -123,15 +153,7 @@ public class CommandContainer extends Command {
         super.stop();
         // Clean up after the command was run in the session.
         // Must restart query (and dependency construction) to reuse.
-        if (prepared.getCteCleanups() != null) {
-            for (TableView view : prepared.getCteCleanups()) {
-                // check if view was previously deleted as their name is set to
-                // null
-                if (view.getName() != null) {
-                    session.removeLocalTempTable(view);
-                }
-            }
-        }
+        clearCTE(session, prepared);
     }
 
     @Override

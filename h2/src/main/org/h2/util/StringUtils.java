@@ -370,10 +370,12 @@ public class StringUtils {
         if (array == null) {
             return "null";
         }
-        StatementBuilder buff = new StatementBuilder("new String[]{");
-        for (String a : array) {
-            buff.appendExceptFirst(", ");
-            buff.append(quoteJavaString(a));
+        StringBuilder buff = new StringBuilder("new String[]{");
+        for (int i = 0; i < array.length; i++) {
+            if (i > 0) {
+                buff.append(", ");
+            }
+            buff.append(quoteJavaString(array[i]));
         }
         return buff.append('}').toString();
     }
@@ -389,12 +391,14 @@ public class StringUtils {
         if (array == null) {
             return "null";
         }
-        StatementBuilder buff = new StatementBuilder("new int[]{");
-        for (int a : array) {
-            buff.appendExceptFirst(", ");
-            buff.append(a);
+        StringBuilder builder = new StringBuilder("new int[]{");
+        for (int i = 0; i < array.length; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            builder.append(array[i]);
         }
-        return buff.append('}').toString();
+        return builder.append('}').toString();
     }
 
     /**
@@ -498,21 +502,24 @@ public class StringUtils {
      * @return the combined string
      */
     public static String arrayCombine(String[] list, char separatorChar) {
-        StatementBuilder buff = new StatementBuilder();
-        for (String s : list) {
-            buff.appendExceptFirst(String.valueOf(separatorChar));
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < list.length; i++) {
+            if (i > 0) {
+                builder.append(separatorChar);
+            }
+            String s = list[i];
             if (s == null) {
-                s = "";
+                continue;
             }
             for (int j = 0, length = s.length(); j < length; j++) {
                 char c = s.charAt(j);
                 if (c == '\\' || c == separatorChar) {
-                    buff.append('\\');
+                    builder.append('\\');
                 }
-                buff.append(c);
+                builder.append(c);
             }
         }
-        return buff.toString();
+        return builder.toString();
     }
 
     /**

@@ -264,7 +264,9 @@ public class SelectUnion extends Query {
             if (v != ValueNull.INSTANCE) {
                 result.setLimit(v.getInt());
                 result.setFetchPercent(fetchPercent);
-                result.setWithTies(withTies);
+                if (withTies) {
+                    result.setWithTies(sort);
+                }
             }
         }
         l.close();

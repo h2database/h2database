@@ -58,8 +58,8 @@ public class ValueStringFixed extends ValueString {
     }
 
     @Override
-    public int getType() {
-        return Value.STRING_FIXED;
+    public int getValueType() {
+        return STRING_FIXED;
     }
 
     /**

@@ -98,8 +98,8 @@ public class ValueLob extends Value {
      * @return result of comparison
      */
     static int compare(Value v1, Value v2) {
-        int valueType = v1.getType();
-        assert valueType == v2.getType();
+        int valueType = v1.getValueType();
+        assert valueType == v2.getValueType();
         if (v1 instanceof ValueLobDb && v2 instanceof ValueLobDb) {
             byte[] small1 = v1.getSmall(), small2 = v2.getSmall();
             if (small1 != null && small2 != null) {
@@ -110,7 +110,7 @@ public class ValueLob extends Value {
                 }
             }
         }
-        long minPrec = Math.min(v1.getPrecision(), v2.getPrecision());
+        long minPrec = Math.min(v1.getType().getPrecision(), v2.getType().getPrecision());
         if (valueType == Value.BLOB) {
             try (InputStream is1 = v1.getInputStream();
                     InputStream is2 = v2.getInputStream()) {
@@ -184,6 +184,7 @@ public class ValueLob extends Value {
      * either Value.BLOB or Value.CLOB
      */
     private final int valueType;
+    private TypeInfo type;
     private final long precision;
     private final DataHandler handler;
     private int tableId;
@@ -448,13 +449,17 @@ public class ValueLob extends Value {
     }
 
     @Override
-    public int getType() {
-        return valueType;
+    public TypeInfo getType() {
+        TypeInfo type = this.type;
+        if (type == null) {
+            this.type = type = new TypeInfo(valueType, precision, 0, MathUtils.convertLongToInt(precision), null);
+        }
+        return type;
     }
 
     @Override
-    public long getPrecision() {
-        return precision;
+    public int getValueType() {
+        return valueType;
     }
 
     @Override
@@ -558,7 +563,7 @@ public class ValueLob extends Value {
     @Override
     public void set(PreparedStatement prep, int parameterIndex)
             throws SQLException {
-        long p = getPrecision();
+        long p = precision;
         if (p > Integer.MAX_VALUE || p <= 0) {
             p = -1;
         }
@@ -584,9 +589,9 @@ public class ValueLob extends Value {
     public String getTraceSQL() {
         StringBuilder buff = new StringBuilder();
         if (valueType == Value.CLOB) {
-            buff.append("SPACE(").append(getPrecision());
+            buff.append("SPACE(").append(precision);
         } else {
-            buff.append("CAST(REPEAT('00', ").append(getPrecision()).append(") AS BINARY");
+            buff.append("CAST(REPEAT('00', ").append(precision).append(") AS BINARY");
         }
         buff.append(" /* ").append(fileName).append(" */)");
         return buff.toString();
@@ -600,11 +605,6 @@ public class ValueLob extends Value {
     @Override
     public byte[] getSmall() {
         return null;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return MathUtils.convertLongToInt(getPrecision());
     }
 
     @Override

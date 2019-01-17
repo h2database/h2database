@@ -177,8 +177,13 @@ public class ValueTimestamp extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.TIMESTAMP;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_TIMESTAMP;
+    }
+
+    @Override
+    public int getValueType() {
+        return TIMESTAMP;
     }
 
     @Override
@@ -197,21 +202,6 @@ public class ValueTimestamp extends Value {
         builder.append(' ');
         DateTimeUtils.appendTime(builder, timeNanos);
         return builder.append('\'');
-    }
-
-    @Override
-    public long getPrecision() {
-        return MAXIMUM_PRECISION;
-    }
-
-    @Override
-    public int getScale() {
-        return MAXIMUM_SCALE;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return MAXIMUM_PRECISION;
     }
 
     @Override

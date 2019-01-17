@@ -11,6 +11,7 @@ import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -75,13 +76,13 @@ public class ValueExpression extends Expression {
     }
 
     @Override
-    public int getType() {
+    public TypeInfo getType() {
         return value.getType();
     }
 
     @Override
     public void createIndexConditions(Session session, TableFilter filter) {
-        if (value.getType() == Value.BOOLEAN) {
+        if (value.getValueType() == Value.BOOLEAN) {
             boolean v = ((ValueBoolean) value).getBoolean();
             if (!v) {
                 filter.addIndexCondition(IndexCondition.get(Comparison.FALSE, null, this));
@@ -118,21 +119,6 @@ public class ValueExpression extends Expression {
     @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         // nothing to do
-    }
-
-    @Override
-    public int getScale() {
-        return value.getScale();
-    }
-
-    @Override
-    public long getPrecision() {
-        return value.getPrecision();
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return value.getDisplaySize();
     }
 
     @Override
@@ -177,7 +163,7 @@ public class ValueExpression extends Expression {
 
     @Override
     public Expression[] getExpressionColumns(Session session) {
-        if (getType() == Value.ARRAY) {
+        if (getType().getValueType() == Value.ARRAY) {
             return getExpressionColumns(session, (ValueArray) getValue(session));
         }
         return super.getExpressionColumns(session);

@@ -15,6 +15,7 @@ import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.result.SimpleResult;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueLong;
@@ -257,9 +258,9 @@ public class JdbcArray extends TraceObject implements Array {
     private ResultSet getResultSetImpl(long index, int count) {
         int id = getNextId(TraceObject.RESULT_SET);
         SimpleResult rs = new SimpleResult();
-        rs.addColumn("INDEX", "INDEX", Value.LONG, 0, 0, ValueLong.DISPLAY_SIZE);
+        rs.addColumn("INDEX", "INDEX", TypeInfo.TYPE_LONG);
         // TODO array result set: there are multiple data types possible
-        rs.addColumn("VALUE", "VALUE", Value.NULL, 0, 0, 15);
+        rs.addColumn("VALUE", "VALUE", TypeInfo.TYPE_NULL);
         if (value != ValueNull.INSTANCE) {
             Value[] values = ((ValueArray) value).getList();
             count = checkRange(index, count, values.length);

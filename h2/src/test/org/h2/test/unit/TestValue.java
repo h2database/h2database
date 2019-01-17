@@ -37,6 +37,7 @@ import org.h2.test.utils.AssertThrows;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.Bits;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBytes;
@@ -131,7 +132,7 @@ public class TestValue extends TestDb {
         rs.next();
         Value v = DataType.readValue(null, rs, 1, valueType);
         Value v2 = DataType.convertToValue(null, obj, valueType);
-        if (v.getType() == Value.RESULT_SET) {
+        if (v.getValueType() == Value.RESULT_SET) {
             assertEquals(v.toString(), v2.toString());
         } else {
             assertTrue(v.equals(v2));
@@ -166,21 +167,21 @@ public class TestValue extends TestDb {
 
         v = ValueArray.get(new Value[] { ValueString.get("hello"),
                 ValueString.get("world") });
-        assertEquals(10, v.getPrecision());
-        assertEquals(5, v.convertPrecision(5, true).getPrecision());
+        assertEquals(10, v.getType().getPrecision());
+        assertEquals(5, v.convertPrecision(5, true).getType().getPrecision());
         v = ValueArray.get(new Value[]{ValueString.get(""), ValueString.get("")});
-        assertEquals(0, v.getPrecision());
+        assertEquals(0, v.getType().getPrecision());
         assertEquals("['']", v.convertPrecision(1, true).toString());
 
         v = ValueBytes.get(spaces.getBytes());
-        assertEquals(100, v.getPrecision());
-        assertEquals(10, v.convertPrecision(10, false).getPrecision());
+        assertEquals(100, v.getType().getPrecision());
+        assertEquals(10, v.convertPrecision(10, false).getType().getPrecision());
         assertEquals(10, v.convertPrecision(10, false).getBytes().length);
         assertEquals(32, v.convertPrecision(10, false).getBytes()[9]);
-        assertEquals(10, v.convertPrecision(10, true).getPrecision());
+        assertEquals(10, v.convertPrecision(10, true).getType().getPrecision());
 
         final Value vd = ValueDecimal.get(new BigDecimal("1234567890.123456789"));
-        assertEquals(19, vd.getPrecision());
+        assertEquals(19, vd.getType().getPrecision());
         assertEquals("1234567890.1234567", vd.convertPrecision(10, true).getString());
         new AssertThrows(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1) {
             @Override
@@ -190,32 +191,32 @@ public class TestValue extends TestDb {
         };
 
         v = ValueLobDb.createSmallLob(Value.CLOB, spaces.getBytes(), 100);
-        assertEquals(100, v.getPrecision());
-        assertEquals(10, v.convertPrecision(10, false).getPrecision());
+        assertEquals(100, v.getType().getPrecision());
+        assertEquals(10, v.convertPrecision(10, false).getType().getPrecision());
         assertEquals(10, v.convertPrecision(10, false).getString().length());
         assertEquals("          ", v.convertPrecision(10, false).getString());
-        assertEquals(10, v.convertPrecision(10, true).getPrecision());
+        assertEquals(10, v.convertPrecision(10, true).getType().getPrecision());
 
         v = ValueLobDb.createSmallLob(Value.BLOB, spaces.getBytes(), 100);
-        assertEquals(100, v.getPrecision());
-        assertEquals(10, v.convertPrecision(10, false).getPrecision());
+        assertEquals(100, v.getType().getPrecision());
+        assertEquals(10, v.convertPrecision(10, false).getType().getPrecision());
         assertEquals(10, v.convertPrecision(10, false).getBytes().length);
         assertEquals(32, v.convertPrecision(10, false).getBytes()[9]);
-        assertEquals(10, v.convertPrecision(10, true).getPrecision());
+        assertEquals(10, v.convertPrecision(10, true).getType().getPrecision());
 
         SimpleResult rs = new SimpleResult();
-        rs.addColumn("X", "X", Value.INT, 0, 0, ValueInt.DISPLAY_SIZE);
+        rs.addColumn("X", "X", Value.INT, 0, 0);
         rs.addRow(ValueInt.get(1));
         v = ValueResultSet.get(rs);
-        assertEquals(Integer.MAX_VALUE, v.getPrecision());
-        assertEquals(Integer.MAX_VALUE, v.convertPrecision(10, false).getPrecision());
+        assertEquals(Integer.MAX_VALUE, v.getType().getPrecision());
+        assertEquals(Integer.MAX_VALUE, v.convertPrecision(10, false).getType().getPrecision());
         assertEquals(1, v.convertPrecision(10, false).getResult().getRowCount());
         assertEquals(0, v.convertPrecision(10, true).getResult().getRowCount());
-        assertEquals(Integer.MAX_VALUE, v.convertPrecision(10, true).getPrecision());
+        assertEquals(Integer.MAX_VALUE, v.convertPrecision(10, true).getType().getPrecision());
 
         v = ValueString.get(spaces);
-        assertEquals(100, v.getPrecision());
-        assertEquals(10, v.convertPrecision(10, false).getPrecision());
+        assertEquals(100, v.getType().getPrecision());
+        assertEquals(10, v.convertPrecision(10, false).getType().getPrecision());
         assertEquals("          ", v.convertPrecision(10, false).getString());
         assertEquals("          ", v.convertPrecision(10, true).getString());
 
@@ -235,8 +236,8 @@ public class TestValue extends TestDb {
         testValueResultSetTest(ValueResultSet.get(null, rs, 2), 2, true);
 
         SimpleResult result = new SimpleResult();
-        result.addColumn("ID", "ID", Value.INT, 0, 0, ValueInt.DISPLAY_SIZE);
-        result.addColumn("NAME", "NAME", Value.STRING, 255, 0, 255);
+        result.addColumn("ID", "ID", Value.INT, 0, 0);
+        result.addColumn("NAME", "NAME", Value.STRING, 255, 0);
         result.addRow(ValueInt.get(1), ValueString.get("Hello"));
         result.addRow(ValueInt.get(2), ValueString.get("World"));
         result.addRow(ValueInt.get(3), ValueString.get("Peace"));
@@ -253,16 +254,18 @@ public class TestValue extends TestDb {
         assertEquals(2, res.getVisibleColumnCount());
         assertEquals("ID", res.getAlias(0));
         assertEquals("ID", res.getColumnName(0));
-        assertEquals(Value.INT, res.getColumnType(0));
-        assertEquals(0, res.getColumnPrecision(0));
-        assertEquals(0, res.getColumnScale(0));
-        assertEquals(fromSimple ? 15 : ValueInt.DISPLAY_SIZE, res.getDisplaySize(0));
+        TypeInfo type = res.getColumnType(0);
+        assertEquals(Value.INT, type.getValueType());
+        assertEquals(ValueInt.PRECISION, type.getPrecision());
+        assertEquals(0, type.getScale());
+        assertEquals(ValueInt.DISPLAY_SIZE, type.getDisplaySize());
         assertEquals("NAME", res.getAlias(1));
         assertEquals("NAME", res.getColumnName(1));
-        assertEquals(Value.STRING, res.getColumnType(1));
-        assertEquals(255, res.getColumnPrecision(1));
-        assertEquals(0, res.getColumnScale(1));
-        assertEquals(fromSimple ? 15 : 255, res.getDisplaySize(1));
+        type = res.getColumnType(1);
+        assertEquals(Value.STRING, type.getValueType());
+        assertEquals(255, type.getPrecision());
+        assertEquals(0, type.getScale());
+        assertEquals(255, type.getDisplaySize());
         if (count >= 1) {
             assertTrue(res.next());
             assertEquals(new Value[] {ValueInt.get(1), ValueString.get("Hello")}, res.currentRow());
@@ -367,7 +370,7 @@ public class TestValue extends TestDb {
     private void testArray() {
         ValueArray src = ValueArray.get(String.class,
                 new Value[] {ValueString.get("1"), ValueString.get("22"), ValueString.get("333")});
-        assertEquals(6, src.getPrecision());
+        assertEquals(6, src.getType().getPrecision());
         assertSame(src, src.convertPrecision(5, false));
         assertSame(src, src.convertPrecision(6, true));
         ValueArray exp = ValueArray.get(String.class,

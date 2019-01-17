@@ -17,6 +17,11 @@ public class ValueEnum extends ValueEnumBase {
         this.enumerators = enumerators;
     }
 
+    @Override
+    public TypeInfo getType() {
+        return enumerators.getType();
+    }
+
     public ExtTypeInfoEnum getEnumerators() {
         return enumerators;
     }

@@ -48,7 +48,7 @@ public interface ParameterInterface {
      *
      * @return the data type
      */
-    int getType();
+    int getValueType();
 
     /**
      * Get the expected precision of this parameter.

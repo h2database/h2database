@@ -54,10 +54,10 @@ public class ConditionInConstantSet extends Condition {
         this.valueList = valueList;
         Database database = session.getDatabase();
         this.valueSet = new TreeSet<>(database.getCompareMode());
-        type = left.getType();
+        type = left.getType().getValueType();
         Mode mode = database.getMode();
         if (type == Value.ENUM) {
-            extTypeInfo = ((ExpressionColumn) left).getColumn().getExtTypeInfo();
+            extTypeInfo = ((ExpressionColumn) left).getColumn().getType().getExtTypeInfo();
             for (Expression expression : valueList) {
                 add(extTypeInfo.cast(expression.getValue(session)));
             }

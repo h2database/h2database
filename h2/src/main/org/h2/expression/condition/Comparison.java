@@ -206,7 +206,7 @@ public class Comparison extends Condition {
         if (right != null) {
             right = right.optimize(session);
             // TODO check row values too
-            if (right.getType() == Value.ARRAY && left.getType() != Value.ARRAY) {
+            if (right.getType().getValueType() == Value.ARRAY && left.getType().getValueType() != Value.ARRAY) {
                 throw DbException.get(ErrorCode.COMPARING_ARRAY_TO_SCALAR);
             }
             if (right instanceof ExpressionColumn) {
@@ -225,8 +225,8 @@ public class Comparison extends Condition {
                             return ValueExpression.getNull();
                         }
                     }
-                    int colType = left.getType();
-                    int constType = r.getType();
+                    int colType = left.getType().getValueType();
+                    int constType = r.getValueType();
                     int resType = Value.getHigherOrder(colType, constType);
                     // If not, the column values will need to be promoted
                     // to constant type, but vise versa, then let's do this here
@@ -234,8 +234,8 @@ public class Comparison extends Condition {
                     if (constType != resType) {
                         Column column = ((ExpressionColumn) left).getColumn();
                         right = ValueExpression.get(r.convertTo(resType,
-                                MathUtils.convertLongToInt(left.getPrecision()),
-                                session.getDatabase().getMode(), column, column.getExtTypeInfo()));
+                                MathUtils.convertLongToInt(left.getType().getPrecision()),
+                                session.getDatabase().getMode(), column, column.getType().getExtTypeInfo()));
                     }
                 } else if (right instanceof Parameter) {
                     ((Parameter) right).setColumn(
@@ -516,12 +516,14 @@ public class Comparison extends Condition {
         }
         if (addIndex) {
             if (l != null) {
-                if (l.getType() == right.getType() || right.getType() != Value.STRING_IGNORECASE) {
+                int rType = right.getType().getValueType();
+                if (l.getType().getValueType() == rType || rType != Value.STRING_IGNORECASE) {
                     filter.addIndexCondition(
                             IndexCondition.get(compareType, l, right));
                 }
             } else if (r != null) {
-                if (r.getType() == left.getType() || left.getType() != Value.STRING_IGNORECASE) {
+                int lType = left.getType().getValueType();
+                if (r.getType().getValueType() == lType || lType != Value.STRING_IGNORECASE) {
                     int compareRev = getReversedCompareType(compareType);
                     filter.addIndexCondition(
                             IndexCondition.get(compareRev, r, left));

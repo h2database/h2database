@@ -150,7 +150,7 @@ public class ConditionIn extends Condition {
             return new Comparison(session, Comparison.EQUAL, left, values.get(0)).optimize(session);
         }
         if (allValuesConstant && !allValuesNull) {
-            int leftType = left.getType();
+            int leftType = left.getType().getValueType();
             if (leftType == Value.UNKNOWN) {
                 return this;
             }

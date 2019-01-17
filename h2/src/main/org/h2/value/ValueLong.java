@@ -151,8 +151,13 @@ public class ValueLong extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.LONG;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_LONG;
+    }
+
+    @Override
+    public int getValueType() {
+        return LONG;
     }
 
     @Override
@@ -168,11 +173,6 @@ public class ValueLong extends Value {
     @Override
     public String getString() {
         return Long.toString(value);
-    }
-
-    @Override
-    public long getPrecision() {
-        return PRECISION;
     }
 
     @Override
@@ -202,11 +202,6 @@ public class ValueLong extends Value {
             return STATIC_CACHE[(int) i];
         }
         return (ValueLong) Value.cache(new ValueLong(i));
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return DISPLAY_SIZE;
     }
 
     @Override

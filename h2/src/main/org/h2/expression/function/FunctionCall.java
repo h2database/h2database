@@ -36,7 +36,7 @@ public interface FunctionCall {
      *
      * @return the data type
      */
-    int getType();
+    int getValueType();
 
     /**
      * Optimize the function if possible.

@@ -6,6 +6,7 @@
 package org.h2.result;
 
 import org.h2.engine.SessionInterface;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -123,31 +124,7 @@ public interface ResultInterface extends AutoCloseable {
      * @param i the column number (starting with 0)
      * @return the column data type
      */
-    int getColumnType(int i);
-
-    /**
-     * Get the precision for this column.
-     *
-     * @param i the column number (starting with 0)
-     * @return the precision
-     */
-    long getColumnPrecision(int i);
-
-    /**
-     * Get the scale for this column.
-     *
-     * @param i the column number (starting with 0)
-     * @return the scale
-     */
-    int getColumnScale(int i);
-
-    /**
-     * Get the display size for this column.
-     *
-     * @param i the column number (starting with 0)
-     * @return the display size
-     */
-    int getDisplaySize(int i);
+    TypeInfo getColumnType(int i);
 
     /**
      * Check if this is an auto-increment column.

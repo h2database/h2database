@@ -15,6 +15,7 @@ import org.h2.message.DbException;
 import org.h2.mvstore.db.MVTempResult;
 import org.h2.util.Utils;
 import org.h2.util.ValueHashMap;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 
@@ -528,23 +529,13 @@ public class LocalResultImpl implements LocalResult {
     }
 
     @Override
-    public int getDisplaySize(int i) {
-        return expressions[i].getDisplaySize();
-    }
-
-    @Override
     public String getColumnName(int i) {
         return expressions[i].getColumnName();
     }
 
     @Override
-    public int getColumnType(int i) {
+    public TypeInfo getColumnType(int i) {
         return expressions[i].getType();
-    }
-
-    @Override
-    public long getColumnPrecision(int i) {
-        return expressions[i].getPrecision();
     }
 
     @Override
@@ -555,11 +546,6 @@ public class LocalResultImpl implements LocalResult {
     @Override
     public boolean isAutoIncrement(int i) {
         return expressions[i].isAutoIncrement();
-    }
-
-    @Override
-    public int getColumnScale(int i) {
-        return expressions[i].getScale();
     }
 
     /**

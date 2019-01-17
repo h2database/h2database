@@ -263,8 +263,13 @@ public class ValueGeometry extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.GEOMETRY;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_GEOMETRY;
+    }
+
+    @Override
+    public int getValueType() {
+        return GEOMETRY;
     }
 
     @Override
@@ -282,11 +287,6 @@ public class ValueGeometry extends Value {
     @Override
     public String getString() {
         return getEWKT();
-    }
-
-    @Override
-    public long getPrecision() {
-        return 0;
     }
 
     @Override
@@ -315,11 +315,6 @@ public class ValueGeometry extends Value {
     @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         prep.setBytes(parameterIndex, bytes);
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return getEWKT().length();
     }
 
     @Override

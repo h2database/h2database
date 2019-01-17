@@ -63,7 +63,7 @@ public class RowList implements AutoCloseable {
                 buff.writeByte((byte) 0);
             } else {
                 buff.writeByte((byte) 1);
-                if (DataType.isLargeObject(v.getType())) {
+                if (DataType.isLargeObject(v.getValueType())) {
                     // need to keep a reference to temporary lobs,
                     // otherwise the temp file is deleted
                     if (v.getSmall() == null && v.getTableId() == 0) {

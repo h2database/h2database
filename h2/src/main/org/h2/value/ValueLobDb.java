@@ -43,6 +43,8 @@ public class ValueLobDb extends Value {
      * the value type (Value.BLOB or CLOB)
      */
     private final int valueType;
+
+    private TypeInfo type;
     /**
      * If the LOB is managed by the one the LobStorageBackend classes, these are the
      * unique key inside that storage.
@@ -261,14 +263,14 @@ public class ValueLobDb extends Value {
     @Override
     public Value copy(DataHandler database, int tableId) {
         if (small == null) {
-            return handler.getLobStorage().copyLob(this, tableId, getPrecision());
+            return handler.getLobStorage().copyLob(this, tableId, precision);
         } else if (small.length > database.getMaxLengthInplaceLob()) {
             LobStorageInterface s = database.getLobStorage();
             Value v;
             if (valueType == Value.BLOB) {
-                v = s.createBlob(getInputStream(), getPrecision());
+                v = s.createBlob(getInputStream(), precision);
             } else {
-                v = s.createClob(getReader(), getPrecision());
+                v = s.createClob(getReader(), precision);
             }
             Value v2 = v.copy(database, tableId);
             v.remove();
@@ -288,13 +290,17 @@ public class ValueLobDb extends Value {
     }
 
     @Override
-    public int getType() {
-        return valueType;
+    public TypeInfo getType() {
+        TypeInfo type = this.type;
+        if (type == null) {
+            this.type = type = new TypeInfo(valueType, precision, 0, MathUtils.convertLongToInt(precision), null);
+        }
+        return type;
     }
 
     @Override
-    public long getPrecision() {
-        return precision;
+    public int getValueType() {
+        return valueType;
     }
 
     @Override
@@ -449,7 +455,7 @@ public class ValueLobDb extends Value {
     @Override
     public void set(PreparedStatement prep, int parameterIndex)
             throws SQLException {
-        long p = getPrecision();
+        long p = precision;
         if (p > Integer.MAX_VALUE || p <= 0) {
             p = -1;
         }
@@ -473,14 +479,14 @@ public class ValueLobDb extends Value {
 
     @Override
     public String getTraceSQL() {
-        if (small != null && getPrecision() <= SysProperties.MAX_TRACE_DATA_LENGTH) {
+        if (small != null && precision <= SysProperties.MAX_TRACE_DATA_LENGTH) {
             return getSQL();
         }
         StringBuilder buff = new StringBuilder();
         if (valueType == Value.CLOB) {
-            buff.append("SPACE(").append(getPrecision());
+            buff.append("SPACE(").append(precision);
         } else {
-            buff.append("CAST(REPEAT('00', ").append(getPrecision()).append(") AS BINARY");
+            buff.append("CAST(REPEAT('00', ").append(precision).append(") AS BINARY");
         }
         buff.append(" /* table: ").append(tableId).append(" id: ")
                 .append(lobId).append(" */)");
@@ -495,11 +501,6 @@ public class ValueLobDb extends Value {
     @Override
     public byte[] getSmall() {
         return small;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return MathUtils.convertLongToInt(getPrecision());
     }
 
     @Override
@@ -546,8 +547,7 @@ public class ValueLobDb extends Value {
         if (s.isReadOnly()) {
             return this;
         }
-        return s.copyLob(this, LobStorageFrontend.TABLE_RESULT,
-                getPrecision());
+        return s.copyLob(this, LobStorageFrontend.TABLE_RESULT, precision);
     }
 
     public long getLobId() {

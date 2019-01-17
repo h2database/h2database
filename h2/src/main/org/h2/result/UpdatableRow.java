@@ -232,7 +232,7 @@ public class UpdatableRow {
         }
         Value[] newRow = new Value[columnCount];
         for (int i = 0; i < columnCount; i++) {
-            int type = result.getColumnType(i);
+            int type = result.getColumnType(i).getValueType();
             newRow[i] = DataType.readValue(conn.getSession(), rs, i + 1, type);
         }
         return newRow;

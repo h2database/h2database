@@ -26,6 +26,7 @@ import org.h2.store.DataHandler;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -206,7 +207,7 @@ public class ValueDataType implements DataType {
             buff.put((byte) 0);
             return;
         }
-        int type = v.getType();
+        int type = v.getValueType();
         switch (type) {
         case Value.BOOLEAN:
             buff.put((byte) (v.getBoolean() ? BOOLEAN_TRUE : BOOLEAN_FALSE));
@@ -392,7 +393,7 @@ public class ValueDataType implements DataType {
                 buff.putVarInt(-3).
                     putVarInt(lob.getTableId()).
                     putVarLong(lob.getLobId()).
-                    putVarLong(lob.getPrecision());
+                    putVarLong(lob.getType().getPrecision());
             } else {
                 buff.putVarInt(small.length).
                     put(small);
@@ -417,10 +418,10 @@ public class ValueDataType implements DataType {
             for (int i = 0; i < columnCount; i++) {
                 writeString(buff, result.getAlias(i));
                 writeString(buff, result.getColumnName(i));
-                buff.putVarInt(result.getColumnType(i)).
-                    putVarLong(result.getColumnPrecision(i)).
-                    putVarInt(result.getColumnScale(i)).
-                    putVarInt(result.getDisplaySize(i));
+                TypeInfo columnType = result.getColumnType(i);
+                buff.putVarInt(columnType.getValueType()).
+                    putVarLong(columnType.getPrecision()).
+                    putVarInt(columnType.getScale());
             }
             while (result.next()) {
                 buff.put((byte) 1);
@@ -483,7 +484,7 @@ public class ValueDataType implements DataType {
                     put(b);
                 break;
             }
-            DbException.throwInternalError("type=" + v.getType());
+            DbException.throwInternalError("type=" + v.getValueType());
         }
     }
 
@@ -632,7 +633,7 @@ public class ValueDataType implements DataType {
             SimpleResult rs = new SimpleResult();
             int columns = readVarInt(buff);
             for (int i = 0; i < columns; i++) {
-                rs.addColumn(readString(buff), readString(buff), readVarInt(buff), readVarLong(buff), readVarInt(buff),
+                rs.addColumn(readString(buff), readString(buff), readVarInt(buff), readVarLong(buff),
                         readVarInt(buff));
             }
             while (buff.get() != 0) {

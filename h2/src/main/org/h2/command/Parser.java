@@ -226,6 +226,7 @@ import org.h2.value.DataType;
 import org.h2.value.ExtTypeInfo;
 import org.h2.value.ExtTypeInfoEnum;
 import org.h2.value.ExtTypeInfoGeometry;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -2438,8 +2439,7 @@ public class Parser {
                 boolean canBeNumber = !readIf(EQUAL);
                 SelectOrderBy order = new SelectOrderBy();
                 Expression expr = readExpression();
-                if (canBeNumber && expr instanceof ValueExpression &&
-                        expr.getType() == Value.INT) {
+                if (canBeNumber && expr instanceof ValueExpression && expr.getType().getValueType() == Value.INT) {
                     order.columnIndexExpr = expr;
                 } else if (expr instanceof Parameter) {
                     recompileAlways = true;
@@ -3836,14 +3836,14 @@ public class Parser {
             read();
             if (currentTokenType == VALUE) {
                 r = ValueExpression.get(currentValue.negate());
-                if (r.getType() == Value.LONG &&
+                int rType = r.getType().getValueType();
+                if (rType == Value.LONG &&
                         r.getValue(session).getLong() == Integer.MIN_VALUE) {
                     // convert Integer.MIN_VALUE to type 'int'
                     // (Integer.MAX_VALUE+1 is of type 'long')
                     r = ValueExpression.get(ValueInt.get(Integer.MIN_VALUE));
-                } else if (r.getType() == Value.DECIMAL &&
-                        r.getValue(session).getBigDecimal()
-                                .compareTo(Value.MIN_LONG_DECIMAL) == 0) {
+                } else if (rType == Value.DECIMAL &&
+                        r.getValue(session).getBigDecimal().compareTo(Value.MIN_LONG_DECIMAL) == 0) {
                     // convert Long.MIN_VALUE to type 'long'
                     // (Long.MAX_VALUE+1 is of type 'decimal')
                     r = ValueExpression.get(ValueLong.MIN);
@@ -4019,7 +4019,7 @@ public class Parser {
             }
             break;
         case 'D':
-            if (currentTokenType == VALUE && currentValue.getType() == Value.STRING &&
+            if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING &&
                     (equalsToken("DATE", name) || equalsToken("D", name))) {
                 String date = currentValue.getString();
                 read();
@@ -4027,7 +4027,7 @@ public class Parser {
             }
             break;
         case 'E':
-            if (currentTokenType == VALUE && currentValue.getType() == Value.STRING && equalsToken("E", name)) {
+            if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING && equalsToken("E", name)) {
                 String text = currentValue.getString();
                 // the PostgreSQL ODBC driver uses
                 // LIKE E'PROJECT\\_DATA' instead of LIKE
@@ -4042,7 +4042,8 @@ public class Parser {
             if (equalsToken("NEXT", name) && readIf("VALUE")) {
                 read(FOR);
                 return new SequenceValue(readSequence());
-            } else if (currentTokenType == VALUE && currentValue.getType() == Value.STRING && equalsToken("N", name)) {
+            } else if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING
+                    && equalsToken("N", name)) {
                 // SQL-92 "National Language" strings
                 String text = currentValue.getString();
                 read();
@@ -4065,7 +4066,7 @@ public class Parser {
                     read("TIME");
                     read("ZONE");
                 }
-                if (currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
+                if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING) {
                     String time = currentValue.getString();
                     read();
                     return ValueExpression.get(ValueTime.parse(time));
@@ -4076,7 +4077,7 @@ public class Parser {
                 if (readIf(WITH)) {
                     read("TIME");
                     read("ZONE");
-                    if (currentTokenType != VALUE || currentValue.getType() != Value.STRING) {
+                    if (currentTokenType != VALUE || currentValue.getValueType() != Value.STRING) {
                         throw getSyntaxError();
                     }
                     String timestamp = currentValue.getString();
@@ -4088,7 +4089,7 @@ public class Parser {
                         read("TIME");
                         read("ZONE");
                     }
-                    if (currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
+                    if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING) {
                         String timestamp = currentValue.getString();
                         read();
                         return ValueExpression.get(ValueTimestamp.parse(timestamp, database.getMode()));
@@ -4098,7 +4099,7 @@ public class Parser {
                 }
             } else if (equalsToken("TODAY", name)) {
                 return readFunctionWithoutParameters("CURRENT_DATE");
-            } else if (currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
+            } else if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING) {
                 if (equalsToken("T", name)) {
                     String time = currentValue.getString();
                     read();
@@ -4111,7 +4112,7 @@ public class Parser {
             }
             break;
         case 'X':
-            if (currentTokenType == VALUE && currentValue.getType() == Value.STRING && equalsToken("X", name)) {
+            if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING && equalsToken("X", name)) {
                 byte[] buffer = StringUtils.convertHexToBytes(currentValue.getString());
                 read();
                 return ValueExpression.get(ValueBytes.getNoCopy(buffer));
@@ -5355,13 +5356,14 @@ public class Parser {
         Domain domain = database.findDomain(original);
         if (domain != null) {
             templateColumn = domain.getColumn();
-            dataType = DataType.getDataType(templateColumn.getType());
+            TypeInfo type = templateColumn.getType();
+            dataType = DataType.getDataType(type.getValueType());
             comment = templateColumn.getComment();
             original = forTable ? domain.getSQL() : templateColumn.getOriginalSQL();
-            precision = templateColumn.getPrecision();
-            displaySize = templateColumn.getDisplaySize();
-            scale = templateColumn.getScale();
-            extTypeInfo = templateColumn.getExtTypeInfo();
+            precision = type.getPrecision();
+            displaySize = type.getDisplaySize();
+            scale = type.getScale();
+            extTypeInfo = type.getExtTypeInfo();
         } else {
             Mode mode = database.getMode();
             dataType = DataType.getTypeByName(original, mode);
@@ -5838,36 +5840,37 @@ public class Parser {
             do {
                 Expression expr = readExpression();
                 expr = expr.optimize(session);
-                int type = expr.getType();
+                TypeInfo type = expr.getType();
+                int valueType = type.getValueType();
                 long prec;
                 int scale, displaySize;
                 Column column;
                 String columnName = "C" + (i + 1);
                 if (rows.isEmpty()) {
-                    if (type == Value.UNKNOWN) {
-                        type = Value.STRING;
+                    if (valueType == Value.UNKNOWN) {
+                        valueType = Value.STRING;
                     }
-                    DataType dt = DataType.getDataType(type);
+                    DataType dt = DataType.getDataType(valueType);
                     prec = dt.defaultPrecision;
                     scale = dt.defaultScale;
                     displaySize = dt.defaultDisplaySize;
-                    column = new Column(columnName, type, prec, scale,
-                            displaySize);
+                    column = new Column(columnName, valueType, prec, scale, displaySize);
                     columns.add(column);
                 }
-                prec = expr.getPrecision();
-                scale = expr.getScale();
-                displaySize = expr.getDisplaySize();
+                prec = type.getPrecision();
+                scale = type.getScale();
+                displaySize = type.getDisplaySize();
                 if (i >= columns.size()) {
                     throw DbException
                             .get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
                 }
                 Column c = columns.get(i);
-                type = Value.getHigherOrder(c.getType(), type);
-                prec = Math.max(c.getPrecision(), prec);
-                scale = Math.max(c.getScale(), scale);
-                displaySize = Math.max(c.getDisplaySize(), displaySize);
-                column = new Column(columnName, type, prec, scale, displaySize);
+                TypeInfo t = c.getType();
+                valueType = Value.getHigherOrder(t.getValueType(), valueType);
+                prec = Math.max(t.getPrecision(), prec);
+                scale = Math.max(t.getScale(), scale);
+                displaySize = Math.max(t.getDisplaySize(), displaySize);
+                column = new Column(columnName, valueType, prec, scale, displaySize);
                 columns.set(i, column);
                 row.add(expr);
                 i++;
@@ -5883,7 +5886,7 @@ public class Parser {
         }
         for (int i = 0; i < columnCount; i++) {
             Column c = columns.get(i);
-            if (c.getType() == Value.UNKNOWN) {
+            if (c.getType().getValueType() == Value.UNKNOWN) {
                 c = new Column(c.getName(), Value.STRING, 0, 0, 0);
                 columns.set(i, c);
             }
@@ -7682,7 +7685,7 @@ public class Parser {
         if (readIf("AUTO_INCREMENT")) {
             read(EQUAL);
             if (currentTokenType != VALUE ||
-                    currentValue.getType() != Value.INT) {
+                    currentValue.getValueType() != Value.INT) {
                 throw DbException.getSyntaxError(sqlCommand, parseIndex,
                         "integer");
             }

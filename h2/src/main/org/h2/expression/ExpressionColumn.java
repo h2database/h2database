@@ -22,6 +22,7 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.value.ExtTypeInfo;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
@@ -216,7 +217,7 @@ public class ExpressionColumn extends Expression {
             }
         }
         if (value != ValueNull.INSTANCE) {
-            ExtTypeInfo extTypeInfo = column.getExtTypeInfo();
+            ExtTypeInfo extTypeInfo = column.getType().getExtTypeInfo();
             if (extTypeInfo != null) {
                 return extTypeInfo.cast(value);
             }
@@ -225,8 +226,8 @@ public class ExpressionColumn extends Expression {
     }
 
     @Override
-    public int getType() {
-        return column == null ? Value.UNKNOWN : column.getType();
+    public TypeInfo getType() {
+        return column == null ? TypeInfo.TYPE_UNKNOWN : column.getType();
     }
 
     @Override
@@ -235,21 +236,6 @@ public class ExpressionColumn extends Expression {
 
     public Column getColumn() {
         return column;
-    }
-
-    @Override
-    public int getScale() {
-        return column.getScale();
-    }
-
-    @Override
-    public long getPrecision() {
-        return column.getPrecision();
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return column.getDisplaySize();
     }
 
     public String getOriginalColumnName() {
@@ -360,7 +346,7 @@ public class ExpressionColumn extends Expression {
     @Override
     public void createIndexConditions(Session session, TableFilter filter) {
         TableFilter tf = getTableFilter();
-        if (filter == tf && column.getType() == Value.BOOLEAN) {
+        if (filter == tf && column.getType().getValueType() == Value.BOOLEAN) {
             IndexCondition cond = IndexCondition.get(
                     Comparison.EQUAL, this, ValueExpression.get(
                             ValueBoolean.TRUE));

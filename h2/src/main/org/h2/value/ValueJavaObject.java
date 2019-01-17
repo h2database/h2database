@@ -59,8 +59,13 @@ public class ValueJavaObject extends ValueBytes {
     }
 
     @Override
-    public int getType() {
-        return Value.JAVA_OBJECT;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_JAVA_OBJECT;
+    }
+
+    @Override
+    public int getValueType() {
+        return JAVA_OBJECT;
     }
 
     @Override
@@ -79,8 +84,6 @@ public class ValueJavaObject extends ValueBytes {
     private static class NotSerialized extends ValueJavaObject {
 
         private Object javaObject;
-
-        private int displaySize = -1;
 
         NotSerialized(Object javaObject, byte[] v, DataHandler dataHandler) {
             super(v, dataHandler);
@@ -139,17 +142,26 @@ public class ValueJavaObject extends ValueBytes {
         }
 
         @Override
-        public String getString() {
-            String str = getObject().toString();
-            if (displaySize == -1) {
-                displaySize = str.length();
+        public TypeInfo getType() {
+            TypeInfo type = this.type;
+            if (type == null) {
+                String string = getString();
+                this.type = type = createType(string);
             }
-            return str;
+            return type;
+        }
+
+        private static TypeInfo createType(String string) {
+            return new TypeInfo(JAVA_OBJECT, 0, 0, string.length(), null);
         }
 
         @Override
-        public long getPrecision() {
-            return 0;
+        public String getString() {
+            String str = getObject().toString();
+            if (type == null) {
+                type = createType(str);
+            }
+            return str;
         }
 
         @Override
@@ -169,17 +181,9 @@ public class ValueJavaObject extends ValueBytes {
         }
 
         @Override
-        public int getDisplaySize() {
-            if (displaySize == -1) {
-                displaySize = getString().length();
-            }
-            return displaySize;
-        }
-
-        @Override
         public int getMemory() {
             if (value == null) {
-                return DataType.getDataType(getType()).memory;
+                return DataType.getDataType(getValueType()).memory;
             }
             int mem = super.getMemory();
             if (javaObject != null) {

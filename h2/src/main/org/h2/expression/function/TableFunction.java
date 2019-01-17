@@ -105,7 +105,7 @@ public class TableFunction extends Function {
                 if (v == ValueNull.INSTANCE) {
                     list[i] = new Value[0];
                 } else {
-                    int type = v.getType();
+                    int type = v.getValueType();
                     if (type != Value.ARRAY && type != Value.ROW) {
                         v = v.convertTo(Value.ARRAY);
                     }
@@ -125,8 +125,8 @@ public class TableFunction extends Function {
                         Column c = columns[j];
                         v = l[row];
                         if (!unnest) {
-                            v = c.convert(v).convertPrecision(c.getPrecision(), false)
-                                    .convertScale(true, c.getScale());
+                            v = c.convert(v).convertPrecision(c.getType().getPrecision(), false)
+                                    .convertScale(true, c.getType().getScale());
                         }
                     }
                     r[j] = v;

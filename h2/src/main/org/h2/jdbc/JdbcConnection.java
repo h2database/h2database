@@ -2047,7 +2047,7 @@ public class JdbcConnection extends TraceObject
      * @return the object
      */
     Object convertToDefaultObject(Value v) {
-        switch (v.getType()) {
+        switch (v.getValueType()) {
         case Value.CLOB: {
             int id = getNextId(TraceObject.CLOB);
             return new JdbcClob(this, v, JdbcLob.State.WITH_VALUE, id);

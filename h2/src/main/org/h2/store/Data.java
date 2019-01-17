@@ -27,6 +27,7 @@ import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -423,7 +424,7 @@ public class Data {
             data[pos++] = 0;
             return;
         }
-        int type = v.getType();
+        int type = v.getValueType();
         switch (type) {
         case Value.BOOLEAN:
             writeByte((byte) (v.getBoolean() ? BOOLEAN_TRUE : BOOLEAN_FALSE));
@@ -636,7 +637,7 @@ public class Data {
                     writeVarInt(t);
                     writeVarInt(lob.getTableId());
                     writeVarInt(lob.getObjectId());
-                    writeVarLong(lob.getPrecision());
+                    writeVarLong(lob.getType().getPrecision());
                     writeByte((byte) (lob.isCompressed() ? 1 : 0));
                     if (t == -2) {
                         writeString(lob.getFileName());
@@ -652,7 +653,7 @@ public class Data {
                     writeVarInt(-3);
                     writeVarInt(lob.getTableId());
                     writeVarLong(lob.getLobId());
-                    writeVarLong(lob.getPrecision());
+                    writeVarLong(lob.getType().getPrecision());
                 } else {
                     writeVarInt(small.length);
                     write(small, 0, small.length);
@@ -679,10 +680,10 @@ public class Data {
             for (int i = 0; i < columnCount; i++) {
                 writeString(result.getAlias(i));
                 writeString(result.getColumnName(i));
-                writeVarInt(result.getColumnType(i));
-                writeVarLong(result.getColumnPrecision(i));
-                writeVarInt(result.getColumnScale(i));
-                writeVarInt(result.getDisplaySize(i));
+                TypeInfo columnType = result.getColumnType(i);
+                writeVarInt(columnType.getValueType());
+                writeVarLong(columnType.getPrecision());
+                writeVarInt(columnType.getScale());
             }
             while (result.next()) {
                 writeByte((byte) 1);
@@ -737,7 +738,7 @@ public class Data {
                 write(b, 0, b.length);
                 break;
             }
-            DbException.throwInternalError("type=" + v.getType());
+            DbException.throwInternalError("type=" + v.getValueType());
         }
         assert pos - start == getValueLen(v)
                 : "value size error: got " + (pos - start) + " expected " + getValueLen(v);
@@ -906,7 +907,7 @@ public class Data {
             SimpleResult rs = new SimpleResult();
             int columns = readVarInt();
             for (int i = 0; i < columns; i++) {
-                rs.addColumn(readString(), readString(), readVarInt(), readVarLong(), readVarInt(), readVarInt());
+                rs.addColumn(readString(), readString(), readVarInt(), readVarLong(), readVarInt());
             }
             while (readByte() != 0) {
                 Value[] o = new Value[columns];
@@ -978,7 +979,7 @@ public class Data {
         if (v == ValueNull.INSTANCE) {
             return 1;
         }
-        switch (v.getType()) {
+        switch (v.getValueType()) {
         case Value.BOOLEAN:
             return 1;
         case Value.BYTE:
@@ -1125,7 +1126,7 @@ public class Data {
                     len += getVarIntLen(t);
                     len += getVarIntLen(lob.getTableId());
                     len += getVarIntLen(lob.getObjectId());
-                    len += getVarLongLen(lob.getPrecision());
+                    len += getVarLongLen(lob.getType().getPrecision());
                     len += 1;
                     if (t == -2) {
                         len += getStringLen(lob.getFileName());
@@ -1141,7 +1142,7 @@ public class Data {
                     len += getVarIntLen(-3);
                     len += getVarIntLen(lob.getTableId());
                     len += getVarLongLen(lob.getLobId());
-                    len += getVarLongLen(lob.getPrecision());
+                    len += getVarLongLen(lob.getType().getPrecision());
                 } else {
                     len += getVarIntLen(small.length);
                     len += small.length;
@@ -1166,10 +1167,10 @@ public class Data {
             for (int i = 0; i < columnCount; i++) {
                 len += getStringLen(result.getAlias(i));
                 len += getStringLen(result.getColumnName(i));
-                len += getVarIntLen(result.getColumnType(i));
-                len += getVarLongLen(result.getColumnPrecision(i));
-                len += getVarIntLen(result.getColumnScale(i));
-                len += getVarIntLen(result.getDisplaySize(i));
+                TypeInfo columnType = result.getColumnType(i);
+                len += getVarIntLen(columnType.getValueType());
+                len += getVarLongLen(columnType.getPrecision());
+                len += getVarIntLen(columnType.getScale());
             }
             while (result.next()) {
                 len++;
@@ -1204,10 +1205,10 @@ public class Data {
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 byte[] b = v.getBytesNoCopy();
-                return 1 + getVarIntLen(v.getType())
+                return 1 + getVarIntLen(v.getValueType())
                     + getVarIntLen(b.length) + b.length;
             }
-            throw DbException.throwInternalError("type=" + v.getType());
+            throw DbException.throwInternalError("type=" + v.getValueType());
         }
     }
 

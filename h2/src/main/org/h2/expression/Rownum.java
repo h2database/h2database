@@ -10,6 +10,7 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
 
@@ -33,8 +34,8 @@ public class Rownum extends Expression {
     }
 
     @Override
-    public int getType() {
-        return Value.LONG;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_LONG;
     }
 
     @Override
@@ -50,21 +51,6 @@ public class Rownum extends Expression {
     @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         // nothing to do
-    }
-
-    @Override
-    public int getScale() {
-        return 0;
-    }
-
-    @Override
-    public long getPrecision() {
-        return ValueLong.PRECISION;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return ValueLong.DISPLAY_SIZE;
     }
 
     @Override

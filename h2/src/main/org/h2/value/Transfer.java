@@ -321,7 +321,7 @@ public class Transfer {
      * @param v the value
      */
     public void writeValue(Value v) throws IOException {
-        int type = v.getType();
+        int type = v.getValueType();
         switch (type) {
         case Value.NULL:
             writeInt(Value.NULL);
@@ -425,12 +425,12 @@ public class Transfer {
                         if (version >= Constants.TCP_PROTOCOL_VERSION_12) {
                             writeBytes(calculateLobMac(lob.getLobId()));
                         }
-                        writeLong(lob.getPrecision());
+                        writeLong(lob.getType().getPrecision());
                         break;
                     }
                 }
             }
-            long length = v.getPrecision();
+            long length = v.getType().getPrecision();
             if (length < 0) {
                 throw DbException.get(
                         ErrorCode.CONNECTION_BROKEN_1, "length=" + length);
@@ -456,12 +456,12 @@ public class Transfer {
                         if (version >= Constants.TCP_PROTOCOL_VERSION_12) {
                             writeBytes(calculateLobMac(lob.getLobId()));
                         }
-                        writeLong(lob.getPrecision());
+                        writeLong(lob.getType().getPrecision());
                         break;
                     }
                 }
             }
-            long length = v.getPrecision();
+            long length = v.getType().getPrecision();
             if (length < 0) {
                 throw DbException.get(
                         ErrorCode.CONNECTION_BROKEN_1, "length=" + length);
@@ -512,19 +512,18 @@ public class Transfer {
             int columnCount = result.getVisibleColumnCount();
             writeInt(columnCount);
             for (int i = 0; i < columnCount; i++) {
+                TypeInfo columnType = result.getColumnType(i);
                 if (version >= Constants.TCP_PROTOCOL_VERSION_18) {
                     writeString(result.getAlias(i));
                     writeString(result.getColumnName(i));
-                    writeInt(result.getColumnType(i));
-                    writeLong(result.getColumnPrecision(i));
-                    writeInt(result.getColumnScale(i));
-                    writeInt(result.getDisplaySize(i));
+                    writeInt(columnType.getValueType());
+                    writeLong(columnType.getPrecision());
                 } else {
                     writeString(result.getColumnName(i));
-                    writeInt(DataType.getDataType(result.getColumnType(i)).sqlType);
-                    writeInt(MathUtils.convertLongToInt(result.getColumnPrecision(i)));
-                    writeInt(result.getColumnScale(i));
+                    writeInt(DataType.getDataType(columnType.getValueType()).sqlType);
+                    writeInt(MathUtils.convertLongToInt(columnType.getPrecision()));
                 }
+                writeInt(columnType.getScale());
             }
             while (result.next()) {
                 writeBoolean(true);
@@ -738,11 +737,10 @@ public class Transfer {
             int columns = readInt();
             for (int i = 0; i < columns; i++) {
                 if (version >= Constants.TCP_PROTOCOL_VERSION_18) {
-                    rs.addColumn(readString(), readString(), readInt(), readLong(), readInt(), readInt());
+                    rs.addColumn(readString(), readString(), readInt(), readLong(), readInt());
                 } else {
                     String name = readString();
-                    rs.addColumn(name, name, DataType.convertSQLTypeToValueType(readInt()), readInt(), readInt(),
-                            Integer.MAX_VALUE);
+                    rs.addColumn(name, name, DataType.convertSQLTypeToValueType(readInt()), readInt(), readInt());
                 }
             }
             while (readBoolean()) {

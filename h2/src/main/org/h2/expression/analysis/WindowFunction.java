@@ -16,6 +16,7 @@ import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueLong;
@@ -286,7 +287,7 @@ public class WindowFunction extends DataAnalysisOperation {
             int rowIdColumn) {
         int size = ordered.size();
         int numExpressions = getNumExpressions();
-        int dataType = args[0].getType();
+        int dataType = args[0].getType().getValueType();
         for (int i = 0; i < size; i++) {
             Value[] row = ordered.get(i);
             int rowId = row[rowIdColumn].getInt();
@@ -475,83 +476,23 @@ public class WindowFunction extends DataAnalysisOperation {
     }
 
     @Override
-    public int getType() {
+    public TypeInfo getType() {
         switch (type) {
         case ROW_NUMBER:
         case RANK:
         case DENSE_RANK:
         case NTILE:
-            return Value.LONG;
+            return TypeInfo.TYPE_LONG;
         case PERCENT_RANK:
         case CUME_DIST:
         case RATIO_TO_REPORT:
-            return Value.DOUBLE;
+            return TypeInfo.TYPE_DOUBLE;
         case LEAD:
         case LAG:
         case FIRST_VALUE:
         case LAST_VALUE:
         case NTH_VALUE:
             return args[0].getType();
-        default:
-            throw DbException.throwInternalError("type=" + type);
-        }
-    }
-
-    @Override
-    public int getScale() {
-        switch (type) {
-        case LEAD:
-        case LAG:
-        case FIRST_VALUE:
-        case LAST_VALUE:
-        case NTH_VALUE:
-            return args[0].getScale();
-        default:
-            return 0;
-        }
-    }
-
-    @Override
-    public long getPrecision() {
-        switch (type) {
-        case ROW_NUMBER:
-        case RANK:
-        case DENSE_RANK:
-        case NTILE:
-            return ValueLong.PRECISION;
-        case PERCENT_RANK:
-        case CUME_DIST:
-        case RATIO_TO_REPORT:
-            return ValueDouble.PRECISION;
-        case LEAD:
-        case LAG:
-        case FIRST_VALUE:
-        case LAST_VALUE:
-        case NTH_VALUE:
-            return args[0].getPrecision();
-        default:
-            throw DbException.throwInternalError("type=" + type);
-        }
-    }
-
-    @Override
-    public int getDisplaySize() {
-        switch (type) {
-        case ROW_NUMBER:
-        case RANK:
-        case DENSE_RANK:
-        case NTILE:
-            return ValueLong.DISPLAY_SIZE;
-        case PERCENT_RANK:
-        case CUME_DIST:
-        case RATIO_TO_REPORT:
-            return ValueDouble.DISPLAY_SIZE;
-        case LEAD:
-        case LAG:
-        case FIRST_VALUE:
-        case LAST_VALUE:
-        case NTH_VALUE:
-            return args[0].getDisplaySize();
         default:
             throw DbException.throwInternalError("type=" + type);
         }

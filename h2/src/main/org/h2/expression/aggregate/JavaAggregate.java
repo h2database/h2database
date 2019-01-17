@@ -18,6 +18,7 @@ import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -31,6 +32,7 @@ public class JavaAggregate extends AbstractAggregate {
     private final UserAggregate userAggregate;
     private final Expression[] args;
     private int[] argTypes;
+    private TypeInfo type;
     private int dataType;
     private Connection userConnection;
 
@@ -53,21 +55,6 @@ public class JavaAggregate extends AbstractAggregate {
     }
 
     @Override
-    public long getPrecision() {
-        return Integer.MAX_VALUE;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return Integer.MAX_VALUE;
-    }
-
-    @Override
-    public int getScale() {
-        return DataType.getDataType(dataType).defaultScale;
-    }
-
-    @Override
     public StringBuilder getSQL(StringBuilder builder) {
         Parser.quoteIdentifier(builder, userAggregate.getName()).append('(');
         writeExpressions(builder, args);
@@ -76,8 +63,8 @@ public class JavaAggregate extends AbstractAggregate {
     }
 
     @Override
-    public int getType() {
-        return dataType;
+    public TypeInfo getType() {
+        return type;
     }
 
     @Override
@@ -122,12 +109,13 @@ public class JavaAggregate extends AbstractAggregate {
         for (int i = 0; i < len; i++) {
             Expression expr = args[i];
             args[i] = expr.optimize(session);
-            int type = expr.getType();
+            int type = expr.getType().getValueType();
             argTypes[i] = type;
         }
         try {
             Aggregate aggregate = getInstance();
             dataType = aggregate.getInternalType(argTypes);
+            type = TypeInfo.getTypeInfo(dataType);
         } catch (SQLException e) {
             throw DbException.convert(e);
         }

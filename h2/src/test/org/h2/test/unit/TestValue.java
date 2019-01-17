@@ -205,7 +205,7 @@ public class TestValue extends TestDb {
         assertEquals(10, v.convertPrecision(10, true).getType().getPrecision());
 
         SimpleResult rs = new SimpleResult();
-        rs.addColumn("X", "X", Value.INT, 0, 0, ValueInt.DISPLAY_SIZE);
+        rs.addColumn("X", "X", Value.INT, 0, 0);
         rs.addRow(ValueInt.get(1));
         v = ValueResultSet.get(rs);
         assertEquals(Integer.MAX_VALUE, v.getType().getPrecision());
@@ -236,8 +236,8 @@ public class TestValue extends TestDb {
         testValueResultSetTest(ValueResultSet.get(null, rs, 2), 2, true);
 
         SimpleResult result = new SimpleResult();
-        result.addColumn("ID", "ID", Value.INT, 0, 0, ValueInt.DISPLAY_SIZE);
-        result.addColumn("NAME", "NAME", Value.STRING, 255, 0, 255);
+        result.addColumn("ID", "ID", Value.INT, 0, 0);
+        result.addColumn("NAME", "NAME", Value.STRING, 255, 0);
         result.addRow(ValueInt.get(1), ValueString.get("Hello"));
         result.addRow(ValueInt.get(2), ValueString.get("World"));
         result.addRow(ValueInt.get(3), ValueString.get("Peace"));

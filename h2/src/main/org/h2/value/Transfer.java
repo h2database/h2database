@@ -518,14 +518,12 @@ public class Transfer {
                     writeString(result.getColumnName(i));
                     writeInt(columnType.getValueType());
                     writeLong(columnType.getPrecision());
-                    writeInt(columnType.getScale());
-                    writeInt(columnType.getDisplaySize());
                 } else {
                     writeString(result.getColumnName(i));
                     writeInt(DataType.getDataType(columnType.getValueType()).sqlType);
                     writeInt(MathUtils.convertLongToInt(columnType.getPrecision()));
-                    writeInt(columnType.getScale());
                 }
+                writeInt(columnType.getScale());
             }
             while (result.next()) {
                 writeBoolean(true);
@@ -739,11 +737,10 @@ public class Transfer {
             int columns = readInt();
             for (int i = 0; i < columns; i++) {
                 if (version >= Constants.TCP_PROTOCOL_VERSION_18) {
-                    rs.addColumn(readString(), readString(), readInt(), readLong(), readInt(), readInt());
+                    rs.addColumn(readString(), readString(), readInt(), readLong(), readInt());
                 } else {
                     String name = readString();
-                    rs.addColumn(name, name, DataType.convertSQLTypeToValueType(readInt()), readInt(), readInt(),
-                            Integer.MAX_VALUE);
+                    rs.addColumn(name, name, DataType.convertSQLTypeToValueType(readInt()), readInt(), readInt());
                 }
             }
             while (readBoolean()) {

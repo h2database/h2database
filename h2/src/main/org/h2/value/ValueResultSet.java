@@ -58,8 +58,7 @@ public class ValueResultSet extends Value {
                         meta.getColumnTypeName(i + 1));
                 int precision = meta.getPrecision(i + 1);
                 int scale = meta.getScale(i + 1);
-                int displaySize = meta.getColumnDisplaySize(i + 1);
-                simple.addColumn(alias, name, columnType, precision, scale, displaySize);
+                simple.addColumn(alias, name, columnType, precision, scale);
             }
             for (int i = 0; i < maxrows && rs.next(); i++) {
                 Value[] list = new Value[columnCount];

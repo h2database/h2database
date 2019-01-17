@@ -31,14 +31,13 @@ public class SimpleResult implements ResultInterface {
         /** Column type. */
         final TypeInfo columnType;
 
-        Column(String alias, String columnName, int columnType, long columnPrecision, int columnScale,
-                int displaySize) {
+        Column(String alias, String columnName, int columnType, long columnPrecision, int columnScale) {
             if (alias == null || columnName == null) {
                 throw new NullPointerException();
             }
             this.alias = alias;
             this.columnName = columnName;
-            this.columnType = TypeInfo.getTypeInfo(columnType, columnPrecision, columnScale, displaySize, null);
+            this.columnType = TypeInfo.getTypeInfo(columnType, columnPrecision, columnScale, null);
         }
 
         Column(String alias, String columnName, TypeInfo columnType) {
@@ -108,11 +107,9 @@ public class SimpleResult implements ResultInterface {
      * @param columnType Column's value type.
      * @param columnPrecision Column's  precision.
      * @param columnScale Column's scale.
-     * @param displaySize Column's display data size.
      */
-    public void addColumn(String alias, String columnName, int columnType, long columnPrecision, int columnScale,
-            int displaySize) {
-        addColumn(new Column(alias, columnName, columnType, columnPrecision, columnScale, displaySize));
+    public void addColumn(String alias, String columnName, int columnType, long columnPrecision, int columnScale) {
+        addColumn(new Column(alias, columnName, columnType, columnPrecision, columnScale));
     }
 
     /**

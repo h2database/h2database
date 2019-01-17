@@ -169,7 +169,7 @@ public class BinaryOperation extends Expression {
             if (DataType.isStringType(l.getValueType()) && DataType.isStringType(r.getValueType())) {
                 long precision = l.getPrecision() + r.getPrecision();
                 if (precision >= 0 && precision < Integer.MAX_VALUE) {
-                    type = TypeInfo.getTypeInfo(Value.STRING, precision, 0, (int) precision, null);
+                    type = TypeInfo.getTypeInfo(Value.STRING, precision, 0, null);
                     break;
                 }
             }

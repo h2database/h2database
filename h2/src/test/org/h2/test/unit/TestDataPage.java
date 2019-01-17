@@ -208,8 +208,8 @@ public class TestDataPage extends TestBase implements DataHandler {
                 ValueInt.get(10) }));
 
         SimpleResult rs = new SimpleResult();
-        rs.addColumn("ID", "ID", Value.INT, 0, 0, ValueInt.DISPLAY_SIZE);
-        rs.addColumn("NAME", "NAME", Value.STRING, 255, 0, 255);
+        rs.addColumn("ID", "ID", Value.INT, 0, 0);
+        rs.addColumn("NAME", "NAME", Value.STRING, 255, 0);
         rs.addRow(ValueInt.get(1), ValueString.get("Hello"));
         rs.addRow(ValueInt.get(2), ValueString.get("World"));
         rs.addRow(ValueInt.get(3), ValueString.get("Peace"));

@@ -421,8 +421,7 @@ public class ValueDataType implements DataType {
                 TypeInfo columnType = result.getColumnType(i);
                 buff.putVarInt(columnType.getValueType()).
                     putVarLong(columnType.getPrecision()).
-                    putVarInt(columnType.getScale()).
-                    putVarInt(columnType.getDisplaySize());
+                    putVarInt(columnType.getScale());
             }
             while (result.next()) {
                 buff.put((byte) 1);
@@ -634,7 +633,7 @@ public class ValueDataType implements DataType {
             SimpleResult rs = new SimpleResult();
             int columns = readVarInt(buff);
             for (int i = 0; i < columns; i++) {
-                rs.addColumn(readString(buff), readString(buff), readVarInt(buff), readVarLong(buff), readVarInt(buff),
+                rs.addColumn(readString(buff), readString(buff), readVarInt(buff), readVarLong(buff),
                         readVarInt(buff));
             }
             while (buff.get() != 0) {

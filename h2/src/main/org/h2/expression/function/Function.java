@@ -2317,20 +2317,20 @@ public class Function extends Expression implements FunctionCall {
                 allConst = false;
             }
         }
-        int t, s, d;
+        int t, s;
         long p;
         Expression p0 = args.length < 1 ? null : args[0];
         switch (info.type) {
         case DATE_ADD: {
             t = Value.TIMESTAMP;
-            p = d = ValueTimestamp.DEFAULT_PRECISION;
+            p = ValueTimestamp.DEFAULT_PRECISION;
             s = ValueTimestamp.MAXIMUM_SCALE;
             if (p0.isConstant()) {
                 Expression p2 = args[2];
                 switch (p2.getType().getValueType()) {
                 case Value.TIME:
                     t = Value.TIME;
-                    p = d = ValueTime.DEFAULT_PRECISION;
+                    p = ValueTime.DEFAULT_PRECISION;
                     break;
                 case Value.DATE: {
                     int field = DateTimeFunctions.getDatePart(p0.getValue(session).getString());
@@ -2346,14 +2346,14 @@ public class Function extends Expression implements FunctionCall {
                         break;
                     default:
                         t = Value.DATE;
-                        p = d = ValueDate.PRECISION;
+                        p = ValueDate.PRECISION;
                         s = 0;
                     }
                     break;
                 }
                 case Value.TIMESTAMP_TZ:
                     t = Value.TIMESTAMP_TZ;
-                    p = d = ValueTimestampTimeZone.DEFAULT_PRECISION;
+                    p = ValueTimestampTimeZone.DEFAULT_PRECISION;
                 }
             }
             break;
@@ -2363,12 +2363,10 @@ public class Function extends Expression implements FunctionCall {
                 t = Value.DECIMAL;
                 p = ValueLong.PRECISION + ValueTimestamp.MAXIMUM_SCALE;
                 s = ValueTimestamp.MAXIMUM_SCALE;
-                d = ValueLong.PRECISION + ValueTimestamp.MAXIMUM_SCALE + 1;
             } else {
                 t = Value.INT;
                 p = ValueInt.PRECISION;
                 s = 0;
-                d = ValueInt.DISPLAY_SIZE;
             }
             break;
         }
@@ -2376,10 +2374,10 @@ public class Function extends Expression implements FunctionCall {
             Expression p1 = args[1];
             t = p1.getType().getValueType();
             if (t == Value.TIMESTAMP_TZ) {
-                p = d = ValueTimestampTimeZone.DEFAULT_PRECISION;
+                p = ValueTimestampTimeZone.DEFAULT_PRECISION;
             } else {
                 t = Value.TIMESTAMP;
-                p = d = ValueTimestamp.DEFAULT_PRECISION;
+                p = ValueTimestamp.DEFAULT_PRECISION;
             }
             s = ValueTimestamp.MAXIMUM_SCALE;
             break;
@@ -2392,7 +2390,6 @@ public class Function extends Expression implements FunctionCall {
             t = Value.UNKNOWN;
             s = 0;
             p = 0;
-            d = 0;
             for (Expression e : args) {
                 if (e != ValueExpression.getNull()) {
                     TypeInfo type = e.getType();
@@ -2401,7 +2398,6 @@ public class Function extends Expression implements FunctionCall {
                         t = Value.getHigherOrder(t, valueType);
                         s = Math.max(s, type.getScale());
                         p = Math.max(p, type.getPrecision());
-                        d = Math.max(d, type.getDisplaySize());
                     }
                 }
             }
@@ -2409,7 +2405,6 @@ public class Function extends Expression implements FunctionCall {
                 t = Value.STRING;
                 s = 0;
                 p = Integer.MAX_VALUE;
-                d = Integer.MAX_VALUE;
             }
             break;
         }
@@ -2418,7 +2413,6 @@ public class Function extends Expression implements FunctionCall {
             t = Value.UNKNOWN;
             s = 0;
             p = 0;
-            d = 0;
             // (expr, when, then)
             // (expr, when, then, else)
             // (expr, when, then, when, then)
@@ -2432,7 +2426,6 @@ public class Function extends Expression implements FunctionCall {
                         t = Value.getHigherOrder(t, valueType);
                         s = Math.max(s, type.getScale());
                         p = Math.max(p, type.getPrecision());
-                        d = Math.max(d, type.getDisplaySize());
                     }
                 }
             }
@@ -2445,7 +2438,6 @@ public class Function extends Expression implements FunctionCall {
                         t = Value.getHigherOrder(t, valueType);
                         s = Math.max(s, type.getScale());
                         p = Math.max(p, type.getPrecision());
-                        d = Math.max(d, type.getDisplaySize());
                     }
                 }
             }
@@ -2453,7 +2445,6 @@ public class Function extends Expression implements FunctionCall {
                 t = Value.STRING;
                 s = 0;
                 p = Integer.MAX_VALUE;
-                d = Integer.MAX_VALUE;
             }
             break;
         }
@@ -2461,7 +2452,6 @@ public class Function extends Expression implements FunctionCall {
             TypeInfo t1 = args[1].getType(), t2 = args[2].getType();
             t = Value.getHigherOrder(t1.getValueType(), t2.getValueType());
             p = Math.max(t1.getPrecision(), t2.getPrecision());
-            d = Math.max(t1.getDisplaySize(), t2.getDisplaySize());
             s = Math.max(t1.getScale(), t2.getScale());
             break;
         }
@@ -2479,7 +2469,6 @@ public class Function extends Expression implements FunctionCall {
                 break;
             }
             p = Math.max(t1.getPrecision(), t2.getPrecision());
-            d = Math.max(t1.getDisplaySize(), t2.getDisplaySize());
             s = Math.max(t1.getScale(), t2.getScale());
             break;
         }
@@ -2491,10 +2480,9 @@ public class Function extends Expression implements FunctionCall {
                 t = dataType;
                 p = type.getPrecision();
                 s = type.getScale();
-                d = type.getDisplaySize();
             } else {
                 t = Value.UNKNOWN;
-                p = s = d = 0;
+                p = s = 0;
             }
             break;
         case TRUNCATE:
@@ -2503,19 +2491,18 @@ public class Function extends Expression implements FunctionCall {
             case Value.DATE:
             case Value.TIMESTAMP:
                 t = Value.TIMESTAMP;
-                p = d = ValueTimestamp.DEFAULT_PRECISION;
+                p = ValueTimestamp.DEFAULT_PRECISION;
                 s = 0;
                 break;
             case Value.TIMESTAMP_TZ:
                 t = Value.TIMESTAMP;
-                p = d = ValueTimestampTimeZone.DEFAULT_PRECISION;
+                p = ValueTimestampTimeZone.DEFAULT_PRECISION;
                 s = 0;
                 break;
             default:
                 t = Value.DOUBLE;
                 s = 0;
                 p = ValueDouble.PRECISION;
-                d = ValueDouble.DISPLAY_SIZE;
             }
             break;
         case ABS:
@@ -2525,11 +2512,9 @@ public class Function extends Expression implements FunctionCall {
             t = type.getValueType();
             s = type.getScale();
             p = type.getPrecision();
-            d = type.getDisplaySize();
             if (t == Value.NULL) {
                 t = Value.INT;
                 p = ValueInt.PRECISION;
-                d = ValueInt.DISPLAY_SIZE;
                 s = 0;
             }
             break;
@@ -2539,7 +2524,6 @@ public class Function extends Expression implements FunctionCall {
             t = type.getValueType();
             p = type.getPrecision();
             s = type.getScale();
-            d = type.getDisplaySize();
             if (!(p0 instanceof Variable)) {
                 throw DbException.get(
                         ErrorCode.CAN_ONLY_ASSIGN_TO_VARIABLE_1, p0.getSQL());
@@ -2554,7 +2538,6 @@ public class Function extends Expression implements FunctionCall {
             }
             p = Integer.MAX_VALUE;
             s = 0;
-            d = Integer.MAX_VALUE;
             break;
         }
         case SUBSTRING:
@@ -2572,7 +2555,6 @@ public class Function extends Expression implements FunctionCall {
                 p = Math.min(p, args[2].getValue(session).getLong());
             }
             p = Math.max(0, p);
-            d = MathUtils.convertLongToInt(p);
             break;
         }
         case ENCRYPT:
@@ -2580,7 +2562,6 @@ public class Function extends Expression implements FunctionCall {
             t = info.returnDataType;
             TypeInfo type = args[2].getType();
             p = type.getPrecision();
-            d = type.getDisplaySize();
             s = 0;
             break;
         }
@@ -2588,25 +2569,21 @@ public class Function extends Expression implements FunctionCall {
             t = info.returnDataType;
             TypeInfo type = args[0].getType();
             p = type.getPrecision();
-            d = type.getDisplaySize();
             s = 0;
             break;
         }
         case CHAR:
             t = info.returnDataType;
             p = 1;
-            d = 1;
             s = 0;
             break;
         case CONCAT:
             t = info.returnDataType;
             p = 0;
-            d = 0;
             s = 0;
             for (Expression e : args) {
                 TypeInfo type = e.getType();
                 p += type.getPrecision();
-                d = MathUtils.convertLongToInt((long) d + type.getDisplaySize());
                 if (p < 0) {
                     p = Long.MAX_VALUE;
                 }
@@ -2615,7 +2592,6 @@ public class Function extends Expression implements FunctionCall {
         case HEXTORAW:
             t = info.returnDataType;
             p = (args[0].getType().getPrecision() + 3) / 4;
-            d = MathUtils.convertLongToInt(p);
             s = 0;
             break;
         case LCASE:
@@ -2631,36 +2607,33 @@ public class Function extends Expression implements FunctionCall {
             t = info.returnDataType;
             TypeInfo type = args[0].getType();
             p = type.getPrecision();
-            d = type.getDisplaySize();
             s = 0;
             break;
         }
         case RAWTOHEX:
             t = info.returnDataType;
             p = args[0].getType().getPrecision() * 4;
-            d = MathUtils.convertLongToInt(p);
             s = 0;
             break;
         case SOUNDEX:
             t = info.returnDataType;
-            p = d = 4;
+            p = 4;
             s = 0;
             break;
         case DAY_NAME:
         case MONTH_NAME:
             t = info.returnDataType;
             // day and month names may be long in some languages
-            p = d = 20;
+            p = 20;
             s = 0;
             break;
         default:
             t = info.returnDataType;
             DataType type = DataType.getDataType(t);
             p = type.maxPrecision;
-            d = type.defaultDisplaySize;
             s = type.defaultScale;
         }
-        type = TypeInfo.getTypeInfo(t, p, s, d, extTypeInfo);
+        type = TypeInfo.getTypeInfo(t, p, s, extTypeInfo);
         dataType = t;
         if (allConst) {
             Value v = getValue(session);

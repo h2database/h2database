@@ -227,13 +227,11 @@ public class TypeInfo {
      *            the precision
      * @param scale
      *            the scale
-     * @param displaySize
-     *            the display size in characters
      * @param extTypeInfo
      *            the extended type information, or null
      * @return the data type with parameters object
      */
-    public static TypeInfo getTypeInfo(int type, long precision, int scale, int displaySize, ExtTypeInfo extTypeInfo) {
+    public static TypeInfo getTypeInfo(int type, long precision, int scale, ExtTypeInfo extTypeInfo) {
         switch (type) {
         case Value.NULL:
         case Value.BOOLEAN:

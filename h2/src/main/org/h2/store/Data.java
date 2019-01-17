@@ -684,7 +684,6 @@ public class Data {
                 writeVarInt(columnType.getValueType());
                 writeVarLong(columnType.getPrecision());
                 writeVarInt(columnType.getScale());
-                writeVarInt(columnType.getDisplaySize());
             }
             while (result.next()) {
                 writeByte((byte) 1);
@@ -908,7 +907,7 @@ public class Data {
             SimpleResult rs = new SimpleResult();
             int columns = readVarInt();
             for (int i = 0; i < columns; i++) {
-                rs.addColumn(readString(), readString(), readVarInt(), readVarLong(), readVarInt(), readVarInt());
+                rs.addColumn(readString(), readString(), readVarInt(), readVarLong(), readVarInt());
             }
             while (readByte() != 0) {
                 Value[] o = new Value[columns];
@@ -1172,7 +1171,6 @@ public class Data {
                 len += getVarIntLen(columnType.getValueType());
                 len += getVarLongLen(columnType.getPrecision());
                 len += getVarIntLen(columnType.getScale());
-                len += getVarIntLen(columnType.getDisplaySize());
             }
             while (result.next()) {
                 len++;

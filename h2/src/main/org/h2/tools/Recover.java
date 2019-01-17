@@ -423,7 +423,7 @@ public class Recover extends Tool implements DataHandler {
             byte[] small = lob.getSmall();
             if (small == null) {
                 String file = lob.getFileName();
-                String type = lob.getType() == Value.BLOB ? "BLOB" : "CLOB";
+                String type = lob.getValueType() == Value.BLOB ? "BLOB" : "CLOB";
                 if (lob.isCompressed()) {
                     dumpLob(file, true);
                     file += ".comp";
@@ -435,9 +435,9 @@ public class Recover extends Tool implements DataHandler {
             ValueLobDb lob = (ValueLobDb) v;
             byte[] small = lob.getSmall();
             if (small == null) {
-                int type = lob.getType();
+                int type = lob.getValueType();
                 long id = lob.getLobId();
-                long precision = lob.getPrecision();
+                long precision = lob.getType().getPrecision();
                 String columnType;
                 if (type == Value.BLOB) {
                     columnType = "BLOB";

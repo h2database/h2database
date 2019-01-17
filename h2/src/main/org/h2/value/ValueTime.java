@@ -127,8 +127,13 @@ public class ValueTime extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.TIME;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_TIME;
+    }
+
+    @Override
+    public int getValueType() {
+        return TIME;
     }
 
     @Override
@@ -143,16 +148,6 @@ public class ValueTime extends Value {
         builder.append("TIME '");
         DateTimeUtils.appendTime(builder, nanos);
         return builder.append('\'');
-    }
-
-    @Override
-    public long getPrecision() {
-        return MAXIMUM_PRECISION;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return MAXIMUM_PRECISION;
     }
 
     @Override

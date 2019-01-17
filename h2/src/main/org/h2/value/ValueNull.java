@@ -37,12 +37,12 @@ public class ValueNull extends Value {
     /**
      * The precision of NULL.
      */
-    private static final int PRECISION = 1;
+    static final int PRECISION = 1;
 
     /**
      * The display size of the textual representation of NULL.
      */
-    private static final int DISPLAY_SIZE = 4;
+    static final int DISPLAY_SIZE = 4;
 
     private ValueNull() {
         // don't allow construction
@@ -54,8 +54,13 @@ public class ValueNull extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.NULL;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_NULL;
+    }
+
+    @Override
+    public int getValueType() {
+        return NULL;
     }
 
     @Override
@@ -149,11 +154,6 @@ public class ValueNull extends Value {
     }
 
     @Override
-    public long getPrecision() {
-        return PRECISION;
-    }
-
-    @Override
     public int hashCode() {
         return 0;
     }
@@ -167,11 +167,6 @@ public class ValueNull extends Value {
     public void set(PreparedStatement prep, int parameterIndex)
             throws SQLException {
         prep.setNull(parameterIndex, Types.NULL);
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return DISPLAY_SIZE;
     }
 
     @Override

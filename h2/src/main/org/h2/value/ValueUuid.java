@@ -23,13 +23,13 @@ public class ValueUuid extends Value {
     /**
      * The precision of this value in number of bytes.
      */
-    private static final int PRECISION = 16;
+    static final int PRECISION = 16;
 
     /**
      * The display size of the textual representation of a UUID.
      * Example: cd38d882-7ada-4589-b5fb-7da0ca559d9a
      */
-    private static final int DISPLAY_SIZE = 36;
+    static final int DISPLAY_SIZE = 36;
 
     private final long high, low;
 
@@ -132,13 +132,13 @@ public class ValueUuid extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.UUID;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_UUID;
     }
 
     @Override
-    public long getPrecision() {
-        return PRECISION;
+    public int getValueType() {
+        return UUID;
     }
 
     @Override
@@ -218,11 +218,6 @@ public class ValueUuid extends Value {
      */
     public long getLow() {
         return low;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return DISPLAY_SIZE;
     }
 
 }

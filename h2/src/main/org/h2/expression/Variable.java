@@ -32,12 +32,12 @@ public class Variable extends Expression {
 
     @Override
     public int getDisplaySize() {
-        return lastValue.getDisplaySize();
+        return lastValue.getType().getDisplaySize();
     }
 
     @Override
     public long getPrecision() {
-        return lastValue.getPrecision();
+        return lastValue.getType().getPrecision();
     }
 
     @Override
@@ -48,12 +48,12 @@ public class Variable extends Expression {
 
     @Override
     public int getScale() {
-        return lastValue.getScale();
+        return lastValue.getType().getScale();
     }
 
     @Override
     public int getType() {
-        return lastValue.getType();
+        return lastValue.getValueType();
     }
 
     @Override

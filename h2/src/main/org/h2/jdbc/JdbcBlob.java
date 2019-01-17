@@ -44,8 +44,8 @@ public class JdbcBlob extends JdbcLob implements Blob {
         try {
             debugCodeCall("length");
             checkReadable();
-            if (value.getType() == Value.BLOB) {
-                long precision = value.getPrecision();
+            if (value.getValueType() == Value.BLOB) {
+                long precision = value.getType().getPrecision();
                 if (precision > 0) {
                     return precision;
                 }
@@ -144,7 +144,7 @@ public class JdbcBlob extends JdbcLob implements Blob {
                 throw DbException.getInvalidValueException("pos", pos);
             }
             completeWrite(conn.createBlob(new ByteArrayInputStream(bytes, offset, len), -1));
-            return (int) value.getPrecision();
+            return (int) value.getType().getPrecision();
         } catch (Exception e) {
             throw logAndConvert(e);
         }

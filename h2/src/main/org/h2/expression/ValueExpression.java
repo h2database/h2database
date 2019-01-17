@@ -76,12 +76,12 @@ public class ValueExpression extends Expression {
 
     @Override
     public int getType() {
-        return value.getType();
+        return value.getValueType();
     }
 
     @Override
     public void createIndexConditions(Session session, TableFilter filter) {
-        if (value.getType() == Value.BOOLEAN) {
+        if (value.getValueType() == Value.BOOLEAN) {
             boolean v = ((ValueBoolean) value).getBoolean();
             if (!v) {
                 filter.addIndexCondition(IndexCondition.get(Comparison.FALSE, null, this));
@@ -122,17 +122,17 @@ public class ValueExpression extends Expression {
 
     @Override
     public int getScale() {
-        return value.getScale();
+        return value.getType().getScale();
     }
 
     @Override
     public long getPrecision() {
-        return value.getPrecision();
+        return value.getType().getPrecision();
     }
 
     @Override
     public int getDisplaySize() {
-        return value.getDisplaySize();
+        return value.getType().getDisplaySize();
     }
 
     @Override

@@ -29,13 +29,13 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
      *         if both values do not have enumerators
      */
     public static ExtTypeInfoEnum getEnumeratorsForBinaryOperation(Value left, Value right) {
-        if (left.getType() == Value.ENUM) {
+        if (left.getValueType() == Value.ENUM) {
             return ((ValueEnum) left).getEnumerators();
-        } else if (right.getType() == Value.ENUM) {
+        } else if (right.getValueType() == Value.ENUM) {
             return ((ValueEnum) right).getEnumerators();
         } else {
             throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1,
-                    "type1=" + left.getType() + ", type2=" + right.getType());
+                    "type1=" + left.getValueType() + ", type2=" + right.getValueType());
         }
     }
 
@@ -94,7 +94,7 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
 
     @Override
     public Value cast(Value value) {
-        switch (value.getType()) {
+        switch (value.getValueType()) {
         case Value.ENUM:
             if (value instanceof ValueEnum && ((ValueEnum) value).getEnumerators().equals(this)) {
                 return value;

@@ -321,7 +321,7 @@ public class Transfer {
      * @param v the value
      */
     public void writeValue(Value v) throws IOException {
-        int type = v.getType();
+        int type = v.getValueType();
         switch (type) {
         case Value.NULL:
             writeInt(Value.NULL);
@@ -425,12 +425,12 @@ public class Transfer {
                         if (version >= Constants.TCP_PROTOCOL_VERSION_12) {
                             writeBytes(calculateLobMac(lob.getLobId()));
                         }
-                        writeLong(lob.getPrecision());
+                        writeLong(lob.getType().getPrecision());
                         break;
                     }
                 }
             }
-            long length = v.getPrecision();
+            long length = v.getType().getPrecision();
             if (length < 0) {
                 throw DbException.get(
                         ErrorCode.CONNECTION_BROKEN_1, "length=" + length);
@@ -456,12 +456,12 @@ public class Transfer {
                         if (version >= Constants.TCP_PROTOCOL_VERSION_12) {
                             writeBytes(calculateLobMac(lob.getLobId()));
                         }
-                        writeLong(lob.getPrecision());
+                        writeLong(lob.getType().getPrecision());
                         break;
                     }
                 }
             }
-            long length = v.getPrecision();
+            long length = v.getType().getPrecision();
             if (length < 0) {
                 throw DbException.get(
                         ErrorCode.CONNECTION_BROKEN_1, "length=" + length);

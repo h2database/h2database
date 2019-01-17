@@ -21,6 +21,8 @@ public abstract class ValueCollectionBase extends Value {
      */
     final Value[] values;
 
+    private TypeInfo type;
+
     private int hash;
 
     ValueCollectionBase(Value[] values) {
@@ -36,7 +38,7 @@ public abstract class ValueCollectionBase extends Value {
         if (hash != 0) {
             return hash;
         }
-        int h = getType();
+        int h = getValueType();
         for (Value v : values) {
             h = h * 31 + v.hashCode();
         }
@@ -45,21 +47,19 @@ public abstract class ValueCollectionBase extends Value {
     }
 
     @Override
-    public long getPrecision() {
-        long p = 0;
-        for (Value v : values) {
-            p += v.getPrecision();
+    public TypeInfo getType() {
+        TypeInfo type = this.type;
+        if (type == null) {
+            long precision = 0, displaySize = 0;
+            for (Value v : values) {
+                TypeInfo t = v.getType();
+                precision += t.getPrecision();
+                displaySize += t.getDisplaySize();
+            }
+            this.type = type = new TypeInfo(getValueType(), precision, 0, MathUtils.convertLongToInt(displaySize),
+                    null);
         }
-        return p;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        long size = 0;
-        for (Value v : values) {
-            size += v.getDisplaySize();
-        }
-        return MathUtils.convertLongToInt(size);
+        return type;
     }
 
     @Override
@@ -68,8 +68,8 @@ public abstract class ValueCollectionBase extends Value {
             return Integer.MIN_VALUE;
         }
         ValueCollectionBase l = this;
-        int leftType = l.getType();
-        int rightType = v.getType();
+        int leftType = l.getValueType();
+        int rightType = v.getValueType();
         if (rightType != ARRAY && rightType != ROW) {
             throw v.getDataConversionError(leftType);
         }

@@ -126,8 +126,13 @@ public class ValueInt extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.INT;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_INT;
+    }
+
+    @Override
+    public int getValueType() {
+        return INT;
     }
 
     @Override
@@ -151,11 +156,6 @@ public class ValueInt extends Value {
     }
 
     @Override
-    public long getPrecision() {
-        return PRECISION;
-    }
-
-    @Override
     public int hashCode() {
         return value;
     }
@@ -169,11 +169,6 @@ public class ValueInt extends Value {
     public void set(PreparedStatement prep, int parameterIndex)
             throws SQLException {
         prep.setInt(parameterIndex, value);
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return DISPLAY_SIZE;
     }
 
     @Override

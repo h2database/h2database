@@ -1099,7 +1099,7 @@ public class Function extends Expression implements FunctionCall {
     }
 
     private static Value[] getArray(Value v0) {
-        int t = v0.getType();
+        int t = v0.getValueType();
         Value[] list;
         if (t == Value.ARRAY || t == Value.ROW) {
             list = ((ValueCollectionBase) v0).getList();
@@ -1243,15 +1243,15 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case TRUNCATE: {
-            if (v0.getType() == Value.TIMESTAMP) {
+            if (v0.getValueType() == Value.TIMESTAMP) {
                 result = ValueTimestamp.fromDateValueAndNanos(((ValueTimestamp) v0).getDateValue(), 0);
-            } else if (v0.getType() == Value.DATE) {
+            } else if (v0.getValueType() == Value.DATE) {
                 result = ValueTimestamp.fromDateValueAndNanos(((ValueDate) v0).getDateValue(), 0);
-            } else if (v0.getType() == Value.TIMESTAMP_TZ) {
+            } else if (v0.getValueType() == Value.TIMESTAMP_TZ) {
                 ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v0;
                 result = ValueTimestampTimeZone.fromDateValueAndNanos(ts.getDateValue(), 0,
                         ts.getTimeZoneOffsetMins());
-            } else if (v0.getType() == Value.STRING) {
+            } else if (v0.getValueType() == Value.STRING) {
                 ValueTimestamp ts = ValueTimestamp.parse(v0.getString(), session.getDatabase().getMode());
                 result = ValueTimestamp.fromDateValueAndNanos(ts.getDateValue(), 0);
             } else {
@@ -1408,7 +1408,7 @@ public class Function extends Expression implements FunctionCall {
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case TO_CHAR:
-            switch (v0.getType()){
+            switch (v0.getValueType()){
             case Value.TIME:
             case Value.DATE:
             case Value.TIMESTAMP:
@@ -1776,12 +1776,12 @@ public class Function extends Expression implements FunctionCall {
     }
 
     private static long length(Value v) {
-        switch (v.getType()) {
+        switch (v.getValueType()) {
         case Value.BLOB:
         case Value.CLOB:
         case Value.BYTES:
         case Value.JAVA_OBJECT:
-            return v.getPrecision();
+            return v.getType().getPrecision();
         default:
             return v.getString().length();
         }
@@ -2057,7 +2057,7 @@ public class Function extends Expression implements FunctionCall {
 
     private static MessageDigest hashImpl(Value value, String algorithm) {
         MessageDigest md;
-        switch (value.getType()) {
+        switch (value.getValueType()) {
         case Value.NULL:
             return null;
         case Value.STRING:

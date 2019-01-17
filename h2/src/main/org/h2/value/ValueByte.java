@@ -93,8 +93,13 @@ public class ValueByte extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.BYTE;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_BYTE;
+    }
+
+    @Override
+    public int getValueType() {
+        return BYTE;
     }
 
     @Override
@@ -115,11 +120,6 @@ public class ValueByte extends Value {
     @Override
     public String getString() {
         return Integer.toString(value);
-    }
-
-    @Override
-    public long getPrecision() {
-        return PRECISION;
     }
 
     @Override
@@ -146,11 +146,6 @@ public class ValueByte extends Value {
      */
     public static ValueByte get(byte i) {
         return (ValueByte) Value.cache(new ValueByte(i));
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return DISPLAY_SIZE;
     }
 
     @Override

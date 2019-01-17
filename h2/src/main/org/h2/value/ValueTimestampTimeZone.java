@@ -169,8 +169,13 @@ public class ValueTimestampTimeZone extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.TIMESTAMP_TZ;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_TIMESTAMP_TZ;
+    }
+
+    @Override
+    public int getValueType() {
+        return TIMESTAMP_TZ;
     }
 
     @Override
@@ -185,21 +190,6 @@ public class ValueTimestampTimeZone extends Value {
         builder.append("TIMESTAMP WITH TIME ZONE '");
         DateTimeUtils.appendTimestampTimeZone(builder, dateValue, timeNanos, timeZoneOffsetMins);
         return builder.append('\'');
-    }
-
-    @Override
-    public long getPrecision() {
-        return MAXIMUM_PRECISION;
-    }
-
-    @Override
-    public int getScale() {
-        return MAXIMUM_SCALE;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return MAXIMUM_PRECISION;
     }
 
     @Override

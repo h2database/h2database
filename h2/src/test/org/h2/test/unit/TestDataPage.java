@@ -218,7 +218,7 @@ public class TestDataPage extends TestBase implements DataHandler {
 
     private void testValue(Value v) {
         testValue(v, false);
-        switch (v.getType()) {
+        switch (v.getValueType()) {
         case Value.DATE:
         case Value.TIME:
         case Value.TIMESTAMP:
@@ -228,12 +228,12 @@ public class TestDataPage extends TestBase implements DataHandler {
 
     private void testValue(Value v, boolean storeLocalTime) {
         Data data = Data.create(null, 1024, storeLocalTime);
-        data.checkCapacity((int) v.getPrecision());
+        data.checkCapacity((int) v.getType().getPrecision());
         data.writeValue(v);
         data.writeInt(123);
         data.reset();
         Value v2 = data.readValue();
-        assertEquals(v.getType(), v2.getType());
+        assertEquals(v.getValueType(), v2.getValueType());
         assertEquals(0, v.compareTo(v2, null, compareMode));
         assertEquals(123, data.readInt());
     }

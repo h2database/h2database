@@ -48,8 +48,13 @@ public class ValueRow extends ValueCollectionBase {
     }
 
     @Override
-    public int getType() {
-        return Value.ROW;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_ROW;
+    }
+
+    @Override
+    public int getValueType() {
+        return ROW;
     }
 
     @Override
@@ -92,7 +97,7 @@ public class ValueRow extends ValueCollectionBase {
         for (int i = 0; i < len; i++) {
             final Value value = values[i];
             if (!SysProperties.OLD_RESULT_SET_GET_OBJECT) {
-                final int type = value.getType();
+                final int type = value.getValueType();
                 if (type == Value.BYTE || type == Value.SHORT) {
                     list[i] = value.getInt();
                     continue;
@@ -172,7 +177,7 @@ public class ValueRow extends ValueCollectionBase {
             }
             // empty byte arrays or strings have precision 0
             // they count as precision 1 here
-            precision -= Math.max(1, v.getPrecision());
+            precision -= Math.max(1, v.getType().getPrecision());
             if (precision < 0) {
                 break;
             }

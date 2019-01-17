@@ -76,7 +76,7 @@ public class ConditionInSelect extends Condition {
             if (dataType == Value.NULL) {
                 return ValueBoolean.FALSE;
             }
-            if (l.getType() == Value.ROW) {
+            if (l.getValueType() == Value.ROW) {
                 Value[] leftList = ((ValueRow) l).getList();
                 if (leftList.length != 1) {
                     throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
@@ -125,7 +125,8 @@ public class ConditionInSelect extends Condition {
 
     private Value compare(Value l, ResultInterface rows) {
         Value[] currentRow = rows.currentRow();
-        Value r = l.getType() != Value.ROW && query.getColumnCount() == 1 ? currentRow[0] : ValueRow.get(currentRow);
+        Value r = l.getValueType() != Value.ROW && query.getColumnCount() == 1 ? currentRow[0]
+                : ValueRow.get(currentRow);
         return Comparison.compare(database, l, r, compareType);
     }
 

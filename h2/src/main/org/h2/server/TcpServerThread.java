@@ -573,7 +573,7 @@ public class TcpServerThread implements Runnable {
     }
 
     private void writeValue(Value v) throws IOException {
-        if (DataType.isLargeObject(v.getType())) {
+        if (DataType.isLargeObject(v.getValueType())) {
             if (v instanceof ValueLobDb) {
                 ValueLobDb lob = (ValueLobDb) v;
                 if (lob.isStored()) {

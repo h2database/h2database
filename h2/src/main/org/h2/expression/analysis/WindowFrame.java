@@ -322,7 +322,7 @@ public final class WindowFrame {
         int sortIndex = sortOrder.getQueryColumnIndexes()[0];
         Value[] row = orderedRows.get(currentRow);
         Value currentValue = row[sortIndex];
-        int type = currentValue.getType();
+        int type = currentValue.getValueType();
         Value newValue;
         Value range = getValueOffset(bound, orderedRows.get(currentRow), session);
         switch (type) {

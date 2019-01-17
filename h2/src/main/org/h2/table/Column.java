@@ -373,11 +373,12 @@ public class Column {
                 if (s.length() > 127) {
                     s = s.substring(0, 128) + "...";
                 }
-                throw DbException.get(ErrorCode.VALUE_TOO_LONG_2,
-                        getCreateSQL(), s + " (" + value.getPrecision() + ")");
+                throw DbException.get(ErrorCode.VALUE_TOO_LONG_2, getCreateSQL(),
+                        s + " (" + value.getType().getPrecision() + ')');
             }
         }
-        if (value != ValueNull.INSTANCE && DataType.isExtInfoType(type.getValueType()) && type.getExtTypeInfo() != null) {
+        if (value != ValueNull.INSTANCE && DataType.isExtInfoType(type.getValueType())
+                && type.getExtTypeInfo() != null) {
             value = type.getExtTypeInfo().cast(value);
         }
         updateSequenceIfRequired(session, value);

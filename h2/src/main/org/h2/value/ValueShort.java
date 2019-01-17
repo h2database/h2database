@@ -93,8 +93,13 @@ public class ValueShort extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.SHORT;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_SHORT;
+    }
+
+    @Override
+    public int getValueType() {
+        return SHORT;
     }
 
     @Override
@@ -115,11 +120,6 @@ public class ValueShort extends Value {
     @Override
     public String getString() {
         return Integer.toString(value);
-    }
-
-    @Override
-    public long getPrecision() {
-        return PRECISION;
     }
 
     @Override
@@ -146,11 +146,6 @@ public class ValueShort extends Value {
      */
     public static ValueShort get(short i) {
         return (ValueShort) Value.cache(new ValueShort(i));
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return DISPLAY_SIZE;
     }
 
     @Override

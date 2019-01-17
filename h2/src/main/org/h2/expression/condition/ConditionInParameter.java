@@ -77,7 +77,7 @@ public class ConditionInParameter extends Condition {
         boolean hasNull = false;
         if (value.containsNull()) {
             hasNull = true;
-        } else if (value.getType() == Value.RESULT_SET) {
+        } else if (value.getValueType() == Value.RESULT_SET) {
             for (ResultInterface ri = value.getResult(); ri.next();) {
                 Value r = ri.currentRow()[0];
                 Value cmp = Comparison.compare(database, l, r, Comparison.EQUAL);

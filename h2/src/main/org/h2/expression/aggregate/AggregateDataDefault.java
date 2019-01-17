@@ -43,7 +43,7 @@ class AggregateDataDefault extends AggregateData {
             if (value == null) {
                 value = v.convertTo(dataType);
             } else {
-                v = v.convertTo(value.getType());
+                v = v.convertTo(value.getValueType());
                 value = value.add(v);
             }
             break;
@@ -51,7 +51,7 @@ class AggregateDataDefault extends AggregateData {
             if (value == null) {
                 value = v.convertTo(DataType.getAddProofType(dataType));
             } else {
-                v = v.convertTo(value.getType());
+                v = v.convertTo(value.getValueType());
                 value = value.add(v);
             }
             break;
@@ -174,7 +174,7 @@ class AggregateDataDefault extends AggregateData {
         if (by == 0) {
             return ValueNull.INSTANCE;
         }
-        int type = Value.getHigherOrder(a.getType(), Value.LONG);
+        int type = Value.getHigherOrder(a.getValueType(), Value.LONG);
         Value b = ValueLong.get(by).convertTo(type);
         a = a.convertTo(type).divide(b);
         return a;

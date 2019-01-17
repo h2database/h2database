@@ -70,7 +70,7 @@ public class DataType {
      */
     private static final ArrayList<DataType> TYPES = new ArrayList<>(96);
     private static final HashMap<String, DataType> TYPES_BY_NAME = new HashMap<>(128);
-    private static final HashMap<Integer, DataType> TYPES_BY_VALUE_TYPE = new HashMap<>(64);
+    static final DataType[] TYPES_BY_VALUE_TYPE = new DataType[Value.TYPE_COUNT];
 
     /**
      * The value type of this data type.
@@ -183,8 +183,11 @@ public class DataType {
         }
         GEOMETRY_CLASS = g;
 
+        DataType dataType = new DataType();
+        dataType.defaultPrecision = dataType.maxPrecision = ValueNull.PRECISION;
+        dataType.defaultDisplaySize = ValueNull.DISPLAY_SIZE;
         add(Value.NULL, Types.NULL,
-                new DataType(),
+                dataType,
                 new String[]{"NULL"},
                 // the value is always in the cache
                 0
@@ -331,6 +334,10 @@ public class DataType {
                 new String[]{"LONGVARBINARY"},
                 32
         );
+        dataType = new DataType();
+        dataType.prefix = dataType.suffix = "'";
+        dataType.defaultPrecision = dataType.maxPrecision = ValueUuid.PRECISION;
+        dataType.defaultDisplaySize = ValueUuid.DISPLAY_SIZE;
         add(Value.UUID, Types.BINARY,
                 createString(false),
                 // UNIQUEIDENTIFIER is the MSSQL mode equivalent
@@ -361,9 +368,9 @@ public class DataType {
                 new String[]{"GEOMETRY"},
                 32
         );
-        DataType dataType = new DataType();
-        dataType.prefix = "(";
-        dataType.suffix = "')";
+        dataType = new DataType();
+        dataType.prefix = "ARRAY[";
+        dataType.suffix = "]";
         add(Value.ARRAY, Types.ARRAY,
                 dataType,
                 new String[]{"ARRAY"},
@@ -386,9 +393,14 @@ public class DataType {
         for (int i = Value.INTERVAL_YEAR; i <= Value.INTERVAL_MINUTE_TO_SECOND; i++) {
             addInterval(i);
         }
-        for (Integer i : TYPES_BY_VALUE_TYPE.keySet()) {
-            Value.getOrder(i);
-        }
+        // Row value doesn't have a type name
+        dataType = new DataType();
+        dataType.type = Value.ROW;
+        dataType.name = "ROW";
+        dataType.sqlType = Types.OTHER;
+        dataType.prefix = "ROW(";
+        dataType.suffix = ")";
+        TYPES_BY_VALUE_TYPE[Value.ROW] = dataType;
     }
 
     private static void addDecimal() {
@@ -466,8 +478,8 @@ public class DataType {
                 }
             }
             TYPES_BY_NAME.put(dt.name, dt);
-            if (TYPES_BY_VALUE_TYPE.get(type) == null) {
-                TYPES_BY_VALUE_TYPE.put(type, dt);
+            if (TYPES_BY_VALUE_TYPE[type] == null) {
+                TYPES_BY_VALUE_TYPE[type] = dt;
             }
             TYPES.add(dt);
         }
@@ -955,14 +967,19 @@ public class DataType {
         if (type == Value.UNKNOWN) {
             throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?");
         }
-        DataType dt = TYPES_BY_VALUE_TYPE.get(type);
-        if (dt == null && JdbcUtils.customDataTypesHandler != null) {
-            dt = JdbcUtils.customDataTypesHandler.getDataTypeById(type);
+        if (type >= Value.NULL && type < Value.TYPE_COUNT) {
+            DataType dt = TYPES_BY_VALUE_TYPE[type];
+            if (dt != null) {
+                return dt;
+            }
         }
-        if (dt == null) {
-            dt = TYPES_BY_VALUE_TYPE.get(Value.NULL);
+        if (JdbcUtils.customDataTypesHandler != null) {
+            DataType dt = JdbcUtils.customDataTypesHandler.getDataTypeById(type);
+            if (dt != null) {
+                return dt;
+            }
         }
-        return dt;
+        return TYPES_BY_VALUE_TYPE[Value.NULL];
     }
 
     /**
@@ -1598,7 +1615,7 @@ public class DataType {
         } else if (paramClass == Array.class) {
             return new JdbcArray(conn, v, 0);
         }
-        switch (v.getType()) {
+        switch (v.getValueType()) {
         case Value.JAVA_OBJECT: {
             Object o = SysProperties.serializeJavaObject ? JdbcUtils.deserialize(v.getBytes(),
                     conn.getSession().getDataHandler()) : v.getObject();

@@ -1745,7 +1745,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     @Override
     public void addTemporaryLob(Value v) {
-        if (!DataType.isLargeObject(v.getType())) {
+        if (!DataType.isLargeObject(v.getValueType())) {
             return;
         }
         if (v.getTableId() == LobStorageFrontend.TABLE_RESULT

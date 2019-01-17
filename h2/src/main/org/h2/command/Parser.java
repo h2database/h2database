@@ -4020,7 +4020,7 @@ public class Parser {
             }
             break;
         case 'D':
-            if (currentTokenType == VALUE && currentValue.getType() == Value.STRING &&
+            if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING &&
                     (equalsToken("DATE", name) || equalsToken("D", name))) {
                 String date = currentValue.getString();
                 read();
@@ -4028,7 +4028,7 @@ public class Parser {
             }
             break;
         case 'E':
-            if (currentTokenType == VALUE && currentValue.getType() == Value.STRING && equalsToken("E", name)) {
+            if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING && equalsToken("E", name)) {
                 String text = currentValue.getString();
                 // the PostgreSQL ODBC driver uses
                 // LIKE E'PROJECT\\_DATA' instead of LIKE
@@ -4043,7 +4043,8 @@ public class Parser {
             if (equalsToken("NEXT", name) && readIf("VALUE")) {
                 read(FOR);
                 return new SequenceValue(readSequence());
-            } else if (currentTokenType == VALUE && currentValue.getType() == Value.STRING && equalsToken("N", name)) {
+            } else if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING
+                    && equalsToken("N", name)) {
                 // SQL-92 "National Language" strings
                 String text = currentValue.getString();
                 read();
@@ -4066,7 +4067,7 @@ public class Parser {
                     read("TIME");
                     read("ZONE");
                 }
-                if (currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
+                if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING) {
                     String time = currentValue.getString();
                     read();
                     return ValueExpression.get(ValueTime.parse(time));
@@ -4077,7 +4078,7 @@ public class Parser {
                 if (readIf(WITH)) {
                     read("TIME");
                     read("ZONE");
-                    if (currentTokenType != VALUE || currentValue.getType() != Value.STRING) {
+                    if (currentTokenType != VALUE || currentValue.getValueType() != Value.STRING) {
                         throw getSyntaxError();
                     }
                     String timestamp = currentValue.getString();
@@ -4089,7 +4090,7 @@ public class Parser {
                         read("TIME");
                         read("ZONE");
                     }
-                    if (currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
+                    if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING) {
                         String timestamp = currentValue.getString();
                         read();
                         return ValueExpression.get(ValueTimestamp.parse(timestamp, database.getMode()));
@@ -4099,7 +4100,7 @@ public class Parser {
                 }
             } else if (equalsToken("TODAY", name)) {
                 return readFunctionWithoutParameters("CURRENT_DATE");
-            } else if (currentTokenType == VALUE && currentValue.getType() == Value.STRING) {
+            } else if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING) {
                 if (equalsToken("T", name)) {
                     String time = currentValue.getString();
                     read();
@@ -4112,7 +4113,7 @@ public class Parser {
             }
             break;
         case 'X':
-            if (currentTokenType == VALUE && currentValue.getType() == Value.STRING && equalsToken("X", name)) {
+            if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING && equalsToken("X", name)) {
                 byte[] buffer = StringUtils.convertHexToBytes(currentValue.getString());
                 read();
                 return ValueExpression.get(ValueBytes.getNoCopy(buffer));
@@ -7685,7 +7686,7 @@ public class Parser {
         if (readIf("AUTO_INCREMENT")) {
             read(EQUAL);
             if (currentTokenType != VALUE ||
-                    currentValue.getType() != Value.INT) {
+                    currentValue.getValueType() != Value.INT) {
                 throw DbException.getSyntaxError(sqlCommand, parseIndex,
                         "integer");
             }

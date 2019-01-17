@@ -41,8 +41,13 @@ public class ValueBoolean extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.BOOLEAN;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_BOOLEAN;
+    }
+
+    @Override
+    public int getValueType() {
+        return BOOLEAN;
     }
 
     @Override
@@ -71,11 +76,6 @@ public class ValueBoolean extends Value {
     }
 
     @Override
-    public long getPrecision() {
-        return PRECISION;
-    }
-
-    @Override
     public int hashCode() {
         return value ? 1 : 0;
     }
@@ -99,11 +99,6 @@ public class ValueBoolean extends Value {
      */
     public static ValueBoolean get(boolean b) {
         return b ? TRUE : FALSE;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return DISPLAY_SIZE;
     }
 
     @Override

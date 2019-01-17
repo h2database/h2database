@@ -206,7 +206,7 @@ public class ValueDataType implements DataType {
             buff.put((byte) 0);
             return;
         }
-        int type = v.getType();
+        int type = v.getValueType();
         switch (type) {
         case Value.BOOLEAN:
             buff.put((byte) (v.getBoolean() ? BOOLEAN_TRUE : BOOLEAN_FALSE));
@@ -392,7 +392,7 @@ public class ValueDataType implements DataType {
                 buff.putVarInt(-3).
                     putVarInt(lob.getTableId()).
                     putVarLong(lob.getLobId()).
-                    putVarLong(lob.getPrecision());
+                    putVarLong(lob.getType().getPrecision());
             } else {
                 buff.putVarInt(small.length).
                     put(small);
@@ -483,7 +483,7 @@ public class ValueDataType implements DataType {
                     put(b);
                 break;
             }
-            DbException.throwInternalError("type=" + v.getType());
+            DbException.throwInternalError("type=" + v.getValueType());
         }
     }
 

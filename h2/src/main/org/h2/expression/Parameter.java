@@ -63,7 +63,7 @@ public class Parameter extends Expression implements ParameterInterface {
     @Override
     public int getType() {
         if (value != null) {
-            return value.getType();
+            return value.getValueType();
         }
         if (column != null) {
             return column.getType().getValueType();
@@ -111,7 +111,7 @@ public class Parameter extends Expression implements ParameterInterface {
     @Override
     public int getScale() {
         if (value != null) {
-            return value.getScale();
+            return value.getType().getScale();
         }
         if (column != null) {
             return column.getType().getScale();
@@ -122,7 +122,7 @@ public class Parameter extends Expression implements ParameterInterface {
     @Override
     public long getPrecision() {
         if (value != null) {
-            return value.getPrecision();
+            return value.getType().getPrecision();
         }
         if (column != null) {
             return column.getType().getPrecision();
@@ -133,7 +133,7 @@ public class Parameter extends Expression implements ParameterInterface {
     @Override
     public int getDisplaySize() {
         if (value != null) {
-            return value.getDisplaySize();
+            return value.getType().getDisplaySize();
         }
         if (column != null) {
             return column.getType().getDisplaySize();

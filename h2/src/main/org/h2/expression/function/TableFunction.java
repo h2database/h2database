@@ -105,7 +105,7 @@ public class TableFunction extends Function {
                 if (v == ValueNull.INSTANCE) {
                     list[i] = new Value[0];
                 } else {
-                    int type = v.getType();
+                    int type = v.getValueType();
                     if (type != Value.ARRAY && type != Value.ROW) {
                         v = v.convertTo(Value.ARRAY);
                     }

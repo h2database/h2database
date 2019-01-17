@@ -44,7 +44,9 @@ public class ValueInterval extends Value {
      */
     public static final int MAXIMUM_SCALE = 9;
 
-    private final int type;
+    private final int valueType;
+
+    private TypeInfo type;
 
     private final boolean negative;
 
@@ -134,7 +136,7 @@ public class ValueInterval extends Value {
     }
 
     private ValueInterval(int type, boolean negative, long leading, long remaining) {
-        this.type = type;
+        this.valueType = type;
         this.negative = negative;
         this.leading = leading;
         this.remaining = remaining;
@@ -146,19 +148,27 @@ public class ValueInterval extends Value {
     }
 
     @Override
-    public int getType() {
+    public TypeInfo getType() {
+        TypeInfo type = this.type;
+        if (type == null) {
+            long l = leading;
+            int precision = 0;
+            while (l > 0) {
+                precision++;
+                l /= 10;
+            }
+            if (precision == 0) {
+                precision = 1;
+            }
+            this.type = type = new TypeInfo(valueType, precision, 0,
+                    getDisplaySize(valueType, MAXIMUM_PRECISION, MAXIMUM_SCALE), null);
+        }
         return type;
     }
 
     @Override
-    public long getPrecision() {
-        long l = leading;
-        int precision = 0;
-        while (l > 0) {
-            precision++;
-            l /= 10;
-        }
-        return precision > 0 ? precision : 1;
+    public int getValueType() {
+        return valueType;
     }
 
     @Override
@@ -178,7 +188,7 @@ public class ValueInterval extends Value {
             return this;
         }
         long l = leading;
-        switch (type) {
+        switch (valueType) {
         case INTERVAL_SECOND:
             if (r >= NANOS_PER_SECOND) {
                 l++;
@@ -208,11 +218,6 @@ public class ValueInterval extends Value {
     }
 
     @Override
-    public int getDisplaySize() {
-        return getDisplaySize(type, MAXIMUM_PRECISION, MAXIMUM_SCALE);
-    }
-
-    @Override
     public String getString() {
         return IntervalUtils.appendInterval(new StringBuilder(), getQualifier(), negative, leading, remaining)
                 .toString();
@@ -229,7 +234,7 @@ public class ValueInterval extends Value {
      * @return the interval qualifier
      */
     public IntervalQualifier getQualifier() {
-        return IntervalQualifier.valueOf(type - INTERVAL_YEAR);
+        return IntervalQualifier.valueOf(valueType - INTERVAL_YEAR);
     }
 
     /**
@@ -270,7 +275,7 @@ public class ValueInterval extends Value {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + type;
+        result = prime * result + valueType;
         result = prime * result + (negative ? 1231 : 1237);
         result = prime * result + (int) (leading ^ leading >>> 32);
         result = prime * result + (int) (remaining ^ remaining >>> 32);
@@ -286,7 +291,7 @@ public class ValueInterval extends Value {
             return false;
         }
         ValueInterval other = (ValueInterval) obj;
-        return type == other.type && negative == other.negative && leading == other.leading
+        return valueType == other.valueType && negative == other.negative && leading == other.leading
                 && remaining == other.remaining;
     }
 

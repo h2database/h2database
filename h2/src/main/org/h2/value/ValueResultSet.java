@@ -98,19 +98,13 @@ public class ValueResultSet extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.RESULT_SET;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_RESULT_SET;
     }
 
     @Override
-    public long getPrecision() {
-        return Integer.MAX_VALUE;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        // it doesn't make sense to calculate it
-        return Integer.MAX_VALUE;
+    public int getValueType() {
+        return RESULT_SET;
     }
 
     @Override

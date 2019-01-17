@@ -90,7 +90,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
                 continue;
             }
             Value v = create(i);
-            String s = "type: " + v.getType() +
+            String s = "type: " + v.getValueType() +
                     " calculated: " + v.getMemory() +
                     " real: " + MemoryFootprint.getObjectSize(v) + " " +
                     v.getClass().getName() + ": " + v.toString();
@@ -111,7 +111,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
                 // jts not in the classpath, OK
                 continue;
             }
-            assertEquals(i, v.getType());
+            assertEquals(i, v.getValueType());
             testType(i);
         }
     }

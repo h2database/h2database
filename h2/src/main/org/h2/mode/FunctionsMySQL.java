@@ -225,7 +225,7 @@ public class FunctionsMySQL extends FunctionsBase {
                     v1 == null ? fromUnixTime(v0.getInt()) : fromUnixTime(v0.getInt(), v1.getString()));
             break;
         case DATE:
-            switch (v0.getType()) {
+            switch (v0.getValueType()) {
             case Value.DATE:
                 result = v0;
                 break;

@@ -56,17 +56,17 @@ public class ParameterRemote implements ParameterInterface {
 
     @Override
     public int getType() {
-        return value == null ? dataType : value.getType();
+        return value == null ? dataType : value.getValueType();
     }
 
     @Override
     public long getPrecision() {
-        return value == null ? precision : value.getPrecision();
+        return value == null ? precision : value.getType().getPrecision();
     }
 
     @Override
     public int getScale() {
-        return value == null ? scale : value.getScale();
+        return value == null ? scale : value.getType().getScale();
     }
 
     @Override

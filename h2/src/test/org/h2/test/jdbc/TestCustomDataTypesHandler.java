@@ -26,6 +26,7 @@ import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.ExtTypeInfo;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBytes;
 import org.h2.value.ValueDouble;
@@ -221,11 +222,11 @@ public class TestCustomDataTypesHandler extends TestDb {
 
         @Override
         public Value convert(Value source, int targetType) {
-            if (source.getType() == targetType) {
+            if (source.getValueType() == targetType) {
                 return source;
             }
             if (targetType == COMPLEX_DATA_TYPE_ID) {
-                switch (source.getType()) {
+                switch (source.getValueType()) {
                     case Value.JAVA_OBJECT: {
                         assert source instanceof ValueJavaObject;
                         return ValueComplex.get((ComplexNumber)
@@ -275,13 +276,13 @@ public class TestCustomDataTypesHandler extends TestDb {
         @Override
         public Object getObject(Value value, Class<?> cls) {
             if (cls.equals(ComplexNumber.class)) {
-                if (value.getType() == COMPLEX_DATA_TYPE_ID) {
+                if (value.getValueType() == COMPLEX_DATA_TYPE_ID) {
                     return value.getObject();
                 }
                 return convert(value, COMPLEX_DATA_TYPE_ID).getObject();
             }
             throw DbException.get(
-                    ErrorCode.UNKNOWN_DATA_TYPE_1, "type:" + value.getType());
+                    ErrorCode.UNKNOWN_DATA_TYPE_1, "type:" + value.getValueType());
         }
 
         @Override
@@ -342,18 +343,13 @@ public class TestCustomDataTypesHandler extends TestDb {
         }
 
         @Override
-        public int getType() {
+        public TypeInfo getType() {
+            return TypeInfo.getTypeInfo(TestOnlyCustomDataTypesHandler.COMPLEX_DATA_TYPE_ID);
+        }
+
+        @Override
+        public int getValueType() {
             return TestOnlyCustomDataTypesHandler.COMPLEX_DATA_TYPE_ID;
-        }
-
-        @Override
-        public long getPrecision() {
-            return 0;
-        }
-
-        @Override
-        public int getDisplaySize() {
-            return 0;
         }
 
         @Override
@@ -396,7 +392,7 @@ public class TestCustomDataTypesHandler extends TestDb {
 
         @Override
         public Value convertTo(int targetType, int precision, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
-            if (getType() == targetType) {
+            if (getValueType() == targetType) {
                 return this;
             }
             switch (targetType) {

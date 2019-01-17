@@ -18,8 +18,8 @@ import org.h2.util.StringUtils;
  * client-server communication.
  */
 public class ValueEnumBase extends Value {
-    private static final int PRECISION = 10;
-    private static final int DISPLAY_SIZE = 11;
+    static final int PRECISION = 10;
+    static final int DISPLAY_SIZE = 11;
 
     private final String label;
     private final int ordinal;
@@ -64,11 +64,6 @@ public class ValueEnumBase extends Value {
     }
 
     @Override
-    public int getDisplaySize() {
-        return DISPLAY_SIZE;
-    }
-
-    @Override
     public int getInt() {
         return ordinal;
     }
@@ -81,11 +76,6 @@ public class ValueEnumBase extends Value {
     @Override
     public Object getObject() {
         return label;
-    }
-
-    @Override
-    public long getPrecision() {
-        return PRECISION;
     }
 
     @Override
@@ -104,8 +94,13 @@ public class ValueEnumBase extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.ENUM;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_ENUM_UNDEFINED;
+    }
+
+    @Override
+    public int getValueType() {
+        return ENUM;
     }
 
     @Override

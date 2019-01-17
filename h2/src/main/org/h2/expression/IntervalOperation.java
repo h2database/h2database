@@ -144,7 +144,7 @@ public class IntervalOperation extends Expression {
         if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
         }
-        int lType = l.getType(), rType = r.getType();
+        int lType = l.getValueType(), rType = r.getValueType();
         switch (opType) {
         case INTERVAL_PLUS_INTERVAL:
         case INTERVAL_MINUS_INTERVAL: {

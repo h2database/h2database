@@ -497,7 +497,7 @@ public class Aggregate extends AbstractAggregate {
         String sep = groupConcatSeparator == null ? "," : groupConcatSeparator.getValue(session).getString();
         for (Value val : array) {
             String s;
-            if (val.getType() == Value.ARRAY) {
+            if (val.getValueType() == Value.ARRAY) {
                 s = ((ValueArray) val).getList()[0].getString();
             } else {
                 s = val.getString();

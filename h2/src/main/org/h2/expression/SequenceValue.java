@@ -10,6 +10,7 @@ import org.h2.message.DbException;
 import org.h2.schema.Sequence;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
 
@@ -32,7 +33,12 @@ public class SequenceValue extends Expression {
     }
 
     @Override
-    public int getType() {
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_LONG;
+    }
+
+    @Override
+    public int getValueType() {
         return Value.LONG;
     }
 

@@ -45,7 +45,7 @@ public class FunctionTable extends Table {
             rowCount = Long.MAX_VALUE;
         }
         function.optimize(session);
-        int type = function.getType();
+        int type = function.getValueType();
         if (type != Value.RESULT_SET) {
             throw DbException.get(
                     ErrorCode.FUNCTION_MUST_RETURN_RESULT_SET_1, function.getName());

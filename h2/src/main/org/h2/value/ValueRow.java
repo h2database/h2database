@@ -48,11 +48,6 @@ public class ValueRow extends ValueCollectionBase {
     }
 
     @Override
-    public TypeInfo getType() {
-        return TypeInfo.TYPE_ROW;
-    }
-
-    @Override
     public int getValueType() {
         return ROW;
     }

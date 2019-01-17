@@ -55,7 +55,7 @@ public class ParameterRemote implements ParameterInterface {
     }
 
     @Override
-    public int getType() {
+    public int getValueType() {
         return value == null ? dataType : value.getValueType();
     }
 
@@ -94,7 +94,7 @@ public class ParameterRemote implements ParameterInterface {
      */
     public static void writeMetaData(Transfer transfer, ParameterInterface p)
             throws IOException {
-        transfer.writeInt(p.getType());
+        transfer.writeInt(p.getValueType());
         transfer.writeLong(p.getPrecision());
         transfer.writeInt(p.getScale());
         transfer.writeInt(p.getNullable());

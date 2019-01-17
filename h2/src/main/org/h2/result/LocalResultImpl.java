@@ -539,7 +539,7 @@ public class LocalResultImpl implements LocalResult {
 
     @Override
     public int getColumnType(int i) {
-        return expressions[i].getType();
+        return expressions[i].getValueType();
     }
 
     @Override

@@ -13,6 +13,7 @@ import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 
@@ -84,12 +85,20 @@ public abstract class Expression {
     public abstract Value getValue(Session session);
 
     /**
-     * Return the data type. The data type may not be known before the
+     * Returns the data type. The data type may not be known before the
      * optimization phase.
      *
-     * @return the type
+     * @return the data type
      */
-    public abstract int getType();
+    public abstract TypeInfo getType();
+
+    /**
+     * Return the value type. The value type may not be known before the
+     * optimization phase.
+     *
+     * @return the value type
+     */
+    public abstract int getValueType();
 
     /**
      * Map the columns of the resolver to expression columns.

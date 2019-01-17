@@ -11,6 +11,7 @@ import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -75,7 +76,12 @@ public class ValueExpression extends Expression {
     }
 
     @Override
-    public int getType() {
+    public TypeInfo getType() {
+        return value.getType();
+    }
+
+    @Override
+    public int getValueType() {
         return value.getValueType();
     }
 
@@ -177,7 +183,7 @@ public class ValueExpression extends Expression {
 
     @Override
     public Expression[] getExpressionColumns(Session session) {
-        if (getType() == Value.ARRAY) {
+        if (getValueType() == Value.ARRAY) {
             return getExpressionColumns(session, (ValueArray) getValue(session));
         }
         return super.getExpressionColumns(session);

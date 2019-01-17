@@ -121,7 +121,7 @@ public class SelectUnion extends Query {
         Mode mode = session.getDatabase().getMode();
         for (int i = 0; i < columnCount; i++) {
             Expression e = expressions.get(i);
-            newValues[i] = values[i].convertTo(e.getType(), mode);
+            newValues[i] = values[i].convertTo(e.getValueType(), mode);
         }
         return newValues;
     }
@@ -328,7 +328,7 @@ public class SelectUnion extends Query {
         for (int i = 0; i < len; i++) {
             Expression l = le.get(i);
             Expression r = re.get(i);
-            int type = Value.getHigherOrder(l.getType(), r.getType());
+            int type = Value.getHigherOrder(l.getValueType(), r.getValueType());
             long prec = Math.max(l.getPrecision(), r.getPrecision());
             int scale = Math.max(l.getScale(), r.getScale());
             int displaySize = Math.max(l.getDisplaySize(), r.getDisplaySize());

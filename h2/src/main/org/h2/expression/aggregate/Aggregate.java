@@ -35,6 +35,7 @@ import org.h2.util.StatementBuilder;
 import org.h2.util.ValueHashMap;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -158,12 +159,13 @@ public class Aggregate extends AbstractAggregate {
 
     private static final HashMap<String, AggregateType> AGGREGATES = new HashMap<>(64);
 
-    private final AggregateType type;
+    private final AggregateType aggregateType;
 
     private Expression on;
     private Expression groupConcatSeparator;
     private ArrayList<SelectOrderBy> orderByList;
     private SortOrder orderBySort;
+    private TypeInfo type;
     private int dataType, scale;
     private long precision;
     private int displaySize;
@@ -171,7 +173,7 @@ public class Aggregate extends AbstractAggregate {
     /**
      * Create a new aggregate object.
      *
-     * @param type
+     * @param aggregateType
      *            the aggregate type
      * @param on
      *            the aggregated expression
@@ -180,12 +182,12 @@ public class Aggregate extends AbstractAggregate {
      * @param distinct
      *            if distinct is used
      */
-    public Aggregate(AggregateType type, Expression on, Select select, boolean distinct) {
+    public Aggregate(AggregateType aggregateType, Expression on, Select select, boolean distinct) {
         super(select, distinct);
-        if (distinct && type == AggregateType.COUNT_ALL) {
+        if (distinct && aggregateType == AggregateType.COUNT_ALL) {
             throw DbException.throwInternalError();
         }
-        this.type = type;
+        this.aggregateType = aggregateType;
         this.on = on;
     }
 
@@ -272,7 +274,7 @@ public class Aggregate extends AbstractAggregate {
      * @return the type of this aggregate
      */
     public AggregateType getAggregateType() {
-        return type;
+        return aggregateType;
     }
 
     private void sortWithOrderBy(Value[] array) {
@@ -297,11 +299,11 @@ public class Aggregate extends AbstractAggregate {
     }
 
     private void updateData(Session session, AggregateData data, Value v, Value[] remembered) {
-        if (type == AggregateType.GROUP_CONCAT) {
+        if (aggregateType == AggregateType.GROUP_CONCAT) {
             if (v != ValueNull.INSTANCE) {
                 v = updateCollecting(session, v.convertTo(Value.STRING), remembered);
             }
-        } else if (type == AggregateType.ARRAY_AGG) {
+        } else if (aggregateType == AggregateType.ARRAY_AGG) {
             if (v != ValueNull.INSTANCE) {
                 v = updateCollecting(session, v, remembered);
             }
@@ -379,7 +381,7 @@ public class Aggregate extends AbstractAggregate {
 
     @Override
     protected Object createAggregateData() {
-        return AggregateData.create(type, distinct);
+        return AggregateData.create(aggregateType, distinct);
     }
 
     @Override
@@ -388,14 +390,14 @@ public class Aggregate extends AbstractAggregate {
     }
 
     private Value getValueQuick(Session session) {
-        switch (type) {
+        switch (aggregateType) {
         case COUNT:
         case COUNT_ALL:
             Table table = select.getTopTableFilter().getTable();
             return ValueLong.get(table.getRowCount(session));
         case MIN:
         case MAX: {
-            boolean first = type == AggregateType.MIN;
+            boolean first = aggregateType == AggregateType.MIN;
             Index index = getMinMaxColumnIndex();
             int sortType = index.getIndexColumns()[0].sortType;
             if ((sortType & SortOrder.DESCENDING) != 0) {
@@ -416,7 +418,7 @@ public class Aggregate extends AbstractAggregate {
         case ENVELOPE:
             return ((MVSpatialIndex) AggregateDataEnvelope.getGeometryColumnIndex(on)).getBounds(session);
         default:
-            throw DbException.throwInternalError("type=" + type);
+            throw DbException.throwInternalError("type=" + aggregateType);
         }
     }
 
@@ -426,7 +428,7 @@ public class Aggregate extends AbstractAggregate {
         if (data == null) {
             data = (AggregateData) createAggregateData();
         }
-        switch (type) {
+        switch (aggregateType) {
         case COUNT:
             if (distinct) {
                 return ValueLong.get(((AggregateDataCollecting) data).getCount());
@@ -443,7 +445,7 @@ public class Aggregate extends AbstractAggregate {
                 if (c.getCount() == 0) {
                     return ValueNull.INSTANCE;
                 }
-                AggregateDataDefault d = new AggregateDataDefault(type);
+                AggregateDataDefault d = new AggregateDataDefault(aggregateType);
                 Database db = session.getDatabase();
                 for (Value v : c) {
                     d.add(db, dataType, v);
@@ -579,7 +581,12 @@ public class Aggregate extends AbstractAggregate {
     }
 
     @Override
-    public int getType() {
+    public TypeInfo getType() {
+        return type;
+    }
+
+    @Override
+    public int getValueType() {
         return dataType;
     }
 
@@ -604,7 +611,8 @@ public class Aggregate extends AbstractAggregate {
         super.optimize(session);
         if (on != null) {
             on = on.optimize(session);
-            dataType = on.getType();
+            type = on.getType();
+            dataType = on.getValueType();
             scale = on.getScale();
             precision = on.getPrecision();
             displaySize = on.getDisplaySize();
@@ -618,26 +626,30 @@ public class Aggregate extends AbstractAggregate {
         if (groupConcatSeparator != null) {
             groupConcatSeparator = groupConcatSeparator.optimize(session);
         }
-        switch (type) {
+        switch (aggregateType) {
         case GROUP_CONCAT:
+            type = TypeInfo.TYPE_STRING_DEFAULT;
             dataType = Value.STRING;
             scale = 0;
             precision = displaySize = Integer.MAX_VALUE;
             break;
         case COUNT_ALL:
         case COUNT:
+            type = TypeInfo.TYPE_LONG;
             dataType = Value.LONG;
             scale = 0;
             precision = ValueLong.PRECISION;
             displaySize = ValueLong.DISPLAY_SIZE;
             break;
         case SELECTIVITY:
+            type = TypeInfo.TYPE_INT;
             dataType = Value.INT;
             scale = 0;
             precision = ValueInt.PRECISION;
             displaySize = ValueInt.DISPLAY_SIZE;
             break;
         case HISTOGRAM:
+            type = TypeInfo.TYPE_ARRAY;
             dataType = Value.ARRAY;
             scale = 0;
             precision = displaySize = Integer.MAX_VALUE;
@@ -645,11 +657,13 @@ public class Aggregate extends AbstractAggregate {
         case SUM:
             if (dataType == Value.BOOLEAN) {
                 // example: sum(id > 3) (count the rows)
+                type = TypeInfo.TYPE_LONG;
                 dataType = Value.LONG;
             } else if (!DataType.supportsAdd(dataType)) {
                 throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL());
             } else {
                 dataType = DataType.getAddProofType(dataType);
+                type = TypeInfo.getTypeInfo(dataType);
             }
             break;
         case AVG:
@@ -666,6 +680,7 @@ public class Aggregate extends AbstractAggregate {
         case STDDEV_SAMP:
         case VAR_POP:
         case VAR_SAMP:
+            type = TypeInfo.TYPE_DOUBLE;
             dataType = Value.DOUBLE;
             precision = ValueDouble.PRECISION;
             displaySize = ValueDouble.DISPLAY_SIZE;
@@ -673,6 +688,7 @@ public class Aggregate extends AbstractAggregate {
             break;
         case EVERY:
         case ANY:
+            type = TypeInfo.TYPE_BOOLEAN;
             dataType = Value.BOOLEAN;
             precision = ValueBoolean.PRECISION;
             displaySize = ValueBoolean.DISPLAY_SIZE;
@@ -685,17 +701,19 @@ public class Aggregate extends AbstractAggregate {
             }
             break;
         case ARRAY_AGG:
+            type = TypeInfo.TYPE_ARRAY;
             dataType = Value.ARRAY;
             scale = 0;
             precision = displaySize = Integer.MAX_VALUE;
             break;
         case ENVELOPE:
+            type = TypeInfo.TYPE_GEOMETRY;
             dataType = Value.GEOMETRY;
             scale = 0;
             precision = displaySize = Integer.MAX_VALUE;
             break;
         default:
-            DbException.throwInternalError("type=" + type);
+            DbException.throwInternalError("type=" + aggregateType);
         }
         return this;
     }
@@ -760,7 +778,7 @@ public class Aggregate extends AbstractAggregate {
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
         String text;
-        switch (type) {
+        switch (aggregateType) {
         case GROUP_CONCAT:
             return getSQLGroupConcat(builder);
         case COUNT_ALL:
@@ -822,7 +840,7 @@ public class Aggregate extends AbstractAggregate {
             text = "ENVELOPE";
             break;
         default:
-            throw DbException.throwInternalError("type=" + type);
+            throw DbException.throwInternalError("type=" + aggregateType);
         }
         builder.append(text);
         if (distinct) {
@@ -862,7 +880,7 @@ public class Aggregate extends AbstractAggregate {
             return false;
         }
         if (visitor.getType() == ExpressionVisitor.OPTIMIZABLE_AGGREGATE) {
-            switch (type) {
+            switch (aggregateType) {
             case COUNT:
                 if (!distinct && on.getNullable() == Column.NOT_NULLABLE) {
                     return visitor.getTable().canGetRowCount();

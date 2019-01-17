@@ -12,6 +12,7 @@ import org.h2.message.DbException;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
@@ -61,7 +62,18 @@ public class Parameter extends Expression implements ParameterInterface {
     }
 
     @Override
-    public int getType() {
+    public TypeInfo getType() {
+        if (value != null) {
+            return value.getType();
+        }
+        if (column != null) {
+            return column.getType();
+        }
+        return TypeInfo.TYPE_UNKNOWN;
+    }
+
+    @Override
+    public int getValueType() {
         if (value != null) {
             return value.getValueType();
         }

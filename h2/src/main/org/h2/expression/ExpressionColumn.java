@@ -22,6 +22,7 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.value.ExtTypeInfo;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
@@ -225,7 +226,12 @@ public class ExpressionColumn extends Expression {
     }
 
     @Override
-    public int getType() {
+    public TypeInfo getType() {
+        return column == null ? TypeInfo.TYPE_UNKNOWN : column.getType();
+    }
+
+    @Override
+    public int getValueType() {
         return column == null ? Value.UNKNOWN : column.getType().getValueType();
     }
 

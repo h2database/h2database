@@ -15,6 +15,7 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -67,7 +68,12 @@ public class Wildcard extends Expression {
     }
 
     @Override
-    public int getType() {
+    public TypeInfo getType() {
+        throw DbException.throwInternalError(toString());
+    }
+
+    @Override
+    public int getValueType() {
         throw DbException.throwInternalError(toString());
     }
 

@@ -9,6 +9,7 @@ import org.h2.command.Parser;
 import org.h2.engine.Session;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -37,8 +38,13 @@ public class Alias extends Expression {
     }
 
     @Override
-    public int getType() {
+    public TypeInfo getType() {
         return expr.getType();
+    }
+
+    @Override
+    public int getValueType() {
+        return expr.getValueType();
     }
 
     @Override

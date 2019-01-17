@@ -62,11 +62,6 @@ public class ValueArray extends ValueCollectionBase {
     }
 
     @Override
-    public TypeInfo getType() {
-        return TypeInfo.TYPE_ARRAY;
-    }
-
-    @Override
     public int getValueType() {
         return ARRAY;
     }

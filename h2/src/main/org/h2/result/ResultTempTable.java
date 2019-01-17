@@ -117,7 +117,7 @@ public class ResultTempTable implements ResultExternal {
         CreateTableData data = new CreateTableData();
         boolean containsLob = false;
         for (int i = 0; i < expressions.length; i++) {
-            int type = expressions[i].getType();
+            int type = expressions[i].getValueType();
             Column col = new Column(COLUMN_NAME + i, type);
             if (DataType.isLargeObject(type)) {
                 containsLob = true;

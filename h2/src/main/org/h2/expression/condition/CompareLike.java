@@ -100,7 +100,7 @@ public class CompareLike extends Condition {
     public Expression optimize(Session session) {
         left = left.optimize(session);
         right = right.optimize(session);
-        if (left.getType() == Value.STRING_IGNORECASE) {
+        if (left.getValueType() == Value.STRING_IGNORECASE) {
             ignoreCase = true;
         }
         if (left.isValueSet()) {

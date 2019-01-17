@@ -8,6 +8,7 @@ package org.h2.expression;
 import org.h2.engine.Session;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -17,7 +18,7 @@ import org.h2.value.ValueNull;
 public class UnaryOperation extends Expression {
 
     private Expression arg;
-    private int dataType;
+    private TypeInfo type;
 
     public UnaryOperation(Expression arg) {
         this.arg = arg;
@@ -33,7 +34,7 @@ public class UnaryOperation extends Expression {
 
     @Override
     public Value getValue(Session session) {
-        Value a = arg.getValue(session).convertTo(dataType, session.getDatabase().getMode());
+        Value a = arg.getValue(session).convertTo(type.getValueType(), session.getDatabase().getMode());
         return a == ValueNull.INSTANCE ? a : a.negate();
     }
 
@@ -45,11 +46,11 @@ public class UnaryOperation extends Expression {
     @Override
     public Expression optimize(Session session) {
         arg = arg.optimize(session);
-        dataType = arg.getType();
-        if (dataType == Value.UNKNOWN) {
-            dataType = Value.DECIMAL;
-        } else if (dataType == Value.ENUM) {
-            dataType = Value.INT;
+        type = arg.getType();
+        if (type.getValueType() == Value.UNKNOWN) {
+            type = TypeInfo.TYPE_DECIMAL_DEFAULT;
+        } else if (type.getValueType() == Value.ENUM) {
+            type = TypeInfo.TYPE_INT;
         }
         if (arg.isConstant()) {
             return ValueExpression.get(getValue(session));
@@ -63,8 +64,13 @@ public class UnaryOperation extends Expression {
     }
 
     @Override
-    public int getType() {
-        return dataType;
+    public TypeInfo getType() {
+        return type;
+    }
+
+    @Override
+    public int getValueType() {
+        return type.getValueType();
     }
 
     @Override

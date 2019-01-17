@@ -9,6 +9,7 @@ import org.h2.engine.Session;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueRow;
@@ -37,7 +38,12 @@ public class ExpressionList extends Expression {
     }
 
     @Override
-    public int getType() {
+    public TypeInfo getType() {
+        return isArray ? TypeInfo.TYPE_ARRAY : TypeInfo.TYPE_ROW;
+    }
+
+    @Override
+    public int getValueType() {
         return isArray ? Value.ARRAY : Value.ROW;
     }
 
@@ -125,7 +131,7 @@ public class ExpressionList extends Expression {
         for (int i = 0; i < list.length; i++) {
             Expression e = list[i];
             Column col = new Column("C" + (i + 1),
-                    e.getType(), e.getPrecision(), e.getScale(),
+                    e.getValueType(), e.getPrecision(), e.getScale(),
                     e.getDisplaySize());
             expr[i] = new ExpressionColumn(session.getDatabase(), col);
         }

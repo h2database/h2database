@@ -13,6 +13,7 @@ import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueRow;
@@ -53,8 +54,13 @@ public class Subquery extends Expression {
     }
 
     @Override
-    public int getType() {
+    public TypeInfo getType() {
         return getExpression().getType();
+    }
+
+    @Override
+    public int getValueType() {
+        return getExpression().getValueType();
     }
 
     @Override

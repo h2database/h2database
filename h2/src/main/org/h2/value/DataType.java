@@ -377,6 +377,7 @@ public class DataType {
                 32
         );
         dataType = new DataType();
+        dataType.maxPrecision = dataType.defaultPrecision = dataType.defaultDisplaySize = Integer.MAX_VALUE;
         add(Value.RESULT_SET, DataType.TYPE_RESULT_SET,
                 dataType,
                 new String[]{"RESULT_SET"},

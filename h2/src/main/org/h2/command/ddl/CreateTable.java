@@ -180,7 +180,7 @@ public class CreateTable extends CommandWithColumns {
         ColumnNamer columnNamer= new ColumnNamer(session);
         for (int i = 0; i < columnCount; i++) {
             Expression expr = expressions.get(i);
-            int type = expr.getType();
+            int type = expr.getValueType();
             String name = columnNamer.getColumnName(expr,i,expr.getAlias());
             long precision = expr.getPrecision();
             int displaySize = expr.getDisplaySize();

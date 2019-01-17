@@ -6,6 +6,7 @@
 package org.h2.expression.condition;
 
 import org.h2.expression.Expression;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 
@@ -15,7 +16,12 @@ import org.h2.value.ValueBoolean;
 abstract class Condition extends Expression {
 
     @Override
-    public int getType() {
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_BOOLEAN;
+    }
+
+    @Override
+    public int getValueType() {
         return Value.BOOLEAN;
     }
 

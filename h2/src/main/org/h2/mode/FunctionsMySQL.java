@@ -19,7 +19,7 @@ import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionInfo;
 import org.h2.message.DbException;
 import org.h2.util.StringUtils;
-import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
@@ -203,10 +203,7 @@ public class FunctionsMySQL extends FunctionsBase {
             return ValueExpression.get(getValue(session));
         }
         dataType = info.returnDataType;
-        DataType dt = DataType.getDataType(dataType);
-        precision = dt.defaultPrecision;
-        scale = dt.defaultScale;
-        displaySize = dt.defaultDisplaySize;
+        type = TypeInfo.getTypeInfo(dataType);
         return this;
     }
 

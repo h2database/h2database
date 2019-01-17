@@ -26,6 +26,7 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.IntervalUtils;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueInterval;
@@ -77,6 +78,7 @@ public class IntervalOperation extends Expression {
 
     private final IntervalOpType opType;
     private Expression left, right;
+    private TypeInfo type;
     private int dataType;
 
     private static BigInteger nanosFromValue(Value v) {
@@ -89,24 +91,29 @@ public class IntervalOperation extends Expression {
         this.opType = opType;
         this.left = left;
         this.right = right;
-        int l = left.getType(), r = right.getType();
+        int l = left.getValueType(), r = right.getValueType();
         switch (opType) {
         case INTERVAL_PLUS_INTERVAL:
         case INTERVAL_MINUS_INTERVAL:
             dataType = Value.getHigherOrder(l, r);
+            type = TypeInfo.getTypeInfo(dataType);
             break;
         case DATETIME_PLUS_INTERVAL:
         case DATETIME_MINUS_INTERVAL:
         case INTERVAL_MULTIPLY_NUMERIC:
         case INTERVAL_DIVIDE_NUMERIC:
+            type = left.getType();
             dataType = l;
             break;
         case DATETIME_MINUS_DATETIME:
             if (l == Value.TIME && r == Value.TIME) {
+                type = TypeInfo.TYPE_INTERVAL_HOUR_TO_SECOND;
                 dataType = Value.INTERVAL_HOUR_TO_SECOND;
             } else if (l == Value.DATE && r == Value.DATE) {
+                type = TypeInfo.TYPE_INTERVAL_DAY;
                 dataType = Value.INTERVAL_DAY;
             } else {
+                type = TypeInfo.TYPE_INTERVAL_DAY_TO_SECOND;
                 dataType = Value.INTERVAL_DAY_TO_SECOND;
             }
         }
@@ -277,7 +284,12 @@ public class IntervalOperation extends Expression {
     }
 
     @Override
-    public int getType() {
+    public TypeInfo getType() {
+        return type;
+    }
+
+    @Override
+    public int getValueType() {
         return dataType;
     }
 

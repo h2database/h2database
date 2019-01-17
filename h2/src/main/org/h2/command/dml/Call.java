@@ -76,7 +76,7 @@ public class Call extends Prepared {
     public void prepare() {
         expression = expression.optimize(session);
         expressions = new Expression[] { expression };
-        isResultSet = expression.getType() == Value.RESULT_SET;
+        isResultSet = expression.getValueType() == Value.RESULT_SET;
         if (isResultSet) {
             prepareAlways = true;
         }

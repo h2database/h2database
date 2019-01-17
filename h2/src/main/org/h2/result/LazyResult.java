@@ -140,7 +140,7 @@ public abstract class LazyResult implements ResultInterface {
 
     @Override
     public int getColumnType(int i) {
-        return expressions[i].getType();
+        return expressions[i].getValueType();
     }
 
     @Override

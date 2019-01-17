@@ -463,14 +463,11 @@ public abstract class Value extends VersionedValue {
     public static int getHigherOrder(int t1, int t2) {
         if (t1 == Value.UNKNOWN || t2 == Value.UNKNOWN) {
             if (t1 == t2) {
-                throw DbException.get(
-                        ErrorCode.UNKNOWN_DATA_TYPE_1, "?, ?");
+                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?, ?");
             } else if (t1 == Value.NULL) {
-                throw DbException.get(
-                        ErrorCode.UNKNOWN_DATA_TYPE_1, "NULL, ?");
+                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "NULL, ?");
             } else if (t2 == Value.NULL) {
-                throw DbException.get(
-                        ErrorCode.UNKNOWN_DATA_TYPE_1, "?, NULL");
+                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?, NULL");
             }
         }
         if (t1 == t2) {
@@ -479,6 +476,34 @@ public abstract class Value extends VersionedValue {
         int o1 = getOrder(t1);
         int o2 = getOrder(t2);
         return o1 > o2 ? t1 : t2;
+    }
+
+    /**
+     * Get the higher data type of two data types. If values need to be
+     * converted to match the other operands data type, the value with the
+     * lower order is converted to the value with the higher order.
+     *
+     * @param type1 the first data type
+     * @param type2 the second data type
+     * @return the higher data type of the two
+     */
+    public static TypeInfo getHigherType(TypeInfo type1, TypeInfo type2) {
+        int t1 = type1.getValueType(), t2 = type2.getValueType();
+        if (t1 == Value.UNKNOWN || t2 == Value.UNKNOWN) {
+            if (t1 == t2) {
+                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?, ?");
+            } else if (t1 == Value.NULL) {
+                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "NULL, ?");
+            } else if (t2 == Value.NULL) {
+                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?, NULL");
+            }
+        }
+        int dataType =  getOrder(t1) > getOrder(t2) ? t1 : t2;
+        long precision = Math.max(type1.getPrecision(), type2.getPrecision());
+        int scale = Math.max(type1.getScale(), type2.getScale());
+        ExtTypeInfo ext1 = type1.getExtTypeInfo();
+        ExtTypeInfo ext = dataType == t1 && ext1 != null ? ext1 : dataType == t2 ? type2.getExtTypeInfo() : null;
+        return TypeInfo.getTypeInfo(dataType, precision, scale, ext);
     }
 
     /**
@@ -697,7 +722,7 @@ public abstract class Value extends VersionedValue {
     }
 
     /**
-     * Compare a value to the specified type.
+     * Convert a value to the specified type.
      *
      * @param targetType the type of the returned value
      * @param mode the mode
@@ -708,7 +733,19 @@ public abstract class Value extends VersionedValue {
     }
 
     /**
-     * Compare a value to the specified type.
+     * Convert a value to the specified type.
+     *
+     * @param targetType the type of the returned value
+     * @param mode the conversion mode
+     * @param column the column (if any), used for to improve the error message if conversion fails
+     * @return the converted value
+     */
+    public Value convertTo(TypeInfo targetType, Mode mode, Object column) {
+        return convertTo(targetType.getValueType(), -1, mode, column, targetType.getExtTypeInfo());
+    }
+
+    /**
+     * Convert a value to the specified type.
      *
      * @param targetType the type of the returned value
      * @param precision the precision of the column to convert this value to.

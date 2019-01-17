@@ -5841,37 +5841,22 @@ public class Parser {
                 Expression expr = readExpression();
                 expr = expr.optimize(session);
                 TypeInfo type = expr.getType();
-                int valueType = type.getValueType();
-                long prec;
-                int scale, displaySize;
                 Column column;
                 String columnName = "C" + (i + 1);
                 if (rows.isEmpty()) {
-                    if (valueType == Value.UNKNOWN) {
-                        valueType = Value.STRING;
+                    if (type.getValueType() == Value.UNKNOWN) {
+                        type = TypeInfo.TYPE_STRING_DEFAULT;
                     }
-                    DataType dt = DataType.getDataType(valueType);
-                    prec = dt.defaultPrecision;
-                    scale = dt.defaultScale;
-                    displaySize = dt.defaultDisplaySize;
-                    column = new Column(columnName, valueType, prec, scale, displaySize);
+                    column = new Column(columnName, type);
                     columns.add(column);
+                } else {
+                    if (i >= columns.size()) {
+                        throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+                    }
+                    type = Value.getHigherType(columns.get(i).getType(), type);
+                    column = new Column(columnName, type);
+                    columns.set(i, column);
                 }
-                prec = type.getPrecision();
-                scale = type.getScale();
-                displaySize = type.getDisplaySize();
-                if (i >= columns.size()) {
-                    throw DbException
-                            .get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
-                }
-                Column c = columns.get(i);
-                TypeInfo t = c.getType();
-                valueType = Value.getHigherOrder(t.getValueType(), valueType);
-                prec = Math.max(t.getPrecision(), prec);
-                scale = Math.max(t.getScale(), scale);
-                displaySize = Math.max(t.getDisplaySize(), displaySize);
-                column = new Column(columnName, valueType, prec, scale, displaySize);
-                columns.set(i, column);
                 row.add(expr);
                 i++;
             } while (multiColumn && readIfMore(true));

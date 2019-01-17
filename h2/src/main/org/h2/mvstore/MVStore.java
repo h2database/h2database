@@ -185,7 +185,7 @@ public class MVStore implements AutoCloseable {
 
     private volatile boolean reuseSpace = true;
 
-    private final AtomicInteger state = new AtomicInteger();
+    private volatile int state;
 
     private final FileStore fileStore;
 
@@ -960,10 +960,11 @@ public class MVStore implements AutoCloseable {
         // isClosed() would wait until closure is done and then  we jump out of the loop.
         // This is a subtle difference between !isClosed() and isOpen().
         while (!isClosed()) {
-            if (state.compareAndSet(STATE_OPEN, STATE_STOPPING)) {
-                try {
-                    stopBackgroundThread(normalShutdown);
-                    storeLock.lock();
+            stopBackgroundThread(normalShutdown);
+            storeLock.lock();
+            try {
+                if (state == STATE_OPEN) {
+                    state = STATE_STOPPING;
                     try {
                         try {
                             if (normalShutdown && fileStore != null && !fileStore.isReadOnly()) {
@@ -979,7 +980,7 @@ public class MVStore implements AutoCloseable {
                                 shrinkFileIfPossible(0);
                             }
 
-                            state.set(STATE_CLOSING);
+                            state = STATE_CLOSING;
 
                             // release memory early - this is important when called
                             // because of out of memory
@@ -1000,11 +1001,11 @@ public class MVStore implements AutoCloseable {
                             }
                         }
                     } finally {
-                        storeLock.unlock();
+                        state = STATE_CLOSED;
                     }
-                } finally {
-                    state.set(STATE_CLOSED);
                 }
+            } finally {
+                storeLock.unlock();
             }
         }
     }
@@ -2806,7 +2807,7 @@ public class MVStore implements AutoCloseable {
     }
 
     private boolean isOpen() {
-        return state.get() == STATE_OPEN;
+        return state == STATE_OPEN;
     }
 
     /**
@@ -2817,27 +2818,17 @@ public class MVStore implements AutoCloseable {
         if (isOpen()) {
             return false;
         }
-        int millis = 1;
-        while (state.get() != STATE_CLOSED) {
-            /*
-             * We need to wait for completion of close procedure. This is
-             * required because otherwise database may be closed too early while
-             * underlying storage still has unreleased resources. The quickly
-             * following connection attempts fail with The file is locked
-             * exception.
-             */
-            try {
-                Thread.sleep(millis++);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
-            }
+        storeLock.lock();
+        try {
+            assert state == STATE_CLOSED;
+            return true;
+        } finally {
+            storeLock.unlock();
         }
-        return true;
     }
 
     private boolean isOpenOrStopping() {
-        return state.get() <= STATE_STOPPING;
+        return state <= STATE_STOPPING;
     }
 
     private void stopBackgroundThread(boolean waitForIt) {

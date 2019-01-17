@@ -43,11 +43,6 @@ public class Alias extends Expression {
     }
 
     @Override
-    public int getValueType() {
-        return expr.getValueType();
-    }
-
-    @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
         expr.mapColumns(resolver, level, state);
     }

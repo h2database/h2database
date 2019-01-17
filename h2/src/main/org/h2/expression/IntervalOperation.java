@@ -79,7 +79,6 @@ public class IntervalOperation extends Expression {
     private final IntervalOpType opType;
     private Expression left, right;
     private TypeInfo type;
-    private int dataType;
 
     private static BigInteger nanosFromValue(Value v) {
         long[] a = dateAndTimeFromValue(v);
@@ -91,30 +90,25 @@ public class IntervalOperation extends Expression {
         this.opType = opType;
         this.left = left;
         this.right = right;
-        int l = left.getValueType(), r = right.getValueType();
+        int l = left.getType().getValueType(), r = right.getType().getValueType();
         switch (opType) {
         case INTERVAL_PLUS_INTERVAL:
         case INTERVAL_MINUS_INTERVAL:
-            dataType = Value.getHigherOrder(l, r);
-            type = TypeInfo.getTypeInfo(dataType);
+            type = TypeInfo.getTypeInfo(Value.getHigherOrder(l, r));
             break;
         case DATETIME_PLUS_INTERVAL:
         case DATETIME_MINUS_INTERVAL:
         case INTERVAL_MULTIPLY_NUMERIC:
         case INTERVAL_DIVIDE_NUMERIC:
             type = left.getType();
-            dataType = l;
             break;
         case DATETIME_MINUS_DATETIME:
             if (l == Value.TIME && r == Value.TIME) {
                 type = TypeInfo.TYPE_INTERVAL_HOUR_TO_SECOND;
-                dataType = Value.INTERVAL_HOUR_TO_SECOND;
             } else if (l == Value.DATE && r == Value.DATE) {
                 type = TypeInfo.TYPE_INTERVAL_DAY;
-                dataType = Value.INTERVAL_DAY;
             } else {
                 type = TypeInfo.TYPE_INTERVAL_DAY_TO_SECOND;
-                dataType = Value.INTERVAL_DAY_TO_SECOND;
             }
         }
     }
@@ -286,11 +280,6 @@ public class IntervalOperation extends Expression {
     @Override
     public TypeInfo getType() {
         return type;
-    }
-
-    @Override
-    public int getValueType() {
-        return dataType;
     }
 
     @Override

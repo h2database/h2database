@@ -43,11 +43,6 @@ public class Variable extends Expression {
     }
 
     @Override
-    public int getValueType() {
-        return lastValue.getValueType();
-    }
-
-    @Override
     public Value getValue(Session session) {
         lastValue = session.getVariable(name);
         return lastValue;

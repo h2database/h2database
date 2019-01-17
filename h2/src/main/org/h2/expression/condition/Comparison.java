@@ -206,7 +206,7 @@ public class Comparison extends Condition {
         if (right != null) {
             right = right.optimize(session);
             // TODO check row values too
-            if (right.getValueType() == Value.ARRAY && left.getValueType() != Value.ARRAY) {
+            if (right.getType().getValueType() == Value.ARRAY && left.getType().getValueType() != Value.ARRAY) {
                 throw DbException.get(ErrorCode.COMPARING_ARRAY_TO_SCALAR);
             }
             if (right instanceof ExpressionColumn) {
@@ -225,7 +225,7 @@ public class Comparison extends Condition {
                             return ValueExpression.getNull();
                         }
                     }
-                    int colType = left.getValueType();
+                    int colType = left.getType().getValueType();
                     int constType = r.getValueType();
                     int resType = Value.getHigherOrder(colType, constType);
                     // If not, the column values will need to be promoted
@@ -516,12 +516,14 @@ public class Comparison extends Condition {
         }
         if (addIndex) {
             if (l != null) {
-                if (l.getValueType() == right.getValueType() || right.getValueType() != Value.STRING_IGNORECASE) {
+                int rType = right.getType().getValueType();
+                if (l.getType().getValueType() == rType || rType != Value.STRING_IGNORECASE) {
                     filter.addIndexCondition(
                             IndexCondition.get(compareType, l, right));
                 }
             } else if (r != null) {
-                if (r.getValueType() == left.getValueType() || left.getValueType() != Value.STRING_IGNORECASE) {
+                int lType = left.getType().getValueType();
+                if (r.getType().getValueType() == lType || lType != Value.STRING_IGNORECASE) {
                     int compareRev = getReversedCompareType(compareType);
                     filter.addIndexCondition(
                             IndexCondition.get(compareRev, r, left));

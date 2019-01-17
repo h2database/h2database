@@ -231,11 +231,6 @@ public class ExpressionColumn extends Expression {
     }
 
     @Override
-    public int getValueType() {
-        return column == null ? Value.UNKNOWN : column.getType().getValueType();
-    }
-
-    @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
     }
 

@@ -93,14 +93,6 @@ public abstract class Expression {
     public abstract TypeInfo getType();
 
     /**
-     * Return the value type. The value type may not be known before the
-     * optimization phase.
-     *
-     * @return the value type
-     */
-    public abstract int getValueType();
-
-    /**
      * Map the columns of the resolver to expression columns.
      *
      * @param resolver the column resolver

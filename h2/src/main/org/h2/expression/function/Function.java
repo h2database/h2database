@@ -2327,7 +2327,7 @@ public class Function extends Expression implements FunctionCall {
             s = ValueTimestamp.MAXIMUM_SCALE;
             if (p0.isConstant()) {
                 Expression p2 = args[2];
-                switch (p2.getValueType()) {
+                switch (p2.getType().getValueType()) {
                 case Value.TIME:
                     t = Value.TIME;
                     p = d = ValueTime.DEFAULT_PRECISION;
@@ -2374,7 +2374,7 @@ public class Function extends Expression implements FunctionCall {
         }
         case DATE_TRUNC: {
             Expression p1 = args[1];
-            t = p1.getValueType();
+            t = p1.getType().getValueType();
             if (t == Value.TIMESTAMP_TZ) {
                 p = d = ValueTimestampTimeZone.DEFAULT_PRECISION;
             } else {
@@ -2466,18 +2466,18 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case NVL2: {
-            switch (args[1].getValueType()) {
+            TypeInfo t1 = args[1].getType(), t2 = args[2].getType();
+            switch (t1.getValueType()) {
             case Value.STRING:
             case Value.CLOB:
             case Value.STRING_FIXED:
             case Value.STRING_IGNORECASE:
-                t = args[1].getValueType();
+                t = t1.getValueType();
                 break;
             default:
-                t = Value.getHigherOrder(args[1].getValueType(), args[2].getValueType());
+                t = Value.getHigherOrder(t1.getValueType(), t2.getValueType());
                 break;
             }
-            TypeInfo t1 = args[1].getType(), t2 = args[2].getType();
             p = Math.max(t1.getPrecision(), t2.getPrecision());
             d = Math.max(t1.getDisplaySize(), t2.getDisplaySize());
             s = Math.max(t1.getScale(), t2.getScale());
@@ -2498,7 +2498,7 @@ public class Function extends Expression implements FunctionCall {
             }
             break;
         case TRUNCATE:
-            switch (p0.getValueType()) {
+            switch (p0.getType().getValueType()) {
             case Value.STRING:
             case Value.DATE:
             case Value.TIMESTAMP:

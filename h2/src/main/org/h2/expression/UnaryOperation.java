@@ -69,11 +69,6 @@ public class UnaryOperation extends Expression {
     }
 
     @Override
-    public int getValueType() {
-        return type.getValueType();
-    }
-
-    @Override
     public void updateAggregate(Session session, int stage) {
         arg.updateAggregate(session, stage);
     }

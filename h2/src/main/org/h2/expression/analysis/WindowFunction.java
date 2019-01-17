@@ -287,7 +287,7 @@ public class WindowFunction extends DataAnalysisOperation {
             int rowIdColumn) {
         int size = ordered.size();
         int numExpressions = getNumExpressions();
-        int dataType = args[0].getValueType();
+        int dataType = args[0].getType().getValueType();
         for (int i = 0; i < size; i++) {
             Value[] row = ordered.get(i);
             int rowId = row[rowIdColumn].getInt();
@@ -493,29 +493,6 @@ public class WindowFunction extends DataAnalysisOperation {
         case LAST_VALUE:
         case NTH_VALUE:
             return args[0].getType();
-        default:
-            throw DbException.throwInternalError("type=" + type);
-        }
-    }
-
-    @Override
-    public int getValueType() {
-        switch (type) {
-        case ROW_NUMBER:
-        case RANK:
-        case DENSE_RANK:
-        case NTILE:
-            return Value.LONG;
-        case PERCENT_RANK:
-        case CUME_DIST:
-        case RATIO_TO_REPORT:
-            return Value.DOUBLE;
-        case LEAD:
-        case LAG:
-        case FIRST_VALUE:
-        case LAST_VALUE:
-        case NTH_VALUE:
-            return args[0].getValueType();
         default:
             throw DbException.throwInternalError("type=" + type);
         }

@@ -192,7 +192,7 @@ public class TableView extends Table {
                 }
                 name = columnNamer.getColumnName(expr, i, name);
                 if (valueType == Value.UNKNOWN) {
-                    valueType = expr.getValueType();
+                    valueType = expr.getType().getValueType();
                 }
                 TypeInfo type = expr.getType();
                 long precision = type.getPrecision();
@@ -819,8 +819,7 @@ public class TableView extends Table {
             // (if found) otherwise use column name derived from column
             // expression
             String columnName = columnNamer.getColumnName(columnExp, i, cols);
-            columnTemplateList.add(new Column(columnName,
-                    columnExp.getValueType()));
+            columnTemplateList.add(new Column(columnName, columnExp.getType()));
 
         }
         return columnTemplateList;

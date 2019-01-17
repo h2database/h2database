@@ -68,11 +68,6 @@ public class JavaAggregate extends AbstractAggregate {
     }
 
     @Override
-    public int getValueType() {
-        return dataType;
-    }
-
-    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         if (!super.isEverything(visitor)) {
             return false;
@@ -114,7 +109,7 @@ public class JavaAggregate extends AbstractAggregate {
         for (int i = 0; i < len; i++) {
             Expression expr = args[i];
             args[i] = expr.optimize(session);
-            int type = expr.getValueType();
+            int type = expr.getType().getValueType();
             argTypes[i] = type;
         }
         try {

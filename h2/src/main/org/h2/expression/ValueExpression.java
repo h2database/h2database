@@ -81,11 +81,6 @@ public class ValueExpression extends Expression {
     }
 
     @Override
-    public int getValueType() {
-        return value.getValueType();
-    }
-
-    @Override
     public void createIndexConditions(Session session, TableFilter filter) {
         if (value.getValueType() == Value.BOOLEAN) {
             boolean v = ((ValueBoolean) value).getBoolean();
@@ -168,7 +163,7 @@ public class ValueExpression extends Expression {
 
     @Override
     public Expression[] getExpressionColumns(Session session) {
-        if (getValueType() == Value.ARRAY) {
+        if (getType().getValueType() == Value.ARRAY) {
             return getExpressionColumns(session, (ValueArray) getValue(session));
         }
         return super.getExpressionColumns(session);

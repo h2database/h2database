@@ -1762,7 +1762,7 @@ public class MetaTable extends Table {
                         // CONSTANT_NAME
                         identifier(constant.getName()),
                         // DATA_TYPE
-                        ValueInt.get(DataType.convertTypeToSQLType(expr.getValueType())),
+                        ValueInt.get(DataType.convertTypeToSQLType(expr.getType().getValueType())),
                         // REMARKS
                         replaceNullWithEmpty(constant.getComment()),
                         // SQL

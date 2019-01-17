@@ -24,6 +24,7 @@ import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.util.TempFileDeleter;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -117,9 +118,9 @@ public class ResultTempTable implements ResultExternal {
         CreateTableData data = new CreateTableData();
         boolean containsLob = false;
         for (int i = 0; i < expressions.length; i++) {
-            int type = expressions[i].getValueType();
+            TypeInfo type = expressions[i].getType();
             Column col = new Column(COLUMN_NAME + i, type);
-            if (DataType.isLargeObject(type)) {
+            if (DataType.isLargeObject(type.getValueType())) {
                 containsLob = true;
             }
             data.columns.add(col);

@@ -59,11 +59,6 @@ public class Subquery extends Expression {
     }
 
     @Override
-    public int getValueType() {
-        return getExpression().getValueType();
-    }
-
-    @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
         query.mapColumns(resolver, level + 1);
     }

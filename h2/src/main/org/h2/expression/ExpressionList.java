@@ -43,11 +43,6 @@ public class ExpressionList extends Expression {
     }
 
     @Override
-    public int getValueType() {
-        return isArray ? Value.ARRAY : Value.ROW;
-    }
-
-    @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
         for (Expression e : list) {
             e.mapColumns(resolver, level, state);

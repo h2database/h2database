@@ -73,11 +73,6 @@ public class Wildcard extends Expression {
     }
 
     @Override
-    public int getValueType() {
-        throw DbException.throwInternalError(toString());
-    }
-
-    @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
         if (exceptColumns != null) {
             for (ExpressionColumn column : exceptColumns) {

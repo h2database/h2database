@@ -164,7 +164,6 @@ public class Aggregate extends AbstractAggregate {
     private ArrayList<SelectOrderBy> orderByList;
     private SortOrder orderBySort;
     private TypeInfo type;
-    private int dataType;
 
     /**
      * Create a new aggregate object.
@@ -304,7 +303,7 @@ public class Aggregate extends AbstractAggregate {
                 v = updateCollecting(session, v, remembered);
             }
         }
-        data.add(session.getDatabase(), dataType, v);
+        data.add(session.getDatabase(), type.getValueType(), v);
     }
 
     @Override
@@ -410,7 +409,7 @@ public class Aggregate extends AbstractAggregate {
             return v;
         }
         case MEDIAN:
-            return AggregateMedian.medianFromIndex(session, on, dataType);
+            return AggregateMedian.medianFromIndex(session, on, type.getValueType());
         case ENVELOPE:
             return ((MVSpatialIndex) AggregateDataEnvelope.getGeometryColumnIndex(on)).getBounds(session);
         default:
@@ -443,6 +442,7 @@ public class Aggregate extends AbstractAggregate {
                 }
                 AggregateDataDefault d = new AggregateDataDefault(aggregateType);
                 Database db = session.getDatabase();
+                int dataType = type.getValueType();
                 for (Value v : c) {
                     d.add(db, dataType, v);
                 }
@@ -473,14 +473,14 @@ public class Aggregate extends AbstractAggregate {
             if (array == null) {
                 return ValueNull.INSTANCE;
             }
-            return AggregateMedian.median(session.getDatabase(), array, dataType);
+            return AggregateMedian.median(session.getDatabase(), array, type.getValueType());
         }
         case MODE:
             return getMode(session, data);
         default:
             // Avoid compiler warning
         }
-        return data.getValue(session.getDatabase(), dataType);
+        return data.getValue(session.getDatabase(), type.getValueType());
     }
 
     private Value getGroupConcat(Session session, AggregateData data) {
@@ -573,17 +573,12 @@ public class Aggregate extends AbstractAggregate {
                 }
             }
         }
-        return v.convertTo(dataType);
+        return v.convertTo(type.getValueType());
     }
 
     @Override
     public TypeInfo getType() {
         return type;
-    }
-
-    @Override
-    public int getValueType() {
-        return dataType;
     }
 
     @Override
@@ -608,7 +603,6 @@ public class Aggregate extends AbstractAggregate {
         if (on != null) {
             on = on.optimize(session);
             type = on.getType();
-            dataType = on.getValueType();
         }
         if (orderByList != null) {
             for (SelectOrderBy o : orderByList) {
@@ -622,35 +616,31 @@ public class Aggregate extends AbstractAggregate {
         switch (aggregateType) {
         case GROUP_CONCAT:
             type = TypeInfo.TYPE_STRING_DEFAULT;
-            dataType = Value.STRING;
             break;
         case COUNT_ALL:
         case COUNT:
             type = TypeInfo.TYPE_LONG;
-            dataType = Value.LONG;
             break;
         case SELECTIVITY:
             type = TypeInfo.TYPE_INT;
-            dataType = Value.INT;
             break;
         case HISTOGRAM:
             type = TypeInfo.TYPE_ARRAY;
-            dataType = Value.ARRAY;
             break;
-        case SUM:
+        case SUM: {
+            int dataType = type.getValueType();
             if (dataType == Value.BOOLEAN) {
                 // example: sum(id > 3) (count the rows)
                 type = TypeInfo.TYPE_LONG;
-                dataType = Value.LONG;
             } else if (!DataType.supportsAdd(dataType)) {
                 throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL());
             } else {
-                dataType = DataType.getAddProofType(dataType);
-                type = TypeInfo.getTypeInfo(dataType);
+                type = TypeInfo.getTypeInfo(DataType.getAddProofType(dataType));
             }
             break;
+        }
         case AVG:
-            if (!DataType.supportsAdd(dataType)) {
+            if (!DataType.supportsAdd(type.getValueType())) {
                 throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL());
             }
             break;
@@ -664,26 +654,22 @@ public class Aggregate extends AbstractAggregate {
         case VAR_POP:
         case VAR_SAMP:
             type = TypeInfo.TYPE_DOUBLE;
-            dataType = Value.DOUBLE;
             break;
         case EVERY:
         case ANY:
             type = TypeInfo.TYPE_BOOLEAN;
-            dataType = Value.BOOLEAN;
             break;
         case BIT_AND:
         case BIT_OR:
-            if (!DataType.supportsAdd(dataType)) {
+            if (!DataType.supportsAdd(type.getValueType())) {
                 throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL());
             }
             break;
         case ARRAY_AGG:
             type = TypeInfo.TYPE_ARRAY;
-            dataType = Value.ARRAY;
             break;
         case ENVELOPE:
             type = TypeInfo.TYPE_GEOMETRY;
-            dataType = Value.GEOMETRY;
             break;
         default:
             DbException.throwInternalError("type=" + aggregateType);

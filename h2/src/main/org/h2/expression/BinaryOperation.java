@@ -60,7 +60,6 @@ public class BinaryOperation extends Expression {
     private OpType opType;
     private Expression left, right;
     private TypeInfo type;
-    private int dataType;
     private boolean convertRight = true;
 
     public BinaryOperation(OpType opType, Expression left, Expression right) {
@@ -100,6 +99,7 @@ public class BinaryOperation extends Expression {
     @Override
     public Value getValue(Session session) {
         Mode mode = session.getDatabase().getMode();
+        int dataType = type.getValueType();
         Value l = left.getValue(session).convertTo(dataType, mode);
         Value r = right.getValue(session);
         if (convertRight) {
@@ -166,15 +166,14 @@ public class BinaryOperation extends Expression {
         switch (opType) {
         case CONCAT:
             type = TypeInfo.TYPE_STRING_DEFAULT;
-            dataType = Value.STRING;
             break;
         case PLUS:
         case MINUS:
         case MULTIPLY:
         case DIVIDE:
         case MODULUS:
-            int l = left.getValueType();
-            int r = right.getValueType();
+            int l = left.getType().getValueType();
+            int r = right.getType().getValueType();
             if ((l == Value.NULL && r == Value.NULL) ||
                     (l == Value.UNKNOWN && r == Value.UNKNOWN)) {
                 // (? + ?) - use decimal by default (the most safe data type) or
@@ -182,18 +181,16 @@ public class BinaryOperation extends Expression {
                 if (opType == OpType.PLUS && session.getDatabase().
                         getMode().allowPlusForStringConcat) {
                     type = TypeInfo.TYPE_STRING_DEFAULT;
-                    dataType = Value.STRING;
                     opType = OpType.CONCAT;
                 } else {
                     type = TypeInfo.TYPE_DECIMAL_DEFAULT;
-                    dataType = Value.DECIMAL;
                 }
             } else if (DataType.isIntervalType(l) || DataType.isIntervalType(r)) {
                 return optimizeInterval(session, l, r);
             } else if (DataType.isDateTimeType(l) || DataType.isDateTimeType(r)) {
                 return optimizeDateTime(session, l, r);
             } else {
-                dataType = Value.getHigherOrder(l, r);
+                int dataType = Value.getHigherOrder(l, r);
                 if (dataType == Value.ENUM) {
                     type = TypeInfo.TYPE_INT;
                     dataType = Value.INT;
@@ -317,12 +314,10 @@ public class BinaryOperation extends Expression {
             }
             case Value.TIME:
                 if (r == Value.TIME || r == Value.TIMESTAMP_TZ) {
-                    dataType = r;
                     type = TypeInfo.getTypeInfo(r);
                     return this;
                 } else { // DATE, TIMESTAMP
                     type = TypeInfo.TYPE_TIMESTAMP;
-                    dataType = Value.TIMESTAMP;
                     return this;
                 }
             }
@@ -361,7 +356,6 @@ public class BinaryOperation extends Expression {
                 }
                 case Value.TIME:
                     type = TypeInfo.TYPE_TIMESTAMP;
-                    dataType = Value.TIMESTAMP;
                     return this;
                 case Value.DATE:
                 case Value.TIMESTAMP:
@@ -379,13 +373,11 @@ public class BinaryOperation extends Expression {
         case MULTIPLY:
             if (l == Value.TIME) {
                 type = TypeInfo.TYPE_TIME;
-                dataType = Value.TIME;
                 convertRight = false;
                 return this;
             } else if (r == Value.TIME) {
                 swap();
                 type = TypeInfo.TYPE_TIME;
-                dataType = Value.TIME;
                 convertRight = false;
                 return this;
             }
@@ -393,7 +385,6 @@ public class BinaryOperation extends Expression {
         case DIVIDE:
             if (l == Value.TIME) {
                 type = TypeInfo.TYPE_TIME;
-                dataType = Value.TIME;
                 convertRight = false;
                 return this;
             }
@@ -423,11 +414,6 @@ public class BinaryOperation extends Expression {
     @Override
     public TypeInfo getType() {
         return type;
-    }
-
-    @Override
-    public int getValueType() {
-        return dataType;
     }
 
     @Override

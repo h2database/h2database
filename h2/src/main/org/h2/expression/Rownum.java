@@ -39,11 +39,6 @@ public class Rownum extends Expression {
     }
 
     @Override
-    public int getValueType() {
-        return Value.LONG;
-    }
-
-    @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
         // nothing to do
     }

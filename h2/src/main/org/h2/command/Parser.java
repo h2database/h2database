@@ -2439,8 +2439,7 @@ public class Parser {
                 boolean canBeNumber = !readIf(EQUAL);
                 SelectOrderBy order = new SelectOrderBy();
                 Expression expr = readExpression();
-                if (canBeNumber && expr instanceof ValueExpression &&
-                        expr.getValueType() == Value.INT) {
+                if (canBeNumber && expr instanceof ValueExpression && expr.getType().getValueType() == Value.INT) {
                     order.columnIndexExpr = expr;
                 } else if (expr instanceof Parameter) {
                     recompileAlways = true;
@@ -3837,14 +3836,14 @@ public class Parser {
             read();
             if (currentTokenType == VALUE) {
                 r = ValueExpression.get(currentValue.negate());
-                if (r.getValueType() == Value.LONG &&
+                int rType = r.getType().getValueType();
+                if (rType == Value.LONG &&
                         r.getValue(session).getLong() == Integer.MIN_VALUE) {
                     // convert Integer.MIN_VALUE to type 'int'
                     // (Integer.MAX_VALUE+1 is of type 'long')
                     r = ValueExpression.get(ValueInt.get(Integer.MIN_VALUE));
-                } else if (r.getValueType() == Value.DECIMAL &&
-                        r.getValue(session).getBigDecimal()
-                                .compareTo(Value.MIN_LONG_DECIMAL) == 0) {
+                } else if (rType == Value.DECIMAL &&
+                        r.getValue(session).getBigDecimal().compareTo(Value.MIN_LONG_DECIMAL) == 0) {
                     // convert Long.MIN_VALUE to type 'long'
                     // (Long.MAX_VALUE+1 is of type 'decimal')
                     r = ValueExpression.get(ValueLong.MIN);

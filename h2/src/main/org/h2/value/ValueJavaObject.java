@@ -85,8 +85,6 @@ public class ValueJavaObject extends ValueBytes {
 
         private Object javaObject;
 
-        private TypeInfo type;
-
         NotSerialized(Object javaObject, byte[] v, DataHandler dataHandler) {
             super(v, dataHandler);
             this.javaObject = javaObject;

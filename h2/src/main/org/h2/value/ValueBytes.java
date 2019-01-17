@@ -31,7 +31,7 @@ public class ValueBytes extends Value {
      */
     protected byte[] value;
 
-    private TypeInfo type;
+    protected TypeInfo type;
 
     /**
      * The hash code.

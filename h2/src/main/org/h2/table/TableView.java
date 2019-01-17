@@ -40,6 +40,7 @@ import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.ExtTypeInfo;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -181,28 +182,29 @@ public class TableView extends Table {
             for (int i = 0; i < count; i++) {
                 Expression expr = expressions.get(i);
                 String name = null;
-                int type = Value.UNKNOWN;
+                int valueType = Value.UNKNOWN;
                 if (columnTemplates != null && columnTemplates.length > i) {
                     name = columnTemplates[i].getName();
-                    type = columnTemplates[i].getType().getValueType();
+                    valueType = columnTemplates[i].getType().getValueType();
                 }
                 if (name == null) {
                     name = expr.getAlias();
                 }
                 name = columnNamer.getColumnName(expr, i, name);
-                if (type == Value.UNKNOWN) {
-                    type = expr.getValueType();
+                if (valueType == Value.UNKNOWN) {
+                    valueType = expr.getValueType();
                 }
-                long precision = expr.getPrecision();
-                int scale = expr.getScale();
-                int displaySize = expr.getDisplaySize();
+                TypeInfo type = expr.getType();
+                long precision = type.getPrecision();
+                int scale = type.getScale();
+                int displaySize = type.getDisplaySize();
                 ExtTypeInfo extTypeInfo = null;
-                if (DataType.isExtInfoType(type)) {
+                if (DataType.isExtInfoType(valueType)) {
                     if (expr instanceof ExpressionColumn) {
                         extTypeInfo = ((ExpressionColumn) expr).getColumn().getType().getExtTypeInfo();
                     }
                 }
-                Column col = new Column(name, type, precision, scale, displaySize, extTypeInfo);
+                Column col = new Column(name, valueType, precision, scale, displaySize, extTypeInfo);
                 col.setTable(this, i);
                 // Fetch check constraint from view column source
                 ExpressionColumn fromColumn = null;

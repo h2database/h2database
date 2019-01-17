@@ -39,8 +39,6 @@ import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
-import org.h2.value.ValueDouble;
-import org.h2.value.ValueInt;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
@@ -166,9 +164,7 @@ public class Aggregate extends AbstractAggregate {
     private ArrayList<SelectOrderBy> orderByList;
     private SortOrder orderBySort;
     private TypeInfo type;
-    private int dataType, scale;
-    private long precision;
-    private int displaySize;
+    private int dataType;
 
     /**
      * Create a new aggregate object.
@@ -613,9 +609,6 @@ public class Aggregate extends AbstractAggregate {
             on = on.optimize(session);
             type = on.getType();
             dataType = on.getValueType();
-            scale = on.getScale();
-            precision = on.getPrecision();
-            displaySize = on.getDisplaySize();
         }
         if (orderByList != null) {
             for (SelectOrderBy o : orderByList) {
@@ -630,29 +623,19 @@ public class Aggregate extends AbstractAggregate {
         case GROUP_CONCAT:
             type = TypeInfo.TYPE_STRING_DEFAULT;
             dataType = Value.STRING;
-            scale = 0;
-            precision = displaySize = Integer.MAX_VALUE;
             break;
         case COUNT_ALL:
         case COUNT:
             type = TypeInfo.TYPE_LONG;
             dataType = Value.LONG;
-            scale = 0;
-            precision = ValueLong.PRECISION;
-            displaySize = ValueLong.DISPLAY_SIZE;
             break;
         case SELECTIVITY:
             type = TypeInfo.TYPE_INT;
             dataType = Value.INT;
-            scale = 0;
-            precision = ValueInt.PRECISION;
-            displaySize = ValueInt.DISPLAY_SIZE;
             break;
         case HISTOGRAM:
             type = TypeInfo.TYPE_ARRAY;
             dataType = Value.ARRAY;
-            scale = 0;
-            precision = displaySize = Integer.MAX_VALUE;
             break;
         case SUM:
             if (dataType == Value.BOOLEAN) {
@@ -682,17 +665,11 @@ public class Aggregate extends AbstractAggregate {
         case VAR_SAMP:
             type = TypeInfo.TYPE_DOUBLE;
             dataType = Value.DOUBLE;
-            precision = ValueDouble.PRECISION;
-            displaySize = ValueDouble.DISPLAY_SIZE;
-            scale = 0;
             break;
         case EVERY:
         case ANY:
             type = TypeInfo.TYPE_BOOLEAN;
             dataType = Value.BOOLEAN;
-            precision = ValueBoolean.PRECISION;
-            displaySize = ValueBoolean.DISPLAY_SIZE;
-            scale = 0;
             break;
         case BIT_AND:
         case BIT_OR:
@@ -703,14 +680,10 @@ public class Aggregate extends AbstractAggregate {
         case ARRAY_AGG:
             type = TypeInfo.TYPE_ARRAY;
             dataType = Value.ARRAY;
-            scale = 0;
-            precision = displaySize = Integer.MAX_VALUE;
             break;
         case ENVELOPE:
             type = TypeInfo.TYPE_GEOMETRY;
             dataType = Value.GEOMETRY;
-            scale = 0;
-            precision = displaySize = Integer.MAX_VALUE;
             break;
         default:
             DbException.throwInternalError("type=" + aggregateType);
@@ -732,21 +705,6 @@ public class Aggregate extends AbstractAggregate {
             groupConcatSeparator.setEvaluatable(tableFilter, b);
         }
         super.setEvaluatable(tableFilter, b);
-    }
-
-    @Override
-    public int getScale() {
-        return scale;
-    }
-
-    @Override
-    public long getPrecision() {
-        return precision;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return displaySize;
     }
 
     private StringBuilder getSQLGroupConcat(StringBuilder builder) {

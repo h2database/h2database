@@ -901,9 +901,10 @@ public class Function extends Expression implements FunctionCall {
         case CAST:
         case CONVERT: {
             Mode mode = database.getMode();
-            v0 = v0.convertTo(dataType, MathUtils.convertLongToInt(getPrecision()), mode, null, extTypeInfo);
-            v0 = v0.convertScale(mode.convertOnlyToSmallerScale, getScale());
-            v0 = v0.convertPrecision(getPrecision(), false);
+            TypeInfo type = this.type;
+            v0 = v0.convertTo(dataType, MathUtils.convertLongToInt(type.getPrecision()), mode, null, extTypeInfo);
+            v0 = v0.convertScale(mode.convertOnlyToSmallerScale, type.getScale());
+            v0 = v0.convertPrecision(type.getPrecision(), false);
             result = v0;
             break;
         }
@@ -2394,12 +2395,13 @@ public class Function extends Expression implements FunctionCall {
             d = 0;
             for (Expression e : args) {
                 if (e != ValueExpression.getNull()) {
-                    int type = e.getValueType();
-                    if (type != Value.UNKNOWN && type != Value.NULL) {
-                        t = Value.getHigherOrder(t, type);
-                        s = Math.max(s, e.getScale());
-                        p = Math.max(p, e.getPrecision());
-                        d = Math.max(d, e.getDisplaySize());
+                    TypeInfo type = e.getType();
+                    int valueType = type.getValueType();
+                    if (valueType != Value.UNKNOWN && valueType != Value.NULL) {
+                        t = Value.getHigherOrder(t, valueType);
+                        s = Math.max(s, type.getScale());
+                        p = Math.max(p, type.getPrecision());
+                        d = Math.max(d, type.getDisplaySize());
                     }
                 }
             }
@@ -2424,24 +2426,26 @@ public class Function extends Expression implements FunctionCall {
             for (int i = 2, len = args.length; i < len; i += 2) {
                 Expression then = args[i];
                 if (then != ValueExpression.getNull()) {
-                    int type = then.getValueType();
-                    if (type != Value.UNKNOWN && type != Value.NULL) {
-                        t = Value.getHigherOrder(t, type);
-                        s = Math.max(s, then.getScale());
-                        p = Math.max(p, then.getPrecision());
-                        d = Math.max(d, then.getDisplaySize());
+                    TypeInfo type = then.getType();
+                    int valueType = type.getValueType();
+                    if (valueType != Value.UNKNOWN && valueType != Value.NULL) {
+                        t = Value.getHigherOrder(t, valueType);
+                        s = Math.max(s, type.getScale());
+                        p = Math.max(p, type.getPrecision());
+                        d = Math.max(d, type.getDisplaySize());
                     }
                 }
             }
             if (args.length % 2 == 0) {
                 Expression elsePart = args[args.length - 1];
                 if (elsePart != ValueExpression.getNull()) {
-                    int type = elsePart.getValueType();
-                    if (type != Value.UNKNOWN && type != Value.NULL) {
-                        t = Value.getHigherOrder(t, type);
-                        s = Math.max(s, elsePart.getScale());
-                        p = Math.max(p, elsePart.getPrecision());
-                        d = Math.max(d, elsePart.getDisplaySize());
+                    TypeInfo type = elsePart.getType();
+                    int valueType = type.getValueType();
+                    if (valueType != Value.UNKNOWN && valueType != Value.NULL) {
+                        t = Value.getHigherOrder(t, valueType);
+                        s = Math.max(s, type.getScale());
+                        p = Math.max(p, type.getPrecision());
+                        d = Math.max(d, type.getDisplaySize());
                     }
                 }
             }
@@ -2453,13 +2457,15 @@ public class Function extends Expression implements FunctionCall {
             }
             break;
         }
-        case CASEWHEN:
-            t = Value.getHigherOrder(args[1].getValueType(), args[2].getValueType());
-            p = Math.max(args[1].getPrecision(), args[2].getPrecision());
-            d = Math.max(args[1].getDisplaySize(), args[2].getDisplaySize());
-            s = Math.max(args[1].getScale(), args[2].getScale());
+        case CASEWHEN: {
+            TypeInfo t1 = args[1].getType(), t2 = args[2].getType();
+            t = Value.getHigherOrder(t1.getValueType(), t2.getValueType());
+            p = Math.max(t1.getPrecision(), t2.getPrecision());
+            d = Math.max(t1.getDisplaySize(), t2.getDisplaySize());
+            s = Math.max(t1.getScale(), t2.getScale());
             break;
-        case NVL2:
+        }
+        case NVL2: {
             switch (args[1].getValueType()) {
             case Value.STRING:
             case Value.CLOB:
@@ -2471,10 +2477,12 @@ public class Function extends Expression implements FunctionCall {
                 t = Value.getHigherOrder(args[1].getValueType(), args[2].getValueType());
                 break;
             }
-            p = Math.max(args[1].getPrecision(), args[2].getPrecision());
-            d = Math.max(args[1].getDisplaySize(), args[2].getDisplaySize());
-            s = Math.max(args[1].getScale(), args[2].getScale());
+            TypeInfo t1 = args[1].getType(), t2 = args[2].getType();
+            p = Math.max(t1.getPrecision(), t2.getPrecision());
+            d = Math.max(t1.getDisplaySize(), t2.getDisplaySize());
+            s = Math.max(t1.getScale(), t2.getScale());
             break;
+        }
         case CAST:
         case CONVERT:
         case TRUNCATE_VALUE:
@@ -2512,11 +2520,12 @@ public class Function extends Expression implements FunctionCall {
             break;
         case ABS:
         case FLOOR:
-        case ROUND:
-            t = p0.getValueType();
-            s = p0.getScale();
-            p = p0.getPrecision();
-            d = p0.getDisplaySize();
+        case ROUND: {
+            TypeInfo type = p0.getType();
+            t = type.getValueType();
+            s = type.getScale();
+            p = type.getPrecision();
+            d = type.getDisplaySize();
             if (t == Value.NULL) {
                 t = Value.INT;
                 p = ValueInt.PRECISION;
@@ -2524,12 +2533,13 @@ public class Function extends Expression implements FunctionCall {
                 s = 0;
             }
             break;
+        }
         case SET: {
-            Expression p1 = args[1];
-            t = p1.getValueType();
-            p = p1.getPrecision();
-            s = p1.getScale();
-            d = p1.getDisplaySize();
+            TypeInfo type = args[1].getType();
+            t = type.getValueType();
+            p = type.getPrecision();
+            s = type.getScale();
+            d = type.getDisplaySize();
             if (!(p0 instanceof Variable)) {
                 throw DbException.get(
                         ErrorCode.CAN_ONLY_ASSIGN_TO_VARIABLE_1, p0.getSQL());
@@ -2550,7 +2560,7 @@ public class Function extends Expression implements FunctionCall {
         case SUBSTRING:
         case SUBSTR: {
             t = info.returnDataType;
-            p = args[0].getPrecision();
+            p = args[0].getType().getPrecision();
             s = 0;
             if (args[1].isConstant()) {
                 // if only two arguments are used,
@@ -2566,18 +2576,22 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case ENCRYPT:
-        case DECRYPT:
+        case DECRYPT: {
             t = info.returnDataType;
-            p = args[2].getPrecision();
-            d = args[2].getDisplaySize();
+            TypeInfo type = args[2].getType();
+            p = type.getPrecision();
+            d = type.getDisplaySize();
             s = 0;
             break;
-        case COMPRESS:
+        }
+        case COMPRESS: {
             t = info.returnDataType;
-            p = args[0].getPrecision();
-            d = args[0].getDisplaySize();
+            TypeInfo type = args[0].getType();
+            p = type.getPrecision();
+            d = type.getDisplaySize();
             s = 0;
             break;
+        }
         case CHAR:
             t = info.returnDataType;
             p = 1;
@@ -2590,8 +2604,9 @@ public class Function extends Expression implements FunctionCall {
             d = 0;
             s = 0;
             for (Expression e : args) {
-                p += e.getPrecision();
-                d = MathUtils.convertLongToInt((long) d + e.getDisplaySize());
+                TypeInfo type = e.getType();
+                p += type.getPrecision();
+                d = MathUtils.convertLongToInt((long) d + type.getDisplaySize());
                 if (p < 0) {
                     p = Long.MAX_VALUE;
                 }
@@ -2599,7 +2614,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         case HEXTORAW:
             t = info.returnDataType;
-            p = (args[0].getPrecision() + 3) / 4;
+            p = (args[0].getType().getPrecision() + 3) / 4;
             d = MathUtils.convertLongToInt(p);
             s = 0;
             break;
@@ -2612,15 +2627,17 @@ public class Function extends Expression implements FunctionCall {
         case UPPER:
         case TRIM:
         case STRINGDECODE:
-        case UTF8TOSTRING:
+        case UTF8TOSTRING: {
             t = info.returnDataType;
-            p = args[0].getPrecision();
-            d = args[0].getDisplaySize();
+            TypeInfo type = args[0].getType();
+            p = type.getPrecision();
+            d = type.getDisplaySize();
             s = 0;
             break;
+        }
         case RAWTOHEX:
             t = info.returnDataType;
-            p = args[0].getPrecision() * 4;
+            p = args[0].getType().getPrecision() * 4;
             d = MathUtils.convertLongToInt(p);
             s = 0;
             break;
@@ -2664,21 +2681,6 @@ public class Function extends Expression implements FunctionCall {
                 e.setEvaluatable(tableFilter, b);
             }
         }
-    }
-
-    @Override
-    public int getScale() {
-        return type.getScale();
-    }
-
-    @Override
-    public long getPrecision() {
-        return type.getPrecision();
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return type.getDisplaySize();
     }
 
     @Override

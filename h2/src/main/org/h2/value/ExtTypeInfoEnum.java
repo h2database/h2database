@@ -18,6 +18,8 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
 
     private final String[] enumerators, cleaned;
 
+    private TypeInfo type;
+
     /**
      * Returns enumerators for the two specified values for a binary operation.
      *
@@ -90,6 +92,21 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
         }
         this.enumerators = enumerators;
         this.cleaned = Arrays.equals(cleaned, enumerators) ? enumerators : cleaned;
+    }
+
+    TypeInfo getType() {
+        TypeInfo type = this.type;
+        if (type == null) {
+            int p = 0;
+            for (String s : enumerators) {
+                int l = s.length();
+                if (l > p) {
+                    p = l;
+                }
+            }
+            this.type = type = new TypeInfo(Value.ENUM, p, 0, p, this);
+        }
+        return type;
     }
 
     @Override

@@ -32,24 +32,9 @@ public class Variable extends Expression {
     }
 
     @Override
-    public int getDisplaySize() {
-        return lastValue.getType().getDisplaySize();
-    }
-
-    @Override
-    public long getPrecision() {
-        return lastValue.getType().getPrecision();
-    }
-
-    @Override
     public StringBuilder getSQL(StringBuilder builder) {
         builder.append('@');
         return Parser.quoteIdentifier(builder, name);
-    }
-
-    @Override
-    public int getScale() {
-        return lastValue.getType().getScale();
     }
 
     @Override

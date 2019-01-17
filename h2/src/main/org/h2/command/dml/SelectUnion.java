@@ -27,6 +27,7 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.ColumnNamer;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
@@ -328,10 +329,11 @@ public class SelectUnion extends Query {
         for (int i = 0; i < len; i++) {
             Expression l = le.get(i);
             Expression r = re.get(i);
-            int type = Value.getHigherOrder(l.getValueType(), r.getValueType());
-            long prec = Math.max(l.getPrecision(), r.getPrecision());
-            int scale = Math.max(l.getScale(), r.getScale());
-            int displaySize = Math.max(l.getDisplaySize(), r.getDisplaySize());
+            TypeInfo lType = l.getType(), rType = r.getType();
+            int type = Value.getHigherOrder(lType.getValueType(), rType.getValueType());
+            long prec = Math.max(lType.getPrecision(), rType.getPrecision());
+            int scale = Math.max(lType.getScale(), rType.getScale());
+            int displaySize = Math.max(lType.getDisplaySize(), rType.getDisplaySize());
             String columnName = columnNamer.getColumnName(l,i,l.getAlias());
             Column col = new Column(columnName, type, prec, scale, displaySize);
             Expression e = new ExpressionColumn(session.getDatabase(), col);

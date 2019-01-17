@@ -58,21 +58,6 @@ public class SequenceValue extends Expression {
     }
 
     @Override
-    public int getScale() {
-        return 0;
-    }
-
-    @Override
-    public long getPrecision() {
-        return ValueLong.PRECISION;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return ValueLong.DISPLAY_SIZE;
-    }
-
-    @Override
     public StringBuilder getSQL(StringBuilder builder) {
         builder.append("(NEXT VALUE FOR ");
         return builder.append(sequence.getSQL()).append(')');

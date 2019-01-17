@@ -8,7 +8,6 @@ package org.h2.expression.condition;
 import org.h2.expression.Expression;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueBoolean;
 
 /**
  * Represents a condition returning a boolean value, or NULL.
@@ -23,21 +22,6 @@ abstract class Condition extends Expression {
     @Override
     public int getValueType() {
         return Value.BOOLEAN;
-    }
-
-    @Override
-    public int getScale() {
-        return 0;
-    }
-
-    @Override
-    public long getPrecision() {
-        return ValueBoolean.PRECISION;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return ValueBoolean.DISPLAY_SIZE;
     }
 
 }

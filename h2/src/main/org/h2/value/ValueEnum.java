@@ -19,7 +19,7 @@ public class ValueEnum extends ValueEnumBase {
 
     @Override
     public TypeInfo getType() {
-        return new TypeInfo(ENUM, PRECISION, 0, DISPLAY_SIZE, enumerators);
+        return enumerators.getType();
     }
 
     public ExtTypeInfoEnum getEnumerators() {

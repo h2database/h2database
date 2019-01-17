@@ -143,17 +143,6 @@ public class Parameter extends Expression implements ParameterInterface {
     }
 
     @Override
-    public int getDisplaySize() {
-        if (value != null) {
-            return value.getType().getDisplaySize();
-        }
-        if (column != null) {
-            return column.getType().getDisplaySize();
-        }
-        return 0;
-    }
-
-    @Override
     public void updateAggregate(Session session, int stage) {
         // nothing to do
     }

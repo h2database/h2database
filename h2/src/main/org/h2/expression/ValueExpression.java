@@ -127,21 +127,6 @@ public class ValueExpression extends Expression {
     }
 
     @Override
-    public int getScale() {
-        return value.getType().getScale();
-    }
-
-    @Override
-    public long getPrecision() {
-        return value.getType().getPrecision();
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return value.getType().getDisplaySize();
-    }
-
-    @Override
     public StringBuilder getSQL(StringBuilder builder) {
         if (this == DEFAULT) {
             builder.append("DEFAULT");

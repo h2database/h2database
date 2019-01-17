@@ -14,7 +14,6 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ValueExpression;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -79,21 +78,6 @@ public class JavaFunction extends Expression implements FunctionCall {
                 e.setEvaluatable(tableFilter, b);
             }
         }
-    }
-
-    @Override
-    public int getScale() {
-        return DataType.getDataType(getValueType()).defaultScale;
-    }
-
-    @Override
-    public long getPrecision() {
-        return Integer.MAX_VALUE;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return Integer.MAX_VALUE;
     }
 
     @Override

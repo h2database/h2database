@@ -145,17 +145,17 @@ public abstract class LazyResult implements ResultInterface {
 
     @Override
     public long getColumnPrecision(int i) {
-        return expressions[i].getPrecision();
+        return expressions[i].getType().getPrecision();
     }
 
     @Override
     public int getColumnScale(int i) {
-        return expressions[i].getScale();
+        return expressions[i].getType().getScale();
     }
 
     @Override
     public int getDisplaySize(int i) {
-        return expressions[i].getDisplaySize();
+        return expressions[i].getType().getDisplaySize();
     }
 
     @Override

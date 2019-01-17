@@ -128,27 +128,6 @@ public abstract class Expression {
     public abstract void setEvaluatable(TableFilter tableFilter, boolean value);
 
     /**
-     * Get the scale of this expression.
-     *
-     * @return the scale
-     */
-    public abstract int getScale();
-
-    /**
-     * Get the precision of this expression.
-     *
-     * @return the precision
-     */
-    public abstract long getPrecision();
-
-    /**
-     * Get the display size of this expression.
-     *
-     * @return the display size
-     */
-    public abstract int getDisplaySize();
-
-    /**
      * Get the SQL statement of this expression.
      * This may not always be the original SQL statement,
      * specially after optimization.

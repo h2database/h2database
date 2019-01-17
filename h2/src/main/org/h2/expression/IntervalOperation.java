@@ -294,21 +294,6 @@ public class IntervalOperation extends Expression {
     }
 
     @Override
-    public long getPrecision() {
-        return Math.max(left.getPrecision(), right.getPrecision());
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return Math.max(left.getDisplaySize(), right.getDisplaySize());
-    }
-
-    @Override
-    public int getScale() {
-        return Math.max(left.getScale(), right.getScale());
-    }
-
-    @Override
     public void updateAggregate(Session session, int stage) {
         left.updateAggregate(session, stage);
         right.updateAggregate(session, stage);

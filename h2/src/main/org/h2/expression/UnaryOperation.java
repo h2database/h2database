@@ -74,21 +74,6 @@ public class UnaryOperation extends Expression {
     }
 
     @Override
-    public long getPrecision() {
-        return arg.getPrecision();
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return arg.getDisplaySize();
-    }
-
-    @Override
-    public int getScale() {
-        return arg.getScale();
-    }
-
-    @Override
     public void updateAggregate(Session session, int stage) {
         arg.updateAggregate(session, stage);
     }

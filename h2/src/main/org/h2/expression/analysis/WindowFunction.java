@@ -522,66 +522,6 @@ public class WindowFunction extends DataAnalysisOperation {
     }
 
     @Override
-    public int getScale() {
-        switch (type) {
-        case LEAD:
-        case LAG:
-        case FIRST_VALUE:
-        case LAST_VALUE:
-        case NTH_VALUE:
-            return args[0].getScale();
-        default:
-            return 0;
-        }
-    }
-
-    @Override
-    public long getPrecision() {
-        switch (type) {
-        case ROW_NUMBER:
-        case RANK:
-        case DENSE_RANK:
-        case NTILE:
-            return ValueLong.PRECISION;
-        case PERCENT_RANK:
-        case CUME_DIST:
-        case RATIO_TO_REPORT:
-            return ValueDouble.PRECISION;
-        case LEAD:
-        case LAG:
-        case FIRST_VALUE:
-        case LAST_VALUE:
-        case NTH_VALUE:
-            return args[0].getPrecision();
-        default:
-            throw DbException.throwInternalError("type=" + type);
-        }
-    }
-
-    @Override
-    public int getDisplaySize() {
-        switch (type) {
-        case ROW_NUMBER:
-        case RANK:
-        case DENSE_RANK:
-        case NTILE:
-            return ValueLong.DISPLAY_SIZE;
-        case PERCENT_RANK:
-        case CUME_DIST:
-        case RATIO_TO_REPORT:
-            return ValueDouble.DISPLAY_SIZE;
-        case LEAD:
-        case LAG:
-        case FIRST_VALUE:
-        case LAST_VALUE:
-        case NTH_VALUE:
-            return args[0].getDisplaySize();
-        default:
-            throw DbException.throwInternalError("type=" + type);
-        }
-    }
-
-    @Override
     public StringBuilder getSQL(StringBuilder builder) {
         String name = type.getSQL();
         builder.append(name).append('(');

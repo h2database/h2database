@@ -97,21 +97,6 @@ public class Wildcard extends Expression {
     }
 
     @Override
-    public int getScale() {
-        throw DbException.throwInternalError(toString());
-    }
-
-    @Override
-    public long getPrecision() {
-        throw DbException.throwInternalError(toString());
-    }
-
-    @Override
-    public int getDisplaySize() {
-        throw DbException.throwInternalError(toString());
-    }
-
-    @Override
     public String getTableAlias() {
         return table;
     }

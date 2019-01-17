@@ -78,21 +78,6 @@ public class ExpressionList extends Expression {
     }
 
     @Override
-    public int getScale() {
-        return 0;
-    }
-
-    @Override
-    public long getPrecision() {
-        return Integer.MAX_VALUE;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return Integer.MAX_VALUE;
-    }
-
-    @Override
     public StringBuilder getSQL(StringBuilder builder) {
         builder.append(isArray ? "ARRAY [" : "ROW (");
         writeExpressions(builder, list);
@@ -130,9 +115,7 @@ public class ExpressionList extends Expression {
         ExpressionColumn[] expr = new ExpressionColumn[list.length];
         for (int i = 0; i < list.length; i++) {
             Expression e = list[i];
-            Column col = new Column("C" + (i + 1),
-                    e.getValueType(), e.getPrecision(), e.getScale(),
-                    e.getDisplaySize());
+            Column col = new Column("C" + (i + 1), e.getType());
             expr[i] = new ExpressionColumn(session.getDatabase(), col);
         }
         return expr;

@@ -80,21 +80,6 @@ public class Subquery extends Expression {
     }
 
     @Override
-    public int getScale() {
-        return getExpression().getScale();
-    }
-
-    @Override
-    public long getPrecision() {
-        return getExpression().getPrecision();
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return getExpression().getDisplaySize();
-    }
-
-    @Override
     public StringBuilder getSQL(StringBuilder builder) {
         return builder.append('(').append(query.getPlanSQL()).append(')');
     }

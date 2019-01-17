@@ -243,21 +243,6 @@ public class ExpressionColumn extends Expression {
         return column;
     }
 
-    @Override
-    public int getScale() {
-        return column.getType().getScale();
-    }
-
-    @Override
-    public long getPrecision() {
-        return column.getType().getPrecision();
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return column.getType().getDisplaySize();
-    }
-
     public String getOriginalColumnName() {
         return columnName;
     }

@@ -55,21 +55,6 @@ public class JavaAggregate extends AbstractAggregate {
     }
 
     @Override
-    public long getPrecision() {
-        return Integer.MAX_VALUE;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return Integer.MAX_VALUE;
-    }
-
-    @Override
-    public int getScale() {
-        return DataType.getDataType(dataType).defaultScale;
-    }
-
-    @Override
     public StringBuilder getSQL(StringBuilder builder) {
         Parser.quoteIdentifier(builder, userAggregate.getName()).append('(');
         writeExpressions(builder, args);

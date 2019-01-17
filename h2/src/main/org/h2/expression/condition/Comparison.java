@@ -234,7 +234,7 @@ public class Comparison extends Condition {
                     if (constType != resType) {
                         Column column = ((ExpressionColumn) left).getColumn();
                         right = ValueExpression.get(r.convertTo(resType,
-                                MathUtils.convertLongToInt(left.getPrecision()),
+                                MathUtils.convertLongToInt(left.getType().getPrecision()),
                                 session.getDatabase().getMode(), column, column.getType().getExtTypeInfo()));
                     }
                 } else if (right instanceof Parameter) {

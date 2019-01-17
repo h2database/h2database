@@ -12,7 +12,6 @@ import org.h2.expression.function.Function;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.MathUtils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -429,32 +428,6 @@ public class BinaryOperation extends Expression {
     @Override
     public int getValueType() {
         return dataType;
-    }
-
-    @Override
-    public long getPrecision() {
-        switch (opType) {
-        case CONCAT:
-            return left.getPrecision() + right.getPrecision();
-        default:
-            return Math.max(left.getPrecision(), right.getPrecision());
-        }
-    }
-
-    @Override
-    public int getDisplaySize() {
-        switch (opType) {
-        case CONCAT:
-            return MathUtils.convertLongToInt((long) left.getDisplaySize() +
-                    (long) right.getDisplaySize());
-        default:
-            return Math.max(left.getDisplaySize(), right.getDisplaySize());
-        }
-    }
-
-    @Override
-    public int getScale() {
-        return Math.max(left.getScale(), right.getScale());
     }
 
     @Override

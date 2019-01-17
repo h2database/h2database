@@ -529,7 +529,7 @@ public class LocalResultImpl implements LocalResult {
 
     @Override
     public int getDisplaySize(int i) {
-        return expressions[i].getDisplaySize();
+        return expressions[i].getType().getDisplaySize();
     }
 
     @Override
@@ -544,7 +544,7 @@ public class LocalResultImpl implements LocalResult {
 
     @Override
     public long getColumnPrecision(int i) {
-        return expressions[i].getPrecision();
+        return expressions[i].getType().getPrecision();
     }
 
     @Override
@@ -559,7 +559,7 @@ public class LocalResultImpl implements LocalResult {
 
     @Override
     public int getColumnScale(int i) {
-        return expressions[i].getScale();
+        return expressions[i].getType().getScale();
     }
 
     /**

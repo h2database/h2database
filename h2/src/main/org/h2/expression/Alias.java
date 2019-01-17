@@ -64,21 +64,6 @@ public class Alias extends Expression {
     }
 
     @Override
-    public int getScale() {
-        return expr.getScale();
-    }
-
-    @Override
-    public long getPrecision() {
-        return expr.getPrecision();
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return expr.getDisplaySize();
-    }
-
-    @Override
     public boolean isAutoIncrement() {
         return expr.isAutoIncrement();
     }

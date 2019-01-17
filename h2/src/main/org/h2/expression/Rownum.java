@@ -59,21 +59,6 @@ public class Rownum extends Expression {
     }
 
     @Override
-    public int getScale() {
-        return 0;
-    }
-
-    @Override
-    public long getPrecision() {
-        return ValueLong.PRECISION;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return ValueLong.DISPLAY_SIZE;
-    }
-
-    @Override
     public String getSQL() {
         return "ROWNUM()";
     }

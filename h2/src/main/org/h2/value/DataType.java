@@ -509,6 +509,7 @@ public class DataType {
             dataType.params = "PRECISION,SCALE";
             dataType.supportsPrecision = true;
             dataType.supportsScale = true;
+            dataType.maxScale = maxPrecision;
         }
         dataType.decimal = true;
         dataType.autoIncrement = autoInc;

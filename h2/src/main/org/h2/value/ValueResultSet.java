@@ -64,7 +64,8 @@ public class ValueResultSet extends Value {
             for (int i = 0; i < maxrows && rs.next(); i++) {
                 Value[] list = new Value[columnCount];
                 for (int j = 0; j < columnCount; j++) {
-                    list[j] = DataType.convertToValue(session, rs.getObject(j + 1), simple.getColumnType(j));
+                    list[j] = DataType.convertToValue(session, rs.getObject(j + 1),
+                            simple.getColumnType(j).getValueType());
                 }
                 simple.addRow(list);
             }
@@ -87,8 +88,7 @@ public class ValueResultSet extends Value {
         int columnCount = result.getVisibleColumnCount();
         SimpleResult simple = new SimpleResult();
         for (int i = 0; i < columnCount; i++) {
-            simple.addColumn(result.getAlias(i), result.getColumnName(i), result.getColumnType(i),
-                    result.getColumnPrecision(i), result.getColumnScale(i), result.getDisplaySize(i));
+            simple.addColumn(result.getAlias(i), result.getColumnName(i), result.getColumnType(i));
         }
         result.reset();
         for (int i = 0; i < maxrows && result.next(); i++) {

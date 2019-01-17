@@ -1335,8 +1335,7 @@ public abstract class Value extends VersionedValue {
 
     private ValueResultSet convertToResultSet() {
         SimpleResult result = new SimpleResult();
-        TypeInfo type = getType();
-        result.addColumn("X", "X", type.getValueType(), type.getPrecision(), type.getScale(), type.getDisplaySize());
+        result.addColumn("X", "X", getType());
         result.addRow(this);
         return ValueResultSet.get(result);
     }
@@ -1637,8 +1636,7 @@ public abstract class Value extends VersionedValue {
      */
     public ResultInterface getResult() {
         SimpleResult rs = new SimpleResult();
-        TypeInfo type = getType();
-        rs.addColumn("X", "X", type.getValueType(), type.getPrecision(), type.getScale(), type.getDisplaySize());
+        rs.addColumn("X", "X", getType());
         rs.addRow(this);
         return rs;
     }

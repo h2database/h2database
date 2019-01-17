@@ -512,18 +512,19 @@ public class Transfer {
             int columnCount = result.getVisibleColumnCount();
             writeInt(columnCount);
             for (int i = 0; i < columnCount; i++) {
+                TypeInfo columnType = result.getColumnType(i);
                 if (version >= Constants.TCP_PROTOCOL_VERSION_18) {
                     writeString(result.getAlias(i));
                     writeString(result.getColumnName(i));
-                    writeInt(result.getColumnType(i));
-                    writeLong(result.getColumnPrecision(i));
-                    writeInt(result.getColumnScale(i));
-                    writeInt(result.getDisplaySize(i));
+                    writeInt(columnType.getValueType());
+                    writeLong(columnType.getPrecision());
+                    writeInt(columnType.getScale());
+                    writeInt(columnType.getDisplaySize());
                 } else {
                     writeString(result.getColumnName(i));
-                    writeInt(DataType.getDataType(result.getColumnType(i)).sqlType);
-                    writeInt(MathUtils.convertLongToInt(result.getColumnPrecision(i)));
-                    writeInt(result.getColumnScale(i));
+                    writeInt(DataType.getDataType(columnType.getValueType()).sqlType);
+                    writeInt(MathUtils.convertLongToInt(columnType.getPrecision()));
+                    writeInt(columnType.getScale());
                 }
             }
             while (result.next()) {

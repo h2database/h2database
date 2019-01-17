@@ -402,11 +402,8 @@ public abstract class Expression {
         Database db = session == null ? null : session.getDatabase();
         for (int i = 0; i < columnCount; i++) {
             String name = result.getColumnName(i);
-            int type = result.getColumnType(i);
-            long precision = result.getColumnPrecision(i);
-            int scale = result.getColumnScale(i);
-            int displaySize = result.getDisplaySize(i);
-            Column col = new Column(name, type, precision, scale, displaySize);
+            TypeInfo type = result.getColumnType(i);
+            Column col = new Column(name, type);
             Expression expr = new ExpressionColumn(db, col);
             expressions[i] = expr;
         }

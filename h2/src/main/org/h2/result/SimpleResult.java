@@ -10,6 +10,7 @@ import java.util.ArrayList;
 
 import org.h2.engine.SessionInterface;
 import org.h2.util.Utils;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -28,16 +29,7 @@ public class SimpleResult implements ResultInterface {
         final String columnName;
 
         /** Column type. */
-        final int columnType;
-
-        /** Column precision. */
-        final long columnPrecision;
-
-        /** Column scale. */
-        final int columnScale;
-
-        /** Displayed size of the column. */
-        final int displaySize;
+        final TypeInfo columnType;
 
         Column(String alias, String columnName, int columnType, long columnPrecision, int columnScale,
                 int displaySize) {
@@ -46,10 +38,16 @@ public class SimpleResult implements ResultInterface {
             }
             this.alias = alias;
             this.columnName = columnName;
+            this.columnType = TypeInfo.getTypeInfo(columnType, columnPrecision, columnScale, displaySize, null);
+        }
+
+        Column(String alias, String columnName, TypeInfo columnType) {
+            if (alias == null || columnName == null) {
+                throw new NullPointerException();
+            }
+            this.alias = alias;
+            this.columnName = columnName;
             this.columnType = columnType;
-            this.columnPrecision = columnPrecision;
-            this.columnScale = columnScale;
-            this.displaySize = displaySize;
         }
 
         @Override
@@ -107,7 +105,7 @@ public class SimpleResult implements ResultInterface {
      *
      * @param alias Column's alias.
      * @param columnName Column's name.
-     * @param columnType Column's type.
+     * @param columnType Column's value type.
      * @param columnPrecision Column's  precision.
      * @param columnScale Column's scale.
      * @param displaySize Column's display data size.
@@ -115,6 +113,17 @@ public class SimpleResult implements ResultInterface {
     public void addColumn(String alias, String columnName, int columnType, long columnPrecision, int columnScale,
             int displaySize) {
         addColumn(new Column(alias, columnName, columnType, columnPrecision, columnScale, displaySize));
+    }
+
+    /**
+     * Add column to the result.
+     *
+     * @param alias Column's alias.
+     * @param columnName Column's name.
+     * @param columnType Column's type.
+     */
+    public void addColumn(String alias, String columnName, TypeInfo columnType) {
+        addColumn(new Column(alias, columnName, columnType));
     }
 
     /**
@@ -212,23 +221,8 @@ public class SimpleResult implements ResultInterface {
     }
 
     @Override
-    public int getColumnType(int i) {
+    public TypeInfo getColumnType(int i) {
         return columns.get(i).columnType;
-    }
-
-    @Override
-    public long getColumnPrecision(int i) {
-        return columns.get(i).columnPrecision;
-    }
-
-    @Override
-    public int getColumnScale(int i) {
-        return columns.get(i).columnScale;
-    }
-
-    @Override
-    public int getDisplaySize(int i) {
-        return columns.get(i).displaySize;
     }
 
     @Override

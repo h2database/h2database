@@ -72,7 +72,7 @@ public class ConditionInSelect extends Condition {
                 return ValueBoolean.TRUE;
             }
         } else {
-            int dataType = rows.getColumnType(0);
+            int dataType = rows.getColumnType(0).getValueType();
             if (dataType == Value.NULL) {
                 return ValueBoolean.FALSE;
             }

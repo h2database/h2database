@@ -67,11 +67,7 @@ public class FunctionTable extends Table {
         int columnCount = result.getVisibleColumnCount();
         Column[] cols = new Column[columnCount];
         for (int i = 0; i < columnCount; i++) {
-            cols[i] = new Column(result.getColumnName(i),
-                    result.getColumnType(i),
-                    result.getColumnPrecision(i),
-                    result.getColumnScale(i),
-                    result.getDisplaySize(i));
+            cols[i] = new Column(result.getColumnName(i), result.getColumnType(i));
         }
         setColumns(cols);
     }

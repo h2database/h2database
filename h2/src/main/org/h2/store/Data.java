@@ -27,6 +27,7 @@ import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -679,10 +680,11 @@ public class Data {
             for (int i = 0; i < columnCount; i++) {
                 writeString(result.getAlias(i));
                 writeString(result.getColumnName(i));
-                writeVarInt(result.getColumnType(i));
-                writeVarLong(result.getColumnPrecision(i));
-                writeVarInt(result.getColumnScale(i));
-                writeVarInt(result.getDisplaySize(i));
+                TypeInfo columnType = result.getColumnType(i);
+                writeVarInt(columnType.getValueType());
+                writeVarLong(columnType.getPrecision());
+                writeVarInt(columnType.getScale());
+                writeVarInt(columnType.getDisplaySize());
             }
             while (result.next()) {
                 writeByte((byte) 1);
@@ -1166,10 +1168,11 @@ public class Data {
             for (int i = 0; i < columnCount; i++) {
                 len += getStringLen(result.getAlias(i));
                 len += getStringLen(result.getColumnName(i));
-                len += getVarIntLen(result.getColumnType(i));
-                len += getVarLongLen(result.getColumnPrecision(i));
-                len += getVarIntLen(result.getColumnScale(i));
-                len += getVarIntLen(result.getDisplaySize(i));
+                TypeInfo columnType = result.getColumnType(i);
+                len += getVarIntLen(columnType.getValueType());
+                len += getVarLongLen(columnType.getPrecision());
+                len += getVarIntLen(columnType.getScale());
+                len += getVarIntLen(columnType.getDisplaySize());
             }
             while (result.next()) {
                 len++;

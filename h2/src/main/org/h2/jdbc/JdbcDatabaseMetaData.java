@@ -11,7 +11,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.RowIdLifetime;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.Arrays;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -26,6 +25,7 @@ import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.result.SimpleResult;
 import org.h2.util.StringUtils;
+import org.h2.value.TypeInfo;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueString;
 
@@ -3187,12 +3187,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     public ResultSet getClientInfoProperties() throws SQLException {
         Properties clientInfo = conn.getClientInfo();
         SimpleResult result = new SimpleResult();
-        result.addColumn("NAME", "NAME", Types.VARCHAR, 0, 0, Integer.MAX_VALUE);
-        result.addColumn("MAX_LEN", "MAX_LEN", Types.INTEGER, 0, 0, ValueInt.DISPLAY_SIZE);
-        result.addColumn("DEFAULT_VALUE", "DEFAULT_VALUE", Types.VARCHAR, 0, 0, Integer.MAX_VALUE);
-        result.addColumn("DESCRIPTION", "DESCRIPTION", Types.VARCHAR, 0, 0, Integer.MAX_VALUE);
+        result.addColumn("NAME", "NAME", TypeInfo.TYPE_STRING_DEFAULT);
+        result.addColumn("MAX_LEN", "MAX_LEN", TypeInfo.TYPE_INT);
+        result.addColumn("DEFAULT_VALUE", "DEFAULT_VALUE", TypeInfo.TYPE_STRING_DEFAULT);
+        result.addColumn("DESCRIPTION", "DESCRIPTION", TypeInfo.TYPE_STRING_DEFAULT);
         // Non-standard column
-        result.addColumn("VALUE", "VALUE", Types.VARCHAR, 0, 0, Integer.MAX_VALUE);
+        result.addColumn("VALUE", "VALUE", TypeInfo.TYPE_STRING_DEFAULT);
         for (Entry<Object, Object> entry : clientInfo.entrySet()) {
             result.addRow(ValueString.get((String) entry.getKey()), ValueInt.get(Integer.MAX_VALUE),
                     ValueString.EMPTY, ValueString.EMPTY, ValueString.get((String) entry.getValue()));

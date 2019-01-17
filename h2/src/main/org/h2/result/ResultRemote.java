@@ -14,6 +14,7 @@ import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.value.Transfer;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -77,23 +78,8 @@ public class ResultRemote implements ResultInterface {
     }
 
     @Override
-    public int getColumnType(int i) {
+    public TypeInfo getColumnType(int i) {
         return columns[i].columnType;
-    }
-
-    @Override
-    public long getColumnPrecision(int i) {
-        return columns[i].precision;
-    }
-
-    @Override
-    public int getColumnScale(int i) {
-        return columns[i].scale;
-    }
-
-    @Override
-    public int getDisplaySize(int i) {
-        return columns[i].displaySize;
     }
 
     @Override

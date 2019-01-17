@@ -26,6 +26,7 @@ import org.h2.store.DataHandler;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -417,10 +418,11 @@ public class ValueDataType implements DataType {
             for (int i = 0; i < columnCount; i++) {
                 writeString(buff, result.getAlias(i));
                 writeString(buff, result.getColumnName(i));
-                buff.putVarInt(result.getColumnType(i)).
-                    putVarLong(result.getColumnPrecision(i)).
-                    putVarInt(result.getColumnScale(i)).
-                    putVarInt(result.getDisplaySize(i));
+                TypeInfo columnType = result.getColumnType(i);
+                buff.putVarInt(columnType.getValueType()).
+                    putVarLong(columnType.getPrecision()).
+                    putVarInt(columnType.getScale()).
+                    putVarInt(columnType.getDisplaySize());
             }
             while (result.next()) {
                 buff.put((byte) 1);

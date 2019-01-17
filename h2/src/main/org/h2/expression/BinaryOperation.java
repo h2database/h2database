@@ -164,9 +164,18 @@ public class BinaryOperation extends Expression {
         left = left.optimize(session);
         right = right.optimize(session);
         switch (opType) {
-        case CONCAT:
+        case CONCAT: {
+            TypeInfo l = left.getType(), r = right.getType();
+            if (DataType.isStringType(l.getValueType()) && DataType.isStringType(r.getValueType())) {
+                long precision = l.getPrecision() + r.getPrecision();
+                if (precision >= 0 && precision < Integer.MAX_VALUE) {
+                    type = TypeInfo.getTypeInfo(Value.STRING, precision, 0, (int) precision, null);
+                    break;
+                }
+            }
             type = TypeInfo.TYPE_STRING_DEFAULT;
             break;
+        }
         case PLUS:
         case MINUS:
         case MULTIPLY:

@@ -240,6 +240,7 @@ public class TypeInfo {
         case Value.BYTE:
         case Value.SHORT:
         case Value.INT:
+        case Value.LONG:
         case Value.DOUBLE:
         case Value.FLOAT:
         case Value.DATE:

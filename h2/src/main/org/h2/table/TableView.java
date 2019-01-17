@@ -184,7 +184,7 @@ public class TableView extends Table {
                 int type = Value.UNKNOWN;
                 if (columnTemplates != null && columnTemplates.length > i) {
                     name = columnTemplates[i].getName();
-                    type = columnTemplates[i].getType();
+                    type = columnTemplates[i].getType().getValueType();
                 }
                 if (name == null) {
                     name = expr.getAlias();
@@ -199,7 +199,7 @@ public class TableView extends Table {
                 ExtTypeInfo extTypeInfo = null;
                 if (DataType.isExtInfoType(type)) {
                     if (expr instanceof ExpressionColumn) {
-                        extTypeInfo = ((ExpressionColumn) expr).getColumn().getExtTypeInfo();
+                        extTypeInfo = ((ExpressionColumn) expr).getColumn().getType().getExtTypeInfo();
                     }
                 }
                 Column col = new Column(name, type, precision, scale, displaySize, extTypeInfo);

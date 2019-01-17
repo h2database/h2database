@@ -226,6 +226,7 @@ import org.h2.value.DataType;
 import org.h2.value.ExtTypeInfo;
 import org.h2.value.ExtTypeInfoEnum;
 import org.h2.value.ExtTypeInfoGeometry;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -5355,13 +5356,14 @@ public class Parser {
         Domain domain = database.findDomain(original);
         if (domain != null) {
             templateColumn = domain.getColumn();
-            dataType = DataType.getDataType(templateColumn.getType());
+            TypeInfo type = templateColumn.getType();
+            dataType = DataType.getDataType(type.getValueType());
             comment = templateColumn.getComment();
             original = forTable ? domain.getSQL() : templateColumn.getOriginalSQL();
-            precision = templateColumn.getPrecision();
-            displaySize = templateColumn.getDisplaySize();
-            scale = templateColumn.getScale();
-            extTypeInfo = templateColumn.getExtTypeInfo();
+            precision = type.getPrecision();
+            displaySize = type.getDisplaySize();
+            scale = type.getScale();
+            extTypeInfo = type.getExtTypeInfo();
         } else {
             Mode mode = database.getMode();
             dataType = DataType.getTypeByName(original, mode);
@@ -5863,10 +5865,11 @@ public class Parser {
                             .get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
                 }
                 Column c = columns.get(i);
-                type = Value.getHigherOrder(c.getType(), type);
-                prec = Math.max(c.getPrecision(), prec);
-                scale = Math.max(c.getScale(), scale);
-                displaySize = Math.max(c.getDisplaySize(), displaySize);
+                TypeInfo t = c.getType();
+                type = Value.getHigherOrder(t.getValueType(), type);
+                prec = Math.max(t.getPrecision(), prec);
+                scale = Math.max(t.getScale(), scale);
+                displaySize = Math.max(t.getDisplaySize(), displaySize);
                 column = new Column(columnName, type, prec, scale, displaySize);
                 columns.set(i, column);
                 row.add(expr);
@@ -5883,7 +5886,7 @@ public class Parser {
         }
         for (int i = 0; i < columnCount; i++) {
             Column c = columns.get(i);
-            if (c.getType() == Value.UNKNOWN) {
+            if (c.getType().getValueType() == Value.UNKNOWN) {
                 c = new Column(c.getName(), Value.STRING, 0, 0, 0);
                 columns.set(i, c);
             }

@@ -22,6 +22,7 @@ import org.h2.table.TableFilter;
 import org.h2.table.TableLink;
 import org.h2.util.StatementBuilder;
 import org.h2.util.Utils;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -131,12 +132,13 @@ public class LinkedIndex extends BaseIndex {
     }
 
     private void addParameter(StatementBuilder buff, Column col) {
-        if (col.getType() == Value.STRING_FIXED && link.isOracle()) {
+        TypeInfo type = col.getType();
+        if (type.getValueType() == Value.STRING_FIXED && link.isOracle()) {
             // workaround for Oracle
             // create table test(id int primary key, name char(15));
             // insert into test values(1, 'Hello')
             // select * from test where name = ? -- where ? = "Hello" > no rows
-            buff.append("CAST(? AS CHAR(").append(col.getPrecision()).append("))");
+            buff.append("CAST(? AS CHAR(").append(type.getPrecision()).append("))");
         } else {
             buff.append('?');
         }

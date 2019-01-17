@@ -206,7 +206,7 @@ public class CompareLike extends Condition {
             // can't use an index
             return;
         }
-        if (!DataType.isStringType(l.getColumn().getType())) {
+        if (!DataType.isStringType(l.getColumn().getType().getValueType())) {
             // column is not a varchar - can't use the index
             return;
         }

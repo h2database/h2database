@@ -849,7 +849,7 @@ public class MetaTable extends Table {
                     Domain domain = c.getDomain();
                     DataType dataType = c.getDataType();
                     ValueInt precision = ValueInt.get(c.getPrecisionAsInt());
-                    ValueInt scale = ValueInt.get(c.getScale());
+                    ValueInt scale = ValueInt.get(c.getType().getScale());
                     Sequence sequence = c.getSequence();
                     boolean hasDateTimePrecision;
                     int type = dataType.type;
@@ -1792,7 +1792,7 @@ public class MetaTable extends Table {
                         // PRECISION
                         ValueInt.get(col.getPrecisionAsInt()),
                         // SCALE
-                        ValueInt.get(col.getScale()),
+                        ValueInt.get(col.getType().getScale()),
                         // TYPE_NAME
                         col.getDataType().name,
                         // SELECTIVITY INT

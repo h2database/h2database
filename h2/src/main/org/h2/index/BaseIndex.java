@@ -73,7 +73,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      */
     protected static void checkIndexColumnTypes(IndexColumn[] columns) {
         for (IndexColumn c : columns) {
-            if (DataType.isLargeObject(c.column.getType())) {
+            if (DataType.isLargeObject(c.column.getType().getValueType())) {
                 throw DbException.getUnsupportedException(
                         "Index on BLOB or CLOB column: " + c.column.getCreateSQL());
             }

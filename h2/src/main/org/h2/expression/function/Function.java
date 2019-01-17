@@ -62,6 +62,7 @@ import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.ExtTypeInfo;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -2293,11 +2294,12 @@ public class Function extends Expression implements FunctionCall {
     }
 
     public void setDataType(Column col) {
-        dataType = col.getType();
-        precision = col.getPrecision();
-        displaySize = col.getDisplaySize();
-        scale = col.getScale();
-        extTypeInfo = col.getExtTypeInfo();
+        TypeInfo type = col.getType();
+        dataType = type.getValueType();
+        precision = type.getPrecision();
+        displaySize = type.getDisplaySize();
+        scale = type.getScale();
+        extTypeInfo = type.getExtTypeInfo();
     }
 
     @Override

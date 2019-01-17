@@ -66,7 +66,7 @@ public class Parameter extends Expression implements ParameterInterface {
             return value.getType();
         }
         if (column != null) {
-            return column.getType();
+            return column.getType().getValueType();
         }
         return Value.UNKNOWN;
     }
@@ -114,7 +114,7 @@ public class Parameter extends Expression implements ParameterInterface {
             return value.getScale();
         }
         if (column != null) {
-            return column.getScale();
+            return column.getType().getScale();
         }
         return 0;
     }
@@ -125,7 +125,7 @@ public class Parameter extends Expression implements ParameterInterface {
             return value.getPrecision();
         }
         if (column != null) {
-            return column.getPrecision();
+            return column.getType().getPrecision();
         }
         return 0;
     }
@@ -136,7 +136,7 @@ public class Parameter extends Expression implements ParameterInterface {
             return value.getDisplaySize();
         }
         if (column != null) {
-            return column.getDisplaySize();
+            return column.getType().getDisplaySize();
         }
         return 0;
     }

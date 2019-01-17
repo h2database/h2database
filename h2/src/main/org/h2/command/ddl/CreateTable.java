@@ -202,7 +202,7 @@ public class CreateTable extends CommandWithColumns {
             int t = dt.type;
             if (DataType.isExtInfoType(t)) {
                 if (expr instanceof ExpressionColumn) {
-                    extTypeInfo = ((ExpressionColumn) expr).getColumn().getExtTypeInfo();
+                    extTypeInfo = ((ExpressionColumn) expr).getColumn().getType().getExtTypeInfo();
                 } else if (t == Value.ENUM) {
                     /*
                      * Only columns of tables may be enumerated.

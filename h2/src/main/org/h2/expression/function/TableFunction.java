@@ -125,8 +125,8 @@ public class TableFunction extends Function {
                         Column c = columns[j];
                         v = l[row];
                         if (!unnest) {
-                            v = c.convert(v).convertPrecision(c.getPrecision(), false)
-                                    .convertScale(true, c.getScale());
+                            v = c.convert(v).convertPrecision(c.getType().getPrecision(), false)
+                                    .convertScale(true, c.getType().getScale());
                         }
                     }
                     r[j] = v;

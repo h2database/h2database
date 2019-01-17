@@ -88,7 +88,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
             throw DbException.getUnsupportedException(
                     "Nulls last is not supported");
         }
-        if (col.column.getType() != Value.GEOMETRY) {
+        if (col.column.getType().getValueType() != Value.GEOMETRY) {
             throw DbException.getUnsupportedException(
                     "Spatial index on non-geometry column, "
                     + col.column.getCreateSQL());

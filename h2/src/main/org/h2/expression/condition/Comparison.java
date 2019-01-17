@@ -235,7 +235,7 @@ public class Comparison extends Condition {
                         Column column = ((ExpressionColumn) left).getColumn();
                         right = ValueExpression.get(r.convertTo(resType,
                                 MathUtils.convertLongToInt(left.getPrecision()),
-                                session.getDatabase().getMode(), column, column.getExtTypeInfo()));
+                                session.getDatabase().getMode(), column, column.getType().getExtTypeInfo()));
                     }
                 } else if (right instanceof Parameter) {
                     ((Parameter) right).setColumn(

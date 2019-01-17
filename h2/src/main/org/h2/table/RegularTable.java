@@ -78,7 +78,7 @@ public class RegularTable extends TableBase {
         this.isHidden = data.isHidden;
         boolean b = false;
         for (Column col : getColumns()) {
-            if (DataType.isLargeObject(col.getType())) {
+            if (DataType.isLargeObject(col.getType().getValueType())) {
                 b = true;
                 break;
             }

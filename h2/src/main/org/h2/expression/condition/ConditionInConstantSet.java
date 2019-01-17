@@ -57,7 +57,7 @@ public class ConditionInConstantSet extends Condition {
         type = left.getType();
         Mode mode = database.getMode();
         if (type == Value.ENUM) {
-            extTypeInfo = ((ExpressionColumn) left).getColumn().getExtTypeInfo();
+            extTypeInfo = ((ExpressionColumn) left).getColumn().getType().getExtTypeInfo();
             for (Expression expression : valueList) {
                 add(extTypeInfo.cast(expression.getValue(session)));
             }
